@@ -19,7 +19,7 @@ that can't be generated, and it's what Claude Code should read first.
 | `config/dimensions.json` | The 14 dimensions and 5 datasets the builder allows |
 | `config/measures.json` | 4 core measures + 4 derived, with suppression thresholds |
 | `config/presets.json` | 26 question-titled charts across 7 groups |
-| `data/reference/brand_registry.csv` | 91 makes → parent group → owner country → heritage country |
+| `data/reference/brand_registry.csv` | Make → parent group → owner country → heritage country, with make-level limitations noted |
 | `data/reference/events.csv` | 52 NZ policy/macro/OEM events, 40 source-verified |
 | `data/reference/powertrain_map.csv` | NZTA motive power → canonical powertrain |
 | `data/reference/segment_map.csv` | Coarse segment seed — **validate before trusting** |

@@ -84,7 +84,7 @@ config/
   measures.json       # what users can measure
   presets.json        # the Explore canon, as data
 data/reference/
-  brand_registry.csv  # make -> parent group -> brand origin  (91 rows, hand-maintained)
+  brand_registry.csv  # make -> parent group -> brand origin  (hand-maintained)
   powertrain_map.csv  # NZTA motive power -> canonical powertrain
   segment_map.csv     # body/vehicle type + GVM -> segment  (coarse seed, validate it)
   tla_region.csv      # territorial authority -> region (straddling districts flagged)

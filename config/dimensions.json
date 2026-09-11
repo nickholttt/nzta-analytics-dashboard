@@ -63,7 +63,7 @@
       "source": "reference:brand_registry",
       "shape_hint": "mix",
       "cardinality": "low",
-      "help": "The home country of the company that owns the brand today. Volvo counts as China here."
+      "help": "The home country of the company that owns the brand today, or for a defunct brand the last company that built it. Volvo counts as China here."
     },
     {
       "id": "heritage_country",

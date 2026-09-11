@@ -1,92 +1,104 @@
-make_canonical,aliases,parent_group,owner_country,heritage_country,brand_region,notes
-TOYOTA,,Toyota Group,Japan,Japan,Japan,
-LEXUS,,Toyota Group,Japan,Japan,Japan,
-DAIHATSU,,Toyota Group,Japan,Japan,Japan,
-HINO,,Toyota Group,Japan,Japan,Japan,Heavy commercial
-SUBARU,,Subaru Corporation,Japan,Japan,Japan,Toyota holds a minority stake
-MAZDA,,Mazda Motor Corporation,Japan,Japan,Japan,
-HONDA,,Honda Motor,Japan,Japan,Japan,
-NISSAN,,Nissan Motor,Japan,Japan,Japan,Renault-Nissan-Mitsubishi Alliance member
-INFINITI,,Nissan Motor,Japan,Japan,Japan,
-MITSUBISHI,MITSUBISHI MOTORS,Mitsubishi Motors,Japan,Japan,Japan,
-SUZUKI,,Suzuki Motor,Japan,Japan,Japan,
-ISUZU,,Isuzu Motors,Japan,Japan,Japan,
-UD TRUCKS,UD,Isuzu Motors,Japan,Japan,Japan,Heavy commercial
-FUSO,MITSUBISHI FUSO,Daimler Truck,Germany,Japan,Japan,Owner and heritage differ
-HYUNDAI,,Hyundai Motor Group,South Korea,South Korea,Korea,
-KIA,,Hyundai Motor Group,South Korea,South Korea,Korea,
-GENESIS,,Hyundai Motor Group,South Korea,South Korea,Korea,
-KGM,SSANGYONG|KG MOBILITY,KG Mobility,South Korea,South Korea,Korea,Renamed from SsangYong
-BYD,,BYD,China,China,China,
-MG,,SAIC Motor,China,United Kingdom,China,Chinese-owned; British heritage. Report under owner_country by default
-LDV,,SAIC Motor,China,United Kingdom,China,Chinese-owned; British heritage
-MAXUS,,SAIC Motor,China,United Kingdom,China,
-HAVAL,,Great Wall Motor,China,China,China,
-GWM,GREAT WALL,Great Wall Motor,China,China,China,
-ORA,,Great Wall Motor,China,China,China,
-TANK,,Great Wall Motor,China,China,China,
-CHERY,,Chery Automobile,China,China,China,
-JAECOO,,Chery Automobile,China,China,China,
-OMODA,,Chery Automobile,China,China,China,
-GEELY,,Geely Holding,China,China,China,
-ZEEKR,,Geely Holding,China,China,China,
-LYNK & CO,LYNK AND CO|LYNKCO,Geely Holding,China,China,China,
-POLESTAR,,Geely Holding,China,Sweden,China,Chinese-owned; Swedish heritage
-VOLVO,,Geely Holding,China,Sweden,China,Chinese-owned; Swedish heritage. A frequent source of confusion
-LOTUS,,Geely Holding,China,United Kingdom,China,Chinese-owned; British heritage
-XPENG,,XPeng,China,China,China,
-NIO,,NIO,China,China,China,
-LEAPMOTOR,,Leapmotor,China,China,China,Stellantis holds a stake and runs international distribution
-JAC,,JAC Motors,China,China,China,
-FOTON,,BAIC Group,China,China,China,
-CHANGAN,DEEPAL,Changan Automobile,China,China,China,
-SKYWELL,,Skywell,China,China,China,
-VOLKSWAGEN,VW,Volkswagen Group,Germany,Germany,Europe,
-AUDI,,Volkswagen Group,Germany,Germany,Europe,
-SKODA,ŠKODA,Volkswagen Group,Germany,Czechia,Europe,
-CUPRA,SEAT,Volkswagen Group,Germany,Spain,Europe,
-PORSCHE,,Volkswagen Group,Germany,Germany,Europe,
-BENTLEY,,Volkswagen Group,Germany,United Kingdom,Europe,
-LAMBORGHINI,,Volkswagen Group,Germany,Italy,Europe,
-SCANIA,,Traton,Germany,Sweden,Europe,Heavy commercial
-MAN,,Traton,Germany,Germany,Europe,Heavy commercial
-BMW,,BMW Group,Germany,Germany,Europe,
-MINI,,BMW Group,Germany,United Kingdom,Europe,
-ROLLS-ROYCE,ROLLS ROYCE,BMW Group,Germany,United Kingdom,Europe,
-MERCEDES-BENZ,MERCEDES BENZ|MERCEDES|MERC,Mercedes-Benz Group,Germany,Germany,Europe,Alias handling is essential; this make is recorded several ways
-SMART,,Mercedes-Benz Group,Germany,Germany,Europe,Now a Mercedes-Geely joint venture
-PEUGEOT,,Stellantis,Netherlands,France,Europe,Stellantis is Dutch-incorporated; use heritage_country for most analysis
-CITROEN,CITROËN,Stellantis,Netherlands,France,Europe,
-DS,DS AUTOMOBILES,Stellantis,Netherlands,France,Europe,
-OPEL,,Stellantis,Netherlands,Germany,Europe,
-FIAT,,Stellantis,Netherlands,Italy,Europe,
-ABARTH,,Stellantis,Netherlands,Italy,Europe,
-ALFA ROMEO,ALFA,Stellantis,Netherlands,Italy,Europe,
-MASERATI,,Stellantis,Netherlands,Italy,Europe,
-JEEP,,Stellantis,Netherlands,United States,North America,
-RAM,,Stellantis,Netherlands,United States,North America,
-DODGE,,Stellantis,Netherlands,United States,North America,
-CHRYSLER,,Stellantis,Netherlands,United States,North America,
-RENAULT,,Renault Group,France,France,Europe,
-ALPINE,,Renault Group,France,France,Europe,
-FERRARI,,Ferrari NV,Italy,Italy,Europe,
-IVECO,,Iveco Group,Italy,Italy,Europe,Heavy commercial
-DAF,,Paccar,United States,Netherlands,Europe,Heavy commercial
-JAGUAR,,Tata Motors,India,United Kingdom,Europe,Indian-owned; British heritage
-LAND ROVER,RANGE ROVER,Tata Motors,India,United Kingdom,Europe,Indian-owned; British heritage
-TATA,,Tata Motors,India,India,Other,
-MAHINDRA,,Mahindra & Mahindra,India,India,Other,
-ASTON MARTIN,,Aston Martin Lagonda,United Kingdom,United Kingdom,Europe,
-MCLAREN,,McLaren Automotive,United Kingdom,United Kingdom,Europe,
-INEOS,,INEOS Automotive,United Kingdom,United Kingdom,Europe,
-FORD,,Ford Motor Company,United States,United States,North America,
-TESLA,,Tesla,United States,United States,North America,
-RIVIAN,,Rivian,United States,United States,North America,
-CHEVROLET,CHEV,General Motors,United States,United States,North America,
-CADILLAC,,General Motors,United States,United States,North America,
-GMC,,General Motors,United States,United States,North America,
-HOLDEN,,General Motors,United States,Australia,North America,Discontinued 2020; still a large share of the used fleet
-KENWORTH,,Paccar,United States,United States,North America,Heavy commercial
-PETERBILT,,Paccar,United States,United States,North America,Heavy commercial
-FREIGHTLINER,,Daimler Truck,Germany,United States,North America,Heavy commercial
-INTERNATIONAL,,Traton,Germany,United States,North America,Heavy commercial
+make_canonical,aliases,parent_group,owner_country,heritage_country,brand_region,occurs_in_source,notes
+TOYOTA,,Toyota Group,Japan,Japan,Japan,true,
+LEXUS,,Toyota Group,Japan,Japan,Japan,true,
+DAIHATSU,,Toyota Group,Japan,Japan,Japan,true,
+HINO,,Toyota Group,Japan,Japan,Japan,true,Heavy commercial
+SUBARU,,Subaru Corporation,Japan,Japan,Japan,true,Toyota holds a minority stake
+MAZDA,,Mazda Motor Corporation,Japan,Japan,Japan,true,
+HONDA,,Honda Motor,Japan,Japan,Japan,true,
+NISSAN,,Nissan Motor,Japan,Japan,Japan,true,"Renault-Nissan-Mitsubishi Alliance member. Make-level limitation: trucks built by Nissan Diesel (now UD Trucks) are also recorded as NISSAN; about 8.0k in-scope goods vehicles over 3500 kg carry this make, a mix of Nissan light trucks and Nissan Diesel models."
+DATSUN,,Nissan Motor,Japan,Japan,Japan,true,Nissan's former export brand. Historic.
+INFINITI,,Nissan Motor,Japan,Japan,Japan,true,
+MITSUBISHI,MITSUBISHI MOTORS,Mitsubishi Motors,Japan,Japan,Japan,true,"Make-level limitation: Fuso trucks recorded as MITSUBISHI roll up here, not to Daimler Truck / Germany. About 8.9k in-scope goods vehicles over 3500 kg carry this make. Not fixable at make level."
+SUZUKI,,Suzuki Motor,Japan,Japan,Japan,true,
+ISUZU,,Isuzu Motors,Japan,Japan,Japan,true,
+UD TRUCKS,UD,Isuzu Motors,Japan,Japan,Japan,true,Heavy commercial
+FUSO,MITSUBISHI FUSO,Daimler Truck,Germany,Japan,Japan,true,Owner and heritage differ
+HYUNDAI,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
+KIA,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
+GENESIS,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
+KGM,SSANGYONG|KG MOBILITY,KG Mobility,South Korea,South Korea,Korea,true,Renamed from SsangYong
+BYD,,BYD,China,China,China,true,
+DENZA,,BYD,China,China,China,true,Formerly a Mercedes-Benz joint venture; now BYD-owned.
+MG,,SAIC Motor,China,United Kingdom,China,true,Chinese-owned; British heritage. Report under owner_country by default
+LDV,,SAIC Motor,China,United Kingdom,China,true,Chinese-owned; British heritage
+MAXUS,,SAIC Motor,China,United Kingdom,China,true,
+HAVAL,,Great Wall Motor,China,China,China,true,"Undercounts the brand: Haval models also appear under MAKE = GWM as MODEL values such as HAVAL H6 and HAVAL JOLION."
+GWM,GREAT WALL,Great Wall Motor,China,China,China,true,"ORA and TANK vehicles are recorded under this make as MODEL values, as are some Haval models. Splitting those out needs model_registry, not this file."
+ORA,,Great Wall Motor,China,China,China,false,Never appears as a MAKE. Recorded as MODEL = ORA under MAKE = GWM.
+TANK,,Great Wall Motor,China,China,China,false,Never appears as a MAKE. Recorded as MODEL = TANK under MAKE = GWM.
+CHERY,,Chery Automobile,China,China,China,true,
+JAECOO,,Chery Automobile,China,China,China,true,
+OMODA,,Chery Automobile,China,China,China,true,
+GEELY,,Geely Holding,China,China,China,true,
+ZEEKR,,Geely Holding,China,China,China,true,
+FARIZON,,Geely Holding,China,China,China,true,Geely's commercial vehicle brand.
+LYNK & CO,LYNK AND CO|LYNKCO,Geely Holding,China,China,China,false,
+POLESTAR,,Geely Holding,China,Sweden,China,true,Chinese-owned; Swedish heritage
+VOLVO,,Geely Holding,China,Sweden,China,true,"Chinese-owned; Swedish heritage. A frequent source of confusion. Make-level limitation: Volvo trucks (AB Volvo, Sweden) share this make and roll up here; about 5.3k in-scope goods vehicles over 3500 kg."
+LOTUS,,Geely Holding,China,United Kingdom,China,true,Chinese-owned; British heritage
+XPENG,,XPeng,China,China,China,true,
+NIO,,NIO,China,China,China,false,
+LEAPMOTOR,,Leapmotor,China,China,China,true,Stellantis holds a stake and runs international distribution
+JAC,,JAC Motors,China,China,China,true,
+FOTON,,BAIC Group,China,China,China,true,
+BAIC,,BAIC Group,China,China,China,true,
+CHANGAN,DEEPAL,Changan Automobile,China,China,China,false,
+SKYWELL,,Skywell,China,China,China,false,
+DONGFENG,,Dongfeng Motor Corporation,China,China,China,true,
+FORTHING,,Dongfeng Motor Corporation,China,China,China,true,Dongfeng Liuzhou Motor's passenger brand.
+GAC,,GAC Group,China,China,China,true,
+VOLKSWAGEN,VW,Volkswagen Group,Germany,Germany,Europe,true,
+AUDI,,Volkswagen Group,Germany,Germany,Europe,true,
+SKODA,ŠKODA,Volkswagen Group,Germany,Czechia,Europe,true,
+CUPRA,SEAT,Volkswagen Group,Germany,Spain,Europe,true,
+PORSCHE,,Volkswagen Group,Germany,Germany,Europe,true,
+BENTLEY,,Volkswagen Group,Germany,United Kingdom,Europe,true,
+LAMBORGHINI,,Volkswagen Group,Germany,Italy,Europe,true,
+SCANIA,,Traton,Germany,Sweden,Europe,true,Heavy commercial
+MAN,,Traton,Germany,Germany,Europe,true,Heavy commercial
+BMW,,BMW Group,Germany,Germany,Europe,true,
+MINI,,BMW Group,Germany,United Kingdom,Europe,true,
+ROLLS-ROYCE,ROLLS ROYCE,BMW Group,Germany,United Kingdom,Europe,true,
+MERCEDES-BENZ,MERCEDES BENZ|MERCEDES|MERC,Mercedes-Benz Group,Germany,Germany,Europe,true,Alias handling is essential; this make is recorded several ways
+SMART,,Mercedes-Benz Group,Germany,Germany,Europe,true,Now a Mercedes-Geely joint venture
+PEUGEOT,,Stellantis,Netherlands,France,Europe,true,Stellantis is Dutch-incorporated; use heritage_country for most analysis
+CITROEN,CITROËN,Stellantis,Netherlands,France,Europe,true,
+DS,DS AUTOMOBILES,Stellantis,Netherlands,France,Europe,true,Appears only as DS AUTOMOBILES (2 rows).
+OPEL,,Stellantis,Netherlands,Germany,Europe,true,
+FIAT,,Stellantis,Netherlands,Italy,Europe,true,
+ABARTH,,Stellantis,Netherlands,Italy,Europe,true,
+ALFA ROMEO,ALFA,Stellantis,Netherlands,Italy,Europe,true,
+MASERATI,,Stellantis,Netherlands,Italy,Europe,true,
+JEEP,,Stellantis,Netherlands,United States,North America,true,
+RAM,,Stellantis,Netherlands,United States,North America,true,
+DODGE,,Stellantis,Netherlands,United States,North America,true,
+CHRYSLER,,Stellantis,Netherlands,United States,North America,true,
+RENAULT,,Renault Group,France,France,Europe,true,
+ALPINE,,Renault Group,France,France,Europe,true,
+FERRARI,,Ferrari NV,Italy,Italy,Europe,true,
+IVECO,,Iveco Group,Italy,Italy,Europe,true,Heavy commercial
+DAF,,Paccar,United States,Netherlands,Europe,true,Heavy commercial
+JAGUAR,,Tata Motors,India,United Kingdom,Europe,true,Indian-owned; British heritage
+LAND ROVER,RANGE ROVER,Tata Motors,India,United Kingdom,Europe,true,Indian-owned; British heritage
+TATA,,Tata Motors,India,India,Other,true,
+MAHINDRA,,Mahindra & Mahindra,India,India,Other,true,
+ASTON MARTIN,,Aston Martin Lagonda,United Kingdom,United Kingdom,Europe,true,
+MCLAREN,,McLaren Automotive,United Kingdom,United Kingdom,Europe,true,
+INEOS,,INEOS Automotive,United Kingdom,United Kingdom,Europe,true,
+MORRIS,,British Leyland,United Kingdom,United Kingdom,Europe,true,"Defunct marque. owner_country is the last company that built it, not today's holder of the name."
+AUSTIN,,British Leyland,United Kingdom,United Kingdom,Europe,true,"Defunct marque. owner_country is the last company that built it, not today's holder of the name."
+ROVER,,Rover Group,United Kingdom,United Kingdom,Europe,true,"Defunct marque (2005); owner_country is the last company that built it. In the register this make also covers Rover Group-era Minis, MGs and Range Rovers."
+FORD,,Ford Motor Company,United States,United States,North America,true,
+TESLA,,Tesla,United States,United States,North America,true,
+RIVIAN,,Rivian,United States,United States,North America,false,
+CHEVROLET,CHEV,General Motors,United States,United States,North America,true,
+CADILLAC,,General Motors,United States,United States,North America,true,
+GMC,,General Motors,United States,United States,North America,true,
+HOLDEN,,General Motors,United States,Australia,North America,true,Discontinued 2020; still a large share of the used fleet
+BEDFORD,,General Motors,United States,United Kingdom,Europe,true,Defunct marque; Vauxhall's commercial vehicle brand.
+KENWORTH,,Paccar,United States,United States,North America,true,Heavy commercial
+PETERBILT,,Paccar,United States,United States,North America,true,Heavy commercial
+FREIGHTLINER,,Daimler Truck,Germany,United States,North America,true,Heavy commercial
+INTERNATIONAL,,Traton,Germany,United States,North America,true,Heavy commercial
+MACK,,Volvo Group,Sweden,United States,North America,true,"Heavy commercial. AB Volvo, the truck maker; unrelated to Volvo Cars."
