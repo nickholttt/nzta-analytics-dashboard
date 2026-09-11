@@ -2,7 +2,7 @@ make_canonical,aliases,parent_group,owner_country,heritage_country,brand_region,
 TOYOTA,,Toyota Group,Japan,Japan,Japan,true,
 LEXUS,TOYOTA LEXUS,Toyota Group,Japan,Japan,Japan,true,"TOYOTA LEXUS is an alias: 484 rows, all Lexus nameplates, all used imports. Lexus recorded as MODEL = LEXUS under TOYOTA is promoted here by model_registry.csv."
 DAIHATSU,,Toyota Group,Japan,Japan,Japan,true,
-HINO,,Toyota Group,Japan,Japan,Japan,true,Heavy commercial
+HINO,,ARCHION,Japan,Japan,Japan,true,"Heavy commercial. Owned since 1 April 2026 by ARCHION Corporation (Tokyo Stock Exchange), which also owns Mitsubishi Fuso; Toyota and Daimler Truck each hold about 25% (https://www.daimlertruck.com/en/newsroom/pressrelease/daimler-truck-completes-integration-of-its-subsidiary-mitsubishi-fuso-into-new-archion-corporation-53420564). Previously Toyota Group."
 SUBARU,,Subaru Corporation,Japan,Japan,Japan,true,Toyota holds a minority stake
 MAZDA,,Mazda Motor Corporation,Japan,Japan,Japan,true,
 HONDA,,Honda Motor,Japan,Japan,Japan,true,
@@ -13,7 +13,7 @@ MITSUBISHI,MITSUBISHI MOTORS,Mitsubishi Motors,Japan,Japan,Japan,true,"Fuso truc
 SUZUKI,,Suzuki Motor,Japan,Japan,Japan,true,
 ISUZU,,Isuzu Motors,Japan,Japan,Japan,true,
 UD TRUCKS,UD,Isuzu Motors,Japan,Japan,Japan,true,"Heavy commercial. Nissan Diesel trucks recorded under NISSAN (MODEL = UD, DIESEL, CONDOR) are promoted here by model_registry.csv from vehicle year 2010, the year of the rename. Parent group is today's owner."
-FUSO,MITSUBISHI FUSO,Daimler Truck,Germany,Japan,Japan,true,"Owner and heritage differ. Fuso trucks recorded under MITSUBISHI are promoted here by model_registry.csv from vehicle year 2003, when Mitsubishi Fuso became a separate company; older ones stay MITSUBISHI."
+FUSO,MITSUBISHI FUSO,ARCHION,Japan,Japan,Japan,true,"Owned since 1 April 2026 by ARCHION Corporation (Tokyo Stock Exchange), which also owns Hino; Daimler Truck and Toyota each hold about 25%, and Daimler Truck no longer consolidates Fuso (https://www.daimlertruck.com/en/newsroom/pressrelease/daimler-truck-completes-integration-of-its-subsidiary-mitsubishi-fuso-into-new-archion-corporation-53420564). Previously Daimler Truck, Germany. Fuso trucks recorded under MITSUBISHI are promoted here by model_registry.csv from vehicle year 2003, when Mitsubishi Fuso became a separate company; older ones stay MITSUBISHI."
 HYUNDAI,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
 KIA,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
 GENESIS,,Hyundai Motor Group,South Korea,South Korea,Korea,true,"Genesis-brand used imports recorded as MODEL = GENESIS under HYUNDAI are promoted here from vehicle year 2017 by model_registry.csv. The Hyundai Genesis sedan (up to 2016, and NZ-new in 2017) is a Hyundai model and stays HYUNDAI."
