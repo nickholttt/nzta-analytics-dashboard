@@ -1,0 +1,4 @@
+# The pipeline and golden-file tests run on Linux. Keep text byte-identical
+# across platforms so a checkout on Windows cannot change a hash or a diff.
+* text=auto eol=lf
+*.parquet binary
