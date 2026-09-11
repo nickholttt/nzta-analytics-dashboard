@@ -123,7 +123,7 @@
       "source": "derived:vehicle_year",
       "shape_hint": "distribution",
       "cardinality": "low",
-      "help": "Banded age of the vehicle. Note the definition of vehicle year changed in 2007.",
+      "help": "Years since the vehicle year. For NZ-new vehicles first registered from 2007 that is years since first registration; for used imports, years since the vehicle's year overseas. Vehicle year is less consistent for NZ-new vehicles registered before 2007.",
       "basis": "snapshot year - VEHICLE_YEAR",
       "$comment": "min and max are inclusive; max null means no upper bound. A missing VEHICLE_YEAR, a VEHICLE_YEAR of 0, or a negative result (vehicle years after the snapshot exist) falls to unknown.",
       "bands": [

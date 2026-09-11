@@ -12,14 +12,65 @@ There is no model year in the Motor Vehicle Register.
 
 | What you might assume | What the field actually is |
 |---|---|
-| `vehicle_year` = model year | From Jan 2007: the year the vehicle was **first registered in NZ or overseas**. Before 2007 it may be year of manufacture, model year, *or* first registration. |
+| `vehicle_year` = model year | Not model year. For NZ-new vehicles first registered from 2007 it is the **NZ registration year**. For used imports it is a calendar year from the vehicle's life overseas. Before 2007 it is a mix. See below. |
 | `country_of_origin` = brand nationality | Where the vehicle was principally manufactured |
 | `submodel` = a model variant you can group on | Free text |
 
-For a Japanese used import, `vehicle_year` is its **Japanese first
-registration year**. NZ's own WoF rules confirm this reading: a vehicle's
-age is taken from its original date of first registration in Japan, not
-its arrival here.
+### What the data shows
+
+NZTA publishes two definitions. Its field description page says "year of
+manufacture or model year – if unknown, year of first registration". Other
+NZTA guidance says that from January 2007 it is the year of first
+registration in NZ or overseas. Tested against the register (in-scope rows,
+2026-08 snapshot), the second is right from 2007 onward.
+
+**NZ-new from 2007: it is the registration year.** `vehicle_year` equals
+the first NZ registration year on all but 504 of 2.21 million rows. Under a
+manufacture-year reading, January registrations would include last year's
+stock; under a model-year reading, late-year registrations would include
+next year's models. Neither appears.
+
+**It is not model year.** On NZ-new vehicles since 2015 whose VIN position
+10 decodes to a model year one ahead of the registration year (103,566
+rows), `vehicle_year` equals the registration year on 99.9% and the VIN
+model year on 0.1%.
+
+**Before 2007 it is a mix, in more than one regime.** These figures
+describe vehicles still registered today, not everything registered then.
+
+| First registered | NZ-new rows where `vehicle_year` ≠ registration year |
+|---|---|
+| 1990–1995 | 6–23%, a year earlier |
+| 1996–2000 | under 0.1% |
+| 2001–2006 | 0.5–2% a year earlier; plus a year *later* on 4.5% in 2005 and 1.3% in 2006 |
+| 2007 onward | under 0.1% |
+
+Across 1990–2006 the mismatches follow the calendar: 14% of January
+registrations carry the previous year (manufacture-year behaviour) and 9%
+of December registrations carry the next year (model-year behaviour).
+
+**Used imports show no break at 2007.** Their age distribution is
+continuous across the boundary. `vehicle_year` behaves as a calendar year
+fixed by an event overseas: for Japanese used imports since 2015, mean age
+at registration falls from 9.7 years for January registrations to 8.9 for
+December ones, which is what a fixed overseas year plus a steady import
+delay produces. Year granularity cannot separate manufacture year from
+Japanese first-registration year, because for a domestic Japanese car they
+are usually the same year. NZ's WoF rules take age from first registration
+in Japan, and border eligibility cutoffs appear in the data as cliffs
+between adjacent vehicle years (2025 registrations: 12.4% aged 13, 0.5%
+aged 14), so treat it as the year those rules use.
+
+### What follows
+
+- For NZ-new vehicles, age at first NZ registration is **0 by
+  construction** from 2007. It cannot show run-out or ex-demonstrator
+  stock. It is correct, but carries no information for that channel.
+- For used imports, `vehicle_year` is informative and AFNZR is the import
+  age.
+- The 2007 break marker is warranted, but only on series that include
+  NZ-new vehicles, and it marks the last of several regime changes rather
+  than the only one.
 
 So do not build "registration year vs model year". Build this instead.
 
@@ -167,10 +218,34 @@ coverage is under 90% of NZ-new rows, drop the idea and stay with AFNZR.
 
 ## 6. Caveats to render on any age chart
 
-- Pre-2007 vehicle years mean different things. Render a break marker; do
-  not let a trend line cross it unannotated.
-- `vehicle_year` is a year, not a date, so AFNZR has up to ±1 year of
-  granularity error. State this. Do not report a median to one decimal.
+- **NZ-new before 2007.** `vehicle_year` mixes manufacture year, model
+  year and registration year for NZ-new vehicles first registered before
+  2007 (§1). Render a break marker at January 2007 on any age series that
+  includes NZ-new vehicles; do not let a trend line cross it unannotated.
+  A used-imports-only age chart needs no marker: that channel has no
+  discontinuity.
+- **NZ-new age is zero by construction** from 2007. A genuinely-new share
+  or freshness figure that combines both channels moves only because the
+  NZ-new/used mix moves, never because NZ-new vehicles arrived older. Say
+  so wherever the two are combined.
+- **Year granularity.** `vehicle_year` is a year, not a date, so AFNZR has
+  up to ±1 year of error, and mean age drifts by almost a year across the
+  calendar (January registrations look older than December ones). Compare
+  like months or use 12-month rolling figures. Do not report a median to
+  one decimal.
+- **Edge cases go to `unknown`, and each is counted.** A missing
+  `vehicle_year`, a `vehicle_year` of 0 and a negative AFNZR each fall to
+  the `unknown` band, and each count is published separately in the
+  manifest. "Zero" here means a `vehicle_year` of 0; an *age* of 0 is the
+  `0` band. At the 2026-08 snapshot, in scope: no missing or zero
+  `vehicle_year`; 3,800 negative ages (3,197 of them NZ-new vehicles
+  registered in 2005–2006, 504 NZ-new since 2007, 13 used imports). A
+  further 172 in-scope rows have no first-registration month at all; they
+  cannot be placed in any month, are excluded from monthly slices, and are
+  counted in the manifest too.
+- **Survivors, not registrations.** Every figure describes vehicles still
+  registered at the snapshot. Older cohorts are thinned by scrappage, which
+  need not be age-neutral.
 - Age at registration is not age of the vehicle when purchased second-hand
   domestically. It only describes vehicles entering the fleet.
 - An ownership change is not a purchase of a *new* vehicle. Keep the two

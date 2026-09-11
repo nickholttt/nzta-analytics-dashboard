@@ -125,9 +125,11 @@ pipeline/
 Read `docs/DATA_SOURCES.md` and `docs/MODEL_AND_AGE.md` before writing any
 transform. The short version:
 
-1. `vehicle_year` is **not** model year. From Jan 2007 it is the year the
-   vehicle was first registered in NZ or overseas. Before 2007 it is
-   ambiguous. There is no model year field in the register.
+1. `vehicle_year` is **not** model year, and there is no model year field
+   in the register. For NZ-new vehicles first registered from 2007 it is
+   the NZ registration year, so their age at registration is always 0. For
+   used imports it is a year from the vehicle's life overseas. Before 2007
+   it is inconsistent. Verified against the data: `docs/MODEL_AND_AGE.md` §1.
 2. `country_of_origin` is where the vehicle was **manufactured**, not the
    brand's nationality. Label it "Built in". Brand nationality comes from
    `brand_registry.csv`.

@@ -73,10 +73,17 @@ carry a different alternative fuel rather than dropping that fact.
 **Make and model** come from a predefined list; **submodel is free text**.
 Never aggregate on submodel.
 
-**Vehicle year** changed meaning in 2007. Before then it could be year of
-manufacture, model year, or year of first registration in NZ or overseas.
-From January 2007 it means year of first registration in NZ or overseas.
-Any chart spanning the boundary must render a visible break marker.
+**Vehicle year** changed meaning in 2007, and the data confirms it. NZTA's
+field description page says "year of manufacture or model year – if
+unknown, year of first registration", which matches the pre-2007 records,
+not later ones. For NZ-new vehicles first registered from 2007 it equals
+the registration year on all but 504 of 2.2 million in-scope rows, and it
+is not model year (checked against VIN model-year codes). For used imports
+it is a year from the vehicle's life overseas, with no break at 2007.
+Before 2007, NZ-new records mix manufacture year, model year and
+registration year across several regimes. Any chart that includes NZ-new
+vehicles and spans the boundary must render a visible break marker.
+Details: `MODEL_AND_AGE.md` §1.
 
 **Undefined values** are common. Some attributes are not captured at first
 registration and are updated later, so an "undefined" bucket is legitimate
