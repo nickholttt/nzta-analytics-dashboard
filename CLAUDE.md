@@ -80,9 +80,10 @@ chart type.
 
 ```
 config/
-  dimensions.json     # what users can break down by
+  dimensions.json     # what users can break down by, with each dimension's derive rule
   measures.json       # what users can measure
   presets.json        # the Explore canon, as data
+  pipeline.json       # source field bindings, thresholds, detection rules
 data/reference/
   brand_registry.csv  # make -> parent group -> brand origin  (hand-maintained)
   powertrain_map.csv  # NZTA motive power -> canonical powertrain
@@ -99,8 +100,14 @@ docs/
   CUBE_SCHEMA.md      # the precomputed output contract
   EVENTS_LAYER.md     # annotation, mechanism classes, pull-forward design
   MODEL_AND_AGE.md    # age-at-registration + derived model launch dates
+data/snapshots/        # committed: one small aggregate per snapshot, never raw rows
+data/state/            # committed: last_good.json, what the next run's guardrails compare against
 pipeline/
-  (to build)
+  expected_schema.json  # live field list captured once; asserted every run
+  __main__.py          # python -m pipeline {init-schema | run | build}
+  tests/               # golden contract, guardrails, invariant #1 scan
+.github/workflows/
+  monthly-build.yml    # monthly cron; skips when the change key is unchanged
 ```
 
 ---
@@ -135,9 +142,9 @@ transform. The short version:
    the NZ registration year, so their age at registration is always 0. For
    used imports it is a year from the vehicle's life overseas. Before 2007
    it is inconsistent. Verified against the data: `docs/MODEL_AND_AGE.md` §1.
-2. `country_of_origin` is where the vehicle was **manufactured**, not the
-   brand's nationality. Label it "Built in". Brand nationality comes from
-   `brand_registry.csv`.
+2. `ORIGINAL_COUNTRY` (country of origin) is where the vehicle was
+   **manufactured**, not the brand's nationality. Label it "Built in". Brand
+   nationality comes from `brand_registry.csv`.
 3. `submodel` is free text. Never aggregate on it.
 
 ## Non-goals

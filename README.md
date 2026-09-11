@@ -39,7 +39,22 @@ that can't be generated, and it's what Claude Code should read first.
 - `segment_map.csv` is coarse on purpose. The register records most SUVs
   as station wagons, so Car vs SUV cannot be derived and there is no SUV
   segment.
-- No pipeline code, no frontend. That's the build.
+- No frontend yet. The pipeline covers build step 1 only.
+
+## Running the pipeline
+
+```
+python -m venv .venv && .venv/bin/pip install -r pipeline/requirements.txt
+python -m pytest pipeline/tests           # golden contract, guardrails, invariant #1 scan
+python -m pipeline run                    # check the source; pull and build only if it changed
+python -m pipeline build data/raw/YYYY-MM/<timestamp> --dry-run   # rebuild a saved pull, publish nothing
+python -m pipeline init-schema            # once, deliberately: capture pipeline/expected_schema.json
+```
+
+A run writes `public/data/` (gitignored) and, only on success, commits
+`data/snapshots/YYYY-MM.parquet` and `data/state/last_good.json`. Any
+failed guardrail exits non-zero and leaves both untouched.
+`.github/workflows/monthly-build.yml` runs it monthly.
 
 ## Licence
 

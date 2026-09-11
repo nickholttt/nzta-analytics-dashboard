@@ -164,8 +164,10 @@ stays at 2012 while its age rises by one each year**: 13 in 2025, 14 in
 the `age-distribution-moving-hole` preset. The pipeline detects the cutoff
 every run and publishes `moving_cutoff_vehicle_year` and
 `moving_cutoff_age`; the detection rule and its thresholds live in
-`config/pipeline.json`. A changed vehicle year means the rule or the data
-changed. So does an age that fails to rise when the snapshot year does.
+`config/pipeline.json`. The published age is snapshot year minus the
+cutoff vehicle year, so it rises by one a year by construction; the signal
+to watch is the vehicle year. A changed vehicle year, or no detectable
+cutoff, means the rule or the data changed, and the run warns.
 
 An earlier cliff of the same kind sat at vehicle year 2004 for 2013–2019
 registrations (2000 for 2011–2012), and none is detectable for 2020–2024.

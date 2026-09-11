@@ -1,5 +1,5 @@
 {
-  "$comment": "The complete vocabulary of the Build surface. Adding a dimension here, with a derive block, is the only way to extend it. No count is fixed: manifest.json lists which dimensions are live in each build (docs/CUBE_SCHEMA.md).",
+  "$comment": "The complete vocabulary of the Build surface. Adding a dimension here, with a derive block, is the only way to extend it. No count is fixed: manifest.json lists which dimensions are live in each build (docs/CUBE_SCHEMA.md). derive kinds are documented in pipeline/derive.py; fields are the logical names bound in config/pipeline.json.",
   "datasets": [
     {
       "id": "registrations_surviving",
@@ -52,6 +52,7 @@
       "id": "powertrain",
       "label": "Powertrain",
       "source": "nzta:motive_power + reference:powertrain_map",
+      "derive": { "kind": "lookup", "field": "motive_power", "reference": "powertrain_map.csv", "key": "nzta_motive_power", "value": "powertrain" },
       "shape_hint": "mix",
       "cardinality": "low",
       "help": "How the vehicle is powered: petrol, diesel, hybrid, plug-in hybrid, electric."
@@ -59,7 +60,8 @@
     {
       "id": "make",
       "label": "Brand",
-      "source": "nzta:make",
+      "source": "nzta:make + reference:brand_registry + reference:model_registry",
+      "derive": { "kind": "brand", "value": "make_canonical" },
       "shape_hint": "league",
       "cardinality": "high",
       "help": "The badge on the car. Normalised via the brand registry."
@@ -68,6 +70,7 @@
       "id": "parent_group",
       "label": "Manufacturer group",
       "source": "reference:brand_registry",
+      "derive": { "kind": "brand", "value": "parent_group" },
       "shape_hint": "mix",
       "cardinality": "medium",
       "help": "Who owns the brand. Toyota, Lexus and Daihatsu all roll up to Toyota Group."
@@ -76,6 +79,7 @@
       "id": "owner_country",
       "label": "Brand owned from",
       "source": "reference:brand_registry",
+      "derive": { "kind": "brand", "value": "owner_country" },
       "shape_hint": "mix",
       "cardinality": "low",
       "help": "The home country of the company that owns the brand today, or for a defunct brand the last company that built it. Volvo counts as China here."
@@ -84,6 +88,7 @@
       "id": "heritage_country",
       "label": "Brand originally from",
       "source": "reference:brand_registry",
+      "derive": { "kind": "brand", "value": "heritage_country" },
       "shape_hint": "mix",
       "cardinality": "low",
       "help": "Where the brand was founded. Volvo counts as Sweden here."
@@ -91,7 +96,8 @@
     {
       "id": "built_in",
       "label": "Built in",
-      "source": "nzta:country_of_origin",
+      "source": "nzta:original_country",
+      "derive": { "kind": "raw", "field": "original_country" },
       "shape_hint": "mix",
       "cardinality": "medium",
       "help": "The country where the vehicle was principally manufactured. A Toyota built in Thailand counts as Thailand."
@@ -99,7 +105,8 @@
     {
       "id": "imported_from",
       "label": "Imported from",
-      "source": "nzta:country_of_previous_registration",
+      "source": "nzta:previous_country",
+      "derive": { "kind": "raw", "field": "previous_country" },
       "shape_hint": "mix",
       "cardinality": "medium",
       "applies_to": [
@@ -111,6 +118,15 @@
       "id": "segment",
       "label": "Vehicle type",
       "source": "nzta:vehicle_type + nzta:body_type + nzta:gross_vehicle_mass + reference:segment_map",
+      "derive": {
+        "kind": "range_lookup",
+        "reference": "segment_map.csv",
+        "keys": { "vehicle_type": "vehicle_type", "body_type": "body_type" },
+        "range_field": "gvm",
+        "range_min": "gvm_min_kg",
+        "range_max": "gvm_max_kg",
+        "value": "segment"
+      },
       "shape_hint": "mix",
       "cardinality": "low",
       "help": "Car, ute, van, truck or other. The register records most SUVs as station wagons, so they count as cars.",
@@ -120,6 +136,7 @@
       "id": "import_status",
       "label": "New or used",
       "source": "nzta:import_status + reference:import_status_map",
+      "derive": { "kind": "lookup", "field": "import_status", "reference": "import_status_map.csv", "key": "nzta_import_status", "value": "import_status" },
       "shape_hint": "mix",
       "cardinality": "low",
       "help": "Whether the vehicle was new or second-hand when it first entered NZ."
@@ -128,6 +145,7 @@
       "id": "region",
       "label": "Region",
       "source": "nzta:tla + reference:tla_region",
+      "derive": { "kind": "lookup", "field": "tla", "reference": "tla_region.csv", "key": "tla", "value": "region" },
       "shape_hint": "geo",
       "cardinality": "medium",
       "help": "The region where the registered owner lives now, from their most recent address. Not where the vehicle is used, and not necessarily where the owner lived when it was first registered."
@@ -136,6 +154,7 @@
       "id": "vehicle_year_band",
       "label": "Vehicle age",
       "source": "derived:vehicle_year",
+      "derive": { "kind": "band", "from": "snapshot_year", "minus": "vehicle_year" },
       "shape_hint": "distribution",
       "cardinality": "low",
       "help": "Years since the vehicle year. For NZ-new vehicles first registered from 2007 that is years since first registration; for used imports, years since the vehicle's year overseas. Vehicle year is less consistent for NZ-new vehicles registered before 2007.",
@@ -158,6 +177,7 @@
       "id": "engine_size_band",
       "label": "Engine size",
       "source": "derived:cc_rating",
+      "derive": { "kind": "band", "field": "cc", "no_engine": true },
       "shape_hint": "distribution",
       "cardinality": "low",
       "help": "Engine capacity in bands. Electric vehicles fall in a separate 'none' band.",
@@ -179,10 +199,11 @@
       "id": "age_at_registration_band",
       "label": "Age when first registered here",
       "source": "derived:registration_year - vehicle_year",
+      "derive": { "kind": "band", "from": "registration_year", "minus": "vehicle_year" },
       "shape_hint": "distribution",
       "cardinality": "low",
       "applies_to": [
-        "first_registrations",
+        "registrations_surviving",
         "nz_new",
         "used_imports"
       ],
@@ -218,10 +239,11 @@
     {
       "id": "model",
       "label": "Model",
-      "source": "nzta:model",
+      "source": "nzta:make + nzta:model + reference:model_registry",
+      "derive": { "kind": "model", "cap": 300 },
       "shape_hint": "league",
       "cardinality": "very_high",
-      "help": "The nameplate. Never use submodel, which is free text."
+      "help": "The nameplate, as brand and model. The 300 with the most registrations over the last 12 months keep their name; the rest are grouped as other. Never use submodel, which is free text."
     }
   ],
   "periods": [

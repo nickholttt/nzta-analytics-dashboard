@@ -1,0 +1,119 @@
+{
+  "$comment": "Pipeline parameters. Source bindings, thresholds and detection rules live here so the code carries no domain values and no magic numbers. Dimension derivations live in dimensions.json. See docs/CUBE_SCHEMA.md.",
+  "contract_version": 1,
+  "source": {
+    "id": "mvr_feature_service",
+    "portal": "https://www.arcgis.com/sharing/rest",
+    "search": {
+      "q": "owner:Open.Data_NZTA AND title:\"Motor Vehicle Register\"",
+      "owner": "Open.Data_NZTA",
+      "title": "Motor Vehicle Register",
+      "type": "Feature Service"
+    },
+    "fallback_item_id": "7b4df667d5014f1a93e6050b31d18407",
+    "page_size": 32000,
+    "result_type": "standard",
+    "concurrency": 6,
+    "timeout_seconds": 300,
+    "retries": 5
+  },
+  "fields": {
+    "object_id": "OBJECTID",
+    "registration_year": "FIRST_NZ_REGISTRATION_YEAR",
+    "registration_month": "FIRST_NZ_REGISTRATION_MONTH",
+    "import_status": "IMPORT_STATUS",
+    "vehicle_type": "VEHICLE_TYPE",
+    "body_type": "BODY_TYPE",
+    "gvm": "GROSS_VEHICLE_MASS",
+    "motive_power": "MOTIVE_POWER",
+    "alternative_motive_power": "ALTERNATIVE_MOTIVE_POWER",
+    "make": "MAKE",
+    "model": "MODEL",
+    "tla": "TLA",
+    "original_country": "ORIGINAL_COUNTRY",
+    "previous_country": "PREVIOUS_COUNTRY",
+    "vehicle_year": "VEHICLE_YEAR",
+    "cc": "CC_RATING",
+    "fuel_consumption": "FC_COMBINED"
+  },
+  "change_key_fields": ["registration_year", "registration_month", "import_status", "vehicle_type"],
+  "trailing_window_months": 12,
+  "reference_dir": "data/reference",
+  "boolean_true": "true",
+  "sentinels": {
+    "file": "sentinels.csv",
+    "field": "field",
+    "value": "raw_value",
+    "any_field": "*",
+    "null_token": "<NULL>",
+    "empty_token": "<EMPTY>"
+  },
+  "scope": {
+    "vehicle": { "file": "vehicle_scope.csv", "field": "vehicle_type", "key": "vehicle_type", "in_scope": "in_scope" },
+    "status": {
+      "file": "import_status_map.csv",
+      "field": "import_status",
+      "key": "nzta_import_status",
+      "in_scope": "in_scope",
+      "fleet_entry": "counts_as_fleet_entry",
+      "label": "import_status"
+    }
+  },
+  "brand": {
+    "make_field": "make",
+    "model_field": "model",
+    "registry": "brand_registry.csv",
+    "canonical": "make_canonical",
+    "aliases": "aliases",
+    "alias_separator": "|",
+    "model_registry": "model_registry.csv",
+    "model_registry_make": "make",
+    "model_registry_model": "model_canonical",
+    "model_registry_aliases": "aliases",
+    "model_registry_type": "override_type",
+    "model_registry_value": "override_value",
+    "model_alias_types": ["alias", "rename"],
+    "make_promotion_type": "make_promotion"
+  },
+  "engine": { "reference": "powertrain_map.csv", "field": "motive_power", "key": "nzta_motive_power", "flag": "has_combustion_engine" },
+  "alternative_fuel": { "primary": "motive_power", "alternative": "alternative_motive_power" },
+  "datasets": {
+    "registrations_surviving": { "require": ["in_scope", "fleet_entry"] }
+  },
+  "fuel_consumption": { "field": "fuel_consumption", "valid_min_exclusive": 0, "valid_max_inclusive": 60, "sum_decimals": 3 },
+  "guardrails": {
+    "max_in_scope_row_change": 0.02,
+    "max_unmapped_rate": 0.02,
+    "abort_on_unmapped": ["make", "powertrain"],
+    "zero_row_min_previous_rows": 1000,
+    "latest_month_max_deviation": 0.5,
+    "size_budget_bytes": 8000000
+  },
+  "used_imports": {
+    "dataset": "registrations_surviving",
+    "status_labels": ["Used Import"]
+  },
+  "moving_cutoff": { "exemption_age": 20, "min_share": 0.01, "cliff_ratio": 10 },
+  "used_import_age_report": { "cluster_min": 9, "cluster_max": 13, "max_age": 30 },
+  "events": {
+    "file": "events.csv",
+    "enum_doc": "docs/EVENTS_LAYER.md",
+    "verified_column": "verified",
+    "values_separator": "|",
+    "scope_without_values": ["market"],
+    "scope_dimension_aliases": { "brand_group": "parent_group" }
+  },
+  "snapshot_archive": {
+    "dir": "data/snapshots",
+    "group_by": ["registration_year", "registration_month", "import_status", "vehicle_type", "motive_power", "make"]
+  },
+  "paths": {
+    "raw": "data/raw",
+    "staging": "data/staging",
+    "public": "public/data",
+    "state": "data/state/last_good.json",
+    "expected_schema": "pipeline/expected_schema.json",
+    "dimensions": "config/dimensions.json",
+    "events_doc": "docs/EVENTS_LAYER.md"
+  }
+}

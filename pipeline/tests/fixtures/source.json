@@ -1,0 +1,11 @@
+{
+  "item_id": "fixture-item",
+  "discovery": "search",
+  "service_name": "FIXTURE",
+  "service_url": "https://example.invalid/FeatureServer/0",
+  "data_last_edit": "2026-09-03T00:00:00Z",
+  "fetched_at": "2026-09-11T00:00:00Z",
+  "row_count": 0,
+  "change_key": { "row_count": 0, "snapshot": "2026-08-31", "stats_sha256": "fixture" },
+  "warnings": []
+}
