@@ -3,9 +3,9 @@ PETROL,Petrol,Petrol,ICE,false,true,true,
 DIESEL,Diesel,Diesel,ICE,false,true,true,
 LPG,LPG,LPG,ICE,false,true,true,
 CNG,CNG,CNG,ICE,false,true,true,
-PETROL HYBRID,Hybrid,HEV,Hybrid,true,true,true,Not externally chargeable. The main hybrid code: a third of in-scope rows in the last 12 months.
+PETROL HYBRID,Hybrid,HEV,Hybrid,true,true,true,"Not externally chargeable. The main hybrid code: a third of in-scope rows in the last 12 months. Also contains mild hybrids that cannot be separated at this level, notably NZ-new Suzuki Swift and Fronx and Ford Puma (about 9k NZ-new since 2020 between them). Separating them would need a model-level rule; not done."
 PETROL ELECTRIC HYBRID,Hybrid,HEV,Hybrid,true,true,true,"In concurrent use with PETROL HYBRID since 2018, not a rename. Mostly Nissan, NZ-new and used."
-DIESEL HYBRID,Hybrid,HEV,Hybrid,true,true,true,"Near zero until 2023, then 4-7k a year, almost all NZ-new Toyota 2.8L diesels from 2024. Likely mild hybrids; the register does not distinguish mild from full."
+DIESEL HYBRID,Mild hybrid,MHEV,Hybrid,true,true,true,"JUDGEMENT CALL, made deliberately: NZTA's code says hybrid; this map says mild hybrid. From February 2024 almost every row is an NZ-new Toyota Hilux or Land Cruiser 2.8L diesel with a 48V mild-hybrid system (14.9k of 15.8k in-scope rows). Mapping them as Hybrid is faithful to the code but would show ute hybrid share jumping when nothing changed for the buyer. Cost of the call: about 350 in-scope rows are full hybrids (Hino 300 and Dutro, Isuzu Elf, Peugeot diesel hybrids) and are shown as mild hybrids. See events.csv:toyota-diesel-mild-hybrid-2024."
 DIESEL ELECTRIC HYBRID,Hybrid,HEV,Hybrid,true,true,true,
 PLUGIN PETROL HYBRID,PHEV,PHEV,Plug-in,true,true,true,
 PLUGIN DIESEL HYBRID,PHEV,PHEV,Plug-in,true,true,true,
