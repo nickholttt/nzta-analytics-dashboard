@@ -166,6 +166,18 @@
       "label": "New or old?",
       "presets": [
         {
+          "id": "age-distribution-moving-hole",
+          "question": "Which vehicle years can't we import any more?",
+          "dataset": "used_imports",
+          "measure": "share",
+          "dimension": "age_at_registration_band",
+          "period": "all",
+          "shape_override": "distribution",
+          "animate_by": "year",
+          "events": true,
+          "note": "Since the Japanese emissions-code rule of April 2024, the oldest vehicle year arriving in volume has been 2012, as at the 2026 snapshots. The closed band is fixed in vehicle year, so the cutoff's age rises by one each year and the gap moves rightward through this chart."
+        },
+        {
           "id": "age-at-registration",
           "question": "Are New Zealanders buying new or second-hand?",
           "dataset": "first_registrations",
@@ -185,26 +197,14 @@
           "events": true
         },
         {
-          "id": "age-distribution-moving-hole",
-          "question": "Which model years can't we get any more?",
-          "dataset": "used_imports",
-          "measure": "share",
-          "dimension": "age_at_registration_band",
-          "period": "all",
-          "shape_override": "distribution",
-          "animate_by": "year",
-          "events": true,
-          "note": "The 2024 Japanese emissions rule closed a band of model years. Because the band is fixed in model year but its age rises each year, the gap migrates rightward through this chart."
-        },
-        {
-          "id": "shaken-clock",
-          "question": "Why do used imports cluster at odd ages?",
+          "id": "used-import-age",
+          "question": "How old are used imports when they arrive?",
           "dataset": "used_imports",
           "measure": "count",
           "dimension": "age_at_registration_band",
           "period": "latest_year",
           "shape_override": "distribution",
-          "note": "Japan's inspection falls due at 3 years then every 2. Expect peaks at 3, 5, 7, 9, 11 and 13."
+          "note": "Most arrive aged 9 to 13. Ages 3 and 4 are each only 1 to 3 percent of arrivals."
         },
         {
           "id": "regional-freshness",

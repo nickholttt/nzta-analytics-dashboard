@@ -58,8 +58,8 @@ delay produces. Year granularity cannot separate manufacture year from
 Japanese first-registration year, because for a domestic Japanese car they
 are usually the same year. NZ's WoF rules take age from first registration
 in Japan, and border eligibility cutoffs appear in the data as cliffs
-between adjacent vehicle years (2025 registrations: 12.4% aged 13, 0.5%
-aged 14), so treat it as the year those rules use.
+between adjacent vehicle years (§3), so treat it as the year those rules
+use.
 
 ### What follows
 
@@ -93,12 +93,11 @@ a dimension (`age_at_registration_band`) and as a derived measure
 
 ### Bands
 
-`0` · `1` · `2` · `3` · `4` · `5` · `6-7` · `8-9` · `10-12` · `13-15`
-· `16-19` · `20+` · `unknown`
+`0` · `1` · `2` · … · `19` · `20-24` · `25+` · `unknown`
 
-Single years to 5 and 20+ as its own band, because that's where the
-structure lives (see §3). Never band coarsely here — coarse banding
-destroys the finding.
+Single years from 0 to 19. The moving cutoff and the odd-age bumps in §3
+are each one vehicle year wide, and most arrivals sit at 9–13, so any
+band wider than a year hides the finding. Never band coarsely here.
 
 ### Measures worth deriving
 
@@ -112,33 +111,85 @@ destroys the finding.
 
 ---
 
-## 3. Why the age distribution has structure (and what to look for)
+## 3. What the used-import age distribution shows
 
-The used import age histogram is not smooth, and the reasons are
-mechanical. If your chart is a smooth curve, your derivation is wrong.
+Every figure here is observed: used imports in scope, still registered at
+the 2026-08 snapshot, by year of first NZ registration.
 
-**The shaken clock.** Japan's mandatory inspection falls due 3 years after
-first registration, then every 2 years. Renewal is expensive enough that
-many owners sell rather than pay, which is exactly why Japan's export
-market is so large — the inspection rotates cars out of the domestic fleet
-at predictable ages. Japan's weight tax also steps up at 13 years and again
-at 18. **Expect peaks at 3, 5, 7, 9, 11 and 13 years.**
+### Imports arrive aged 9 to 13
 
-**The NZ buying window.** Importers target roughly 3–8 years old.
-Expect the mass of the distribution to sit there.
+New Zealand's used imports are far older on arrival than the "3 to 8
+years" often quoted as the ideal import age. Since 2016 the median age at
+first NZ registration has been 9 or 10, vehicles aged 9–13 have been
+45–64% of arrivals every year, and the most common single age has been 9
+or 11. Ages 3 and 4 are each 1–3% of arrivals. The distribution has aged
+over time.
 
-**The 20-year cliff.** Vehicles over 20 years face additional compliance
-under the Older Vehicles rule. Expect a sharp drop at 20, then a small tail
-of enthusiast imports beyond it.
+| First NZ registration | Median age | Aged 9–13 | Aged 20+ |
+|---|---|---|---|
+| 2010 | 7 | 29% | 3.3% |
+| 2013 | 7 | 24% | 2.3% |
+| 2016 | 9 | 61% | 2.4% |
+| 2019 | 10 | 59% | 2.5% |
+| 2022 | 9 | 46% | 3.3% |
+| 2025 | 10 | 64% | 1.1% |
+| 2026 (Jan–Aug) | 10 | 59% | 1.4% |
 
-**The moving hole.** From 30 April 2024 the required Japanese emissions
-code effectively closed the channel for a band of roughly 2006–2012
-vehicles (see `events.csv:japan-emissions-code-2024`). That band is fixed
-in *vehicle year* but its *age* increases every year. So on an
-age-distribution-over-time chart it renders as a gap that **migrates
-rightward** — a hole moving through the histogram year by year. This is
-probably the single most striking chart available from this dataset and
-nothing public shows it. Build it.
+This is the age finding to lead with. It bears directly on how old the
+fleet is, which a chart of NZ-new registrations cannot show.
+
+### The moving cutoff
+
+Border eligibility rules show up as a cliff between two adjacent vehicle
+years. Since the Japanese emissions-code requirement for vehicles
+border-inspected from 30 April 2024 (`events.csv:japan-emissions-code-2024`),
+the oldest vehicle year arriving in volume, below 20 years old, has been
+**2012**.
+
+- Before the rule took effect, Japanese arrivals of vehicle year 2011 were
+  a third to a quarter as many as vehicle year 2012 (a 3–5× step).
+- In May–July 2024 the step narrowed to about 2×, as vehicle year 2011
+  briefly rose to 5% of Japanese arrivals: vehicles inspected before the
+  deadline and registered after it.
+- From August 2024 the step widened every month, passed 10× in January
+  2025, and exceeded 100× by mid-2026 (vehicle year 2012: 6.8% of July
+  2026 Japanese arrivals; vehicle year 2011: 0.05%).
+
+The closed band is fixed in vehicle year, so the cutoff's **vehicle year
+stays at 2012 while its age rises by one each year**: 13 in 2025, 14 in
+2026. On an age histogram over time the cliff migrates rightward. That is
+the `age-distribution-moving-hole` preset. The pipeline detects the cutoff
+every run and publishes `moving_cutoff_vehicle_year` and
+`moving_cutoff_age`; the detection rule and its thresholds live in
+`config/pipeline.json`. A changed vehicle year means the rule or the data
+changed. So does an age that fails to rise when the snapshot year does.
+
+An earlier cliff of the same kind sat at vehicle year 2004 for 2013–2019
+registrations (2000 for 2011–2012), and none is detectable for 2020–2024.
+No event explains it yet. Add one before annotating it.
+
+If the reported exception for vehicles over 20 years old holds, the closed
+band should shrink from its old end by one vehicle year a year. That is a
+hypothesis and is not yet visible in the data.
+
+### Above 20: a small bump, not a drop
+
+In years with a cutoff in force, the ages just below 20 are almost empty
+and ages 20–23 are slightly fuller. In 2016, ages 13–19 are each 0.1% of
+arrivals or less while ages 20–22 are 0.3–0.5% each; in 2019, ages 16–19
+are 0.0% and ages 20–22 are 0.2–0.5%. A reported exception for vehicles
+over 20 years old is a candidate explanation, not a verified one.
+
+### Odd-age bumps: a hypothesis only
+
+Inside the 9–13 cluster, odd ages are often fuller than their even
+neighbours. In 2019, ages 9 and 11 hold 14.4% and 15.8% of arrivals against
+10.1% at 10 and 10.8% at 12; in 2025, age 11 holds 19.1% against 10.5% at
+10 and 12.2% at 12. Japan's shaken inspection falls due three years after
+first registration and every two years after that, so vehicles sold out of
+Japan at inspection time would arrive at odd ages. Treat that as a
+candidate explanation for these residual bumps and nothing more. It does
+not explain why arrivals centre on 9–13, and no chart should say it does.
 
 ---
 
@@ -168,9 +219,10 @@ pipeline_lag = used_first_seen - nz_new_launch
 ```
 
 How many years after a model goes on sale new here does it start arriving
-as a used import. Driven by the shaken clock, so expect a mode around 3–5
-years. Compare lag across brands and segments: a short lag means the model
-is being cycled out of Japan fast; a long one means it's being held.
+as a used import. Untested: do not describe an expected lag until it has
+been measured. Compare lag across brands and segments: a short lag means
+the model is being cycled out of Japan fast; a long one means it's being
+held.
 
 Nobody publishes this. It is computable from data you already have.
 
@@ -179,7 +231,7 @@ Nobody publishes this. It is computable from data you already have.
 Harder, and not worth hand-curating either. Detect **candidates**
 automatically within a nameplate:
 
-- step change in mean CO2 or mean fuel consumption
+- step change in mean fuel consumption
 - step change in mean power (kW) — note this is only recorded for NZ-new
 - churn in the MVMA/MIA model code — also only recorded for NZ-new
 - a gap of 3+ months in NZ-new registrations followed by resumption
@@ -200,23 +252,7 @@ it grows past that, the derivation needs fixing, not the registry.
 
 ---
 
-## 5. One field worth testing before you rely on it
-
-`VIN first 11` is in the register. Under the North American VIN standard,
-position 10 encodes model year. Many manufacturers apply it globally, but
-**JDM domestic vehicles generally use chassis codes rather than 17-character
-VINs**, so this will not work for the used import channel — which is
-precisely the channel where you'd most want a true model year.
-
-Test it on the NZ-new subset only. If position 10 decodes cleanly there,
-you get a genuine model year for NZ-new vehicles and can compute a real
-model-year-vs-registration-year figure for that subset. Do not assume it
-works; verify against a nameplate with a known generation change, and if
-coverage is under 90% of NZ-new rows, drop the idea and stay with AFNZR.
-
----
-
-## 6. Caveats to render on any age chart
+## 5. Caveats to render on any age chart
 
 - **NZ-new before 2007.** `vehicle_year` mixes manufacture year, model
   year and registration year for NZ-new vehicles first registered before
