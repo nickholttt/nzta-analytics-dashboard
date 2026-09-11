@@ -23,10 +23,10 @@ DENZA,,BYD,China,China,China,true,Formerly a Mercedes-Benz joint venture; now BY
 MG,,SAIC Motor,China,United Kingdom,China,true,Chinese-owned; British heritage. Report under owner_country by default
 LDV,,SAIC Motor,China,United Kingdom,China,true,Chinese-owned; British heritage
 MAXUS,,SAIC Motor,China,United Kingdom,China,true,
-HAVAL,,Great Wall Motor,China,China,China,true,"Undercounts the brand: Haval models also appear under MAKE = GWM as MODEL values such as HAVAL H6 and HAVAL JOLION."
-GWM,GREAT WALL,Great Wall Motor,China,China,China,true,"ORA and TANK vehicles are recorded under this make as MODEL values, as are some Haval models. Splitting those out needs model_registry, not this file."
-ORA,,Great Wall Motor,China,China,China,false,Never appears as a MAKE. Recorded as MODEL = ORA under MAKE = GWM.
-TANK,,Great Wall Motor,China,China,China,false,Never appears as a MAKE. Recorded as MODEL = TANK under MAKE = GWM.
+HAVAL,,Great Wall Motor,China,China,China,true,"Most recent Havals are recorded under MAKE = GWM (MODEL = HAVAL H6, HAVAL JOLION, H6, JOLION) and are promoted to this make by model_registry.csv. In scope at 2026-08 that moves this make from 8,527 to 16,197 rows all-time, and from 39 to 3,440 in the last 12 months."
+GWM,GREAT WALL,Great Wall Motor,China,China,China,true,"ORA, TANK and Haval vehicles recorded under this make are promoted to their own makes by model_registry.csv. What stays here is GWM- and Great Wall-badged vehicles (Cannon, Steed, V240 and similar)."
+ORA,,Great Wall Motor,China,China,China,false,"Never appears as a MAKE. Recorded as MODEL = ORA under MAKE = GWM, and promoted to this make by model_registry.csv."
+TANK,,Great Wall Motor,China,China,China,false,"Never appears as a MAKE. Recorded as MODEL = TANK under MAKE = GWM, and promoted to this make by model_registry.csv."
 CHERY,,Chery Automobile,China,China,China,true,
 JAECOO,,Chery Automobile,China,China,China,true,
 OMODA,,Chery Automobile,China,China,China,true,
@@ -86,9 +86,9 @@ MAHINDRA,,Mahindra & Mahindra,India,India,Other,true,
 ASTON MARTIN,,Aston Martin Lagonda,United Kingdom,United Kingdom,Europe,true,
 MCLAREN,,McLaren Automotive,United Kingdom,United Kingdom,Europe,true,
 INEOS,,INEOS Automotive,United Kingdom,United Kingdom,Europe,true,
-MORRIS,,British Leyland,United Kingdom,United Kingdom,Europe,true,"Defunct marque. owner_country is the last company that built it, not today's holder of the name."
-AUSTIN,,British Leyland,United Kingdom,United Kingdom,Europe,true,"Defunct marque. owner_country is the last company that built it, not today's holder of the name."
-ROVER,,Rover Group,United Kingdom,United Kingdom,Europe,true,"Defunct marque (2005); owner_country is the last company that built it. In the register this make also covers Rover Group-era Minis, MGs and Range Rovers."
+MORRIS,,British Leyland,United Kingdom,United Kingdom,Europe,true,"Defunct marque. DELIBERATE, do not correct: owner_country is the last company that built it, not today's holder of the name. Using the current rights holder would count a 1965 Morris as Chinese-owned."
+AUSTIN,,British Leyland,United Kingdom,United Kingdom,Europe,true,"Defunct marque. DELIBERATE, do not correct: owner_country is the last company that built it, not today's holder of the name. Using the current rights holder would count a 1965 Austin as Chinese-owned."
+ROVER,,Rover Group,United Kingdom,United Kingdom,Europe,true,"Defunct marque (2005). DELIBERATE, do not correct: owner_country is the last company that built it, not today's holder of the name. In the register this make also covers Rover Group-era Minis, MGs and Range Rovers."
 FORD,,Ford Motor Company,United States,United States,North America,true,
 TESLA,,Tesla,United States,United States,North America,true,
 RIVIAN,,Rivian,United States,United States,North America,false,

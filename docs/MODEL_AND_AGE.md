@@ -246,9 +246,17 @@ finding worth charting.
 ### `model_registry.csv` is for exceptions only
 
 Overrides where derivation is known to fail: renames (a nameplate that
-changed name without changing generation), badge-engineered twins, and
-nameplates that returned after a long absence. Keep it under 50 rows. If
-it grows past that, the derivation needs fixing, not the registry.
+changed name without changing generation), badge-engineered twins,
+nameplates that returned after a long absence, and sub-brands the register
+records as models (`make_promotion`: MODEL = ORA under MAKE = GWM becomes
+make ORA). Keep it under 50 rows. If it grows past that, the derivation
+needs fixing, not the registry.
+
+What the pipeline applies today: `alias` and `rename` map a recorded model
+name to `model_canonical`; `make_promotion` moves the vehicle to the make
+in `override_value` before any brand attribute is looked up.
+`badge_twin`, `distinct_nameplate` and `retired` only matter to launch and
+retirement detection above, and are not applied yet.
 
 ---
 

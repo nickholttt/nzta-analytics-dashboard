@@ -7,3 +7,7 @@ NISSAN,X-TRAIL,XTRAIL,alias,,Recorded both ways.
 MAZDA,CX-5,CX5,alias,,Recorded both ways.
 BYD,ATTO 3,ATTO3,alias,,"Sourcing moved China to Thailand in 2026; nameplate continuous, built_in changes."
 HOLDEN,COMMODORE,,retired,2020-12-31,Nameplate ended with the brand. Used imports may still appear after this date.
+GWM,H6,HAVAL H6|H6-SERIES,make_promotion,HAVAL,"Sub-brand recorded as a model. RULE for every make_promotion row: a vehicle whose make resolves to this row's make (after brand_registry aliases, so GREAT WALL counts as GWM) and whose MODEL equals model_canonical or any alias becomes make = override_value, model = model_canonical. Applied before any brand attribute lookup. In scope at 2026-08: HAVAL H6 4,760 rows (2,384 in the last 12 months), H6 131, H6-SERIES 2."
+GWM,JOLION,HAVAL JOLION,make_promotion,HAVAL,"Sub-brand recorded as a model; make_promotion rule above. In scope at 2026-08: HAVAL JOLION 2,638 (901 in the last 12 months), JOLION 139 (116)."
+GWM,ORA,,make_promotion,ORA,"Sub-brand recorded as a model; make_promotion rule above. The register holds no model name beyond the brand, so the model stays ORA. In scope at 2026-08: 707 (185 in the last 12 months)."
+GWM,TANK,,make_promotion,TANK,"Sub-brand recorded as a model; make_promotion rule above. Keyed on make: TOYOTA TANK is a Toyota model and is untouched. In scope at 2026-08: 1,347 (515 in the last 12 months)."
