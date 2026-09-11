@@ -1,0 +1,49 @@
+---
+import PresetPanel from "../components/PresetPanel";
+
+// Which presets this local reference page shows. Everything else about each chart comes from config/.
+const sections = [
+  { id: "market-share", title: "1. Market share", presets: ["brand-share", "parent-group-share"] },
+  { id: "powertrain-adoption", title: "2. Powertrain adoption", presets: ["powertrain-mix"] },
+  { id: "fleet-age", title: "3. Fleet age", presets: ["used-import-age", "cohort-survival"] },
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Reference charts (local)</title>
+    <style is:global>
+      body { font: 14px/1.45 system-ui, sans-serif; margin: 24px; color: #222; background: #fff; }
+      main { max-width: 1200px; }
+      h2 { margin-top: 40px; border-bottom: 1px solid #ddd; }
+      .panel { margin: 18px 0 36px; }
+      .meta { color: #666; font-size: 12px; }
+      .blocked { background: #fdecea; border-left: 4px solid #c0392b; padding: 8px 12px; margin: 8px 0; }
+      .warning { background: #fff6e0; border-left: 4px solid #e6a100; padding: 8px 12px; margin: 8px 0; }
+      .scaffold { background: #eef3fb; border: 1px dashed #4e79a7; padding: 24px; margin: 8px 0; text-align: center; }
+      .notes { color: #444; font-size: 13px; }
+      .summary { border-collapse: collapse; font-size: 12px; margin: 8px 0; }
+      .summary td, .summary th { padding: 2px 10px; text-align: right; }
+      .summary td:first-child { text-align: left; }
+      .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 4px; }
+      .events { font-size: 12px; }
+      .events .event { display: block; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Registrations reference charts (local)</h1>
+      {
+        sections.map((s) => (
+          <section id={s.id}>
+            <h2>{s.title}</h2>
+            {s.presets.map((id) => (
+              <PresetPanel client:only="react" presetId={id} />
+            ))}
+          </section>
+        ))
+      }
+    </main>
+  </body>
+</html>

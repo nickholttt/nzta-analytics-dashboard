@@ -1,0 +1,21 @@
+{
+  "name": "nzta-analytics-dashboard-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev"
+  },
+  "dependencies": {
+    "@astrojs/react": "6.0.5",
+    "@observablehq/plot": "0.6.17",
+    "astro": "7.3.2",
+    "hyparquet": "1.30.1",
+    "hyparquet-compressors": "1.1.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  }
+}

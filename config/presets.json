@@ -131,7 +131,18 @@
           "measure": "share",
           "dimension": "make",
           "period": "10y",
-          "top_n": 10
+          "top_n": 10,
+          "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Scrappage thins each month's total along with each brand, so share holds up where volume does not, though older months still lean towards brands whose vehicles last longer. Volume charts wait for true monthly registrations."
+        },
+        {
+          "id": "parent-group-share",
+          "question": "Which manufacturer groups are gaining and losing ground?",
+          "dataset": "registrations_surviving",
+          "measure": "share",
+          "dimension": "parent_group",
+          "period": "10y",
+          "top_n": 10,
+          "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Scrappage thins each month's total along with each group, so share holds up where volume does not, though older months still lean towards groups whose vehicles last longer. Volume charts wait for true monthly registrations. Group ownership is as at today, not at registration."
         },
         {
           "id": "concentration",
