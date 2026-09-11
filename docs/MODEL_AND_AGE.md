@@ -252,14 +252,36 @@ finding worth charting.
 
 Overrides where derivation is known to fail: renames (a nameplate that
 changed name without changing generation), badge-engineered twins,
-nameplates that returned after a long absence, and sub-brands the register
+nameplates that returned after a long absence, sub-brands the register
 records as models (`make_promotion`: MODEL = ORA under MAKE = GWM becomes
-make ORA). Keep it under 50 rows. If it grows past that, the derivation
-needs fixing, not the registry.
+make ORA), and strings that look like a sub-brand but are not one
+(`not_promoted`). Keep it under 50 rows. If it grows past that, the
+derivation needs fixing, not the registry.
 
-What the pipeline applies today: `alias` and `rename` map a recorded model
-name to `model_canonical`; `make_promotion` moves the vehicle to the make
-in `override_value` before any brand attribute is looked up.
+What the pipeline applies today:
+
+- `alias` and `rename` map a recorded model name to `model_canonical`.
+- `make_promotion` moves the vehicle to the make in `override_value` before
+  any brand attribute is looked up. A row matches on the make after
+  `brand_registry.csv` aliases and on MODEL equal to `model_canonical` or
+  an alias. `model_canonical` is therefore a match key as well as the
+  output, and must never be a different model's name under the same make:
+  Abarth rows keep `ABARTH 595` rather than `595` because `FIAT 500` and
+  `FIAT 500E` are Fiats. Promotions apply in every vehicle year, so a
+  nameplate keeps one history, as the KGM rename does, even where older
+  vehicles carried the parent's badge (most `DODGE RAM` rows predate the Ram
+  brand). Each row's note records that cost.
+- A `make_promotion` row may narrow its match with `match_motive_power` (a
+  key in `powertrain_map.csv`), `match_import_status` (a label in
+  `import_status_map.csv`) or `match_vehicle_type` (a key in
+  `vehicle_scope.csv`); blank means any. `SHOGUN` under `MITSUBISHI` is a
+  Fuso truck only as a goods vehicle, and a Pajero otherwise. An unknown
+  value, or a match column on any other row type, aborts the build.
+- `not_promoted` is never applied. It records a string that must stay where
+  it is (classic Minis under `MORRIS`, the Hyundai Genesis sedan, licence-
+  built Jeeps), and the build aborts if any `make_promotion` row moves that
+  make to that `override_value`, so nobody "fixes" it later.
+
 `badge_twin`, `distinct_nameplate` and `retired` only matter to launch and
 retirement detection above, and are not applied yet.
 

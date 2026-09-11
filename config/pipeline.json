@@ -73,7 +73,13 @@
     "model_registry_type": "override_type",
     "model_registry_value": "override_value",
     "model_alias_types": ["alias", "rename"],
-    "make_promotion_type": "make_promotion"
+    "make_promotion_type": "make_promotion",
+    "not_promoted_type": "not_promoted",
+    "model_registry_conditions": {
+      "motive_power": "match_motive_power",
+      "import_status": "match_import_status",
+      "vehicle_type": "match_vehicle_type"
+    }
   },
   "engine": { "reference": "powertrain_map.csv", "field": "motive_power", "key": "nzta_motive_power", "flag": "has_combustion_engine" },
   "alternative_fuel": { "primary": "motive_power", "alternative": "alternative_motive_power" },

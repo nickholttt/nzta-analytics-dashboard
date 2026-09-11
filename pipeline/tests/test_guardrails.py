@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import copy
+import csv
 import json
 import shutil
 from collections import Counter
 from datetime import date
 
+import duckdb
 import pytest
 
 from pipeline import build, fetch, metrics, reference, schema
@@ -174,6 +176,77 @@ def test_abort_leaves_last_good_build_untouched(tmp_path, workspace):
         run(tmp_path, cfg, rows, state=state, name="second")
     assert (workspace["public"] / "manifest.json").read_text(encoding="utf-8") == before
     assert workspace["state"].read_text(encoding="utf-8") == state_before
+
+
+def registry_rows(cfg) -> list[dict]:
+    return reference.read(cfg.reference(cfg.pipeline["brand"]["model_registry"]))
+
+
+def reference_with_registry(directory, cfg, rows):
+    """A copy of the reference directory whose model_registry.csv holds exactly these rows."""
+    shutil.copytree(cfg.reference("x").parent, directory)
+    with (directory / cfg.pipeline["brand"]["model_registry"]).open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=list(rows[0].keys()), lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    return directory
+
+
+def make_totals(workspace) -> Counter:
+    con = duckdb.connect()
+    path = (workspace["public"] / "cube" / "registrations_surviving" / "make.parquet").as_posix()
+    totals = Counter(dict(con.execute(f"SELECT dim_value, sum(n) FROM read_parquet('{path}') GROUP BY 1").fetchall()))
+    con.close()
+    return totals
+
+
+def test_a_promotion_forbidden_by_a_not_promoted_row_aborts(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    b = cfg.pipeline["brand"]
+    makes = {r[b["canonical"]] for r in reference.read(cfg.reference(b["registry"]))}
+    rows = registry_rows(cfg)
+    exclusion = next(r for r in rows if r[b["model_registry_type"]] == b["not_promoted_type"]
+                     and r[b["model_registry_make"]] in makes and r[b["model_registry_value"]] in makes)
+    promotion = dict(exclusion, **{b["model_registry_model"]: "A NEW MODEL STRING", b["model_registry_aliases"]: "",
+                                   b["model_registry_type"]: b["make_promotion_type"]})
+    ref = reference_with_registry(tmp_path / "reference", cfg, rows + [promotion])
+    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows()), b["not_promoted_type"])
+
+
+def test_registry_match_columns_are_validated(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    b = cfg.pipeline["brand"]
+    column = b["model_registry_conditions"]["vehicle_type"]
+    rows = registry_rows(cfg)
+    alias = next(r for r in rows if r[b["model_registry_type"]] in b["model_alias_types"])
+    conditioned = next(r for r in rows if r[column])
+    on_alias = [dict(r, **{column: conditioned[column]}) if r is alias else r for r in rows]
+    ref = reference_with_registry(tmp_path / "on_alias", cfg, on_alias)
+    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows(), name="a"), "match columns apply only")
+    unknown = [dict(r, **{column: "NOT A VEHICLE TYPE"}) if r is conditioned else r for r in rows]
+    ref = reference_with_registry(tmp_path / "unknown", cfg, unknown)
+    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows(), name="b"), "is not a known")
+
+
+def test_conditional_promotion_moves_only_matching_vehicles(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    b, vehicle = cfg.pipeline["brand"], cfg.pipeline["scope"]["vehicle"]
+    column = b["model_registry_conditions"]["vehicle_type"]
+    rule = next(r for r in registry_rows(cfg) if r[b["model_registry_type"]] == b["make_promotion_type"] and r[column])
+    other_type = next(r[vehicle["key"]] for r in reference.read(cfg.reference(vehicle["file"]))
+                      if r[vehicle["in_scope"]] == cfg.pipeline["boolean_true"] and r[vehicle["key"]] != rule[column])
+    rows = load_rows()
+    snapshot = date.fromisoformat(source_for(rows)["change_key"]["snapshot"])
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    matching = dict(template, OBJECTID=6000, MAKE=rule[b["model_registry_make"]], MODEL=rule[b["model_registry_model"]],
+                    VEHICLE_TYPE=rule[column], FIRST_NZ_REGISTRATION_YEAR=snapshot.year, FIRST_NZ_REGISTRATION_MONTH=snapshot.month)
+    not_matching = dict(matching, OBJECTID=6001, VEHICLE_TYPE=other_type)
+    run(tmp_path, cfg, rows, name="baseline")
+    before = make_totals(workspace)
+    run(tmp_path, cfg, rows + [matching, not_matching], name="promoted")
+    after = make_totals(workspace)
+    assert after[rule[b["model_registry_value"]]] - before[rule[b["model_registry_value"]]] == 1
+    assert after[rule[b["model_registry_make"]]] - before[rule[b["model_registry_make"]]] == 1
 
 
 def test_schema_drift_aborts_and_new_columns_warn():

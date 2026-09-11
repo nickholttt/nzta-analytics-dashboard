@@ -98,6 +98,15 @@ def build_rows(con, cfg) -> None:
     make, model = f"s.{quote(b['make_field'])}", f"s.{quote(b['model_field'])}"
     fuel = f"s.{quote(fc['field'])}"
     number = f"TRY_CAST({fuel} AS DOUBLE)"
+    # Registry match columns compare against the raw motive power and vehicle type, and the import status label.
+    condition_values = {
+        "motive_power": f"s.{quote(engine['field'])}",
+        "import_status": "st.label",
+        "vehicle_type": f"s.{quote(vehicle['field'])}",
+    }
+    promotion_matches = " AND ".join(
+        f"(pr.{quote(c)} IS NULL OR pr.{quote(c)} = {condition_values[c]})" for c in b["model_registry_conditions"]
+    )
     con.execute(f"""
         CREATE OR REPLACE TABLE rows AS
         SELECT s.*,
@@ -120,6 +129,6 @@ def build_rows(con, cfg) -> None:
         JOIN ref_status st ON s.{quote(status['field'])} = st.key
         LEFT JOIN ref_brand_keys bk ON {make} = bk.key
         LEFT JOIN ref_model_alias ma ON ma.make = bk.canonical AND ma.model_key = {model}
-        LEFT JOIN ref_promotion pr ON pr.make = bk.canonical AND pr.model_key = {model}
+        LEFT JOIN ref_promotion pr ON pr.make = bk.canonical AND pr.model_key = {model} AND {promotion_matches}
         LEFT JOIN ref_engine eng ON s.{quote(engine['field'])} = eng.key
     """)

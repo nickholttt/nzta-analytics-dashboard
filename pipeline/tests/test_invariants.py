@@ -21,7 +21,7 @@ VOCABULARY_COLUMNS = {
     "tla_region.csv": ["tla", "region"],
     "import_status_map.csv": ["nzta_import_status", "import_status"],
     "vehicle_scope.csv": ["vehicle_type", "scope_group"],
-    "model_registry.csv": ["model_canonical", "aliases", "override_value"],
+    "model_registry.csv": ["model_canonical", "aliases", "override_value", "match_motive_power", "match_import_status", "match_vehicle_type"],
     "events.csv": ["id", "title", "scope_values"],
     "sentinels.csv": ["raw_value"],
 }
