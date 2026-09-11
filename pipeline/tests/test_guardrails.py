@@ -50,6 +50,30 @@ def test_identical_rerun_passes_and_keeps_archive(tmp_path, workspace):
     assert manifest["snapshot_archive"]["status"] == "unchanged"
 
 
+def test_a_new_snapshot_month_is_archived_and_earlier_months_are_untouched(tmp_path, workspace):
+    cfg, rows, state = good_state(tmp_path, workspace)
+    august = workspace["snapshots"] / "2026-08.parquet"
+    before = august.read_bytes()
+    source = source_for(rows)
+    source["change_key"]["snapshot"] = "2026-09-30"
+    manifest = run(tmp_path, cfg, rows, state=state, source=source, name="next_month")
+    assert manifest["snapshot_archive"] == {"path": f"{cfg.pipeline['snapshot_archive']['dir']}/2026-09.parquet", "status": "new"}
+    assert (workspace["snapshots"] / "2026-09.parquet").exists()
+    assert august.read_bytes() == before
+    assert json.loads(workspace["state"].read_text(encoding="utf-8"))["latest_snapshot"] == "2026-09-30"
+
+
+def test_changed_content_for_an_archived_month_keeps_the_first_observation(tmp_path, workspace):
+    cfg, rows, state = good_state(tmp_path, workspace)
+    august = workspace["snapshots"] / "2026-08.parquet"
+    before = august.read_bytes()
+    restated = rows + [dict(next(r for r in rows if r["OBJECTID"] == 62), OBJECTID=9000)]
+    manifest = run(tmp_path, cfg, restated, state=state, name="restated")
+    assert manifest["snapshot_archive"]["status"] == "kept_first_observation"
+    assert any("the first observation is kept" in w for w in manifest["warnings"]), manifest["warnings"]
+    assert august.read_bytes() == before
+
+
 def test_rows_pulled_must_match_service_count(tmp_path, workspace):
     rows = load_rows()
     cfg = make_cfg(workspace)
