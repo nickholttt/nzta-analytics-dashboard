@@ -1,0 +1,15 @@
+vehicle_type,in_scope,scope_group,notes
+PASSENGER CAR/VAN,true,passenger,
+GOODS VAN/TRUCK/UTILITY,true,goods,Includes heavy trucks; segment_map separates them by GVM.
+MOTORCYCLE,false,motorcycle,"Out of default scope; rows kept in snapshots. Most motorcycle makes are outside brand_registry, and bikes are a separate market."
+MOPED,false,moped,
+ATV,false,atv,Not explicitly decided. Out by default.
+TRAILER/CARAVAN,false,trailer,
+TRAILER NOT DESIGNED FOR H/WAY USE,false,trailer,
+MOTOR CARAVAN,false,motorhome,Self-propelled motorhomes. Not explicitly decided. Out by default.
+BUS,false,bus,Not explicitly decided. Out by default.
+TRACTOR,false,machinery,
+HIGH SPEED AGRICULTURAL VEHICLE,false,machinery,
+AGRICULTURAL MACHINE,false,machinery,
+MOBILE MACHINE,false,machinery,
+SPECIAL PURPOSE VEHICLE,false,special_purpose,Not explicitly decided. Out by default.

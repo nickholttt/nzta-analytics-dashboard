@@ -13,6 +13,17 @@ Two grains, never mixed in one series without an explicit label.
 - **Stock** — vehicles registered at month end. Denominator: all vehicles
   in the fleet at that month end.
 
+## Scope
+
+Every dataset counts **in-scope rows only**. A row is in scope when its
+vehicle type is `in_scope` in `vehicle_scope.csv` (today: passenger cars
+and vans, and goods vans, utes and trucks) and its import status is
+`in_scope` in `import_status_map.csv`. Datasets that measure entry to the
+fleet also require `counts_as_fleet_entry`. Every guardrail rate (unmapped
+makes, unmapped powertrains, row-count movement) is measured on in-scope
+rows. Out-of-scope rows stay in the archived snapshot aggregates with their
+scope flag; they never reach the cube.
+
 ## Core measures
 
 | Measure | Definition |

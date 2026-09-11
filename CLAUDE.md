@@ -89,6 +89,7 @@ data/reference/
   segment_map.csv     # body/vehicle type + GVM -> segment  (coarse seed, validate it)
   tla_region.csv      # territorial authority -> region (straddling districts flagged)
   import_status_map.csv  # NZTA import status -> label, fleet-entry and scope flags
+  vehicle_scope.csv   # which NZTA vehicle types count (in_scope)
   model_registry.csv  # EXCEPTIONS ONLY - renames, badge twins, match traps
   events.csv          # 52 policy/macro/OEM events for the annotation layer
 docs/
