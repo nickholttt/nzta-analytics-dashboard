@@ -33,6 +33,13 @@ jobs:
         with:
           fetch-depth: 1
 
+      # The first live run ran out of memory, so every run records its peak. Samples used memory (excluding page
+      # cache) every 2 seconds until the job ends; the resource report step reads the peak.
+      - name: Start memory sampler
+        run: |
+          date -u +%s > "$RUNNER_TEMP/started"
+          nohup bash -c 'while true; do free -m | awk "/^Mem:/ {print \$3, \$2}" >> "$RUNNER_TEMP/memory.log"; sleep 2; done' > /dev/null 2>&1 &
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
@@ -58,6 +65,12 @@ jobs:
           path: public/data
           retention-days: 90
 
+      # The log is public for a public repository, so the manifest can be compared with a local build without
+      # downloading the artifact.
+      - name: Show manifest
+        if: steps.pipeline.outputs.built == 'true'
+        run: cat public/data/manifest.json
+
       - name: Commit snapshot aggregate and state
         if: steps.pipeline.outputs.built == 'true'
         run: |
@@ -70,3 +83,10 @@ jobs:
           fi
           git commit -m "Snapshot ${{ steps.pipeline.outputs.snapshot }} [skip ci]"
           git push
+
+      - name: Resource report
+        if: always()
+        run: |
+          elapsed=$(( $(date -u +%s) - $(cat "$RUNNER_TEMP/started") ))
+          peak=$(sort -n "$RUNNER_TEMP/memory.log" | tail -1)
+          echo "Peak memory used: ${peak% *} MiB of ${peak#* } MiB. ${elapsed}s from checkout to this step." | tee -a "$GITHUB_STEP_SUMMARY"
