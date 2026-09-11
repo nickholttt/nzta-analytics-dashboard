@@ -20,7 +20,7 @@ that can't be generated, and it's what Claude Code should read first.
 | `config/measures.json` | Core and derived measures, with suppression thresholds |
 | `config/presets.json` | 26 question-titled charts across 7 groups |
 | `data/reference/brand_registry.csv` | Make → parent group → owner country → heritage country, with make-level limitations noted |
-| `data/reference/events.csv` | 53 NZ policy/macro/OEM events, 49 source-verified |
+| `data/reference/events.csv` | 54 NZ policy/macro/OEM events, 50 source-verified |
 | `data/reference/powertrain_map.csv` | NZTA motive power → canonical powertrain |
 | `data/reference/segment_map.csv` | Vehicle type + body + GVM → Car / Ute / Van / Truck / Other. Coarse on purpose: SUVs are not derivable |
 | `data/reference/tla_region.csv` | Territorial authority → region, with districts that straddle regions flagged |
