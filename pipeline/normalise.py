@@ -101,16 +101,25 @@ def build_rows(con, cfg) -> None:
     make, model = f"s.{quote(b['make_field'])}", f"s.{quote(b['model_field'])}"
     fuel = f"s.{quote(fc['field'])}"
     number = f"TRY_CAST({fuel} AS DOUBLE)"
-    # Registry match columns compare against the raw motive power and vehicle type, and the import status label.
+    # Registry match columns compare against the raw motive power, vehicle type and vehicle year, and the import status
+    # label. A vehicle with no vehicle year matches no row that bounds it.
     condition_values = {
         "motive_power": f"s.{quote(engine['field'])}",
         "import_status": "st.label",
         "vehicle_type": f"s.{quote(vehicle['field'])}",
+        reference.YEAR_FROM: "s.vehicle_year",
+        reference.YEAR_TO: "s.vehicle_year",
     }
 
     def matches(alias: str) -> str:
-        return " AND ".join(f"({alias}.{quote(c)} IS NULL OR {alias}.{quote(c)} = {condition_values[c]})"
-                            for c in b["model_registry_conditions"])
+        parts = []
+        for c in b["model_registry_conditions"]:
+            column = f"{alias}.{quote(c)}"
+            if c in reference.RANGE_CONDITIONS:
+                parts.append(f"({column} IS NULL OR {condition_values[c]} {reference.RANGE_CONDITIONS[c]} CAST({column} AS BIGINT))")
+            else:
+                parts.append(f"({column} IS NULL OR {column} = {condition_values[c]})")
+        return " AND ".join(parts)
 
     # A motive_power_override replaces the motive power every later lookup sees; the recorded value stays alongside.
     motive = quote(engine["field"])

@@ -79,7 +79,9 @@
     "model_registry_conditions": {
       "motive_power": "match_motive_power",
       "import_status": "match_import_status",
-      "vehicle_type": "match_vehicle_type"
+      "vehicle_type": "match_vehicle_type",
+      "vehicle_year_min": "match_vehicle_year_min",
+      "vehicle_year_max": "match_vehicle_year_max"
     }
   },
   "engine": { "reference": "powertrain_map.csv", "field": "motive_power", "key": "nzta_motive_power", "flag": "has_combustion_engine" },

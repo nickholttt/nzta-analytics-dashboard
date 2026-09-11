@@ -267,17 +267,29 @@ What the pipeline applies today:
   an alias. `model_canonical` is therefore a match key as well as the
   output, and must never be a different model's name under the same make:
   Abarth rows keep `ABARTH 595` rather than `595` because `FIAT 500` and
-  `FIAT 500E` are Fiats. Promotions apply in every vehicle year, so a
-  nameplate keeps one history, as the KGM rename does, even where older
-  vehicles carried the parent's badge (most `DODGE RAM` rows predate the Ram
-  brand). Each row's note records that cost.
-- A `make_promotion` or `motive_power_override` row may narrow its match
-  with `match_motive_power` (a key in `powertrain_map.csv`),
-  `match_import_status` (a label in `import_status_map.csv`) or
-  `match_vehicle_type` (a key in `vehicle_scope.csv`); blank means any.
-  `SHOGUN` under `MITSUBISHI` is a Fuso truck only as a goods vehicle, and
-  a Pajero otherwise. An unknown value, or a match column on any other row
-  type, aborts the build.
+  `FIAT 500E` are Fiats.
+- Promotions come in two kinds, treated differently. A **recording
+  artefact** is a vehicle that always wore the sub-brand's badge but was
+  recorded under the parent (MINI under BMW, LEXUS under TOYOTA, INFINITI,
+  ABARTH, JEEP under CHRYSLER): it is promoted in every vehicle year. A
+  **brand split** is one where the badge really did say the parent before a
+  date (RAM from Dodge, FUSO from Mitsubishi, UD TRUCKS from Nissan Diesel,
+  the modern Alpine and Genesis brands): it is promoted only from that
+  vehicle year, and older vehicles stay with the parent. `vehicle_year` is
+  the NZ registration year for NZ-new vehicles and a year from the
+  vehicle's life overseas for used imports, so every cutoff is approximate
+  by up to a year. Each row's note gives the date and its source; do not
+  chase precision the field cannot carry.
+- A `make_promotion`, `motive_power_override` or `not_promoted` row may
+  narrow its match with `match_motive_power` (a key in
+  `powertrain_map.csv`), `match_import_status` (a label in
+  `import_status_map.csv`), `match_vehicle_type` (a key in
+  `vehicle_scope.csv`), and `match_vehicle_year_min` and
+  `match_vehicle_year_max` (inclusive years); blank means any, and a
+  vehicle with no vehicle year matches no row that bounds it. `SHOGUN`
+  under `MITSUBISHI` is a Fuso truck only as a goods vehicle, and a Pajero
+  otherwise. An unknown value, a year range that ends before it starts, or
+  a match column on any other row type aborts the build.
 - `motive_power_override` replaces the recorded motive power with
   `override_value`, which must be a key in `powertrain_map.csv`, before the
   powertrain and engine flag are looked up. It must set
@@ -287,10 +299,12 @@ What the pipeline applies today:
   `PETROL MILD HYBRID`. Used-import Swifts stay, because Japanese-market
   Swift hybrids include full hybrids. The snapshot archive keeps the motive
   power NZTA recorded.
-- `not_promoted` is never applied. It records a string that must stay where
-  it is (classic Minis under `MORRIS`, the Hyundai Genesis sedan, licence-
-  built Jeeps), and the build aborts if any `make_promotion` row moves that
-  make to that `override_value`, so nobody "fixes" it later.
+- `not_promoted` is never applied. It records vehicles that must stay where
+  they are (classic Minis under `MORRIS`, licence-built Jeeps, Renault-badged
+  Alpines and the Hyundai Genesis sedan up to vehicle year 2016), and the
+  build aborts if a `make_promotion` row with the same make and
+  `override_value` could match any vehicle it covers, so nobody "fixes" it
+  later.
 
 `badge_twin`, `distinct_nameplate` and `retired` only matter to launch and
 retirement detection above, and are not applied yet.
