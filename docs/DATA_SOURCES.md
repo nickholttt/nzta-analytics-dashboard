@@ -70,8 +70,12 @@ CNG. The powertrain dimension uses the primary fuel only, so a dual-fuel
 vehicle counts under its primary fuel. The pipeline reports how many rows
 carry a different alternative fuel rather than dropping that fact.
 
-**Make and model** come from a predefined list; **submodel is free text**.
-Never aggregate on submodel.
+**Make, model and submodel are all free text.** NZTA's field descriptions
+mark MAKE and MODEL as free text. NZTA has cleaned them algorithmically,
+but about 165,000 distinct MODEL strings remain across the register, and
+22,666 distinct make-and-model pairs in scope. Sub-brands are sometimes
+recorded as models (MODEL = ORA under MAKE = GWM); `model_registry.csv`
+corrects the known cases. Never aggregate on submodel.
 
 **Vehicle year** changed meaning in 2007, and the data confirms it. NZTA's
 field description page says "year of manufacture or model year – if
