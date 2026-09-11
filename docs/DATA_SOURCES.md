@@ -62,6 +62,14 @@ Label them "Built in" and "Brand owned from" in the UI, never "origin".
 vehicle returning to the register (mostly trailers) and `SCRATCH` is
 home-built. `import_status_map.csv` records how each is treated.
 
+**Motive power** is the primary fuel, in NZTA's own spellings (`PLUGIN`,
+not `PLUG-IN`). Two petrol hybrid codes are in concurrent use, not a
+rename. A second fuel, where present, is in `ALTERNATIVE_MOTIVE_POWER`:
+about 0.1% of in-scope rows, mostly petrol vehicles also running LPG or
+CNG. The powertrain dimension uses the primary fuel only, so a dual-fuel
+vehicle counts under its primary fuel. The pipeline reports how many rows
+carry a different alternative fuel rather than dropping that fact.
+
 **Make and model** come from a predefined list; **submodel is free text**.
 Never aggregate on submodel.
 

@@ -36,7 +36,7 @@
     {
       "id": "powertrain",
       "label": "Powertrain",
-      "source": "reference:powertrain_map",
+      "source": "nzta:motive_power + reference:powertrain_map",
       "shape_hint": "mix",
       "cardinality": "low",
       "help": "How the vehicle is powered: petrol, diesel, hybrid, plug-in hybrid, electric."

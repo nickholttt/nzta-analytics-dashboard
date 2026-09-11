@@ -1,14 +1,23 @@
-nzta_motive_power,powertrain,powertrain_group,electrified,notes
-PETROL,Petrol,ICE,false,
-DIESEL,Diesel,ICE,false,
-ELECTRIC,BEV,Electric,true,
-PETROL ELECTRIC HYBRID,Hybrid,Hybrid,true,Not externally chargeable
-DIESEL ELECTRIC HYBRID,Hybrid,Hybrid,true,
-PLUG-IN PETROL HYBRID,PHEV,Plug-in,true,
-PLUG-IN DIESEL HYBRID,PHEV,Plug-in,true,
-HYDROGEN,Hydrogen,Other,true,
-LPG,LPG,ICE,false,
-CNG,CNG,ICE,false,
-PETROL AND LPG,Petrol,ICE,false,Dual fuel; collapsed to primary fuel
-OTHER,Other,Other,false,
-NULL,Unknown,Unknown,false,Blank or undefined in source
+nzta_motive_power,powertrain,powertrain_detail,powertrain_group,electrified,has_combustion_engine,occurs_in_source,notes
+PETROL,Petrol,Petrol,ICE,false,true,true,
+DIESEL,Diesel,Diesel,ICE,false,true,true,
+LPG,LPG,LPG,ICE,false,true,true,
+CNG,CNG,CNG,ICE,false,true,true,
+PETROL HYBRID,Hybrid,HEV,Hybrid,true,true,true,Not externally chargeable. The main hybrid code: a third of in-scope rows in the last 12 months.
+PETROL ELECTRIC HYBRID,Hybrid,HEV,Hybrid,true,true,true,"In concurrent use with PETROL HYBRID since 2018, not a rename. Mostly Nissan, NZ-new and used."
+DIESEL HYBRID,Hybrid,HEV,Hybrid,true,true,true,"Near zero until 2023, then 4-7k a year, almost all NZ-new Toyota 2.8L diesels from 2024. Likely mild hybrids; the register does not distinguish mild from full."
+DIESEL ELECTRIC HYBRID,Hybrid,HEV,Hybrid,true,true,true,
+PLUGIN PETROL HYBRID,PHEV,PHEV,Plug-in,true,true,true,
+PLUGIN DIESEL HYBRID,PHEV,PHEV,Plug-in,true,true,true,
+ELECTRIC [PETROL EXTENDED],PHEV,EREV,Plug-in,true,true,true,"Range-extended EV: battery drive plus a petrol generator. Classed PHEV because it carries an engine that burns fuel. About 900 rows (BMW i3 REx, Leapmotor). A documented judgement call."
+ELECTRIC [DIESEL EXTENDED],PHEV,EREV,Plug-in,true,true,true,Same treatment as petrol-extended. 4 rows; none in scope.
+ELECTRIC,BEV,BEV,Electric,true,false,true,CC_RATING is 0 on 86% of rows and a small non-zero value on the rest. Engine size comes from has_combustion_engine; never infer it from CC.
+ELECTRIC FUEL CELL HYDROGEN,Hydrogen,FCEV,Other,true,false,true,
+PLUG IN FUEL CELL HYDROGEN HYBRID,Hydrogen,Plug-in FCEV,Other,true,false,true,"Plug-in battery plus hydrogen fuel cell. Classed with hydrogen, not PHEV, because it burns no liquid fuel."
+ELECTRIC FUEL CELL OTHER,Other,FCEV (other fuel),Other,true,false,true,Fuel cell with an unstated fuel. None in scope.
+PLUG IN FUEL CELL OTHER HYBRID,Other,Plug-in FCEV (other fuel),Other,true,false,true,1 row; none in scope.
+OTHER,Other,Other,Other,false,true,true,"About 115 in-scope rows. CC_RATING is non-zero on 93%, so treated as having an engine."
+PLUG-IN PETROL HYBRID,PHEV,PHEV,Plug-in,true,true,false,Starter-kit spelling. The service writes PLUGIN PETROL HYBRID. Kept in case NZTA changes spelling.
+PLUG-IN DIESEL HYBRID,PHEV,PHEV,Plug-in,true,true,false,Starter-kit spelling. The service writes PLUGIN DIESEL HYBRID.
+HYDROGEN,Hydrogen,FCEV,Other,true,false,false,Starter-kit key. The service records fuel cells as ELECTRIC FUEL CELL HYDROGEN.
+PETROL AND LPG,Petrol,Petrol,ICE,false,true,false,"Starter-kit key. Dual fuel is recorded as MOTIVE_POWER = PETROL with ALTERNATIVE_MOTIVE_POWER = LPG, and collapses to the primary fuel either way."
