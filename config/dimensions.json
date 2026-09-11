@@ -95,10 +95,11 @@
     {
       "id": "segment",
       "label": "Vehicle type",
-      "source": "reference:segment_map",
+      "source": "nzta:vehicle_type + nzta:body_type + nzta:gross_vehicle_mass + reference:segment_map",
       "shape_hint": "mix",
       "cardinality": "low",
-      "help": "Car, SUV, ute, van, truck."
+      "help": "Car, ute, van, truck or other. The register records most SUVs as station wagons, so they count as cars.",
+      "$comment": "segment_map matches on vehicle_type + body_type. Where gvm_min_kg/gvm_max_kg are set, GVM must fall in that inclusive range and a missing GVM matches nothing; where both are blank, GVM is not used."
     },
     {
       "id": "import_status",

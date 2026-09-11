@@ -256,12 +256,13 @@
       "presets": [
         {
           "id": "segment-mix",
-          "question": "Cars, SUVs or utes?",
+          "question": "Cars, utes, vans or trucks?",
           "dataset": "first_registrations",
           "measure": "share",
           "dimension": "segment",
           "period": "all",
-          "events": true
+          "events": true,
+          "note": "The register records most SUVs as station wagons, so they count as cars here."
         },
         {
           "id": "engine-size",

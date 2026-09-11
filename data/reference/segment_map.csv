@@ -1,19 +1,24 @@
 vehicle_type,body_type,gvm_min_kg,gvm_max_kg,segment,segment_group,notes
-PASSENGER,SEDAN,0,3500,Car,Light passenger,
-PASSENGER,HATCHBACK,0,3500,Car,Light passenger,
-PASSENGER,STATION WAGON,0,3500,Car,Light passenger,
-PASSENGER,COUPE,0,3500,Car,Light passenger,
-PASSENGER,CONVERTIBLE,0,3500,Car,Light passenger,
-PASSENGER,SPORTS CAR,0,3500,Car,Light passenger,
-PASSENGER,UTILITY,0,3500,SUV,Light passenger,SUV bodies are often coded as utility in the MVR; validate before trusting
-PASSENGER,MPV,0,3500,People mover,Light passenger,
-PASSENGER,VAN,0,3500,People mover,Light passenger,
-GOODS,UTE,0,3500,Ute,Light commercial,
-GOODS,FLATDECK UTE,0,3500,Ute,Light commercial,
-GOODS,VAN,0,3500,Van,Light commercial,
-GOODS,LIGHT VAN,0,3500,Van,Light commercial,
-GOODS,TRUCK,3501,12000,Medium truck,Heavy commercial,
-GOODS,TRUCK,12001,999999,Heavy truck,Heavy commercial,
-MOTORCYCLE,,0,999999,Motorcycle,Motorcycle,
-BUS,,0,999999,Bus,Heavy commercial,
-TRAILER,,0,999999,Trailer,Trailer,Excluded from all headline measures by default
+PASSENGER CAR/VAN,STATION WAGON,,,Car,Light passenger,"Most SUVs are recorded here and cannot be told apart from station wagons. CLASS MC (off-road passenger) is 24% of this body, but its share of new passenger vehicles fell from about 20% to 12% over the years SUV sales rose, so it is not an SUV proxy."
+PASSENGER CAR/VAN,HATCHBACK,,,Car,Light passenger,
+PASSENGER CAR/VAN,SALOON,,,Car,Light passenger,
+PASSENGER CAR/VAN,SPORTS CAR,,,Car,Light passenger,
+PASSENGER CAR/VAN,CONVERTIBLE,,,Car,Light passenger,
+PASSENGER CAR/VAN,LIGHT VAN,,,Van,Light passenger,"Passenger vans and people movers (Hiace, iMax, Serena, Alphard)."
+PASSENGER CAR/VAN,HEAVY VAN,,,Van,Light passenger,About 100 rows.
+PASSENGER CAR/VAN,UTILITY,,,Ute,Light passenger,"Mostly utes registered as passenger vehicles; also a few small off-roaders (Jimny, Land Cruiser)."
+PASSENGER CAR/VAN,MOTORCYCLE,,,Other,Other,"Three-wheelers registered as passenger vehicles (class LE): Can-Am Spyder and Ryker, Yamaha MW, Piaggio MP3."
+GOODS VAN/TRUCK/UTILITY,UTILITY,1,3500,Ute,Light commercial,
+GOODS VAN/TRUCK/UTILITY,UTILITY,3501,999999,Ute,Heavy commercial,"Full-size pickups over 3500 kg GVM (RAM 2500, Silverado HD, F-250)."
+GOODS VAN/TRUCK/UTILITY,CAB AND CHASSIS ONLY,1,3500,Ute,Light commercial,"Cab-chassis utes (Hilux, Land Cruiser 70, Navara)."
+GOODS VAN/TRUCK/UTILITY,CAB AND CHASSIS ONLY,3501,999999,Truck,Heavy commercial,
+GOODS VAN/TRUCK/UTILITY,LIGHT VAN,1,3500,Van,Light commercial,
+GOODS VAN/TRUCK/UTILITY,LIGHT VAN,3501,999999,Van,Heavy commercial,"Large vans over 3500 kg (Sprinter, Crafter)."
+GOODS VAN/TRUCK/UTILITY,HEAVY VAN,1,3500,Van,Light commercial,
+GOODS VAN/TRUCK/UTILITY,HEAVY VAN,3501,999999,Van,Heavy commercial,"Mostly large vans (Transit, Sprinter, Daily); also some box-bodied light trucks (Dyna, Dutro) that the body code cannot separate."
+GOODS VAN/TRUCK/UTILITY,OTHER TRUCK,1,3500,Truck,Light commercial,
+GOODS VAN/TRUCK/UTILITY,OTHER TRUCK,3501,999999,Truck,Heavy commercial,
+GOODS VAN/TRUCK/UTILITY,FLAT-DECK TRUCK,1,3500,Truck,Light commercial,
+GOODS VAN/TRUCK/UTILITY,FLAT-DECK TRUCK,3501,999999,Truck,Heavy commercial,
+GOODS VAN/TRUCK/UTILITY,ARTICULATED TRUCK,,,Truck,Heavy commercial,Heavy regardless of GVM: the 45 rows recording 3500 kg or less are implausible for this body.
+GOODS VAN/TRUCK/UTILITY,STATION WAGON,,,Other,Light commercial,"Goods-rated wagons and vans (Defender, Hiace, Estima, NV200, Corolla wagon). Too mixed to call."

@@ -22,7 +22,7 @@ that can't be generated, and it's what Claude Code should read first.
 | `data/reference/brand_registry.csv` | Make → parent group → owner country → heritage country, with make-level limitations noted |
 | `data/reference/events.csv` | 52 NZ policy/macro/OEM events, 40 source-verified |
 | `data/reference/powertrain_map.csv` | NZTA motive power → canonical powertrain |
-| `data/reference/segment_map.csv` | Coarse segment seed — **validate before trusting** |
+| `data/reference/segment_map.csv` | Vehicle type + body + GVM → Car / Ute / Van / Truck / Other. Coarse on purpose: SUVs are not derivable |
 | `data/reference/tla_region.csv` | Territorial authority → region, with districts that straddle regions flagged |
 | `data/reference/import_status_map.csv` | NZTA import status → label, and whether it counts as entry to the fleet |
 | `data/reference/vehicle_scope.csv` | Which NZTA vehicle types are in scope. Guardrail rates are measured on in-scope rows |
@@ -33,8 +33,9 @@ that can't be generated, and it's what Claude Code should read first.
 - 12 events are `verified=false` and excluded from the build. Dates need
   confirming: COVID boundaries, chip shortage window, OCR cycles, Tesla
   and MG entry dates, Honda agency start, Takata recall scope.
-- `segment_map.csv` is deliberately coarse. NZTA codes some SUV bodies as
-  utility, so it will misclassify until validated against real data.
+- `segment_map.csv` is coarse on purpose. The register records most SUVs
+  as station wagons, so Car vs SUV cannot be derived and there is no SUV
+  segment.
 - No pipeline code, no frontend. That's the build.
 
 ## Licence

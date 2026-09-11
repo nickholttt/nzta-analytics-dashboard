@@ -86,7 +86,7 @@ config/
 data/reference/
   brand_registry.csv  # make -> parent group -> brand origin  (hand-maintained)
   powertrain_map.csv  # NZTA motive power -> canonical powertrain
-  segment_map.csv     # body/vehicle type + GVM -> segment  (coarse seed, validate it)
+  segment_map.csv     # vehicle type + body + GVM -> segment  (coarse: SUV is not derivable)
   tla_region.csv      # territorial authority -> region (straddling districts flagged)
   import_status_map.csv  # NZTA import status -> label, fleet-entry and scope flags
   vehicle_scope.csv   # which NZTA vehicle types count (in_scope)
