@@ -1,0 +1,9 @@
+make,model_canonical,aliases,override_type,override_value,note
+KGM,REXTON,SSANGYONG REXTON,rename,,Brand renamed; nameplate continuous. Prevents a false retire+launch pair.
+MG,ZS,,badge_twin,,Petrol and EV ZS share a nameplate but are different vehicles. Split on powertrain before treating as one model.
+TOYOTA,YARIS CROSS,,distinct_nameplate,,Not a Yaris variant. Do not let fuzzy matching collapse it into YARIS.
+TOYOTA,LAND CRUISER PRADO,PRADO,distinct_nameplate,,Separate nameplate from LAND CRUISER.
+NISSAN,X-TRAIL,XTRAIL,alias,,Recorded both ways.
+MAZDA,CX-5,CX5,alias,,Recorded both ways.
+BYD,ATTO 3,ATTO3,alias,,"Sourcing moved China to Thailand in 2026; nameplate continuous, built_in changes."
+HOLDEN,COMMODORE,,retired,2020-12-31,Nameplate ended with the brand. Used imports may still appear after this date.

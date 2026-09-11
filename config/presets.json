@@ -1,0 +1,324 @@
+{
+  "$comment": "The Explore canon. Every preset is also a worked example of the Build grammar, so each must be expressible as {dataset, measure, dimension, period, filters}. If a preset cannot be expressed in the builder vocabulary, either extend the vocabulary or drop the preset.",
+  "evergreen_test": "Would this chart still be worth showing in 2035? If the title names a specific scheme, brand or year, it fails and belongs in the events layer instead.",
+  "groups": [
+    {
+      "id": "powertrain",
+      "label": "How vehicles are powered",
+      "presets": [
+        {
+          "id": "powertrain-mix",
+          "question": "How has each powertrain's share of new registrations changed?",
+          "dataset": "first_registrations",
+          "measure": "share",
+          "dimension": "powertrain",
+          "period": "all",
+          "filters": [
+            {
+              "segment_group": "Light passenger"
+            }
+          ],
+          "events": true
+        },
+        {
+          "id": "fleet-catchup",
+          "question": "How far behind the market is the fleet?",
+          "shape_override": "trend",
+          "series": [
+            {
+              "dataset": "first_registrations",
+              "measure": "share",
+              "dimension": "powertrain",
+              "label": "Share of new registrations"
+            },
+            {
+              "dataset": "fleet",
+              "measure": "share",
+              "dimension": "powertrain",
+              "label": "Share of vehicles on the road"
+            }
+          ],
+          "period": "all",
+          "shade_gap": true,
+          "note": "The gap is how long a change in what people buy takes to reach the road."
+        }
+      ]
+    },
+    {
+      "id": "origin",
+      "label": "Where our vehicles come from",
+      "presets": [
+        {
+          "id": "brand-owner-origin",
+          "question": "Which countries own the brands New Zealanders buy?",
+          "dataset": "first_registrations",
+          "measure": "share",
+          "dimension": "owner_country",
+          "period": "all",
+          "events": true
+        },
+        {
+          "id": "built-in",
+          "question": "Where are New Zealand's vehicles actually built?",
+          "dataset": "first_registrations",
+          "measure": "share",
+          "dimension": "built_in",
+          "period": "all",
+          "events": true
+        },
+        {
+          "id": "brand-vs-built",
+          "question": "Japanese brands or Japanese-built? The gap.",
+          "shape_override": "trend",
+          "series": [
+            {
+              "dataset": "first_registrations",
+              "measure": "share",
+              "dimension": "owner_country",
+              "filter_value": "Japan",
+              "label": "Japanese-owned brands"
+            },
+            {
+              "dataset": "first_registrations",
+              "measure": "share",
+              "dimension": "built_in",
+              "filter_value": "JAPAN",
+              "label": "Built in Japan"
+            }
+          ],
+          "period": "all",
+          "shade_gap": true,
+          "note": "Brand share can hold steady while production moves country. This is the chart nobody publishes."
+        },
+        {
+          "id": "used-import-source",
+          "question": "Where do our used imports come from?",
+          "dataset": "used_imports",
+          "measure": "share",
+          "dimension": "imported_from",
+          "period": "all"
+        }
+      ]
+    },
+    {
+      "id": "market",
+      "label": "How the market is structured",
+      "presets": [
+        {
+          "id": "new-vs-used",
+          "question": "New or second-hand? The balance over time.",
+          "dataset": "first_registrations",
+          "measure": "share",
+          "dimension": "import_status",
+          "period": "all",
+          "events": true
+        },
+        {
+          "id": "volume-trend",
+          "question": "How many vehicles are being registered?",
+          "dataset": "first_registrations",
+          "measure": "rolling_12m",
+          "dimension": null,
+          "period": "all",
+          "events": true
+        },
+        {
+          "id": "brand-share",
+          "question": "Which brands are gaining and losing ground?",
+          "dataset": "first_registrations",
+          "measure": "share",
+          "dimension": "make",
+          "period": "10y",
+          "top_n": 10
+        },
+        {
+          "id": "concentration",
+          "question": "Is the market getting more crowded?",
+          "shape_override": "trend",
+          "derived": "top_5_share",
+          "dataset": "first_registrations",
+          "dimension": "make",
+          "period": "all",
+          "note": "The combined share of the five largest brands. A falling line means more brands competing."
+        },
+        {
+          "id": "model-league",
+          "question": "What are the best-selling models right now?",
+          "dataset": "first_registrations",
+          "measure": "count",
+          "dimension": "model",
+          "period": "latest_month",
+          "top_n": 20,
+          "show_rank_delta": true
+        },
+        {
+          "id": "ownership-churn",
+          "question": "How often do vehicles change hands?",
+          "dataset": "ownership_changes",
+          "measure": "rolling_12m",
+          "dimension": null,
+          "period": "all"
+        }
+      ]
+    },
+    {
+      "id": "new_or_old",
+      "label": "New or old?",
+      "presets": [
+        {
+          "id": "age-at-registration",
+          "question": "Are New Zealanders buying new or second-hand?",
+          "dataset": "first_registrations",
+          "measure": "share",
+          "dimension": "age_at_registration_band",
+          "period": "all",
+          "shape_override": "distribution",
+          "events": true,
+          "note": "Zero means the vehicle was new. Everything else entered the fleet second-hand."
+        },
+        {
+          "id": "import-age-trend",
+          "question": "Are our used imports getting younger or older?",
+          "derived": "median_import_age",
+          "dataset": "used_imports",
+          "period": "all",
+          "events": true
+        },
+        {
+          "id": "age-distribution-moving-hole",
+          "question": "Which model years can't we get any more?",
+          "dataset": "used_imports",
+          "measure": "share",
+          "dimension": "age_at_registration_band",
+          "period": "all",
+          "shape_override": "distribution",
+          "animate_by": "year",
+          "events": true,
+          "note": "The 2024 Japanese emissions rule closed a band of model years. Because the band is fixed in model year but its age rises each year, the gap migrates rightward through this chart."
+        },
+        {
+          "id": "shaken-clock",
+          "question": "Why do used imports cluster at odd ages?",
+          "dataset": "used_imports",
+          "measure": "count",
+          "dimension": "age_at_registration_band",
+          "period": "latest_year",
+          "shape_override": "distribution",
+          "note": "Japan's inspection falls due at 3 years then every 2. Expect peaks at 3, 5, 7, 9, 11 and 13."
+        },
+        {
+          "id": "regional-freshness",
+          "question": "Which regions buy the newest vehicles?",
+          "derived": "freshness",
+          "dataset": "first_registrations",
+          "dimension": "region",
+          "period": "latest_year",
+          "shape_override": "geo"
+        },
+        {
+          "id": "pipeline-lag",
+          "question": "How long before a new model shows up second-hand?",
+          "derived": "pipeline_lag",
+          "dataset": "first_registrations",
+          "dimension": "make",
+          "period": "all",
+          "top_n": 15,
+          "note": "Derived from first-appearance detection, not a curated launch list. See docs/MODEL_AND_AGE.md."
+        }
+      ]
+    },
+    {
+      "id": "fleet",
+      "label": "The fleet on the road",
+      "presets": [
+        {
+          "id": "fleet-age",
+          "question": "How old is New Zealand's vehicle fleet?",
+          "dataset": "fleet",
+          "measure": "share",
+          "dimension": "vehicle_year_band",
+          "period": "all",
+          "shape_override": "distribution"
+        },
+        {
+          "id": "cohort-survival",
+          "question": "How long do vehicles stay on the road?",
+          "derived": "cohort_survival",
+          "dataset": "fleet",
+          "period": "all",
+          "note": "Of the vehicles first registered in a given year, what share is still registered N years later."
+        }
+      ]
+    },
+    {
+      "id": "characteristics",
+      "label": "What we're buying",
+      "presets": [
+        {
+          "id": "segment-mix",
+          "question": "Cars, SUVs or utes?",
+          "dataset": "first_registrations",
+          "measure": "share",
+          "dimension": "segment",
+          "period": "all",
+          "events": true
+        },
+        {
+          "id": "engine-size",
+          "question": "Are engines getting bigger or disappearing?",
+          "dataset": "first_registrations",
+          "measure": "share",
+          "dimension": "engine_size_band",
+          "period": "all",
+          "shape_override": "distribution"
+        },
+        {
+          "id": "emissions-trend",
+          "question": "Are new registrations getting cleaner?",
+          "derived": "mean_co2",
+          "dataset": "first_registrations",
+          "period": "all",
+          "events": true
+        }
+      ]
+    },
+    {
+      "id": "geography",
+      "label": "Where in the country",
+      "presets": [
+        {
+          "id": "regional-volume",
+          "question": "Which regions register the most vehicles per person?",
+          "derived": "per_capita",
+          "dataset": "first_registrations",
+          "dimension": "region",
+          "period": "latest_year",
+          "shape_override": "geo"
+        },
+        {
+          "id": "regional-powertrain",
+          "question": "Which parts of the country are electrifying fastest?",
+          "dataset": "first_registrations",
+          "measure": "share",
+          "dimension": "region",
+          "filters": [
+            {
+              "powertrain": "BEV"
+            }
+          ],
+          "period": "latest_year",
+          "shape_override": "geo"
+        },
+        {
+          "id": "regional-age",
+          "question": "Where are the oldest vehicles?",
+          "derived": "mean_fleet_age",
+          "dataset": "fleet",
+          "dimension": "region",
+          "period": "latest_month",
+          "shape_override": "geo"
+        }
+      ]
+    }
+  ]
+}

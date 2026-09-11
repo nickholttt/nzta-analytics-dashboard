@@ -1,0 +1,19 @@
+vehicle_type,body_type,gvm_min_kg,gvm_max_kg,segment,segment_group,notes
+PASSENGER,SEDAN,0,3500,Car,Light passenger,
+PASSENGER,HATCHBACK,0,3500,Car,Light passenger,
+PASSENGER,STATION WAGON,0,3500,Car,Light passenger,
+PASSENGER,COUPE,0,3500,Car,Light passenger,
+PASSENGER,CONVERTIBLE,0,3500,Car,Light passenger,
+PASSENGER,SPORTS CAR,0,3500,Car,Light passenger,
+PASSENGER,UTILITY,0,3500,SUV,Light passenger,SUV bodies are often coded as utility in the MVR; validate before trusting
+PASSENGER,MPV,0,3500,People mover,Light passenger,
+PASSENGER,VAN,0,3500,People mover,Light passenger,
+GOODS,UTE,0,3500,Ute,Light commercial,
+GOODS,FLATDECK UTE,0,3500,Ute,Light commercial,
+GOODS,VAN,0,3500,Van,Light commercial,
+GOODS,LIGHT VAN,0,3500,Van,Light commercial,
+GOODS,TRUCK,3501,12000,Medium truck,Heavy commercial,
+GOODS,TRUCK,12001,999999,Heavy truck,Heavy commercial,
+MOTORCYCLE,,0,999999,Motorcycle,Motorcycle,
+BUS,,0,999999,Bus,Heavy commercial,
+TRAILER,,0,999999,Trailer,Trailer,Excluded from all headline measures by default

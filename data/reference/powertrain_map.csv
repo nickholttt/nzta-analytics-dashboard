@@ -1,0 +1,14 @@
+nzta_motive_power,powertrain,powertrain_group,electrified,notes
+PETROL,Petrol,ICE,false,
+DIESEL,Diesel,ICE,false,
+ELECTRIC,BEV,Electric,true,
+PETROL ELECTRIC HYBRID,Hybrid,Hybrid,true,Not externally chargeable
+DIESEL ELECTRIC HYBRID,Hybrid,Hybrid,true,
+PLUG-IN PETROL HYBRID,PHEV,Plug-in,true,
+PLUG-IN DIESEL HYBRID,PHEV,Plug-in,true,
+HYDROGEN,Hydrogen,Other,true,
+LPG,LPG,ICE,false,
+CNG,CNG,ICE,false,
+PETROL AND LPG,Petrol,ICE,false,Dual fuel; collapsed to primary fuel
+OTHER,Other,Other,false,
+NULL,Unknown,Unknown,false,Blank or undefined in source

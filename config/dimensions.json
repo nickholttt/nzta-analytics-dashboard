@@ -1,0 +1,195 @@
+{
+  "$comment": "The complete vocabulary of the Build surface. Adding a dimension here plus a cube slice is the only way to extend it. Deliberately capped at 12.",
+  "datasets": [
+    {
+      "id": "first_registrations",
+      "label": "New registrations",
+      "grain": "flow",
+      "help": "Vehicles registered in NZ for the first time, whether NZ-new or a used import."
+    },
+    {
+      "id": "nz_new",
+      "label": "NZ-new registrations",
+      "grain": "flow",
+      "help": "First registrations where the vehicle was new when it entered NZ."
+    },
+    {
+      "id": "used_imports",
+      "label": "Used imports",
+      "grain": "flow",
+      "help": "First registrations of vehicles previously registered overseas."
+    },
+    {
+      "id": "ownership_changes",
+      "label": "Ownership changes",
+      "grain": "flow",
+      "help": "Vehicles that changed registered person."
+    },
+    {
+      "id": "fleet",
+      "label": "Vehicles on the road",
+      "grain": "stock",
+      "help": "All vehicles registered in NZ at month end."
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "powertrain",
+      "label": "Powertrain",
+      "source": "reference:powertrain_map",
+      "shape_hint": "mix",
+      "cardinality": "low",
+      "help": "How the vehicle is powered: petrol, diesel, hybrid, plug-in hybrid, electric."
+    },
+    {
+      "id": "make",
+      "label": "Brand",
+      "source": "nzta:make",
+      "shape_hint": "league",
+      "cardinality": "high",
+      "help": "The badge on the car. Normalised via the brand registry."
+    },
+    {
+      "id": "parent_group",
+      "label": "Manufacturer group",
+      "source": "reference:brand_registry",
+      "shape_hint": "mix",
+      "cardinality": "medium",
+      "help": "Who owns the brand. Toyota, Lexus and Daihatsu all roll up to Toyota Group."
+    },
+    {
+      "id": "owner_country",
+      "label": "Brand owned from",
+      "source": "reference:brand_registry",
+      "shape_hint": "mix",
+      "cardinality": "low",
+      "help": "The home country of the company that owns the brand today. Volvo counts as China here."
+    },
+    {
+      "id": "heritage_country",
+      "label": "Brand originally from",
+      "source": "reference:brand_registry",
+      "shape_hint": "mix",
+      "cardinality": "low",
+      "help": "Where the brand was founded. Volvo counts as Sweden here."
+    },
+    {
+      "id": "built_in",
+      "label": "Built in",
+      "source": "nzta:country_of_origin",
+      "shape_hint": "mix",
+      "cardinality": "medium",
+      "help": "The country where the vehicle was principally manufactured. A Toyota built in Thailand counts as Thailand."
+    },
+    {
+      "id": "imported_from",
+      "label": "Imported from",
+      "source": "nzta:country_of_previous_registration",
+      "shape_hint": "mix",
+      "cardinality": "medium",
+      "applies_to": [
+        "used_imports"
+      ],
+      "help": "Where a used import was registered before coming to NZ."
+    },
+    {
+      "id": "segment",
+      "label": "Vehicle type",
+      "source": "reference:segment_map",
+      "shape_hint": "mix",
+      "cardinality": "low",
+      "help": "Car, SUV, ute, van, truck."
+    },
+    {
+      "id": "import_status",
+      "label": "New or used",
+      "source": "nzta:import_status",
+      "shape_hint": "mix",
+      "cardinality": "low",
+      "help": "Whether the vehicle was new or second-hand when it first entered NZ."
+    },
+    {
+      "id": "region",
+      "label": "Region",
+      "source": "nzta:region",
+      "shape_hint": "geo",
+      "cardinality": "medium",
+      "help": "The region of the registered person at the time of registration."
+    },
+    {
+      "id": "vehicle_year_band",
+      "label": "Vehicle age",
+      "source": "derived:vehicle_year",
+      "shape_hint": "distribution",
+      "cardinality": "low",
+      "help": "Banded age of the vehicle. Note the definition of vehicle year changed in 2007."
+    },
+    {
+      "id": "engine_size_band",
+      "label": "Engine size",
+      "source": "derived:cc_rating",
+      "shape_hint": "distribution",
+      "cardinality": "low",
+      "help": "Engine capacity in bands. Electric vehicles fall in a separate 'none' band."
+    },
+    {
+      "id": "age_at_registration_band",
+      "label": "Age when first registered here",
+      "source": "derived:registration_year - vehicle_year",
+      "shape_hint": "distribution",
+      "cardinality": "low",
+      "applies_to": [
+        "first_registrations",
+        "nz_new",
+        "used_imports"
+      ],
+      "help": "How old the vehicle was when it was first registered in New Zealand. Zero means new.",
+      "bands": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6-7",
+        "8-9",
+        "10-12",
+        "13-15",
+        "16-19",
+        "20+",
+        "unknown"
+      ]
+    },
+    {
+      "id": "model",
+      "label": "Model",
+      "source": "nzta:model",
+      "shape_hint": "league",
+      "cardinality": "very_high",
+      "help": "The nameplate. Never use submodel, which is free text."
+    }
+  ],
+  "periods": [
+    {
+      "id": "all",
+      "label": "All time"
+    },
+    {
+      "id": "10y",
+      "label": "Last 10 years"
+    },
+    {
+      "id": "5y",
+      "label": "Last 5 years"
+    },
+    {
+      "id": "3y",
+      "label": "Last 3 years"
+    }
+  ],
+  "rules": {
+    "max_filters": 2,
+    "chart_type_is_user_selectable": false,
+    "$comment": "Shape is inferred from measure + dimension. See CLAUDE.md Shapes."
+  }
+}

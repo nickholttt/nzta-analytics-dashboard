@@ -1,0 +1,92 @@
+make_canonical,aliases,parent_group,owner_country,heritage_country,brand_region,notes
+TOYOTA,,Toyota Group,Japan,Japan,Japan,
+LEXUS,,Toyota Group,Japan,Japan,Japan,
+DAIHATSU,,Toyota Group,Japan,Japan,Japan,
+HINO,,Toyota Group,Japan,Japan,Japan,Heavy commercial
+SUBARU,,Subaru Corporation,Japan,Japan,Japan,Toyota holds a minority stake
+MAZDA,,Mazda Motor Corporation,Japan,Japan,Japan,
+HONDA,,Honda Motor,Japan,Japan,Japan,
+NISSAN,,Nissan Motor,Japan,Japan,Japan,Renault-Nissan-Mitsubishi Alliance member
+INFINITI,,Nissan Motor,Japan,Japan,Japan,
+MITSUBISHI,MITSUBISHI MOTORS,Mitsubishi Motors,Japan,Japan,Japan,
+SUZUKI,,Suzuki Motor,Japan,Japan,Japan,
+ISUZU,,Isuzu Motors,Japan,Japan,Japan,
+UD TRUCKS,UD,Isuzu Motors,Japan,Japan,Japan,Heavy commercial
+FUSO,MITSUBISHI FUSO,Daimler Truck,Germany,Japan,Japan,Owner and heritage differ
+HYUNDAI,,Hyundai Motor Group,South Korea,South Korea,Korea,
+KIA,,Hyundai Motor Group,South Korea,South Korea,Korea,
+GENESIS,,Hyundai Motor Group,South Korea,South Korea,Korea,
+KGM,SSANGYONG|KG MOBILITY,KG Mobility,South Korea,South Korea,Korea,Renamed from SsangYong
+BYD,,BYD,China,China,China,
+MG,,SAIC Motor,China,United Kingdom,China,Chinese-owned; British heritage. Report under owner_country by default
+LDV,,SAIC Motor,China,United Kingdom,China,Chinese-owned; British heritage
+MAXUS,,SAIC Motor,China,United Kingdom,China,
+HAVAL,,Great Wall Motor,China,China,China,
+GWM,GREAT WALL,Great Wall Motor,China,China,China,
+ORA,,Great Wall Motor,China,China,China,
+TANK,,Great Wall Motor,China,China,China,
+CHERY,,Chery Automobile,China,China,China,
+JAECOO,,Chery Automobile,China,China,China,
+OMODA,,Chery Automobile,China,China,China,
+GEELY,,Geely Holding,China,China,China,
+ZEEKR,,Geely Holding,China,China,China,
+LYNK & CO,LYNK AND CO|LYNKCO,Geely Holding,China,China,China,
+POLESTAR,,Geely Holding,China,Sweden,China,Chinese-owned; Swedish heritage
+VOLVO,,Geely Holding,China,Sweden,China,Chinese-owned; Swedish heritage. A frequent source of confusion
+LOTUS,,Geely Holding,China,United Kingdom,China,Chinese-owned; British heritage
+XPENG,,XPeng,China,China,China,
+NIO,,NIO,China,China,China,
+LEAPMOTOR,,Leapmotor,China,China,China,Stellantis holds a stake and runs international distribution
+JAC,,JAC Motors,China,China,China,
+FOTON,,BAIC Group,China,China,China,
+CHANGAN,DEEPAL,Changan Automobile,China,China,China,
+SKYWELL,,Skywell,China,China,China,
+VOLKSWAGEN,VW,Volkswagen Group,Germany,Germany,Europe,
+AUDI,,Volkswagen Group,Germany,Germany,Europe,
+SKODA,ŠKODA,Volkswagen Group,Germany,Czechia,Europe,
+CUPRA,SEAT,Volkswagen Group,Germany,Spain,Europe,
+PORSCHE,,Volkswagen Group,Germany,Germany,Europe,
+BENTLEY,,Volkswagen Group,Germany,United Kingdom,Europe,
+LAMBORGHINI,,Volkswagen Group,Germany,Italy,Europe,
+SCANIA,,Traton,Germany,Sweden,Europe,Heavy commercial
+MAN,,Traton,Germany,Germany,Europe,Heavy commercial
+BMW,,BMW Group,Germany,Germany,Europe,
+MINI,,BMW Group,Germany,United Kingdom,Europe,
+ROLLS-ROYCE,ROLLS ROYCE,BMW Group,Germany,United Kingdom,Europe,
+MERCEDES-BENZ,MERCEDES BENZ|MERCEDES|MERC,Mercedes-Benz Group,Germany,Germany,Europe,Alias handling is essential; this make is recorded several ways
+SMART,,Mercedes-Benz Group,Germany,Germany,Europe,Now a Mercedes-Geely joint venture
+PEUGEOT,,Stellantis,Netherlands,France,Europe,Stellantis is Dutch-incorporated; use heritage_country for most analysis
+CITROEN,CITROËN,Stellantis,Netherlands,France,Europe,
+DS,DS AUTOMOBILES,Stellantis,Netherlands,France,Europe,
+OPEL,,Stellantis,Netherlands,Germany,Europe,
+FIAT,,Stellantis,Netherlands,Italy,Europe,
+ABARTH,,Stellantis,Netherlands,Italy,Europe,
+ALFA ROMEO,ALFA,Stellantis,Netherlands,Italy,Europe,
+MASERATI,,Stellantis,Netherlands,Italy,Europe,
+JEEP,,Stellantis,Netherlands,United States,North America,
+RAM,,Stellantis,Netherlands,United States,North America,
+DODGE,,Stellantis,Netherlands,United States,North America,
+CHRYSLER,,Stellantis,Netherlands,United States,North America,
+RENAULT,,Renault Group,France,France,Europe,
+ALPINE,,Renault Group,France,France,Europe,
+FERRARI,,Ferrari NV,Italy,Italy,Europe,
+IVECO,,Iveco Group,Italy,Italy,Europe,Heavy commercial
+DAF,,Paccar,United States,Netherlands,Europe,Heavy commercial
+JAGUAR,,Tata Motors,India,United Kingdom,Europe,Indian-owned; British heritage
+LAND ROVER,RANGE ROVER,Tata Motors,India,United Kingdom,Europe,Indian-owned; British heritage
+TATA,,Tata Motors,India,India,Other,
+MAHINDRA,,Mahindra & Mahindra,India,India,Other,
+ASTON MARTIN,,Aston Martin Lagonda,United Kingdom,United Kingdom,Europe,
+MCLAREN,,McLaren Automotive,United Kingdom,United Kingdom,Europe,
+INEOS,,INEOS Automotive,United Kingdom,United Kingdom,Europe,
+FORD,,Ford Motor Company,United States,United States,North America,
+TESLA,,Tesla,United States,United States,North America,
+RIVIAN,,Rivian,United States,United States,North America,
+CHEVROLET,CHEV,General Motors,United States,United States,North America,
+CADILLAC,,General Motors,United States,United States,North America,
+GMC,,General Motors,United States,United States,North America,
+HOLDEN,,General Motors,United States,Australia,North America,Discontinued 2020; still a large share of the used fleet
+KENWORTH,,Paccar,United States,United States,North America,Heavy commercial
+PETERBILT,,Paccar,United States,United States,North America,Heavy commercial
+FREIGHTLINER,,Daimler Truck,Germany,United States,North America,Heavy commercial
+INTERNATIONAL,,Traton,Germany,United States,North America,Heavy commercial

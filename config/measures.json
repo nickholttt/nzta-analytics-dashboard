@@ -1,0 +1,80 @@
+{
+  "$comment": "Four measures. Resist adding a fifth. Full definitions in docs/METRICS.md.",
+  "measures": [
+    {
+      "id": "count",
+      "label": "the number",
+      "unit": "vehicles",
+      "formula": "SUM(n)",
+      "shape": "trend",
+      "help": "A straight count of vehicles."
+    },
+    {
+      "id": "share",
+      "label": "the share",
+      "unit": "percent",
+      "formula": "SUM(n) / SUM(n) OVER (PARTITION BY month)",
+      "shape": "mix",
+      "help": "This group as a percentage of the total for the same month.",
+      "guards": {
+        "min_denominator": 200,
+        "$comment": "Below this, the share is suppressed and rendered as a greyed band. Stops early BEV percentages from looking like noise."
+      }
+    },
+    {
+      "id": "yoy",
+      "label": "the change on a year ago",
+      "unit": "percent",
+      "formula": "(SUM(n) - LAG(SUM(n), 12)) / LAG(SUM(n), 12)",
+      "shape": "trend",
+      "help": "Compared with the same month last year. Avoids seasonal distortion.",
+      "guards": {
+        "min_denominator": 50
+      }
+    },
+    {
+      "id": "rolling_12m",
+      "label": "the 12-month running total",
+      "unit": "vehicles",
+      "formula": "SUM(n) OVER (ORDER BY month ROWS BETWEEN 11 PRECEDING AND CURRENT ROW)",
+      "shape": "trend",
+      "help": "Smooths out the March financial-year peak and rental fleet buying.",
+      "default_for": [
+        "volume_presets"
+      ]
+    }
+  ],
+  "share_change_display": {
+    "unit": "percentage_points",
+    "$comment": "A move from 10% to 15% is +5pp, never +50%. Enforce this in the formatter, not per-chart."
+  },
+  "derived_measures": [
+    {
+      "id": "median_import_age",
+      "label": "the typical age of used imports",
+      "formula": "MEDIAN(registration_year - vehicle_year) WHERE import_status='Used Import'",
+      "unit": "years",
+      "rolling": "12m",
+      "note": "vehicle_year is a year not a date, so this carries up to +/-1 year of granularity error. Never report to a decimal."
+    },
+    {
+      "id": "genuinely_new_share",
+      "label": "the share that were actually new",
+      "formula": "COUNT(age<=1) / COUNT(*)",
+      "unit": "percent"
+    },
+    {
+      "id": "freshness",
+      "label": "the typical age of everything entering the fleet",
+      "formula": "MEDIAN(registration_year - vehicle_year) across all first registrations",
+      "unit": "years"
+    },
+    {
+      "id": "pipeline_lag",
+      "label": "the used-import lag",
+      "formula": "used_first_seen(make,model) - nz_new_launch(make,model)",
+      "unit": "years",
+      "note": "Years between a model going on sale new in NZ and first appearing as a used import."
+    }
+  ]
+}
