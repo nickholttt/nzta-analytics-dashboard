@@ -75,7 +75,6 @@
     "model_alias_types": ["alias", "rename"],
     "make_promotion_type": "make_promotion",
     "not_promoted_type": "not_promoted",
-    "motive_power_override_type": "motive_power_override",
     "model_registry_conditions": {
       "motive_power": "match_motive_power",
       "import_status": "match_import_status",
@@ -83,6 +82,23 @@
       "vehicle_year_min": "match_vehicle_year_min",
       "vehicle_year_max": "match_vehicle_year_max"
     }
+  },
+  "hybrid_classification": {
+    "$comment": "mild_hybrid_models.csv: which hybrid nameplates are mild or full. Match columns are the model_registry_conditions above. See docs/METRICS.md for the coverage figure.",
+    "file": "mild_hybrid_models.csv",
+    "make": "make",
+    "models": "models",
+    "type": "hybrid_type",
+    "override": "override_value",
+    "confidence": "confidence",
+    "basis": "basis",
+    "types": { "mild": "mild", "full": "full", "unresolved": "unresolved" },
+    "confidence_levels": ["high", "medium", "low"],
+    "powertrain_column": "powertrain",
+    "source_hybrid": { "column": "powertrain_group", "value": "Hybrid" },
+    "mild_powertrain": "Mild hybrid",
+    "complete_at_coverage": 0.95,
+    "labels": { "partial": "Mild hybrid (identified)", "complete": "Mild hybrid" }
   },
   "engine": { "reference": "powertrain_map.csv", "field": "motive_power", "key": "nzta_motive_power", "flag": "has_combustion_engine" },
   "alternative_fuel": { "primary": "motive_power", "alternative": "alternative_motive_power" },

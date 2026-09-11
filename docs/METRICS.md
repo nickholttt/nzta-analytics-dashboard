@@ -69,6 +69,21 @@ register has no CO2 field, and CO2 is never estimated from fuel
 consumption: the conversion depends on the fuel and would be our
 assumption presented as data.
 
+**Mild hybrid identification coverage** — every vehicle NZTA records under
+a hybrid code (`powertrain_group = Hybrid` in `powertrain_map.csv`) is
+*identified mild* (a `mild` row in `mild_hybrid_models.csv`, or no row and a
+code that maps to Mild hybrid), *identified full* (a `full` row), or
+*unknown* (an `unresolved` row, or no row and a code that maps to Hybrid).
+Coverage = identified mild ÷ (identified mild + unknown), over all months
+and over the trailing 12 months. It is a lower bound on the share of mild
+hybrids identified, because it counts every unknown hybrid as a missed mild
+hybrid. Identified full hybrids are left out of the denominator: dividing by
+every hybrid would measure the mild share of hybrids, not coverage, and the
+manifest publishes that separately. While the lower of the two coverage
+figures is under `complete_at_coverage` in `config/pipeline.json`, the Mild
+hybrid category is labelled *Mild hybrid (identified)* and states its
+coverage.
+
 **Mean fleet age** — (snapshot year − vehicle year), volume-weighted, across
 the fleet. Report median alongside the mean; the distribution has a long
 tail and the mean alone misleads.

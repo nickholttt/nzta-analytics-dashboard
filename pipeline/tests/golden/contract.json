@@ -97,6 +97,40 @@
       }
      }
     },
+    "mild_hybrid_identification_coverage": {
+     "all_time": {
+      "source_hybrids": 16,
+      "identified_mild": 2,
+      "identified_full": 13,
+      "unknown": 1,
+      "coverage": 0.6667,
+      "mild_share_of_source_hybrids": 0.125,
+      "identified_mild_by_confidence": {
+       "high": 1,
+       "medium": 1,
+       "low": 0,
+       "code_default": 0
+      }
+     },
+     "trailing": {
+      "window_months": 12,
+      "source_hybrids": 16,
+      "identified_mild": 2,
+      "identified_full": 13,
+      "unknown": 1,
+      "coverage": 0.6667,
+      "mild_share_of_source_hybrids": 0.125,
+      "identified_mild_by_confidence": {
+       "high": 1,
+       "medium": 1,
+       "low": 0,
+       "code_default": 0
+      }
+     },
+     "complete_at_coverage": 0.95,
+     "label": "Mild hybrid (identified)",
+     "classification_disagrees_with_powertrain": 0
+    },
     "coverage_trailing": {
      "window_months": 12,
      "fuel_consumption": 0.9111,
@@ -4099,11 +4133,20 @@
     [
      "2026-08-01",
      "Hybrid",
-     5,
+     4,
      11,
-     22.2,
-     5,
-     5
+     18.2,
+     4,
+     4
+    ],
+    [
+     "2026-08-01",
+     "Mild hybrid",
+     1,
+     11,
+     4.0,
+     1,
+     1
     ],
     [
      "2026-08-01",

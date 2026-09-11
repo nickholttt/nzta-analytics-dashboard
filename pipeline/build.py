@@ -120,10 +120,15 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "not_live": not_live,
             "unmapped_rates": rates,
             "unmapped_guard": guard,
+            "mild_hybrid_identification_coverage": metrics.hybrid_coverage(con, cfg, ds, window_start, snapshot_month, window),
             "coverage_trailing": metrics.coverage(con, derived, ds, window_start, snapshot_month, window),
             "counts": quality,
             "model_cap": caps,
         }
+        disagreeing = datasets[dataset]["mild_hybrid_identification_coverage"]["classification_disagrees_with_powertrain"]
+        if disagreeing:
+            warnings.append(f"{dataset}: {disagreeing:,} vehicles show a powertrain that contradicts their classification in "
+                            f"{p['hybrid_classification']['file']}")
         if dataset == p["used_imports"]["dataset"]:
             by_vehicle_year, by_age = metrics.used_import_years(con, cfg, ds, window_start, snapshot_month)
             year, age = metrics.moving_cutoff(by_vehicle_year, snapshot_month.year, cfg)

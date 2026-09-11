@@ -1,4 +1,5 @@
-"""Raw pages -> `raw` -> `src` (sentinels applied) -> `rows` (scope, brand and motive power overrides, engine flag, fuel consumption)."""
+"""Raw pages -> `raw` -> `src` (sentinels applied) -> `rows` (scope, brand overrides, hybrid classification, engine flag,
+fuel consumption)."""
 
 from __future__ import annotations
 
@@ -92,6 +93,8 @@ def build_rows(con, cfg) -> None:
             raise GuardrailError("scope", f"{logical} values with no row in {file}, so scope cannot be decided: {[u[0] for u in unknown]}")
 
     reference.brand_tables(con, cfg)
+    reference.hybrid_tables(con, cfg)
+    hybrids = reference.hybrid_keys(cfg)
     engine = p["engine"]
     engine_rows = reference.read(cfg.reference(engine["reference"]))
     reference.require_unique([r[engine["key"]] for r in engine_rows], engine["reference"])
@@ -101,8 +104,8 @@ def build_rows(con, cfg) -> None:
     make, model = f"s.{quote(b['make_field'])}", f"s.{quote(b['model_field'])}"
     fuel = f"s.{quote(fc['field'])}"
     number = f"TRY_CAST({fuel} AS DOUBLE)"
-    # Registry match columns compare against the raw motive power, vehicle type and vehicle year, and the import status
-    # label. A vehicle with no vehicle year matches no row that bounds it.
+    # Match columns compare against the raw motive power, vehicle type and vehicle year, and the import status label.
+    # A vehicle with no vehicle year matches no row that bounds it.
     condition_values = {
         "motive_power": f"s.{quote(engine['field'])}",
         "import_status": "st.label",
@@ -121,21 +124,28 @@ def build_rows(con, cfg) -> None:
                 parts.append(f"({column} IS NULL OR {column} = {condition_values[c]})")
         return " AND ".join(parts)
 
-    # A motive_power_override replaces the motive power every later lookup sees; the recorded value stays alongside.
+    # Hybrid classification applies only to vehicles recorded under a hybrid code, keyed on the make and model after brand
+    # aliases and model overrides. Its override replaces the motive power every later lookup sees; the recorded value
+    # stays alongside.
     motive = quote(engine["field"])
-    resolved = f"coalesce(mo.target, s.{motive})"
+    make_final = "coalesce(pr.target_make, bk.canonical)"
+    model_final = f"coalesce(pr.model_canonical, ma.model_canonical, {model})"
+    source_hybrid = ", ".join(lit(k) for k in sorted(hybrids["source_hybrid"])) or "NULL"
+    resolved = f"coalesce(hy.target, s.{motive})"
     con.execute(f"""
         CREATE OR REPLACE TABLE rows AS
         SELECT s.* REPLACE ({resolved} AS {motive}),
             s.{motive} AS {quote(engine['field'] + SOURCE_SUFFIX)},
+            hy.hybrid_type AS hybrid_class,
+            hy.confidence AS hybrid_confidence,
             (vs.in_scope = {true} AND st.in_scope = {true}) AS in_scope,
             (st.fleet_entry = {true}) AS fleet_entry,
             st.label AS status_label,
             CASE WHEN s.registration_year IS NOT NULL AND s.registration_month BETWEEN 1 AND 12
                  THEN make_date(CAST(s.registration_year AS INTEGER), CAST(s.registration_month AS INTEGER), 1) END AS reg_month,
             bk.canonical AS make_key,
-            coalesce(pr.target_make, bk.canonical) AS make_final,
-            coalesce(pr.model_canonical, ma.model_canonical, {model}) AS model_final,
+            {make_final} AS make_final,
+            {model_final} AS model_final,
             CASE WHEN eng.key IS NULL THEN NULL ELSE eng.flag = {true} END AS has_engine,
             {number} AS fc_value,
             CASE WHEN {fuel} IS NULL THEN 'missing'
@@ -148,6 +158,7 @@ def build_rows(con, cfg) -> None:
         LEFT JOIN ref_brand_keys bk ON {make} = bk.key
         LEFT JOIN ref_model_alias ma ON ma.make = bk.canonical AND ma.model_key = {model}
         LEFT JOIN ref_promotion pr ON pr.make = bk.canonical AND pr.model_key = {model} AND {matches('pr')}
-        LEFT JOIN ref_motive_override mo ON mo.make = bk.canonical AND mo.model_key = {model} AND {matches('mo')}
+        LEFT JOIN ref_hybrid hy ON hy.make = {make_final} AND hy.model_key = {model_final}
+            AND s.{motive} IN ({source_hybrid}) AND {matches('hy')}
         LEFT JOIN ref_engine eng ON {resolved} = eng.key
     """)

@@ -280,25 +280,18 @@ What the pipeline applies today:
   vehicle's life overseas for used imports, so every cutoff is approximate
   by up to a year. Each row's note gives the date and its source; do not
   chase precision the field cannot carry.
-- A `make_promotion`, `motive_power_override` or `not_promoted` row may
-  narrow its match with `match_motive_power` (a key in
-  `powertrain_map.csv`), `match_import_status` (a label in
-  `import_status_map.csv`), `match_vehicle_type` (a key in
-  `vehicle_scope.csv`), and `match_vehicle_year_min` and
-  `match_vehicle_year_max` (inclusive years); blank means any, and a
-  vehicle with no vehicle year matches no row that bounds it. `SHOGUN`
-  under `MITSUBISHI` is a Fuso truck only as a goods vehicle, and a Pajero
-  otherwise. An unknown value, a year range that ends before it starts, or
-  a match column on any other row type aborts the build.
-- `motive_power_override` replaces the recorded motive power with
-  `override_value`, which must be a key in `powertrain_map.csv`, before the
-  powertrain and engine flag are looked up. It must set
-  `match_motive_power`, so a nameplate's other powertrains are untouched.
-  NZTA records mild hybrids as `PETROL HYBRID`; three rules move NZ-new
-  Suzuki Swifts and every Suzuki Fronx and Ford Puma to
-  `PETROL MILD HYBRID`. Used-import Swifts stay, because Japanese-market
-  Swift hybrids include full hybrids. The snapshot archive keeps the motive
-  power NZTA recorded.
+- A `make_promotion` or `not_promoted` row may narrow its match with
+  `match_motive_power` (a key in `powertrain_map.csv`),
+  `match_import_status` (a label in `import_status_map.csv`),
+  `match_vehicle_type` (a key in `vehicle_scope.csv`), and
+  `match_vehicle_year_min` and `match_vehicle_year_max` (inclusive years);
+  blank means any, and a vehicle with no vehicle year matches no row that
+  bounds it. `SHOGUN` under `MITSUBISHI` is a Fuso truck only as a goods
+  vehicle, and a Pajero otherwise. An unknown value, a year range that ends
+  before it starts, or a match column on any other row type aborts the
+  build.
+- Which hybrids are mild is not a nameplate exception and does not live
+  here: see `mild_hybrid_models.csv` and `DATA_SOURCES.md` (motive power).
 - `not_promoted` is never applied. It records vehicles that must stay where
   they are (classic Minis under `MORRIS`, licence-built Jeeps, Renault-badged
   Alpines and the Hyundai Genesis sedan up to vehicle year 2016), and the

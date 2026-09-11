@@ -55,7 +55,8 @@
       "derive": { "kind": "lookup", "field": "motive_power", "reference": "powertrain_map.csv", "key": "nzta_motive_power", "value": "powertrain" },
       "shape_hint": "mix",
       "cardinality": "low",
-      "help": "How the vehicle is powered: petrol, diesel, hybrid, plug-in hybrid, electric."
+      "help": "How the vehicle is powered: petrol, diesel, hybrid, plug-in hybrid, electric.",
+      "note": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are identified by nameplate, so the category takes the label and coverage published in the manifest (mild_hybrid_identification_coverage): 'Mild hybrid (identified)' with its coverage, until coverage is high."
     },
     {
       "id": "make",

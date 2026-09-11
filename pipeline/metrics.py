@@ -1,5 +1,5 @@
 """Per-dataset figures for the manifest: month counts, unmapped rates, coverage, data-quality counts,
-the moving cutoff and the used-import age report."""
+the moving cutoff, the used-import age report and mild hybrid identification coverage."""
 
 from __future__ import annotations
 
@@ -7,8 +7,9 @@ import statistics
 from collections import Counter
 from datetime import date
 
+from . import reference
 from .contract import UNDEFINED, UNMAPPED
-from .normalise import lit
+from .normalise import SOURCE_SUFFIX, lit
 from .reference import quote
 
 
@@ -74,6 +75,55 @@ def unmapped_guard(con, derived, g: dict, start: date, end: date, window: int) -
                          **basis(values[1], recent, g["max_unmapped_rate_trailing"], g["warn_unmapped_rate_trailing"])},
         }
     return out
+
+
+def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> dict:
+    """mild_hybrid_identification_coverage for one dataset (docs/METRICS.md): of the vehicles recorded under a hybrid
+    code, how many are identified mild, identified full, or unknown, and the label the category must carry."""
+    h = cfg.pipeline["hybrid_classification"]
+    keys, kind = reference.hybrid_keys(cfg), h["types"]
+    shown, recorded = cfg.pipeline["engine"]["field"], cfg.pipeline["engine"]["field"] + SOURCE_SUFFIX
+
+    def among(column: str, values: set[str]) -> str:
+        return f"coalesce({quote(column)} IN ({', '.join(lit(v) for v in sorted(values)) or 'NULL'}), FALSE)"
+
+    classified_mild = f"coalesce(hybrid_class = {lit(kind['mild'])}, FALSE)"
+    code_default = f"(hybrid_class IS NULL AND {among(recorded, keys['mild'])})"
+    mild = f"({classified_mild} OR {code_default})"
+    full = f"coalesce(hybrid_class = {lit(kind['full'])}, FALSE)"
+    measures = [
+        "count(*)", f"count(*) FILTER (WHERE {mild})", f"count(*) FILTER (WHERE {full})",
+        f"count(*) FILTER (WHERE NOT {mild} AND NOT {full})", f"count(*) FILTER (WHERE {code_default})",
+    ] + [f"count(*) FILTER (WHERE {classified_mild} AND hybrid_confidence = {lit(level)})" for level in h["confidence_levels"]]
+    base = f"in_scope AND {ds} AND {among(recorded, keys['source_hybrid'])}"
+
+    def basis(where: str) -> dict:
+        n, identified, full_n, unknown, code, *levels = con.execute(f"SELECT {', '.join(measures)} FROM rows WHERE {where}").fetchone()
+        return {
+            "source_hybrids": n,
+            "identified_mild": identified,
+            "identified_full": full_n,
+            "unknown": unknown,
+            "coverage": round(identified / (identified + unknown), 4) if identified + unknown else None,
+            "mild_share_of_source_hybrids": round(identified / n, 4) if n else None,
+            "identified_mild_by_confidence": {**dict(zip(h["confidence_levels"], levels)), "code_default": code},
+        }
+
+    whole = basis(base)
+    recent = basis(f"{base} AND reg_month BETWEEN {date_sql(start)} AND {date_sql(end)}")
+    disagreeing = con.execute(f"""
+        SELECT count(*) FROM rows WHERE {base}
+          AND (({classified_mild} AND NOT {among(shown, keys['mild'])}) OR ({full} AND {among(shown, keys['mild'])}))
+    """).fetchone()[0]
+    figures = [b["coverage"] for b in (whole, recent) if b["coverage"] is not None]
+    complete = bool(figures) and min(figures) >= h["complete_at_coverage"]
+    return {
+        "all_time": whole,
+        "trailing": {"window_months": window, **recent},
+        "complete_at_coverage": h["complete_at_coverage"],
+        "label": h["labels"]["complete" if complete else "partial"],
+        "classification_disagrees_with_powertrain": disagreeing,
+    }
 
 
 def coverage(con, derived, ds: str, start: date, end: date, window: int) -> dict:

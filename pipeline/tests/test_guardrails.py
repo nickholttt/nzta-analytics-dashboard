@@ -253,18 +253,32 @@ def slice_totals(workspace, dimension: str) -> Counter:
     return totals
 
 
-def test_motive_power_override_applies_only_to_matching_vehicles(tmp_path, workspace):
+def hybrid_rows(cfg) -> list[dict]:
+    return reference.read(cfg.reference(cfg.pipeline["hybrid_classification"]["file"]))
+
+
+def reference_with_hybrids(directory, cfg, rows):
+    """A copy of the reference directory whose mild_hybrid_models.csv holds exactly these rows."""
+    shutil.copytree(cfg.reference("x").parent, directory)
+    with (directory / cfg.pipeline["hybrid_classification"]["file"]).open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=list(rows[0].keys()), lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    return directory
+
+
+def test_mild_hybrid_classification_moves_only_matching_vehicles(tmp_path, workspace):
     cfg = make_cfg(workspace)
     p = cfg.pipeline
-    b, status = p["brand"], p["scope"]["status"]
-    conditions = b["model_registry_conditions"]
-    rule = next(r for r in registry_rows(cfg)
-                if r[b["model_registry_type"]] == b["motive_power_override_type"] and r[conditions["import_status"]])
+    h, status = p["hybrid_classification"], p["scope"]["status"]
+    conditions = p["brand"]["model_registry_conditions"]
+    rule = next(r for r in hybrid_rows(cfg)
+                if r[h["type"]] == h["types"]["mild"] and r[h["override"]] and r[conditions["import_status"]])
     dimension = next(d for d in cfg.dimensions["dimensions"]
                      if d.get("derive", {}).get("reference") == p["engine"]["reference"])
     spec = dimension["derive"]
     labels = {r[spec["key"]]: r[spec["value"]] for r in reference.read(cfg.reference(spec["reference"]))}
-    replaced, replacement = labels[rule[conditions["motive_power"]]], labels[rule[b["model_registry_value"]]]
+    replaced, replacement = labels[rule[conditions["motive_power"]]], labels[rule[h["override"]]]
     assert replaced != replacement
     entries = [r for r in reference.read(cfg.reference(status["file"]))
                if r[status["in_scope"]] == p["boolean_true"] and r[status["fleet_entry"]] == p["boolean_true"]]
@@ -272,29 +286,56 @@ def test_motive_power_override_applies_only_to_matching_vehicles(tmp_path, works
     rows = load_rows()
     snapshot = date.fromisoformat(source_for(rows)["change_key"]["snapshot"])
     template = next(r for r in rows if r["OBJECTID"] == 62)
-    matching = dict(template, OBJECTID=7000, MAKE=rule[b["model_registry_make"]], MODEL=rule[b["model_registry_model"]],
-                    MOTIVE_POWER=rule[conditions["motive_power"]],
+    model = rule[h["models"]].split(p["brand"]["alias_separator"])[0]
+    matching = dict(template, OBJECTID=7000, MAKE=rule[h["make"]], MODEL=model, MOTIVE_POWER=rule[conditions["motive_power"]],
                     IMPORT_STATUS=next(r[status["key"]] for r in entries if r[status["label"]] == wanted),
                     FIRST_NZ_REGISTRATION_YEAR=snapshot.year, FIRST_NZ_REGISTRATION_MONTH=snapshot.month)
     not_matching = dict(matching, OBJECTID=7001,
                         IMPORT_STATUS=next(r[status["key"]] for r in entries if r[status["label"]] != wanted))
     run(tmp_path, cfg, rows, name="baseline")
     before = slice_totals(workspace, dimension["id"])
-    manifest = run(tmp_path, cfg, rows + [matching, not_matching], name="overridden")
+    manifest = run(tmp_path, cfg, rows + [matching, not_matching], name="classified")
     after = slice_totals(workspace, dimension["id"])
     assert after[replacement] - before[replacement] == 1
     assert after[replaced] - before[replaced] == 1
     assert manifest["datasets"]["registrations_surviving"]["unmapped_rates"][dimension["id"]] == 0
 
 
-def test_motive_power_override_must_name_the_motive_power_it_replaces(tmp_path, workspace):
+def test_hybrid_override_must_name_the_motive_power_it_replaces(tmp_path, workspace):
     cfg = make_cfg(workspace)
-    b = cfg.pipeline["brand"]
-    column = b["model_registry_conditions"]["motive_power"]
-    rows = [dict(r, **{column: ""}) if r[b["model_registry_type"]] == b["motive_power_override_type"] else r
-            for r in registry_rows(cfg)]
-    ref = reference_with_registry(tmp_path / "reference", cfg, rows)
+    h = cfg.pipeline["hybrid_classification"]
+    column = cfg.pipeline["brand"]["model_registry_conditions"]["motive_power"]
+    rows = [dict(r, **{column: ""}) if r[h["override"]] else r for r in hybrid_rows(cfg)]
+    ref = reference_with_hybrids(tmp_path / "reference", cfg, rows)
     expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows()), f"must set {column}")
+
+
+def test_hybrid_classifications_that_overlap_or_contradict_abort(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    h = cfg.pipeline["hybrid_classification"]
+    column = cfg.pipeline["brand"]["model_registry_conditions"]["motive_power"]
+    rows = hybrid_rows(cfg)
+    ref = reference_with_hybrids(tmp_path / "overlap", cfg, rows + [dict(rows[0])])
+    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows(), name="a"), "both match")
+    rule = next(r for r in rows if r[h["type"]] == h["types"]["mild"] and r[h["override"]])
+    contradicted = [dict(r, **{h["override"]: r[column]}) if r is rule else r for r in rows]
+    ref = reference_with_hybrids(tmp_path / "contradiction", cfg, contradicted)
+    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows(), name="b"), "but its powertrain would be")
+
+
+def test_mild_hybrid_coverage_is_published_and_adds_up(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    h = cfg.pipeline["hybrid_classification"]
+    manifest = run(tmp_path, cfg, load_rows(), publish=False)
+    published = manifest["datasets"]["registrations_surviving"]["mild_hybrid_identification_coverage"]
+    assert published["label"] in h["labels"].values()
+    assert published["complete_at_coverage"] == h["complete_at_coverage"]
+    assert published["all_time"]["source_hybrids"] > 0
+    for basis in (published["all_time"], published["trailing"]):
+        assert basis["identified_mild"] + basis["identified_full"] + basis["unknown"] == basis["source_hybrids"]
+        assert sum(basis["identified_mild_by_confidence"].values()) == basis["identified_mild"]
+        if basis["identified_mild"] + basis["unknown"]:
+            assert basis["coverage"] == round(basis["identified_mild"] / (basis["identified_mild"] + basis["unknown"]), 4)
 
 
 def test_year_bounded_promotion_leaves_older_vehicles_with_the_parent(tmp_path, workspace):

@@ -1,0 +1,84 @@
+make,models,hybrid_type,override_value,match_motive_power,match_import_status,match_vehicle_type,match_vehicle_year_min,match_vehicle_year_max,confidence,basis,note
+SUZUKI,SWIFT,mild,PETROL MILD HYBRID,PETROL HYBRID,NZ New,,,,high,"Manufacturer specification, not row-verified: Suzuki 12V SHVS integrated starter-generator",All NZ-new Swift hybrids are 1197 cc.
+SUZUKI,SWIFT,unresolved,,,Used Import,,,,low,"Japanese-market Swift hybrids include the 12V mild hybrid and the full hybrid (ZC43S); neither the model string nor engine size separates them",
+SUZUKI,FRONX|IGNIS|XBEE|HUSTLER,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Suzuki 12V SHVS / ENE-CHARGE integrated starter-generator",
+SUZUKI,S-CROSS,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Suzuki 48V mild hybrid on the 1.4 BoosterJet",All rows are 1373 cc.
+SUZUKI,LANDY,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: a rebadged Nissan Serena S-Hybrid",
+SUZUKI,SOLIO|BANDIT,unresolved,,,,,,,low,"Japanese-market Solio hybrids include the mild SHVS hybrid and the full hybrid (2016-2020); the model string does not separate them",
+MITSUBISHI,DELICA,unresolved,,PETROL HYBRID,,,,,low,"The Delica D:2 is a rebadged Suzuki Solio, mild or full",
+NISSAN,SERENA,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Nissan S-Hybrid (ECO motor starter-generator)",Serena e-Power is recorded as PETROL ELECTRIC HYBRID; see the next row.
+NISSAN,SERENA,full,,PETROL ELECTRIC HYBRID,,,,,high,"Manufacturer specification, not row-verified: Nissan e-Power series hybrid",
+NISSAN,NOTE|KICKS|QASHQAI|AURA,full,,,,,,,high,"Manufacturer specification, not row-verified: Nissan e-Power series hybrid",
+NISSAN,X-TRAIL,full,,PETROL ELECTRIC HYBRID,,,,,high,"Manufacturer specification, not row-verified: Nissan e-Power series hybrid",
+NISSAN,X-TRAIL,full,,PETROL HYBRID,,,,,medium,"Manufacturer specification, not row-verified: Nissan one-motor two-clutch hybrid (2013-2017), which can drive on electric power",
+NISSAN,SKYLINE|FUGA,full,,,,,,,high,"Manufacturer specification, not row-verified: Nissan one-motor two-clutch hybrid",
+NISSAN,PATHFINDER,full,,,,,,,medium,"Manufacturer specification, not row-verified: Nissan one-motor two-clutch hybrid",
+INFINITI,Q50,full,,,,,,,medium,"Manufacturer specification, not row-verified: Nissan one-motor two-clutch hybrid",
+TOYOTA,AQUA|PRIUS|RAV4|COROLLA|C-HR|CAMRY|YARIS CROSS|YARIS|HIGHLANDER|SAI|ESTIMA|VITZ|ALPHARD|HARRIER|SIENTA|NOAH|VELLFIRE|AURIS|VOXY|CROWN|ESQUIRE|FIELDER|KLUGER|AXIO|PROBOX|SUCCEED|WISH|SPADE,full,,,,,,,high,"Manufacturer specification, not row-verified: Toyota Hybrid System (power-split full hybrid)",
+TOYOTA,RAIZE,full,,,,,,,high,"Manufacturer specification, not row-verified: Daihatsu e-Smart Hybrid (series hybrid)",
+TOYOTA,HILUX|LANDCRUISER,mild,,DIESEL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Toyota 48V V-Active mild hybrid on the 2.8 diesel",DIESEL HYBRID already maps to Mild hybrid; no override.
+LEXUS,CT200H|RX450H|IS300H|HS250H|NX300H|UX250H|NX|GS450H|RX|LBX|ES300H|UX|RX400H|RX450HL|LS600H|GS300H|RC 300H|LS600HL|LEXUS|RC300|LS600|HS250|RC300H|LS500H|NX350H|LM500H|LC500H|IS300,full,,,,,,,high,"Manufacturer specification, not row-verified: Lexus Hybrid Drive (power-split full hybrid)",
+DAIHATSU,ALTIS|MEBIUS,full,,,,,,,high,"Manufacturer specification, not row-verified: rebadged Toyota hybrids",
+DAIHATSU,ROCKY,full,,,,,,,high,"Manufacturer specification, not row-verified: Daihatsu e-Smart Hybrid (series hybrid)",
+HONDA,VEZEL|GRACE|JADE|ACCORD|ODYSSEY|STEPWAGON|STEPWGN|ZRV|HR-V|CRV|CR-V|PRELUDE,full,,,,,,,high,"Manufacturer specification, not row-verified: Honda i-DCD, i-MMD or e:HEV full hybrid",
+HONDA,CR-Z|CRZ|SPIKE,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,medium,"Honda IMA (Integrated Motor Assist): an assist motor that cannot drive the car on its own, commonly classed as a mild hybrid",Medium confidence because some sources class later IMA cars as full hybrids.
+HONDA,FIT,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,2012,medium,"Honda IMA (Fit Hybrid, 2010-2013), commonly classed as a mild hybrid",
+HONDA,FIT,mild,PETROL MILD HYBRID,PETROL ELECTRIC HYBRID,,,,2012,medium,"Honda IMA (Fit Hybrid, 2010-2013), commonly classed as a mild hybrid",
+HONDA,FIT,unresolved,,,,,2013,2013,low,"Vehicle year 2013 mixes the IMA Fit Hybrid and the i-DCD Fit Hybrid launched in September 2013",
+HONDA,FIT,full,,,,,2014,,high,"Manufacturer specification, not row-verified: Honda i-DCD (2013-2020) and e:HEV (2020-) full hybrids",
+HONDA,INSIGHT,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,2014,medium,"Honda IMA (Insight, 1999-2014), commonly classed as a mild hybrid",
+HONDA,INSIGHT,full,,,,,2018,,high,"Manufacturer specification, not row-verified: Honda i-MMD full hybrid (2018-)",
+HONDA,CIVIC,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,2015,medium,"Honda IMA (Civic Hybrid, 2001-2015), commonly classed as a mild hybrid",
+HONDA,CIVIC,full,,,,,2016,,high,"Manufacturer specification, not row-verified: Honda e:HEV full hybrid",
+HONDA,JAZZ,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,2015,medium,"Honda IMA (Jazz Hybrid), commonly classed as a mild hybrid",
+HONDA,JAZZ,full,,,,,2020,,high,"Manufacturer specification, not row-verified: Honda e:HEV full hybrid (2020-)",
+HONDA,SHUTTLE,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,2014,medium,"Honda IMA (Fit Shuttle Hybrid, 2011-2015), commonly classed as a mild hybrid",
+HONDA,SHUTTLE,unresolved,,,,,2015,2015,low,"Vehicle year 2015 mixes the IMA Fit Shuttle Hybrid and the i-DCD Shuttle launched in May 2015",
+HONDA,SHUTTLE,full,,,,,2016,,high,"Manufacturer specification, not row-verified: Honda i-DCD full hybrid",
+HONDA,FREED,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,2015,medium,"Honda IMA (Freed Hybrid, 2011-2016), commonly classed as a mild hybrid",
+HONDA,FREED,unresolved,,,,,2016,2016,low,"Vehicle year 2016 mixes the IMA Freed Hybrid and the i-DCD Freed launched in September 2016",
+HONDA,FREED,full,,,,,2017,,high,"Manufacturer specification, not row-verified: Honda i-DCD and e:HEV full hybrids",
+MAZDA,AXELA,full,,,,,,,high,"Manufacturer specification, not row-verified: the Axela Hybrid uses the Toyota Hybrid System",
+MAZDA,MAZDA3,mild,PETROL MILD HYBRID,PETROL HYBRID,,,2019,,high,"Manufacturer specification, not row-verified: Mazda M Hybrid (24V) from the 2019 Mazda3",
+MAZDA,MAZDA3,full,,,,,,2018,medium,"Hybrid Mazda3s before 2019 are the Axela Hybrid (Toyota Hybrid System)",
+MAZDA,CX-30|MX-30,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Mazda M Hybrid (24V)",
+MAZDA,CX-60|CX-80|CX-90,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Mazda e-Skyactiv G 48V mild hybrid",
+MAZDA,CX-60,mild,,DIESEL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Mazda e-Skyactiv D 48V mild hybrid",DIESEL HYBRID already maps to Mild hybrid; no override.
+KIA,NIRO|SPORTAGE|SORENTO|CARNIVAL,full,,,,,,,high,"Manufacturer specification, not row-verified: Hyundai-Kia full hybrid (HEV)",
+HYUNDAI,TUCSON|KONA|IONIQ|SANTA FE|PALISADE,full,,,,,,,high,"Manufacturer specification, not row-verified: Hyundai-Kia full hybrid (HEV)",
+HAVAL,H6|JOLION,full,,,,,,,high,"Manufacturer specification, not row-verified: GWM dedicated hybrid transmission (DHT) full hybrid",
+TANK,TANK,full,,,,,,,medium,"Manufacturer specification, not row-verified: GWM P2 full hybrid",
+GWM,CANNON,unresolved,,,,,,,low,Hybrid type not established,
+MG,ZS|3|HS,full,,,,,,,high,"Manufacturer specification, not row-verified: SAIC Hybrid+ full hybrid",
+CHERY,TIGGO 4 PRO,full,,,,,,,medium,"Manufacturer specification, not row-verified: Chery dedicated hybrid transmission full hybrid",
+BAIC,B30,unresolved,,,,,,,low,Hybrid type not established,
+KGM,TORRES,full,,,,,,,medium,"Manufacturer specification, not row-verified: KGM full hybrid",
+FORD,PUMA|FOCUS,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Ford EcoBoost Hybrid 48V mild hybrid",Pumas and Focuses recorded as PETROL are untouched.
+FORD,ESCAPE|MONDEO|F150,full,,,,,,,high,"Manufacturer specification, not row-verified: Ford power-split or PowerBoost full hybrid",
+SUBARU,XV|IMPREZA|FORESTER|CROSSTREK,unresolved,,,,,,,low,"Contested: Subaru e-Boxer and XV Hybrid have a small motor that can move the car on electric power at low speed but not sustain it, and sources class them both as mild and as full hybrids",Reported as contested in the coverage figure; about 5.7k vehicles.
+MERCEDES-BENZ,GLC|C-CLASS|CLE|GLE|C20,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Mercedes-Benz 48V integrated starter-generator (EQ Boost)",
+MERCEDES-BENZ,S400,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,medium,"Manufacturer specification, not row-verified: S 400 Hybrid (2013-2017), an assist motor that cannot drive the car on its own",
+VOLVO,XC60|XC40|XC90|V60 CROSS COUNTRY|S60,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Volvo B-badged 48V mild hybrid",Recharge plug-in models are recorded as plug-in hybrids.
+AUDI,Q5|S5|SQ5|A4|A7|Q7|Q8,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Audi MHEV 12V or 48V",
+AUDI,A6,mild,PETROL MILD HYBRID,PETROL HYBRID,,,2018,,medium,"Manufacturer specification, not row-verified: Audi MHEV 48V (2018-)",
+AUDI,A6,full,,,,,,2016,medium,"Manufacturer specification, not row-verified: A6 hybrid (2012-2014) full hybrid",
+PEUGEOT,3008|2008|208|5008,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Stellantis 48V hybrid",
+PEUGEOT,508|3008,full,DIESEL ELECTRIC HYBRID,DIESEL HYBRID,,,,,high,"Manufacturer specification, not row-verified: PSA HYbrid4 diesel full hybrid","DIESEL HYBRID maps to Mild hybrid, so these move to a key that maps to Hybrid."
+CUPRA,LEON|FORMENTOR|TERRAMAR,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: VW eTSI 48V mild hybrid",e-Hybrid plug-in models are recorded as plug-in hybrids.
+VOLKSWAGEN,T-ROC,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: VW eTSI 48V mild hybrid",
+VOLKSWAGEN,GOLF,mild,PETROL MILD HYBRID,PETROL HYBRID,,,2020,,medium,"Manufacturer specification, not row-verified: VW eTSI 48V mild hybrid (Golf 8, 2020-)",
+VOLKSWAGEN,TOUAREG,full,,,,,,,high,"Manufacturer specification, not row-verified: Touareg Hybrid (2011-2014) full hybrid",
+SKODA,OCTAVIA,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: VW e-TEC 48V mild hybrid",
+SKODA,KODIAQ,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,medium,"Manufacturer specification, not row-verified: VW eTSI 48V mild hybrid",
+BMW,ACTIVEHYBRID|335I|535I|3 SERIES|5 SERIES,full,,PETROL HYBRID,,,,,medium,"Manufacturer specification, not row-verified: BMW ActiveHybrid 3 and 5 (2012-2016) full hybrids",
+BMW,1 SERIES|X7,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: BMW 48V mild hybrid",
+ALFA ROMEO,TONALE,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Stellantis 48V hybrid",
+MASERATI,GRECALE|LEVANTE|GHIBLI,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Maserati 48V mild hybrid",
+LAND ROVER,DEFENDER|RANGE ROVER,mild,PETROL MILD HYBRID,PETROL HYBRID,,,,,high,"Manufacturer specification, not row-verified: JLR MHEV 48V",Diesel MHEVs are recorded as DIESEL HYBRID and already map to Mild hybrid.
+PORSCHE,911,unresolved,,,,,,,low,"Porsche T-Hybrid is neither a mild hybrid nor a conventional full hybrid",
+PORSCHE,CAYENNE|PANAMERA,full,,PETROL HYBRID,,,,,medium,"Manufacturer specification, not row-verified: Porsche S Hybrid full hybrid",
+HINO,300|DUTRO,full,DIESEL ELECTRIC HYBRID,DIESEL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Hino parallel full hybrid truck","DIESEL HYBRID maps to Mild hybrid, so these move to a key that maps to Hybrid."
+ISUZU,ELF,full,DIESEL ELECTRIC HYBRID,DIESEL HYBRID,,,,,high,"Manufacturer specification, not row-verified: Isuzu parallel full hybrid truck","DIESEL HYBRID maps to Mild hybrid, so these move to a key that maps to Hybrid."
+ISUZU,ELF,full,,DIESEL ELECTRIC HYBRID,,,,,high,"Manufacturer specification, not row-verified: Isuzu parallel full hybrid truck",
+FOTON,TUNLAND,mild,,DIESEL HYBRID,,,,,medium,"Manufacturer specification, not row-verified: Foton 48V mild hybrid",DIESEL HYBRID already maps to Mild hybrid; no override.
+RENAULT,CAPTUR,full,,,,,,,high,"Manufacturer specification, not row-verified: Renault E-Tech full hybrid",

@@ -154,6 +154,15 @@ never opened. Start with these and add on demand:
         },
         "powertrain": { "whole_run": { "...": "same shape" }, "trailing": { "...": "same shape" } }
       },
+      "mild_hybrid_identification_coverage": {
+        "all_time": { "source_hybrids": 451499, "identified_mild": 57000, "identified_full": 382000, "unknown": 12500,
+                      "coverage": 0.82, "mild_share_of_source_hybrids": 0.126,
+                      "identified_mild_by_confidence": { "high": 28000, "medium": 14000, "code_default": 15000 } },
+        "trailing": { "window_months": 12, "...": "same shape" },
+        "complete_at_coverage": 0.95,
+        "label": "Mild hybrid (identified)",
+        "classification_disagrees_with_powertrain": 0
+      },
       "coverage_trailing": { "window_months": 12, "fuel_consumption": 0.91, "dimensions": { "region": 0.998 } },
       "counts": {
         "no_registration_month": 172,
@@ -191,6 +200,14 @@ value, and `out_of_bands` counts a value no band covers.
 check with its thresholds, and `headroom_rows`: how many more rows could go
 unmapped before the run aborts. How close a run came is visible, not just
 whether it passed.
+
+`mild_hybrid_identification_coverage` says how much of the Mild hybrid
+category is identified (definition in `METRICS.md`), with the label the
+site must use for the category: *Mild hybrid (identified)* until the lower
+of the two coverage figures reaches `complete_at_coverage`.
+`classification_disagrees_with_powertrain` counts vehicles whose final
+powertrain contradicts their `mild_hybrid_models.csv` classification (a
+full hybrid shown as Mild hybrid, or the reverse).
 
 ## Source discovery, snapshot date and change key
 
@@ -275,6 +292,8 @@ is worse than one that is visibly stale.
 
 - Unmapped make or powertrain over the trailing 12 months is above 0.5% of
   in-scope rows: notice well before the 2% abort.
+- A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
+  classification.
 - The latest month's count deviates more than 50% from the median of the
   12 months before it.
 - Source discovery fell back to the pinned item id, or found more than one

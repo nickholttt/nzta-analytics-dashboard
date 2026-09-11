@@ -93,6 +93,7 @@ data/reference/
   vehicle_scope.csv   # which NZTA vehicle types count (in_scope)
   sentinels.csv       # raw values that mean "undefined", per field
   model_registry.csv  # EXCEPTIONS ONLY - renames, badge twins, match traps
+  mild_hybrid_models.csv  # which hybrid nameplates are mild or full, with basis and confidence
   events.csv          # 52 policy/macro/OEM events for the annotation layer
 docs/
   DATA_SOURCES.md     # endpoints, cadence, field traps, licence

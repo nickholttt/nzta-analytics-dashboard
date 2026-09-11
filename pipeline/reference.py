@@ -53,7 +53,7 @@ def condition_vocabularies(cfg) -> dict[str, set[str]]:
 
 
 def parse_conditions(row: dict, conditions: dict[str, str], vocabularies: dict[str, set[str]], label: str) -> dict:
-    """A registry row's match columns, validated. Blank means any vehicle."""
+    """A reference row's match columns, validated. Blank means any vehicle."""
     match = {condition: (row[column] or None) for condition, column in conditions.items()}
     for condition, value in match.items():
         if value is None:
@@ -79,11 +79,11 @@ def conditions_overlap(a: dict, b: dict) -> bool:
 
 
 def brand_tables(con, cfg) -> None:
-    """ref_brand_keys (raw make -> canonical), ref_brand (attributes), ref_model_alias, ref_promotion, ref_motive_override.
+    """ref_brand_keys (raw make -> canonical), ref_brand (attributes), ref_model_alias, ref_promotion.
 
-    make_promotion, motive_power_override and not_promoted rows may narrow their match with the registry's match
-    columns. not_promoted rows are never applied: the build aborts if a make_promotion row could move a vehicle that a
-    not_promoted row with the same make and override_value covers."""
+    make_promotion and not_promoted rows may narrow their match with the registry's match columns. not_promoted rows
+    are never applied: the build aborts if a make_promotion row could move a vehicle that a not_promoted row with the
+    same make and override_value covers."""
     b = cfg.pipeline["brand"]
     sep = b["alias_separator"]
     registry = read(cfg.reference(b["registry"]))
@@ -99,8 +99,8 @@ def brand_tables(con, cfg) -> None:
 
     file, conditions = b["model_registry"], b["model_registry_conditions"]
     vocabularies = condition_vocabularies(cfg)
-    matched_types = (b["make_promotion_type"], b["motive_power_override_type"], b["not_promoted_type"])
-    alias_rows, promotion_rows, override_rows, exclusions = [], [], [], []
+    matched_types = (b["make_promotion_type"], b["not_promoted_type"])
+    alias_rows, promotion_rows, exclusions = [], [], []
     for row in read(cfg.reference(file)):
         make, model, kind = row[b["model_registry_make"]], row[b["model_registry_model"]], row[b["model_registry_type"]]
         label = f"{file}: {make}|{model}"
@@ -117,15 +117,6 @@ def brand_tables(con, cfg) -> None:
                 if make_name not in canonical_makes:
                     raise GuardrailError("reference", f"{file}: {make_name!r} is not a make in {b['registry']}")
             promotion_rows += [(make, key, target, model, *values) for key in model_keys]
-        elif kind == b["motive_power_override_type"]:
-            target, motive_column = row[b["model_registry_value"]], conditions["motive_power"]
-            if make not in canonical_makes:
-                raise GuardrailError("reference", f"{file}: {make!r} is not a make in {b['registry']}")
-            if target not in vocabularies["motive_power"]:
-                raise GuardrailError("reference", f"{label}: override_value {target!r} is not a known motive_power")
-            if not row[motive_column]:
-                raise GuardrailError("reference", f"{label}: {kind} rows must set {motive_column}")
-            override_rows += [(make, key, target, *values) for key in model_keys]
         elif kind == b["not_promoted_type"]:
             exclusions.append((make, row[b["model_registry_value"]], match))
     blocked = sorted({f"{make}|{model} -> {target}" for make, _, target, model, *values in promotion_rows
@@ -136,10 +127,66 @@ def brand_tables(con, cfg) -> None:
         raise GuardrailError("reference", f"{file}: {b['make_promotion_type']} rows {blocked} can move vehicles that "
                                           f"{b['not_promoted_type']} rows forbid moving")
     require_unique([(m, k) for m, k, *_ in alias_rows + promotion_rows], file)
-    require_unique([(m, k) for m, k, *_ in override_rows], file)
     register(con, "ref_model_alias", ["make", "model_key", "model_canonical"], alias_rows)
     register(con, "ref_promotion", ["make", "model_key", "target_make", "model_canonical", *conditions], promotion_rows)
-    register(con, "ref_motive_override", ["make", "model_key", "target", *conditions], override_rows)
+
+
+def hybrid_keys(cfg) -> dict:
+    """From powertrain_map.csv: each key's powertrain, the keys the source records as hybrids, and the keys that map to
+    the mild hybrid powertrain."""
+    p = cfg.pipeline
+    h, engine = p["hybrid_classification"], p["engine"]
+    rows = read(cfg.reference(engine["reference"]))
+    return {
+        "labels": {r[engine["key"]]: r[h["powertrain_column"]] for r in rows},
+        "source_hybrid": {r[engine["key"]] for r in rows if r[h["source_hybrid"]["column"]] == h["source_hybrid"]["value"]},
+        "mild": {r[engine["key"]] for r in rows if r[h["powertrain_column"]] == h["mild_powertrain"]},
+    }
+
+
+def hybrid_tables(con, cfg) -> None:
+    """ref_hybrid from mild_hybrid_models.csv: one row per make and model key, with its classification, override and
+    match columns. Every row is checked so that no vehicle can match two rows and no classification can contradict the
+    powertrain the vehicle ends up with."""
+    p = cfg.pipeline
+    h, b = p["hybrid_classification"], p["brand"]
+    sep, conditions, types = b["alias_separator"], b["model_registry_conditions"], h["types"]
+    file = h["file"]
+    keys = hybrid_keys(cfg)
+    makes = {r[b["canonical"]] for r in read(cfg.reference(b["registry"]))}
+    vocabularies = condition_vocabularies(cfg)
+    rows, seen = [], {}
+    for row in read(cfg.reference(file)):
+        make, kind, target = row[h["make"]], row[h["type"]], row[h["override"]] or None
+        models = split(row[h["models"]], sep)
+        label = f"{file}: {make}|{row[h['models']]} ({kind})"
+        match = parse_conditions(row, conditions, vocabularies, label)
+        motive = match["motive_power"]
+        if make not in makes:
+            raise GuardrailError("reference", f"{label}: {make!r} is not a make in {b['registry']}")
+        if not models:
+            raise GuardrailError("reference", f"{label}: no {h['models']}")
+        if kind not in types.values():
+            raise GuardrailError("reference", f"{label}: {h['type']} must be one of {sorted(types.values())}")
+        if row[h["confidence"]] not in h["confidence_levels"] or not row[h["basis"]]:
+            raise GuardrailError("reference", f"{label}: every row needs a {h['basis']} and a {h['confidence']} "
+                                              f"of {h['confidence_levels']}")
+        if target is not None:
+            if target not in keys["labels"]:
+                raise GuardrailError("reference", f"{label}: {h['override']} {target!r} is not a known motive_power")
+            if motive is None:
+                raise GuardrailError("reference", f"{label}: rows with an {h['override']} must set {conditions['motive_power']}")
+        shown = keys["labels"].get(target or motive) if (target or motive) else None
+        if kind == types["mild"] and shown != h["mild_powertrain"] or kind == types["full"] and shown == h["mild_powertrain"]:
+            raise GuardrailError("reference", f"{label}: classified {kind} but its powertrain would be {shown!r}; set "
+                                              f"{h['override']} or {conditions['motive_power']}")
+        for model in models:
+            for other_label, other in seen.get((make, model), []):
+                if conditions_overlap(match, other):
+                    raise GuardrailError("reference", f"{label} and {other_label} both match some {make}|{model} vehicles")
+            seen.setdefault((make, model), []).append((label, match))
+            rows.append((make, model, kind, row[h["confidence"]], target, *match.values()))
+    register(con, "ref_hybrid", ["make", "model_key", "hybrid_type", "confidence", "target", *conditions], rows)
 
 
 def validate_ranges(rows: list[dict], key_cols: list[str], lo_col: str, hi_col: str, what: str) -> None:
