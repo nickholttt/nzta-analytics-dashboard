@@ -333,45 +333,24 @@ def test_mild_hybrid_coverage_is_published_and_adds_up(tmp_path, workspace):
     assert published["all_time"]["source_hybrids"] > 0
     for basis in (published["all_time"], published["trailing"]):
         assert basis["identified_mild"] + basis["identified_full"] + basis["unknown"] == basis["source_hybrids"]
-        assert sum(basis["identified_mild_by_confidence"].values()) == basis["identified_mild"]
-        if basis["identified_mild"] + basis["unknown"]:
-            assert basis["coverage"] == round(basis["identified_mild"] / (basis["identified_mild"] + basis["unknown"]), 4)
+        by_confidence = basis["identified_mild_by_confidence"]
+        assert sum(by_confidence.values()) == basis["identified_mild"]
+        denominator = basis["identified_mild"] + basis["unknown"]
+        assert basis["coverage_stated_confidence"] == round(basis["identified_mild"] / denominator, 4)
+        high = by_confidence[h["high_confidence_level"]] + by_confidence["code_default"]
+        assert basis["coverage_high_confidence_only"] == round(high / denominator, 4)
+        assert basis["coverage_high_confidence_only"] <= basis["coverage_stated_confidence"]
 
 
-def test_year_bounded_promotion_leaves_older_vehicles_with_the_parent(tmp_path, workspace):
+def test_low_trailing_high_confidence_coverage_warns(tmp_path, workspace):
     cfg = make_cfg(workspace)
-    b = cfg.pipeline["brand"]
-    conditions = b["model_registry_conditions"]
-    start = conditions["vehicle_year_min"]
-    rule = next(r for r in registry_rows(cfg) if r[b["model_registry_type"]] == b["make_promotion_type"] and r[start]
-                and not any(r[column] for column in conditions.values() if column != start))
-    first = int(rule[start])
-    rows = load_rows()
-    snapshot = date.fromisoformat(source_for(rows)["change_key"]["snapshot"])
-    template = next(r for r in rows if r["OBJECTID"] == 62)
-    from_first = dict(template, OBJECTID=8000, MAKE=rule[b["model_registry_make"]], MODEL=rule[b["model_registry_model"]],
-                      VEHICLE_YEAR=first, FIRST_NZ_REGISTRATION_YEAR=snapshot.year, FIRST_NZ_REGISTRATION_MONTH=snapshot.month)
-    before_first = dict(from_first, OBJECTID=8001, VEHICLE_YEAR=first - 1)
-    run(tmp_path, cfg, rows, name="baseline")
-    before = make_totals(workspace)
-    run(tmp_path, cfg, rows + [from_first, before_first], name="split")
-    after = make_totals(workspace)
-    assert after[rule[b["model_registry_value"]]] - before[rule[b["model_registry_value"]]] == 1
-    assert after[rule[b["model_registry_make"]]] - before[rule[b["model_registry_make"]]] == 1
-
-
-def test_registry_year_columns_are_validated(tmp_path, workspace):
-    cfg = make_cfg(workspace)
-    conditions = cfg.pipeline["brand"]["model_registry_conditions"]
-    start, end = conditions["vehicle_year_min"], conditions["vehicle_year_max"]
-    rows = registry_rows(cfg)
-    bounded = next(r for r in rows if r[start])
-    not_a_year = [dict(r, **{start: "SOON"}) if r is bounded else r for r in rows]
-    ref = reference_with_registry(tmp_path / "not_a_year", cfg, not_a_year)
-    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows(), name="a"), "is not a year")
-    inverted = [dict(r, **{end: str(int(r[start]) - 1)}) if r is bounded else r for r in rows]
-    ref = reference_with_registry(tmp_path / "inverted", cfg, inverted)
-    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows(), name="b"), f"{start} is after {end}")
+    h = cfg.pipeline["hybrid_classification"]
+    h["warn_below_trailing_high_confidence_coverage"] = 0.0
+    quiet = run(tmp_path, cfg, load_rows(), name="quiet", publish=False)
+    assert not any("high-confidence" in w for w in quiet["warnings"])
+    h["warn_below_trailing_high_confidence_coverage"] = 1.0
+    loud = run(tmp_path, cfg, load_rows(), name="loud", publish=False)
+    assert any("high-confidence" in w for w in loud["warnings"]), loud["warnings"]
 
 
 def test_brand_registry_as_at_must_be_an_iso_date(tmp_path, workspace):

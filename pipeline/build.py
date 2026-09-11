@@ -125,10 +125,16 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "counts": quality,
             "model_cap": caps,
         }
-        disagreeing = datasets[dataset]["mild_hybrid_identification_coverage"]["classification_disagrees_with_powertrain"]
+        hybrid_coverage = datasets[dataset]["mild_hybrid_identification_coverage"]
+        disagreeing = hybrid_coverage["classification_disagrees_with_powertrain"]
         if disagreeing:
             warnings.append(f"{dataset}: {disagreeing:,} vehicles show a powertrain that contradicts their classification in "
                             f"{p['hybrid_classification']['file']}")
+        trailing_high = hybrid_coverage["trailing"]["coverage_high_confidence_only"]
+        floor = hybrid_coverage["warn_below_trailing_high_confidence_coverage"]
+        if trailing_high is not None and trailing_high < floor:
+            warnings.append(f"{dataset}: mild hybrid identification coverage over the trailing {window} months is "
+                            f"{trailing_high:.1%} counting high-confidence classifications only, below {floor:.0%}")
         if dataset == p["used_imports"]["dataset"]:
             by_vehicle_year, by_age = metrics.used_import_years(con, cfg, ds, window_start, snapshot_month)
             year, age = metrics.moving_cutoff(by_vehicle_year, snapshot_month.year, cfg)

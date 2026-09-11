@@ -155,11 +155,14 @@ never opened. Start with these and add on demand:
         "powertrain": { "whole_run": { "...": "same shape" }, "trailing": { "...": "same shape" } }
       },
       "mild_hybrid_identification_coverage": {
-        "all_time": { "source_hybrids": 451499, "identified_mild": 57000, "identified_full": 382000, "unknown": 12500,
-                      "coverage": 0.82, "mild_share_of_source_hybrids": 0.126,
-                      "identified_mild_by_confidence": { "high": 28000, "medium": 14000, "code_default": 15000 } },
-        "trailing": { "window_months": 12, "...": "same shape" },
+        "all_time": { "source_hybrids": 451499, "identified_mild": 57475, "identified_full": 382241, "unknown": 11783,
+                      "coverage_stated_confidence": 0.8299, "coverage_high_confidence_only": 0.6279,
+                      "mild_share_of_source_hybrids": 0.1273,
+                      "identified_mild_by_confidence": { "high": 43017, "medium": 13988, "low": 0, "code_default": 470 } },
+        "trailing": { "window_months": 12, "coverage_stated_confidence": 0.8411, "coverage_high_confidence_only": 0.7948,
+                      "...": "same shape" },
         "complete_at_coverage": 0.95,
+        "warn_below_trailing_high_confidence_coverage": 0.7,
         "label": "Mild hybrid (identified)",
         "classification_disagrees_with_powertrain": 0
       },
@@ -207,7 +210,9 @@ site must use for the category: *Mild hybrid (identified)* until the lower
 of the two coverage figures reaches `complete_at_coverage`.
 `classification_disagrees_with_powertrain` counts vehicles whose final
 powertrain contradicts their `mild_hybrid_models.csv` classification (a
-full hybrid shown as Mild hybrid, or the reverse).
+full hybrid shown as Mild hybrid, or the reverse). Coverage is given at
+stated confidence and at high confidence only, so how much it rests on
+medium- and low-confidence classifications is visible, not buried.
 
 ## Source discovery, snapshot date and change key
 
@@ -294,6 +299,8 @@ is worse than one that is visibly stale.
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
+- Mild hybrid identification coverage over the trailing 12 months,
+  counting high-confidence classifications only, is below 70%.
 - The latest month's count deviates more than 50% from the median of the
   12 months before it.
 - Source discovery fell back to the pinned item id, or found more than one

@@ -99,14 +99,20 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> d
 
     def basis(where: str) -> dict:
         n, identified, full_n, unknown, code, *levels = con.execute(f"SELECT {', '.join(measures)} FROM rows WHERE {where}").fetchone()
+        by_confidence = dict(zip(h["confidence_levels"], levels))
+        denominator = identified + unknown
+        # High confidence only: medium- and low-confidence mild rows count as unknown. Vehicles identified by the code
+        # mapping alone rest on no nameplate call, so they count at both levels.
+        high = by_confidence[h["high_confidence_level"]] + code
         return {
             "source_hybrids": n,
             "identified_mild": identified,
             "identified_full": full_n,
             "unknown": unknown,
-            "coverage": round(identified / (identified + unknown), 4) if identified + unknown else None,
+            "coverage_stated_confidence": round(identified / denominator, 4) if denominator else None,
+            "coverage_high_confidence_only": round(high / denominator, 4) if denominator else None,
             "mild_share_of_source_hybrids": round(identified / n, 4) if n else None,
-            "identified_mild_by_confidence": {**dict(zip(h["confidence_levels"], levels)), "code_default": code},
+            "identified_mild_by_confidence": {**by_confidence, "code_default": code},
         }
 
     whole = basis(base)
@@ -115,12 +121,13 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> d
         SELECT count(*) FROM rows WHERE {base}
           AND (({classified_mild} AND NOT {among(shown, keys['mild'])}) OR ({full} AND {among(shown, keys['mild'])}))
     """).fetchone()[0]
-    figures = [b["coverage"] for b in (whole, recent) if b["coverage"] is not None]
+    figures = [b["coverage_stated_confidence"] for b in (whole, recent) if b["coverage_stated_confidence"] is not None]
     complete = bool(figures) and min(figures) >= h["complete_at_coverage"]
     return {
         "all_time": whole,
         "trailing": {"window_months": window, **recent},
         "complete_at_coverage": h["complete_at_coverage"],
+        "warn_below_trailing_high_confidence_coverage": h["warn_below_trailing_high_confidence_coverage"],
         "label": h["labels"]["complete" if complete else "partial"],
         "classification_disagrees_with_powertrain": disagreeing,
     }

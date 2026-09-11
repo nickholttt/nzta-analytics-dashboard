@@ -99,6 +99,8 @@
     "source_hybrid": { "column": "powertrain_group", "value": "Hybrid" },
     "mild_powertrain": "Mild hybrid",
     "complete_at_coverage": 0.95,
+    "high_confidence_level": "high",
+    "warn_below_trailing_high_confidence_coverage": 0.70,
     "labels": { "partial": "Mild hybrid (identified)", "complete": "Mild hybrid" }
   },
   "engine": { "reference": "powertrain_map.csv", "field": "motive_power", "key": "nzta_motive_power", "flag": "has_combustion_engine" },

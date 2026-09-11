@@ -103,7 +103,8 @@
       "identified_mild": 2,
       "identified_full": 13,
       "unknown": 1,
-      "coverage": 0.6667,
+      "coverage_stated_confidence": 0.6667,
+      "coverage_high_confidence_only": 0.3333,
       "mild_share_of_source_hybrids": 0.125,
       "identified_mild_by_confidence": {
        "high": 1,
@@ -118,7 +119,8 @@
       "identified_mild": 2,
       "identified_full": 13,
       "unknown": 1,
-      "coverage": 0.6667,
+      "coverage_stated_confidence": 0.6667,
+      "coverage_high_confidence_only": 0.3333,
       "mild_share_of_source_hybrids": 0.125,
       "identified_mild_by_confidence": {
        "high": 1,
@@ -128,6 +130,7 @@
       }
      },
      "complete_at_coverage": 0.95,
+     "warn_below_trailing_high_confidence_coverage": 0.7,
      "label": "Mild hybrid (identified)",
      "classification_disagrees_with_powertrain": 0
     },
@@ -242,6 +245,7 @@
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
    "registrations_surviving: 1 rows are dated after the snapshot month and were excluded",
+   "registrations_surviving: mild hybrid identification coverage over the trailing 12 months is 33.3% counting high-confidence classifications only, below 70%",
    "no last good state: first run, so previous-run comparisons were skipped"
   ]
  },

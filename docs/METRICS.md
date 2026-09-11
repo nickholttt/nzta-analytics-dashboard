@@ -84,6 +84,21 @@ figures is under `complete_at_coverage` in `config/pipeline.json`, the Mild
 hybrid category is labelled *Mild hybrid (identified)* and states its
 coverage.
 
+Coverage is published twice, so its dependence on judgement calls is
+visible: at stated confidence (every classification row counts) and at high
+confidence only (medium- and low-confidence `mild` rows count as unknown;
+vehicles identified by the code mapping alone count at both levels). At the
+2026-08 snapshot, all-time coverage is 83.0% at stated confidence but 62.8%
+at high confidence only, because 13,808 Honda IMA hybrids are classified
+at medium confidence. Over the trailing 12 months it is 84.1% and 79.5%.
+The headline charts use the trailing figures, and both hold above 70%:
+that is what makes the mild hybrid split publishable. All-time mild hybrid
+history rests on the Honda IMA call and should be read that way. A trailing
+high-confidence figure below `warn_below_trailing_high_confidence_coverage`
+(70%) is a build warning. Subaru e-Boxer and XV Hybrid (about 5,700
+vehicles) stay unresolved because sources disagree on them: never classify
+a contested nameplate to raise coverage.
+
 **Mean fleet age** — (snapshot year − vehicle year), volume-weighted, across
 the fleet. Report median alongside the mean; the distribution has a long
 tail and the mean alone misleads.
