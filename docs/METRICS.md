@@ -28,7 +28,9 @@ and vans, and goods vans, utes and trucks) and its import status is
 `in_scope` in `import_status_map.csv`. Datasets that measure entry to the
 fleet also require `counts_as_fleet_entry`. Every guardrail rate (unmapped
 makes, unmapped powertrains, row-count movement) is measured on in-scope
-rows. Out-of-scope rows stay in the archived snapshot aggregates with their
+rows. The unmapped make and powertrain rates are measured on two bases, and
+both must pass: every in-scope row, and in-scope rows first registered in
+the trailing 12 months. Out-of-scope rows stay in the archived snapshot aggregates with their
 scope flag; they never reach the cube.
 
 ## Core measures

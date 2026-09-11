@@ -59,6 +59,44 @@
      "age_at_registration_band": 0.0,
      "model": 0.0
     },
+    "unmapped_guard": {
+     "powertrain": {
+      "whole_run": {
+       "rows": 59,
+       "unmapped": 0,
+       "rate": 0.0,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 52,
+       "unmapped": 0,
+       "rate": 0.0,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      }
+     },
+     "make": {
+      "whole_run": {
+       "rows": 59,
+       "unmapped": 1,
+       "rate": 0.016949,
+       "abort_above": 0.02,
+       "headroom_rows": 0
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 52,
+       "unmapped": 1,
+       "rate": 0.019231,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 0
+      }
+     }
+    },
     "coverage_trailing": {
      "window_months": 12,
      "fuel_consumption": 0.9111,
@@ -167,6 +205,7 @@
    "status": "new"
   },
   "warnings": [
+   "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
    "registrations_surviving: 1 rows are dated after the snapshot month and were excluded",
    "no last good state: first run, so previous-run comparisons were skipped"

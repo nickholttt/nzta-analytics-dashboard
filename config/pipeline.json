@@ -85,6 +85,8 @@
     "max_in_scope_row_change": 0.02,
     "max_unmapped_rate": 0.02,
     "abort_on_unmapped": ["make", "powertrain"],
+    "max_unmapped_rate_trailing": 0.02,
+    "warn_unmapped_rate_trailing": 0.005,
     "zero_row_min_previous_rows": 1000,
     "latest_month_max_deviation": 0.5,
     "size_budget_bytes": 8000000

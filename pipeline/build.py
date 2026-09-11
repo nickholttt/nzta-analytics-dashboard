@@ -82,6 +82,16 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
         derive.build_dims(con, cfg, derived)
         caps = {d.dim_id: derive.apply_model_cap(con, d, ds, window_start, snapshot_month) for d in derived if d.kind == "model"}
         rates = metrics.unmapped_rates(con, derived)
+        guard = metrics.unmapped_guard(con, derived, g, window_start, snapshot_month, window)
+        for dim_id, figures in guard.items():
+            t = figures["trailing"]
+            detail = (f"{dataset}.{dim_id}: unmapped rate over the trailing {window} months is {t['rate'] or 0:.2%} "
+                      f"({t['unmapped']:,} of {t['rows']:,} in-scope rows)")
+            if t["unmapped"] > t["abort_above"] * t["rows"]:
+                aborts.append(f"{detail}, above {t['abort_above']:.0%}")
+            elif t["unmapped"] > t["warn_above"] * t["rows"]:
+                warnings.append(f"{detail}, above the {t['warn_above']:.1%} warning level; the run aborts above "
+                                f"{t['abort_above']:.0%}, {t['headroom_rows']:,} rows away")
         live = []
         for d in derived:
             if rates[d.dim_id] <= g["max_unmapped_rate"]:
@@ -109,6 +119,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "live_dimensions": live_dimensions[dataset],
             "not_live": not_live,
             "unmapped_rates": rates,
+            "unmapped_guard": guard,
             "coverage_trailing": metrics.coverage(con, derived, ds, window_start, snapshot_month, window),
             "counts": quality,
             "model_cap": caps,

@@ -45,6 +45,37 @@ def unmapped_rates(con, derived) -> dict[str, float]:
     return {d.dim_id: round(v or 0.0, 6) for d, v in zip(derived, values)}
 
 
+def unmapped_guard(con, derived, g: dict, start: date, end: date, window: int) -> dict:
+    """Both bases of the unmapped guard for each dimension in abort_on_unmapped: every in-scope row, and in-scope rows
+    first registered in the trailing window. Headroom is how many more rows could be unmapped before the run aborts."""
+    guarded = [d for d in derived if d.dim_id in g["abort_on_unmapped"]]
+    if not guarded:
+        return {}
+    trailing = f"reg_month BETWEEN {date_sql(start)} AND {date_sql(end)}"
+    parts = ["count(*)", f"count(*) FILTER (WHERE {trailing})"]
+    for d in guarded:
+        parts += [f"count(*) FILTER (WHERE {d.unmapped_column})", f"count(*) FILTER (WHERE {d.unmapped_column} AND {trailing})"]
+    values = con.execute(f"SELECT {', '.join(parts)} FROM dims").fetchone()
+
+    def basis(rows: int, unmapped: int, abort: float, warn: float | None = None) -> dict:
+        doc = {"rows": rows, "unmapped": unmapped, "rate": round(unmapped / rows, 6) if rows else None}
+        if warn is not None:
+            doc["warn_above"] = warn
+        doc["abort_above"] = abort
+        doc["headroom_rows"] = int(abort * rows) - unmapped
+        return doc
+
+    out = {}
+    for i, d in enumerate(guarded):
+        whole, recent = values[2 + 2 * i], values[3 + 2 * i]
+        out[d.dim_id] = {
+            "whole_run": basis(values[0], whole, g["max_unmapped_rate"]),
+            "trailing": {"window_months": window,
+                         **basis(values[1], recent, g["max_unmapped_rate_trailing"], g["warn_unmapped_rate_trailing"])},
+        }
+    return out
+
+
 def coverage(con, derived, ds: str, start: date, end: date, window: int) -> dict:
     tokens = f"({lit(UNDEFINED)}, {lit(UNMAPPED)})"
     named = [d for d in derived if d.kind != "band"]

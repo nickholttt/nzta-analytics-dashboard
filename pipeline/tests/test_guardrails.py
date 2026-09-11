@@ -99,6 +99,37 @@ def test_unmapped_make_over_threshold_aborts(tmp_path, workspace):
     expect_abort(lambda: run(tmp_path, cfg, rows + extra), "registrations_surviving.make: unmapped rate")
 
 
+def unknown_makes_in_snapshot_month(rows, count, first_id):
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    snapshot = date.fromisoformat(source_for(rows)["change_key"]["snapshot"])
+    return [dict(template, OBJECTID=first_id + i, MAKE=f"UNKNOWN MAKE {i}",
+                 FIRST_NZ_REGISTRATION_YEAR=snapshot.year, FIRST_NZ_REGISTRATION_MONTH=snapshot.month) for i in range(count)]
+
+
+def test_trailing_unmapped_guard_aborts_when_the_whole_run_passes(tmp_path, workspace):
+    rows = load_rows()
+    cfg = make_cfg(workspace)
+    cfg.pipeline["guardrails"]["max_unmapped_rate"] = 0.5  # the whole-run basis passes; only the trailing basis can abort
+    expect_abort(lambda: run(tmp_path, cfg, rows + unknown_makes_in_snapshot_month(rows, 3, 4000)),
+                 "registrations_surviving.make: unmapped rate over the trailing 12 months")
+
+
+def test_trailing_unmapped_warning_and_published_headroom(tmp_path, workspace):
+    rows = load_rows()
+    cfg = make_cfg(workspace)
+    g = cfg.pipeline["guardrails"]
+    g.update(max_unmapped_rate=0.5, max_unmapped_rate_trailing=0.5, warn_unmapped_rate_trailing=0.0)
+    manifest = run(tmp_path, cfg, rows + unknown_makes_in_snapshot_month(rows, 1, 5000), publish=False)
+    assert any("warning level" in w for w in manifest["warnings"]), manifest["warnings"]
+    guard = manifest["datasets"]["registrations_surviving"]["unmapped_guard"]
+    assert sorted(guard) == sorted(g["abort_on_unmapped"])
+    for figures in guard.values():
+        assert 0 < figures["trailing"]["rows"] < figures["whole_run"]["rows"]
+        for basis in (figures["whole_run"], figures["trailing"]):
+            assert basis["headroom_rows"] == int(basis["abort_above"] * basis["rows"]) - basis["unmapped"]
+    assert guard["make"]["trailing"]["unmapped"] >= 1
+
+
 def test_live_dimension_cannot_silently_drop_out(tmp_path, workspace):
     cfg, rows, state = good_state(tmp_path, workspace)
     template = next(r for r in rows if r["OBJECTID"] == 62)

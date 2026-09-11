@@ -146,6 +146,14 @@ never opened. Start with these and add on demand:
       "live_dimensions": ["powertrain", "make", "..."],
       "not_live": { "imported_from": "does not apply to this dataset" },
       "unmapped_rates": { "make": 0.0062, "powertrain": 0.0 },
+      "unmapped_guard": {
+        "make": {
+          "whole_run": { "rows": 4616861, "unmapped": 34735, "rate": 0.007524, "abort_above": 0.02, "headroom_rows": 57602 },
+          "trailing": { "window_months": 12, "rows": 234372, "unmapped": 218, "rate": 0.00093,
+                        "warn_above": 0.005, "abort_above": 0.02, "headroom_rows": 4469 }
+        },
+        "powertrain": { "whole_run": { "...": "same shape" }, "trailing": { "...": "same shape" } }
+      },
       "coverage_trailing": { "window_months": 12, "fuel_consumption": 0.91, "dimensions": { "region": 0.998 } },
       "counts": {
         "no_registration_month": 172,
@@ -178,6 +186,11 @@ change. In `bands`, `source_missing` counts rows whose source field is
 empty, `source_sentinel` counts source values listed in `sentinels.csv`
 (for vehicle year, a year of 0), `negative` counts a negative derived
 value, and `out_of_bands` counts a value no band covers.
+
+`unmapped_guard` publishes both bases of each guarded dimension's unmapped
+check with its thresholds, and `headroom_rows`: how many more rows could go
+unmapped before the run aborts. How close a run came is visible, not just
+whether it passed.
 
 ## Source discovery, snapshot date and change key
 
@@ -235,10 +248,19 @@ Freshness:
 
 Mapping:
 
-- Unmapped make above 2% of in-scope rows.
-- Unmapped powertrain above 2% of in-scope rows.
+- Unmapped make above 2% of in-scope rows, on either of two bases: every
+  in-scope row, or in-scope rows first registered in the trailing 12
+  months. Both must pass.
+- Unmapped powertrain above 2% of in-scope rows, on the same two bases.
 - A dimension that was live in the last good run exceeds its unmapped
   threshold or loses a reference file.
+
+The two bases catch different failures. The whole run tolerates old makes
+nobody will map: months before 1990 run 3–30% unmapped, and a per-month
+guard would trip on them. But the whole run dilutes anything new: at the
+2026-08 snapshot it had 57,602 rows of headroom, a quarter of a year's
+registrations, so a new brand missing from `brand_registry.csv` could
+reach that scale unnoticed. The trailing basis catches it.
 
 Events:
 
@@ -251,6 +273,8 @@ is worse than one that is visibly stale.
 
 ## Warnings — the build continues, recorded in `manifest.warnings`
 
+- Unmapped make or powertrain over the trailing 12 months is above 0.5% of
+  in-scope rows: notice well before the 2% abort.
 - The latest month's count deviates more than 50% from the median of the
   12 months before it.
 - Source discovery fell back to the pinned item id, or found more than one
