@@ -29,6 +29,12 @@ algorithmically cleaned make and model errors.
   several fields from the same row (make with model, segment from three
   fields, fuel consumption stored as text): a grouped query over them would
   be as large as the rows.
+- **Refresh timing.** The register refreshes in the first days of the
+  month: the 2026-08 snapshot was last edited on 3 September 2026. The
+  monthly workflow runs on the 8th (06:17 UTC) to leave margin after the
+  refresh. If a refresh lands after the 8th, the change key is unchanged,
+  that run skips, and the site stays a month behind until the next run or
+  a manual dispatch.
 
 ## B. Azure Blob CSVs — full fleet (for the stock cube)
 

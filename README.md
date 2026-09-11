@@ -54,7 +54,8 @@ python -m pipeline init-schema            # once, deliberately: capture pipeline
 A run writes `public/data/` (gitignored) and, only on success, commits
 `data/snapshots/YYYY-MM.parquet` and `data/state/last_good.json`. Any
 failed guardrail exits non-zero and leaves both untouched.
-`.github/workflows/monthly-build.yml` runs it monthly.
+`.github/workflows/monthly-build.yml` runs it on the 8th of each month;
+`docs/DATA_SOURCES.md` explains the timing.
 
 ## Licence
 
