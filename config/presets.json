@@ -265,12 +265,13 @@
           "shape_override": "distribution"
         },
         {
-          "id": "emissions-trend",
-          "question": "Are new registrations getting cleaner?",
-          "derived": "mean_co2",
+          "id": "fuel-efficiency-trend",
+          "question": "Are new registrations getting more fuel efficient?",
+          "derived": "mean_fuel_consumption",
           "dataset": "registrations_surviving",
           "period": "all",
-          "events": true
+          "events": true,
+          "note": "Average combined fuel consumption of vehicles that burn fuel. Electric vehicles have no figure and are left out, not counted as zero. Months where fewer than 70% of engined vehicles have a figure are not shown."
         }
       ]
     },

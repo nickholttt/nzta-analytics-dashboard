@@ -1,5 +1,5 @@
 {
-  "$comment": "The complete vocabulary of the Build surface. Adding a dimension here plus a cube slice is the only way to extend it. Deliberately capped at 12.",
+  "$comment": "The complete vocabulary of the Build surface. Adding a dimension here, with a derive block, is the only way to extend it. No count is fixed: manifest.json lists which dimensions are live in each build (docs/CUBE_SCHEMA.md).",
   "datasets": [
     {
       "id": "registrations_surviving",

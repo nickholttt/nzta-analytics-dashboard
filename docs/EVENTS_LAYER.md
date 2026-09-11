@@ -47,6 +47,15 @@ exactly what the project is not.
 | `verified` | bool | `false` = seeded but not yet source-checked. Not rendered until true |
 | `source_url` | url | required when `verified=true` |
 
+### Build-time checks
+
+The build fails, and the last good build stays deployed, if any
+`verified=true` row has a `scope` outside the enum above, a `scope_value`
+that does not resolve through the vocabulary its dimension produces from
+the data and reference files, or an empty `source_url`. An event whose
+values cannot match any chart is a silent failure; it is caught at build
+time instead.
+
 ### Why `mechanism` matters
 
 Three different things can move a registration line, and conflating them is

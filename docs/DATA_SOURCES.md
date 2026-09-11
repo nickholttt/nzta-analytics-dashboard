@@ -9,14 +9,26 @@ Point-in-time snapshot of all vehicles currently registered in NZ, updated
 monthly and accurate to the end of the previous month. NZTA has
 algorithmically cleaned make and model errors.
 
-- Hub item ID: `7b4df667d5014f1a93e6050b31d18407`, layer `0`
-- Resolve the FeatureServer URL from the ArcGIS item endpoint, then hit
-  `.../FeatureServer/0?f=json` first to read the live field list and
-  `maxRecordCount`. **Do not hardcode field names from this doc** — read
-  them at runtime and assert against `pipeline/expected_schema.json`.
+- **Find the item by searching the portal on every run** (query in
+  `config/pipeline.json`); never trust a pinned ID. The item is currently
+  `7b4df667d5014f1a93e6050b31d18407`, kept only as a fallback that warns
+  loudly. NZTA has republished the register under new items before, and
+  the service name is not a date: `MVR_Mar26` held August 2026 data.
+- The service exposes a single **table**, not a layer. Resolve its URL
+  from the item, then read `.../FeatureServer/0?f=json` for the live field
+  list. **Do not hardcode field names from this doc**: they are bound in
+  `config/pipeline.json` and asserted against
+  `pipeline/expected_schema.json` on every run.
+- There is no snapshot-date field. The snapshot is the latest
+  first-registration month in the table, capped at the month before the
+  fetch.
 - Supports `where`, `groupByFieldsForStatistics` + `outStatistics`, and
-  `resultOffset` pagination. Use server-side aggregation wherever possible
-  rather than pulling rows.
+  `resultType=standard` pages of 32,000 rows. Change detection uses one
+  grouped-statistics query. The build pulls rows, only the bound fields,
+  in OBJECTID ranges (about 185 requests), because most dimensions need
+  several fields from the same row (make with model, segment from three
+  fields, fuel consumption stored as text): a grouped query over them would
+  be as large as the rows.
 
 ## B. Azure Blob CSVs — full fleet (for the stock cube)
 

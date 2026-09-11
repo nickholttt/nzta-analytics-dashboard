@@ -55,9 +55,17 @@ years; never a decimal. NZ-new vehicles are excluded: their age at
 registration is 0 by construction from 2007 (MODEL_AND_AGE.md §1), so
 including them would restate the new/used mix rather than measure age.
 
-**Mean CO2** — volume-weighted mean of the CO2 field across first
-registrations in the month, excluding nulls. Report coverage (% of rows
-with a value) alongside; do not publish months with under 70% coverage.
+**Mean fuel consumption** — mean combined fuel consumption (L/100km)
+across vehicles with a combustion engine (`has_combustion_engine` in
+`powertrain_map.csv`), excluding missing, unparseable and out-of-range
+values (above 60 L/100km). Coverage is vehicles with a valid value ÷
+vehicles with an engine; do not publish months with under 70% coverage.
+Vehicles without an engine are outside both numerator and denominator, so
+the figure describes vehicles that burn fuel and the chart says so; a
+rising EV share neither drags it towards zero nor suppresses it. The
+register has no CO2 field, and CO2 is never estimated from fuel
+consumption: the conversion depends on the fuel and would be our
+assumption presented as data.
 
 **Mean fleet age** — (snapshot year − vehicle year), volume-weighted, across
 the fleet. Report median alongside the mean; the distribution has a long

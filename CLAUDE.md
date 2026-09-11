@@ -61,7 +61,7 @@ chart type.
 | `mix` | share lines / 100% stacked area | measure = `share`, dimension is categorical |
 | `trend` | line, optional 12-month rolling overlay | measure = `count` or `rolling_12m`, over time |
 | `league` | ranked horizontal bar + rank delta | measure = `count`/`share`, single period, high-cardinality dimension |
-| `distribution` | histogram / ridgeline over time | dimension is an ordered band (age, engine size, CO2) |
+| `distribution` | histogram / ridgeline over time | dimension is an ordered band (age, engine size, vehicle age) |
 | `geo` | choropleth by region/TA | dimension = `region` |
 
 ---

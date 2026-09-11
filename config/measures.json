@@ -66,6 +66,17 @@
       "formula": "used_first_seen(make,model) - nz_new_launch(make,model)",
       "unit": "years",
       "note": "Years between a model going on sale new in NZ and first appearing as a used import."
+    },
+    {
+      "id": "mean_fuel_consumption",
+      "label": "the average fuel consumption",
+      "formula": "SUM(fc_sum) / SUM(fc_n)",
+      "unit": "L/100km",
+      "guards": {
+        "min_coverage": 0.7,
+        "coverage_formula": "SUM(fc_n) / SUM(fc_eligible_n)"
+      },
+      "note": "Vehicles with a combustion engine only. Electric vehicles have no figure and are left out, not counted as zero. See docs/METRICS.md."
     }
   ]
 }
