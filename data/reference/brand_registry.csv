@@ -1,104 +1,104 @@
-make_canonical,aliases,parent_group,owner_country,heritage_country,brand_region,occurs_in_source,notes
-TOYOTA,,Toyota Group,Japan,Japan,Japan,true,
-LEXUS,TOYOTA LEXUS,Toyota Group,Japan,Japan,Japan,true,"TOYOTA LEXUS is an alias: 484 rows, all Lexus nameplates, all used imports. Lexus recorded as MODEL = LEXUS under TOYOTA is promoted here by model_registry.csv."
-DAIHATSU,,Toyota Group,Japan,Japan,Japan,true,
-HINO,,ARCHION,Japan,Japan,Japan,true,"Heavy commercial. Owned since 1 April 2026 by ARCHION Corporation (Tokyo Stock Exchange), which also owns Mitsubishi Fuso; Toyota and Daimler Truck each hold about 25% (https://www.daimlertruck.com/en/newsroom/pressrelease/daimler-truck-completes-integration-of-its-subsidiary-mitsubishi-fuso-into-new-archion-corporation-53420564). Previously Toyota Group."
-SUBARU,,Subaru Corporation,Japan,Japan,Japan,true,Toyota holds a minority stake
-MAZDA,,Mazda Motor Corporation,Japan,Japan,Japan,true,
-HONDA,,Honda Motor,Japan,Japan,Japan,true,
-NISSAN,,Nissan Motor,Japan,Japan,Japan,true,"Renault-Nissan-Mitsubishi Alliance member. Infinitis recorded as MODEL = INFINITI are promoted by model_registry.csv. Nissan Diesel trucks recorded as MODEL = UD, DIESEL or CONDOR are promoted to UD TRUCKS only from vehicle year 2010, when Nissan Diesel became UD Trucks; older ones stay here. In-scope goods vehicles over 3500 kg still under this make at 2026-08: 8,309 (8,400 before the promotions), a mix of Nissan light trucks and pre-2010 Nissan Diesel trucks. DATSUN model strings stay here by rule."
-DATSUN,,Nissan Motor,Japan,Japan,Japan,true,"Nissan's former export brand. Historic. Only vehicles whose MAKE says DATSUN; DATSUN model strings under NISSAN stay NISSAN (model_registry.csv not_promoted)."
-INFINITI,,Nissan Motor,Japan,Japan,Japan,true,Also recorded as MODEL = INFINITI under NISSAN and promoted here by model_registry.csv.
-MITSUBISHI,MITSUBISHI MOTORS,Mitsubishi Motors,Japan,Japan,Japan,true,"Fuso trucks recorded under this make (MODEL = FUSO, CANTER, FIGHTER, ROSA, and SHOGUN as a goods vehicle) are promoted to FUSO by model_registry.csv from vehicle year 2003, when Mitsubishi Fuso became a separate company; older Fuso trucks stay here. In-scope goods vehicles over 3500 kg still under this make at 2026-08: 5,544 (9,396 before the promotions). Licence-built Jeeps (MODEL = JEEP) stay here by rule."
-SUZUKI,,Suzuki Motor,Japan,Japan,Japan,true,
-ISUZU,,Isuzu Motors,Japan,Japan,Japan,true,
-UD TRUCKS,UD,Isuzu Motors,Japan,Japan,Japan,true,"Heavy commercial. Nissan Diesel trucks recorded under NISSAN (MODEL = UD, DIESEL, CONDOR) are promoted here by model_registry.csv from vehicle year 2010, the year of the rename. Parent group is today's owner."
-FUSO,MITSUBISHI FUSO,ARCHION,Japan,Japan,Japan,true,"Owned since 1 April 2026 by ARCHION Corporation (Tokyo Stock Exchange), which also owns Hino; Daimler Truck and Toyota each hold about 25%, and Daimler Truck no longer consolidates Fuso (https://www.daimlertruck.com/en/newsroom/pressrelease/daimler-truck-completes-integration-of-its-subsidiary-mitsubishi-fuso-into-new-archion-corporation-53420564). Previously Daimler Truck, Germany. Fuso trucks recorded under MITSUBISHI are promoted here by model_registry.csv from vehicle year 2003, when Mitsubishi Fuso became a separate company; older ones stay MITSUBISHI."
-HYUNDAI,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
-KIA,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
-GENESIS,,Hyundai Motor Group,South Korea,South Korea,Korea,true,"Genesis-brand used imports recorded as MODEL = GENESIS under HYUNDAI are promoted here from vehicle year 2017 by model_registry.csv. The Hyundai Genesis sedan (up to 2016, and NZ-new in 2017) is a Hyundai model and stays HYUNDAI."
-KGM,SSANGYONG|KG MOBILITY,KG Mobility,South Korea,South Korea,Korea,true,Renamed from SsangYong
-BYD,,BYD,China,China,China,true,
-DENZA,,BYD,China,China,China,true,Formerly a Mercedes-Benz joint venture; now BYD-owned.
-MG,,SAIC Motor,China,United Kingdom,China,true,Chinese-owned; British heritage. Report under owner_country by default
-LDV,,SAIC Motor,China,United Kingdom,China,true,Chinese-owned; British heritage
-MAXUS,,SAIC Motor,China,United Kingdom,China,true,
-HAVAL,,Great Wall Motor,China,China,China,true,"Most recent Havals are recorded under MAKE = GWM (MODEL = HAVAL H6, HAVAL JOLION, H6, JOLION) and are promoted to this make by model_registry.csv. In scope at 2026-08 that moves this make from 8,527 to 16,197 rows all-time, and from 39 to 3,440 in the last 12 months."
-GWM,GREAT WALL,Great Wall Motor,China,China,China,true,"ORA, TANK and Haval vehicles recorded under this make are promoted to their own makes by model_registry.csv. What stays here is GWM- and Great Wall-badged vehicles (Cannon, Steed, V240 and similar)."
-ORA,,Great Wall Motor,China,China,China,false,"Never appears as a MAKE. Recorded as MODEL = ORA under MAKE = GWM, and promoted to this make by model_registry.csv."
-TANK,,Great Wall Motor,China,China,China,false,"Never appears as a MAKE. Recorded as MODEL = TANK under MAKE = GWM, and promoted to this make by model_registry.csv."
-CHERY,,Chery Automobile,China,China,China,true,
-JAECOO,,Chery Automobile,China,China,China,true,
-OMODA,,Chery Automobile,China,China,China,true,
-GEELY,,Geely Holding,China,China,China,true,
-ZEEKR,,Geely Holding,China,China,China,true,
-FARIZON,,Geely Holding,China,China,China,true,Geely's commercial vehicle brand.
-LYNK & CO,LYNK AND CO|LYNKCO,Geely Holding,China,China,China,false,
-POLESTAR,,Geely Holding,China,Sweden,China,true,Chinese-owned; Swedish heritage
-VOLVO,,Geely Holding,China,Sweden,China,true,"Chinese-owned; Swedish heritage. A frequent source of confusion. Make-level limitation: Volvo trucks (AB Volvo, Sweden) share this make and roll up here; about 5.3k in-scope goods vehicles over 3500 kg."
-LOTUS,,Geely Holding,China,United Kingdom,China,true,Chinese-owned; British heritage
-XPENG,,XPeng,China,China,China,true,
-NIO,,NIO,China,China,China,false,
-LEAPMOTOR,,Leapmotor,China,China,China,true,Stellantis holds a stake and runs international distribution
-JAC,,JAC Motors,China,China,China,true,
-FOTON,,BAIC Group,China,China,China,true,
-BAIC,,BAIC Group,China,China,China,true,
-CHANGAN,DEEPAL,Changan Automobile,China,China,China,false,
-SKYWELL,,Skywell,China,China,China,false,
-DONGFENG,,Dongfeng Motor Corporation,China,China,China,true,
-FORTHING,,Dongfeng Motor Corporation,China,China,China,true,Dongfeng Liuzhou Motor's passenger brand.
-GAC,,GAC Group,China,China,China,true,
-VOLKSWAGEN,VW,Volkswagen Group,Germany,Germany,Europe,true,
-AUDI,,Volkswagen Group,Germany,Germany,Europe,true,
-SKODA,ŠKODA,Volkswagen Group,Germany,Czechia,Europe,true,
-CUPRA,SEAT,Volkswagen Group,Germany,Spain,Europe,true,
-PORSCHE,,Volkswagen Group,Germany,Germany,Europe,true,
-BENTLEY,,Volkswagen Group,Germany,United Kingdom,Europe,true,
-LAMBORGHINI,,Volkswagen Group,Germany,Italy,Europe,true,
-SCANIA,,Traton,Germany,Sweden,Europe,true,Heavy commercial
-MAN,,Traton,Germany,Germany,Europe,true,Heavy commercial
-BMW,,BMW Group,Germany,Germany,Europe,true,
-MINI,,BMW Group,Germany,United Kingdom,Europe,true,"Also recorded as MODEL = MINI under BMW (6,516 rows) and promoted here by model_registry.csv. Classic Minis under MORRIS, AUSTIN, LEYLAND and ROVER are a different marque and stay there by rule."
-ROLLS-ROYCE,ROLLS ROYCE,BMW Group,Germany,United Kingdom,Europe,true,
-MERCEDES-BENZ,MERCEDES BENZ|MERCEDES|MERC,Mercedes-Benz Group,Germany,Germany,Europe,true,Alias handling is essential; this make is recorded several ways
-SMART,,Mercedes-Benz Group,Germany,Germany,Europe,true,Now a Mercedes-Geely joint venture
-PEUGEOT,,Stellantis,Netherlands,France,Europe,true,Stellantis is Dutch-incorporated; use heritage_country for most analysis
-CITROEN,CITROËN,Stellantis,Netherlands,France,Europe,true,
-DS,DS AUTOMOBILES,Stellantis,Netherlands,France,Europe,true,Appears only as DS AUTOMOBILES (2 rows).
-OPEL,,Stellantis,Netherlands,Germany,Europe,true,
-FIAT,,Stellantis,Netherlands,Italy,Europe,true,
-ABARTH,,Stellantis,Netherlands,Italy,Europe,true,"Almost all recorded under FIAT (MODEL = ABARTH 595 and similar) and promoted here by model_registry.csv."
-ALFA ROMEO,ALFA,Stellantis,Netherlands,Italy,Europe,true,
-MASERATI,,Stellantis,Netherlands,Italy,Europe,true,
-JEEP,CHRYSLER JEEP,Stellantis,Netherlands,United States,North America,true,"CHRYSLER JEEP is an alias: 1,181 rows, all Jeep nameplates, mostly used imports. Jeeps recorded under CHRYSLER are promoted here by model_registry.csv. Licence-built Jeeps under MITSUBISHI and FORD, and the makes WILLYS, KAISER and AMC, are not Jeep-brand vehicles and stay as recorded."
-RAM,,Stellantis,Netherlands,United States,North America,true,"Also recorded as MODEL = RAM under DODGE and promoted here by model_registry.csv from vehicle year 2011, the first model year badged Ram alone: 139 rows at 2026-08. 1,078 older Dodge-badged Rams stay DODGE."
-DODGE,,Stellantis,Netherlands,United States,North America,true,
-CHRYSLER,,Stellantis,Netherlands,United States,North America,true,
-RENAULT,,Renault Group,France,France,Europe,true,
-ALPINE,,Renault Group,France,France,Europe,true,"Modern A110s recorded as MODEL = ALPINE under RENAULT are promoted here from vehicle year 2017 by model_registry.csv. Sunbeam Alpines and Renault-badged Alpines up to 2016 stay under their own makes by rule."
-FERRARI,,Ferrari NV,Italy,Italy,Europe,true,
-IVECO,,Iveco Group,Italy,Italy,Europe,true,Heavy commercial
-DAF,,Paccar,United States,Netherlands,Europe,true,Heavy commercial
-JAGUAR,,Tata Motors,India,United Kingdom,Europe,true,Indian-owned; British heritage
-LAND ROVER,RANGE ROVER,Tata Motors,India,United Kingdom,Europe,true,Indian-owned; British heritage
-TATA,,Tata Motors,India,India,Other,true,
-MAHINDRA,,Mahindra & Mahindra,India,India,Other,true,
-ASTON MARTIN,,Aston Martin Lagonda,United Kingdom,United Kingdom,Europe,true,
-MCLAREN,,McLaren Automotive,United Kingdom,United Kingdom,Europe,true,
-INEOS,,INEOS Automotive,United Kingdom,United Kingdom,Europe,true,
-MORRIS,,British Leyland,United Kingdom,United Kingdom,Europe,true,"Defunct marque. DELIBERATE, do not correct: owner_country is the last company that built it, not today's holder of the name. Using the current rights holder would count a 1965 Morris as Chinese-owned."
-AUSTIN,,British Leyland,United Kingdom,United Kingdom,Europe,true,"Defunct marque. DELIBERATE, do not correct: owner_country is the last company that built it, not today's holder of the name. Using the current rights holder would count a 1965 Austin as Chinese-owned."
-ROVER,,Rover Group,United Kingdom,United Kingdom,Europe,true,"Defunct marque (2005). DELIBERATE, do not correct: owner_country is the last company that built it, not today's holder of the name. In the register this make also covers Rover Group-era Minis, MGs and Range Rovers."
-FORD,,Ford Motor Company,United States,United States,North America,true,
-TESLA,,Tesla,United States,United States,North America,true,
-RIVIAN,,Rivian,United States,United States,North America,false,
-CHEVROLET,CHEV,General Motors,United States,United States,North America,true,
-CADILLAC,,General Motors,United States,United States,North America,true,
-GMC,,General Motors,United States,United States,North America,true,
-HOLDEN,,General Motors,United States,Australia,North America,true,Discontinued 2020; still a large share of the used fleet
-BEDFORD,,General Motors,United States,United Kingdom,Europe,true,Defunct marque; Vauxhall's commercial vehicle brand.
-KENWORTH,,Paccar,United States,United States,North America,true,Heavy commercial
-PETERBILT,,Paccar,United States,United States,North America,true,Heavy commercial
-FREIGHTLINER,,Daimler Truck,Germany,United States,North America,true,Heavy commercial
-INTERNATIONAL,,Traton,Germany,United States,North America,true,Heavy commercial
-MACK,,Volvo Group,Sweden,United States,North America,true,"Heavy commercial. AB Volvo, the truck maker; unrelated to Volvo Cars."
+make_canonical,aliases,parent_group,owner_country,heritage_country,brand_region,occurs_in_source,as_at,notes
+TOYOTA,,Toyota Group,Japan,Japan,Japan,true,,
+LEXUS,TOYOTA LEXUS,Toyota Group,Japan,Japan,Japan,true,,"TOYOTA LEXUS is an alias: 484 rows, all Lexus nameplates, all used imports. Lexus recorded as MODEL = LEXUS under TOYOTA is promoted here by model_registry.csv."
+DAIHATSU,,Toyota Group,Japan,Japan,Japan,true,,
+HINO,,ARCHION,Japan,Japan,Japan,true,2026-09-12,"Heavy commercial. Owned since 1 April 2026 by ARCHION Corporation (Tokyo Stock Exchange), which also owns Mitsubishi Fuso; Toyota and Daimler Truck each hold about 25% (https://www.daimlertruck.com/en/newsroom/pressrelease/daimler-truck-completes-integration-of-its-subsidiary-mitsubishi-fuso-into-new-archion-corporation-53420564). Previously Toyota Group."
+SUBARU,,Subaru Corporation,Japan,Japan,Japan,true,,Toyota holds a minority stake
+MAZDA,,Mazda Motor Corporation,Japan,Japan,Japan,true,,
+HONDA,,Honda Motor,Japan,Japan,Japan,true,,
+NISSAN,,Nissan Motor,Japan,Japan,Japan,true,,"Renault-Nissan-Mitsubishi Alliance member. Infinitis recorded as MODEL = INFINITI are promoted by model_registry.csv. Nissan Diesel trucks recorded as MODEL = UD, DIESEL or CONDOR are promoted to UD TRUCKS only from vehicle year 2010, when Nissan Diesel became UD Trucks; older ones stay here. In-scope goods vehicles over 3500 kg still under this make at 2026-08: 8,309 (8,400 before the promotions), a mix of Nissan light trucks and pre-2010 Nissan Diesel trucks. DATSUN model strings stay here by rule."
+DATSUN,,Nissan Motor,Japan,Japan,Japan,true,,"Nissan's former export brand. Historic. Only vehicles whose MAKE says DATSUN; DATSUN model strings under NISSAN stay NISSAN (model_registry.csv not_promoted)."
+INFINITI,,Nissan Motor,Japan,Japan,Japan,true,,Also recorded as MODEL = INFINITI under NISSAN and promoted here by model_registry.csv.
+MITSUBISHI,MITSUBISHI MOTORS,Mitsubishi Motors,Japan,Japan,Japan,true,,"Fuso trucks recorded under this make (MODEL = FUSO, CANTER, FIGHTER, ROSA, and SHOGUN as a goods vehicle) are promoted to FUSO by model_registry.csv from vehicle year 2003, when Mitsubishi Fuso became a separate company; older Fuso trucks stay here. In-scope goods vehicles over 3500 kg still under this make at 2026-08: 5,544 (9,396 before the promotions). Licence-built Jeeps (MODEL = JEEP) stay here by rule."
+SUZUKI,,Suzuki Motor,Japan,Japan,Japan,true,,
+ISUZU,,Isuzu Motors,Japan,Japan,Japan,true,,
+UD TRUCKS,UD,Isuzu Motors,Japan,Japan,Japan,true,,"Heavy commercial. Nissan Diesel trucks recorded under NISSAN (MODEL = UD, DIESEL, CONDOR) are promoted here by model_registry.csv from vehicle year 2010, the year of the rename. Parent group is today's owner."
+FUSO,MITSUBISHI FUSO,ARCHION,Japan,Japan,Japan,true,2026-09-12,"Owned since 1 April 2026 by ARCHION Corporation (Tokyo Stock Exchange), which also owns Hino; Daimler Truck and Toyota each hold about 25%, and Daimler Truck no longer consolidates Fuso (https://www.daimlertruck.com/en/newsroom/pressrelease/daimler-truck-completes-integration-of-its-subsidiary-mitsubishi-fuso-into-new-archion-corporation-53420564). Previously Daimler Truck, Germany. Fuso trucks recorded under MITSUBISHI are promoted here by model_registry.csv from vehicle year 2003, when Mitsubishi Fuso became a separate company; older ones stay MITSUBISHI."
+HYUNDAI,,Hyundai Motor Group,South Korea,South Korea,Korea,true,,
+KIA,,Hyundai Motor Group,South Korea,South Korea,Korea,true,,
+GENESIS,,Hyundai Motor Group,South Korea,South Korea,Korea,true,,"Genesis-brand used imports recorded as MODEL = GENESIS under HYUNDAI are promoted here from vehicle year 2017 by model_registry.csv. The Hyundai Genesis sedan (up to 2016, and NZ-new in 2017) is a Hyundai model and stays HYUNDAI."
+KGM,SSANGYONG|KG MOBILITY,KG Mobility,South Korea,South Korea,Korea,true,,Renamed from SsangYong
+BYD,,BYD,China,China,China,true,,
+DENZA,,BYD,China,China,China,true,,Formerly a Mercedes-Benz joint venture; now BYD-owned.
+MG,,SAIC Motor,China,United Kingdom,China,true,,Chinese-owned; British heritage. Report under owner_country by default
+LDV,,SAIC Motor,China,United Kingdom,China,true,,Chinese-owned; British heritage
+MAXUS,,SAIC Motor,China,United Kingdom,China,true,,
+HAVAL,,Great Wall Motor,China,China,China,true,,"Most recent Havals are recorded under MAKE = GWM (MODEL = HAVAL H6, HAVAL JOLION, H6, JOLION) and are promoted to this make by model_registry.csv. In scope at 2026-08 that moves this make from 8,527 to 16,197 rows all-time, and from 39 to 3,440 in the last 12 months."
+GWM,GREAT WALL,Great Wall Motor,China,China,China,true,,"ORA, TANK and Haval vehicles recorded under this make are promoted to their own makes by model_registry.csv. What stays here is GWM- and Great Wall-badged vehicles (Cannon, Steed, V240 and similar)."
+ORA,,Great Wall Motor,China,China,China,false,,"Never appears as a MAKE. Recorded as MODEL = ORA under MAKE = GWM, and promoted to this make by model_registry.csv."
+TANK,,Great Wall Motor,China,China,China,false,,"Never appears as a MAKE. Recorded as MODEL = TANK under MAKE = GWM, and promoted to this make by model_registry.csv."
+CHERY,,Chery Automobile,China,China,China,true,,
+JAECOO,,Chery Automobile,China,China,China,true,,
+OMODA,,Chery Automobile,China,China,China,true,,
+GEELY,,Geely Holding,China,China,China,true,,
+ZEEKR,,Geely Holding,China,China,China,true,,
+FARIZON,,Geely Holding,China,China,China,true,,Geely's commercial vehicle brand.
+LYNK & CO,LYNK AND CO|LYNKCO,Geely Holding,China,China,China,false,,
+POLESTAR,,Geely Holding,China,Sweden,China,true,,Chinese-owned; Swedish heritage
+VOLVO,,Geely Holding,China,Sweden,China,true,,"Chinese-owned; Swedish heritage. A frequent source of confusion. Make-level limitation: Volvo trucks (AB Volvo, Sweden) share this make and roll up here; about 5.3k in-scope goods vehicles over 3500 kg."
+LOTUS,,Geely Holding,China,United Kingdom,China,true,,Chinese-owned; British heritage
+XPENG,,XPeng,China,China,China,true,,
+NIO,,NIO,China,China,China,false,,
+LEAPMOTOR,,Leapmotor,China,China,China,true,,Stellantis holds a stake and runs international distribution
+JAC,,JAC Motors,China,China,China,true,,
+FOTON,,BAIC Group,China,China,China,true,,
+BAIC,,BAIC Group,China,China,China,true,,
+CHANGAN,DEEPAL,Changan Automobile,China,China,China,false,,
+SKYWELL,,Skywell,China,China,China,false,,
+DONGFENG,,Dongfeng Motor Corporation,China,China,China,true,,
+FORTHING,,Dongfeng Motor Corporation,China,China,China,true,,Dongfeng Liuzhou Motor's passenger brand.
+GAC,,GAC Group,China,China,China,true,,
+VOLKSWAGEN,VW,Volkswagen Group,Germany,Germany,Europe,true,,
+AUDI,,Volkswagen Group,Germany,Germany,Europe,true,,
+SKODA,ŠKODA,Volkswagen Group,Germany,Czechia,Europe,true,,
+CUPRA,SEAT,Volkswagen Group,Germany,Spain,Europe,true,,
+PORSCHE,,Volkswagen Group,Germany,Germany,Europe,true,,
+BENTLEY,,Volkswagen Group,Germany,United Kingdom,Europe,true,,
+LAMBORGHINI,,Volkswagen Group,Germany,Italy,Europe,true,,
+SCANIA,,Traton,Germany,Sweden,Europe,true,,Heavy commercial
+MAN,,Traton,Germany,Germany,Europe,true,,Heavy commercial
+BMW,,BMW Group,Germany,Germany,Europe,true,,
+MINI,,BMW Group,Germany,United Kingdom,Europe,true,,"Also recorded as MODEL = MINI under BMW (6,516 rows) and promoted here by model_registry.csv. Classic Minis under MORRIS, AUSTIN, LEYLAND and ROVER are a different marque and stay there by rule."
+ROLLS-ROYCE,ROLLS ROYCE,BMW Group,Germany,United Kingdom,Europe,true,,
+MERCEDES-BENZ,MERCEDES BENZ|MERCEDES|MERC,Mercedes-Benz Group,Germany,Germany,Europe,true,,Alias handling is essential; this make is recorded several ways
+SMART,,Mercedes-Benz Group,Germany,Germany,Europe,true,,Now a Mercedes-Geely joint venture
+PEUGEOT,,Stellantis,Netherlands,France,Europe,true,,Stellantis is Dutch-incorporated; use heritage_country for most analysis
+CITROEN,CITROËN,Stellantis,Netherlands,France,Europe,true,,
+DS,DS AUTOMOBILES,Stellantis,Netherlands,France,Europe,true,,Appears only as DS AUTOMOBILES (2 rows).
+OPEL,,Stellantis,Netherlands,Germany,Europe,true,,
+FIAT,,Stellantis,Netherlands,Italy,Europe,true,,
+ABARTH,,Stellantis,Netherlands,Italy,Europe,true,,"Almost all recorded under FIAT (MODEL = ABARTH 595 and similar) and promoted here by model_registry.csv."
+ALFA ROMEO,ALFA,Stellantis,Netherlands,Italy,Europe,true,,
+MASERATI,,Stellantis,Netherlands,Italy,Europe,true,,
+JEEP,CHRYSLER JEEP,Stellantis,Netherlands,United States,North America,true,,"CHRYSLER JEEP is an alias: 1,181 rows, all Jeep nameplates, mostly used imports. Jeeps recorded under CHRYSLER are promoted here by model_registry.csv. Licence-built Jeeps under MITSUBISHI and FORD, and the makes WILLYS, KAISER and AMC, are not Jeep-brand vehicles and stay as recorded."
+RAM,,Stellantis,Netherlands,United States,North America,true,,"Also recorded as MODEL = RAM under DODGE and promoted here by model_registry.csv from vehicle year 2011, the first model year badged Ram alone: 139 rows at 2026-08. 1,078 older Dodge-badged Rams stay DODGE."
+DODGE,,Stellantis,Netherlands,United States,North America,true,,
+CHRYSLER,,Stellantis,Netherlands,United States,North America,true,,
+RENAULT,,Renault Group,France,France,Europe,true,,
+ALPINE,,Renault Group,France,France,Europe,true,,"Modern A110s recorded as MODEL = ALPINE under RENAULT are promoted here from vehicle year 2017 by model_registry.csv. Sunbeam Alpines and Renault-badged Alpines up to 2016 stay under their own makes by rule."
+FERRARI,,Ferrari NV,Italy,Italy,Europe,true,,
+IVECO,,Iveco Group,Italy,Italy,Europe,true,,Heavy commercial
+DAF,,Paccar,United States,Netherlands,Europe,true,,Heavy commercial
+JAGUAR,,Tata Motors,India,United Kingdom,Europe,true,,Indian-owned; British heritage
+LAND ROVER,RANGE ROVER,Tata Motors,India,United Kingdom,Europe,true,,Indian-owned; British heritage
+TATA,,Tata Motors,India,India,Other,true,,
+MAHINDRA,,Mahindra & Mahindra,India,India,Other,true,,
+ASTON MARTIN,,Aston Martin Lagonda,United Kingdom,United Kingdom,Europe,true,,
+MCLAREN,,McLaren Automotive,United Kingdom,United Kingdom,Europe,true,,
+INEOS,,INEOS Automotive,United Kingdom,United Kingdom,Europe,true,,
+MORRIS,,British Leyland,United Kingdom,United Kingdom,Europe,true,,"Defunct marque. DELIBERATE, do not correct: owner_country is the last company that built it, not today's holder of the name. Using the current rights holder would count a 1965 Morris as Chinese-owned."
+AUSTIN,,British Leyland,United Kingdom,United Kingdom,Europe,true,,"Defunct marque. DELIBERATE, do not correct: owner_country is the last company that built it, not today's holder of the name. Using the current rights holder would count a 1965 Austin as Chinese-owned."
+ROVER,,Rover Group,United Kingdom,United Kingdom,Europe,true,,"Defunct marque (2005). DELIBERATE, do not correct: owner_country is the last company that built it, not today's holder of the name. In the register this make also covers Rover Group-era Minis, MGs and Range Rovers."
+FORD,,Ford Motor Company,United States,United States,North America,true,,
+TESLA,,Tesla,United States,United States,North America,true,,
+RIVIAN,,Rivian,United States,United States,North America,false,,
+CHEVROLET,CHEV,General Motors,United States,United States,North America,true,,
+CADILLAC,,General Motors,United States,United States,North America,true,,
+GMC,,General Motors,United States,United States,North America,true,,
+HOLDEN,,General Motors,United States,Australia,North America,true,,Discontinued 2020; still a large share of the used fleet
+BEDFORD,,General Motors,United States,United Kingdom,Europe,true,,Defunct marque; Vauxhall's commercial vehicle brand.
+KENWORTH,,Paccar,United States,United States,North America,true,,Heavy commercial
+PETERBILT,,Paccar,United States,United States,North America,true,,Heavy commercial
+FREIGHTLINER,,Daimler Truck,Germany,United States,North America,true,,Heavy commercial
+INTERNATIONAL,,Traton,Germany,United States,North America,true,,Heavy commercial
+MACK,,Volvo Group,Sweden,United States,North America,true,,"Heavy commercial. AB Volvo, the truck maker; unrelated to Volvo Cars."

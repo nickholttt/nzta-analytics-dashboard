@@ -57,6 +57,16 @@ failed guardrail exits non-zero and leaves both untouched.
 `.github/workflows/monthly-build.yml` runs it on the 8th of each month;
 `docs/DATA_SOURCES.md` explains the timing.
 
+## Maintenance
+
+- Ownership changes are `brand_registry.csv`'s main decay risk, and every
+  `owner_country` and `parent_group` chart inherits them: Volvo moved to
+  Geely, and Fuso and Hino moved to ARCHION in April 2026. `as_at` is the
+  date a row's ownership was last verified; blank means not checked since
+  the starter kit. Recheck the oldest and blank rows when a brand changes
+  hands. Ownership is deliberately not versioned over time: the charts
+  answer who owns these brands now, and say so.
+
 ## Licence
 
 NZTA registration data is CC BY 4.0. Attribution is required in the site

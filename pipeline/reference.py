@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 from collections import Counter
+from datetime import date
 from pathlib import Path
 
 from .errors import GuardrailError
@@ -87,6 +88,13 @@ def brand_tables(con, cfg) -> None:
     b = cfg.pipeline["brand"]
     sep = b["alias_separator"]
     registry = read(cfg.reference(b["registry"]))
+    for row in registry:
+        if row[b["as_at"]]:
+            try:
+                date.fromisoformat(row[b["as_at"]])
+            except ValueError:
+                raise GuardrailError("reference", f"{b['registry']}: {row[b['canonical']]} has {b['as_at']} "
+                                                  f"{row[b['as_at']]!r}, not an ISO date")
     keys = []
     for row in registry:
         canonical = row[b["canonical"]]

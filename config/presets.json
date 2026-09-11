@@ -55,7 +55,8 @@
           "measure": "share",
           "dimension": "owner_country",
           "period": "all",
-          "events": true
+          "events": true,
+          "note": "Ownership is as at today, not at registration. A Fuso registered in 2015, when Daimler Truck controlled it, counts as Japanese-owned because ARCHION owns Fuso now. This chart answers who owns these brands now."
         },
         {
           "id": "built-in",
@@ -88,7 +89,7 @@
           ],
           "period": "all",
           "shade_gap": true,
-          "note": "Brand share can hold steady while production moves country. This is the chart nobody publishes."
+          "note": "Brand share can hold steady while production moves country. This is the chart nobody publishes. Brand ownership is as at today, not at registration."
         },
         {
           "id": "used-import-source",

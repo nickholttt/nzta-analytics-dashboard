@@ -75,6 +75,7 @@
     "model_alias_types": ["alias", "rename"],
     "make_promotion_type": "make_promotion",
     "not_promoted_type": "not_promoted",
+    "as_at": "as_at",
     "model_registry_conditions": {
       "motive_power": "match_motive_power",
       "import_status": "match_import_status",
