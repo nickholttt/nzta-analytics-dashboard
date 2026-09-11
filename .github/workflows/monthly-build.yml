@@ -4,7 +4,8 @@ name: Monthly build
 
 on:
   schedule:
-    # 8th of each month, 06:17 UTC (18:17 NZST). NZTA refreshes the register in the first days of the month.
+    # 8th of each month at 06:17 UTC: 18:17 NZST, 19:17 NZDT. NZTA refreshes the register in the first days of
+    # the month (docs/DATA_SOURCES.md). The odd minute avoids the top-of-the-hour queue for scheduled runs.
     - cron: "17 6 8 * *"
   workflow_dispatch:
     inputs:
@@ -26,13 +27,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      # v7 of each action runs on Node 24; GitHub removes Node 20 from its runners on 23 September 2026.
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -50,7 +52,7 @@ jobs:
 
       - name: Upload public data
         if: steps.pipeline.outputs.built == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: public-data-${{ steps.pipeline.outputs.snapshot }}
           path: public/data
