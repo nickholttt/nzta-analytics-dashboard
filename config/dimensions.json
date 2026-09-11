@@ -123,7 +123,21 @@
       "source": "derived:vehicle_year",
       "shape_hint": "distribution",
       "cardinality": "low",
-      "help": "Banded age of the vehicle. Note the definition of vehicle year changed in 2007."
+      "help": "Banded age of the vehicle. Note the definition of vehicle year changed in 2007.",
+      "basis": "snapshot year - VEHICLE_YEAR",
+      "$comment": "min and max are inclusive; max null means no upper bound. A missing VEHICLE_YEAR, a VEHICLE_YEAR of 0, or a negative result (vehicle years after the snapshot exist) falls to unknown.",
+      "bands": [
+        { "label": "0-2", "min": 0, "max": 2 },
+        { "label": "3-5", "min": 3, "max": 5 },
+        { "label": "6-9", "min": 6, "max": 9 },
+        { "label": "10-14", "min": 10, "max": 14 },
+        { "label": "15-19", "min": 15, "max": 19 },
+        { "label": "20-24", "min": 20, "max": 24 },
+        { "label": "25-29", "min": 25, "max": 29 },
+        { "label": "30-39", "min": 30, "max": 39 },
+        { "label": "40+", "min": 40, "max": null },
+        { "label": "unknown", "unknown": true }
+      ]
     },
     {
       "id": "engine_size_band",
@@ -131,7 +145,20 @@
       "source": "derived:cc_rating",
       "shape_hint": "distribution",
       "cardinality": "low",
-      "help": "Engine capacity in bands. Electric vehicles fall in a separate 'none' band."
+      "help": "Engine capacity in bands. Electric vehicles fall in a separate 'none' band.",
+      "basis": "CC_RATING, for powertrains with has_combustion_engine = true in powertrain_map",
+      "$comment": "min and max are inclusive cc; max null means no upper bound. A powertrain without a combustion engine is 'none' whatever CC_RATING says (14% of BEVs record a small non-zero CC). An engined vehicle whose CC is missing or below the lowest min (0, and implausible values such as 1 or 19 cc that appear in the data) is unknown.",
+      "bands": [
+        { "label": "Under 1.0 L", "min": 50, "max": 999 },
+        { "label": "1.0-1.4 L", "min": 1000, "max": 1499 },
+        { "label": "1.5-1.9 L", "min": 1500, "max": 1999 },
+        { "label": "2.0-2.4 L", "min": 2000, "max": 2499 },
+        { "label": "2.5-2.9 L", "min": 2500, "max": 2999 },
+        { "label": "3.0-3.9 L", "min": 3000, "max": 3999 },
+        { "label": "4.0 L and over", "min": 4000, "max": null },
+        { "label": "none", "no_engine": true },
+        { "label": "unknown", "unknown": true }
+      ]
     },
     {
       "id": "age_at_registration_band",
@@ -145,20 +172,22 @@
         "used_imports"
       ],
       "help": "How old the vehicle was when it was first registered in New Zealand. Zero means new.",
+      "basis": "FIRST_NZ_REGISTRATION_YEAR - VEHICLE_YEAR",
+      "$comment": "min and max are inclusive years; max null means no upper bound. A missing VEHICLE_YEAR, a VEHICLE_YEAR of 0 and a negative result each fall to unknown and are counted separately in the manifest (MODEL_AND_AGE.md section 6).",
       "bands": [
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6-7",
-        "8-9",
-        "10-12",
-        "13-15",
-        "16-19",
-        "20+",
-        "unknown"
+        { "label": "0", "min": 0, "max": 0 },
+        { "label": "1", "min": 1, "max": 1 },
+        { "label": "2", "min": 2, "max": 2 },
+        { "label": "3", "min": 3, "max": 3 },
+        { "label": "4", "min": 4, "max": 4 },
+        { "label": "5", "min": 5, "max": 5 },
+        { "label": "6-7", "min": 6, "max": 7 },
+        { "label": "8-9", "min": 8, "max": 9 },
+        { "label": "10-12", "min": 10, "max": 12 },
+        { "label": "13-15", "min": 13, "max": 15 },
+        { "label": "16-19", "min": 16, "max": 19 },
+        { "label": "20+", "min": 20, "max": null },
+        { "label": "unknown", "unknown": true }
       ]
     },
     {
