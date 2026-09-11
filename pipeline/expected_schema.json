@@ -1,0 +1,171 @@
+{
+  "$comment": "Captured from the live service by `python -m pipeline init-schema`. Every run asserts the source still has each of these columns with the same type. Regenerate only as a deliberate, reviewed change.",
+  "captured_at": "2026-09-11T09:27:18+00:00",
+  "captured_from": {
+    "item_id": "7b4df667d5014f1a93e6050b31d18407",
+    "service_name": "MVR_Mar26",
+    "layer_url": "https://services.arcgis.com/CXBb7LAjgIIdcsPt/arcgis/rest/services/MVR_Mar26/FeatureServer/0"
+  },
+  "fields": [
+    {
+      "name": "OBJECTID",
+      "type": "esriFieldTypeOID"
+    },
+    {
+      "name": "ALTERNATIVE_MOTIVE_POWER",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "BASIC_COLOUR",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "BODY_TYPE",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "CC_RATING",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "CHASSIS7",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "CLASS",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "ENGINE_NUMBER",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "FIRST_NZ_REGISTRATION_YEAR",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "FIRST_NZ_REGISTRATION_MONTH",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "GROSS_VEHICLE_MASS",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "HEIGHT",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "IMPORT_STATUS",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "INDUSTRY_CLASS",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "INDUSTRY_MODEL_CODE",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "MAKE",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "MODEL",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "MOTIVE_POWER",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "MVMA_MODEL_CODE",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "NUMBER_OF_AXLES",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "NUMBER_OF_SEATS",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "NZ_ASSEMBLED",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "ORIGINAL_COUNTRY",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "POWER_RATING",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "PREVIOUS_COUNTRY",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "ROAD_TRANSPORT_CODE",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "SUBMODEL",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "TLA",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "POSTCODE",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "TRANSMISSION_TYPE",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "VDAM_WEIGHT",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "VEHICLE_TYPE",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "VEHICLE_USAGE",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "VEHICLE_YEAR",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "VIN11",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "WIDTH",
+      "type": "esriFieldTypeInteger"
+    },
+    {
+      "name": "SYNTHETIC_GREENHOUSE_GAS",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "FC_COMBINED",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "FC_URBAN",
+      "type": "esriFieldTypeString"
+    },
+    {
+      "name": "FC_EXTRA_URBAN",
+      "type": "esriFieldTypeString"
+    }
+  ]
+}
