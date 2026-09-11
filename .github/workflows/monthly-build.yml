@@ -1,0 +1,70 @@
+# Monthly pipeline run. Checks the source; pulls and builds only when the change key differs from the
+# last good run. A failed guardrail fails the job, so nothing is committed and the last good build stands.
+name: Monthly build
+
+on:
+  schedule:
+    # 8th of each month, 06:17 UTC (18:17 NZST). NZTA refreshes the register in the first days of the month.
+    - cron: "17 6 8 * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Build even if the source is unchanged since the last good run
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Never cancel a run in progress: it commits state at the end.
+concurrency:
+  group: monthly-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: Dependencies
+        run: pip install --disable-pip-version-check --no-input -r pipeline/requirements.txt
+
+      - name: Contract, guardrail and invariant tests
+        run: python -m pytest pipeline/tests -q -p no:cacheprovider
+
+      - name: Check source; pull and build if it changed
+        id: pipeline
+        run: python -m pipeline run --github-output "$GITHUB_OUTPUT" ${{ inputs.force && '--force' || '' }}
+
+      - name: Upload public data
+        if: steps.pipeline.outputs.built == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-data-${{ steps.pipeline.outputs.snapshot }}
+          path: public/data
+          retention-days: 90
+
+      - name: Commit snapshot aggregate and state
+        if: steps.pipeline.outputs.built == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/snapshots data/state
+          if git diff --cached --quiet; then
+            echo "Nothing new to commit."
+            exit 0
+          fi
+          git commit -m "Snapshot ${{ steps.pipeline.outputs.snapshot }} [skip ci]"
+          git push
