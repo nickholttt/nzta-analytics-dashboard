@@ -24,6 +24,7 @@ that can't be generated, and it's what Claude Code should read first.
 | `data/reference/powertrain_map.csv` | NZTA motive power → canonical powertrain |
 | `data/reference/segment_map.csv` | Coarse segment seed — **validate before trusting** |
 | `data/reference/tla_region.csv` | Territorial authority → region, with districts that straddle regions flagged |
+| `data/reference/import_status_map.csv` | NZTA import status → label, and whether it counts as entry to the fleet |
 | `data/reference/model_registry.csv` | Exceptions only (renames, badge twins, match traps) |
 
 ## Known gaps

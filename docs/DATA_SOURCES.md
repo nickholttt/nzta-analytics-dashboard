@@ -57,6 +57,11 @@ Label them "Built in" and "Brand owned from" in the UI, never "origin".
 
 **Country of previous registration** is only meaningful for used imports.
 
+**Import status** has four values, not two: `NEW`, `USED`, `RE-REG` and
+`SCRATCH`. Only `NEW` and `USED` are entries to the fleet. `RE-REG` is a
+vehicle returning to the register (mostly trailers) and `SCRATCH` is
+home-built. `import_status_map.csv` records how each is treated.
+
 **Make and model** come from a predefined list; **submodel is free text**.
 Never aggregate on submodel.
 

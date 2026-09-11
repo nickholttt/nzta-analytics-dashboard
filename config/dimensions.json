@@ -103,7 +103,7 @@
     {
       "id": "import_status",
       "label": "New or used",
-      "source": "nzta:import_status",
+      "source": "nzta:import_status + reference:import_status_map",
       "shape_hint": "mix",
       "cardinality": "low",
       "help": "Whether the vehicle was new or second-hand when it first entered NZ."

@@ -1,0 +1,5 @@
+nzta_import_status,import_status,counts_as_fleet_entry,in_scope,notes
+NEW,NZ New,true,true,New when it entered New Zealand.
+USED,Used Import,true,true,Previously registered overseas. A small number record PREVIOUS_COUNTRY = NEW ZEALAND (about 18.7k since 2020); kept as recorded.
+RE-REG,Re-registered,false,true,"A vehicle returning to the register, not a first registration. Excluded from anything measuring entry to the fleet; retained for stock measures. About 71% are trailers (2020 onward). What FIRST_NZ_REGISTRATION_* means on these rows is unverified: a third have VEHICLE_YEAR equal to the registration year."
+SCRATCH,Scratch built,false,false,"Home-built. Tiny, and its attributes (make, model, country) are not comparable with factory vehicles. Excluded everywhere."
