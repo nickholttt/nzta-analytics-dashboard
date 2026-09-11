@@ -56,6 +56,7 @@ def build(cfg, vocab: dict[str, set[str]]) -> tuple[list[dict], list[str]]:
         reference.require_unique([r["id"] for r in rows], e["file"])
     except Exception as exc:
         problems.append(str(exc))
+    hidden = {e["verified_column"], *e["unpublished_columns"]}
     out = []
     for row in rows:
         if row[e["verified_column"]] != cfg.pipeline["boolean_true"]:
@@ -79,7 +80,7 @@ def build(cfg, vocab: dict[str, set[str]]) -> tuple[list[dict], list[str]]:
             problems.append(f"{event_id}: verified without a source_url")
         if not row["date_start"]:
             problems.append(f"{event_id}: verified without a date_start")
-        record = {k: (v if v != "" else None) for k, v in row.items() if k != e["verified_column"]}
+        record = {k: (v if v != "" else None) for k, v in row.items() if k not in hidden}
         record["scope_values"] = values
         out.append(record)
     out.sort(key=lambda r: (r["date_start"] or "", r["id"]))

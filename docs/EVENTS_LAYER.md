@@ -46,6 +46,7 @@ exactly what the project is not.
 | `confidence` | enum | `documented` `reported` `inferred` |
 | `verified` | bool | `false` = seeded but not yet source-checked. Not rendered until true |
 | `source_url` | url | required when `verified=true` |
+| `notes` | text, nullable | maintainer notes: observations in the data, open questions. Never rendered, and not published to `events.json` |
 
 ### Build-time checks
 
@@ -123,7 +124,11 @@ publish the baseline method.
 
 The December 2023 Clean Car Discount deadline is the reference case to
 validate against. If the method doesn't clearly detect that spike, the
-method is wrong.
+method is wrong. Two further cases in the data are independent of it:
+March 2022, ahead of the feebate from 1 April 2022, and June 2023, ahead
+of the settings change from 1 July 2023 (see `notes` on those rows in
+`events.csv`). Validate against all three; a method tuned to December 2023
+alone may only fit that event.
 
 ## Maintenance
 

@@ -101,6 +101,7 @@
     "file": "events.csv",
     "enum_doc": "docs/EVENTS_LAYER.md",
     "verified_column": "verified",
+    "unpublished_columns": ["notes"],
     "values_separator": "|",
     "scope_without_values": ["market"],
     "scope_dimension_aliases": { "brand_group": "parent_group" }

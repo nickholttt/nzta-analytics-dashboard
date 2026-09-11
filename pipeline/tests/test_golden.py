@@ -81,3 +81,4 @@ def test_live_dimensions_match_files_and_events_are_verified_only(tmp_path, work
         verified = {r["id"] for r in csv.DictReader(fh) if r[e["verified_column"]] == cfg.pipeline["boolean_true"]}
     assert {x["id"] for x in extra["events"]} == verified
     assert all(e["verified_column"] not in x for x in extra["events"])
+    assert all(column not in x for x in extra["events"] for column in e["unpublished_columns"])
