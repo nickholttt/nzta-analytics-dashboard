@@ -243,7 +243,8 @@
       "derive": { "kind": "model", "cap": 300 },
       "shape_hint": "league",
       "cardinality": "very_high",
-      "help": "The nameplate, as brand and model. The 300 with the most registrations over the last 12 months keep their name; the rest are grouped as other. Never use submodel, which is free text."
+      "help": "The nameplate, as brand and model. The 300 with the most registrations over the last 12 months keep their name; the rest are grouped as other. Never use submodel, which is free text.",
+      "note": "Only the 300 models with the most registrations in the last 12 months are named, so older months are mostly grouped as other and historical coverage is partial. Each build publishes the share of all vehicles that carry a named model."
     }
   ],
   "periods": [
