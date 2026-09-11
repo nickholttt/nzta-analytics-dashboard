@@ -26,6 +26,7 @@ that can't be generated, and it's what Claude Code should read first.
 | `data/reference/tla_region.csv` | Territorial authority → region, with districts that straddle regions flagged |
 | `data/reference/import_status_map.csv` | NZTA import status → label, and whether it counts as entry to the fleet |
 | `data/reference/vehicle_scope.csv` | Which NZTA vehicle types are in scope. Guardrail rates are measured on in-scope rows |
+| `data/reference/sentinels.csv` | Raw values, per field, that mean "undefined" and become `__UNDEFINED__` |
 | `data/reference/model_registry.csv` | Exceptions only (renames, badge twins, match traps) |
 
 ## Known gaps

@@ -82,6 +82,13 @@ Any chart spanning the boundary must render a visible break marker.
 registration and are updated later, so an "undefined" bucket is legitimate
 and must be shown, not silently dropped.
 
+What counts as undefined is data, not code. `sentinels.csv` lists, per
+field, the raw values that become `__UNDEFINED__`: blanks, `NOT KNOWN`, a
+GVM of 0, and so on. `OTHER` is a real category, not a sentinel.
+`CC_RATING` has no sentinel because 0 is meaningful for a vehicle with no
+engine; engine size bands decide that from `has_combustion_engine` in
+`powertrain_map.csv`.
+
 **History is not frozen.** Vehicles are added and removed retrospectively
 and a registration date can be updated after the fact. Prior months will
 move between snapshots. Store every monthly snapshot and never overwrite;

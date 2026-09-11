@@ -90,6 +90,7 @@ data/reference/
   tla_region.csv      # territorial authority -> region (straddling districts flagged)
   import_status_map.csv  # NZTA import status -> label, fleet-entry and scope flags
   vehicle_scope.csv   # which NZTA vehicle types count (in_scope)
+  sentinels.csv       # raw values that mean "undefined", per field
   model_registry.csv  # EXCEPTIONS ONLY - renames, badge twins, match traps
   events.csv          # 52 policy/macro/OEM events for the annotation layer
 docs/

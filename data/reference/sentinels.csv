@@ -1,0 +1,9 @@
+field,raw_value,notes
+*,<NULL>,No value recorded. Applies to every field.
+*,<EMPTY>,Empty or whitespace-only text. Applies to every field. None seen at the 2026-08 snapshot.
+ORIGINAL_COUNTRY,NOT KNOWN,2.1% of in-scope rows.
+ORIGINAL_COUNTRY,USED UN-REGIST,An import status leaking into a country field. 7 rows across all vehicle types; none in scope.
+PREVIOUS_COUNTRY,NONE,"Expected on NZ New rows, where imported_from does not apply. On Used Import rows it means the previous country was not recorded (335 in-scope rows)."
+PREVIOUS_COUNTRY,USED UN-REGIST,An import status leaking into a country field. 40 in-scope Used Import rows.
+VEHICLE_YEAR,0,"None in scope at 2026-08. Falls to the unknown age band, counted separately from a missing year and from a negative age."
+GROSS_VEHICLE_MASS,0,"Recorded as 0 when not captured (24% of in-scope saloons). Passenger segments ignore GVM; a goods vehicle with GVM 0 matches no segment_map row (89 in-scope rows)."
