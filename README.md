@@ -16,7 +16,7 @@ that can't be generated, and it's what Claude Code should read first.
 | `docs/CUBE_SCHEMA.md` | The pipeline → browser contract, with guardrails |
 | `docs/EVENTS_LAYER.md` | The annotation layer: mechanism classes, pull-forward detection |
 | `docs/MODEL_AND_AGE.md` | Age-at-registration measures and derived model launch dates |
-| `config/dimensions.json` | The 14 dimensions and 5 datasets the builder allows |
+| `config/dimensions.json` | The dimensions and datasets the builder allows |
 | `config/measures.json` | Core and derived measures, with suppression thresholds |
 | `config/presets.json` | 26 question-titled charts across 7 groups |
 | `data/reference/brand_registry.csv` | Make → parent group → owner country → heritage country, with make-level limitations noted |

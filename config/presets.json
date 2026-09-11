@@ -1,5 +1,5 @@
 {
-  "$comment": "The Explore canon. Every preset is also a worked example of the Build grammar, so each must be expressible as {dataset, measure, dimension, period, filters}. If a preset cannot be expressed in the builder vocabulary, either extend the vocabulary or drop the preset.",
+  "$comment": "The Explore canon. Every preset is also a worked example of the Build grammar, so each must be expressible as {dataset, measure, dimension, period, filters}. If a preset cannot be expressed in the builder vocabulary, either extend the vocabulary or drop the preset. A chart whose dataset has a definition in dimensions.json renders that definition.",
   "evergreen_test": "Would this chart still be worth showing in 2035? If the title names a specific scheme, brand or year, it fails and belongs in the events layer instead.",
   "groups": [
     {
@@ -9,7 +9,7 @@
         {
           "id": "powertrain-mix",
           "question": "How has each powertrain's share of new registrations changed?",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "powertrain",
           "period": "all",
@@ -26,10 +26,10 @@
           "shape_override": "trend",
           "series": [
             {
-              "dataset": "first_registrations",
+              "dataset": "registrations_surviving",
               "measure": "share",
               "dimension": "powertrain",
-              "label": "Share of new registrations"
+              "label": "Share of each month's registrations still on the road"
             },
             {
               "dataset": "fleet",
@@ -51,7 +51,7 @@
         {
           "id": "brand-owner-origin",
           "question": "Which countries own the brands New Zealanders buy?",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "owner_country",
           "period": "all",
@@ -60,7 +60,7 @@
         {
           "id": "built-in",
           "question": "Where are New Zealand's vehicles actually built?",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "built_in",
           "period": "all",
@@ -72,14 +72,14 @@
           "shape_override": "trend",
           "series": [
             {
-              "dataset": "first_registrations",
+              "dataset": "registrations_surviving",
               "measure": "share",
               "dimension": "owner_country",
               "filter_value": "Japan",
               "label": "Japanese-owned brands"
             },
             {
-              "dataset": "first_registrations",
+              "dataset": "registrations_surviving",
               "measure": "share",
               "dimension": "built_in",
               "filter_value": "JAPAN",
@@ -107,7 +107,7 @@
         {
           "id": "new-vs-used",
           "question": "New or second-hand? The balance over time.",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "import_status",
           "period": "all",
@@ -116,16 +116,17 @@
         {
           "id": "volume-trend",
           "question": "How many vehicles are being registered?",
-          "dataset": "first_registrations",
+          "dataset": "registrations_flow",
           "measure": "rolling_12m",
           "dimension": null,
           "period": "all",
-          "events": true
+          "events": true,
+          "note": "Every first registration in each month, including vehicles since scrapped. Counts of vehicles still on the road would shrink the past and overstate growth."
         },
         {
           "id": "brand-share",
           "question": "Which brands are gaining and losing ground?",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "make",
           "period": "10y",
@@ -136,7 +137,7 @@
           "question": "Is the market getting more crowded?",
           "shape_override": "trend",
           "derived": "top_5_share",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "dimension": "make",
           "period": "all",
           "note": "The combined share of the five largest brands. A falling line means more brands competing."
@@ -144,7 +145,7 @@
         {
           "id": "model-league",
           "question": "What are the best-selling models right now?",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "measure": "count",
           "dimension": "model",
           "period": "latest_month",
@@ -209,7 +210,7 @@
           "id": "pipeline-lag",
           "question": "How long before a new model shows up second-hand?",
           "derived": "pipeline_lag",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "dimension": "make",
           "period": "all",
           "top_n": 15,
@@ -247,7 +248,7 @@
         {
           "id": "segment-mix",
           "question": "Cars, utes, vans or trucks?",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "segment",
           "period": "all",
@@ -257,7 +258,7 @@
         {
           "id": "engine-size",
           "question": "Are engines getting bigger or disappearing?",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "engine_size_band",
           "period": "all",
@@ -267,7 +268,7 @@
           "id": "emissions-trend",
           "question": "Are new registrations getting cleaner?",
           "derived": "mean_co2",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "period": "all",
           "events": true
         }
@@ -281,7 +282,7 @@
           "id": "regional-volume",
           "question": "Which regions register the most vehicles per person?",
           "derived": "per_capita",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "dimension": "region",
           "period": "latest_year",
           "shape_override": "geo"
@@ -289,7 +290,7 @@
         {
           "id": "regional-powertrain",
           "question": "Which parts of the country are electrifying fastest?",
-          "dataset": "first_registrations",
+          "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "region",
           "filters": [

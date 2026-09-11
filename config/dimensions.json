@@ -2,22 +2,37 @@
   "$comment": "The complete vocabulary of the Build surface. Adding a dimension here plus a cube slice is the only way to extend it. Deliberately capped at 12.",
   "datasets": [
     {
-      "id": "first_registrations",
+      "id": "registrations_surviving",
+      "label": "Registrations still on the road",
+      "grain": "survivors",
+      "definition": "Vehicles first registered in month M that are still registered as at the snapshot date.",
+      "help": "Vehicles first registered in NZ in a given month, NZ-new or used import, that are still registered at the snapshot date. Older months are thinned by scrappage."
+    },
+    {
+      "id": "registrations_flow",
       "label": "New registrations",
       "grain": "flow",
-      "help": "Vehicles registered in NZ for the first time, whether NZ-new or a used import."
+      "source": "Stats NZ Transport (TPT) monthly series",
+      "status": "planned: build step 1b",
+      "help": "Every vehicle registered in NZ for the first time in a month, including those since scrapped. Never shown on the same chart as registrations still on the road."
     },
     {
       "id": "nz_new",
-      "label": "NZ-new registrations",
-      "grain": "flow",
-      "help": "First registrations where the vehicle was new when it entered NZ."
+      "label": "NZ-new registrations still on the road",
+      "grain": "survivors",
+      "base": "registrations_surviving",
+      "filter": { "import_status": ["NZ New"] },
+      "definition": "Vehicles first registered in month M, new when they entered NZ, that are still registered as at the snapshot date.",
+      "help": "Vehicles that were new when they entered NZ, first registered in a given month and still registered at the snapshot date."
     },
     {
       "id": "used_imports",
-      "label": "Used imports",
-      "grain": "flow",
-      "help": "First registrations of vehicles previously registered overseas."
+      "label": "Used imports still on the road",
+      "grain": "survivors",
+      "base": "registrations_surviving",
+      "filter": { "import_status": ["Used Import"] },
+      "definition": "Vehicles first registered in month M, previously registered overseas, that are still registered as at the snapshot date.",
+      "help": "Vehicles previously registered overseas, first registered in NZ in a given month and still registered at the snapshot date."
     },
     {
       "id": "ownership_changes",

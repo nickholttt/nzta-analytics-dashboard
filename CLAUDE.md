@@ -108,8 +108,13 @@ pipeline/
 ## Build order
 
 1. Pipeline: ingest → normalise → emit cube for **one** dataset
-   (`first_registrations`). Prove the Action runs unattended two months
-   running before building any UI.
+   (`registrations_surviving`: vehicles first registered in month M that
+   are still registered at the snapshot), committing a small aggregate of
+   every snapshot to `data/snapshots/`. Prove the Action runs unattended
+   two months running before building any UI.
+   - 1b. `registrations_flow` from the Stats NZ TPT series: true monthly
+     first registrations. Never on the same chart as
+     `registrations_surviving`.
 2. Cube contract locked (`docs/CUBE_SCHEMA.md`), with a golden-file test.
 3. Explore surface, rendering `mix` and `trend` presets only.
 4. Events layer over those charts.

@@ -31,8 +31,10 @@ algorithmically cleaned make and model errors.
 
 Monthly aggregates of vehicles currently licensed by type and new /
 ex-overseas vehicles registered by type, derived from NZTA administrative
-data. Small, long history. Use it to backfill trend charts before the
-detailed data starts, and as an independent sanity check on our own totals.
+data. Small, long history. This is the source of `registrations_flow`
+(build step 1b): true monthly first registrations, including vehicles
+since scrapped, which the register snapshot cannot give. Also an
+independent sanity check on our own totals.
 
 ## D. Registrations dashboard — do not automate
 
@@ -104,6 +106,15 @@ engine; engine size bands decide that from `has_combustion_engine` in
 and a registration date can be updated after the fact. Prior months will
 move between snapshots. Store every monthly snapshot and never overwrite;
 restatement is a feature of the data, not a bug in the pipeline.
+
+**The register only holds survivors.** The service exposes only the
+current snapshot of vehicles still registered. A count by first-registration
+month is therefore a count of survivors (`registrations_surviving`), not of
+registrations: older months shrink with every snapshot as vehicles are
+scrapped. Each run commits a small aggregate of the snapshot, never raw
+rows, to `data/snapshots/YYYY-MM.parquet`. Differencing consecutive
+snapshots gives new registrations and scrappage from our own observations,
+and is the input to cohort survival.
 
 **Region** is not a field. The register records `TLA`: the territorial
 authority where the registered owner lives *as at the snapshot*, from their

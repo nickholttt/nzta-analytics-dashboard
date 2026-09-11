@@ -5,11 +5,18 @@ Every figure on the site must trace to a definition here. Each chart's
 
 ## Grain
 
-Two grains, never mixed in one series without an explicit label.
+Three grains, never mixed in one series without an explicit label.
 
-- **Flow** — events in a month. First registrations, used imports,
-  ownership changes. Denominator: all events of the same dataset in the
-  same month.
+- **Flow** — events in a month. True first registrations
+  (`registrations_flow`, from the Stats NZ TPT series) and ownership
+  changes. Denominator: all events of the same dataset in the same month.
+- **Survivors** — `registrations_surviving`: *vehicles first registered in
+  month M that are still registered as at the snapshot date.* Render that
+  sentence on every chart that uses this dataset or its subsets (`nz_new`,
+  `used_imports`). Denominator: all surviving vehicles first registered in
+  the same month. Recent months are close to complete; older months shrink
+  with every snapshot as vehicles are scrapped. **Never put a survivors
+  series and a flow series on the same chart.**
 - **Stock** — vehicles registered at month end. Denominator: all vehicles
   in the fleet at that month end.
 
@@ -56,10 +63,16 @@ with a value) alongside; do not publish months with under 70% coverage.
 the fleet. Report median alongside the mean; the distribution has a long
 tail and the mean alone misleads.
 
-**Cohort survival** — of vehicles first registered in year C, the share
-still present in the fleet snapshot N years later. Computed by joining
-consecutive monthly snapshots on vehicle identity. Vehicles that leave and
-return count as present. Publish the censoring rule.
+**Cohort survival** — of vehicles first registered in month or year C, the
+share still registered at a later snapshot: survivors(C, t) ÷
+survivors(C, t₀), where t₀ is the first snapshot in which the cohort was
+observed. Computed from the archived `registrations_surviving` aggregates
+in `data/snapshots/`, not by joining vehicles: the register carries no
+stable vehicle identity, so a vehicle that leaves and returns cannot be
+told apart from one that stayed. Scrappage in a period is the fall in a
+cohort's survivors between consecutive snapshots. Survival relative to the
+*original* registration count needs `registrations_flow` as the base.
+Every survival figure states its base and its first observed snapshot.
 
 **Per capita** — registrations per 1,000 residents, using Stats NZ
 subnational population estimates. Population is a separate reference file
