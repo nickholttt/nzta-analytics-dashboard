@@ -1,22 +1,22 @@
 make_canonical,aliases,parent_group,owner_country,heritage_country,brand_region,occurs_in_source,notes
 TOYOTA,,Toyota Group,Japan,Japan,Japan,true,
-LEXUS,,Toyota Group,Japan,Japan,Japan,true,
+LEXUS,TOYOTA LEXUS,Toyota Group,Japan,Japan,Japan,true,"TOYOTA LEXUS is an alias: 484 rows, all Lexus nameplates, all used imports. Lexus recorded as MODEL = LEXUS under TOYOTA is promoted here by model_registry.csv."
 DAIHATSU,,Toyota Group,Japan,Japan,Japan,true,
 HINO,,Toyota Group,Japan,Japan,Japan,true,Heavy commercial
 SUBARU,,Subaru Corporation,Japan,Japan,Japan,true,Toyota holds a minority stake
 MAZDA,,Mazda Motor Corporation,Japan,Japan,Japan,true,
 HONDA,,Honda Motor,Japan,Japan,Japan,true,
-NISSAN,,Nissan Motor,Japan,Japan,Japan,true,"Renault-Nissan-Mitsubishi Alliance member. Make-level limitation: trucks built by Nissan Diesel (now UD Trucks) are also recorded as NISSAN; about 8.0k in-scope goods vehicles over 3500 kg carry this make, a mix of Nissan light trucks and Nissan Diesel models."
-DATSUN,,Nissan Motor,Japan,Japan,Japan,true,Nissan's former export brand. Historic.
-INFINITI,,Nissan Motor,Japan,Japan,Japan,true,
-MITSUBISHI,MITSUBISHI MOTORS,Mitsubishi Motors,Japan,Japan,Japan,true,"Make-level limitation: Fuso trucks recorded as MITSUBISHI roll up here, not to Daimler Truck / Germany. About 8.9k in-scope goods vehicles over 3500 kg carry this make. Not fixable at make level."
+NISSAN,,Nissan Motor,Japan,Japan,Japan,true,"Renault-Nissan-Mitsubishi Alliance member. Nissan Diesel trucks recorded as MODEL = UD, DIESEL or CONDOR, and Infinitis recorded as MODEL = INFINITI, are promoted by model_registry.csv. In-scope goods vehicles over 3500 kg still under this make at 2026-08: 5,737 (8,400 before the promotions), mainly Nissan light trucks plus Nissan Diesel strings too small for a rule. DATSUN model strings stay here by rule."
+DATSUN,,Nissan Motor,Japan,Japan,Japan,true,"Nissan's former export brand. Historic. Only vehicles whose MAKE says DATSUN; DATSUN model strings under NISSAN stay NISSAN (model_registry.csv not_promoted)."
+INFINITI,,Nissan Motor,Japan,Japan,Japan,true,Also recorded as MODEL = INFINITI under NISSAN and promoted here by model_registry.csv.
+MITSUBISHI,MITSUBISHI MOTORS,Mitsubishi Motors,Japan,Japan,Japan,true,"Fuso trucks recorded under this make (MODEL = FUSO, CANTER, FIGHTER, ROSA, and SHOGUN as a goods vehicle) are promoted to FUSO by model_registry.csv. In-scope goods vehicles over 3500 kg still under this make at 2026-08: 776 (9,396 before). Licence-built Jeeps (MODEL = JEEP) stay here by rule."
 SUZUKI,,Suzuki Motor,Japan,Japan,Japan,true,
 ISUZU,,Isuzu Motors,Japan,Japan,Japan,true,
-UD TRUCKS,UD,Isuzu Motors,Japan,Japan,Japan,true,Heavy commercial
-FUSO,MITSUBISHI FUSO,Daimler Truck,Germany,Japan,Japan,true,Owner and heritage differ
+UD TRUCKS,UD,Isuzu Motors,Japan,Japan,Japan,true,"Heavy commercial. Nissan Diesel trucks recorded under NISSAN (MODEL = UD, DIESEL, CONDOR) are promoted here by model_registry.csv in every vehicle year. Parent group is today's owner."
+FUSO,MITSUBISHI FUSO,Daimler Truck,Germany,Japan,Japan,true,"Owner and heritage differ. Fuso trucks recorded under MITSUBISHI are promoted here by model_registry.csv in every vehicle year, so owner_country is Germany for those built before the 2003 split too, as it is China for an old Volvo."
 HYUNDAI,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
 KIA,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
-GENESIS,,Hyundai Motor Group,South Korea,South Korea,Korea,true,
+GENESIS,,Hyundai Motor Group,South Korea,South Korea,Korea,true,HYUNDAI GENESIS is a Hyundai model and stays HYUNDAI by rule (model_registry.csv not_promoted).
 KGM,SSANGYONG|KG MOBILITY,KG Mobility,South Korea,South Korea,Korea,true,Renamed from SsangYong
 BYD,,BYD,China,China,China,true,
 DENZA,,BYD,China,China,China,true,Formerly a Mercedes-Benz joint venture; now BYD-owned.
@@ -58,7 +58,7 @@ LAMBORGHINI,,Volkswagen Group,Germany,Italy,Europe,true,
 SCANIA,,Traton,Germany,Sweden,Europe,true,Heavy commercial
 MAN,,Traton,Germany,Germany,Europe,true,Heavy commercial
 BMW,,BMW Group,Germany,Germany,Europe,true,
-MINI,,BMW Group,Germany,United Kingdom,Europe,true,
+MINI,,BMW Group,Germany,United Kingdom,Europe,true,"Also recorded as MODEL = MINI under BMW (6,516 rows) and promoted here by model_registry.csv. Classic Minis under MORRIS, AUSTIN, LEYLAND and ROVER are a different marque and stay there by rule."
 ROLLS-ROYCE,ROLLS ROYCE,BMW Group,Germany,United Kingdom,Europe,true,
 MERCEDES-BENZ,MERCEDES BENZ|MERCEDES|MERC,Mercedes-Benz Group,Germany,Germany,Europe,true,Alias handling is essential; this make is recorded several ways
 SMART,,Mercedes-Benz Group,Germany,Germany,Europe,true,Now a Mercedes-Geely joint venture
@@ -67,15 +67,15 @@ CITROEN,CITROËN,Stellantis,Netherlands,France,Europe,true,
 DS,DS AUTOMOBILES,Stellantis,Netherlands,France,Europe,true,Appears only as DS AUTOMOBILES (2 rows).
 OPEL,,Stellantis,Netherlands,Germany,Europe,true,
 FIAT,,Stellantis,Netherlands,Italy,Europe,true,
-ABARTH,,Stellantis,Netherlands,Italy,Europe,true,
+ABARTH,,Stellantis,Netherlands,Italy,Europe,true,"Almost all recorded under FIAT (MODEL = ABARTH 595 and similar) and promoted here by model_registry.csv."
 ALFA ROMEO,ALFA,Stellantis,Netherlands,Italy,Europe,true,
 MASERATI,,Stellantis,Netherlands,Italy,Europe,true,
-JEEP,,Stellantis,Netherlands,United States,North America,true,
-RAM,,Stellantis,Netherlands,United States,North America,true,
+JEEP,CHRYSLER JEEP,Stellantis,Netherlands,United States,North America,true,"CHRYSLER JEEP is an alias: 1,181 rows, all Jeep nameplates, mostly used imports. Jeeps recorded under CHRYSLER are promoted here by model_registry.csv. Licence-built Jeeps under MITSUBISHI and FORD, and the makes WILLYS, KAISER and AMC, are not Jeep-brand vehicles and stay as recorded."
+RAM,,Stellantis,Netherlands,United States,North America,true,"Also recorded as MODEL = RAM under DODGE (1,217 rows) and promoted here by model_registry.csv in every vehicle year, including Dodge-badged Rams from before the 2010 brand split."
 DODGE,,Stellantis,Netherlands,United States,North America,true,
 CHRYSLER,,Stellantis,Netherlands,United States,North America,true,
 RENAULT,,Renault Group,France,France,Europe,true,
-ALPINE,,Renault Group,France,France,Europe,true,
+ALPINE,,Renault Group,France,France,Europe,true,Sunbeam Alpines and Renault-badged Alpines stay under their own makes by rule (model_registry.csv not_promoted).
 FERRARI,,Ferrari NV,Italy,Italy,Europe,true,
 IVECO,,Iveco Group,Italy,Italy,Europe,true,Heavy commercial
 DAF,,Paccar,United States,Netherlands,Europe,true,Heavy commercial
