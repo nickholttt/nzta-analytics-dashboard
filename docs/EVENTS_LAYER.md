@@ -37,8 +37,8 @@ exactly what the project is not.
 | `date_end` | ISO date, nullable | for windowed events (a scheme's active period) |
 | `category` | enum | `policy` `tax` `macro` `fuel` `supply` `oem_launch` `brand_entry` `brand_exit` `marketing` `regulatory` |
 | `mechanism` | enum | `demand` `supply` `measurement` `mix` — **see below** |
-| `scope` | enum | `market` `powertrain` `make` `brand_group` `origin` `segment` `region` |
-| `scope_values` | pipe-list, nullable | e.g. `BEV\|PHEV`. Empty = applies to whole scope |
+| `scope` | enum | `market` `powertrain` `make` `brand_group` `origin` `owner_country` `segment` `region` `import_status` `imported_from` `built_in` `model` |
+| `scope_values` | pipe-list, nullable | e.g. `BEV\|PHEV`. Empty = applies to whole scope. Values are the dimension's own output vocabulary: the label from its reference file where it has one (`NZ New` via `import_status_map.csv`, `Auckland` via `tla_region.csv`), otherwise the raw NZTA value (`JAPAN`) |
 | `title` | short | ≤60 chars, shown on the marker |
 | `summary` | 1 sentence | tooltip body |
 | `expected_effect` | enum | `up` `down` `pull_forward` `mixed` `none` |
