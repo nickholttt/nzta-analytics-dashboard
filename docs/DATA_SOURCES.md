@@ -74,7 +74,12 @@ and a registration date can be updated after the fact. Prior months will
 move between snapshots. Store every monthly snapshot and never overwrite;
 restatement is a feature of the data, not a bug in the pipeline.
 
-**Region** is the region of the registered person, not where the vehicle
-is used. Rental and lease fleets distort this badly.
+**Region** is not a field. The register records `TLA`: the territorial
+authority where the registered owner lives *as at the snapshot*, from their
+most recent address. It is not where the vehicle is used, and not where the
+owner lived when the vehicle was first registered. Region is derived through
+`tla_region.csv`. Seven districts straddle regional boundaries; each is
+assigned to the region holding most of its residents, and the `straddles`
+column names the others. Rental and lease fleets distort this badly.
 
 **Registration is not sale.** Repeat this on the Method page.

@@ -111,10 +111,10 @@
     {
       "id": "region",
       "label": "Region",
-      "source": "nzta:region",
+      "source": "nzta:tla + reference:tla_region",
       "shape_hint": "geo",
       "cardinality": "medium",
-      "help": "The region of the registered person at the time of registration."
+      "help": "The region where the registered owner lives now, from their most recent address. Not where the vehicle is used, and not necessarily where the owner lived when it was first registered."
     },
     {
       "id": "vehicle_year_band",

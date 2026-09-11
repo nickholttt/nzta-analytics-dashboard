@@ -87,6 +87,7 @@ data/reference/
   brand_registry.csv  # make -> parent group -> brand origin  (91 rows, hand-maintained)
   powertrain_map.csv  # NZTA motive power -> canonical powertrain
   segment_map.csv     # body/vehicle type + GVM -> segment  (coarse seed, validate it)
+  tla_region.csv      # territorial authority -> region (straddling districts flagged)
   model_registry.csv  # EXCEPTIONS ONLY - renames, badge twins, match traps
   events.csv          # 52 policy/macro/OEM events for the annotation layer
 docs/

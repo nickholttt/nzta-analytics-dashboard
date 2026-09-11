@@ -1,0 +1,68 @@
+tla,region,region_code,straddles,notes
+FAR NORTH DISTRICT,Northland,01,,
+WHANGAREI DISTRICT,Northland,01,,
+KAIPARA DISTRICT,Northland,01,,
+AUCKLAND,Auckland,02,,
+THAMES-COROMANDEL DISTRICT,Waikato,03,,
+HAURAKI DISTRICT,Waikato,03,,
+WAIKATO DISTRICT,Waikato,03,,
+MATAMATA-PIAKO DISTRICT,Waikato,03,,
+HAMILTON CITY,Waikato,03,,
+WAIPA DISTRICT,Waikato,03,,
+OTOROHANGA DISTRICT,Waikato,03,,
+SOUTH WAIKATO DISTRICT,Waikato,03,,
+WAITOMO DISTRICT,Waikato,03,Manawatū-Whanganui,Area 95% Waikato / 5% Manawatū-Whanganui. Te Kūiti is in Waikato.
+TAUPO DISTRICT,Waikato,03,Bay of Plenty|Hawke's Bay|Manawatū-Whanganui,Area 74% Waikato / 14% Bay of Plenty / 11% Hawke's Bay / 1% Manawatū-Whanganui. Taupō and Tūrangi are in Waikato.
+WESTERN BAY OF PLENTY DISTRICT,Bay of Plenty,04,,
+TAURANGA CITY,Bay of Plenty,04,,
+ROTORUA DISTRICT,Bay of Plenty,04,Waikato,Area 62% Bay of Plenty / 38% Waikato. Rotorua city is in Bay of Plenty.
+WHAKATANE DISTRICT,Bay of Plenty,04,,
+KAWERAU DISTRICT,Bay of Plenty,04,,
+OPOTIKI DISTRICT,Bay of Plenty,04,,
+GISBORNE DISTRICT,Gisborne,05,,Unitary authority
+WAIROA DISTRICT,Hawke's Bay,06,,
+HASTINGS DISTRICT,Hawke's Bay,06,,
+NAPIER CITY,Hawke's Bay,06,,
+CENTRAL HAWKE'S BAY DISTRICT,Hawke's Bay,06,,
+NEW PLYMOUTH DISTRICT,Taranaki,07,,
+STRATFORD DISTRICT,Taranaki,07,Manawatū-Whanganui,Area 68% Taranaki / 32% Manawatū-Whanganui. Stratford town is in Taranaki.
+SOUTH TARANAKI DISTRICT,Taranaki,07,,
+RUAPEHU DISTRICT,Manawatū-Whanganui,08,,
+WHANGANUI DISTRICT,Manawatū-Whanganui,08,,
+RANGITIKEI DISTRICT,Manawatū-Whanganui,08,Hawke's Bay,Area 86% Manawatū-Whanganui / 14% Hawke's Bay. Marton and Taihape are in Manawatū-Whanganui.
+MANAWATU DISTRICT,Manawatū-Whanganui,08,,
+PALMERSTON NORTH CITY,Manawatū-Whanganui,08,,
+TARARUA DISTRICT,Manawatū-Whanganui,08,Wellington,Area 98% Manawatū-Whanganui / 2% Wellington.
+HOROWHENUA DISTRICT,Manawatū-Whanganui,08,,
+KAPITI COAST DISTRICT,Wellington,09,,
+PORIRUA CITY,Wellington,09,,
+UPPER HUTT CITY,Wellington,09,,
+LOWER HUTT CITY,Wellington,09,,
+WELLINGTON CITY,Wellington,09,,
+MASTERTON DISTRICT,Wellington,09,,
+CARTERTON DISTRICT,Wellington,09,,
+SOUTH WAIRARAPA DISTRICT,Wellington,09,,
+BULLER DISTRICT,West Coast,12,,
+GREY DISTRICT,West Coast,12,,
+WESTLAND DISTRICT,West Coast,12,,
+KAIKOURA DISTRICT,Canterbury,13,,
+HURUNUI DISTRICT,Canterbury,13,,
+WAIMAKARIRI DISTRICT,Canterbury,13,,
+CHRISTCHURCH CITY,Canterbury,13,,
+SELWYN DISTRICT,Canterbury,13,,
+ASHBURTON DISTRICT,Canterbury,13,,
+TIMARU DISTRICT,Canterbury,13,,
+MACKENZIE DISTRICT,Canterbury,13,,
+WAIMATE DISTRICT,Canterbury,13,,
+WAITAKI DISTRICT,Otago,14,Canterbury,"Area 60% Canterbury / 40% Otago, but Oamaru and most residents are in Otago. Assigned by population, not area, because TLA is where the owner lives."
+CENTRAL OTAGO DISTRICT,Otago,14,,
+QUEENSTOWN-LAKES DISTRICT,Otago,14,,
+DUNEDIN CITY,Otago,14,,
+CLUTHA DISTRICT,Otago,14,,
+SOUTHLAND DISTRICT,Southland,15,,
+GORE DISTRICT,Southland,15,,
+INVERCARGILL CITY,Southland,15,,
+TASMAN DISTRICT,Tasman,16,,Unitary authority
+NELSON CITY,Nelson,17,,Unitary authority
+MARLBOROUGH DISTRICT,Marlborough,18,,Unitary authority
+CHATHAM ISLANDS TERRITORY,Area Outside Region,99,,Stats NZ name for the Chatham Islands. Kept so population joins match.
