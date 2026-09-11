@@ -178,17 +178,6 @@
           "note": "Since the Japanese emissions-code rule of April 2024, the oldest vehicle year arriving in volume has been 2012, as at the 2026 snapshots. The closed band is fixed in vehicle year, so the cutoff's age rises by one each year and the gap moves rightward through this chart."
         },
         {
-          "id": "age-at-registration",
-          "question": "Are New Zealanders buying new or second-hand?",
-          "dataset": "first_registrations",
-          "measure": "share",
-          "dimension": "age_at_registration_band",
-          "period": "all",
-          "shape_override": "distribution",
-          "events": true,
-          "note": "Zero means the vehicle was new. Everything else entered the fleet second-hand."
-        },
-        {
           "id": "import-age-trend",
           "question": "Are our used imports getting younger or older?",
           "derived": "median_import_age",
@@ -207,13 +196,14 @@
           "note": "Most arrive aged 9 to 13. Ages 3 and 4 are each only 1 to 3 percent of arrivals."
         },
         {
-          "id": "regional-freshness",
-          "question": "Which regions buy the newest vehicles?",
-          "derived": "freshness",
-          "dataset": "first_registrations",
+          "id": "regional-import-age",
+          "question": "Which regions buy the oldest second-hand imports?",
+          "derived": "median_import_age",
+          "dataset": "used_imports",
           "dimension": "region",
           "period": "latest_year",
-          "shape_override": "geo"
+          "shape_override": "geo",
+          "note": "Median age at first NZ registration of used imports, by the region where the owner lives now."
         },
         {
           "id": "pipeline-lag",

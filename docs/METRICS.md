@@ -42,6 +42,12 @@ scope flag; they never reach the cube.
 in that month. Membership is recomputed monthly, so the line reflects
 concentration rather than the fortunes of a fixed five.
 
+**Median import age** — median of (first NZ registration year − vehicle
+year) across **used imports only**, over the trailing 12 months. Whole
+years; never a decimal. NZ-new vehicles are excluded: their age at
+registration is 0 by construction from 2007 (MODEL_AND_AGE.md §1), so
+including them would restate the new/used mix rather than measure age.
+
 **Mean CO2** — volume-weighted mean of the CO2 field across first
 registrations in the month, excluding nulls. Report coverage (% of rows
 with a value) alongside; do not publish months with under 70% coverage.

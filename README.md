@@ -17,7 +17,7 @@ that can't be generated, and it's what Claude Code should read first.
 | `docs/EVENTS_LAYER.md` | The annotation layer: mechanism classes, pull-forward detection |
 | `docs/MODEL_AND_AGE.md` | Age-at-registration measures and derived model launch dates |
 | `config/dimensions.json` | The 14 dimensions and 5 datasets the builder allows |
-| `config/measures.json` | 4 core measures + 4 derived, with suppression thresholds |
+| `config/measures.json` | Core and derived measures, with suppression thresholds |
 | `config/presets.json` | 26 question-titled charts across 7 groups |
 | `data/reference/brand_registry.csv` | Make → parent group → owner country → heritage country, with make-level limitations noted |
 | `data/reference/events.csv` | 52 NZ policy/macro/OEM events, 36 source-verified |

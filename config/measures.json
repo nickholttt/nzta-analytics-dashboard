@@ -52,22 +52,13 @@
     {
       "id": "median_import_age",
       "label": "the typical age of used imports",
-      "formula": "MEDIAN(registration_year - vehicle_year) WHERE import_status='Used Import'",
+      "formula": "MEDIAN(registration_year - vehicle_year) WHERE import_status = 'Used Import'",
+      "applies_to": [
+        "used_imports"
+      ],
       "unit": "years",
       "rolling": "12m",
-      "note": "vehicle_year is a year not a date, so this carries up to +/-1 year of granularity error. Never report to a decimal."
-    },
-    {
-      "id": "genuinely_new_share",
-      "label": "the share that were actually new",
-      "formula": "COUNT(age<=1) / COUNT(*)",
-      "unit": "percent"
-    },
-    {
-      "id": "freshness",
-      "label": "the typical age of everything entering the fleet",
-      "formula": "MEDIAN(registration_year - vehicle_year) across all first registrations",
-      "unit": "years"
+      "note": "Used imports only. NZ-new age at registration is 0 by construction from 2007, so including NZ-new vehicles would restate the new/used mix, not measure age. vehicle_year is a year not a date, so this carries up to +/-1 year of granularity error. Never report to a decimal."
     },
     {
       "id": "pipeline_lag",

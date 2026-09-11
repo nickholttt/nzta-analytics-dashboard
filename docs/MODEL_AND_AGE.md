@@ -83,13 +83,18 @@ afnzr_months = months_between(registration_month, jan(vehicle_year))
 afnzr_years  = registration_year - vehicle_year
 ```
 
-- NZ-new: ≈ 0
+- NZ-new: 0 from 2007, by construction (§1)
 - Used import: the import age
 
-This single derived column answers the new-vs-old question cleanly, and it
-is the one measure where the flow grain beats every alternative. Add it as
-a dimension (`age_at_registration_band`) and as a derived measure
-(`median_import_age`).
+For used imports this is the import age, the one age figure a registration
+dataset measures well. Add it as a dimension (`age_at_registration_band`)
+and as a derived measure (`median_import_age`).
+
+It does not answer new-vs-old by itself. Because NZ-new age is 0 by
+construction, any age figure taken across all registrations (a share aged
+0–1, a median across both channels) moves only when the new/used mix
+moves, which the `import_status` dimension already shows. **Every age
+measure is scoped to used imports.**
 
 ### Bands
 
@@ -104,10 +109,8 @@ band wider than a year hides the finding. Never band coarsely here.
 | Measure | Definition |
 |---|---|
 | Median import age | Median AFNZR across used imports in the month, 12-month rolling |
-| Genuinely-new share | Share of first registrations with AFNZR ≤ 1 |
-| Freshness | Median AFNZR across **all** first registrations |
-| Regional freshness gap | Median AFNZR by region, compared with the national median |
-| Powertrain age gap | Median AFNZR by powertrain — used EVs arriving older than used petrol is a real and separate story |
+| Regional import age | Median import age by region, compared with the national median. Which regions buy the oldest second-hand vehicles. |
+| Powertrain import age | Median import age by powertrain: whether used EVs arrive older or younger than used petrol cars |
 
 ---
 
@@ -268,10 +271,9 @@ retirement detection above, and are not applied yet.
   includes NZ-new vehicles; do not let a trend line cross it unannotated.
   A used-imports-only age chart needs no marker: that channel has no
   discontinuity.
-- **NZ-new age is zero by construction** from 2007. A genuinely-new share
-  or freshness figure that combines both channels moves only because the
-  NZ-new/used mix moves, never because NZ-new vehicles arrived older. Say
-  so wherever the two are combined.
+- **NZ-new age is zero by construction** from 2007, which is why every age
+  measure is scoped to used imports (§2). Never publish an age figure that
+  combines both channels.
 - **Year granularity.** `vehicle_year` is a year, not a date, so AFNZR has
   up to ±1 year of error, and mean age drifts by almost a year across the
   calendar (January registrations look older than December ones). Compare
