@@ -1,4 +1,4 @@
-"""Raw pages -> `raw` -> `src` (sentinels applied) -> `rows` (scope, brand overrides, engine flag, fuel consumption)."""
+"""Raw pages -> `raw` -> `src` (sentinels applied) -> `rows` (scope, brand and motive power overrides, engine flag, fuel consumption)."""
 
 from __future__ import annotations
 
@@ -8,6 +8,9 @@ from pathlib import Path
 from . import reference
 from .errors import GuardrailError
 from .reference import quote
+
+# Suffix of the column in `rows` that keeps a value as NZTA recorded it, beside the overridden one.
+SOURCE_SUFFIX = "__source"
 
 
 def lit(value) -> str:
@@ -104,12 +107,18 @@ def build_rows(con, cfg) -> None:
         "import_status": "st.label",
         "vehicle_type": f"s.{quote(vehicle['field'])}",
     }
-    promotion_matches = " AND ".join(
-        f"(pr.{quote(c)} IS NULL OR pr.{quote(c)} = {condition_values[c]})" for c in b["model_registry_conditions"]
-    )
+
+    def matches(alias: str) -> str:
+        return " AND ".join(f"({alias}.{quote(c)} IS NULL OR {alias}.{quote(c)} = {condition_values[c]})"
+                            for c in b["model_registry_conditions"])
+
+    # A motive_power_override replaces the motive power every later lookup sees; the recorded value stays alongside.
+    motive = quote(engine["field"])
+    resolved = f"coalesce(mo.target, s.{motive})"
     con.execute(f"""
         CREATE OR REPLACE TABLE rows AS
-        SELECT s.*,
+        SELECT s.* REPLACE ({resolved} AS {motive}),
+            s.{motive} AS {quote(engine['field'] + SOURCE_SUFFIX)},
             (vs.in_scope = {true} AND st.in_scope = {true}) AS in_scope,
             (st.fleet_entry = {true}) AS fleet_entry,
             st.label AS status_label,
@@ -129,6 +138,7 @@ def build_rows(con, cfg) -> None:
         JOIN ref_status st ON s.{quote(status['field'])} = st.key
         LEFT JOIN ref_brand_keys bk ON {make} = bk.key
         LEFT JOIN ref_model_alias ma ON ma.make = bk.canonical AND ma.model_key = {model}
-        LEFT JOIN ref_promotion pr ON pr.make = bk.canonical AND pr.model_key = {model} AND {promotion_matches}
-        LEFT JOIN ref_engine eng ON s.{quote(engine['field'])} = eng.key
+        LEFT JOIN ref_promotion pr ON pr.make = bk.canonical AND pr.model_key = {model} AND {matches('pr')}
+        LEFT JOIN ref_motive_override mo ON mo.make = bk.canonical AND mo.model_key = {model} AND {matches('mo')}
+        LEFT JOIN ref_engine eng ON {resolved} = eng.key
     """)

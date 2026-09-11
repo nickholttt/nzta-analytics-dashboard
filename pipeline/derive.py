@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 
 from . import reference
 from .contract import MODEL_KEY_SEPARATOR, OTHER, UNDEFINED, UNMAPPED
-from .normalise import lit
+from .normalise import SOURCE_SUFFIX, lit
 from .reference import quote
 
 SNAPSHOT_YEAR = "snapshot_year"
@@ -180,10 +180,12 @@ def build_dims(con, cfg, derived: list[Derived]) -> None:
     joins: list[str] = []
     for d in derived:
         joins += [j for j in d.joins if j not in joins]
+    # The alternative fuel is compared with the motive power NZTA recorded, before any model_registry override.
+    primary = alt["primary"] + (SOURCE_SUFFIX if alt["primary"] == p["engine"]["field"] else "")
     columns = [
         "r.in_scope", "r.fleet_entry", "r.status_label", "r.reg_month", "r.registration_year", "r.vehicle_year",
         "r.has_engine", "r.fc_value", "r.fc_status",
-        f"{_field(alt['primary'])} AS fuel_primary", f"{_field(alt['alternative'])} AS fuel_alternative",
+        f"{_field(primary)} AS fuel_primary", f"{_field(alt['alternative'])} AS fuel_alternative",
     ]
     for d in derived:
         columns += [f"{d.expr} AS {d.column}", f"{d.unmapped} AS {d.unmapped_column}"]

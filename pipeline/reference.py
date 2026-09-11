@@ -48,10 +48,11 @@ def condition_vocabularies(cfg) -> dict[str, set[str]]:
 
 
 def brand_tables(con, cfg) -> None:
-    """ref_brand_keys (raw make -> canonical), ref_brand (attributes), ref_model_alias, ref_promotion.
+    """ref_brand_keys (raw make -> canonical), ref_brand (attributes), ref_model_alias, ref_promotion, ref_motive_override.
 
-    make_promotion rows may narrow their match with the registry's match columns. not_promoted rows are never applied:
-    each forbids any make_promotion from its make to its override_value, and the build aborts if one exists."""
+    make_promotion and motive_power_override rows may narrow their match with the registry's match columns.
+    not_promoted rows are never applied: each forbids any make_promotion from its make to its override_value, and the
+    build aborts if one exists."""
     b = cfg.pipeline["brand"]
     sep = b["alias_separator"]
     registry = read(cfg.reference(b["registry"]))
@@ -67,7 +68,8 @@ def brand_tables(con, cfg) -> None:
 
     file, conditions = b["model_registry"], b["model_registry_conditions"]
     vocabularies = condition_vocabularies(cfg)
-    alias_rows, promotion_rows, forbidden = [], [], set()
+    matched_types = (b["make_promotion_type"], b["motive_power_override_type"])
+    alias_rows, promotion_rows, override_rows, forbidden = [], [], [], set()
     for row in read(cfg.reference(file)):
         make, model, kind = row[b["model_registry_make"]], row[b["model_registry_model"]], row[b["model_registry_type"]]
         model_keys = [model] + split(row[b["model_registry_aliases"]], sep)
@@ -75,9 +77,18 @@ def brand_tables(con, cfg) -> None:
         for (condition, column), value in zip(conditions.items(), match):
             if value is not None and value not in vocabularies[condition]:
                 raise GuardrailError("reference", f"{file}: {make}|{model}: {column} {value!r} is not a known {condition}")
-        if any(match) and kind != b["make_promotion_type"]:
+        if any(match) and kind not in matched_types:
             raise GuardrailError("reference", f"{file}: {make}|{model}: match columns apply only to "
-                                              f"{b['make_promotion_type']} rows, not {kind}")
+                                              f"{' and '.join(matched_types)} rows, not {kind}")
+        if kind == b["motive_power_override_type"]:
+            target, motive_column = row[b["model_registry_value"]], conditions["motive_power"]
+            if make not in canonical_makes:
+                raise GuardrailError("reference", f"{file}: {make!r} is not a make in {b['registry']}")
+            if target not in vocabularies["motive_power"]:
+                raise GuardrailError("reference", f"{file}: {make}|{model}: override_value {target!r} is not a known motive_power")
+            if not row[motive_column]:
+                raise GuardrailError("reference", f"{file}: {make}|{model}: {kind} rows must set {motive_column}")
+            override_rows += [(make, key, target, *match) for key in model_keys]
         if kind in b["model_alias_types"]:
             alias_rows += [(make, key, model) for key in model_keys]
         elif kind == b["make_promotion_type"]:
@@ -93,8 +104,10 @@ def brand_tables(con, cfg) -> None:
         raise GuardrailError("reference", f"{file}: {b['make_promotion_type']} rows move {blocked}, "
                                           f"which {b['not_promoted_type']} rows forbid")
     require_unique([(m, k) for m, k, *_ in alias_rows + promotion_rows], file)
+    require_unique([(m, k) for m, k, *_ in override_rows], file)
     register(con, "ref_model_alias", ["make", "model_key", "model_canonical"], alias_rows)
     register(con, "ref_promotion", ["make", "model_key", "target_make", "model_canonical", *conditions], promotion_rows)
+    register(con, "ref_motive_override", ["make", "model_key", "target", *conditions], override_rows)
 
 
 def validate_ranges(rows: list[dict], key_cols: list[str], lo_col: str, hi_col: str, what: str) -> None:

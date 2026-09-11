@@ -193,11 +193,7 @@ def reference_with_registry(directory, cfg, rows):
 
 
 def make_totals(workspace) -> Counter:
-    con = duckdb.connect()
-    path = (workspace["public"] / "cube" / "registrations_surviving" / "make.parquet").as_posix()
-    totals = Counter(dict(con.execute(f"SELECT dim_value, sum(n) FROM read_parquet('{path}') GROUP BY 1").fetchall()))
-    con.close()
-    return totals
+    return slice_totals(workspace, "make")
 
 
 def test_a_promotion_forbidden_by_a_not_promoted_row_aborts(tmp_path, workspace):
@@ -247,6 +243,58 @@ def test_conditional_promotion_moves_only_matching_vehicles(tmp_path, workspace)
     after = make_totals(workspace)
     assert after[rule[b["model_registry_value"]]] - before[rule[b["model_registry_value"]]] == 1
     assert after[rule[b["model_registry_make"]]] - before[rule[b["model_registry_make"]]] == 1
+
+
+def slice_totals(workspace, dimension: str) -> Counter:
+    con = duckdb.connect()
+    path = (workspace["public"] / "cube" / "registrations_surviving" / f"{dimension}.parquet").as_posix()
+    totals = Counter(dict(con.execute(f"SELECT dim_value, sum(n) FROM read_parquet('{path}') GROUP BY 1").fetchall()))
+    con.close()
+    return totals
+
+
+def test_motive_power_override_applies_only_to_matching_vehicles(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    p = cfg.pipeline
+    b, status = p["brand"], p["scope"]["status"]
+    conditions = b["model_registry_conditions"]
+    rule = next(r for r in registry_rows(cfg)
+                if r[b["model_registry_type"]] == b["motive_power_override_type"] and r[conditions["import_status"]])
+    dimension = next(d for d in cfg.dimensions["dimensions"]
+                     if d.get("derive", {}).get("reference") == p["engine"]["reference"])
+    spec = dimension["derive"]
+    labels = {r[spec["key"]]: r[spec["value"]] for r in reference.read(cfg.reference(spec["reference"]))}
+    replaced, replacement = labels[rule[conditions["motive_power"]]], labels[rule[b["model_registry_value"]]]
+    assert replaced != replacement
+    entries = [r for r in reference.read(cfg.reference(status["file"]))
+               if r[status["in_scope"]] == p["boolean_true"] and r[status["fleet_entry"]] == p["boolean_true"]]
+    wanted = rule[conditions["import_status"]]
+    rows = load_rows()
+    snapshot = date.fromisoformat(source_for(rows)["change_key"]["snapshot"])
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    matching = dict(template, OBJECTID=7000, MAKE=rule[b["model_registry_make"]], MODEL=rule[b["model_registry_model"]],
+                    MOTIVE_POWER=rule[conditions["motive_power"]],
+                    IMPORT_STATUS=next(r[status["key"]] for r in entries if r[status["label"]] == wanted),
+                    FIRST_NZ_REGISTRATION_YEAR=snapshot.year, FIRST_NZ_REGISTRATION_MONTH=snapshot.month)
+    not_matching = dict(matching, OBJECTID=7001,
+                        IMPORT_STATUS=next(r[status["key"]] for r in entries if r[status["label"]] != wanted))
+    run(tmp_path, cfg, rows, name="baseline")
+    before = slice_totals(workspace, dimension["id"])
+    manifest = run(tmp_path, cfg, rows + [matching, not_matching], name="overridden")
+    after = slice_totals(workspace, dimension["id"])
+    assert after[replacement] - before[replacement] == 1
+    assert after[replaced] - before[replaced] == 1
+    assert manifest["datasets"]["registrations_surviving"]["unmapped_rates"][dimension["id"]] == 0
+
+
+def test_motive_power_override_must_name_the_motive_power_it_replaces(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    b = cfg.pipeline["brand"]
+    column = b["model_registry_conditions"]["motive_power"]
+    rows = [dict(r, **{column: ""}) if r[b["model_registry_type"]] == b["motive_power_override_type"] else r
+            for r in registry_rows(cfg)]
+    ref = reference_with_registry(tmp_path / "reference", cfg, rows)
+    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows()), f"must set {column}")
 
 
 def test_schema_drift_aborts_and_new_columns_warn():

@@ -271,12 +271,22 @@ What the pipeline applies today:
   nameplate keeps one history, as the KGM rename does, even where older
   vehicles carried the parent's badge (most `DODGE RAM` rows predate the Ram
   brand). Each row's note records that cost.
-- A `make_promotion` row may narrow its match with `match_motive_power` (a
-  key in `powertrain_map.csv`), `match_import_status` (a label in
-  `import_status_map.csv`) or `match_vehicle_type` (a key in
-  `vehicle_scope.csv`); blank means any. `SHOGUN` under `MITSUBISHI` is a
-  Fuso truck only as a goods vehicle, and a Pajero otherwise. An unknown
-  value, or a match column on any other row type, aborts the build.
+- A `make_promotion` or `motive_power_override` row may narrow its match
+  with `match_motive_power` (a key in `powertrain_map.csv`),
+  `match_import_status` (a label in `import_status_map.csv`) or
+  `match_vehicle_type` (a key in `vehicle_scope.csv`); blank means any.
+  `SHOGUN` under `MITSUBISHI` is a Fuso truck only as a goods vehicle, and
+  a Pajero otherwise. An unknown value, or a match column on any other row
+  type, aborts the build.
+- `motive_power_override` replaces the recorded motive power with
+  `override_value`, which must be a key in `powertrain_map.csv`, before the
+  powertrain and engine flag are looked up. It must set
+  `match_motive_power`, so a nameplate's other powertrains are untouched.
+  NZTA records mild hybrids as `PETROL HYBRID`; three rules move NZ-new
+  Suzuki Swifts and every Suzuki Fronx and Ford Puma to
+  `PETROL MILD HYBRID`. Used-import Swifts stay, because Japanese-market
+  Swift hybrids include full hybrids. The snapshot archive keeps the motive
+  power NZTA recorded.
 - `not_promoted` is never applied. It records a string that must stay where
   it is (classic Minis under `MORRIS`, the Hyundai Genesis sedan, licence-
   built Jeeps), and the build aborts if any `make_promotion` row moves that

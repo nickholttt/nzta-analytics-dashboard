@@ -84,7 +84,9 @@ home-built. `import_status_map.csv` records how each is treated.
 
 **Motive power** is the primary fuel, in NZTA's own spellings (`PLUGIN`,
 not `PLUG-IN`). Two petrol hybrid codes are in concurrent use, not a
-rename. A second fuel, where present, is in `ALTERNATIVE_MOTIVE_POWER`:
+rename. `PETROL HYBRID` also holds mild hybrids: `model_registry.csv` moves
+three nameplates to `PETROL MILD HYBRID` before the powertrain lookup, and
+the snapshot archive keeps NZTA's code (`MODEL_AND_AGE.md` §4). A second fuel, where present, is in `ALTERNATIVE_MOTIVE_POWER`:
 about 0.1% of in-scope rows, mostly petrol vehicles also running LPG or
 CNG. The powertrain dimension uses the primary fuel only, so a dual-fuel
 vehicle counts under its primary fuel. The pipeline reports how many rows
