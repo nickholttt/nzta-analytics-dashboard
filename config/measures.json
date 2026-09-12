@@ -55,13 +55,17 @@
     {
       "$comment": "Every derived measure a preset names must appear here, or the preset cannot be resolved. docs/METRICS.md holds the prose definition; this list is the vocabulary.",
       "id": "top_5_share",
-      "label": "the combined share of the five largest",
-      "formula": "SUM(n) OVER (top 5 dim_value by n in the month) / SUM(n) OVER (PARTITION BY month)",
+      "label": "the combined share of the largest few",
+      "formula": "SUM(n) OVER (top top_n dim_value by n in the month) / SUM(n) OVER (PARTITION BY month)",
       "unit": "percent",
       "shape": "trend",
-      "note": "Membership is recomputed every month, so the line measures concentration rather than the fortunes of a fixed five.",
+      "top_n": 5,
+      "$top_n_comment": "How many values make up the line. The renderer reads it from here; the id keeps the 5 because changing the count changes the measure.",
+      "note": "Membership is recomputed every month, so the line measures concentration rather than the fortunes of a fixed five. Reserved tokens never take a place: no reference match is not a brand.",
       "guards": {
-        "min_denominator": 200
+        "$comment": "A share, so it carries the same two guards as the share measure. See docs/METRICS.md, Two suppression guards.",
+        "min_denominator": 200,
+        "min_share_of_trailing_median": 0.33
       }
     },
     {

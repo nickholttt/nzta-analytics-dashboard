@@ -215,16 +215,13 @@
         {
           "id": "concentration",
           "question": "Is the market getting more crowded?",
-          "status": "blocked",
-          "requires": [
-            "a renderer for the top_5_share derived measure"
-          ],
+          "status": "live",
           "shape_override": "trend",
           "derived": "top_5_share",
           "dataset": "registrations_surviving",
           "dimension": "make",
           "period": "all",
-          "note": "The combined share of the five largest brands. A falling line means more brands competing."
+          "note_template": "The combined share of the {measure.top_n} largest brands in each month. Membership is recomputed monthly, so the line reflects concentration rather than the fortunes of a fixed set of brands. A falling line means more brands competing."
         },
         {
           "id": "model-league",

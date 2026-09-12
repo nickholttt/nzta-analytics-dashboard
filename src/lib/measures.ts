@@ -1,8 +1,13 @@
 // Measures computed in the browser from n and denominator (docs/CUBE_SCHEMA.md, docs/METRICS.md).
-import { chartDefaults, findMeasure, findPeriod, shareChangeUnit } from "./config";
+import { chartDefaults, findDerived, findMeasure, findPeriod, shareChangeUnit } from "./config";
+import type { Guards } from "./config";
 
-export const minDenominator = (measureId?: string) => findMeasure(measureId)?.guards?.min_denominator ?? 0;
-export const minShareOfTrailingMedian = (measureId?: string) => findMeasure(measureId)?.guards?.min_share_of_trailing_median ?? 0;
+// A preset names either a measure or a derived one, and both carry guards.
+export const guardsFor = (measureId?: string, derivedId?: string): Guards =>
+  findMeasure(measureId)?.guards ?? findDerived(derivedId)?.guards ?? {};
+export const minDenominator = (measureId?: string, derivedId?: string) => guardsFor(measureId, derivedId).min_denominator ?? 0;
+export const minShareOfTrailingMedian = (measureId?: string, derivedId?: string) =>
+  guardsFor(measureId, derivedId).min_share_of_trailing_median ?? 0;
 
 export const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 

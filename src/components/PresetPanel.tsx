@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { compositeRules, findDataset, findDerived, findPreset, hybrid, isComposite } from "../lib/config";
 import { loadEvents, loadManifest, loadSlice } from "../lib/data";
 import type { Event, Manifest, SliceRow } from "../lib/data";
-import { TRAILING_MONTHS, minDenominator, minShareOfTrailingMedian, pct } from "../lib/measures";
+import { TRAILING_MONTHS, guardsFor, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { resolvePreset } from "../lib/resolve";
 import { DistributionChart } from "./DistributionChart";
@@ -50,8 +50,9 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
   const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : RESERVED_LABELS[v] ?? v);
-  const guard = minDenominator(preset.measure);
-  const collapseFraction = minShareOfTrailingMedian(preset.measure);
+  const guards = guardsFor(preset.measure, preset.derived);
+  const guard = guards.min_denominator ?? 0;
+  const collapseFraction = guards.min_share_of_trailing_median ?? 0;
   const snapshotsNeeded = findDerived(preset.derived)?.snapshots_needed;
 
   // Notes that state a figure are templated from the build; a plain note that carries one is flagged
@@ -85,7 +86,7 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
     } else if (shape === "distribution" && dimension) {
       chart = <DistributionChart preset={preset} dimension={dimension} rows={rows} manifest={manifest} minDenominator={guard} label={label} />;
     } else if (shape === "trend") {
-      chart = <TrendChart preset={preset} rows={rows} manifest={manifest} />;
+      chart = <TrendChart preset={preset} rows={rows} manifest={manifest} minDenominator={guard} collapseFraction={collapseFraction} />;
     }
   }
 

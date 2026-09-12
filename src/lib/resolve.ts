@@ -7,6 +7,7 @@
 import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, presets } from "./config";
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
 import type { Manifest } from "./data";
+import { RENDERED_DERIVED } from "./derived";
 
 // The shapes this local reference tool draws. league and geo are build step 6.
 const RENDERED_SHAPES = new Set(["mix", "trend", "distribution"]);
@@ -85,7 +86,7 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
 
   if (preset.derived) {
     if (!findDerived(preset.derived)) add("invalid", `derived measure "${preset.derived}" is not defined in config/measures.json`);
-    else add("blocked", `derived measure "${preset.derived}" has no renderer in this tool`);
+    else if (!RENDERED_DERIVED.has(preset.derived)) add("blocked", `derived measure "${preset.derived}" has no renderer in this tool`);
   } else if (!preset.series && !measure) {
     add("invalid", `measure "${preset.measure}" is not defined in config/measures.json`);
   }

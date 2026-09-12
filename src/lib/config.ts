@@ -54,7 +54,7 @@ export type Dataset = {
 
 export type Guards = { min_denominator?: number; min_share_of_trailing_median?: number; min_coverage?: number };
 export type Measure = { id: string; label: string; unit: string; shape?: string; guards?: Guards };
-export type DerivedMeasure = Measure & { snapshots_needed?: number };
+export type DerivedMeasure = Measure & { snapshots_needed?: number; top_n?: number };
 export type Period = { id: string; label: string; months?: number };
 export type SmoothingOption = { id: string; label: string; axis: string };
 
