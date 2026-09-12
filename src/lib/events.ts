@@ -56,13 +56,15 @@ function group(sorted: Event[], at: (iso: string) => number, separation: number)
   return groups;
 }
 
-// A cluster's pin sits at the mean of its events, but every event keeps its own rule on the chart, so
-// clustering never moves a date. The label says how many are folded in; the list below expands them.
+// A cluster's label sits on its first event, never between its events: at the centroid the numeral
+// points at empty axis, and a reader tracing down from it lands on whichever rule happens to be
+// nearest, which may not be one of the events it covers. Anchored first, it always points at a real
+// date. Every event keeps its own rule regardless, so clustering never moves one. The label says how
+// many are folded in; the list below expands them.
 function toMarker(events: Event[], index: number): Marker {
-  const mid = events.reduce((sum, e) => sum + Date.parse(e.date_start), 0) / events.length;
   return {
     label: events.length === 1 ? String(index + 1) : `${index + 1} (${events.length})`,
-    date: new Date(mid).toISOString().slice(0, 10),
+    date: events[0].date_start,
     measurement: events.every((e) => e.mechanism === MEASUREMENT),
     events,
   };
