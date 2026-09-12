@@ -1,6 +1,44 @@
 {
   "$comment": "The Explore canon. Every preset is also a worked example of the Build grammar, so each must be expressible as {dataset, measure, dimension, period, filters}. If a preset cannot be expressed in the builder vocabulary, either extend the vocabulary or drop the preset. A chart whose dataset has a definition in dimensions.json renders that definition.",
   "evergreen_test": "Would this chart still be worth showing in 2035? If the title names a specific scheme, brand or year, it fails and belongs in the events layer instead.",
+  "$status": {
+    "$comment": "Every preset carries a status, so the gap between the canon and what the cube can serve is visible rather than discovered chart by chart. The UI renders anything not live as a 'coming when X lands' entry, and cross-checks the authored status against what the cube actually resolves: a disagreement is shown as a warning, because a stale status is worse than none.",
+    "live": "Renders from the cube as built.",
+    "blocked": "Correctly specified. Waiting on a deliverable named in requires.",
+    "invalid": "The preset's own configuration is wrong. requires names the fix.",
+    "precedence": "status is the worst outstanding state; requires lists every outstanding item, not just the worst.",
+    "on_unblocking": "When a dataset a preset waits on lands, re-run the triage before building the chart. The canon was written well ahead of the data, so some blocked presets will want rewriting rather than unblocking."
+  },
+  "$note_templates": {
+    "$comment": "A note that states a figure must be templated from the build, or it drifts the moment the data moves. note_template resolves {dotted.path} against the manifest, the preset's dataset entry in it, and the preset's measure and dimension definitions; |pct formats a proportion. A plain note may not contain a figure at all: the UI flags one that does.",
+    "context": ["manifest", "dataset", "measure", "dimension"],
+    "filters": ["pct"]
+  },
+  "$composite": {
+    "$comment": "A deliberate, closed exception to one-chart-one-question, for the two questions that only exist as a comparison of two series. Not a sixth shape: both render through the trend renderer. Composite presets are never offered in the builder, and the UI flags them as a curated comparison so a reader does not mistake them for something the grammar can express.",
+    "max_series": 2,
+    "builder_available": false,
+    "members": ["fleet-catchup", "brand-vs-built"]
+  },
+  "defaults": {
+    "$comment": "Chart-level defaults that are not per-preset decisions. mix_smoothing: monthly share on survivors data swings too hard to read, so a mix chart defaults to a trailing share and offers monthly as a toggle. top_n_basis: which window ranks the values that keep their own line; the rest become one remainder series.",
+    "mix_smoothing": "rolling_12m",
+    "mix_smoothing_options": [
+      { "id": "rolling_12m", "label": "12-month rolling", "axis": "Share of the trailing 12 months" },
+      { "id": "monthly", "label": "Monthly", "axis": "Share of the month's vehicles" }
+    ],
+    "top_n_basis": "trailing_12_months",
+    "trailing_window_months": 12,
+    "mix_default_start": {
+      "$comment": "A mix chart over all time crushes its story into the right of the frame whenever the dimension spent decades with one category. The default start is the first month the dimension had something to show: at least min_categories categories above min_share, sustained for sustain_months, measured on the 12-month rolling mix so it does not move with monthly noise. All time stays available as a toggle and is never the default. Computed in the browser, like the rolling share and the suppression guards, so these numbers change without a rebuild.",
+      "$threshold_note": "min_share 0.005 puts powertrain at 2009-10, where hybrids first became visible; 0.02 puts it at 2018-07 and hides the nine-year ramp. Do not lower it below 0.004: at 0.003 powertrain falls back to 1938-01, because 1940s diesel sat near 0.36% and the now-extinct Other category near 0.71%. The qualifying run is 202 months and the nearest non-qualifying run is 5, so sustain_months is what rejects the mid-century near-misses.",
+      "min_share": 0.005,
+      "min_categories": 3,
+      "sustain_months": 12,
+      "applies_to_cardinality": ["low"],
+      "$cardinality_note": "Only low-cardinality dimensions. The test measures diversity, and diversity saturates immediately when a dimension has hundreds of values: on make it returns whatever month the denominator floor allows and the composition clause never binds."
+    }
+  },
   "groups": [
     {
       "id": "powertrain",
@@ -8,7 +46,12 @@
       "presets": [
         {
           "id": "powertrain-mix",
-          "question": "How has each powertrain's share of new registrations changed?",
+          "question": "How has each powertrain's share of registrations changed?",
+          "status": "invalid",
+          "requires": [
+            "segment_group promoted to a dimension in config/dimensions.json. It is a column in segment_map.csv, not a dimension, so the filter resolves against nothing. Promotion changes what the pipeline emits, so it waits for the 8 November gate.",
+            "a powertrain x segment_group pair slice, so the filter can be applied rather than described"
+          ],
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "powertrain",
@@ -23,6 +66,12 @@
         {
           "id": "fleet-catchup",
           "question": "How far behind the market is the fleet?",
+          "status": "blocked",
+          "requires": [
+            "the fleet dataset (build step 7)",
+            "a renderer for composite presets"
+          ],
+          "type": "composite",
           "shape_override": "trend",
           "series": [
             {
@@ -50,17 +99,19 @@
       "presets": [
         {
           "id": "brand-owner-origin",
-          "question": "Which countries own the brands New Zealanders buy?",
+          "question": "Which countries own the brands we register?",
+          "status": "live",
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "owner_country",
           "period": "all",
           "events": true,
-          "note": "Ownership is as at today, not at registration. A Fuso registered in 2015, when Daimler Truck controlled it, counts as Japanese-owned because ARCHION owns Fuso now. This chart answers who owns these brands now."
+          "note": "Ownership is as at today, not at registration. A Fuso registered while Daimler Truck controlled it counts as Japanese-owned, because ARCHION owns Fuso now. This chart answers who owns these brands now."
         },
         {
           "id": "built-in",
-          "question": "Where are New Zealand's vehicles actually built?",
+          "question": "Where are the vehicles we register actually built?",
+          "status": "live",
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "built_in",
@@ -70,6 +121,11 @@
         {
           "id": "brand-vs-built",
           "question": "Japanese brands or Japanese-built? The gap.",
+          "status": "blocked",
+          "requires": [
+            "a renderer for composite presets. Both series are already in the cube."
+          ],
+          "type": "composite",
           "shape_override": "trend",
           "series": [
             {
@@ -94,6 +150,10 @@
         {
           "id": "used-import-source",
           "question": "Where do our used imports come from?",
+          "status": "blocked",
+          "requires": [
+            "the used_imports dataset, which needs an import_status x imported_from pair slice. imported_from does not apply to registrations_surviving as a whole."
+          ],
           "dataset": "used_imports",
           "measure": "share",
           "dimension": "imported_from",
@@ -108,6 +168,7 @@
         {
           "id": "new-vs-used",
           "question": "New or second-hand? The balance over time.",
+          "status": "live",
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "import_status",
@@ -117,6 +178,10 @@
         {
           "id": "volume-trend",
           "question": "How many vehicles are being registered?",
+          "status": "blocked",
+          "requires": [
+            "the registrations_flow dataset from the Stats NZ TPT series (build step 1b)"
+          ],
           "dataset": "registrations_flow",
           "measure": "rolling_12m",
           "dimension": null,
@@ -127,6 +192,7 @@
         {
           "id": "brand-share",
           "question": "Which brands are gaining and losing ground?",
+          "status": "live",
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "make",
@@ -137,16 +203,22 @@
         {
           "id": "parent-group-share",
           "question": "Which manufacturer groups are gaining and losing ground?",
+          "status": "live",
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "parent_group",
           "period": "10y",
-          "top_n": 10,
-          "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Scrappage thins each month's total along with each group, so share holds up where volume does not, though older months still lean towards groups whose vehicles last longer. Volume charts wait for true monthly registrations. Group ownership is as at today, not at registration."
+          "top_n": 14,
+          "$top_n_note": "14, not 10, because grouping splits the recent entrants across seven groups and none of them can reach a top-10 slot on any ranking basis. At 10 the remainder carries the whole story; 14 reaches the largest of them and halves it.",
+          "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Scrappage thins each month's total along with each group, so share holds up where volume does not, though older months still lean towards groups whose vehicles last longer. Volume charts wait for true monthly registrations. Group ownership is as at today, not at registration. A rising remainder here is the market fragmenting across groups too small to rank; the concentration chart measures that directly rather than leaving it to be inferred."
         },
         {
           "id": "concentration",
           "question": "Is the market getting more crowded?",
+          "status": "blocked",
+          "requires": [
+            "a renderer for the top_5_share derived measure"
+          ],
           "shape_override": "trend",
           "derived": "top_5_share",
           "dataset": "registrations_surviving",
@@ -156,7 +228,11 @@
         },
         {
           "id": "model-league",
-          "question": "What are the best-selling models right now?",
+          "question": "Which models are being registered most right now?",
+          "status": "blocked",
+          "requires": [
+            "the league renderer (build step 6)"
+          ],
           "dataset": "registrations_surviving",
           "measure": "count",
           "dimension": "model",
@@ -167,6 +243,10 @@
         {
           "id": "ownership-churn",
           "question": "How often do vehicles change hands?",
+          "status": "blocked",
+          "requires": [
+            "the ownership_changes dataset"
+          ],
           "dataset": "ownership_changes",
           "measure": "rolling_12m",
           "dimension": null,
@@ -181,6 +261,10 @@
         {
           "id": "age-distribution-moving-hole",
           "question": "Which vehicle years can't we import any more?",
+          "status": "blocked",
+          "requires": [
+            "the used_imports dataset, which needs an import_status x age_at_registration_band pair slice"
+          ],
           "dataset": "used_imports",
           "measure": "share",
           "dimension": "age_at_registration_band",
@@ -188,11 +272,16 @@
           "shape_override": "distribution",
           "animate_by": "year",
           "events": true,
-          "note": "Since the Japanese emissions-code rule of April 2024, the oldest vehicle year arriving in volume has been 2012, as at the 2026 snapshots. The closed band is fixed in vehicle year, so the cutoff's age rises by one each year and the gap moves rightward through this chart."
+          "note_template": "At the {manifest.latest_snapshot} snapshot the oldest vehicle year arriving in volume is {manifest.moving_cutoff_vehicle_year}, an age of {manifest.moving_cutoff_age}. The closed band is fixed in vehicle year, so the cutoff's age rises by one each year and the gap moves rightward through this chart. The rule that closed it is on the events layer."
         },
         {
           "id": "import-age-trend",
           "question": "Are our used imports getting younger or older?",
+          "status": "blocked",
+          "requires": [
+            "the used_imports dataset, which needs an import_status x age_at_registration_band pair slice",
+            "a renderer for the median_import_age derived measure"
+          ],
           "derived": "median_import_age",
           "dataset": "used_imports",
           "period": "all",
@@ -201,16 +290,26 @@
         {
           "id": "used-import-age",
           "question": "How old are used imports when they arrive?",
+          "status": "blocked",
+          "requires": [
+            "the used_imports dataset, which needs an import_status x age_at_registration_band pair slice"
+          ],
           "dataset": "used_imports",
           "measure": "count",
           "dimension": "age_at_registration_band",
           "period": "latest_year",
           "shape_override": "distribution",
-          "note": "Most arrive aged 9 to 13. Ages 3 and 4 are each only 1 to 3 percent of arrivals."
+          "note_template": "Most arrive aged {manifest.used_import_age_trailing.cluster.0} to {manifest.used_import_age_trailing.cluster.1}: {manifest.used_import_age_trailing.share_cluster|pct} of arrivals over the trailing {manifest.used_import_age_trailing.window_months} months, with a median of {manifest.used_import_age_trailing.median}."
         },
         {
           "id": "regional-import-age",
-          "question": "Which regions buy the oldest second-hand imports?",
+          "question": "Which regions register the oldest second-hand imports?",
+          "status": "blocked",
+          "requires": [
+            "the used_imports dataset, which needs an import_status x region pair slice",
+            "a renderer for the median_import_age derived measure",
+            "the geo renderer (build step 6)"
+          ],
           "derived": "median_import_age",
           "dataset": "used_imports",
           "dimension": "region",
@@ -221,6 +320,11 @@
         {
           "id": "pipeline-lag",
           "question": "How long before a new model shows up second-hand?",
+          "status": "blocked",
+          "requires": [
+            "first-appearance detection in the cube (build step 8)",
+            "a renderer for the pipeline_lag derived measure"
+          ],
           "derived": "pipeline_lag",
           "dataset": "registrations_surviving",
           "dimension": "make",
@@ -237,6 +341,10 @@
         {
           "id": "fleet-age",
           "question": "How old is New Zealand's vehicle fleet?",
+          "status": "blocked",
+          "requires": [
+            "the fleet dataset (build step 7)"
+          ],
           "dataset": "fleet",
           "measure": "share",
           "dimension": "vehicle_year_band",
@@ -246,10 +354,16 @@
         {
           "id": "cohort-survival",
           "question": "How long do vehicles stay on the road?",
+          "status": "blocked",
+          "requires": [
+            "the fleet dataset (build step 7)",
+            "two or more archived snapshots in data/snapshots/",
+            "a renderer for the cohort_survival derived measure"
+          ],
           "derived": "cohort_survival",
           "dataset": "fleet",
           "period": "all",
-          "note": "Of the vehicles first registered in a given year, what share is still registered N years later."
+          "note": "Of the vehicles first registered in a given year, what share is still registered later. Every figure states its base and the first snapshot in which the cohort was observed."
         }
       ]
     },
@@ -260,6 +374,7 @@
         {
           "id": "segment-mix",
           "question": "Cars, utes, vans or trucks?",
+          "status": "live",
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "segment",
@@ -270,6 +385,7 @@
         {
           "id": "engine-size",
           "question": "Are engines getting bigger or disappearing?",
+          "status": "live",
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "engine_size_band",
@@ -278,12 +394,16 @@
         },
         {
           "id": "fuel-efficiency-trend",
-          "question": "Are new registrations getting more fuel efficient?",
+          "question": "Are the vehicles we register getting more fuel efficient?",
+          "status": "blocked",
+          "requires": [
+            "a renderer for the mean_fuel_consumption derived measure. The cube already carries fc_sum, fc_n and fc_eligible_n."
+          ],
           "derived": "mean_fuel_consumption",
           "dataset": "registrations_surviving",
           "period": "all",
           "events": true,
-          "note": "Average combined fuel consumption of vehicles that burn fuel. Electric vehicles have no figure and are left out, not counted as zero. Months where fewer than 70% of engined vehicles have a figure are not shown."
+          "note_template": "Average combined fuel consumption of vehicles that burn fuel. Electric vehicles have no figure and are left out, not counted as zero. Months where under {measure.guards.min_coverage|pct} of engined vehicles have a figure are not shown."
         }
       ]
     },
@@ -294,6 +414,11 @@
         {
           "id": "regional-volume",
           "question": "Which regions register the most vehicles per person?",
+          "status": "blocked",
+          "requires": [
+            "a population reference file with its own vintage, for the per_capita derived measure",
+            "the geo renderer (build step 6)"
+          ],
           "derived": "per_capita",
           "dataset": "registrations_surviving",
           "dimension": "region",
@@ -303,6 +428,11 @@
         {
           "id": "regional-powertrain",
           "question": "Which parts of the country are electrifying fastest?",
+          "status": "blocked",
+          "requires": [
+            "a powertrain x region pair slice, so the filter can be applied",
+            "the geo renderer (build step 6)"
+          ],
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "region",
@@ -317,6 +447,12 @@
         {
           "id": "regional-age",
           "question": "Where are the oldest vehicles?",
+          "status": "blocked",
+          "requires": [
+            "the fleet dataset (build step 7)",
+            "a renderer for the mean_fleet_age derived measure",
+            "the geo renderer (build step 6)"
+          ],
           "derived": "mean_fleet_age",
           "dataset": "fleet",
           "dimension": "region",

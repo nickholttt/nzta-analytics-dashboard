@@ -244,8 +244,8 @@
       "derive": { "kind": "model", "cap": 300 },
       "shape_hint": "league",
       "cardinality": "very_high",
-      "help": "The nameplate, as brand and model. The 300 with the most registrations over the last 12 months keep their name; the rest are grouped as other. Never use submodel, which is free text.",
-      "note": "Only the 300 models with the most registrations in the last 12 months are named, so older months are mostly grouped as other and historical coverage is partial. Each build publishes the share of all vehicles that carry a named model."
+      "help": "The nameplate, as brand and model. Only the models with the most registrations over the trailing 12 months keep their name; the rest are grouped as other. The cap is in this dimension's derive block and every build publishes it. Never use submodel, which is free text.",
+      "note_template": "Only the {dataset.model_cap.model.cap} models with the most registrations in the trailing {dataset.coverage_trailing.window_months} months are named, so older months are mostly grouped as other and historical coverage is partial. Named models cover {dataset.model_cap.model.coverage_trailing|pct} of trailing volume and {dataset.model_cap.model.coverage_all_time|pct} of all-time volume."
     }
   ],
   "periods": [
