@@ -17,8 +17,11 @@
       "shape": "mix",
       "help": "This group as a percentage of the total for the same month.",
       "guards": {
+        "$comment": "Two guards, against two different failures. They are not redundant: see docs/METRICS.md, Two suppression guards.",
         "min_denominator": 200,
-        "$comment": "Below this, the share is suppressed and rendered as a greyed band. Stops early BEV percentages from looking like noise."
+        "$min_denominator_comment": "A precision floor. Below this the share is too imprecise to draw, and it is what covers the sparse pre-1990 history.",
+        "min_share_of_trailing_median": 0.33,
+        "$min_share_of_trailing_median_comment": "A representativeness floor. A month whose denominator collapses below this fraction of the median of the 12 months before it is not a small sample of a normal month, it is a different population, however precise its percentages are. Any value from 0.2 to 0.5 selects the same single month in the whole series, so the figure is not finely tuned; 0.33 sits well clear of normal seasonality, whose 1st percentile is 0.29."
       }
     },
     {

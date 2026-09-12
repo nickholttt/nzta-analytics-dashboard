@@ -38,12 +38,59 @@ scope flag; they never reach the cube.
 | Measure | Definition |
 |---|---|
 | Count | Number of vehicles matching the filters in the period. |
-| Share | Count ÷ count of all vehicles in the same dataset and month. Suppressed when the denominator is under 200. |
+| Share | Count ÷ count of all vehicles in the same dataset and month. Suppressed by both guards below. |
 | Change on a year ago | (this month − same month last year) ÷ same month last year. Suppressed when the base is under 50. |
 | 12-month running total | Sum of the trailing 12 months inclusive of the current month. |
 
 **Share changes are always expressed in percentage points.** 10% to 15% is
 +5pp. Enforce in the formatter, not per chart.
+
+### Two suppression guards
+
+A share is suppressed when **either** guard trips. They look similar and
+they are not redundant. Anyone tempted to collapse them into one should
+read this section first.
+
+**The precision floor — denominator under 200.** Below this the month has
+too few vehicles for a percentage to mean anything, and each further
+vehicle moves the figure visibly. It is also what covers the sparse early
+history: 493 of the 1,195 months in `registrations_surviving` sit under
+200, almost all of them before 1990.
+
+**The representativeness floor — denominator under a third of the median
+of the 12 months before it.** A month can clear the precision floor
+comfortably and still describe a different population from the months
+either side of it.
+
+The reference case is April 2020, NZ's level-4 lockdown, and it is the
+only month in the whole series that collapses this way while clearing
+200. Its denominator was 1,542 against a trailing median of 22,108, down
+93%. Hyundai Motor Group shows 16.9% in that month against a 4.5–7.5%
+band either side.
+
+**That 16.9% is not noise, and this is the point of the second guard.**
+At n = 261 of 1,542 the binomial standard error is 0.95pp, so the reading
+sits about eleven standard errors above normal. Precision was never the
+problem. The problem is that the ~7% of registrations that happened under
+a level-4 lockdown were not a small random sample of a normal month:
+
+| | April 2020 | months either side |
+|---|---|---|
+| NZ New | 63.6% | ~51% |
+| Trucks | 6.8% | ~2.3% |
+| Vans | 6.2% | ~4.5% |
+
+Essential-goods vehicles, not a market. Every percentage in that month is
+precisely measured and describes a population no reader is asking about.
+A precision guard cannot see this, because there is nothing imprecise
+about it; only a guard that compares the month against its own recent
+history can.
+
+The fraction is not finely tuned. Every threshold from 0.2 to 0.5 selects
+exactly the same single month across all 1,195, so the choice is
+insensitive; 0.33 sits well clear of ordinary seasonal variation, whose
+1st percentile is 0.29. Both figures live in `config/measures.json` and
+are applied in the browser, so neither needs a rebuild to change.
 
 ## Derived measures
 
