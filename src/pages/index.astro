@@ -1,7 +1,9 @@
 ---
 import PresetPanel from "../components/PresetPanel";
+import PresetTriage from "../components/PresetTriage";
 
-// Which presets this local reference page shows. Everything else about each chart comes from config/.
+// Which presets this local reference page draws. Everything else about each chart comes from config/.
+// The triage table below covers the whole canon, drawn or not.
 const sections = [
   { id: "market-share", title: "1. Market share", presets: ["brand-share", "parent-group-share"] },
   { id: "powertrain-adoption", title: "2. Powertrain adoption", presets: ["powertrain-mix"] },
@@ -21,6 +23,7 @@ const sections = [
       .meta { color: #666; font-size: 12px; }
       .blocked { background: #fdecea; border-left: 4px solid #c0392b; padding: 8px 12px; margin: 8px 0; }
       .warning { background: #fff6e0; border-left: 4px solid #e6a100; padding: 8px 12px; margin: 8px 0; }
+      .curated { background: #f1eefb; border-left: 4px solid #7a5af5; padding: 8px 12px; margin: 8px 0; }
       .scaffold { background: #eef3fb; border: 1px dashed #4e79a7; padding: 24px; margin: 8px 0; text-align: center; }
       .notes { color: #444; font-size: 13px; }
       .summary { border-collapse: collapse; font-size: 12px; margin: 8px 0; }
@@ -29,6 +32,16 @@ const sections = [
       .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 4px; }
       .events { font-size: 12px; }
       .events .event { display: block; }
+      .controls { display: flex; flex-wrap: wrap; align-items: baseline; gap: 14px; margin: 4px 0 2px; }
+      .controls label { font-size: 12px; white-space: nowrap; }
+      .badge { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 1px 6px; border-radius: 3px; vertical-align: middle; }
+      .badge.live { background: #e6f4ea; color: #1e7a3c; }
+      .badge.blocked { background: #fdecea; color: #a3271b; }
+      .badge.invalid { background: #fbe3f2; color: #97176c; }
+      .triage { border-collapse: collapse; width: 100%; font-size: 12px; margin: 12px 0; }
+      .triage th, .triage td { border-top: 1px solid #e2e2e2; padding: 7px 8px; text-align: left; vertical-align: top; }
+      .triage ul { margin: 0; padding-left: 16px; }
+      .triage tr.live { color: #555; }
     </style>
   </head>
   <body>
@@ -44,6 +57,13 @@ const sections = [
           </section>
         ))
       }
+      <section id="triage">
+        <h2>4. The whole canon</h2>
+        <p>Every preset in <code>config/presets.json</code>, its authored status, and what each one that
+          cannot render yet is waiting on. Authored statuses are cross-checked against what this build
+          actually resolves.</p>
+        <PresetTriage client:only="react" />
+      </section>
     </main>
   </body>
 </html>
