@@ -251,19 +251,33 @@
   "periods": [
     {
       "id": "all",
-      "label": "All time"
+      "label": "All time",
+      "$comment": "No months: runs from the dataset's first month to the latest snapshot."
     },
     {
       "id": "10y",
-      "label": "Last 10 years"
+      "label": "Last 10 years",
+      "months": 120
     },
     {
       "id": "5y",
-      "label": "Last 5 years"
+      "label": "Last 5 years",
+      "months": 60
     },
     {
       "id": "3y",
-      "label": "Last 3 years"
+      "label": "Last 3 years",
+      "months": 36
+    },
+    {
+      "id": "latest_year",
+      "label": "Last 12 months",
+      "months": 12
+    },
+    {
+      "id": "latest_month",
+      "label": "Latest month",
+      "months": 1
     }
   ],
   "rules": {

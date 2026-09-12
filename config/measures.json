@@ -50,6 +50,48 @@
   },
   "derived_measures": [
     {
+      "$comment": "Every derived measure a preset names must appear here, or the preset cannot be resolved. docs/METRICS.md holds the prose definition; this list is the vocabulary.",
+      "id": "top_5_share",
+      "label": "the combined share of the five largest",
+      "formula": "SUM(n) OVER (top 5 dim_value by n in the month) / SUM(n) OVER (PARTITION BY month)",
+      "unit": "percent",
+      "shape": "trend",
+      "note": "Membership is recomputed every month, so the line measures concentration rather than the fortunes of a fixed five.",
+      "guards": {
+        "min_denominator": 200
+      }
+    },
+    {
+      "id": "cohort_survival",
+      "label": "the share still on the road",
+      "formula": "survivors(C, t) / survivors(C, t0)",
+      "unit": "percent",
+      "shape": "trend",
+      "applies_to": [
+        "fleet"
+      ],
+      "snapshots_needed": 2,
+      "note": "Of the vehicles first registered in cohort C, the share still registered at a later snapshot, against the first snapshot in which the cohort was observed. Computed from the archived aggregates in data/snapshots/, never by joining vehicles: the register carries no stable vehicle identity. Every figure states its base and its first observed snapshot."
+    },
+    {
+      "id": "mean_fleet_age",
+      "label": "the average age of the fleet",
+      "formula": "MEAN(snapshot_year - vehicle_year), volume-weighted",
+      "unit": "years",
+      "applies_to": [
+        "fleet"
+      ],
+      "note": "Report the median alongside the mean. The distribution has a long tail and the mean alone misleads."
+    },
+    {
+      "id": "per_capita",
+      "label": "registrations per 1,000 residents",
+      "formula": "SUM(n) / (population / 1000)",
+      "unit": "vehicles per 1,000 residents",
+      "requires_reference": "population.csv",
+      "note": "Stats NZ subnational population estimates, a separate reference file with its own vintage. Label the estimate year on the chart."
+    },
+    {
       "id": "median_import_age",
       "label": "the typical age of used imports",
       "formula": "MEDIAN(registration_year - vehicle_year) WHERE import_status = 'Used Import'",
