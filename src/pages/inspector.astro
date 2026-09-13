@@ -1,0 +1,15 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DataInspector from "../components/DataInspector";
+---
+
+<Layout title="Data & Market Inspector" activeNav="inspector">
+  <Fragment slot="masthead">
+    <h1>Data & Market Inspector</h1>
+    <p class="standfirst">
+      Verifying how administrative records in the NZTA Motor Vehicle Register are interpreted, why statutory body types differ from commercial marketing segments (the SUV reality), and the coalface truth of New Zealand's commercial ute market.
+    </p>
+  </Fragment>
+
+  <DataInspector client:only="react" />
+</Layout>

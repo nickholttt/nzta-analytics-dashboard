@@ -4,7 +4,7 @@ import manifest from "../../public/data/manifest.json";
 
 interface Props {
   title: string;
-  activeNav: "explore" | "method" | "caveats";
+  activeNav: "explore" | "method" | "caveats" | "inspector";
 }
 
 const { title, activeNav } = Astro.props;
@@ -25,7 +25,7 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
       <header class="masthead">
         <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
           <p class="eyebrow" style="margin: 0;">Snapshot {snapshot}</p>
-          <nav class="site-nav" aria-label="Main navigation" style="display: flex; gap: var(--space-4);">
+          <nav class="site-nav" aria-label="Main navigation" style="display: flex; gap: var(--space-4); flex-wrap: wrap;">
             <a
               href="/"
               class="meta"
@@ -46,6 +46,13 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
               style={`text-decoration: none; font-weight: ${activeNav === "caveats" ? "600" : "400"}; border-bottom: ${activeNav === "caveats" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "caveats" ? "var(--ink)" : "var(--ink-2)"};`}
             >
               Data Caveats
+            </a>
+            <a
+              href="/inspector"
+              class="meta"
+              style={`text-decoration: none; font-weight: ${activeNav === "inspector" ? "600" : "400"}; border-bottom: ${activeNav === "inspector" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "inspector" ? "var(--ink)" : "var(--ink-2)"};`}
+            >
+              Data Inspector
             </a>
           </nav>
         </div>

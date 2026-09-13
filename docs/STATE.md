@@ -43,13 +43,20 @@ see these files where the UI work happens. Nothing was pushed.
   - Added copyable permalinks (`#`) next to question titles with temporary "Copied link!" feedback badge and `:target` highlight focus outline.
   - Mobile polish: responsive leader suppression in `MixChart.tsx` on narrow viewports (<540px) allowing full-width line plots, 38px touch targets for segmented radio toggles and navigation, table horizontal scrolling on mobile, and responsive typography.
   - Verified end-to-end on both mobile (390x844) and desktop (1280x800) viewports via Chrome DevTools MCP with screenshot validations.
+- **Data & Market Inspector (`/inspector`)**: Done (2026-09-13).
+  - Built interactive inspector (`src/pages/inspector.astro` and `src/components/DataInspector.tsx`) powered by static extraction `src/data/inspector_data.json` from the 5.9M row register.
+  - Empirical verification of the "SUV Claim": Proves 0 rows in NZTA MVR have `body_type = 'SUV'`. Over 98% of popular SUVs (Toyota RAV4 98.9%, Outlander 99.6%, CX-5 98.2%, Highlander 100%) are recorded as `STATION WAGON` due to statutory Land Transport Rule physical geometry rules. Confirms that deriving an SUV segment requires a model-level taxonomy.
+  - Coalface Ute Battle: Proves that Ford Ranger has beaten Toyota Hilux in new registrations every single year from 2015 to 2026 (e.g. 2021: 12,022 vs 6,951; 2024: 11,617 vs 5,930), explaining why industry experts demand segment separation (Passenger vs Commercial).
+  - Added `Data Inspector` to global navigation in `Layout.astro` and linked from `caveats.astro`.
+  - Clean Astro build (4 static HTML pages) verified in browser.
 
 ## In progress
 
-- **UI exploration completed on `ui/explore`**. All 5 UI steps from the user's roadmap are completed and verified.
+- **UI exploration completed on `ui/explore`**. All UI pages, tools, and verifications completed.
   Files touched across the UI steps:
   - `src/lib/url.ts`, `src/components/PresetPanel.tsx`, `src/components/MixChart.tsx`, `src/styles/site.css`
-  - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`, `src/pages/index.astro`
+  - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`, `src/pages/index.astro`, `src/pages/inspector.astro`
+  - `src/components/DataInspector.tsx`, `src/data/inspector_data.json`
   - `config/presets.json`, `src/lib/config.ts`
 - **POST_GATE.md reorder**. Written by claude at the user's direction; committed on
   `ui/explore` at the user's request on 2026-09-13:
@@ -58,7 +65,7 @@ see these files where the UI work happens. Nothing was pushed.
 
 ## Next up
 
-1. User review of the completed UI on `ui/explore`.
+1. User review of the completed UI and Data Inspector on `ui/explore`.
 2. Await 8 October 2026 scheduled run check (`docs/playbooks/check-monthly-run.md`).
 
 Findings already reported to the user (2026-09-13), for the UI steps:
