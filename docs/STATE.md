@@ -37,17 +37,20 @@ see these files where the UI work happens. Nothing was pushed.
   - Created `/caveats` (`src/pages/caveats.astro`) covering registration vs sale (MIA differences), survivor bias, 2007 `vehicle_year` break, what TLA means, why regional view was cut, "Built in" vs "Brand nationality", and mild hybrid coverage limits.
   - Added prose typography tokens and table styles to `src/styles/site.css`.
   - Verified clean Astro build (3 static HTML pages) and browser verification via Chrome DevTools MCP.
+- **UI steps 4 & 5 ("URL state & deep linking" & "Mobile and touch polish")**: Done (2026-09-13).
+  - Created `src/lib/url.ts` supporting bidirectional parameter synchronization (scoped `<presetId>.<option>` and active anchor `<option>`) without page reload via `history.replaceState`.
+  - Wired `PresetPanel.tsx` granularity toggle (`make` vs `parent_group`) and `MixChart.tsx` controls (`smoothing`: `monthly` vs `rolling_12m`, `range`: `default` vs `all`) to URL query parameters and anchors.
+  - Added copyable permalinks (`#`) next to question titles with temporary "Copied link!" feedback badge and `:target` highlight focus outline.
+  - Mobile polish: responsive leader suppression in `MixChart.tsx` on narrow viewports (<540px) allowing full-width line plots, 38px touch targets for segmented radio toggles and navigation, table horizontal scrolling on mobile, and responsive typography.
+  - Verified end-to-end on both mobile (390x844) and desktop (1280x800) viewports via Chrome DevTools MCP with screenshot validations.
 
 ## In progress
 
-- **UI step 4 of 5, URL State & Deep Linking**. Owner: gemini, at the user's direction.
-  Files touched in UI steps:
-  - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`
-  - `config/presets.json`, `src/lib/config.ts`, `src/components/PresetPanel.tsx`, `src/pages/index.astro`
-  - `src/components/DistributionChart.tsx`, `EventList.tsx`, `MixChart.tsx`, `PlotFigure.tsx`,
-    `PresetTriage.tsx`, `TrendChart.tsx`
-  - `src/lib/measures.ts`, `src/lib/theme.ts`, `src/styles/site.css`
-  - `package.json`, `package-lock.json`
+- **UI exploration completed on `ui/explore`**. All 5 UI steps from the user's roadmap are completed and verified.
+  Files touched across the UI steps:
+  - `src/lib/url.ts`, `src/components/PresetPanel.tsx`, `src/components/MixChart.tsx`, `src/styles/site.css`
+  - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`, `src/pages/index.astro`
+  - `config/presets.json`, `src/lib/config.ts`
 - **POST_GATE.md reorder**. Written by claude at the user's direction; committed on
   `ui/explore` at the user's request on 2026-09-13:
   inserts A2 (step 1b `registrations_flow` as the unlock for cohort survival) and renumbers the
@@ -55,10 +58,8 @@ see these files where the UI work happens. Nothing was pushed.
 
 ## Next up
 
-User's order on `ui/explore`, one step at a time, each stop-and-show:
-
-1. URL state: anchors plus chart options (preset selection, granularity, smoothing).
-2. Mobile polish & touch optimization.
+1. User review of the completed UI on `ui/explore`.
+2. Await 8 October 2026 scheduled run check (`docs/playbooks/check-monthly-run.md`).
 
 Findings already reported to the user (2026-09-13), for the UI steps:
 

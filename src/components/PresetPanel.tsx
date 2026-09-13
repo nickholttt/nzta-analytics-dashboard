@@ -6,6 +6,7 @@ import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { resolvePreset } from "../lib/resolve";
+import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { MixChart } from "./MixChart";
 import { TrendChart } from "./TrendChart";
@@ -21,13 +22,36 @@ const RESERVED_LABELS: Record<string, string> = {
 // lead: one of the charts that carries the page. Larger heading, taller plot; nothing else differs.
 export default function PresetPanel({ presetId, lead = false }: { presetId: string; lead?: boolean }) {
   const preset = findPreset(presetId);
-  const [activeGranularityId, setActiveGranularityId] = useState<string | null>(
-    preset?.granularity_options?.[0]?.id ?? null,
-  );
+  const defaultGranularityId = preset?.granularity_options?.[0]?.id ?? null;
+  const [activeGranularityId, setActiveGranularityId] = useState<string | null>(() => {
+    if (!defaultGranularityId || typeof window === "undefined") return defaultGranularityId;
+    const fromUrl = getParam(presetId, "granularity", defaultGranularityId);
+    return preset?.granularity_options?.some((g) => g.id === fromUrl) ? fromUrl : defaultGranularityId;
+  });
+  const [copied, setCopied] = useState(false);
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const handleGranularityChange = (newId: string) => {
+    setActiveGranularityId(newId);
+    if (defaultGranularityId) {
+      setParam(presetId, "granularity", newId, defaultGranularityId);
+    }
+  };
+
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      const shareUrl = getShareableUrl(presetId);
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+      window.history.replaceState(null, "", `#${presetId}`);
+    }
+  };
 
   const activeGranularity = useMemo(() => {
     if (!preset?.granularity_options) return null;
@@ -142,7 +166,17 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
       <header className="panel-head">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h3 className="panel-question">
-          {preset.question}
+          <a
+            href={`#${preset.id}`}
+            className="panel-anchor"
+            onClick={handleCopyLink}
+            title="Click to copy permalink"
+            aria-label={`Copy link to ${preset.question}`}
+          >
+            #
+          </a>
+          <span>{preset.question}</span>
+          {copied ? <span className="badge copied">Copied link!</span> : null}
           {status !== "live" ? (
             <>
               {" "}
@@ -162,7 +196,7 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
                   type="radio"
                   name={`granularity-${preset.id}`}
                   checked={activeGranularity?.id === opt.id}
-                  onChange={() => setActiveGranularityId(opt.id)}
+                  onChange={() => handleGranularityChange(opt.id)}
                 />{" "}
                 {opt.label}
               </label>

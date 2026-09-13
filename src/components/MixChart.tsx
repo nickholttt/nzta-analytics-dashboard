@@ -39,6 +39,7 @@ import {
   tipStyle,
   xTicks,
 } from "../lib/theme";
+import { getParam, setParam } from "../lib/url";
 import { EventList } from "./EventList";
 import { PlotFigure } from "./PlotFigure";
 
@@ -68,8 +69,27 @@ type Props = {
 
 export function MixChart({ preset, dimension, rows, manifest, events, minDenominator, collapseFraction, label, lead = false }: Props) {
   const [showUnscoped, setShowUnscoped] = useState(false);
-  const [smoothing, setSmoothing] = useState(preset.smoothing ?? chartDefaults.mix_smoothing);
-  const [allTime, setAllTime] = useState(false);
+  const defaultSmoothing = preset.smoothing ?? chartDefaults.mix_smoothing;
+  const [smoothing, setSmoothing] = useState<string>(() => {
+    if (typeof window === "undefined") return defaultSmoothing;
+    const fromUrl = getParam(preset.id, "smoothing", defaultSmoothing);
+    return chartDefaults.mix_smoothing_options.some((o) => o.id === fromUrl) ? fromUrl : defaultSmoothing;
+  });
+  const [allTime, setAllTime] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return getParam(preset.id, "range", "default") === "all";
+  });
+
+  const handleSmoothingChange = (newSmoothing: string) => {
+    setSmoothing(newSmoothing);
+    setParam(preset.id, "smoothing", newSmoothing, defaultSmoothing);
+  };
+
+  const handleAllTimeChange = (isAllTime: boolean) => {
+    setAllTime(isAllTime);
+    setParam(preset.id, "range", isAllTime ? "all" : "default", "default");
+  };
+
   const latest = manifest.latest_snapshot.slice(0, 7);
   const rolling = smoothing === ROLLING;
   const smoothingOption = chartDefaults.mix_smoothing_options.find((o) => o.id === smoothing);
@@ -242,14 +262,18 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       const announced = eventsShown.filter((e) => e.announced_date).map((e) => ({ x: new Date(e.announced_date as string) }));
 
       // End labels: series with their own colour and the remainder. Context series beyond the palette
-      // are named in the key and on hover instead, so a pile of near-zero lines does not bury the labels
-      // that matter.
-      const ends = model.series
-        .filter((s) => s === ALL_OTHER || ownColour(s))
-        .map((s) => [...model.points].reverse().find((p) => p.series === s && p.share !== undefined && !p.suppressed))
-        .filter((p): p is Point => Boolean(p));
-      const longest = Math.max(0, ...ends.map((p) => label(p.series).length));
-      const marginRight = Math.min(230, 20 + LEADER_PX + longest * 6.8);
+      // End labels: series with their own colour and the remainder. On narrow screens (<540px),
+      // leaders and labels are omitted so the plot has full width for the data lines; the key table
+      // immediately below identifies every series with swatches and trailing numbers.
+      const showDirectLabels = width >= 540;
+      const ends = showDirectLabels
+        ? model.series
+            .filter((s) => s === ALL_OTHER || ownColour(s))
+            .map((s) => [...model.points].reverse().find((p) => p.series === s && p.share !== undefined && !p.suppressed))
+            .filter((p): p is Point => Boolean(p))
+        : [];
+      const longest = showDirectLabels ? Math.max(0, ...ends.map((p) => label(p.series).length)) : 0;
+      const marginRight = showDirectLabels ? Math.min(230, 20 + LEADER_PX + longest * 6.8) : 16;
       const innerHeight = height - marginTop - MARGIN_BOTTOM;
       const innerWidth = width - MARGIN_LEFT - marginRight;
 
@@ -272,6 +296,13 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       const drawn = model.points.map((p) => (p.suppressed ? { ...p, share: undefined } : p));
       const ownColourPoints = drawn.filter((p) => ownColour(p.series));
       const contextPoints = drawn.filter((p) => !ownColour(p.series));
+      const labelMarks = showDirectLabels
+        ? [
+            Plot.link(labels, { x1: "date", y1: "share", x2: () => labelX, y2: "labelY", stroke: RULE_STRONG }),
+            Plot.dot(labels, { x: "date", y: "share", r: 3.5, fill: "series", stroke: PAPER, strokeWidth: 1.5 }),
+            Plot.text(labels, { x: () => labelX, y: "labelY", text: (p: Point) => label(p.series), textAnchor: "start", dx: 4, fill: INK_2 }),
+          ]
+        : [];
 
       return Plot.plot({
         width,
@@ -327,9 +358,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
             strokeLinejoin: "round",
             strokeLinecap: "round",
           }),
-          Plot.link(labels, { x1: "date", y1: "share", x2: () => labelX, y2: "labelY", stroke: RULE_STRONG }),
-          Plot.dot(labels, { x: "date", y: "share", r: 3.5, fill: "series", stroke: PAPER, strokeWidth: 1.5 }),
-          Plot.text(labels, { x: () => labelX, y: "labelY", text: (p: Point) => label(p.series), textAnchor: "start", dx: 4, fill: INK_2 }),
+          ...labelMarks,
           Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: RULE_STRONG })),
           Plot.dot(
             model.points.filter((p) => p.share !== undefined),
@@ -359,18 +388,24 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
         {model.defaultStart ? (
           <div className="toggle" role="radiogroup" aria-label="Time range">
             <label>
-              <input type="radio" name={`range-${preset.id}`} checked={!allTime} onChange={() => setAllTime(false)} /> From{" "}
+              <input type="radio" name={`range-${preset.id}`} checked={!allTime} onChange={() => handleAllTimeChange(false)} /> From{" "}
               {monthLabel(model.defaultStart)}
             </label>
             <label>
-              <input type="radio" name={`range-${preset.id}`} checked={allTime} onChange={() => setAllTime(true)} /> All time
+              <input type="radio" name={`range-${preset.id}`} checked={allTime} onChange={() => handleAllTimeChange(true)} /> All time
             </label>
           </div>
         ) : null}
         <div className="toggle" role="radiogroup" aria-label="Smoothing">
           {chartDefaults.mix_smoothing_options.map((o) => (
             <label key={o.id}>
-              <input type="radio" name={`smoothing-${preset.id}`} checked={smoothing === o.id} onChange={() => setSmoothing(o.id)} /> {o.label}
+              <input
+                type="radio"
+                name={`smoothing-${preset.id}`}
+                checked={smoothing === o.id}
+                onChange={() => handleSmoothingChange(o.id)}
+              />{" "}
+              {o.label}
             </label>
           ))}
         </div>
