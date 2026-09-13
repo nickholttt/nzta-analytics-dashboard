@@ -4253,16 +4253,508 @@
           "pct": 0.0
         },
         {
-          "powertrain": "CNG",
+          "powertrain": "LPG",
           "n": 3,
           "pct": 0.0
         },
         {
-          "powertrain": "LPG",
+          "powertrain": "CNG",
           "n": 3,
           "pct": 0.0
         }
       ]
     }
-  }
+  },
+  "international_benchmark": [
+    {
+      "id": "usa",
+      "country": "USA",
+      "flag": "\ud83c\uddfa\ud83c\uddf8",
+      "population": "340M",
+      "population_num": 340000000,
+      "brands": 38,
+      "units": "16M",
+      "units_num": 16000000,
+      "units_per_brand": 420000,
+      "brands_per_million": 0.11,
+      "units_per_1000_pop": 47.1,
+      "scale_vs_nz": "258x",
+      "dealer_model": "Franchise protected by strict state franchise laws; highly consolidated OEM portfolios",
+      "dynamics": "Extreme scale efficiency. Average brand sells 420,000 cars/year, supporting massive dedicated dealer footprints."
+    },
+    {
+      "id": "china",
+      "country": "CHINA",
+      "flag": "\ud83c\udde8\ud83c\uddf3",
+      "population": "1.4B",
+      "population_num": 1400000000,
+      "brands": 155,
+      "units": "31M",
+      "units_num": 31000000,
+      "units_per_brand": 200000,
+      "brands_per_million": 0.11,
+      "units_per_1000_pop": 22.1,
+      "scale_vs_nz": "123x",
+      "dealer_model": "Direct-to-consumer mixed with agency mall stores and traditional dealer networks",
+      "dynamics": "World's largest market. Fierce domestic EV price war with 155 brands, yet high national volume yields 200,000 units/brand."
+    },
+    {
+      "id": "japan",
+      "country": "JAPAN",
+      "flag": "\ud83c\uddef\ud83c\uddf5",
+      "population": "124M",
+      "population_num": 124000000,
+      "brands": 49,
+      "units": "3.7M",
+      "units_num": 3700000,
+      "units_per_brand": 76000,
+      "brands_per_million": 0.4,
+      "units_per_1000_pop": 29.8,
+      "scale_vs_nz": "46x",
+      "dealer_model": "Exclusive domestic OEM dealer sales channels (e.g. Toyota Mobility Tokyo)",
+      "dynamics": "Over 90% domestic OEM dominance (Toyota, Honda, Suzuki, Daihatsu). High Kei-car share creates disciplined brand consolidation."
+    },
+    {
+      "id": "australia",
+      "country": "AUSTRALIA",
+      "flag": "\ud83c\udde6\ud83c\uddfa",
+      "population": "27M",
+      "population_num": 27000000,
+      "brands": 74,
+      "units": "1.2M",
+      "units_num": 1200000,
+      "units_per_brand": 16000,
+      "brands_per_million": 2.74,
+      "units_per_1000_pop": 44.4,
+      "scale_vs_nz": "10x",
+      "dealer_model": "Multi-franchise dealer networks with OEM factory subsidiaries",
+      "dynamics": "Open right-hand drive import market like NZ, but 9x the sales volume enables sustainable regional dealer networks."
+    },
+    {
+      "id": "new_zealand",
+      "country": "NEW ZEALAND",
+      "flag": "\ud83c\uddf3\ud83c\uddff",
+      "population": "5M",
+      "population_num": 5300000,
+      "brands": 82,
+      "units": "134K",
+      "units_per_brand": 1632,
+      "brands_per_million": 15.47,
+      "units_per_1000_pop": 25.2,
+      "scale_vs_nz": "1x",
+      "dealer_model": "Independent private distributors (Giltrap, Armstrong's, Inchcape) & multi-brand dealerships",
+      "dynamics": "The world's most fragmented vehicle market. Zero import tariffs, open RHD homologation, and EV testbed status mean 82+ brands battle over 134k registrations."
+    }
+  ],
+  "nz_complexity_timeline": [
+    {
+      "year": 2015,
+      "brands_count": 66,
+      "total_units": 118932,
+      "avg_units": 1802,
+      "median_units": 250,
+      "brands_100_plus": 43,
+      "brands_1000_plus": 18,
+      "hhi": 847,
+      "top3_share": 40.5,
+      "top5_share": 54.8,
+      "top10_share": 77.0
+    },
+    {
+      "year": 2016,
+      "brands_count": 64,
+      "total_units": 131791,
+      "avg_units": 2059,
+      "median_units": 330,
+      "brands_100_plus": 41,
+      "brands_1000_plus": 20,
+      "hhi": 819,
+      "top3_share": 39.8,
+      "top5_share": 54.3,
+      "top10_share": 77.2
+    },
+    {
+      "year": 2017,
+      "brands_count": 64,
+      "total_units": 145600,
+      "avg_units": 2275,
+      "median_units": 261,
+      "brands_100_plus": 45,
+      "brands_1000_plus": 20,
+      "hhi": 859,
+      "top3_share": 40.1,
+      "top5_share": 55.4,
+      "top10_share": 77.8
+    },
+    {
+      "year": 2018,
+      "brands_count": 64,
+      "total_units": 149010,
+      "avg_units": 2328,
+      "median_units": 317,
+      "brands_100_plus": 45,
+      "brands_1000_plus": 20,
+      "hhi": 840,
+      "top3_share": 38.5,
+      "top5_share": 54.3,
+      "top10_share": 77.0
+    },
+    {
+      "year": 2019,
+      "brands_count": 64,
+      "total_units": 144474,
+      "avg_units": 2257,
+      "median_units": 412,
+      "brands_100_plus": 46,
+      "brands_1000_plus": 19,
+      "hhi": 814,
+      "top3_share": 37.8,
+      "top5_share": 53.0,
+      "top10_share": 76.4
+    },
+    {
+      "year": 2020,
+      "brands_count": 62,
+      "total_units": 112721,
+      "avg_units": 1818,
+      "median_units": 392,
+      "brands_100_plus": 44,
+      "brands_1000_plus": 20,
+      "hhi": 734,
+      "top3_share": 36.6,
+      "top5_share": 50.4,
+      "top10_share": 74.1
+    },
+    {
+      "year": 2021,
+      "brands_count": 63,
+      "total_units": 157557,
+      "avg_units": 2501,
+      "median_units": 502,
+      "brands_100_plus": 47,
+      "brands_1000_plus": 25,
+      "hhi": 781,
+      "top3_share": 40.7,
+      "top5_share": 52.7,
+      "top10_share": 73.5
+    },
+    {
+      "year": 2022,
+      "brands_count": 67,
+      "total_units": 158056,
+      "avg_units": 2359,
+      "median_units": 503,
+      "brands_100_plus": 48,
+      "brands_1000_plus": 24,
+      "hhi": 800,
+      "top3_share": 41.7,
+      "top5_share": 53.8,
+      "top10_share": 72.9
+    },
+    {
+      "year": 2023,
+      "brands_count": 66,
+      "total_units": 143826,
+      "avg_units": 2179,
+      "median_units": 487,
+      "brands_100_plus": 49,
+      "brands_1000_plus": 26,
+      "hhi": 861,
+      "top3_share": 41.9,
+      "top5_share": 54.0,
+      "top10_share": 72.1
+    },
+    {
+      "year": 2024,
+      "brands_count": 72,
+      "total_units": 123793,
+      "avg_units": 1719,
+      "median_units": 309,
+      "brands_100_plus": 48,
+      "brands_1000_plus": 21,
+      "hhi": 1020,
+      "top3_share": 48.9,
+      "top5_share": 60.0,
+      "top10_share": 74.9
+    },
+    {
+      "year": 2025,
+      "brands_count": 82,
+      "total_units": 133795,
+      "avg_units": 1632,
+      "median_units": 262,
+      "brands_100_plus": 52,
+      "brands_1000_plus": 23,
+      "hhi": 965,
+      "top3_share": 46.0,
+      "top5_share": 56.3,
+      "top10_share": 72.7
+    },
+    {
+      "year": 2026,
+      "brands_count": 84,
+      "total_units": 93367,
+      "avg_units": 1112,
+      "median_units": 248,
+      "brands_100_plus": 53,
+      "brands_1000_plus": 20,
+      "hhi": 791,
+      "top3_share": 40.0,
+      "top5_share": 51.9,
+      "top10_share": 67.2
+    }
+  ],
+  "brand_pyramid": {
+    "year": 2025,
+    "total_market": 133795,
+    "total_brands": 82,
+    "tiers": [
+      {
+        "tier": 1,
+        "name": "Market Anchors",
+        "threshold": "\u2265 10,000 units/yr",
+        "brands_count": 3,
+        "total_units": 61570,
+        "share_pct": 46.0,
+        "avg_units": 20523,
+        "brands": [
+          "TOYOTA",
+          "FORD",
+          "MITSUBISHI"
+        ],
+        "description": "Mass-market giants that anchor multi-site dealership groups across both North and South islands."
+      },
+      {
+        "tier": 2,
+        "name": "Mainstream Volume",
+        "threshold": "3,000 \u2013 9,999 units/yr",
+        "brands_count": 8,
+        "total_units": 39338,
+        "share_pct": 29.4,
+        "avg_units": 4917,
+        "brands": [
+          "KIA",
+          "SUZUKI",
+          "MAZDA",
+          "NISSAN",
+          "HYUNDAI",
+          "MG",
+          "BYD",
+          "HONDA"
+        ],
+        "description": "Established volume Japanese & Korean brands alongside fast-rising Chinese disruptors (MG, BYD)."
+      },
+      {
+        "tier": 3,
+        "name": "Established Specialists & Luxury",
+        "threshold": "1,000 \u2013 2,999 units/yr",
+        "brands_count": 12,
+        "total_units": 20007,
+        "share_pct": 15.0,
+        "avg_units": 1667,
+        "brands": [
+          "HAVAL",
+          "SUBARU",
+          "VOLKSWAGEN",
+          "ISUZU",
+          "MERCEDES-BENZ",
+          "BMW",
+          "TESLA",
+          "LEXUS",
+          "AUDI",
+          "LDV",
+          "LAND ROVER",
+          "CHERY"
+        ],
+        "description": "German premium stalwarts, 4WD/AWD niche leaders (Subaru, Isuzu), and high-profile EV brands (Tesla)."
+      },
+      {
+        "tier": 4,
+        "name": "Boutique & New Entrants",
+        "threshold": "200 \u2013 999 units/yr",
+        "brands_count": 22,
+        "total_units": 10930,
+        "share_pct": 8.2,
+        "avg_units": 497,
+        "brands": [
+          "JAECOO",
+          "SKODA",
+          "MINI",
+          "OMODA",
+          "VOLVO",
+          "FUSO",
+          "GWM",
+          "PEUGEOT",
+          "HINO",
+          "PORSCHE",
+          "TANK",
+          "POLESTAR",
+          "KGM",
+          "CUPRA",
+          "MAHINDRA",
+          "SCANIA",
+          "LEAPMOTOR",
+          "JEEP",
+          "GEELY",
+          "RAM",
+          "CHEVROLET",
+          "RENAULT"
+        ],
+        "description": "European prestige, performance badges (Porsche, Cupra), and newly arrived Chinese challenger brands (Jaecoo, Omoda)."
+      },
+      {
+        "tier": 5,
+        "name": "The Long Tail",
+        "threshold": "< 200 units/yr",
+        "brands_count": 37,
+        "total_units": 1950,
+        "share_pct": 1.5,
+        "avg_units": 53,
+        "brands": [
+          "KENWORTH",
+          "JAGUAR",
+          "IVECO",
+          "JAC",
+          "DAF",
+          "UD TRUCKS",
+          "FOTON",
+          "FIAT",
+          "ALFA ROMEO",
+          "DONGFENG",
+          "ZEEKR",
+          "ORA",
+          "INEOS",
+          "ASTON MARTIN",
+          "GMC",
+          "MASERATI",
+          "OPEL",
+          "LAMBORGHINI",
+          "FERRARI",
+          "CITROEN",
+          "BENTLEY",
+          "MAN",
+          "ABARTH",
+          "SMART",
+          "FARIZON",
+          "MACK",
+          "FREIGHTLINER",
+          "INTERNATIONAL",
+          "CADILLAC",
+          "LOTUS",
+          "ROLLS-ROYCE",
+          "MCLAREN",
+          "BAIC",
+          "GENESIS",
+          "XPENG",
+          "DENZA",
+          "FORTHING"
+        ],
+        "description": "Commercial truck builders, exotic supercars, or struggling niche marques averaging ~1 sale per week nationally."
+      }
+    ]
+  },
+  "new_entrants": [
+    {
+      "make": "BYD",
+      "first_year": 2022,
+      "units_recent": 14682,
+      "origin": "China"
+    },
+    {
+      "make": "JAECOO",
+      "first_year": 2024,
+      "units_recent": 2414,
+      "origin": "China"
+    },
+    {
+      "make": "POLESTAR",
+      "first_year": 2021,
+      "units_recent": 2154,
+      "origin": "China"
+    },
+    {
+      "make": "OMODA",
+      "first_year": 2024,
+      "units_recent": 1789,
+      "origin": "China"
+    },
+    {
+      "make": "TANK",
+      "first_year": 2024,
+      "units_recent": 1345,
+      "origin": "China"
+    },
+    {
+      "make": "DONGFENG",
+      "first_year": 2025,
+      "units_recent": 971,
+      "origin": "China"
+    },
+    {
+      "make": "LEAPMOTOR",
+      "first_year": 2024,
+      "units_recent": 711,
+      "origin": "China"
+    },
+    {
+      "make": "ORA",
+      "first_year": 2023,
+      "units_recent": 706,
+      "origin": "China"
+    },
+    {
+      "make": "BAIC",
+      "first_year": 2025,
+      "units_recent": 516,
+      "origin": "China"
+    },
+    {
+      "make": "ZEEKR",
+      "first_year": 2025,
+      "units_recent": 513,
+      "origin": "China"
+    },
+    {
+      "make": "GAC",
+      "first_year": 2026,
+      "units_recent": 372,
+      "origin": "China"
+    },
+    {
+      "make": "DENZA",
+      "first_year": 2025,
+      "units_recent": 285,
+      "origin": "China"
+    },
+    {
+      "make": "INEOS",
+      "first_year": 2023,
+      "units_recent": 177,
+      "origin": "United Kingdom"
+    },
+    {
+      "make": "XPENG",
+      "first_year": 2025,
+      "units_recent": 173,
+      "origin": "China"
+    },
+    {
+      "make": "FARIZON",
+      "first_year": 2024,
+      "units_recent": 134,
+      "origin": "China"
+    },
+    {
+      "make": "FORTHING",
+      "first_year": 2025,
+      "units_recent": 125,
+      "origin": "China"
+    },
+    {
+      "make": "GENESIS",
+      "first_year": 2020,
+      "units_recent": 36,
+      "origin": "South Korea"
+    }
+  ]
 }

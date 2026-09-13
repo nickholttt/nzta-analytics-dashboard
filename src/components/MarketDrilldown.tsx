@@ -2,13 +2,20 @@ import * as Plot from "@observablehq/plot";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import intelData from "../data/market_intelligence.json";
 import inspectorData from "../data/inspector_data.json";
+import { ComplexityBenchmark } from "./ComplexityBenchmark";
 import { PlotFigure } from "./PlotFigure";
 import { pct, shareChange } from "../lib/measures";
 import { INK_2, PAPER, RULE_STRONG, plotStyle, tipStyle } from "../lib/theme";
 
-type QuestionId = "q1" | "q2" | "q3" | "q4" | "q5" | "q6" | "q_suv";
+type QuestionId = "q_complexity" | "q1" | "q2" | "q3" | "q4" | "q5" | "q6" | "q_suv";
 
 const QUESTIONS: { id: QuestionId; title: string; subtitle: string; tag: string }[] = [
+  {
+    id: "q_complexity",
+    title: "Market Complexity: The 2,000 Units/Brand Anomaly",
+    subtitle: "Why does NZ host 82+ brands for 134k cars, while the US has 38 brands for 16M?",
+    tag: "Global Benchmark",
+  },
   {
     id: "q1",
     title: "Brand Makeup: Volume vs Commercial Reality",
@@ -56,10 +63,10 @@ const QUESTIONS: { id: QuestionId; title: string; subtitle: string; tag: string 
 export function MarketDrilldown() {
   // Read initial params from URL if available
   const [activeQ, setActiveQ] = useState<QuestionId>(() => {
-    if (typeof window === "undefined") return "q1";
+    if (typeof window === "undefined") return "q_complexity";
     const params = new URLSearchParams(window.location.search);
     const q = params.get("q") as QuestionId;
-    return QUESTIONS.some((item) => item.id === q) ? q : "q1";
+    return QUESTIONS.some((item) => item.id === q) ? q : "q_complexity";
   });
 
   const [selectedMake, setSelectedMake] = useState<string>(() => {
@@ -154,6 +161,13 @@ export function MarketDrilldown() {
           );
         })}
       </div>
+
+      {/* GLOBAL BENCHMARK: MARKET COMPLEXITY & COMPETITION */}
+      {activeQ === "q_complexity" && (
+        <section className="drilldown-panel">
+          <ComplexityBenchmark />
+        </section>
+      )}
 
       {/* QUESTION 1: BRAND MAKEUP & COMMERCIAL REALITY */}
       {activeQ === "q1" && (

@@ -60,21 +60,33 @@ see these files where the UI work happens. Nothing was pushed.
     5. Regional Geography Matrix: High-density urban EV adoption (Wellington 9.3%, Auckland 7.0%) versus rural commercial ute bastions (Southland 24.9%, Gisborne 26.7%, Otago 17.9%, Waikato 17.2%).
     6. Segment Champions: Top 10 makes, top 10 models, and powertrain splits for Cars, Utes, Vans, and Trucks.
   - Verified static build (`npx astro build` in 1.04s), TypeScript typecheck (`tsc --noEmit` exit 0), and browser testing on desktop and mobile viewports via Chrome DevTools MCP.
-- **League Chart Renderer & Model Leaderboard Preset**: Done (2026-09-13).
-  - Built `LeagueChart.tsx` (the 4th of the five allowed shapes from `CLAUDE.md`), implementing ranked horizontal bars with rank delta indicators (▲ up, ▼ down, — unchanged, ★ new) and a full leaderboard table.
-  - Added `"league"` to `RENDERED_SHAPES` in `src/lib/resolve.ts` and wired into `PresetPanel.tsx`.
-  - Added preset `model-leaderboard` ("Which vehicle models lead the market?") to `config/presets.json` and Tier 2 on `src/pages/index.astro`.
-  - Canon triage confirms: 10 presets · 1 invalid · 3 blocked · 6 live · 0 status disagreements.
-  - Verified with TypeScript typecheck, clean Astro build, and Chrome DevTools MCP browser testing.
+- **Market Complexity & Competition Benchmark (The 2,000 Units/Brand Anomaly)**: Done (2026-09-13).
+  - Built `ComplexityBenchmark.tsx` directly modeling and elevating the international comparison chart:
+    - Global benchmark cards for **USA** (340M pop, 38 brands, 16M units $\rightarrow$ 420K units/brand), **China** (1.4B pop, 155 brands, 31M units $\rightarrow$ 200K units/brand), **Japan** (124M pop, 49 brands, 3.7M units $\rightarrow$ 76K units/brand), **Australia** (27M pop, 74 brands, 1.2M units $\rightarrow$ 16K units/brand), and **New Zealand** (5M pop, 82 brands, 134K units $\rightarrow$ **~1.6K - 2K units/brand**).
+    - Normalized SVG silhouettes (`src/data/country_silhouettes.json`) extracted from natural earth vector geometry for crisp high-contrast visual display.
+    - Interactive metric toggles: Units per Brand (scale), Brands per Million People (fragmentation — NZ is **140x more brand-dense per capita than the USA**), Total Market Volume, and Active Brands Count.
+  - NZ Historical Proliferation Timeline (2015–2026): Observable Plot chart tracking active brand count surge (62 in 2020 $\rightarrow$ 84 in 2026) alongside the collapse in average/median volume per brand and market concentration.
+  - Empirical 2025 Brand Volume Pyramid: 5 interactive tiers:
+    - Tier 1: Market Anchors ($\ge 10\text{k}$) · 3 brands (Toyota, Ford, Mitsubishi) · 46.0% market share (Avg 20,523/brand).
+    - Tier 2: Mainstream Volume (3k–10k) · 8 brands (Kia, Suzuki, Mazda, Nissan, Hyundai, MG, BYD, Honda) · 29.4% share.
+    - Tier 3: Established Specialists (1k–3k) · 12 brands (Haval, Subaru, VW, Isuzu, Mercedes, BMW, Tesla...) · 14.9% share.
+    - Tier 4: Boutique & New Entrants (200–1k) · 22 brands (Jaecoo, Skoda, Mini, Omoda, Volvo, Porsche...) · 8.2% share.
+    - Tier 5: The Long Tail ($< 200$) · 37 brands · 1.5% share · **Avg 53 units/brand** (45% of brands fight over 1.5% of sales!).
+    - Clickable tier cards expand to inspect the exact brands and models in each bracket.
+  - Dealership Viability Simulator: Interactive volume slider calculating national sales pace (cars/week) and showroom throughput across a minimum viable 8-dealer national footprint, with franchise viability verdicts.
+  - Structural Analysis: Four empirical drivers explaining why NZ is the world's most fragmented market (1998 zero-tariff deregulation, low-cost RHD synergy, Clean Car EV testbed bringing 18 new brands since 2019, and multi-franchise dealer groups like Giltrap/Armstrong's/Ebbett).
+  - Wired into `MarketDrilldown.tsx` as the first tab (`?q=q_complexity`) and featured via a prominent callout card on the main Explore page under Tier 2 ("Market structure").
+  - Verified with `npx -y -p typescript tsc --noEmit` (exit 0), `npx astro build` (4 static pages built cleanly), and Chrome DevTools MCP browser testing across desktop (1280x900) and mobile (390x844).
 
 ## In progress
 
-- **UI exploration completed on `ui/explore`**. All UI pages, tools, and interactive drilldowns completed.
+- **UI exploration on `ui/explore`**. All requested UI pages, tools, and interactive benchmark modules completed.
   Files touched:
+  - `src/components/ComplexityBenchmark.tsx`, `src/data/country_silhouettes.json`
+  - `src/components/MarketDrilldown.tsx`, `src/data/market_intelligence.json`, `src/pages/index.astro`
   - `src/lib/url.ts`, `src/components/PresetPanel.tsx`, `src/components/MixChart.tsx`, `src/styles/site.css`
-  - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`, `src/pages/index.astro`, `src/pages/inspector.astro`
-  - `src/components/DataInspector.tsx`, `src/components/MarketDrilldown.tsx`, `src/components/LeagueChart.tsx`
-  - `src/data/inspector_data.json`, `src/data/market_intelligence.json`
+  - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`, `src/pages/inspector.astro`
+  - `src/components/DataInspector.tsx`, `src/components/LeagueChart.tsx`, `src/data/inspector_data.json`
   - `config/presets.json`, `src/lib/config.ts`, `src/lib/resolve.ts`
 - **POST_GATE.md reorder**. Written by claude at the user's direction; committed on
   `ui/explore` at the user's request on 2026-09-13:
