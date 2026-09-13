@@ -9,8 +9,8 @@ import type { Dimension, Measure, Preset, PresetStatus } from "./config";
 import type { Manifest } from "./data";
 import { RENDERED_DERIVED } from "./derived";
 
-// The shapes this local reference tool draws. league and geo are build step 6.
-const RENDERED_SHAPES = new Set(["mix", "trend", "distribution"]);
+// The shapes this local reference tool draws. geo is build step 6.
+const RENDERED_SHAPES = new Set(["mix", "trend", "distribution", "league"]);
 
 export type Resolution = {
   invalid: string[];

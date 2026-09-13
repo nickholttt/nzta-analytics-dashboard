@@ -134,6 +134,17 @@
           "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Scrappage thins each month's total along with each brand, so share holds up where volume does not, though older months still lean towards brands whose vehicles last longer. Volume charts wait for true monthly registrations."
         },
         {
+          "id": "model-leaderboard",
+          "question": "Which vehicle models lead the market?",
+          "status": "live",
+          "dataset": "registrations_surviving",
+          "measure": "share",
+          "dimension": "model",
+          "period": "latest_year",
+          "top_n": 15,
+          "note_template": "Ranked by vehicles first registered over the trailing {dataset.coverage_trailing.window_months} months. Rank movement compares against the 12 months before. Only the {dataset.model_cap.model.cap} models with the most registrations are named; the rest roll into other."
+        },
+        {
           "id": "concentration",
           "question": "Is the market getting more crowded?",
           "status": "live",

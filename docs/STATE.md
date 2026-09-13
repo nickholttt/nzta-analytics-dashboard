@@ -60,6 +60,12 @@ see these files where the UI work happens. Nothing was pushed.
     5. Regional Geography Matrix: High-density urban EV adoption (Wellington 9.3%, Auckland 7.0%) versus rural commercial ute bastions (Southland 24.9%, Gisborne 26.7%, Otago 17.9%, Waikato 17.2%).
     6. Segment Champions: Top 10 makes, top 10 models, and powertrain splits for Cars, Utes, Vans, and Trucks.
   - Verified static build (`npx astro build` in 1.04s), TypeScript typecheck (`tsc --noEmit` exit 0), and browser testing on desktop and mobile viewports via Chrome DevTools MCP.
+- **League Chart Renderer & Model Leaderboard Preset**: Done (2026-09-13).
+  - Built `LeagueChart.tsx` (the 4th of the five allowed shapes from `CLAUDE.md`), implementing ranked horizontal bars with rank delta indicators (▲ up, ▼ down, — unchanged, ★ new) and a full leaderboard table.
+  - Added `"league"` to `RENDERED_SHAPES` in `src/lib/resolve.ts` and wired into `PresetPanel.tsx`.
+  - Added preset `model-leaderboard` ("Which vehicle models lead the market?") to `config/presets.json` and Tier 2 on `src/pages/index.astro`.
+  - Canon triage confirms: 10 presets · 1 invalid · 3 blocked · 6 live · 0 status disagreements.
+  - Verified with TypeScript typecheck, clean Astro build, and Chrome DevTools MCP browser testing.
 
 ## In progress
 
@@ -67,8 +73,9 @@ see these files where the UI work happens. Nothing was pushed.
   Files touched:
   - `src/lib/url.ts`, `src/components/PresetPanel.tsx`, `src/components/MixChart.tsx`, `src/styles/site.css`
   - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`, `src/pages/index.astro`, `src/pages/inspector.astro`
-  - `src/components/DataInspector.tsx`, `src/components/MarketDrilldown.tsx`, `src/data/inspector_data.json`, `src/data/market_intelligence.json`
-  - `config/presets.json`, `src/lib/config.ts`
+  - `src/components/DataInspector.tsx`, `src/components/MarketDrilldown.tsx`, `src/components/LeagueChart.tsx`
+  - `src/data/inspector_data.json`, `src/data/market_intelligence.json`
+  - `config/presets.json`, `src/lib/config.ts`, `src/lib/resolve.ts`
 - **POST_GATE.md reorder**. Written by claude at the user's direction; committed on
   `ui/explore` at the user's request on 2026-09-13:
   inserts A2 (step 1b `registrations_flow` as the unlock for cohort survival) and renumbers the

@@ -8,6 +8,7 @@ import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { resolvePreset } from "../lib/resolve";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
+import { LeagueChart } from "./LeagueChart";
 import { MixChart } from "./MixChart";
 import { TrendChart } from "./TrendChart";
 
@@ -179,6 +180,18 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
       chart = <DistributionChart preset={effectivePreset} dimension={dimension} rows={rows} manifest={manifest} minDenominator={guard} label={label} lead={lead} />;
     } else if (shape === "trend") {
       chart = <TrendChart preset={effectivePreset} rows={rows} manifest={manifest} minDenominator={guard} collapseFraction={collapseFraction} lead={lead} />;
+    } else if (shape === "league" && dimension) {
+      chart = (
+        <LeagueChart
+          preset={effectivePreset}
+          dimension={dimension}
+          rows={rows}
+          manifest={manifest}
+          minDenominator={guard}
+          label={label}
+          lead={lead}
+        />
+      );
     }
   }
 
