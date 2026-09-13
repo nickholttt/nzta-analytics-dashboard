@@ -77,6 +77,13 @@ see these files where the UI work happens. Nothing was pushed.
       - Clickable tier cards expand to inspect the exact brands and models in each bracket.
     - **Dealership Viability Simulator**: Interactive volume slider calculating national sales pace (cars/week) and showroom throughput across a minimum viable 8-dealer national footprint, with franchise viability verdicts.
     - **Structural Analysis**: Four empirical drivers explaining why NZ is the world's most fragmented market (1998 zero-tariff deregulation, low-cost RHD synergy, Clean Car EV testbed bringing 18 new brands since 2019, and multi-franchise dealer groups like Giltrap/Armstrong's/Ebbett).
+    - **Interactive Active Brand Directory**: Added an on-demand active brand roster viewer allowing users to inspect the exact brands competing in each of the 5 markets:
+      - **USA** (38 makes): Domestic mass/truck (Ford, Chevy, Ram, Jeep...), EV specialists (Tesla, Rivian, Lucid), Japanese/Korean/European luxury (Toyota, Honda, BMW, Mercedes...).
+      - **China** (160 makes total, top 80 detailed): State-owned giants (BYD, Geely, Changan, Chery, GAC...), EV 'New Forces' (NIO, Li Auto, XPeng, Xiaomi, Zeekr, Leapmotor...), and foreign JVs.
+      - **Japan** (50 makes): 9 domestic OEM groups controlling >90% of volume (Toyota, Suzuki, Daihatsu, Honda...), domestic trucks (Hino, Isuzu, Fuso...), and JAIA import prestige status symbols.
+      - **Australia** (76 makes): VFACTS roster covering Japanese/Korean/US leaders, 15+ newly arrived Chinese marques (BYD, GWM, Chery, Jaecoo, Zeekr, Leapmotor...), and European luxury.
+      - **New Zealand** (82 empirical registered makes in 2025): Exact empirical 2025 registrations from DuckDB, from Toyota (32,241 units) down to boutique entrants with <10 sales.
+      - Interactive search by make name, dynamic category filtering pills (Mass Market, Dedicated EV, Luxury, Commercial, etc.), quick country switcher tabs, and direct volume/status badges.
     - **Wired into `MarketDrilldown.tsx`** as the default tab (`?q=q_complexity`) and featured via a harmonized editorial callout card on the main Explore page under Tier 2 ("Market structure").
     - Verified with `npx -y -p typescript tsc --noEmit` (exit 0), `npx astro build` (4 static pages built cleanly), and Chrome DevTools MCP browser testing across desktop (1280x900) and mobile (390x844).
 

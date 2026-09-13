@@ -5929,5 +5929,2412 @@
       "units_recent": 36,
       "origin": "South Korea"
     }
-  ]
+  ],
+  "active_brands_by_country": {
+    "usa": {
+      "country": "USA",
+      "total_active_brands": 38,
+      "source": "U.S. Bureau of Economic Analysis (BEA) & NADA / Automotive News Data Book",
+      "description": "Strict state dealer franchise laws and heavy 100% tariffs on Chinese EVs have insulated the US market, keeping active brand count virtually frozen at 38\u201339 brands.",
+      "brands": [
+        {
+          "make": "Ford",
+          "origin": "USA",
+          "category": "Domestic Mass & Truck",
+          "group": "Ford Motor Co.",
+          "status": "Top 3 US Volume"
+        },
+        {
+          "make": "Chevrolet",
+          "origin": "USA",
+          "category": "Domestic Mass & Truck",
+          "group": "General Motors",
+          "status": "Top 3 US Volume"
+        },
+        {
+          "make": "Toyota",
+          "origin": "Japan",
+          "category": "Import Mass Volume",
+          "group": "Toyota Motor",
+          "status": "Top 3 US Volume"
+        },
+        {
+          "make": "Honda",
+          "origin": "Japan",
+          "category": "Import Mass Volume",
+          "group": "Honda Motor",
+          "status": "Top 5 US Volume"
+        },
+        {
+          "make": "Jeep",
+          "origin": "USA",
+          "category": "Domestic SUV & Off-Road",
+          "group": "Stellantis",
+          "status": "Mainstream SUV Volume"
+        },
+        {
+          "make": "GMC",
+          "origin": "USA",
+          "category": "Domestic Truck & SUV",
+          "group": "General Motors",
+          "status": "Premium Light Truck"
+        },
+        {
+          "make": "Ram",
+          "origin": "USA",
+          "category": "Domestic Truck",
+          "group": "Stellantis",
+          "status": "Pickup Volume Anchor"
+        },
+        {
+          "make": "Hyundai",
+          "origin": "South Korea",
+          "category": "Import Mass Volume",
+          "group": "Hyundai Motor Group",
+          "status": "Top 10 US Volume"
+        },
+        {
+          "make": "Kia",
+          "origin": "South Korea",
+          "category": "Import Mass Volume",
+          "group": "Hyundai Motor Group",
+          "status": "Top 10 US Volume"
+        },
+        {
+          "make": "Subaru",
+          "origin": "Japan",
+          "category": "Import Mass Volume",
+          "group": "Subaru Corp",
+          "status": "Top 10 US Volume (AWD)"
+        },
+        {
+          "make": "Nissan",
+          "origin": "Japan",
+          "category": "Import Mass Volume",
+          "group": "Nissan Motor",
+          "status": "Top 10 US Volume"
+        },
+        {
+          "make": "Mazda",
+          "origin": "Japan",
+          "category": "Import Mass Volume",
+          "group": "Mazda Motor",
+          "status": "Mainstream Volume"
+        },
+        {
+          "make": "Volkswagen",
+          "origin": "Germany",
+          "category": "European Mass Volume",
+          "group": "Volkswagen Group",
+          "status": "Mainstream Volume"
+        },
+        {
+          "make": "Dodge",
+          "origin": "USA",
+          "category": "Domestic Performance",
+          "group": "Stellantis",
+          "status": "Domestic Mainstream"
+        },
+        {
+          "make": "Chrysler",
+          "origin": "USA",
+          "category": "Domestic Minivan/Sedan",
+          "group": "Stellantis",
+          "status": "Domestic Legacy"
+        },
+        {
+          "make": "Buick",
+          "origin": "USA",
+          "category": "Domestic Near-Luxury",
+          "group": "General Motors",
+          "status": "Domestic Near-Luxury"
+        },
+        {
+          "make": "Mitsubishi",
+          "origin": "Japan",
+          "category": "Import Mass Volume",
+          "group": "Renault-Nissan-Mitsubishi",
+          "status": "Value Mainstream"
+        },
+        {
+          "make": "Tesla",
+          "origin": "USA",
+          "category": "Dedicated EV",
+          "group": "Tesla Inc.",
+          "status": "Top US Luxury & EV Seller"
+        },
+        {
+          "make": "Rivian",
+          "origin": "USA",
+          "category": "Dedicated EV",
+          "group": "Rivian Automotive",
+          "status": "EV Truck/SUV Specialist"
+        },
+        {
+          "make": "Lucid",
+          "origin": "USA",
+          "category": "Dedicated EV",
+          "group": "Lucid Group",
+          "status": "Luxury EV Specialist"
+        },
+        {
+          "make": "BMW",
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "group": "BMW Group",
+          "status": "Top US Luxury Volume"
+        },
+        {
+          "make": "Mercedes-Benz",
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "group": "Mercedes-Benz Group",
+          "status": "Top US Luxury Volume"
+        },
+        {
+          "make": "Lexus",
+          "origin": "Japan",
+          "category": "Premium / Luxury",
+          "group": "Toyota Motor",
+          "status": "Top US Luxury Volume"
+        },
+        {
+          "make": "Audi",
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "group": "Volkswagen Group",
+          "status": "German Luxury Volume"
+        },
+        {
+          "make": "Cadillac",
+          "origin": "USA",
+          "category": "Premium / Luxury",
+          "group": "General Motors",
+          "status": "Domestic Prestige"
+        },
+        {
+          "make": "Acura",
+          "origin": "Japan",
+          "category": "Premium / Luxury",
+          "group": "Honda Motor",
+          "status": "Japanese Premium"
+        },
+        {
+          "make": "Volvo",
+          "origin": "Sweden",
+          "category": "Premium / Luxury",
+          "group": "Geely Group",
+          "status": "European Premium"
+        },
+        {
+          "make": "Lincoln",
+          "origin": "USA",
+          "category": "Premium / Luxury",
+          "group": "Ford Motor Co.",
+          "status": "Domestic Prestige"
+        },
+        {
+          "make": "Infiniti",
+          "origin": "Japan",
+          "category": "Premium / Luxury",
+          "group": "Nissan Motor",
+          "status": "Japanese Premium"
+        },
+        {
+          "make": "Genesis",
+          "origin": "South Korea",
+          "category": "Premium / Luxury",
+          "group": "Hyundai Motor Group",
+          "status": "Korean Luxury"
+        },
+        {
+          "make": "Porsche",
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "group": "Volkswagen Group",
+          "status": "Sports Luxury"
+        },
+        {
+          "make": "Land Rover",
+          "origin": "UK",
+          "category": "Premium / Luxury",
+          "group": "Tata Motors (JLR)",
+          "status": "Luxury SUV"
+        },
+        {
+          "make": "Mini",
+          "origin": "UK",
+          "category": "Premium / Boutique",
+          "group": "BMW Group",
+          "status": "Boutique Premium"
+        },
+        {
+          "make": "Jaguar",
+          "origin": "UK",
+          "category": "Premium / Luxury",
+          "group": "Tata Motors (JLR)",
+          "status": "Luxury Specialist"
+        },
+        {
+          "make": "Alfa Romeo",
+          "origin": "Italy",
+          "category": "Premium / Boutique",
+          "group": "Stellantis",
+          "status": "Italian Boutique"
+        },
+        {
+          "make": "Maserati",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Stellantis",
+          "status": "Exotic Specialist"
+        },
+        {
+          "make": "Polestar",
+          "origin": "Sweden",
+          "category": "Dedicated EV",
+          "group": "Geely Group",
+          "status": "Premium EV"
+        },
+        {
+          "make": "Fiat",
+          "origin": "Italy",
+          "category": "European Boutique",
+          "group": "Stellantis",
+          "status": "Niche Small Car"
+        }
+      ]
+    },
+    "china": {
+      "country": "CHINA",
+      "total_active_brands": 160,
+      "roster_sample_count": 80,
+      "source": "China Association of Automobile Manufacturers (CAAM) & CPCA",
+      "description": "The world's most fiercely contested automotive battlefield: over 160 active brands, combining traditional state-owned groups, joint ventures, and dozens of heavily funded EV 'New Forces' (Xinshili).",
+      "brands": [
+        {
+          "make": "BYD",
+          "origin": "China",
+          "category": "Domestic EV Giant",
+          "group": "BYD Company",
+          "status": "#1 Brand in China (3M+ annual units)"
+        },
+        {
+          "make": "Geely",
+          "origin": "China",
+          "category": "Domestic Conglomerate",
+          "group": "Geely Holding",
+          "status": "Galaxy, Boyue, Emgrand lineups"
+        },
+        {
+          "make": "Changan",
+          "origin": "China",
+          "category": "State-Owned Giant",
+          "group": "Changan Automobile",
+          "status": "CS series, UNI series volume"
+        },
+        {
+          "make": "Chery",
+          "origin": "China",
+          "category": "State-Owned Giant",
+          "group": "Chery Automobile",
+          "status": "#1 Chinese Auto Exporter (Tiggo/Arrizo)"
+        },
+        {
+          "make": "Wuling",
+          "origin": "China",
+          "category": "Domestic Kei/Micro EV",
+          "group": "SAIC-GM-Wuling",
+          "status": "Hongguang Mini EV Mega-Seller"
+        },
+        {
+          "make": "GAC (Trumpchi)",
+          "origin": "China",
+          "category": "State-Owned Giant",
+          "group": "GAC Group",
+          "status": "MPV & SUV Leader in Southern China"
+        },
+        {
+          "make": "GAC Aion",
+          "origin": "China",
+          "category": "Domestic Dedicated EV",
+          "group": "GAC Group",
+          "status": "High-Volume Fleet & Consumer EV"
+        },
+        {
+          "make": "Haval",
+          "origin": "China",
+          "category": "Domestic SUV Leader",
+          "group": "Great Wall Motor",
+          "status": "H6 SUV Domestic Benchmark"
+        },
+        {
+          "make": "Tank",
+          "origin": "China",
+          "category": "Domestic 4x4 / Off-Road",
+          "group": "Great Wall Motor",
+          "status": "Dominates Premium Off-Road Market"
+        },
+        {
+          "make": "ORA",
+          "origin": "China",
+          "category": "Domestic Dedicated EV",
+          "group": "Great Wall Motor",
+          "status": "Lifestyle Compact EV"
+        },
+        {
+          "make": "WEY",
+          "origin": "China",
+          "category": "Domestic Premium SUV",
+          "group": "Great Wall Motor",
+          "status": "PHEV Luxury SUV"
+        },
+        {
+          "make": "Hongqi (Red Flag)",
+          "origin": "China",
+          "category": "Domestic Luxury State Brand",
+          "group": "FAW Group",
+          "status": "Historic Presidential & Luxury Marque"
+        },
+        {
+          "make": "Bestune",
+          "origin": "China",
+          "category": "State-Owned Mainstream",
+          "group": "FAW Group",
+          "status": "Mainstream Passenger Brand"
+        },
+        {
+          "make": "Roewe",
+          "origin": "China",
+          "category": "State-Owned Mainstream",
+          "group": "SAIC Motor",
+          "status": "SAIC Domestic Passenger Brand"
+        },
+        {
+          "make": "MG",
+          "origin": "China",
+          "category": "Domestic & Export Brand",
+          "group": "SAIC Motor",
+          "status": "SAIC Global Strategic Marque"
+        },
+        {
+          "make": "Maxus (Datong)",
+          "origin": "China",
+          "category": "Domestic MPV & Commercial",
+          "group": "SAIC Motor",
+          "status": "MPV, Van, and Pickup Lineup"
+        },
+        {
+          "make": "Dongfeng",
+          "origin": "China",
+          "category": "State-Owned Giant",
+          "group": "Dongfeng Motor",
+          "status": "Aeolus, Forthing, Commercial"
+        },
+        {
+          "make": "BAIC (Beijing)",
+          "origin": "China",
+          "category": "State-Owned Giant",
+          "group": "BAIC Group",
+          "status": "BJ Off-Roader and EV series"
+        },
+        {
+          "make": "Baojun",
+          "origin": "China",
+          "category": "Domestic Mainstream",
+          "group": "SAIC-GM-Wuling",
+          "status": "Affordable Consumer Tech Cars"
+        },
+        {
+          "make": "Lynk & Co",
+          "origin": "China",
+          "category": "Premium JV",
+          "group": "Geely & Volvo",
+          "status": "Youth European-Style Global Brand"
+        },
+        {
+          "make": "Denza",
+          "origin": "China",
+          "category": "Domestic Premium EV/PHEV",
+          "group": "BYD (formerly Mercedes JV)",
+          "status": "#1 Luxury MPV Seller (D9)"
+        },
+        {
+          "make": "Fangchengbao",
+          "origin": "China",
+          "category": "Domestic Off-Road EV",
+          "group": "BYD Company",
+          "status": "Bao 5 Hardcore Hybrid Off-Roader"
+        },
+        {
+          "make": "Yangwang",
+          "origin": "China",
+          "category": "Ultra-Luxury EV/EREV",
+          "group": "BYD Company",
+          "status": "1M+ RMB U8 Off-Roader & U9 Supercar"
+        },
+        {
+          "make": "Jetour",
+          "origin": "China",
+          "category": "Domestic SUV Specialist",
+          "group": "Chery Automobile",
+          "status": "Fast-Growing Traveler Off-Roader"
+        },
+        {
+          "make": "Exeed",
+          "origin": "China",
+          "category": "Domestic Premium",
+          "group": "Chery Automobile",
+          "status": "Chery Upmarket Brand"
+        },
+        {
+          "make": "iCAR",
+          "origin": "China",
+          "category": "Domestic Trendy EV",
+          "group": "Chery Automobile",
+          "status": "Rugged Boxy Compact EV"
+        },
+        {
+          "make": "Li Auto (Lixiang)",
+          "origin": "China",
+          "category": "EV New Force (Xinshili)",
+          "group": "Li Auto Inc.",
+          "status": "#1 Premium EREV Family SUV Brand"
+        },
+        {
+          "make": "NIO",
+          "origin": "China",
+          "category": "EV New Force (Xinshili)",
+          "group": "NIO Inc.",
+          "status": "Battery Swap & Executive EV Leader"
+        },
+        {
+          "make": "XPeng",
+          "origin": "China",
+          "category": "EV New Force (Xinshili)",
+          "group": "XPeng Inc.",
+          "status": "Autonomous Driving & AI Tech Leader"
+        },
+        {
+          "make": "Xiaomi",
+          "origin": "China",
+          "category": "Tech Conglomerate EV",
+          "group": "Xiaomi Corp",
+          "status": "SU7 Sensation (100k+ orders in months)"
+        },
+        {
+          "make": "AITO (Wenjie)",
+          "origin": "China",
+          "category": "Smart EV Alliance",
+          "group": "Huawei & Seres",
+          "status": "Huawei HarmonyOS Luxury SUV Leader"
+        },
+        {
+          "make": "Zeekr",
+          "origin": "China",
+          "category": "Premium Dedicated EV",
+          "group": "Geely Holding",
+          "status": "High-End Shooting Brake & SUV EV"
+        },
+        {
+          "make": "Leapmotor",
+          "origin": "China",
+          "category": "EV New Force (Xinshili)",
+          "group": "Leapmotor & Stellantis",
+          "status": "High-Value Affordable EREV/BEV"
+        },
+        {
+          "make": "Deepal",
+          "origin": "China",
+          "category": "Domestic Dedicated EV",
+          "group": "Changan Automobile",
+          "status": "Futuristic Mass Market EV/EREV"
+        },
+        {
+          "make": "Avatr",
+          "origin": "China",
+          "category": "Smart EV Alliance",
+          "group": "Changan, CATL & Huawei",
+          "status": "Luxury Design EV with Huawei Tech"
+        },
+        {
+          "make": "Voyah (Lantu)",
+          "origin": "China",
+          "category": "State-Owned Premium EV",
+          "group": "Dongfeng Motor",
+          "status": "Premium Electric MPV & SUV"
+        },
+        {
+          "make": "IM Motors (Zhiji)",
+          "origin": "China",
+          "category": "Smart EV Alliance",
+          "group": "SAIC & Alibaba",
+          "status": "SAIC High-End Smart EV"
+        },
+        {
+          "make": "Neta (Hozon)",
+          "origin": "China",
+          "category": "EV New Force (Xinshili)",
+          "group": "Hozon Auto",
+          "status": "Budget & Overseas Focused EV"
+        },
+        {
+          "make": "ARCFOX",
+          "origin": "China",
+          "category": "Domestic Dedicated EV",
+          "group": "BAIC Group",
+          "status": "BAIC Premium Smart EV"
+        },
+        {
+          "make": "Smart",
+          "origin": "Germany/China",
+          "category": "Dedicated EV",
+          "group": "Mercedes-Benz & Geely",
+          "status": "#1 & #3 Electric Crossovers"
+        },
+        {
+          "make": "Onvo (Ledao)",
+          "origin": "China",
+          "category": "EV Sub-Brand",
+          "group": "NIO Inc.",
+          "status": "Family Mainstream Sub-brand (L60)"
+        },
+        {
+          "make": "Volkswagen",
+          "origin": "Germany",
+          "category": "Foreign JV Volume Leader",
+          "group": "FAW-VW & SAIC-VW",
+          "status": "Historical #1 foreign automaker in China"
+        },
+        {
+          "make": "Toyota",
+          "origin": "Japan",
+          "category": "Foreign JV Mass Volume",
+          "group": "GAC-Toyota & FAW-Toyota",
+          "status": "High Reliability Mass Volume"
+        },
+        {
+          "make": "Honda",
+          "origin": "Japan",
+          "category": "Foreign JV Mass Volume",
+          "group": "GAC-Honda & Dongfeng-Honda",
+          "status": "Civic, CR-V, Accord Volume"
+        },
+        {
+          "make": "Nissan",
+          "origin": "Japan",
+          "category": "Foreign JV Mass Volume",
+          "group": "Dongfeng-Nissan",
+          "status": "Sylphy Sedans & e-Power"
+        },
+        {
+          "make": "Buick",
+          "origin": "USA",
+          "category": "Foreign JV Volume",
+          "group": "SAIC-GM",
+          "status": "GL8 MPV Dominance"
+        },
+        {
+          "make": "Tesla",
+          "origin": "USA",
+          "category": "Dedicated EV",
+          "group": "Tesla Shanghai Gigafactory",
+          "status": "Top-Selling Model Y in China"
+        },
+        {
+          "make": "BMW",
+          "origin": "Germany",
+          "category": "Foreign JV Luxury",
+          "group": "BMW Brilliance",
+          "status": "Top 3 German Luxury Volume"
+        },
+        {
+          "make": "Mercedes-Benz",
+          "origin": "Germany",
+          "category": "Foreign JV Luxury",
+          "group": "Beijing Benz",
+          "status": "Top 3 German Luxury Volume"
+        },
+        {
+          "make": "Audi",
+          "origin": "Germany",
+          "category": "Foreign JV Luxury",
+          "group": "FAW-Audi & SAIC-Audi",
+          "status": "Top 3 German Luxury Volume"
+        },
+        {
+          "make": "Cadillac",
+          "origin": "USA",
+          "category": "Foreign JV Luxury",
+          "group": "SAIC-GM",
+          "status": "Second-Tier Luxury Volume"
+        },
+        {
+          "make": "Lincoln",
+          "origin": "USA",
+          "category": "Foreign JV Luxury",
+          "group": "Changan-Ford",
+          "status": "Domestic Assembled Luxury SUV"
+        },
+        {
+          "make": "Ford",
+          "origin": "USA",
+          "category": "Foreign JV Mass Volume",
+          "group": "Changan-Ford & JMC",
+          "status": "Mondeo, Explorer, Transit"
+        },
+        {
+          "make": "Hyundai",
+          "origin": "South Korea",
+          "category": "Foreign JV Mass Volume",
+          "group": "Beijing Hyundai",
+          "status": "Mainstream Sedan Volume"
+        },
+        {
+          "make": "Kia",
+          "origin": "South Korea",
+          "category": "Foreign JV Mass Volume",
+          "group": "Yueda Kia",
+          "status": "Export Hub & Mainstream"
+        },
+        {
+          "make": "Chevrolet",
+          "origin": "USA",
+          "category": "Foreign JV Mass Volume",
+          "group": "SAIC-GM",
+          "status": "Value Mainstream"
+        },
+        {
+          "make": "Volvo",
+          "origin": "Sweden",
+          "category": "Foreign Luxury",
+          "group": "Geely Group",
+          "status": "Chengdu/Daqing Local Assembly"
+        },
+        {
+          "make": "Lexus",
+          "origin": "Japan",
+          "category": "Foreign Luxury Import",
+          "group": "Toyota Motor",
+          "status": "100% Imported Pure Japanese Luxury"
+        },
+        {
+          "make": "Porsche",
+          "origin": "Germany",
+          "category": "Foreign Luxury Import",
+          "group": "Volkswagen Group",
+          "status": "Major Profit Center in China"
+        },
+        {
+          "make": "Land Rover",
+          "origin": "UK",
+          "category": "Foreign JV Luxury",
+          "group": "Chery Jaguar Land Rover",
+          "status": "Changshu Local Assembly"
+        },
+        {
+          "make": "Jaguar",
+          "origin": "UK",
+          "category": "Foreign JV Luxury",
+          "group": "Chery Jaguar Land Rover",
+          "status": "Changshu Local Assembly"
+        },
+        {
+          "make": "Mini",
+          "origin": "UK",
+          "category": "Foreign JV Boutique",
+          "group": "Spotlight Automotive (BMW & GWM)",
+          "status": "Electric Mini Made in China"
+        },
+        {
+          "make": "Genesis",
+          "origin": "South Korea",
+          "category": "Foreign Luxury Import",
+          "group": "Hyundai Motor Group",
+          "status": "Direct Boutique Import"
+        },
+        {
+          "make": "Peugeot",
+          "origin": "France",
+          "category": "Foreign JV Mass Volume",
+          "group": "Dongfeng-Peugeot",
+          "status": "Stellantis China JV"
+        },
+        {
+          "make": "Citro\u00ebn",
+          "origin": "France",
+          "category": "Foreign JV Mass Volume",
+          "group": "Dongfeng-Citro\u00ebn",
+          "status": "C5 X Global Export Base"
+        },
+        {
+          "make": "Maserati",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Stellantis",
+          "status": "High-End Italian Prestige"
+        },
+        {
+          "make": "Ferrari",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Ferrari N.V.",
+          "status": "Supercar Market"
+        },
+        {
+          "make": "Bentley",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Volkswagen Group",
+          "status": "Ultra-Luxury Sedan & SUV"
+        },
+        {
+          "make": "Rolls-Royce",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "BMW Group",
+          "status": "Ultra-Luxury Standard"
+        },
+        {
+          "make": "Lamborghini",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Volkswagen Group",
+          "status": "Supercar & Urus SUV"
+        },
+        {
+          "make": "Lotus",
+          "origin": "UK",
+          "category": "Domestic Dedicated EV",
+          "group": "Geely Holding (Wuhan Plant)",
+          "status": "Wuhan-Built Electric Hyper-SUVs"
+        },
+        {
+          "make": "JAC Motors",
+          "origin": "China",
+          "category": "State-Owned Mainstream",
+          "group": "JAC Group",
+          "status": "Passenger & Pickup Lineup"
+        },
+        {
+          "make": "Dongfeng Forthing",
+          "origin": "China",
+          "category": "State-Owned Mainstream",
+          "group": "Dongfeng Liuzhou",
+          "status": "Friday EV & T5 EVO"
+        },
+        {
+          "make": "Dongfeng Aeolus",
+          "origin": "China",
+          "category": "State-Owned Mainstream",
+          "group": "Dongfeng Motor",
+          "status": "Yixuan & Haohan Volume"
+        },
+        {
+          "make": "Chery Fulwin",
+          "origin": "China",
+          "category": "Domestic Dedicated EV",
+          "group": "Chery Automobile",
+          "status": "New Energy Lineup (T9/A8)"
+        },
+        {
+          "make": "Polestar",
+          "origin": "Sweden/China",
+          "category": "Dedicated EV",
+          "group": "Geely Group",
+          "status": "Chengdu-Built Premium EV"
+        },
+        {
+          "make": "Farizon",
+          "origin": "China",
+          "category": "Commercial New Energy",
+          "group": "Geely Commercial",
+          "status": "Electric Commercial Van Leader"
+        },
+        {
+          "make": "Kaiyi",
+          "origin": "China",
+          "category": "Domestic Mainstream",
+          "group": "Yibin Kaiyi",
+          "status": "Budget SUV & Sedans"
+        },
+        {
+          "make": "SWM Motors",
+          "origin": "China",
+          "category": "Domestic Mainstream",
+          "group": "Shineray Group",
+          "status": "Affordable Family SUVs"
+        },
+        {
+          "make": "HiPhi",
+          "origin": "China",
+          "category": "EV New Force (Xinshili)",
+          "group": "Human Horizons",
+          "status": "Ultra-Futuristic Luxury EV"
+        }
+      ]
+    },
+    "japan": {
+      "country": "JAPAN",
+      "total_active_brands": 50,
+      "source": "Japan Automobile Dealers Association (JADA) & Zenkeijikyo / JAIA",
+      "description": "Domestic passenger & Kei-car volume is >90% controlled by 9 Japanese OEMs. Foreign makes survive strictly as imported prestige status symbols (JAIA).",
+      "brands": [
+        {
+          "make": "Toyota",
+          "origin": "Japan",
+          "category": "Domestic Giant",
+          "group": "Toyota Motor",
+          "status": "#1 Market Share (48% with Daihatsu)"
+        },
+        {
+          "make": "Suzuki",
+          "origin": "Japan",
+          "category": "Domestic Kei & Compact",
+          "group": "Suzuki Motor",
+          "status": "#1 Kei-Car Volume Brand"
+        },
+        {
+          "make": "Daihatsu",
+          "origin": "Japan",
+          "category": "Domestic Kei & Compact",
+          "group": "Toyota Motor",
+          "status": "Kei-Car Specialist"
+        },
+        {
+          "make": "Honda",
+          "origin": "Japan",
+          "category": "Domestic Mainstream",
+          "group": "Honda Motor",
+          "status": "#1 Selling Car (N-Box Kei)"
+        },
+        {
+          "make": "Nissan",
+          "origin": "Japan",
+          "category": "Domestic Mainstream",
+          "group": "Nissan Motor",
+          "status": "Dayz, Sakura EV, Serena"
+        },
+        {
+          "make": "Mazda",
+          "origin": "Japan",
+          "category": "Domestic Mainstream",
+          "group": "Mazda Motor",
+          "status": "Domestic Passenger & CX Series"
+        },
+        {
+          "make": "Subaru",
+          "origin": "Japan",
+          "category": "Domestic Mainstream",
+          "group": "Subaru Corp",
+          "status": "Domestic Passenger & AWD"
+        },
+        {
+          "make": "Mitsubishi",
+          "origin": "Japan",
+          "category": "Domestic Kei & Compact",
+          "group": "Renault-Nissan-Mitsubishi",
+          "status": "Delica Mini, Outlander PHEV"
+        },
+        {
+          "make": "Lexus",
+          "origin": "Japan",
+          "category": "Domestic Luxury",
+          "group": "Toyota Motor",
+          "status": "#1 Domestic Luxury Brand"
+        },
+        {
+          "make": "Mitsuoka",
+          "origin": "Japan",
+          "category": "Domestic Coachbuilder",
+          "group": "Mitsuoka Motor",
+          "status": "Retro Custom Coachbuilder"
+        },
+        {
+          "make": "Isuzu",
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "group": "Isuzu Motors",
+          "status": "#1 Light/Medium Truck"
+        },
+        {
+          "make": "Hino",
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "group": "Toyota Motor",
+          "status": "Commercial Trucks"
+        },
+        {
+          "make": "Mitsubishi Fuso",
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "group": "Daimler Truck",
+          "status": "Commercial Trucks"
+        },
+        {
+          "make": "UD Trucks",
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "group": "Isuzu Motors",
+          "status": "Heavy Commercial Trucks"
+        },
+        {
+          "make": "Mercedes-Benz",
+          "origin": "Germany",
+          "category": "European Import (JAIA)",
+          "group": "Mercedes-Benz Group",
+          "status": "#1 Foreign Import Brand in Japan"
+        },
+        {
+          "make": "BMW",
+          "origin": "Germany",
+          "category": "European Import (JAIA)",
+          "group": "BMW Group",
+          "status": "#2 Foreign Import Brand"
+        },
+        {
+          "make": "Volkswagen",
+          "origin": "Germany",
+          "category": "European Import (JAIA)",
+          "group": "Volkswagen Group",
+          "status": "#3 Foreign Import Brand"
+        },
+        {
+          "make": "Audi",
+          "origin": "Germany",
+          "category": "European Import (JAIA)",
+          "group": "Volkswagen Group",
+          "status": "Top 5 Foreign Import Brand"
+        },
+        {
+          "make": "Mini",
+          "origin": "UK",
+          "category": "European Import (JAIA)",
+          "group": "BMW Group",
+          "status": "Very Popular Cult Following"
+        },
+        {
+          "make": "Volvo",
+          "origin": "Sweden",
+          "category": "European Import (JAIA)",
+          "group": "Geely Group",
+          "status": "Top 6 Import Brand"
+        },
+        {
+          "make": "Porsche",
+          "origin": "Germany",
+          "category": "European Import (JAIA)",
+          "group": "Volkswagen Group",
+          "status": "High Prestige Sports/SUV"
+        },
+        {
+          "make": "Jeep",
+          "origin": "USA",
+          "category": "Foreign SUV Import",
+          "group": "Stellantis",
+          "status": "Leading American Import Brand"
+        },
+        {
+          "make": "Peugeot",
+          "origin": "France",
+          "category": "European Import (JAIA)",
+          "group": "Stellantis",
+          "status": "French Compact Import"
+        },
+        {
+          "make": "Renault",
+          "origin": "France",
+          "category": "European Import (JAIA)",
+          "group": "Renault Group",
+          "status": "Kangoo & Twingo Cult Following"
+        },
+        {
+          "make": "Fiat",
+          "origin": "Italy",
+          "category": "European Import (JAIA)",
+          "group": "Stellantis",
+          "status": "500 Import Favorite"
+        },
+        {
+          "make": "Citro\u00ebn",
+          "origin": "France",
+          "category": "European Import (JAIA)",
+          "group": "Stellantis",
+          "status": "French Design Import"
+        },
+        {
+          "make": "Land Rover",
+          "origin": "UK",
+          "category": "European Import (JAIA)",
+          "group": "Tata Motors (JLR)",
+          "status": "Defender / Range Rover Luxury"
+        },
+        {
+          "make": "Alfa Romeo",
+          "origin": "Italy",
+          "category": "European Import (JAIA)",
+          "group": "Stellantis",
+          "status": "Italian Sport Import"
+        },
+        {
+          "make": "Ferrari",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Ferrari N.V.",
+          "status": "Prestige Supercar Market"
+        },
+        {
+          "make": "Maserati",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Stellantis",
+          "status": "Italian Luxury GT"
+        },
+        {
+          "make": "Jaguar",
+          "origin": "UK",
+          "category": "European Import (JAIA)",
+          "group": "Tata Motors (JLR)",
+          "status": "British Luxury"
+        },
+        {
+          "make": "Aston Martin",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Aston Martin Lagonda",
+          "status": "High-End British GT"
+        },
+        {
+          "make": "Bentley",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Volkswagen Group",
+          "status": "Ultra-Luxury Sedan & SUV"
+        },
+        {
+          "make": "Lamborghini",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Volkswagen Group",
+          "status": "Supercar & Urus SUV"
+        },
+        {
+          "make": "Lotus",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Geely Group",
+          "status": "Sports & Eletre EV"
+        },
+        {
+          "make": "Rolls-Royce",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "BMW Group",
+          "status": "Top Sovereign Luxury"
+        },
+        {
+          "make": "DS",
+          "origin": "France",
+          "category": "European Import (JAIA)",
+          "group": "Stellantis",
+          "status": "French Avant-Garde"
+        },
+        {
+          "make": "Abarth",
+          "origin": "Italy",
+          "category": "European Import (JAIA)",
+          "group": "Stellantis",
+          "status": "Performance 595 / 695"
+        },
+        {
+          "make": "Alpine",
+          "origin": "France",
+          "category": "European Import (JAIA)",
+          "group": "Renault Group",
+          "status": "A110 Sports Car"
+        },
+        {
+          "make": "Cupra",
+          "origin": "Spain",
+          "category": "European Import (JAIA)",
+          "group": "Volkswagen Group",
+          "status": "Performance Import"
+        },
+        {
+          "make": "McLaren",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "McLaren Group",
+          "status": "Supercar Import"
+        },
+        {
+          "make": "Morgan",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Investindustrial",
+          "status": "British Classic Niche"
+        },
+        {
+          "make": "Caterham",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "VT Holdings (Japan Owned)",
+          "status": "Super Seven Track Car"
+        },
+        {
+          "make": "BYD",
+          "origin": "China",
+          "category": "Dedicated EV Entrant",
+          "group": "BYD Auto",
+          "status": "First Major Chinese Brand in Japan (Atto 3, Dolphin, Seal)"
+        },
+        {
+          "make": "Tesla",
+          "origin": "USA",
+          "category": "Dedicated EV",
+          "group": "Tesla Inc.",
+          "status": "Direct Model 3 / Model Y Sales"
+        },
+        {
+          "make": "Hyundai",
+          "origin": "South Korea",
+          "category": "Dedicated EV Entrant",
+          "group": "Hyundai Motor Group",
+          "status": "Online-Only EV Re-Entry (Ioniq 5 / Kona)"
+        },
+        {
+          "make": "Chevrolet",
+          "origin": "USA",
+          "category": "Foreign Import",
+          "group": "General Motors Japan",
+          "status": "Official RHD Corvette C8 Import"
+        },
+        {
+          "make": "Cadillac",
+          "origin": "USA",
+          "category": "Foreign Import",
+          "group": "General Motors Japan",
+          "status": "Escalade & Lyriq EV Import"
+        },
+        {
+          "make": "Smart",
+          "origin": "Germany/China",
+          "category": "European Import (JAIA)",
+          "group": "Mercedes-Benz & Geely",
+          "status": "Import Compact"
+        },
+        {
+          "make": "Ford",
+          "origin": "USA",
+          "category": "Foreign Import",
+          "group": "Independent Importers",
+          "status": "Post-2016 Enthusiast Imports"
+        }
+      ]
+    },
+    "australia": {
+      "country": "AUSTRALIA",
+      "total_active_brands": 76,
+      "source": "Federal Chamber of Automotive Industries (FCAI) / VFACTS",
+      "description": "Like NZ, Australia is an open, tariff-free RHD market that has absorbed 15+ Chinese new entrants since 2020. However, 1.2M total volume allows an average throughput of ~16,000 units/brand.",
+      "brands": [
+        {
+          "make": "Toyota",
+          "origin": "Japan",
+          "category": "Market Anchor",
+          "group": "Toyota Motor",
+          "status": "Top Australian Brand (20%+ share)"
+        },
+        {
+          "make": "Ford",
+          "origin": "USA",
+          "category": "Market Anchor",
+          "group": "Ford Motor Co.",
+          "status": "#1 Selling Model (Ranger)"
+        },
+        {
+          "make": "Mazda",
+          "origin": "Japan",
+          "category": "Market Anchor",
+          "group": "Mazda Motor",
+          "status": "Top 3 Volume"
+        },
+        {
+          "make": "Kia",
+          "origin": "South Korea",
+          "category": "Mainstream Volume",
+          "group": "Hyundai Motor Group",
+          "status": "Top 5 Volume"
+        },
+        {
+          "make": "Mitsubishi",
+          "origin": "Japan",
+          "category": "Mainstream Volume",
+          "group": "Renault-Nissan-Mitsubishi",
+          "status": "Top 5 Volume"
+        },
+        {
+          "make": "Hyundai",
+          "origin": "South Korea",
+          "category": "Mainstream Volume",
+          "group": "Hyundai Motor Group",
+          "status": "Top 6 Volume"
+        },
+        {
+          "make": "Isuzu Ute",
+          "origin": "Japan",
+          "category": "Ute & Commercial",
+          "group": "Isuzu Motors",
+          "status": "D-MAX / MU-X Volume"
+        },
+        {
+          "make": "MG",
+          "origin": "China",
+          "category": "Chinese Volume & EV",
+          "group": "SAIC Motor",
+          "status": "Top 10 Volume Brand"
+        },
+        {
+          "make": "Subaru",
+          "origin": "Japan",
+          "category": "Mainstream Volume",
+          "group": "Subaru Corp",
+          "status": "Top 10 Volume"
+        },
+        {
+          "make": "Nissan",
+          "origin": "Japan",
+          "category": "Mainstream Volume",
+          "group": "Nissan Motor",
+          "status": "Top 10 Volume"
+        },
+        {
+          "make": "GWM (Great Wall)",
+          "origin": "China",
+          "category": "Chinese Volume & EV",
+          "group": "Great Wall Motor",
+          "status": "Top 10 Fast Growing (Cannon/Haval)"
+        },
+        {
+          "make": "BYD",
+          "origin": "China",
+          "category": "Chinese Volume & EV",
+          "group": "BYD Auto",
+          "status": "Rapid EV Expansion (Atto/Seal/Shark)"
+        },
+        {
+          "make": "Tesla",
+          "origin": "USA",
+          "category": "Dedicated EV",
+          "group": "Tesla Inc.",
+          "status": "Leading EV Brand"
+        },
+        {
+          "make": "Volkswagen",
+          "origin": "Germany",
+          "category": "European Mainstream",
+          "group": "Volkswagen Group",
+          "status": "Mainstream European"
+        },
+        {
+          "make": "BMW",
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "group": "BMW Group",
+          "status": "Top Luxury Brand"
+        },
+        {
+          "make": "Mercedes-Benz",
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "group": "Mercedes-Benz Group",
+          "status": "Top Luxury Brand"
+        },
+        {
+          "make": "LDV",
+          "origin": "China",
+          "category": "Chinese Volume & EV",
+          "group": "SAIC Motor",
+          "status": "Commercial & Van Volume"
+        },
+        {
+          "make": "Chery",
+          "origin": "China",
+          "category": "Chinese Volume & EV",
+          "group": "Chery Automobile",
+          "status": "Fast Expanding Entrant"
+        },
+        {
+          "make": "Audi",
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "group": "Volkswagen Group",
+          "status": "German Luxury"
+        },
+        {
+          "make": "Lexus",
+          "origin": "Japan",
+          "category": "Premium / Luxury",
+          "group": "Toyota Motor",
+          "status": "Japanese Luxury"
+        },
+        {
+          "make": "Suzuki",
+          "origin": "Japan",
+          "category": "Mainstream Volume",
+          "group": "Suzuki Motor",
+          "status": "Compact & 4x4 Niche"
+        },
+        {
+          "make": "Honda",
+          "origin": "Japan",
+          "category": "Mainstream Volume",
+          "group": "Honda Motor",
+          "status": "Agency Sales Model"
+        },
+        {
+          "make": "Land Rover",
+          "origin": "UK",
+          "category": "Premium / Luxury",
+          "group": "Tata Motors (JLR)",
+          "status": "Prestige SUV"
+        },
+        {
+          "make": "Volvo",
+          "origin": "Sweden",
+          "category": "Premium / Luxury",
+          "group": "Geely Group",
+          "status": "Safety & EV Focused"
+        },
+        {
+          "make": "Skoda",
+          "origin": "Czechia",
+          "category": "European Mainstream",
+          "group": "Volkswagen Group",
+          "status": "Value European"
+        },
+        {
+          "make": "Cupra",
+          "origin": "Spain",
+          "category": "European Boutique",
+          "group": "Volkswagen Group",
+          "status": "Sport Performance Sub-brand"
+        },
+        {
+          "make": "Porsche",
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "group": "Volkswagen Group",
+          "status": "Sports Luxury"
+        },
+        {
+          "make": "Mini",
+          "origin": "UK",
+          "category": "Premium / Boutique",
+          "group": "BMW Group",
+          "status": "Boutique Premium"
+        },
+        {
+          "make": "Jeep",
+          "origin": "USA",
+          "category": "Domestic SUV & Off-Road",
+          "group": "Stellantis",
+          "status": "American 4x4"
+        },
+        {
+          "make": "Ram",
+          "origin": "USA",
+          "category": "Domestic Truck",
+          "group": "Stellantis / Walkinshaw",
+          "status": "Remanufactured RHD V8 Truck"
+        },
+        {
+          "make": "Chevrolet",
+          "origin": "USA",
+          "category": "Domestic Truck",
+          "group": "General Motors / GMSV",
+          "status": "Remanufactured Silverado"
+        },
+        {
+          "make": "GMC",
+          "origin": "USA",
+          "category": "Domestic Truck",
+          "group": "General Motors / GMSV",
+          "status": "Yukon Full-size SUV"
+        },
+        {
+          "make": "Cadillac",
+          "origin": "USA",
+          "category": "Dedicated EV",
+          "group": "General Motors",
+          "status": "Direct Lyriq EV Launch"
+        },
+        {
+          "make": "Polestar",
+          "origin": "Sweden",
+          "category": "Dedicated EV",
+          "group": "Geely Group",
+          "status": "Direct-to-Consumer EV"
+        },
+        {
+          "make": "Genesis",
+          "origin": "South Korea",
+          "category": "Premium / Luxury",
+          "group": "Hyundai Motor Group",
+          "status": "Direct Studio Luxury"
+        },
+        {
+          "make": "Renault",
+          "origin": "France",
+          "category": "European Mainstream",
+          "group": "Renault Group / Ateco",
+          "status": "Van & Light Commercial"
+        },
+        {
+          "make": "Peugeot",
+          "origin": "France",
+          "category": "European Mainstream",
+          "group": "Stellantis / Inchcape",
+          "status": "European Mainstream"
+        },
+        {
+          "make": "Fiat",
+          "origin": "Italy",
+          "category": "European Boutique",
+          "group": "Stellantis",
+          "status": "500 & Commercial Van"
+        },
+        {
+          "make": "Alfa Romeo",
+          "origin": "Italy",
+          "category": "Premium / Boutique",
+          "group": "Stellantis",
+          "status": "Italian Performance"
+        },
+        {
+          "make": "Jaguar",
+          "origin": "UK",
+          "category": "Premium / Luxury",
+          "group": "Tata Motors (JLR)",
+          "status": "Luxury Specialist"
+        },
+        {
+          "make": "Maserati",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Stellantis",
+          "status": "Italian Prestige"
+        },
+        {
+          "make": "Ferrari",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Ferrari N.V.",
+          "status": "Supercar Exotic"
+        },
+        {
+          "make": "Aston Martin",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Aston Martin Lagonda",
+          "status": "British GT Luxury"
+        },
+        {
+          "make": "Bentley",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Volkswagen Group",
+          "status": "Ultra-Luxury"
+        },
+        {
+          "make": "Lamborghini",
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Volkswagen Group",
+          "status": "Supercar Exotic"
+        },
+        {
+          "make": "McLaren",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "McLaren Group",
+          "status": "Supercar Exotic"
+        },
+        {
+          "make": "Rolls-Royce",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "BMW Group",
+          "status": "Pinnacle Luxury"
+        },
+        {
+          "make": "Lotus",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Geely Group",
+          "status": "Electric Sports/SUV"
+        },
+        {
+          "make": "KGM (SsangYong)",
+          "origin": "South Korea",
+          "category": "Ute & Commercial",
+          "group": "KG Group",
+          "status": "Value Ute/SUV"
+        },
+        {
+          "make": "Citro\u00ebn",
+          "origin": "France",
+          "category": "European Mainstream",
+          "group": "Stellantis / Inchcape",
+          "status": "Boutique French"
+        },
+        {
+          "make": "Ineos",
+          "origin": "UK",
+          "category": "Domestic SUV & Off-Road",
+          "group": "Ineos Automotive",
+          "status": "Grenadier Off-Roader"
+        },
+        {
+          "make": "Jaecoo",
+          "origin": "China",
+          "category": "Chinese Volume & EV",
+          "group": "Chery Automobile",
+          "status": "Premium SUV Entrant"
+        },
+        {
+          "make": "Omoda",
+          "origin": "China",
+          "category": "Chinese Volume & EV",
+          "group": "Chery Automobile",
+          "status": "Youth Crossover Entrant"
+        },
+        {
+          "make": "Zeekr",
+          "origin": "China",
+          "category": "Dedicated EV",
+          "group": "Geely Group",
+          "status": "Premium EV Entrant"
+        },
+        {
+          "make": "Leapmotor",
+          "origin": "China",
+          "category": "Dedicated EV",
+          "group": "Stellantis / Leapmotor",
+          "status": "Affordable EV Entrant"
+        },
+        {
+          "make": "XPeng",
+          "origin": "China",
+          "category": "Dedicated EV",
+          "group": "XPeng Inc.",
+          "status": "Tech EV Entrant"
+        },
+        {
+          "make": "Geely",
+          "origin": "China",
+          "category": "Chinese Volume & EV",
+          "group": "Geely Group",
+          "status": "Direct Brand Entry (EX5)"
+        },
+        {
+          "make": "Foton",
+          "origin": "China",
+          "category": "Ute & Commercial",
+          "group": "BAIC Group",
+          "status": "Tunland Ute & Commercial"
+        },
+        {
+          "make": "JAC",
+          "origin": "China",
+          "category": "Ute & Commercial",
+          "group": "JAC Motors",
+          "status": "T9 Ute Launch"
+        },
+        {
+          "make": "Smart",
+          "origin": "Germany",
+          "category": "Dedicated EV",
+          "group": "Mercedes-Benz & Geely",
+          "status": "Compact EV Crossover"
+        },
+        {
+          "make": "Deepal",
+          "origin": "China",
+          "category": "Dedicated EV",
+          "group": "Changan Automobile",
+          "status": "EV / EREV Entrant"
+        },
+        {
+          "make": "Mahindra",
+          "origin": "India",
+          "category": "Ute & Commercial",
+          "group": "Mahindra & Mahindra",
+          "status": "Pik-Up & Scorpio 4x4"
+        },
+        {
+          "make": "Hino",
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "group": "Toyota Motor",
+          "status": "Medium/Heavy Duty"
+        },
+        {
+          "make": "Fuso",
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "group": "Daimler Truck",
+          "status": "Canter / Heavy Duty"
+        },
+        {
+          "make": "UD Trucks",
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "group": "Isuzu Motors",
+          "status": "Heavy Commercial"
+        },
+        {
+          "make": "Iveco",
+          "origin": "Italy",
+          "category": "Heavy Commercial / Truck",
+          "group": "Iveco Group",
+          "status": "Daily Van & Heavy Trucks"
+        },
+        {
+          "make": "Scania",
+          "origin": "Sweden",
+          "category": "Heavy Commercial / Truck",
+          "group": "Traton Group (VW)",
+          "status": "Heavy Prime Movers"
+        },
+        {
+          "make": "DAF",
+          "origin": "Netherlands",
+          "category": "Heavy Commercial / Truck",
+          "group": "PACCAR",
+          "status": "European Cabover"
+        },
+        {
+          "make": "Volvo Trucks",
+          "origin": "Sweden",
+          "category": "Heavy Commercial / Truck",
+          "group": "Volvo Group",
+          "status": "Wacol QLD Assembly"
+        },
+        {
+          "make": "Kenworth",
+          "origin": "USA",
+          "category": "Heavy Commercial / Truck",
+          "group": "PACCAR",
+          "status": "Bayswater VIC Assembly"
+        },
+        {
+          "make": "Mack",
+          "origin": "USA",
+          "category": "Heavy Commercial / Truck",
+          "group": "Volvo Group",
+          "status": "Wacol QLD Assembly"
+        },
+        {
+          "make": "Western Star",
+          "origin": "USA",
+          "category": "Heavy Commercial / Truck",
+          "group": "Daimler Truck",
+          "status": "American Conventional"
+        },
+        {
+          "make": "MAN",
+          "origin": "Germany",
+          "category": "Heavy Commercial / Truck",
+          "group": "Traton Group (VW)",
+          "status": "Heavy Commercial"
+        },
+        {
+          "make": "Dennis Eagle",
+          "origin": "UK",
+          "category": "Heavy Commercial / Truck",
+          "group": "Terberg RosRoca",
+          "status": "Refuse Collection Specialist"
+        },
+        {
+          "make": "Caterham",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "VT Holdings",
+          "status": "Lightweight Track Cars"
+        },
+        {
+          "make": "Morgan",
+          "origin": "UK",
+          "category": "Exotic / Luxury Specialist",
+          "group": "Investindustrial",
+          "status": "Classic Coachbuilt Sports"
+        }
+      ]
+    },
+    "new_zealand": {
+      "country": "NEW ZEALAND",
+      "total_active_brands": 82,
+      "source": "NZ Transport Agency (NZTA) Motor Vehicle Register (NZ New 2025)",
+      "description": "The global outlier. Completely deregulated (zero import tariffs since 1998) and right-hand drive. 82 distinct makes registered in 2025, but 3 brands take 46% and 37 brands sell under 200 cars.",
+      "brands": [
+        {
+          "make": "TOYOTA",
+          "units": 32241,
+          "origin": "Japan",
+          "category": "Market Anchor / Mainstream",
+          "status": "32,241 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "FORD",
+          "units": 15305,
+          "origin": "United States",
+          "category": "Market Anchor / Mainstream",
+          "status": "15,305 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MITSUBISHI",
+          "units": 14024,
+          "origin": "Japan",
+          "category": "Market Anchor / Mainstream",
+          "status": "14,024 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "KIA",
+          "units": 8876,
+          "origin": "South Korea",
+          "category": "Market Anchor / Mainstream",
+          "status": "8,876 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "SUZUKI",
+          "units": 4946,
+          "origin": "Japan",
+          "category": "Market Anchor / Mainstream",
+          "status": "4,946 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MAZDA",
+          "units": 4929,
+          "origin": "Japan",
+          "category": "Market Anchor / Mainstream",
+          "status": "4,929 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "NISSAN",
+          "units": 4763,
+          "origin": "Japan",
+          "category": "Market Anchor / Mainstream",
+          "status": "4,763 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "HYUNDAI",
+          "units": 4308,
+          "origin": "South Korea",
+          "category": "Market Anchor / Mainstream",
+          "status": "4,308 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MG",
+          "units": 4166,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "4,166 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "BYD",
+          "units": 3756,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "3,756 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "HONDA",
+          "units": 3594,
+          "origin": "Japan",
+          "category": "Market Anchor / Mainstream",
+          "status": "3,594 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "HAVAL",
+          "units": 2681,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "2,681 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "SUBARU",
+          "units": 2299,
+          "origin": "Japan",
+          "category": "Established Mainstream / Boutique",
+          "status": "2,299 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "VOLKSWAGEN",
+          "units": 2152,
+          "origin": "Germany",
+          "category": "Established Mainstream / Boutique",
+          "status": "2,152 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MERCEDES-BENZ",
+          "units": 1792,
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "status": "1,792 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "ISUZU",
+          "units": 1792,
+          "origin": "Japan",
+          "category": "Ute & Light Commercial",
+          "status": "1,792 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "BMW",
+          "units": 1770,
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "status": "1,770 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "TESLA",
+          "units": 1583,
+          "origin": "United States",
+          "category": "Dedicated EV / New Force",
+          "status": "1,583 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "LEXUS",
+          "units": 1441,
+          "origin": "Japan",
+          "category": "Premium / Luxury",
+          "status": "1,441 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "AUDI",
+          "units": 1299,
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "status": "1,299 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "LDV",
+          "units": 1089,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "1,089 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "LAND ROVER",
+          "units": 1086,
+          "origin": "India",
+          "category": "Premium / Luxury",
+          "status": "1,086 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "CHERY",
+          "units": 1023,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "1,023 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "JAECOO",
+          "units": 971,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "971 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "SKODA",
+          "units": 949,
+          "origin": "Germany",
+          "category": "Established Mainstream / Boutique",
+          "status": "949 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MINI",
+          "units": 920,
+          "origin": "Germany",
+          "category": "Established Mainstream / Boutique",
+          "status": "920 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "OMODA",
+          "units": 821,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "821 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "VOLVO",
+          "units": 701,
+          "origin": "China",
+          "category": "Premium / Luxury",
+          "status": "701 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "FUSO",
+          "units": 556,
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "status": "556 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "GWM",
+          "units": 547,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "547 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "PEUGEOT",
+          "units": 513,
+          "origin": "Netherlands",
+          "category": "Established Mainstream / Boutique",
+          "status": "513 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "HINO",
+          "units": 505,
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "status": "505 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "PORSCHE",
+          "units": 493,
+          "origin": "Germany",
+          "category": "Premium / Luxury",
+          "status": "493 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "TANK",
+          "units": 488,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "488 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "POLESTAR",
+          "units": 462,
+          "origin": "China",
+          "category": "Dedicated EV / New Force",
+          "status": "462 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "KGM",
+          "units": 428,
+          "origin": "South Korea",
+          "category": "Ute & Light Commercial",
+          "status": "428 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "CUPRA",
+          "units": 394,
+          "origin": "Germany",
+          "category": "Established Mainstream / Boutique",
+          "status": "394 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MAHINDRA",
+          "units": 379,
+          "origin": "India",
+          "category": "Ute & Light Commercial",
+          "status": "379 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "SCANIA",
+          "units": 336,
+          "origin": "Germany",
+          "category": "Heavy Commercial / Truck",
+          "status": "336 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "LEAPMOTOR",
+          "units": 293,
+          "origin": "China",
+          "category": "Dedicated EV / New Force",
+          "status": "293 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "JEEP",
+          "units": 273,
+          "origin": "Netherlands",
+          "category": "Established Mainstream / Boutique",
+          "status": "273 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "GEELY",
+          "units": 252,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "252 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "RAM",
+          "units": 223,
+          "origin": "Netherlands",
+          "category": "Ute & Light Commercial",
+          "status": "223 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "CHEVROLET",
+          "units": 221,
+          "origin": "United States",
+          "category": "Ute & Light Commercial",
+          "status": "221 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "RENAULT",
+          "units": 205,
+          "origin": "France",
+          "category": "Established Mainstream / Boutique",
+          "status": "205 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "KENWORTH",
+          "units": 190,
+          "origin": "United States",
+          "category": "Heavy Commercial / Truck",
+          "status": "190 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "JAGUAR",
+          "units": 185,
+          "origin": "India",
+          "category": "Premium / Luxury",
+          "status": "185 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "IVECO",
+          "units": 168,
+          "origin": "Italy",
+          "category": "Heavy Commercial / Truck",
+          "status": "168 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "JAC",
+          "units": 154,
+          "origin": "China",
+          "category": "Heavy Commercial / Truck",
+          "status": "154 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "DAF",
+          "units": 136,
+          "origin": "United States",
+          "category": "Heavy Commercial / Truck",
+          "status": "136 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "UD TRUCKS",
+          "units": 129,
+          "origin": "Japan",
+          "category": "Heavy Commercial / Truck",
+          "status": "129 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "FOTON",
+          "units": 124,
+          "origin": "China",
+          "category": "Heavy Commercial / Truck",
+          "status": "124 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "FIAT",
+          "units": 92,
+          "origin": "Netherlands",
+          "category": "Established Mainstream / Boutique",
+          "status": "92 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "ALFA ROMEO",
+          "units": 70,
+          "origin": "Netherlands",
+          "category": "Premium / Luxury",
+          "status": "70 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "DONGFENG",
+          "units": 52,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "52 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "ZEEKR",
+          "units": 51,
+          "origin": "China",
+          "category": "Dedicated EV / New Force",
+          "status": "51 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "ORA",
+          "units": 49,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "49 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "INEOS",
+          "units": 47,
+          "origin": "United Kingdom",
+          "category": "Exotic / Luxury Specialist",
+          "status": "47 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "ASTON MARTIN",
+          "units": 44,
+          "origin": "United Kingdom",
+          "category": "Exotic / Luxury Specialist",
+          "status": "44 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "GMC",
+          "units": 42,
+          "origin": "United States",
+          "category": "Ute & Light Commercial",
+          "status": "42 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MASERATI",
+          "units": 41,
+          "origin": "Netherlands",
+          "category": "Exotic / Luxury Specialist",
+          "status": "41 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "OPEL",
+          "units": 39,
+          "origin": "Netherlands",
+          "category": "Established Mainstream / Boutique",
+          "status": "39 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "LAMBORGHINI",
+          "units": 38,
+          "origin": "Germany",
+          "category": "Exotic / Luxury Specialist",
+          "status": "38 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "CITROEN",
+          "units": 36,
+          "origin": "Netherlands",
+          "category": "Established Mainstream / Boutique",
+          "status": "36 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "FERRARI",
+          "units": 36,
+          "origin": "Italy",
+          "category": "Exotic / Luxury Specialist",
+          "status": "36 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "BENTLEY",
+          "units": 32,
+          "origin": "Germany",
+          "category": "Exotic / Luxury Specialist",
+          "status": "32 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MAN",
+          "units": 30,
+          "origin": "Germany",
+          "category": "Heavy Commercial / Truck",
+          "status": "30 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "ABARTH",
+          "units": 29,
+          "origin": "Netherlands",
+          "category": "Established Mainstream / Boutique",
+          "status": "29 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "SMART",
+          "units": 23,
+          "origin": "Germany",
+          "category": "Established Mainstream / Boutique",
+          "status": "23 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "FARIZON",
+          "units": 16,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "16 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MACK",
+          "units": 15,
+          "origin": "Sweden",
+          "category": "Heavy Commercial / Truck",
+          "status": "15 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "FREIGHTLINER",
+          "units": 14,
+          "origin": "Germany",
+          "category": "Heavy Commercial / Truck",
+          "status": "14 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "CADILLAC",
+          "units": 13,
+          "origin": "United States",
+          "category": "Premium / Luxury",
+          "status": "13 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "INTERNATIONAL",
+          "units": 13,
+          "origin": "Germany",
+          "category": "Heavy Commercial / Truck",
+          "status": "13 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "LOTUS",
+          "units": 11,
+          "origin": "China",
+          "category": "Exotic / Luxury Specialist",
+          "status": "11 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "ROLLS-ROYCE",
+          "units": 10,
+          "origin": "Germany",
+          "category": "Exotic / Luxury Specialist",
+          "status": "10 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "MCLAREN",
+          "units": 9,
+          "origin": "United Kingdom",
+          "category": "Exotic / Luxury Specialist",
+          "status": "9 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "BAIC",
+          "units": 4,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "4 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "XPENG",
+          "units": 3,
+          "origin": "China",
+          "category": "Dedicated EV / New Force",
+          "status": "3 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "GENESIS",
+          "units": 3,
+          "origin": "South Korea",
+          "category": "Premium / Luxury",
+          "status": "3 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "DENZA",
+          "units": 1,
+          "origin": "China",
+          "category": "Dedicated EV / New Force",
+          "status": "1 registered (2025)",
+          "in_nz": true
+        },
+        {
+          "make": "FORTHING",
+          "units": 1,
+          "origin": "China",
+          "category": "Chinese Volume & EV Entrants",
+          "status": "1 registered (2025)",
+          "in_nz": true
+        }
+      ]
+    }
+  }
 }

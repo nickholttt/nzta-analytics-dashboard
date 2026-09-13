@@ -8,6 +8,26 @@ import { INK, INK_2, INK_3, PAPER, PAPER_2, RULE, RULE_STRONG, plotStyle, tipSty
 type BenchmarkMetric = "units_per_brand" | "brands_per_million" | "total_units" | "brands_count";
 type TimelinePerspective = "global_evolution" | "nz_brands_volume" | "nz_concentration";
 
+const originFlags: Record<string, string> = {
+  USA: "🇺🇸",
+  "United States": "🇺🇸",
+  Japan: "🇯🇵",
+  China: "🇨🇳",
+  Germany: "🇩🇪",
+  "South Korea": "🇰🇷",
+  UK: "🇬🇧",
+  "United Kingdom": "🇬🇧",
+  Sweden: "🇸🇪",
+  Italy: "🇮🇹",
+  France: "🇫🇷",
+  Czechia: "🇨🇿",
+  Spain: "🇪🇸",
+  Netherlands: "🇳🇱",
+  India: "🇮🇳",
+  "Sweden/China": "🇸🇪/🇨🇳",
+  "Germany/China": "🇩🇪/🇨🇳",
+};
+
 export function ComplexityBenchmark() {
   const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [metric, setMetric] = useState<BenchmarkMetric>("units_per_brand");
@@ -16,10 +36,47 @@ export function ComplexityBenchmark() {
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
   const [simVolume, setSimVolume] = useState<number>(262); // 2025 NZ median brand volume
 
+  // Active brand roster viewer state
+  const [showBrandRoster, setShowBrandRoster] = useState<boolean>(false);
+  const [rosterCountryId, setRosterCountryId] = useState<string>("new_zealand");
+  const [rosterSearch, setRosterSearch] = useState<string>("");
+  const [rosterCategory, setRosterCategory] = useState<string>("All");
+
   const availableYears = intelData.benchmark_years as number[];
   const benchmarkByYear = intelData.benchmark_by_year as Record<string, any[]>;
   const currentYearList = benchmarkByYear[String(selectedYear)] || benchmarkByYear["2025"];
   const selectedCountry = currentYearList.find((c) => c.id === selectedCountryId) || currentYearList[4];
+
+  const countryBrandsData = (intelData as any).active_brands_by_country || {};
+  const activeCountryRoster = countryBrandsData[rosterCountryId] || countryBrandsData["new_zealand"];
+
+  const filteredBrands = useMemo(() => {
+    if (!activeCountryRoster || !activeCountryRoster.brands) return [];
+    let list = activeCountryRoster.brands;
+    if (rosterCategory !== "All") {
+      list = list.filter((b: any) => b.category === rosterCategory);
+    }
+    if (rosterSearch.trim()) {
+      const q = rosterSearch.toLowerCase().trim();
+      list = list.filter(
+        (b: any) =>
+          b.make.toLowerCase().includes(q) ||
+          (b.group && b.group.toLowerCase().includes(q)) ||
+          (b.origin && b.origin.toLowerCase().includes(q)) ||
+          (b.category && b.category.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [activeCountryRoster, rosterCategory, rosterSearch]);
+
+  const availableCategories = useMemo(() => {
+    if (!activeCountryRoster || !activeCountryRoster.brands) return ["All"];
+    const cats = new Set<string>();
+    activeCountryRoster.brands.forEach((b: any) => {
+      if (b.category) cats.add(b.category);
+    });
+    return ["All", ...Array.from(cats)];
+  }, [activeCountryRoster]);
 
   // Observable Plot figure generator
   const renderTimelinePlot = (width: number) => {
@@ -400,7 +457,10 @@ export function ComplexityBenchmark() {
             return (
               <div
                 key={c.id}
-                onClick={() => setSelectedCountryId(c.id)}
+                onClick={() => {
+                  setSelectedCountryId(c.id);
+                  setRosterCountryId(c.id);
+                }}
                 style={{
                   background: isNZ ? "var(--paper-warm)" : "var(--paper)",
                   border: isNZ
@@ -461,7 +521,31 @@ export function ComplexityBenchmark() {
                 {/* Submetrics list */}
                 <div style={{ fontSize: "11.5px", color: "var(--ink-2)", lineHeight: 1.4, marginBottom: "12px" }}>
                   <div><strong>{c.population}</strong> people</div>
-                  <div><strong>{c.brands}</strong> active brands</div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCountryId(c.id);
+                        setRosterCountryId(c.id);
+                        setShowBrandRoster(true);
+                        setRosterCategory("All");
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        padding: 0,
+                        font: "inherit",
+                        color: "var(--ink)",
+                        cursor: "pointer",
+                        textDecoration: "underline dotted",
+                        textUnderlineOffset: "3px",
+                      }}
+                      title={`Click to view all active brands in ${c.country}`}
+                    >
+                      <strong>{c.brands}</strong> active brands ↗
+                    </button>
+                  </div>
                   <div><strong>{c.units}</strong> registered</div>
                 </div>
 
@@ -520,7 +604,270 @@ export function ComplexityBenchmark() {
             <div><strong>Verifiable Data Source:</strong></div>
             <div style={{ color: "var(--ink-2)", marginTop: "2px" }}>{selectedCountry.source}</div>
           </div>
+
+          {/* Interactive Toggle for Active Brand Roster */}
+          <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "var(--space-2)", borderTop: "1px solid var(--rule)", marginTop: "4px", flexWrap: "wrap", gap: "var(--space-2)" }}>
+            <button
+              type="button"
+              onClick={() => {
+                setRosterCountryId(selectedCountryId);
+                setShowBrandRoster(showBrandRoster && rosterCountryId === selectedCountryId ? false : true);
+                setRosterCategory("All");
+              }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 14px",
+                borderRadius: "4px",
+                background: (showBrandRoster && rosterCountryId === selectedCountryId) ? "var(--ink)" : "var(--paper)",
+                color: (showBrandRoster && rosterCountryId === selectedCountryId) ? "var(--paper)" : "var(--ink)",
+                border: "1px solid var(--rule-strong)",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <span>{(showBrandRoster && rosterCountryId === selectedCountryId) ? "▲ Hide Active Brands Roster" : `📋 View ${selectedCountry.brands} Active Brands Roster`}</span>
+            </button>
+
+            <span style={{ fontSize: "11.5px", color: "var(--ink-3)" }}>
+              {showBrandRoster && rosterCountryId === selectedCountryId
+                ? "Click button to close directory"
+                : "Select to see the complete list of active marques"}
+            </span>
+          </div>
         </div>
+
+        {/* 1.1 ACTIVE BRAND ROSTER DRAWER (INTERACTIVE DIRECTORY) */}
+        {showBrandRoster && (
+          <div
+            style={{
+              marginTop: "var(--space-4)",
+              background: "var(--paper)",
+              border: "2px solid var(--ink)",
+              borderRadius: "6px",
+              padding: "var(--space-4)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+            }}
+          >
+            {/* Roster Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-3)", marginBottom: "var(--space-3)", paddingBottom: "var(--space-3)", borderBottom: "1px solid var(--rule)" }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                  <span className="eyebrow" style={{ margin: 0 }}>Active Vehicle Marque Directory</span>
+                  <span className="badge" style={{ background: "var(--paper-warm)", border: "1px solid var(--rule)", fontSize: "11px" }}>
+                    {activeCountryRoster?.total_active_brands || activeCountryRoster?.brands?.length} Active Makes
+                  </span>
+                </div>
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "var(--ink)" }}>
+                  {activeCountryRoster?.country} Active Brand Directory
+                </h3>
+                <p style={{ margin: "4px 0 0", fontSize: "12.5px", color: "var(--ink-2)", maxWidth: "800px" }}>
+                  {activeCountryRoster?.description}
+                </p>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                {/* Country Quick Tabs */}
+                <div style={{ display: "flex", gap: "4px", background: "var(--paper-warm)", padding: "3px", borderRadius: "4px", border: "1px solid var(--rule)" }}>
+                  {[
+                    { id: "usa", flag: "🇺🇸", label: "USA" },
+                    { id: "china", flag: "🇨🇳", label: "China" },
+                    { id: "japan", flag: "🇯🇵", label: "Japan" },
+                    { id: "australia", flag: "🇦🇺", label: "Aus" },
+                    { id: "new_zealand", flag: "🇳🇿", label: "NZ" },
+                  ].map((cTab) => (
+                    <button
+                      key={cTab.id}
+                      type="button"
+                      onClick={() => {
+                        setRosterCountryId(cTab.id);
+                        setSelectedCountryId(cTab.id);
+                        setRosterCategory("All");
+                      }}
+                      style={{
+                        background: rosterCountryId === cTab.id ? "var(--ink)" : "transparent",
+                        color: rosterCountryId === cTab.id ? "var(--paper)" : "var(--ink)",
+                        border: "none",
+                        borderRadius: "3px",
+                        padding: "4px 8px",
+                        fontSize: "11px",
+                        fontWeight: rosterCountryId === cTab.id ? 700 : 500,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      <span>{cTab.flag}</span>
+                      <span>{cTab.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Close button */}
+                <button
+                  type="button"
+                  onClick={() => setShowBrandRoster(false)}
+                  style={{
+                    background: "var(--paper-warm)",
+                    border: "1px solid var(--rule)",
+                    borderRadius: "4px",
+                    padding: "5px 10px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    color: "var(--ink-2)",
+                  }}
+                >
+                  ✕ Close
+                </button>
+              </div>
+            </div>
+
+            {/* Search & Category Filter Controls */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
+              {/* Category Filter Pills */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                {availableCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setRosterCategory(cat)}
+                    style={{
+                      padding: "4px 9px",
+                      borderRadius: "4px",
+                      border: rosterCategory === cat ? "1px solid var(--ink)" : "1px solid var(--rule)",
+                      background: rosterCategory === cat ? "var(--paper-warm)" : "transparent",
+                      color: rosterCategory === cat ? "var(--ink)" : "var(--ink-2)",
+                      fontSize: "11px",
+                      fontWeight: rosterCategory === cat ? 700 : 400,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Input */}
+              <div style={{ position: "relative", minWidth: "220px" }}>
+                <input
+                  type="text"
+                  value={rosterSearch}
+                  onChange={(e) => setRosterSearch(e.target.value)}
+                  placeholder={`Search ${activeCountryRoster?.country} makes...`}
+                  style={{
+                    width: "100%",
+                    padding: "5px 26px 5px 10px",
+                    borderRadius: "4px",
+                    border: "1px solid var(--rule-strong)",
+                    fontSize: "12px",
+                    background: "var(--paper-warm)",
+                    color: "var(--ink)",
+                  }}
+                />
+                {rosterSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setRosterSearch("")}
+                    style={{
+                      position: "absolute",
+                      right: "6px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      color: "var(--ink-3)",
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Brand Cards Grid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
+                gap: "8px",
+                maxHeight: "440px",
+                overflowY: "auto",
+                paddingRight: "4px",
+              }}
+            >
+              {filteredBrands.map((b: any) => {
+                const flag = originFlags[b.origin] || "🌐";
+                return (
+                  <div
+                    key={b.make}
+                    style={{
+                      background: "var(--paper-warm)",
+                      border: "1px solid var(--rule)",
+                      borderRadius: "4px",
+                      padding: "8px 10px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "6px" }}>
+                      <strong style={{ fontSize: "13px", color: "var(--ink)", letterSpacing: "-0.01em" }}>
+                        {b.make}
+                      </strong>
+                      <span style={{ fontSize: "11px", color: "var(--ink-3)", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                        <span>{flag}</span>
+                        <span>{b.origin}</span>
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: "10.5px", color: "var(--ink-2)", display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "2px" }}>
+                      <span
+                        style={{
+                          background: "var(--paper)",
+                          padding: "2px 6px",
+                          borderRadius: "3px",
+                          border: "1px solid var(--rule)",
+                          fontWeight: 500,
+                          fontSize: "10px",
+                        }}
+                      >
+                        {b.category}
+                      </span>
+                      {b.group && b.group !== b.make && (
+                        <span style={{ color: "var(--ink-3)", fontSize: "10px", fontStyle: "italic" }}>
+                          {b.group}
+                        </span>
+                      )}
+                    </div>
+
+                    {b.status && (
+                      <div style={{ fontSize: "10.5px", color: b.units ? "var(--ink)" : "var(--ink-3)", fontWeight: b.units ? 600 : 400, marginTop: "2px", borderTop: "1px dashed var(--rule)", paddingTop: "3px" }}>
+                        {b.status}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer summary */}
+            <div style={{ marginTop: "var(--space-3)", paddingTop: "var(--space-2)", borderTop: "1px solid var(--rule)", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px", color: "var(--ink-3)", flexWrap: "wrap", gap: "var(--space-2)" }}>
+              <div>
+                Showing <strong>{filteredBrands.length}</strong> of <strong>{activeCountryRoster?.total_active_brands || activeCountryRoster?.brands?.length}</strong> active makes for {activeCountryRoster?.country}
+              </div>
+              <div>
+                Source: {activeCountryRoster?.source}
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* 2. OBSERVABLE PLOT: 10-YEAR EVOLUTION CHARTS */}
