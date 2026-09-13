@@ -21,28 +21,48 @@ const RESERVED_LABELS: Record<string, string> = {
 // lead: one of the charts that carries the page. Larger heading, taller plot; nothing else differs.
 export default function PresetPanel({ presetId, lead = false }: { presetId: string; lead?: boolean }) {
   const preset = findPreset(presetId);
+  const [activeGranularityId, setActiveGranularityId] = useState<string | null>(
+    preset?.granularity_options?.[0]?.id ?? null,
+  );
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const activeGranularity = useMemo(() => {
+    if (!preset?.granularity_options) return null;
+    return preset.granularity_options.find((g) => g.id === activeGranularityId) ?? preset.granularity_options[0];
+  }, [preset, activeGranularityId]);
+
+  const effectivePreset = useMemo(() => {
+    if (!preset) return null;
+    if (!activeGranularity) return preset;
+    return {
+      ...preset,
+      dimension: activeGranularity.dimension,
+      top_n: activeGranularity.top_n ?? preset.top_n,
+      note: activeGranularity.note ?? preset.note,
+    };
+  }, [preset, activeGranularity]);
 
   useEffect(() => {
     loadManifest().then(setManifest, (e) => setError(String(e)));
     loadEvents().then(setEvents, (e) => setError(String(e)));
   }, []);
 
-  const resolution = useMemo(() => (preset && manifest ? resolvePreset(preset, manifest) : null), [preset, manifest]);
+  const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
 
   useEffect(() => {
-    if (!preset?.dataset || !resolution || resolution.preventsRender.length > 0) return;
-    const sliceDimension = preset.dimension ?? manifest?.datasets[preset.dataset]?.live_dimensions[0];
-    if (sliceDimension && manifest?.datasets[preset.dataset]?.live_dimensions.includes(sliceDimension)) {
-      loadSlice(preset.dataset, sliceDimension).then(setRows, (e) => setError(String(e)));
+    if (!effectivePreset?.dataset || !resolution || resolution.preventsRender.length > 0) return;
+    const sliceDimension = effectivePreset.dimension ?? manifest?.datasets[effectivePreset.dataset]?.live_dimensions[0];
+    if (sliceDimension && manifest?.datasets[effectivePreset.dataset]?.live_dimensions.includes(sliceDimension)) {
+      setRows(null);
+      loadSlice(effectivePreset.dataset, sliceDimension).then(setRows, (e) => setError(String(e)));
     }
-  }, [preset, resolution, manifest]);
+  }, [effectivePreset, resolution, manifest]);
 
   const panelClass = `panel${lead ? " lead" : ""}`;
-  if (!preset)
+  if (!preset || !effectivePreset)
     return (
       <section className={panelClass}>
         <div className="callout blocked">
@@ -67,13 +87,13 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
     );
 
   const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure } = resolution;
-  const dataset = findDataset(preset.dataset);
-  const derived = findDerived(preset.derived);
-  const dsManifest = preset.dataset ? manifest.datasets[preset.dataset] : undefined;
+  const dataset = findDataset(effectivePreset.dataset);
+  const derived = findDerived(effectivePreset.derived);
+  const dsManifest = effectivePreset.dataset ? manifest.datasets[effectivePreset.dataset] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
   const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : RESERVED_LABELS[v] ?? v);
-  const guards = guardsFor(preset.measure, preset.derived);
+  const guards = guardsFor(effectivePreset.measure, effectivePreset.derived);
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
   const snapshotsNeeded = derived?.snapshots_needed;
@@ -82,22 +102,22 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
   // rather than trusted, because it will drift the next time the data moves. The dataset definition is
   // not among them: it is the sentence every chart on this dataset must carry, so it sits under the
   // question rather than in the footnotes.
-  const context = noteContext(preset, manifest);
+  const context = noteContext(effectivePreset, manifest);
   const notes: { key: string; text: string; unresolved: string[] }[] = [];
   const addNote = (key: string, plain?: string, template?: string) => {
     if (template) notes.push({ key, ...fillNote(template, context) });
     else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
-  addNote("preset", preset.note, preset.note_template);
+  addNote("preset", effectivePreset.note, effectivePreset.note_template);
   addNote("dimension", dimension?.note, dimension?.note_template);
-  const driftingNotes = [preset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
+  const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   let chart = null;
   if (preventsRender.length === 0 && rows) {
     if (shape === "mix" && dimension) {
       chart = (
         <MixChart
-          preset={preset}
+          preset={effectivePreset}
           dimension={dimension}
           rows={rows}
           manifest={manifest}
@@ -109,9 +129,9 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
         />
       );
     } else if (shape === "distribution" && dimension) {
-      chart = <DistributionChart preset={preset} dimension={dimension} rows={rows} manifest={manifest} minDenominator={guard} label={label} lead={lead} />;
+      chart = <DistributionChart preset={effectivePreset} dimension={dimension} rows={rows} manifest={manifest} minDenominator={guard} label={label} lead={lead} />;
     } else if (shape === "trend") {
-      chart = <TrendChart preset={preset} rows={rows} manifest={manifest} minDenominator={guard} collapseFraction={collapseFraction} lead={lead} />;
+      chart = <TrendChart preset={effectivePreset} rows={rows} manifest={manifest} minDenominator={guard} collapseFraction={collapseFraction} lead={lead} />;
     }
   }
 
@@ -132,6 +152,24 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
         </h3>
         {dataset?.definition ? <p className="panel-definition">{dataset.definition}</p> : null}
       </header>
+
+      {preset.granularity_options && preset.granularity_options.length > 0 ? (
+        <div className="controls" style={{ marginBottom: "var(--space-3)" }}>
+          <div className="toggle" role="radiogroup" aria-label="Granularity">
+            {preset.granularity_options.map((opt) => (
+              <label key={opt.id}>
+                <input
+                  type="radio"
+                  name={`granularity-${preset.id}`}
+                  checked={activeGranularity?.id === opt.id}
+                  onChange={() => setActiveGranularityId(opt.id)}
+                />{" "}
+                {opt.label}
+              </label>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {isComposite(preset) ? (
         <div className="callout curated">
@@ -213,9 +251,9 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
       </ul>
 
       <p className="spec">
-        {preset.id} · {shape} · {preset.dataset ?? "composite"} · {preset.derived ?? measure?.id ?? preset.measure}
-        {preset.dimension ? ` · ${preset.dimension}` : ""} · {preset.period ?? "no period"}
-        {preset.top_n ? ` · top ${preset.top_n} by trailing vehicles` : ""} · snapshot {manifest.latest_snapshot}
+        {effectivePreset.id} · {shape} · {effectivePreset.dataset ?? "composite"} · {effectivePreset.derived ?? measure?.id ?? effectivePreset.measure}
+        {effectivePreset.dimension ? ` · ${effectivePreset.dimension}` : ""} · {effectivePreset.period ?? "no period"}
+        {effectivePreset.top_n ? ` · top ${effectivePreset.top_n} by trailing vehicles` : ""} · snapshot {manifest.latest_snapshot}
       </p>
     </section>
   );

@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-09-13
+Last updated by gemini on 2026-09-13
 
 Branches at time of writing: `main` and `origin/main` at `ba304d2`. The shared-context commit sits on
 `claude/shared-agent-context`, and `ui/explore` (checked out) was fast-forwarded to it so both agents
@@ -20,18 +20,27 @@ see these files where the UI work happens. Nothing was pushed.
   `config/presets.json`: 26 presets, 8 live / 17 blocked / 1 invalid.
 - **Shared agent context** (branch `claude/shared-agent-context`): AGENTS.md, this file,
   DECISIONS.md, playbooks, skill wrappers.
+- **Agent skills sync**: Claude's 8 playbook skills imported to `.agents/skills/` (Antigravity
+  customization root) and `.gemini/skills/` in the workspace.
+- **UI verification**: Local dev server verified via Chrome DevTools MCP rendering all live charts
+  cleanly on `http://127.0.0.1:4321/`.
+- **UI step 1 ("design only")**: Reviewed and approved by the user.
+- **UI step 2 ("Three-tier Explore page & canon cut 26 → 9")**: Done (2026-09-13).
+  - Canon reshaped in `config/presets.json` to 9 presets across 3 tiers (D-020, D-024).
+  - Merged `brand-share` and `parent-group-share` behind a config-driven `granularity_options` toggle in `PresetPanel.tsx`.
+  - Three-tier layout with masthead tier anchors implemented on `/` (`src/pages/index.astro`).
+  - Canon triage table confirms: `9 presets · 1 invalid · 3 blocked · 5 live` with 0 disagreements.
+  - Verified with TypeScript typecheck, `astro build`, and 38 pytest tests (all green).
 
 ## In progress
 
-- **UI step 1 of 5, "design only"**. Written by claude. **Handed to gemini, working with the user,
-  on 2026-09-13.** Status: shown to the user, **not yet reviewed**. Committed on `ui/explore` at the
-  user's request on 2026-09-13 so Gemini starts from a clean tree; revise or revert it on review.
-  Gemini owns these files now; claude must not edit them:
+- **UI step 3 of 5, `/method` and `/caveats`**. Owner: gemini, at the user's direction.
+  Files touched in UI steps:
+  - `config/presets.json`, `src/lib/config.ts`, `src/components/PresetPanel.tsx`, `src/pages/index.astro`
   - `src/components/DistributionChart.tsx`, `EventList.tsx`, `MixChart.tsx`, `PlotFigure.tsx`,
-    `PresetPanel.tsx`, `PresetTriage.tsx`, `TrendChart.tsx`
-  - `src/lib/config.ts`, `src/lib/measures.ts`, `src/lib/theme.ts` (new), `src/styles/site.css` (new)
-  - `src/pages/index.astro`, `config/presets.json` (`colour_slots_by_trailing`)
-  - `package.json`, `package-lock.json` (the two `@fontsource-variable` fonts)
+    `PresetTriage.tsx`, `TrendChart.tsx`
+  - `src/lib/measures.ts`, `src/lib/theme.ts`, `src/styles/site.css`
+  - `package.json`, `package-lock.json`
 - **POST_GATE.md reorder**. Written by claude at the user's direction; committed on
   `ui/explore` at the user's request on 2026-09-13:
   inserts A2 (step 1b `registrations_flow` as the unlock for cohort survival) and renumbers the
@@ -41,14 +50,11 @@ see these files where the UI work happens. Nothing was pushed.
 
 User's order on `ui/explore`, one step at a time, each stop-and-show:
 
-1. User review of the design step (committed unreviewed; revise or revert on feedback).
-2. One Explore page `/` in three tiers, applying the canon cut from 26 to 9 (D-020). Blocked charts stay
-   visible with what they wait on.
-3. `/method` (from `docs/METRICS.md`) and `/caveats`. The user's list for `/caveats`: a registration
+1. `/method` (from `docs/METRICS.md`) and `/caveats`. The user's list for `/caveats`: a registration
    is not a sale; survivors bias; the 2007 break in `vehicle_year`; what a TLA means (the owner's
    current address); mild hybrid coverage; why there is no regional view.
-4. URL state: anchors plus chart options.
-5. Mobile.
+2. URL state: anchors plus chart options.
+3. Mobile.
 
 Findings already reported to the user (2026-09-13), for the UI steps:
 

@@ -7,6 +7,14 @@ import pipelineDoc from "../../config/pipeline.json";
 
 export type PresetStatus = "live" | "blocked" | "invalid";
 
+export type GranularityOption = {
+  id: string;
+  label: string;
+  dimension: string;
+  top_n?: number;
+  note?: string;
+};
+
 export type Preset = {
   id: string;
   question: string;
@@ -27,6 +35,7 @@ export type Preset = {
   series?: unknown[];
   filter_value?: string;
   smoothing?: string;
+  granularity_options?: GranularityOption[];
 };
 
 export type Band = { label: string; min?: number; max?: number | null; unknown?: boolean; no_engine?: boolean };

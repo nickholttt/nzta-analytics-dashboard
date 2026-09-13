@@ -4,17 +4,28 @@ import PresetPanel from "../components/PresetPanel";
 import PresetTriage from "../components/PresetTriage";
 import manifest from "../../public/data/manifest.json";
 
-// Which presets this local reference page draws. Everything else about each chart comes from config/.
-// The triage table below covers the whole canon, drawn or not. This page is a styling reference, not
-// the Explore page: the tiers come later.
-const sections = [
-  { id: "launch", eyebrow: "Launch charts", title: "The shape of the market", lead: true, presets: ["brand-owner-origin", "powertrain-mix", "new-vs-used"] },
+// The Explore page in three tiers (D-020).
+const tiers = [
   {
-    id: "live",
-    eyebrow: "Other live charts",
-    title: "Everything else the cube can draw",
+    id: "tier-1",
+    eyebrow: "Tier 1 · The core shifts",
+    title: "Where vehicles come from, what powers them, and whether they arrive new",
+    lead: true,
+    presets: ["brand-owner-origin", "powertrain-mix", "new-vs-used", "used-import-age"],
+  },
+  {
+    id: "tier-2",
+    eyebrow: "Tier 2 · Market structure",
+    title: "Competition, concentration, and vehicle types",
     lead: false,
-    presets: ["brand-share", "parent-group-share", "concentration", "built-in", "segment-mix", "engine-size"],
+    presets: ["brand-share", "concentration", "segment-mix"],
+  },
+  {
+    id: "tier-3",
+    eyebrow: "Tier 3 · Fleet dynamics and age",
+    title: "The aging curve and vehicle survival",
+    lead: false,
+    presets: ["age-distribution-moving-hole", "cohort-survival"],
   },
 ];
 
@@ -27,38 +38,48 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>NZ vehicle registrations · reference charts</title>
+    <title>NZ vehicle registrations · Explore</title>
   </head>
   <body>
     <main class="page">
       <header class="masthead">
-        <p class="eyebrow">Reference build · snapshot {snapshot}</p>
+        <p class="eyebrow">Explore · snapshot {snapshot}</p>
         <h1>New Zealand vehicle registrations</h1>
         <p class="standfirst">
           Where the vehicles we register come from, what powers them, and whether they arrived new. Every figure is drawn from the
           NZTA Motor Vehicle Register.
         </p>
+        <nav class="tier-nav" aria-label="Page tiers" style="margin-top: var(--space-4); display: flex; gap: var(--space-4); flex-wrap: wrap;">
+          {tiers.map((t) => (
+            <a href={`#${t.id}`} class="meta" style="color: var(--ink-2); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
+              {t.eyebrow.split("·")[0].trim()}
+            </a>
+          ))}
+          <a href="#triage" class="meta" style="color: var(--ink-3); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
+            Canon triage
+          </a>
+        </nav>
       </header>
       {
-        sections.map((s) => (
-          <section id={s.id}>
+        tiers.map((t) => (
+          <section id={t.id}>
             <div class="section-head">
-              <p class="eyebrow">{s.eyebrow}</p>
-              <h2 class="section-title">{s.title}</h2>
+              <p class="eyebrow">{t.eyebrow}</p>
+              <h2 class="section-title">{t.title}</h2>
             </div>
-            {s.presets.map((id) => (
-              <PresetPanel client:only="react" presetId={id} lead={s.lead} />
+            {t.presets.map((id) => (
+              <PresetPanel client:only="react" presetId={id} lead={t.lead} />
             ))}
           </section>
         ))
       }
       <section id="triage">
         <div class="section-head">
-          <p class="eyebrow">Canon</p>
-          <h2 class="section-title">Every preset and what it waits on</h2>
+          <p class="eyebrow">Canon triage</p>
+          <h2 class="section-title">The 9-preset canon and what it waits on</h2>
         </div>
         <p class="panel-definition">
-          Every preset in <code>config/presets.json</code>, its authored status, and what each one that cannot render yet is waiting on.
+          Every preset in <code>config/presets.json</code>, its authored status, and what each blocked chart is waiting on.
           Authored statuses are cross-checked against what this build actually resolves.
         </p>
         <PresetTriage client:only="react" />
