@@ -24,15 +24,16 @@ see these files where the UI work happens. Nothing was pushed.
 ## In progress
 
 - **UI step 1 of 5, "design only"**. Written by claude. **Handed to gemini, working with the user,
-  on 2026-09-13.** Status: shown to the user, not yet reviewed, uncommitted on `ui/explore`. Gemini
-  owns these files now; claude must not edit them:
+  on 2026-09-13.** Status: shown to the user, **not yet reviewed**. Committed on `ui/explore` at the
+  user's request on 2026-09-13 so Gemini starts from a clean tree; revise or revert it on review.
+  Gemini owns these files now; claude must not edit them:
   - `src/components/DistributionChart.tsx`, `EventList.tsx`, `MixChart.tsx`, `PlotFigure.tsx`,
     `PresetPanel.tsx`, `PresetTriage.tsx`, `TrendChart.tsx`
   - `src/lib/config.ts`, `src/lib/measures.ts`, `src/lib/theme.ts` (new), `src/styles/site.css` (new)
   - `src/pages/index.astro`, `config/presets.json` (`colour_slots_by_trailing`)
   - `package.json`, `package-lock.json` (the two `@fontsource-variable` fonts)
-- **POST_GATE.md reorder**. Written by claude at the user's direction; the user decides when to
-  commit it. Uncommitted on `ui/explore`:
+- **POST_GATE.md reorder**. Written by claude at the user's direction; committed on
+  `ui/explore` at the user's request on 2026-09-13:
   inserts A2 (step 1b `registrations_flow` as the unlock for cohort survival) and renumbers the
   `segment_group` promotion to A3.
 
@@ -40,7 +41,7 @@ see these files where the UI work happens. Nothing was pushed.
 
 User's order on `ui/explore`, one step at a time, each stop-and-show:
 
-1. User review of the design step → commit it if approved.
+1. User review of the design step (committed unreviewed; revise or revert on feedback).
 2. One Explore page `/` in three tiers, applying the canon cut from 26 to 9 (D-020). Blocked charts stay
    visible with what they wait on.
 3. `/method` (from `docs/METRICS.md`) and `/caveats`. The user's list for `/caveats`: a registration
