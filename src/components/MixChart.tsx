@@ -430,7 +430,27 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
               <tr key={series} className={remainder ? "remainder" : undefined}>
                 <td>
                   <span className="swatch" style={{ background: colour }} aria-hidden="true" />
-                  {label(series)}
+                  <span>{label(series)}</span>
+                  {dimension.id === "make" && !remainder && !isReserved(series) ? (
+                    <a
+                      href={`/inspector?q=q1&make=${encodeURIComponent(series)}`}
+                      className="meta"
+                      style={{ marginLeft: "var(--space-2)", fontSize: "11px", textDecoration: "none", color: "var(--accent)" }}
+                      title={`Inspect ${series} breakdown`}
+                    >
+                      Drilldown ↗
+                    </a>
+                  ) : null}
+                  {dimension.id === "segment" && !remainder && !isReserved(series) ? (
+                    <a
+                      href={`/inspector?q=q6&segment=${encodeURIComponent(series)}`}
+                      className="meta"
+                      style={{ marginLeft: "var(--space-2)", fontSize: "11px", textDecoration: "none", color: "var(--accent)" }}
+                      title={`Inspect ${series} segment leaders`}
+                    >
+                      Drilldown ↗
+                    </a>
+                  ) : null}
                 </td>
                 <td className={shown === undefined ? "suppressed" : "figure"}>{shown === undefined ? "suppressed" : pct(shown)}</td>
                 <td className={changeShown ? "change" : "suppressed"}>{changeShown ? shareChange(shown - before.n / before.denominator) : "suppressed"}</td>

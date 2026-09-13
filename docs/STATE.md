@@ -49,14 +49,25 @@ see these files where the UI work happens. Nothing was pushed.
   - Coalface Ute Battle: Proves that Ford Ranger has beaten Toyota Hilux in new registrations every single year from 2015 to 2026 (e.g. 2021: 12,022 vs 6,951; 2024: 11,617 vs 5,930), explaining why industry experts demand segment separation (Passenger vs Commercial).
   - Added `Data Inspector` to global navigation in `Layout.astro` and linked from `caveats.astro`.
   - Clean Astro build (4 static HTML pages) verified in browser.
+- **Interactive Market Drilldowns & Time Horizon Controls**: Done (2026-09-13).
+  - Time Horizon Controls: Added interactive `3y`, `5y`, `10y`, `all` period toggles to `PresetPanel.tsx`, dynamically recalculating x-axis domain, rolling shares, top-N ranking, and key table figures so users can zoom into eras like the Clean Car Discount cycle rather than being hardcoded into all-time views.
+  - Drilldown links: Added direct `Drilldown ↗` links from `MixChart.tsx` key table rows directly into `/inspector` with pre-selected query parameters.
+  - Interactive Market Intelligence Workspace (`MarketDrilldown.tsx`): Powered by `src/data/market_intelligence.json` (87.9 KB extracted from the 5.9M row DuckDB staging database), systematically answering 6 critical industry insider questions:
+    1. Toyota's Makeup: 81.3% passenger car/SUV, 62.5% hybrid volume vs Ford's 62% commercial ute / 75% diesel concentration.
+    2. Clean Car Policy Shockwave: Monthly powertrain shares (2021–2026) demonstrating the Jan 2024 cliff where BEV share plummeted from 20.0% to 1.4% in 30 days while Diesel surged from 5.8% to 24.7%.
+    3. Commercial Ute Wars: Annual Ford Ranger vs Toyota Hilux vs Mitsubishi Triton rivalry timeline (2015–2026) showing Ranger leading Hilux for over a decade.
+    4. Chinese Brand Surge: Annual timeline of China-owned brand share (0.6% in 2018 to 7.4% in 2023) across SAIC/MG, BYD, Haval/GWM, LDV, Geely/Volvo/Polestar, Chery, Jaecoo, and Omoda.
+    5. Regional Geography Matrix: High-density urban EV adoption (Wellington 9.3%, Auckland 7.0%) versus rural commercial ute bastions (Southland 24.9%, Gisborne 26.7%, Otago 17.9%, Waikato 17.2%).
+    6. Segment Champions: Top 10 makes, top 10 models, and powertrain splits for Cars, Utes, Vans, and Trucks.
+  - Verified static build (`npx astro build` in 1.04s), TypeScript typecheck (`tsc --noEmit` exit 0), and browser testing on desktop and mobile viewports via Chrome DevTools MCP.
 
 ## In progress
 
-- **UI exploration completed on `ui/explore`**. All UI pages, tools, and verifications completed.
-  Files touched across the UI steps:
+- **UI exploration completed on `ui/explore`**. All UI pages, tools, and interactive drilldowns completed.
+  Files touched:
   - `src/lib/url.ts`, `src/components/PresetPanel.tsx`, `src/components/MixChart.tsx`, `src/styles/site.css`
   - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`, `src/pages/index.astro`, `src/pages/inspector.astro`
-  - `src/components/DataInspector.tsx`, `src/data/inspector_data.json`
+  - `src/components/DataInspector.tsx`, `src/components/MarketDrilldown.tsx`, `src/data/inspector_data.json`, `src/data/market_intelligence.json`
   - `config/presets.json`, `src/lib/config.ts`
 - **POST_GATE.md reorder**. Written by claude at the user's direction; committed on
   `ui/explore` at the user's request on 2026-09-13:

@@ -19,6 +19,13 @@ const RESERVED_LABELS: Record<string, string> = {
   __OTHER__: "Other (beyond the cap)",
 };
 
+const TIME_PERIODS = [
+  { id: "3y", label: "3 years" },
+  { id: "5y", label: "5 years" },
+  { id: "10y", label: "10 years" },
+  { id: "all", label: "All time" },
+];
+
 // lead: one of the charts that carries the page. Larger heading, taller plot; nothing else differs.
 export default function PresetPanel({ presetId, lead = false }: { presetId: string; lead?: boolean }) {
   const preset = findPreset(presetId);
@@ -27,6 +34,12 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
     if (!defaultGranularityId || typeof window === "undefined") return defaultGranularityId;
     const fromUrl = getParam(presetId, "granularity", defaultGranularityId);
     return preset?.granularity_options?.some((g) => g.id === fromUrl) ? fromUrl : defaultGranularityId;
+  });
+  const defaultPeriod = preset?.period ?? "all";
+  const [activePeriod, setActivePeriod] = useState<string>(() => {
+    if (typeof window === "undefined") return defaultPeriod;
+    const fromUrl = getParam(presetId, "period", defaultPeriod);
+    return TIME_PERIODS.some((p) => p.id === fromUrl) ? fromUrl : defaultPeriod;
   });
   const [copied, setCopied] = useState(false);
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -39,6 +52,11 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
     if (defaultGranularityId) {
       setParam(presetId, "granularity", newId, defaultGranularityId);
     }
+  };
+
+  const handlePeriodChange = (newPeriod: string) => {
+    setActivePeriod(newPeriod);
+    setParam(presetId, "period", newPeriod, defaultPeriod);
   };
 
   const handleCopyLink = (e: React.MouseEvent) => {
@@ -60,14 +78,19 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
 
   const effectivePreset = useMemo(() => {
     if (!preset) return null;
-    if (!activeGranularity) return preset;
+    const base = activeGranularity
+      ? {
+          ...preset,
+          dimension: activeGranularity.dimension,
+          top_n: activeGranularity.top_n ?? preset.top_n,
+          note: activeGranularity.note ?? preset.note,
+        }
+      : preset;
     return {
-      ...preset,
-      dimension: activeGranularity.dimension,
-      top_n: activeGranularity.top_n ?? preset.top_n,
-      note: activeGranularity.note ?? preset.note,
+      ...base,
+      period: activePeriod,
     };
-  }, [preset, activeGranularity]);
+  }, [preset, activeGranularity, activePeriod]);
 
   useEffect(() => {
     loadManifest().then(setManifest, (e) => setError(String(e)));
@@ -187,8 +210,8 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
         {dataset?.definition ? <p className="panel-definition">{dataset.definition}</p> : null}
       </header>
 
-      {preset.granularity_options && preset.granularity_options.length > 0 ? (
-        <div className="controls" style={{ marginBottom: "var(--space-3)" }}>
+      <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
+        {preset.granularity_options && preset.granularity_options.length > 0 ? (
           <div className="toggle" role="radiogroup" aria-label="Granularity">
             {preset.granularity_options.map((opt) => (
               <label key={opt.id}>
@@ -202,8 +225,24 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
               </label>
             ))}
           </div>
-        </div>
-      ) : null}
+        ) : null}
+
+        {shape !== "distribution" && preset.dataset !== "used_imports" ? (
+          <div className="toggle" role="radiogroup" aria-label="Time horizon">
+            {TIME_PERIODS.map((p) => (
+              <label key={p.id}>
+                <input
+                  type="radio"
+                  name={`period-${preset.id}`}
+                  checked={activePeriod === p.id}
+                  onChange={() => handlePeriodChange(p.id)}
+                />{" "}
+                {p.label}
+              </label>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
       {isComposite(preset) ? (
         <div className="callout curated">
