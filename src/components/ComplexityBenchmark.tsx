@@ -1,28 +1,112 @@
 import * as Plot from "@observablehq/plot";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import intelData from "../data/market_intelligence.json";
 import countrySilhouettes from "../data/country_silhouettes.json";
 import { PlotFigure } from "./PlotFigure";
-import { INK_2, PAPER, RULE_STRONG, plotStyle, tipStyle } from "../lib/theme";
+import { INK, INK_2, INK_3, PAPER, PAPER_2, RULE, RULE_STRONG, plotStyle, tipStyle } from "../lib/theme";
 
 type BenchmarkMetric = "units_per_brand" | "brands_per_million" | "total_units" | "brands_count";
-type TimelinePerspective = "brands_and_volume" | "concentration";
+type TimelinePerspective = "global_evolution" | "nz_brands_volume" | "nz_concentration";
 
 export function ComplexityBenchmark() {
+  const [selectedYear, setSelectedYear] = useState<number>(2025);
   const [metric, setMetric] = useState<BenchmarkMetric>("units_per_brand");
   const [selectedCountryId, setSelectedCountryId] = useState<string>("new_zealand");
-  const [timelineView, setTimelineView] = useState<TimelinePerspective>("brands_and_volume");
+  const [timelineView, setTimelineView] = useState<TimelinePerspective>("global_evolution");
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
   const [simVolume, setSimVolume] = useState<number>(262); // 2025 NZ median brand volume
 
-  const benchmarkList = intelData.international_benchmark;
-  const selectedCountry = benchmarkList.find((c) => c.id === selectedCountryId) || benchmarkList[4];
+  const availableYears = intelData.benchmark_years as number[];
+  const benchmarkByYear = intelData.benchmark_by_year as Record<string, any[]>;
+  const currentYearList = benchmarkByYear[String(selectedYear)] || benchmarkByYear["2025"];
+  const selectedCountry = currentYearList.find((c) => c.id === selectedCountryId) || currentYearList[4];
 
-  // Observable Plot for NZ Complexity Timeline (2015-2026)
+  // Observable Plot figure generator
   const renderTimelinePlot = (width: number) => {
-    const data = intelData.nz_complexity_timeline;
+    if (timelineView === "global_evolution") {
+      // 10-Year Comparative Units/Brand Evolution (Log Scale)
+      const data = intelData.benchmark_evolution_timeline;
 
-    if (timelineView === "brands_and_volume") {
+      // Transform data into long format for multi-series plotting
+      const longData: { year: number; country: string; units_per_brand: number; color: string }[] = [];
+      const countryMeta = [
+        { id: "usa", label: "USA", color: "#6366f1" },
+        { id: "china", label: "China", color: "#e11d48" },
+        { id: "japan", label: "Japan", color: "#0d9488" },
+        { id: "australia", label: "Australia", color: "#b45309" },
+        { id: "new_zealand", label: "New Zealand", color: "#0284c7" },
+      ];
+
+      data.forEach((row: any) => {
+        countryMeta.forEach((cm) => {
+          longData.push({
+            year: row.year,
+            country: cm.label,
+            units_per_brand: row[`${cm.id}_units_per_brand`],
+            color: cm.color,
+          });
+        });
+      });
+
+      return Plot.plot({
+        width,
+        height: 300,
+        style: plotStyle,
+        y: {
+          type: "log",
+          label: "Units per Brand (Annual, Logarithmic Scale)",
+          grid: true,
+          tickFormat: (d) => (d >= 1000 ? `${(d / 1000).toFixed(0)}k` : `${d}`),
+        },
+        x: {
+          tickFormat: (d) => String(d),
+          label: "Year",
+        },
+        color: {
+          domain: countryMeta.map((c) => c.label),
+          range: countryMeta.map((c) => c.color),
+          legend: true,
+        },
+        marks: [
+          Plot.ruleY([2000], { stroke: "#cbd5e1", strokeDasharray: "2,2" }),
+          Plot.lineY(longData, {
+            x: "year",
+            y: "units_per_brand",
+            stroke: "color",
+            strokeWidth: (d) => (d.country === "New Zealand" ? 3 : 1.8),
+            curve: "monotone-x",
+          }),
+          Plot.dot(longData, {
+            x: "year",
+            y: "units_per_brand",
+            fill: "color",
+            r: (d) => (d.country === "New Zealand" ? 4.5 : 3),
+            tip: {
+              ...tipStyle,
+              format: {
+                x: (d) => `${d}`,
+                y: (d) => `${Number(d).toLocaleString()} units/brand`,
+              },
+            },
+          }),
+          Plot.text(
+            longData.filter((d) => d.year === 2025),
+            {
+              x: "year",
+              y: "units_per_brand",
+              text: (d) => ` ${d.country} (${(d.units_per_brand >= 1000 ? `${(d.units_per_brand / 1000).toFixed(0)}k` : d.units_per_brand)})`,
+              textAnchor: "start",
+              dx: 6,
+              fontSize: 11,
+              fontWeight: 600,
+              fill: "color",
+            },
+          ),
+        ],
+      });
+    } else if (timelineView === "nz_brands_volume") {
+      const data = intelData.nz_complexity_timeline;
+
       return Plot.plot({
         width,
         height: 280,
@@ -32,12 +116,12 @@ export function ComplexityBenchmark() {
           label: "Year",
         },
         y: {
-          label: "Active Brands Count (≥1 unit registered)",
+          label: "Active Brands in NZ Register",
           domain: [50, 100],
           grid: true,
         },
         marks: [
-          Plot.ruleY([60], { stroke: "#94a3b8", strokeDasharray: "3,3" }),
+          Plot.ruleY([60], { stroke: "#cbd5e1", strokeDasharray: "3,3" }),
           Plot.lineY(data, {
             x: "year",
             y: "brands_count",
@@ -69,13 +153,15 @@ export function ComplexityBenchmark() {
               dy: -16,
               fontSize: 11,
               fontWeight: 600,
-              fill: "var(--ink)",
+              fill: INK,
             },
           ),
         ],
       });
     } else {
       // Concentration view: Top 3 vs Top 5 vs Top 10 Share %
+      const data = intelData.nz_complexity_timeline;
+
       return Plot.plot({
         width,
         height: 280,
@@ -155,19 +241,6 @@ export function ComplexityBenchmark() {
               },
             },
           }),
-          Plot.text(
-            data.filter((d) => d.year === 2025),
-            {
-              x: "year",
-              y: "top3_share",
-              text: (d) => `Top 3: ${d.top3_share}%\n(Toyota, Ford, Mitsu)`,
-              dy: -14,
-              dx: -20,
-              fontSize: 10.5,
-              fontWeight: 600,
-              fill: "#0284c7",
-            },
-          ),
         ],
       });
     }
@@ -177,9 +250,8 @@ export function ComplexityBenchmark() {
   const simCalculations = useMemo(() => {
     const weeklyRate = (simVolume / 52).toFixed(1);
     const dailyRate = (simVolume / 365).toFixed(1);
-    const minDealers = 8; // Typical minimum viable national network (Akl North, Akl South, Hml, Tga, Hby, Wlg, Chc, Dun)
+    const minDealers = 8;
     const carsPerDealerPerMonth = (simVolume / minDealers / 12).toFixed(1);
-    const carsPerDealerPerWeek = (simVolume / minDealers / 52).toFixed(2);
 
     let status = "Sustainable Standalone";
     let statusColor = "#16a34a";
@@ -202,9 +274,7 @@ export function ComplexityBenchmark() {
     return {
       weeklyRate,
       dailyRate,
-      minDealers,
       carsPerDealerPerMonth,
-      carsPerDealerPerWeek,
       status,
       statusColor,
       summary,
@@ -213,31 +283,31 @@ export function ComplexityBenchmark() {
 
   return (
     <div className="complexity-benchmark" style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-      {/* 1. HERO INFOGRAPHIC BANNER */}
+      {/* 1. EDITORIAL BENCHMARK SECTION (MATCHING SITE PALETTE) */}
       <section
         style={{
-          background: "linear-gradient(180deg, #091a36 0%, #0d2347 100%)",
-          color: "#ffffff",
-          borderRadius: "8px",
+          background: "var(--paper)",
+          border: "1px solid var(--rule-strong)",
+          borderRadius: "6px",
           padding: "var(--space-5)",
-          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-3)", marginBottom: "var(--space-4)" }}>
+        {/* Header with Title and Year/Metric Controls */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "var(--space-4)", marginBottom: "var(--space-4)", paddingBottom: "var(--space-4)", borderBottom: "1px solid var(--rule)" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(255, 255, 255, 0.12)", padding: "4px 10px", borderRadius: "100px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#67e8f9", marginBottom: "8px" }}>
-              <span>★</span> Global Automotive Benchmark
-            </div>
-            <h2 style={{ color: "#ffffff", margin: "0 0 6px", fontSize: "clamp(1.25rem, 2.5vw, 1.85rem)", fontWeight: 700, letterSpacing: "-0.02em" }}>
-              New Vehicle Market Complexity and Competition
+            <span className="eyebrow" style={{ display: "inline-block", marginBottom: "4px" }}>
+              Global Automotive Tracking · 10-Year Comparative Evolution
+            </span>
+            <h2 style={{ margin: "0 0 6px", fontSize: "clamp(1.25rem, 2.2vw, 1.75rem)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--ink)" }}>
+              New Vehicle Market Complexity & Competition
             </h2>
-            <p style={{ margin: 0, color: "#93c5fd", fontSize: "14px", maxWidth: "750px", lineHeight: 1.5 }}>
-              How national volume, brand proliferation, and distributor economics collide. While American and Chinese brands enjoy massive scale, New Zealand hosts 82+ active brands battling over just 134k registrations.
+            <p className="lead" style={{ margin: 0, maxWidth: "760px" }}>
+              How national volume, brand proliferation, and distributor economics collide. While American and Chinese brands operate with massive scale, New Zealand hosts 82+ active brands battling over 134k registrations.
             </p>
           </div>
 
-          {/* Metric Selector Buttons */}
-          <div style={{ display: "flex", gap: "6px", background: "rgba(255, 255, 255, 0.08)", padding: "4px", borderRadius: "6px" }}>
+          {/* Metric Selector Toggle */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", background: "var(--paper-warm)", padding: "4px", borderRadius: "6px", border: "1px solid var(--rule)" }}>
             {[
               { id: "units_per_brand", label: "Units / Brand" },
               { id: "brands_per_million", label: "Brands / 1M Pop" },
@@ -249,15 +319,15 @@ export function ComplexityBenchmark() {
                 type="button"
                 onClick={() => setMetric(m.id as BenchmarkMetric)}
                 style={{
-                  background: metric === m.id ? "#ffffff" : "transparent",
-                  color: metric === m.id ? "#091a36" : "#cbd5e1",
-                  border: "none",
+                  background: metric === m.id ? "var(--paper)" : "transparent",
+                  color: metric === m.id ? "var(--ink)" : "var(--ink-2)",
+                  border: metric === m.id ? "1px solid var(--rule-strong)" : "1px solid transparent",
+                  boxShadow: metric === m.id ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
                   padding: "6px 12px",
                   borderRadius: "4px",
                   fontSize: "12px",
-                  fontWeight: 600,
+                  fontWeight: metric === m.id ? 700 : 500,
                   cursor: "pointer",
-                  transition: "all 0.15s ease",
                 }}
               >
                 {m.label}
@@ -266,29 +336,62 @@ export function ComplexityBenchmark() {
           </div>
         </div>
 
-        {/* 5 Country Comparison Cards */}
+        {/* 10-YEAR HISTORICAL YEAR SCRUBBER / SELECTOR */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-3)", padding: "10px 14px", background: "var(--paper-warm)", borderRadius: "6px", border: "1px solid var(--rule)", marginBottom: "var(--space-4)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--ink-2)" }}>
+              Year:
+            </span>
+            <div style={{ display: "flex", gap: "4px" }}>
+              {availableYears.map((yr) => (
+                <button
+                  key={yr}
+                  type="button"
+                  onClick={() => setSelectedYear(yr)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "4px",
+                    border: selectedYear === yr ? "2px solid var(--ink)" : "1px solid var(--rule)",
+                    background: selectedYear === yr ? "var(--ink)" : "var(--paper)",
+                    color: selectedYear === yr ? "var(--paper)" : "var(--ink)",
+                    fontSize: "12px",
+                    fontWeight: selectedYear === yr ? 700 : 500,
+                    cursor: "pointer",
+                  }}
+                >
+                  {yr}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ fontSize: "12px", color: "var(--ink-2)" }}>
+            Showing verified statistics for <strong>{selectedYear}</strong>
+          </div>
+        </div>
+
+        {/* 5 COUNTRY COMPARISON CARDS (EDITORIAL SITE STYLING) */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
             gap: "var(--space-3)",
-            marginTop: "var(--space-4)",
           }}
         >
-          {benchmarkList.map((c) => {
+          {currentYearList.map((c: any) => {
             const isSelected = selectedCountryId === c.id;
             const isNZ = c.id === "new_zealand";
             const silhouetteSvg = (countrySilhouettes as Record<string, string>)[c.id];
 
             let highlightedMetricValue = `${(c.units_per_brand / 1000).toFixed(0)}K`;
-            let highlightedMetricLabel = "units/brand";
+            let highlightedMetricLabel = "units / brand";
 
             if (metric === "brands_per_million") {
               highlightedMetricValue = `${c.brands_per_million.toFixed(2)}`;
               highlightedMetricLabel = "brands / million";
             } else if (metric === "total_units") {
               highlightedMetricValue = c.units;
-              highlightedMetricLabel = "units registered";
+              highlightedMetricLabel = "annual units";
             } else if (metric === "brands_count") {
               highlightedMetricValue = `${c.brands}`;
               highlightedMetricLabel = "active brands";
@@ -299,12 +402,12 @@ export function ComplexityBenchmark() {
                 key={c.id}
                 onClick={() => setSelectedCountryId(c.id)}
                 style={{
-                  background: isNZ ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.03)",
+                  background: isNZ ? "var(--paper-warm)" : "var(--paper)",
                   border: isNZ
-                    ? "2px solid #38bdf8"
+                    ? "2px solid var(--ink)"
                     : isSelected
-                    ? "1px solid #93c5fd"
-                    : "1px solid rgba(255, 255, 255, 0.12)",
+                    ? "1px solid var(--ink)"
+                    : "1px solid var(--rule)",
                   borderRadius: "6px",
                   padding: "var(--space-3)",
                   display: "flex",
@@ -313,7 +416,8 @@ export function ComplexityBenchmark() {
                   textAlign: "center",
                   cursor: "pointer",
                   position: "relative",
-                  transition: "transform 0.15s ease, border-color 0.15s ease",
+                  boxShadow: isNZ ? "0 4px 12px rgba(0,0,0,0.06)" : "none",
+                  transition: "all 0.15s ease",
                 }}
               >
                 {isNZ && (
@@ -321,9 +425,9 @@ export function ComplexityBenchmark() {
                     style={{
                       position: "absolute",
                       top: "-10px",
-                      background: "#38bdf8",
-                      color: "#091a36",
-                      fontSize: "9.5px",
+                      background: "var(--ink)",
+                      color: "var(--paper)",
+                      fontSize: "9px",
                       fontWeight: 800,
                       letterSpacing: "0.06em",
                       padding: "2px 8px",
@@ -335,43 +439,47 @@ export function ComplexityBenchmark() {
                   </div>
                 )}
 
-                {/* Country Silhouette */}
-                <div style={{ height: "68px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", margin: "8px 0" }}>
+                {/* Country Silhouette Vector (Rendered in elegant ink stroke/fill) */}
+                <div style={{ height: "62px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", margin: "6px 0 10px" }}>
                   {silhouetteSvg ? (
-                    <svg viewBox="0 0 100 80" style={{ height: "100%", maxWidth: "120px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))" }}>
-                      <path d={silhouetteSvg} fill="#ffffff" />
+                    <svg viewBox="0 0 100 80" style={{ height: "100%", maxWidth: "110px" }}>
+                      <path d={silhouetteSvg} fill="var(--ink)" opacity="0.82" />
                     </svg>
                   ) : (
-                    <span style={{ fontSize: "36px" }}>{c.flag}</span>
+                    <span style={{ fontSize: "32px" }}>{c.flag}</span>
                   )}
                 </div>
 
-                {/* Country Name & Sub-details */}
-                <h3 style={{ margin: "4px 0 2px", color: "#ffffff", fontSize: "15px", fontWeight: 800, letterSpacing: "0.04em" }}>
-                  {c.country}
-                </h3>
-                <div style={{ fontSize: "12px", color: "#cbd5e1", lineHeight: 1.35, marginBottom: "12px" }}>
-                  <div><strong>{c.population}</strong> people</div>
-                  <div><strong>{c.brands}</strong> brands</div>
-                  <div><strong>{c.units}</strong> units registered</div>
+                {/* Country Title */}
+                <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "14px" }}>{c.flag}</span>
+                  <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 800, letterSpacing: "0.02em", color: "var(--ink)" }}>
+                    {c.country}
+                  </h3>
                 </div>
 
-                {/* Bottom Highlighted Metric Box */}
+                {/* Submetrics list */}
+                <div style={{ fontSize: "11.5px", color: "var(--ink-2)", lineHeight: 1.4, marginBottom: "12px" }}>
+                  <div><strong>{c.population}</strong> people</div>
+                  <div><strong>{c.brands}</strong> active brands</div>
+                  <div><strong>{c.units}</strong> registered</div>
+                </div>
+
+                {/* Highlighted Metric Container */}
                 <div
                   style={{
                     marginTop: "auto",
                     width: "100%",
-                    background: isNZ ? "#ffffff" : "rgba(255, 255, 255, 0.95)",
-                    color: isNZ ? "#0369a1" : "#0f172a",
+                    background: isNZ ? "var(--paper)" : "var(--paper-warm)",
+                    border: "1px solid var(--rule-strong)",
                     borderRadius: "4px",
-                    padding: "8px 4px",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                    padding: "6px 4px",
                   }}
                 >
-                  <div style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: isNZ ? "var(--accent)" : "var(--ink)", lineHeight: 1.1 }}>
                     {highlightedMetricValue}
                   </div>
-                  <div style={{ fontSize: "10.5px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em", opacity: 0.85 }}>
+                  <div style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink-3)", marginTop: "2px" }}>
                     {highlightedMetricLabel}
                   </div>
                 </div>
@@ -380,12 +488,12 @@ export function ComplexityBenchmark() {
           })}
         </div>
 
-        {/* Selected Country Insight Detail Card */}
+        {/* Selected Country Insight & Attribution */}
         <div
           style={{
             marginTop: "var(--space-4)",
-            background: "rgba(0, 0, 0, 0.25)",
-            border: "1px solid rgba(255, 255, 255, 0.15)",
+            background: "var(--paper-warm)",
+            border: "1px solid var(--rule)",
             borderRadius: "6px",
             padding: "var(--space-3) var(--space-4)",
             display: "flex",
@@ -394,70 +502,95 @@ export function ComplexityBenchmark() {
             alignItems: "center",
           }}
         >
-          <div style={{ flex: "1 1 300px" }}>
+          <div style={{ flex: "1 1 320px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-              <span style={{ fontSize: "18px" }}>{selectedCountry.flag}</span>
-              <strong style={{ color: "#ffffff", fontSize: "14px" }}>{selectedCountry.country}: Commercial Structure & Scale</strong>
-              <span className="badge" style={{ background: "rgba(56, 189, 248, 0.2)", color: "#38bdf8", border: "1px solid rgba(56, 189, 248, 0.4)", fontSize: "11px" }}>
-                {selectedCountry.scale_vs_nz} NZ Market Volume
+              <span style={{ fontSize: "16px" }}>{selectedCountry.flag}</span>
+              <strong style={{ fontSize: "13.5px", color: "var(--ink)" }}>
+                {selectedCountry.country} ({selectedYear})
+              </strong>
+              <span className="badge" style={{ background: "rgba(0,0,0,0.06)", color: "var(--ink)", fontSize: "11px" }}>
+                {selectedCountry.scale_vs_nz} NZ Scale / Brand
               </span>
             </div>
-            <p style={{ margin: 0, fontSize: "13px", color: "#cbd5e1", lineHeight: 1.45 }}>
-              {selectedCountry.dynamics}
-            </p>
+            <div style={{ fontSize: "12.5px", color: "var(--ink-2)", lineHeight: 1.45 }}>
+              {selectedCountry.dealer_model}
+            </div>
           </div>
-          <div style={{ flex: "1 1 260px", fontSize: "12px", borderLeft: "1px solid rgba(255,255,255,0.15)", paddingLeft: "var(--space-3)" }}>
-            <div style={{ color: "#93c5fd", fontWeight: 600, marginBottom: "2px" }}>Distribution & Dealer Framework:</div>
-            <div style={{ color: "#e2e8f0", lineHeight: 1.4 }}>{selectedCountry.dealer_model}</div>
+          <div style={{ flex: "1 1 240px", fontSize: "11.5px", borderLeft: "1px solid var(--rule)", paddingLeft: "var(--space-3)", color: "var(--ink-3)" }}>
+            <div><strong>Verifiable Data Source:</strong></div>
+            <div style={{ color: "var(--ink-2)", marginTop: "2px" }}>{selectedCountry.source}</div>
           </div>
         </div>
       </section>
 
-      {/* 2. THE NEW ZEALAND FRAGMENTATION TIMELINE (2015-2026) */}
-      <section style={{ border: "1px solid var(--rule)", borderRadius: "6px", padding: "var(--space-4)", background: "var(--paper)" }}>
+      {/* 2. OBSERVABLE PLOT: 10-YEAR EVOLUTION CHARTS */}
+      <section style={{ border: "1px solid var(--rule-strong)", borderRadius: "6px", padding: "var(--space-4)", background: "var(--paper)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
           <div>
-            <span className="eyebrow">NZ Historical Evolution (2015–2026)</span>
-            <h3 style={{ margin: "var(--space-1) 0 var(--space-1)", fontSize: "16px", fontWeight: 700 }}>
-              The Proliferation Surge: 62 Brands in 2020 to 84 Brands Today
+            <span className="eyebrow">10-Year Historical Evolution (2015–2025)</span>
+            <h3 style={{ margin: "var(--space-1) 0 var(--space-1)", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
+              {timelineView === "global_evolution"
+                ? "Global Scale Evolution: Units per Brand Over 10 Years"
+                : timelineView === "nz_brands_volume"
+                ? "NZ Brand Proliferation Surge (62 → 84 Brands)"
+                : "NZ Market Concentration Over Time"}
             </h3>
             <p className="meta" style={{ margin: 0 }}>
-              Tracking active marques in the Motor Vehicle Register against average volume per brand and market concentration.
+              {timelineView === "global_evolution"
+                ? "Logarithmic trajectory of annual vehicle volume per brand across USA, China, Japan, Australia, and New Zealand."
+                : "Tracking active marques in the Motor Vehicle Register against average volume per brand and market concentration."}
             </p>
           </div>
 
+          {/* Perspective Buttons */}
           <div style={{ display: "flex", gap: "var(--space-2)" }}>
             <button
               type="button"
-              onClick={() => setTimelineView("brands_and_volume")}
+              onClick={() => setTimelineView("global_evolution")}
               style={{
                 padding: "6px 12px",
                 fontSize: "12px",
                 borderRadius: "4px",
-                border: timelineView === "brands_and_volume" ? "1px solid var(--ink)" : "1px solid var(--rule)",
-                background: timelineView === "brands_and_volume" ? "var(--ink)" : "transparent",
-                color: timelineView === "brands_and_volume" ? "var(--paper)" : "var(--ink)",
-                fontWeight: timelineView === "brands_and_volume" ? 600 : 400,
+                border: timelineView === "global_evolution" ? "1px solid var(--ink)" : "1px solid var(--rule)",
+                background: timelineView === "global_evolution" ? "var(--ink)" : "transparent",
+                color: timelineView === "global_evolution" ? "var(--paper)" : "var(--ink)",
+                fontWeight: timelineView === "global_evolution" ? 600 : 400,
                 cursor: "pointer",
               }}
             >
-              Active Brands & Mean Volume
+              Global 10-Year Scale (All 5)
             </button>
             <button
               type="button"
-              onClick={() => setTimelineView("concentration")}
+              onClick={() => setTimelineView("nz_brands_volume")}
               style={{
                 padding: "6px 12px",
                 fontSize: "12px",
                 borderRadius: "4px",
-                border: timelineView === "concentration" ? "1px solid var(--ink)" : "1px solid var(--rule)",
-                background: timelineView === "concentration" ? "var(--ink)" : "transparent",
-                color: timelineView === "concentration" ? "var(--paper)" : "var(--ink)",
-                fontWeight: timelineView === "concentration" ? 600 : 400,
+                border: timelineView === "nz_brands_volume" ? "1px solid var(--ink)" : "1px solid var(--rule)",
+                background: timelineView === "nz_brands_volume" ? "var(--ink)" : "transparent",
+                color: timelineView === "nz_brands_volume" ? "var(--paper)" : "var(--ink)",
+                fontWeight: timelineView === "nz_brands_volume" ? 600 : 400,
                 cursor: "pointer",
               }}
             >
-              Market Concentration (Top 3/5/10)
+              NZ Brands & Volume
+            </button>
+            <button
+              type="button"
+              onClick={() => setTimelineView("nz_concentration")}
+              style={{
+                padding: "6px 12px",
+                fontSize: "12px",
+                borderRadius: "4px",
+                border: timelineView === "nz_concentration" ? "1px solid var(--ink)" : "1px solid var(--rule)",
+                background: timelineView === "nz_concentration" ? "var(--ink)" : "transparent",
+                color: timelineView === "nz_concentration" ? "var(--paper)" : "var(--ink)",
+                fontWeight: timelineView === "nz_concentration" ? 600 : 400,
+                cursor: "pointer",
+              }}
+            >
+              NZ Concentration (Top 3/5/10)
             </button>
           </div>
         </div>
@@ -465,36 +598,36 @@ export function ComplexityBenchmark() {
         {/* Observable Plot Figure */}
         <PlotFigure render={renderTimelinePlot} />
 
-        {/* Key Timeline Takeaways */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--space-3)", marginTop: "var(--space-3)", paddingTop: "var(--space-3)", borderTop: "1px solid var(--rule)" }}>
+        {/* 10-Year Takeaways Table */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "var(--space-3)", marginTop: "var(--space-3)", paddingTop: "var(--space-3)", borderTop: "1px solid var(--rule)" }}>
           <div style={{ fontSize: "12px" }}>
-            <span style={{ color: "var(--ink-3)" }}>Peak Market Volume (2021):</span>
-            <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--ink)" }}>157,557 registrations · 63 brands</div>
-            <div style={{ color: "var(--ink-2)" }}>Average 2,501 units/brand (Median: 502)</div>
+            <span style={{ color: "var(--ink-3)" }}>USA 10-Year Scale:</span>
+            <div style={{ fontWeight: 700, fontSize: "13.5px", color: "var(--ink)" }}>~420,000 units / brand</div>
+            <div style={{ color: "var(--ink-2)" }}>Strict franchise laws hold brands at 38–39</div>
           </div>
           <div style={{ fontSize: "12px" }}>
-            <span style={{ color: "var(--ink-3)" }}>Peak Brand Count (2025):</span>
-            <div style={{ fontWeight: 700, fontSize: "14px", color: "#0284c7" }}>82 active brands · 133,795 registrations</div>
-            <div style={{ color: "var(--ink-2)" }}>Average 1,632 units/brand (Median: 262)</div>
+            <span style={{ color: "var(--ink-3)" }}>China 10-Year Proliferation:</span>
+            <div style={{ fontWeight: 700, fontSize: "13.5px", color: "var(--ink)" }}>110 brands (2015) → 160 brands (2025)</div>
+            <div style={{ color: "var(--ink-2)" }}>Massive domestic volume still yields 200k/brand</div>
           </div>
           <div style={{ fontSize: "12px" }}>
-            <span style={{ color: "var(--ink-3)" }}>Top 3 Domination (2025):</span>
-            <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--ink)" }}>46.0% market share</div>
-            <div style={{ color: "var(--ink-2)" }}>Toyota, Ford & Mitsubishi take 61,570 units</div>
+            <span style={{ color: "var(--ink-3)" }}>Australia 10-Year Shift:</span>
+            <div style={{ fontWeight: 700, fontSize: "13.5px", color: "var(--ink)" }}>19.9k (2015) → 16.1k units/brand (2025)</div>
+            <div style={{ color: "var(--ink-2)" }}>Brand count rose from 58 to 76</div>
           </div>
           <div style={{ fontSize: "12px" }}>
-            <span style={{ color: "var(--ink-3)" }}>The Long Tail Reality:</span>
-            <div style={{ fontWeight: 700, fontSize: "14px", color: "#b45309" }}>37 brands sell &lt; 200 cars/year</div>
-            <div style={{ color: "var(--ink-2)" }}>45% of brands fight over just 1.5% of sales</div>
+            <span style={{ color: "var(--ink-3)" }}>New Zealand Collapse:</span>
+            <div style={{ fontWeight: 700, fontSize: "13.5px", color: "#0284c7" }}>2,501 (2021) → 1,632 units/brand (2025)</div>
+            <div style={{ color: "var(--ink-2)" }}>Median volume dropped to just 262 cars/yr</div>
           </div>
         </div>
       </section>
 
       {/* 3. THE 2025 BRAND VOLUME PYRAMID */}
-      <section style={{ border: "1px solid var(--rule)", borderRadius: "6px", padding: "var(--space-4)", background: "var(--paper)" }}>
+      <section style={{ border: "1px solid var(--rule-strong)", borderRadius: "6px", padding: "var(--space-4)", background: "var(--paper)" }}>
         <header style={{ marginBottom: "var(--space-3)" }}>
           <span className="eyebrow">Empirical Register Analysis (2025 NZ New)</span>
-          <h3 style={{ margin: "var(--space-1) 0 var(--space-1)", fontSize: "16px", fontWeight: 700 }}>
+          <h3 style={{ margin: "var(--space-1) 0 var(--space-1)", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
             The New Zealand Brand Volume Pyramid
           </h3>
           <p className="meta" style={{ margin: 0 }}>
@@ -506,7 +639,7 @@ export function ComplexityBenchmark() {
         <div style={{ display: "flex", flexDirection: "column", gap: "6px", margin: "var(--space-3) 0" }}>
           {intelData.brand_pyramid.tiers.map((t) => {
             const isSelected = selectedTier === t.tier;
-            const tierColors = ["#0284c7", "#0d9488", "#eab308", "#f97316", "#ef4444"];
+            const tierColors = ["#0284c7", "#0d9488", "#ca8a04", "#ea580c", "#dc2626"];
             const color = tierColors[t.tier - 1];
 
             return (
@@ -517,7 +650,7 @@ export function ComplexityBenchmark() {
                   border: isSelected ? `2px solid ${color}` : "1px solid var(--rule)",
                   borderRadius: "4px",
                   padding: "10px 14px",
-                  background: isSelected ? "var(--paper-warm)" : "transparent",
+                  background: isSelected ? "var(--paper-warm)" : "var(--paper)",
                   cursor: "pointer",
                   transition: "background 0.15s ease",
                 }}
@@ -533,7 +666,7 @@ export function ComplexityBenchmark() {
                         background: color,
                       }}
                     />
-                    <strong style={{ fontSize: "13.5px" }}>Tier {t.tier}: {t.name}</strong>
+                    <strong style={{ fontSize: "13.5px", color: "var(--ink)" }}>Tier {t.tier}: {t.name}</strong>
                     <span style={{ fontSize: "12px", color: "var(--ink-3)" }}>({t.threshold})</span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "12.5px" }}>
@@ -580,10 +713,10 @@ export function ComplexityBenchmark() {
       </section>
 
       {/* 4. DEALERSHIP VIABILITY & FRANCHISE SIMULATOR */}
-      <section style={{ border: "1px solid var(--rule)", borderRadius: "6px", padding: "var(--space-4)", background: "var(--paper)" }}>
+      <section style={{ border: "1px solid var(--rule-strong)", borderRadius: "6px", padding: "var(--space-4)", background: "var(--paper)" }}>
         <header style={{ marginBottom: "var(--space-3)" }}>
           <span className="eyebrow">Franchise Economics Simulator</span>
-          <h3 style={{ margin: "var(--space-1) 0 var(--space-1)", fontSize: "16px", fontWeight: 700 }}>
+          <h3 style={{ margin: "var(--space-1) 0 var(--space-1)", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
             The 2,000 Units/Brand Reality Check: Can a Dealership Network Survive?
           </h3>
           <p className="meta" style={{ margin: 0 }}>
@@ -666,16 +799,16 @@ export function ComplexityBenchmark() {
       </section>
 
       {/* 5. FOUR STRUCTURAL REASONS WHY NZ IS SO FRAGMENTED */}
-      <section style={{ border: "1px solid var(--rule)", borderRadius: "6px", padding: "var(--space-4)", background: "var(--paper)" }}>
+      <section style={{ border: "1px solid var(--rule-strong)", borderRadius: "6px", padding: "var(--space-4)", background: "var(--paper)" }}>
         <header style={{ marginBottom: "var(--space-3)" }}>
           <span className="eyebrow">Structural Dynamics</span>
-          <h3 style={{ margin: "var(--space-1) 0 var(--space-1)", fontSize: "16px", fontWeight: 700 }}>
+          <h3 style={{ margin: "var(--space-1) 0 var(--space-1)", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
             Four Reasons Why New Zealand Has 140x More Brands Per Capita Than America
           </h3>
         </header>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "var(--space-3)" }}>
-          <div style={{ padding: "var(--space-3)", border: "1px solid var(--rule)", borderRadius: "4px" }}>
+          <div style={{ padding: "var(--space-3)", border: "1px solid var(--rule)", borderRadius: "4px", background: "var(--paper-warm)" }}>
             <div style={{ fontWeight: 700, fontSize: "13.5px", color: "var(--ink)", marginBottom: "4px" }}>
               1. Zero Import Tariffs (1998 Deregulation)
             </div>
@@ -684,7 +817,7 @@ export function ComplexityBenchmark() {
             </p>
           </div>
 
-          <div style={{ padding: "var(--space-3)", border: "1px solid var(--rule)", borderRadius: "4px" }}>
+          <div style={{ padding: "var(--space-3)", border: "1px solid var(--rule)", borderRadius: "4px", background: "var(--paper-warm)" }}>
             <div style={{ fontWeight: 700, fontSize: "13.5px", color: "var(--ink)", marginBottom: "4px" }}>
               2. Right-Hand Drive (RHD) Synergy
             </div>
@@ -693,7 +826,7 @@ export function ComplexityBenchmark() {
             </p>
           </div>
 
-          <div style={{ padding: "var(--space-3)", border: "1px solid var(--rule)", borderRadius: "4px" }}>
+          <div style={{ padding: "var(--space-3)", border: "1px solid var(--rule)", borderRadius: "4px", background: "var(--paper-warm)" }}>
             <div style={{ fontWeight: 700, fontSize: "13.5px", color: "var(--ink)", marginBottom: "4px" }}>
               3. The Clean Car EV Sandbox Effect
             </div>
@@ -702,7 +835,7 @@ export function ComplexityBenchmark() {
             </p>
           </div>
 
-          <div style={{ padding: "var(--space-3)", border: "1px solid var(--rule)", borderRadius: "4px" }}>
+          <div style={{ padding: "var(--space-3)", border: "1px solid var(--rule)", borderRadius: "4px", background: "var(--paper-warm)" }}>
             <div style={{ fontWeight: 700, fontSize: "13.5px", color: "var(--ink)", marginBottom: "4px" }}>
               4. Multi-Brand Dealership Groups
             </div>

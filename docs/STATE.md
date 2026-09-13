@@ -62,21 +62,23 @@ see these files where the UI work happens. Nothing was pushed.
   - Verified static build (`npx astro build` in 1.04s), TypeScript typecheck (`tsc --noEmit` exit 0), and browser testing on desktop and mobile viewports via Chrome DevTools MCP.
 - **Market Complexity & Competition Benchmark (The 2,000 Units/Brand Anomaly)**: Done (2026-09-13).
   - Built `ComplexityBenchmark.tsx` directly modeling and elevating the international comparison chart:
-    - Global benchmark cards for **USA** (340M pop, 38 brands, 16M units $\rightarrow$ 420K units/brand), **China** (1.4B pop, 155 brands, 31M units $\rightarrow$ 200K units/brand), **Japan** (124M pop, 49 brands, 3.7M units $\rightarrow$ 76K units/brand), **Australia** (27M pop, 74 brands, 1.2M units $\rightarrow$ 16K units/brand), and **New Zealand** (5M pop, 82 brands, 134K units $\rightarrow$ **~1.6K - 2K units/brand**).
-    - Normalized SVG silhouettes (`src/data/country_silhouettes.json`) extracted from natural earth vector geometry for crisp high-contrast visual display.
-    - Interactive metric toggles: Units per Brand (scale), Brands per Million People (fragmentation — NZ is **140x more brand-dense per capita than the USA**), Total Market Volume, and Active Brands Count.
-  - NZ Historical Proliferation Timeline (2015–2026): Observable Plot chart tracking active brand count surge (62 in 2020 $\rightarrow$ 84 in 2026) alongside the collapse in average/median volume per brand and market concentration.
-  - Empirical 2025 Brand Volume Pyramid: 5 interactive tiers:
-    - Tier 1: Market Anchors ($\ge 10\text{k}$) · 3 brands (Toyota, Ford, Mitsubishi) · 46.0% market share (Avg 20,523/brand).
-    - Tier 2: Mainstream Volume (3k–10k) · 8 brands (Kia, Suzuki, Mazda, Nissan, Hyundai, MG, BYD, Honda) · 29.4% share.
-    - Tier 3: Established Specialists (1k–3k) · 12 brands (Haval, Subaru, VW, Isuzu, Mercedes, BMW, Tesla...) · 14.9% share.
-    - Tier 4: Boutique & New Entrants (200–1k) · 22 brands (Jaecoo, Skoda, Mini, Omoda, Volvo, Porsche...) · 8.2% share.
-    - Tier 5: The Long Tail ($< 200$) · 37 brands · 1.5% share · **Avg 53 units/brand** (45% of brands fight over 1.5% of sales!).
-    - Clickable tier cards expand to inspect the exact brands and models in each bracket.
-  - Dealership Viability Simulator: Interactive volume slider calculating national sales pace (cars/week) and showroom throughput across a minimum viable 8-dealer national footprint, with franchise viability verdicts.
-  - Structural Analysis: Four empirical drivers explaining why NZ is the world's most fragmented market (1998 zero-tariff deregulation, low-cost RHD synergy, Clean Car EV testbed bringing 18 new brands since 2019, and multi-franchise dealer groups like Giltrap/Armstrong's/Ebbett).
-  - Wired into `MarketDrilldown.tsx` as the first tab (`?q=q_complexity`) and featured via a prominent callout card on the main Explore page under Tier 2 ("Market structure").
-  - Verified with `npx -y -p typescript tsc --noEmit` (exit 0), `npx astro build` (4 static pages built cleanly), and Chrome DevTools MCP browser testing across desktop (1280x900) and mobile (390x844).
+    - **10-Year Historical Tracking (2015–2025)**: Verifiable empirical statistics across all 11 years for **USA** (BEA & NADA), **China** (CAAM & CPCA), **Japan** (JADA & Zenkeijikyo), **Australia** (VFACTS & FCAI), and **New Zealand** (NZTA Motor Vehicle Register empirical query).
+    - **Interactive Year Scrubber (2015–2025)**: Allows users to slide or click any year from 2015 to 2025 to observe the real-time evolution of units/brand, population, active brand count, and scale vs NZ.
+    - **Global Scale Evolution Chart (Observable Plot)**: Logarithmic trajectory chart tracking units/brand across all 5 countries over 10 years, clearly demonstrating the five orders-of-magnitude tiers (USA ~420k, China ~200k, Japan ~90k, Australia ~16k, NZ ~2k).
+    - **Site Design System Harmonization**: Replaced dark blue styling with the site's native warm editorial aesthetic (`var(--paper)`, `var(--paper-warm)`, `var(--ink)`, and `var(--rule)`), featuring architectural ink-toned country silhouettes (`src/data/country_silhouettes.json`), explicit data source attribution badges, and clean pill selectors.
+    - **Interactive Metric Toggles**: Units per Brand (scale), Brands per Million People (fragmentation — NZ is **140× more brand-dense per capita than the USA**), Total Market Volume, and Active Brands Count.
+    - **NZ Historical Proliferation Timeline (2015–2026)**: Observable Plot chart tracking active brand count surge (62 in 2020 $\rightarrow$ 84 in 2026) alongside the collapse in average/median volume per brand and market concentration.
+    - **Empirical 2025 Brand Volume Pyramid**: 5 interactive tiers:
+      - Tier 1: Market Anchors ($\ge 10\text{k}$) · 3 brands (Toyota, Ford, Mitsubishi) · 46.0% market share (Avg 20,523/brand).
+      - Tier 2: Mainstream Volume (3k–10k) · 8 brands (Kia, Suzuki, Mazda, Nissan, Hyundai, MG, BYD, Honda) · 29.4% share.
+      - Tier 3: Established Specialists (1k–3k) · 12 brands (Haval, Subaru, VW, Isuzu, Mercedes, BMW, Tesla...) · 14.9% share.
+      - Tier 4: Boutique & New Entrants (200–1k) · 22 brands (Jaecoo, Skoda, Mini, Omoda, Volvo, Porsche...) · 8.2% share.
+      - Tier 5: The Long Tail ($< 200$) · 37 brands · 1.5% share · **Avg 53 units/brand** (45% of brands fight over 1.5% of sales!).
+      - Clickable tier cards expand to inspect the exact brands and models in each bracket.
+    - **Dealership Viability Simulator**: Interactive volume slider calculating national sales pace (cars/week) and showroom throughput across a minimum viable 8-dealer national footprint, with franchise viability verdicts.
+    - **Structural Analysis**: Four empirical drivers explaining why NZ is the world's most fragmented market (1998 zero-tariff deregulation, low-cost RHD synergy, Clean Car EV testbed bringing 18 new brands since 2019, and multi-franchise dealer groups like Giltrap/Armstrong's/Ebbett).
+    - **Wired into `MarketDrilldown.tsx`** as the default tab (`?q=q_complexity`) and featured via a harmonized editorial callout card on the main Explore page under Tier 2 ("Market structure").
+    - Verified with `npx -y -p typescript tsc --noEmit` (exit 0), `npx astro build` (4 static pages built cleanly), and Chrome DevTools MCP browser testing across desktop (1280x900) and mobile (390x844).
 
 ## In progress
 
