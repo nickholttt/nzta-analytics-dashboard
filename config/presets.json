@@ -29,6 +29,8 @@
     ],
     "top_n_basis": "trailing_12_months",
     "trailing_window_months": 12,
+    "colour_slots_by_trailing": 5,
+    "$colour_slots_comment": "The line palette has eight colours (src/lib/theme.ts: no set of colours keeps more lines apart under colour blindness). On a mix chart the first colour_slots_by_trailing go to the largest series over the trailing window, the rest by peak rolling share over the preset's period, and any series beyond the palette is drawn as a grey context line. 5 keeps every current contender on the owner_country chart in colour while leaving three slots for the categories that carried earlier decades.",
     "mix_default_start": {
       "$comment": "A mix chart over all time crushes its story into the right of the frame whenever the dimension spent decades with one category. The default start is the first month the dimension had something to show: at least min_categories categories above min_share, sustained for sustain_months, measured on the 12-month rolling mix so it does not move with monthly noise. All time stays available as a toggle and is never the default. Computed in the browser, like the rolling share and the suppression guards, so these numbers change without a rebuild.",
       "$threshold_note": "min_share 0.005 puts powertrain at 2009-10, where hybrids first became visible; 0.02 puts it at 2018-07 and hides the nine-year ramp. Do not lower it below 0.004: at 0.003 powertrain falls back to 1938-01, because 1940s diesel sat near 0.36% and the now-extinct Other category near 0.71%. The qualifying run is 202 months and the nearest non-qualifying run is 5, so sustain_months is what rejects the mid-century near-misses.",

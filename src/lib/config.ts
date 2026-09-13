@@ -65,6 +65,7 @@ type PresetsDoc = {
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
     trailing_window_months: number;
+    colour_slots_by_trailing: number;
     mix_default_start: {
       min_share: number;
       min_categories: number;

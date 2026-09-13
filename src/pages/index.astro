@@ -1,67 +1,66 @@
 ---
+import "../styles/site.css";
 import PresetPanel from "../components/PresetPanel";
 import PresetTriage from "../components/PresetTriage";
+import manifest from "../../public/data/manifest.json";
 
 // Which presets this local reference page draws. Everything else about each chart comes from config/.
-// The triage table below covers the whole canon, drawn or not.
+// The triage table below covers the whole canon, drawn or not. This page is a styling reference, not
+// the Explore page: the tiers come later.
 const sections = [
-  { id: "market-share", title: "1. Market share", presets: ["brand-share", "parent-group-share", "concentration"] },
-  { id: "powertrain-adoption", title: "2. Powertrain adoption", presets: ["powertrain-mix"] },
-  { id: "fleet-age", title: "3. Fleet age", presets: ["used-import-age", "cohort-survival"] },
+  { id: "launch", eyebrow: "Launch charts", title: "The shape of the market", lead: true, presets: ["brand-owner-origin", "powertrain-mix", "new-vs-used"] },
+  {
+    id: "live",
+    eyebrow: "Other live charts",
+    title: "Everything else the cube can draw",
+    lead: false,
+    presets: ["brand-share", "parent-group-share", "concentration", "built-in", "segment-mix", "engine-size"],
+  },
 ];
+
+const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+  new Date(`${manifest.latest_snapshot}T00:00:00Z`),
+);
 ---
 
-<html lang="en">
+<html lang="en-NZ">
   <head>
     <meta charset="utf-8" />
-    <title>Reference charts (local)</title>
-    <style is:global>
-      body { font: 14px/1.45 system-ui, sans-serif; margin: 24px; color: #222; background: #fff; }
-      main { max-width: 1200px; }
-      h2 { margin-top: 40px; border-bottom: 1px solid #ddd; }
-      .panel { margin: 18px 0 36px; }
-      .meta { color: #666; font-size: 12px; }
-      .blocked { background: #fdecea; border-left: 4px solid #c0392b; padding: 8px 12px; margin: 8px 0; }
-      .warning { background: #fff6e0; border-left: 4px solid #e6a100; padding: 8px 12px; margin: 8px 0; }
-      .curated { background: #f1eefb; border-left: 4px solid #7a5af5; padding: 8px 12px; margin: 8px 0; }
-      .scaffold { background: #eef3fb; border: 1px dashed #4e79a7; padding: 24px; margin: 8px 0; text-align: center; }
-      .notes { color: #444; font-size: 13px; }
-      .summary { border-collapse: collapse; font-size: 12px; margin: 8px 0; }
-      .summary td, .summary th { padding: 2px 10px; text-align: right; }
-      .summary td:first-child { text-align: left; }
-      .swatch { display: inline-block; width: 10px; height: 10px; margin-right: 4px; }
-      .events { font-size: 12px; }
-      .events .event { display: block; }
-      .controls { display: flex; flex-wrap: wrap; align-items: baseline; gap: 14px; margin: 4px 0 2px; }
-      .controls label { font-size: 12px; white-space: nowrap; }
-      .badge { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 1px 6px; border-radius: 3px; vertical-align: middle; }
-      .badge.live { background: #e6f4ea; color: #1e7a3c; }
-      .badge.blocked { background: #fdecea; color: #a3271b; }
-      .badge.invalid { background: #fbe3f2; color: #97176c; }
-      .triage { border-collapse: collapse; width: 100%; font-size: 12px; margin: 12px 0; }
-      .triage th, .triage td { border-top: 1px solid #e2e2e2; padding: 7px 8px; text-align: left; vertical-align: top; }
-      .triage ul { margin: 0; padding-left: 16px; }
-      .triage tr.live { color: #555; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NZ vehicle registrations · reference charts</title>
   </head>
   <body>
-    <main>
-      <h1>Registrations reference charts (local)</h1>
+    <main class="page">
+      <header class="masthead">
+        <p class="eyebrow">Reference build · snapshot {snapshot}</p>
+        <h1>New Zealand vehicle registrations</h1>
+        <p class="standfirst">
+          Where the vehicles we register come from, what powers them, and whether they arrived new. Every figure is drawn from the
+          NZTA Motor Vehicle Register.
+        </p>
+      </header>
       {
         sections.map((s) => (
           <section id={s.id}>
-            <h2>{s.title}</h2>
+            <div class="section-head">
+              <p class="eyebrow">{s.eyebrow}</p>
+              <h2 class="section-title">{s.title}</h2>
+            </div>
             {s.presets.map((id) => (
-              <PresetPanel client:only="react" presetId={id} />
+              <PresetPanel client:only="react" presetId={id} lead={s.lead} />
             ))}
           </section>
         ))
       }
       <section id="triage">
-        <h2>4. The whole canon</h2>
-        <p>Every preset in <code>config/presets.json</code>, its authored status, and what each one that
-          cannot render yet is waiting on. Authored statuses are cross-checked against what this build
-          actually resolves.</p>
+        <div class="section-head">
+          <p class="eyebrow">Canon</p>
+          <h2 class="section-title">Every preset and what it waits on</h2>
+        </div>
+        <p class="panel-definition">
+          Every preset in <code>config/presets.json</code>, its authored status, and what each one that cannot render yet is waiting on.
+          Authored statuses are cross-checked against what this build actually resolves.
+        </p>
         <PresetTriage client:only="react" />
       </section>
     </main>

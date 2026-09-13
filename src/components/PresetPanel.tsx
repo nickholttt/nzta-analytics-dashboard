@@ -18,7 +18,8 @@ const RESERVED_LABELS: Record<string, string> = {
   __OTHER__: "Other (beyond the cap)",
 };
 
-export default function PresetPanel({ presetId }: { presetId: string }) {
+// lead: one of the charts that carries the page. Larger heading, taller plot; nothing else differs.
+export default function PresetPanel({ presetId, lead = false }: { presetId: string; lead?: boolean }) {
   const preset = findPreset(presetId);
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
@@ -40,12 +41,34 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
     }
   }, [preset, resolution, manifest]);
 
-  if (!preset) return <section className="panel blocked">No preset "{presetId}" in config/presets.json.</section>;
-  if (error) return <section className="panel blocked">{error}</section>;
-  if (!manifest || !resolution) return <section className="panel">Loading…</section>;
+  const panelClass = `panel${lead ? " lead" : ""}`;
+  if (!preset)
+    return (
+      <section className={panelClass}>
+        <div className="callout blocked">
+          <span className="callout-label">Missing preset</span>No preset "{presetId}" in config/presets.json.
+        </div>
+      </section>
+    );
+  if (error)
+    return (
+      <section className={panelClass}>
+        <div className="callout blocked">
+          <span className="callout-label">Could not load</span>
+          {error}
+        </div>
+      </section>
+    );
+  if (!manifest || !resolution)
+    return (
+      <section className={`${panelClass} loading`}>
+        <p className="meta">Loading…</p>
+      </section>
+    );
 
   const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure } = resolution;
   const dataset = findDataset(preset.dataset);
+  const derived = findDerived(preset.derived);
   const dsManifest = preset.dataset ? manifest.datasets[preset.dataset] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
@@ -53,17 +76,18 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
   const guards = guardsFor(preset.measure, preset.derived);
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
-  const snapshotsNeeded = findDerived(preset.derived)?.snapshots_needed;
+  const snapshotsNeeded = derived?.snapshots_needed;
 
   // Notes that state a figure are templated from the build; a plain note that carries one is flagged
-  // rather than trusted, because it will drift the next time the data moves.
+  // rather than trusted, because it will drift the next time the data moves. The dataset definition is
+  // not among them: it is the sentence every chart on this dataset must carry, so it sits under the
+  // question rather than in the footnotes.
   const context = noteContext(preset, manifest);
   const notes: { key: string; text: string; unresolved: string[] }[] = [];
   const addNote = (key: string, plain?: string, template?: string) => {
     if (template) notes.push({ key, ...fillNote(template, context) });
     else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
-  if (dataset?.definition) addNote("definition", dataset.definition);
   addNote("preset", preset.note, preset.note_template);
   addNote("dimension", dimension?.note, dimension?.note_template);
   const driftingNotes = [preset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
@@ -81,47 +105,61 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
           minDenominator={guard}
           collapseFraction={collapseFraction}
           label={label}
+          lead={lead}
         />
       );
     } else if (shape === "distribution" && dimension) {
-      chart = <DistributionChart preset={preset} dimension={dimension} rows={rows} manifest={manifest} minDenominator={guard} label={label} />;
+      chart = <DistributionChart preset={preset} dimension={dimension} rows={rows} manifest={manifest} minDenominator={guard} label={label} lead={lead} />;
     } else if (shape === "trend") {
-      chart = <TrendChart preset={preset} rows={rows} manifest={manifest} minDenominator={guard} collapseFraction={collapseFraction} />;
+      chart = <TrendChart preset={preset} rows={rows} manifest={manifest} minDenominator={guard} collapseFraction={collapseFraction} lead={lead} />;
     }
   }
 
+  const eyebrow = dimension?.label ?? derived?.label ?? measure?.label;
+
   return (
-    <section className="panel">
-      <h3>
-        {preset.question} <span className={`badge ${status}`}>{status}</span>
-      </h3>
-      <p className="meta">
-        preset {preset.id} · shape {shape} · dataset {preset.dataset ?? "composite"} · {preset.derived ? `derived ${preset.derived}` : `measure ${measure?.id ?? preset.measure}`}
-        {preset.dimension ? ` · dimension ${preset.dimension}` : ""} · period {preset.period ?? "none"}
-        {preset.top_n ? ` · top ${preset.top_n} by vehicles over the trailing window, the rest as one line` : ""} · snapshot {manifest.latest_snapshot}
-      </p>
+    <section className={panelClass} id={preset.id}>
+      <header className="panel-head">
+        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+        <h3 className="panel-question">
+          {preset.question}
+          {status !== "live" ? (
+            <>
+              {" "}
+              <span className={`badge ${status}`}>{status}</span>
+            </>
+          ) : null}
+        </h3>
+        {dataset?.definition ? <p className="panel-definition">{dataset.definition}</p> : null}
+      </header>
 
       {isComposite(preset) ? (
-        <div className="curated">
-          <strong>Curated comparison.</strong> Two series on one frame, a deliberate exception to one chart per question. Not offered in the builder
+        <div className="callout curated">
+          <span className="callout-label">Curated comparison</span>
+          Two series on one frame, a deliberate exception to one chart per question. Not offered in the builder
           {compositeRules.builder_available ? "" : ", and never will be"}: the builder grammar describes a single series.
         </div>
       ) : null}
 
-      {statusDisagreement ? <div className="warning">{statusDisagreement}</div> : null}
+      {statusDisagreement ? (
+        <div className="callout warning">
+          <span className="callout-label">Status out of date</span>
+          {statusDisagreement}
+        </div>
+      ) : null}
 
       {snapshotsNeeded !== undefined ? (
-        <div className="scaffold">
+        <div className="callout scaffold">
+          <span className="callout-label">Waiting on snapshots</span>
           Needs {snapshotsNeeded} or more snapshots; this build carries 1 ({manifest.latest_snapshot}). Nothing is drawn until then.
         </div>
       ) : null}
 
       {blocking.length > 0 ? (
-        <div className={preventsRender.length > 0 ? "blocked" : "warning"}>
+        <div className={`callout ${preventsRender.length > 0 ? "blocked" : "warning"}`}>
+          <span className="callout-label">{preventsRender.length > 0 ? "Cannot be drawn yet" : "Drawn with a gap"}</span>
           <strong>
-            {preventsRender.length > 0
-              ? "Nothing can be drawn from the cube as built:"
-              : "Drawn, but not what the preset asks for:"}
+            {preventsRender.length > 0 ? "Nothing can be drawn from the cube as built:" : "Drawn, but not what the preset asks for:"}
           </strong>
           <ul>{blocking.map((b) => <li key={b}>{b}</li>)}</ul>
           {preset.requires?.length ? (
@@ -132,10 +170,16 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
           ) : null}
         </div>
       ) : null}
-      {notApplied.map((w) => <div key={w} className="warning">{w}</div>)}
+      {notApplied.map((w) => (
+        <div key={w} className="callout warning">
+          <span className="callout-label">Filter not applied</span>
+          {w}
+        </div>
+      ))}
       {driftingNotes.map((n) => (
-        <div key={n} className="warning">
-          This preset's note states a figure but is not templated from the build, so it will drift: “{n}”
+        <div key={n} className="callout warning">
+          <span className="callout-label">Note will drift</span>
+          This preset's note states a figure but is not templated from the build: “{n}”
         </div>
       ))}
 
@@ -165,8 +209,14 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
             . Their shares are drawn in grey, not dropped and not zeroed.
           </li>
         ) : null}
-        <li>{BASIS_NOTE}</li>
+        <li className="basis">{BASIS_NOTE}</li>
       </ul>
+
+      <p className="spec">
+        {preset.id} · {shape} · {preset.dataset ?? "composite"} · {preset.derived ?? measure?.id ?? preset.measure}
+        {preset.dimension ? ` · ${preset.dimension}` : ""} · {preset.period ?? "no period"}
+        {preset.top_n ? ` · top ${preset.top_n} by trailing vehicles` : ""} · snapshot {manifest.latest_snapshot}
+      </p>
     </section>
   );
 }

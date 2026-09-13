@@ -11,19 +11,30 @@ import { findDerived } from "../lib/config";
 import type { Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { derivedSeries } from "../lib/derived";
-import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthRange, pct, periodWindow } from "../lib/measures";
+import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
+import {
+  LINE_WIDTH,
+  PAPER,
+  RULE,
+  RULE_STRONG,
+  SERIES,
+  SUPPRESSED_BAND,
+  SUPPRESSED_LINE,
+  THIN_LINE_WIDTH,
+  chartHeight,
+  plotStyle,
+  tipStyle,
+  xTicks,
+} from "../lib/theme";
 import { PlotFigure } from "./PlotFigure";
 
-const LINE = "#4e79a7";
-const GREY_LINE = "#bdbdbd";
-const GREY_BAND = "#ececec";
 const PERCENT = "percent";
 
-type Props = { preset: Preset; rows: SliceRow[]; manifest: Manifest; minDenominator: number; collapseFraction: number };
+type Props = { preset: Preset; rows: SliceRow[]; manifest: Manifest; minDenominator: number; collapseFraction: number; lead?: boolean };
 
 type Point = { month: string; date: Date; y?: number; suppressed: boolean; denominator?: number; members?: string[] };
 
-export function TrendChart({ preset, rows, manifest, minDenominator, collapseFraction }: Props) {
+export function TrendChart({ preset, rows, manifest, minDenominator, collapseFraction, lead = false }: Props) {
   const derived = preset.derived ? findDerived(preset.derived) : undefined;
   const share = derived?.unit === PERCENT;
 
@@ -75,44 +86,63 @@ export function TrendChart({ preset, rows, manifest, minDenominator, collapseFra
     return { win, points, bands };
   }, [rows, preset, manifest.latest_snapshot, share, minDenominator, collapseFraction]);
 
-  const render = useCallback(() => {
-    const top = Math.max(0.01, ...model.points.map((p) => p.y ?? 0));
-    const yMax = share ? Math.min(1, top * 1.05) : top * 1.05;
-    return Plot.plot({
-      width: 1150,
-      height: 380,
-      x: { type: "utc", label: null, domain: [monthDate(model.win.from), monthDate(addMonths(model.win.to, 1))] },
-      y: {
-        label: share ? "Share of the month's vehicles" : "Vehicles",
-        grid: true,
-        domain: [0, yMax],
-        tickFormat: share ? (d: number) => `${Math.round(d * 100)}%` : undefined,
-      },
-      marks: [
-        Plot.rect(model.bands.map((b) => ({ ...b, y1: 0, y2: yMax })), { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: GREY_BAND }),
-        Plot.lineY(model.points, { x: "date", y: "y", stroke: GREY_LINE, strokeWidth: 1.2 }),
-        Plot.lineY(
-          model.points.map((p) => (p.suppressed ? { ...p, y: undefined } : p)),
-          { x: "date", y: "y", stroke: LINE, strokeWidth: 1.7 },
-        ),
-        Plot.tip(
-          model.points.filter((p) => p.y !== undefined),
-          Plot.pointerX({
-            x: "date",
-            y: "y",
-            title: (p: Point) =>
-              [
-                `${p.month}: ${share ? pct(p.y as number) : (p.y as number).toLocaleString()}`,
-                p.members?.length ? p.members.join(", ") : null,
-                p.suppressed ? `greyed: ${p.denominator} vehicles behind this figure` : null,
-              ]
-                .filter(Boolean)
-                .join("\n"),
-          }),
-        ),
-      ],
-    });
-  }, [model, share]);
+  const render = useCallback(
+    (width: number) => {
+      const top = Math.max(0.01, ...model.points.map((p) => p.y ?? 0));
+      const yMax = share ? Math.min(1, top * 1.05) : top * 1.05;
+      const format = share ? (d: number) => `${Math.round(d * 100)}%` : (d: number) => d.toLocaleString();
+      return Plot.plot({
+        width,
+        height: chartHeight(width, lead),
+        marginTop: 16,
+        marginLeft: share ? 44 : 56,
+        marginRight: 16,
+        marginBottom: 28,
+        style: plotStyle,
+        x: { type: "utc", label: null, domain: [monthDate(model.win.from), monthDate(addMonths(model.win.to, 1))] },
+        y: { label: null, domain: [0, yMax] },
+        marks: [
+          Plot.rect(model.bands.map((b) => ({ ...b, y1: 0, y2: yMax })), { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: SUPPRESSED_BAND }),
+          Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
+          Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: format }),
+          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
+          Plot.ruleY([0], { stroke: RULE_STRONG }),
+          Plot.lineY(model.points, { x: "date", y: "y", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH }),
+          Plot.lineY(
+            model.points.map((p) => (p.suppressed ? { ...p, y: undefined } : p)),
+            { x: "date", y: "y", stroke: SERIES[0], strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" },
+          ),
+          Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: RULE_STRONG })),
+          Plot.dot(
+            model.points.filter((p) => p.y !== undefined),
+            Plot.pointerX({ x: "date", y: "y", r: 4, fill: SERIES[0], stroke: PAPER, strokeWidth: 1.5 }),
+          ),
+          Plot.tip(
+            model.points.filter((p) => p.y !== undefined),
+            Plot.pointerX({
+              x: "date",
+              y: "y",
+              ...tipStyle,
+              title: (p: Point) =>
+                [
+                  `${monthLabel(p.month)} · ${share ? pct(p.y as number) : (p.y as number).toLocaleString()}`,
+                  p.members?.length ? p.members.join(", ") : null,
+                  p.suppressed ? `Greyed: ${(p.denominator ?? 0).toLocaleString()} vehicles behind this figure` : null,
+                ]
+                  .filter(Boolean)
+                  .join("\n"),
+            }),
+          ),
+        ],
+      });
+    },
+    [model, share, lead],
+  );
 
-  return <PlotFigure render={render} />;
+  return (
+    <>
+      <p className="chart-unit">{share ? "Share of the month's vehicles" : "Vehicles"}</p>
+      <PlotFigure render={render} />
+    </>
+  );
 }

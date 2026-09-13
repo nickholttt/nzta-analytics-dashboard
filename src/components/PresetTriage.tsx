@@ -16,7 +16,7 @@ export default function PresetTriage() {
     loadManifest().then(setManifest, (e) => setError(String(e)));
   }, []);
 
-  if (error) return <div className="blocked">{error}</div>;
+  if (error) return <div className="callout blocked">{error}</div>;
   if (!manifest) return <p>Loading…</p>;
 
   const rows = presetGroups.flatMap((group) =>
@@ -32,7 +32,8 @@ export default function PresetTriage() {
       </p>
 
       {disagreements.length > 0 ? (
-        <div className="warning">
+        <div className="callout warning">
+          <span className="callout-label">Status out of date</span>
           <strong>{disagreements.length} authored statuses no longer match this build.</strong>
           <ul>
             {disagreements.map((r) => (
@@ -46,6 +47,7 @@ export default function PresetTriage() {
         <p className="meta">Every authored status matches what this build resolves.</p>
       )}
 
+      <div className="table-scroll">
       <table className="triage">
         <thead>
           <tr>
@@ -95,6 +97,7 @@ export default function PresetTriage() {
           )}
         </tbody>
       </table>
+      </div>
     </>
   );
 }
