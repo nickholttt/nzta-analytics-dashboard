@@ -23,14 +23,16 @@ see these files where the UI work happens. Nothing was pushed.
 
 ## In progress
 
-- **UI step 1 of 5, "design only"**. Owner: claude, at the user's direction. Status: shown to the user,
-  **awaiting review, uncommitted** on `ui/explore`. Don't commit, reformat or refactor these files:
+- **UI step 1 of 5, "design only"**. Written by claude. **Handed to gemini, working with the user,
+  on 2026-09-13.** Status: shown to the user, not yet reviewed, uncommitted on `ui/explore`. Gemini
+  owns these files now; claude must not edit them:
   - `src/components/DistributionChart.tsx`, `EventList.tsx`, `MixChart.tsx`, `PlotFigure.tsx`,
     `PresetPanel.tsx`, `PresetTriage.tsx`, `TrendChart.tsx`
   - `src/lib/config.ts`, `src/lib/measures.ts`, `src/lib/theme.ts` (new), `src/styles/site.css` (new)
   - `src/pages/index.astro`, `config/presets.json` (`colour_slots_by_trailing`)
   - `package.json`, `package-lock.json` (the two `@fontsource-variable` fonts)
-- **POST_GATE.md reorder**. Owner: claude, at the user's direction. Uncommitted on `ui/explore`:
+- **POST_GATE.md reorder**. Written by claude at the user's direction; the user decides when to
+  commit it. Uncommitted on `ui/explore`:
   inserts A2 (step 1b `registrations_flow` as the unlock for cohort survival) and renumbers the
   `segment_group` promotion to A3.
 
@@ -41,9 +43,23 @@ User's order on `ui/explore`, one step at a time, each stop-and-show:
 1. User review of the design step → commit it if approved.
 2. One Explore page `/` in three tiers, applying the canon cut from 26 to 9 (D-020). Blocked charts stay
    visible with what they wait on.
-3. `/method` (from `docs/METRICS.md`) and `/caveats`.
+3. `/method` (from `docs/METRICS.md`) and `/caveats`. The user's list for `/caveats`: a registration
+   is not a sale; survivors bias; the 2007 break in `vehicle_year`; what a TLA means (the owner's
+   current address); mild hybrid coverage; why there is no regional view.
 4. URL state: anchors plus chart options.
 5. Mobile.
+
+Findings already reported to the user (2026-09-13), for the UI steps:
+
+- `brand-vs-built` needs only a renderer: owner_country `Japan` and built_in `JAPAN` are both in the
+  1-D slices. The gap opened over 2000–2012 and has held at 9–13 pp since. It is a **net** gap; a
+  gross gap would need a pair slice.
+- `manifest.json` `used_import_age_trailing.shares` already carries the trailing-12-month used-import
+  age distribution, so a single-period `used-import-age` could render without the frozen pair slice.
+- Colour: the line palette has 8 colours (validated all-pairs for colour blindness). No palette carries
+  14 series, so series past 8 are grey context lines.
+- UI verification in earlier sessions used a headless Chromium (Playwright) installed **outside** the
+  repo, driving `npm run dev`. It is not in the repo, and adding one is the user's call.
 
 Then, by date:
 
@@ -66,7 +82,7 @@ Then, by date:
      Confirm.
 - **Open questions for the user:**
   - D-020 lists `shaken-clock` among the cut presets, but no preset has that id in
-    `config/presets.json`. What is it?
+    `config/presets.json`. D-024 records what it was meant to be; confirm the id.
   - Should the shared-context commit also go to `main` now (docs only, outside the frozen paths),
     or wait for the freeze to lift?
   - Which Gemini client is in use? Only Antigravity's data directories exist under `~/.gemini/`;

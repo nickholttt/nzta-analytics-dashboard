@@ -204,3 +204,23 @@ New entries use this template:
 - Decision: `AGENTS.md`, `docs/STATE.md`, this file and `docs/playbooks/` are the shared context. The
   global protocol lives between `BEGIN/END SHARED AGENT PROTOCOL` markers in `~/.claude/CLAUDE.md` and
   `~/.gemini/GEMINI.md`. `.claude/skills/*` are thin wrappers over the playbooks.
+
+## D-024 2026-09-13 — Reasons for the canon cut in D-020
+- Agent: user
+- Basis: user (Claude memory)
+- Decision: the presets D-020 cuts, and why:
+  - `engine-size`: cut (no reason recorded beyond the cut).
+  - `regional-volume`, `regional-age`, `regional-powertrain`: the TLA is the owner's current address,
+    not where the vehicle was registered.
+  - `model-league`: survivors data with 68% all-time model coverage. It comes back with step 1b
+    (`registrations_flow`).
+  - `shaken-clock`: its prediction was wrong; fold what remains into `used-import-age`.
+  - `pipeline-lag`: fragile.
+- Also in D-020: `brand-share` and `parent-group-share` merge behind a granularity toggle, and
+  `segment-mix` is retitled honestly, because SUV is not answerable (D-003).
+
+## D-025 2026-09-13 — UI work on ui/explore handed to Gemini
+- Agent: user
+- Basis: user instruction in the Claude session of 2026-09-13
+- Decision: the user continues the UI steps (docs/STATE.md, Next up) with Gemini, starting from
+  Claude's uncommitted design step. Claude does not edit those files unless handed them back.
