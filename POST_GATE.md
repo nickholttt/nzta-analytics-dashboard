@@ -7,9 +7,9 @@ runs pass.
 
 Two parts, in order:
 
-- **Part A — cube changes that unblock charts.** Both change what the
-  pipeline emits, so both change the golden contract. Do these first,
-  each in its own commit with a deliberate golden update.
+- **Part A — cube changes that unblock charts.** Each changes what the
+  pipeline emits, so each changes the golden contract. Do these first,
+  in order, each in its own commit with a deliberate golden update.
 - **Part B — the three logged build fixes.** Do them in one commit and
   delete Part B from this file in that commit.
 
@@ -17,11 +17,12 @@ Two parts, in order:
 
 # Part A — cube changes that unblock charts
 
-Each of these is blocked purely by the freeze. Neither is hard; both are
+A1 and A3 are blocked purely by the freeze. Neither is hard; both are
 held because `config/dimensions.json` and the pair-slice list drive what
 the pipeline emits, and a change to either fails `test_golden.py` on a
-gate run. `config/presets.json` records the same two items as the
-`requires` of the presets they block.
+gate run. `config/presets.json` records both as the `requires` of the
+presets they block. A2 is a new dataset, build step 1b, moved up because
+of what it unlocks.
 
 ## A1. Pair slice: `import_status` x `age_at_registration_band`
 
@@ -44,7 +45,38 @@ part of this item: `used-import-source` needs
 `import_status` x `imported_from`, and `regional-import-age` needs
 `import_status` x `region`.
 
-## A2. Promote `segment_group` to a dimension
+## A2. Step 1b, `registrations_flow`: the unlock for cohort survival
+
+Second, behind only A1. Moved up on 2026-09-13: step 1b was treated as
+the unlock for volume charts, but it is also the unlock for the flagship
+metric.
+
+`registrations_surviving` counts vehicles first registered in month M
+that are still registered at the snapshot. The Stats NZ TPT series counts
+how many were registered in M in the first place. Their ratio is the
+share of month M's registrations still on the road at the snapshot:
+survival, retrospectively, for every month TPT covers. It needs no
+accumulated snapshots, so it is computable the day step 1b lands, not
+after years of archived aggregates.
+
+Note only; nothing is built. Three things to settle when it is:
+
+- **Scope match.** The ratio means something only if both sides count the
+  same vehicles. TPT's vehicle types and its new / ex-overseas split must
+  map onto `vehicle_scope.csv` and `import_status_map.csv`. A mismatch
+  shows up as survival above 100% in recent months: build that in as a
+  guardrail, never clip it.
+- **What the curve is.** One snapshot gives each cohort one observation,
+  at age (snapshot − M). Drawn against M it looks like survival by age,
+  but every point is a different cohort, so it mixes how vehicles age with
+  how cohorts differ. Each later snapshot adds another observation per
+  cohort; a chart must say which it shows.
+- **Two bases.** `METRICS.md` defines cohort survival against the first
+  snapshot in which a cohort was observed. This is survival against
+  original registrations. Name both there, and on any chart, before
+  either ships.
+
+## A3. Promote `segment_group` to a dimension
 
 `powertrain-mix` filters on `segment_group = Light passenger`. That is a
 column in `segment_map.csv`, not a dimension, so it resolves against
