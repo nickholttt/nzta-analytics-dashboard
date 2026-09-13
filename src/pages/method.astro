@@ -1,0 +1,131 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Methodology" activeNav="method">
+  <Fragment slot="masthead">
+    <h1>Methodology & Metric Definitions</h1>
+    <p class="standfirst">
+      Every figure on this site traces to an exact definition and deterministic calculation.
+      We do not forecast, interpolate missing periods, or guess unrecorded attributes.
+    </p>
+  </Fragment>
+
+  <article class="prose">
+    <h2>Data Grains</h2>
+    <p>
+      Data in the motor vehicle register exists at three distinct statistical grains. Mixing them on a single axis without an explicit label produces misleading figures.
+    </p>
+    <ul>
+      <li>
+        <strong>Survivors (<code>registrations_surviving</code>)</strong>: Vehicles first registered in month <em>M</em> that are still registered as at the monthly snapshot date. This is the primary dataset powering the launch charts. Because scrappage and deregistrations accumulate over time, older months naturally have fewer surviving vehicles. A count over survivors shrinks the past; a share holds up because scrappage affects the total alongside individual categories. <em>Never put a survivors series and a true flow series on the same chart.</em>
+      </li>
+      <li>
+        <strong>Flow (<code>registrations_flow</code>)</strong>: True monthly events, counting every first registration that entered New Zealand in month <em>M</em>, including vehicles that have since been scrapped or exported. Derived from the Stats NZ Transport (TPT) series. True volume trends must be measured on flow.
+      </li>
+      <li>
+        <strong>Stock (<code>fleet</code>)</strong>: The total active fleet registered on New Zealand roads at month end. Answers questions about what is physically on the road today, rather than what entered in a given month.
+      </li>
+    </ul>
+
+    <h2>Vehicle Scope</h2>
+    <p>
+      Every dataset on this platform counts <strong>in-scope rows only</strong>. Out-of-scope rows are preserved in archived raw snapshots for auditability, but never reach the aggregate cube.
+    </p>
+    <ul>
+      <li>
+        <strong>Vehicle Types</strong>: Limited to passenger cars, passenger vans, goods vans, utes, and commercial trucks (per <code>vehicle_scope.csv</code>). Agricultural tractors, plant equipment, trailers, and caravans are excluded.
+      </li>
+      <li>
+        <strong>Fleet Entry</strong>: Only vehicles entering the fleet for the first time count as registrations (<code>import_status</code> = <code>NEW</code> or <code>USED</code> per <code>import_status_map.csv</code>). Re-registrations (<code>RE-REG</code>, mostly lapsed trailers) and scratch-built vehicles (<code>SCRATCH</code>) are excluded.
+      </li>
+    </ul>
+
+    <h2>Core Measures</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Measure</th>
+          <th>Definition</th>
+          <th>Units & Formatting</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Count</strong></td>
+          <td>Number of in-scope vehicles registered in the period.</td>
+          <td class="num">Integer</td>
+        </tr>
+        <tr>
+          <td><strong>Share</strong></td>
+          <td>Count of category ÷ total in-scope vehicles in the same month and dataset.</td>
+          <td class="num">Percentage (%)</td>
+        </tr>
+        <tr>
+          <td><strong>12-month Rolling Total</strong></td>
+          <td>Sum of vehicles over the trailing 12 months inclusive of the current month.</td>
+          <td class="num">Integer</td>
+        </tr>
+        <tr>
+          <td><strong>12-month Rolling Share</strong></td>
+          <td>Sum of category over trailing 12 months ÷ sum of all vehicles over trailing 12 months.</td>
+          <td class="num">Percentage (%)</td>
+        </tr>
+        <tr>
+          <td><strong>Share Change</strong></td>
+          <td>Difference between current share and share in the comparison window.</td>
+          <td class="num">Percentage points (pp)</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>Percentage points vs percentages</strong>: A movement from 10% to 15% is always reported as <strong>+5.0 pp</strong>, never as +50%.
+    </p>
+
+    <h2>The Two Suppression Guards</h2>
+    <p>
+      On any share chart, an individual month's figure is drawn in grey (suppressed) when <strong>either</strong> of two independent guards trips. They serve different purposes and are not redundant.
+    </p>
+
+    <h3>1. The Precision Floor (Denominator &lt; 200)</h3>
+    <p>
+      When fewer than 200 vehicles are registered in a month, each single vehicle shifts the calculated percentage visibly, creating artificial visual noise. This floor also covers the sparse early historical record (pre-1990).
+    </p>
+
+    <h3>2. The Representativeness Floor (Collapse Against Trailing Median)</h3>
+    <p>
+      A month can clear the 200-vehicle precision floor comfortably and still describe an abnormal population that does not reflect market behaviour. The representativeness guard trips when a month's total registrations collapse below <strong>33% of the median</strong> of the 12 months prior.
+    </p>
+    <div class="callout warning">
+      <span class="callout-label">Case Study: April 2020 Lockdown</span>
+      <p>
+        In April 2020 (New Zealand's Level 4 COVID-19 lockdown), registrations plummeted by 93% to 1,542 vehicles (against a trailing median of 22,108). In that month, Hyundai Motor Group registered 261 vehicles, yielding a 16.9% share (against their typical 4.5%–7.5% baseline).
+      </p>
+      <p>
+        At <em>n</em> = 261 of 1,542, the binomial standard error was only 0.95 pp; the measurement was statistically precise to within 11 standard errors. The issue was not precision, but <strong>representativeness</strong>: the only vehicles registered during Level 4 were essential commercial utilities, refrigerated transport, and emergency services. It was not a consumer automotive market. A precision guard cannot detect this; a representativeness guard comparing against recent history suppresses it immediately.
+      </p>
+    </div>
+
+    <h2>Derived Measures</h2>
+    <h3>Market Concentration (Top-5 Share)</h3>
+    <p>
+      The combined monthly share of the five largest brands in that month. Membership of the top five is recomputed every single month, so the metric tracks systemic market concentration rather than the fortunes of a fixed set of brands. A falling line indicates market fragmentation and increasing brand diversity.
+    </p>
+
+    <h3>Mild Hybrid Identification Coverage</h3>
+    <p>
+      NZTA's registration records do not distinguish mild hybrids (MHEVs) from full hybrids (FHEVs). We identify mild hybrids by matching vehicle nameplates against curated manufacturer specifications in <code>mild_hybrid_models.csv</code>.
+    </p>
+    <p>
+      Coverage is calculated as: <code>Identified Mild ÷ (Identified Mild + Unknown Hybrids)</code>. This represents a strict lower bound, as it treats every unclassified hybrid as a missed mild hybrid. We publish coverage at both <em>stated confidence</em> and <em>high confidence only</em>. Trailing 12-month coverage currently holds above 79%, making the mild hybrid split publishable.
+    </p>
+
+    <h2>Estimation Principles</h2>
+    <ul>
+      <li><strong>No interpolation</strong>: Missing months are never smoothed over or filled in; charts render an explicit gap.</li>
+      <li><strong>No extrapolation</strong>: Projections and forecasts are never drawn beyond the latest verified snapshot date.</li>
+      <li><strong>Suppression over zeroing</strong>: Low-volume or unrepresentative periods are greyed out, never forced to 0%.</li>
+      <li><strong>Basis disclaimer</strong>: Every chart explicitly notes: <em>“Registrations recorded by NZTA. Not the same as vehicle sales.”</em></li>
+    </ul>
+  </article>
+</Layout>

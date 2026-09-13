@@ -1,0 +1,97 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Data Caveats" activeNav="caveats">
+  <Fragment slot="masthead">
+    <h1>Data Caveats & Field Traps</h1>
+    <p class="standfirst">
+      Administrative register data is collected to license vehicles, not to measure economic trends.
+      Understanding these measurement artefacts prevents mistaking data collection rules for market behaviour.
+    </p>
+  </Fragment>
+
+  <article class="prose">
+    <h2>1. A Registration is Not a Sale</h2>
+    <p>
+      This platform measures <strong>first registrations recorded by NZTA</strong>, not vehicle sales. While closely correlated, registrations and retail sales differ in fundamental ways:
+    </p>
+    <ul>
+      <li>
+        <strong>Pre-registration</strong>: Distributors and dealerships frequently register vehicles to hit monthly sales targets or before regulatory deadlines (such as Clean Car Standard adjustments), holding them in stock before an end-customer purchase.
+      </li>
+      <li>
+        <strong>Delivery Lag</strong>: A vehicle ordered in January and delivered in June appears on the register only upon initial licensing.
+      </li>
+      <li>
+        <strong>Commercial Deliveries vs Private Sales</strong>: Industry bodies like the Motor Industry Association (MIA) report dealer delivery handovers. Our figures will not reconcile exactly with MIA releases because they track legal registration events.
+      </li>
+    </ul>
+
+    <h2>2. Survivors Bias</h2>
+    <p>
+      The open Motor Vehicle Register contains records of vehicles <em>currently registered</em>.
+    </p>
+    <div class="callout warning">
+      <span class="callout-label">Important Limitation</span>
+      <p>
+        When grouping the register by first-registration month, you are counting <strong>vehicles first registered in that month that are still alive today</strong>. Older cohorts have been naturally thinned by decades of crashes, mechanical failures, and scrappage.
+      </p>
+    </div>
+    <p>
+      A count of surviving vehicles naturally shrinks the past. For example, surviving 1995 registrations will always show a downward slope compared to 2015 registrations, regardless of how many cars were actually bought in 1995. Shares hold up because scrappage affects total cohort size alongside specific brands, but volume trends cannot be inferred until true flow data (build step 1b) lands.
+    </p>
+
+    <h2>3. The 2007 Break in <code>vehicle_year</code></h2>
+    <p>
+      The field <code>vehicle_year</code> in the NZTA register is <strong>not model year</strong>.
+    </p>
+    <ul>
+      <li>
+        <strong>NZ-New (2007 onwards)</strong>: For New Zealand-new vehicles first registered from 2007, <code>vehicle_year</code> equals the New Zealand first registration year on 99.98% of rows (verified on over 2.2 million records). Age at registration is therefore 0 by definition.
+      </li>
+      <li>
+        <strong>NZ-New (pre-2007)</strong>: Prior to 2007, registration regimes mixed manufacture year, overseas model year, and compliance year inconsistently.
+      </li>
+      <li>
+        <strong>Used Imports</strong>: For second-hand imports, <code>vehicle_year</code> reflects a year from the vehicle's prior life overseas.
+      </li>
+    </ul>
+    <p>
+      Because of this structural break, age-at-registration measures are scoped strictly to used imports.
+    </p>
+
+    <h2>4. What a Territorial Authority (TLA) Means</h2>
+    <p>
+      The register records a Territorial Authority code (<code>TLA</code>) representing the <strong>current residential address of the registered owner as at the snapshot date</strong>.
+    </p>
+    <ul>
+      <li>It is <strong>not</strong> where the vehicle was originally purchased or registered.</li>
+      <li>It is <strong>not</strong> where the vehicle is driven or kept.</li>
+      <li>
+        <strong>Fleet Distortion</strong>: Rental companies, national courier fleets, government agencies, and leasing providers register tens of thousands of vehicles to corporate headquarters in Auckland or Christchurch, while the vehicles operate across provincial New Zealand.
+      </li>
+    </ul>
+    <p>
+      Because regional registration counts reflect corporate head-office locations rather than local buying decisions, regional volume presets were explicitly cut from the Explore canon (Decisions D-020 and D-024).
+    </p>
+
+    <h2>5. "Built In" vs "Brand Nationality"</h2>
+    <p>
+      NZTA's <code>ORIGINAL_COUNTRY</code> field records the country where the vehicle was <strong>principally manufactured</strong>, not the nationality of the brand:
+    </p>
+    <ul>
+      <li>A Toyota Hilux built in Thailand records <code>Thailand</code>, not Japan.</li>
+      <li>An Audi Q7 assembled in Slovakia records <code>Slovakia</code>, not Germany.</li>
+      <li>A Tesla Model 3 assembled in Shanghai records <code>China</code>, not the United States.</li>
+    </ul>
+    <p>
+      Brand nationality (e.g. Toyota as Japanese, Audi as German, Tesla as American) is maintained separately in our curated brand registry. On our charts, these are strictly labelled <strong>"Built in"</strong> and <strong>"Brand owned from"</strong> to prevent confusion.
+    </p>
+
+    <h2>6. Mild Hybrid Identification Limits</h2>
+    <p>
+      NZTA motive power codes do not distinguish between mild hybrids (MHEVs, which cannot drive on electric power alone) and full hybrids (FHEVs). We classify mild hybrids by nameplate matching. Contested nameplates where international specifications disagree (such as Subaru e-Boxer models) remain unclassified rather than guessed, and identification coverage is openly published alongside all hybrid figures.
+    </p>
+  </article>
+</Layout>

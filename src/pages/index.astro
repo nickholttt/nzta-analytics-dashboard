@@ -1,8 +1,7 @@
 ---
-import "../styles/site.css";
+import Layout from "../layouts/Layout.astro";
 import PresetPanel from "../components/PresetPanel";
 import PresetTriage from "../components/PresetTriage";
-import manifest from "../../public/data/manifest.json";
 
 // The Explore page in three tiers (D-020).
 const tiers = [
@@ -28,62 +27,50 @@ const tiers = [
     presets: ["age-distribution-moving-hole", "cohort-survival"],
   },
 ];
-
-const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
-  new Date(`${manifest.latest_snapshot}T00:00:00Z`),
-);
 ---
 
-<html lang="en-NZ">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>NZ vehicle registrations · Explore</title>
-  </head>
-  <body>
-    <main class="page">
-      <header class="masthead">
-        <p class="eyebrow">Explore · snapshot {snapshot}</p>
-        <h1>New Zealand vehicle registrations</h1>
-        <p class="standfirst">
-          Where the vehicles we register come from, what powers them, and whether they arrived new. Every figure is drawn from the
-          NZTA Motor Vehicle Register.
-        </p>
-        <nav class="tier-nav" aria-label="Page tiers" style="margin-top: var(--space-4); display: flex; gap: var(--space-4); flex-wrap: wrap;">
-          {tiers.map((t) => (
-            <a href={`#${t.id}`} class="meta" style="color: var(--ink-2); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
-              {t.eyebrow.split("·")[0].trim()}
-            </a>
-          ))}
-          <a href="#triage" class="meta" style="color: var(--ink-3); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
-            Canon triage
-          </a>
-        </nav>
-      </header>
-      {
-        tiers.map((t) => (
-          <section id={t.id}>
-            <div class="section-head">
-              <p class="eyebrow">{t.eyebrow}</p>
-              <h2 class="section-title">{t.title}</h2>
-            </div>
-            {t.presets.map((id) => (
-              <PresetPanel client:only="react" presetId={id} lead={t.lead} />
-            ))}
-          </section>
-        ))
-      }
-      <section id="triage">
+<Layout title="Explore" activeNav="explore">
+  <Fragment slot="masthead">
+    <h1>New Zealand vehicle registrations</h1>
+    <p class="standfirst">
+      Where the vehicles we register come from, what powers them, and whether they arrived new. Every figure is drawn from the
+      NZTA Motor Vehicle Register.
+    </p>
+    <nav class="tier-nav" aria-label="Page tiers" style="margin-top: var(--space-4); display: flex; gap: var(--space-4); flex-wrap: wrap;">
+      {tiers.map((t) => (
+        <a href={`#${t.id}`} class="meta" style="color: var(--ink-2); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
+          {t.eyebrow.split("·")[0].trim()}
+        </a>
+      ))}
+      <a href="#triage" class="meta" style="color: var(--ink-3); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
+        Canon triage
+      </a>
+    </nav>
+  </Fragment>
+
+  {
+    tiers.map((t) => (
+      <section id={t.id}>
         <div class="section-head">
-          <p class="eyebrow">Canon triage</p>
-          <h2 class="section-title">The 9-preset canon and what it waits on</h2>
+          <p class="eyebrow">{t.eyebrow}</p>
+          <h2 class="section-title">{t.title}</h2>
         </div>
-        <p class="panel-definition">
-          Every preset in <code>config/presets.json</code>, its authored status, and what each blocked chart is waiting on.
-          Authored statuses are cross-checked against what this build actually resolves.
-        </p>
-        <PresetTriage client:only="react" />
+        {t.presets.map((id) => (
+          <PresetPanel client:only="react" presetId={id} lead={t.lead} />
+        ))}
       </section>
-    </main>
-  </body>
-</html>
+    ))
+  }
+  <section id="triage">
+    <div class="section-head">
+      <p class="eyebrow">Canon triage</p>
+      <h2 class="section-title">The 9-preset canon and what it waits on</h2>
+    </div>
+    <p class="panel-definition">
+      Every preset in <code>config/presets.json</code>, its authored status, and what each blocked chart is waiting on.
+      Authored statuses are cross-checked against what this build actually resolves.
+    </p>
+    <PresetTriage client:only="react" />
+  </section>
+</Layout>
+

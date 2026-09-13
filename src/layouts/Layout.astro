@@ -1,0 +1,64 @@
+---
+import "../styles/site.css";
+import manifest from "../../public/data/manifest.json";
+
+interface Props {
+  title: string;
+  activeNav: "explore" | "method" | "caveats";
+}
+
+const { title, activeNav } = Astro.props;
+
+const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+  new Date(`${manifest.latest_snapshot}T00:00:00Z`),
+);
+---
+
+<html lang="en-NZ">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · NZ vehicle registrations</title>
+  </head>
+  <body>
+    <main class="page">
+      <header class="masthead">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
+          <p class="eyebrow" style="margin: 0;">Snapshot {snapshot}</p>
+          <nav class="site-nav" aria-label="Main navigation" style="display: flex; gap: var(--space-4);">
+            <a
+              href="/"
+              class="meta"
+              style={`text-decoration: none; font-weight: ${activeNav === "explore" ? "600" : "400"}; border-bottom: ${activeNav === "explore" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "explore" ? "var(--ink)" : "var(--ink-2)"};`}
+            >
+              Explore
+            </a>
+            <a
+              href="/method"
+              class="meta"
+              style={`text-decoration: none; font-weight: ${activeNav === "method" ? "600" : "400"}; border-bottom: ${activeNav === "method" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "method" ? "var(--ink)" : "var(--ink-2)"};`}
+            >
+              Methodology
+            </a>
+            <a
+              href="/caveats"
+              class="meta"
+              style={`text-decoration: none; font-weight: ${activeNav === "caveats" ? "600" : "400"}; border-bottom: ${activeNav === "caveats" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "caveats" ? "var(--ink)" : "var(--ink-2)"};`}
+            >
+              Data Caveats
+            </a>
+          </nav>
+        </div>
+        <slot name="masthead" />
+      </header>
+
+      <slot />
+
+      <footer style="margin-top: var(--space-8); padding-top: var(--space-5); border-top: 1px solid var(--rule-strong); font-size: var(--text-xs); color: var(--ink-3); line-height: 1.5;">
+        <p>
+          Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe surviving registrations recorded by NZTA, not sales.
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

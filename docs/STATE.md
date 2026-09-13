@@ -31,11 +31,18 @@ see these files where the UI work happens. Nothing was pushed.
   - Three-tier layout with masthead tier anchors implemented on `/` (`src/pages/index.astro`).
   - Canon triage table confirms: `9 presets · 1 invalid · 3 blocked · 5 live` with 0 disagreements.
   - Verified with TypeScript typecheck, `astro build`, and 38 pytest tests (all green).
+- **UI step 3 ("Methodology & Data Caveats pages with shared layout")**: Done (2026-09-13).
+  - Created shared `src/layouts/Layout.astro` with site-level header navigation (Explore, Methodology, Data Caveats), snapshot timestamp, and footer attribution.
+  - Created `/method` (`src/pages/method.astro`) from `docs/METRICS.md` covering grains (survivors vs flow vs stock), vehicle scope, core measures, percentage point rule, suppression guards (including April 2020 lockdown case study), top-5 concentration, mild hybrid bounds, and estimation principles.
+  - Created `/caveats` (`src/pages/caveats.astro`) covering registration vs sale (MIA differences), survivor bias, 2007 `vehicle_year` break, what TLA means, why regional view was cut, "Built in" vs "Brand nationality", and mild hybrid coverage limits.
+  - Added prose typography tokens and table styles to `src/styles/site.css`.
+  - Verified clean Astro build (3 static HTML pages) and browser verification via Chrome DevTools MCP.
 
 ## In progress
 
-- **UI step 3 of 5, `/method` and `/caveats`**. Owner: gemini, at the user's direction.
+- **UI step 4 of 5, URL State & Deep Linking**. Owner: gemini, at the user's direction.
   Files touched in UI steps:
+  - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`
   - `config/presets.json`, `src/lib/config.ts`, `src/components/PresetPanel.tsx`, `src/pages/index.astro`
   - `src/components/DistributionChart.tsx`, `EventList.tsx`, `MixChart.tsx`, `PlotFigure.tsx`,
     `PresetTriage.tsx`, `TrendChart.tsx`
@@ -50,11 +57,8 @@ see these files where the UI work happens. Nothing was pushed.
 
 User's order on `ui/explore`, one step at a time, each stop-and-show:
 
-1. `/method` (from `docs/METRICS.md`) and `/caveats`. The user's list for `/caveats`: a registration
-   is not a sale; survivors bias; the 2007 break in `vehicle_year`; what a TLA means (the owner's
-   current address); mild hybrid coverage; why there is no regional view.
-2. URL state: anchors plus chart options.
-3. Mobile.
+1. URL state: anchors plus chart options (preset selection, granularity, smoothing).
+2. Mobile polish & touch optimization.
 
 Findings already reported to the user (2026-09-13), for the UI steps:
 
