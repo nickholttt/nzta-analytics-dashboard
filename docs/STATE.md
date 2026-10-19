@@ -39,7 +39,7 @@ No CI runs on pull requests; the only workflow is the monthly build.
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
   (`claude/model-leaderboard`), [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
-  (`claude/caveats-wording`), then #5 (`claude/method-page`).
+  (`claude/caveats-wording`), then [#5](https://github.com/nickholttt/nzta-analytics-dashboard/pull/5) (`claude/method-page`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
