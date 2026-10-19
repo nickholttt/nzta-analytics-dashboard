@@ -240,3 +240,12 @@ New entries use this template:
 - Consequences: Gemini should read CHECKPOINT.md for the queue. Moving to `docs/decisions/` later
   is a mechanical split.
 - Status: decided by Claude (unreviewed)
+
+## D-027 2026-10-19 — UI work on ui/explore returns to Claude; agents may push their own branches
+- Agent: user
+- Basis: user instruction in the Claude session of 2026-10-19
+- Decision: supersedes D-025. Claude now owns the UI files on `ui/explore`, starting with the
+  review findings in `docs/STATE.md`. Agents may push `claude/*` / `gemini/*` branches and open
+  pull requests (AGENTS.md hard rule 7). Gemini's extras (inspector, market drilldown, complexity
+  benchmark) are kept as a clearly labelled sense-check area, or, where Claude judges a part of
+  no value, documented and deleted.
