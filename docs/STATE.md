@@ -31,9 +31,9 @@ No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- `claude/sense-check` (claude): `src/pages/sense-check.astro`, `src/data/sense_check.json`,
-  `src/layouts/Layout.astro`, `src/styles/site.css`, `src/pages/caveats.astro`,
-  `src/pages/index.astro`, `src/components/MixChart.tsx`, `src/components/LeagueChart.tsx`.
+- Nobody is editing. Claude's two branches are in open pull requests waiting on the user:
+  [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1) (`claude/bootstrap`) then
+  [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2) (`claude/sense-check`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
