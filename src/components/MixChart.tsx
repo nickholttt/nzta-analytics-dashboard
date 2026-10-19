@@ -120,13 +120,28 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     for (const r of rows) if (r.month >= rankWin.from && r.month <= rankWin.to) totals.set(r.value, (totals.get(r.value) ?? 0) + r.n);
     const ranked = [...totals.entries()].filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).map(([v]) => v);
     const kept = preset.top_n ? ranked.filter((v) => !isReserved(v)).slice(0, preset.top_n) : ranked;
-    const series = preset.top_n ? [...kept, ALL_OTHER] : kept;
 
     // Event scoping asks which categories the chart actually shows over its period. That is not the
     // ranked set: ranking now looks at the trailing window only, and an event about a category that
     // stopped selling a decade ago still belongs on a chart that reaches back that far.
     const categories = new Set<string>();
-    for (const r of rows) if (r.n > 0 && r.month >= win.from && r.month <= win.to) categories.add(r.value);
+    const inPeriod = new Set<string>();
+    // A rolling share at the window's first month reaches back a year before it.
+    const drawnFrom = rolling ? addMonths(win.from, -(TRAILING_MONTHS - 1)) : win.from;
+    const drawn = new Set<string>();
+    for (const r of rows) {
+      if (r.n <= 0) continue;
+      if (r.month >= full.from && r.month <= full.to) inPeriod.add(r.value);
+      if (r.month >= win.from && r.month <= win.to) categories.add(r.value);
+      if (r.month >= drawnFrom && r.month <= win.to) drawn.add(r.value);
+    }
+
+    // Without top_n there is no remainder, so every group with vehicles behind the drawn window needs
+    // its own line. Drawing only the trailing ranking would drop a group that stopped years ago from
+    // the years it was there, and the lines would add up to less than the total.
+    const rankedSet = new Set(ranked);
+    const unranked = preset.top_n ? [] : [...drawn].filter((v) => !rankedSet.has(v)).sort();
+    const series = preset.top_n ? [...kept, ALL_OTHER] : [...ranked, ...unranked];
 
     const denominatorFor = (month: string) => denominators.get(month);
     const nFor = (month: string, s: string) => {
@@ -143,8 +158,10 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     // grey. So the first slots go to the largest series over the trailing window and the rest by peak
     // rolling share over the preset's whole period. Both are fixed by the period and the latest month,
     // so neither the range nor the smoothing toggle repaints a line. The remainder and the reserved
-    // tokens never take a colour: neither is a competitor.
-    const candidates = series.filter((s) => s !== ALL_OTHER && !isReserved(s));
+    // tokens never take a colour: neither is a competitor. Without top_n the candidates are every group
+    // in the preset's period, not just the drawn window, so that switching to all time cannot hand an
+    // earlier group a colour that pushes a later one down the palette.
+    const candidates = (preset.top_n ? kept : [...inPeriod]).filter((s) => !isReserved(s));
     const peak = new Map<string, number>();
     for (const s of candidates) {
       let max = 0;
