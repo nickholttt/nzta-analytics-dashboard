@@ -12,6 +12,7 @@ Last updated by claude on 2026-10-19
   international benchmark deleted, with its contents recorded in D-028.
 - Done: `model-leaderboard` blocked on step 1b again (D-029); blocked panels drop the horizon
   toggle and unfillable notes; triage heading no longer claims 9 presets.
+- Done: caveats 1 and 7 say only what the data shows (D-030), checked against the raw 2026-08 pull.
 
 ## Open pull requests waiting on the user
 
@@ -22,16 +23,19 @@ Merge them in this order:
    first's commits until that one is merged.
 3. `claude/model-leaderboard`: D-029. Into `claude/sense-check`; once #2 is merged, it needs its
    base changed to `ui/explore` before it can be merged there.
+4. `claude/caveats-wording`: D-030. Into `claude/model-leaderboard`; same base change once #3 is
+   merged.
 
 PR 1: https://github.com/nickholttt/nzta-analytics-dashboard/pull/1 · PR 2: https://github.com/nickholttt/nzta-analytics-dashboard/pull/2 ·
-PR 3: https://github.com/nickholttt/nzta-analytics-dashboard/pull/3
+PR 3: https://github.com/nickholttt/nzta-analytics-dashboard/pull/3 ·
+PR 4: https://github.com/nickholttt/nzta-analytics-dashboard/pull/4
 
 ## Work queue (in order)
 
 1. **Finish the `ui/explore` review** (now Claude's, D-027).
-   - Scope: STATE "Known issues" 1: caveats §1 wording (survivors, not first registrations) and
-     its unchecked body-type claims. Then read `/method` against `docs/METRICS.md`. The
-     `model-leaderboard` part is done (PR 3, D-029).
+   - Scope: read `/method` against `docs/METRICS.md`, then check caveat 2's claim that shares
+     hold up under scrappage (STATE "Known issues" 1). Done: `model-leaderboard` (PR 3, D-029),
+     caveats 1 and 7 (PR 4, D-030).
    - Done when: each is fixed or recorded as a decision, in one PR per concern.
 2. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
@@ -51,5 +55,5 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Check whether the three PRs were merged. If it is on or
+/start. Read `docs/STATE.md` and this file. Check whether the four PRs were merged. If it is on or
 after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 1.

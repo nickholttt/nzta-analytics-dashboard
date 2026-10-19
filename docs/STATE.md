@@ -27,16 +27,18 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/bootstrap` | origin | notes refresh and the user's answers (docs only). PR into `ui/explore` |
 | `claude/sense-check` | origin | Gemini's extras fenced into `/sense-check` (D-028). PR into `ui/explore`, stacked on `claude/bootstrap` |
 | `claude/model-leaderboard` | origin | `model-leaderboard` blocked on step 1b (D-029), blocked-panel tidy, triage heading. PR into `claude/sense-check` |
+| `claude/caveats-wording` | origin | caveats 1 and 7 (D-030). PR into `claude/model-leaderboard` |
 
 No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's three branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's four branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
-  (`claude/sense-check`), then [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
-  (`claude/model-leaderboard`).
+  (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
+  (`claude/model-leaderboard`), then [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
+  (`claude/caveats-wording`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
@@ -53,12 +55,15 @@ scroll.
 
 On `ui/explore`, found 2026-10-19 by reading the code:
 
-1. `src/pages/caveats.astro` §1 says the platform measures "first registrations recorded by NZTA";
-   the charts count survivors (D-004). Its claims about Land Transport body-type rules are
-   unchecked. To fix in the UI review.
+1. `src/pages/caveats.astro` §2 says shares "hold up" under scrappage because it thins whole
+   cohorts. Unchecked: if some makes or powertrains are scrapped faster, older shares are biased.
+   Found 2026-10-19 while fixing §1 and §7.
 2. The time-horizon toggle offers no period of 12 months or less, so on a league chart it switches
    the shape to mix with no way back (`src/lib/resolve.ts` `inferShape`). Unreachable now: no live
    preset is a league. Fix before a league preset is unblocked.
+
+Fixed on `claude/caveats-wording` (D-030): caveat 1 now describes survivors; caveat 7's unchecked
+statutory-rule and MIA claims are replaced by body-type counts from the 2026-08 pull.
 
 Fixed on `claude/model-leaderboard` (D-029): `model-leaderboard` points at `registrations_flow`
 and is blocked, as D-024 cut it; `LeagueChart` stays unused.
