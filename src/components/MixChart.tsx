@@ -43,7 +43,7 @@ import { getParam, setParam } from "../lib/url";
 import { EventList } from "./EventList";
 import { PlotFigure } from "./PlotFigure";
 
-const ALL_OTHER = "All other";
+export const ALL_OTHER = "All other";
 const LANE_HEIGHT = 15;
 const LABEL_LINE_HEIGHT = 15;
 const LEADER_PX = 14;

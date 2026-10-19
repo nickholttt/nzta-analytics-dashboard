@@ -14,7 +14,7 @@ import { TrendChart } from "./TrendChart";
 
 const BASIS_NOTE = "Registrations recorded by NZTA. Not the same as vehicle sales.";
 
-const RESERVED_LABELS: Record<string, string> = {
+export const RESERVED_LABELS: Record<string, string> = {
   __UNDEFINED__: "Not recorded",
   __UNMAPPED__: "No reference match",
   __OTHER__: "Other (beyond the cap)",

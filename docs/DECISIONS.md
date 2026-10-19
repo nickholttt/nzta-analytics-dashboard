@@ -473,3 +473,35 @@ New entries use this template:
   0.29 and that 0.33 sits well clear of it; the file is frozen until the 8 November 2026 gate, so the
   fix is queued in CHECKPOINT for after it. The figures will drift slightly with each snapshot.
 - Status: decided by Claude (unreviewed)
+
+## D-034 2026-10-19 — /method explains event markers, "All other" and the labels for values with no name
+- Agent: claude, under D-027
+- Basis: this commit; `src/components/MixChart.tsx`, `src/lib/events.ts`, `src/components/EventList.tsx`,
+  `src/components/PresetPanel.tsx`, `config/presets.json` and `config/pipeline.json` as they run on
+  this branch; `public/data/events.json` and the local cube (snapshot 2026-08-31), queried on
+  2026-10-19.
+- Context: CHECKPOINT queue item 1's last open scope. The charts draw marks no page explained: four
+  event styles (solid rule at `date_start`, dotted faint rule at `announced_date`, shaded band to
+  `date_end`, dashed darker rule for `mechanism = measurement`), numbered cluster labels such as
+  "3 (2)", a hidden-by-default set of market-wide events, an "All other" line, and the labels
+  "Not recorded", "No reference match" and "Other (beyond the cap)". Only `MixChart` draws markers or
+  "All other"; the concentration chart routes to `TrendChart` and draws neither. Measured: 50 events
+  published, 1 measurement, 13 windowed, 22 with an announcement date, 18 market-wide. In the cube,
+  `__UNMAPPED__` is 26,427 of 4,502,964 vehicles (0.59%) on make, parent group and owner country;
+  `__UNDEFINED__` is 89 on segment; import status has none.
+- Options considered: (1) A key drawn on each chart: costs space on every chart, including at 320px,
+  for marks most readers meet rarely. (2) A section on `/method`, with the labels, counts and caps
+  read from the same constants and config the charts use, so it cannot drift from them. (3) Leave it
+  to the event list's own text: that explains events, not lines, and only once opened.
+- Decision: (2). `ALL_OTHER` (MixChart) and `RESERVED_LABELS` (PresetPanel) become named exports so
+  the page reads them; nothing else in the components changes. The page says a marker gives a date,
+  not a cause (invariant 7 and the non-goals). The two counts are dated to the August 2026 snapshot,
+  like the April 2020 case study, and will drift.
+- Where docs and code disagree, the page follows the code as it runs, and the disagreement is listed
+  in STATE: `docs/EVENTS_LAYER.md` says market-scope events default to "collapsed behind a single
+  'show events' toggle, on by default" (self-contradictory; the code hides them until the button is
+  pressed), and says to cluster "by year" beyond 8 markers (the code clusters by distance on the axis,
+  widening until at most 8 remain).
+- Consequences: `/method` now covers every mark a mix chart draws. Changing a reserved label or the
+  remainder label in code changes the page with it. `EVENTS_LAYER.md` is not edited here.
+- Status: decided by Claude (unreviewed)
