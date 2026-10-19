@@ -302,3 +302,26 @@ New entries use this template:
 - Consequences: these tables can't be refreshed. If one is needed for real, rebuild it as a
   pipeline output and a preset. Whether `/sense-check` ships when the site is deployed is open.
 - Status: decided by Claude (unreviewed)
+
+## D-029 2026-10-19 — model-leaderboard waits on step 1b again; the league renderer stays
+- Agent: claude, under D-027
+- Basis: this commit; D-024; `config/presets.json`, `src/lib/resolve.ts`, `docs/DATA_SOURCES.md` §C
+  read on 2026-10-19
+- Context: D-024 cut `model-league` until step 1b (`registrations_flow`), because survivors data
+  names only the top 300 models and covers about 68% of all-time volume. On `ui/explore` Gemini
+  brought it back as `model-leaderboard`, live on `registrations_surviving` over the latest year,
+  drawn by a new `LeagueChart`. League is build-order step 6, ahead of the current step.
+- Options considered: (1) leave it live: overrides a user decision. (2) Mark it `blocked` but keep
+  `registrations_surviving`: the resolver finds the dataset and dimension live, so the panel would
+  show "Status out of date" for good. (3) Point it at `registrations_flow` and mark it `blocked`:
+  the resolver agrees, and the panel says what it waits on. (4) Delete the preset and `LeagueChart`:
+  loses a correctly specified question and a renderer for one of the five allowed shapes.
+- Decision: (3). `requires` names step 1b and a model breakdown in it. `LeagueChart` and the
+  `league` entry in the resolver's rendered shapes stay, with no live preset using them: D-024 cut
+  the chart for its data, not its shape.
+- Consequences: the TPT series is described as counts "by type" (`docs/DATA_SOURCES.md` §C), so it
+  probably has no model breakdown (inferred — confirm when step 1b is built). If so, this preset
+  needs rewriting rather than unblocking, as `presets.json` `$status.on_unblocking` already says.
+  Keeping an unused renderer runs ahead of the build order; it is Gemini's existing code, not new
+  work.
+- Status: decided by Claude (unreviewed)

@@ -136,8 +136,11 @@
         {
           "id": "model-leaderboard",
           "question": "Which vehicle models lead the market?",
-          "status": "live",
-          "dataset": "registrations_surviving",
+          "status": "blocked",
+          "requires": [
+            "the registrations_flow dataset (build step 1b), so models are ranked on registrations rather than survivors (D-024), and a model breakdown in it"
+          ],
+          "dataset": "registrations_flow",
           "measure": "share",
           "dimension": "model",
           "period": "latest_year",
