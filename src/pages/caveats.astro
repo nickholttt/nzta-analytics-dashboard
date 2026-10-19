@@ -14,17 +14,17 @@ import Layout from "../layouts/Layout.astro";
   <article class="prose">
     <h2>1. A Registration is Not a Sale</h2>
     <p>
-      This platform measures <strong>first registrations recorded by NZTA</strong>, not vehicle sales. While closely correlated, registrations and retail sales differ in fundamental ways:
+      The charts count <strong>vehicles first registered in a month that are still registered at the latest snapshot</strong>. This is not a count of sales, and it is not every vehicle ever first registered: vehicles scrapped since have dropped out (section 2). Registrations and sales also differ in timing and basis:
     </p>
     <ul>
       <li>
-        <strong>Pre-registration</strong>: Distributors and dealerships frequently register vehicles to hit monthly sales targets or before regulatory deadlines (such as Clean Car Standard adjustments), holding them in stock before an end-customer purchase.
+        <strong>Registration ahead of sale</strong>: A vehicle can be registered before anyone buys it, for example ahead of a policy deadline such as the end of the Clean Car Discount on 31 December 2023, and held in stock until it sells.
       </li>
       <li>
-        <strong>Delivery Lag</strong>: A vehicle ordered in January and delivered in June appears on the register only upon initial licensing.
+        <strong>Counted when registered</strong>: A vehicle counts in the month it was first registered, not the month it was ordered or paid for.
       </li>
       <li>
-        <strong>Commercial Deliveries vs Private Sales</strong>: Industry bodies like the Motor Industry Association (MIA) report dealer delivery handovers. Our figures will not reconcile exactly with MIA releases because they track legal registration events.
+        <strong>Industry figures</strong>: The Motor Industry Association (MIA) counts vehicles delivered to buyers. That is a different basis, so these figures will not match MIA releases, and we do not adjust them to match.
       </li>
     </ul>
 
@@ -94,12 +94,12 @@ import Layout from "../layouts/Layout.astro";
       NZTA motive power codes do not distinguish between mild hybrids (MHEVs, which cannot drive on electric power alone) and full hybrids (FHEVs). We classify mild hybrids by nameplate matching. Contested nameplates where international specifications disagree (such as Subaru e-Boxer models) remain unclassified rather than guessed, and identification coverage is openly published alongside all hybrid figures.
     </p>
 
-    <h2>7. Why There Is No Statutory "SUV" Category</h2>
+    <h2>7. Why There Is No SUV Category</h2>
     <p>
-      In the Motor Industry Association (MIA) market releases, SUVs represent over 50% of passenger vehicle sales. However, in the open NZTA register, <strong>zero rows</strong> carry an <code>SUV</code> body type.
+      The open NZTA register has no <code>SUV</code> body type. Its 27 body types do not include one, and <strong>none</strong> of the 5,905,376 vehicles, trailers and machines on it at 31 August 2026 is recorded as an SUV.
     </p>
     <p>
-      Under statutory Land Transport rules, vehicles are registered by structural geometry: a 2-box closed passenger vehicle with a rear liftgate is recorded as a <code>STATION WAGON</code> (over 98% of Toyota RAV4s, Mazda CX-5s, and Mitsubishi Outlanders are registered as station wagons). Consequently, an SUV segment cannot be derived from statutory registration fields alone; it requires a model-level taxonomy.
+      Models usually thought of as SUVs are mostly recorded as <code>STATION WAGON</code>: 98.9% of Toyota RAV4s, 98.2% of Mazda CX-5s and 99.7% of Mitsubishi Outlanders on the register. An SUV segment therefore cannot be derived from the register's own fields; it would need a model-by-model classification.
     </p>
     <p>
       The body type counts behind this are in the <a href="/sense-check#body-type-by-model">sense-check tables</a>, an internal page outside the Explore charts.
