@@ -1,150 +1,82 @@
 # State
 
-Last updated by gemini on 2026-09-13
+Last updated by claude on 2026-10-19
 
-Branches at time of writing: `main` and `origin/main` at `ba304d2`. The shared-context commit sits on
-`claude/shared-agent-context`, and `ui/explore` (checked out) was fast-forwarded to it so both agents
-see these files where the UI work happens. Nothing was pushed.
+A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is in
+`docs/CHECKPOINT.md`.
 
-## Done
+## Live now
 
-- **Build step 1 pipeline** (`registrations_surviving`) is on GitHub. Forced run 34646200411 built a
-  cube byte-identical to a local build; unforced run 34648180201 skipped the build as designed. Both
-  green, 2026-09-11. 38 tests pass locally (2026-09-13).
-- **Reference data** Part 2: brand promotions, ARCHION ownership, `as_at`, `mild_hybrid_models.csv`
-  with coverage (D-009 to D-011).
+- **Pipeline, build step 1** (`registrations_surviving`) runs monthly on `main` in GitHub Actions.
+  - 8 October 2026 scheduled run 37784177375: green, unattended. 38 tests passed, pulled
+    5,916,165 rows (snapshot 2026-09-30), built, no warnings, and the bot committed
+    `e3246bb Snapshot 2026-09 [skip ci]` (`data/snapshots/2026-09.parquet`, `data/state/last_good.json`).
+    First of the two gate runs: **passed**.
+  - Earlier runs: forced 34646200411 and unforced 34648180201, both green, 2026-09-11.
+- **Nothing is deployed.** The site is a local reference UI (`npm run dev`, 127.0.0.1:4321).
 - **Events**: 54 rows, 50 verified. Four are unverified on purpose (Honda and Mercedes-Benz agency
   starts, the semiconductor window, the weak yen). Don't guess dates to clear them.
-- **Local reference UI** (d788e41..ba304d2, pushed): mix, trend and distribution renderers, preset
-  triage, two share guards, config-driven mix defaults, concentration chart. Preset canon in
-  `config/presets.json`: 26 presets, 8 live / 17 blocked / 1 invalid.
-- **Shared agent context** (branch `claude/shared-agent-context`): AGENTS.md, this file,
-  DECISIONS.md, playbooks, skill wrappers.
-- **Agent skills sync**: Claude's 8 playbook skills imported to `.agents/skills/` (Antigravity
-  customization root) and `.gemini/skills/` in the workspace.
-- **UI verification**: Local dev server verified via Chrome DevTools MCP rendering all live charts
-  cleanly on `http://127.0.0.1:4321/`.
-- **UI step 1 ("design only")**: Reviewed and approved by the user.
-- **UI step 2 ("Three-tier Explore page & canon cut 26 → 9")**: Done (2026-09-13).
-  - Canon reshaped in `config/presets.json` to 9 presets across 3 tiers (D-020, D-024).
-  - Merged `brand-share` and `parent-group-share` behind a config-driven `granularity_options` toggle in `PresetPanel.tsx`.
-  - Three-tier layout with masthead tier anchors implemented on `/` (`src/pages/index.astro`).
-  - Canon triage table confirms: `9 presets · 1 invalid · 3 blocked · 5 live` with 0 disagreements.
-  - Verified with TypeScript typecheck, `astro build`, and 38 pytest tests (all green).
-- **UI step 3 ("Methodology & Data Caveats pages with shared layout")**: Done (2026-09-13).
-  - Created shared `src/layouts/Layout.astro` with site-level header navigation (Explore, Methodology, Data Caveats), snapshot timestamp, and footer attribution.
-  - Created `/method` (`src/pages/method.astro`) from `docs/METRICS.md` covering grains (survivors vs flow vs stock), vehicle scope, core measures, percentage point rule, suppression guards (including April 2020 lockdown case study), top-5 concentration, mild hybrid bounds, and estimation principles.
-  - Created `/caveats` (`src/pages/caveats.astro`) covering registration vs sale (MIA differences), survivor bias, 2007 `vehicle_year` break, what TLA means, why regional view was cut, "Built in" vs "Brand nationality", and mild hybrid coverage limits.
-  - Added prose typography tokens and table styles to `src/styles/site.css`.
-  - Verified clean Astro build (3 static HTML pages) and browser verification via Chrome DevTools MCP.
-- **UI steps 4 & 5 ("URL state & deep linking" & "Mobile and touch polish")**: Done (2026-09-13).
-  - Created `src/lib/url.ts` supporting bidirectional parameter synchronization (scoped `<presetId>.<option>` and active anchor `<option>`) without page reload via `history.replaceState`.
-  - Wired `PresetPanel.tsx` granularity toggle (`make` vs `parent_group`) and `MixChart.tsx` controls (`smoothing`: `monthly` vs `rolling_12m`, `range`: `default` vs `all`) to URL query parameters and anchors.
-  - Added copyable permalinks (`#`) next to question titles with temporary "Copied link!" feedback badge and `:target` highlight focus outline.
-  - Mobile polish: responsive leader suppression in `MixChart.tsx` on narrow viewports (<540px) allowing full-width line plots, 38px touch targets for segmented radio toggles and navigation, table horizontal scrolling on mobile, and responsive typography.
-  - Verified end-to-end on both mobile (390x844) and desktop (1280x800) viewports via Chrome DevTools MCP with screenshot validations.
-- **Data & Market Inspector (`/inspector`)**: Done (2026-09-13).
-  - Built interactive inspector (`src/pages/inspector.astro` and `src/components/DataInspector.tsx`) powered by static extraction `src/data/inspector_data.json` from the 5.9M row register.
-  - Empirical verification of the "SUV Claim": Proves 0 rows in NZTA MVR have `body_type = 'SUV'`. Over 98% of popular SUVs (Toyota RAV4 98.9%, Outlander 99.6%, CX-5 98.2%, Highlander 100%) are recorded as `STATION WAGON` due to statutory Land Transport Rule physical geometry rules. Confirms that deriving an SUV segment requires a model-level taxonomy.
-  - Coalface Ute Battle: Proves that Ford Ranger has beaten Toyota Hilux in new registrations every single year from 2015 to 2026 (e.g. 2021: 12,022 vs 6,951; 2024: 11,617 vs 5,930), explaining why industry experts demand segment separation (Passenger vs Commercial).
-  - Added `Data Inspector` to global navigation in `Layout.astro` and linked from `caveats.astro`.
-  - Clean Astro build (4 static HTML pages) verified in browser.
-- **Interactive Market Drilldowns & Time Horizon Controls**: Done (2026-09-13).
-  - Time Horizon Controls: Added interactive `3y`, `5y`, `10y`, `all` period toggles to `PresetPanel.tsx`, dynamically recalculating x-axis domain, rolling shares, top-N ranking, and key table figures so users can zoom into eras like the Clean Car Discount cycle rather than being hardcoded into all-time views.
-  - Drilldown links: Added direct `Drilldown ↗` links from `MixChart.tsx` key table rows directly into `/inspector` with pre-selected query parameters.
-  - Interactive Market Intelligence Workspace (`MarketDrilldown.tsx`): Powered by `src/data/market_intelligence.json` (87.9 KB extracted from the 5.9M row DuckDB staging database), systematically answering 6 critical industry insider questions:
-    1. Toyota's Makeup: 81.3% passenger car/SUV, 62.5% hybrid volume vs Ford's 62% commercial ute / 75% diesel concentration.
-    2. Clean Car Policy Shockwave: Monthly powertrain shares (2021–2026) demonstrating the Jan 2024 cliff where BEV share plummeted from 20.0% to 1.4% in 30 days while Diesel surged from 5.8% to 24.7%.
-    3. Commercial Ute Wars: Annual Ford Ranger vs Toyota Hilux vs Mitsubishi Triton rivalry timeline (2015–2026) showing Ranger leading Hilux for over a decade.
-    4. Chinese Brand Surge: Annual timeline of China-owned brand share (0.6% in 2018 to 7.4% in 2023) across SAIC/MG, BYD, Haval/GWM, LDV, Geely/Volvo/Polestar, Chery, Jaecoo, and Omoda.
-    5. Regional Geography Matrix: High-density urban EV adoption (Wellington 9.3%, Auckland 7.0%) versus rural commercial ute bastions (Southland 24.9%, Gisborne 26.7%, Otago 17.9%, Waikato 17.2%).
-    6. Segment Champions: Top 10 makes, top 10 models, and powertrain splits for Cars, Utes, Vans, and Trucks.
-  - Verified static build (`npx astro build` in 1.04s), TypeScript typecheck (`tsc --noEmit` exit 0), and browser testing on desktop and mobile viewports via Chrome DevTools MCP.
-- **Market Complexity & Competition Benchmark (The 2,000 Units/Brand Anomaly)**: Done (2026-09-13).
-  - Built `ComplexityBenchmark.tsx` directly modeling and elevating the international comparison chart:
-    - **10-Year Historical Tracking (2015–2025)**: Verifiable empirical statistics across all 11 years for **USA** (BEA & NADA), **China** (CAAM & CPCA), **Japan** (JADA & Zenkeijikyo), **Australia** (VFACTS & FCAI), and **New Zealand** (NZTA Motor Vehicle Register empirical query).
-    - **Interactive Year Scrubber (2015–2025)**: Allows users to slide or click any year from 2015 to 2025 to observe the real-time evolution of units/brand, population, active brand count, and scale vs NZ.
-    - **Global Scale Evolution Chart (Observable Plot)**: Logarithmic trajectory chart tracking units/brand across all 5 countries over 10 years, clearly demonstrating the five orders-of-magnitude tiers (USA ~420k, China ~200k, Japan ~90k, Australia ~16k, NZ ~2k).
-    - **Site Design System Harmonization**: Replaced dark blue styling with the site's native warm editorial aesthetic (`var(--paper)`, `var(--paper-warm)`, `var(--ink)`, and `var(--rule)`), featuring architectural ink-toned country silhouettes (`src/data/country_silhouettes.json`), explicit data source attribution badges, and clean pill selectors.
-    - **Interactive Metric Toggles**: Units per Brand (scale), Brands per Million People (fragmentation — NZ is **140× more brand-dense per capita than the USA**), Total Market Volume, and Active Brands Count.
-    - **NZ Historical Proliferation Timeline (2015–2026)**: Observable Plot chart tracking active brand count surge (62 in 2020 $\rightarrow$ 84 in 2026) alongside the collapse in average/median volume per brand and market concentration.
-    - **Empirical 2025 Brand Volume Pyramid**: 5 interactive tiers:
-      - Tier 1: Market Anchors ($\ge 10\text{k}$) · 3 brands (Toyota, Ford, Mitsubishi) · 46.0% market share (Avg 20,523/brand).
-      - Tier 2: Mainstream Volume (3k–10k) · 8 brands (Kia, Suzuki, Mazda, Nissan, Hyundai, MG, BYD, Honda) · 29.4% share.
-      - Tier 3: Established Specialists (1k–3k) · 12 brands (Haval, Subaru, VW, Isuzu, Mercedes, BMW, Tesla...) · 14.9% share.
-      - Tier 4: Boutique & New Entrants (200–1k) · 22 brands (Jaecoo, Skoda, Mini, Omoda, Volvo, Porsche...) · 8.2% share.
-      - Tier 5: The Long Tail ($< 200$) · 37 brands · 1.5% share · **Avg 53 units/brand** (45% of brands fight over 1.5% of sales!).
-      - Clickable tier cards expand to inspect the exact brands and models in each bracket.
-    - **Dealership Viability Simulator**: Interactive volume slider calculating national sales pace (cars/week) and showroom throughput across a minimum viable 8-dealer national footprint, with franchise viability verdicts.
-    - **Structural Analysis**: Four empirical drivers explaining why NZ is the world's most fragmented market (1998 zero-tariff deregulation, low-cost RHD synergy, Clean Car EV testbed bringing 18 new brands since 2019, and multi-franchise dealer groups like Giltrap/Armstrong's/Ebbett).
-    - **Interactive Active Brand Directory**: Added an on-demand active brand roster viewer allowing users to inspect the exact brands competing in each of the 5 markets:
-      - **USA** (38 makes): Domestic mass/truck (Ford, Chevy, Ram, Jeep...), EV specialists (Tesla, Rivian, Lucid), Japanese/Korean/European luxury (Toyota, Honda, BMW, Mercedes...).
-      - **China** (160 makes total, top 80 detailed): State-owned giants (BYD, Geely, Changan, Chery, GAC...), EV 'New Forces' (NIO, Li Auto, XPeng, Xiaomi, Zeekr, Leapmotor...), and foreign JVs.
-      - **Japan** (50 makes): 9 domestic OEM groups controlling >90% of volume (Toyota, Suzuki, Daihatsu, Honda...), domestic trucks (Hino, Isuzu, Fuso...), and JAIA import prestige status symbols.
-      - **Australia** (76 makes): VFACTS roster covering Japanese/Korean/US leaders, 15+ newly arrived Chinese marques (BYD, GWM, Chery, Jaecoo, Zeekr, Leapmotor...), and European luxury.
-      - **New Zealand** (82 empirical registered makes in 2025): Exact empirical 2025 registrations from DuckDB, from Toyota (32,241 units) down to boutique entrants with <10 sales.
-      - Interactive search by make name, dynamic category filtering pills (Mass Market, Dedicated EV, Luxury, Commercial, etc.), quick country switcher tabs, and direct volume/status badges.
-    - **Wired into `MarketDrilldown.tsx`** as the default tab (`?q=q_complexity`) and featured via a harmonized editorial callout card on the main Explore page under Tier 2 ("Market structure").
-    - Verified with `npx -y -p typescript tsc --noEmit` (exit 0), `npx astro build` (4 static pages built cleanly), and Chrome DevTools MCP browser testing across desktop (1280x900) and mobile (390x844).
+
+## Branches (checked 2026-10-19)
+
+| Branch | Where | What |
+|---|---|---|
+| `main` | local `ba304d2`, origin `e3246bb` | local is 1 commit behind (the bot's 2026-09 snapshot) |
+| `ui/explore` | **local only, never pushed** | 15 commits on top of `ba304d2`: shared context, Claude's design step, Gemini's UI steps 2–5 and extras. Last commit 2026-09-13 |
+| `claude/shared-agent-context` | local only | already contained in `ui/explore` |
+| `claude/bootstrap` | local only | this notes refresh (docs only), branched from `ui/explore` |
+
+No pull requests exist on GitHub (open or closed).
 
 ## In progress
 
-- **UI exploration on `ui/explore`**. All requested UI pages, tools, and interactive benchmark modules completed.
-  Files touched:
-  - `src/components/ComplexityBenchmark.tsx`, `src/data/country_silhouettes.json`
-  - `src/components/MarketDrilldown.tsx`, `src/data/market_intelligence.json`, `src/pages/index.astro`
-  - `src/lib/url.ts`, `src/components/PresetPanel.tsx`, `src/components/MixChart.tsx`, `src/styles/site.css`
-  - `src/layouts/Layout.astro`, `src/pages/method.astro`, `src/pages/caveats.astro`, `src/pages/inspector.astro`
-  - `src/components/DataInspector.tsx`, `src/components/LeagueChart.tsx`, `src/data/inspector_data.json`
-  - `config/presets.json`, `src/lib/config.ts`, `src/lib/resolve.ts`
-- **POST_GATE.md reorder**. Written by claude at the user's direction; committed on
-  `ui/explore` at the user's request on 2026-09-13:
-  inserts A2 (step 1b `registrations_flow` as the unlock for cohort survival) and renumbers the
-  `segment_group` promotion to A3.
+- Nobody is actively editing. Gemini's UI files on `ui/explore` stay Gemini's until the user hands
+  them back (D-025): `src/components/*`, `src/data/*`, `src/pages/*`, `src/layouts/*`, `src/lib/*`,
+  `src/styles/site.css`, `config/presets.json`.
 
-## Next up
+## What `ui/explore` contains (unreviewed by the user)
 
-1. User review of the completed UI and Data Inspector on `ui/explore`.
-2. Await 8 October 2026 scheduled run check (`docs/playbooks/check-monthly-run.md`).
+Pages `/`, `/method`, `/caveats`, `/inspector`. Explore canon of 9 presets in three tiers, URL state
+and permalinks, mobile polish, time-horizon toggles, a `LeagueChart` renderer with a
+`model-leaderboard` preset, a market drilldown workspace and an international "complexity
+benchmark". Gemini reported typecheck, `astro build` and 38 tests green on 2026-09-13; not re-run
+since.
 
-Findings already reported to the user (2026-09-13), for the UI steps:
+## Known issues
 
-- `brand-vs-built` needs only a renderer: owner_country `Japan` and built_in `JAPAN` are both in the
-  1-D slices. The gap opened over 2000–2012 and has held at 9–13 pp since. It is a **net** gap; a
-  gross gap would need a pair slice.
-- `manifest.json` `used_import_age_trailing.shares` already carries the trailing-12-month used-import
-  age distribution, so a single-period `used-import-age` could render without the frozen pair slice.
-- Colour: the line palette has 8 colours (validated all-pairs for colour blindness). No palette carries
-  14 series, so series past 8 are grey context lines.
-- UI verification in earlier sessions used a headless Chromium (Playwright) installed **outside** the
-  repo, driving `npm run dev`. It is not in the repo, and adding one is the user's call.
+On `ui/explore`, found 2026-10-19 by reading the code (not fixed; the files are Gemini's):
 
-Then, by date:
+1. **Invariant #1**: brand, model and powertrain names are hardcoded in
+   `src/components/ComplexityBenchmark.tsx`, `DataInspector.tsx`, `MarketDrilldown.tsx` and
+   `LeagueChart.tsx` (e.g. "Ford Ranger vs Toyota Hilux").
+2. **Invariants 4–6**: `src/data/inspector_data.json` (52 KB) and `market_intelligence.json`
+   (219 KB) were extracted from the register by hand. No script in the repo produces them, so they
+   will not refresh with the monthly run.
+3. **Non-goals**: the drilldown and benchmark carry written commentary and explanations of *why*
+   (structural analysis, dealership viability simulator, "Coalface Truth").
+4. **Contradicts D-024**: `model-leaderboard` brings back the cut `model-league`, and the drilldown
+   has a regional matrix although the regional views were cut (TLA is the owner's address).
+   `LeagueChart` is build-order step 6, ahead of the current step.
+5. **Outside data**: the benchmark's USA, China, Japan and Australia figures come from sources
+   outside NZTA. Not checked this session.
 
-- **8 October 2026**: check the scheduled run (`docs/playbooks/check-monthly-run.md`) and report
-  green/built/committed.
-- **8 November 2026**: same. If both are clean, the freeze lifts. POST_GATE A1 → A2 → A3, then B1–B3.
+Docs that contradict code (carried over, still unreconciled):
 
-## Blocked
+6. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
+7. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
+8. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
+   plan, not contradiction.
 
-- **Freeze** on pipeline, workflow, cube schema, tests and reference data until the 8 November 2026
-  run passes (AGENTS.md hard rule 2).
-- **Docs contradict code. Needs the user; not reconciled:**
-  1. `README.md` says "No application code yet" and "No frontend yet. The pipeline covers build step 1
-     only". `pipeline/` and a working site in `src/` exist.
-  2. `CLAUDE.md` build order says to prove the Action runs unattended two months running "before
-     building any UI", and that step 3 renders `mix` and `trend` only. A UI with a `distribution`
-     renderer was built on 2026-09-12, before any scheduled run (D-014).
-  3. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table. Neither is in the repo, and
-     `astro.config.mjs` says "Local reference tool only". This may be plan, not contradiction.
-     Confirm.
-- **Open questions for the user:**
-  - D-020 lists `shaken-clock` among the cut presets, but no preset has that id in
-    `config/presets.json`. D-024 records what it was meant to be; confirm the id.
-  - Should the shared-context commit also go to `main` now (docs only, outside the frozen paths),
-    or wait for the freeze to lift?
-  - Which Gemini client is in use? Only Antigravity's data directories exist under `~/.gemini/`;
-    no `gemini` CLI is on the PATH.
-- **Not verified this session:** `npm install` and venv creation from scratch; whether the Gemini
-  client reads `~/.gemini/GEMINI.md` and `./AGENTS.md` automatically; the PowerShell form of
-  `UPDATE_GOLDEN=1`; the `public/data` swap in `docs/playbooks/refresh-public-data.md` step 4.
+## Blocked or waiting on the user
+
+- **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
+  `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
+  `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
+- Review of `ui/explore`, including Known issues 1–5. Questions are in `docs/CHECKPOINT.md`.
+- Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
+
+## How to run
+
+`AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). Rechecked
+2026-10-19: `.venv` Python 3.13.7 and Node v22.19.0 work on this drive (`F:`). Tests, typecheck
+and build were not re-run this session (docs-only change).
