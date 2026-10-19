@@ -28,17 +28,18 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/sense-check` | origin | Gemini's extras fenced into `/sense-check` (D-028). PR into `ui/explore`, stacked on `claude/bootstrap` |
 | `claude/model-leaderboard` | origin | `model-leaderboard` blocked on step 1b (D-029), blocked-panel tidy, triage heading. PR into `claude/sense-check` |
 | `claude/caveats-wording` | origin | caveats 1 and 7 (D-030). PR into `claude/model-leaderboard` |
+| `claude/method-page` | origin | `/method` checked against METRICS.md, config and code (D-031). PR into `claude/caveats-wording` |
 
 No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's four branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's five branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
-  (`claude/model-leaderboard`), then [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
-  (`claude/caveats-wording`).
+  (`claude/model-leaderboard`), [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
+  (`claude/caveats-wording`), then #5 (`claude/method-page`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
@@ -62,6 +63,13 @@ On `ui/explore`, found 2026-10-19 by reading the code:
    the shape to mix with no way back (`src/lib/resolve.ts` `inferShape`). Unreachable now: no live
    preset is a league. Fix before a league preset is unblocked.
 
+3. `docs/METRICS.md` says trucks were "~2.3%" either side of April 2020 and that "almost all" months
+   under 200 are before 1990. Measured 2026-10-19 on the 2026-08 cube: 2.5% over the 12 months before
+   (2.9% in March and May 2020); all 493 are before 1990. `/method` uses the measured figures (D-031).
+
+Fixed on `claude/method-page` (D-031): `/method` drops the unchecked share claim, the invented April
+2020 vehicle description and the stale coverage figure, and reads its thresholds from config.
+
 Fixed on `claude/caveats-wording` (D-030): caveat 1 now describes survivors; caveat 7's unchecked
 statutory-rule and MIA claims are replaced by body-type counts from the 2026-08 pull.
 
@@ -73,9 +81,9 @@ feeding pages that looked like findings, the commentary, and the international f
 
 Docs that contradict code (carried over, still unreconciled):
 
-3. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
-4. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
-5. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
+4. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
+5. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
+6. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
    plan, not contradiction.
 
 ## Blocked or waiting on the user
@@ -83,7 +91,7 @@ Docs that contradict code (carried over, still unreconciled):
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- Review and merge of the two open pull requests (`docs/CHECKPOINT.md`).
+- Review and merge of the five open pull requests (`docs/CHECKPOINT.md`).
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run

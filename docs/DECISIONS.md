@@ -351,3 +351,47 @@ New entries use this template:
   are dated on the page. The branch is stacked on `claude/model-leaderboard` because PR 2 also
   edits `caveats.astro`.
 - Status: decided by Claude (unreviewed)
+
+## D-031 2026-10-19 — /method restates METRICS.md in plain words, with its thresholds read from config
+- Agent: claude, under D-027
+- Basis: this commit; `docs/METRICS.md`; `config/measures.json`, `config/presets.json` (`defaults`),
+  `config/pipeline.json` (`hybrid_classification`); `data/reference/vehicle_scope.csv`,
+  `import_status_map.csv`, `powertrain_map.csv`; `src/lib/measures.ts`, `src/components/MixChart.tsx`,
+  `TrendChart.tsx`, `PresetPanel.tsx`; the local cube `public/data` (snapshot 2026-08-31), queried on
+  2026-10-19.
+- Context: `src/pages/method.astro` was written by Gemini on `ui/explore` and differed from METRICS.md
+  and the code. It said shares "hold up" under scrappage (unchecked, STATE known issue 1); described
+  the April 2020 vehicles as "essential commercial utilities, refrigerated transport, and emergency
+  services" (not in the data); called the 16.9% reading "precise to within 11 standard errors" (METRICS
+  says eleven standard errors *above normal*); gave a coverage figure as "currently" true; said
+  out-of-scope rows are kept in "raw" snapshots (they are kept in the snapshot aggregates); said
+  re-registrations are "mostly lapsed trailers"; left out change on a year ago; and described flow and
+  stock as if charts used them.
+- Options considered: (1) render METRICS.md itself as the page: one source, but it is written for
+  developers ("enforce in the formatter", "anyone tempted to collapse them"). (2) Hand-written plain
+  copy, checked against METRICS.md, with every threshold read from config at build time so the numbers
+  cannot drift. (3) Patch only the wrong sentences: leaves the hardcoded thresholds to drift again.
+- Decision: (2).
+  - Figures in the April 2020 case study were re-measured from the cube and dated to the 2026-08
+    snapshot: 1,542 against a median of 22,108; Hyundai Motor Group 261 (16.9%) against 5.9% over the
+    12 months before; NZ New 63.6% against 54.3%, trucks 6.8% against 2.5%, vans 6.2% against 4.5%.
+    The baselines are the 12 months before, the guard's own window, not METRICS.md's "months either
+    side".
+  - The survivors entry states what scrappage can do to an older share (lower it, if a group is
+    scrapped faster) without claiming it does or does not. Whether it does is STATE known issue 1.
+  - The measures table adds the two figures the mix charts show (12-month share, change on the
+    12 months before), defined as `measures.ts` computes them, and the guards' scope as the code
+    applies it (precision floor on the window's total; representativeness guard on monthly shares only).
+  - After an independent review: the top-5 line divides by every vehicle, unmatched makes included
+    (`src/lib/derived.ts`), and unmatched makes are 21.6% of vehicles in the 1950s, 20.9% in the 1960s,
+    13.6% in the 1970s and 5.2% in the 1980s (cube, 2026-08), so the page warns that this holds the
+    early line down. The mild hybrid label rule is the stated-confidence figure, all time and trailing
+    (`pipeline/metrics.py`), not either confidence level. The fleet-entry rule applies to survivors and
+    flow; re-registrations count only in stock. Measures no live chart uses are said to be unused.
+  - Left out of this change: the page does not explain event markers, the "All other" series, or the
+    labels for unmatched and unrecorded values. Queued in CHECKPOINT.
+- Consequences: the case-study figures will not update themselves. METRICS.md still says trucks were
+  "~2.3%" either side of April 2020 and that "almost all" months under 200 are before 1990; measured
+  2026-10-19: 2.5% over the 12 months before (2.9% in March and in May 2020), and all 493 are before
+  1990. Left for a METRICS.md pass (STATE known issues).
+- Status: decided by Claude (unreviewed)
