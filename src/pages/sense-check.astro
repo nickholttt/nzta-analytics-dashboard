@@ -5,7 +5,8 @@ import data from "../data/sense_check.json";
 // Internal page (D-028). Every name and figure comes from src/data/sense_check.json, a one-off extract
 // that does not refresh, so nothing here may be linked from a chart or quoted as a finding.
 
-type Column = { key: string; label: string; kind: string };
+// `spoken` names a column whose visible label ("%") only makes sense next to the one before it.
+type Column = { key: string; label: string; kind: string; spoken?: string };
 type Row = Record<string, string | number | null>;
 
 // Long tables start collapsed so the page can be scanned by title; the browser's find still opens them.
@@ -66,7 +67,14 @@ function cell(row: Row, column: Column): string {
                 <tr>
                   {s.columns.map((c) => (
                     <th scope="col" class={c.kind === "text" ? "text" : undefined}>
-                      {c.label}
+                      {c.spoken ? (
+                        <>
+                          <span aria-hidden="true">{c.label}</span>
+                          <span class="visually-hidden">{c.spoken}</span>
+                        </>
+                      ) : (
+                        c.label
+                      )}
                     </th>
                   ))}
                 </tr>
@@ -74,9 +82,15 @@ function cell(row: Row, column: Column): string {
               <tbody>
                 {(s.rows as Row[]).map((row) => (
                   <tr>
-                    {s.columns.map((c) => (
-                      <td class={c.kind === "text" ? "text" : undefined}>{cell(row, c)}</td>
-                    ))}
+                    {s.columns.map((c, i) =>
+                      i === 0 ? (
+                        <th scope="row" class="text">
+                          {cell(row, c)}
+                        </th>
+                      ) : (
+                        <td class={c.kind === "text" ? "text" : undefined}>{cell(row, c)}</td>
+                      ),
+                    )}
                   </tr>
                 ))}
               </tbody>

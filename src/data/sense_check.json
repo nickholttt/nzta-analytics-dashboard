@@ -2768,7 +2768,8 @@
     {
      "key": "ford_ranger_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "FORD RANGER share"
     },
     {
      "key": "toyota_hilux",
@@ -2778,7 +2779,8 @@
     {
      "key": "toyota_hilux_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "TOYOTA HILUX share"
     },
     {
      "key": "mitsubishi_triton",
@@ -2788,7 +2790,8 @@
     {
      "key": "mitsubishi_triton_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "MITSUBISHI TRITON share"
     },
     {
      "key": "isuzu_d-max",
@@ -2798,7 +2801,8 @@
     {
      "key": "isuzu_d-max_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "ISUZU D-MAX share"
     },
     {
      "key": "nissan_navara",
@@ -2808,7 +2812,8 @@
     {
      "key": "nissan_navara_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "NISSAN NAVARA share"
     },
     {
      "key": "mazda_bt-50",
@@ -2818,7 +2823,8 @@
     {
      "key": "mazda_bt-50_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "MAZDA BT-50 share"
     },
     {
      "key": "gwm_cannon",
@@ -2828,7 +2834,8 @@
     {
      "key": "gwm_cannon_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "GWM CANNON share"
     },
     {
      "key": "byd_shark 6",
@@ -2838,7 +2845,8 @@
     {
      "key": "byd_shark 6_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "BYD SHARK 6 share"
     },
     {
      "key": "volkswagen_amarok",
@@ -2848,7 +2856,8 @@
     {
      "key": "volkswagen_amarok_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "VOLKSWAGEN AMAROK share"
     }
    ],
    "rows": [
@@ -3141,7 +3150,8 @@
     {
      "key": "bev_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "BEV share"
     },
     {
      "key": "phev",
@@ -3151,7 +3161,8 @@
     {
      "key": "phev_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "PHEV share"
     },
     {
      "key": "hybrid",
@@ -3161,7 +3172,8 @@
     {
      "key": "hybrid_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "HYBRID share"
     },
     {
      "key": "petrol",
@@ -3171,7 +3183,8 @@
     {
      "key": "petrol_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "PETROL share"
     },
     {
      "key": "diesel",
@@ -3181,7 +3194,8 @@
     {
      "key": "diesel_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "DIESEL share"
     }
    ],
    "rows": [
@@ -4162,7 +4176,8 @@
     {
      "key": "china_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "China-owned share"
     },
     {
      "key": "mg",
@@ -4385,7 +4400,8 @@
     {
      "key": "bev_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "BEV share"
     },
     {
      "key": "ute_count",
@@ -4395,7 +4411,8 @@
     {
      "key": "ute_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "Ute share"
     },
     {
      "key": "diesel_count",
@@ -4405,7 +4422,8 @@
     {
      "key": "diesel_share",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "Diesel share"
     }
    ],
    "rows": [
@@ -4707,56 +4725,56 @@
     {
      "make": "TOYOTA",
      "part": "Top model",
-     "value": "AQUA",
+     "value": "TOYOTA AQUA",
      "n": 61224,
      "pct": 16.2
     },
     {
      "make": "TOYOTA",
      "part": "Top model",
-     "value": "RAV4",
+     "value": "TOYOTA RAV4",
      "n": 49353,
      "pct": 13.0
     },
     {
      "make": "TOYOTA",
      "part": "Top model",
-     "value": "HILUX",
+     "value": "TOYOTA HILUX",
      "n": 46950,
      "pct": 12.4
     },
     {
      "make": "TOYOTA",
      "part": "Top model",
-     "value": "COROLLA",
+     "value": "TOYOTA COROLLA",
      "n": 42612,
      "pct": 11.2
     },
     {
      "make": "TOYOTA",
      "part": "Top model",
-     "value": "PRIUS",
+     "value": "TOYOTA PRIUS",
      "n": 38742,
      "pct": 10.2
     },
     {
      "make": "TOYOTA",
      "part": "Top model",
-     "value": "HIACE",
+     "value": "TOYOTA HIACE",
      "n": 16909,
      "pct": 4.5
     },
     {
      "make": "TOYOTA",
      "part": "Top model",
-     "value": "C-HR",
+     "value": "TOYOTA C-HR",
      "n": 16409,
      "pct": 4.3
     },
     {
      "make": "TOYOTA",
      "part": "Top model",
-     "value": "LANDCRUISER",
+     "value": "TOYOTA LANDCRUISER",
      "n": 11960,
      "pct": 3.2
     },
@@ -4861,56 +4879,56 @@
     {
      "make": "NISSAN",
      "part": "Top model",
-     "value": "X-TRAIL",
+     "value": "NISSAN X-TRAIL",
      "n": 24208,
      "pct": 21.5
     },
     {
      "make": "NISSAN",
      "part": "Top model",
-     "value": "NOTE",
+     "value": "NISSAN NOTE",
      "n": 16737,
      "pct": 14.9
     },
     {
      "make": "NISSAN",
      "part": "Top model",
-     "value": "LEAF",
+     "value": "NISSAN LEAF",
      "n": 15033,
      "pct": 13.3
     },
     {
      "make": "NISSAN",
      "part": "Top model",
-     "value": "NAVARA",
+     "value": "NISSAN NAVARA",
      "n": 12543,
      "pct": 11.1
     },
     {
      "make": "NISSAN",
      "part": "Top model",
-     "value": "SERENA",
+     "value": "NISSAN SERENA",
      "n": 10930,
      "pct": 9.7
     },
     {
      "make": "NISSAN",
      "part": "Top model",
-     "value": "QASHQAI",
+     "value": "NISSAN QASHQAI",
      "n": 4969,
      "pct": 4.4
     },
     {
      "make": "NISSAN",
      "part": "Top model",
-     "value": "JUKE",
+     "value": "NISSAN JUKE",
      "n": 3570,
      "pct": 3.2
     },
     {
      "make": "NISSAN",
      "part": "Top model",
-     "value": "NV350",
+     "value": "NISSAN NV350",
      "n": 3185,
      "pct": 2.8
     },
@@ -5015,49 +5033,49 @@
     {
      "make": "MITSUBISHI",
      "part": "Top model",
-     "value": "OUTLANDER",
+     "value": "MITSUBISHI OUTLANDER",
      "n": 39810,
      "pct": 36.3
     },
     {
      "make": "MITSUBISHI",
      "part": "Top model",
-     "value": "TRITON",
+     "value": "MITSUBISHI TRITON",
      "n": 24188,
      "pct": 22.1
     },
     {
      "make": "MITSUBISHI",
      "part": "Top model",
-     "value": "ASX",
+     "value": "MITSUBISHI ASX",
      "n": 20636,
      "pct": 18.8
     },
     {
      "make": "MITSUBISHI",
      "part": "Top model",
-     "value": "ECLIPSE CROSS",
+     "value": "MITSUBISHI ECLIPSE CROSS",
      "n": 13423,
      "pct": 12.3
     },
     {
      "make": "MITSUBISHI",
      "part": "Top model",
-     "value": "PAJERO",
+     "value": "MITSUBISHI PAJERO",
      "n": 3533,
      "pct": 3.2
     },
     {
      "make": "MITSUBISHI",
      "part": "Top model",
-     "value": "MIRAGE",
+     "value": "MITSUBISHI MIRAGE",
      "n": 2449,
      "pct": 2.2
     },
     {
      "make": "MITSUBISHI",
      "part": "Top model",
-     "value": "DELICA",
+     "value": "MITSUBISHI DELICA",
      "n": 1619,
      "pct": 1.5
     },
@@ -5169,56 +5187,56 @@
     {
      "make": "MAZDA",
      "part": "Top model",
-     "value": "CX-5",
+     "value": "MAZDA CX-5",
      "n": 23796,
      "pct": 23.0
     },
     {
      "make": "MAZDA",
      "part": "Top model",
-     "value": "AXELA",
+     "value": "MAZDA AXELA",
      "n": 23120,
      "pct": 22.4
     },
     {
      "make": "MAZDA",
      "part": "Top model",
-     "value": "DEMIO",
+     "value": "MAZDA DEMIO",
      "n": 14164,
      "pct": 13.7
     },
     {
      "make": "MAZDA",
      "part": "Top model",
-     "value": "ATENZA",
+     "value": "MAZDA ATENZA",
      "n": 6886,
      "pct": 6.7
     },
     {
      "make": "MAZDA",
      "part": "Top model",
-     "value": "PREMACY",
+     "value": "MAZDA PREMACY",
      "n": 5685,
      "pct": 5.5
     },
     {
      "make": "MAZDA",
      "part": "Top model",
-     "value": "CX-3",
+     "value": "MAZDA CX-3",
      "n": 4992,
      "pct": 4.8
     },
     {
      "make": "MAZDA",
      "part": "Top model",
-     "value": "CX-30",
+     "value": "MAZDA CX-30",
      "n": 4120,
      "pct": 4.0
     },
     {
      "make": "MAZDA",
      "part": "Top model",
-     "value": "MAZDA3",
+     "value": "MAZDA MAZDA3",
      "n": 3731,
      "pct": 3.6
     },
@@ -5330,42 +5348,42 @@
     {
      "make": "FORD",
      "part": "Top model",
-     "value": "RANGER",
+     "value": "FORD RANGER",
      "n": 61691,
      "pct": 66.4
     },
     {
      "make": "FORD",
      "part": "Top model",
-     "value": "EVEREST",
+     "value": "FORD EVEREST",
      "n": 11929,
      "pct": 12.8
     },
     {
      "make": "FORD",
      "part": "Top model",
-     "value": "TRANSIT",
+     "value": "FORD TRANSIT",
      "n": 5330,
      "pct": 5.7
     },
     {
      "make": "FORD",
      "part": "Top model",
-     "value": "ESCAPE",
+     "value": "FORD ESCAPE",
      "n": 4205,
      "pct": 4.5
     },
     {
      "make": "FORD",
      "part": "Top model",
-     "value": "PUMA",
+     "value": "FORD PUMA",
      "n": 3394,
      "pct": 3.7
     },
     {
      "make": "FORD",
      "part": "Top model",
-     "value": "MUSTANG",
+     "value": "FORD MUSTANG",
      "n": 2964,
      "pct": 3.2
     },
@@ -5456,56 +5474,56 @@
     {
      "make": "HONDA",
      "part": "Top model",
-     "value": "FIT",
+     "value": "HONDA FIT",
      "n": 17184,
      "pct": 27.0
     },
     {
      "make": "HONDA",
      "part": "Top model",
-     "value": "JAZZ",
+     "value": "HONDA JAZZ",
      "n": 8345,
      "pct": 13.1
     },
     {
      "make": "HONDA",
      "part": "Top model",
-     "value": "CRV",
+     "value": "HONDA CRV",
      "n": 6773,
      "pct": 10.7
     },
     {
      "make": "HONDA",
      "part": "Top model",
-     "value": "VEZEL",
+     "value": "HONDA VEZEL",
      "n": 6196,
      "pct": 9.7
     },
     {
      "make": "HONDA",
      "part": "Top model",
-     "value": "ODYSSEY",
+     "value": "HONDA ODYSSEY",
      "n": 3742,
      "pct": 5.9
     },
     {
      "make": "HONDA",
      "part": "Top model",
-     "value": "HR-V",
+     "value": "HONDA HR-V",
      "n": 3030,
      "pct": 4.8
     },
     {
      "make": "HONDA",
      "part": "Top model",
-     "value": "ZRV",
+     "value": "HONDA ZRV",
      "n": 2763,
      "pct": 4.3
     },
     {
      "make": "HONDA",
      "part": "Top model",
-     "value": "ACCORD",
+     "value": "HONDA ACCORD",
      "n": 2097,
      "pct": 3.3
     },
@@ -5589,56 +5607,56 @@
     {
      "make": "SUBARU",
      "part": "Top model",
-     "value": "IMPREZA",
+     "value": "SUBARU IMPREZA",
      "n": 15184,
      "pct": 27.4
     },
     {
      "make": "SUBARU",
      "part": "Top model",
-     "value": "XV",
+     "value": "SUBARU XV",
      "n": 10600,
      "pct": 19.2
     },
     {
      "make": "SUBARU",
      "part": "Top model",
-     "value": "OUTBACK",
+     "value": "SUBARU OUTBACK",
      "n": 8205,
      "pct": 14.8
     },
     {
      "make": "SUBARU",
      "part": "Top model",
-     "value": "FORESTER",
+     "value": "SUBARU FORESTER",
      "n": 7380,
      "pct": 13.3
     },
     {
      "make": "SUBARU",
      "part": "Top model",
-     "value": "LEGACY",
+     "value": "SUBARU LEGACY",
      "n": 6546,
      "pct": 11.8
     },
     {
      "make": "SUBARU",
      "part": "Top model",
-     "value": "LEVORG",
+     "value": "SUBARU LEVORG",
      "n": 1991,
      "pct": 3.6
     },
     {
      "make": "SUBARU",
      "part": "Top model",
-     "value": "CROSSTREK",
+     "value": "SUBARU CROSSTREK",
      "n": 1624,
      "pct": 2.9
     },
     {
      "make": "SUBARU",
      "part": "Top model",
-     "value": "EXIGA",
+     "value": "SUBARU EXIGA",
      "n": 1491,
      "pct": 2.7
     },
@@ -5729,56 +5747,56 @@
     {
      "make": "KIA",
      "part": "Top model",
-     "value": "SELTOS",
+     "value": "KIA SELTOS",
      "n": 13050,
      "pct": 23.7
     },
     {
      "make": "KIA",
      "part": "Top model",
-     "value": "SPORTAGE",
+     "value": "KIA SPORTAGE",
      "n": 11380,
      "pct": 20.6
     },
     {
      "make": "KIA",
      "part": "Top model",
-     "value": "STONIC",
+     "value": "KIA STONIC",
      "n": 10103,
      "pct": 18.3
     },
     {
      "make": "KIA",
      "part": "Top model",
-     "value": "NIRO",
+     "value": "KIA NIRO",
      "n": 5074,
      "pct": 9.2
     },
     {
      "make": "KIA",
      "part": "Top model",
-     "value": "SORENTO",
+     "value": "KIA SORENTO",
      "n": 4726,
      "pct": 8.6
     },
     {
      "make": "KIA",
      "part": "Top model",
-     "value": "CARNIVAL",
+     "value": "KIA CARNIVAL",
      "n": 3185,
      "pct": 5.8
     },
     {
      "make": "KIA",
      "part": "Top model",
-     "value": "PICANTO",
+     "value": "KIA PICANTO",
      "n": 1044,
      "pct": 1.9
     },
     {
      "make": "KIA",
      "part": "Top model",
-     "value": "EV3",
+     "value": "KIA EV3",
      "n": 725,
      "pct": 1.3
     },
@@ -5876,56 +5894,56 @@
     {
      "make": "SUZUKI",
      "part": "Top model",
-     "value": "SWIFT",
+     "value": "SUZUKI SWIFT",
      "n": 25585,
      "pct": 51.5
     },
     {
      "make": "SUZUKI",
      "part": "Top model",
-     "value": "JIMNY",
+     "value": "SUZUKI JIMNY",
      "n": 6786,
      "pct": 13.7
     },
     {
      "make": "SUZUKI",
      "part": "Top model",
-     "value": "VITARA",
+     "value": "SUZUKI VITARA",
      "n": 4727,
      "pct": 9.5
     },
     {
      "make": "SUZUKI",
      "part": "Top model",
-     "value": "IGNIS",
+     "value": "SUZUKI IGNIS",
      "n": 4600,
      "pct": 9.3
     },
     {
      "make": "SUZUKI",
      "part": "Top model",
-     "value": "FRONX",
+     "value": "SUZUKI FRONX",
      "n": 1635,
      "pct": 3.3
     },
     {
      "make": "SUZUKI",
      "part": "Top model",
-     "value": "S-CROSS",
+     "value": "SUZUKI S-CROSS",
      "n": 1439,
      "pct": 2.9
     },
     {
      "make": "SUZUKI",
      "part": "Top model",
-     "value": "SOLIO",
+     "value": "SUZUKI SOLIO",
      "n": 605,
      "pct": 1.2
     },
     {
      "make": "SUZUKI",
      "part": "Top model",
-     "value": "CARRY",
+     "value": "SUZUKI CARRY",
      "n": 394,
      "pct": 0.8
     },
@@ -6030,35 +6048,35 @@
     {
      "make": "HYUNDAI",
      "part": "Top model",
-     "value": "KONA",
+     "value": "HYUNDAI KONA",
      "n": 9636,
      "pct": 27.6
     },
     {
      "make": "HYUNDAI",
      "part": "Top model",
-     "value": "TUCSON",
+     "value": "HYUNDAI TUCSON",
      "n": 8219,
      "pct": 23.5
     },
     {
      "make": "HYUNDAI",
      "part": "Top model",
-     "value": "SANTA FE",
+     "value": "HYUNDAI SANTA FE",
      "n": 5506,
      "pct": 15.7
     },
     {
      "make": "HYUNDAI",
      "part": "Top model",
-     "value": "STARIA LOAD",
+     "value": "HYUNDAI STARIA LOAD",
      "n": 1668,
      "pct": 4.8
     },
     {
      "make": "HYUNDAI",
      "part": "Top model",
-     "value": "MIGHTY",
+     "value": "HYUNDAI MIGHTY",
      "n": 472,
      "pct": 1.3
     },
@@ -6163,56 +6181,56 @@
     {
      "make": "VOLKSWAGEN",
      "part": "Top model",
-     "value": "GOLF",
+     "value": "VOLKSWAGEN GOLF",
      "n": 12006,
      "pct": 34.8
     },
     {
      "make": "VOLKSWAGEN",
      "part": "Top model",
-     "value": "TIGUAN",
+     "value": "VOLKSWAGEN TIGUAN",
      "n": 5386,
      "pct": 15.6
     },
     {
      "make": "VOLKSWAGEN",
      "part": "Top model",
-     "value": "POLO",
+     "value": "VOLKSWAGEN POLO",
      "n": 3492,
      "pct": 10.1
     },
     {
      "make": "VOLKSWAGEN",
      "part": "Top model",
-     "value": "AMAROK",
+     "value": "VOLKSWAGEN AMAROK",
      "n": 2578,
      "pct": 7.5
     },
     {
      "make": "VOLKSWAGEN",
      "part": "Top model",
-     "value": "T-ROC",
+     "value": "VOLKSWAGEN T-ROC",
      "n": 2482,
      "pct": 7.2
     },
     {
      "make": "VOLKSWAGEN",
      "part": "Top model",
-     "value": "TOUAREG",
+     "value": "VOLKSWAGEN TOUAREG",
      "n": 1737,
      "pct": 5.0
     },
     {
      "make": "VOLKSWAGEN",
      "part": "Top model",
-     "value": "ID.4",
+     "value": "VOLKSWAGEN ID.4",
      "n": 780,
      "pct": 2.3
     },
     {
      "make": "VOLKSWAGEN",
      "part": "Top model",
-     "value": "TAYRON",
+     "value": "VOLKSWAGEN TAYRON",
      "n": 178,
      "pct": 0.5
     },
@@ -6289,56 +6307,56 @@
     {
      "make": "BMW",
      "part": "Top model",
-     "value": "320",
+     "value": "BMW 320",
      "n": 4065,
      "pct": 15.1
     },
     {
      "make": "BMW",
      "part": "Top model",
-     "value": "116I",
+     "value": "BMW 116I",
      "n": 2873,
      "pct": 10.7
     },
     {
      "make": "BMW",
      "part": "Top model",
-     "value": "X5",
+     "value": "BMW X5",
      "n": 2824,
      "pct": 10.5
     },
     {
      "make": "BMW",
      "part": "Top model",
-     "value": "X1",
+     "value": "BMW X1",
      "n": 2530,
      "pct": 9.4
     },
     {
      "make": "BMW",
      "part": "Top model",
-     "value": "X3",
+     "value": "BMW X3",
      "n": 1760,
      "pct": 6.6
     },
     {
      "make": "BMW",
      "part": "Top model",
-     "value": "3 SERIES",
+     "value": "BMW 3 SERIES",
      "n": 964,
      "pct": 3.6
     },
     {
      "make": "BMW",
      "part": "Top model",
-     "value": "X7",
+     "value": "BMW X7",
      "n": 926,
      "pct": 3.4
     },
     {
      "make": "BMW",
      "part": "Top model",
-     "value": "1 SERIES",
+     "value": "BMW 1 SERIES",
      "n": 717,
      "pct": 2.7
     },
@@ -6415,49 +6433,49 @@
     {
      "make": "MG",
      "part": "Top model",
-     "value": "ZS",
+     "value": "MG ZS",
      "n": 13864,
      "pct": 54.0
     },
     {
      "make": "MG",
      "part": "Top model",
-     "value": "3",
+     "value": "MG 3",
      "n": 4266,
      "pct": 16.6
     },
     {
      "make": "MG",
      "part": "Top model",
-     "value": "HS",
+     "value": "MG HS",
      "n": 3816,
      "pct": 14.9
     },
     {
      "make": "MG",
      "part": "Top model",
-     "value": "4",
+     "value": "MG 4",
      "n": 2618,
      "pct": 10.2
     },
     {
      "make": "MG",
      "part": "Top model",
-     "value": "S5",
+     "value": "MG S5",
      "n": 403,
      "pct": 1.6
     },
     {
      "make": "MG",
      "part": "Top model",
-     "value": "QS",
+     "value": "MG QS",
      "n": 352,
      "pct": 1.4
     },
     {
      "make": "MG",
      "part": "Top model",
-     "value": "U9",
+     "value": "MG U9",
      "n": 122,
      "pct": 0.5
     },
@@ -6569,56 +6587,56 @@
     {
      "make": "MERCEDES-BENZ",
      "part": "Top model",
-     "value": "A180",
+     "value": "MERCEDES-BENZ A180",
      "n": 1904,
      "pct": 8.6
     },
     {
      "make": "MERCEDES-BENZ",
      "part": "Top model",
-     "value": "GLC",
+     "value": "MERCEDES-BENZ GLC",
      "n": 1678,
      "pct": 7.6
     },
     {
      "make": "MERCEDES-BENZ",
      "part": "Top model",
-     "value": "SPRINTER",
+     "value": "MERCEDES-BENZ SPRINTER",
      "n": 1526,
      "pct": 6.9
     },
     {
      "make": "MERCEDES-BENZ",
      "part": "Top model",
-     "value": "GLE",
+     "value": "MERCEDES-BENZ GLE",
      "n": 1520,
      "pct": 6.9
     },
     {
      "make": "MERCEDES-BENZ",
      "part": "Top model",
-     "value": "C20",
+     "value": "MERCEDES-BENZ C20",
      "n": 1283,
      "pct": 5.8
     },
     {
      "make": "MERCEDES-BENZ",
      "part": "Top model",
-     "value": "GLA",
+     "value": "MERCEDES-BENZ GLA",
      "n": 826,
      "pct": 3.7
     },
     {
      "make": "MERCEDES-BENZ",
      "part": "Top model",
-     "value": "C-CLASS",
+     "value": "MERCEDES-BENZ C-CLASS",
      "n": 822,
      "pct": 3.7
     },
     {
      "make": "MERCEDES-BENZ",
      "part": "Top model",
-     "value": "A-CLASS",
+     "value": "MERCEDES-BENZ A-CLASS",
      "n": 798,
      "pct": 3.6
     },
@@ -6660,14 +6678,14 @@
     {
      "make": "TESLA",
      "part": "Top model",
-     "value": "MODEL Y",
+     "value": "TESLA MODEL Y",
      "n": 12678,
      "pct": 59.5
     },
     {
      "make": "TESLA",
      "part": "Top model",
-     "value": "MODEL 3",
+     "value": "TESLA MODEL 3",
      "n": 8297,
      "pct": 38.9
     },
@@ -6751,56 +6769,56 @@
     {
      "make": "AUDI",
      "part": "Top model",
-     "value": "A3",
+     "value": "AUDI A3",
      "n": 2811,
      "pct": 13.9
     },
     {
      "make": "AUDI",
      "part": "Top model",
-     "value": "A4",
+     "value": "AUDI A4",
      "n": 2782,
      "pct": 13.8
     },
     {
      "make": "AUDI",
      "part": "Top model",
-     "value": "Q5",
+     "value": "AUDI Q5",
      "n": 2317,
      "pct": 11.5
     },
     {
      "make": "AUDI",
      "part": "Top model",
-     "value": "Q3",
+     "value": "AUDI Q3",
      "n": 2109,
      "pct": 10.4
     },
     {
      "make": "AUDI",
      "part": "Top model",
-     "value": "Q7",
+     "value": "AUDI Q7",
      "n": 1416,
      "pct": 7.0
     },
     {
      "make": "AUDI",
      "part": "Top model",
-     "value": "A1",
+     "value": "AUDI A1",
      "n": 1388,
      "pct": 6.9
     },
     {
      "make": "AUDI",
      "part": "Top model",
-     "value": "A6",
+     "value": "AUDI A6",
      "n": 792,
      "pct": 3.9
     },
     {
      "make": "AUDI",
      "part": "Top model",
-     "value": "S3",
+     "value": "AUDI S3",
      "n": 736,
      "pct": 3.6
     },
@@ -6877,56 +6895,56 @@
     {
      "make": "LEXUS",
      "part": "Top model",
-     "value": "CT200H",
+     "value": "LEXUS CT200H",
      "n": 2205,
      "pct": 12.8
     },
     {
      "make": "LEXUS",
      "part": "Top model",
-     "value": "NX",
+     "value": "LEXUS NX",
      "n": 1487,
      "pct": 8.6
     },
     {
      "make": "LEXUS",
      "part": "Top model",
-     "value": "IS300H",
+     "value": "LEXUS IS300H",
      "n": 1449,
      "pct": 8.4
     },
     {
      "make": "LEXUS",
      "part": "Top model",
-     "value": "RX450H",
+     "value": "LEXUS RX450H",
      "n": 1196,
      "pct": 6.9
     },
     {
      "make": "LEXUS",
      "part": "Top model",
-     "value": "HS250H",
+     "value": "LEXUS HS250H",
      "n": 1061,
      "pct": 6.2
     },
     {
      "make": "LEXUS",
      "part": "Top model",
-     "value": "RX",
+     "value": "LEXUS RX",
      "n": 959,
      "pct": 5.6
     },
     {
      "make": "LEXUS",
      "part": "Top model",
-     "value": "LBX",
+     "value": "LEXUS LBX",
      "n": 806,
      "pct": 4.7
     },
     {
      "make": "LEXUS",
      "part": "Top model",
-     "value": "NX300H",
+     "value": "LEXUS NX300H",
      "n": 709,
      "pct": 4.1
     },
@@ -7010,35 +7028,35 @@
     {
      "make": "ISUZU",
      "part": "Top model",
-     "value": "D-MAX",
+     "value": "ISUZU D-MAX",
      "n": 8251,
      "pct": 48.0
     },
     {
      "make": "ISUZU",
      "part": "Top model",
-     "value": "N SERIES",
+     "value": "ISUZU N SERIES",
      "n": 2410,
      "pct": 14.0
     },
     {
      "make": "ISUZU",
      "part": "Top model",
-     "value": "F SERIES",
+     "value": "ISUZU F SERIES",
      "n": 2199,
      "pct": 12.8
     },
     {
      "make": "ISUZU",
      "part": "Top model",
-     "value": "MU-X",
+     "value": "ISUZU MU-X",
      "n": 1575,
      "pct": 9.2
     },
     {
      "make": "ISUZU",
      "part": "Top model",
-     "value": "ELF",
+     "value": "ISUZU ELF",
      "n": 1335,
      "pct": 7.8
     },
@@ -7094,56 +7112,56 @@
     {
      "make": "BYD",
      "part": "Top model",
-     "value": "ATTO 3",
+     "value": "BYD ATTO 3",
      "n": 6495,
      "pct": 43.6
     },
     {
      "make": "BYD",
      "part": "Top model",
-     "value": "SHARK 6",
+     "value": "BYD SHARK 6",
      "n": 3047,
      "pct": 20.5
     },
     {
      "make": "BYD",
      "part": "Top model",
-     "value": "SEALION 6",
+     "value": "BYD SEALION 6",
      "n": 1350,
      "pct": 9.1
     },
     {
      "make": "BYD",
      "part": "Top model",
-     "value": "DOLPHIN",
+     "value": "BYD DOLPHIN",
      "n": 923,
      "pct": 6.2
     },
     {
      "make": "BYD",
      "part": "Top model",
-     "value": "SEALION 7",
+     "value": "BYD SEALION 7",
      "n": 744,
      "pct": 5.0
     },
     {
      "make": "BYD",
      "part": "Top model",
-     "value": "ATTO 1",
+     "value": "BYD ATTO 1",
      "n": 567,
      "pct": 3.8
     },
     {
      "make": "BYD",
      "part": "Top model",
-     "value": "ATTO 2",
+     "value": "BYD ATTO 2",
      "n": 565,
      "pct": 3.8
     },
     {
      "make": "BYD",
      "part": "Top model",
-     "value": "SEALION 5",
+     "value": "BYD SEALION 5",
      "n": 452,
      "pct": 3.0
     },
@@ -7199,14 +7217,14 @@
     {
      "make": "HAVAL",
      "part": "Top model",
-     "value": "H6",
+     "value": "HAVAL H6",
      "n": 7864,
      "pct": 55.5
     },
     {
      "make": "HAVAL",
      "part": "Top model",
-     "value": "JOLION",
+     "value": "HAVAL JOLION",
      "n": 5745,
      "pct": 40.6
     },
@@ -7338,70 +7356,70 @@
     {
      "segment": "Car",
      "part": "Model",
-     "value": "AQUA",
+     "value": "TOYOTA AQUA",
      "n": 61224,
      "pct": 5.4
     },
     {
      "segment": "Car",
      "part": "Model",
-     "value": "RAV4",
+     "value": "TOYOTA RAV4",
      "n": 49353,
      "pct": 4.4
     },
     {
      "segment": "Car",
      "part": "Model",
-     "value": "COROLLA",
+     "value": "TOYOTA COROLLA",
      "n": 42604,
      "pct": 3.8
     },
     {
      "segment": "Car",
      "part": "Model",
-     "value": "OUTLANDER",
+     "value": "MITSUBISHI OUTLANDER",
      "n": 39807,
      "pct": 3.5
     },
     {
      "segment": "Car",
      "part": "Model",
-     "value": "PRIUS",
+     "value": "TOYOTA PRIUS",
      "n": 38742,
      "pct": 3.4
     },
     {
      "segment": "Car",
      "part": "Model",
-     "value": "SWIFT",
+     "value": "SUZUKI SWIFT",
      "n": 25585,
      "pct": 2.3
     },
     {
      "segment": "Car",
      "part": "Model",
-     "value": "X-TRAIL",
+     "value": "NISSAN X-TRAIL",
      "n": 24207,
      "pct": 2.1
     },
     {
      "segment": "Car",
      "part": "Model",
-     "value": "CX-5",
+     "value": "MAZDA CX-5",
      "n": 23795,
      "pct": 2.1
     },
     {
      "segment": "Car",
      "part": "Model",
-     "value": "AXELA",
+     "value": "MAZDA AXELA",
      "n": 23120,
      "pct": 2.0
     },
     {
      "segment": "Car",
      "part": "Model",
-     "value": "ASX",
+     "value": "MITSUBISHI ASX",
      "n": 20634,
      "pct": 1.8
     },
@@ -7541,70 +7559,70 @@
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "RANGER",
+     "value": "FORD RANGER",
      "n": 61674,
      "pct": 34.4
     },
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "HILUX",
+     "value": "TOYOTA HILUX",
      "n": 46693,
      "pct": 26.0
     },
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "TRITON",
+     "value": "MITSUBISHI TRITON",
      "n": 24186,
      "pct": 13.5
     },
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "NAVARA",
+     "value": "NISSAN NAVARA",
      "n": 12537,
      "pct": 7.0
     },
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "D-MAX",
+     "value": "ISUZU D-MAX",
      "n": 8247,
      "pct": 4.6
     },
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "SHARK 6",
+     "value": "BYD SHARK 6",
      "n": 3047,
      "pct": 1.7
     },
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "AMAROK",
+     "value": "VOLKSWAGEN AMAROK",
      "n": 2575,
      "pct": 1.4
     },
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "LANDCRUISER",
+     "value": "TOYOTA LANDCRUISER",
      "n": 2445,
      "pct": 1.4
     },
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "T60",
+     "value": "LDV T60",
      "n": 2311,
      "pct": 1.3
     },
     {
      "segment": "Ute",
      "part": "Model",
-     "value": "1500",
+     "value": "RAM 1500",
      "n": 1469,
      "pct": 0.8
     },
@@ -7730,70 +7748,70 @@
     {
      "segment": "Van",
      "part": "Model",
-     "value": "HIACE",
+     "value": "TOYOTA HIACE",
      "n": 16778,
      "pct": 35.1
     },
     {
      "segment": "Van",
      "part": "Model",
-     "value": "TRANSIT",
+     "value": "FORD TRANSIT",
      "n": 5156,
      "pct": 10.8
     },
     {
      "segment": "Van",
      "part": "Model",
-     "value": "NV350",
+     "value": "NISSAN NV350",
      "n": 3160,
      "pct": 6.6
     },
     {
      "segment": "Van",
      "part": "Model",
-     "value": "G10",
+     "value": "LDV G10",
      "n": 1860,
      "pct": 3.9
     },
     {
      "segment": "Van",
      "part": "Model",
-     "value": "STARIA LOAD",
+     "value": "HYUNDAI STARIA LOAD",
      "n": 1668,
      "pct": 3.5
     },
     {
      "segment": "Van",
      "part": "Model",
-     "value": "DELIVER 9",
+     "value": "LDV DELIVER 9",
      "n": 1510,
      "pct": 3.2
     },
     {
      "segment": "Van",
      "part": "Model",
-     "value": "SPRINTER",
+     "value": "MERCEDES-BENZ SPRINTER",
      "n": 1495,
      "pct": 3.1
     },
     {
      "segment": "Van",
      "part": "Model",
-     "value": "REGIUS",
+     "value": "TOYOTA REGIUS",
      "n": 1100,
      "pct": 2.3
     },
     {
      "segment": "Van",
      "part": "Model",
-     "value": "SERENA",
+     "value": "NISSAN SERENA",
      "n": 1071,
      "pct": 2.2
     },
     {
      "segment": "Van",
      "part": "Model",
-     "value": "CARAVAN",
+     "value": "NISSAN CARAVAN",
      "n": 1035,
      "pct": 2.2
     },
@@ -7919,70 +7937,70 @@
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "N SERIES",
+     "value": "ISUZU N SERIES",
      "n": 2404,
      "pct": 6.9
     },
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "F SERIES",
+     "value": "ISUZU F SERIES",
      "n": 2188,
      "pct": 6.3
     },
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "500",
+     "value": "HINO 500",
      "n": 1636,
      "pct": 4.7
     },
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "DUTRO",
+     "value": "HINO DUTRO",
      "n": 1558,
      "pct": 4.5
     },
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "300",
+     "value": "HINO 300",
      "n": 1461,
      "pct": 4.2
     },
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "ELF",
+     "value": "ISUZU ELF",
      "n": 1286,
      "pct": 3.7
     },
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "DYNA",
+     "value": "TOYOTA DYNA",
      "n": 1155,
      "pct": 3.3
     },
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "CANTER",
+     "value": "FUSO CANTER",
      "n": 1041,
      "pct": 3.0
     },
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "CF",
+     "value": "DAF CF",
      "n": 985,
      "pct": 2.8
     },
     {
      "segment": "Truck",
      "part": "Model",
-     "value": "AUMARK",
+     "value": "FOTON AUMARK",
      "n": 790,
      "pct": 2.3
     },
@@ -8287,7 +8305,8 @@
     {
      "key": "share_pct",
      "label": "%",
-     "kind": "pct"
+     "kind": "pct",
+     "spoken": "Share of vehicles"
     },
     {
      "key": "avg_units",

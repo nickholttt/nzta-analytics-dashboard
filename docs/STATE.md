@@ -41,7 +41,8 @@ No CI runs on pull requests; the only workflow is the monthly build.
 Pages `/`, `/method`, `/caveats`, and (on `claude/sense-check`) the internal `/sense-check`, which
 replaces `/inspector`. Explore canon of 9 presets in three tiers, URL state and permalinks, mobile
 polish, time-horizon toggles, and a `LeagueChart` renderer with a `model-leaderboard` preset.
-On `claude/sense-check` 2026-10-19: typecheck exit 0, `astro build` 4 pages, headless screenshots
+On `claude/sense-check` 2026-10-19: typecheck exit 0 (`tsc` does not read `.astro` files;
+`astro check` is not installed), `astro build` 4 pages, headless screenshots
 of `/sense-check`, `/caveats` and `/` at 320px and 1280px with no console errors and no sideways
 scroll.
 

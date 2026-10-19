@@ -739,10 +739,27 @@ section[id] {
 .table-scroll {
   overflow-x: auto;
   max-width: 100%;
+  /* Contains the absolutely positioned visually-hidden labels, which would otherwise widen the page. */
+  position: relative;
 }
 
 .key th.text,
 .key td.text {
   text-align: left;
   white-space: normal;
+}
+
+/* Row headers read like the first column of a key, not like a column heading. */
+.key tbody th {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--ink);
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* The narrow-screen rule makes .key scroll itself; here the labelled wrapper does the scrolling, so
+   the table keeps its table semantics and the focusable region is the one that moves. */
+.table-scroll .key {
+  display: table;
 }

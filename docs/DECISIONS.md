@@ -267,7 +267,8 @@ New entries use this template:
   - `/sense-check` (`src/pages/sense-check.astro`) renders 14 tables from `src/data/sense_check.json`.
     It is `noindex`, out of the main navigation, linked only from the footer and from caveat 7, and
     headed with what the data is and isn't. The page names no domain value in code.
-  - The NZ figures were copied unchanged into that file, with a definition for each table that says
+  - The NZ figures were copied unchanged into that file (only `MAKE|MODEL` keys are shown as
+    `MAKE MODEL`), with a definition for each table that says
     what was checked against the cube on 2026-10-19: powertrain December 2023 and January 2024
     within 0.5%; ute yearly totals within 3% of the Ute segment across all import statuses (the
     inspector had labelled them "new utes", which was wrong); China-owned market total and NZ-new
@@ -293,6 +294,11 @@ New entries use this template:
   - The drilldown's and inspector's written takeaways ("Toyota's paradox", "Coalface Truth", the
     Ranger-vs-Hilux claim), its Observable Plot charts (the tables carry the same figures), and a
     "platform roadmap" proposing `model_segments.csv`, which is not in `POST_GATE.md`.
+  - Smaller pieces not carried into the tables: the inspector's separate `ute_rivalry` extract
+    (Ranger and Hilux by year, with figures that differ from `ute_timeline`, e.g. 2015 Ranger 6,122
+    against 6,420, so it probably counted a different scope; not checked), each make's
+    `total_all` / `total_recent` and each segment's `total`, and the volume bands' names and
+    descriptions.
 - Consequences: these tables can't be refreshed. If one is needed for real, rebuild it as a
   pipeline output and a preset. Whether `/sense-check` ships when the site is deployed is open.
 - Status: decided by Claude (unreviewed)
