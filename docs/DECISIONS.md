@@ -497,6 +497,14 @@ New entries use this template:
   the page reads them; nothing else in the components changes. The page says a marker gives a date,
   not a cause (invariant 7 and the non-goals). The two counts are dated to the August 2026 snapshot,
   like the April 2020 case study, and will drift.
+  - After an independent review: the brand chart (`brand-share`) has no `events: true`, so the
+    scope example now uses the import-status chart, and the page no longer implies every mix chart
+    carries markers. On a chart without `top_n`, `series` is the trailing-12-month ranking filtered
+    to `n > 0` (`MixChart.tsx`), so a group with no vehicles in the last 12 months has no line in
+    any year while still counting in the denominator. Today that hides one group: segment
+    `__UNDEFINED__`, 89 vehicles, the latest first registered February 2022. The page says so; the
+    renderer fix is queued as its own item. "Buyers often react to an announcement" is dropped as
+    a claim about behaviour.
 - Where docs and code disagree, the page follows the code as it runs, and the disagreement is listed
   in STATE: `docs/EVENTS_LAYER.md` says market-scope events default to "collapsed behind a single
   'show events' toggle, on by default" (self-contradictory; the code hides them until the button is

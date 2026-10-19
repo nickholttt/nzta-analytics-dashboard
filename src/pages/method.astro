@@ -176,14 +176,16 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
     <h2>Reading a Mix Chart</h2>
     <p>
       A mix chart shows how a total splits into groups: each line is one group's share of the month's vehicles. These
-      are the charts that carry event markers.
+      are the only charts that carry event markers, though not every one of them does.
     </p>
 
     <h3>Lines and the Key</h3>
     <p>
       Up to {SERIES.length} lines get their own colour. The first {colourSlots} go to the largest groups over the
       last {trailing} months; the rest go to the groups with the highest {trailing}-month share at any point in the chart's
-      period, so a group that mattered decades ago keeps a colour. Any further group is drawn as a thin grey line. The
+      period, so a group that mattered decades ago keeps a colour. Any further group is drawn as a thin grey line. A
+      group with no vehicles at all in the last {trailing} months gets no line, though its vehicles still count in the
+      total, so the lines can add up to less than 100%. The
       key under the chart names every line, with its share over the last {trailing} months and the change on
       the {trailing} months before.
     </p>
@@ -215,9 +217,10 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
     <p>
       These vehicles always count in the total, so every share is out of all in-scope vehicles. They never take a
       colour or a place among the largest groups: on a chart that keeps only its largest groups they fall
-      into {ALL_OTHER}, and on any other chart they are a thin grey line of their own. At the August 2026 snapshot, 26,427
-      vehicles (0.59%) had a make with no match in the brand list, and 89 were {RESERVED_LABELS.__UNDEFINED__.toLowerCase()} on
-      the segment chart.
+      into {ALL_OTHER}, and on any other chart they are a thin grey line of their own, like any group past the
+      palette. At the August 2026 snapshot, 26,427 vehicles (0.59%) had a make with no match in the brand list. On
+      the segment chart, 89 vehicles are {RESERVED_LABELS.__UNDEFINED__.toLowerCase()}; none was first registered after
+      February 2022, so that group has no line of its own.
     </p>
 
     <h3>Event Markers</h3>
@@ -228,8 +231,8 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
     <ul>
       <li><strong>Solid thin line</strong>: the date an event took effect.</li>
       <li>
-        <strong>Dotted faint line</strong>: the date it was announced, where that is known. Buyers often react to an
-        announcement, so the gap between the two lines is worth reading.
+        <strong>Dotted faint line</strong>: the date it was announced, where that is known, so the two dates can be
+        compared.
       </li>
       <li><strong>Shaded band</strong>: an event that lasted a while, shaded from its start to its end.</li>
       <li>
@@ -244,8 +247,8 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
       most {MAX_MARKERS} numbers, grouping more events under each number on charts that cover longer periods.
     </p>
     <p>
-      A chart shows only the events about what it breaks down by: an event about one brand appears on brand charts,
-      not on the segment chart. Events that affect every vehicle, such as a fuel tax change, are hidden until you
+      A chart shows only the events about what it breaks down by: an event about used imports appears on the
+      chart that splits new from used, not on the segment chart. Events that affect every vehicle, such as a fuel tax change, are hidden until you
       press the button in the list that shows market-wide events. Only events checked against a source are shown,
       and none dated after the latest snapshot.
     </p>
