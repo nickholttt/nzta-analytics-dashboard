@@ -43,7 +43,7 @@ No CI runs on pull requests; the only workflow is the monthly build.
   (`claude/model-leaderboard`), [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
   (`claude/caveats-wording`), [#5](https://github.com/nickholttt/nzta-analytics-dashboard/pull/5) (`claude/method-page`),
   [#6](https://github.com/nickholttt/nzta-analytics-dashboard/pull/6) (`claude/caveat-scrappage`), then
-  #7 (`claude/metrics-april-2020`).
+  [#7](https://github.com/nickholttt/nzta-analytics-dashboard/pull/7) (`claude/metrics-april-2020`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
