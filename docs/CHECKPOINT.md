@@ -17,6 +17,8 @@ Last updated by claude on 2026-10-19
   renderers; thresholds now read from config; April 2020 figures re-measured from the cube (D-031).
 - Done: caveat 2's "shares hold up" checked against the 2026-08 and 2026-09 snapshots and found
   wrong; caveat 2 and the share notes now say uneven scrappage skews older shares (D-032).
+- Done: METRICS.md's two-guards section re-measured on the 2026-08 cube; five figures corrected,
+  including the self-contradicting 0.29 percentile, which is also in frozen `config/measures.json` (D-033).
 
 ## Open pull requests waiting on the user
 
@@ -31,6 +33,8 @@ Merge them in this order:
    merged.
 5. `claude/method-page`: D-031. Into `claude/caveats-wording`; same base change once #4 is merged.
 6. `claude/caveat-scrappage`: D-032. Into `claude/method-page`; same base change once #5 is merged.
+7. `claude/metrics-april-2020`: D-033. Into `claude/caveat-scrappage`; same base change once #6 is
+   merged.
 
 PR 1: https://github.com/nickholttt/nzta-analytics-dashboard/pull/1 · PR 2: https://github.com/nickholttt/nzta-analytics-dashboard/pull/2 ·
 PR 3: https://github.com/nickholttt/nzta-analytics-dashboard/pull/3 ·
@@ -41,12 +45,10 @@ PR 6: https://github.com/nickholttt/nzta-analytics-dashboard/pull/6
 ## Work queue (in order)
 
 1. **Finish the `ui/explore` review** (now Claude's, D-027).
-   - Scope: correct METRICS.md's April 2020 truck baseline and pre-1990 wording (STATE "Known
-     issues" 2).
-     Then add to `/method` what the charts show but no page explains: event markers (solid, dashed,
+   - Scope: add to `/method` what the charts show but no page explains: event markers (solid, dashed,
      dotted, shaded), the "All other" series, and the labels for unmatched and unrecorded values.
      Done: `model-leaderboard` (PR 3, D-029), caveats 1 and 7 (PR 4, D-030), `/method` (PR 5, D-031),
-     caveat 2 (PR 6, D-032).
+     caveat 2 (PR 6, D-032), METRICS.md figures (PR 7, D-033).
    - Done when: each is fixed or recorded as a decision, in one PR per concern.
 2. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
@@ -56,6 +58,9 @@ PR 6: https://github.com/nickholttt/nzta-analytics-dashboard/pull/6
 4. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
 5. **POST_GATE A3**: promote `segment_group`.
 6. **POST_GATE B1–B3**: the three logged build fixes, one commit.
+   Separately, one commit: correct `$min_share_of_trailing_median_comment` in `config/measures.json`
+   to the D-033 figures (1st percentile 0.67 among months that clear 200; next-lowest after April 2020
+   is 0.55). Done when the comment matches METRICS.md.
 7. **Reconcile docs** (STATE "Docs that contradict code" 3–5): README, build-order wording, stack.
 8. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
    path, checked 2026-10-19 with `git diff --stat origin/main...ui/explore` on the frozen paths).
@@ -66,5 +71,5 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Check whether the six PRs were merged. If it is on or
+/start. Read `docs/STATE.md` and this file. Check whether the seven PRs were merged. If it is on or
 after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 1.
