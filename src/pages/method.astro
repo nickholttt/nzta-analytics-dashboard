@@ -41,7 +41,7 @@ const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage
       </li>
       <li>
         <strong>Flow (<code>registrations_flow</code>)</strong>: every first registration in month <em>M</em>,
-        including vehicles since scrapped or exported, from the Stats NZ Transport (TPT) series. This is the dataset
+        including vehicles since scrapped, from the Stats NZ Transport (TPT) series. This is the dataset
         for how many vehicles entered the fleet. No chart on this site uses it.
       </li>
       <li>
@@ -62,9 +62,10 @@ const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage
         trailers and caravans, and tractors and other machinery.
       </li>
       <li>
-        <strong>Entering the fleet</strong>: only vehicles registered in New Zealand for the first time count, whether
-        new or used imports (per <code>import_status_map.csv</code>). Re-registered vehicles, which are returning to
-        the register, and scratch-built vehicles are left out.
+        <strong>Entering the fleet</strong>: survivors and flow count only vehicles registered in New Zealand for the
+        first time, whether new or used imports (per <code>import_status_map.csv</code>). Re-registered vehicles, which
+        are returning to the register, are left out of both and count only in stock. Scratch-built vehicles are left out
+        everywhere.
       </li>
     </ul>
 
@@ -102,8 +103,8 @@ const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage
           <td class="num">Percentage points (pp)</td>
         </tr>
         <tr>
-          <td><strong>{trailing}-month running total</strong></td>
-          <td>Sum of the count over the {trailing} months to this one, including this one.</td>
+          <td><strong>12-month running total</strong></td>
+          <td>Sum of the count over the 12 months to this one, including this one.</td>
           <td class="num">Vehicles</td>
         </tr>
         <tr>
@@ -120,13 +121,19 @@ const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage
       <strong>Percentage points vs percentages</strong>: a movement from 10% to 15% is always reported as <strong>+5.0 pp</strong>, never as +50%.
     </p>
     <p>
-      A {trailing}-month figure needs all {trailing} of its months. If one is missing, the line breaks there.
+      A running total or a {trailing}-month share needs every one of its months. If one is missing, the line breaks
+      there.
+    </p>
+    <p>
+      Every chart on the site today shows a share. No live chart uses the count, the running total or the change on a
+      year ago; they are defined here because the configuration allows them.
     </p>
 
     <h2>The Two Suppression Guards</h2>
     <p>
       On any share chart, a figure is greyed out when <strong>either</strong> of two guards trips. Greyed figures are
-      drawn as a thin grey line over a shaded band, not dropped and not set to zero. The two guards catch different
+      drawn as a thin grey line over a shaded band, and marked “suppressed” in the tables under a chart, not dropped
+      and not set to zero. The two guards catch different
       problems, so one cannot stand in for the other.
     </p>
 
@@ -153,8 +160,8 @@ const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage
         5.9% over the {trailing} months before.
       </p>
       <p>
-        That 16.9% is not noise. With 261 of 1,542, the standard error is 0.95 percentage points, so the reading sits
-        about eleven standard errors above normal. The month was precisely measured; it was a different mix of
+        That 16.9% is not noise. With 261 of 1,542, chance alone would typically move the figure by about 0.95
+        percentage points (its standard error), and it sat about eleven times that above normal. The month was precisely measured; it was a different mix of
         vehicles. NZ-new vehicles were 63.6% of the month against 54.3% over the {trailing} months before, trucks
         6.8% against 2.5%, and vans 6.2% against 4.5%. A precision guard cannot see this, because nothing about the
         figure is imprecise. Only a guard that compares the month with its own recent history catches it.
@@ -166,24 +173,28 @@ const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage
     <p>
       The combined share of the {topN} largest groups in the chart's breakdown that month, for example
       the {topN} largest makes. Which {topN} they are is worked out again every month, so the line tracks concentration rather
-      than the fortunes of a fixed set. Vehicles with no recorded or recognised value never take a place. A
-      falling line means the market is spread across more groups. It carries both suppression guards.
+      than the fortunes of a fixed set. Vehicles with no recorded or recognised value never take a place, but they still count in the total. A
+      falling line means the largest groups hold less of the total, so read the early decades with care: about a fifth
+      of vehicles from the 1950s and 1960s have a make with no match in the brand list, which holds the line down. It
+      carries both suppression guards.
     </p>
 
     <h3>Mild Hybrid Identification Coverage</h3>
     <p>
       The main hybrid code in NZTA's records does not say whether a hybrid is mild (MHEV) or full (FHEV). We classify
       hybrid nameplates as mild or full from manufacturer specifications in <code>mild_hybrid_models.csv</code>.
-      Nameplates where sources disagree stay unresolved rather than guessed. One diesel hybrid code is counted as
-      mild by default, because since February 2024 almost all of it is 48-volt mild-hybrid utes; the full hybrids
-      recorded under it are moved out by nameplate.
+      Nameplates that the sources disagree on, or that the records cannot separate, stay unresolved rather than
+      guessed. One diesel hybrid code is counted as mild by default, because since February 2024 almost all of it is
+      Toyota Hilux and Land Cruiser diesels with a 48-volt mild-hybrid system; the full hybrids recorded under it are
+      moved out by nameplate.
     </p>
     <p>
       Coverage is <code>identified mild ÷ (identified mild + unresolved hybrids)</code>. It is a lower bound, because it
       counts every unresolved hybrid as a missed mild hybrid. It is published twice: counting every classification,
-      and counting high-confidence classifications only. While either figure is under {completeAt}%, a chart that splits
-      out mild hybrids labels them <em>{hybrid.labels.partial}</em> and states the coverage under the chart. A build
-      warns if the trailing {trailing}-month high-confidence figure falls under {warnBelow}%.
+      and counting high-confidence classifications only. While the figure that counts every classification is
+      under {completeAt}%, over all time or over the last {trailing} months, a chart that splits out mild hybrids labels them <em>{hybrid.labels.partial}</em> and states the coverage under the chart. A build
+      warns if the high-confidence figure over the last {trailing} months falls under {warnBelow}%. No live chart splits
+      out mild hybrids today.
     </p>
 
     <h2>Estimation Principles</h2>
