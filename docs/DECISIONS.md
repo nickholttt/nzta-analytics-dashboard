@@ -434,3 +434,35 @@ New entries use this template:
   survival exists, for new against used only (step 1b, POST_GATE A2). For makes, no source counts first
   registrations, so the snapshot archive can track attrition only from 2026-08 onward.
 - Status: decided by Claude (unreviewed)
+
+## D-033 2026-10-19 — METRICS.md's April 2020 case and threshold figures are re-measured against the cube
+- Agent: claude, under D-027
+- Basis: this commit; the local cube `public/data/cube/registrations_surviving/` (snapshot
+  2026-08-31), queried with DuckDB on 2026-10-19. A month's denominator is `max(denominator)` per
+  month in `import_status.parquet`; a window's baseline is the sum of `n` over the sum of
+  denominators.
+- Context: D-031 found METRICS.md's "~2.3%" truck baseline and "almost all" pre-1990 wording wrong
+  and left them for a METRICS.md pass (STATE known issue 2). Re-measuring the whole passage found
+  more: NZ New "~51%" either side (measured 54.3% over the 12 months before, 55.1% over the 12 after);
+  Hyundai Motor Group's "4.5–7.5% band either side" (5.9% over the 12 months before; monthly share
+  across the 12 months either side 4.2% to 9.4%); and "0.33 sits well clear of ordinary seasonal
+  variation, whose 1st percentile is 0.29", which contradicts itself. 0.29 (measured 0.286) is the
+  1st percentile of the ratio across all months with any history, including the sparse ones under
+  200. Among the 702 months that clear 200 with 12 months before them, it is 0.68 (0.675), and the
+  lowest after April 2020 (0.07) is November 1985 at 0.55. Confirmed unchanged: 493 of 1,195 months
+  under 200, the latest February 1970; 1,542 against a median of 22,108; 261 of 1,542; standard error
+  0.95pp; trucks 2.5% and vans 4.5% over the 12 months before; every threshold from 0.2 to 0.5 picks
+  only April 2020 (0.6 adds November 1985 and July 2023).
+- Options considered: (1) Fix only the two figures STATE named: leaves three more wrong figures in
+  the same paragraph. (2) Re-measure every figure in the two-guards section, give before and after
+  baselines so "either side" has a basis, and date the figures to the snapshot. (3) Drop the figures
+  and keep only the argument: the figures are the argument for the second guard.
+- Decision: (2). The table shows the 12 months before (the guard's window, matching `/method`) and
+  the 12 months after. "Essential-goods vehicles, not a market" becomes "more trucks, more vans, more
+  NZ-new: not the mix of a normal month", because the data shows body types, not what the vehicles
+  were for (the same reason D-031 dropped `/method`'s description).
+- Consequences: METRICS.md and `/method` now agree on every April 2020 figure. The comment
+  `$min_share_of_trailing_median_comment` in `config/measures.json` still says the 1st percentile is
+  0.29 and that 0.33 sits well clear of it; the file is frozen until the 8 November 2026 gate, so the
+  fix is queued in CHECKPOINT for after it. The figures will drift slightly with each snapshot.
+- Status: decided by Claude (unreviewed)
