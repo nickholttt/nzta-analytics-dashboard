@@ -19,7 +19,7 @@ Both target `ui/explore`. Merge them in this order:
 2. `claude/sense-check`: D-028. Stacked on the first, so its diff shows the first's commits until
    that one is merged.
 
-Links are in the session report; `gh pr list --repo nickholttt/nzta-analytics-dashboard` lists them.
+PR 1: https://github.com/nickholttt/nzta-analytics-dashboard/pull/1 · PR 2: https://github.com/nickholttt/nzta-analytics-dashboard/pull/2
 
 ## Work queue (in order)
 
