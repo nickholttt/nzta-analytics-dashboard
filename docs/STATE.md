@@ -35,12 +35,13 @@ No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's five branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's six branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
   (`claude/model-leaderboard`), [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
-  (`claude/caveats-wording`), then [#5](https://github.com/nickholttt/nzta-analytics-dashboard/pull/5) (`claude/method-page`).
+  (`claude/caveats-wording`), [#5](https://github.com/nickholttt/nzta-analytics-dashboard/pull/5) (`claude/method-page`),
+  then [#6](https://github.com/nickholttt/nzta-analytics-dashboard/pull/6) (`claude/caveat-scrappage`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)

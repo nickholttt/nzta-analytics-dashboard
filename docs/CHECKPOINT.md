@@ -30,11 +30,13 @@ Merge them in this order:
 4. `claude/caveats-wording`: D-030. Into `claude/model-leaderboard`; same base change once #3 is
    merged.
 5. `claude/method-page`: D-031. Into `claude/caveats-wording`; same base change once #4 is merged.
+6. `claude/caveat-scrappage`: D-032. Into `claude/method-page`; same base change once #5 is merged.
 
 PR 1: https://github.com/nickholttt/nzta-analytics-dashboard/pull/1 · PR 2: https://github.com/nickholttt/nzta-analytics-dashboard/pull/2 ·
 PR 3: https://github.com/nickholttt/nzta-analytics-dashboard/pull/3 ·
 PR 4: https://github.com/nickholttt/nzta-analytics-dashboard/pull/4 ·
-PR 5: https://github.com/nickholttt/nzta-analytics-dashboard/pull/5
+PR 5: https://github.com/nickholttt/nzta-analytics-dashboard/pull/5 ·
+PR 6: https://github.com/nickholttt/nzta-analytics-dashboard/pull/6
 
 ## Work queue (in order)
 
@@ -64,5 +66,5 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Check whether the five PRs were merged. If it is on or
+/start. Read `docs/STATE.md` and this file. Check whether the six PRs were merged. If it is on or
 after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 1.
