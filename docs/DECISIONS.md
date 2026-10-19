@@ -448,11 +448,11 @@ New entries use this template:
   across the 12 months either side 4.2% to 9.4%); and "0.33 sits well clear of ordinary seasonal
   variation, whose 1st percentile is 0.29", which contradicts itself. 0.29 (measured 0.286) is the
   1st percentile of the ratio across all months with any history, including the sparse ones under
-  200. Among the 702 months that clear 200 with 12 months before them, it is 0.68 (0.675), and the
-  lowest after April 2020 (0.07) is November 1985 at 0.55. Confirmed unchanged: 493 of 1,195 months
+  200. Among the 702 months that clear 200 with 12 months before them, it is 0.67 (0.67497), and the
+  next-lowest after April 2020 (0.07) is November 1985 at 0.55. Confirmed unchanged: 493 of 1,195 months
   under 200, the latest February 1970; 1,542 against a median of 22,108; 261 of 1,542; standard error
   0.95pp; trucks 2.5% and vans 4.5% over the 12 months before; every threshold from 0.2 to 0.5 picks
-  only April 2020 (0.6 adds November 1985 and July 2023).
+  only April 2020 among months that clear 200 (0.6 adds November 1985 and July 2023).
 - Options considered: (1) Fix only the two figures STATE named: leaves three more wrong figures in
   the same paragraph. (2) Re-measure every figure in the two-guards section, give before and after
   baselines so "either side" has a basis, and date the figures to the snapshot. (3) Drop the figures
@@ -461,6 +461,13 @@ New entries use this template:
   the 12 months after. "Essential-goods vehicles, not a market" becomes "more trucks, more vans, more
   NZ-new: not the mix of a normal month", because the data shows body types, not what the vehicles
   were for (the same reason D-031 dropped `/method`'s description).
+  - After an independent review: the 1st percentile is 0.67, not 0.68 (0.67497 had been rounded
+    twice). "Every threshold from 0.2 to 0.5 selects the same single month across all 1,195" is
+    true only among months that clear 200; on its own the guard trips in 5 months at 0.2, 12 at 0.33
+    and 28 at 0.5, every extra one under 200 and already suppressed, so the text now says so.
+    "Lowest after April 2020" became "next-lowest", since November 1985 is earlier. The Share row
+    says the representativeness guard applies to monthly shares only (`MixChart.tsx`, `!rolling`),
+    as `/method` already does.
 - Consequences: METRICS.md and `/method` now agree on every April 2020 figure. The comment
   `$min_share_of_trailing_median_comment` in `config/measures.json` still says the 1st percentile is
   0.29 and that 0.33 sits well clear of it; the file is frozen until the 8 November 2026 gate, so the

@@ -38,7 +38,7 @@ scope flag; they never reach the cube.
 | Measure | Definition |
 |---|---|
 | Count | Number of vehicles matching the filters in the period. |
-| Share | Count ÷ count of all vehicles in the same dataset and month. Suppressed by both guards below. |
+| Share | Count ÷ count of all vehicles in the same dataset and month. Suppressed by both guards below; the representativeness guard applies to monthly shares only, not 12-month ones. |
 | Change on a year ago | (this month − same month last year) ÷ same month last year. Suppressed when the base is under 50. |
 | 12-month running total | Sum of the trailing 12 months inclusive of the current month. |
 
@@ -89,14 +89,15 @@ asking about. A precision guard cannot see this, because there is nothing
 imprecise about it; only a guard that compares the month against its own
 recent history can.
 
-The fraction is not finely tuned. Every threshold from 0.2 to 0.5 selects
-exactly the same single month across all 1,195, so the choice is
-insensitive. Among the 702 months that clear the precision floor and have
-12 months before them, the lowest ratio after April 2020's 0.07 is 0.55
-(November 1985), and the 1st percentile is 0.68, so 0.33 sits well clear
-of ordinary seasonal variation. (Across all months, sparse early ones
-included, the 1st percentile is 0.29; those months are under 200 and the
-precision floor already suppresses them.) Both figures live in
+The fraction is not finely tuned. Among the 702 months that clear the
+precision floor (every one has the full 12 months before it), every
+threshold from 0.2 to 0.5 selects only April 2020, so the choice is
+insensitive. In those months the next-lowest ratio after April 2020's
+0.07 is 0.55 (November 1985), and the 1st percentile is 0.67, so 0.33
+sits well clear of ordinary seasonal variation. Across all months, sparse
+early ones included, the guard on its own trips more often (12 months at
+0.33) and the 1st percentile is 0.29, but every one of those months is
+under 200, so the precision floor already suppresses it. Both figures live in
 `config/measures.json` and are applied in the browser, so neither needs a
 rebuild to change.
 
