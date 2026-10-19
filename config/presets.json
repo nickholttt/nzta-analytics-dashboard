@@ -85,7 +85,7 @@
           "dimension": "import_status",
           "period": "all",
           "events": true,
-          "note": "These are vehicles still registered at the snapshot. Used imports leave the register faster than NZ New vehicles first registered in the same month, so the older the month, the more this chart understates the used share at the time."
+          "note": "These are vehicles still registered at the snapshot, and new and used vehicles leave the register at different rates, so an older month's split may differ from what was bought at the time. In recent cohorts used imports leave faster, which understates their share; in some older cohorts it runs the other way."
         },
         {
           "id": "used-import-age",
