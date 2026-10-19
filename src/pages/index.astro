@@ -58,27 +58,6 @@ const tiers = [
         {t.presets.map((id) => (
           <PresetPanel client:only="react" presetId={id} lead={t.lead} />
         ))}
-        {t.id === "tier-2" && (
-          <aside style="margin-top: var(--space-4); margin-bottom: var(--space-5); padding: var(--space-4); border: 1px solid var(--rule-strong); border-left: 4px solid var(--ink); border-radius: 4px; background: var(--paper-warm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3);">
-            <div>
-              <div class="eyebrow" style="margin-bottom: 4px;">
-                Global Automotive Benchmark · 10-Year Tracking
-              </div>
-              <h3 style="margin: 0 0 4px; font-size: 16px; color: var(--ink);">
-                New Vehicle Market Complexity: The 2,000 Units/Brand Anomaly
-              </h3>
-              <p style="margin: 0; font-size: 13px; color: var(--ink-2); max-width: 680px; line-height: 1.45;">
-                The USA has 38 brands for 16M cars (420k/brand). New Zealand hosts 82+ brands for 134k cars (~1.6k/brand) — giving NZ 140× more brands per capita. Explore the 10-year global evolution, historical fragmentation, and the 2025 brand pyramid.
-              </p>
-            </div>
-            <a
-              href="/inspector?q=q_complexity"
-              style="display: inline-block; padding: 8px 16px; background: var(--ink); color: var(--paper); font-size: 13px; font-weight: 600; text-decoration: none; border-radius: 4px; white-space: nowrap;"
-            >
-              Explore Benchmark &rarr;
-            </a>
-          </aside>
-        )}
       </section>
     ))
   }

@@ -249,3 +249,50 @@ New entries use this template:
   pull requests (AGENTS.md hard rule 7). Gemini's extras (inspector, market drilldown, complexity
   benchmark) are kept as a clearly labelled sense-check area, or, where Claude judges a part of
   no value, documented and deleted.
+
+## D-028 2026-10-19 — Gemini's extras become one internal /sense-check page; the international benchmark is deleted
+- Agent: claude, under D-027
+- Basis: this commit; files read at `057aa01`
+- Context: `/inspector` held three extras: a body-type inspector (`DataInspector.tsx`), a market
+  drilldown with eight tabs (`MarketDrilldown.tsx`) and an international complexity benchmark
+  (`ComplexityBenchmark.tsx`). Their data (`src/data/inspector_data.json`,
+  `market_intelligence.json`, `country_silhouettes.json`) was extracted from the register by hand
+  on 2026-09-13 and the queries were not saved. The code hardcoded makes, models and powertrains
+  (invariant #1), carried written takeaways (a non-goal), and the main charts linked into it.
+- Options considered: (1) keep all of it as it was, behind a label: leaves invariant #1 broken in
+  code and the commentary in place. (2) Keep the NZ figures as plain tables on one internal page,
+  with every name in a data file, and delete what can't be checked. (3) Delete everything: loses
+  figures that do help check the charts (body type by model, concentration by year).
+- Decision: (2).
+  - `/sense-check` (`src/pages/sense-check.astro`) renders 14 tables from `src/data/sense_check.json`.
+    It is `noindex`, out of the main navigation, linked only from the footer and from caveat 7, and
+    headed with what the data is and isn't. The page names no domain value in code.
+  - The NZ figures were copied unchanged into that file, with a definition for each table that says
+    what was checked against the cube on 2026-10-19: powertrain December 2023 and January 2024
+    within 0.5%; ute yearly totals within 3% of the Ute segment across all import statuses (the
+    inspector had labelled them "new utes", which was wrong); China-owned market total and NZ-new
+    make counts for 2025 within 0.1%. MAZDA BT-50 is 0 in every year, which suggests a missed model
+    match.
+  - Hand classifications (market segment, SUV yes/no, origin of new makes) are kept but labelled.
+  - Links from `MixChart`, `LeagueChart`, the Explore page and caveat 7 into `/inspector` are gone.
+- Deleted, and what it held (recover any of it with `git show 057aa01:<path>`):
+  - **The international complexity benchmark** (`src/components/ComplexityBenchmark.tsx`, 1,197
+    lines; `src/data/country_silhouettes.json`; the `benchmark_*`, `international_benchmark` and
+    `active_brands_by_country` keys of `market_intelligence.json`). For the USA, China, Japan,
+    Australia and NZ, each year 2015–2025: new-vehicle volume, number of active brands, units per
+    brand, brands per million people, with a year slider and a log-scale chart. 2025 values as
+    stored: USA 16.1M / 38 brands, China 32.1M / 160, Japan 4.5M / 50, Australia 1.2M / 76, NZ
+    134K / 82 (NZ-new). Sources were named (BEA and NADA; CAAM and CPCA; JADA and Zenkeijikyo;
+    FCAI / VFACTS; NZTA) but no retrieval was recorded. Also brand rosters per country (38, 80 of
+    160, 50, 76, 82 makes), country silhouettes, a "dealership viability simulator" (cars per week
+    across an eight-dealer network, with a verdict) and four paragraphs on why NZ is fragmented
+    (1998 tariff removal, right-hand drive, the Clean Car Discount, multi-franchise dealer groups).
+    Deleted because only the NZ figures can be checked against this project's data, the rest
+    can't be traced, and the simulator and explanations are commentary. The NZ part (make counts,
+    concentration, volume bands, new makes) is kept as tables.
+  - The drilldown's and inspector's written takeaways ("Toyota's paradox", "Coalface Truth", the
+    Ranger-vs-Hilux claim), its Observable Plot charts (the tables carry the same figures), and a
+    "platform roadmap" proposing `model_segments.csv`, which is not in `POST_GATE.md`.
+- Consequences: these tables can't be refreshed. If one is needed for real, rebuild it as a
+  pipeline output and a preset. Whether `/sense-check` ships when the site is deployed is open.
+- Status: decided by Claude (unreviewed)

@@ -4,10 +4,12 @@ import manifest from "../../public/data/manifest.json";
 
 interface Props {
   title: string;
-  activeNav: "explore" | "method" | "caveats" | "inspector";
+  activeNav?: "explore" | "method" | "caveats";
+  // Internal pages (D-028) stay out of search engines and out of the main navigation.
+  noindex?: boolean;
 }
 
-const { title, activeNav } = Astro.props;
+const { title, activeNav, noindex = false } = Astro.props;
 
 const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
   new Date(`${manifest.latest_snapshot}T00:00:00Z`),
@@ -19,6 +21,7 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title} · NZ vehicle registrations</title>
+    {noindex && <meta name="robots" content="noindex" />}
   </head>
   <body>
     <main class="page">
@@ -47,13 +50,6 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
             >
               Data Caveats
             </a>
-            <a
-              href="/inspector"
-              class="meta"
-              style={`text-decoration: none; font-weight: ${activeNav === "inspector" ? "600" : "400"}; border-bottom: ${activeNav === "inspector" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "inspector" ? "var(--ink)" : "var(--ink-2)"};`}
-            >
-              Data Inspector
-            </a>
           </nav>
         </div>
         <slot name="masthead" />
@@ -64,6 +60,9 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
       <footer style="margin-top: var(--space-8); padding-top: var(--space-5); border-top: 1px solid var(--rule-strong); font-size: var(--text-xs); color: var(--ink-3); line-height: 1.5;">
         <p>
           Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe surviving registrations recorded by NZTA, not sales.
+        </p>
+        <p style="margin-top: var(--space-2);">
+          <a href="/sense-check" style="color: var(--ink-3);">Sense-check tables</a> (internal, not kept up to date)
         </p>
       </footer>
     </main>

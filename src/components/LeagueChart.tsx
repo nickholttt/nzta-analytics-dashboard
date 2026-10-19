@@ -299,25 +299,6 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                   <td>
                     <span className="swatch" style={{ background: item.colour }} aria-hidden="true" />
                     <strong>{item.name}</strong>
-                    {dimension.id === "model" ? (
-                      <a
-                        href={`/inspector?q=q_suv&model=${encodeURIComponent(item.value)}`}
-                        className="meta"
-                        style={{ marginLeft: "var(--space-2)", fontSize: "11px", textDecoration: "none", color: "var(--accent)" }}
-                        title={`Inspect ${item.name} statutory body type`}
-                      >
-                        Inspect ↗
-                      </a>
-                    ) : (
-                      <a
-                        href={`/inspector?q=q1&make=${encodeURIComponent(item.value)}`}
-                        className="meta"
-                        style={{ marginLeft: "var(--space-2)", fontSize: "11px", textDecoration: "none", color: "var(--accent)" }}
-                        title={`Inspect ${item.name} breakdown`}
-                      >
-                        Inspect ↗
-                      </a>
-                    )}
                   </td>
                   <td className="figure">{item.n.toLocaleString()}</td>
                   <td className="figure">{pct(item.share)}</td>

@@ -721,3 +721,28 @@ section[id] {
   }
 }
 
+/* ---------- Sense-check tables (internal, D-028) ---------- */
+
+.sense-check-contents ol {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+  font-size: var(--text-sm);
+  columns: 2 18rem;
+}
+
+.sense-check-section details > summary {
+  cursor: pointer;
+  margin-top: var(--space-3);
+}
+
+/* Wide tables scroll inside their own box, so the page never scrolls sideways at 320px. */
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.key th.text,
+.key td.text {
+  text-align: left;
+  white-space: normal;
+}
