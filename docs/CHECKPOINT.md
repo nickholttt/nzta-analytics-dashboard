@@ -50,6 +50,8 @@ Last updated by claude on 2026-10-22
    ranking. Into `claude/sentence-builder`.
 7. #23 `claude/reserved-values`: D-046. Reserved values keep their own line on capped mix charts; the builder
    caps country where built. Into `claude/builder-league`.
+8. #24 `claude/prototype-queue`: queue items 7–10 for a first interactive prototype. Docs only. Into
+   `claude/reserved-values`.
 
 ## Work queue (in order)
 

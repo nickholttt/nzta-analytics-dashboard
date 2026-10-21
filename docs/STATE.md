@@ -30,7 +30,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/sentence-builder` | origin | the Build page `/build` (D-044). PR #21 into `claude/pipeline-branch-rule` |
 | `claude/builder-league` | origin | a 12-month brand ranking on `/build` (D-045). PR #22 into `claude/sentence-builder` |
 | `claude/reserved-values` | origin | reserved values on their own line on capped mix charts (D-046). PR #23 into `claude/builder-league` |
-| `claude/prototype-queue` | origin | CHECKPOINT queue items 7–10 for a first prototype. Docs only. PR into `claude/reserved-values` (number added after it opens) |
+| `claude/prototype-queue` | origin | CHECKPOINT queue items 7–10 for a first prototype. Docs only. PR #24 into `claude/reserved-values` |
 
 PRs #1–#16 were merged into `ui/explore` in order with merge commits; their 16 remote branches are
 deleted. Local copies of those branches and the local `ui/explore` (behind origin) were left as they
@@ -43,7 +43,7 @@ pull requests; the only workflow is the monthly build.
   #18 (`claude/public-explore`) stacked on it, #19 (`claude/explore-copy-controls`) on that, #20 (the
   branch rule, D-043) on that, #21 (`claude/sentence-builder`, the Build page, D-044) on that, and #22
   (`claude/builder-league`, the 12-month ranking, D-045) on that, and #23 (`claude/reserved-values`,
-  D-046) on that, and `claude/prototype-queue` (queue items 7–10, docs only) on that.
+  D-046) on that, and #24 (`claude/prototype-queue`, queue items 7–10, docs only) on that.
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (merged 2026-10-21; the user has not reviewed the pages)
