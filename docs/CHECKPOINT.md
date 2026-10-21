@@ -28,13 +28,22 @@ Last updated by claude on 2026-10-21
 2. #18 `claude/public-explore`: D-041. `/` shows visitors only the charts that draw; diagnostics move to
    the internal `/status`. Into `claude/notes-after-merge`; change its base to `ui/explore` once #17 is
    merged.
-3. `claude/explore-copy-controls`: D-042. One row of time options per chart, plain visitor wording.
+3. #19 `claude/explore-copy-controls`: D-042. One row of time options per chart, plain visitor wording.
    Into `claude/public-explore`; same base change once #18 is merged.
 
 ## Work queue (in order)
 
-1. **Build surface (the sentence builder)**, build step 5. Plan first: what the cube
-   can answer today (one dataset, one-dimensional slices) and how the sentence maps onto it.
+1. **Build surface (the sentence builder)**, build step 5; plan first (plan mode), then PRs stacked on
+   #19. Facts checked 2026-10-21: the cube has one dataset (`registrations_surviving`) with 13 live
+   one-dimensional slices (`manifest.json` `live_dimensions`); `config/measures.json` already labels
+   measures for a sentence ("the number", "the share", "the change on a year ago", "the 12-month
+   running total"); renderers exist for mix, trend, league and distribution, not geo (region would
+   need a map asset: a new dependency and a decision record). To settle in the plan: whether counts
+   are offered on a dataset of vehicles still registered (the `brand-share` note says volume charts
+   wait for true monthly registrations; recommendation: share only until `registrations_flow` lands,
+   since a count here reads as sales); how the sentence reads with `public_copy` labels; URL state so a
+   built chart can be shared; reusing `PresetPanel` so the builder and Explore cannot drift.
+   Done when a visitor can build any chart the cube can honestly answer, at 320px and 1280px.
 2. **Small `ui/explore` fix**, stacked on the newest UI branch: the time-horizon toggle on a league chart (STATE known
    issue 1). No live preset is a league, so check it by pointing a scratch copy of a preset at a
    league shape, not by editing `config/presets.json` for good. Done when switching horizon on a
@@ -67,6 +76,6 @@ Last updated by claude on 2026-10-21
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Take queue item 1 on a `claude/` branch stacked on the
-newest open UI branch. If it is on or after 8 November 2026, run
+/start. Read `docs/STATE.md` and this file. Take queue item 1 (the builder): plan it first, then build on a
+`claude/` branch stacked on #19. If it is on or after 8 November 2026, run
 `docs/playbooks/check-monthly-run.md` first.

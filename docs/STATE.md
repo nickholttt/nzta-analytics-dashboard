@@ -25,7 +25,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `ui/explore` | origin `3c10716` | everything below plus PRs #1–#16, merged by Claude at the user's request on 2026-10-21 |
 | `claude/notes-after-merge` | origin | the notes after the merge. PR #17 into `ui/explore` |
 | `claude/public-explore` | origin | `/` for visitors, diagnostics on `/status` (D-041). PR #18 into `claude/notes-after-merge` |
-| `claude/explore-copy-controls` | origin | one row of time options, plain visitor wording, `public_copy` (D-042). PR into `claude/public-explore` |
+| `claude/explore-copy-controls` | origin | one row of time options, plain visitor wording, `public_copy` (D-042). PR #19 into `claude/public-explore` |
 
 PRs #1–#16 were merged into `ui/explore` in order with merge commits; their 16 remote branches are
 deleted. Local copies of those branches and the local `ui/explore` (behind origin) were left as they
@@ -35,7 +35,7 @@ pull requests; the only workflow is the monthly build.
 ## In progress
 
 - Claude: the visitor-facing site (D-041), local only until the 8 November gate. Open PRs #17 (notes),
-  #18 (`claude/public-explore`) stacked on it, and `claude/explore-copy-controls` on that.
+  #18 (`claude/public-explore`) stacked on it, and #19 (`claude/explore-copy-controls`) on that.
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (merged 2026-10-21; the user has not reviewed the pages)
