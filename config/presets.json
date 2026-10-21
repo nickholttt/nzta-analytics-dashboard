@@ -44,7 +44,9 @@
   "groups": [
     {
       "id": "tier-1",
-      "label": "Tier 1 · The core shifts",
+      "label": "The core shifts",
+      "title": "Where vehicles come from, what powers them, and whether they arrive new",
+      "lead": true,
       "presets": [
         {
           "id": "brand-owner-origin",
@@ -68,6 +70,7 @@
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "powertrain",
+          "public_dimension_note": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is.",
           "period": "all",
           "filters": [
             {
@@ -105,7 +108,8 @@
     },
     {
       "id": "tier-2",
-      "label": "Tier 2 · Market structure",
+      "label": "Market structure",
+      "title": "Competition, concentration, and vehicle types",
       "presets": [
         {
           "id": "brand-share",
@@ -175,7 +179,8 @@
     },
     {
       "id": "tier-3",
-      "label": "Tier 3 · Fleet dynamics and age",
+      "label": "Fleet dynamics and age",
+      "title": "The aging curve and vehicle survival",
       "presets": [
         {
           "id": "age-distribution-moving-hole",

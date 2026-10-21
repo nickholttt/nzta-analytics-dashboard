@@ -36,6 +36,9 @@ export type Preset = {
   filter_value?: string;
   smoothing?: string;
   granularity_options?: GranularityOption[];
+  // Replaces the dimension's note on the Explore page, where the dimension's own note is written for
+  // maintainers (D-041).
+  public_dimension_note?: string;
 };
 
 export type Band = { label: string; min?: number; max?: number | null; unknown?: boolean; no_engine?: boolean };
@@ -68,7 +71,8 @@ export type Period = { id: string; label: string; months?: number };
 export type SmoothingOption = { id: string; label: string; axis: string };
 
 type PresetsDoc = {
-  groups: { id: string; label: string; presets: Preset[] }[];
+  // label and title head the group's section on the Explore page; lead marks the charts that carry it.
+  groups: { id: string; label: string; title: string; lead?: boolean; presets: Preset[] }[];
   defaults: {
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];

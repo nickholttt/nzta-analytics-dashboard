@@ -109,7 +109,9 @@ Setup, **not re-run this session** (the environment already existed):
    goes through `gh` only (full path above; not on the Git Bash PATH), never the Git Credential
    Manager token.
 8. **Don't build ahead of the current step.** The user works in gated steps with a stop-and-report
-   after each; the current step is in `docs/STATE.md`.
+   after each; the current step is in `docs/STATE.md`. Exception (user, 2026-10-21, D-041): the
+   visitor-facing site (`src/`, `config/presets.json` and the docs that describe them) may be built
+   ahead of the build order, as a local dev build only until the 8 November 2026 gate passes.
 9. **Never present a measurement artefact as market behaviour** (`docs/EVENTS_LAYER.md`,
    `mechanism` column).
 

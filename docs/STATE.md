@@ -23,7 +23,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 |---|---|---|
 | `main` | origin `e3246bb` | the pipeline and the bot's 2026-09 snapshot; `ui/explore` not merged into it |
 | `ui/explore` | origin `3c10716` | everything below plus PRs #1–#16, merged by Claude at the user's request on 2026-10-21 |
-| `claude/notes-after-merge` | this branch | these notes after the merge |
+| `claude/notes-after-merge` | origin | the notes after the merge. PR #17 into `ui/explore` |
+| `claude/public-explore` | origin | `/` for visitors, diagnostics on `/status` (D-041). PR #18 into `claude/notes-after-merge` |
 
 PRs #1–#16 were merged into `ui/explore` in order with merge commits; their 16 remote branches are
 deleted. Local copies of those branches and the local `ui/explore` (behind origin) were left as they
@@ -32,15 +33,14 @@ pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. No open pull requests apart from this branch's.
+- Claude: the visitor-facing site (D-041), local only until the 8 November gate. Open PRs #17 (notes)
+  and #18 (`claude/public-explore`) stacked on it.
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
-- Waiting on the user: what "the interface the user will actually see" covers (`docs/CHECKPOINT.md`
-  questions 1–3) before building it.
 
 ## What `ui/explore` contains (merged 2026-10-21; the user has not reviewed the pages)
 
-Pages `/`, `/method`, `/caveats`, and (on `claude/sense-check`) the internal `/sense-check`, which
-replaces `/inspector`. Explore canon of 9 presets in three tiers, URL state and permalinks, mobile
+Pages `/`, `/method`, `/caveats`, and the internal `/sense-check` (replaces `/inspector`) and, on
+`claude/public-explore`, `/status` (D-041). Explore canon of 10 presets in three groups, URL state and permalinks, mobile
 polish, time-horizon toggles, and a `LeagueChart` renderer with a `model-leaderboard` preset.
 On `claude/sense-check` 2026-10-19: typecheck exit 0 (`tsc` does not read `.astro` files;
 `astro check` is not installed), `astro build` 4 pages, headless screenshots
@@ -104,7 +104,7 @@ Pages and TanStack Table are planned, that the UI was built ahead of the build o
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- Answers to `docs/CHECKPOINT.md` questions 1–3 on the visitor-facing interface.
+- `docs/CHECKPOINT.md` question 1: may pipeline work be built on branches before the gate?
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
