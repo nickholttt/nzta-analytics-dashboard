@@ -183,9 +183,9 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
     <p>
       Up to {SERIES.length} lines get their own colour. The first {colourSlots} go to the largest groups over the
       last {trailing} months; the rest go to the groups with the highest {trailing}-month share at any point in the chart's
-      period, so a group that mattered decades ago keeps a colour. Any further group is drawn as a thin grey line. A
-      group with no vehicles at all in the last {trailing} months gets no line, though its vehicles still count in the
-      total, so the lines can add up to less than 100%. The
+      period, so a group that mattered decades ago keeps a colour. Any further group is drawn as a thin grey line.
+      On a chart that does not keep only its largest groups, every group with vehicles in the period shown gets a
+      line, even one with none today. The
       key under the chart names every line, with its share over the last {trailing} months and the change on
       the {trailing} months before.
     </p>
@@ -219,8 +219,9 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
       colour or a place among the largest groups: on a chart that keeps only its largest groups they fall
       into {ALL_OTHER}, and on any other chart they are a thin grey line of their own, like any group past the
       palette. At the August 2026 snapshot, 26,427 vehicles (0.59%) had a make with no match in the brand list. On
-      the segment chart, 89 vehicles are {RESERVED_LABELS.__UNDEFINED__.toLowerCase()}; none was first registered after
-      February 2022, so that group has no line of its own.
+      the segment chart, 89 vehicles are {RESERVED_LABELS.__UNDEFINED__.toLowerCase()}, at most three in a month between
+      1957 and February 2022, so their line stays near zero except in greyed months, where a single vehicle out of a
+      few dozen shows as a spike.
     </p>
 
     <h3>Event Markers</h3>

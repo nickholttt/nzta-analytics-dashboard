@@ -513,3 +513,43 @@ New entries use this template:
 - Consequences: `/method` now covers every mark a mix chart draws. Changing a reserved label or the
   remainder label in code changes the page with it. `EVENTS_LAYER.md` is not edited here.
 - Status: decided by Claude (unreviewed)
+
+## D-035 2026-10-19 — A mix chart without top_n draws every group with vehicles in its drawn window
+- Agent: claude, under D-027
+- Basis: this commit; `src/components/MixChart.tsx` and `src/pages/method.astro` on this branch; the
+  local cube (snapshot 2026-08-31) queried on 2026-10-19; headless screenshots of the four live mix
+  charts at 320px and 1280px, default range and all time, before and after.
+- Context: STATE known issue 3, found under D-034. Without `top_n`, `series` was the
+  trailing-12-month ranking filtered to `n > 0`, so a group with no vehicles in the last 12 months had
+  no line in any year while its vehicles still counted in the denominator, and the lines could add up
+  to less than 100%. On the live charts this hid one group: segment `__UNDEFINED__` ("Not recorded"),
+  89 vehicles in 81 months from 1957-04 to 2022-02.
+- Options considered: (1) Draw every group with vehicles anywhere in the preset's period: a group
+  present only before the default start would draw as a flat zero line and fill the key with 0.0%
+  rows in the default view. (2) Draw every group with vehicles in the drawn window (the set event
+  scoping already uses), and pick colour candidates from the whole period, so switching to all time
+  cannot hand an earlier group a colour that pushes a later one down the palette. (3) Leave it and
+  keep the `/method` sentence: the chart would keep under-drawing a group it counts.
+- Decision: (2). With `top_n` nothing changes: the trailing ranking still picks the kept groups and
+  the rest is "All other". Without it, the series are the trailing ranking followed by any other group
+  with vehicles in the drawn window (in rolling mode, reaching 11 months before it, since the first
+  rolling point rests on them), sorted by raw value; the key sorts them by share anyway. Reserved
+  tokens still never take a colour. `/method` drops the sentence about the missing line and says that
+  on a chart without `top_n` every group with vehicles in the period shown gets one; the segment
+  example now says the 89 vehicles (at most three in a month) stay near zero except in greyed months.
+  - After an independent review: the first `/method` wording claimed "one or two in a month" (2002-01
+    has three) and did not exclude `top_n` charts; both corrected. The rolling reach-back and a
+    `Set` lookup were added.
+- Measured: the keys of `brand-owner-origin`, `new-vs-used` and `brand-share` are identical before
+  and after at both widths and both ranges. `segment-mix` gains a grey "Not recorded" line and a key
+  row (0.0%, ±0.0 pp); the five named segments keep their colours. No console errors, no sideways
+  scroll at 320px.
+- Consequences: a group that stops appearing keeps a line, at zero, for as long as its vehicles fall
+  inside the drawn window, and a key row reading 0.0%. With a high-cardinality dimension and no
+  `top_n` (possible once the Build surface exists), every group in the window draws; most will be thin
+  grey lines. Because colour candidates come from the whole period, a group present only before the
+  default start can hold a palette slot in the default view while drawing no line there, leaving a
+  drawn group grey. That is the price of colours that never change with the range toggle; no live
+  chart is affected (checked: no group in owner country, import status or segment other than
+  `__UNDEFINED__` has its last vehicle before the trailing window).
+- Status: decided by Claude (unreviewed)
