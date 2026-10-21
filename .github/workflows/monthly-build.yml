@@ -68,6 +68,22 @@ jobs:
           path: public/data
           retention-days: 90
 
+      # The cube the site is deployed from (D-056): one release per snapshot, which, unlike the artifact above, does not
+      # expire. A second build of the same snapshot replaces the release's file.
+      - name: Publish the cube as a release
+        if: steps.pipeline.outputs.built == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: cube-${{ steps.pipeline.outputs.snapshot }}
+        run: |
+          tar -czf "$RUNNER_TEMP/public-data.tar.gz" -C public/data .
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "$RUNNER_TEMP/public-data.tar.gz" --clobber
+          else
+            gh release create "$TAG" "$RUNNER_TEMP/public-data.tar.gz" --target "$GITHUB_SHA" --title "Cube $TAG" \
+              --notes "The cube built from the ${{ steps.pipeline.outputs.snapshot }} snapshot. The site is deployed from the newest of these."
+          fi
+
       # The log is public for a public repository, so the manifest can be compared with a local build without
       # downloading the artifact.
       - name: Show manifest
