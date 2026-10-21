@@ -49,7 +49,8 @@
       "used_imports": "Each month counts the vehicles first registered in New Zealand that month, previously registered overseas, that are still registered on the snapshot date."
     },
     "dimension_labels": {
-      "owner_country": "Country of the brand's owner"
+      "owner_country": "Country of the brand's owner",
+      "region": "Owner's region"
     },
     "dimension_notes": {
       "built_in": "Where a vehicle was built is not recorded for almost every vehicle first registered before late 1985, and is recorded for almost all since. The grey line near the top of the chart until then is that gap in the record, not where vehicles came from.",
@@ -64,9 +65,10 @@
     "dataset": "registrations_surviving",
     "period": "all",
     "period_by_shape": {
-      "distribution": "5y"
+      "distribution": "5y",
+      "geo": "latest_year"
     },
-    "$period_by_shape_comment": "A distribution sums its whole period, so all time would mix decades whose records differ (docs/MODEL_AND_AGE.md, before 2007). The time row still offers all time.",
+    "$period_by_shape_comment": "A distribution sums its whole period, so all time would mix decades whose records differ (docs/MODEL_AND_AGE.md, before 2007). A map opens on the last 12 months, the vehicles whose owners' addresses are most recent. The time row still offers all time.",
     "ranking_period": "latest_year",
     "$ranking_period_comment": "The time row offers this period too wherever it makes the chart a league (a high-cardinality breakdown such as brand), so a visitor can rank the latest 12 months and switch back to the lines. Manufacturer group is medium cardinality in config/dimensions.json, so it stays a mix chart (D-045).",
     "lead": "Show",
@@ -86,7 +88,8 @@
           "built_in": "country where built",
           "vehicle_year_band": "vehicle age",
           "engine_size_band": "engine size",
-          "age_at_registration_band": "age when registered here"
+          "age_at_registration_band": "age when registered here",
+          "region": "owner's region"
         },
         "top_n": {
           "make": 10,
@@ -113,13 +116,13 @@
       "segment": "The register records most SUVs as station wagons, so they count as cars here.",
       "import_status": "These are vehicles still registered at the snapshot, and new and used vehicles leave the register at different rates, so an older month's split may differ from what was bought at the time. In recent cohorts used imports leave faster, which understates their share; in some older cohorts it runs the other way.",
       "owner_country": "Ownership is as at today, not at registration: every year shown counts each brand under the country that owns it now.",
-      "parent_group": "Group ownership is as at today, not at registration: every year shown counts each brand under the group that owns it now."
+      "parent_group": "Group ownership is as at today, not at registration: every year shown counts each brand under the group that owns it now.",
+      "region": "Where each vehicle's registered owner lives now, from their most recent address: not where the vehicle is driven, and not necessarily where it was first registered. Rental and lease fleets count at the address of the company that owns them."
     },
     "not_offered": [
       "Numbers of vehicles. These figures count vehicles still registered today, so older months are thinned by scrappage and a count would read as sales. Counts wait for true monthly registrations.",
       "Only new or only used vehicles. The site's figures are not yet split that way.",
-      "Models. Only the most common models are named, so older months are mostly grouped as other. Models wait for true monthly registrations.",
-      "Regions. The register holds each owner's current address, not where the vehicle was first registered."
+      "Models. Only the most common models are named, so older months are mostly grouped as other. Models wait for true monthly registrations."
     ]
   },
   "groups": [
