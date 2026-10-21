@@ -51,6 +51,10 @@ const MARGIN_LEFT = 44;
 const MARGIN_BOTTOM = 28;
 
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
+// The pipeline's token for values beyond its own cap (docs/CUBE_SCHEMA.md): a group too small to name, so
+// on a capped chart it belongs in the remainder, unlike the tokens for what the record could not place.
+const BEYOND_CAP = "__OTHER__";
+const ownLine = (v: string) => isReserved(v) && v !== BEYOND_CAP;
 const ROLLING = "rolling_12m";
 
 type Point = { month: string; date: Date; series: string; share?: number; suppressed: boolean; denominator?: number };
@@ -134,14 +138,14 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     // Without top_n there is no remainder, so every group with vehicles behind the drawn window needs
     // its own line. Drawing only the trailing ranking would drop a group that stopped years ago from
     // the years it was there, and the lines would add up to less than the total.
-    // With top_n, a reserved token keeps its own line too, as it does without one: it is the part of the
-    // register the reference data could not place, not a group too small to name. Folded into the
-    // remainder, an era with no country recorded read as "All other" near 100% (D-046).
+    // With top_n, a token for what the record could not place keeps its own line too, as it does without
+    // one: it is not a group too small to name. Folded into the remainder, an era with no country recorded
+    // read as "All other" near 100% (D-046).
     const rankedSet = new Set(ranked);
     const unranked = preset.top_n ? [] : [...drawn].filter((v) => !rankedSet.has(v)).sort();
-    const reservedDrawn = preset.top_n ? [...drawn].filter(isReserved).sort() : [];
+    const reservedDrawn = preset.top_n ? [...drawn].filter(ownLine).sort() : [];
     const series = preset.top_n ? [...kept, ...reservedDrawn, ALL_OTHER] : [...ranked, ...unranked];
-    const named = [...kept, ...new Set(rows.map((r) => r.value).filter(isReserved))];
+    const named = [...kept, ...new Set(rows.map((r) => r.value).filter(ownLine))];
 
     const denominatorFor = (month: string) => denominators.get(month);
     const nFor = (month: string, s: string) => {
