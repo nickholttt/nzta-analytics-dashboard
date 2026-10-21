@@ -152,9 +152,13 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
   // question rather than in the footnotes.
   const context = noteContext(effectivePreset, manifest);
   const notes: { key: string; text: string; unresolved: string[] }[] = [];
+  // On a chart that can't be drawn, a missing value is expected (its dataset may not exist yet), so the
+  // note is left out instead of shown with gaps. On a drawn chart a gap is a build fault and stays visible.
   const addNote = (key: string, plain?: string, template?: string) => {
-    if (template) notes.push({ key, ...fillNote(template, context) });
-    else if (plain) notes.push({ key, text: plain, unresolved: [] });
+    if (template) {
+      const filled = fillNote(template, context);
+      if (filled.unresolved.length === 0 || preventsRender.length === 0) notes.push({ key, ...filled });
+    } else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
   addNote("dimension", dimension?.note, dimension?.note_template);
@@ -240,7 +244,7 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
           </div>
         ) : null}
 
-        {shape !== "distribution" && preset.dataset !== "used_imports" ? (
+        {shape !== "distribution" && preset.dataset !== "used_imports" && preventsRender.length === 0 ? (
           <div className="toggle" role="radiogroup" aria-label="Time horizon">
             {TIME_PERIODS.map((p) => (
               <label key={p.id}>
