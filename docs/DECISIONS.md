@@ -625,8 +625,8 @@ New entries use this template:
   18 events (all 18 published market-wide events, on an all-time chart) to every chart that carries
   events, burying the scoped ones the doc exists to show; "by year" gives one cluster per year, and
   the 50 published events fall in 13 distinct years, so it cannot meet the cap of 8 on its own, while
-  on a 10-year axis it merges events 11 months apart; titles of up to 60 characters as labels would
-  collide at 320px (inferred, not tried). (2) Change the doc to the code, keeping the hard rule's substance: the
+  on a 10-year axis it merges events 11 months apart; titles as labels (the longest published is 63
+  characters) would collide at 320px (inferred, not tried). (2) Change the doc to the code, keeping the hard rule's substance: the
   label and the list say what happened and when, never why. (3) Leave the disagreement listed in
   STATE: the doc is what an agent reads before touching the layer, and it would keep pointing them at
   behaviour nobody wants.
@@ -639,8 +639,17 @@ New entries use this template:
   list entry, up to 4 lanes. The hard-rule bullets, the `summary` column note and the measurement
   paragraph now name the list, not a tooltip. The rename example under `measurement` is left for the
   `kgm-rename` item (STATE known issue 3).
+  - After an independent review: the grouping rule is stated exactly (within 2% of the group's
+    first event, widened ×1.6 per step); the lane gap (7.5%) and wrap-around, the announcement rule,
+    and the measurement warning in the list were added; three unchanged lines that contradicted the
+    code were corrected (`title` "shown on the marker", `expected_effect` "used to decide default
+    visibility" — nothing in the site reads it — and "any time-series chart").
 - Consequences: no code or page changes. The doc now states the current renderer's behaviour,
-  including two thresholds (2% and 4 lanes) that live in `src/lib/events.ts`; changing them there
-  means changing this doc too. Whether market events should default on remains a design question
+  including four constants in `src/lib/events.ts` (2%, ×1.6, 7.5%, 4 lanes) and `MAX_MARKERS`;
+  changing them there means changing this doc too. Found while checking, not fixed here: the published
+  title "Electronic stability control required on all new light vehicles" is 63 characters, over the
+  schema's 60 (`events.csv` is frozen); and windowed bands ending after the latest snapshot
+  (`ccs-charges-cut`, `ccs-targets-aligned-australia`) are drawn without clipping, so they may spill
+  past the chart's right edge (not yet seen in a screenshot). Whether market events should default on remains a design question
   the user can reopen; the doc now says why they are off.
 - Status: decided by Claude (unreviewed)

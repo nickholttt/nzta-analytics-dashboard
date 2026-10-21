@@ -4,8 +4,9 @@
 
 An append-only registry of dated things that plausibly moved the market:
 government policy, tax changes, macro shocks, brand entries and exits,
-model launches, marketing pushes. Rendered as markers on any time-series
-chart whose dimension the event is scoped to.
+model launches, marketing pushes. Rendered as markers on time-series
+charts whose dimension the event is scoped to (which charts, today: see
+§Rendering rules).
 
 This is the feature that stops the site going stale. A chart of BEV share
 is a picture of a line. The same chart with `2021-07-01 Clean Car Discount
@@ -20,10 +21,11 @@ The site places a dated marker next to an inflection. It does **not** say
 the event caused the inflection. The user draws the conclusion.
 
 - Marker label: a number. The list under the chart gives each event's
-  title, dates, one-sentence factual summary and source link. Nothing else.
-- `expected_effect` in the data is a *directional hypothesis*, used only
-  to decide default visibility and to power pull-forward detection. It is
-  never rendered as prose on the chart.
+  title, dates, one-sentence factual summary and source link, and for a
+  `measurement` event the warning below. Nothing else.
+- `expected_effect` in the data is a *directional hypothesis*, kept to
+  power pull-forward detection (not built yet). Nothing in the site reads
+  it, and it is never rendered as prose on the chart.
 
 Getting this wrong turns a data product into an opinion piece, which is
 exactly what the project is not.
@@ -39,7 +41,7 @@ exactly what the project is not.
 | `mechanism` | enum | `demand` `supply` `measurement` `mix` — **see below** |
 | `scope` | enum | `market` `powertrain` `make` `brand_group` `origin` `owner_country` `segment` `region` `import_status` `imported_from` `built_in` `model` |
 | `scope_values` | pipe-list, nullable | e.g. `BEV\|PHEV`. Empty = applies to whole scope. Values are the dimension's own output vocabulary: the label from its reference file where it has one (`NZ New` via `import_status_map.csv`, `Auckland` via `tla_region.csv`), otherwise the raw NZTA value (`JAPAN`) |
-| `title` | short | ≤60 chars, shown on the marker |
+| `title` | short | ≤60 chars, shown in the event list under the chart |
 | `summary` | 1 sentence | shown in the event list under the chart |
 | `expected_effect` | enum | `up` `down` `pull_forward` `mixed` `none` |
 | `announced_date` | ISO date, nullable | **see below** |
@@ -111,18 +113,25 @@ These describe the code as it runs (`src/lib/events.ts`,
   reader presses "Show N market-wide events" in the event list. They are
   off by default so they don't bury the events about what the chart breaks
   down by.
+- Every event draws a thin rule at `date_start` (dashed and darker for
+  `measurement`). An event with an `announced_date` also draws a faint
+  dotted rule there, and its list entry says "(announced …)".
 - Windowed events (`date_end` present) render as a shaded band from
   `date_start` to `date_end`, with the usual rule at `date_start`, not two
   pins.
-- At most 8 numbered markers. Events closer together than 2% of the
-  chart's time axis share a number; if that still leaves more than 8, the
-  distance widens until at most 8 remain. Clustering follows the axis, not
-  the calendar: `brand-share`'s 8 events draw as 8 markers over 10 years
-  and as 4 over all time (D-037). A shared number reads `3 (2)` (marker 3
-  covers two events) and sits on its first event's date. Every event keeps
-  its own rule and band, and its own entry in the list under the chart,
-  which is collapsed until opened. Numbers still too close to read are
-  stacked in up to 4 lanes.
+- At most 8 numbered markers. In date order, an event within 2% of the
+  chart's time axis of the first event in the current group joins that
+  group, and otherwise starts a new one. If that leaves more than 8 groups,
+  the 2% is multiplied by 1.6 and the grouping redone until at most 8
+  remain. Clustering follows the axis, not the calendar: `brand-share`'s 8
+  events draw as 8 markers over 10 years and as 4 over all time (D-037). A
+  shared number reads `3 (2)` (marker 3 covers two events) and sits on its
+  first event's date. Every event keeps its own rule and band, and its own
+  line under its marker's number in the list under the chart, which is
+  collapsed until opened.
+- Numbers less than 7.5% of the axis apart go in different lanes, up to 4.
+  A fifth goes back to the first lane, so a dense pile-up overlaps rather
+  than growing upwards.
 - `verified=false` rows are excluded from the build entirely.
 
 ## Derived analysis: pull-forward and payback
