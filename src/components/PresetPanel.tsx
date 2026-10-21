@@ -219,7 +219,18 @@ export default function PresetPanel({
         />
       );
     } else if (shape === "distribution" && dimension) {
-      chart = <DistributionChart preset={effectivePreset} dimension={dimension} rows={rows} manifest={manifest} minDenominator={guard} label={label} lead={lead} />;
+      chart = (
+        <DistributionChart
+          preset={effectivePreset}
+          dimension={dimension}
+          rows={rows}
+          manifest={manifest}
+          minDenominator={guard}
+          label={label}
+          dimensionLabel={dimensionLabel}
+          lead={lead}
+        />
+      );
     } else if (shape === "trend") {
       chart = <TrendChart preset={effectivePreset} rows={rows} manifest={manifest} minDenominator={guard} collapseFraction={collapseFraction} lead={lead} />;
     } else if (shape === "league" && dimension) {
