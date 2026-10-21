@@ -5,7 +5,7 @@ import { chartDefaults } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import { appliesTo, defaultStartMonth } from "../lib/composition";
 import type { Event, Manifest, SliceRow } from "../lib/data";
-import { MEASUREMENT, assignLanes, markersFor, selectEvents } from "../lib/events";
+import { MEASUREMENT, layoutMarkers, selectEvents } from "../lib/events";
 import {
   TRAILING_MONTHS,
   addMonths,
@@ -252,17 +252,44 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     [events, preset.events, dimension.id, model, manifest.latest_snapshot],
   );
   const domain = useMemo(() => ({ from: model.win.from, to: addMonths(model.win.to, 1) }), [model.win.from, model.win.to]);
-  const markers = useMemo(
-    () => (selected ? markersFor(showUnscoped ? [...selected.scoped, ...selected.unscoped] : selected.scoped, domain.from, domain.to) : []),
-    [selected, showUnscoped, domain],
+  const shownEvents = useMemo(
+    () => (selected ? (showUnscoped ? [...selected.scoped, ...selected.unscoped] : selected.scoped) : []),
+    [selected, showUnscoped],
   );
-  const laned = useMemo(() => assignLanes(markers, domain.from, domain.to), [markers, domain]);
-  const laneCount = laned.reduce((n, m) => Math.max(n, m.lane + 1), 1);
-  const eventCount = laned.reduce((n, m) => n + m.events.length, 0);
+
+  // End labels: series with their own colour and the remainder. On narrow screens (<540px),
+  // leaders and labels are omitted so the plot has full width for the data lines; the key table
+  // immediately below identifies every series with swatches and trailing numbers. The right margin
+  // they need sets the frame's width, which the event markers are laid out against.
+  const endLabels = useCallback(
+    (width: number) => {
+      const showDirectLabels = width >= 540;
+      const ends = showDirectLabels
+        ? model.series
+            .filter((s) => s === ALL_OTHER || model.ownColour(s))
+            .map((s) => [...model.points].reverse().find((p) => p.series === s && p.share !== undefined && !p.suppressed))
+            .filter((p): p is Point => Boolean(p))
+        : [];
+      const longest = showDirectLabels ? Math.max(0, ...ends.map((p) => label(p.series).length)) : 0;
+      const marginRight = showDirectLabels ? Math.min(230, 20 + LEADER_PX + longest * 6.8) : 16;
+      return { showDirectLabels, ends, marginRight };
+    },
+    [model, label],
+  );
+  const markersAt = useCallback(
+    (width: number) => layoutMarkers(shownEvents, domain.from, domain.to, width ? width - MARGIN_LEFT - endLabels(width).marginRight : 0),
+    [shownEvents, domain, endLabels],
+  );
+  // The list under the chart numbers its entries as the chart does, so both follow the drawn width.
+  const [figureWidth, setFigureWidth] = useState(0);
+  const listed = useMemo(() => markersAt(figureWidth), [markersAt, figureWidth]);
+  const eventCount = shownEvents.length;
 
   const render = useCallback(
     (width: number) => {
       const height = chartHeight(width, lead);
+      const laned = markersAt(width);
+      const laneCount = laned.reduce((n, m) => Math.max(n, m.lane + 1), 1);
       // Every marker lane needs its own row of clear space above the frame.
       const marginTop = 24 + (laneCount - 1) * LANE_HEIGHT;
       const yMax = Math.min(1, Math.max(0.05, ...model.points.map((p) => p.share ?? 0)) * 1.05);
@@ -275,22 +302,12 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
         .filter((e) => e.date_end)
         .map((e) => ({ x1: new Date(e.date_start), x2: new Date(e.date_end as string), y1: 0, y2: yMax }));
       const rules = eventsShown.map((e) => ({ x: new Date(e.date_start), measurement: e.mechanism === MEASUREMENT }));
-      const pins = laned.map((m) => ({ ...m, x: new Date(m.date) }));
+      const from = monthDate(domain.from).getTime();
+      const span = monthDate(domain.to).getTime() - from;
+      const pins = laned.map((m) => ({ ...m, x: new Date(from + m.at * span) }));
       const announced = eventsShown.filter((e) => e.announced_date).map((e) => ({ x: new Date(e.announced_date as string) }));
 
-      // End labels: series with their own colour and the remainder. Context series beyond the palette
-      // End labels: series with their own colour and the remainder. On narrow screens (<540px),
-      // leaders and labels are omitted so the plot has full width for the data lines; the key table
-      // immediately below identifies every series with swatches and trailing numbers.
-      const showDirectLabels = width >= 540;
-      const ends = showDirectLabels
-        ? model.series
-            .filter((s) => s === ALL_OTHER || ownColour(s))
-            .map((s) => [...model.points].reverse().find((p) => p.series === s && p.share !== undefined && !p.suppressed))
-            .filter((p): p is Point => Boolean(p))
-        : [];
-      const longest = showDirectLabels ? Math.max(0, ...ends.map((p) => label(p.series).length)) : 0;
-      const marginRight = showDirectLabels ? Math.min(230, 20 + LEADER_PX + longest * 6.8) : 16;
+      const { showDirectLabels, ends, marginRight } = endLabels(width);
       const innerHeight = height - marginTop - MARGIN_BOTTOM;
       const innerWidth = width - MARGIN_LEFT - marginRight;
 
@@ -400,7 +417,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
         ],
       });
     },
-    [model, laned, laneCount, label, lead, domain],
+    [model, markersAt, endLabels, label, lead, domain],
   );
 
   return (
@@ -432,7 +449,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
         </div>
       </div>
       <p className="chart-unit">{smoothingOption?.axis}</p>
-      <PlotFigure render={render} />
+      <PlotFigure render={render} onWidth={setFigureWidth} />
       <table className="key">
         <thead>
           <tr>
@@ -465,7 +482,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
           <summary>
             {eventCount} {eventCount === 1 ? "event" : "events"} marked on the chart
           </summary>
-          <EventList markers={laned} />
+          <EventList markers={listed} />
           {selected.unscoped.length > 0 ? (
             <button type="button" className="button-quiet" onClick={() => setShowUnscoped(!showUnscoped)}>
               {showUnscoped ? "Hide" : "Show"} {selected.unscoped.length} market-wide events

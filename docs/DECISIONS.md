@@ -653,3 +653,46 @@ New entries use this template:
   past the chart's right edge (not yet seen in a screenshot). Whether market events should default on remains a design question
   the user can reopen; the doc now says why they are off.
 - Status: decided by Claude (unreviewed)
+
+## D-039 2026-10-21 — Event marker labels are laid out in pixels and kept inside the frame
+- Agent: claude, under D-027
+- Basis: this commit; `src/lib/events.ts`, `src/components/MixChart.tsx`, `src/components/PlotFigure.tsx`;
+  headless measurement of every chart on `/` that carries events, at 320px and 1280px, default range
+  and all time, with and without market-wide events (2026-10-21, cube snapshot 2026-09).
+- Context: STATE known issues 4 and 5. Lanes were given to labels less than 7.5% of the time axis
+  apart. A label is a fixed number of pixels wide, so 7.5% cleared it at 1280px but not at 320px (about
+  18px of a 236px frame, against a 23.5px `4 (3)`), and a fifth crowded label wrapped back to the first
+  lane. Measured before: 6 overlapping label pairs (4 on `powertrain-mix`, 1 on `new-vs-used` in each
+  range), all at 320px with market-wide events shown; 30 labels reaching past the frame, mostly into
+  the 16px right margin at 320px. A label centred on a date before the chart's first month would print
+  in the left margin; not reachable on this cube.
+- Options considered: (1) A wider fixed fraction: still a fraction, so it either over-clusters
+  desktops or under-clears phones. (2) More lanes at narrow widths: each lane takes 15px from a
+  240–300px-tall chart, and a pile-up can still exceed any fixed number. (3) Lay out in pixels against
+  the frame, and when labels cannot fit in 4 lanes, cluster harder (the same ×1.6 step the 8-marker
+  cap already uses). Every label fits, nothing wraps, and the chart keeps its height; the cost is that
+  marker numbering depends on width. (4) Abbreviate or hide labels at narrow widths: the number is the
+  only link from a rule to its list entry. For the edge: (a) clamp the label inside the frame, (b)
+  right- or left-align it at the edges, (c) drop the label when its date is outside the window.
+  (a) and (b) look the same; (a) is one rule for both edges. (c) would leave a straddling band with
+  no number.
+- Decision: (3) and (a). `layoutMarkers` replaces `markersFor` and `assignLanes`: each label is 7px a
+  character plus a 4px gap, centred on its date, slid inward to stay inside the frame, and placed in
+  the lowest free lane by left edge; if a label needs a fifth lane, the grouping is redone with a wider
+  merge. `PlotFigure` reports its width so the list under the chart is laid out at the same width and
+  numbers its entries as the chart does. Before the width is known (first render), labels are grouped
+  for the 8-marker cap alone, as before.
+  - After an independent review: grouping now reads the same clamped position as placement, so events
+    that began before the chart group at its first month (five such events and three inside now draw
+    as `1 (5)` plus three markers, not one marker); and the widening stops once every event is in one
+    group, so a `date_start` that does not parse (the pipeline checks only that it is present) cannot
+    loop forever. Both checked in a scratch copy of `layoutMarkers`.
+- Consequences: measured after: 0 overlapping pairs, 0 labels outside the frame or the svg, no
+  sideways scroll, no console errors. `powertrain-mix` with market-wide events shows 6 markers at
+  320px (8 at 1280px); the other charts' marker counts are unchanged. A pile of 30 monthly events in
+  the last 30 months of a 16-year axis lays out as 3 markers in 3 lanes at 60, 120 and 236px and 7 markers
+  at 1000px, all 30 events kept (scratch check of `layoutMarkers`). Numbering on a phone can differ
+  from a desktop's; `/method` says so. `docs/EVENTS_LAYER.md` rendering rules updated. The 7px
+  character width is the measured width of a numeral at 11px semibold, wider than the space and
+  brackets; a font change would need it re-measured.
+- Status: decided by Claude (unreviewed)
