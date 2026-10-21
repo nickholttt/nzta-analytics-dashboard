@@ -337,7 +337,13 @@ Events:
 
 - A verified event has a scope outside the enum in `EVENTS_LAYER.md`, a
   `scope_value` that does not resolve through the vocabulary its dimension
-  produces, no `date_start`, or no `source_url`.
+  produces, no `date_start`, or no `source_url`; or a value outside the
+  enum for any other column the schema table calls an enum (`category`,
+  `mechanism`, `expected_effect`, `confidence`), or a `title` longer than
+  the table allows.
+- The schema table in `EVENTS_LAYER.md` no longer reads as an enum for a
+  column `config/pipeline.json` lists in `events.enum_columns`, or no longer
+  states the title limit.
 
 Failing loudly is the point. A dashboard that quietly serves wrong numbers
 is worse than one that is visibly stale.
