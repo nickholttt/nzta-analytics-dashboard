@@ -87,6 +87,7 @@ export type BuilderSpec = {
   period_by_shape: Record<string, string>;
   lead: string;
   measures: BuilderMeasure[];
+  dimension_notes: Record<string, string>;
   not_offered: string[];
 };
 

@@ -34,14 +34,17 @@ const TIME_PERIODS = [
 // any honest limit on what it shows. "internal" (/status) adds the build diagnostics: status badges,
 // what blocks the preset, drifting notes and the preset's spec line (D-041).
 // preset: a preset built outside presets.json (the sentence builder), drawn exactly as a canon one is.
+// anchored: the copied link jumps to this panel. Off where the controls that made the chart sit above it.
 export default function PresetPanel({
   presetId: requestedId,
   preset: supplied,
   lead = false,
   audience = "public",
+  anchored = true,
 }: {
   presetId?: string;
   preset?: Preset;
+  anchored?: boolean;
   lead?: boolean;
   audience?: "public" | "internal";
 }) {
@@ -89,8 +92,8 @@ export default function PresetPanel({
   // Where the clipboard is unavailable or refuses, the address bar still ends up holding the link, and
   // the button says so rather than doing nothing.
   const handleCopyLink = () => {
-    const shareUrl = getShareableUrl(presetId);
-    window.history.replaceState(null, "", `#${presetId}`);
+    const shareUrl = anchored ? getShareableUrl(presetId) : window.location.href;
+    if (anchored) window.history.replaceState(null, "", `#${presetId}`);
     const done = (state: "copied" | "address") => {
       setCopied(state);
       setTimeout(() => setCopied(""), 4000);

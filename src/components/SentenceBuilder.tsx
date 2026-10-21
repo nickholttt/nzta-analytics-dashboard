@@ -7,6 +7,9 @@ import type { BuilderOption, Choice } from "../lib/builder";
 import { getParam, setParam } from "../lib/url";
 import PresetPanel from "./PresetPanel";
 
+// The chart's own settings in the address bar. A new sentence clears them, so it opens on its defaults.
+const CHART_PARAMS = ["period", "range", "smoothing"];
+
 export default function SentenceBuilder({ options }: { options: BuilderOption[] }) {
   const id = builderSpec.id;
   const fallback = settle(options);
@@ -17,12 +20,14 @@ export default function SentenceBuilder({ options }: { options: BuilderOption[] 
   const choose = (measureId: string, dimensionId: string) => {
     const next = settle(options, measureId, dimensionId);
     setChoice(next);
+    for (const key of CHART_PARAMS) setParam(id, key, "", "");
     setParam(id, "measure", next.measure, fallback.measure);
     setParam(id, "by", next.dimension, fallback.dimension);
   };
 
   return (
     <>
+      <h2 className="visually-hidden">Choose what the chart shows</h2>
       <form className="sentence" aria-label="Build a chart" onSubmit={(e) => e.preventDefault()}>
         <p className="sentence-text">
           {builderSpec.lead}{" "}
@@ -44,9 +49,8 @@ export default function SentenceBuilder({ options }: { options: BuilderOption[] 
         </p>
       </form>
 
-      {/* Keyed by the choice, so a new sentence opens on its own defaults while the time range in the
-          address bar carries over. */}
-      <PresetPanel key={`${choice.measure}:${choice.dimension}`} preset={preset} audience="public" />
+      {/* Keyed by the choice, so a new sentence remounts the panel and reads its cleared settings. */}
+      <PresetPanel key={`${choice.measure}:${choice.dimension}`} preset={preset} audience="public" anchored={false} />
 
       {builderSpec.not_offered.length > 0 ? (
         <section className="not-offered" aria-labelledby="not-offered-head">

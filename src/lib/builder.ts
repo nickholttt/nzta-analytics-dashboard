@@ -23,8 +23,12 @@ export function sentence(choice: Choice): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+// The panel carries one preset note, so what the canon says about the dimension joins the measure's.
+const joined = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(" ") || undefined;
+
 export function builderPreset(choice: Choice): Preset {
   const m = findBuilderMeasure(choice.measure);
+  const dimensionNote = builderSpec.dimension_notes[choice.dimension];
   const preset: Preset = {
     id: builderSpec.id,
     question: sentence(choice),
@@ -33,8 +37,8 @@ export function builderPreset(choice: Choice): Preset {
     dimension: choice.dimension,
     period: builderSpec.period,
     events: true,
-    note: m?.note,
-    note_template: m?.note_template,
+    note: joined(m?.note, dimensionNote),
+    note_template: m?.note_template ? joined(m.note_template, dimensionNote) : undefined,
     top_n: m?.top_n?.[choice.dimension],
     ...(m?.derived ? { derived: m.id, shape_override: findDerived(m.id)?.shape } : { measure: m?.id }),
   };
