@@ -325,3 +325,29 @@ New entries use this template:
   Keeping an unused renderer runs ahead of the build order; it is Gemini's existing code, not new
   work.
 - Status: decided by Claude (unreviewed)
+
+## D-030 2026-10-19 — Caveats 1 and 7 say only what the data shows
+- Agent: claude, under D-027
+- Basis: this commit; the raw pull `data/raw/2026-08/20260911T093818Z` (snapshot 2026-08-31) read
+  on 2026-10-19; `docs/METRICS.md` §Grain; `docs/DATA_SOURCES.md` §E; `data/reference/events.csv`
+- Context: caveat 1 said the platform measures "first registrations recorded by NZTA"; the charts
+  count survivors (D-004). Caveat 7 cited "statutory Land Transport rules" defining a station wagon
+  by its shape, and an MIA figure of "over 50%" SUVs, and neither was checked. Caveat 1 also said MIA
+  counts "dealer delivery handovers" and that dealers "frequently" pre-register to hit targets.
+- Options considered: (1) look up the Land Transport rule and an MIA release to source the claims:
+  needs outside sources the site doesn't otherwise depend on, and the point of the caveat holds
+  without them. (2) Keep only what the register and the repo's docs show. (3) Leave the wording
+  and mark it unchecked: leaves a wrong definition on the page.
+- Decision: (2).
+  - Caveat 1 uses the METRICS.md survivors definition and points to caveat 2. Pre-registration is
+    put as something that can happen, with the end of the Clean Car Discount (31 December 2023,
+    `events.csv`) as the example. MIA is described as DATA_SOURCES §E does: it counts vehicles
+    delivered to buyers, so the figures won't match and aren't adjusted to.
+  - Caveat 7 states what was counted in the raw pull: 5,905,376 rows, 27 body types, none SUV;
+    station wagon shares 98.9% (RAV4), 98.2% (CX-5), 99.7% (Outlander). "Mostly", not "almost
+    always": of the nine models the sense-check extract classed as SUVs, the LandCruiser is 84.2%
+    and the CR-V 78.3% station wagon. The statutory-rule and MIA-share claims are gone.
+- Consequences: caveat 7's figures are as at the 2026-08 snapshot and won't update themselves; they
+  are dated on the page. The branch is stacked on `claude/model-leaderboard` because PR 2 also
+  edits `caveats.astro`.
+- Status: decided by Claude (unreviewed)
