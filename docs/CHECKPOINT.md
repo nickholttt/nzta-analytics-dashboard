@@ -36,6 +36,8 @@ Last updated by claude on 2026-10-21
   while checking: marker labels pile up at 320px on `powertrain-mix` with market-wide events shown.
 - Done 2026-10-21: marker labels never overlap and stay inside the frame, at 320px and 1280px
   (`claude/marker-label-overlap`, D-039). Numbering can now differ between phone and desktop widths.
+- Done 2026-10-21: README describes the repo as it is; CLAUDE.md marks Cloudflare Pages and TanStack
+  Table as planned and points to D-014 for the UI built ahead of the build order (`claude/reconcile-docs`, D-040).
 
 ## Open pull requests waiting on the user
 
@@ -68,6 +70,8 @@ Merge them in this order:
     Into `claude/key-row-wrap`; same base change once #13 is merged.
 15. `claude/marker-label-overlap`: D-039. Into `claude/event-band-clip`; same base change once #14
     is merged.
+16. `claude/reconcile-docs`: D-040, docs only. Into `claude/marker-label-overlap`; same base change
+    once #15 is merged.
 
 PR 1: https://github.com/nickholttt/nzta-analytics-dashboard/pull/1 · PR 2: https://github.com/nickholttt/nzta-analytics-dashboard/pull/2 ·
 PR 3: https://github.com/nickholttt/nzta-analytics-dashboard/pull/3 ·
@@ -82,25 +86,29 @@ PR 11: https://github.com/nickholttt/nzta-analytics-dashboard/pull/11 ·
 PR 12: https://github.com/nickholttt/nzta-analytics-dashboard/pull/12 ·
 PR 13: https://github.com/nickholttt/nzta-analytics-dashboard/pull/13 ·
 PR 14: https://github.com/nickholttt/nzta-analytics-dashboard/pull/14 ·
-PR 15: https://github.com/nickholttt/nzta-analytics-dashboard/pull/15
+PR 15: https://github.com/nickholttt/nzta-analytics-dashboard/pull/15 ·
+PR 16: (link added when opened)
 
 ## Work queue (in order)
 
-1. **8 November 2026 gate run.**
+1. **Small `ui/explore` fix**, stacked on #16: the time-horizon toggle on a league chart (STATE known
+   issue 1). No live preset is a league, so check it by pointing a scratch copy of a preset at a
+   league shape, not by editing `config/presets.json` for good. Done when switching horizon on a
+   league chart keeps it a league, and mix and trend charts behave as before.
+2. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
    - Done when: green/built/committed reported. If clean, the freeze lifts.
-2. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
+3. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
    Unblocks `used-import-age` and `age-distribution-moving-hole`.
-3. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
-4. **POST_GATE A3**: promote `segment_group`.
-5. **POST_GATE B1–B3**: the three logged build fixes, one commit.
+4. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
+5. **POST_GATE A3**: promote `segment_group`.
+6. **POST_GATE B1–B3**: the three logged build fixes, one commit.
    Separately, one commit: correct `$min_share_of_trailing_median_comment` in `config/measures.json`
    to the D-033 figures (1st percentile 0.67 among months that clear 200; next-lowest after April 2020
    is 0.55). Done when the comment matches METRICS.md.
    Separately, one commit: settle `kgm-rename`'s mechanism against EVENTS_LAYER.md (STATE known
    issue 3); the registry merge means it marks no artefact, so the doc's rename example may be the
    part to change. Same commit or the next: shorten the 63-character title (known issue 4).
-6. **Reconcile docs** (STATE "Docs that contradict code" 5–7): README, build-order wording, stack.
 7. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
    path, checked 2026-10-19 with `git diff --stat origin/main...ui/explore` on the frozen paths).
 
@@ -110,7 +118,5 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Check whether the fifteen PRs were merged. If it is on or
-after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 6
-(reconcile docs): it touches no frozen path, so it need not wait for the gate. `README.md` first;
-the `CLAUDE.md` build-order and stack lines describe the plan, so record any change in a decision.
+/start. Read `docs/STATE.md` and this file. Check whether the sixteen PRs were merged. If it is on or
+after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 1.

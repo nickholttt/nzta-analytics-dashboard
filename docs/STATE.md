@@ -39,12 +39,13 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/key-row-wrap` | origin | mix key keeps each swatch on its name's line at 320px. PR into `claude/events-layer-rendering` |
 | `claude/event-band-clip` | origin | event bands and rules clipped to the chart's frame. PR into `claude/key-row-wrap` |
 | `claude/marker-label-overlap` | origin | marker labels laid out in pixels, never overlapping, kept inside the frame (D-039). PR into `claude/event-band-clip` |
+| `claude/reconcile-docs` | origin | README and CLAUDE.md reconciled with the repo (D-040). PR into `claude/marker-label-overlap` |
 
 No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's fifteen branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's sixteen branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
@@ -59,7 +60,8 @@ No CI runs on pull requests; the only workflow is the monthly build.
   [#12](https://github.com/nickholttt/nzta-analytics-dashboard/pull/12) (`claude/events-layer-rendering`), then
   [#13](https://github.com/nickholttt/nzta-analytics-dashboard/pull/13) (`claude/key-row-wrap`), then
   [#14](https://github.com/nickholttt/nzta-analytics-dashboard/pull/14) (`claude/event-band-clip`), then
-  [#15](https://github.com/nickholttt/nzta-analytics-dashboard/pull/15) (`claude/marker-label-overlap`).
+  [#15](https://github.com/nickholttt/nzta-analytics-dashboard/pull/15) (`claude/marker-label-overlap`), then
+  #16 (`claude/reconcile-docs`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
@@ -119,19 +121,17 @@ measurement warning. No markers under parent group (no event is scoped to `brand
 Fixed on the earlier open branches (D-028 to D-036): each fix is in its decision record and pull
 request, listed under In progress.
 
-Docs that contradict code (carried over, still unreconciled):
-
-5. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
-6. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
-7. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
-   plan, not contradiction.
+Fixed on `claude/reconcile-docs` (D-040): README describes the repo as it is (pipeline, local UI,
+the files that exist, who commits a run's output); `CLAUDE.md` keeps its plan and notes that Cloudflare
+Pages and TanStack Table are planned, that the UI was built ahead of the build order (D-014), and lists
+`src/`; `AGENTS.md` lists `LeagueChart` among the renderers. Docs only.
 
 ## Blocked or waiting on the user
 
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- Review and merge of the fifteen open pull requests (`docs/CHECKPOINT.md`).
+- Review and merge of the sixteen open pull requests (`docs/CHECKPOINT.md`).
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
