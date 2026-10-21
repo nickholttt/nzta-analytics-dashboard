@@ -145,8 +145,8 @@
           "question": "How has each powertrain's share of registrations changed?",
           "status": "invalid",
           "requires": [
-            "segment_group promoted to a dimension in config/dimensions.json. It is a column in segment_map.csv, not a dimension, so the filter resolves against nothing. Promotion changes what the pipeline emits, so it waits for the 8 November gate.",
-            "a powertrain x segment_group pair slice, so the filter can be applied rather than described"
+            "segment_group promoted to a dimension in config/dimensions.json. It is a column in segment_map.csv, not a dimension, so the filter resolves against nothing. Built as POST_GATE A3 on claude/segment-group, which merges into main after the 8 November gate.",
+            "a powertrain x segment_group pair slice, so the filter can be applied rather than described. Built in the same change (POST_GATE A3); the site applies it once a build carries it."
           ],
           "dataset": "registrations_surviving",
           "measure": "share",
@@ -175,10 +175,10 @@
           "question": "How old are used imports when they arrive?",
           "status": "blocked",
           "requires": [
-            "the used_imports dataset, which needs an import_status x age_at_registration_band pair slice"
+            "the used_imports dataset, served from registrations_surviving through an import_status x age_at_registration_band pair slice. Built as POST_GATE A1 on claude/pair-slice-import-age, which merges into main after the 8 November gate; the site draws this chart once a build carries the pair."
           ],
           "dataset": "used_imports",
-          "measure": "count",
+          "measure": "share",
           "dimension": "age_at_registration_band",
           "period": "latest_year",
           "shape_override": "distribution",
@@ -267,7 +267,8 @@
           "question": "Which vehicle years can't we import any more?",
           "status": "blocked",
           "requires": [
-            "the used_imports dataset, which needs an import_status x age_at_registration_band pair slice"
+            "the used_imports dataset, served from registrations_surviving through an import_status x age_at_registration_band pair slice. Built as POST_GATE A1, which merges into main after the 8 November gate.",
+            "a way for the distribution renderer to draw the age distribution year by year (animate_by). One period's histogram smears the moving cutoff across the years it moved through, so it would not answer the question."
           ],
           "dataset": "used_imports",
           "measure": "share",

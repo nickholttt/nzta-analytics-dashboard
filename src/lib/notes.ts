@@ -5,6 +5,7 @@
 import { findDerived, findDimension, findMeasure } from "./config";
 import type { Preset } from "./config";
 import type { Manifest } from "./data";
+import { servedFrom } from "./resolve";
 
 const PLACEHOLDER = /\{([a-z_]+(?:\.[A-Za-z0-9_]+)*)(\|[a-z]+)?\}/g;
 
@@ -12,10 +13,12 @@ export const UNRESOLVED = "?";
 
 export type NoteContext = Record<string, unknown>;
 
+// A dataset served from another one filtered (used imports, from every registration) reads that one's manifest entry.
 export function noteContext(preset: Preset, manifest: Manifest): NoteContext {
+  const served = servedFrom(preset.dataset, manifest);
   return {
     manifest,
-    dataset: preset.dataset ? manifest.datasets[preset.dataset] : undefined,
+    dataset: served ? manifest.datasets[served] : undefined,
     measure: findMeasure(preset.measure) ?? findDerived(preset.derived),
     dimension: findDimension(preset.dimension),
   };

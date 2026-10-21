@@ -3,12 +3,12 @@ import { useEffect, useMemo, useState } from "react";
 import { builderChoiceFor, builderHref, builderPreset } from "../lib/builder";
 import { compositeRules, findDataset, findDerived, findPeriod, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
 import { compositionStart } from "../lib/composition";
-import { loadEvents, loadManifest, loadSlice } from "../lib/data";
+import { loadEvents, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { presetView, rankingPeriods, resolvePreset } from "../lib/resolve";
+import { presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { LeagueChart } from "./LeagueChart";
@@ -127,14 +127,13 @@ export default function PresetPanel({
 
   const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
 
+  // The resolver says where the rows come from: a 1-D slice, or a pair slice narrowed to the view's filter.
   useEffect(() => {
-    if (!effectivePreset?.dataset || !resolution || resolution.preventsRender.length > 0) return;
-    const sliceDimension = effectivePreset.dimension ?? manifest?.datasets[effectivePreset.dataset]?.live_dimensions[0];
-    if (sliceDimension && manifest?.datasets[effectivePreset.dataset]?.live_dimensions.includes(sliceDimension)) {
-      setRows(null);
-      loadSlice(effectivePreset.dataset, sliceDimension).then(setRows, (e) => setError(String(e)));
-    }
-  }, [effectivePreset, resolution, manifest]);
+    const source = resolution?.source;
+    if (!source) return;
+    setRows(null);
+    loadView(source).then(setRows, (e) => setError(String(e)));
+  }, [resolution]);
 
   const panelClass = `panel${lead ? " lead" : ""}`;
   if (!preset || !effectivePreset)
@@ -165,7 +164,8 @@ export default function PresetPanel({
   const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure } = resolution;
   const dataset = findDataset(effectivePreset.dataset);
   const derived = findDerived(effectivePreset.derived);
-  const dsManifest = effectivePreset.dataset ? manifest.datasets[effectivePreset.dataset] : undefined;
+  const served = servedFrom(effectivePreset.dataset, manifest);
+  const dsManifest = served ? manifest.datasets[served] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
   const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : RESERVED_LABELS[v] ?? v);

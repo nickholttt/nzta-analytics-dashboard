@@ -6,7 +6,8 @@
 // triage table that has quietly gone stale is worse than no triage table.
 import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, presets } from "./config";
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
-import type { Manifest } from "./data";
+import { PAIR_SEPARATOR } from "./data";
+import type { Manifest, ViewSource } from "./data";
 import { RENDERED_DERIVED } from "./derived";
 
 // The shapes this local reference tool draws. geo is build step 6.
@@ -25,6 +26,8 @@ export type Resolution = {
   shape: string;
   dimension?: Dimension;
   measure?: Measure;
+  // Where the rows come from, when anything can be drawn.
+  source?: ViewSource;
 };
 
 export function inferShape(preset: Preset, dimension?: Dimension, measure?: Measure): string {
@@ -78,21 +81,18 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     add("blocked", "composite presets have no renderer in this tool: a curated two-series comparison, deliberately outside the builder grammar");
   }
 
+  // A dataset that dimensions.json defines as another one filtered (base and filter) is served from its base, narrowed.
+  const cubeDataset = servedFrom(preset.dataset, manifest);
+  const narrowing: Narrowing[] = [];
   if (!preset.dataset && !preset.series) {
     add("invalid", "the preset names no dataset");
-  } else if (preset.dataset && !manifest.datasets[preset.dataset]) {
+  } else if (preset.dataset && !cubeDataset) {
     const ds = findDataset(preset.dataset);
-    let msg = `dataset "${preset.dataset}" is not in the cube: manifest.json lists only ${inCube.join(", ")}`;
-    if (!ds) {
-      msg += `, and dimensions.json does not define "${preset.dataset}" either`;
-      add("invalid", msg);
-    } else {
-      if (ds.base && ds.filter) {
-        const filters = Object.entries(ds.filter).map(([k, v]) => `${k} = ${v.join(" or ")}`).join(", ");
-        msg += `. It is defined as ${ds.base} filtered to ${filters}, which needs a slice split by ${Object.keys(ds.filter).join(", ")}; the cube has only one-dimensional slices`;
-      } else if (ds.status) msg += ` (${ds.status})`;
-      add("blocked", msg);
-    }
+    const msg = `dataset "${preset.dataset}" is not in the cube: manifest.json lists only ${inCube.join(", ")}`;
+    if (!ds) add("invalid", `${msg}, and dimensions.json does not define "${preset.dataset}" either`);
+    else add("blocked", ds.status ? `${msg} (${ds.status})` : msg);
+  } else if (preset.dataset && cubeDataset !== preset.dataset) {
+    for (const [key, values] of Object.entries(findDataset(preset.dataset)?.filter ?? {})) narrowing.push({ key, values, own: true });
   }
 
   if (preset.derived) {
@@ -102,10 +102,10 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     add("invalid", `measure "${preset.measure}" is not defined in config/measures.json`);
   }
 
+  const entry = cubeDataset ? manifest.datasets[cubeDataset] : undefined;
   if (preset.dimension) {
-    const live = preset.dataset ? manifest.datasets[preset.dataset]?.live_dimensions : undefined;
     if (!dimension) add("invalid", `dimension "${preset.dimension}" is not defined in config/dimensions.json`);
-    else if (live && !live.includes(preset.dimension)) add("blocked", `dimension "${preset.dimension}" is not live in this build`);
+    else if (entry && !entry.live_dimensions.includes(preset.dimension)) add("blocked", `dimension "${preset.dimension}" is not live in this build`);
   }
 
   if (preset.period && !findPeriod(preset.period)) {
@@ -114,22 +114,46 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
 
   for (const filter of preset.filters ?? []) {
     for (const [key, value] of Object.entries(filter)) {
-      if (findDimension(key)) {
-        add("blocked", `filter ${key} = ${value} needs a ${preset.dimension} x ${key} pair slice; the cube has only one-dimensional slices`, false);
-        notApplied.push(
-          `Preset filter ${key} = ${value} is not applied: the cube has only one-dimensional slices, so ${preset.dimension} cannot be split by ${key}. Every in-scope vehicle is shown.`,
-        );
-      } else {
+      if (findDimension(key)) narrowing.push({ key, values: [value], own: false });
+      else {
         add("invalid", `filter key "${key}" is not a dimension in config/dimensions.json, so it resolves against nothing`, false);
-        notApplied.push(
-          `Preset filter ${key} = ${value} is not applied: "${key}" is not a dimension in config/dimensions.json, and the cube has only one-dimensional slices. Every in-scope vehicle is shown.`,
-        );
+        notApplied.push(`Preset filter ${key} = ${value} is not applied: "${key}" is not a dimension in config/dimensions.json. The chart is not narrowed by it.`);
       }
     }
   }
 
+  // Where the rows come from. A pair slice is two-dimensional, so a view is narrowed by one dimension at most: its
+  // dataset's own filter first, otherwise the preset's first filter. A dataset whose filter cannot be applied draws
+  // nothing, since its base would be a different chart; a preset filter that cannot be applied leaves the chart
+  // un-narrowed and says so.
+  const breakdown = preset.dimension ?? entry?.live_dimensions[0];
+  let source: ViewSource | undefined = entry && breakdown && cubeDataset ? { dataset: cubeDataset, dimension: breakdown } : undefined;
+  const ordered = [...narrowing.filter((f) => f.own), ...narrowing.filter((f) => !f.own)];
+  ordered.forEach((f, index) => {
+    const wanted = `${f.key} = ${f.values.join(" or ")}`;
+    const pair = index === 0 && entry && breakdown ? findPair(entry.live_pairs ?? [], breakdown, f.key) : undefined;
+    if (pair && source) {
+      source = { ...source, filter: { ...pair, dimension: f.key, values: f.values } };
+      return;
+    }
+    const why =
+      index === 0
+        ? `it needs the ${breakdown} x ${f.key} pair slice, which this build does not carry`
+        : `the view is already narrowed by ${ordered[0].key}, and a pair slice narrows by one dimension only`;
+    if (f.own) {
+      add("blocked", `dataset "${preset.dataset}" is ${cubeDataset} narrowed to ${wanted}: ${why}`);
+      source = undefined;
+    } else {
+      add("blocked", `filter ${wanted}: ${why}`, false);
+      notApplied.push(`Preset filter ${wanted} is not applied: ${why}. The chart is not narrowed by it.`);
+    }
+  });
+
   const shape = inferShape(preset, dimension, measure);
   if (!RENDERED_SHAPES.has(shape)) add("blocked", `shape "${shape}" has no renderer in this tool`);
+  // A breakdown drawn frame by frame through time is a different picture from one period's distribution: nothing draws
+  // it yet, and drawing the period's total instead would not answer the question.
+  if (preset.animate_by) add("blocked", `"animate_by": "${preset.animate_by}" has no renderer in this tool: the ${shape} renderer draws one period at a time`);
 
   const status: PresetStatus = invalid.length > 0 ? "invalid" : blocked.length > 0 ? "blocked" : "live";
   const statusDisagreement =
@@ -137,7 +161,39 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
       ? undefined
       : `presets.json calls this preset "${preset.status}"; against this build it resolves as "${status}". One of the two is out of date.`;
 
-  return { invalid, blocked, blocking: [...invalid, ...blocked], preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure };
+  return {
+    invalid,
+    blocked,
+    blocking: [...invalid, ...blocked],
+    preventsRender,
+    notApplied,
+    status,
+    statusDisagreement,
+    shape,
+    dimension,
+    measure,
+    source: preventsRender.length === 0 ? source : undefined,
+  };
+}
+
+type Narrowing = { key: string; values: string[]; own: boolean };
+
+// The dataset in the cube that serves this one: itself, or for a dataset dimensions.json defines as another filtered,
+// that base. A manifest entry, and any note figure drawn from it, belongs to the dataset that is served.
+export function servedFrom(datasetId: string | undefined, manifest: Manifest): string | undefined {
+  if (!datasetId) return undefined;
+  if (manifest.datasets[datasetId]) return datasetId;
+  const ds = findDataset(datasetId);
+  return ds?.base && ds.filter && manifest.datasets[ds.base] ? ds.base : undefined;
+}
+
+// The live pair that splits one dimension by another, in either order, and which side of it the first one is.
+export function findPair(livePairs: string[], dimension: string, other: string): { pair: string; side: "a" | "b" } | undefined {
+  const forward = `${dimension}${PAIR_SEPARATOR}${other}`;
+  const backward = `${other}${PAIR_SEPARATOR}${dimension}`;
+  if (livePairs.includes(forward)) return { pair: forward, side: "a" };
+  if (livePairs.includes(backward)) return { pair: backward, side: "b" };
+  return undefined;
 }
 
 // The view a preset opens on: its first granularity option and its own period. The Explore page decides
