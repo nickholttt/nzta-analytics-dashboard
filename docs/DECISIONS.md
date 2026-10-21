@@ -553,3 +553,25 @@ New entries use this template:
   chart is affected (checked: no group in owner country, import status or segment other than
   `__UNDEFINED__` has its last vehicle before the trailing window).
 - Status: decided by Claude (unreviewed)
+
+## D-036 2026-10-21 — The concentration note says what a falling top-5 share can mean, not only one cause
+- Agent: claude, under D-027
+- Basis: this commit; `config/presets.json` and `src/pages/method.astro` on this branch; headless
+  screenshots of the `concentration` panel at 320px and 1280px on the built site.
+- Context: STATE known issue 4. The note ended "A falling line means more brands competing". A
+  falling top-5 share means brands outside the five hold more of the total. That can be new brands
+  arriving, or the brands already there splitting the market more evenly; the line cannot tell the
+  two apart. `/method` already says only "the largest groups hold less of the total".
+- Options considered: (1) Drop the sentence: the note would no longer help a non-analyst read the
+  direction of the line. (2) Match `/method` word for word ("the largest groups hold less of the
+  total"): accurate, but "groups" is the general term `/method` needs and reads oddly on a chart
+  titled for brands. (3) Say what a fall means and name both readings, without picking one.
+- Decision: (3). The sentence is now "A falling line means the largest brands hold less of the
+  market: more brands may be competing, or the same brands may be sharing it more evenly." The
+  question title "Is the market getting more crowded?" is unchanged: "crowded" covers both readings.
+  - After an independent review: the note now also says that in the early decades makes with no
+    match in the brand list count in the total but never take a place, which holds the line down.
+    `/method` already gives this recording effect; without it the note invited reading the whole line
+    as market behaviour (invariant 7). The sentence carries no figure, so it cannot drift.
+- Consequences: none outside the note. `/method` and METRICS.md needed no change.
+- Status: decided by Claude (unreviewed)
