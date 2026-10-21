@@ -173,8 +173,9 @@ export default function PresetPanel({
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
   const snapshotsNeeded = derived?.snapshots_needed;
-  // A ranking sums one window and greys no month, so the note on grey months stays off it.
-  const greyNote = guard > 0 && preventsRender.length === 0 && shape !== "league";
+  // Only a chart drawn month by month greys months. A ranking or a distribution sums one window and greys the whole
+  // chart or nothing, which its own unit line says, so the note on grey months stays off them.
+  const greyNote = guard > 0 && preventsRender.length === 0 && (shape === "mix" || shape === "trend");
 
   // Notes that state a figure are templated from the build; a plain note that carries one is flagged
   // rather than trusted, because it will drift the next time the data moves. The dataset definition is
