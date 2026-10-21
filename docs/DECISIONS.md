@@ -1178,3 +1178,39 @@ New entries use this template:
   first registered: 0, 3 ... 18, 25+). Not changed: on a filtered powertrain chart the mild hybrid coverage note gives
   the whole dataset's coverage, not light passenger vehicles' alone.
 - Status: decided by Claude (unreviewed)
+
+## D-054 2026-10-22 — The map: Stats NZ's coastline-clipped region outlines, refreshed by a script, offered on the Build page only
+- Agent: claude, CHECKPOINT queue item 10
+- Basis: branch `claude/geo-map`: `scripts/region-boundaries.mjs`, `public/geo/nz-regions.json`,
+  `src/components/GeoChart.tsx`, `config/presets.json` (`builder`); Stats NZ's ArcGIS items "REGC2023" and "Regional
+  Council 2025" (owner StatsNZGeospatial) and the data.govt.nz catalogue entries "Regional Council 2023 Clipped
+  (generalised)" and "Regional Council 2025 Clipped" (both CC BY 4.0), read on 2026-10-22; headless checks of `/build`
+  against the 2026-08 cube.
+- Context: item 10 asked for the fifth renderer, for region; a New Zealand region boundary file, with its source and
+  licence on record; and the Build page's "Regions" not-offered line turned into a note shown with region charts.
+- Options considered:
+  - Source: (1) Stats NZ's definitive Regional Council 2025 layer: CC BY 4.0 on its ArcGIS item, but its regions run
+    out to the 12-mile territorial limit (Auckland 16,156 km² against 4,940 km² of land), so the map's coastline would
+    sit in the sea. (2) Stats NZ's coastline-clipped 2023 layer on its own ArcGIS service ("REGC2023"): the same 17
+    region codes as 2025; the series is CC BY 4.0 on data.govt.nz, though the ArcGIS item states no licence of its
+    own: chosen. (3) Natural Earth (public domain): coarser, older names. (4) Stats NZ's Datafinder export: needs an
+    account, so no script can fetch it.
+  - Keeping it current: a script in a new top-level `scripts/` folder, run by hand, rather than a hand-made file. It
+    fetches the outlines, simplifies them for a chart a few hundred pixels wide, winds them as D3 expects, leaves off
+    the Chatham Islands (they lie across the 180th meridian, so a map fitted to them spans the globe), and refuses to
+    write unless every region matches `data/reference/tla_region.csv` by code and name.
+  - Where the map appears: (1) an Explore preset: D-024 cut the regional presets because the TLA is the owner's current
+    address, and bringing one back is the user's call. (2) The Build page only, with that reason as the region note:
+    chosen.
+  - What it measures: share over the period, which largely follows where people live. Registrations per resident need
+    population figures (`docs/METRICS.md`, Per capita), which the cube does not carry.
+  - Projection: transverse Mercator on 173°E, the central meridian of New Zealand's own NZTM2000.
+- Decision: as above. "Show the share of vehicles by owner's region" opens on the last 12 months, with the time row's
+  usual spans; the table beside the map is also the chart's text equivalent.
+- Consequences: the file is 75,957 bytes (16 regions, 4,155 points) and is fetched only by a map. The Chatham Islands
+  ("Area Outside Region", 4 vehicles in the last 12 months) and "Not recorded" are in the table, not on the map, and the
+  chart says so. Measured on the 2026-08 cube over the last 12 months: Auckland 44.3%, Canterbury 13.3%, Waikato 9.0%;
+  over all time Auckland holds 31.9%. Under the map: "Region outlines: Stats NZ, Regional Council 2023 (clipped), CC BY
+  4.0." That the ArcGIS copy carries the catalogue's licence is inferred: confirm. "Area Outside Region" is Stats NZ's
+  name for the Chatham Islands; a visitor-facing name would need a value-label setting in config, not built here.
+- Status: decided by Claude (unreviewed)
