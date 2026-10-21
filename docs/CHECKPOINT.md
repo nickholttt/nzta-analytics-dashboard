@@ -11,8 +11,13 @@ Last updated by claude on 2026-10-22
   - Item 3 (step 1b) is blocked: no source can be fetched unattended (`docs/DATA_SOURCES.md` §C).
   - Items 7, 9 (all but the visitor sessions) and 10 built on the UI stack as five pushed branches.
     Their review stopped at the account's spend limit, so their PRs are not open yet.
-  - Item 8: D-055 proposes how to deploy. Item 6 waits on the UI stack merging. Item 1 is on
+  - Item 8: D-055 proposed how to deploy. Item 6 waits on the UI stack merging. Item 1 is on
     8 November.
+- 2026-10-22, the user's answers: (1) step 1b waits for the Stats NZ Data Explorer, rechecked each
+  month (`docs/playbooks/check-monthly-run.md`); (2) deploy by D-055's option (C), without the
+  internal pages (D-056), now built: `claude/deploy-workflow` (the release step and `deploy.yml`,
+  stacked on #29) and the public build on `claude/deploy-proposal`; (3) the region map stays on the
+  Build page, checked at every time range and both widths.
 - Earlier: the UI is Claude's (D-027); the visitor site is local only until the gate (D-041);
   frozen-path work is built on branches before it (D-043); the Build page is D-044 to D-046.
 
@@ -40,11 +45,12 @@ Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
 
 ## Work queue (in order)
 
-1. **Review and open the five pushed UI branches.** Scope: an independent sub-agent review of the UI
-   commits from `864afed` to `claude/deploy-proposal` (the 2026-10-22 one stopped at the spend
-   limit); fix what is real; open the PRs stacked on #25: `explore-build-together`, `pair-views`,
-   `a11y-pass`, `geo-map`, `deploy-proposal`, each into the one before; then a notes commit with
-   their numbers. Done when: five PRs open and these notes list them.
+1. **Review and open the six pushed branches.** Scope: an independent sub-agent review (the
+   2026-10-22 one stopped at the spend limit) of the UI commits from `864afed` to
+   `claude/deploy-proposal` and of `claude/deploy-workflow` (two commits on #29); fix what is real;
+   open the UI PRs stacked on #25 (`explore-build-together`, `pair-views`, `a11y-pass`, `geo-map`,
+   `deploy-proposal`, each into the one before) and `deploy-workflow` into `claude/post-gate-fixes`;
+   then a notes commit with their numbers. Done when: six PRs open and these notes list them.
 2. **8 November 2026 gate run.** Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local
    `main` to `origin/main` first. Done when: green/built/committed reported. If clean, the freeze
    lifts.
@@ -56,10 +62,13 @@ Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
    each `public_copy` entry onto `config/dimensions.json` and drop the block (D-042); size and add
    the `import_status` pairs that "of [all / new / used] vehicles" needs on the Build page (one
    pair per dimension, a pipeline config change each), then widen the builder (D-044).
-6. **Step 1b, POST_GATE A2.** Waits on a source: question 1.
-7. **Item 8, deploy.** After items 2 and 4, with the user's choice on D-055 (question 2): the
-   workflow on a branch, then numbered console steps. Done when a preview URL serves `/` and
-   `/build` from a monthly run's cube.
+6. **Step 1b, POST_GATE A2.** Waits until the TPT series reaches Stats NZ's Data Explorer (the
+   user's choice); the monthly check looks each month. When it appears, plan the dataset.
+7. **Item 8, deploy.** Built (D-056). After items 2 to 4: give the user numbered console steps, one
+   at a time (Cloudflare Pages project for Direct Upload, an API token limited to Pages: Edit, the
+   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets), then run `deploy.yml` by hand. Done
+   when a `pages.dev` URL serves `/` and `/build` from a monthly run's cube, and first-load time is
+   measured there at phone width.
 8. **Item 9's remainder.** Visitor sessions (the user runs them: `docs/playbooks/visitor-test.md`);
    first-load time on the deployed site; first-load speed (STATE known issue 1): small first-paint
    files per chart, which `docs/CUBE_SCHEMA.md` already plans (`presets/{preset_id}.json`), or a
@@ -71,22 +80,9 @@ Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
 
 ## Questions for the user
 
-1. **Where step 1b's numbers come from.** Stats NZ's Aotearoa Data Explorer has no transport series
-   yet, and Infoshare has no API (`docs/DATA_SOURCES.md` §C). Options: (a) wait, rechecking the
-   Explorer each month; (b) you ask Stats NZ when the TPT tables reach the Explorer, and NZTA
-   whether it publishes monthly first registrations as a download; (c) a monthly manual download,
-   which ends the unattended pipeline. Recommendation: (b), with (a) meanwhile. Default: (a); step
-   1b, counts and cohort survival stay parked.
-2. **How to deploy (D-055).** (A) Cloudflare Pages builds from git, with the cube committed each
-   month; (B) a deploy workflow taking the newest 90-day cube artifact; (C) as (B), with the cube
-   also kept as a GitHub release. And: do `/status` and `/sense-check` ship publicly?
-   Recommendation: (C), without the internal pages. Default: nothing is set up; nothing deploys
-   before the gate in any case.
-3. **A region map on Explore?** D-024 took regional charts off Explore because the region is the
-   owner's current address. The map is on the Build page only, with that note. Recommendation: keep
-   it there. Default: Build page only.
+None open. The three questions of 2026-10-22 were answered the same day (Where we left off).
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Take queue item 1 first (review and open the five UI
+/start. Read `docs/STATE.md` and this file. Take queue item 1 first (review and open the six pushed
 branches). If it is on or after 8 November 2026, take item 2 (the gate run) first.

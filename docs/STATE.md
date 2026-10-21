@@ -30,14 +30,15 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   `geo-map`, `deploy-proposal`.
 - **Pipeline stack**, into `main`, unmerged until the gate (D-043): #26 `pr-checks`, #27
   `pair-slice-import-age` (POST_GATE A1), #28 `segment-group` (A3), #29 `post-gate-fixes` (item 5).
-  Checks green on Linux on 2026-10-22 (55 tests at #29, 48 at #27).
+  Checks green on Linux on 2026-10-22 (55 tests at #29, 48 at #27). Then `deploy-workflow`, pushed on
+  2026-10-22 **without a pull request yet**: the monthly build's cube release and `deploy.yml` (D-056).
 - All branch names above are `claude/...`. No PR has been merged since 2026-10-21.
 
 ## In progress
 
-- Claude: the five UI branches above wait on an independent review before their PRs open (the
-  global rule). The sub-agent review started on 2026-10-22 stopped when the account hit its monthly
-  spend limit, which resets at 1 pm NZDT. CHECKPOINT queue item 1.
+- Claude: the six branches above without pull requests wait on an independent review before they
+  open (the global rule). The sub-agent review started on 2026-10-22 stopped when the account hit
+  its monthly spend limit. CHECKPOINT queue item 1.
 - Pre-gate pipeline work is built and waiting on the 8 November gate (#26–#29).
 
 ## What the open branches add (unreviewed by the user)
@@ -54,7 +55,12 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   playbook. axe-core 4.10.3 (WCAG 2.1 A and AA): no violation on any page at 320px or 1280px.
 - `geo-map` (D-054): the map, the fifth renderer, from Stats NZ's clipped region outlines, offered
   on the Build page as "the share of vehicles by owner's region".
-- `deploy-proposal`: D-055, how to deploy, proposed only.
+- `deploy-proposal`: D-055 (how to deploy) and D-056 (the user's choice, option (C)); a public build
+  (`INTERNAL_PAGES=false`) with no link to `/status` or `/sense-check`; the monthly check's look for
+  step 1b's source.
+- `deploy-workflow`: the monthly build keeps each cube as a `cube-<snapshot>` release; `deploy.yml`
+  builds the public site from the newest cube and uploads it to Cloudflare Pages once the secrets
+  exist (D-056). Its cube step was run locally against this repository on 2026-10-22.
 
 ## Known issues
 
@@ -84,9 +90,11 @@ fixes are in D-028 to D-046.
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2). Work on
   them is built on branches from `main` and stays unmerged until then (D-043).
-- **Step 1b** (`registrations_flow`, POST_GATE A2) has no automatable source: Stats NZ's Aotearoa
-  Data Explorer carries no transport series, and Infoshare has no API (`docs/DATA_SOURCES.md` §C).
-- **Deploy** (item 8): D-055 needs the user's choice, then console setup.
+- **Step 1b** (`registrations_flow`, POST_GATE A2) waits until Stats NZ's Aotearoa Data Explorer
+  carries the TPT series; Infoshare has no API (`docs/DATA_SOURCES.md` §C). The user chose on
+  2026-10-22 to wait; the monthly check looks each month.
+- **Deploy** (item 8): built (D-056). After the gate and item 4, the user does the Cloudflare and
+  GitHub setup from numbered steps.
 - **Visitor tests** (item 9): the user picks the people (`docs/playbooks/visitor-test.md`).
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
