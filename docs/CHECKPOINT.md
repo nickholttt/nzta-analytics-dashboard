@@ -8,36 +8,15 @@ Last updated by claude on 2026-10-21
 - The user answered on 2026-10-19 (D-027): the UI comes back to Claude; agents may push their own
   branches; Gemini's extras stay as a clearly labelled sense-check area, and any part of no value
   is documented and deleted.
-- Done: `/inspector` replaced by an internal `/sense-check` page of 14 plain tables; the
-  international benchmark deleted, with its contents recorded in D-028.
-- Done: `model-leaderboard` blocked on step 1b again (D-029); blocked panels drop the horizon
-  toggle and unfillable notes; triage heading no longer claims 9 presets.
-- Done: caveats 1 and 7 say only what the data shows (D-030), checked against the raw 2026-08 pull.
-- Done: `/method` checked line by line against METRICS.md, config, the reference CSVs and the
-  renderers; thresholds now read from config; April 2020 figures re-measured from the cube (D-031).
-- Done: caveat 2's "shares hold up" checked against the 2026-08 and 2026-09 snapshots and found
-  wrong; caveat 2 and the share notes now say uneven scrappage skews older shares (D-032).
-- Done: METRICS.md's two-guards section re-measured on the 2026-08 cube; five figures corrected,
-  including the self-contradicting 0.29 percentile, which is also in frozen `config/measures.json` (D-033).
-- Done: `/method` explains event markers, clusters and scope, the "All other" line, line colours and
-  the three labels for values with no name, reading labels and caps from code and config (D-034).
-  The review found a renderer gap and two smaller issues, queued below.
-- Done: mix charts without `top_n` draw every group with vehicles in the drawn window, so segment
-  "Not recorded" has a line; `/method` updated in the same PR (D-035).
-- Done 2026-10-21: the `concentration` note names both readings of a falling top-5 share and the
-  unmatched-make effect on the early decades (D-036).
-- Done 2026-10-21: `brand-share` shows its 8 make-scoped events (D-037). Found while checking: the
-  `kgm-rename` mechanism disagrees with EVENTS_LAYER.md (frozen file), and a key row wraps at 320px.
-- Done 2026-10-21: `docs/EVENTS_LAYER.md`'s rendering rules describe the code as it runs (D-038).
-  Found while checking: event bands may spill past the chart's right edge, and one title is over
-  the 60-character limit (frozen file).
-- Done 2026-10-21: the mix key keeps each swatch on its name's line at 320px (`claude/key-row-wrap`).
-- Done 2026-10-21: event bands and rules stop at the chart's frame (`claude/event-band-clip`). Found
-  while checking: marker labels pile up at 320px on `powertrain-mix` with market-wide events shown.
-- Done 2026-10-21: marker labels never overlap and stay inside the frame, at 320px and 1280px
-  (`claude/marker-label-overlap`, D-039). Numbering can now differ between phone and desktop widths.
-- Done 2026-10-21: README describes the repo as it is; CLAUDE.md marks Cloudflare Pages and TanStack
-  Table as planned and points to D-014 for the UI built ahead of the build order (`claude/reconcile-docs`, D-040).
+- Done 2026-10-19 to 2026-10-21, each in its own open PR and decision record (D-028 to D-040; PRs
+  #2 to #16, listed below): `/sense-check` replaces `/inspector`; `model-leaderboard` blocked on 1b;
+  caveats 1, 2 and 7 and `/method` checked against the data and code; METRICS.md figures re-measured;
+  mix charts draw every group; `concentration` and `brand-share` notes and events; EVENTS_LAYER.md
+  rendering rules match the code; mix key, event bands and marker labels fixed at 320px (marker
+  numbering can now differ between phone and desktop, D-039); README, CLAUDE.md and AGENTS.md
+  describe the repo as it is (D-040).
+- Still frozen until the gate, found along the way: the `kgm-rename` mechanism, a 63-character event
+  title, and the 0.29 percentile comment in `config/measures.json` (queue item 6).
 
 ## Open pull requests waiting on the user
 
