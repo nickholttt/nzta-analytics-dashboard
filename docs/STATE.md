@@ -21,50 +21,23 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 | Branch | Where | What |
 |---|---|---|
-| `main` | local `ba304d2`, origin `e3246bb` | local is 1 commit behind (the bot's 2026-09 snapshot) |
-| `ui/explore` | origin, pushed 2026-10-19 unchanged | 15 commits on top of `ba304d2`: shared context, Claude's design step, Gemini's UI steps 2–5 and extras |
-| `claude/shared-agent-context` | local only | already contained in `ui/explore` |
-| `claude/bootstrap` | origin | notes refresh and the user's answers (docs only). PR into `ui/explore` |
-| `claude/sense-check` | origin | Gemini's extras fenced into `/sense-check` (D-028). PR into `ui/explore`, stacked on `claude/bootstrap` |
-| `claude/model-leaderboard` | origin | `model-leaderboard` blocked on step 1b (D-029), blocked-panel tidy, triage heading. PR into `claude/sense-check` |
-| `claude/caveats-wording` | origin | caveats 1 and 7 (D-030). PR into `claude/model-leaderboard` |
-| `claude/method-page` | origin | `/method` checked against METRICS.md, config and code (D-031). PR into `claude/caveats-wording` |
-| `claude/caveat-scrappage` | origin | caveat 2 and share notes: uneven scrappage skews shares (D-032). PR into `claude/method-page` |
-| `claude/metrics-april-2020` | origin | METRICS.md April 2020 and threshold figures re-measured (D-033). PR into `claude/caveat-scrappage` |
-| `claude/method-chart-key` | origin | `/method` explains event markers, "All other" and unnamed values (D-034). PR into `claude/metrics-april-2020` |
-| `claude/mix-all-groups` | origin | mix charts without `top_n` draw every group in the drawn window (D-035). PR into `claude/method-chart-key` |
-| `claude/concentration-note` | origin | `concentration` note names both readings of a falling line and the unmatched-make effect (D-036). PR into `claude/mix-all-groups` |
-| `claude/brand-share-events` | origin | `brand-share` shows its 8 make-scoped events (D-037). PR into `claude/concentration-note` |
-| `claude/events-layer-rendering` | origin | `docs/EVENTS_LAYER.md` rendering rules describe the code (D-038). PR into `claude/brand-share-events` |
-| `claude/key-row-wrap` | origin | mix key keeps each swatch on its name's line at 320px. PR into `claude/events-layer-rendering` |
-| `claude/event-band-clip` | origin | event bands and rules clipped to the chart's frame. PR into `claude/key-row-wrap` |
-| `claude/marker-label-overlap` | origin | marker labels laid out in pixels, never overlapping, kept inside the frame (D-039). PR into `claude/event-band-clip` |
-| `claude/reconcile-docs` | origin | README and CLAUDE.md reconciled with the repo (D-040). PR into `claude/marker-label-overlap` |
+| `main` | origin `e3246bb` | the pipeline and the bot's 2026-09 snapshot; `ui/explore` not merged into it |
+| `ui/explore` | origin `3c10716` | everything below plus PRs #1–#16, merged by Claude at the user's request on 2026-10-21 |
+| `claude/notes-after-merge` | this branch | these notes after the merge |
 
-No CI runs on pull requests; the only workflow is the monthly build.
+PRs #1–#16 were merged into `ui/explore` in order with merge commits; their 16 remote branches are
+deleted. Local copies of those branches and the local `ui/explore` (behind origin) were left as they
+were: fast-forwarding local `ui/explore` was refused by the session's permission check. No CI runs on
+pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's sixteen branches are in open pull requests waiting on the user, merged
-  in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
-  (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
-  (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
-  (`claude/model-leaderboard`), [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
-  (`claude/caveats-wording`), [#5](https://github.com/nickholttt/nzta-analytics-dashboard/pull/5) (`claude/method-page`),
-  [#6](https://github.com/nickholttt/nzta-analytics-dashboard/pull/6) (`claude/caveat-scrappage`), then
-  [#7](https://github.com/nickholttt/nzta-analytics-dashboard/pull/7) (`claude/metrics-april-2020`), then
-  [#8](https://github.com/nickholttt/nzta-analytics-dashboard/pull/8) (`claude/method-chart-key`), then
-  [#9](https://github.com/nickholttt/nzta-analytics-dashboard/pull/9) (`claude/mix-all-groups`), then
-  [#10](https://github.com/nickholttt/nzta-analytics-dashboard/pull/10) (`claude/concentration-note`), then
-  [#11](https://github.com/nickholttt/nzta-analytics-dashboard/pull/11) (`claude/brand-share-events`), then
-  [#12](https://github.com/nickholttt/nzta-analytics-dashboard/pull/12) (`claude/events-layer-rendering`), then
-  [#13](https://github.com/nickholttt/nzta-analytics-dashboard/pull/13) (`claude/key-row-wrap`), then
-  [#14](https://github.com/nickholttt/nzta-analytics-dashboard/pull/14) (`claude/event-band-clip`), then
-  [#15](https://github.com/nickholttt/nzta-analytics-dashboard/pull/15) (`claude/marker-label-overlap`), then
-  [#16](https://github.com/nickholttt/nzta-analytics-dashboard/pull/16) (`claude/reconcile-docs`).
+- Nobody is editing. No open pull requests apart from this branch's.
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
+- Waiting on the user: what "the interface the user will actually see" covers (`docs/CHECKPOINT.md`
+  questions 1–3) before building it.
 
-## What `ui/explore` contains (unreviewed by the user)
+## What `ui/explore` contains (merged 2026-10-21; the user has not reviewed the pages)
 
 Pages `/`, `/method`, `/caveats`, and (on `claude/sense-check`) the internal `/sense-check`, which
 replaces `/inspector`. Explore canon of 9 presets in three tiers, URL state and permalinks, mobile
@@ -131,7 +104,7 @@ Pages and TanStack Table are planned, that the UI was built ahead of the build o
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- Review and merge of the sixteen open pull requests (`docs/CHECKPOINT.md`).
+- Answers to `docs/CHECKPOINT.md` questions 1–3 on the visitor-facing interface.
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
