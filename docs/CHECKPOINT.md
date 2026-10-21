@@ -31,6 +31,7 @@ Last updated by claude on 2026-10-21
 - Done 2026-10-21: `docs/EVENTS_LAYER.md`'s rendering rules describe the code as it runs (D-038).
   Found while checking: event bands may spill past the chart's right edge, and one title is over
   the 60-character limit (frozen file).
+- Done 2026-10-21: the mix key keeps each swatch on its name's line at 320px (`claude/key-row-wrap`).
 
 ## Open pull requests waiting on the user
 
@@ -57,6 +58,8 @@ Merge them in this order:
     #10 is merged.
 12. `claude/events-layer-rendering`: D-038, docs only. Into `claude/brand-share-events`; same base
     change once #11 is merged.
+13. `claude/key-row-wrap`: CSS only, no decision record. Into `claude/events-layer-rendering`; same
+    base change once #12 is merged.
 
 PR 1: https://github.com/nickholttt/nzta-analytics-dashboard/pull/1 · PR 2: https://github.com/nickholttt/nzta-analytics-dashboard/pull/2 ·
 PR 3: https://github.com/nickholttt/nzta-analytics-dashboard/pull/3 ·
@@ -68,14 +71,13 @@ PR 8: https://github.com/nickholttt/nzta-analytics-dashboard/pull/8 ·
 PR 9: https://github.com/nickholttt/nzta-analytics-dashboard/pull/9 ·
 PR 10: https://github.com/nickholttt/nzta-analytics-dashboard/pull/10 ·
 PR 11: https://github.com/nickholttt/nzta-analytics-dashboard/pull/11 ·
-PR 12: https://github.com/nickholttt/nzta-analytics-dashboard/pull/12
+PR 12: https://github.com/nickholttt/nzta-analytics-dashboard/pull/12 ·
+PR 13: https://github.com/nickholttt/nzta-analytics-dashboard/pull/13
 
 ## Work queue (in order)
 
-1. **Small `ui/explore` fixes**, one PR each, stacked on #12:
-   - The mix key row that wraps at 320px (STATE known issue 4). Done when no swatch sits alone on a
-     line in `brand-share`'s key at 320px, other keys unchanged at 320px and 1280px.
-   - Event bands clipped to the chart's time axis (known issue 5). Start with a screenshot of a
+1. **Small `ui/explore` fix**, stacked on #13:
+   - Event bands clipped to the chart's time axis (known issue 4). Start with a screenshot of a
      market-wide chart with events shown; if nothing spills, record that and close the issue.
 2. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
@@ -90,8 +92,8 @@ PR 12: https://github.com/nickholttt/nzta-analytics-dashboard/pull/12
    is 0.55). Done when the comment matches METRICS.md.
    Separately, one commit: settle `kgm-rename`'s mechanism against EVENTS_LAYER.md (STATE known
    issue 3); the registry merge means it marks no artefact, so the doc's rename example may be the
-   part to change. Same commit or the next: shorten the 63-character title (known issue 6).
-7. **Reconcile docs** (STATE "Docs that contradict code" 7–9): README, build-order wording, stack.
+   part to change. Same commit or the next: shorten the 63-character title (known issue 5).
+7. **Reconcile docs** (STATE "Docs that contradict code" 6–8): README, build-order wording, stack.
 8. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
    path, checked 2026-10-19 with `git diff --stat origin/main...ui/explore` on the frozen paths).
 
@@ -101,5 +103,5 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Check whether the twelve PRs were merged. If it is on or
+/start. Read `docs/STATE.md` and this file. Check whether the thirteen PRs were merged. If it is on or
 after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 1.
