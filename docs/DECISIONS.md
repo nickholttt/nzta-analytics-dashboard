@@ -575,3 +575,36 @@ New entries use this template:
     as market behaviour (invariant 7). The sentence carries no figure, so it cannot drift.
 - Consequences: none outside the note. `/method` and METRICS.md needed no change.
 - Status: decided by Claude (unreviewed)
+
+## D-037 2026-10-21 — brand-share shows its make-scoped events
+- Agent: claude, under D-027
+- Basis: this commit; `config/presets.json`, `src/lib/events.ts`, `src/components/MixChart.tsx` and
+  `public/data/events.json` (snapshot 2026-08-31) on this branch; headless screenshots of
+  `brand-share` at 320px and 1280px, default 10 years, all time and parent group, with the event list
+  expanded.
+- Context: STATE known issue 3. `brand-share` had no `events: true`, so the 8 published events scoped
+  to `make` (Tesla 2017-02, Toyota agency model 2018-03, MG 2019-04, Holden Commodore 2019-12, Holden
+  retired 2021-01, BYD entry 2022-07, KGM rename 2024-03, BYD range 2026-01) appeared on no chart. The
+  only other live chart on `make` is `concentration`, a trend of one derived line; `TrendChart` draws
+  no events.
+- Options considered: (1) Leave them off: the agency-model measurement warning, which exists so a
+  reader does not take Toyota's 2018 step as buying behaviour (invariant 7), would never be shown.
+  (2) Turn them on and check the markers fit before deciding. (3) Show only events for makes with a
+  line of their own: needs a renderer change, and would hide the Holden exit, which is part of why
+  "All other" moves.
+- Decision: (2), then on. All 8 fall inside the default 10-year window and draw as 8 separate
+  markers; lanes keep the labels apart at 320px. On all time the axis spans 1912 to 2026, so events
+  less than about 27 months apart merge even under the cap of 8: 4 markers, "1 (3)" (Tesla, Toyota,
+  MG), "2 (2)" (both Holden), "3 (2)" (BYD entry, KGM) and "4" (BYD range). Every event keeps its own
+  rule and list entry. The Toyota rule is dashed and
+  its entry carries the measurement warning, including on all time, where it shares a label with two
+  supply events. Under the parent group granularity no marker shows,
+  because no published event is scoped to `brand_group`. No console errors, no sideways scroll.
+  - After an independent review: the first draft said nothing clusters on all time; the screenshot
+    shows 4 markers, as above.
+- Consequences: Holden, MG, Tesla and KGM have no line of their own in the default view, so their
+  markers point at changes inside "All other"; each entry in the list names the brand. `kgm-rename`
+  is `mix` in `events.csv`, while EVENTS_LAYER.md calls a brand renaming `measurement`; the registry
+  already merges SSANGYONG and KG MOBILITY into KGM, so the chart shows no step either way, and its
+  summary says so. The file is frozen until the 8 November gate (STATE known issue).
+- Status: decided by Claude (unreviewed)

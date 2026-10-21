@@ -26,6 +26,8 @@ Last updated by claude on 2026-10-21
   "Not recorded" has a line; `/method` updated in the same PR (D-035).
 - Done 2026-10-21: the `concentration` note names both readings of a falling top-5 share and the
   unmatched-make effect on the early decades (D-036).
+- Done 2026-10-21: `brand-share` shows its 8 make-scoped events (D-037). Found while checking: the
+  `kgm-rename` mechanism disagrees with EVENTS_LAYER.md (frozen file), and a key row wraps at 320px.
 
 ## Open pull requests waiting on the user
 
@@ -48,6 +50,8 @@ Merge them in this order:
    merged.
 10. `claude/concentration-note`: D-036. Into `claude/mix-all-groups`; same base change once #9 is
     merged.
+11. `claude/brand-share-events`: D-037. Into `claude/concentration-note`; same base change once
+    #10 is merged.
 
 PR 1: https://github.com/nickholttt/nzta-analytics-dashboard/pull/1 · PR 2: https://github.com/nickholttt/nzta-analytics-dashboard/pull/2 ·
 PR 3: https://github.com/nickholttt/nzta-analytics-dashboard/pull/3 ·
@@ -57,13 +61,13 @@ PR 6: https://github.com/nickholttt/nzta-analytics-dashboard/pull/6 ·
 PR 7: https://github.com/nickholttt/nzta-analytics-dashboard/pull/7 ·
 PR 8: https://github.com/nickholttt/nzta-analytics-dashboard/pull/8 ·
 PR 9: https://github.com/nickholttt/nzta-analytics-dashboard/pull/9 ·
-PR 10: https://github.com/nickholttt/nzta-analytics-dashboard/pull/10
+PR 10: https://github.com/nickholttt/nzta-analytics-dashboard/pull/10 ·
+PR 11: https://github.com/nickholttt/nzta-analytics-dashboard/pull/11
 
 ## Work queue (in order)
 
-1. **Small `ui/explore` fixes**, one PR each: whether `brand-share` gets `events: true` (known
-   issue 3; 8 published make-scoped events, all 2017 to 2026, would fall in its 10-year window);
-   `docs/EVENTS_LAYER.md` rendering rules brought into line with the code (known issue 4).
+1. **Small `ui/explore` fixes**, one PR each: `docs/EVENTS_LAYER.md` rendering rules brought into
+   line with the code (STATE known issue 4); the mix key row that wraps at 320px (known issue 5).
 2. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
    - Done when: green/built/committed reported. If clean, the freeze lifts.
@@ -75,7 +79,10 @@ PR 10: https://github.com/nickholttt/nzta-analytics-dashboard/pull/10
    Separately, one commit: correct `$min_share_of_trailing_median_comment` in `config/measures.json`
    to the D-033 figures (1st percentile 0.67 among months that clear 200; next-lowest after April 2020
    is 0.55). Done when the comment matches METRICS.md.
-7. **Reconcile docs** (STATE "Docs that contradict code" 5–7): README, build-order wording, stack.
+   Separately, one commit: settle `kgm-rename`'s mechanism against EVENTS_LAYER.md (STATE known
+   issue 3); the registry merge means it marks no artefact, so the doc's rename example may be the
+   part to change.
+7. **Reconcile docs** (STATE "Docs that contradict code" 6–8): README, build-order wording, stack.
 8. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
    path, checked 2026-10-19 with `git diff --stat origin/main...ui/explore` on the frozen paths).
 
@@ -85,5 +92,5 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Check whether the ten PRs were merged. If it is on or
+/start. Read `docs/STATE.md` and this file. Check whether the eleven PRs were merged. If it is on or
 after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 1.

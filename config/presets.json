@@ -116,6 +116,7 @@
           "dimension": "make",
           "period": "10y",
           "top_n": 10,
+          "events": true,
           "granularity_options": [
             {
               "id": "make",
