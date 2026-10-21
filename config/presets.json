@@ -90,9 +90,10 @@
         },
         "top_n": {
           "make": 10,
-          "parent_group": 14
+          "parent_group": 14,
+          "built_in": 10
         },
-        "$top_n_comment": "The values that keep their own line on a mix chart; the rest become one remainder, which also takes the reserved tokens. make and parent_group as brand-share uses. built_in has no cap, although it has 46 values in the 2026-09 cube: its country is not recorded for almost every vehicle first registered before about 1986, and a remainder would show that as 'All other' near 100%.",
+        "$top_n_comment": "The values that keep their own line on a mix chart; the rest become one remainder, All other. Reserved tokens (not recorded, no reference match) keep their own grey line and never join it (D-046). make and parent_group as brand-share uses. built_in is capped at 10 of its 46 values in the 2026-09 cube: its country is not recorded for almost every vehicle first registered before about 1986, and that gap shows as its own Not recorded line.",
         "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every group shares, but groups leave the register at different rates, so older months lean towards groups whose vehicles stay registered longer."
       },
       {

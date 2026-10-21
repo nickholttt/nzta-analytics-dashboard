@@ -29,6 +29,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/pipeline-branch-rule` | origin | AGENTS.md rule 2 exception for branches before the gate (D-043). PR #20 into `claude/explore-copy-controls` |
 | `claude/sentence-builder` | origin | the Build page `/build` (D-044). PR #21 into `claude/pipeline-branch-rule` |
 | `claude/builder-league` | origin | a 12-month brand ranking on `/build` (D-045). PR #22 into `claude/sentence-builder` |
+| `claude/reserved-values` | origin | reserved values on their own line on capped mix charts (D-046). PR #23 into `claude/builder-league` |
 
 PRs #1–#16 were merged into `ui/explore` in order with merge commits; their 16 remote branches are
 deleted. Local copies of those branches and the local `ui/explore` (behind origin) were left as they
@@ -40,7 +41,8 @@ pull requests; the only workflow is the monthly build.
 - Claude: the visitor-facing site (D-041), local only until the 8 November gate. Open PRs #17 (notes),
   #18 (`claude/public-explore`) stacked on it, #19 (`claude/explore-copy-controls`) on that, #20 (the
   branch rule, D-043) on that, #21 (`claude/sentence-builder`, the Build page, D-044) on that, and #22
-  (`claude/builder-league`, the 12-month ranking, D-045) on that.
+  (`claude/builder-league`, the 12-month ranking, D-045) on that, and #23 (`claude/reserved-values`,
+  D-046) on that.
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (merged 2026-10-21; the user has not reviewed the pages)
@@ -69,11 +71,10 @@ On `ui/explore`, found 2026-10-19 by reading the code:
 4. `src/components/PresetPanel.tsx` hides the time row when `preset.dataset !== "used_imports"`: a
    dataset id in code, against invariant 1 (found 2026-10-21, D-042). No live preset uses that
    dataset; move the rule into config when a preset does.
-5. On a mix chart with `top_n`, `MixChart` folds the reserved values ("Not recorded", "No reference
-   match") into "All other" (`src/components/MixChart.tsx`, the `kept` and `nFor` lines). On country
-   where built that turned an unrecorded era into "All other" near 100%, so the builder leaves it
-   uncapped (D-044). `brand-share` on all time folds unmatched makes the same way (1975: 608 unmatched
-   against Ford's 725, measured 2026-10-21). Unchanged; queued in CHECKPOINT.
+Fixed on `claude/reserved-values` (D-046): a capped mix chart draws "Not recorded" and "No reference
+match" as their own grey line, as uncapped charts did, instead of folding them into "All other"
+(formerly known issue 5). On `brand-share` all time, "All other"'s rolling peak falls from 92.4% to 74.7%;
+the builder caps country where built at 10 again. Uncapped charts' SVG is identical before and after.
 
 Fixed on `claude/builder-league` (D-045): the time row offers a preset's own period and its
 `ranking_period` wherever they make it a league, so a league chart can always return to its ranking

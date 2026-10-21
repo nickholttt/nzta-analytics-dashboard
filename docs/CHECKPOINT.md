@@ -26,8 +26,11 @@ Last updated by claude on 2026-10-21
 - 2026-10-21: builder PR B, PR #22 (D-045). "12-month ranking" on `/build` for brand; league presets keep
   their ranking (former STATE known issue 1). Manufacturer group does not rank: `dimensions.json` calls it
   medium cardinality. An independent review found 6 points, all addressed.
+- 2026-10-21: PR #23 (D-046). Capped mix charts draw "Not recorded" and "No reference match" as their own
+  grey line, not inside "All other" (former STATE known issue 5); the builder caps country where built at 10.
+  It changes `brand-share` on Explore: a "No reference match" row and line; uncapped charts are unchanged.
 - Still frozen until the gate, found along the way: the `kgm-rename` mechanism, a 63-character event
-  title, and the 0.29 percentile comment in `config/measures.json` (queue item 6).
+  title, and the 0.29 percentile comment in `config/measures.json` (queue item 5).
 
 ## Open pull requests waiting on the user
 
@@ -43,24 +46,21 @@ Last updated by claude on 2026-10-21
    of the PR. Into `claude/pipeline-branch-rule`.
 6. #22 `claude/builder-league`: D-045. A 12-month brand ranking on `/build`, and league presets keep their
    ranking. Into `claude/sentence-builder`.
+7. #23 `claude/reserved-values`: D-046. Reserved values keep their own line on capped mix charts; the builder
+   caps country where built. Into `claude/builder-league`.
 
 ## Work queue (in order)
 
-1. **Reserved values in "All other"** (STATE known issue 5): decide whether a capped mix chart draws
-   "Not recorded" and "No reference match" as their own grey line instead of folding them into "All
-   other". It changes `brand-share` on Explore, so one PR with before and after screenshots of every mix
-   chart, and a decision record that supersedes the fold. If it lands, the builder can cap country where
-   built again.
-2. **8 November 2026 gate run.**
+1. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
    - Done when: green/built/committed reported. If clean, the freeze lifts.
-   From item 3 on, the work may be built before the gate on branches from `main` with PRs into `main`
+   From item 2 on, the work may be built before the gate on branches from `main` with PRs into `main`
    left unmerged until the gate passes (D-043); the gate run itself is still checked on its day.
-3. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
+2. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
    Unblocks `used-import-age` and `age-distribution-moving-hole`.
-4. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
-5. **POST_GATE A3**: promote `segment_group`.
-6. **POST_GATE B1–B3**: the three logged build fixes, one commit.
+3. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
+4. **POST_GATE A3**: promote `segment_group`.
+5. **POST_GATE B1–B3**: the three logged build fixes, one commit.
    Separately, one commit: move each `public_copy` entry in `config/presets.json` onto its dataset or
    dimension in `config/dimensions.json` (a public definition, label or note) and drop the block (D-042).
    Separately, one commit: correct `$min_share_of_trailing_median_comment` in `config/measures.json`
@@ -75,7 +75,7 @@ Last updated by claude on 2026-10-21
    Separately, one commit: settle `kgm-rename`'s mechanism against EVENTS_LAYER.md (STATE known
    issue 2); the registry merge means it marks no artefact, so the doc's rename example may be the
    part to change. Same commit or the next: shorten the 63-character title (known issue 3).
-7. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
+6. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
    path, checked 2026-10-19 with `git diff --stat origin/main...ui/explore` on the frozen paths).
 
 ## Questions for the user
@@ -84,5 +84,6 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Take queue item 1 (reserved values in "All other") on a `claude/` branch
-stacked on #22. If it is on or after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first.
+/start. Read `docs/STATE.md` and this file. If it is on or after 8 November 2026, take queue item 1 (the gate
+run, `docs/playbooks/check-monthly-run.md`) first. Otherwise take queue item 2 (POST_GATE A1) on a `claude/`
+branch cut from `main`, with its PR into `main` left unmerged until the gate passes (D-043).
