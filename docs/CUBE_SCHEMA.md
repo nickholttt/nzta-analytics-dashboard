@@ -22,15 +22,15 @@ fixed in this document or anywhere else; see *Live dimensions*.
     {dataset}/{dimension}.parquet       # 1-D slices: one file per live dimension
   events.json                           # verified events only
   pairs/
-    {dataset}/{dim_a}__{dim_b}.parquet  # later build step: only pairs used by filters
+    {dataset}/{dim_a}__{dim_b}.parquet  # 2-D slices: only the pairs config/pipeline.json names
   presets/
     {preset_id}.json                    # later build step: fully resolved, for first paint
   reference/
     brand_registry.json                 # later build step: for the methodology panel
 ```
 
-Build step 1 emits `manifest.json`, `cube/registrations_surviving/` and
-`events.json`.
+Build step 1 emits `manifest.json`, `cube/registrations_surviving/`,
+`pairs/registrations_surviving/` and `events.json`.
 
 Pipeline state lives outside `/public/data` and is committed to the repo:
 
@@ -115,7 +115,39 @@ never opened. Start with these and add on demand:
 
 `powertrain__segment`, `powertrain__region`, `powertrain__import_status`,
 `make__powertrain`, `owner_country__segment`, `built_in__make`,
-`import_status__segment`
+`import_status__segment`, `import_status__age_at_registration_band`
+
+Each dataset's `pairs` in `config/pipeline.json` lists the pairs a build
+emits, as `[dim_a, dim_b]`; the list above is what may be added. Emitted
+today: `import_status__age_at_registration_band`, which serves `used_imports`
+and `nz_new` (`registrations_surviving` filtered by import status) by age
+when first registered here. A pair is live in a run when both of its
+dimensions are live, and `manifest.json` lists the live ones per dataset as
+`live_pairs`, which the site reads rather than assuming a pair exists. A
+pair whose dimension is not live waits, as the dimension does, and is listed
+under `not_live_pairs` with a warning. An entry that is not two different
+dimension ids, a pair listed twice in either order, or a dimension the
+dataset cannot derive aborts the run.
+
+### Pair slice schema
+
+| column | type | notes |
+|---|---|---|
+| `month` | date | as in a 1-D slice |
+| `a_value` | string | the value of `dim_a`, or a reserved token |
+| `b_value` | string | the value of `dim_b`, or a reserved token |
+| `n` | int32 | count |
+| `denominator` | int32 | dataset total for that month, repeated: the same as in a 1-D slice |
+| `fc_sum`, `fc_n`, `fc_eligible_n` | | as in a 1-D slice |
+
+Rows are sorted by `month`, then `a_value`, then `b_value`. A pair carries
+the same vehicles as its 1-D slices: summed over `b_value` it gives
+`dim_a`'s slice, and summed over `a_value` it gives `dim_b`'s, row for row
+in `n`, `denominator`, `fc_n` and `fc_eligible_n`. `fc_sum` is rounded per
+row, so a sum of a pair's `fc_sum` matches the slice's only to within that
+rounding. The denominator is the whole dataset's month, not the filtered
+subset's, so a filtered share is computed in the browser: `n` over the sum
+of `n` for the same `month` and filter value.
 
 ## manifest.json
 
@@ -145,6 +177,8 @@ never opened. Start with these and add on demand:
       "months": 1195,
       "live_dimensions": ["powertrain", "make", "..."],
       "not_live": { "imported_from": "does not apply to this dataset" },
+      "live_pairs": ["import_status__age_at_registration_band"],
+      "not_live_pairs": {},
       "unmapped_rates": { "make": 0.0062, "powertrain": 0.0 },
       "unmapped_guard": {
         "make": {
@@ -284,6 +318,12 @@ guard would trip on them. But the whole run dilutes anything new: at the
 registrations, so a new brand missing from `brand_registry.csv` could
 reach that scale unnoticed. The trailing basis catches it.
 
+Pairs:
+
+- A dataset's `pairs` in `config/pipeline.json` holds an entry that is not
+  two different dimension ids, lists a pair twice in either order, or names
+  a dimension the dataset cannot derive.
+
 Events:
 
 - A verified event has a scope outside the enum in `EVENTS_LAYER.md`, a
@@ -313,6 +353,8 @@ is worse than one that is visibly stale.
   rises every year by construction; a changed vehicle year is the signal.
 - A dimension that was not live last run still exceeds its unmapped
   threshold, or lacks a reference file, and stays excluded.
+- A configured pair waits because one of its dimensions is not live this
+  run. It is listed under `not_live_pairs`.
 - `data/snapshots/YYYY-MM.parquet` already exists with different content.
   The first observation is kept.
 - The payload exceeds the size budget.
