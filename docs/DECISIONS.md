@@ -826,3 +826,26 @@ New entries use this template:
     M". The `.panel-anchor` and `.badge.copied` styles, now unused, are removed. Not changed: `preset.dataset !== "used_imports"` in
   `PresetPanel.tsx` names a dataset in code (invariant 1), found while reading; listed in STATE.
 - Status: decided by Claude (unreviewed)
+
+## D-043 2026-10-21 — Frozen-path work may be built on branches before the gate, kept off main until it passes
+- Agent: user (the rule), claude (the terms)
+- Basis: the user's "yes" on 2026-10-21 to CHECKPOINT question 1 ("may pipeline work (POST_GATE A1–A3)
+  be built and tested on `claude/` branches before 8 November, kept off `main` until the gate passes?
+  ... no local `pipeline run`"), after "Nov 8 is just the verification" (D-041).
+- Context: AGENTS.md hard rule 2 froze `pipeline/`, workflows, the frozen configs, reference data,
+  schema, tests and the cube schema until the 8 November run passes, so that the gate verifies the code
+  that ran on 8 October. The monthly Action runs `main` only.
+- Options considered: (1) keep the freeze: the four hidden charts and the builder's later options wait
+  until after 8 November. (2) Allow the work on branches, unmerged until the gate passes: the Action keeps
+  running exactly what ran on 8 October, so the gate still verifies it. (3) Allow merging to `main`
+  before the gate: the 8 November run would test new code, and the gate would no longer mean two clean
+  runs of the same pipeline.
+- Decision: (2). Branches are cut from `main` (the pipeline's home), not from `ui/explore`, and their
+  PRs into `main` stay unmerged until the gate passes; nothing on a frozen path reaches `main` or
+  `ui/explore` before then. Tests and `pipeline build <saved pull> --dry-run` may run locally (they write
+  only gitignored `data/staging/`, AGENTS.md); `pipeline run` and `init-schema` still may not, and golden
+  changes still follow rule 4 (deliberate, one cube change per commit, diff shown to the user).
+- Consequences: AGENTS.md rule 2 carries the exception. POST_GATE A1–A3 and B1–B3 can be ready for
+  review before 8 November. UI work that needs a new slice waits for its pipeline PR to merge after the
+  gate, or is built against a dry-run cube and marked so.
+- Status: user decided the rule; terms decided by Claude (unreviewed)
