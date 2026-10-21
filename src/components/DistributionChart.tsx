@@ -102,7 +102,10 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
         {heading} · {model.share ? "share" : "vehicles"}, {monthLabel(model.win.from)} to {monthLabel(model.win.to)} ·{" "}
         {model.denominator.toLocaleString()} vehicles{model.suppressed ? `, greyed: under ${minDenominator}` : ""}
       </p>
-      <PlotFigure render={render} />
+      <PlotFigure
+        render={render}
+        label={`Bar chart, ${spanPeriod(model.win.from, model.win.to)}: the ${model.share ? "share" : "number"} of vehicles by ${heading.toLowerCase()}, one bar for each band.`}
+      />
     </>
   );
 }

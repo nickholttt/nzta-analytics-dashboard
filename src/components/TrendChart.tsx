@@ -11,7 +11,7 @@ import { findDerived } from "../lib/config";
 import type { Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { derivedSeries } from "../lib/derived";
-import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthRange, periodWindow } from "../lib/measures";
+import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, periodWindow } from "../lib/measures";
 import { monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
 import {
@@ -165,7 +165,10 @@ export function TrendChart({ preset, rows, manifest, minDenominator, collapseFra
   return (
     <>
       <p className="chart-unit">{share ? "Share of the month's vehicles" : "Vehicles"}</p>
-      <PlotFigure render={render} />
+      <PlotFigure
+        render={render}
+        label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: ${derived ? derived.label : name.toLowerCase()}, month by month.`}
+      />
     </>
   );
 }
