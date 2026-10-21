@@ -27,6 +27,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/public-explore` | origin | `/` for visitors, diagnostics on `/status` (D-041). PR #18 into `claude/notes-after-merge` |
 | `claude/explore-copy-controls` | origin | one row of time options, plain visitor wording, `public_copy` (D-042). PR #19 into `claude/public-explore` |
 | `claude/pipeline-branch-rule` | origin | AGENTS.md rule 2 exception for branches before the gate (D-043). PR #20 into `claude/explore-copy-controls` |
+| `claude/sentence-builder` | origin | the Build page `/build` (D-044). PR #21 into `claude/pipeline-branch-rule` |
 
 PRs #1–#16 were merged into `ui/explore` in order with merge commits; their 16 remote branches are
 deleted. Local copies of those branches and the local `ui/explore` (behind origin) were left as they
@@ -36,7 +37,8 @@ pull requests; the only workflow is the monthly build.
 ## In progress
 
 - Claude: the visitor-facing site (D-041), local only until the 8 November gate. Open PRs #17 (notes),
-  #18 (`claude/public-explore`) stacked on it, and #19 (`claude/explore-copy-controls`) on that.
+  #18 (`claude/public-explore`) stacked on it, #19 (`claude/explore-copy-controls`) on that, #20 (the
+  branch rule, D-043) on that, and #21 (`claude/sentence-builder`, the Build page, D-044) on that.
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (merged 2026-10-21; the user has not reviewed the pages)
@@ -68,6 +70,11 @@ On `ui/explore`, found 2026-10-19 by reading the code:
 5. `src/components/PresetPanel.tsx` hides the time row when `preset.dataset !== "used_imports"`: a
    dataset id in code, against invariant 1 (found 2026-10-21, D-042). No live preset uses that
    dataset; move the rule into config when a preset does.
+6. On a mix chart with `top_n`, `MixChart` folds the reserved values ("Not recorded", "No reference
+   match") into "All other" (`src/components/MixChart.tsx`, the `kept` and `nFor` lines). On country
+   where built that turned an unrecorded era into "All other" near 100%, so the builder leaves it
+   uncapped (D-044). `brand-share` on all time folds unmatched makes the same way (1975: 608 unmatched
+   against Ford's 725, measured 2026-10-21). Unchanged; queued in CHECKPOINT.
 
 Fixed on `claude/marker-label-overlap` (D-039): event marker labels are laid out in pixels against the
 chart's frame, cluster harder when they cannot fit in 4 lanes, and slide inward to stay inside the
@@ -118,4 +125,5 @@ Pages and TanStack Table are planned, that the UI was built ahead of the build o
 2026-10-21: `.venv` Python 3.13.7 and Node v22.19.0 work on this drive (`F:`); typecheck and
 build pass on `claude/brand-share-events`. Pipeline tests were not re-run (no pipeline change). Headless
 screenshots use `playwright-core` from a scratch folder with the Chromium already installed under
-`%LOCALAPPDATA%\ms-playwright`; nothing is added to the repo.
+`%LOCALAPPDATA%\ms-playwright`; nothing is added to the repo. On 2026-10-21 `playwright-core` 1.64.1 ran
+with `executablePath` set to `chromium_headless_shell-1248\chrome-headless-shell-win64\chrome-headless-shell.exe`.

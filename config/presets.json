@@ -52,8 +52,72 @@
       "owner_country": "Country of the brand's owner"
     },
     "dimension_notes": {
+      "built_in": "Where a vehicle was built is not recorded for almost every vehicle first registered before late 1985, and is recorded for almost all since. The grey line near the top of the chart until then is that gap in the record, not where vehicles came from.",
+      "vehicle_year_band": "Age on the snapshot date, not when the vehicle was bought. It is counted from the year NZTA records for each vehicle, not from when it was built: for a vehicle sold new here since 2007, the year it was first registered here; for a used import, a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year.",
+      "age_at_registration_band": "Age when first registered in New Zealand, counted from the year NZTA records for each vehicle. A vehicle sold new here since 2007 is 0 years old by definition, because that year is its first registration here; for a used import it is a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year.",
       "powertrain": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is."
     }
+  },
+  "builder": {
+    "$comment": "The Build page: a sentence a visitor completes to draw one chart, through the same panel and resolver as Explore. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
+    "id": "build",
+    "dataset": "registrations_surviving",
+    "period": "all",
+    "period_by_shape": {
+      "distribution": "5y"
+    },
+    "$period_by_shape_comment": "A distribution sums its whole period, so all time would mix decades whose records differ (docs/MODEL_AND_AGE.md, before 2007). The time row still offers all time.",
+    "lead": "Show",
+    "measures": [
+      {
+        "id": "share",
+        "phrase": "the share of vehicles",
+        "joiner": "by",
+        "dimensions": {
+          "powertrain": "powertrain",
+          "import_status": "whether new or used",
+          "segment": "vehicle type",
+          "make": "brand",
+          "parent_group": "manufacturer group",
+          "owner_country": "brand owner's country",
+          "heritage_country": "brand's original country",
+          "built_in": "country where built",
+          "vehicle_year_band": "vehicle age",
+          "engine_size_band": "engine size",
+          "age_at_registration_band": "age when registered here"
+        },
+        "top_n": {
+          "make": 10,
+          "parent_group": 14
+        },
+        "$top_n_comment": "The values that keep their own line on a mix chart; the rest become one remainder, which also takes the reserved tokens. make and parent_group as brand-share uses. built_in has no cap, although it has 46 values in the 2026-09 cube: its country is not recorded for almost every vehicle first registered before about 1986, and a remainder would show that as 'All other' near 100%.",
+        "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every group shares, but groups leave the register at different rates, so older months lean towards groups whose vehicles stay registered longer."
+      },
+      {
+        "id": "top_5_share",
+        "derived": true,
+        "phrase": "the share of the {top_n} largest",
+        "joiner": "",
+        "dimensions": {
+          "make": "brands",
+          "parent_group": "manufacturer groups"
+        },
+        "note_template": "The combined share of the {measure.top_n} largest in each month. Membership is recomputed monthly, so the line reflects concentration rather than the fortunes of a fixed set. A falling line means the largest hold less of the market: more may be competing, or the same ones may be sharing it more evenly. Vehicles with no match in the brand list count in the total but never take a place, which holds the line down in the early decades."
+      }
+    ],
+    "dimension_notes": {
+      "$comment": "What a canon preset says about a dimension in its own note, which a built chart would otherwise lose. Here rather than in public_copy.dimension_notes so Explore does not show it twice.",
+      "segment": "The register records most SUVs as station wagons, so they count as cars here.",
+      "import_status": "These are vehicles still registered at the snapshot, and new and used vehicles leave the register at different rates, so an older month's split may differ from what was bought at the time. In recent cohorts used imports leave faster, which understates their share; in some older cohorts it runs the other way.",
+      "owner_country": "Ownership is as at today, not at registration: every year shown counts each brand under the country that owns it now.",
+      "parent_group": "Group ownership is as at today, not at registration: every year shown counts each brand under the group that owns it now."
+    },
+    "not_offered": [
+      "Numbers of vehicles. These figures count vehicles still registered today, so older months are thinned by scrappage and a count would read as sales. Counts wait for true monthly registrations.",
+      "Only new or only used vehicles. The site's figures are not yet split that way.",
+      "Models. Only the most common models are named, so older months are mostly grouped as other. Models wait for true monthly registrations.",
+      "Regions. The register holds each owner's current address, not where the vehicle was first registered."
+    ]
   },
   "groups": [
     {
