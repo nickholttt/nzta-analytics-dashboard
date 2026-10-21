@@ -395,3 +395,42 @@ New entries use this template:
   2026-10-19: 2.5% over the 12 months before (2.9% in March and in May 2020), and all 493 are before
   1990. Left for a METRICS.md pass (STATE known issues).
 - Status: decided by Claude (unreviewed)
+
+## D-032 2026-10-19 — Shares on survivors data are skewed by uneven scrappage, and the site says so
+- Agent: claude, under D-027
+- Basis: this commit; `data/snapshots/2026-08.parquet` and `origin/main:data/snapshots/2026-09.parquet`
+  (snapshots 2026-08-31 and 2026-09-30), queried with DuckDB on 2026-10-19: for
+  `vehicle_type = 'PASSENGER CAR/VAN'`, the sum of `n` per `registration_year` and group in each
+  snapshot, and the change between them.
+- Context: caveat 2 (`src/pages/caveats.astro`) said shares "hold up" under scrappage because it thins
+  each cohort's total along with each brand; the brand-share notes in `config/presets.json` said the
+  same with a hedge (STATE known issue 1). That holds only if every group leaves the register at the
+  same rate.
+- Measured: the net fall in vehicles still registered over the one month between snapshots, within
+  the same first-registration year, differs by group. 2015 cohort: used imports 0.72% (90,359 to
+  89,708), NZ New 0.17% (86,483 to 86,340); petrol 0.47%, diesel 0.17%; makes from 0.22% (Holden)
+  to 0.75% (Nissan) among the ten largest (Land Rover 0.00%, Lexus 0.09% and Jeep 0.14% sit below
+  that range among makes over 1,000). 2018 cohort: used imports 0.54%, NZ New 0.08%. The direction
+  reverses for older cohorts: 1990–2000, NZ New fell faster (1997: 0.88% against 0.46%); from 2001
+  used imports fall faster. All vehicle types together show the same direction from 2010. Every gap
+  is many times the binomial standard error at these cohort sizes. It is a net change (anything
+  returning to the register is netted off), over one month only.
+- Options considered: (1) Keep "share holds up" with the hedge: contradicted by the data. (2) Say
+  shares are skewed, give the measured one-month rates, and say the size of the skew for a given month
+  is not yet known: true and checkable. (3) Extrapolate the one-month rates to a cumulative bias per
+  month: rates vary with age and one month is not a trend, so the number would be invented.
+- Decision: (2). Caveat 2 gives the 2015 figures, dated to the two snapshots, says the direction is
+  not the same in every cohort, and claims no growth with age. The brand-share and parent-group notes
+  say groups leave the register at different rates, so older months lean towards longer-lasting ones.
+  `new-vs-used`, the live chart with the largest measured gap, gets a note saying recent cohorts
+  understate the used share and some older ones run the other way. Notes carry no figures, so they
+  cannot drift.
+  - After an independent review: the make range is qualified to the ten largest makes; "the older the
+    month, the more" is dropped because the 1990s cohorts reverse; and step 1b is no longer said to
+    measure the brand lean, because TPT is split only by vehicle type and new / ex-overseas
+    (`docs/DATA_SOURCES.md` §C).
+- Consequences: caveat 2's figures will not update themselves. `brand-owner-origin` and `segment-mix`
+  carry no such note; caveat 2 covers them. The size of the skew becomes measurable once cohort
+  survival exists, for new against used only (step 1b, POST_GATE A2). For makes, no source counts first
+  registrations, so the snapshot archive can track attrition only from 2026-08 onward.
+- Status: decided by Claude (unreviewed)

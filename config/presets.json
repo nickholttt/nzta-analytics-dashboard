@@ -84,7 +84,8 @@
           "measure": "share",
           "dimension": "import_status",
           "period": "all",
-          "events": true
+          "events": true,
+          "note": "These are vehicles still registered at the snapshot, and new and used vehicles leave the register at different rates, so an older month's split may differ from what was bought at the time. In recent cohorts used imports leave faster, which understates their share; in some older cohorts it runs the other way."
         },
         {
           "id": "used-import-age",
@@ -121,17 +122,17 @@
               "label": "Brand",
               "dimension": "make",
               "top_n": 10,
-              "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Scrappage thins each month's total along with each brand, so share holds up where volume does not, though older months still lean towards brands whose vehicles last longer. Volume charts wait for true monthly registrations."
+              "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every brand shares, but brands leave the register at different rates, so older months lean towards brands whose vehicles stay registered longer. Volume charts wait for true monthly registrations."
             },
             {
               "id": "parent_group",
               "label": "Parent group",
               "dimension": "parent_group",
               "top_n": 14,
-              "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Scrappage thins each month's total along with each group, so share holds up where volume does not, though older months still lean towards groups whose vehicles last longer. Volume charts wait for true monthly registrations. Group ownership is as at today, not at registration. A rising remainder here is the market fragmenting across groups too small to rank; the concentration chart measures that directly rather than leaving it to be inferred."
+              "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every group shares, but groups leave the register at different rates, so older months lean towards groups whose vehicles stay registered longer. Volume charts wait for true monthly registrations. Group ownership is as at today, not at registration. A rising remainder here is the market fragmenting across groups too small to rank; the concentration chart measures that directly rather than leaving it to be inferred."
             }
           ],
-          "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Scrappage thins each month's total along with each brand, so share holds up where volume does not, though older months still lean towards brands whose vehicles last longer. Volume charts wait for true monthly registrations."
+          "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every brand shares, but brands leave the register at different rates, so older months lean towards brands whose vehicles stay registered longer. Volume charts wait for true monthly registrations."
         },
         {
           "id": "model-leaderboard",

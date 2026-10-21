@@ -29,17 +29,19 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/model-leaderboard` | origin | `model-leaderboard` blocked on step 1b (D-029), blocked-panel tidy, triage heading. PR into `claude/sense-check` |
 | `claude/caveats-wording` | origin | caveats 1 and 7 (D-030). PR into `claude/model-leaderboard` |
 | `claude/method-page` | origin | `/method` checked against METRICS.md, config and code (D-031). PR into `claude/caveats-wording` |
+| `claude/caveat-scrappage` | origin | caveat 2 and share notes: uneven scrappage skews shares (D-032). PR into `claude/method-page` |
 
 No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's five branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's six branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
   (`claude/model-leaderboard`), [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
-  (`claude/caveats-wording`), then [#5](https://github.com/nickholttt/nzta-analytics-dashboard/pull/5) (`claude/method-page`).
+  (`claude/caveats-wording`), [#5](https://github.com/nickholttt/nzta-analytics-dashboard/pull/5) (`claude/method-page`),
+  then [#6](https://github.com/nickholttt/nzta-analytics-dashboard/pull/6) (`claude/caveat-scrappage`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
@@ -56,16 +58,16 @@ scroll.
 
 On `ui/explore`, found 2026-10-19 by reading the code:
 
-1. `src/pages/caveats.astro` §2 says shares "hold up" under scrappage because it thins whole
-   cohorts. Unchecked: if some makes or powertrains are scrapped faster, older shares are biased.
-   Found 2026-10-19 while fixing §1 and §7.
-2. The time-horizon toggle offers no period of 12 months or less, so on a league chart it switches
+1. The time-horizon toggle offers no period of 12 months or less, so on a league chart it switches
    the shape to mix with no way back (`src/lib/resolve.ts` `inferShape`). Unreachable now: no live
    preset is a league. Fix before a league preset is unblocked.
-
-3. `docs/METRICS.md` says trucks were "~2.3%" either side of April 2020 and that "almost all" months
+2. `docs/METRICS.md` says trucks were "~2.3%" either side of April 2020 and that "almost all" months
    under 200 are before 1990. Measured 2026-10-19 on the 2026-08 cube: 2.5% over the 12 months before
    (2.9% in March and May 2020); all 493 are before 1990. `/method` uses the measured figures (D-031).
+
+Fixed on `claude/caveat-scrappage` (D-032): caveat 2 and the brand-share notes no longer say shares
+"hold up" under scrappage. Measured between the 2026-08 and 2026-09 snapshots, groups leave the
+register at different rates (2015 cars: used imports 0.72% in a month, NZ New 0.17%).
 
 Fixed on `claude/method-page` (D-031): `/method` drops the unchecked share claim, the invented April
 2020 vehicle description and the stale coverage figure, and reads its thresholds from config.
@@ -81,9 +83,9 @@ feeding pages that looked like findings, the commentary, and the international f
 
 Docs that contradict code (carried over, still unreconciled):
 
-4. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
-5. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
-6. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
+3. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
+4. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
+5. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
    plan, not contradiction.
 
 ## Blocked or waiting on the user
