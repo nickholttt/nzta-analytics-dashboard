@@ -25,6 +25,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `ui/explore` | origin `3c10716` | everything below plus PRs #1–#16, merged by Claude at the user's request on 2026-10-21 |
 | `claude/notes-after-merge` | origin | the notes after the merge. PR #17 into `ui/explore` |
 | `claude/public-explore` | origin | `/` for visitors, diagnostics on `/status` (D-041). PR #18 into `claude/notes-after-merge` |
+| `claude/explore-copy-controls` | origin | one row of time options, plain visitor wording, `public_copy` (D-042). PR into `claude/public-explore` |
 
 PRs #1–#16 were merged into `ui/explore` in order with merge commits; their 16 remote branches are
 deleted. Local copies of those branches and the local `ui/explore` (behind origin) were left as they
@@ -33,8 +34,8 @@ pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Claude: the visitor-facing site (D-041), local only until the 8 November gate. Open PRs #17 (notes)
-  and #18 (`claude/public-explore`) stacked on it.
+- Claude: the visitor-facing site (D-041), local only until the 8 November gate. Open PRs #17 (notes),
+  #18 (`claude/public-explore`) stacked on it, and `claude/explore-copy-controls` on that.
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (merged 2026-10-21; the user has not reviewed the pages)
@@ -63,6 +64,9 @@ On `ui/explore`, found 2026-10-19 by reading the code:
 4. The published title "Electronic stability control required on all new light vehicles" is 63
    characters; the schema in `docs/EVENTS_LAYER.md` says at most 60. `events.csv` is frozen until
    the 8 November gate.
+5. `src/components/PresetPanel.tsx` hides the time row when `preset.dataset !== "used_imports"`: a
+   dataset id in code, against invariant 1 (found 2026-10-21, D-042). No live preset uses that
+   dataset; move the rule into config when a preset does.
 
 Fixed on `claude/marker-label-overlap` (D-039): event marker labels are laid out in pixels against the
 chart's frame, cluster harder when they cannot fit in 4 lanes, and slide inward to stay inside the
