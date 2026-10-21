@@ -30,6 +30,20 @@ Report all of these to the user:
 4. If it failed: which exit code. 2 = guardrail abort, 3 = source failure, 4 = DuckDB failure. In
    every case the last good build is unchanged.
 
+## Also each month: has step 1b's source appeared?
+
+Step 1b (`registrations_flow`) waits until Stats NZ publishes its monthly new and ex-overseas
+registrations in the Aotearoa Data Explorer (the user's choice on 2026-10-22; `docs/DATA_SOURCES.md`
+§C). The Explorer's catalogue needs no key. Git Bash, repository root:
+
+```bash
+curl -s "https://api.data.stats.govt.nz/rest/dataflow/STATSNZ/all/latest" | .venv/Scripts/python.exe -I -c "import json,sys; d=json.load(sys.stdin)['references']; flows=[v for k,v in d.items() if 'Dataflow' in k]; hits=[v['id']+': '+v.get('name','') for v in flows if not v['id'].startswith('CEN') and any(w in v.get('name','').lower() for w in ('motor vehicle','vehicles registered','transport','tpt'))]; print(len(flows),'dataflows;', '; '.join(hits) or 'no transport series')"
+```
+
+It leaves out the census tables, which count motor vehicles per household. On 2026-10-22 it printed
+`911 dataflows; no transport series`. Report the line; a hit means step 1b can be planned, so tell
+the user.
+
 ## Real example
 
 ```
