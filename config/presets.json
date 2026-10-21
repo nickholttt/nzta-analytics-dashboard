@@ -157,7 +157,7 @@
           "dataset": "registrations_surviving",
           "dimension": "make",
           "period": "all",
-          "note_template": "The combined share of the {measure.top_n} largest brands in each month. Membership is recomputed monthly, so the line reflects concentration rather than the fortunes of a fixed set of brands. A falling line means more brands competing."
+          "note_template": "The combined share of the {measure.top_n} largest brands in each month. Membership is recomputed monthly, so the line reflects concentration rather than the fortunes of a fixed set of brands. A falling line means the largest brands hold less of the market: more brands may be competing, or the same brands may be sharing it more evenly. In the early decades, makes with no match in the brand list count in the total but never take a place, which holds the line down."
         },
         {
           "id": "segment-mix",
