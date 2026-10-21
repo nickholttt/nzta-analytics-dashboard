@@ -52,6 +52,7 @@
       "owner_country": "Country of the brand's owner"
     },
     "dimension_notes": {
+      "built_in": "Where a vehicle was built is not recorded for almost every vehicle first registered before late 1985, and is recorded for almost all since. The grey line near the top of the chart until then is that gap in the record, not where vehicles came from.",
       "vehicle_year_band": "Age is counted from the year NZTA records for each vehicle, not from when it was built. For a vehicle sold new here since 2007 that is the year it was first registered here; for a used import it is a year from its life overseas, usually when it was built or first registered there. A year, not a date, so an age can be out by a year.",
       "age_at_registration_band": "Counted from the year NZTA records for each vehicle. A vehicle sold new here since 2007 is 0 years old by definition, because that year is its first registration here; for a used import it is a year from its life overseas, usually when it was built or first registered there. A year, not a date, so an age can be out by a year.",
       "powertrain": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is."
@@ -83,14 +84,13 @@
           "built_in": "country where built",
           "vehicle_year_band": "vehicle age",
           "engine_size_band": "engine size",
-          "age_at_registration_band": "age when first registered here"
+          "age_at_registration_band": "age when registered here"
         },
         "top_n": {
           "make": 10,
-          "parent_group": 14,
-          "built_in": 10
+          "parent_group": 14
         },
-        "$top_n_comment": "The values that keep their own line on a mix chart; the rest become one remainder. make and parent_group as brand-share uses; built_in has 46 values in the 2026-09 cube.",
+        "$top_n_comment": "The values that keep their own line on a mix chart; the rest become one remainder, which also takes the reserved tokens. make and parent_group as brand-share uses. built_in has no cap, although it has 46 values in the 2026-09 cube: its country is not recorded for almost every vehicle first registered before about 1986, and a remainder would show that as 'All other' near 100%.",
         "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every group shares, but groups leave the register at different rates, so older months lean towards groups whose vehicles stay registered longer."
       },
       {

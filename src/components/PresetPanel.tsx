@@ -274,7 +274,7 @@ export default function PresetPanel({
           </div>
         ) : null}
 
-        {shape !== "distribution" && preset.dataset !== "used_imports" && preventsRender.length === 0 ? (
+        {preset.dataset !== "used_imports" && preventsRender.length === 0 ? (
           <div className="toggle" role="radiogroup" aria-label="Time range">
             {rangeOptions.map((o) => (
               <label key={o.key}>
