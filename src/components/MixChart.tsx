@@ -3,7 +3,7 @@ import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo, useState } from "react";
 import { chartDefaults } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
-import { appliesTo, defaultStartMonth } from "../lib/composition";
+import { compositionStart } from "../lib/composition";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { MEASUREMENT, layoutMarkers, selectEvents } from "../lib/events";
 import {
@@ -65,9 +65,14 @@ type Props = {
   collapseFraction: number;
   label: (value: string) => string;
   lead?: boolean;
+  // All records: draw from the first month with data instead of the composition start. The panel owns
+  // the choice, so the chart's time options sit in one row.
+  fullHistory?: boolean;
+  // Plain wording for visitors; the internal page keeps the exact rule (D-042).
+  internal?: boolean;
 };
 
-export function MixChart({ preset, dimension, rows, manifest, events, minDenominator, collapseFraction, label, lead = false }: Props) {
+export function MixChart({ preset, dimension, rows, manifest, events, minDenominator, collapseFraction, label, lead = false, fullHistory = false, internal = false }: Props) {
   const [showUnscoped, setShowUnscoped] = useState(false);
   const defaultSmoothing = preset.smoothing ?? chartDefaults.mix_smoothing;
   const [smoothing, setSmoothing] = useState<string>(() => {
@@ -75,19 +80,10 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     const fromUrl = getParam(preset.id, "smoothing", defaultSmoothing);
     return chartDefaults.mix_smoothing_options.some((o) => o.id === fromUrl) ? fromUrl : defaultSmoothing;
   });
-  const [allTime, setAllTime] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return getParam(preset.id, "range", "default") === "all";
-  });
 
   const handleSmoothingChange = (newSmoothing: string) => {
     setSmoothing(newSmoothing);
     setParam(preset.id, "smoothing", newSmoothing, defaultSmoothing);
-  };
-
-  const handleAllTimeChange = (isAllTime: boolean) => {
-    setAllTime(isAllTime);
-    setParam(preset.id, "range", isAllTime ? "all" : "default", "default");
   };
 
   const latest = manifest.latest_snapshot.slice(0, 7);
@@ -107,9 +103,8 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     // An all-time mix chart starts where the dimension first had something to show, not at the first
     // month with any data. All time stays one click away; it is never the default.
     const wholeSeries = preset.period === "all" || preset.period === undefined;
-    const composed = wholeSeries && appliesTo(dimension) ? defaultStartMonth(rows, minDenominator) : undefined;
-    const defaultStart = composed && composed > full.from ? composed : undefined;
-    const win = defaultStart && !allTime ? { from: defaultStart, to: full.to } : full;
+    const defaultStart = wholeSeries ? compositionStart(rows, dimension, minDenominator) : undefined;
+    const win = defaultStart && !fullHistory ? { from: defaultStart, to: full.to } : full;
 
     // top_n ranks by vehicles over the trailing window, not over the whole period. A period total
     // ranks the incumbents of the last decade and buries anything that arrived inside it, so a wave
@@ -245,7 +240,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       .sort((a, b) => Number(a.remainder) - Number(b.remainder) || (b.shown ?? -1) - (a.shown ?? -1));
 
     return { win, full, rankWin, series, points, bands, summary, categories, defaultStart, colourOf, ownColour };
-  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, allTime]);
+  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, fullHistory]);
 
   const selected = useMemo(
     () => (preset.events && events ? selectEvents(events, dimension.id, model.categories, `${model.win.from}-01`, manifest.latest_snapshot) : null),
@@ -423,17 +418,6 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
   return (
     <>
       <div className="controls">
-        {model.defaultStart ? (
-          <div className="toggle" role="radiogroup" aria-label="Time range">
-            <label>
-              <input type="radio" name={`range-${preset.id}`} checked={!allTime} onChange={() => handleAllTimeChange(false)} /> From{" "}
-              {monthLabel(model.defaultStart)}
-            </label>
-            <label>
-              <input type="radio" name={`range-${preset.id}`} checked={allTime} onChange={() => handleAllTimeChange(true)} /> All time
-            </label>
-          </div>
-        ) : null}
         <div className="toggle" role="radiogroup" aria-label="Smoothing">
           {chartDefaults.mix_smoothing_options.map((o) => (
             <label key={o.id}>
@@ -492,14 +476,22 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       ) : null}
       {model.defaultStart || rolling ? (
         <p className="control-note">
-          {model.defaultStart
+          {!internal && model.defaultStart
+            ? `The chart opens in ${monthLabel(model.defaultStart)}, the first month from which at least ${chartDefaults.mix_default_start.min_categories} groups each held more than ${
+                chartDefaults.mix_default_start.min_share * 100
+              }% of vehicles over the previous ${TRAILING_MONTHS} months, for ${chartDefaults.mix_default_start.sustain_months} months running. Records start in ${monthLabel(model.full.from)}: choose All records to see them. `
+            : ""}
+          {!internal && rolling
+            ? `Each point is the share over the ${TRAILING_MONTHS} months up to that month, which smooths out month-to-month swings. A point is left blank when any of its ${TRAILING_MONTHS} months is missing from the data.`
+            : ""}
+          {internal && model.defaultStart
             ? `The default start is the first month with at least ${chartDefaults.mix_default_start.min_categories} categories above ${
                 chartDefaults.mix_default_start.min_share * 100
               }% of the trailing ${TRAILING_MONTHS} months, held for ${chartDefaults.mix_default_start.sustain_months} months. Before it the mix has nothing to show and the rest of the chart is squeezed into the right of the frame. Data starts ${monthLabel(
                 model.full.from,
               )}. `
             : ""}
-          {rolling
+          {internal && rolling
             ? `Each point is the trailing ${TRAILING_MONTHS} months' vehicles of this value over the trailing ${TRAILING_MONTHS} months' total, computed in the browser from the monthly counts. A window missing a month is left blank, never filled in.`
             : ""}
         </p>
