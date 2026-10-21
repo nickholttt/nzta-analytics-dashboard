@@ -1214,3 +1214,37 @@ New entries use this template:
   4.0." That the ArcGIS copy carries the catalogue's licence is inferred: confirm. "Area Outside Region" is Stats NZ's
   name for the Chatham Islands; a visitor-facing name would need a value-label setting in config, not built here.
 - Status: decided by Claude (unreviewed)
+
+## D-055 2026-10-22 — Deploying to Cloudflare Pages: how the cube reaches the site (proposed)
+- Agent: claude, CHECKPOINT queue item 8. Proposed only: deploys and platform consoles need the user (stop list), and
+  item 8 waits for the 8 November gate (D-041, AGENTS.md rule 8).
+- Basis: `.github/workflows/monthly-build.yml`, `src/pages/index.astro`, `src/pages/build.astro`, `.gitignore`, and the
+  repository's artifacts (`gh api .../actions/artifacts`), read on 2026-10-22; `CLAUDE.md` §Stack (Cloudflare Pages).
+- Context, as checked:
+  - The site reads `public/data` when it is built (`index.astro` and `build.astro` import `public/data/manifest.json`)
+    and when it runs, and `public/data` is gitignored.
+  - The monthly build already uploads the cube it builds as an artifact, `public-data-<snapshot>`, kept 90 days:
+    `public-data-2026-09` (1,219,368 bytes, expires 2027-01-06) and `public-data-2026-08` (expires 2026-12-10). A run
+    that finds the source unchanged builds nothing and uploads nothing.
+  - The site's code is on `ui/explore`, not `main`, and workflows run from `main`, so `ui/explore` must reach `main`
+    first (CHECKPOINT item 6).
+  - The production build is 2.9 MB in all, the cube included (measured on 2026-10-22).
+- Options:
+  - (A) Cloudflare Pages' own Git integration builds every push to `main`, with the cube committed to the repository by
+    the monthly run. Fewest moving parts, but about 1.3 MB of binary Parquet joins git history each built month, and a
+    rule changes: `public/data` stops being gitignored.
+  - (B) A `deploy.yml` workflow that builds the site on GitHub's runner and uploads it with Cloudflare's `wrangler pages
+    deploy` (Direct Upload). Triggers: a push to `main` that touches the site, the end of a successful monthly build,
+    and by hand. The cube comes from the newest `public-data-*` artifact. Simple, but if no build runs for 90 days
+    (three unchanged months) the artifact expires and a site change cannot deploy.
+  - (C) As (B), but the monthly build also attaches the cube to a GitHub release, `cube-<snapshot>`, which does not
+    expire, and `deploy.yml` takes the newest release. One more step in the monthly workflow; nothing binary in git.
+- Recommendation: (C). It keeps `public/data` out of git, the cube that is deployed is always the one a monthly run
+  built and checked, and the site and the data can each redeploy without the other.
+- What the user would do (Cloudflare console and GitHub settings, production): create a Pages project for Direct Upload
+  and choose its name (it becomes `<name>.pages.dev`); create an API token limited to Cloudflare Pages: Edit on the
+  account; add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub Actions secrets. Exact steps follow once an
+  option is chosen.
+- Open with it: whether `/status` and `/sense-check`, internal pages linked from the footer and marked noindex, ship
+  with a public deploy (D-028 left this open).
+- Status: proposed, awaiting the user
