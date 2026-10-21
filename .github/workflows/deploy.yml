@@ -1,0 +1,103 @@
+# Builds the public site from the newest cube and uploads it to Cloudflare Pages (D-055, D-056). Runs after each
+# successful monthly build, on a push to main that changes the site, and by hand. Until the Cloudflare secrets exist it
+# builds the site and stops before the upload, so the build is still checked.
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Monthly build"]
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "config/**"
+      - "public/geo/**"
+      - "astro.config.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # To fall back to a monthly build's cube artifact before the first cube release exists.
+  actions: read
+
+# A newer deploy makes an older one pointless.
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    # After a monthly build only when it succeeded: a failed run leaves the last good cube, which is already deployed.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT || 'nz-vehicle-registrations' }}
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      # The same action versions as monthly-build.yml where they overlap (Node 24, D-012).
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Dependencies
+        run: npm ci --no-audit --no-fund
+
+      # The newest snapshot's cube: its release, or before the first release, the newest unexpired artifact a monthly
+      # build uploaded. Tags and artifact names end in the snapshot month, so the largest name is the newest.
+      - name: The newest cube
+        run: |
+          mkdir -p public/data
+          tag=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName \
+            --jq '[.[].tagName | select(startswith("cube-"))] | sort | last // empty')
+          if [ -n "$tag" ]; then
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern public-data.tar.gz --dir "$RUNNER_TEMP"
+            tar -xzf "$RUNNER_TEMP/public-data.tar.gz" -C public/data
+            echo "Cube: release $tag" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            newest='[.artifacts[] | select((.name | startswith("public-data-")) and (.expired | not))] | sort_by(.name) | last'
+            name=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq "$newest | .name // empty")
+            if [ -z "$name" ]; then
+              echo "No cube release and no unexpired cube artifact: nothing to build the site from." >&2
+              exit 1
+            fi
+            run=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq "$newest | .workflow_run.id")
+            gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$name" --dir public/data
+            echo "Cube: artifact $name (no cube release yet)" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          node -p "'Snapshot ' + require('./public/data/manifest.json').latest_snapshot" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # The internal pages, /status and /sense-check, stay off the public site (D-056): INTERNAL_PAGES=false drops the
+      # links to them, and the pages themselves are removed from the build.
+      - name: Build the public site
+        env:
+          INTERNAL_PAGES: "false"
+        run: |
+          npx astro build
+          rm -rf dist/status dist/sense-check
+
+      - name: Upload to Cloudflare Pages
+        if: env.HAS_TOKEN == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.148.0 pages deploy dist --project-name "$PROJECT" --branch main --commit-dirty=true
+
+      - name: Not uploaded
+        if: env.HAS_TOKEN != 'true'
+        run: |
+          echo "Built but not uploaded: the CLOUDFLARE_API_TOKEN secret is not set." | tee -a "$GITHUB_STEP_SUMMARY"
