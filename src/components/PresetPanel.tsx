@@ -7,7 +7,7 @@ import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { presetView, resolvePreset } from "../lib/resolve";
+import { presetView, rankingPeriods, resolvePreset } from "../lib/resolve";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { LeagueChart } from "./LeagueChart";
@@ -59,9 +59,10 @@ export default function PresetPanel({
   });
   const defaultPeriod = preset?.period ?? "all";
   const [activePeriod, setActivePeriod] = useState<string>(() => {
-    if (typeof window === "undefined") return defaultPeriod;
+    if (typeof window === "undefined" || !preset) return defaultPeriod;
     const fromUrl = getParam(presetId, "period", defaultPeriod);
-    return TIME_PERIODS.some((p) => p.id === fromUrl) ? fromUrl : defaultPeriod;
+    const offered = TIME_PERIODS.some((p) => p.id === fromUrl) || rankingPeriods(presetView(preset, activeGranularityId)).includes(fromUrl);
+    return offered ? fromUrl : defaultPeriod;
   });
   // All records: an all-time mix chart opens on its composition start; this draws it from the first
   // month with data. Kept in the URL as range=all, the parameter the chart used before.
@@ -79,6 +80,10 @@ export default function PresetPanel({
     setActiveGranularityId(newId);
     if (defaultGranularityId) {
       setParam(presetId, "granularity", newId, defaultGranularityId);
+    }
+    // A ranking period the new view cannot rank over is not in its row, so the view opens on its default.
+    if (preset && !TIME_PERIODS.some((p) => p.id === activePeriod) && !rankingPeriods(presetView(preset, newId)).includes(activePeriod)) {
+      handlePeriodChange(defaultPeriod);
     }
   };
 
@@ -162,6 +167,8 @@ export default function PresetPanel({
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
   const snapshotsNeeded = derived?.snapshots_needed;
+  // A ranking sums one window and greys no month, so the note on grey months stays off it.
+  const greyNote = guard > 0 && preventsRender.length === 0 && shape !== "league";
 
   // Notes that state a figure are templated from the build; a plain note that carries one is flagged
   // rather than trusted, because it will drift the next time the data moves. The dataset definition is
@@ -188,6 +195,10 @@ export default function PresetPanel({
       )
     : [];
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
+
+  // Visitor wording from config/presets.json public_copy, where the frozen dimensions.json carries text
+  // written for maintainers (D-042).
+  const dimensionLabel = (!internal && dimension && publicCopy.dimension_labels[dimension.id]) || dimension?.label;
 
   let chart = null;
   if (preventsRender.length === 0 && rows) {
@@ -220,25 +231,31 @@ export default function PresetPanel({
           manifest={manifest}
           minDenominator={guard}
           label={label}
+          valueHeading={dimensionLabel ?? dimension.label}
           lead={lead}
         />
       );
     }
   }
 
-  // Visitor wording from config/presets.json public_copy, where the frozen dimensions.json carries text
-  // written for maintainers (D-042).
-  const dimensionLabel = (!internal && dimension && publicCopy.dimension_labels[dimension.id]) || dimension?.label;
   const definition = (!internal && effectivePreset.dataset && publicCopy.dataset_definitions[effectivePreset.dataset]) || dataset?.definition;
   const eyebrow = dimensionLabel ?? derived?.label ?? measure?.label;
 
   // One row of time options. An all-time mix chart that opens on a later start names that start, and
-  // offers the full record as its own option, so no two buttons say the same thing.
+  // offers the full record as its own option, so no two buttons say the same thing. A period that ranks
+  // the chart comes last: it draws a different chart, not a shorter span of the same one.
   const start = shape === "mix" && rows ? compositionStart(rows, dimension, guard) : undefined;
   const rangeOptions = [
     ...TIME_PERIODS.filter((p) => p.id !== "all").map((p) => ({ key: p.id, id: p.id, label: p.label, full: false })),
     { key: "all", id: "all", label: start ? `Since ${monthLabel(start)}` : "All time", full: false },
     ...(start ? [{ key: "all-records", id: "all", label: "All records", full: true }] : []),
+    ...rankingPeriods(presetView(preset, activeGranularityId)).map((id) => ({
+      key: id,
+      id,
+      // LeagueChart ranks the trailing window whatever the period, so the label names that window.
+      label: `${TRAILING_MONTHS}-month ranking`,
+      full: false,
+    })),
   ];
 
   return (
@@ -381,14 +398,14 @@ export default function PresetPanel({
             {pct(coverage.all_time.coverage_stated_confidence ?? 0)} and {pct(coverage.all_time.coverage_high_confidence_only ?? 0)}). A lower bound: every unresolved hybrid counts as a missed mild hybrid.
           </li>
         ) : null}
-        {guard > 0 && preventsRender.length === 0 && !internal ? (
+        {greyNote && !internal ? (
           <li>
             Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably
             {collapseFraction > 0 ? ", and months with far fewer vehicles than the months before them, which may not describe a normal month" : ""}.
             They are drawn in grey, not dropped. <a href="/method">How the figures are made</a>.
           </li>
         ) : null}
-        {guard > 0 && preventsRender.length === 0 && internal ? (
+        {greyNote && internal ? (
           <li>
             Grey: months with fewer than {guard} vehicles behind the figure drawn
             {collapseFraction > 0
