@@ -93,7 +93,7 @@ Fixed on `claude/marker-label-overlap` (D-039): event marker labels are laid out
 chart's frame, cluster harder when they cannot fit in 4 lanes, and slide inward to stay inside the
 frame, which also places the label of an event that starts before the chart (formerly known issues 4
 and 5). Measured headless on every chart with events on `/`, 320px and 1280px, both ranges, with and
-without market-wide events: 6 overlapping label pairs and 30 labels past the frame before, 0 and 0
+without market-wide events: 6 overlapping label pairs and 28 labels past the frame before, 0 and 0
 after. `powertrain-mix` with market-wide events now shows 6 markers at 320px, 8 at 1280px.
 
 Fixed on `claude/event-band-clip`: event window bands and event rules are clipped to the chart's frame. Before,

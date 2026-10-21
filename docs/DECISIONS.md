@@ -663,7 +663,7 @@ New entries use this template:
   apart. A label is a fixed number of pixels wide, so 7.5% cleared it at 1280px but not at 320px (about
   18px of a 236px frame, against a 23.5px `4 (3)`), and a fifth crowded label wrapped back to the first
   lane. Measured before: 6 overlapping label pairs (4 on `powertrain-mix`, 1 on `new-vs-used` in each
-  range), all at 320px with market-wide events shown; 30 labels reaching past the frame, mostly into
+  range), all at 320px with market-wide events shown; 28 labels reaching past the frame, mostly into
   the 16px right margin at 320px. A label centred on a date before the chart's first month would print
   in the left margin; not reachable on this cube.
 - Options considered: (1) A wider fixed fraction: still a fraction, so it either over-clusters
