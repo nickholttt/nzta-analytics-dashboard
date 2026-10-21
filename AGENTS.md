@@ -82,6 +82,10 @@ Setup, **not re-run this session** (the environment already existed):
   `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League}Chart.tsx`
   are the renderers built so far (of the five allowed shapes), and `PresetTriage.tsx` lists every
   preset with what blocks it.
+- `scripts/region-boundaries.mjs` writes `public/geo/nz-regions.json`, the region outlines the map draws,
+  from Stats NZ's coastline-clipped regional council boundaries (CC BY 4.0, D-054). Run by hand from the
+  repository root when the boundaries change; it fails without writing if a region's code or name
+  disagrees with `data/reference/tla_region.csv`.
 - Charts are data: each preset is an object in `config/presets.json` (`groups[].presets[]`) with
   `status` (live/blocked/invalid) and `requires`.
 
