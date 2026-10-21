@@ -1,0 +1,103 @@
+---
+import Layout from "../layouts/Layout.astro";
+import data from "../data/sense_check.json";
+
+// Internal page (D-028). Every name and figure comes from src/data/sense_check.json, a one-off extract
+// that does not refresh, so nothing here may be linked from a chart or quoted as a finding.
+
+// `spoken` names a column whose visible label ("%") only makes sense next to the one before it.
+type Column = { key: string; label: string; kind: string; spoken?: string };
+type Row = Record<string, string | number | null>;
+
+// Long tables start collapsed so the page can be scanned by title; the browser's find still opens them.
+const OPEN_UP_TO_ROWS = 40;
+
+const extracted = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+  new Date(`${data.extracted}T00:00:00Z`),
+);
+
+function cell(row: Row, column: Column): string {
+  const value = row[column.key];
+  if (value === null || value === undefined || value === "") return "–";
+  if (column.kind === "count" && typeof value === "number") return value.toLocaleString("en-NZ");
+  if (column.kind === "pct") return `${value}%`;
+  return String(value);
+}
+---
+
+<Layout title="Sense-check tables" noindex>
+  <Fragment slot="masthead">
+    <p class="eyebrow">Internal · not part of the Explore page</p>
+    <h1>Sense-check tables</h1>
+    <p class="standfirst">
+      Figures taken straight from the register, kept for checking the charts against. They are not charts, they are not
+      kept up to date, and they are not findings.
+    </p>
+  </Fragment>
+
+  <div class="callout warning">
+    <span class="callout-label">Read before using</span>
+    <ul>
+      <li>Extracted once, by hand, on {extracted}, from {data.source_rows.toLocaleString("en-NZ")} vehicles on the register. The queries were not saved, so these tables cannot be rebuilt and do not change with the monthly run.</li>
+      <li>Where checked against the published cube, totals agree within 0.5% to 3%. Each table says what was checked.</li>
+      <li>They name makes and models directly, and some columns are hand classifications, marked "(hand)" or "(extract)". The Explore charts allow neither.</li>
+      <li>Counts are vehicles still on the register, not sales and not all registrations ever made.</li>
+    </ul>
+  </div>
+
+  <nav aria-label="Tables on this page" class="sense-check-contents">
+    <p class="eyebrow">Tables</p>
+    <ol>
+      {data.sections.map((s) => <li><a href={`#${s.id}`}>{s.title}</a></li>)}
+    </ol>
+  </nav>
+
+  {
+    data.sections.map((s) => (
+      <section id={s.id} class="sense-check-section">
+        <div class="section-head">
+          <h2 class="section-title">{s.title}</h2>
+        </div>
+        <p class="panel-definition">{s.definition}</p>
+        <details open={s.rows.length <= OPEN_UP_TO_ROWS}>
+          <summary class="meta">{s.rows.length.toLocaleString("en-NZ")} rows</summary>
+          <div class="table-scroll" role="region" aria-label={s.title} tabindex="0">
+            <table class="key">
+              <thead>
+                <tr>
+                  {s.columns.map((c) => (
+                    <th scope="col" class={c.kind === "text" ? "text" : undefined}>
+                      {c.spoken ? (
+                        <>
+                          <span aria-hidden="true">{c.label}</span>
+                          <span class="visually-hidden">{c.spoken}</span>
+                        </>
+                      ) : (
+                        c.label
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(s.rows as Row[]).map((row) => (
+                  <tr>
+                    {s.columns.map((c, i) =>
+                      i === 0 ? (
+                        <th scope="row" class="text">
+                          {cell(row, c)}
+                        </th>
+                      ) : (
+                        <td class={c.kind === "text" ? "text" : undefined}>{cell(row, c)}</td>
+                      ),
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+    ))
+  }
+</Layout>
