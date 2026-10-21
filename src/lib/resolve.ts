@@ -129,6 +129,17 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   return { invalid, blocked, blocking: [...invalid, ...blocked], preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure };
 }
 
+// The view a preset opens on: its first granularity option and its own period. The Explore page decides
+// at build time which presets to show from this view, and PresetPanel draws from it, so the two agree.
+export function presetView(preset: Preset, granularityId?: string | null, period?: string): Preset {
+  const options = preset.granularity_options;
+  const granularity = options?.find((g) => g.id === granularityId) ?? options?.[0];
+  const base = granularity
+    ? { ...preset, dimension: granularity.dimension, top_n: granularity.top_n ?? preset.top_n, note: granularity.note ?? preset.note }
+    : preset;
+  return { ...base, period: period ?? preset.period ?? "all" };
+}
+
 export type TriageRow = { preset: Preset; resolution: Resolution };
 
 export const triage = (manifest: Manifest): TriageRow[] => presets.map((preset) => ({ preset, resolution: resolvePreset(preset, manifest) }));

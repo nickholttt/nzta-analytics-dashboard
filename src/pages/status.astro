@@ -1,0 +1,43 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PresetPanel from "../components/PresetPanel";
+import PresetTriage from "../components/PresetTriage";
+import { presetGroups } from "../lib/config";
+
+// Internal (D-041): every preset, drawn or not, with the diagnostics the Explore page leaves out.
+---
+
+<Layout title="Chart status" noindex>
+  <Fragment slot="masthead">
+    <h1>Chart status</h1>
+    <p class="standfirst">
+      Internal. Every preset in <code>config/presets.json</code>, its authored status, what each blocked chart is waiting on, and
+      every chart with its build diagnostics. The Explore page shows only the charts that draw.
+    </p>
+  </Fragment>
+
+  <section id="triage">
+    <div class="section-head">
+      <p class="eyebrow">Canon triage</p>
+      <h2 class="section-title">The canon and what each preset waits on</h2>
+    </div>
+    <p class="panel-definition">
+      Authored statuses are cross-checked against what this build actually resolves.
+    </p>
+    <PresetTriage client:only="react" />
+  </section>
+
+  {
+    presetGroups.map((g) => (
+      <section id={g.id}>
+        <div class="section-head">
+          <p class="eyebrow">{g.label}</p>
+          <h2 class="section-title">{g.title}</h2>
+        </div>
+        {g.presets.map((p) => (
+          <PresetPanel client:only="react" presetId={p.id} audience="internal" />
+        ))}
+      </section>
+    ))
+  }
+</Layout>
