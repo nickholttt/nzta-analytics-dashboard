@@ -79,7 +79,7 @@ Setup, **not re-run this session** (the environment already existed):
   build, the bot commits `data/snapshots/` and `data/state/` with `[skip ci]`.
 - `src/pages/index.astro` hosts React islands. `src/lib/config.ts` loads `config/*.json`, `data.ts`
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
-  `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution}Chart.tsx`
+  `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League}Chart.tsx`
   are the renderers built so far (of the five allowed shapes), and `PresetTriage.tsx` lists every
   preset with what blocks it.
 - Charts are data: each preset is an object in `config/presets.json` (`groups[].presets[]`) with

@@ -8,34 +8,15 @@ Last updated by claude on 2026-10-21
 - The user answered on 2026-10-19 (D-027): the UI comes back to Claude; agents may push their own
   branches; Gemini's extras stay as a clearly labelled sense-check area, and any part of no value
   is documented and deleted.
-- Done: `/inspector` replaced by an internal `/sense-check` page of 14 plain tables; the
-  international benchmark deleted, with its contents recorded in D-028.
-- Done: `model-leaderboard` blocked on step 1b again (D-029); blocked panels drop the horizon
-  toggle and unfillable notes; triage heading no longer claims 9 presets.
-- Done: caveats 1 and 7 say only what the data shows (D-030), checked against the raw 2026-08 pull.
-- Done: `/method` checked line by line against METRICS.md, config, the reference CSVs and the
-  renderers; thresholds now read from config; April 2020 figures re-measured from the cube (D-031).
-- Done: caveat 2's "shares hold up" checked against the 2026-08 and 2026-09 snapshots and found
-  wrong; caveat 2 and the share notes now say uneven scrappage skews older shares (D-032).
-- Done: METRICS.md's two-guards section re-measured on the 2026-08 cube; five figures corrected,
-  including the self-contradicting 0.29 percentile, which is also in frozen `config/measures.json` (D-033).
-- Done: `/method` explains event markers, clusters and scope, the "All other" line, line colours and
-  the three labels for values with no name, reading labels and caps from code and config (D-034).
-  The review found a renderer gap and two smaller issues, queued below.
-- Done: mix charts without `top_n` draw every group with vehicles in the drawn window, so segment
-  "Not recorded" has a line; `/method` updated in the same PR (D-035).
-- Done 2026-10-21: the `concentration` note names both readings of a falling top-5 share and the
-  unmatched-make effect on the early decades (D-036).
-- Done 2026-10-21: `brand-share` shows its 8 make-scoped events (D-037). Found while checking: the
-  `kgm-rename` mechanism disagrees with EVENTS_LAYER.md (frozen file), and a key row wraps at 320px.
-- Done 2026-10-21: `docs/EVENTS_LAYER.md`'s rendering rules describe the code as it runs (D-038).
-  Found while checking: event bands may spill past the chart's right edge, and one title is over
-  the 60-character limit (frozen file).
-- Done 2026-10-21: the mix key keeps each swatch on its name's line at 320px (`claude/key-row-wrap`).
-- Done 2026-10-21: event bands and rules stop at the chart's frame (`claude/event-band-clip`). Found
-  while checking: marker labels pile up at 320px on `powertrain-mix` with market-wide events shown.
-- Done 2026-10-21: marker labels never overlap and stay inside the frame, at 320px and 1280px
-  (`claude/marker-label-overlap`, D-039). Numbering can now differ between phone and desktop widths.
+- Done 2026-10-19 to 2026-10-21, each in its own open PR and decision record (D-028 to D-040; PRs
+  #2 to #16, listed below): `/sense-check` replaces `/inspector`; `model-leaderboard` blocked on 1b;
+  caveats 1, 2 and 7 and `/method` checked against the data and code; METRICS.md figures re-measured;
+  mix charts draw every group; `concentration` and `brand-share` notes and events; EVENTS_LAYER.md
+  rendering rules match the code; mix key, event bands and marker labels fixed at 320px (marker
+  numbering can now differ between phone and desktop, D-039); README, CLAUDE.md and AGENTS.md
+  describe the repo as it is (D-040).
+- Still frozen until the gate, found along the way: the `kgm-rename` mechanism, a 63-character event
+  title, and the 0.29 percentile comment in `config/measures.json` (queue item 6).
 
 ## Open pull requests waiting on the user
 
@@ -68,6 +49,8 @@ Merge them in this order:
     Into `claude/key-row-wrap`; same base change once #13 is merged.
 15. `claude/marker-label-overlap`: D-039. Into `claude/event-band-clip`; same base change once #14
     is merged.
+16. `claude/reconcile-docs`: D-040, docs only. Into `claude/marker-label-overlap`; same base change
+    once #15 is merged.
 
 PR 1: https://github.com/nickholttt/nzta-analytics-dashboard/pull/1 · PR 2: https://github.com/nickholttt/nzta-analytics-dashboard/pull/2 ·
 PR 3: https://github.com/nickholttt/nzta-analytics-dashboard/pull/3 ·
@@ -82,25 +65,29 @@ PR 11: https://github.com/nickholttt/nzta-analytics-dashboard/pull/11 ·
 PR 12: https://github.com/nickholttt/nzta-analytics-dashboard/pull/12 ·
 PR 13: https://github.com/nickholttt/nzta-analytics-dashboard/pull/13 ·
 PR 14: https://github.com/nickholttt/nzta-analytics-dashboard/pull/14 ·
-PR 15: https://github.com/nickholttt/nzta-analytics-dashboard/pull/15
+PR 15: https://github.com/nickholttt/nzta-analytics-dashboard/pull/15 ·
+PR 16: https://github.com/nickholttt/nzta-analytics-dashboard/pull/16
 
 ## Work queue (in order)
 
-1. **8 November 2026 gate run.**
+1. **Small `ui/explore` fix**, stacked on #16: the time-horizon toggle on a league chart (STATE known
+   issue 1). No live preset is a league, so check it by pointing a scratch copy of a preset at a
+   league shape, not by editing `config/presets.json` for good. Done when switching horizon on a
+   league chart keeps it a league, and mix and trend charts behave as before.
+2. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
    - Done when: green/built/committed reported. If clean, the freeze lifts.
-2. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
+3. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
    Unblocks `used-import-age` and `age-distribution-moving-hole`.
-3. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
-4. **POST_GATE A3**: promote `segment_group`.
-5. **POST_GATE B1–B3**: the three logged build fixes, one commit.
+4. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
+5. **POST_GATE A3**: promote `segment_group`.
+6. **POST_GATE B1–B3**: the three logged build fixes, one commit.
    Separately, one commit: correct `$min_share_of_trailing_median_comment` in `config/measures.json`
    to the D-033 figures (1st percentile 0.67 among months that clear 200; next-lowest after April 2020
    is 0.55). Done when the comment matches METRICS.md.
    Separately, one commit: settle `kgm-rename`'s mechanism against EVENTS_LAYER.md (STATE known
    issue 3); the registry merge means it marks no artefact, so the doc's rename example may be the
    part to change. Same commit or the next: shorten the 63-character title (known issue 4).
-6. **Reconcile docs** (STATE "Docs that contradict code" 5–7): README, build-order wording, stack.
 7. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
    path, checked 2026-10-19 with `git diff --stat origin/main...ui/explore` on the frozen paths).
 
@@ -110,7 +97,5 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Check whether the fifteen PRs were merged. If it is on or
-after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 6
-(reconcile docs): it touches no frozen path, so it need not wait for the gate. `README.md` first;
-the `CLAUDE.md` build-order and stack lines describe the plan, so record any change in a decision.
+/start. Read `docs/STATE.md` and this file. Check whether the sixteen PRs were merged. If it is on or
+after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 1.
