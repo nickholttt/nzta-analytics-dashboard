@@ -334,14 +334,18 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
         color: { domain: model.series, range: model.series.map(model.colourOf) },
         marks: [
           Plot.rect(bands, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: SUPPRESSED_BAND }),
-          Plot.rect(windowed, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: EVENT_WINDOW, fillOpacity: 0.55 }),
+          // A window can run past the latest snapshot (a policy in force until 2029); it stops at the
+          // frame rather than shading the end labels.
+          Plot.rect(windowed, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: EVENT_WINDOW, fillOpacity: 0.55, clip: true }),
           Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => `${Math.round(d * 100)}%` }),
           Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
           Plot.ruleY([0], { stroke: RULE_STRONG }),
-          Plot.ruleX(announced, { x: "x", stroke: INK_3, strokeOpacity: 0.4, strokeDasharray: "1,3" }),
-          Plot.ruleX(rules.filter((r) => !r.measurement), { x: "x", stroke: INK_2, strokeOpacity: 0.45 }),
-          Plot.ruleX(rules.filter((r) => r.measurement), { x: "x", stroke: INK_2, strokeOpacity: 0.8, strokeDasharray: "4,3" }),
+          // An event that straddles the chart's start, or was announced before it, would otherwise draw
+          // its rule in the left margin over the axis labels.
+          Plot.ruleX(announced, { x: "x", stroke: INK_3, strokeOpacity: 0.4, strokeDasharray: "1,3", clip: true }),
+          Plot.ruleX(rules.filter((r) => !r.measurement), { x: "x", stroke: INK_2, strokeOpacity: 0.45, clip: true }),
+          Plot.ruleX(rules.filter((r) => r.measurement), { x: "x", stroke: INK_2, strokeOpacity: 0.8, strokeDasharray: "4,3", clip: true }),
           // Lane 0 sits just above the frame and each further lane above that, so markers that would
           // print on top of each other are read as a column instead of a smear. dy is a constant
           // offset in Plot, not a channel, so each lane needs its own mark.
