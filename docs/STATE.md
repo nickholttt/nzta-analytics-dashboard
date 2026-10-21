@@ -35,12 +35,13 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/mix-all-groups` | origin | mix charts without `top_n` draw every group in the drawn window (D-035). PR into `claude/method-chart-key` |
 | `claude/concentration-note` | origin | `concentration` note names both readings of a falling line and the unmatched-make effect (D-036). PR into `claude/mix-all-groups` |
 | `claude/brand-share-events` | origin | `brand-share` shows its 8 make-scoped events (D-037). PR into `claude/concentration-note` |
+| `claude/events-layer-rendering` | origin | `docs/EVENTS_LAYER.md` rendering rules describe the code (D-038). PR into `claude/brand-share-events` |
 
 No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's eleven branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's twelve branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
@@ -51,7 +52,8 @@ No CI runs on pull requests; the only workflow is the monthly build.
   [#8](https://github.com/nickholttt/nzta-analytics-dashboard/pull/8) (`claude/method-chart-key`), then
   [#9](https://github.com/nickholttt/nzta-analytics-dashboard/pull/9) (`claude/mix-all-groups`), then
   [#10](https://github.com/nickholttt/nzta-analytics-dashboard/pull/10) (`claude/concentration-note`), then
-  [#11](https://github.com/nickholttt/nzta-analytics-dashboard/pull/11) (`claude/brand-share-events`).
+  [#11](https://github.com/nickholttt/nzta-analytics-dashboard/pull/11) (`claude/brand-share-events`), then
+  [#12](https://github.com/nickholttt/nzta-analytics-dashboard/pull/12) (`claude/events-layer-rendering`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
@@ -77,52 +79,33 @@ On `ui/explore`, found 2026-10-19 by reading the code:
 3. `kgm-rename` is `mix` in `data/reference/events.csv`, but `docs/EVENTS_LAYER.md` names a brand
    renaming as a `measurement` example. `brand_registry.csv` already merges SSANGYONG and KG MOBILITY
    into KGM, so no chart shows a step (D-037). `events.csv` is frozen until the 8 November gate.
-4. `docs/EVENTS_LAYER.md` disagrees with the code on two rendering rules: market-scope events
-   ("collapsed … on by default"; the code hides them until a button is pressed) and clustering
-   ("by year"; the code clusters by distance on the axis). `/method` follows the code (D-034).
-5. At 320px the `brand-share` key row for MITSUBISHI wraps, leaving its colour swatch alone on the
+4. At 320px the `brand-share` key row for MITSUBISHI wraps, leaving its colour swatch alone on the
    line above the name (seen in screenshots 2026-10-21; present before D-037).
+5. Windowed event bands are drawn from `date_start` to `date_end` without clipping to the chart's
+   time axis. Two market-wide events end after the latest snapshot (`ccs-charges-cut` 2027-12-31,
+   `ccs-targets-aligned-australia` 2029-12-31), so their bands may spill past the right edge once
+   market-wide events are shown. Found by reading `MixChart.tsx` 2026-10-21; not yet screenshotted.
+6. The published title "Electronic stability control required on all new light vehicles" is 63
+   characters; the schema in `docs/EVENTS_LAYER.md` says at most 60. `events.csv` is frozen until
+   the 8 November gate.
+
+Fixed on `claude/events-layer-rendering` (D-038): `docs/EVENTS_LAYER.md`'s rendering rules now
+describe the code (market-wide events off until shown, clustering by distance on the axis, numbered
+markers with an event list instead of title labels and a tooltip), and three other lines that
+contradicted it are corrected. Docs only.
 
 Fixed on `claude/brand-share-events` (D-037): `brand-share` shows the 8 make-scoped events, 8
 markers on 10 years and 4 clusters on all time; Toyota's agency move keeps its dashed rule and
 measurement warning. No markers under parent group (no event is scoped to `brand_group`).
 
-Fixed on `claude/concentration-note` (D-036): the `concentration` note says a falling line means the
-largest brands hold less of the market, through more brands or a more even split, and that unmatched
-makes hold the early decades down. Screenshots at 320px and 1280px; the site has no dark theme.
-
-Fixed on `claude/mix-all-groups` (D-035): a mix chart without `top_n` draws every group with
-vehicles in the drawn window, so segment "Not recorded" (89 vehicles, latest February 2022) has a
-grey line again; colours are unchanged on all four live mix charts (screenshots 320px and 1280px).
-
-Fixed on `claude/method-chart-key` (D-034): `/method` explains event marker styles, clusters and
-scope, the "All other" line, line colours, and the three labels for values with no name.
-
-Fixed on `claude/metrics-april-2020` (D-033): METRICS.md's April 2020 baselines (trucks 2.5%, not
-~2.3%; NZ New 54.3%, not ~51%), Hyundai's band, the pre-1990 wording and the 0.29 percentile, all
-re-measured on the 2026-08 cube.
-
-Fixed on `claude/caveat-scrappage` (D-032): caveat 2 and the brand-share notes no longer say shares
-"hold up" under scrappage. Measured between the 2026-08 and 2026-09 snapshots, groups leave the
-register at different rates (2015 cars: used imports 0.72% in a month, NZ New 0.17%).
-
-Fixed on `claude/method-page` (D-031): `/method` drops the unchecked share claim, the invented April
-2020 vehicle description and the stale coverage figure, and reads its thresholds from config.
-
-Fixed on `claude/caveats-wording` (D-030): caveat 1 now describes survivors; caveat 7's unchecked
-statutory-rule and MIA claims are replaced by body-type counts from the 2026-08 pull.
-
-Fixed on `claude/model-leaderboard` (D-029): `model-leaderboard` points at `registrations_flow`
-and is blocked, as D-024 cut it; `LeagueChart` stays unused.
-
-Fixed on `claude/sense-check` (D-028): hardcoded names in the extras, the hand-extracted data
-feeding pages that looked like findings, the commentary, and the international figures (deleted).
+Fixed on the earlier open branches (D-028 to D-036): each fix is in its decision record and pull
+request, listed under In progress.
 
 Docs that contradict code (carried over, still unreconciled):
 
-6. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
-7. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
-8. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
+7. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
+8. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
+9. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
    plan, not contradiction.
 
 ## Blocked or waiting on the user
@@ -130,7 +113,7 @@ Docs that contradict code (carried over, still unreconciled):
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- Review and merge of the eleven open pull requests (`docs/CHECKPOINT.md`).
+- Review and merge of the twelve open pull requests (`docs/CHECKPOINT.md`).
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
