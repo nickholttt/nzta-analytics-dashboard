@@ -1,7 +1,7 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
 import { builderChoiceFor, builderHref, builderPreset } from "../lib/builder";
-import { compositeRules, findDataset, findDerived, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
+import { compositeRules, findDataset, findDerived, findPeriod, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { loadEvents, loadManifest, loadSlice } from "../lib/data";
 import type { Preset } from "../lib/config";
@@ -29,6 +29,12 @@ const TIME_PERIODS = [
   { id: "10y", label: "10 years" },
   { id: "all", label: "All time" },
 ];
+
+// A period the time row offers: one of its spans, the preset's own period, or a period that ranks the view.
+const offers = (preset: Preset, granularityId: string | null, id: string) =>
+  TIME_PERIODS.some((p) => p.id === id) || id === (preset.period ?? "all") || rankingPeriods(presetView(preset, granularityId)).includes(id);
+
+const spanLabel = (months: number) => (months >= 24 && months % 12 === 0 ? `${months / 12} years` : `${months} months`);
 
 // lead: one of the charts that carries the page. Larger heading, taller plot; nothing else differs.
 // audience: "public" is what a visitor reads on the Explore page: the chart, its controls, its notes and
@@ -62,8 +68,7 @@ export default function PresetPanel({
   const [activePeriod, setActivePeriod] = useState<string>(() => {
     if (typeof window === "undefined" || !preset) return defaultPeriod;
     const fromUrl = getParam(presetId, "period", defaultPeriod);
-    const offered = TIME_PERIODS.some((p) => p.id === fromUrl) || rankingPeriods(presetView(preset, activeGranularityId)).includes(fromUrl);
-    return offered ? fromUrl : defaultPeriod;
+    return offers(preset, activeGranularityId, fromUrl) ? fromUrl : defaultPeriod;
   });
   // All records: an all-time mix chart opens on its composition start; this draws it from the first
   // month with data. Kept in the URL as range=all, the parameter the chart used before.
@@ -83,7 +88,7 @@ export default function PresetPanel({
       setParam(presetId, "granularity", newId, defaultGranularityId);
     }
     // A ranking period the new view cannot rank over is not in its row, so the view opens on its default.
-    if (preset && !TIME_PERIODS.some((p) => p.id === activePeriod) && !rankingPeriods(presetView(preset, newId)).includes(activePeriod)) {
+    if (preset && !offers(preset, newId, activePeriod)) {
       handlePeriodChange(defaultPeriod);
     }
   };
@@ -266,11 +271,21 @@ export default function PresetPanel({
   // offers the full record as its own option, so no two buttons say the same thing. A period that ranks
   // the chart comes last: it draws a different chart, not a shorter span of the same one.
   const start = shape === "mix" && rows ? compositionStart(rows, dimension, guard) : undefined;
+  // A preset whose own period is none of the spans and does not rank it (a distribution of the last 12 months) keeps
+  // that period as a span of its own, in order of length, so the option it opens on is always in the row.
+  const ranking = rankingPeriods(presetView(preset, activeGranularityId));
+  const own = findPeriod(defaultPeriod);
+  const spans = [
+    ...TIME_PERIODS.filter((p) => p.id !== "all").map((p) => ({ key: p.id, id: p.id, label: p.label, full: false, months: findPeriod(p.id)?.months ?? 0 })),
+    ...(own?.months && !TIME_PERIODS.some((p) => p.id === own.id) && !ranking.includes(own.id)
+      ? [{ key: own.id, id: own.id, label: spanLabel(own.months), full: false, months: own.months }]
+      : []),
+  ].sort((a, b) => a.months - b.months);
   const rangeOptions = [
-    ...TIME_PERIODS.filter((p) => p.id !== "all").map((p) => ({ key: p.id, id: p.id, label: p.label, full: false })),
+    ...spans,
     { key: "all", id: "all", label: start ? `Since ${monthLabel(start)}` : "All time", full: false },
     ...(start ? [{ key: "all-records", id: "all", label: "All records", full: true }] : []),
-    ...rankingPeriods(presetView(preset, activeGranularityId)).map((id) => ({
+    ...ranking.map((id) => ({
       key: id,
       id,
       // LeagueChart ranks the trailing window whatever the period, so the label names that window.
@@ -322,7 +337,7 @@ export default function PresetPanel({
           </div>
         ) : null}
 
-        {preset.dataset !== "used_imports" && preventsRender.length === 0 ? (
+        {preventsRender.length === 0 ? (
           <div className="toggle" role="radiogroup" aria-label="Time range">
             {rangeOptions.map((o) => (
               <label key={o.key}>
