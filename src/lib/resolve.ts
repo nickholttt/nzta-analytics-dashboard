@@ -10,8 +10,8 @@ import { PAIR_SEPARATOR } from "./data";
 import type { Manifest, ViewSource } from "./data";
 import { RENDERED_DERIVED } from "./derived";
 
-// The shapes this local reference tool draws. geo is build step 6.
-const RENDERED_SHAPES = new Set(["mix", "trend", "distribution", "league"]);
+// The shapes this local reference tool draws: all five (CLAUDE.md §Shapes).
+const RENDERED_SHAPES = new Set(["mix", "trend", "distribution", "league", "geo"]);
 
 export type Resolution = {
   invalid: string[];

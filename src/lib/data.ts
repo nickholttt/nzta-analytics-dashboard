@@ -67,6 +67,22 @@ async function fetchOk(path: string): Promise<Response> {
 export const loadManifest = () => once("manifest", async () => (await fetchOk("manifest.json")).json() as Promise<Manifest>);
 export const loadEvents = () => once("events", async () => (await fetchOk("events.json")).json() as Promise<Event[]>);
 
+// Region outlines for the map, written by scripts/region-boundaries.mjs. Not cube data: they sit beside it, not in it.
+export type RegionOutlines = {
+  type: "FeatureCollection";
+  source: string;
+  features: { type: "Feature"; properties: { region: string; code: string }; geometry: { type: "MultiPolygon"; coordinates: number[][][][] } }[];
+};
+
+const REGIONS = "/geo/nz-regions.json";
+
+export const loadRegions = () =>
+  once("regions", async () => {
+    const res = await fetch(REGIONS);
+    if (!res.ok) throw new Error(`public${REGIONS}: HTTP ${res.status}`);
+    return res.json() as Promise<RegionOutlines>;
+  });
+
 export function monthKey(value: unknown): string {
   if (value instanceof Date) return value.toISOString().slice(0, 7);
   if (typeof value === "string") return value.slice(0, 7);
