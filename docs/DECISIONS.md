@@ -696,3 +696,38 @@ New entries use this template:
   character width is the measured width of a numeral at 11px semibold, wider than the space and
   brackets; a font change would need it re-measured.
 - Status: decided by Claude (unreviewed)
+
+## D-040 2026-10-21 — README describes the repo as it is; CLAUDE.md keeps its plan and says where the repo departs from it
+- Agent: claude, under D-027
+- Basis: this commit; `README.md`, `CLAUDE.md`, `config/presets.json`, `data/reference/`,
+  `pipeline/build.py`, `src/components/LeagueChart.tsx`, `package.json`, and `git ls-tree origin/main`,
+  read on 2026-10-21; D-014.
+- Context: STATE "Docs that contradict code" 5–7. README said "No application code yet" and "No
+  frontend yet", but `pipeline/` and `src/` exist on `main` and on `ui/explore`. It also listed 26
+  presets in 7 groups (there are 10 in 3 tiers on `ui/explore`), omitted `mild_hybrid_models.csv`,
+  `config/pipeline.json`, `AGENTS.md` and the working docs, and said a run "commits" the snapshot and
+  state (the workflow commits them; the run writes them, the snapshot only if that month has none).
+  `CLAUDE.md`'s build order says no UI before two unattended runs, and its stack names Cloudflare
+  Pages and TanStack Table, neither of which is in the repo.
+- Options considered: (1) Rewrite `CLAUDE.md`'s build order and stack to match the repo: the brief is
+  the user's plan, and the plan has not changed (deploying and adding TanStack are still intended as
+  far as any record shows); rewriting it would erase the plan to fix a status question. (2) Leave
+  `CLAUDE.md` alone and list the gap in STATE indefinitely: every agent reads the brief first and
+  would keep finding the same contradiction. (3) Keep the plan's wording and add short notes saying
+  what is planned and pointing to D-014 and `docs/STATE.md` for where the repo actually is. README is
+  not a plan, so it is corrected outright.
+- Decision: (3) for `CLAUDE.md`: "(planned …)" on the Cloudflare Pages and TanStack Table lines, a
+  paragraph after the build order naming D-014, and `src/` added to the repo layout. README rewritten
+  where wrong: the opening, the file table (adds `AGENTS.md`, `POST_GATE.md`, the working docs,
+  playbooks, `config/pipeline.json`, `mild_hybrid_models.csv`, `pipeline/`, `src/`; the presets row
+  states no count, since the canon changes), the known gaps, what a run writes and who commits it, and
+  how to run the site. Preset and event counts are left out of README where they drift; the event
+  count (54, 50 verified) was re-counted and kept.
+  - After an independent review: the `CLAUDE.md` TanStack note says `LeagueChart` draws a Plot bar
+    chart over a plain, non-virtualised rank table (it had said only "a plain table"); README names
+    all eight playbooks; and `AGENTS.md`'s architecture list adds `LeagueChart.tsx`, which exists but
+    was missing from the renderers built so far.
+- Consequences: docs only. None of the edited lines is a design invariant or one of the five shapes
+  (AGENTS.md hard rule 1). If the user has dropped Cloudflare Pages or TanStack Table, the "(planned)"
+  notes become wrong and the lines should go instead.
+- Status: decided by Claude (unreviewed)

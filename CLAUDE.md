@@ -69,8 +69,11 @@ chart type.
 ## Stack
 
 - Astro + React islands, static output, deployed to Cloudflare Pages
+  (planned: nothing is deployed yet; the site runs locally, D-014)
 - Observable Plot for all five shapes
-- TanStack Table (virtualised) for league tables
+- TanStack Table (virtualised) for league tables (planned: not yet a
+  dependency; `LeagueChart` draws a Plot bar chart over a plain,
+  non-virtualised rank table, and no league preset is live)
 - Python + DuckDB for the pipeline, run in GitHub Actions on a monthly cron
 - No database, no API server, no runtime cost
 
@@ -109,6 +112,7 @@ pipeline/
   tests/               # golden contract, guardrails, invariant #1 scan
 .github/workflows/
   monthly-build.yml    # monthly cron; skips when the change key is unchanged
+src/                   # the local reference UI: pages, renderers (components/), cube and config readers (lib/)
 ```
 
 ---
@@ -130,6 +134,11 @@ pipeline/
 6. Remaining shapes: `league`, `distribution`, `geo`.
 7. Fleet (stock) dataset and cohort survival.
 8. Age at registration, derived model launch dates, pipeline lag.
+
+This is the plan's order. At the user's direction a local reference UI
+was built before step 1's two unattended runs, and with more than `mix`
+and `trend` (D-014); it is not deployed. The current step and what has
+been built ahead of it are in `docs/STATE.md`.
 
 ---
 
