@@ -19,6 +19,8 @@ Last updated by claude on 2026-10-21
   visitor-facing Explore page, then the sentence builder; an interactive platform, easy to understand,
   less restricted than VSTATS; local dev build only until 8 November. First PR done:
   `claude/public-explore`, then `claude/explore-copy-controls` (D-042).
+- 2026-10-21: the user agreed that frozen-path work may be built on branches before the gate, kept off
+  `main` until it passes (D-043, AGENTS.md rule 2).
 - Still frozen until the gate, found along the way: the `kgm-rename` mechanism, a 63-character event
   title, and the 0.29 percentile comment in `config/measures.json` (queue item 7).
 
@@ -51,6 +53,8 @@ Last updated by claude on 2026-10-21
 3. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
    - Done when: green/built/committed reported. If clean, the freeze lifts.
+   From item 4 on, the work may be built before the gate on branches from `main` with PRs into `main`
+   left unmerged until the gate passes (D-043); the gate run itself is still checked on its day.
 4. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
    Unblocks `used-import-age` and `age-distribution-moving-hole`.
 5. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
@@ -69,10 +73,7 @@ Last updated by claude on 2026-10-21
 
 ## Questions for the user
 
-1. "Nov 8 is just the verification": may pipeline work (POST_GATE A1–A3, which unblock the four hidden
-   charts) be built and tested on `claude/` branches before 8 November, kept off `main` until the gate
-   passes? It changes AGENTS.md hard rule 2. Recommendation: yes, branches only, nothing merged to
-   `main` and no local `pipeline run`. Default: the freeze stays as written.
+None open.
 
 ## Prompt for the next session
 
