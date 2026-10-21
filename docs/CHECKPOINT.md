@@ -87,7 +87,7 @@ PR 12: https://github.com/nickholttt/nzta-analytics-dashboard/pull/12 ·
 PR 13: https://github.com/nickholttt/nzta-analytics-dashboard/pull/13 ·
 PR 14: https://github.com/nickholttt/nzta-analytics-dashboard/pull/14 ·
 PR 15: https://github.com/nickholttt/nzta-analytics-dashboard/pull/15 ·
-PR 16: (link added when opened)
+PR 16: https://github.com/nickholttt/nzta-analytics-dashboard/pull/16
 
 ## Work queue (in order)
 

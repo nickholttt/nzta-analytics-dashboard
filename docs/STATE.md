@@ -61,7 +61,7 @@ No CI runs on pull requests; the only workflow is the monthly build.
   [#13](https://github.com/nickholttt/nzta-analytics-dashboard/pull/13) (`claude/key-row-wrap`), then
   [#14](https://github.com/nickholttt/nzta-analytics-dashboard/pull/14) (`claude/event-band-clip`), then
   [#15](https://github.com/nickholttt/nzta-analytics-dashboard/pull/15) (`claude/marker-label-overlap`), then
-  #16 (`claude/reconcile-docs`).
+  [#16](https://github.com/nickholttt/nzta-analytics-dashboard/pull/16) (`claude/reconcile-docs`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
