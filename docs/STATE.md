@@ -30,18 +30,20 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/caveats-wording` | origin | caveats 1 and 7 (D-030). PR into `claude/model-leaderboard` |
 | `claude/method-page` | origin | `/method` checked against METRICS.md, config and code (D-031). PR into `claude/caveats-wording` |
 | `claude/caveat-scrappage` | origin | caveat 2 and share notes: uneven scrappage skews shares (D-032). PR into `claude/method-page` |
+| `claude/metrics-april-2020` | origin | METRICS.md April 2020 and threshold figures re-measured (D-033). PR into `claude/caveat-scrappage` |
 
 No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's six branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's seven branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
   (`claude/model-leaderboard`), [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
   (`claude/caveats-wording`), [#5](https://github.com/nickholttt/nzta-analytics-dashboard/pull/5) (`claude/method-page`),
-  then [#6](https://github.com/nickholttt/nzta-analytics-dashboard/pull/6) (`claude/caveat-scrappage`).
+  [#6](https://github.com/nickholttt/nzta-analytics-dashboard/pull/6) (`claude/caveat-scrappage`), then
+  [#7](https://github.com/nickholttt/nzta-analytics-dashboard/pull/7) (`claude/metrics-april-2020`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
@@ -61,9 +63,13 @@ On `ui/explore`, found 2026-10-19 by reading the code:
 1. The time-horizon toggle offers no period of 12 months or less, so on a league chart it switches
    the shape to mix with no way back (`src/lib/resolve.ts` `inferShape`). Unreachable now: no live
    preset is a league. Fix before a league preset is unblocked.
-2. `docs/METRICS.md` says trucks were "~2.3%" either side of April 2020 and that "almost all" months
-   under 200 are before 1990. Measured 2026-10-19 on the 2026-08 cube: 2.5% over the 12 months before
-   (2.9% in March and May 2020); all 493 are before 1990. `/method` uses the measured figures (D-031).
+2. `config/measures.json` (`$min_share_of_trailing_median_comment`) says 0.33 sits well clear of
+   seasonality "whose 1st percentile is 0.29". 0.29 counts months under 200; among months that clear
+   200 it is 0.67 (D-033). The file is frozen until the 8 November gate.
+
+Fixed on `claude/metrics-april-2020` (D-033): METRICS.md's April 2020 baselines (trucks 2.5%, not
+~2.3%; NZ New 54.3%, not ~51%), Hyundai's band, the pre-1990 wording and the 0.29 percentile, all
+re-measured on the 2026-08 cube.
 
 Fixed on `claude/caveat-scrappage` (D-032): caveat 2 and the brand-share notes no longer say shares
 "hold up" under scrappage. Measured between the 2026-08 and 2026-09 snapshots, groups leave the
@@ -93,7 +99,7 @@ Docs that contradict code (carried over, still unreconciled):
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- Review and merge of the five open pull requests (`docs/CHECKPOINT.md`).
+- Review and merge of the seven open pull requests (`docs/CHECKPOINT.md`).
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
