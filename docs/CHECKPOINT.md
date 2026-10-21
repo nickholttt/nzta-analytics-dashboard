@@ -25,7 +25,7 @@ Last updated by claude on 2026-10-21
 ## Open pull requests waiting on the user
 
 1. #17 `claude/notes-after-merge`: STATE and CHECKPOINT after #1–#16 were merged. Into `ui/explore`.
-2. `claude/public-explore`: D-041. `/` shows visitors only the charts that draw; diagnostics move to
+2. #18 `claude/public-explore`: D-041. `/` shows visitors only the charts that draw; diagnostics move to
    the internal `/status`. Into `claude/notes-after-merge`; change its base to `ui/explore` once #17 is
    merged.
 
