@@ -1,5 +1,6 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
+import { builderChoiceFor, builderHref, builderPreset } from "../lib/builder";
 import { compositeRules, findDataset, findDerived, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { loadEvents, loadManifest, loadSlice } from "../lib/data";
@@ -252,6 +253,15 @@ export default function PresetPanel({
   const definition = (!internal && effectivePreset.dataset && publicCopy.dataset_definitions[effectivePreset.dataset]) || dataset?.definition;
   const eyebrow = dimensionLabel ?? derived?.label ?? measure?.label;
 
+  // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube
+  // draws what it says, and opened on the time range shown here.
+  const builderChoice = builderChoiceFor(effectivePreset);
+  const builderLink =
+    builderChoice && resolvePreset(builderPreset(builderChoice), manifest).preventsRender.length === 0
+      ? builderHref(builderChoice, activePeriod, fullHistory)
+      : undefined;
+  const questionId = `${preset.id}-question`;
+
   // One row of time options. An all-time mix chart that opens on a later start names that start, and
   // offers the full record as its own option, so no two buttons say the same thing. A period that ranks
   // the chart comes last: it draws a different chart, not a shorter span of the same one.
@@ -274,7 +284,7 @@ export default function PresetPanel({
       <header className="panel-head">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h3 className="panel-question">
-          <span>{preset.question}</span>
+          <span id={questionId}>{preset.question}</span>
           {internal && status !== "live" ? (
             <>
               {" "}
@@ -283,9 +293,16 @@ export default function PresetPanel({
           ) : null}
         </h3>
         {definition ? <p className="panel-definition">{definition}</p> : null}
-        <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
-          {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
-        </button>
+        <div className="panel-actions">
+          <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
+            {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
+          </button>
+          {builderLink ? (
+            <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
+              Change this chart
+            </a>
+          ) : null}
+        </div>
       </header>
 
       <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>

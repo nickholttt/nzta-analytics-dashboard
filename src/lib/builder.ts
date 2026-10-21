@@ -1,7 +1,7 @@
 // The sentence builder's vocabulary: what the `builder` block in config/presets.json allows, narrowed
 // to what draws against the cube as built. Each choice becomes a preset like any in the canon, so the
 // resolver and the panel treat a built chart exactly as they treat an Explore one (D-044).
-import { builderSpec, findDerived, findDimension, findMeasure } from "./config";
+import { builderSpec, findDerived, findDimension, findMeasure, isComposite } from "./config";
 import type { BuilderMeasure, Preset } from "./config";
 import type { Manifest } from "./data";
 import { inferShape, resolvePreset } from "./resolve";
@@ -67,4 +67,25 @@ export function settle(options: BuilderOption[], measure?: string | null, dimens
   const m = options.find((o) => o.id === measure) ?? options[0];
   const d = m.dimensions.find((o) => o.id === dimension) ?? m.dimensions[0];
   return { measure: m.id, dimension: d.id };
+}
+
+// The sentence that draws the same chart as this view, where the builder can say it: its dataset, a measure it
+// offers with this breakdown, the same cap on named values, and no filter, since the sentence has no blank for one.
+// Composite presets never qualify ($composite in config/presets.json), and neither does the builder's own chart.
+export function builderChoiceFor(view: Preset): Choice | null {
+  if (view.id === builderSpec.id || isComposite(view) || view.series || view.filters?.length) return null;
+  if (view.dataset !== builderSpec.dataset || !view.dimension) return null;
+  const m = builderSpec.measures.find((x) => (x.derived ? x.id === view.derived : !view.derived && x.id === view.measure));
+  if (!m || !(view.dimension in m.dimensions) || m.top_n?.[view.dimension] !== view.top_n) return null;
+  return { measure: m.id, dimension: view.dimension };
+}
+
+// The Build page's address for a choice. It carries the time range the chart was showing, where that differs from the
+// sentence's own default, so the chart opens as the reader left it.
+export function builderHref(choice: Choice, period?: string, fullHistory = false): string {
+  const id = builderSpec.id;
+  const params = new URLSearchParams({ [`${id}.measure`]: choice.measure, [`${id}.by`]: choice.dimension });
+  if (period && period !== builderPreset(choice).period) params.set(`${id}.period`, period);
+  if (fullHistory) params.set(`${id}.range`, "all");
+  return `/build?${params}`;
 }
