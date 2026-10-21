@@ -222,6 +222,44 @@ def test_unresolvable_event_scope_value_aborts(tmp_path, workspace):
     expect_abort(lambda: run(tmp_path, cfg, load_rows()), "do not resolve")
 
 
+@pytest.mark.parametrize("changes, fragment", [
+    ({"mechanism": "measurment"}, "test-schema: mechanism 'measurment' is not in the enum"),
+    ({"category": "polcy"}, "test-schema: category 'polcy' is not in the enum"),
+    ({"expected_effect": "sideways"}, "test-schema: expected_effect 'sideways' is not in the enum"),
+    ({"confidence": "rumoured"}, "test-schema: confidence 'rumoured' is not in the enum"),
+    ({"title": "x" * 61}, "test-schema: title is 61 characters, over the 60 allowed"),
+])
+def test_a_verified_event_outside_the_schema_table_aborts(tmp_path, workspace, changes, fragment):
+    cfg = make_cfg(workspace)
+    ref = tmp_path / "reference"
+    shutil.copytree(cfg.reference("x").parent, ref)
+    events_file = ref / cfg.pipeline["events"]["file"]
+    header = events_file.read_text(encoding="utf-8").splitlines()[0].split(",")
+    row = {c: "" for c in header}
+    row.update(id="test-schema", date_start="2026-01-01", category="policy", mechanism="demand", scope="market",
+               title="t", summary="s", expected_effect="none", confidence="documented",
+               verified=cfg.pipeline["boolean_true"], source_url="https://example.invalid")
+    row.update(changes)
+    with events_file.open("a", encoding="utf-8", newline="") as fh:
+        fh.write(",".join(row[c] for c in header) + "\n")
+    cfg = make_cfg(workspace, reference_dir=ref)
+    expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
+
+
+@pytest.mark.parametrize("before, after, fragment", [
+    ("| `mechanism` | enum |", "| `mechanism` | enum, required |", "could not find the enum table rows for ['mechanism']"),
+    ("| `title` | short | ≤60 chars", "| `title` | short | at most 60 chars", "could not find the title length"),
+])
+def test_a_schema_table_row_that_stops_parsing_aborts(tmp_path, workspace, before, after, fragment):
+    cfg = make_cfg(workspace)
+    doc = tmp_path / "EVENTS_LAYER.md"
+    text = cfg.path("events_doc").read_text(encoding="utf-8")
+    assert before in text
+    doc.write_text(text.replace(before, after), encoding="utf-8", newline="\n")
+    cfg = make_cfg(workspace, events_doc=doc)
+    expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
+
+
 def test_abort_leaves_last_good_build_untouched(tmp_path, workspace):
     cfg, rows, state = good_state(tmp_path, workspace)
     before = (workspace["public"] / "manifest.json").read_text(encoding="utf-8")

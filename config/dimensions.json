@@ -73,7 +73,8 @@
       "source": "reference:brand_registry",
       "derive": { "kind": "brand", "value": "parent_group" },
       "shape_hint": "mix",
-      "cardinality": "medium",
+      "cardinality": "high",
+      "$cardinality_comment": "high, like make: 43 named groups in the 2026-08 cube, every one with vehicles in the last 12 months, the 14 largest holding 88% of those vehicles. A single 12-month window of competitors is drawn as a ranking (league), as for brands; longer periods stay a mix chart (D-050).",
       "help": "Who owns the brand. Toyota, Lexus and Daihatsu all roll up to Toyota Group."
     },
     {

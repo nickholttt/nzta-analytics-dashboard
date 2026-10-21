@@ -224,9 +224,16 @@ of `n` for the same `month` and filter value.
     "cluster": [9, 13], "share_cluster": 0.60, "shares": { "0": 0.003, "31+": 0.001 }
   },
   "snapshot_archive": { "path": "data/snapshots/2026-08.parquet", "status": "new" },
+  "payload_bytes": 1238896,
   "warnings": []
 }
 ```
+
+`payload_bytes` is the size of every file the build writes to `/public/data`
+except `manifest.json` itself: what the site can download. The golden test
+compares it, so anything that changes it (a new slice, a DuckDB upgrade that
+changes the Parquet layout) is a deliberate contract update. The golden
+build reads a frozen events file, so adding an event to `events.csv` is not.
 
 This drives the freshness badge and the provenance panel. Every count is
 published even when zero: a count that disappears is itself a silent
@@ -330,7 +337,13 @@ Events:
 
 - A verified event has a scope outside the enum in `EVENTS_LAYER.md`, a
   `scope_value` that does not resolve through the vocabulary its dimension
-  produces, no `date_start`, or no `source_url`.
+  produces, no `date_start`, or no `source_url`; or a value outside the
+  enum for any other column the schema table calls an enum (`category`,
+  `mechanism`, `expected_effect`, `confidence`), or a `title` longer than
+  the table allows.
+- The schema table in `EVENTS_LAYER.md` no longer reads as an enum for a
+  column `config/pipeline.json` lists in `events.enum_columns`, or no longer
+  states the title limit.
 
 Failing loudly is the point. A dashboard that quietly serves wrong numbers
 is worse than one that is visibly stale.

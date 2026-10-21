@@ -249,6 +249,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
+  "payload_bytes": 31487,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -6140,5 +6141,91 @@
     ]
    ]
   }
- }
+ },
+ "events": [
+  {
+   "id": "esc-new-light-vehicles",
+   "date_start": "2015-07-01",
+   "date_end": null,
+   "category": "regulatory",
+   "mechanism": "supply",
+   "scope": "import_status",
+   "scope_values": [
+    "NZ New"
+   ],
+   "title": "Stability control required on all new light vehicles",
+   "summary": "ESC became mandatory for all newly registered new light passenger and goods vehicles.",
+   "expected_effect": "none",
+   "announced_date": "2014-02-26",
+   "confidence": "documented",
+   "source_url": "https://www.globalncap.org/news/new-zealand-makes-esc-mandatory-on-all-imports"
+  },
+  {
+   "id": "toyota-drive-happy",
+   "date_start": "2018-03-27",
+   "date_end": null,
+   "category": "marketing",
+   "mechanism": "measurement",
+   "scope": "make",
+   "scope_values": [
+    "TOYOTA"
+   ],
+   "title": "Toyota New Zealand moves to an agency model",
+   "summary": "The Drive Happy Project replaced dealer-owned stock and price negotiation with fixed national pricing and three distributor-held vehicle pools. Dealers became agents earning a fee. MEASUREMENT WARNING: this changes who is recorded as the registering party and how demonstrator stock enters the register.",
+   "expected_effect": "mixed",
+   "announced_date": null,
+   "confidence": "documented",
+   "source_url": "https://www.toyota.co.nz/about-toyota/toyota-news/2018/april/the-drive-happy-project/"
+  },
+  {
+   "id": "clean-car-discount-rebate-phase",
+   "date_start": "2021-07-01",
+   "date_end": "2022-03-31",
+   "category": "policy",
+   "mechanism": "demand",
+   "scope": "powertrain",
+   "scope_values": [
+    "BEV",
+    "PHEV"
+   ],
+   "title": "Clean Car Discount rebates begin",
+   "summary": "A rebate was paid on application to the first registered person of an eligible low-emission vehicle.",
+   "expected_effect": "up",
+   "announced_date": null,
+   "confidence": "documented",
+   "source_url": "https://www.ird.govt.nz/topics/clean-car-discount-scheme"
+  },
+  {
+   "id": "kgm-rename",
+   "date_start": "2024-03-31",
+   "date_end": null,
+   "category": "brand_entry",
+   "mechanism": "measurement",
+   "scope": "make",
+   "scope_values": [
+    "KGM"
+   ],
+   "title": "SsangYong renamed KG Mobility",
+   "summary": "SsangYong New Zealand became KGM at the end of March 2024, a renaming after the company's acquisition by KG Group, not a market entry. The brand registry maps SSANGYONG and KG MOBILITY to KGM, so the make series is continuous.",
+   "expected_effect": "none",
+   "announced_date": "2024-03-07",
+   "confidence": "documented",
+   "source_url": "https://autotrader.co.nz/news/ssangyong-rebrands-to-kgm-in-new-zealand"
+  },
+  {
+   "id": "ccs-charges-cut",
+   "date_start": "2026-01-01",
+   "date_end": "2027-12-31",
+   "category": "regulatory",
+   "mechanism": "supply",
+   "scope": "market",
+   "scope_values": [],
+   "title": "Clean Car Standard charges cut by around 80 percent",
+   "summary": "The top rate for new vehicles fell from $67.50 to $15 per gram of CO2 and for used vehicles from $33.75 to $7.50. Existing credits protected from expiring before 31 December 2028. At the time 86 percent of importers faced a net charge.",
+   "expected_effect": "up",
+   "announced_date": "2025-11-17",
+   "confidence": "documented",
+   "source_url": "https://www.1news.co.nz/2025/11/17/clean-car-standard-under-review-import-charges-lowered/"
+  }
+ ]
 }
