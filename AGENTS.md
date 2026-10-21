@@ -104,8 +104,10 @@ Setup, **not re-run this session** (the environment already existed):
    Every commit must build, not just the branch tip.
 6. **Resolve field meanings empirically** against the data before rewriting a doc. Surface counts
    for edge cases; never silently bucket.
-7. **Don't push to `main`** without asking in that session. GitHub API access goes through `gh`
-   only (full path above; not on the Git Bash PATH), never the Git Credential Manager token.
+7. **Don't push to `main`** without asking in that session. An agent may push its own branches
+   (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19). GitHub API access
+   goes through `gh` only (full path above; not on the Git Bash PATH), never the Git Credential
+   Manager token.
 8. **Don't build ahead of the current step.** The user works in gated steps with a stop-and-report
    after each; the current step is in `docs/STATE.md`.
 9. **Never present a measurement artefact as market behaviour** (`docs/EVENTS_LAYER.md`,

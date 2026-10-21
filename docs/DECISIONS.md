@@ -224,3 +224,28 @@ New entries use this template:
 - Basis: user instruction in the Claude session of 2026-09-13
 - Decision: the user continues the UI steps (docs/STATE.md, Next up) with Gemini, starting from
   Claude's uncommitted design step. Claude does not edit those files unless handed them back.
+
+## D-026 2026-10-19 — Adopt docs/CHECKPOINT.md; keep decisions in this one file
+- Agent: claude
+- Basis: global protocol `~/.claude/CLAUDE.md`, version 2026-10-12
+- Context: the global protocol was revised on 2026-10-12. It adds `docs/CHECKPOINT.md` (the
+  handoff and the only home of the work queue), makes `docs/STATE.md` a snapshot under 150 lines,
+  and expects one decision record per file under `docs/decisions/`.
+- Options considered: (1) adopt all three, migrating D-001..D-025 into `docs/decisions/`;
+  (2) adopt CHECKPOINT.md and the STATE.md shape, keep this single append-only file;
+  (3) change nothing. (1) rewrites 25 records whose bases cite this file, and the protocol lets a
+  repo relax a global rule. (3) leaves the repo out of step with the protocol both agents now read.
+- Decision: (2). New records keep this file's template. STATE.md was rewritten as a snapshot; its
+  "Next up" moved to CHECKPOINT.md.
+- Consequences: Gemini should read CHECKPOINT.md for the queue. Moving to `docs/decisions/` later
+  is a mechanical split.
+- Status: decided by Claude (unreviewed)
+
+## D-027 2026-10-19 — UI work on ui/explore returns to Claude; agents may push their own branches
+- Agent: user
+- Basis: user instruction in the Claude session of 2026-10-19
+- Decision: supersedes D-025. Claude now owns the UI files on `ui/explore`, starting with the
+  review findings in `docs/STATE.md`. Agents may push `claude/*` / `gemini/*` branches and open
+  pull requests (AGENTS.md hard rule 7). Gemini's extras (inspector, market drilldown, complexity
+  benchmark) are kept as a clearly labelled sense-check area, or, where Claude judges a part of
+  no value, documented and deleted.
