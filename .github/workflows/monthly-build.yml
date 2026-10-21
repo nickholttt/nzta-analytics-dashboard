@@ -53,8 +53,11 @@ jobs:
       - name: Contract, guardrail and invariant tests
         run: python -m pytest pipeline/tests -q -p no:cacheprovider
 
+      # Unbuffered, so each line in the log is stamped when it was printed and the pull and build times can be told apart.
       - name: Check source; pull and build if it changed
         id: pipeline
+        env:
+          PYTHONUNBUFFERED: "1"
         run: python -m pipeline run --github-output "$GITHUB_OUTPUT" ${{ inputs.force && '--force' || '' }}
 
       - name: Upload public data

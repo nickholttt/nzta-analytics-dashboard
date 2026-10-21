@@ -224,9 +224,16 @@ of `n` for the same `month` and filter value.
     "cluster": [9, 13], "share_cluster": 0.60, "shares": { "0": 0.003, "31+": 0.001 }
   },
   "snapshot_archive": { "path": "data/snapshots/2026-08.parquet", "status": "new" },
+  "payload_bytes": 1238896,
   "warnings": []
 }
 ```
+
+`payload_bytes` is the size of every file the build writes to `/public/data`
+except `manifest.json` itself: what the site can download. The golden test
+compares it, so anything that changes it (a new slice, a DuckDB upgrade that
+changes the Parquet layout) is a deliberate contract update. The golden
+build reads a frozen events file, so adding an event to `events.csv` is not.
 
 This drives the freshness badge and the provenance panel. Every count is
 published even when zero: a count that disappears is itself a silent

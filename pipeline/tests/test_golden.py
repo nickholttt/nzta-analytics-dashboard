@@ -1,6 +1,10 @@
-"""Locks the cube contract (docs/CUBE_SCHEMA.md): slice schemas, slice contents and the manifest.
+"""Locks the cube contract (docs/CUBE_SCHEMA.md): slice schemas, slice contents, the manifest and events.json.
 
 Regenerate deliberately with UPDATE_GOLDEN=1 and review the diff: a golden change is a contract change.
+
+The build reads a frozen events file (fixtures/events.csv), not data/reference/events.csv. Adding an event is a one-row
+data edit (design invariant 3), but events.json counts towards payload_bytes, so building from the live file would make
+every new event a contract change. The live file is still validated by every guardrail test's build.
 """
 
 from __future__ import annotations
@@ -8,15 +12,25 @@ from __future__ import annotations
 import csv
 import json
 import os
+import shutil
 
 import duckdb
 
 from pipeline import build, config
 from pipeline.contract import PAIR_COLUMNS, PAIR_SEPARATOR, SLICE_COLUMNS
 
-from .conftest import GOLDEN, NOW, load_rows, make_cfg, source_for, write_pages
+from .conftest import FIXTURES, GOLDEN, NOW, load_rows, make_cfg, source_for, write_pages
 
 GOLDEN_FILE = GOLDEN / "contract.json"
+
+
+def frozen_reference(tmp_path):
+    """The reference files with events.csv replaced by the frozen fixture."""
+    live = config.load()
+    reference = tmp_path / "reference"
+    shutil.copytree(live.reference("x").parent, reference)
+    shutil.copyfile(FIXTURES / "events.csv", reference / live.pipeline["events"]["file"])
+    return reference
 
 
 def read_slice(path) -> dict:
@@ -31,16 +45,17 @@ def read_slice(path) -> dict:
 
 def built_contract(tmp_path, workspace) -> tuple[dict, dict]:
     rows = load_rows()
-    cfg = make_cfg(workspace)
+    cfg = make_cfg(workspace, reference_dir=frozen_reference(tmp_path))
     build.build(cfg, source_for(rows), write_pages(tmp_path / "pages", rows), None, NOW)
     public = workspace["public"]
+    # payload_bytes is compared too: it changes with DuckDB's Parquet layout, so a DuckDB upgrade needs a deliberate golden
+    # update, and a change in what the site downloads never passes unnoticed.
     manifest = json.loads((public / "manifest.json").read_text(encoding="utf-8"))
-    manifest.pop("payload_bytes")  # depends on the parquet writer's byte layout, not on the contract
-    contract = {"manifest": manifest, "slices": {}, "pairs": {}}
+    events = json.loads((public / "events.json").read_text(encoding="utf-8"))
+    contract = {"manifest": manifest, "slices": {}, "pairs": {}, "events": events}
     for kind, folder in (("slices", "cube"), ("pairs", "pairs")):
         for path in sorted((public / folder).rglob("*.parquet")):
             contract[kind][path.relative_to(public / folder).as_posix()] = read_slice(path)
-    events = json.loads((public / "events.json").read_text(encoding="utf-8"))
     return contract, {"events": events, "cfg": cfg}
 
 
@@ -48,9 +63,10 @@ def test_cube_matches_golden(tmp_path, workspace):
     contract, _ = built_contract(tmp_path, workspace)
     if os.environ.get("UPDATE_GOLDEN") == "1":
         GOLDEN.mkdir(exist_ok=True)
-        GOLDEN_FILE.write_text(json.dumps(contract, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        GOLDEN_FILE.write_text(json.dumps(contract, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     expected = json.loads(GOLDEN_FILE.read_text(encoding="utf-8"))
     assert contract["manifest"] == expected["manifest"]
+    assert contract["events"] == expected["events"]
     for kind in ("slices", "pairs"):
         assert sorted(contract[kind]) == sorted(expected[kind]), kind
         for name, doc in expected[kind].items():
