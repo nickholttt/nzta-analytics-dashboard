@@ -1,6 +1,7 @@
 ---
 import "../styles/site.css";
 import manifest from "../../public/data/manifest.json";
+import { INTERNAL_PAGES } from "../lib/site";
 
 interface Props {
   title: string;
@@ -68,10 +69,14 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
         <p>
           Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe surviving registrations recorded by NZTA, not sales.
         </p>
-        <p style="margin-top: var(--space-2);">
-          Internal: <a href="/status" style="color: var(--ink-3);">Chart status</a> ·
-          <a href="/sense-check" style="color: var(--ink-3);">Sense-check tables</a> (not kept up to date)
-        </p>
+        {
+          INTERNAL_PAGES && (
+            <p style="margin-top: var(--space-2);">
+              Internal: <a href="/status" style="color: var(--ink-3);">Chart status</a> ·
+              <a href="/sense-check" style="color: var(--ink-3);">Sense-check tables</a> (not kept up to date)
+            </p>
+          )
+        }
       </footer>
     </main>
   </body>

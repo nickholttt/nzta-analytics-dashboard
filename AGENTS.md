@@ -38,7 +38,8 @@ Run from the repo root.
 |---|---|---|
 | Pipeline tests (as CI) | `.venv/Scripts/python.exe -m pytest pipeline/tests -q -p no:cacheprovider` | 38 passed, 170 s |
 | Typecheck site | `npx -y -p typescript tsc --noEmit` | exit 0. TypeScript isn't a dependency, so plain `npx tsc` fails |
-| Build site | `npx astro build` | 1 page built to `dist/`. No npm `build` script exists |
+| Build site | `npx astro build` | 6 pages built to `dist/` (2026-10-22). No npm `build` script exists |
+| Build the public site, as the deploy does (D-056) | Git Bash: `INTERNAL_PAGES=false npx astro build && rm -rf dist/status dist/sense-check` | 2026-10-22, against the 2026-09 cube: 4 pages left, none linking to `/status` or `/sense-check` |
 | Dev server | `npm run dev`, then `npx astro dev status` / `npx astro dev stop` | 200 on `http://127.0.0.1:4321/`. Runs in the background |
 | Rebuild cube from a saved pull, publish nothing | `.venv/Scripts/python.exe -m pipeline build data/raw/2026-08/20260911T093818Z --dry-run` | exit 0, 397 s, output identical to `public/data`. Writes only gitignored `data/staging/` |
 | Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build` |
