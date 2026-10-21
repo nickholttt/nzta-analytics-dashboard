@@ -28,6 +28,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/explore-copy-controls` | origin | one row of time options, plain visitor wording, `public_copy` (D-042). PR #19 into `claude/public-explore` |
 | `claude/pipeline-branch-rule` | origin | AGENTS.md rule 2 exception for branches before the gate (D-043). PR #20 into `claude/explore-copy-controls` |
 | `claude/sentence-builder` | origin | the Build page `/build` (D-044). PR #21 into `claude/pipeline-branch-rule` |
+| `claude/builder-league` | origin | a 12-month brand ranking on `/build` (D-045). PR #22 into `claude/sentence-builder` |
 
 PRs #1–#16 were merged into `ui/explore` in order with merge commits; their 16 remote branches are
 deleted. Local copies of those branches and the local `ui/explore` (behind origin) were left as they
@@ -38,7 +39,8 @@ pull requests; the only workflow is the monthly build.
 
 - Claude: the visitor-facing site (D-041), local only until the 8 November gate. Open PRs #17 (notes),
   #18 (`claude/public-explore`) stacked on it, #19 (`claude/explore-copy-controls`) on that, #20 (the
-  branch rule, D-043) on that, and #21 (`claude/sentence-builder`, the Build page, D-044) on that.
+  branch rule, D-043) on that, #21 (`claude/sentence-builder`, the Build page, D-044) on that, and #22
+  (`claude/builder-league`, the 12-month ranking, D-045) on that.
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (merged 2026-10-21; the user has not reviewed the pages)
@@ -55,26 +57,27 @@ scroll.
 
 On `ui/explore`, found 2026-10-19 by reading the code:
 
-1. The time-horizon toggle offers no period of 12 months or less, so on a league chart it switches
-   the shape to mix with no way back (`src/lib/resolve.ts` `inferShape`). Unreachable now: no live
-   preset is a league. Fix before a league preset is unblocked.
-2. `config/measures.json` (`$min_share_of_trailing_median_comment`) says 0.33 sits well clear of
+1. `config/measures.json` (`$min_share_of_trailing_median_comment`) says 0.33 sits well clear of
    seasonality "whose 1st percentile is 0.29". 0.29 counts months under 200; among months that clear
    200 it is 0.67 (D-033). The file is frozen until the 8 November gate.
-3. `kgm-rename` is `mix` in `data/reference/events.csv`, but `docs/EVENTS_LAYER.md` names a brand
+2. `kgm-rename` is `mix` in `data/reference/events.csv`, but `docs/EVENTS_LAYER.md` names a brand
    renaming as a `measurement` example. `brand_registry.csv` already merges SSANGYONG and KG MOBILITY
    into KGM, so no chart shows a step (D-037). `events.csv` is frozen until the 8 November gate.
-4. The published title "Electronic stability control required on all new light vehicles" is 63
+3. The published title "Electronic stability control required on all new light vehicles" is 63
    characters; the schema in `docs/EVENTS_LAYER.md` says at most 60. `events.csv` is frozen until
    the 8 November gate.
-5. `src/components/PresetPanel.tsx` hides the time row when `preset.dataset !== "used_imports"`: a
+4. `src/components/PresetPanel.tsx` hides the time row when `preset.dataset !== "used_imports"`: a
    dataset id in code, against invariant 1 (found 2026-10-21, D-042). No live preset uses that
    dataset; move the rule into config when a preset does.
-6. On a mix chart with `top_n`, `MixChart` folds the reserved values ("Not recorded", "No reference
+5. On a mix chart with `top_n`, `MixChart` folds the reserved values ("Not recorded", "No reference
    match") into "All other" (`src/components/MixChart.tsx`, the `kept` and `nFor` lines). On country
    where built that turned an unrecorded era into "All other" near 100%, so the builder leaves it
    uncapped (D-044). `brand-share` on all time folds unmatched makes the same way (1975: 608 unmatched
    against Ford's 725, measured 2026-10-21). Unchanged; queued in CHECKPOINT.
+
+Fixed on `claude/builder-league` (D-045): the time row offers a preset's own period and its
+`ranking_period` wherever they make it a league, so a league chart can always return to its ranking
+(formerly known issue 1). Measured headless with a scratch league preset on `/`, 320px and 1280px.
 
 Fixed on `claude/marker-label-overlap` (D-039): event marker labels are laid out in pixels against the
 chart's frame, cluster harder when they cannot fit in 4 lanes, and slide inward to stay inside the
