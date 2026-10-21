@@ -31,19 +31,21 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/method-page` | origin | `/method` checked against METRICS.md, config and code (D-031). PR into `claude/caveats-wording` |
 | `claude/caveat-scrappage` | origin | caveat 2 and share notes: uneven scrappage skews shares (D-032). PR into `claude/method-page` |
 | `claude/metrics-april-2020` | origin | METRICS.md April 2020 and threshold figures re-measured (D-033). PR into `claude/caveat-scrappage` |
+| `claude/method-chart-key` | origin | `/method` explains event markers, "All other" and unnamed values (D-034). PR into `claude/metrics-april-2020` |
 
 No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's seven branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's eight branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
   (`claude/model-leaderboard`), [#4](https://github.com/nickholttt/nzta-analytics-dashboard/pull/4)
   (`claude/caveats-wording`), [#5](https://github.com/nickholttt/nzta-analytics-dashboard/pull/5) (`claude/method-page`),
   [#6](https://github.com/nickholttt/nzta-analytics-dashboard/pull/6) (`claude/caveat-scrappage`), then
-  [#7](https://github.com/nickholttt/nzta-analytics-dashboard/pull/7) (`claude/metrics-april-2020`).
+  [#7](https://github.com/nickholttt/nzta-analytics-dashboard/pull/7) (`claude/metrics-april-2020`), then
+  [#8](https://github.com/nickholttt/nzta-analytics-dashboard/pull/8) (`claude/method-chart-key`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
@@ -66,6 +68,19 @@ On `ui/explore`, found 2026-10-19 by reading the code:
 2. `config/measures.json` (`$min_share_of_trailing_median_comment`) says 0.33 sits well clear of
    seasonality "whose 1st percentile is 0.29". 0.29 counts months under 200; among months that clear
    200 it is 0.67 (D-033). The file is frozen until the 8 November gate.
+3. On a mix chart without `top_n`, a group with no vehicles in the last 12 months gets no line in
+   any year but still counts in the denominator (`MixChart.tsx`, `ranked` filtered to `n > 0`).
+   Today it hides only segment "Not recorded" (89 vehicles, latest February 2022); a group that
+   carried earlier decades and then stopped would vanish too. Found 2026-10-19 (D-034).
+4. `brand-share` has no `events: true`, so the 8 make-scoped events appear on no chart.
+5. The `concentration` preset's note says "A falling line means more brands competing"; a falling
+   top-5 share can also mean the same brands spread more evenly. `/method` words it correctly.
+6. `docs/EVENTS_LAYER.md` disagrees with the code on two rendering rules: market-scope events
+   ("collapsed … on by default"; the code hides them until a button is pressed) and clustering
+   ("by year"; the code clusters by distance on the axis). `/method` follows the code (D-034).
+
+Fixed on `claude/method-chart-key` (D-034): `/method` explains event marker styles, clusters and
+scope, the "All other" line, line colours, and the three labels for values with no name.
 
 Fixed on `claude/metrics-april-2020` (D-033): METRICS.md's April 2020 baselines (trucks 2.5%, not
 ~2.3%; NZ New 54.3%, not ~51%), Hyundai's band, the pre-1990 wording and the 0.29 percentile, all
@@ -89,9 +104,9 @@ feeding pages that looked like findings, the commentary, and the international f
 
 Docs that contradict code (carried over, still unreconciled):
 
-3. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
-4. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
-5. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
+7. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
+8. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
+9. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
    plan, not contradiction.
 
 ## Blocked or waiting on the user
@@ -99,13 +114,13 @@ Docs that contradict code (carried over, still unreconciled):
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- Review and merge of the seven open pull requests (`docs/CHECKPOINT.md`).
+- Review and merge of the eight open pull requests (`docs/CHECKPOINT.md`).
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). Rechecked
 2026-10-19: `.venv` Python 3.13.7 and Node v22.19.0 work on this drive (`F:`); typecheck and
-build pass on `claude/sense-check`. Pipeline tests were not re-run (no pipeline change). Headless
+build pass on `claude/method-chart-key`. Pipeline tests were not re-run (no pipeline change). Headless
 screenshots use `playwright-core` from a scratch folder with the Chromium already installed under
 `%LOCALAPPDATA%\ms-playwright`; nothing is added to the repo.

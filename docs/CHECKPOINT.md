@@ -19,6 +19,9 @@ Last updated by claude on 2026-10-19
   wrong; caveat 2 and the share notes now say uneven scrappage skews older shares (D-032).
 - Done: METRICS.md's two-guards section re-measured on the 2026-08 cube; five figures corrected,
   including the self-contradicting 0.29 percentile, which is also in frozen `config/measures.json` (D-033).
+- Done: `/method` explains event markers, clusters and scope, the "All other" line, line colours and
+  the three labels for values with no name, reading labels and caps from code and config (D-034).
+  The review found a renderer gap and two smaller issues (STATE known issues 3–6), queued below.
 
 ## Open pull requests waiting on the user
 
@@ -35,35 +38,42 @@ Merge them in this order:
 6. `claude/caveat-scrappage`: D-032. Into `claude/method-page`; same base change once #5 is merged.
 7. `claude/metrics-april-2020`: D-033. Into `claude/caveat-scrappage`; same base change once #6 is
    merged.
+8. `claude/method-chart-key`: D-034. Into `claude/metrics-april-2020`; same base change once #7 is
+   merged.
 
 PR 1: https://github.com/nickholttt/nzta-analytics-dashboard/pull/1 · PR 2: https://github.com/nickholttt/nzta-analytics-dashboard/pull/2 ·
 PR 3: https://github.com/nickholttt/nzta-analytics-dashboard/pull/3 ·
 PR 4: https://github.com/nickholttt/nzta-analytics-dashboard/pull/4 ·
 PR 5: https://github.com/nickholttt/nzta-analytics-dashboard/pull/5 ·
 PR 6: https://github.com/nickholttt/nzta-analytics-dashboard/pull/6 ·
-PR 7: https://github.com/nickholttt/nzta-analytics-dashboard/pull/7
+PR 7: https://github.com/nickholttt/nzta-analytics-dashboard/pull/7 ·
+PR 8: https://github.com/nickholttt/nzta-analytics-dashboard/pull/8
 
 ## Work queue (in order)
 
-1. **Finish the `ui/explore` review** (now Claude's, D-027).
-   - Scope: add to `/method` what the charts show but no page explains: event markers (solid, dashed,
-     dotted, shaded), the "All other" series, and the labels for unmatched and unrecorded values.
-     Done: `model-leaderboard` (PR 3, D-029), caveats 1 and 7 (PR 4, D-030), `/method` (PR 5, D-031),
-     caveat 2 (PR 6, D-032), METRICS.md figures (PR 7, D-033).
-   - Done when: each is fixed or recorded as a decision, in one PR per concern.
-2. **8 November 2026 gate run.**
+1. **Mix chart: draw every group with vehicles in the chart's period** (STATE known issue 3).
+   - Scope: `MixChart.tsx` builds `series` from the trailing-12-month ranking, so a group with none
+     in the last 12 months has no line in any year. Without `top_n`, take every group with vehicles
+     in the drawn window; keep trailing ranking for `top_n` membership and colour. Then drop the
+     sentence about it from `/method` (D-034) in the same PR.
+   - Done when: segment "Not recorded" draws as a grey line, screenshots at 320px and 1280px, and a
+     decision record.
+2. **Small `ui/explore` fixes**, one PR each: `concentration` note wording (known issue 5); whether
+   `brand-share` gets `events: true` (known issue 4: check how many make markers it would show
+   first); `docs/EVENTS_LAYER.md` rendering rules brought into line with the code (known issue 6).
+3. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
    - Done when: green/built/committed reported. If clean, the freeze lifts.
-3. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
+4. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
    Unblocks `used-import-age` and `age-distribution-moving-hole`.
-4. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
-5. **POST_GATE A3**: promote `segment_group`.
-6. **POST_GATE B1–B3**: the three logged build fixes, one commit.
+5. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
+6. **POST_GATE A3**: promote `segment_group`.
+7. **POST_GATE B1–B3**: the three logged build fixes, one commit.
    Separately, one commit: correct `$min_share_of_trailing_median_comment` in `config/measures.json`
    to the D-033 figures (1st percentile 0.67 among months that clear 200; next-lowest after April 2020
    is 0.55). Done when the comment matches METRICS.md.
-7. **Reconcile docs** (STATE "Docs that contradict code" 3–5): README, build-order wording, stack.
-8. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
+8. **Reconcile docs** (STATE "Docs that contradict code" 7–9): README, build-order wording, stack.
+9. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
    path, checked 2026-10-19 with `git diff --stat origin/main...ui/explore` on the frozen paths).
 
 ## Questions for the user
@@ -72,5 +82,5 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Check whether the seven PRs were merged. If it is on or
+/start. Read `docs/STATE.md` and this file. Check whether the eight PRs were merged. If it is on or
 after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first. Otherwise take queue item 1.

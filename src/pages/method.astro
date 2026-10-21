@@ -2,6 +2,10 @@
 import Layout from "../layouts/Layout.astro";
 import { chartDefaults, findDerived, findMeasure, hybrid } from "../lib/config";
 import { TOP_N_SHARE } from "../lib/derived";
+import { MAX_MARKERS, MEASUREMENT_WARNING } from "../lib/events";
+import { SERIES } from "../lib/theme";
+import { ALL_OTHER } from "../components/MixChart";
+import { RESERVED_LABELS } from "../components/PresetPanel";
 
 // Thresholds come from config so the page cannot drift from what the charts apply. Prose here
 // restates docs/METRICS.md for readers who are not analysts; METRICS.md is the source.
@@ -13,6 +17,7 @@ const trailing = chartDefaults.trailing_window_months;
 const topN = findDerived(TOP_N_SHARE)?.top_n;
 const completeAt = Math.round(hybrid.complete_at_coverage * 100);
 const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage * 100);
+const colourSlots = chartDefaults.colour_slots_by_trailing;
 ---
 
 <Layout title="Methodology" activeNav="method">
@@ -167,6 +172,86 @@ const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage
         figure is imprecise. Only a guard that compares the month with its own recent history catches it.
       </p>
     </div>
+
+    <h2>Reading a Mix Chart</h2>
+    <p>
+      A mix chart shows how a total splits into groups: each line is one group's share of the month's vehicles. These
+      are the only charts that carry event markers, though not every one of them does.
+    </p>
+
+    <h3>Lines and the Key</h3>
+    <p>
+      Up to {SERIES.length} lines get their own colour. The first {colourSlots} go to the largest groups over the
+      last {trailing} months; the rest go to the groups with the highest {trailing}-month share at any point in the chart's
+      period, so a group that mattered decades ago keeps a colour. Any further group is drawn as a thin grey line. A
+      group with no vehicles at all in the last {trailing} months gets no line, though its vehicles still count in the
+      total, so the lines can add up to less than 100%. The
+      key under the chart names every line, with its share over the last {trailing} months and the change on
+      the {trailing} months before.
+    </p>
+
+    <h3>“{ALL_OTHER}”</h3>
+    <p>
+      A chart that keeps only its largest groups, such as the brand chart, adds every other group together into one
+      grey line called <em>{ALL_OTHER}</em>. Which groups keep their own line is decided by vehicles over the
+      last {trailing} months, and that choice holds across the whole chart. So a brand that was large decades ago but is
+      small now sits inside {ALL_OTHER} in every year, including the years it was large.
+    </p>
+
+    <h3>Values With No Name</h3>
+    <p>Three labels mark vehicles that cannot be put in a named group. They mean different things and are never merged.</p>
+    <ul>
+      <li>
+        <strong>{RESERVED_LABELS.__UNDEFINED__}</strong>: the register has no value for this vehicle, or a value that means
+        “none”.
+      </li>
+      <li>
+        <strong>{RESERVED_LABELS.__UNMAPPED__}</strong>: the register has a value, but it is not in this site's reference
+        lists, for example a make missing from the brand list.
+      </li>
+      <li>
+        <strong>{RESERVED_LABELS.__OTHER__}</strong>: a recognised value folded together because there are too many to
+        show separately. Only models use it, and no live chart shows models.
+      </li>
+    </ul>
+    <p>
+      These vehicles always count in the total, so every share is out of all in-scope vehicles. They never take a
+      colour or a place among the largest groups: on a chart that keeps only its largest groups they fall
+      into {ALL_OTHER}, and on any other chart they are a thin grey line of their own, like any group past the
+      palette. At the August 2026 snapshot, 26,427 vehicles (0.59%) had a make with no match in the brand list. On
+      the segment chart, 89 vehicles are {RESERVED_LABELS.__UNDEFINED__.toLowerCase()}; none was first registered after
+      February 2022, so that group has no line of its own.
+    </p>
+
+    <h3>Event Markers</h3>
+    <p>
+      A marker places a dated event next to the line. It says when something happened, not that it caused what the
+      line does.
+    </p>
+    <ul>
+      <li><strong>Solid thin line</strong>: the date an event took effect.</li>
+      <li>
+        <strong>Dotted faint line</strong>: the date it was announced, where that is known, so the two dates can be
+        compared.
+      </li>
+      <li><strong>Shaded band</strong>: an event that lasted a while, shaded from its start to its end.</li>
+      <li>
+        <strong>Dashed darker line</strong>: a change in how the register records vehicles, not in what people bought.
+        Its entry in the list carries the warning <em>“{MEASUREMENT_WARNING}”</em>
+      </li>
+    </ul>
+    <p>
+      Each marker has a number above the chart, and the list under it (“events marked on the chart”) gives each
+      event's title, dates, a one-line summary and its source. Events too close together to label separately share a
+      number: <em>3 (2)</em> means marker 3 covers two events. Each still has its own line. A chart shows at
+      most {MAX_MARKERS} numbers, grouping more events under each number on charts that cover longer periods.
+    </p>
+    <p>
+      A chart shows only the events about what it breaks down by: an event about used imports appears on the
+      chart that splits new from used, not on the segment chart. Events that affect every vehicle, such as a fuel tax change, are hidden until you
+      press the button in the list that shows market-wide events. Only events checked against a source are shown,
+      and none dated after the latest snapshot.
+    </p>
 
     <h2>Derived Measures</h2>
     <h3>Market Concentration (Top-{topN} Share)</h3>
