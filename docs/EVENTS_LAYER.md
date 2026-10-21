@@ -125,16 +125,24 @@ These describe the code as it runs (`src/lib/events.ts`,
 - At most 8 numbered markers. In date order, an event within 2% of the
   chart's time axis of the first event in the current group joins that
   group, and otherwise starts a new one. If that leaves more than 8 groups,
-  the 2% is multiplied by 1.6 and the grouping redone until at most 8
-  remain. Clustering follows the axis, not the calendar: `brand-share`'s 8
-  events draw as 8 markers over 10 years and as 4 over all time (D-037). A
-  shared number reads `3 (2)` (marker 3 covers two events) and sits on its
-  first event's date. Every event keeps its own rule and band, and its own
-  line under its marker's number in the list under the chart, which is
-  collapsed until opened.
-- Numbers less than 7.5% of the axis apart go in different lanes, up to 4.
-  A fifth goes back to the first lane, so a dense pile-up overlaps rather
-  than growing upwards.
+  or labels that cannot all fit in 4 lanes (next rule), the 2% is
+  multiplied by 1.6 and the grouping redone until both hold. Clustering
+  follows the axis and the chart's width, not the calendar: `brand-share`'s
+  8 events draw as 8 markers over 10 years and as 4 over all time (D-037),
+  and `powertrain-mix` with market-wide events shown draws 8 markers at
+  1280px and 6 at 320px (D-039). The list under the chart numbers its
+  entries as the chart does, so numbers can differ between a phone and a
+  desktop. A shared number reads `3 (2)` (marker 3 covers two events) and
+  sits on its first event's date. Every event keeps its own rule and band,
+  and its own line under its marker's number in the list under the chart,
+  which is collapsed until opened.
+- Labels are laid out in pixels against the chart's frame. Each is
+  estimated at 7px a character plus a 4px gap and centred on its date, then
+  slid inward just far enough to stay inside the frame, so a window that
+  runs past the latest snapshot, or an event that started before the chart
+  did, labels at the edge it touches. A label that would overlap one already
+  placed goes up a lane, up to 4. Labels never overlap and never wrap back
+  to the first lane; clustering works harder instead.
 - `verified=false` rows are excluded from the build entirely.
 
 ## Derived analysis: pull-forward and payback

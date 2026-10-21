@@ -38,12 +38,13 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/events-layer-rendering` | origin | `docs/EVENTS_LAYER.md` rendering rules describe the code (D-038). PR into `claude/brand-share-events` |
 | `claude/key-row-wrap` | origin | mix key keeps each swatch on its name's line at 320px. PR into `claude/events-layer-rendering` |
 | `claude/event-band-clip` | origin | event bands and rules clipped to the chart's frame. PR into `claude/key-row-wrap` |
+| `claude/marker-label-overlap` | origin | marker labels laid out in pixels, never overlapping, kept inside the frame (D-039). PR into `claude/event-band-clip` |
 
 No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's fourteen branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's fifteen branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
@@ -57,7 +58,8 @@ No CI runs on pull requests; the only workflow is the monthly build.
   [#11](https://github.com/nickholttt/nzta-analytics-dashboard/pull/11) (`claude/brand-share-events`), then
   [#12](https://github.com/nickholttt/nzta-analytics-dashboard/pull/12) (`claude/events-layer-rendering`), then
   [#13](https://github.com/nickholttt/nzta-analytics-dashboard/pull/13) (`claude/key-row-wrap`), then
-  [#14](https://github.com/nickholttt/nzta-analytics-dashboard/pull/14) (`claude/event-band-clip`).
+  [#14](https://github.com/nickholttt/nzta-analytics-dashboard/pull/14) (`claude/event-band-clip`), then
+  [#15](https://github.com/nickholttt/nzta-analytics-dashboard/pull/15) (`claude/marker-label-overlap`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
@@ -83,17 +85,16 @@ On `ui/explore`, found 2026-10-19 by reading the code:
 3. `kgm-rename` is `mix` in `data/reference/events.csv`, but `docs/EVENTS_LAYER.md` names a brand
    renaming as a `measurement` example. `brand_registry.csv` already merges SSANGYONG and KG MOBILITY
    into KGM, so no chart shows a step (D-037). `events.csv` is frozen until the 8 November gate.
-4. At 320px with market-wide events shown, `powertrain-mix`'s numbered markers print over each
-   other across the last six years, and the rightmost label is cut at the chart's edge. Lanes wrap
-   after 4 (`MAX_LANES` in `src/lib/events.ts`). Seen in a headless screenshot 2026-10-21; other
-   charts at 320px not yet checked for the same overlap.
-5. A marker whose first event starts before the chart's window would print its numbered label in the
-   left margin (`selectEvents` keeps an event that ends inside the window). Not reachable on the
-   current cube; on `brand-share` with market-wide events shown, `covid-border-closure` straddles the
-   start from about 2030 (independent review, 2026-10-21; inferred — confirm).
-6. The published title "Electronic stability control required on all new light vehicles" is 63
+4. The published title "Electronic stability control required on all new light vehicles" is 63
    characters; the schema in `docs/EVENTS_LAYER.md` says at most 60. `events.csv` is frozen until
    the 8 November gate.
+
+Fixed on `claude/marker-label-overlap` (D-039): event marker labels are laid out in pixels against the
+chart's frame, cluster harder when they cannot fit in 4 lanes, and slide inward to stay inside the
+frame, which also places the label of an event that starts before the chart (formerly known issues 4
+and 5). Measured headless on every chart with events on `/`, 320px and 1280px, both ranges, with and
+without market-wide events: 6 overlapping label pairs and 28 labels past the frame before, 0 and 0
+after. `powertrain-mix` with market-wide events now shows 6 markers at 320px, 8 at 1280px.
 
 Fixed on `claude/event-band-clip`: event window bands and event rules are clipped to the chart's frame. Before,
 with market-wide events shown, `ccs-charges-cut` (ends 2027-12-31) and
@@ -120,9 +121,9 @@ request, listed under In progress.
 
 Docs that contradict code (carried over, still unreconciled):
 
-7. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
-8. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
-9. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
+5. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
+6. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
+7. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
    plan, not contradiction.
 
 ## Blocked or waiting on the user
@@ -130,7 +131,7 @@ Docs that contradict code (carried over, still unreconciled):
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- Review and merge of the fourteen open pull requests (`docs/CHECKPOINT.md`).
+- Review and merge of the fifteen open pull requests (`docs/CHECKPOINT.md`).
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
