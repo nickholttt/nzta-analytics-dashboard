@@ -118,7 +118,8 @@ These describe the code as it runs (`src/lib/events.ts`,
   dotted rule there, and its list entry says "(announced …)".
 - Windowed events (`date_end` present) render as a shaded band from
   `date_start` to `date_end`, with the usual rule at `date_start`, not two
-  pins.
+  pins. The band is clipped to the chart's frame, so a window that runs
+  past the latest snapshot stops at the right edge.
 - At most 8 numbered markers. In date order, an event within 2% of the
   chart's time axis of the first event in the current group joins that
   group, and otherwise starts a new one. If that leaves more than 8 groups,

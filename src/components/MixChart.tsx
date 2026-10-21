@@ -334,7 +334,9 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
         color: { domain: model.series, range: model.series.map(model.colourOf) },
         marks: [
           Plot.rect(bands, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: SUPPRESSED_BAND }),
-          Plot.rect(windowed, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: EVENT_WINDOW, fillOpacity: 0.55 }),
+          // A window can run past the latest snapshot (a policy in force until 2029); it stops at the
+          // frame rather than shading the end labels.
+          Plot.rect(windowed, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: EVENT_WINDOW, fillOpacity: 0.55, clip: true }),
           Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => `${Math.round(d * 100)}%` }),
           Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
