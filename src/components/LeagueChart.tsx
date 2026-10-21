@@ -44,12 +44,17 @@ type Props = {
   manifest: Manifest;
   minDenominator: number;
   label: (value: string) => string;
+  // The heading of the column that names each ranked value, in the words the panel uses for the dimension.
+  valueHeading: string;
   lead?: boolean;
 };
 
-export function LeagueChart({ preset, dimension, rows, manifest, minDenominator, label, lead = false }: Props) {
+// Bars follow the preset's measure. A count is offered beside the share only when the measure is not
+// share: on a share preset the dataset may be one whose counts read as sales (D-044).
+export function LeagueChart({ preset, dimension, rows, manifest, minDenominator, label, valueHeading, lead = false }: Props) {
   const [topN, setTopN] = useState<number>(preset.top_n ?? 15);
-  const [displayMode, setDisplayMode] = useState<"share" | "count">("share");
+  const offersCount = preset.measure !== "share";
+  const [displayMode, setDisplayMode] = useState<"share" | "count">(offersCount ? "count" : "share");
 
   const latest = manifest.latest_snapshot.slice(0, 7);
   const currentFrom = addMonths(latest, -(TRAILING_MONTHS - 1));
@@ -192,13 +197,13 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
               title: (d: LeagueItem) => {
                 const move =
                   d.rankDelta === null
-                    ? "New entrant in top ranks"
+                    ? `New: not ranked in the ${TRAILING_MONTHS} months before`
                     : d.rankDelta > 0
-                    ? `▲ Up ${d.rankDelta} spot${d.rankDelta > 1 ? "s" : ""} (was #${d.priorRank})`
+                    ? `Up ${d.rankDelta} place${d.rankDelta > 1 ? "s" : ""} (was #${d.priorRank})`
                     : d.rankDelta < 0
-                    ? `▼ Down ${Math.abs(d.rankDelta)} spot${Math.abs(d.rankDelta) > 1 ? "s" : ""} (was #${d.priorRank})`
-                    : `Unchanged (held #${d.rank})`;
-                return `#${d.rank} · ${d.name}\n${d.n.toLocaleString()} vehicles · ${pct(d.share)} share\nRank movement: ${move}\nShare delta: ${shareChange(d.shareDelta)}`;
+                    ? `Down ${Math.abs(d.rankDelta)} place${Math.abs(d.rankDelta) > 1 ? "s" : ""} (was #${d.priorRank})`
+                    : "Same place";
+                return `#${d.rank} · ${d.name}\n${d.n.toLocaleString()} still registered · ${pct(d.share)} share\n${move}\nChange in share: ${shareChange(d.shareDelta)}`;
               },
             }),
           ),
@@ -211,7 +216,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
   return (
     <>
       <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
-        <div className="toggle" role="radiogroup" aria-label="Top N Leaders">
+        <div className="toggle" role="radiogroup" aria-label="How many to show">
           {[10, 15, 25].map((n) => (
             <label key={n}>
               <input
@@ -225,7 +230,8 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
           ))}
         </div>
 
-        <div className="toggle" role="radiogroup" aria-label="Display Metric">
+        {offersCount ? (
+        <div className="toggle" role="radiogroup" aria-label="Show as">
           <label>
             <input
               type="radio"
@@ -233,7 +239,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
               checked={displayMode === "share"}
               onChange={() => setDisplayMode("share")}
             />{" "}
-            Market share (%)
+            Share
           </label>
           <label>
             <input
@@ -242,13 +248,15 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
               checked={displayMode === "count"}
               onChange={() => setDisplayMode("count")}
             />{" "}
-            Vehicle count
+            Number of vehicles
           </label>
         </div>
+        ) : null}
       </div>
 
       <p className="chart-unit">
-        Ranked by registrations in trailing 12 months ({model.currentPeriodLabel}). Rank movement compares against {model.priorPeriodLabel}.
+        Ranked by vehicles first registered in the last {TRAILING_MONTHS} months that are still registered ({model.currentPeriodLabel}). The move compares each rank with the {TRAILING_MONTHS} months
+        before ({model.priorPeriodLabel}).
       </p>
 
       <PlotFigure render={render} />
@@ -258,12 +266,12 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
           <thead>
             <tr>
               <th scope="col" style={{ width: "45px" }}>Rank</th>
-              <th scope="col" style={{ width: "70px" }}>Trend</th>
-              <th scope="col">Nameplate</th>
-              <th scope="col" style={{ textAlign: "right" }}>Trailing 12M Vehicles</th>
-              <th scope="col" style={{ textAlign: "right" }}>Market Share</th>
-              <th scope="col" style={{ textAlign: "right" }}>Share Change</th>
-              <th scope="col" style={{ textAlign: "right" }}>Prior Rank</th>
+              <th scope="col" style={{ width: "70px" }}>Move</th>
+              <th scope="col">{valueHeading}</th>
+              <th scope="col" style={{ textAlign: "right" }}>Still registered</th>
+              <th scope="col" style={{ textAlign: "right" }}>Share</th>
+              <th scope="col" style={{ textAlign: "right" }}>Change in share</th>
+              <th scope="col" style={{ textAlign: "right" }}>Rank {TRAILING_MONTHS} months before</th>
             </tr>
           </thead>
           <tbody>
@@ -279,20 +287,21 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                   </td>
                   <td>
                     {!hasMovement ? (
-                      <span className="badge" style={{ background: "rgba(2, 132, 199, 0.1)", color: "#0284c7", fontSize: "11px" }}>
+                      <span className="badge" style={{ background: "rgba(3, 105, 161, 0.1)", color: "#0369a1", fontSize: "11px" }}>
                         New
                       </span>
                     ) : isUp ? (
-                      <span style={{ color: "#16a34a", fontWeight: 600, fontSize: "12px" }}>
-                        ▲ +{item.rankDelta}
+                      <span style={{ color: "#15803d", fontWeight: 600, fontSize: "12px" }}>
+                        <span aria-hidden="true">▲</span> +{item.rankDelta}
                       </span>
                     ) : isDown ? (
-                      <span style={{ color: "#dc2626", fontWeight: 600, fontSize: "12px" }}>
-                        ▼ {item.rankDelta}
+                      <span style={{ color: "#b91c1c", fontWeight: 600, fontSize: "12px" }}>
+                        <span aria-hidden="true">▼</span> {item.rankDelta}
                       </span>
                     ) : (
                       <span style={{ color: "var(--ink-3)", fontSize: "12px" }}>
-                        —
+                        <span aria-hidden="true">—</span>
+                        <span className="visually-hidden">Same place</span>
                       </span>
                     )}
                   </td>

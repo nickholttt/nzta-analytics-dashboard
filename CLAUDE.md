@@ -73,7 +73,8 @@ chart type.
 - Observable Plot for all five shapes
 - TanStack Table (virtualised) for league tables (planned: not yet a
   dependency; `LeagueChart` draws a Plot bar chart over a plain,
-  non-virtualised rank table, and no league preset is live)
+  non-virtualised rank table; no Explore preset is a live league, and the
+  Build page ranks brands over 12 months, D-045)
 - Python + DuckDB for the pipeline, run in GitHub Actions on a monthly cron
 - No database, no API server, no runtime cost
 

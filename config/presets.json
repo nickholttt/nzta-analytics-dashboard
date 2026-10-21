@@ -67,6 +67,8 @@
       "distribution": "5y"
     },
     "$period_by_shape_comment": "A distribution sums its whole period, so all time would mix decades whose records differ (docs/MODEL_AND_AGE.md, before 2007). The time row still offers all time.",
+    "ranking_period": "latest_year",
+    "$ranking_period_comment": "The time row offers this period too wherever it makes the chart a league (a high-cardinality breakdown such as brand), so a visitor can rank the latest 12 months and switch back to the lines. Manufacturer group is medium cardinality in config/dimensions.json, so it stays a mix chart (D-045).",
     "lead": "Show",
     "measures": [
       {
