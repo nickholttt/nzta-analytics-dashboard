@@ -608,3 +608,39 @@ New entries use this template:
   already merges SSANGYONG and KG MOBILITY into KGM, so the chart shows no step either way, and its
   summary says so. The file is frozen until the 8 November gate (STATE known issue).
 - Status: decided by Claude (unreviewed)
+
+## D-038 2026-10-21 — EVENTS_LAYER.md's rendering rules describe the code as it runs
+- Agent: claude, under D-027
+- Basis: this commit; `src/lib/events.ts`, `src/components/MixChart.tsx`, `src/components/EventList.tsx`,
+  `src/lib/resolve.ts`, `config/pipeline.json` (`events`) and `pipeline/events.py`, read on
+  `claude/brand-share-events` on 2026-10-21; D-034 and D-037.
+- Context: STATE known issue 4, found under D-034. `docs/EVENTS_LAYER.md` said market-scope events
+  default to "collapsed behind a single 'show events' toggle, on by default" (it cannot be both) and
+  that beyond 8 markers events "cluster by year and expand on tap". Reading the code for this found
+  three more rules it does not follow: the marker label was to be the event's title ("what happened,
+  and when"), its summary and source were to sit in a tooltip, and the measurement warning was to be
+  in that tooltip. The code numbers the markers and puts title, dates, summary, source and warning in
+  a list under the chart; there is no tooltip. `/method` already follows the code (D-034).
+- Options considered: (1) Change the code to the doc: market events on by default would add up to
+  18 events (all 18 published market-wide events, on an all-time chart) to every chart that carries
+  events, burying the scoped ones the doc exists to show; "by year" gives one cluster per year, and
+  the 50 published events fall in 13 distinct years, so it cannot meet the cap of 8 on its own, while
+  on a 10-year axis it merges events 11 months apart; titles of up to 60 characters as labels would
+  collide at 320px (inferred, not tried). (2) Change the doc to the code, keeping the hard rule's substance: the
+  label and the list say what happened and when, never why. (3) Leave the disagreement listed in
+  STATE: the doc is what an agent reads before touching the layer, and it would keep pointing them at
+  behaviour nobody wants.
+- Decision: (2). Rules rewritten: charts opt in with `"events": true` and only the mix renderer draws
+  markers; scope matches the dimension through `scope_dimension_aliases` and the values present in the
+  period drawn; filters are not yet considered because no live chart applies one, and must be once one
+  can; market events are off until the reader presses "Show N market-wide events"; windowed events are
+  a band plus the start rule; at most 8 numbered markers, merged by distance on the time axis (2%,
+  widening until at most 8 remain), labelled on the first event, every event keeping its own rule and
+  list entry, up to 4 lanes. The hard-rule bullets, the `summary` column note and the measurement
+  paragraph now name the list, not a tooltip. The rename example under `measurement` is left for the
+  `kgm-rename` item (STATE known issue 3).
+- Consequences: no code or page changes. The doc now states the current renderer's behaviour,
+  including two thresholds (2% and 4 lanes) that live in `src/lib/events.ts`; changing them there
+  means changing this doc too. Whether market events should default on remains a design question
+  the user can reopen; the doc now says why they are off.
+- Status: decided by Claude (unreviewed)

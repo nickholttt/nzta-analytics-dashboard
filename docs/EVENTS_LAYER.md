@@ -19,8 +19,8 @@ no code.
 The site places a dated marker next to an inflection. It does **not** say
 the event caused the inflection. The user draws the conclusion.
 
-- Marker label: what happened, and when. Nothing else.
-- Tooltip: one-sentence factual summary + source link.
+- Marker label: a number. The list under the chart gives each event's
+  title, dates, one-sentence factual summary and source link. Nothing else.
 - `expected_effect` in the data is a *directional hypothesis*, used only
   to decide default visibility and to power pull-forward detection. It is
   never rendered as prose on the chart.
@@ -40,7 +40,7 @@ exactly what the project is not.
 | `scope` | enum | `market` `powertrain` `make` `brand_group` `origin` `owner_country` `segment` `region` `import_status` `imported_from` `built_in` `model` |
 | `scope_values` | pipe-list, nullable | e.g. `BEV\|PHEV`. Empty = applies to whole scope. Values are the dimension's own output vocabulary: the label from its reference file where it has one (`NZ New` via `import_status_map.csv`, `Auckland` via `tla_region.csv`), otherwise the raw NZTA value (`JAPAN`) |
 | `title` | short | ≤60 chars, shown on the marker |
-| `summary` | 1 sentence | tooltip body |
+| `summary` | 1 sentence | shown in the event list under the chart |
 | `expected_effect` | enum | `up` `down` `pull_forward` `mixed` `none` |
 | `announced_date` | ISO date, nullable | **see below** |
 | `confidence` | enum | `documented` `reported` `inferred` |
@@ -76,9 +76,10 @@ the most likely way this site misleads someone.
 - **`mix`** — composition shifted within an unchanged total, e.g. a
   nameplate's production moving country.
 
-Render `measurement` markers in a visually distinct style with a plain
-warning in the tooltip: *this reflects a change in how the data was
-recorded, not a change in the market.* Everything else can share a style.
+Render `measurement` markers in a visually distinct style (a dashed,
+darker rule) with a plain warning in the event's list entry: *this
+reflects a change in how the data was recorded, not a change in the
+market.* Everything else can share a style.
 
 ### Why `announced_date` matters
 
@@ -91,13 +92,37 @@ often the most interesting part of the picture.
 
 ## Rendering rules
 
-- Markers appear only when the event's `scope`/`scope_values` intersect the
-  chart's dimension and active filters. A `make=BYD` brand entry does not
-  clutter a powertrain chart.
-- `market`-scope events show everywhere but default to collapsed behind a
-  single "show events" toggle, on by default.
-- Windowed events (`date_end` present) render as a shaded band, not two pins.
-- Max 8 visible markers; beyond that, cluster by year and expand on tap.
+These describe the code as it runs (`src/lib/events.ts`,
+`src/components/MixChart.tsx`, `src/components/EventList.tsx`).
+
+- A chart carries markers only when its preset sets `"events": true`.
+  Today only the `mix` renderer draws them.
+- Markers appear only when the event's `scope` is the chart's dimension
+  (through `scope_dimension_aliases` in `config/pipeline.json`, so
+  `brand_group` matches `parent_group`) and it has no `scope_values` or one
+  of them has vehicles in the period drawn. A `make=BYD` brand entry does
+  not clutter a powertrain chart. No live chart applies a preset filter, so
+  scoping does not yet consider filters; once one can be applied, it must.
+- Only events inside the period drawn appear: starting no later than the
+  latest snapshot, and starting (or, for a windowed event, ending) no
+  earlier than the chart's first month.
+- `market`-scope events (`scope_without_values` in `config/pipeline.json`)
+  can show on every chart that carries markers, but are hidden until the
+  reader presses "Show N market-wide events" in the event list. They are
+  off by default so they don't bury the events about what the chart breaks
+  down by.
+- Windowed events (`date_end` present) render as a shaded band from
+  `date_start` to `date_end`, with the usual rule at `date_start`, not two
+  pins.
+- At most 8 numbered markers. Events closer together than 2% of the
+  chart's time axis share a number; if that still leaves more than 8, the
+  distance widens until at most 8 remain. Clustering follows the axis, not
+  the calendar: `brand-share`'s 8 events draw as 8 markers over 10 years
+  and as 4 over all time (D-037). A shared number reads `3 (2)` (marker 3
+  covers two events) and sits on its first event's date. Every event keeps
+  its own rule and band, and its own entry in the list under the chart,
+  which is collapsed until opened. Numbers still too close to read are
+  stacked in up to 4 lanes.
 - `verified=false` rows are excluded from the build entirely.
 
 ## Derived analysis: pull-forward and payback
