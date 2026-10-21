@@ -1248,3 +1248,31 @@ New entries use this template:
 - Open with it: whether `/status` and `/sense-check`, internal pages linked from the footer and marked noindex, ship
   with a public deploy (D-028 left this open).
 - Status: proposed, awaiting the user
+
+## D-056 2026-10-22 — Deploy by D-055's option (C), without the internal pages
+- Agent: user (the choice), claude (the details)
+- Basis: the user's answer on 2026-10-22 to CHECKPOINT question 2 ("do what you recommend"); branch
+  `claude/deploy-workflow` (`.github/workflows/deploy.yml`, a release step in `monthly-build.yml`); `src/lib/site.ts`,
+  `src/layouts/Layout.astro` and `src/pages/caveats.astro` on `claude/deploy-proposal`; checks on 2026-10-22.
+- Decision (user): option (C) of D-055, which this accepts. Each built monthly run keeps its cube as a GitHub release,
+  and a deploy workflow builds the site from the newest one and uploads it to Cloudflare Pages. `/status` and
+  `/sense-check` stay off the public site.
+- Decision (Claude, unreviewed), the details:
+  - The monthly build attaches `public-data.tar.gz` to a release `cube-<snapshot>`; a second build of the same
+    snapshot replaces the file.
+  - `deploy.yml` runs after a successful monthly build on `main`, on a push to `main` that changes the site, and by
+    hand. It takes the newest `cube-*` release by name, or, before the first release exists, the newest unexpired
+    `public-data-*` artifact. It builds with `INTERNAL_PAGES=false`, which drops every link to the internal pages, and
+    removes the two pages from the build. It uploads with `wrangler` 4.148.0 (released 2026-10-06, pinned) to the
+    Pages project named by the repository variable `CLOUDFLARE_PAGES_PROJECT`, `nz-vehicle-registrations` if unset.
+    Without the `CLOUDFLARE_API_TOKEN` secret it builds and stops, so it checks the build until the upload is set up.
+  - Permissions: read only (contents, and actions for the artifact); the Cloudflare secrets reach only the upload step.
+- Consequences: nothing runs before the 8 November gate passes, the pipeline stack with `claude/deploy-workflow` on top
+  merges into `main`, and `ui/explore` reaches `main` (CHECKPOINT item 4). Checked locally on 2026-10-22: the
+  workflow's cube step, run with `gh` against this repository, found no release and took `public-data-2026-09`
+  (snapshot 2026-09-30); the public build from it has four pages and no link to an internal page, and in a preview
+  `/status` and `/sense-check` return 404 while every chart on `/` and the map draw with no console errors. Not
+  checkable before the merge: the release step, and the upload itself. The user's console steps follow the gate:
+  create a Pages project for Direct Upload (named `nz-vehicle-registrations`, or set `CLOUDFLARE_PAGES_PROJECT`), an
+  API token limited to Cloudflare Pages: Edit, and the two GitHub secrets.
+- Status: user decided option (C) and the internal pages; the details are decided by Claude (unreviewed)
