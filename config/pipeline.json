@@ -109,7 +109,7 @@
     "registrations_surviving": {
       "require": ["in_scope", "fleet_entry"],
       "$pairs_comment": "The two-dimensional slices this dataset emits, each [dim_a, dim_b], written to pairs/{dataset}/{dim_a}__{dim_b}.parquet. Only pairs a chart or filter needs (docs/CUBE_SCHEMA.md, Pair slices).",
-      "pairs": [["import_status", "age_at_registration_band"]]
+      "pairs": [["import_status", "age_at_registration_band"], ["powertrain", "segment_group"]]
     }
   },
   "fuel_consumption": { "field": "fuel_consumption", "valid_min_exclusive": 0, "valid_max_inclusive": 60, "sum_decimals": 3 },
