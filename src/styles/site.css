@@ -324,9 +324,15 @@ section[id] {
   white-space: nowrap;
 }
 
+/* The cell's nowrap governs the boundary between swatch and name, so a narrow column can't leave
+   the swatch alone on the line above; the name keeps normal wrapping between its own words. */
 .key td:first-child {
   text-align: left;
   padding-left: 0;
+  white-space: nowrap;
+}
+
+.key td:first-child > .swatch + * {
   white-space: normal;
 }
 

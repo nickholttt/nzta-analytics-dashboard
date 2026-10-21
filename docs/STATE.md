@@ -36,12 +36,13 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/concentration-note` | origin | `concentration` note names both readings of a falling line and the unmatched-make effect (D-036). PR into `claude/mix-all-groups` |
 | `claude/brand-share-events` | origin | `brand-share` shows its 8 make-scoped events (D-037). PR into `claude/concentration-note` |
 | `claude/events-layer-rendering` | origin | `docs/EVENTS_LAYER.md` rendering rules describe the code (D-038). PR into `claude/brand-share-events` |
+| `claude/key-row-wrap` | origin | mix key keeps each swatch on its name's line at 320px. PR into `claude/events-layer-rendering` |
 
 No CI runs on pull requests; the only workflow is the monthly build.
 
 ## In progress
 
-- Nobody is editing. Claude's twelve branches are in open pull requests waiting on the user, merged
+- Nobody is editing. Claude's thirteen branches are in open pull requests waiting on the user, merged
   in this order: [#1](https://github.com/nickholttt/nzta-analytics-dashboard/pull/1)
   (`claude/bootstrap`), [#2](https://github.com/nickholttt/nzta-analytics-dashboard/pull/2)
   (`claude/sense-check`), [#3](https://github.com/nickholttt/nzta-analytics-dashboard/pull/3)
@@ -53,7 +54,8 @@ No CI runs on pull requests; the only workflow is the monthly build.
   [#9](https://github.com/nickholttt/nzta-analytics-dashboard/pull/9) (`claude/mix-all-groups`), then
   [#10](https://github.com/nickholttt/nzta-analytics-dashboard/pull/10) (`claude/concentration-note`), then
   [#11](https://github.com/nickholttt/nzta-analytics-dashboard/pull/11) (`claude/brand-share-events`), then
-  [#12](https://github.com/nickholttt/nzta-analytics-dashboard/pull/12) (`claude/events-layer-rendering`).
+  [#12](https://github.com/nickholttt/nzta-analytics-dashboard/pull/12) (`claude/events-layer-rendering`), then
+  [#13](https://github.com/nickholttt/nzta-analytics-dashboard/pull/13) (`claude/key-row-wrap`).
 - The UI on `ui/explore` is Claude's from 2026-10-19 (D-027, superseding D-025).
 
 ## What `ui/explore` contains (unreviewed by the user)
@@ -79,15 +81,18 @@ On `ui/explore`, found 2026-10-19 by reading the code:
 3. `kgm-rename` is `mix` in `data/reference/events.csv`, but `docs/EVENTS_LAYER.md` names a brand
    renaming as a `measurement` example. `brand_registry.csv` already merges SSANGYONG and KG MOBILITY
    into KGM, so no chart shows a step (D-037). `events.csv` is frozen until the 8 November gate.
-4. At 320px the `brand-share` key row for MITSUBISHI wraps, leaving its colour swatch alone on the
-   line above the name (seen in screenshots 2026-10-21; present before D-037).
-5. Windowed event bands are drawn from `date_start` to `date_end` without clipping to the chart's
+4. Windowed event bands are drawn from `date_start` to `date_end` without clipping to the chart's
    time axis. Two market-wide events end after the latest snapshot (`ccs-charges-cut` 2027-12-31,
    `ccs-targets-aligned-australia` 2029-12-31), so their bands may spill past the right edge once
    market-wide events are shown. Found by reading `MixChart.tsx` 2026-10-21; not yet screenshotted.
-6. The published title "Electronic stability control required on all new light vehicles" is 63
+5. The published title "Electronic stability control required on all new light vehicles" is 63
    characters; the schema in `docs/EVENTS_LAYER.md` says at most 60. `events.csv` is frozen until
    the 8 November gate.
+
+Fixed on `claude/key-row-wrap`: the mix key's first cell is nowrap, so the swatch stays on its name's
+line; names still wrap between words. Measured headless on all 64 key rows of `/`: 2 rows with a
+swatch off its name's line at 320px before, 0 after; none at 1280px either way. Column 1 is up to 14px
+wider at 320px, so some two-word names now fit on one line. LeagueChart's swatch cell was already nowrap.
 
 Fixed on `claude/events-layer-rendering` (D-038): `docs/EVENTS_LAYER.md`'s rendering rules now
 describe the code (market-wide events off until shown, clustering by distance on the axis, numbered
@@ -103,9 +108,9 @@ request, listed under In progress.
 
 Docs that contradict code (carried over, still unreconciled):
 
-7. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
-8. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
-9. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
+6. `README.md` says "No application code yet"; `pipeline/` and `src/` exist.
+7. `CLAUDE.md` build order says no UI before two unattended runs; a UI was built 2026-09-12 (D-014).
+8. `CLAUDE.md` §Stack names Cloudflare Pages and TanStack Table; neither is in the repo. Possibly
    plan, not contradiction.
 
 ## Blocked or waiting on the user
@@ -113,7 +118,7 @@ Docs that contradict code (carried over, still unreconciled):
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
   `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- Review and merge of the twelve open pull requests (`docs/CHECKPOINT.md`).
+- Review and merge of the thirteen open pull requests (`docs/CHECKPOINT.md`).
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
