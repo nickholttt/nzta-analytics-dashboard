@@ -67,6 +67,29 @@ export type DerivedMeasure = Measure & { snapshots_needed?: number; top_n?: numb
 export type Period = { id: string; label: string; months?: number };
 export type SmoothingOption = { id: string; label: string; axis: string };
 
+// One measure the sentence builder offers: its words, and the dimensions it may be split by, keyed by
+// dimension id with the words the sentence uses for each.
+export type BuilderMeasure = {
+  id: string;
+  derived?: boolean;
+  phrase: string;
+  joiner: string;
+  dimensions: Record<string, string>;
+  top_n?: Record<string, number>;
+  note?: string;
+  note_template?: string;
+};
+
+export type BuilderSpec = {
+  id: string;
+  dataset: string;
+  period: string;
+  period_by_shape: Record<string, string>;
+  lead: string;
+  measures: BuilderMeasure[];
+  not_offered: string[];
+};
+
 type PresetsDoc = {
   // label and title head the group's section on the Explore page; lead marks the charts that carry it.
   groups: { id: string; label: string; title: string; lead?: boolean; presets: Preset[] }[];
@@ -89,6 +112,7 @@ type PresetsDoc = {
     };
   };
   $composite: { max_series: number; builder_available: boolean; members: string[] };
+  builder: BuilderSpec;
 };
 
 const presetsFile = presetsDoc as unknown as PresetsDoc;
@@ -98,6 +122,7 @@ export const presets: Preset[] = presetsFile.groups.flatMap((g) => g.presets);
 export const chartDefaults = presetsFile.defaults;
 export const publicCopy = presetsFile.public_copy;
 export const compositeRules = presetsFile.$composite;
+export const builderSpec = presetsFile.builder;
 
 export const measures = measuresDoc.measures as unknown as Measure[];
 export const derivedMeasures = measuresDoc.derived_measures as unknown as DerivedMeasure[];
