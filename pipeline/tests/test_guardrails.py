@@ -216,8 +216,38 @@ def test_the_fact_table_is_written_without_a_dimension_that_is_not_live(tmp_path
     assert written == ["import_status.parquet", "month.parquet", "n.parquet"]
 
 
+
+def test_the_fact_table_counts_vehicles_that_share_every_value_in_one_row(tmp_path, workspace):
+    # The fixture's vehicles all differ somewhere, so add copies of one: the table must group them, not list them.
+    rows = load_rows()
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    copies = [dict(template, OBJECTID=4000 + i) for i in range(3)]
+    cfg = make_cfg(workspace)
+    manifest = run(tmp_path, cfg, rows + copies, publish=False)
+    info = manifest["datasets"]["registrations_surviving"]
+    folder = workspace["staging"] / "build" / "facts" / "registrations_surviving"
+    con = duckdb.connect()
+    counts = [r[0] for r in con.execute(f"SELECT n FROM read_parquet('{(folder / 'n.parquet').as_posix()}')").fetchall()]
+    assert max(counts) >= 4, counts
+    assert sum(counts) == info["rows"] and len(counts) == info["facts"]["rows"]
+
+
+def test_a_fact_table_whose_dimensions_are_all_waiting_holds_the_month_totals(tmp_path, workspace):
+    rows = load_rows()
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    extra = [dict(template, OBJECTID=2000 + i, TLA=f"UNKNOWN DISTRICT {i}") for i in range(5)]
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["facts"] = ["region"]
+    manifest = run(tmp_path, cfg, rows + extra, publish=False)
+    facts = manifest["datasets"]["registrations_surviving"]["facts"]
+    assert facts["dimensions"] == [] and facts["not_live"] == {"region": "dimension not live"}
+    written = sorted(p.name for p in (workspace["staging"] / "build" / "facts" / "registrations_surviving").iterdir())
+    assert written == ["month.parquet", "n.parquet"]
+    assert facts["rows"] == manifest["datasets"]["registrations_surviving"]["months"]
+
 @pytest.mark.parametrize("facts, fragment", [
     ("import_status", "facts must list distinct dimension ids"),
+    ([], "facts must list distinct dimension ids, at least one"),
     (["import_status", "import_status"], "facts must list distinct dimension ids"),
     (["import_status", None], "facts must list distinct dimension ids"),
     (["imported_from"], "facts names imported_from, not a derivable dimension"),

@@ -32,12 +32,13 @@ def write_facts(con, derived: list, ds: str, directory: Path) -> tuple[int, int]
     directory.mkdir(parents=True, exist_ok=True)
     month, count = FACT_MONTH[0], FACT_COUNT[0]
     names = [month] + [d.dim_id for d in derived]
-    selected = ", ".join(f"{d.column} AS {quote(d.dim_id)}" for d in derived)
+    # With no dimension live, the table is the month totals alone, still a valid table.
+    selected = ", ".join([f"reg_month AS {month}"] + [f"{d.column} AS {quote(d.dim_id)}" for d in derived])
     order = ", ".join(quote(n) for n in names)
     con.execute(f"""
         CREATE OR REPLACE TEMP TABLE facts AS
         SELECT row_number() OVER (ORDER BY {order}) AS rid, *
-        FROM (SELECT reg_month AS {month}, {selected}, CAST(count(*) AS INTEGER) AS {count}
+        FROM (SELECT {selected}, CAST(count(*) AS INTEGER) AS {count}
               FROM dims WHERE {ds} GROUP BY ALL)
     """)
     for name in names + [count]:

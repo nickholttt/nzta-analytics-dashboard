@@ -184,10 +184,11 @@ summed over all of them it gives the dataset's month totals, the slices'
 `denominator`. The table carries no fuel consumption. A share is computed in
 the browser: `n` over the sum of `n` for the same month and filter.
 
-A list that is not distinct dimension ids, or names a dimension the dataset
-cannot derive (or `month` or `n`), aborts the run. A listed dimension that is
-not live this run is left out of the table, with a warning, and listed in
-the manifest's `facts.not_live`. A table whose counts do not total the
+A list that is empty or not distinct dimension ids, or names a dimension the
+dataset cannot derive (or `month` or `n`), aborts the run. A listed dimension
+that is not live this run is left out of the table, with a warning, and listed
+in the manifest's `facts.not_live`; if none is live, the table holds the month
+totals alone. A table whose counts do not total the
 dataset's rows aborts the run.
 
 ## manifest.json
@@ -375,7 +376,7 @@ Pairs:
 
 Fact table:
 
-- A dataset's `facts` is not a list of distinct dimension ids, or names a
+- A dataset's `facts` is not a non-empty list of distinct dimension ids, or names a
   dimension the dataset cannot derive.
 - The table's counts do not total the dataset's rows.
 

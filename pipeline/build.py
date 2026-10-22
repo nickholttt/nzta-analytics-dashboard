@@ -60,8 +60,11 @@ def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: 
         return None
     known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
     reserved = {FACT_MONTH[0], FACT_COUNT[0]}
-    if not (isinstance(configured, list) and all(isinstance(d, str) for d in configured)) or len(set(configured)) != len(configured):
-        aborts.append(f"{dataset}: facts must list distinct dimension ids")
+    if (
+        not (isinstance(configured, list) and configured and all(isinstance(d, str) for d in configured))
+        or len(set(configured)) != len(configured)
+    ):
+        aborts.append(f"{dataset}: facts must list distinct dimension ids, at least one")
         return None
     problems = [d for d in configured if d not in known or d in reserved]
     if problems:
