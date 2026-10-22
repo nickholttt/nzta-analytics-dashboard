@@ -52,9 +52,15 @@ export type Event = {
   source_url: string;
 };
 
+// A load that fails leaves the cache, so asking again (a chart switched away and back) tries again rather than
+// replaying the failure for the rest of the visit.
 const cache = new Map<string, Promise<unknown>>();
 function once<T>(key: string, load: () => Promise<T>): Promise<T> {
-  if (!cache.has(key)) cache.set(key, load());
+  if (!cache.has(key)) {
+    const pending = load();
+    cache.set(key, pending);
+    pending.catch(() => cache.delete(key));
+  }
   return cache.get(key) as Promise<T>;
 }
 
