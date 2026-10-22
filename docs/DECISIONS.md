@@ -1397,3 +1397,17 @@ New entries use this template:
   - The look-and-feel board of 2026-10-22 (CHECKPOINT) is set aside: the user judged the site's flexibility, not its
     look, to be the problem.
 - Status: proposed
+
+## D-059 2026-10-22 — The user approves D-058's three rule changes
+- Agent: user ("1, do all three", answering CHECKPOINT question 2 in session).
+- Basis: this session.
+- Context: D-058 proposed free exploration and listed three changes to hard rules.
+- Decision: all three are approved. (a) Build becomes a question builder in place of the constrained sentence.
+  (b) Where more than one of the five shapes fits a question, the visitor may switch among them; the shape is still
+  inferred first, and no sixth is added. (c) The pipeline publishes a fact table of counts, one file per column, beside
+  the slices. CLAUDE.md's opening, invariant 6 and §Shapes are reworded to match in the same commit.
+- Consequences: D-058's status becomes accepted through this entry (D-058 itself is not edited). The fact table is
+  pipeline work, built on `claude/fact-table` from `claude/deploy-workflow` and unmerged until the 8 November gate
+  (D-043); the builder is UI work on the UI stack (D-041). The golden contract changes with the fact table and is shown
+  to the user (AGENTS.md hard rule 4).
+- Status: accepted, decided by user

@@ -1,8 +1,10 @@
 # NZ Vehicle Registration Analytics — Project Brief
 
 A static analytics site built on NZTA open data. Two surfaces: **Explore**
-(a fixed canon of question-titled charts) and **Build** (a constrained
-sentence-builder). No reports, no commentary, no SQL console.
+(question-titled charts, each a starting point) and **Build** (a question
+builder: any measure, any values of any dimension, any filters, any period,
+answered from a precomputed fact table, D-058, D-059). No reports, no
+commentary, no SQL console.
 
 Audience: people who are not data analysts, answering questions like
 "how has the percentage of BEVs grown since introduction" or "how has
@@ -40,8 +42,9 @@ Violating any of them is a bug, not a shortcut.
    leave the last good build deployed. Silent degradation is the main way
    a project like this dies.
 
-6. **Precompute everything.** The browser never scans raw data. See
-   `docs/CUBE_SCHEMA.md`.
+6. **Precompute everything the browser reads.** The pipeline publishes
+   slices and one fact table of counts; the browser aggregates those and
+   never sees a vehicle row. See `docs/CUBE_SCHEMA.md`.
 
 7. **Never present a measurement artefact as market behaviour.** Some
    events changed how the data is recorded, not what people bought. See
@@ -53,8 +56,9 @@ Violating any of them is a bug, not a shortcut.
 ## Shapes
 
 The only five renderers. Every preset and every builder output maps to one.
-Shape is **inferred** from measure + dimension. The user never picks a
-chart type.
+Shape is **inferred** from measure + dimension. Where more than one shape
+fits the question, the visitor may switch among those that fit; they never
+get a shape that does not fit, and there is no sixth.
 
 | Shape | Renderer | Triggered by |
 |---|---|---|

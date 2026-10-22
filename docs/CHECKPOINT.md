@@ -13,7 +13,7 @@ Last updated by claude on 2026-10-22
   The user then judged the site not flexible enough: visitors must be able to ask their own
   questions (example: BYD and Geely by count and by share over time). The board is set aside.
   Measured a fact table, timed DuckDB-Wasm and hyparquet in a scratch prototype, proposed D-058.
-  Waiting on question 2.
+  The user approved all three rule changes (D-059); building item 9.
 - 2026-10-22, second session: the old queue item 1 is done. Three independent sub-agent reviews of
   the six pushed branches; every real finding fixed on the branch that introduced it and merged
   forward, with no rebase or force push; the choices and the points not taken are in D-057. Six pull
@@ -86,7 +86,7 @@ Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
 8. **`age-distribution-moving-hole`.** The distribution drawn year by year (a ridgeline inside the
    distribution shape) with its events. Re-triage the preset first (`presets.json` `$status`).
    UI work, so it may be built before the gate (D-041), as a local build only.
-9. **Free exploration (D-058, question 2).** Once approved, three pull requests: (A) the fact
+9. **Free exploration (D-058, approved in D-059).** Three pull requests: (A) the fact
    table as one file per column, on a branch from `main`, unmerged until the gate (D-043); (B) the
    question builder on the UI stack, reading a locally built fact table; (C) Explore's presets open
    in the builder. Done when the BYD and Geely Holding question draws by count and by share at 320px
@@ -101,11 +101,6 @@ Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
    a workflow edited on another branch could not read them; `deploy.yml` needs one line
    (`environment:`) and the secrets go into the environment. I recommend (b). If there is no answer,
    I write the console steps for (a) and the workflow stays as it is.
-
-2. **Free exploration (D-058).** Approve the hard-rule changes D-058 lists (a question builder in
-   place of the constrained sentence; the visitor may switch among the shapes that fit; a fact table
-   in the cube), or say which to keep. I recommend approving all three. With no answer, nothing is
-   built.
 
 ## Prompt for the next session
 
