@@ -3,9 +3,10 @@ import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
-import { monthLabel, periodWindow } from "../lib/measures";
-import { readout, spanPeriod } from "../lib/readout";
+import { monthLabel, pct, periodWindow } from "../lib/measures";
+import { count, readout, spanPeriod } from "../lib/readout";
 import { RULE, RULE_STRONG, SERIES, SUPPRESSED_LINE, chartHeight, plotStyle, tipStyle } from "../lib/theme";
+import { FiguresTable } from "./FiguresTable";
 import { PlotFigure } from "./PlotFigure";
 
 type Props = {
@@ -102,7 +103,17 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
         {heading} · {model.share ? "share" : "vehicles"}, {monthLabel(model.win.from)} to {monthLabel(model.win.to)} ·{" "}
         {model.denominator.toLocaleString()} vehicles{model.suppressed ? `, greyed: under ${minDenominator}` : ""}
       </p>
-      <PlotFigure render={render} />
+      <PlotFigure
+        render={render}
+        label={`Bar chart, ${spanPeriod(model.win.from, model.win.to)}: the ${model.share ? "share" : "number"} of vehicles by ${heading.toLowerCase()}, one bar for each band.`}
+      />
+      <FiguresTable
+        label={`${heading}: figures, ${spanPeriod(model.win.from, model.win.to)}`}
+        columns={[{ name: heading }, ...(model.share ? [{ name: "Share" }] : []), { name: "Still registered" }]}
+        rows={() =>
+          model.bars.map((b) => [label(b.value), ...(model.share ? [model.suppressed ? "suppressed" : pct(b.y)] : []), count(b.n)])
+        }
+      />
     </>
   );
 }

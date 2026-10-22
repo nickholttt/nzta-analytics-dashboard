@@ -267,9 +267,13 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
         before ({model.priorPeriodLabel}).
       </p>
 
-      <PlotFigure render={render} />
+      <PlotFigure
+        render={render}
+        label={`Ranked bar chart, ${spanPeriod(currentFrom, latest)}: the ${model.items.length} largest by share. The table below the chart lists each place, its move and its change in share.`}
+      />
 
-      <div style={{ overflowX: "auto", marginTop: "var(--space-4)" }}>
+      {/* At 320px the table scrolls sideways in its own box, so the box takes keyboard focus and a name. */}
+      <div className="table-scroll" role="region" aria-label="Ranking table" tabIndex={0} style={{ marginTop: "var(--space-4)" }}>
         <table className="key" style={{ width: "100%", fontSize: "13px" }}>
           <thead>
             <tr>
