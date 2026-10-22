@@ -13,7 +13,8 @@ import path from "node:path";
 const SERVICE = "https://services2.arcgis.com/vKb0s8tBIA3bdocZ/arcgis/rest/services/REGC2023/FeatureServer/0/query";
 const CODE = "REGC2023_V1_00";
 const NAME = "REGC2023_V1_00_NAME";
-const SOURCE = "Stats NZ, Regional Council 2023 Clipped, licensed for reuse under CC BY 4.0";
+const SOURCE =
+  "Stats NZ, Regional Council 2023 Clipped, simplified for a chart. Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/";
 const OFFSET = 0.01;
 const MIN_AREA = 0.002;
 const REFERENCE = path.join("data", "reference", "tla_region.csv");

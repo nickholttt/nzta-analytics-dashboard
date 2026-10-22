@@ -136,7 +136,13 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
           ) : (
             <p className="meta">Loading the map…</p>
           )}
-          {outlines ? <p className="geo-credit">Region outlines: Stats NZ, Regional Council 2023 (clipped), CC BY 4.0.</p> : null}
+          {/* CC BY 4.0 asks for the licence's address and a note that the outlines were changed. */}
+          {outlines ? (
+            <p className="geo-credit">
+              Region outlines: Stats NZ, Regional Council 2023 (clipped), simplified for this map. Licensed under{" "}
+              <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+            </p>
+          ) : null}
         </div>
         <div className="table-scroll" role="region" aria-label={`${heading}: figures`} tabIndex={0}>
           <table className="key">
