@@ -200,6 +200,34 @@ def test_a_misconfigured_pair_aborts(tmp_path, workspace, pairs, fragment):
     expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
 
 
+
+def test_the_fact_table_is_written_without_a_dimension_that_is_not_live(tmp_path, workspace):
+    rows = load_rows()
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    extra = [dict(template, OBJECTID=2000 + i, TLA=f"UNKNOWN DISTRICT {i}") for i in range(5)]
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["facts"] = ["import_status", "region"]
+    manifest = run(tmp_path, cfg, rows + extra, publish=False)
+    facts = manifest["datasets"]["registrations_surviving"]["facts"]
+    assert facts["dimensions"] == ["import_status"]
+    assert facts["not_live"] == {"region": "dimension not live"}
+    assert any("fact table is written without region" in w for w in manifest["warnings"]), manifest["warnings"]
+    written = sorted(p.name for p in (workspace["staging"] / "build" / "facts" / "registrations_surviving").iterdir())
+    assert written == ["import_status.parquet", "month.parquet", "n.parquet"]
+
+
+@pytest.mark.parametrize("facts, fragment", [
+    ("import_status", "facts must list distinct dimension ids"),
+    (["import_status", "import_status"], "facts must list distinct dimension ids"),
+    (["import_status", None], "facts must list distinct dimension ids"),
+    (["imported_from"], "facts names imported_from, not a derivable dimension"),
+    (["no_such_dimension"], "facts names no_such_dimension, not a derivable dimension"),
+])
+def test_a_misconfigured_fact_table_aborts(tmp_path, workspace, facts, fragment):
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["facts"] = facts
+    expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
+
 def test_unknown_vehicle_type_aborts(tmp_path, workspace):
     rows = load_rows() + [dict(load_rows()[0], OBJECTID=3000, VEHICLE_TYPE="NOT A REAL TYPE")]
     cfg = make_cfg(workspace)

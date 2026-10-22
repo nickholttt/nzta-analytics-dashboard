@@ -17,7 +17,8 @@ import shutil
 import duckdb
 
 from pipeline import build, config
-from pipeline.contract import PAIR_COLUMNS, PAIR_SEPARATOR, SLICE_COLUMNS
+from pipeline.contract import (FACT_COUNT, FACT_DIMENSION_TYPE, FACT_MONTH, FACTS_DIR, PAIR_COLUMNS, PAIR_SEPARATOR,
+                               SLICE_COLUMNS)
 
 from .conftest import FIXTURES, GOLDEN, NOW, load_rows, make_cfg, source_for, write_pages
 
@@ -52,8 +53,8 @@ def built_contract(tmp_path, workspace) -> tuple[dict, dict]:
     # update, and a change in what the site downloads never passes unnoticed.
     manifest = json.loads((public / "manifest.json").read_text(encoding="utf-8"))
     events = json.loads((public / "events.json").read_text(encoding="utf-8"))
-    contract = {"manifest": manifest, "slices": {}, "pairs": {}, "events": events}
-    for kind, folder in (("slices", "cube"), ("pairs", "pairs")):
+    contract = {"manifest": manifest, "slices": {}, "pairs": {}, "facts": {}, "events": events}
+    for kind, folder in (("slices", "cube"), ("pairs", "pairs"), ("facts", FACTS_DIR)):
         for path in sorted((public / folder).rglob("*.parquet")):
             contract[kind][path.relative_to(public / folder).as_posix()] = read_slice(path)
     return contract, {"events": events, "cfg": cfg}
@@ -67,7 +68,7 @@ def test_cube_matches_golden(tmp_path, workspace):
     expected = json.loads(GOLDEN_FILE.read_text(encoding="utf-8"))
     assert contract["manifest"] == expected["manifest"]
     assert contract["events"] == expected["events"]
-    for kind in ("slices", "pairs"):
+    for kind in ("slices", "pairs", "facts"):
         assert sorted(contract[kind]) == sorted(expected[kind]), kind
         for name, doc in expected[kind].items():
             assert contract[kind][name] == doc, name
@@ -126,6 +127,8 @@ def test_live_dimensions_match_files_and_events_are_verified_only(tmp_path, work
         assert files == sorted(info["live_dimensions"])
         pairs = sorted(k.split("/")[1][: -len(".parquet")] for k in contract["pairs"] if k.startswith(f"{dataset}/"))
         assert pairs == sorted(info["live_pairs"])
+        if info["facts"]:
+            assert set(info["facts"]["dimensions"]) <= set(info["live_dimensions"])
     cfg = extra["cfg"]
     e = cfg.pipeline["events"]
     with cfg.reference(e["file"]).open(encoding="utf-8", newline="") as fh:
@@ -133,3 +136,27 @@ def test_live_dimensions_match_files_and_events_are_verified_only(tmp_path, work
     assert {x["id"] for x in extra["events"]} == verified
     assert all(e["verified_column"] not in x for x in extra["events"])
     assert all(column not in x for x in extra["events"] for column in e["unpublished_columns"])
+
+
+def test_the_fact_table_is_one_column_per_file_and_adds_up_to_every_slice(tmp_path, workspace):
+    contract, _ = built_contract(tmp_path, workspace)
+    assert contract["facts"], "no fact table was written"
+    for dataset, info in contract["manifest"]["datasets"].items():
+        facts = info["facts"]
+        names = [FACT_MONTH[0], *facts["dimensions"], FACT_COUNT[0]]
+        files = {k.split("/")[1][: -len(".parquet")]: doc for k, doc in contract["facts"].items() if k.startswith(f"{dataset}/")}
+        assert sorted(files) == sorted(names), dataset
+        types = {FACT_MONTH[0]: FACT_MONTH[1], FACT_COUNT[0]: FACT_COUNT[1]}
+        for name, doc in files.items():
+            assert doc["schema"] == [[name, types.get(name, FACT_DIMENSION_TYPE)]], name
+            assert len(doc["rows"]) == facts["rows"], name
+        rows = list(zip(*([r[0] for r in files[name]["rows"]] for name in names)))
+        keys = [row[:-1] for row in rows]
+        assert keys == sorted(keys) and len(set(keys)) == len(keys), f"{dataset}: rows are not unique and in order"
+        assert sum(row[-1] for row in rows) == info["rows"]
+        for position, dim in enumerate(facts["dimensions"], start=1):
+            summed = {}
+            for row in rows:
+                summed[(row[0], row[position])] = summed.get((row[0], row[position]), 0) + row[-1]
+            single = {(r[0], r[1]): r[2] for r in contract["slices"][f"{dataset}/{dim}.parquet"]["rows"]}
+            assert summed == single, f"{dataset}: the fact table summed over {dim} differs from its slice"

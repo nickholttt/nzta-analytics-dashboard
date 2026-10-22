@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 import duckdb
 
 from . import derive, events, guardrails, metrics, normalise, outputs, schema
-from .contract import PAIR_SEPARATOR
+from .contract import FACT_COUNT, FACT_MONTH, FACTS_DIR, PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
 
@@ -48,6 +48,34 @@ def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, 
         outputs.write_pair(con, cfg, by_id[pair[0]], by_id[pair[1]], ds, staging / "pairs" / dataset / f"{key}.parquet")
         written.append(key)
     return written, waiting
+
+
+def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, rows: int, staging,
+                     aborts: list[str], warnings: list[str]) -> dict | None:
+    """The fact table config/pipeline.json names for this dataset. A list that is not distinct dimension ids, or names a
+    dimension the dataset cannot derive, aborts; a dimension not live this run waits, with a warning, and the table is
+    written without it. Its counts must total the dataset's rows, or the run aborts."""
+    configured = dataset_cfg.get("facts")
+    if configured is None:
+        return None
+    known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
+    reserved = {FACT_MONTH[0], FACT_COUNT[0]}
+    if not (isinstance(configured, list) and all(isinstance(d, str) for d in configured)) or len(set(configured)) != len(configured):
+        aborts.append(f"{dataset}: facts must list distinct dimension ids")
+        return None
+    problems = [d for d in configured if d not in known or d in reserved]
+    if problems:
+        aborts.append(f"{dataset}: facts names {', '.join(problems)}, not a derivable dimension of this dataset in dimensions.json")
+        return None
+    by_id = {d.dim_id: d for d in live}
+    waiting = {d: "dimension not live" for d in configured if d not in by_id}
+    for dim_id in waiting:
+        warnings.append(f"{dataset}: the fact table is written without {dim_id}, which is not live")
+    columns = [by_id[d] for d in configured if d in by_id]
+    fact_rows, total = outputs.write_facts(con, columns, ds, staging / FACTS_DIR / dataset)
+    if total != rows:
+        aborts.append(f"{dataset}: the fact table counts {total:,} vehicles, but the dataset has {rows:,}")
+    return {"rows": fact_rows, "dimensions": [d.dim_id for d in columns], "not_live": waiting}
 
 
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:
@@ -136,6 +164,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
         live_pairs, not_live_pairs = write_pairs(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
 
         counts = metrics.month_counts(con, ds)
+        facts = write_fact_table(con, cfg, dataset, dataset_cfg, live, ds, sum(counts.values()), staging, aborts, warnings)
         month_counts[dataset] = counts
         live_dimensions[dataset] = [d.dim_id for d in live]
         if counts.get(snapshot_key, 0) == 0:
@@ -154,6 +183,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "not_live": not_live,
             "live_pairs": live_pairs,
             "not_live_pairs": not_live_pairs,
+            "facts": facts,
             "unmapped_rates": rates,
             "unmapped_guard": guard,
             "mild_hybrid_identification_coverage": metrics.hybrid_coverage(con, cfg, ds, window_start, snapshot_month, window),

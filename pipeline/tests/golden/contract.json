@@ -50,6 +50,25 @@
      "powertrain__segment_group"
     ],
     "not_live_pairs": {},
+    "facts": {
+     "rows": 56,
+     "dimensions": [
+      "powertrain",
+      "make",
+      "parent_group",
+      "owner_country",
+      "heritage_country",
+      "built_in",
+      "segment",
+      "segment_group",
+      "import_status",
+      "region",
+      "engine_size_band",
+      "age_at_registration_band",
+      "model"
+     ],
+     "not_live": {}
+    },
     "unmapped_rates": {
      "powertrain": 0.0,
      "make": 0.016949,
@@ -249,7 +268,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 31487,
+  "payload_bytes": 37998,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -6138,6 +6157,2678 @@
      17.9,
      3,
      3
+    ]
+   ]
+  }
+ },
+ "facts": {
+  "registrations_surviving/age_at_registration_band.parquet": {
+   "schema": [
+    [
+     "age_at_registration_band",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "0"
+    ],
+    [
+     "1"
+    ],
+    [
+     "8"
+    ],
+    [
+     "0"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "0"
+    ],
+    [
+     "12"
+    ],
+    [
+     "0"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "14"
+    ],
+    [
+     "13"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "14"
+    ],
+    [
+     "13"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "20-24"
+    ],
+    [
+     "14"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "13"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ]
+   ]
+  },
+  "registrations_surviving/built_in.parquet": {
+   "schema": [
+    [
+     "built_in",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "UNITED KINGDOM"
+    ],
+    [
+     "AUSTRALIA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "UNITED STATES"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "SOUTH KOREA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "THAILAND"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "SOUTH KOREA"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "UNITED KINGDOM"
+    ],
+    [
+     "THAILAND"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CZECH REPUBLIC"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "THAILAND"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "SPAIN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "ITALY"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "THAILAND"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "SOUTH KOREA"
+    ],
+    [
+     "INDIA"
+    ],
+    [
+     "JAPAN"
+    ]
+   ]
+  },
+  "registrations_surviving/engine_size_band.parquet": {
+   "schema": [
+    [
+     "engine_size_band",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Under 1.0 L"
+    ],
+    [
+     "3.0-3.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "4.0 L and over"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "Under 1.0 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.5-2.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "none"
+    ],
+    [
+     "4.0 L and over"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "Under 1.0 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.5-2.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "Under 1.0 L"
+    ],
+    [
+     "none"
+    ],
+    [
+     "none"
+    ],
+    [
+     "4.0 L and over"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "none"
+    ],
+    [
+     "none"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "1.5-1.9 L"
+    ]
+   ]
+  },
+  "registrations_surviving/heritage_country.parquet": {
+   "schema": [
+    [
+     "heritage_country",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "United Kingdom"
+    ],
+    [
+     "Australia"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United Kingdom"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United Kingdom"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Czechia"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Germany"
+    ],
+    [
+     "China"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Italy"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ]
+   ]
+  },
+  "registrations_surviving/import_status.parquet": {
+   "schema": [
+    [
+     "import_status",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ]
+   ]
+  },
+  "registrations_surviving/make.parquet": {
+   "schema": [
+    [
+     "make",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "MORRIS"
+    ],
+    [
+     "HOLDEN"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "FORD"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "KGM"
+    ],
+    [
+     "MITSUBISHI"
+    ],
+    [
+     "FORD"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "HAVAL"
+    ],
+    [
+     "HYUNDAI"
+    ],
+    [
+     "SUZUKI"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "MG"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "HONDA"
+    ],
+    [
+     "MINI"
+    ],
+    [
+     "BYD"
+    ],
+    [
+     "ISUZU"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "SKODA"
+    ],
+    [
+     "SUBARU"
+    ],
+    [
+     "HONDA"
+    ],
+    [
+     "TANK"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "VOLKSWAGEN"
+    ],
+    [
+     "ORA"
+    ],
+    [
+     "TESLA"
+    ],
+    [
+     "HINO"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "FIAT"
+    ],
+    [
+     "HAVAL"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "TESLA"
+    ],
+    [
+     "FORD"
+    ],
+    [
+     "HAVAL"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "HONDA"
+    ],
+    [
+     "KIA"
+    ],
+    [
+     "SUZUKI"
+    ],
+    [
+     "TOYOTA"
+    ]
+   ]
+  },
+  "registrations_surviving/model.parquet": {
+   "schema": [
+    [
+     "model",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "__OTHER__"
+    ],
+    [
+     "__OTHER__"
+    ],
+    [
+     "__OTHER__"
+    ],
+    [
+     "TOYOTA|COROLLA"
+    ],
+    [
+     "__OTHER__"
+    ],
+    [
+     "FORD|MUSTANG"
+    ],
+    [
+     "MAZDA|2"
+    ],
+    [
+     "KGM|REXTON"
+    ],
+    [
+     "MITSUBISHI|OUTLANDER"
+    ],
+    [
+     "FORD|EVEREST"
+    ],
+    [
+     "TOYOTA|COROLLA"
+    ],
+    [
+     "HAVAL|H6"
+    ],
+    [
+     "HYUNDAI|TUCSON"
+    ],
+    [
+     "SUZUKI|SWIFT"
+    ],
+    [
+     "TOYOTA|TANK"
+    ],
+    [
+     "TOYOTA|AQUA"
+    ],
+    [
+     "NISSAN|X-TRAIL"
+    ],
+    [
+     "ZZZ MOTORS|ONE"
+    ],
+    [
+     "TOYOTA|LANDCRUISER"
+    ],
+    [
+     "MG|ZS"
+    ],
+    [
+     "TOYOTA|AQUA"
+    ],
+    [
+     "HONDA|FIT"
+    ],
+    [
+     "MINI|COOPER"
+    ],
+    [
+     "BYD|ATTO 3"
+    ],
+    [
+     "ISUZU|FORWARD"
+    ],
+    [
+     "NISSAN|NOTE"
+    ],
+    [
+     "SKODA|FABIA"
+    ],
+    [
+     "SUBARU|IMPREZA"
+    ],
+    [
+     "HONDA|FIT"
+    ],
+    [
+     "TANK|TANK"
+    ],
+    [
+     "TOYOTA|HILUX"
+    ],
+    [
+     "MAZDA|ROADSTER"
+    ],
+    [
+     "MAZDA|DEMIO"
+    ],
+    [
+     "VOLKSWAGEN|POLO"
+    ],
+    [
+     "ORA|ORA"
+    ],
+    [
+     "TESLA|MODEL Y"
+    ],
+    [
+     "HINO|300"
+    ],
+    [
+     "MAZDA|AXELA"
+    ],
+    [
+     "TOYOTA|PRIUS"
+    ],
+    [
+     "TOYOTA|CAMRY"
+    ],
+    [
+     "FIAT|DUCATO"
+    ],
+    [
+     "HAVAL|JOLION"
+    ],
+    [
+     "TOYOTA|RAV4"
+    ],
+    [
+     "TOYOTA|PRIUS"
+    ],
+    [
+     "NISSAN|NOTE"
+    ],
+    [
+     "NISSAN|LEAF"
+    ],
+    [
+     "TESLA|MODEL Y"
+    ],
+    [
+     "FORD|RANGER"
+    ],
+    [
+     "HAVAL|H6"
+    ],
+    [
+     "TOYOTA|RAV4"
+    ],
+    [
+     "TOYOTA|RAV4"
+    ],
+    [
+     "TOYOTA|AQUA"
+    ],
+    [
+     "HONDA|FIT"
+    ],
+    [
+     "KIA|SPORTAGE"
+    ],
+    [
+     "SUZUKI|SWIFT"
+    ],
+    [
+     "TOYOTA|COROLLA"
+    ]
+   ]
+  },
+  "registrations_surviving/month.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01"
+    ],
+    [
+     "1998-01-01"
+    ],
+    [
+     "2007-06-01"
+    ],
+    [
+     "2019-03-01"
+    ],
+    [
+     "2025-08-01"
+    ],
+    [
+     "2025-09-01"
+    ],
+    [
+     "2025-09-01"
+    ],
+    [
+     "2025-10-01"
+    ],
+    [
+     "2025-10-01"
+    ],
+    [
+     "2025-11-01"
+    ],
+    [
+     "2025-11-01"
+    ],
+    [
+     "2025-12-01"
+    ],
+    [
+     "2025-12-01"
+    ],
+    [
+     "2026-01-01"
+    ],
+    [
+     "2026-01-01"
+    ],
+    [
+     "2026-02-01"
+    ],
+    [
+     "2026-02-01"
+    ],
+    [
+     "2026-02-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ]
+   ]
+  },
+  "registrations_surviving/n.parquet": {
+   "schema": [
+    [
+     "n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ]
+   ]
+  },
+  "registrations_surviving/owner_country.parquet": {
+   "schema": [
+    [
+     "owner_country",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "United Kingdom"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Germany"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Germany"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Germany"
+    ],
+    [
+     "China"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Netherlands"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ]
+   ]
+  },
+  "registrations_surviving/parent_group.parquet": {
+   "schema": [
+    [
+     "parent_group",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "British Leyland"
+    ],
+    [
+     "General Motors"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Ford Motor Company"
+    ],
+    [
+     "Mazda Motor Corporation"
+    ],
+    [
+     "KG Mobility"
+    ],
+    [
+     "Mitsubishi Motors"
+    ],
+    [
+     "Ford Motor Company"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Hyundai Motor Group"
+    ],
+    [
+     "Suzuki Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Nissan Motor"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "SAIC Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Honda Motor"
+    ],
+    [
+     "BMW Group"
+    ],
+    [
+     "BYD"
+    ],
+    [
+     "Isuzu Motors"
+    ],
+    [
+     "Nissan Motor"
+    ],
+    [
+     "Volkswagen Group"
+    ],
+    [
+     "Subaru Corporation"
+    ],
+    [
+     "Honda Motor"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Mazda Motor Corporation"
+    ],
+    [
+     "Mazda Motor Corporation"
+    ],
+    [
+     "Volkswagen Group"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Tesla"
+    ],
+    [
+     "ARCHION"
+    ],
+    [
+     "Mazda Motor Corporation"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Stellantis"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Nissan Motor"
+    ],
+    [
+     "Nissan Motor"
+    ],
+    [
+     "Tesla"
+    ],
+    [
+     "Ford Motor Company"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Honda Motor"
+    ],
+    [
+     "Hyundai Motor Group"
+    ],
+    [
+     "Suzuki Motor"
+    ],
+    [
+     "Toyota Group"
+    ]
+   ]
+  },
+  "registrations_surviving/powertrain.parquet": {
+   "schema": [
+    [
+     "powertrain",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "PHEV"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Mild hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Mild hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ]
+   ]
+  },
+  "registrations_surviving/region.parquet": {
+   "schema": [
+    [
+     "region",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Canterbury"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Bay of Plenty"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Canterbury"
+    ],
+    [
+     "Waikato"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Nelson"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Wellington"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Bay of Plenty"
+    ],
+    [
+     "Canterbury"
+    ],
+    [
+     "Canterbury"
+    ],
+    [
+     "Gisborne"
+    ],
+    [
+     "Canterbury"
+    ],
+    [
+     "Manawatū-Whanganui"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Wellington"
+    ],
+    [
+     "Southland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Northland"
+    ],
+    [
+     "Otago"
+    ],
+    [
+     "Waikato"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Otago"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Hawke's Bay"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Waikato"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Waikato"
+    ],
+    [
+     "Canterbury"
+    ],
+    [
+     "Auckland"
+    ],
+    [
+     "Auckland"
+    ]
+   ]
+  },
+  "registrations_surviving/segment.parquet": {
+   "schema": [
+    [
+     "segment",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Ute"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Ute"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Truck"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Ute"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Van"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Ute"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ]
+   ]
+  },
+  "registrations_surviving/segment_group.parquet": {
+   "schema": [
+    [
+     "segment_group",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Heavy commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
     ]
    ]
   }
