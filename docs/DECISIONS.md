@@ -1411,3 +1411,45 @@ New entries use this template:
   (D-043); the builder is UI work on the UI stack (D-041). The golden contract changes with the fact table and is shown
   to the user (AGENTS.md hard rule 4).
 - Status: accepted, decided by user
+
+## D-060 2026-10-22 — The question builder: what it asks, and the choices inside it
+- Agent: claude, building D-058 under D-059.
+- Basis: branches `claude/fact-table` (the fact table) and `claude/question-builder`; headless checks on 2026-10-22
+  against a dry-run build of the saved 2026-08 pull that carries the fact table.
+- Context: D-059 approved a question builder over a fact table. These are the choices made building it that a
+  reviewer could want to reverse.
+- Decision:
+  - A question is a measure, a breakdown, the values of that breakdown to compare, and conditions ("Only vehicles
+    where"), each a dimension and the values it keeps. Values and conditions are summed in the browser from the fact
+    table (`factView` in `src/lib/data.ts`); a question with neither reads the slices, as before.
+  - Measures: share, number (count), share and number (two charts, one above the other, never two axes), and the
+    share of the 5 largest. Count is offered now, with the note that these are vehicles still registered, not sales,
+    and that older months are thinned by scrappage; D-044 had withheld it. Models are offered, with the existing note
+    on the model cap.
+  - A count broken down draws one line per chosen value (the trend renderer, extended to several lines: still the
+    trend shape). With none chosen it starts on the five largest in the last 12 months, which the visitor can change.
+    A share with no values chosen draws the canon's mix chart, the largest values with the rest as All other.
+  - At most 8 values at once: the palette has eight colours that stay distinguishable (`src/lib/theme.ts`).
+  - A question that names values opens on 10 years (`period_when_comparing` in `config/presets.json`), not all time:
+    most named values have little history before that. The time row still offers all time.
+  - Count lines take colours by vehicles in the last 12 months, largest first, the rule the mix chart uses for its
+    first slots, so a value wears the same colour on the share and the count chart.
+  - "Show as" offers lines over time beside a map or a distribution, where a share is broken down by region or a
+    band: the only places a second shape fits today. A ranking stays in the time row, as before (D-045).
+  - Value lists come from the 1-D slices, largest in the last 12 months first, then largest over all time, so a brand
+    no longer sold can still be found by typing.
+  - A condition on a dimension the fact table lacks, or the config does not define, blocks the chart rather than
+    being dropped: a chart quietly missing a filter answers a different question. So Explore's light-passenger
+    powertrain chart offers no "Change this chart" link until `segment_group` is defined in `config/dimensions.json`
+    (pull request #28).
+  - The question lives in the address bar (`build.measure`, `build.by`, a `build.value` per value, a
+    `build.where.<dimension>` per kept value, `build.view`), so "Copy link" shares it. Explore's links use the same form.
+  - The old sentence builder (`SentenceBuilder.tsx`) is removed; `builder.ts` keeps its role with a question in place
+    of a choice.
+- Not done: a 12-month running total on count comparisons (the trend renderer offers it to `rolling_12m` presets
+  only); events scoped to a parent group appear only where their scope matches the breakdown; aggregation runs on the
+  main thread, not in a worker; first load of a fact-table question has not been measured at the phone profile.
+- Consequences: the Build page answers questions such as BYD and Geely Holding, by share and by number, over time, or
+  the share of BYD, Tesla and Toyota among battery EVs. On the 2026-08 dry run each drew in about 1.6 to 2.5 s
+  headless at 1280px and 390px against the local dev server, with no console errors and no sideways scroll.
+- Status: decided by Claude (unreviewed)

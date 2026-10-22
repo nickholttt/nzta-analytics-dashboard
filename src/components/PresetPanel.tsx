@@ -1,7 +1,7 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
-import { builderChoiceFor, builderHref, builderPreset } from "../lib/builder";
-import { compositeRules, findDataset, findDerived, findPeriod, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
+import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
+import { compositeRules, findDataset, findDerived, findDimension, findPeriod, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { loadEvents, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
@@ -170,7 +170,7 @@ export default function PresetPanel({
       </section>
     );
 
-  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy } = resolution;
+  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy, keptBy } = resolution;
   const dataset = findDataset(effectivePreset.dataset);
   const derived = findDerived(effectivePreset.derived);
   const served = servedFrom(effectivePreset.dataset, manifest);
@@ -207,7 +207,16 @@ export default function PresetPanel({
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
   // terms, is internal.
-  const scope = narrowedBy ? `Only ${narrowedBy.values.map((v) => `“${RESERVED_LABELS[v] ?? v}”`).join(" or ")} vehicles are counted.` : undefined;
+  const quoted = (values: string[]) => values.map((v) => `“${RESERVED_LABELS[v] ?? v}”`).join(" or ");
+  const nameOf = (id: string) => {
+    const words = (!internal && publicCopy.dimension_labels[id]) || findDimension(id)?.label || id;
+    return words.charAt(0).toLowerCase() + words.slice(1);
+  };
+  const scope = keptBy?.length
+    ? `Only vehicles where ${keptBy.map((k) => `${nameOf(k.dimension)} is ${quoted(k.values)}`).join(", and ")} are counted.`
+    : narrowedBy
+      ? `Only ${quoted(narrowedBy.values)} vehicles are counted.`
+      : undefined;
   const unapplied = notApplied.length
     ? (effectivePreset.filters ?? []).flatMap((f) => Object.entries(f)).filter(([key]) => key !== narrowedBy?.dimension)
     : [];
@@ -269,7 +278,17 @@ export default function PresetPanel({
         />
       );
     } else if (shape === "trend") {
-      chart = <TrendChart preset={effectivePreset} rows={rows} manifest={manifest} minDenominator={guard} collapseFraction={collapseFraction} lead={lead} />;
+      chart = (
+        <TrendChart
+          preset={effectivePreset}
+          rows={rows}
+          manifest={manifest}
+          minDenominator={guard}
+          collapseFraction={collapseFraction}
+          lead={lead}
+          label={label}
+        />
+      );
     } else if (shape === "league" && dimension) {
       chart = (
         <LeagueChart
@@ -303,10 +322,10 @@ export default function PresetPanel({
 
   // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube
   // draws what it says, and opened on the time range shown here.
-  const builderChoice = builderChoiceFor(effectivePreset);
+  const builderQuestion = builderQuestionFor(effectivePreset);
   const builderLink =
-    builderChoice && resolvePreset(builderPreset(builderChoice), manifest).preventsRender.length === 0
-      ? builderHref(builderChoice, activePeriod, fullHistory)
+    builderQuestion && builderPresets(builderQuestion).every((p) => resolvePreset(p, manifest).preventsRender.length === 0)
+      ? builderHref(builderQuestion, activePeriod, fullHistory)
       : undefined;
   const questionId = `${preset.id}-question`;
 
