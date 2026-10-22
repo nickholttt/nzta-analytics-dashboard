@@ -16,7 +16,7 @@ built and what is in progress is in `docs/STATE.md`.
 | `CLAUDE.md` | Project brief. Design invariants, stack, build order, field traps. |
 | `POST_GATE.md` | Work queued until the 8 November 2026 scheduled run passes |
 | `docs/STATE.md`, `docs/CHECKPOINT.md`, `docs/DECISIONS.md` | What is true now, the work queue, and why things are the way they are |
-| `docs/playbooks/` | Step-by-step guides: checks, the local UI, a cube rebuild, the monthly run check, adding an event, changing a preset or reference data, and the session handoff |
+| `docs/playbooks/` | Step-by-step guides: checks, the local UI, a cube rebuild, the monthly run check, adding an event, changing a preset or reference data, the session handoff, and testing the site with visitors |
 | `docs/DATA_SOURCES.md` | Endpoints, cadence, licence, and the field definitions that will mislead you |
 | `docs/METRICS.md` | Exact definition of every figure the site can display |
 | `docs/CUBE_SCHEMA.md` | The pipeline → browser contract, with guardrails |
@@ -38,6 +38,8 @@ built and what is in progress is in `docs/STATE.md`.
 | `data/reference/mild_hybrid_models.csv` | Which hybrid nameplates are mild or full, with basis and confidence |
 | `pipeline/` | The pipeline: fetch, normalise, derive, metrics, guardrails, outputs, and its tests |
 | `src/` | The local reference UI: pages, chart renderers, and the code that reads `public/data` |
+| `public/geo/nz-regions.json` | Region outlines for the map, from Stats NZ (CC BY 4.0), written by `scripts/region-boundaries.mjs` |
+| `scripts/` | Maintainer scripts run by hand, never by the pipeline |
 
 ## Known gaps
 

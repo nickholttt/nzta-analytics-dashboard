@@ -215,6 +215,12 @@ section[id] {
   overflow: visible;
 }
 
+/* Plot wraps a chart that has a legend in a figure. The browser's default figure margin would shrink it inside the
+   width it was drawn for, and its text with it. */
+.chart figure {
+  margin: 0;
+}
+
 /* ---------- Sentence builder (/build) ---------- */
 
 /* The choices sit inside the sentence as words, underlined like a blank to fill. They stay native
@@ -825,4 +831,25 @@ section[id] {
    the table keeps its table semantics and the focusable region is the one that moves. */
 .table-scroll .key {
   display: table;
+}
+
+/* ---------- Map ---------- */
+
+/* The map and its table side by side where there is room, the table under the map on a phone. */
+.geo {
+  display: grid;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (min-width: 720px) {
+  .geo {
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  }
+}
+
+.geo-credit {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--ink-3);
 }

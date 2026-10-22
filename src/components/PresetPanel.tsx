@@ -11,6 +11,7 @@ import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
+import { GeoChart } from "./GeoChart";
 import { LeagueChart } from "./LeagueChart";
 import { MixChart } from "./MixChart";
 import { TrendChart } from "./TrendChart";
@@ -280,6 +281,18 @@ export default function PresetPanel({
           label={label}
           valueHeading={dimensionLabel ?? dimension.label}
           lead={lead}
+        />
+      );
+    } else if (shape === "geo" && dimension) {
+      chart = (
+        <GeoChart
+          preset={effectivePreset}
+          dimension={dimension}
+          rows={rows}
+          manifest={manifest}
+          minDenominator={guard}
+          label={label}
+          dimensionLabel={dimensionLabel}
         />
       );
     }
