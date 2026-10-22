@@ -215,6 +215,12 @@ section[id] {
   overflow: visible;
 }
 
+/* Plot wraps a chart that has a legend in a figure. The browser's default figure margin would shrink it inside the
+   width it was drawn for, and its text with it. */
+.chart figure {
+  margin: 0;
+}
+
 /* ---------- Sentence builder (/build) ---------- */
 
 /* The choices sit inside the sentence as words, underlined like a blank to fill. They stay native
