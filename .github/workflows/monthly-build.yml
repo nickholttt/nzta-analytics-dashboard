@@ -87,6 +87,27 @@ jobs:
           git commit -m "Snapshot ${{ steps.pipeline.outputs.snapshot }} [skip ci]"
           git push
 
+      # The cube the site is deployed from (D-056, D-057): one release per snapshot, which, unlike the artifact above,
+      # does not expire. It comes after the state is committed, so a failed release never costs the month's snapshot,
+      # and a release always belongs to a run whose state was committed. Only on main: a forced run on a branch must not
+      # publish a cube the site would deploy. A second build of the same snapshot replaces the release's file. If this
+      # step fails, the state is committed and the site keeps the previous cube until a forced run on main publishes it
+      # (docs/playbooks/check-monthly-run.md).
+      - name: Publish the cube as a release
+        if: steps.pipeline.outputs.built == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT: ${{ steps.pipeline.outputs.snapshot }}
+        run: |
+          tag="cube-$SNAPSHOT"
+          tar -czf "$RUNNER_TEMP/public-data.tar.gz" -C public/data .
+          if gh release view "$tag" > /dev/null 2>&1; then
+            gh release upload "$tag" "$RUNNER_TEMP/public-data.tar.gz" --clobber
+          else
+            gh release create "$tag" "$RUNNER_TEMP/public-data.tar.gz" --target "$(git rev-parse HEAD)" --title "Cube $tag" \
+              --notes "The cube built from the $SNAPSHOT snapshot. The site is deployed from the newest of these."
+          fi
+
       - name: Resource report
         if: always()
         run: |
