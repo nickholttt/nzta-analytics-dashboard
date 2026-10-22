@@ -641,6 +641,21 @@ section[id] {
   color: var(--ink-3);
 }
 
+/* A chart's figures behind a disclosure, for charts with no table of their own. */
+.figures {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.figures > summary {
+  cursor: pointer;
+  color: var(--ink-2);
+}
+
+.figures .table-scroll {
+  margin-top: var(--space-2);
+}
+
 /* Plot draws the tooltip in currentColor, which the chart sets to muted ink for the axes. The tooltip
    is read closely, so it takes full ink. */
 .chart g[aria-label="tip"] {
