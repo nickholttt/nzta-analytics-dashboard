@@ -132,7 +132,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
               label={`Map of New Zealand's regions, ${spanPeriod(model.win.from, model.win.to)}, each shaded by its share of vehicles: darker is a larger share. The table beside the map gives each region's figures.`}
             />
           ) : failed ? (
-            <p className="meta">The region outlines did not load, so the map is not drawn. The table gives every region's figures.</p>
+            <p className="meta">The region outlines did not load, so the map is not drawn. Reload the page to try again; the table gives every region's figures.</p>
           ) : (
             <p className="meta">Loading the map…</p>
           )}
