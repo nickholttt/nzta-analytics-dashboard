@@ -127,12 +127,20 @@ export default function PresetPanel({
 
   const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
 
-  // The resolver says where the rows come from: a 1-D slice, or a pair slice narrowed to the view's filter.
+  // The resolver says where the rows come from: a 1-D slice, or a pair slice narrowed to the view's filter. A view
+  // changed again before its rows arrive drops them, so a slow earlier load cannot draw under a later view.
   useEffect(() => {
     const source = resolution?.source;
     if (!source) return;
+    let current = true;
     setRows(null);
-    loadView(source).then(setRows, (e) => setError(String(e)));
+    loadView(source).then(
+      (loaded) => current && setRows(loaded),
+      (e) => current && setError(String(e)),
+    );
+    return () => {
+      current = false;
+    };
   }, [resolution]);
 
   const panelClass = `panel${lead ? " lead" : ""}`;
@@ -161,7 +169,7 @@ export default function PresetPanel({
       </section>
     );
 
-  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure } = resolution;
+  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy } = resolution;
   const dataset = findDataset(effectivePreset.dataset);
   const derived = findDerived(effectivePreset.derived);
   const served = servedFrom(effectivePreset.dataset, manifest);
@@ -195,12 +203,19 @@ export default function PresetPanel({
   const publicDimensionNote = !internal && dimension ? publicCopy.dimension_notes[dimension.id] : undefined;
   if (publicDimensionNote) addNote("dimension", publicDimensionNote);
   else addNote("dimension", dimension?.note, dimension?.note_template);
-  // A visitor is told what the chart includes in plain words; the reason, in config terms, is internal.
-  const publicLimits = notApplied.length
-    ? (effectivePreset.filters ?? []).flatMap((f) =>
-        Object.values(f).map((v) => `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`),
-      )
+  // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
+  // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
+  // terms, is internal.
+  const scope = narrowedBy ? `Only ${narrowedBy.values.map((v) => `“${RESERVED_LABELS[v] ?? v}”`).join(" or ")} vehicles are counted.` : undefined;
+  const unapplied = notApplied.length
+    ? (effectivePreset.filters ?? []).flatMap((f) => Object.entries(f)).filter(([key]) => key !== narrowedBy?.dimension)
     : [];
+  const narrowed = Boolean(resolution.source?.filter);
+  const publicLimits = unapplied.map(([, v]) =>
+    narrowed
+      ? `This chart is not narrowed to “${v}”: the data can't be narrowed that way yet.`
+      : `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`,
+  );
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   // Visitor wording from config/presets.json public_copy, where the frozen dimensions.json carries text
@@ -209,7 +224,21 @@ export default function PresetPanel({
 
   let chart = null;
   if (preventsRender.length === 0 && rows) {
-    if (shape === "mix" && dimension) {
+    // A view that loads no rows is said, not drawn: every renderer needs at least one month. A filter value that matches
+    // nothing in the data does this, so the internal page names the source to check.
+    if (rows.length === 0) {
+      const filter = resolution.source?.filter;
+      chart = (
+        <div className="callout blocked">
+          <span className="callout-label">Nothing to draw</span>
+          {internal
+            ? `No rows: ${resolution.source?.dataset} by ${resolution.source?.dimension}${
+                filter ? `, narrowed to ${filter.dimension} = ${filter.values.join(" or ")}` : ""
+              } loaded nothing. Check the view's filter values against the data.`
+            : "No vehicles in the data match this view."}
+        </div>
+      );
+    } else if (shape === "mix" && dimension) {
       chart = (
         <MixChart
           preset={effectivePreset}
@@ -308,7 +337,7 @@ export default function PresetPanel({
             </>
           ) : null}
         </h3>
-        {definition ? <p className="panel-definition">{definition}</p> : null}
+        {definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null}
         <div className="panel-actions">
           <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
             {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
