@@ -8,7 +8,7 @@ import { loadRegions } from "../lib/data";
 import type { Manifest, RegionOutlines, SliceRow } from "../lib/data";
 import { pct, periodWindow } from "../lib/measures";
 import { readout, spanPeriod } from "../lib/readout";
-import { INK_3, SERIES, SUPPRESSED_LINE, plotStyle } from "../lib/theme";
+import { INK_3, PAPER, SERIES, SUPPRESSED_LINE, plotStyle } from "../lib/theme";
 import { PlotFigure } from "./PlotFigure";
 
 // The lightest shade, for a share of zero: a pale wash of the darkest, which is the palette's first colour.
@@ -46,19 +46,26 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
       totals.set(r.value, (totals.get(r.value) ?? 0) + r.n);
       denominators.set(r.month, r.denominator);
     }
+    // A value the data holds in other months but not in this window had no vehicles in it: it keeps a row at zero, so
+    // the table lists what the map shades. A value in no month at all is not in the data.
+    const known = new Set(rows.map((r) => r.value));
+    for (const value of known) if (!totals.has(value)) totals.set(value, 0);
     const denominator = [...denominators.values()].reduce((a, b) => a + b, 0);
     const regions: Region[] = [...totals.entries()]
       .map(([value, n]) => ({ value, n, share: denominator > 0 ? n / denominator : 0 }))
       .sort((a, b) => b.n - a.n);
     const byValue = new Map(regions.map((r) => [r.value, r]));
     const max = Math.max(0.01, ...regions.map((r) => r.share));
-    return { win, regions, byValue, denominator, max, suppressed: denominator < minDenominator };
+    return { win, regions, byValue, known, denominator, max, suppressed: denominator < minDenominator };
   }, [rows, preset.period, manifest.latest_snapshot, minDenominator]);
 
   const render = useCallback(
     (width: number) => {
       const features = outlines?.features ?? [];
       const shareOf = (f: (typeof features)[number]) => model.byValue.get(f.properties.region)?.share ?? 0;
+      // An outline whose region is in no month of the data (a name that no longer matches the reference file) is drawn
+      // unshaded, not as a share of zero, and named under the map.
+      const inData = (f: (typeof features)[number]) => model.known.has(f.properties.region);
       return Plot.plot({
         width: Math.min(width, MAP_MAX_WIDTH),
         style: plotStyle,
@@ -78,7 +85,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
           // Borders in muted ink, not the page colour, so neighbouring pale regions stay apart. Each shape carries its own
           // readout as a title, shown while the pointer is over that shape: a pointer that snaps to the nearest region's
           // centre would name a neighbour across much of a large region.
-          Plot.geo(features, {
+          Plot.geo(features.filter(inData), {
             fill: model.suppressed ? SUPPRESSED_LINE : shareOf,
             stroke: INK_3,
             strokeWidth: 0.5,
@@ -95,6 +102,12 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
               });
             },
           }),
+          Plot.geo(features.filter((f) => !inData(f)), {
+            fill: PAPER,
+            stroke: INK_3,
+            strokeWidth: 0.5,
+            title: (f: (typeof features)[number]) => `${label(f.properties.region)}\nNo figures in the data for this region`,
+          }),
         ],
       });
     },
@@ -103,6 +116,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
 
   const mapped = new Set(outlines?.features.map((f) => f.properties.region) ?? []);
   const unmapped = model.regions.filter((r) => !mapped.has(r.value)).map((r) => label(r.value));
+  const unshaded = [...mapped].filter((region) => !model.known.has(region)).map(label);
 
   return (
     <>
@@ -148,6 +162,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
         </div>
       </div>
       {unmapped.length > 0 && outlines ? <p className="control-note">Not on the map, so listed in the table only: {unmapped.join(", ")}.</p> : null}
+      {unshaded.length > 0 ? <p className="control-note">No figures in the data for {unshaded.join(", ")}, so the map leaves {unshaded.length === 1 ? "it" : "them"} unshaded.</p> : null}
     </>
   );
 }
