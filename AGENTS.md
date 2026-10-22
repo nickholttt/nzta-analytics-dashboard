@@ -77,7 +77,12 @@ Setup, **not re-run this session** (the environment already existed):
 - The output contract (`public/data/manifest.json`, `cube/<dataset>/<dimension>.parquet`,
   `events.json`) is `docs/CUBE_SCHEMA.md`, locked by `pipeline/tests/test_golden.py`.
 - `.github/workflows/monthly-build.yml`: cron 06:17 UTC on the 8th → tests → `pipeline run` → on a
-  build, the bot commits `data/snapshots/` and `data/state/` with `[skip ci]`.
+  build, the bot commits `data/snapshots/` and `data/state/` with `[skip ci]`, then, on `main` only,
+  keeps the cube as a release `cube-<snapshot>` (D-056, D-057). `checks.yml` runs the pipeline tests on
+  every pull request (D-048). `deploy.yml` builds the public site from the newest cube release and
+  uploads it to Cloudflare Pages, from `main` only and once its secrets exist; its upload tool, wrangler,
+  is pinned by its own lockfile in `.github/deploy/` (D-057). The release step, `checks.yml`,
+  `deploy.yml` and `.github/deploy/` are on the pipeline branches, which merge after the 8 November gate.
 - `src/pages/index.astro` hosts React islands. `src/lib/config.ts` loads `config/*.json`, `data.ts`
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
   `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo}Chart.tsx`
