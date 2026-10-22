@@ -8,7 +8,7 @@ import { loadRegions } from "../lib/data";
 import type { Manifest, RegionOutlines, SliceRow } from "../lib/data";
 import { pct, periodWindow } from "../lib/measures";
 import { readout, spanPeriod } from "../lib/readout";
-import { PAPER, SERIES, SUPPRESSED_LINE, plotStyle, tipStyle } from "../lib/theme";
+import { INK_3, SERIES, SUPPRESSED_LINE, plotStyle, tipStyle } from "../lib/theme";
 import { PlotFigure } from "./PlotFigure";
 
 // The lightest shade, for a share of zero: a pale wash of the darkest, which is the palette's first colour.
@@ -64,8 +64,10 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
         style: plotStyle,
         // New Zealand's own projection (NZTM2000) is a transverse Mercator on 173°E.
         projection: { type: "transverse-mercator", rotate: [-173, 0], domain: outlines ?? undefined },
+        // A square-root scale: one region can hold close to half the vehicles, and on a linear scale every other region
+        // sits in the palest few shades. The legend shows the scale, so the spacing is not hidden.
         color: {
-          type: "linear",
+          type: "sqrt",
           domain: [0, model.max],
           range: [LOWEST, SERIES[0]],
           legend: true,
@@ -73,10 +75,11 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
           tickFormat: (d: number) => `${Math.round(d * 100)}%`,
         },
         marks: [
+          // Borders in muted ink, not the page colour, so neighbouring pale regions stay apart.
           Plot.geo(features, {
             fill: model.suppressed ? SUPPRESSED_LINE : shareOf,
-            stroke: PAPER,
-            strokeWidth: 0.75,
+            stroke: INK_3,
+            strokeWidth: 0.5,
           }),
           Plot.tip(
             features,
