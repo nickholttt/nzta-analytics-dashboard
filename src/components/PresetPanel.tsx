@@ -224,7 +224,21 @@ export default function PresetPanel({
 
   let chart = null;
   if (preventsRender.length === 0 && rows) {
-    if (shape === "mix" && dimension) {
+    // A view that loads no rows is said, not drawn: every renderer needs at least one month. A filter value that matches
+    // nothing in the data does this, so the internal page names the source to check.
+    if (rows.length === 0) {
+      const filter = resolution.source?.filter;
+      chart = (
+        <div className="callout blocked">
+          <span className="callout-label">Nothing to draw</span>
+          {internal
+            ? `No rows: ${resolution.source?.dataset} by ${resolution.source?.dimension}${
+                filter ? `, narrowed to ${filter.dimension} = ${filter.values.join(" or ")}` : ""
+              } loaded nothing. Check the view's filter values against the data.`
+            : "No vehicles in the data match this view."}
+        </div>
+      );
+    } else if (shape === "mix" && dimension) {
       chart = (
         <MixChart
           preset={effectivePreset}
