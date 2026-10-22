@@ -1276,3 +1276,49 @@ New entries use this template:
   create a Pages project for Direct Upload (named `nz-vehicle-registrations`, or set `CLOUDFLARE_PAGES_PROJECT`), an
   API token limited to Cloudflare Pages: Edit, and the two GitHub secrets.
 - Status: user decided option (C) and the internal pages; the details are decided by Claude (unreviewed)
+
+## D-057 2026-10-22 — What the independent review of the six pushed branches changed
+- Agent: claude, CHECKPOINT queue item 1
+- Basis: three read-only sub-agent reviews on 2026-10-22 of `claude/explore-build-together` to
+  `claude/deploy-proposal` and of `claude/deploy-workflow`; the fix commits on those branches, each checked as its
+  message says (headless Chromium at 320px and 1280px, axe-core 4.10.3, `tsc --noEmit`, `astro build`, the pipeline's
+  workflow test).
+- Context: the global rules ask for an independent review before a pull request opens. Each real finding was fixed on
+  the branch that introduced it, and that branch was merged forward into the ones stacked on it: no rebase and no force
+  push, since the branches were already pushed.
+- Decision, by branch:
+  - `claude/pair-views`: a chart narrowed by a preset filter says so after its definition ("Only “Light passenger”
+    vehicles are counted."), rather than in a callout, which would style a scope as a warning. The visitor note for age
+    when first registered says longer spans count survivors, rather than `used-import-age` losing its longer spans:
+    D-053 chose to offer every span, and D-032 is to say what the data does. A view that loads no rows shows "Nothing
+    to draw" instead of drawing.
+  - `claude/a11y-pass`: trend and distribution charts end with "The figures behind this chart", a disclosure holding
+    every drawn month or band, built only when opened, rather than a visible table, which would put up to 1,195 rows
+    under the concentration chart.
+  - `claude/geo-map`: a square-root colour scale, which keeps the legend continuous (a binned scale was the other
+    option), with borders in muted ink. Each region's readout is its shape's own title, the browser's tooltip, rather
+    than Plot's tip, which snapped to the nearest region's centre; it looks unlike the other charts' readouts and does
+    not show on a touch screen, where the table serves. An outline the data does not name is left unshaded and named.
+    The credit links CC BY 4.0 and says the outlines were simplified. The table heads its counts "Still registered".
+    The region note says owners are placed by district. The script finds the Chatham Islands by geometry, not by code.
+  - `claude/deploy-workflow`: the cube release follows the state commit and runs on `main` only. `deploy.yml` stops
+    before building on a ref without `src/lib/site.ts`, uploads from `main` only, groups runs per ref, takes the newest
+    published `cube-YYYY-MM` release that holds `public-data.tar.gz`, and fails if the public build links to an
+    internal page. Wrangler is pinned by its own lockfile in `.github/deploy/` rather than as a site devDependency:
+    installed it is 184 MB, which every local install would carry for a tool only the deploy uses.
+  - `claude/deploy-proposal`: a 404 page, so that Cloudflare Pages answers an unknown address with a 404.
+- Corrections to earlier entries: D-056 said nothing runs before `ui/explore` reaches `main`, but the push that merges
+  the pipeline stack would have started `deploy.yml` on `main`'s old reference page; the site check now stops it.
+  D-056's "`/status` and `/sense-check` return 404" held only for a preview: on Cloudflare Pages, without a 404 page,
+  both would have returned Explore with a 200. D-054's outline file is now 76,017 bytes (was 75,957): the same 16
+  regions and 4,155 points, with a longer source line.
+- Not taken: the map draws a share whatever the measure, but no configured sentence sends another measure to it. The
+  status page's script still ships in the public build, unlinked and holding no data. The deploy is one job, not a
+  build job and an upload job, and its actions keep major-version tags as `monthly-build.yml` does (D-012). Keeping the
+  Cloudflare secrets in a GitHub environment limited to `main` is offered with the console steps (CHECKPOINT item 7)
+  rather than required by the workflow. A filtered trend's readout would name "All vehicles", but no trend preset has
+  a filter.
+- Consequences: the six pull requests carry these fixes. On the published 2026-08 cube, Explore changes only by the
+  concentration chart's disclosure; the Build page gains the disclosure on distributions, the age note's sentence and
+  the map's changes. The narrowed-chart line shows once a build carries the pairs (D-053).
+- Status: decided by Claude (unreviewed)
