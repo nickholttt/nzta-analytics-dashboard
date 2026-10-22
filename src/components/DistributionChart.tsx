@@ -49,11 +49,20 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
   const render = useCallback(
     (width: number) => {
       const format = model.share ? (d: number) => `${Math.round(d * 100)}%` : (d: number) => d.toLocaleString();
+      const marginLeft = model.share ? 44 : 64;
+      // Every band keeps its bar, but where labels would run into each other only every step-th is labelled, counting
+      // from the first band; the readout names each bar. The step is the smallest at which every pair of neighbouring
+      // labels clears the other, taking a label as 7px a character, with 6px between.
+      const perBand = (width - marginLeft - 16) / Math.max(1, model.order.length);
+      const widths = model.order.map((v) => label(v).length * 7);
+      const fits = (s: number) => widths.every((w, i) => i % s !== 0 || i + s >= widths.length || s * perBand >= (w + widths[i + s]) / 2 + 6);
+      let step = 1;
+      while (step < widths.length && !fits(step)) step++;
       return Plot.plot({
         width,
         height: chartHeight(width, lead),
         marginTop: 16,
-        marginLeft: model.share ? 44 : 64,
+        marginLeft,
         marginRight: 16,
         marginBottom: 36,
         style: plotStyle,
@@ -62,7 +71,7 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
         marks: [
           Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: format }),
-          Plot.axisX({ tickSize: 0, tickPadding: 8, label: null, tickFormat: label }),
+          Plot.axisX({ ticks: model.order.filter((_, i) => i % step === 0), tickSize: 0, tickPadding: 8, label: null, tickFormat: label }),
           Plot.barY(model.bars, { x: "value", y: "y", fill: model.suppressed ? SUPPRESSED_LINE : SERIES[0], ry2: 3 }),
           Plot.ruleY([0], { stroke: RULE_STRONG }),
           Plot.tip(

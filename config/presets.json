@@ -54,7 +54,7 @@
     "dimension_notes": {
       "built_in": "Where a vehicle was built is not recorded for almost every vehicle first registered before late 1985, and is recorded for almost all since. The grey line near the top of the chart until then is that gap in the record, not where vehicles came from.",
       "vehicle_year_band": "Age on the snapshot date, not when the vehicle was bought. It is counted from the year NZTA records for each vehicle, not from when it was built: for a vehicle sold new here since 2007, the year it was first registered here; for a used import, a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year.",
-      "age_at_registration_band": "Age when first registered in New Zealand, counted from the year NZTA records for each vehicle. A vehicle sold new here since 2007 is 0 years old by definition, because that year is its first registration here; for a used import it is a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year.",
+      "age_at_registration_band": "Age when first registered in New Zealand, counted from the year NZTA records for each vehicle. A vehicle sold new here since 2007 is 0 years old by definition, because that year is its first registration here; for a used import it is a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year. Counted among vehicles still registered at the snapshot: arrivals from earlier years have had longer to leave the register, and vehicles do not all leave at the same rate, so the longer the span, the more the ages shown may differ from those that arrived at the time.",
       "powertrain": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is."
     }
   },
@@ -145,8 +145,8 @@
           "question": "How has each powertrain's share of registrations changed?",
           "status": "invalid",
           "requires": [
-            "segment_group promoted to a dimension in config/dimensions.json. It is a column in segment_map.csv, not a dimension, so the filter resolves against nothing. Promotion changes what the pipeline emits, so it waits for the 8 November gate.",
-            "a powertrain x segment_group pair slice, so the filter can be applied rather than described"
+            "segment_group promoted to a dimension in config/dimensions.json. It is a column in segment_map.csv, not a dimension, so the filter resolves against nothing. Built as POST_GATE A3 on claude/segment-group, which merges into main after the 8 November gate.",
+            "a powertrain x segment_group pair slice, so the filter can be applied rather than described. Built in the same change (POST_GATE A3); the site applies it once a build carries it."
           ],
           "dataset": "registrations_surviving",
           "measure": "share",
@@ -175,10 +175,10 @@
           "question": "How old are used imports when they arrive?",
           "status": "blocked",
           "requires": [
-            "the used_imports dataset, which needs an import_status x age_at_registration_band pair slice"
+            "the used_imports dataset, served from registrations_surviving through an import_status x age_at_registration_band pair slice. Built as POST_GATE A1 on claude/pair-slice-import-age, which merges into main after the 8 November gate; the site draws this chart once a build carries the pair."
           ],
           "dataset": "used_imports",
-          "measure": "count",
+          "measure": "share",
           "dimension": "age_at_registration_band",
           "period": "latest_year",
           "shape_override": "distribution",
@@ -267,7 +267,8 @@
           "question": "Which vehicle years can't we import any more?",
           "status": "blocked",
           "requires": [
-            "the used_imports dataset, which needs an import_status x age_at_registration_band pair slice"
+            "the used_imports dataset, served from registrations_surviving through an import_status x age_at_registration_band pair slice. Built as POST_GATE A1, which merges into main after the 8 November gate.",
+            "a way for the distribution renderer to draw the age distribution year by year (animate_by). One period's histogram smears the moving cutoff across the years it moved through, so it would not answer the question."
           ],
           "dataset": "used_imports",
           "measure": "share",
