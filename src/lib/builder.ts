@@ -53,11 +53,18 @@ export function questionText(q: Question, measureId: string, label: (value: stri
   return words.charAt(0).toUpperCase() + words.slice(1) + named;
 }
 
+// A count compares values as lines over time whatever the breakdown: the map and the distribution draw shares only.
+const COUNT = "count";
+const TREND = "trend";
+const SHARE = "share";
+
 function presetFor(q: Question, measureId: string, id: string, label?: (value: string) => string): Preset {
   const m = findBuilderMeasure(measureId);
   const values = !m?.derived && q.by && q.values.length ? q.values : undefined;
   const where = cleanWhere(q.where);
   const dimensionNote = q.by ? builderSpec.dimension_notes[q.by] : undefined;
+  // Shapes the question can switch among apply to its share; a count by a breakdown is always lines.
+  const view = measureId === COUNT && q.by ? TREND : measureId === SHARE ? q.view : null;
   const preset: Preset = {
     id,
     question: questionText(q, measureId, label),
@@ -65,7 +72,8 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
     dataset: builderSpec.dataset,
     dimension: q.by ?? undefined,
     period: builderSpec.period,
-    ranking_period: builderSpec.ranking_period,
+    // A ranking of hand-picked values would read as their place in the market, so chosen values are never ranked.
+    ranking_period: values ? undefined : builderSpec.ranking_period,
     events: true,
     note: joined(m?.note, dimensionNote),
     note_template: m?.note_template ? joined(m.note_template, dimensionNote) : undefined,
@@ -73,7 +81,7 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
     ...(m?.derived ? { derived: m.id, shape_override: findDerived(m.id)?.shape } : { measure: m?.id }),
     ...(values ? { values } : {}),
     ...(Object.keys(where).length ? { where } : {}),
-    ...(q.view ? { shape_override: q.view } : {}),
+    ...(view ? { shape_override: view } : {}),
   };
   const shape = inferShape(preset, findDimension(q.by), findMeasure(preset.measure));
   const opening = values ? builderSpec.period_when_comparing : builderSpec.period;
@@ -96,7 +104,7 @@ export function viewsFor(q: Question): string[] {
   const dimension = findDimension(q.by);
   const inferred = inferShape(first, dimension, findMeasure(first.measure));
   const hinted = dimension?.shape_hint === "geo" || dimension?.shape_hint === "distribution";
-  return hinted && first.measure === "share" ? [inferred, "mix"] : [];
+  return hinted && first.measure === SHARE ? [inferred, "mix"] : [];
 }
 
 const draws = (q: Question, manifest: Manifest) => builderPresets(q).every((p) => resolvePreset(p, manifest).preventsRender.length === 0);
@@ -112,7 +120,7 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
       const dimensions = Object.entries(dimensionsOf(m)).flatMap(([id, phrase]) => {
         const values = !m.derived && Boolean(facts?.dimensions.includes(id)) && probe(id, ["?"]);
         // A count by a breakdown draws a line per chosen value, so without values it has nothing to draw.
-        const needsValues = partsOf(m).some((p) => p.id === "count");
+        const needsValues = partsOf(m).some((p) => p.id === COUNT);
         return values || (!needsValues && probe(id)) ? [{ id, phrase, values }] : [];
       });
       return {
@@ -131,14 +139,22 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
   return { dataset: builderSpec.dataset, measures, filters };
 }
 
-// A question from the address bar, kept only as far as the page offers it; otherwise the nearest one that is.
+// As many values as the palette has colours: past that, lines can no longer be told apart (src/lib/theme.ts).
+export const MAX_VALUES = 8;
+
+// A question from the address bar, kept only as far as the page offers it; otherwise the nearest one that is. A
+// condition on the breakdown itself becomes the values compared, where the breakdown takes values, so choosing to break
+// down by what was a condition never quietly widens the question.
 export function settle(vocabulary: Vocabulary, q: Partial<Question>): Question {
   const m = vocabulary.measures.find((o) => o.id === q.measure) ?? vocabulary.measures[0];
   const dimension = m.dimensions.find((d) => d.id === q.by);
   const by = dimension ? dimension.id : m.allowsTotal && (q.by === null || q.by === undefined) ? null : (m.dimensions[0]?.id ?? null);
   const offered = new Set(vocabulary.filters.map((f) => f.id));
+  const takesValues = Boolean(by && m.dimensions.find((d) => d.id === by)?.values);
+  const onBreakdown = by ? (q.where?.[by] ?? []) : [];
   const where = Object.fromEntries(Object.entries(q.where ?? {}).filter(([d, kept]) => offered.has(d) && d !== by && kept.length > 0));
-  const values = by && m.dimensions.find((d) => d.id === by)?.values ? (q.values ?? []) : [];
+  const asked = q.values?.length ? q.values : onBreakdown;
+  const values = takesValues ? [...new Set(asked)].slice(0, MAX_VALUES) : [];
   const settled: Question = { measure: m.id, by, values, where, view: null };
   return { ...settled, view: q.view && viewsFor(settled).includes(q.view) ? q.view : null };
 }

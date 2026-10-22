@@ -1453,3 +1453,32 @@ New entries use this template:
   the share of BYD, Tesla and Toyota among battery EVs. On the 2026-08 dry run each drew in about 1.6 to 2.5 s
   headless at 1280px and 390px against the local dev server, with no console errors and no sideways scroll.
 - Status: decided by Claude (unreviewed)
+
+## D-061 2026-10-22 — What the independent review of the fact table and the question builder changed
+- Agent: claude. A sub-agent that had not seen the work reviewed both branches (`claude/fact-table`,
+  `claude/question-builder`) and found 13 problems; each was checked and fixed on the branch it belongs to.
+- Basis: headless checks on 2026-10-22 at 1280px and 320px against the 2026-08 dry run with the fact table: seven
+  questions, axe (WCAG 2.1 A and AA) with no violations, no console errors, no sideways scroll; the fact-table, golden
+  and pair tests (24 passed).
+- Decision, site:
+  - A number broken down always draws lines (trend), whatever the breakdown's own shape: the map and the distribution
+    draw shares only, so "the number of vehicles by owner's region" had drawn a share map. "Show as" applies to the
+    share chart only. This extends D-060.
+  - Chosen values are never ranked: a ranking of three hand-picked brands read as their place in the market.
+  - Count copy says what is counted: "Vehicles first registered each month, still registered", and "N first
+    registered in the last 12 months" beside each value, not "N in the last 12 months".
+  - The fact table's view has every month, with a denominator of 0 where the conditions keep nothing, so a narrow
+    count runs through true zeros instead of breaking; a share there is still left blank.
+  - Starting values and the figures beside each suggestion are counted among the vehicles the other conditions keep.
+  - Values from the address bar are de-duplicated and capped at 8. A condition on the breakdown itself becomes the
+    values compared instead of being dropped. Both charts' settings clear when the question changes.
+  - Late work (starting values arriving) builds on the question as it is then, not as it was when it started, so a
+    condition added meanwhile is kept.
+  - "Add a condition on" is a select and an Add button: a select that acted on change added a condition per arrow key.
+    Focus returns to the search box after a value is added or removed, and to the select after a condition is removed;
+    each remove button names its condition; remove targets are 44px.
+  - A small count's axis ticks are whole vehicles.
+- Decision, pipeline: an empty `facts` list aborts (it reached DuckDB as a syntax error); a table whose dimensions are
+  all waiting holds the month totals alone; a new test adds copies of one vehicle and checks they share a row, since no
+  fixture vehicle shared a cell and a table that stopped grouping would have passed.
+- Status: decided by Claude (unreviewed)

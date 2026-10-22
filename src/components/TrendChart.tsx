@@ -107,6 +107,8 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
     (width: number) => {
       const yMax = Math.max(1, ...model.points.map((p) => p.y ?? 0)) * 1.05;
       const drawn = model.points.filter((p) => p.y !== undefined);
+      // Vehicles come whole: a small count gets a tick per vehicle, never half of one.
+      const ticks = yMax <= 6 ? Array.from({ length: Math.floor(yMax) + 1 }, (_, i) => i) : 5;
       return Plot.plot({
         width,
         height: chartHeight(width, lead),
@@ -119,8 +121,8 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
         y: { label: null, domain: [0, yMax] },
         color: { domain: values, range: values.map(colour) },
         marks: [
-          Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
-          Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => d.toLocaleString() }),
+          Plot.gridY({ ticks, stroke: RULE, strokeOpacity: 1 }),
+          Plot.axisY({ ticks, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => d.toLocaleString() }),
           Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
           Plot.ruleY([0], { stroke: RULE_STRONG }),
           Plot.lineY(model.points, { x: "date", y: "y", z: "series", stroke: "series", strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" }),
@@ -144,15 +146,19 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   const names = values.map(label).join(", ");
   return (
     <>
-      <ul className="series-key" aria-label="Lines on this chart, with vehicles in the last 12 months">
+      <ul className="series-key" aria-label="Lines on this chart, with vehicles first registered in the last 12 months that are still registered">
         {model.totals.map((t) => (
           <li key={t.series}>
             <span className="swatch" style={{ background: colour(t.series) }} aria-hidden="true" />
-            {label(t.series)} <span className="series-key-figure">{count(t.n)} in the last 12 months</span>
+            {label(t.series)} <span className="series-key-figure">{count(t.n)} first registered in the last 12 months, still registered</span>
           </li>
         ))}
       </ul>
-      <p className="chart-unit">{rolling ? "Vehicles, 12-month running total" : "Vehicles a month"}</p>
+      <p className="chart-unit">
+        {rolling
+          ? "Vehicles first registered in the 12 months to each month, still registered"
+          : "Vehicles first registered each month, still registered"}
+      </p>
       <PlotFigure
         render={render}
         label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: vehicles for ${names}, month by month.`}

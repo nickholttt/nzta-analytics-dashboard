@@ -177,8 +177,11 @@ const loadFactMonths = (dataset: string) =>
   });
 
 // The fact table summed to slice rows: for each month, every vehicle the filters keep is in the denominator, and each
-// breakdown value (or only the chosen ones) gets its count. A chosen value gets a row of 0 in a month where it has
-// none, so its line runs through that month rather than breaking. With no breakdown, one row per month holds the total.
+// breakdown value (or only the chosen ones) gets its count. Every month in the table is present, with a denominator of 0
+// where the filters keep nothing: there the count is a true 0, not a month missing from the data, and a share is still
+// left blank (the renderers draw no share over a denominator of 0). A chosen value gets a row of 0 in a month where it
+// has none, so its line runs through that month rather than breaking. With no breakdown, one row per month holds the
+// total.
 export async function factView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>) {
   const filters = Object.entries(where).filter(([, kept]) => kept.length > 0);
   const [months, counts, breakdown, ...filterColumns] = await Promise.all([
@@ -190,12 +193,13 @@ export async function factView(dataset: string, dimension: string | null, values
   const keep = filters.map(([, kept]) => new Set(kept));
   const chosen = values ? new Set(values) : null;
   const totals = new Map<string, number>();
+  for (let i = 0; i < months.length; i++) if (i === 0 || months[i] !== months[i - 1]) totals.set(months[i], 0);
   const cells = new Map<string, Map<string, number>>();
   rows: for (let i = 0; i < months.length; i++) {
     for (let f = 0; f < keep.length; f++) if (!keep[f].has(String(filterColumns[f][i]))) continue rows;
     const month = months[i];
     const n = Number(counts[i]);
-    totals.set(month, (totals.get(month) ?? 0) + n);
+    totals.set(month, (totals.get(month) as number) + n);
     if (!breakdown) continue;
     const value = String(breakdown[i]);
     if (chosen && !chosen.has(value)) continue;
