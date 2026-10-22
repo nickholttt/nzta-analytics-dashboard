@@ -152,7 +152,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
                   {heading}
                 </th>
                 <th scope="col">Share</th>
-                <th scope="col">Vehicles</th>
+                <th scope="col">Still registered</th>
               </tr>
             </thead>
             <tbody>
