@@ -10,7 +10,10 @@ Last updated by claude on 2026-10-22
   artifact Q29nmEBkCn6Svb4jutwq6Q, figures from the local August 2026 cube) shows three
   directions: A, today's long scroll refined; B, a one-chart workbench where the builder's sentence
   drives every chart and the Explore questions are starting points; C, a grid of question cards.
-  Nothing in the repo changed except these notes. Waiting on question 2.
+  The user then judged the site not flexible enough: visitors must be able to ask their own
+  questions (example: BYD and Geely by count and by share over time). The board is set aside.
+  Measured a fact table, timed DuckDB-Wasm and hyparquet in a scratch prototype, proposed D-058.
+  Waiting on question 2.
 - 2026-10-22, second session: the old queue item 1 is done. Three independent sub-agent reviews of
   the six pushed branches; every real finding fixed on the branch that introduced it and merged
   forward, with no rebase or force push; the choices and the points not taken are in D-057. Six pull
@@ -83,10 +86,11 @@ Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
 8. **`age-distribution-moving-hole`.** The distribution drawn year by year (a ridgeline inside the
    distribution shape) with its events. Re-triage the preset first (`presets.json` `$status`).
    UI work, so it may be built before the gate (D-041), as a local build only.
-9. **Look and feel (question 2).** Once the user picks a direction: a decision record, then a
-   plan in reviewable pieces on `claude/look-and-feel` (cut from `claude/deploy-proposal`). UI
-   work, so it may be built before the gate (D-041), local only. Done when the chosen direction
-   draws from the real cube at 320px and 1280px and the user has seen it.
+9. **Free exploration (D-058, question 2).** Once approved, three pull requests: (A) the fact
+   table as one file per column, on a branch from `main`, unmerged until the gate (D-043); (B) the
+   question builder on the UI stack, reading a locally built fact table; (C) Explore's presets open
+   in the builder. Done when the BYD and Geely Holding question draws by count and by share at 320px
+   and 1280px, and its phone-profile first load is measured.
 10. **Map follow-ups.** A visitor name for "Area Outside Region" (STATE known issue 2); a
    per-capita map needs a population reference file (`docs/METRICS.md`, Per capita).
 
@@ -98,11 +102,10 @@ Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
    (`environment:`) and the secrets go into the environment. I recommend (b). If there is no answer,
    I write the console steps for (a) and the workflow stays as it is.
 
-2. **Which look-and-feel direction.** A (today's long scroll, refined), B (one-chart workbench:
-   the sentence drives the chart, the questions are starting points) or C (grid of question
-   cards), or a mix. I recommend B: it is the "flexible exploration tool" the brief aims at, keeps
-   Explore and Build as two ways into one chart view, and needs no new renderer. With no answer,
-   nothing is built.
+2. **Free exploration (D-058).** Approve the hard-rule changes D-058 lists (a question builder in
+   place of the constrained sentence; the visitor may switch among the shapes that fit; a fact table
+   in the cube), or say which to keep. I recommend approving all three. With no answer, nothing is
+   built.
 
 ## Prompt for the next session
 

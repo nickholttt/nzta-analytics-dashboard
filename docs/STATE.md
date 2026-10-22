@@ -35,8 +35,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 ## In progress
 
-- `claude/look-and-feel` (claude, from `claude/deploy-proposal`): look-and-feel planning. Only
-  these notes so far; the direction waits on the user (CHECKPOINT question 2).
+- `claude/look-and-feel` (claude, from `claude/deploy-proposal`): free exploration (D-058,
+  proposed). Docs only so far; waits on the user's approval (CHECKPOINT question 2).
 - The pre-gate pipeline work (#26–#29, #35) waits on the 8 November gate.
 
 ## What the open pull requests add (unreviewed by the user)

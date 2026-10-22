@@ -1322,3 +1322,78 @@ New entries use this template:
   concentration chart's disclosure; the Build page gains the disclosure on distributions, the age note's sentence and
   the map's changes. The narrowed-chart line shows once a build carries the pairs (D-053).
 - Status: decided by Claude (unreviewed)
+
+## D-058 2026-10-22 — Free exploration: one fact table the browser aggregates, and a question builder over it (proposed)
+- Agent: claude, at the user's request: "the underlying platform of this site must let users create their own story";
+  their example was BYD and Geely registrations over time, by share and by count.
+- Basis: measured on 2026-10-22 from the staged build of the saved 2026-08 pull (`data/staging/work.duckdb`, table
+  `dims`), copied to a scratch folder; the npm registry; Cloudflare's Pages docs ("Serving Pages", updated 2026-10-10,
+  and "Limits"); a throwaway prototype timed in headless Chromium. Nothing in the repo was changed by the measurements.
+- Context: why the site is not flexible. The data was never the limit: `make` and `parent_group` are in the published
+  cube by month since 1912 (BYD 15,155 still registered, Geely Holding 25,951). The limits are design choices:
+  1. The brief chose them: Build is "a constrained sentence-builder", there is no SQL console, and the shape is
+     inferred so "the user never picks a chart type" (CLAUDE.md).
+  2. The cube holds one dimension per file, plus pairs added one at a time (D-047). A question that crosses
+     dimensions, such as BYD among battery EVs in Auckland, has no file until the pipeline adds that pair, and each pair
+     is a pipeline change behind the gate.
+  3. The builder picks a dimension, never values: a visitor cannot name BYD and Geely Holding, and high-cardinality
+     dimensions are cut to a top N with the rest folded (D-050).
+  4. The builder offers share only (D-044).
+  5. Explore is a fixed canon of presets.
+- Measured:
+  - A fact table of `registrations_surviving`: rows grouped by month and eleven dimensions (make, parent group, owner
+    country, model as capped by the pipeline, powertrain, import status, region, segment, built in, engine size band,
+    age at registration band) with a count. 1,729,052 rows summing to 4,502,964, the dataset's row count; BYD and Geely
+    Holding total the same as the cube. 5.45 MB as Parquet with zstd, 7.31 MB with snappy.
+  - Column sizes, snappy: model 1.37 MB, region 1.09, age band 1.00, count 0.94, engine band 0.85, built in 0.53,
+    powertrain 0.44, segment 0.37, import status 0.34, make 0.13, parent group 0.11, owner country 0.08, month 0.01.
+    The BYD and Geely question needs month, parent group and count: 1.06 MB.
+  - Prototype: BYD and Geely Holding, monthly count and share since 2018, served locally with brotli. "Phone" is the
+    STATE known issue 1 profile (390px, 150 ms latency, 1.6 Mbps, CPU slowed four times).
+    - DuckDB-Wasm 1.32.0: the engine is 34.2 MB (5.2 MB brotli), and the first query fetches its Parquet extension from
+      extensions.duckdb.org (about 8 s). Drawn after 12.3 s on desktop and 60.8 s on the phone profile; a second,
+      different query took 20 ms.
+    - hyparquet 1.31.5 (already a site dependency) and plain JavaScript: drawn after 2.7 s on desktop and 33.5 s on
+      the phone profile, 29.1 s of it downloading the whole 7.3 MB file.
+    - Both gave BYD 6,145 and Geely Holding 2,740 of 234,328 vehicles in the 12 months to August 2026.
+  - Cloudflare Pages: 25 MiB at most per file; a range request gets the whole file with a 200, not a 206.
+- Options considered:
+  - Engine:
+    - (a) DuckDB-Wasm (MIT): full SQL and the fastest repeat queries. Its engine file is over Pages' 25 MiB, so it would
+      load from a CDN, and it fetches extensions from duckdb.org: two outside services. Slowest first load. Its last
+      stable release is 1.32.0 (December 2025); npm's `latest` tag is a dev build. Mosaic (`@uwdata/vgplot` 0.34.0,
+      BSD-3) builds on it and carries the same costs. Not chosen.
+    - (b) Perspective 3.8.0 (FINOS, Apache-2.0): a pivot engine with a complete pivot-and-chart interface, about 3.3 MB
+      of Wasm, reading Arrow rather than Parquet. Its interface is built for analysts. A candidate for a later
+      "pivot table" view for power users, not the main surface.
+    - (c) Graphic Walker 0.5.3 (Kanaries, Apache-2.0): Tableau-style drag and drop over Vega-Lite, about 400 KB gzipped
+      by its docs, which advise server-side computation above about 100,000 rows, so it would sit on our own
+      aggregation. Drag and drop asks a visitor to know what a field and an encoding are. Not chosen.
+    - (d) Server BI (Superset, Metabase): needs a server and a running cost, which the brief rules out.
+    - (e) hyparquet with our own aggregation, drawn by Observable Plot: both already dependencies, no outside service,
+      fits Pages. Chosen.
+  - Delivery without range requests: the fact table published as one file per column, in the same row order, so a
+    question downloads only its columns (1.06 MB for the example). The existing small cube files stay for Explore's
+    first paint.
+  - Surface: a question builder. Measure: count, share, or both as two charts one above the other (never two axes).
+    Compare: any values of any dimension, found by typing (BYD, Geely Holding, a model, a region). Filter: by any other
+    dimension. Time: month, quarter or year, with or without 12-month rolling, over any range. A table view, a CSV of
+    exactly what is drawn, and a link that reopens the view. Drawn by the existing renderers, with the shape inferred
+    and switchable among the shapes that fit the question. The events layer and the definition line on every view.
+- Decision: proposed; needs the user's approval because it changes hard rules (below).
+- Consequences:
+  - Hard rules it changes: CLAUDE.md's "constrained sentence-builder" becomes a question builder; §Shapes' "the user
+    never picks a chart type" becomes "the shape is inferred, and the visitor may switch among the shapes that fit";
+    invariant 6 keeps "the browser never scans raw data" (the fact table holds counts, no vehicle rows), with
+    "precompute everything" read as "precompute the fact table". The five renderers stay; no sixth.
+  - The fact table is a cube contract change (`docs/CUBE_SCHEMA.md`, pipeline outputs, golden test), frozen until the
+    8 November gate; built before it on a branch from `main` (D-043). The builder is UI work (D-041).
+  - Risks: cells as small as one vehicle (the source register is already public vehicle by vehicle, with no owner
+    data); free comparison makes `registrations_surviving` easier to misread as sales, so every view keeps its
+    definition line. First load on the phone profile for a three-column question is estimated at 5 to 6 s from 1.06 MB
+    at 1.6 Mbps: not measured.
+  - Not built or measured: the per-column split, the builder, and the parent-group and owner-country columns as
+    browser-side lookups from `brand_registry.csv` instead of stored columns.
+  - The look-and-feel board of 2026-10-22 (CHECKPOINT) is set aside: the user judged the site's flexibility, not its
+    look, to be the problem.
+- Status: proposed
