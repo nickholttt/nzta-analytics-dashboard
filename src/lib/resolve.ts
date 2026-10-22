@@ -28,6 +28,8 @@ export type Resolution = {
   measure?: Measure;
   // Where the rows come from, when anything can be drawn.
   source?: ViewSource;
+  // The preset filter that narrows the view, when one does. A filtered dataset's own filter is its definition's to say.
+  narrowedBy?: { dimension: string; values: string[] };
 };
 
 export function inferShape(preset: Preset, dimension?: Dimension, measure?: Measure): string {
@@ -128,18 +130,20 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   // un-narrowed and says so.
   const breakdown = preset.dimension ?? entry?.live_dimensions[0];
   let source: ViewSource | undefined = entry && breakdown && cubeDataset ? { dataset: cubeDataset, dimension: breakdown } : undefined;
+  let narrowedBy: Resolution["narrowedBy"];
   const ordered = [...narrowing.filter((f) => f.own), ...narrowing.filter((f) => !f.own)];
   ordered.forEach((f, index) => {
     const wanted = `${f.key} = ${f.values.join(" or ")}`;
     const pair = index === 0 && entry && breakdown ? findPair(entry.live_pairs ?? [], breakdown, f.key) : undefined;
     if (pair && source) {
       source = { ...source, filter: { ...pair, dimension: f.key, values: f.values } };
+      if (!f.own) narrowedBy = { dimension: f.key, values: f.values };
       return;
     }
     const why =
       index === 0
         ? `it needs the ${breakdown} x ${f.key} pair slice, which this build does not carry`
-        : `the view is already narrowed by ${ordered[0].key}, and a pair slice narrows by one dimension only`;
+        : `a pair slice narrows by one dimension only, and ${ordered[0].key} comes first`;
     if (f.own) {
       add("blocked", `dataset "${preset.dataset}" is ${cubeDataset} narrowed to ${wanted}: ${why}`);
       source = undefined;
@@ -173,6 +177,7 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     dimension,
     measure,
     source: preventsRender.length === 0 ? source : undefined,
+    narrowedBy: preventsRender.length === 0 ? narrowedBy : undefined,
   };
 }
 

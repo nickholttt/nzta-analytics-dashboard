@@ -161,7 +161,7 @@ export default function PresetPanel({
       </section>
     );
 
-  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure } = resolution;
+  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy } = resolution;
   const dataset = findDataset(effectivePreset.dataset);
   const derived = findDerived(effectivePreset.derived);
   const served = servedFrom(effectivePreset.dataset, manifest);
@@ -195,12 +195,19 @@ export default function PresetPanel({
   const publicDimensionNote = !internal && dimension ? publicCopy.dimension_notes[dimension.id] : undefined;
   if (publicDimensionNote) addNote("dimension", publicDimensionNote);
   else addNote("dimension", dimension?.note, dimension?.note_template);
-  // A visitor is told what the chart includes in plain words; the reason, in config terms, is internal.
-  const publicLimits = notApplied.length
-    ? (effectivePreset.filters ?? []).flatMap((f) =>
-        Object.values(f).map((v) => `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`),
-      )
+  // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
+  // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
+  // terms, is internal.
+  const scope = narrowedBy ? `Only ${narrowedBy.values.map((v) => `“${RESERVED_LABELS[v] ?? v}”`).join(" or ")} vehicles are counted.` : undefined;
+  const unapplied = notApplied.length
+    ? (effectivePreset.filters ?? []).flatMap((f) => Object.entries(f)).filter(([key]) => key !== narrowedBy?.dimension)
     : [];
+  const narrowed = Boolean(resolution.source?.filter);
+  const publicLimits = unapplied.map(([, v]) =>
+    narrowed
+      ? `This chart is not narrowed to “${v}”: the data can't be narrowed that way yet.`
+      : `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`,
+  );
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   // Visitor wording from config/presets.json public_copy, where the frozen dimensions.json carries text
@@ -308,7 +315,7 @@ export default function PresetPanel({
             </>
           ) : null}
         </h3>
-        {definition ? <p className="panel-definition">{definition}</p> : null}
+        {definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null}
         <div className="panel-actions">
           <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
             {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
