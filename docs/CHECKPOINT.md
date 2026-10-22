@@ -4,116 +4,92 @@ Last updated by claude on 2026-10-22
 
 ## Where we left off
 
-- 8 October 2026 gate run passed: green, built, committed snapshot 2026-09 (`docs/STATE.md`).
-- The user answered on 2026-10-19 (D-027): the UI comes back to Claude; agents may push their own
-  branches; Gemini's extras stay as a clearly labelled sense-check area, and any part of no value
-  is documented and deleted.
-- Done 2026-10-19 to 2026-10-21, each in its own open PR and decision record (D-028 to D-040; PRs
-  #2 to #16, listed below): `/sense-check` replaces `/inspector`; `model-leaderboard` blocked on 1b;
-  caveats 1, 2 and 7 and `/method` checked against the data and code; METRICS.md figures re-measured;
-  mix charts draw every group; `concentration` and `brand-share` notes and events; EVENTS_LAYER.md
-  rendering rules match the code; mix key, event bands and marker labels fixed at 320px (marker
-  numbering can now differ between phone and desktop, D-039); README, CLAUDE.md and AGENTS.md
-  describe the repo as it is (D-040).
-- 2026-10-21: the user had Claude merge #1–#16 and answered the scope questions (D-041): build the
-  visitor-facing Explore page, then the sentence builder; an interactive platform, easy to understand,
-  less restricted than VSTATS; local dev build only until 8 November. First PR done:
-  `claude/public-explore`, then `claude/explore-copy-controls` (D-042).
-- 2026-10-21: the user agreed that frozen-path work may be built on branches before the gate, kept off
-  `main` until it passes (D-043, AGENTS.md rule 2).
-- 2026-10-21: the Build page, PR #21 (D-044). Share only; 13 sentences draw at 320px and 1280px.
-  An independent review found 7 issues: 6 fixed, 1 recorded in D-044.
-- 2026-10-21: builder PR B, PR #22 (D-045). "12-month ranking" on `/build` for brand; league presets keep
-  their ranking (former STATE known issue 1). Manufacturer group does not rank: `dimensions.json` calls it
-  medium cardinality. An independent review found 6 points, all addressed.
-- 2026-10-21: PR #23 (D-046). Capped mix charts draw "Not recorded" and "No reference match" as their own
-  grey line, not inside "All other" (former STATE known issue 5); the builder caps country where built at 10.
-  It changes `brand-share` on Explore: a "No reference match" row and line; uncapped charts are unchanged.
-- 2026-10-22: the user agreed four prototype items for the queue, after the existing ones: Explore and
-  Build together, deploy, testing with non-analysts, and the map chart (items 7–10). Docs only.
-- Still frozen until the gate, found along the way: the `kgm-rename` mechanism, a 63-character event
-  title, and the 0.29 percentile comment in `config/measures.json` (queue item 5).
+- The 8 October gate run passed (`docs/STATE.md`); the 8 November run is the second.
+- 2026-10-22, second session: the old queue item 1 is done. Three independent sub-agent reviews of
+  the six pushed branches; every real finding fixed on the branch that introduced it and merged
+  forward, with no rebase or force push; the choices and the points not taken are in D-057. Six pull
+  requests opened: #30–#34 on the UI stack, #35 on the pipeline stack. Checked: every new commit
+  typechecks and builds; headless at 320px and 1280px on each UI branch head (axe, console, sideways
+  scroll, every "Change this chart" link); #35 by CI.
+- 2026-10-22, first session: #26–#29 built on `main`'s side; step 1b blocked for lack of a source.
+  The user's answers: step 1b waits for the Stats NZ Data Explorer; deploy by D-055's option (C)
+  without the internal pages (D-056); the region map stays on the Build page.
+- Earlier: the UI is Claude's (D-027); the visitor site is local only until the gate (D-041);
+  frozen-path work is built on branches before it (D-043); the Build page is D-044 to D-046.
 
 ## Open pull requests waiting on the user
 
-1. #17 `claude/notes-after-merge`: STATE and CHECKPOINT after #1–#16 were merged. Into `ui/explore`.
-2. #18 `claude/public-explore`: D-041. `/` shows visitors only the charts that draw; diagnostics move to
-   the internal `/status`. Into `claude/notes-after-merge`; change its base to `ui/explore` once #17 is
-   merged.
-3. #19 `claude/explore-copy-controls`: D-042. One row of time options per chart, plain visitor wording.
-   Into `claude/public-explore`; same base change once #18 is merged.
-4. #20 `claude/pipeline-branch-rule`: D-043. AGENTS.md rule 2 lets frozen-path work be built on branches
-   before the gate. Into `claude/explore-copy-controls`.
-5. #21 `claude/sentence-builder`: D-044. The Build page `/build`, with seven decisions listed at the top
-   of the PR. Into `claude/pipeline-branch-rule`.
-6. #22 `claude/builder-league`: D-045. A 12-month brand ranking on `/build`, and league presets keep their
-   ranking. Into `claude/sentence-builder`.
-7. #23 `claude/reserved-values`: D-046. Reserved values keep their own line on capped mix charts; the builder
-   caps country where built. Into `claude/builder-league`.
-8. #24 `claude/prototype-queue`: queue items 7–10 for a first interactive prototype. Docs only. Into
-   `claude/reserved-values`.
+UI stack, merged in order into `ui/explore` (as each merges, retarget the next to `ui/explore`):
+
+1. #17 `claude/notes-after-merge`: STATE and CHECKPOINT after #1–#16.
+2. #18 `claude/public-explore`: the visitor Explore page and `/status` (D-041).
+3. #19 `claude/explore-copy-controls`: one time row, visitor wording (D-042).
+4. #20 `claude/pipeline-branch-rule`: AGENTS.md rule 2's exception (D-043).
+5. #21 `claude/sentence-builder`: the Build page (D-044).
+6. #22 `claude/builder-league`: the 12-month ranking (D-045).
+7. #23 `claude/reserved-values`: reserved values on their own line (D-046).
+8. #24 `claude/prototype-queue`: the prototype's queue items. Docs only.
+9. #25 `claude/pipeline-decisions`: D-047 to D-051 and the step 1b finding. Docs only.
+10. #30 `claude/explore-build-together`: "Change this chart" and one readout (D-052).
+11. #31 `claude/pair-views`: the site reads pair slices (D-053, D-057).
+12. #32 `claude/a11y-pass`: screen readers, tables of figures, the visitor-test playbook (D-057).
+13. #33 `claude/geo-map`: the map on the Build page (D-054, D-057).
+14. #34 `claude/deploy-proposal`: the public build, a not-found page, D-055 to D-057, these notes.
+
+Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
+
+15. #26 `claude/pr-checks`: tests on every pull request (D-048).
+16. #27 `claude/pair-slice-import-age`: POST_GATE A1, pair slices (D-047).
+17. #28 `claude/segment-group`: POST_GATE A3.
+18. #29 `claude/post-gate-fixes`: B1–B3, the `measures.json` comment, `events.csv`, event schema
+    checks, manufacturer group's cardinality (D-049 to D-051).
+19. #35 `claude/deploy-workflow`: the cube release and `deploy.yml` (D-056, D-057). It may merge
+    before `ui/explore` reaches `main`: until then `deploy.yml` stops before building.
 
 ## Work queue (in order)
 
-1. **8 November 2026 gate run.**
-   - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
-   - Done when: green/built/committed reported. If clean, the freeze lifts.
-   From item 2 on, the work may be built before the gate on branches from `main` with PRs into `main`
-   left unmerged until the gate passes (D-043); the gate run itself is still checked on its day.
-2. **POST_GATE A1**: pair slice `import_status` x `age_at_registration_band` (`POST_GATE.md`).
-   Unblocks `used-import-age` and `age-distribution-moving-hole`.
-3. **POST_GATE A2**: step 1b `registrations_flow` (Stats NZ TPT). Unblocks cohort survival.
-4. **POST_GATE A3**: promote `segment_group`.
-5. **POST_GATE B1–B3**: the three logged build fixes, one commit.
-   Separately, one commit: move each `public_copy` entry in `config/presets.json` onto its dataset or
-   dimension in `config/dimensions.json` (a public definition, label or note) and drop the block (D-042).
-   Separately, one commit: correct `$min_share_of_trailing_median_comment` in `config/measures.json`
-   to the D-033 figures (1st percentile 0.67 among months that clear 200; next-lowest after April 2020
-   is 0.55). Done when the comment matches METRICS.md.
-   Separately, after A1 and A2 merge: widen the builder (D-044) with "of [all / new / used] vehicles"
-   (A1's pair slices), counts and models (A2), each a `builder` config edit, and drop the matching
-   "Not offered yet" lines.
-   Separately: decide whether `parent_group` should be high cardinality in `config/dimensions.json`, so
-   the builder can rank manufacturer groups (D-045); one config edit, with screenshots of every chart it
-   touches.
-   Separately, one commit: settle `kgm-rename`'s mechanism against EVENTS_LAYER.md (STATE known
-   issue 2); the registry merge means it marks no artefact, so the doc's rename example may be the
-   part to change. Same commit or the next: shorten the 63-character title (known issue 3).
-6. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
-   path, checked 2026-10-19 with `git diff --stat origin/main...ui/explore` on the frozen paths).
-
-Items 7–10 are the rest of a first interactive prototype, agreed with the user on 2026-10-22. Item 7
-touches no frozen path, so it may be taken before the gate while the PRs for items 2–5 wait on it.
-
-7. **Explore and Build work together.** Scope: a "change this chart" link on each Explore chart that
-   the builder can express, opening `/build` with the sentence filled in (`/build` already reads it
-   from the URL, D-044); the same hover readout in all four renderers (each has pointer code; what
-   each shows is unchecked). Composite presets stay out of the builder (`$composite` in
-   `config/presets.json`). Done when: every eligible live preset has the link, the PR lists the hover
-   fields each renderer shows and they match, and headless screenshots at 320px and 1280px show both.
-8. **Deploy.** Not before the 8 November gate passes (D-041, AGENTS.md rule 8). Scope: Cloudflare
-   Pages, as `CLAUDE.md` plans. The monthly Action builds the cube on its runner but commits only
-   `data/snapshots` and `data/state`, and `public/data/` is gitignored, so the Action must also
-   publish the cube. A workflow and deploy change: a decision record first, the user's approval, and
-   the user does the console setup (stop list). Done when: a preview URL serves `/` and `/build`
-   from a monthly run's cube.
-9. **Test with non-analysts.** Scope: the brief's questions put to a few people the user picks; an
-   accessibility pass (keyboard, labels, contrast) and a 320px pass over every page (the site has no
-   dark theme); first-load time measured on the deployed site at phone width. Done when: findings are
-   fixed or queued here.
-10. **Map chart (`geo`).** Scope: the fifth renderer for `region`; a NZ region boundary file (new data,
-    so a decision record with its source and licence); the builder's "Regions" not-offered line (the
-    register holds each owner's current address, not where the vehicle was first registered) becomes a
-    note shown with region charts. Done when: a region preset draws at 320px and 1280px with that
-    note. Last because a prototype can ship without it.
+1. **8 November 2026 gate run.** Scope: `docs/playbooks/check-monthly-run.md`, step 1b's source
+   check included. Fast-forward local `main` to `origin/main` first. Done when: green, built or
+   skipped, and committed are reported. If clean, the freeze lifts.
+2. **Merging after the gate.** The user merges the UI stack into `ui/explore` and the pipeline stack
+   into `main`, each in order. When #29 meets `ui/explore`, correct `$ranking_period_comment`
+   (STATE known issue 4).
+3. **`ui/explore` into `main`** (the user merges; it touches no frozen path, checked 2026-10-22).
+4. **Once a monthly build carries #27 and #28**: flip `used-import-age` and `powertrain-mix` to live
+   (STATE known issue 5); in one commit, move each `public_copy` entry onto `config/dimensions.json`
+   and drop the block (D-042); size and add the `import_status` pairs that "of [all / new / used]
+   vehicles" needs on the Build page (one pair per dimension, a pipeline config change each), then
+   widen the builder (D-044).
+5. **Step 1b, POST_GATE A2.** Waits until the TPT series reaches Stats NZ's Data Explorer (the
+   user's choice); the monthly check looks each month. When it appears, plan the dataset.
+6. **Deploy.** Built (D-056, D-057). After items 1 to 3, give the user numbered console steps, one
+   at a time, all production: a Cloudflare Pages project for Direct Upload named
+   `nz-vehicle-registrations` (or set the repository variable `CLOUDFLARE_PAGES_PROJECT`) with `main`
+   as its production branch; an API token limited to Cloudflare Pages: Edit; the GitHub secrets
+   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, placed as question 1 decides. Then run
+   `deploy.yml` by hand on `main`. Done when a `pages.dev` URL serves `/` and `/build` from a
+   monthly run's cube, `/status` returns 404 with the not-found page, and first-load time is
+   measured there at phone width.
+7. **Visitor sessions and first-load speed.** Visitor sessions (the user runs them:
+   `docs/playbooks/visitor-test.md`); first-load time on the deployed site; first-load speed (STATE
+   known issue 1): small first-paint files per chart, which `docs/CUBE_SCHEMA.md` already plans
+   (`presets/{preset_id}.json`), or a lighter bundle. Measure before and after, at phone width.
+8. **`age-distribution-moving-hole`.** The distribution drawn year by year (a ridgeline inside the
+   distribution shape) with its events. Re-triage the preset first (`presets.json` `$status`).
+   UI work, so it may be built before the gate (D-041), as a local build only.
+9. **Map follow-ups.** A visitor name for "Area Outside Region" (STATE known issue 2); a
+   per-capita map needs a population reference file (`docs/METRICS.md`, Per capita).
 
 ## Questions for the user
 
-None open.
+1. **Where the Cloudflare secrets live.** (a) Repository secrets: the workflow works as it is, and
+   it already uploads only from `main`. (b) A GitHub environment limited to `main`: safer, because
+   a workflow edited on another branch could not read them; `deploy.yml` needs one line
+   (`environment:`) and the secrets go into the environment. I recommend (b). If there is no answer,
+   I write the console steps for (a) and the workflow stays as it is.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. If it is on or after 8 November 2026, take queue item 1 (the gate
-run, `docs/playbooks/check-monthly-run.md`) first. Otherwise take queue item 2 (POST_GATE A1) on a `claude/`
-branch cut from `main`, with its PR into `main` left unmerged until the gate passes (D-043). If items
-2–5 are all built and waiting on the gate, take item 7 on a `claude/` branch from `ui/explore`.
+/start. Read `docs/STATE.md` and this file. If it is on or after 8 November 2026, take item 1 (the
+gate run) first. Before then, everything open waits on the user, except items 8 and 9, which are UI
+work that may be built ahead of the gate as local builds.
