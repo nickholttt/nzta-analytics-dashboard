@@ -8,7 +8,7 @@ import { loadRegions } from "../lib/data";
 import type { Manifest, RegionOutlines, SliceRow } from "../lib/data";
 import { pct, periodWindow } from "../lib/measures";
 import { readout, spanPeriod } from "../lib/readout";
-import { INK_3, SERIES, SUPPRESSED_LINE, plotStyle, tipStyle } from "../lib/theme";
+import { INK_3, SERIES, SUPPRESSED_LINE, plotStyle } from "../lib/theme";
 import { PlotFigure } from "./PlotFigure";
 
 // The lightest shade, for a share of zero: a pale wash of the darkest, which is the palette's first colour.
@@ -75,32 +75,26 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
           tickFormat: (d: number) => `${Math.round(d * 100)}%`,
         },
         marks: [
-          // Borders in muted ink, not the page colour, so neighbouring pale regions stay apart.
+          // Borders in muted ink, not the page colour, so neighbouring pale regions stay apart. Each shape carries its own
+          // readout as a title, shown while the pointer is over that shape: a pointer that snaps to the nearest region's
+          // centre would name a neighbour across much of a large region.
           Plot.geo(features, {
             fill: model.suppressed ? SUPPRESSED_LINE : shareOf,
             stroke: INK_3,
             strokeWidth: 0.5,
+            title: (f: (typeof features)[number]) => {
+              const region = model.byValue.get(f.properties.region);
+              return readout({
+                name: label(f.properties.region),
+                period: spanPeriod(model.win.from, model.win.to),
+                share: region?.share ?? 0,
+                n: region?.n ?? 0,
+                base: model.denominator,
+                greyed: model.suppressed ? "thin" : undefined,
+                minDenominator,
+              });
+            },
           }),
-          Plot.tip(
-            features,
-            Plot.pointer(
-              Plot.centroid({
-                ...tipStyle,
-                title: (f: (typeof features)[number]) => {
-                  const region = model.byValue.get(f.properties.region);
-                  return readout({
-                    name: label(f.properties.region),
-                    period: spanPeriod(model.win.from, model.win.to),
-                    share: region?.share ?? 0,
-                    n: region?.n ?? 0,
-                    base: model.denominator,
-                    greyed: model.suppressed ? "thin" : undefined,
-                    minDenominator,
-                  });
-                },
-              }),
-            ),
-          ),
         ],
       });
     },
