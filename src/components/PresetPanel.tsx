@@ -127,12 +127,20 @@ export default function PresetPanel({
 
   const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
 
-  // The resolver says where the rows come from: a 1-D slice, or a pair slice narrowed to the view's filter.
+  // The resolver says where the rows come from: a 1-D slice, or a pair slice narrowed to the view's filter. A view
+  // changed again before its rows arrive drops them, so a slow earlier load cannot draw under a later view.
   useEffect(() => {
     const source = resolution?.source;
     if (!source) return;
+    let current = true;
     setRows(null);
-    loadView(source).then(setRows, (e) => setError(String(e)));
+    loadView(source).then(
+      (loaded) => current && setRows(loaded),
+      (e) => current && setError(String(e)),
+    );
+    return () => {
+      current = false;
+    };
   }, [resolution]);
 
   const panelClass = `panel${lead ? " lead" : ""}`;
