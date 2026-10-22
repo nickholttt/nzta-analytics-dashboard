@@ -25,42 +25,39 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **UI stack**, each PR into the one before, the first into `ui/explore`: #17 `notes-after-merge`,
   #18 `public-explore`, #19 `explore-copy-controls`, #20 `pipeline-branch-rule`, #21
   `sentence-builder`, #22 `builder-league`, #23 `reserved-values`, #24 `prototype-queue`, #25
-  `pipeline-decisions` (D-047 to D-051, docs only). Then five branches pushed on 2026-10-22 **without
-  pull requests yet** (see In progress): `explore-build-together`, `pair-views`, `a11y-pass`,
-  `geo-map`, `deploy-proposal`.
+  `pipeline-decisions`, #30 `explore-build-together`, #31 `pair-views`, #32 `a11y-pass`, #33
+  `geo-map`, #34 `deploy-proposal`. No CI runs on this stack: `checks.yml` is not on it. It touches
+  no frozen path (checked 2026-10-22).
 - **Pipeline stack**, into `main`, unmerged until the gate (D-043): #26 `pr-checks`, #27
-  `pair-slice-import-age` (POST_GATE A1), #28 `segment-group` (A3), #29 `post-gate-fixes` (item 5).
-  Checks green on Linux on 2026-10-22 (55 tests at #29, 48 at #27). Then `deploy-workflow`, pushed on
-  2026-10-22 **without a pull request yet**: the monthly build's cube release and `deploy.yml` (D-056).
+  `pair-slice-import-age` (POST_GATE A1), #28 `segment-group` (A3), #29 `post-gate-fixes`, #35
+  `deploy-workflow`. Checks green on Linux on 2026-10-22: #26–#29, and #35 (55 tests passed).
 - All branch names above are `claude/...`. No PR has been merged since 2026-10-21.
 
 ## In progress
 
-- Claude: the six branches above without pull requests wait on an independent review before they
-  open (the global rule). The sub-agent review started on 2026-10-22 stopped when the account hit
-  its monthly spend limit. CHECKPOINT queue item 1.
-- Pre-gate pipeline work is built and waiting on the 8 November gate (#26–#29).
+- Nothing. The pre-gate pipeline work (#26–#29, #35) waits on the 8 November gate.
 
-## What the open branches add (unreviewed by the user)
+## What the open pull requests add (unreviewed by the user)
 
 - #25–#29: pair slices (D-047), CI on pull requests (D-048), `kgm-rename` as measurement (D-049),
   manufacturer group high cardinality (D-050), golden built from frozen events (D-051), B1–B3,
   event schema checks, `segment_group`.
-- `explore-build-together` (D-052): "Change this chart" on Explore charts the builder can say, and
-  one hover readout for all four renderers.
-- `pair-views` (D-053): the site reads pair slices, so `used-import-age` and a filtered
-  `powertrain-mix` draw once a build carries the pairs; the time row keeps a preset's own period;
-  the grey-months note is off distributions; distribution labels thin out at 320px.
-- `a11y-pass`: every chart named for screen readers; scrolling tables focusable; a visitor-test
-  playbook. axe-core 4.10.3 (WCAG 2.1 A and AA): no violation on any page at 320px or 1280px.
-- `geo-map` (D-054): the map, the fifth renderer, from Stats NZ's clipped region outlines, offered
-  on the Build page as "the share of vehicles by owner's region".
-- `deploy-proposal`: D-055 (how to deploy) and D-056 (the user's choice, option (C)); a public build
-  (`INTERNAL_PAGES=false`) with no link to `/status` or `/sense-check`; the monthly check's look for
-  step 1b's source.
-- `deploy-workflow`: the monthly build keeps each cube as a `cube-<snapshot>` release; `deploy.yml`
-  builds the public site from the newest cube and uploads it to Cloudflare Pages once the secrets
-  exist (D-056). Its cube step was run locally against this repository on 2026-10-22.
+- #30 (D-052): "Change this chart" on Explore charts the builder can say; one hover readout for all
+  four renderers.
+- #31 (D-053, D-057): the site reads pair slices, so `used-import-age` and a filtered
+  `powertrain-mix` draw once a build carries the pairs; a narrowed chart says so; the time row keeps
+  a preset's own period; a view with no rows says "Nothing to draw".
+- #32 (D-057): every chart named for screen readers; trend and distribution charts carry a table
+  of their figures behind a disclosure; scrolling tables take keyboard focus; a visitor-test
+  playbook.
+- #33 (D-054, D-057): the map on the Build page, from Stats NZ's clipped region outlines, with a
+  square-root scale, per-region hover titles and a CC BY 4.0 credit.
+- #34 (D-055 to D-057): the public build (`INTERNAL_PAGES=false`) with no link to `/status` or
+  `/sense-check`, a not-found page, the deploy decisions and their docs.
+- #35 (D-056, D-057): the monthly build keeps each cube as a release `cube-<snapshot>` after
+  committing its state; `deploy.yml` builds the public site and uploads it from `main` only, once the
+  Cloudflare secrets exist; wrangler is pinned by its own lockfile in `.github/deploy/`.
+- The independent review of #30–#35 (three sub-agents, 2026-10-22) and what it changed: D-057.
 
 ## Known issues
 
@@ -79,10 +76,12 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
    them).
 6. On `main` until `ui/explore` merges: `METRICS.md` has the old representativeness-guard
    figures, and #29's `config/measures.json` comment has D-033's.
+7. The public build still ships the status page's script chunk, unlinked and holding no data
+   (D-057).
 
-Fixed on open branches and so not repeated here: the `measures.json` comment, `kgm-rename`, the
-63-character event title and the `used_imports` id in `PresetPanel` (#29, `pair-views`); earlier
-fixes are in D-028 to D-046.
+Fixed on open branches and so not repeated here: everything the review found (D-057); the
+`measures.json` comment, `kgm-rename`, the 63-character event title and the `used_imports` id in
+`PresetPanel` (#29, #31); earlier fixes are in D-028 to D-046.
 
 ## Blocked or waiting on the user
 
@@ -92,19 +91,24 @@ fixes are in D-028 to D-046.
   them is built on branches from `main` and stays unmerged until then (D-043).
 - **Step 1b** (`registrations_flow`, POST_GATE A2) waits until Stats NZ's Aotearoa Data Explorer
   carries the TPT series; Infoshare has no API (`docs/DATA_SOURCES.md` §C). The user chose on
-  2026-10-22 to wait; the monthly check looks each month.
-- **Deploy** (item 8): built (D-056). After the gate and item 4, the user does the Cloudflare and
-  GitHub setup from numbered steps.
-- **Visitor tests** (item 9): the user picks the people (`docs/playbooks/visitor-test.md`).
+  2026-10-22 to wait; the monthly check looks each month (2026-10-22: no transport series).
+- **Deploy** (CHECKPOINT, the deploy item): built (D-056, D-057). After the gate and the merges, the
+  user does the Cloudflare and GitHub setup from numbered steps. One question is open: where the
+  Cloudflare secrets live (CHECKPOINT question 1).
+- **Visitor tests**: the user picks the people (`docs/playbooks/visitor-test.md`).
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). Checked on
-2026-10-22: `.venv` Python 3.13.7 and Node v22.19.0; pipeline tests 55 passed on Windows (about 5
-minutes) and on Linux in `checks.yml` (76 s); `tsc --noEmit` exit 0; `astro build` 6 pages. A dry
-run of the saved August pull now aborts on two comparisons with the committed September state
-(older snapshot, an emptied September), which is expected, but still stages its output in
-`data/staging/build`. Headless checks use `playwright-core` 1.64.1 and `axe-core` 4.10.3 from a
-scratch folder, with `executablePath` set to Chromium headless shell 1248 under
-`%LOCALAPPDATA%\ms-playwright`; nothing is added to the repo.
+2026-10-22: `.venv` Python 3.13.7 and Node v22.19.0; `npx -y -p typescript tsc --noEmit` fetches
+TypeScript 7.0.2 and exits 0; `astro build` builds 7 pages; `pipeline/tests/test_workflow.py`
+passes. `data/staging/build` holds a dry-run cube of the saved August pull with both pair slices,
+used to test #31; a dry run of that pull aborts on two comparisons with the committed September
+state, as expected, but still stages its output there.
+
+Headless checks use `playwright-core` 1.64.1 and `axe-core` 4.10.3 from a scratch folder, with
+`executablePath` set to Chromium headless shell 1248 under `%LOCALAPPDATA%\ms-playwright`; nothing
+is added to the repo. Wait until every chart panel has drawn before auditing: a fixed delay misses
+charts at 1280px. In Git Bash, prefix commands whose arguments start with `/` or hold `ref:path`
+with `MSYS_NO_PATHCONV=1`, or they reach git and node as Windows paths.
