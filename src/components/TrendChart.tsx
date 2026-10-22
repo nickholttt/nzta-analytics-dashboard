@@ -11,8 +11,8 @@ import { findDerived } from "../lib/config";
 import type { Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { derivedSeries } from "../lib/derived";
-import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, periodWindow } from "../lib/measures";
-import { monthPeriod, readout } from "../lib/readout";
+import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
+import { count, greyedReason, monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
 import {
   LINE_WIDTH,
@@ -28,6 +28,7 @@ import {
   tipStyle,
   xTicks,
 } from "../lib/theme";
+import { FiguresTable } from "./FiguresTable";
 import { PlotFigure } from "./PlotFigure";
 
 const PERCENT = "percent";
@@ -168,6 +169,20 @@ export function TrendChart({ preset, rows, manifest, minDenominator, collapseFra
       <PlotFigure
         render={render}
         label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: ${derived ? derived.label : name.toLowerCase()}, month by month.`}
+      />
+      <FiguresTable
+        label={`${name}: figures, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
+        columns={share ? [{ name: "Month" }, { name: "Share" }, { name: "Vehicles" }, { name: "Note", text: true }] : [{ name: "Month" }, { name: "Vehicles" }]}
+        rows={() =>
+          model.points
+            .filter((p) => p.y !== undefined)
+            .map((p) => {
+              const month = monthPeriod(p.month, preset.measure === "rolling_12m");
+              if (!share) return [month, count(p.y as number)];
+              const vehicles = p.n !== undefined && p.denominator !== undefined ? `${count(p.n)} of ${count(p.denominator)}` : "";
+              return [month, pct(p.y as number), vehicles, greyedReason(p.greyed, minDenominator)];
+            })
+        }
       />
     </>
   );
