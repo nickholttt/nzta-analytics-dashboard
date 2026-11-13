@@ -200,7 +200,6 @@ def test_a_misconfigured_pair_aborts(tmp_path, workspace, pairs, fragment):
     expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
 
 
-
 def test_the_fact_table_is_written_without_a_dimension_that_is_not_live(tmp_path, workspace):
     rows = load_rows()
     template = next(r for r in rows if r["OBJECTID"] == 62)
@@ -214,7 +213,6 @@ def test_the_fact_table_is_written_without_a_dimension_that_is_not_live(tmp_path
     assert any("fact table is written without region" in w for w in manifest["warnings"]), manifest["warnings"]
     written = sorted(p.name for p in (workspace["staging"] / "build" / "facts" / "registrations_surviving").iterdir())
     assert written == ["import_status.parquet", "month.parquet", "n.parquet"]
-
 
 
 def test_the_fact_table_counts_vehicles_that_share_every_value_in_one_row(tmp_path, workspace):
@@ -245,6 +243,7 @@ def test_a_fact_table_whose_dimensions_are_all_waiting_holds_the_month_totals(tm
     assert written == ["month.parquet", "n.parquet"]
     assert facts["rows"] == manifest["datasets"]["registrations_surviving"]["months"]
 
+
 def test_a_fact_table_that_counts_a_vehicle_twice_aborts(tmp_path, workspace, monkeypatch):
     # A lookup that matched a vehicle twice would repeat it in dims, and in every count taken from dims with it.
     build_dims = derive.build_dims
@@ -269,6 +268,19 @@ def test_a_misconfigured_fact_table_aborts(tmp_path, workspace, facts, fragment)
     cfg = make_cfg(workspace)
     cfg.pipeline["datasets"]["registrations_surviving"]["facts"] = facts
     expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
+
+
+@pytest.mark.parametrize("lookup", ["vehicle", "status"])
+def test_a_scope_key_listed_twice_aborts(tmp_path, workspace, lookup):
+    # Both scope files are joined to every vehicle, so a repeated key would double its vehicles in every count.
+    cfg = make_cfg(workspace)
+    ref = tmp_path / "reference"
+    shutil.copytree(cfg.reference("x").parent, ref)
+    file = ref / cfg.pipeline["scope"][lookup]["file"]
+    lines = file.read_text(encoding="utf-8").splitlines()
+    file.write_text("\n".join(lines + [lines[1]]) + "\n", encoding="utf-8", newline="\n")
+    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows()), "keys defined more than once")
+
 
 def test_unknown_vehicle_type_aborts(tmp_path, workspace):
     rows = load_rows() + [dict(load_rows()[0], OBJECTID=3000, VEHICLE_TYPE="NOT A REAL TYPE")]
