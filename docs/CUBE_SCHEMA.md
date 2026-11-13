@@ -318,6 +318,12 @@ Freshness:
 - `latest_snapshot` and the total row count are both unchanged but the
   change key differs. Only a forced run reaches this check: an unforced
   run does not rebuild a month.
+- A month was missed. From the 15th of a month (UTC;
+  `schedule.missed_month_alarm_day` in `config/pipeline.json`), a run that
+  builds nothing fails if the last good run's `latest_snapshot` is older
+  than the end of the month before, and names the missing month. It fails
+  every day until that month is built. A run that builds is never stopped
+  by this check, so an overdue month is still committed.
 
 Mapping:
 

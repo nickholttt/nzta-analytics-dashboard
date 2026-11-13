@@ -7,7 +7,7 @@ import hashlib
 import json
 import sys
 import time
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from . import build as build_step
@@ -62,6 +62,18 @@ def plan(key: dict, state: dict | None, force: bool) -> tuple[bool, str | None]:
     return True, None
 
 
+def missed_month(cfg, state: dict | None, today: date) -> str | None:
+    """The month whose snapshot should have been built by now and has not been, as YYYY-MM.
+
+    A run that skips is green, so a month NZTA never published, or one every build of failed, would otherwise pass
+    unseen. From the alarm day of each month, the month before must be the last good build's snapshot or later.
+    """
+    if not state or today.day < cfg.pipeline["schedule"]["missed_month_alarm_day"]:
+        return None
+    due = today.replace(day=1) - timedelta(days=1)
+    return due.strftime("%Y-%m") if date.fromisoformat(state["latest_snapshot"]) < due else None
+
+
 def emit(github_output: str | None, values: dict) -> None:
     if github_output:
         with open(github_output, "a", encoding="utf-8") as fh:
@@ -99,6 +111,16 @@ def run(cfg, force: bool = False, github_output: str | None = None, now: datetim
     if not building:
         report(github_summary, reason)
         emit(github_output, {"built": "false"})
+        # Only a run that builds nothing raises the alarm: a build of an older month must still be committed, and the
+        # next day's run then reports the month still missing.
+        missing = missed_month(cfg, state, now.date())
+        if missing:
+            detail = (f"snapshot {missing} has not been built and it is {now:%Y-%m-%d}. The last good build is "
+                      f"{state['latest_snapshot'][:7]} and the source holds {key['snapshot'][:7]}. Either NZTA has not "
+                      "refreshed the register or the builds since have failed. This run fails every day until "
+                      f"{missing} is built.")
+            report(github_summary, f"Missed month: {detail}")
+            raise GuardrailError("missed_month", detail)
         return 0
 
     pull_dir = cfg.path("raw") / key["snapshot"][:7] / now.strftime("%Y%m%dT%H%M%SZ")

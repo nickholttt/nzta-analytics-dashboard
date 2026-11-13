@@ -13,6 +13,7 @@ import pytest
 
 from pipeline import fetch
 from pipeline.arcgis import Service
+from pipeline.errors import GuardrailError
 
 from .conftest import make_cfg
 
@@ -120,3 +121,56 @@ def test_the_cap_moving_on_the_first_of_a_month_is_not_a_changed_source(monkeypa
     code, outputs, summary = attempt(monkeypatch, tmp_path, cfg, with_later_rows, at(2026, 10, 1))
     assert code == 0 and outputs == {"snapshot": "2026-09", "built": "false"}
     assert "Source unchanged since the last good build (snapshot 2026-08-31)" in summary
+
+
+def test_a_month_still_missing_on_the_alarm_day_fails_the_run_and_names_the_month(monkeypatch, tmp_path, cfg):
+    built_state(cfg, AUGUST, at(2026, 9, 4))
+    alarm_day = cfg.pipeline["schedule"]["missed_month_alarm_day"]
+    # October: September's snapshot is due. Before the alarm day a skip is still green.
+    code, _, summary = attempt(monkeypatch, tmp_path, cfg, AUGUST, at(2026, 10, alarm_day - 1))
+    assert code == 0 and "Missed month" not in summary
+    for day in (alarm_day, alarm_day + 1, 31):
+        with pytest.raises(GuardrailError) as info:
+            attempt(monkeypatch, tmp_path, cfg, AUGUST, at(2026, 10, day))
+        assert info.value.check == "missed_month"
+        assert "snapshot 2026-09 has not been built" in info.value.detail
+        assert "The last good build is 2026-08 and the source holds 2026-08" in info.value.detail
+        assert "Missed month: snapshot 2026-09 has not been built" in (tmp_path / "summary").read_text(encoding="utf-8")
+        assert (tmp_path / "output").read_text(encoding="utf-8").splitlines()[-1] == "built=false"
+
+
+def test_the_alarm_is_quiet_once_the_month_is_built_and_across_a_year_end(monkeypatch, tmp_path, cfg):
+    december = {(2026, 11): 40, (2026, 12): 50}
+    built_state(cfg, december, at(2027, 1, 6))
+    code, _, summary = attempt(monkeypatch, tmp_path, cfg, december, at(2027, 1, 31))
+    assert code == 0 and "Missed month" not in summary
+    with pytest.raises(GuardrailError, match="snapshot 2027-01 has not been built"):
+        attempt(monkeypatch, tmp_path, cfg, december, at(2027, 2, 15))
+
+
+def test_a_changed_source_that_is_not_rebuilt_still_raises_the_alarm(monkeypatch, tmp_path, cfg):
+    built_state(cfg, AUGUST, at(2026, 9, 4))
+    with pytest.raises(GuardrailError, match="snapshot 2026-09 has not been built"):
+        attempt(monkeypatch, tmp_path, cfg, {**AUGUST, (2026, 8): 53}, at(2026, 10, 20))
+    assert "Each month is built once" in (tmp_path / "summary").read_text(encoding="utf-8")
+
+
+def test_a_run_that_builds_an_overdue_month_is_not_stopped_by_the_alarm(monkeypatch, tmp_path, cfg):
+    # The last good build is two months behind and the source has moved on one: the build must go ahead and be
+    # committed. The month still missing is reported by the next run that builds nothing.
+    built_state(cfg, AUGUST, at(2026, 9, 4))
+    september = {**AUGUST, (2026, 9): 60}
+    code, _, summary = attempt(monkeypatch, tmp_path, cfg, september, at(2026, 11, 20))
+    assert code is None and summary == ""
+
+
+def test_the_alarm_exits_with_the_guardrail_code(monkeypatch, capsys, workspace, tmp_path):
+    from pipeline import __main__ as cli, config
+
+    cfg = make_cfg(workspace, raw=tmp_path / "raw")
+    built_state(cfg, AUGUST, at(2026, 9, 4))
+    monkeypatch.setattr(config, "load", lambda: cfg)
+    monkeypatch.setattr(fetch, "Client", lambda source_cfg: FakeClient(cfg, AUGUST))
+    monkeypatch.setattr(fetch, "datetime", type("Clock", (datetime,), {"now": classmethod(lambda cls, tz=None: at(2026, 10, 20))}))
+    assert cli.main(["run"]) == 2
+    assert "[missed_month] snapshot 2026-09 has not been built" in capsys.readouterr().err

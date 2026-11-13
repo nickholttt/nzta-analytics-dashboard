@@ -38,6 +38,10 @@
   },
   "change_key_fields": ["registration_year", "registration_month", "import_status", "vehicle_type"],
   "trailing_window_months": 12,
+  "schedule": {
+    "$comment": "From this day of the month (UTC) a run that builds nothing fails if the previous month's snapshot is still not built (docs/DATA_SOURCES.md, Refresh timing).",
+    "missed_month_alarm_day": 15
+  },
   "reference_dir": "data/reference",
   "boolean_true": "true",
   "sentinels": {
