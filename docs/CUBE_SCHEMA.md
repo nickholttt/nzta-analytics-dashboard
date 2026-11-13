@@ -267,17 +267,36 @@ loudly. More than one match: the most recently modified is used, with a
 warning.
 
 **Snapshot date.** There is no snapshot field. `latest_snapshot` is the
-last day of the earlier of the latest first-registration month in the
-table and the month before the fetch. First registrations dated after that
-are counted, excluded and warned about.
+last day of the latest first-registration month in the table that holds a
+month of registrations, and no later than the month before the fetch. A
+month holds a month of registrations when it has at least 1% of the median
+of the 12 months before it (`snapshot.min_share_of_trailing_median` in
+`config/pipeline.json`; the lowest real month, April 2020, had 7%). So a
+few rows dated after the register's own month never become a snapshot.
+First registrations dated after the snapshot are counted, excluded and
+warned about.
+
+One case is not caught: a register that holds a substantial part of the
+following month (1% of a normal month or more) and is edited again at any
+time after its own month was built. Once the cap passes that following
+month, the next run builds it as that month, and the real refresh is then
+refused as a rebuild. None of the three snapshots built so far holds any
+row dated after its month (`data/snapshots/`).
 
 **Change key.** No file exists to hash, so the key is the composite of the
 total row count, the snapshot date, and the sha256 of one canonical
 grouped-statistics response: row counts by first-registration year,
 first-registration month, import status and vehicle type, sorted and
-serialised as canonical JSON. If the key equals the last good run's key,
-the build is skipped: nothing is pulled, nothing is published, the run
-succeeds.
+serialised as canonical JSON. If the row count and the digest equal the
+last good run's, the source is unchanged and the build is skipped: nothing
+is pulled, nothing is published, the run succeeds. The snapshot date is
+left out of that comparison: its cap moves on the first of each month
+while the register does not.
+
+**Each month is built once.** If the source changes again after its
+snapshot month was built, the run says so on its summary page and builds
+nothing. Only a run started by hand with `force` rebuilds a month, so a
+later edit by NZTA never replaces what the first build published.
 
 ## Guardrails — abort the run and keep the last good build
 
@@ -309,7 +328,14 @@ Freshness:
 
 - `latest_snapshot` is older than the last good run's.
 - `latest_snapshot` and the total row count are both unchanged but the
-  change key differs.
+  change key differs. Only a forced run reaches this check: an unforced
+  run does not rebuild a month.
+- A month was missed. From the 15th of a month (UTC;
+  `schedule.missed_month_alarm_day` in `config/pipeline.json`), a run that
+  builds nothing fails if the last good run's `latest_snapshot` is older
+  than the end of the month before, and names the missing month. It fails
+  every day until that month is built. A run that builds is never stopped
+  by this check, so an overdue month is still committed.
 
 Mapping:
 

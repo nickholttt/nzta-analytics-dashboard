@@ -5,9 +5,11 @@ from __future__ import annotations
 import calendar
 import hashlib
 import json
+import statistics
 import sys
 import time
-from datetime import date, datetime, timezone
+from collections import Counter
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from . import build as build_step
@@ -23,15 +25,30 @@ def load_state(cfg) -> dict | None:
 
 
 def snapshot_and_key(cfg, stats: list[dict], row_count: int, fetch_date: date) -> tuple[dict, int]:
-    """Snapshot = latest first-registration month, capped at the month before the fetch. Returns (change key, rows after cap)."""
+    """Snapshot = the latest first-registration month that holds a month of registrations, no later than the month
+    before the fetch. Returns (change key, rows dated after the snapshot)."""
     fields = [cfg.source_field(k) for k in cfg.pipeline["change_key_fields"]]
     year_f, month_f = cfg.source_field("registration_year"), cfg.source_field("registration_month")
-    months = sorted({(r[year_f], r[month_f]) for r in stats
-                     if r[year_f] is not None and r[month_f] is not None and 1 <= r[month_f] <= 12 and r["n"] > 0})
+    totals: Counter = Counter()
+    for r in stats:
+        if r[year_f] is not None and r[month_f] is not None and 1 <= r[month_f] <= 12:
+            totals[(r[year_f], r[month_f])] += r["n"]
+    months = sorted(m for m, n in totals.items() if n > 0)
     if not months:
         raise GuardrailError("snapshot", "the source has no rows with a valid first-registration month")
     cap = (fetch_date.year, fetch_date.month - 1) if fetch_date.month > 1 else (fetch_date.year - 1, 12)
-    year, month = min(months[-1], cap)
+    window, share = cfg.pipeline["trailing_window_months"], cfg.pipeline["snapshot"]["min_share_of_trailing_median"]
+
+    def holds_a_month(i: int) -> bool:
+        # A few rows dated after the register's own month are not the next snapshot. Without this, once the cap
+        # passes them they would be built as a month, and the real refresh of that month then refused as a rebuild.
+        before = [totals[m] for m in months[max(0, i - window):i]]
+        return not before or totals[months[i]] >= share * statistics.median(before)
+
+    found = next((months[i] for i in reversed(range(len(months))) if months[i] <= cap and holds_a_month(i)), None)
+    if found is None:
+        raise GuardrailError("snapshot", "the source has no month of registrations before the month of the fetch")
+    year, month = found
     after_cap = sum(r["n"] for r in stats
                     if r[year_f] is not None and r[month_f] is not None and (r[year_f], r[month_f]) > (year, month))
     snapshot = date(year, month, calendar.monthrange(year, month)[1]).isoformat()
@@ -40,13 +57,64 @@ def snapshot_and_key(cfg, stats: list[dict], row_count: int, fetch_date: date) -
     return {"row_count": row_count, "snapshot": snapshot, "stats_sha256": digest}, after_cap
 
 
+def plan(key: dict, state: dict | None, force: bool) -> tuple[bool, str | None]:
+    """Whether this run builds and, when it does not, the line that says why.
+
+    The run is tried every day, so a snapshot month could be built twice: NZTA edits the register again within the
+    month, the key differs, and the rebuild would replace what the first build published. Each month is built once;
+    only a forced run rebuilds it.
+    """
+    if force or not state:
+        return True, None
+    last = state["change_key"]
+    # The snapshot in the key is capped by the fetch date, so it can move on the first of a month while the register
+    # has not. Only the row count and the digest say whether the source changed.
+    if (last["row_count"], last["stats_sha256"]) == (key["row_count"], key["stats_sha256"]):
+        return False, f"Source unchanged since the last good build (snapshot {state['latest_snapshot']}); nothing to do."
+    if key["snapshot"] == state["latest_snapshot"]:
+        month = key["snapshot"][:7]
+        changed = (f"The source changed after snapshot {month} was built: {last['row_count']:,} rows then, "
+                   f"{key['row_count']:,} now. Each month is built once, so nothing was built.")
+        # A forced run of an unchanged row count is stopped by the build's own check (docs/CUBE_SCHEMA.md, Freshness),
+        # so the advice is given only where it works.
+        if last["row_count"] == key["row_count"]:
+            return False, f"{changed} A forced run would stop too: the build refuses a source that changed without its row count moving."
+        return False, f"{changed} To rebuild {month} from the changed source, start the run by hand with force ticked."
+    return True, None
+
+
+def missed_month(cfg, state: dict | None, today: date) -> str | None:
+    """The month whose snapshot should have been built by now and has not been, as YYYY-MM.
+
+    A run that skips is green, so a month NZTA never published, or one every build of failed, would otherwise pass
+    unseen. From the alarm day of each month, the month before must be the last good build's snapshot or later.
+    """
+    alarm_day = cfg.pipeline["schedule"]["missed_month_alarm_day"]
+    # Every month has a 28th. A later day would never come in a short month and the alarm would stay silent.
+    if not isinstance(alarm_day, int) or not 1 <= alarm_day <= 28:
+        raise GuardrailError("config", f"schedule.missed_month_alarm_day must be a day from 1 to 28, not {alarm_day!r}")
+    if not state or today.day < alarm_day:
+        return None
+    due = today.replace(day=1) - timedelta(days=1)
+    return due.strftime("%Y-%m") if date.fromisoformat(state["latest_snapshot"]) < due else None
+
+
 def emit(github_output: str | None, values: dict) -> None:
     if github_output:
         with open(github_output, "a", encoding="utf-8") as fh:
             fh.writelines(f"{k}={v}\n" for k, v in values.items())
 
 
-def run(cfg, force: bool = False, github_output: str | None = None, now: datetime | None = None) -> int:
+def report(github_summary: str | None, line: str) -> None:
+    """Say why nothing was built: in the log, and on the run's summary page, where a green run is otherwise silent."""
+    print(line)
+    if github_summary:
+        with open(github_summary, "a", encoding="utf-8") as fh:
+            fh.write(line + "\n")
+
+
+def run(cfg, force: bool = False, github_output: str | None = None, now: datetime | None = None,
+        github_summary: str | None = None) -> int:
     now = now or datetime.now(timezone.utc)
     client = Client(cfg.pipeline["source"])
     service = client.discover()
@@ -64,9 +132,20 @@ def run(cfg, force: bool = False, github_output: str | None = None, now: datetim
         warnings.append(f"{after_cap:,} rows have a first-registration month after the snapshot cap {key['snapshot']}")
     state = load_state(cfg)
     emit(github_output, {"snapshot": key["snapshot"][:7]})
-    if state and state.get("change_key") == key and not force:
-        print(f"Source unchanged since the last good build (snapshot {key['snapshot']}); nothing to do.")
+    building, reason = plan(key, state, force)
+    if not building:
+        report(github_summary, reason)
         emit(github_output, {"built": "false"})
+        # Only a run that builds nothing raises the alarm: a build of an older month must still be committed, and the
+        # next day's run then reports the month still missing.
+        missing = missed_month(cfg, state, now.date())
+        if missing:
+            detail = (f"snapshot {missing} has not been built and it is {now:%Y-%m-%d}. The last good build is "
+                      f"{state['latest_snapshot'][:7]} and the source holds {key['snapshot'][:7]}. Either NZTA has not "
+                      "refreshed the register or the builds since have failed. This run fails every day until "
+                      f"{missing} is built.")
+            report(github_summary, f"Missed month: {detail}")
+            raise GuardrailError("missed_month", detail)
         return 0
 
     pull_dir = cfg.path("raw") / key["snapshot"][:7] / now.strftime("%Y%m%dT%H%M%SZ")

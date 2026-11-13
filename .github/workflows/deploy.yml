@@ -1,14 +1,10 @@
-# Builds the public site from the newest cube and uploads it to Cloudflare Pages (D-055, D-056, D-057). Runs after each
-# successful monthly build, on a push to main that changes the site, and by hand. It uploads only from main and only
-# once the Cloudflare secrets exist; until then it builds the site and stops, so the build is still checked. On a ref
-# whose site has no public build yet (before ui/explore reaches main) it stops before building.
+# Builds the public site from the newest cube and uploads it to Cloudflare Pages (D-055, D-056, D-057). Runs when the
+# monthly build starts it after building a month, on a push to main that changes the site, and by hand. It uploads
+# only from main and only once the Cloudflare secrets exist; until then it builds the site and stops, so the build is
+# still checked. On a ref whose site has no public build yet (before ui/explore reaches main) it stops before building.
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: ["Monthly build"]
-    types: [completed]
-    branches: [main]
   push:
     branches: [main]
     paths:
@@ -21,6 +17,7 @@ on:
       - "tsconfig.json"
       - ".github/workflows/deploy.yml"
       - ".github/deploy/**"
+  # Also how monthly-build.yml starts a deploy, and only when it built a month.
   workflow_dispatch:
 
 permissions:
@@ -35,8 +32,6 @@ concurrency:
 
 jobs:
   deploy:
-    # After a monthly build only when it succeeded: a failed run leaves the last good cube, which is already deployed.
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
