@@ -35,14 +35,17 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 **Stage 1 of the master brief.** `ui/explore` holds the site (the site stack, #40, the question
 builder #43, the preset corrections #44) and these notes. `main` holds the pipeline with the fact
-table. Next is the deploy, each step asked for, starting with `ui/explore` into `main`
-(CHECKPOINT). The dashboard test export starts when the user says they are ready.
+table. Next is the deploy, each step asked for, starting with `ui/explore` into `main`: #45
+joins the two in `ui/explore` first (CHECKPOINT). The dashboard test export starts when the user
+says they are ready.
 
 ## In progress
 
-- Nothing is in progress by claude or by gemini. No pull request is open.
-- This folder is a detached checkout of `origin/ui/explore`. Start the next piece of work on a
-  new branch from `origin/ui/explore` or `origin/main`.
+- `claude/explore-meets-main` (claude, #45 into `ui/explore`, this folder): `main` merged into
+  `ui/explore`, two conflicts resolved, and README, POST_GATE and AGENTS.md's command table
+  brought up to date. Pushed; waits for "merge 45". This folder's `public/data` holds the
+  2026-10 dry run with the fact table.
+- Nothing is in progress by gemini.
 - `../nzta-screens` is a detached checkout of `ui/explore` (`85b7dd6`) with `node_modules`, a built
   `dist/`, and in `public/data` the 2026-10 cube **plus the fact table and manifest of this
   session's dry run** (no region), so the Build page can be looked at locally.
@@ -54,7 +57,8 @@ table. Next is the deploy, each step asked for, starting with `ui/explore` into 
 - `main`: origin `f78e3e1`; local matches.
 - `ui/explore`: origin is the merge of #36 (`git rev-parse origin/ui/explore`). The local branch of
   that name is far behind; use `origin/ui/explore`.
-- **No open pull request.** Merged today and deleted here and on GitHub: `claude/fact-table` (#41),
+- **1 open pull request: #45** `claude/explore-meets-main` into `ui/explore` (no check runs on
+  pull requests into `ui/explore`). Merged today and deleted here and on GitHub: `claude/fact-table` (#41),
   `claude/archive-vin11-postcode` (#42), `claude/next-stage-brief` (#36); and `claude/look-and-feel`.
 
 ## Raw pulls on this computer (gitignored)
@@ -79,9 +83,9 @@ table. Next is the deploy, each step asked for, starting with `ui/explore` into 
 3. On a filtered powertrain chart the mild hybrid coverage note states the whole dataset's
    coverage, not the filtered vehicles'.
 4. **On `ui/explore` alone `powertrain-mix` draws without its light-passenger filter**, with a
-   warning, because that branch's `config/dimensions.json` has no `segment_group`. It is right
-   once `ui/explore` meets `main` (checked on a local test merge, D-077).
-5. `ui/explore` into `main` conflicts in `README.md` only (`git merge-tree`, 2026-11-13).
+   warning, because that branch's `config/dimensions.json` has no `segment_group`. #45 brings it.
+5. `ui/explore` into `main` conflicts in `README.md` and `docs/DATA_SOURCES.md`. #45 resolves
+   both; once it is in `ui/explore`, `main` is contained in `ui/explore` and nothing conflicts.
 6. On `main` until `ui/explore` merges: `METRICS.md` has the old representativeness-guard
    figures; `config/measures.json`'s comment has D-033's; no decision file, AGENTS.md or STATE.
 7. The public build still ships the status page's script chunk, unlinked and holding no data.
@@ -98,12 +102,9 @@ table. Next is the deploy, each step asked for, starting with `ui/explore` into 
 
 ## Where docs and code disagree (noted, not changed)
 
-- **The freeze.** AGENTS.md, the playbooks and the skills are current on `ui/explore`. Still
-  describing the freeze: `README.md` and `POST_GATE.md`, left for the branch that resolves
-  `README.md` for `ui/explore` into `main`.
-- **AGENTS.md's dry-run command names the 2026-08 pull and "exit 0".** Since October became the
-  last good build, that build stops with exit 2 at the comparison (its files are still staged).
-  The 2026-10 pull gives exit 0 (11 min 3 s on 2026-11-13).
+- Until #45 merges, `ui/explore` still has: the freeze in `README.md` and `POST_GATE.md`; a
+  dry-run command in AGENTS.md that names the 2026-08 pull, which now stops with exit 2 (it is
+  older than the last good build; the 2026-10 pull gives exit 0).
 - AGENTS.md hard rule 7 still lists the merges D-068 allowed (all are done), and rule 8's exception
   still reads "until the 8 November 2026 gate passes" (it has; deploying is Stage 1, on the user's word).
 - `main`'s own CLAUDE.md still says "monthly cron" and has the old non-goal; `ui/explore`'s is
@@ -111,12 +112,13 @@ table. Next is the deploy, each step asked for, starting with `ui/explore` into 
 - The brief's §4 says October is unbuilt and the freeze undecided: both are settled (D-066).
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
 - D-061 stopped chosen values being ranked and D-062 allows it: the code follows D-061.
-- `docs/DATA_SOURCES.md` on `ui/explore` has no section on the register archive; `main`'s has.
-- `docs/CUBE_SCHEMA.md` on `ui/explore` does not describe the fact table; `main`'s does.
+- `docs/DATA_SOURCES.md` and `docs/CUBE_SCHEMA.md` on `ui/explore` lack the register archive and
+  the fact table; `main`'s have them, and #45 brings them.
 
 ## Blocked or waiting on the user
 
-- **`ui/explore` into `main`**, a forced run, and anything public: asked first (CHECKPOINT).
+- **"merge 45"**, then **`ui/explore` into `main`**; a forced run; anything public: asked first
+  (CHECKPOINT).
 - **The dashboard test export**: the user starts it and says "ready".
 - Also waiting: visitor tests; the brief's §12; two NZTA pages an automated reader cannot open.
 
@@ -126,7 +128,8 @@ table. Next is the deploy, each step asked for, starting with `ui/explore` into 
 2026-11-13, on what is now `main`: the pipeline tests, 98 passed in 397 s before the review's two
 last commits, and the three test files they touch, 67 passed, after; `python -m pipeline build
 <the 2026-10 pull> --dry-run`, exit 0 in 11 min 3 s. `astro build` (7 pages) on `ui/explore` in
-`../nzta-screens`.
+`../nzta-screens`. On `claude/explore-meets-main`: the pipeline tests, 100 passed in 520 s; `tsc --noEmit`
+exit 0; `astro build`, 7 pages; headless at 390 and 1280 px, every page and five Build questions.
 
 - `python -m pipeline archive --snapshot YYYY-MM` pulls NZTA's live register (about 186 requests)
   and writes nothing committed. It refuses unless the register still is the built month.
