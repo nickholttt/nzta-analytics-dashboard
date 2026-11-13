@@ -19,6 +19,8 @@ from pipeline.errors import GuardrailError
 from .conftest import load_rows, make_cfg, source_for, write_pages
 from .test_run import AUGUST, FakeClient, at, built_state
 
+WORKFLOW = Path(__file__).resolve().parents[2] / ".github" / "workflows" / "monthly-build.yml"
+
 @pytest.fixture
 def cfg(tmp_path, workspace):
     return make_cfg(workspace, raw=tmp_path / "raw")
@@ -146,3 +148,20 @@ def test_the_live_archive_pulls_the_archive_fields_for_the_month_that_was_built(
     assert done == {"snapshot": "2026-08"} and seen["source"]["change_key"]["snapshot"] == "2026-08-31"
     assert Pulling.asked == archive.fields(cfg, expected_schema(cfg)) == seen["source"]["out_fields"]
     assert "/archive/2026-08/" in seen["pages"]
+
+
+def job(name: str) -> list[str]:
+    lines = WORKFLOW.read_text(encoding="utf-8").splitlines()
+    start = lines.index(f"  {name}:")
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("  ") and not lines[i].startswith("   ")
+                and lines[i].strip() and not lines[i].strip().startswith("#")), len(lines))
+    return lines[start:end]
+
+
+def test_the_archive_token_is_read_only_by_the_archive_job_and_the_file_is_never_an_artifact():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    archive_job = "\n".join(job("archive"))
+    assert "    environment: archive" in job("archive")
+    assert text.count("secrets.ARCHIVE_REPO_TOKEN") == archive_job.count("secrets.ARCHIVE_REPO_TOKEN") > 0
+    assert "upload-artifact" not in archive_job
+    assert "github.ref == 'refs/heads/main'" in next(line for line in job("archive") if line.startswith("    if:"))

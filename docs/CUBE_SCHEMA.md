@@ -40,6 +40,10 @@ Pipeline state lives outside `/public/data` and is committed to the repo:
   counts, per-month counts, live dimensions and moving cutoff. Every
   guardrail that compares against "the previous run" reads this file.
 
+The whole snapshot, one row per vehicle, is kept as well, but not here and
+not as part of this contract: it goes to a private store
+(`docs/DATA_SOURCES.md`, the register archive). Nothing published reads it.
+
 ## Live dimensions
 
 The dimension set is whatever has complete reference data, not a fixed
