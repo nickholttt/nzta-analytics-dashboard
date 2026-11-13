@@ -272,18 +272,21 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
         label={`Ranked bar chart, ${spanPeriod(currentFrom, latest)}: the ${model.items.length} largest by share. The table below the chart lists each place, its move and its change in share.`}
       />
 
-      {/* At 320px the table scrolls sideways in its own box, so the box takes keyboard focus and a name. */}
+      {/* On a phone the table scrolls sideways in its own box, so the box takes keyboard focus and a name. The
+          share and its change come before the count and the earlier rank, so what a phone shows without scrolling
+          is the ranking itself. Headings stay on one line: a heading that wraps in a narrow column makes the whole
+          header row tall, which read as a blank gap under the chart. */}
       <div className="table-scroll" role="region" aria-label="Ranking table" tabIndex={0} style={{ marginTop: "var(--space-4)" }}>
         <table className="key" style={{ width: "100%", fontSize: "13px" }}>
           <thead>
             <tr>
               <th scope="col" style={{ width: "45px" }}>Rank</th>
-              <th scope="col" style={{ width: "70px" }}>Move</th>
+              <th scope="col" style={{ width: "56px" }}>Move</th>
               <th scope="col">{valueHeading}</th>
-              <th scope="col" style={{ textAlign: "right" }}>Still registered</th>
-              <th scope="col" style={{ textAlign: "right" }}>Share</th>
-              <th scope="col" style={{ textAlign: "right" }}>Change in share</th>
-              <th scope="col" style={{ textAlign: "right" }}>Rank {TRAILING_MONTHS} months before</th>
+              <th scope="col" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Share</th>
+              <th scope="col" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>
+              <th scope="col" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Still registered</th>
+              <th scope="col" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Rank before</th>
             </tr>
           </thead>
           <tbody>
@@ -321,11 +324,11 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                     <span className="swatch" style={{ background: item.colour }} aria-hidden="true" />
                     <strong>{item.name}</strong>
                   </td>
-                  <td className="figure">{item.n.toLocaleString()}</td>
                   <td className="figure">{pct(item.share)}</td>
                   <td className="change" style={{ textAlign: "right" }}>
                     {shareChange(item.shareDelta)}
                   </td>
+                  <td className="figure">{item.n.toLocaleString()}</td>
                   <td style={{ textAlign: "right", color: "var(--ink-3)" }}>
                     {item.priorRank !== null ? `#${item.priorRank}` : "—"}
                   </td>
@@ -335,6 +338,10 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
           </tbody>
         </table>
       </div>
+      <p className="scroll-hint">
+        The table scrolls sideways: the number of vehicles and the rank in the {TRAILING_MONTHS} months before are to the
+        right.
+      </p>
     </>
   );
 }
