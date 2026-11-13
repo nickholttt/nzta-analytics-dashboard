@@ -174,3 +174,51 @@ def test_the_alarm_exits_with_the_guardrail_code(monkeypatch, capsys, workspace,
     monkeypatch.setattr(fetch, "datetime", type("Clock", (datetime,), {"now": classmethod(lambda cls, tz=None: at(2026, 10, 20))}))
     assert cli.main(["run"]) == 2
     assert "[missed_month] snapshot 2026-09 has not been built" in capsys.readouterr().err
+
+
+def test_a_few_rows_dated_after_the_register_s_month_never_become_a_snapshot(monkeypatch, tmp_path, cfg):
+    # The register for August holds three rows dated September. NZTA edits it within the month; then the cap moves
+    # past September. Building those three rows as September would also lock the real September out as a rebuild.
+    august = {(2026, 7): 4000, (2026, 8): 5000, (2026, 9): 3}
+    assert built_state(cfg, august, at(2026, 9, 4))["latest_snapshot"] == "2026-08-31"
+    edited = {**august, (2026, 8): 5003}
+    for now in (at(2026, 9, 20), at(2026, 10, 1), at(2026, 10, 6)):
+        code, outputs, summary = attempt(monkeypatch, tmp_path, cfg, edited, now)
+        assert code == 0 and outputs == {"snapshot": "2026-08", "built": "false"}, now
+        assert "changed after snapshot 2026-08 was built" in summary
+    refreshed = {(2026, 7): 3990, (2026, 8): 4990, (2026, 9): 6000, (2026, 10): 2}
+    code, outputs, _ = attempt(monkeypatch, tmp_path, cfg, refreshed, at(2026, 10, 7))
+    assert code is None and outputs == {"snapshot": "2026-09"}
+
+
+def test_a_low_month_is_still_a_snapshot_and_a_source_of_stray_rows_alone_is_refused(cfg):
+    f = cfg.pipeline["fields"]
+
+    def stats(counts):
+        return [{f["registration_year"]: y, f["registration_month"]: m, f["import_status"]: "a", f["vehicle_type"]: "b", "n": n}
+                for (y, m), n in counts.items()]
+
+    share = cfg.pipeline["snapshot"]["min_share_of_trailing_median"]
+    year = {(2025, m): 20000 for m in range(1, 13)}
+    low = int(20000 * share)
+    key, after = fetch.snapshot_and_key(cfg, stats({**year, (2026, 1): low}), 0, at(2026, 2, 3).date())
+    assert key["snapshot"] == "2026-01-31" and after == 0
+    key, after = fetch.snapshot_and_key(cfg, stats({**year, (2026, 1): low - 1}), 0, at(2026, 2, 3).date())
+    assert key["snapshot"] == "2025-12-31" and after == low - 1
+    with pytest.raises(GuardrailError, match="no month of registrations before the month of the fetch"):
+        fetch.snapshot_and_key(cfg, stats({(2026, 3): 5}), 0, at(2026, 2, 3).date())
+
+
+def test_the_force_advice_is_given_only_where_a_forced_run_would_build(monkeypatch, tmp_path, cfg):
+    built_state(cfg, AUGUST, at(2026, 9, 4))
+    moved_within = {(2026, 7): 41, (2026, 8): 49}
+    _, _, summary = attempt(monkeypatch, tmp_path, cfg, moved_within, at(2026, 9, 20))
+    assert "90 rows then, 90 now" in summary and "A forced run would stop too" in summary and "force ticked" not in summary
+
+
+@pytest.mark.parametrize("day", [0, 29, 31, "15", None])
+def test_an_alarm_day_that_some_month_lacks_is_refused(monkeypatch, tmp_path, cfg, day):
+    built_state(cfg, AUGUST, at(2026, 9, 4))
+    cfg.pipeline["schedule"]["missed_month_alarm_day"] = day
+    with pytest.raises(GuardrailError, match="must be a day from 1 to 28"):
+        attempt(monkeypatch, tmp_path, cfg, AUGUST, at(2026, 9, 5))

@@ -267,9 +267,19 @@ loudly. More than one match: the most recently modified is used, with a
 warning.
 
 **Snapshot date.** There is no snapshot field. `latest_snapshot` is the
-last day of the earlier of the latest first-registration month in the
-table and the month before the fetch. First registrations dated after that
-are counted, excluded and warned about.
+last day of the latest first-registration month in the table that holds a
+month of registrations, and no later than the month before the fetch. A
+month holds a month of registrations when it has at least 1% of the median
+of the 12 months before it (`snapshot.min_share_of_trailing_median` in
+`config/pipeline.json`; the lowest real month, April 2020, had 7%). So a
+few rows dated after the register's own month never become a snapshot.
+First registrations dated after the snapshot are counted, excluded and
+warned about.
+
+One case is not caught: a register that held a substantial part of the
+following month (1% of a normal month or more) and was then edited again
+after that month ended would be built as that month. No snapshot seen so
+far holds any row dated after its month.
 
 **Change key.** No file exists to hash, so the key is the composite of the
 total row count, the snapshot date, and the sha256 of one canonical
