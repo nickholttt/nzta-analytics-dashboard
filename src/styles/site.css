@@ -819,18 +819,11 @@ section[id] {
     linear-gradient(to left, rgb(26 27 31 / 0.16), transparent) right center / 0.75rem 100% no-repeat scroll;
 }
 
-/* Said in words too, where the ranking table is wider than a phone: the shadow alone is easy to miss. */
+/* Said in words too, while the ranking table is wider than its box: the shadow alone is easy to miss. */
 .scroll-hint {
-  display: none;
   margin: var(--space-2) 0 0;
   font-size: var(--text-xs);
   color: var(--ink-3);
-}
-
-@media (max-width: 640px) {
-  .scroll-hint {
-    display: block;
-  }
 }
 
 .key th.text,
