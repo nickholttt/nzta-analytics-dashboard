@@ -2340,3 +2340,46 @@ New entries use this template:
   - The public site's Build page needs a cube with a fact table. `cube-2026-10` has none.
   - Reversing a merge into `ui/explore`: `git revert -m 1 <merge commit>` on a branch, and a pull request.
 - Status: accepted, decided by user (the three answers); the four points under "Decided by Claude" unreviewed
+
+## D-079 2026-11-13 — `VIN11` checked against the data: no model year for used imports, one for about four in ten NZ-new vehicles; nothing is derived from it
+- Agent: claude, doing CHECKPOINT queue item 6 on the user's "carry on with the queue" (sixth session of 2026-11-13).
+- Basis: measured in this session from the private archive's `mvr-2026-10-vin11-postcode.parquet` (SHA-256
+  `25f0a20d…5041ce`, as in D-076), downloaded with `gh` into a scratch folder and deleted after the check. Counts only;
+  no VIN was written anywhere. The figures and the method are in `docs/DATA_MAP.md`, "`VIN11` checked against the data".
+- Context: D-076 keeps `VIN11` in the private archive and allows only what is derived from it to be published, "after
+  you check it against the data". It named two things a VIN might give: a model year (the tenth character) and a
+  factory (the eleventh). `vehicle_year` is not a model year (`docs/MODEL_AND_AGE.md` §1), so a model year would be new.
+- Measured (5,926,990 vehicles, every vehicle type):
+  - 4,811,252 have a `VIN11`, each 11 characters; 494 hold a character a VIN does not allow.
+  - 1,675,639 (34.8%) start `7A`: 83.5% of the used imports that have one, 2.3% of the NZ-new. These are VINs
+    assigned in New Zealand (inferred — confirm against NZTA's VIN rules), and their tenth character is not a year: on
+    the largest prefix it equals the first NZ registration year on none of 1,313,576 vehicles.
+  - Of the 3,135,613 manufacturer VINs, the tenth character is a year code on 66.9% and a zero on 32.9%.
+  - Among NZ-new vehicles first registered from 2010 with a manufacturer's VIN (2,198,959): 34.2% are of makes whose
+    VINs mostly carry no year code; 38.0% are of 112 makes where the decoded year is within one of the registration
+    year on 95% or more; 7.5% of makes at 80% to 95%; 20.2% of makes where a valid-looking character agrees on under
+    80%, so is not a year.
+  - The eleventh character: "built in" is the commonest country of the vehicle's three-character prefix on 93.1%, and
+    of the prefix and the eleventh character together on 95.1%.
+  - `POSTCODE`, while the file was open: 288,172 vehicles hold zero and none is empty, so the 1,331st value D-076 could
+    not account for is the zero that stands for "not recorded"; 1,330 postcodes are above zero, 154 of them with fewer
+    than 5 vehicles and 237 with fewer than 20.
+- Options considered:
+  1. A model year for every vehicle, read from the tenth character. Not chosen: it would be wrong for the NZ-assigned
+     third, absent for the third of manufacturer VINs that hold a zero, and wrong for the makes where the character
+     is not a year.
+  2. A model year only for the makes or prefixes shown to use a year code, through a reference lookup with a coverage
+     guard (invariant 4). Not built: it would cover about four in ten NZ-new vehicles and almost no used import, so it
+     could not be a market-wide breakdown, only a field for some makes. Whether that is wanted is the user's, in
+     Stage 2.
+  3. Derive nothing now and record what was found. Chosen.
+- Decision (decided by Claude, unreviewed): nothing is derived from `VIN11`. The data map records the check. No factory
+  field is derived either: the repo has no table of plant codes, and the eleventh character adds two points to what
+  the prefix already says about "built in".
+- Consequences:
+  - Nothing published changes, and the archive keeps the field (D-076), so option 2 stays open for any month archived.
+  - The `7A` prefix is a second sign of a vehicle that arrived without a manufacturer's VIN. It mostly repeats the
+    import status, and is not used.
+  - The check was made once, by scratch scripts. If a field is ever derived, the check becomes a maintainer script in
+    `scripts/` first, run against each month's file.
+- Status: decided by Claude (unreviewed)

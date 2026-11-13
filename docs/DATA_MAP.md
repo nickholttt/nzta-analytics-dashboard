@@ -70,8 +70,8 @@ Bound in `config/pipeline.json`. Their meanings and traps are in `docs/DATA_SOUR
 | `VDAM_WEIGHT` | "The maximum allowable laden weight for the vehicle on the road", kg | number | 5.0% | Heavy vehicles: motor caravans 71.6%, buses 49.7%, goods vehicles 16.0% | |
 | `HEIGHT` | Height, mm | number | 4.2% | Heavy vehicles: motor caravans 70.8%, buses 45.2%, goods vehicles 15.8% | The value 1 appears 10,487 times; largest 44,260 |
 | `WIDTH` | Width, mm | number | 4.3% | Heavy vehicles: motor caravans 71.9%, buses 45.7%, goods vehicles 16.0% | Largest 50,300 |
-| `POSTCODE` | **Not in NZTA's field descriptions** | place, 1,330 values | 95.1% | Every vehicle type | 197 postcodes hold fewer than 10 vehicles, and some hold 1. Kept in the private archive only (D-076). See privacy below |
-| `VIN11` | "First 11 characters of the Vehicle Identification Number" | identifier | 81.2% | NEW 76.9%, USED 94.8%; 39.3% before 2000 | Kept in the private archive only; never published itself (D-076). What it can give (a model year, a factory) is not yet checked against the data |
+| `POSTCODE` | **Not in NZTA's field descriptions** | place, 1,330 values | 95.1% | Every vehicle type | 197 postcodes hold fewer than 10 vehicles, and some hold 1. Zero stands for "not recorded": 288,172 vehicles, and no vehicle has an empty value (the archive's 2026-10 file, 2026-11-13). Kept in the private archive only (D-076). See privacy below |
+| `VIN11` | "First 11 characters of the Vehicle Identification Number" | identifier | 81.2% | NEW 76.9%, USED 94.8%; 39.3% before 2000 | Kept in the private archive only; never published itself (D-076). Checked against the data on 2026-11-13, below: it gives no model year for used imports and one for about four in ten NZ-new vehicles; nothing is derived from it |
 | `CHASSIS7` | "First 7 characters of the Chassis Number" | identifier | 40.4% | USED 91.7%, NEW 13.2% | Never pulled, never published (D-062, D-076) |
 | `ENGINE_NUMBER` | "All characters of the Engine Number" | identifier | 84.2% | Powered vehicles: cars 99.6%, trailers 0.1% | Never pulled, never published (D-062, D-076) |
 
@@ -103,12 +103,59 @@ Bound in `config/pipeline.json`. Their meanings and traps are in `docs/DATA_SOUR
    Zealand's vehicle classes is the off-road passenger class (inferred — confirm against NZTA's
    class definitions). It would not replace a model-level segment, but it is in the register.
 
+## `VIN11` checked against the data
+
+Measured on 2026-11-13 from the private archive's 2026-10 file (5,926,990 vehicles, every vehicle
+type), read into a scratch folder and deleted afterwards. Counts only; no VIN is listed here or
+anywhere in the repo. The scratch scripts are not in the repo. D-079.
+
+**Form.** 4,811,252 vehicles have a `VIN11` (81.2%), each 11 characters. 4,810,758 use only the
+letters and digits a VIN allows; 494 do not (478 hold an I, O or Q, 16 a character that is neither
+a letter nor a digit).
+
+**A third were assigned in New Zealand, and say nothing about the vehicle's year.** 1,675,639
+(34.8%) start `7A`: 83.5% of the used imports that have a `VIN11` (1,534,504 of 1,838,550) and 2.3%
+of the NZ-new (64,289 of 2,828,885). The two largest prefixes are `7AT` (1,313,576) and `7A8`
+(320,938). `7A` is the range the VIN standard gives New Zealand, and NZTA assigns a VIN to a vehicle
+that arrives without a 17-character one (inferred — confirm against NZTA's VIN rules; the data
+agrees: the prefix is on most used imports and on NZ-built trailers). On `7AT` the tenth character
+looks like a year code on 99.8% and equals the first NZ registration year on none: it is not a
+year.
+
+**The tenth character is a model year for some makes only.** Of the 3,135,613 VINs a manufacturer
+assigned (not `7A`), the tenth character is one of the thirty year codes on 2,099,062 (66.9%) and a
+zero on 1,032,997 (32.9%). A code can mean two years thirty years apart; the later was taken
+unless it is more than a year after the first NZ registration. Among NZ-new vehicles first
+registered from 2010 (2,198,959 with a manufacturer's VIN), by make:
+
+| Makes | Vehicles | Share | The decoded year is within one of the registration year |
+|---|---|---|---|
+| 20 makes whose VINs mostly carry no year code (a code is on 0.2% of Toyota's, 6.1% of Suzuki's, 12.7% of BMW's, 19.0% of Mazda's) | 752,192 | 34.2% | not applicable |
+| 112 makes where it agrees on 95% or more (Hyundai, Kia, Volkswagen, Audi, Holden, Tesla among them) | 836,165 | 38.0% | 98.5% |
+| 60 makes where it agrees on 80% to 95% | 165,736 | 7.5% | 91.9% |
+| 103 makes where a valid-looking character agrees on under 80% (Mercedes-Benz 0.2%, Nissan 11.0%, Ford 64.9%, Isuzu 76.0%) | 444,866 | 20.2% | 45.7% |
+
+Inside the 112 makes the decoded year is the registration year on 68.7%, one ahead on 15.5%, one
+behind on 14.2% and older on 1.5%: it behaves as a model year there. A valid character alone does
+not prove a year code, so a model year could only come through a lookup of which makes or prefixes
+use one (invariant 4), and it would cover about four in ten NZ-new vehicles and almost no used
+import. It is not derived.
+
+**The eleventh character adds little to "built in".** It is the plant in a manufacturer's VIN. Of
+the three-character prefixes with 100 vehicles or more, 114 use one eleventh character (310,112
+vehicles), 111 use two or three (589,481), 100 use four to ten (1,300,666) and 39 use more
+(924,994). `ORIGINAL_COUNTRY` is the commonest country of the vehicle's prefix on 93.1% of
+manufacturer VINs, and the commonest of its prefix and eleventh character together on 95.1%. The
+first character alone gives Japan on 99.1% of `J`, South Korea on 99.6% of `K`, China on 97.0% of
+`L`, Thailand on 92.7% of `M` and Germany on 70.8% of `W`. No table of plant codes is in the repo,
+and nothing is derived.
+
 ## Privacy classes: a first reading, for the user to approve in Stage 2
 
 | Class | Fields | Why |
 |---|---|---|
 | Never pulled, never published | `CHASSIS7`, `ENGINE_NUMBER` | D-062, D-076 |
-| Kept in the private archive only; never published itself. A field derived from it may be published once it has been checked against the data (the user, 2026-11-13, D-076) | `VIN11` | It narrows a vehicle to a handful. A model year or a factory read from it describes the vehicle, not the owner; neither is derived or checked yet |
+| Kept in the private archive only; never published itself. A field derived from it may be published once it has been checked against the data (the user, 2026-11-13, D-076) | `VIN11` | It narrows a vehicle to a handful. A model year or a factory read from it describes the vehicle, not the owner. Both were checked against the data on 2026-11-13 (below) and neither is derived |
 | Never published | `OBJECTID` | A row number, no meaning to a visitor |
 | Kept in the private archive only. Publishing waits for the Stage 2 privacy review, and then only as area totals above a minimum count (the user, 2026-11-13, D-076, superseding D-066 item 9) | `POSTCODE` | NZTA's own notes say owner location is given by territorial authority "to make sure it isn't possible to identify a person", and its field list leaves postcode out, yet the field is in the service. 197 postcodes hold fewer than 10 vehicles. The minimum count is not set |
 | Public only above a minimum count | `TLA`, `INDUSTRY_CLASS`, `VEHICLE_USAGE`, `ROAD_TRANSPORT_CODE` when crossed with fine vehicle detail | They describe the owner, not the vehicle. A district crossed with model, colour and year can come down to one vehicle |
