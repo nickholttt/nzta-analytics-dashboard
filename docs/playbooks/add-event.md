@@ -1,8 +1,9 @@
 # Playbook: add or correct an event
 
 Events are append-only data in `data/reference/events.csv` (invariant #3). Schema and rules:
-`docs/EVENTS_LAYER.md` §Schema. **`data/reference/` is frozen until the 8 November 2026 run
-passes.** Get the user's go-ahead first.
+`docs/EVENTS_LAYER.md` §Schema. **The freeze on `data/reference/` is lifted** (D-066): an event
+reaches `main` through a `claude/` or `gemini/` branch cut from `main` and a pull request merged
+as AGENTS.md hard rule 7 allows.
 
 ## Rules
 

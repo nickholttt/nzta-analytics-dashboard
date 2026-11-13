@@ -16,8 +16,8 @@ git log --oneline -10
 2. Uncommitted changes you didn't make belong to someone else. Leave them alone: no staging,
    stashing, reverting or reformatting.
 3. Files under STATE.md "In progress" that belong to the other agent are read-only for you.
-4. Check the freeze in AGENTS.md §Hard rules before editing anything under `pipeline/`,
-   `.github/`, `config/` or `data/`.
+4. Read AGENTS.md hard rule 2 before editing anything under `pipeline/`, `.github/`, `config/` or
+   `data/`: the freeze is lifted, and those paths still reach `main` only through a pull request.
 
 ## Work
 

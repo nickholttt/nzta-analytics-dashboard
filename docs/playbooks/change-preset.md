@@ -29,16 +29,18 @@ page shows only the presets that draw against the current build, and drops a gro
 
 ## Visitor wording
 
-`public_copy` (top level) holds visitor-facing text where frozen `config/dimensions.json` carries text
+`public_copy` (top level) holds visitor-facing text where `config/dimensions.json` carries text
 written for maintainers: `dataset_definitions`, `dimension_labels` and `dimension_notes`, each keyed by
 id. The Explore page uses an entry when there is one and falls back to `dimensions.json`; `/status`
-always shows the original. After the 8 November gate the entries move into `dimensions.json` (D-042).
+always shows the original. The entries are to move into `dimensions.json` now the freeze is lifted
+(D-042, D-066); until they have, edit them here.
 
 ## Rules
 
 - A preset that needs a **new dimension, measure or pair slice** changes `config/dimensions.json` or
-  `config/measures.json`. Those are **frozen**, so the preset is `blocked` and `requires` names the
-  deliverable. Don't work around it in code.
+  `config/measures.json`. Those are pipeline paths: the change goes through a branch cut from `main`
+  and its own pull request (AGENTS.md hard rule 2). Until it is on the branch the site is built from,
+  the preset is `blocked` and `requires` names the deliverable. Don't work around it in code.
 - The UI (`src/components/PresetTriage.tsx`, `src/lib/resolve.ts`) cross-checks the authored
   `status` against what the cube resolves and shows a warning when they disagree. A new preset must
   show no warning.
@@ -56,7 +58,7 @@ npx astro dev stop   # only if you started it
 ## Real example
 
 `1d1d0ed Concentration: render top_5_share, the direct view of fragmentation` added this preset. It was
-done before the freeze; today its `config/measures.json` part would be blocked:
+one commit; today its `config/measures.json` part would go through its own pull request into `main`:
 
 ```json
 {

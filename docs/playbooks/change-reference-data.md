@@ -1,8 +1,9 @@
 # Playbook: change a reference file (and the golden contract)
 
-**Frozen until the 8 November 2026 run passes** (AGENTS.md hard rule 2). Don't start this without
-the user's go-ahead. It covers `data/reference/*.csv`, `config/dimensions.json`,
-`config/measures.json` and `config/pipeline.json`. Queued post-gate work is in `POST_GATE.md`.
+**The freeze is lifted** (D-066, AGENTS.md hard rule 2). This work reaches `main` only through a
+`claude/` or `gemini/` branch cut from `main` and a pull request merged as hard rule 7 allows. It
+covers `data/reference/*.csv`, `config/dimensions.json`, `config/measures.json` and
+`config/pipeline.json`. Work queued while the freeze held is in `POST_GATE.md`.
 
 ## Rules
 
