@@ -1556,3 +1556,219 @@ New entries use this template:
   - Nothing is built by this entry. The work is queued through CHECKPOINT from the brief.
   - Reversing it: revert this commit. No code depends on it yet.
 - Status: accepted, decided by user (when the user commits it with CLAUDE.md)
+
+## D-063 2026-11-13 — The archive: keep each month's whole snapshot, every field, as one file outside git (proposed)
+- Agent: claude, for the user to decide (the brief, Stage 0 item 4).
+- Basis: measured on 2026-11-13 in a scratch folder: `data/snapshots/2026-08.parquet` and `2026-09.parquet` from
+  `origin/main`; the staged build of the saved 2026-08 pull (`data/staging/work.duckdb`, table `src`, 5,905,376 rows,
+  opened read-only); 83,951 rows first registered from August to October 2026, pulled once from NZTA's service at
+  every field but the three identifiers (`POSTCODE` among them; the rows were deleted after sizing); Stats NZ's table
+  `TPT052601` (D-065). Nothing in the repo was changed by the measurements. All sizes are Parquet with zstd, rows
+  sorted.
+- Context:
+  - What a run keeps today: `data/snapshots/YYYY-MM.parquet`, counts by first-registration month, import status,
+    vehicle type, motive power and make (279,294 rows and 531,545 bytes for 2026-08). The rows it pulled go with the
+    runner. The cube is an artifact for 90 days, and a release once #35 merges.
+  - What is lost when NZTA refreshes: the register **as it stood** at that month's end, at anything finer than that
+    aggregate. Later snapshots still hold the month's registrations, less the vehicles removed since (0.16% in
+    August's first month), and as they are recorded then, not as they were. What cannot be rebuilt is the snapshot
+    itself: which vehicles were on the register that day by model, region or segment (what survival is computed
+    from), each month as first observed, and any of the 23 fields the pull does not take.
+  - A snapshot that is never built is not archived at all, at any grain (D-064).
+- Measured:
+  - **How much a month moves after it is first seen**, in the one month that can be measured. August 2026 held
+    24,949 vehicles in the 2026-08 snapshot and 24,908 a month later: 41 fewer (0.16%). NEW fell 24 of 15,238 and
+    USED 16 of 9,022. By make, 15 of 273 moved and none rose; Toyota fell most, 16 of 6,906. At the archive's own
+    grain the cells differ by 65 vehicles in all, with 4 cells higher. The thirteen months before August each fell
+    by 0.04% to 0.12%.
+  - **Against Stats NZ**, cars, August 2026 as first seen: 9,136 NEW passenger cars/vans against Stats NZ's 9,138
+    (99.98%), and 8,156 USED against 8,159 (99.96%). Stats NZ's figures come from NZTA's register too, so this shows
+    two readings of one source agreeing, not an independent check.
+  - **(a) The newest months at every bound field** (16, without `OBJECTID`), as rows: 1 month 24,949 rows, 96 KB;
+    3 months 74,926 rows, 247 KB; 12 months 293,935 rows, 946 KB. Grouped into counts they are no smaller (3 months:
+    41,370 groups, 237 KB). At every field but the identifiers (36), the three months to October 2026 are 651 KB:
+    2.56 times the same rows at the bound fields (255 KB), or 2.17 times without `POSTCODE` (552 KB).
+  - **(b) The whole-snapshot aggregate, widened.** With model: 1,056,643 rows, 4.6 MB. With district: 1,737,943 rows,
+    2.7 MB. With body type and gross mass (what segment is derived from): 1,172,879 rows, 2.8 MB. With model and
+    district: 3,041,829 rows, 9.0 MB. With all four: 3,801,887 rows, 14.0 MB.
+  - **(c) The whole snapshot at the bound fields, as rows:** 22.6 MB (65.7 MB unsorted). Grouped into counts over the
+    same fields: 4,219,010 groups, 21.4 MB, so an aggregate at this grain saves nothing. At every field but the
+    identifiers and `POSTCODE`: **about 49 MB, an estimate** (22.6 MB times the 2.17 measured on the newest three
+    months only; about 58 MB with `POSTCODE`).
+- Options considered:
+  1. (a) alone: commit the newest few months at every field. Small: 0.65 MB a run for three months. It gives
+     registrations as first observed and nothing else: no survival by model, region or segment. At every field it is
+     row-level data in git, which `data/snapshots/` has never held. A missed run loses that month's first
+     observation; three missed runs in a row lose the month.
+  2. (b) alone: widen the committed aggregate. 9 to 14 MB a month in git is 110 to 170 MB a year, too much for a
+     repository meant to last ten years. It also fixes today's choice of fields: whatever is left out is lost.
+  3. (c): keep the whole snapshot as one file, outside git. Everything in (a) and (b) can be computed from it later,
+     at any grain, including for fields not yet bound. This goes further than the brief's (c), "the raw bound
+     columns": the pull itself widens from 17 fields to 36.
+  4. (c), with the committed aggregate left exactly as it is, because the guardrails compare with it.
+- Decision: proposed, option 4.
+  - Each built run writes the whole snapshot to one Parquet file: every source field except `VIN11`, `CHASSIS7`,
+    `ENGINE_NUMBER`, `OBJECTID` and, until the user decides its privacy class, `POSTCODE` (`docs/DATA_MAP.md`); values
+    as NZTA records them; rows sorted.
+  - **Where the file is kept is the user's choice**, because it holds one row per vehicle:
+    - (i) a release in a **private** GitHub repository, written by the run with a token kept as a secret.
+      Recommended: it can be made public later, and publishing cannot be taken back. The repository and the token
+      are the user's to set up. Not tested.
+    - (ii) a public release on this repository, beside the cube (#35's release step).
+    - (iii) nowhere on GitHub: the user downloads it from the run's artifact by hand within 90 days.
+  - A month's file is never replaced (D-064).
+  - Nothing else is widened now. Registrations as first observed (the brief, Stage 4) and survival by model, region
+    and segment are built from these files when their stage comes.
+- Consequences:
+  - **If the file is public, vehicles can be followed from month to month.** NZTA publishes one current snapshot. A
+    series of monthly files with the same fine fields (make, model, submodel, model codes, engine size, vehicle
+    year, first-registration month, colour) would let one vehicle be picked out in each, showing its owner's
+    district, usage and industry class changing over time. `docs/DATA_MAP.md` classes those three as public only
+    above a minimum count, and CLAUDE.md's non-goals rule out vehicle-level lookup. That is why (i) is recommended.
+    Under (ii) the file should leave out or coarsen the owner fields, which costs survival by district.
+  - CLAUDE.md's "never raw rows" is said of `data/snapshots/` and invariant 6 of the browser; neither forbids a
+    private file. The data is NZTA's open data under CC BY 4.0, and the file carries NZTA's attribution.
+  - It changes `pipeline/`, `config/pipeline.json`, `.github/workflows/monthly-build.yml` and the tests: frozen
+    paths, built under D-043. The published cube should not change (inferred — confirm when built), so no golden
+    change is expected.
+  - **It cannot reach `main` quickly.** It builds on the pipeline stack (#26 to #29, #35), so it waits for the user
+    to lift the freeze and merge five pull requests in order, and it adds one more to a queue the brief wants
+    held to five.
+  - Not measured: the run's time and memory with a 36-field pull. On 8 October the run took 7m20s and peaked at
+    2,546 MiB of 15,989 MiB with 17 fields. Per row the wider pull is more than twice the bytes.
+  - GitHub allows 2 GiB per release file and sets no total (GitHub's documentation; not re-read this session).
+  - A release can be deleted by hand and has no history. A second copy is the user's to keep.
+  - **The 2026-10-31 snapshot.** The register holds it until NZTA's December refresh. A dispatched run (the user's
+    decision) archives it at today's grain only. Capturing it at every field through the pipeline afterwards would
+    take a forced rebuild of a month already built, which D-064's rule exists to stop. A one-off pull by hand into
+    gitignored `data/raw/` is the practical way to keep it, and the user's to approve.
+  - The 2026-09-30 snapshot was kept only as the committed aggregate. The 2026-08-31 snapshot survives at the 17
+    bound fields in the saved local pull (`data/raw/2026-08/`, 177 MB, on one disk).
+  - Reversing it: stop writing the file and delete the releases. Nothing reads them yet.
+- Status: proposed
+
+## D-064 2026-11-13 — The monthly run: try every day, build each month once, fail loudly when a month is missed (proposed)
+- Agent: claude, for the user to decide (the brief, Stage 0 item 5).
+- Basis: read on 2026-11-13: the three Monthly build runs' logs and the two cube artifacts' manifests (`gh`); NZTA's
+  service, asked once with the run's own change-detection query from a scratch script that writes nothing;
+  `.github/workflows/monthly-build.yml` and `pipeline/fetch.py` on `origin/main`.
+- Context:
+  - The run is set for the 8th at 06:17 UTC. The 8 November run (42484367432) was scheduled, green and skipped:
+    "Source unchanged since the last good build (snapshot 2026-09-30)". 38 tests passed; 1m17s; peak memory 1,015 MiB.
+  - NZTA refreshed the register the next day. The service's last edit is 2026-11-09 09:50 UTC, it now holds
+    5,926,990 rows with 28,864 first registered in October 2026, and its change key differs from the last good one. A
+    run today would build 2026-10.
+  - The refresh has come later each month: the 2026-08 snapshot was last edited on 3 September, 2026-09 on 6 October,
+    2026-10 on 9 November. GitHub started both scheduled runs about seven hours after the set time (13:25 and
+    13:19 UTC).
+  - Nothing tells anyone. A skip is a green run, so the site would stay a month behind until 8 December. If NZTA
+    refreshes again before the next run, that snapshot is never built: `data/snapshots/` would have no 2026-10, the
+    survival series would have a gap, and October would first be seen a month late.
+- Options considered:
+  1. Leave the schedule; the user dispatches by hand when a run skips. Costs nothing to build. It depends on someone
+     noticing a green run that did nothing, which is how this month was missed.
+  2. A window: daily from the 3rd to the 14th (the brief's example). 12 runs a month. It covers every refresh seen so
+     far, with five days to spare after the latest. The window's edges are a guess from three months, and the refresh
+     has moved three days later each month.
+  3. Every day. One schedule line, no edge to tune, and a refresh is picked up within a day whenever it lands, which
+     is what the brief's Fresh measure asks for (live within 2 days). About 30 runs a month, each 1m17s when it skips
+     (measured on 8 November, 51 s of it the tests). It also runs the tests daily, so a broken dependency shows before
+     the real run.
+  4. Two runs, the 8th and the 15th. Fewer runs, but a month behind for up to a week, and still a guess.
+- Decision: proposed, option 3, with two rules that a retry needs:
+  - **Each month is built once.** With one run a month a snapshot could not be rebuilt by accident. With a daily run it
+    could: if NZTA edits the register again in the same month, the change key differs and today's code would rebuild
+    the same snapshot and overwrite its archive. So once a snapshot month is built, a later change to the source in
+    that month is reported in the run summary and not built, unless the run is forced. This keeps
+    `docs/DATA_SOURCES.md`'s rule: store every monthly snapshot and never overwrite.
+  - **A missed month fails the run.** From the 15th, a run that finds the last good snapshot older than the previous
+    month end fails with a message naming the missing month. Invariant 5 already says a missing month aborts; this
+    applies it to the month that never arrived. A failed scheduled run should reach the user by GitHub's
+    notification email (inferred — confirm: it depends on the user's notification settings). As drafted it fails
+    every day until the month is built; whether once is enough is settled when it is built.
+- Consequences:
+  - It changes `.github/workflows/monthly-build.yml`, `pipeline/fetch.py`, a threshold in `config/pipeline.json` (the
+    day the alarm starts) and their tests: all frozen paths. Built under D-043 on a branch from `main`, with a pull
+    request that stays unmerged until the user lifts the freeze.
+  - Runner time: about 40 minutes a month of skips (30 × 1m17s) plus one build (7m20s on 8 October). GitHub does not
+    charge for standard runners on public repositories (GitHub's published terms; not re-read this session).
+  - The Actions list gains about 30 green entries a month. The playbook's "built or skipped" check reads the same.
+  - The first build of a month wins. If NZTA publishes a faulty refresh and corrects it days later, the correction
+    needs a forced run, which is the user's to start.
+  - The gate's wording ("the scheduled monthly runs on 8 October and 8 November") describes the old schedule. This
+    entry does not change what the gate was.
+  - Not decided here: whether October 2026 is built by a dispatch now. That is the user's (STATE, Blocked).
+  - Reversing it: restore the one schedule line; the two rules are harmless with a monthly run.
+- Status: proposed
+
+## D-065 2026-11-13 — True registration totals from Stats NZ's Infoshare series now (drafted for the user to accept)
+- Agent: claude, drafting the user's direction of 2026-11-13 (the brief §7) with the facts checked. The source and
+  the hand export are the user's; the corrections and the option to script the fetch are Claude's.
+- Basis: read on 2026-11-13: Infoshare (`infoshare.stats.govt.nz`), walked by a scratch script through its own browse
+  pages, and table `TPT052601` exported from it as CSV; `stats.govt.nz/about-us/copyright/`;
+  `stats.govt.nz/tools/we-are-changing-our-data-tools`; the Aotearoa Data Explorer's catalogue;
+  `data/snapshots/2026-08.parquet` and `2026-09.parquet` on `origin/main`. Details: `docs/DATA_SOURCES.md` §C.
+- Context:
+  - The register holds survivors, so a count by first-registration month is not a count of registrations, and older
+    months shrink (measured below). CLAUDE.md build step 1b planned `registrations_flow` from Stats NZ's transport
+    series. On 2026-10-22 the series had no API and the user chose to wait for the Data Explorer. On 2026-11-13 the
+    user chose to use it now.
+  - What the series is: "New and Ex-Oseas Motor Vehicles Registered by Type (Monthly)", file `TPT052601`, table
+    reference `TPT001AA`, last updated 19 October 2026, "Source: NZ Transport Agency". The cars total runs from
+    January 1961 to September 2026.
+  - What it does not have, which the brief's §7 table assumes it does:
+    - New and ex-overseas are split **for cars only**, and only from July 1975. "New Cars and Station Wagons Total"
+      and the seven engine-size bands all include the ex-overseas cars (August 2026: the bands sum to the total,
+      17,297). Commercial vehicles (ten gross-mass bands), buses and motorcycles are not split.
+    - There are no trailers, no brands, no fuels and no regions.
+    - It publishes a month about two weeks after NZTA's service has it, on the one month observed: September 2026
+      was in the service by 6 October and in the series on 19 October. On 13 November it has no October.
+  - Where the two can be compared they agree. Cars, August 2026: Stats NZ 9,138 new and 8,159 ex-overseas; our
+    2026-08 snapshot, taken days after the month ended, 9,136 `NEW` and 8,156 `USED` passenger cars/vans (99.98% and
+    99.96%). Both come from NZTA's register, so this is agreement between two readings, not an independent check.
+    For the nine months of 2026 in the 2026-09 snapshot the share runs from 98.8% to 99.98%.
+  - Survivors of older years, cars, 2026-09 snapshot as a share of Stats NZ's registrations, new then ex-overseas:
+    2025 99.2% and 98.0%; 2022 97.4% and 89.8%; 2018 94.8% and 73.8%; 2014 88.5% and 58.3%; 2010 76.9% and 34.8%;
+    2005 50.1% and 17.0%; 2000 24.2% and 7.7%; 1990 5.6% and 2.3%. These assume Stats NZ's "cars and station wagons"
+    and NZTA's "passenger car/van" have meant the same vehicles throughout, which was checked for 2026 only.
+  - Licence: CC BY 4.0. Stats NZ's statement for adapted content: "This work is based on/includes Stats NZ's data
+    which are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence."
+  - Infoshare has no API and no stable link to a table: the address changes each session. It exports CSV. Stats NZ
+    plans to replace it with the Data Explorer's time series in 2027; the Explorer's catalogue holds no transport
+    series today (913 dataflows).
+- Options considered (how the series is fetched):
+  1. Keep waiting for the Data Explorer. No totals until 2027 at the earliest. Superseded by the user's direction.
+  2. A hand export: the user downloads the CSV from Infoshare each month and a maintainer script checks it and writes
+     the file the pipeline reads, as `scripts/region-boundaries.mjs` does for the map. The user's direction. One hand
+     step a month.
+  3. The maintainer script fetches it: one command that walks Infoshare's browse pages, asks for the CSV, checks it and
+     writes the file. It worked on 2026-11-13 from a short scratch script. No clicking, but it drives a web form that
+     is being retired, and whether Stats NZ's terms allow automated use of Infoshare was not checked.
+  4. Figure.NZ's copy. A third party, behind Stats NZ, with edited headings. Not chosen.
+- Decision (for the user to accept): the Stats NZ series is the source of true monthly totals now, by option 2: a
+  maintainer script run by hand on a hand export, never by the pipeline. Option 3 can replace the hand step if the
+  user wants it and the terms allow it.
+  - It supersedes the 2026-10-22 choice to wait for the Data Explorer. When the series reaches the Explorer only the
+    fetch changes.
+  - Three sources, three jobs, never on one chart (the brief §7): Stats NZ for totals and the long-run volume;
+    registrations as first observed for detail going forward (D-063); survivors for detail in the past.
+  - Completeness is shown and never used to scale a figure. It can be shown for cars, new and ex-overseas, from July
+    1975. For commercial vehicles and motorcycles it waits until Stats NZ's classes are lined up with NZTA's vehicle
+    types, which is not done: August 2026 has 474 "New Motor Cycles" against 452 `NEW` motorcycles, and 3,548 total
+    commercial vehicles (buses included) against 3,221 `NEW` and `USED` goods vehicles. It cannot be shown for
+    trailers.
+  - Every chart and CSV that uses the series carries Stats NZ's statement beside NZTA's attribution.
+- Consequences:
+  - The brief's §7 table says "Vehicle type and new/used only" and "January 1961 onward". Both are narrower in fact
+    (above). The user updates the brief.
+  - The newest month has no Stats NZ figure at first. The headline count for that month has to come from the
+    register as first observed or wait. Which is the user's choice when the headline is designed (the brief,
+    Stage 1 item 4).
+  - The pipeline reading the file, the `registrations_flow` dataset and its cube files are frozen-path work under
+    D-043 and a contract change under hard rule 4. Where the downloaded file lives in the repo is decided with that
+    work.
+  - `docs/DATA_SOURCES.md` §C is rewritten with what was read; the monthly check keeps looking for the series in the
+    Explorer.
+  - Not checked: whether Stats NZ revises past months of the series (the export shows no status flags).
+  - Nothing is built by this entry.
+- Status: proposed; accepted when the user says so
