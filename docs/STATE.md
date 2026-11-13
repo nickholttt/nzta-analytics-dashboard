@@ -16,14 +16,15 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
     nothing fails while the month before is missing. The first daily run is 14 November 2026.
     NZTA's refresh has come on 3 September, 6 October and 9 November.
   - **An archive job** keeps each built month's whole register in the private repository (D-063,
-    D-071). **It has not worked yet:** run 43382023139 (started by hand, `archive` only) failed at
-    its first step, before pulling: the token cannot see the repository (below).
+    D-071). **October is archived:** run 43383948013 (started by hand, `archive` only) pulled
+    5,926,990 rows in 98 s and wrote 35 fields, 39,298,142 bytes; the job took 441 s and peaked
+    at 4,619 MiB of 15,983 MiB. The run before it, 43382023139, failed at its first step as
+    built to: the token could not see the repository until the user added it.
   - `Checks` tests every pull request; `Deploy` stops before building (no `src/lib/site.ts`).
 - **Nothing is deployed.** The site is a local reference UI (`npm run dev`, 127.0.0.1:4321).
-- **The archive's home:** the private repository `nickholttt/nzta-register-archive` (one README
-  commit, no release) and, here, the environment `archive`, limited to `main`, holding the secret
-  `ARCHIVE_REPO_TOKEN` (stored by the user 2026-11-13; expires 13 November 2027). GitHub answers
-  that token 404 for the repository: it is valid and not allowed to see it.
+- **The archive:** the private repository `nickholttt/nzta-register-archive` holds one release,
+  `snapshot-2026-10`, with `mvr-2026-10.parquet`. Here, the environment `archive`, limited to
+  `main`, holds the secret `ARCHIVE_REPO_TOKEN` (the user's; expires 13 November 2027).
 - **The environment `production`** exists, limited to `main`, with no secret. `deploy.yml`'s
   upload job names it and stays off until the variable `CLOUDFLARE_PAGES_PROJECT` is set (D-072).
 - **Events**: 54 rows, 50 verified. Four are unverified on purpose (Honda and Mercedes-Benz agency
@@ -31,27 +32,26 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 ## Current step
 
-**Stage 1 of the master brief.** D-064, D-063 and the deploy environment are on `main`; the site
-stack is in `ui/explore`; the fixes the screenshots called for are #40. Open: the archive token's
-access to the repository, then the archive run for October; the user's export from NZTA's
-dashboard. Next after those: CHECKPOINT's queue.
+**Stage 1 of the master brief.** D-064, D-063 and the deploy environment are on `main`, and
+October is archived. The site stack and the fixes the screenshots called for (#40) are in
+`ui/explore`. The user's export from NZTA's dashboard is read and a proposal is written (D-075).
+Next: the user's decisions (CHECKPOINT), then its queue.
 
 ## In progress
 
-- `claude/site-words` (claude, #40 into `ui/explore`, worktree `../nzta-screens`): the stale words
-  on `/method` and `/caveats` and the ranking table on a phone (D-074). Pushed.
 - `claude/next-stage-brief` (claude, #36, this folder): docs only. Pushed; nothing uncommitted.
-- Nothing else is in progress by either agent. `../nzta-screens` holds `node_modules`, the 2026-10
-  cube in `public/data/` and a built `dist/`, for more screenshots.
+- Nothing else is in progress by either agent. `../nzta-screens` is a detached checkout of
+  `ui/explore` (`e5dfc70`) with `node_modules`, the 2026-10 cube in `public/data/` and a built
+  `dist/`, for more screenshots.
 
 ## Branches and pull requests (checked 2026-11-13)
 
 - `main`: origin `d50bfc6`; local matches.
-- `ui/explore`: origin `a3ec1f3`: PRs #1–#16 (2026-10-21) and the site stack, #17 to #25 and #30
-  to #34 (2026-11-13). Its tree is the old top of the stack.
-- **2 open pull requests:** #40 (above) and #36 `next-stage-brief` into `claude/question-builder`.
+- `ui/explore`: origin `e5dfc70`: PRs #1–#16 (2026-10-21), the site stack, #17 to #25 and #30
+  to #34, and #40, the fixes the screenshots called for (D-074), all on 2026-11-13.
+- **1 open pull request:** #36 `next-stage-brief` into `claude/question-builder`.
 - The merged branches are deleted here and on GitHub: `daily-run`, `register-archive`,
-  `deploy-environment` and the fourteen of the site stack.
+  `deploy-environment`, `site-words` and the fourteen of the site stack.
 - **Built, pushed, no pull request yet:**
   - `claude/question-builder` (`06d727e`, on the old `claude/deploy-proposal`): the question
     builder (D-058 to D-061). Its pull request opens into `ui/explore`; #36 sits on it.
@@ -66,7 +66,9 @@ dashboard. Next after those: CHECKPOINT's queue.
 - **Copies:** `F:\nzta-data-backup` holds both, each file identical by SHA-256 (checked
   2026-11-13), on the project's own disk. The user has also copied them to a separate OneDrive
   (the user's word, D-069; not checked by claude). No pull of September exists anywhere.
-- `data/raw/nzta-dashboard/2026-10/` exists, empty, for the user's export.
+- `data/raw/nzta-dashboard/2026-10/`: the user's hand export from NZTA's dashboard (D-075): one
+  spreadsheet of October 2026 at twelve dimensions (6,509 rows, 28,896 vehicles), NZTA's page as
+  HTML, and four screenshots. On this disk only.
 
 ## Known issues
 
@@ -84,11 +86,12 @@ dashboard. Next after those: CHECKPOINT's queue.
    figures; #29's `config/measures.json` comment has D-033's; and the decision records for the
    code now on `main` (D-047 to D-051, D-056, D-057) are only in `ui/explore`.
 7. The public build still ships the status page's script chunk, unlinked and holding no data.
-8. **October's whole snapshot is not archived.** It waits on the token (Blocked). NZTA holds
-   October until its December refresh; the hand pull is the fallback (`archive --from-pull`).
-9. `/method` and `/caveats` state figures by hand. #40 recomputes them for October; they are a
-   month behind again after each refresh, until the narrative engine (D-062).
-10. Seen in the screenshots and not in #40: the map's legend label "0%" hangs outside the chart
+8. The archive leaves out `VIN11` and `POSTCODE` (D-066 item 9). The user asked in the session
+   whether to use them; nothing is changed until the user decides (CHECKPOINT question 1). NZTA
+   replaces October early in December, so October with those fields needs deciding before then.
+9. `/method` and `/caveats` state figures by hand. They were recomputed for October (#40) and are
+   a month behind again after each refresh, until the narrative engine (D-062).
+10. Seen in the screenshots and not fixed: the map's legend label "0%" hangs outside the chart
     box; "Is the market getting more crowded?" shows a dense grey band before 1970; there is no
     dark theme (the screenshot helper's reading).
 11. The reviewers' follow-ups that are not done, none blocking, are listed in CHECKPOINT item 8.
@@ -109,11 +112,8 @@ dashboard. Next after those: CHECKPOINT's queue.
 
 ## Blocked or waiting on the user
 
-- **The archive token cannot see the archive repository.** The user opens the token's page and
-  adds `nzta-register-archive` under Repository access (walked through one step at a time); then
-  claude starts the archive run again.
-- **NZTA's registrations dashboard**: one export of October, before 1 December (the Stage 1
-  report §5), walked through one step at a time.
+- **The user's decisions** (CHECKPOINT questions): whether `VIN11` and `POSTCODE` may be kept and
+  used; whether the dashboard becomes a source (D-075), starting with one test export.
 - **`ui/explore` into `main`**: asked first. The question builder and the fact table come before
   the site is public (CHECKPOINT).
 - Also waiting: visitor tests; the brief's §12; two NZTA pages an automated reader cannot open
@@ -131,7 +131,8 @@ data/raw/2026-10/20261113T045017Z --out <file>`, 524 s, 39.3 MB; the public site
 - To profile a field, the October pull holds 36 of the 40. For the live register, ask NZTA's
   service with count queries (`pipeline/arcgis.py`'s client, from a scratch script).
 - NZTA's website (`nzta.govt.nz`) answers automated readers with a block page. Don't work around
-  it. Its open data account (`arcgis.com`, owner `Open.Data_NZTA`) and Infoshare both answer.
+  it. Its open data account (`arcgis.com`, owner `Open.Data_NZTA`) and Infoshare both answer. Its
+  registrations dashboard (`qap.nzta.govt.nz`) is read only from the user's hand exports.
 - Headless screenshots: `playwright-core` 1.64.1 from a scratch folder, `executablePath` set to
   Chromium headless shell 1248 under `%LOCALAPPDATA%\ms-playwright`; wait until every chart has
   drawn. The map and ranking are on `/build` (`?build.by=region`; `?build.by=make&build.period=latest_year`).
