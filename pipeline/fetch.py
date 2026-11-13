@@ -6,6 +6,7 @@ import calendar
 import hashlib
 import json
 import sys
+import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -82,8 +83,11 @@ def run(cfg, force: bool = False, github_output: str | None = None, now: datetim
         "warnings": warnings,
     }
     print(f"Pulling {row_count:,} rows from {service.service_name} (snapshot {key['snapshot']}) into {pull_dir}")
+    started = time.monotonic()
     source["rows_saved"] = client.pull_rows(service.layer_url, object_id, list(cfg.pipeline["fields"].values()), pull_dir / "pages")
-    (pull_dir / "source.json").write_text(json.dumps(source, indent=2) + "\n", encoding="utf-8")
+    # The runner log can then split the step's time between the pull and the build.
+    print(f"Pulled {source['rows_saved']:,} rows in {time.monotonic() - started:.1f}s")
+    (pull_dir / "source.json").write_text(json.dumps(source, indent=2) + "\n", encoding="utf-8", newline="\n")
 
     manifest = build_step.build(cfg, source, (pull_dir / "pages" / "*.json.gz").as_posix(), state, now)
     emit(github_output, {"built": "true"})

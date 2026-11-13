@@ -53,9 +53,16 @@ exactly what the project is not.
 The build fails, and the last good build stays deployed, if any
 `verified=true` row has a `scope` outside the enum above, a `scope_value`
 that does not resolve through the vocabulary its dimension produces from
-the data and reference files, or an empty `source_url`. An event whose
-values cannot match any chart is a silent failure; it is caught at build
-time instead.
+the data and reference files, an empty `source_url` or `date_start`, a
+value outside the enum of any other enum column above (`category`,
+`mechanism`, `expected_effect`, `confidence`), or a `title` longer than the
+limit above. An event whose values cannot match any chart is a silent
+failure; it is caught at build time instead.
+
+The build reads each enum's values and the title limit from the table
+above, so they live in one place. `config/pipeline.json` (`events.enum_columns`)
+names the enum columns, so a row reworded until it no longer reads as an
+enum fails the build too, instead of quietly losing its check.
 
 ### Why `mechanism` matters
 

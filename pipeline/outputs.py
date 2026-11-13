@@ -12,7 +12,8 @@ from .reference import quote
 
 def write_json(path: Path, obj) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # "\n" on every platform: a Windows build otherwise writes "\r\n", and its files and payload_bytes differ from the runner's.
+    path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
 
 def write_slice(con, cfg, derived, ds: str, path: Path) -> None:
