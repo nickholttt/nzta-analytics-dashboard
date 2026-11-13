@@ -192,7 +192,7 @@ summed over all of them it gives the dataset's month totals, the slices'
 the browser: `n` over the sum of `n` for the same month and filter.
 
 A list that is empty or not distinct dimension ids, or names a dimension the
-dataset cannot derive (or `month` or `n`), aborts the run. A listed dimension
+dataset cannot derive (or `month`, `n` or `rid`), aborts the run. A listed dimension
 that is not live this run is left out of the table, with a warning, and listed
 in the manifest's `facts.not_live`; if none is live, the table holds the month
 totals alone.
@@ -207,8 +207,11 @@ one-word change to `facts`, and a contract change shown to the user.
 
 The table's total is checked against the vehicles themselves: the counts are
 read back from the written `n.parquet` and must equal the dataset's vehicles
-counted before any reference lookup is joined on, or the run aborts. A
-lookup that matched a vehicle twice, or lost one, is caught here.
+counted before the dimension lookups are joined on, or the run aborts. A
+dimension lookup that matched a vehicle twice, or lost one, is caught here.
+The lookups joined on before that count (scope, import status, brand, the
+model and hybrid exceptions, engine) each abort on a key defined twice or on
+two rows that match the same vehicle (Aborts, below).
 
 ## manifest.json
 
@@ -284,7 +287,7 @@ lookup that matched a vehicle twice, or lost one, is caught here.
     "cluster": [9, 13], "share_cluster": 0.60, "shares": { "0": 0.003, "31+": 0.001 }
   },
   "snapshot_archive": { "path": "data/snapshots/2026-08.parquet", "status": "new" },
-  "payload_bytes": 1238896,
+  "payload_bytes": 3158670,
   "warnings": []
 }
 ```
@@ -424,7 +427,7 @@ Fact table:
 - A dataset's `facts` is not a non-empty list of distinct dimension ids, or names a
   dimension the dataset cannot derive.
 - The table's counts, read back from `n.parquet`, do not total the dataset's
-  vehicles as counted before any reference lookup is joined on.
+  vehicles as counted before the dimension lookups are joined on.
 
 Events:
 

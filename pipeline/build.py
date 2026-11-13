@@ -59,7 +59,7 @@ def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: 
     if configured is None:
         return None
     known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
-    reserved = {FACT_MONTH[0], FACT_COUNT[0]}
+    reserved = {FACT_MONTH[0], FACT_COUNT[0], outputs.FACT_ROW_ORDER}
     if (
         not (isinstance(configured, list) and configured and all(isinstance(d, str) for d in configured))
         or len(set(configured)) != len(configured)
@@ -76,8 +76,8 @@ def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: 
         warnings.append(f"{dataset}: the fact table is written without {dim_id}, which is not live")
     columns = [by_id[d] for d in configured if d in by_id]
     fact_rows, total = outputs.write_facts(con, columns, ds, staging / FACTS_DIR / dataset)
-    # Counted from the vehicles themselves, before any lookup is joined on. The table is grouped from dims, so a count
-    # of dims would agree with it even where a join had repeated or lost a vehicle.
+    # Counted from rows, the vehicles before the dimension lookups are joined on. The table is grouped from dims, so a
+    # count of dims would agree with it even where one of those joins had repeated or lost a vehicle.
     vehicles = con.execute(f"SELECT count(*) FROM rows WHERE {ds}").fetchone()[0]
     if total != vehicles:
         aborts.append(f"{dataset}: the fact table counts {total:,} vehicles, but the dataset has {vehicles:,}")

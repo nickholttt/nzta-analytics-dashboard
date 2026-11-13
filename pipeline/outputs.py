@@ -25,6 +25,10 @@ def write_pair(con, cfg, a, b, ds: str, path: Path) -> None:
     _write_counts(con, cfg, [(a.column, "a_value"), (b.column, "b_value")], ds, path)
 
 
+# The working column that fixes the fact table's row order across its files. A dimension may not take the name.
+FACT_ROW_ORDER = "rid"
+
+
 def write_facts(con, derived: list, ds: str, directory: Path) -> tuple[int, int]:
     """The fact table: counts by month and each given dimension, written one column per file. Every file holds the same
     rows in the same order (month, then the dimensions as configured), so the site rebuilds any subset of columns row
@@ -37,13 +41,13 @@ def write_facts(con, derived: list, ds: str, directory: Path) -> tuple[int, int]
     order = ", ".join(quote(n) for n in names)
     con.execute(f"""
         CREATE OR REPLACE TEMP TABLE facts AS
-        SELECT row_number() OVER (ORDER BY {order}) AS rid, *
+        SELECT row_number() OVER (ORDER BY {order}) AS {FACT_ROW_ORDER}, *
         FROM (SELECT {selected}, CAST(count(*) AS INTEGER) AS {count}
               FROM dims WHERE {ds} GROUP BY ALL)
     """)
     for name in names + [count]:
         con.execute(f"""
-            COPY (SELECT {quote(name)} FROM facts ORDER BY rid)
+            COPY (SELECT {quote(name)} FROM facts ORDER BY {FACT_ROW_ORDER})
             TO {lit((directory / f"{name}.parquet").as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)
         """)
     con.execute("DROP TABLE facts")
