@@ -1,109 +1,108 @@
 # Checkpoint
 
-Last updated by claude on 2026-10-22
+Last updated by claude on 2026-11-13
 
 ## Where we left off
 
-- The 8 October gate run passed (`docs/STATE.md`); the 8 November run is the second.
-- 2026-10-22, third session: the user asked to plan the visitor site's look and feel. Headless
-  screenshots of `/` and `/build` at 390px and 1280px; a private design board (claude.ai
-  artifact Q29nmEBkCn6Svb4jutwq6Q, figures from the local August 2026 cube) shows three
-  directions: A, today's long scroll refined; B, a one-chart workbench where the builder's sentence
-  drives every chart and the Explore questions are starting points; C, a grid of question cards.
-  The user then judged the site not flexible enough: visitors must be able to ask their own
-  questions (example: BYD and Geely by count and by share over time). The board is set aside.
-  Measured a fact table, timed DuckDB-Wasm and hyparquet in a scratch prototype, proposed D-058.
-  The user approved all three rule changes (D-059); building item 9.
-- 2026-10-22, second session: the old queue item 1 is done. Three independent sub-agent reviews of
-  the six pushed branches; every real finding fixed on the branch that introduced it and merged
-  forward, with no rebase or force push; the choices and the points not taken are in D-057. Six pull
-  requests opened: #30–#34 on the UI stack, #35 on the pipeline stack. Checked: every new commit
-  typechecks and builds; headless at 320px and 1280px on each UI branch head (axe, console, sideways
-  scroll, every "Change this chart" link); #35 by CI.
-- 2026-10-22, first session: #26–#29 built on `main`'s side; step 1b blocked for lack of a source.
-  The user's answers: step 1b waits for the Stats NZ Data Explorer; deploy by D-055's option (C)
-  without the internal pages (D-056); the region map stays on the Build page.
+- 2026-11-13: the user set the next stage's direction. Filed on `claude/next-stage-brief` (#36):
+  `docs/brief/MASTER_BRIEF.md`, the user's CLAUDE.md, D-062, and AGENTS.md's "eight" invariants.
+  Then **Stage 0 of the brief, done and reported**: `docs/brief/STAGE_0_REPORT.md`.
+  - The 8 November run was scheduled, green and skipped. NZTA refreshed the register on 9 November,
+    so October 2026 is waiting to be built. Nothing was dispatched.
+  - Measured: August 2026 moved 0.16% in its first month and matched Stats NZ's cars to 0.04%; the
+    whole register is a 22.6 MB file at the bound fields, about 49 MB (estimate) at every field.
+  - Proposed: D-063 (keep each month's whole snapshot as one private file), D-064 (run daily, build
+    each month once, fail when a month is missed), D-065 (Stats NZ's Infoshare series now).
+  - An independent review (opus) found twenty points; the real ones are fixed in the report and
+    the decisions, and the report's last section says what was done outside the repo.
+  - `docs/DATA_MAP.md`: a first pass over all 40 fields. `docs/DATA_SOURCES.md` §A and §C and the
+    monthly playbook corrected with what was read.
+  - Read vstat and Autotalk's StatsHub. Both had October on 1 November, from NZTA's registrations
+    dashboard.
+- 2026-10-22: the question builder and the fact table were built and reviewed (D-058 to D-061) on
+  `claude/question-builder` and `claude/fact-table`; neither has a pull request. Before that:
+  #30–#35 opened after three independent reviews (D-057); #26–#29 built on `main`'s side.
 - Earlier: the UI is Claude's (D-027); the visitor site is local only until the gate (D-041);
-  frozen-path work is built on branches before it (D-043); the Build page is D-044 to D-046.
+  frozen-path work is built on branches before it (D-043).
 
-## Open pull requests waiting on the user
+## Open pull requests waiting on the user (20)
 
 UI stack, merged in order into `ui/explore` (as each merges, retarget the next to `ui/explore`):
+#17 notes after the merge; #18 the visitor Explore page (D-041); #19 one time row, visitor wording
+(D-042); #20 AGENTS.md rule 2's exception (D-043); #21 the Build page (D-044); #22 the 12-month
+ranking (D-045); #23 reserved values (D-046); #24 the prototype's queue; #25 D-047 to D-051; #30
+"Change this chart" (D-052); #31 pair slices on the site (D-053); #32 screen readers and tables of
+figures; #33 the map (D-054); #34 the public build (D-055 to D-057).
 
-1. #17 `claude/notes-after-merge`: STATE and CHECKPOINT after #1–#16.
-2. #18 `claude/public-explore`: the visitor Explore page and `/status` (D-041).
-3. #19 `claude/explore-copy-controls`: one time row, visitor wording (D-042).
-4. #20 `claude/pipeline-branch-rule`: AGENTS.md rule 2's exception (D-043).
-5. #21 `claude/sentence-builder`: the Build page (D-044).
-6. #22 `claude/builder-league`: the 12-month ranking (D-045).
-7. #23 `claude/reserved-values`: reserved values on their own line (D-046).
-8. #24 `claude/prototype-queue`: the prototype's queue items. Docs only.
-9. #25 `claude/pipeline-decisions`: D-047 to D-051 and the step 1b finding. Docs only.
-10. #30 `claude/explore-build-together`: "Change this chart" and one readout (D-052).
-11. #31 `claude/pair-views`: the site reads pair slices (D-053, D-057).
-12. #32 `claude/a11y-pass`: screen readers, tables of figures, the visitor-test playbook (D-057).
-13. #33 `claude/geo-map`: the map on the Build page (D-054, D-057).
-14. #34 `claude/deploy-proposal`: the public build, a not-found page, D-055 to D-057, these notes.
+Pipeline stack, into `main`, in order. **Not before the user lifts the freeze**: #26 tests on every
+pull request (D-048); #27 pair slices (D-047); #28 `segment_group`; #29 B1–B3 and D-049 to D-051;
+#35 the cube release and `deploy.yml` (D-056).
 
-Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
-
-15. #26 `claude/pr-checks`: tests on every pull request (D-048).
-16. #27 `claude/pair-slice-import-age`: POST_GATE A1, pair slices (D-047).
-17. #28 `claude/segment-group`: POST_GATE A3.
-18. #29 `claude/post-gate-fixes`: B1–B3, the `measures.json` comment, `events.csv`, event schema
-    checks, manufacturer group's cardinality (D-049 to D-051).
-19. #35 `claude/deploy-workflow`: the cube release and `deploy.yml` (D-056, D-057). It may merge
-    before `ui/explore` reaches `main`: until then `deploy.yml` stops before building.
+#36 `claude/next-stage-brief` into `claude/question-builder`: D-062, the brief, Stage 0. Docs only.
 
 ## Work queue (in order)
 
-1. **8 November 2026 gate run.** Scope: `docs/playbooks/check-monthly-run.md`, step 1b's source
-   check included. Fast-forward local `main` to `origin/main` first. Done when: green, built or
-   skipped, and committed are reported. If clean, the freeze lifts.
-2. **Merging after the gate.** The user merges the UI stack into `ui/explore` and the pipeline stack
-   into `main`, each in order. When #29 meets `ui/explore`, correct `$ranking_period_comment`
-   (STATE known issue 4).
-3. **`ui/explore` into `main`** (the user merges; it touches no frozen path, checked 2026-10-22).
-4. **Once a monthly build carries #27 and #28**: flip `used-import-age` and `powertrain-mix` to live
-   (STATE known issue 5); in one commit, move each `public_copy` entry onto `config/dimensions.json`
-   and drop the block (D-042); size and add the `import_status` pairs that "of [all / new / used]
-   vehicles" needs on the Build page (one pair per dimension, a pipeline config change each), then
-   widen the builder (D-044).
-5. **Step 1b, POST_GATE A2.** Waits until the TPT series reaches Stats NZ's Data Explorer (the
-   user's choice); the monthly check looks each month. When it appears, plan the dataset.
-6. **Deploy.** Built (D-056, D-057). After items 1 to 3, give the user numbered console steps, one
-   at a time, all production: a Cloudflare Pages project for Direct Upload named
-   `nz-vehicle-registrations` (or set the repository variable `CLOUDFLARE_PAGES_PROJECT`) with `main`
-   as its production branch; an API token limited to Cloudflare Pages: Edit; the GitHub secrets
-   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, placed as question 1 decides. Then run
-   `deploy.yml` by hand on `main`. Done when a `pages.dev` URL serves `/` and `/build` from a
-   monthly run's cube, `/status` returns 404 with the not-found page, and first-load time is
-   measured there at phone width.
-7. **Visitor sessions and first-load speed.** Visitor sessions (the user runs them:
-   `docs/playbooks/visitor-test.md`); first-load time on the deployed site; first-load speed (STATE
-   known issue 1): small first-paint files per chart, which `docs/CUBE_SCHEMA.md` already plans
-   (`presets/{preset_id}.json`), or a lighter bundle. Measure before and after, at phone width.
-8. **`age-distribution-moving-hole`.** The distribution drawn year by year (a ridgeline inside the
-   distribution shape) with its events. Re-triage the preset first (`presets.json` `$status`).
-   UI work, so it may be built before the gate (D-041), as a local build only.
-9. **Free exploration (D-058, approved in D-059).** Three pull requests: (A) the fact
-   table as one file per column, on a branch from `main`, unmerged until the gate (D-043); (B) the
-   question builder on the UI stack, reading a locally built fact table; (C) Explore's presets open
-   in the builder. Done when the BYD and Geely Holding question draws by count and by share at 320px
-   and 1280px, and its phone-profile first load is measured.
-10. **Map follow-ups.** A visitor name for "Area Outside Region" (STATE known issue 2); a
-   per-capita map needs a population reference file (`docs/METRICS.md`, Per capita).
+1. **The user's time-bound decisions** (questions 1 to 5 below), before NZTA's December refresh.
+   Done when October 2026 is built and committed on `main`, and the user has said whether the
+   freeze is lifted.
+2. **If the user accepts them, build D-064, then D-063** (frozen paths, D-043). D-064 on a branch
+   from `origin/main`: the daily schedule, the build-once rule, the missed-month alarm, tests.
+   D-063 on top of the pipeline stack (`claude/deploy-workflow`): the wider pull and the monthly
+   file, kept where question 3 decides. Done when CI is green on each pull request. Neither can
+   reach `main` until the user lifts the freeze and merges #26 to #29 and #35, so October (and
+   probably November) is kept by a hand pull if question 4 says so.
+3. **Stage 1 of the brief, when the user says so** (`docs/brief/MASTER_BRIEF.md` §9): ship what
+   exists.
+   - Merge support: the two stacks in order; when #29 meets `ui/explore`, correct
+     `$ranking_period_comment` (STATE known issue 4); then `ui/explore` into `main`. The user
+     merges. Open pull requests for `claude/fact-table` and `claude/question-builder`, each with a
+     five-line summary. No more than five waiting at once, if the user confirms that limit.
+   - Deploy: numbered console steps, one at a time, all production: a Cloudflare Pages project for
+     Direct Upload named `nz-vehicle-registrations` with `main` as its production branch; an API
+     token limited to Cloudflare Pages: Edit; the GitHub secrets `CLOUDFLARE_API_TOKEN` and
+     `CLOUDFLARE_ACCOUNT_ID`, placed as question 11 decides. Done when a `pages.dev` address serves
+     `/` and `/build` from a monthly run's cube and `/status` returns the not-found page.
+   - About, feedback and corrections, and "why these figures differ" pages.
+   - The Stats NZ series (D-065): headline count and completeness.
+   - Visitor tests (`docs/playbooks/visitor-test.md`) and first load measured on the deployed site.
+4. **Once a monthly build carries #27 and #28**: flip `used-import-age` and `powertrain-mix` to
+   live (STATE known issue 5); move each `public_copy` entry onto `config/dimensions.json` (D-042).
+5. **Stages 2 to 5 of the brief**, each on the user's word: the data map and the query service;
+   the stage; what the industry expects; trust and reach.
+6. **Kept from the old queue, unplaced by the brief:** `age-distribution-moving-hole` (the
+   distribution drawn year by year); a visitor name for "Area Outside Region"; a per-capita map.
 
 ## Questions for the user
 
-1. **Where the Cloudflare secrets live.** (a) Repository secrets: the workflow works as it is, and
-   it already uploads only from `main`. (b) A GitHub environment limited to `main`: safer, because
-   a workflow edited on another branch could not read them; `deploy.yml` needs one line
-   (`environment:`) and the secrets go into the environment. I recommend (b). If there is no answer,
-   I write the console steps for (a) and the workflow stays as it is.
+Options and reasoning for 1 to 10: `docs/brief/STAGE_0_REPORT.md`, "Decisions for you".
+
+1. **Build October 2026 now?** Recommend: you dispatch one unforced run on `main`, before any merge.
+2. **Has the gate passed?** Recommend: yes, once that run is green.
+3. **The archive (D-063), and where its files are kept?** Recommend: accept, in a private GitHub
+   repository's releases, without the identifiers and `POSTCODE`.
+4. **Pull October by hand now?** Recommend: yes, into gitignored `data/raw/2026-10/`. It is the
+   only practical way to keep that snapshot at every field.
+5. **Where is the August raw pull copied?** Recommend: a backed-up folder you name, and wherever
+   question 3 puts the monthly files.
+6. **The daily run (D-064)?** Recommend: accept option 3 with its two rules.
+7. **Stats NZ (D-065)?** Recommend: accept, with a hand export each month as the brief says. A
+   scripted fetch worked, but Stats NZ's terms for automated use are not checked.
+8. **NZTA's registrations dashboard as a source?** Recommend: export one month by hand so it can
+   be read. `docs/DATA_SOURCES.md` §D stands until you say otherwise.
+9. **`POSTCODE`'s privacy class?** Recommend: never published, and not pulled or archived.
+10. **CLAUDE.md's three untagged changes?** Recommend: accept as they are.
+11. **Where the Cloudflare secrets live** (from 2026-10-22). (a) Repository secrets. (b) A GitHub
+    environment limited to `main`: safer; `deploy.yml` needs one line. Recommend (b). With no
+    answer, the console steps are written for (a).
+
+Also yours, from the brief's §12: the `matrix` shape; the acceptable running cost; the limit of
+five pull requests; the About page; the name and domain. And two pages NZTA's site would not show
+an automated reader: "Additions to the national vehicle fleet" and "Existing fleet" (the report,
+§6).
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. If it is on or after 8 November 2026, take item 1 (the
-gate run) first. Before then, everything open waits on the user, except items 8 to 10, which are UI
-work that may be built ahead of the gate as local builds.
+/start. Read `docs/STATE.md`, this file and `docs/brief/STAGE_0_REPORT.md`. Check first whether
+October 2026 has been built (`gh run list`, `git log origin/main`) and whether NZTA has refreshed
+again. Then do what the user's answers allow: queue item 2 if D-063 and D-064 are accepted, and the
+stage the user names. Change nothing on a frozen path outside D-043, merge nothing, dispatch nothing.
