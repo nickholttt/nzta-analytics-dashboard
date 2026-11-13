@@ -147,4 +147,3 @@ the live run. The site commands were not re-run on 2026-11-13.
   `MSYS_NO_PATHCONV=1`, and never leave a bare `python -` in a command: it waits for input.
 - To merge a stacked pull request: point it at its final base (`gh pr edit N --base main`), close
   and reopen it so `Checks` runs against that base, wait for green, then `gh pr merge N --merge`.
-  GitHub reports `mergeable` as `UNKNOWN` for a few seconds after the base moves; wait for it.
