@@ -47,7 +47,7 @@ export default function PresetTriage() {
         <p className="meta">Every authored status matches what this build resolves.</p>
       )}
 
-      <div className="table-scroll">
+      <div className="table-scroll" role="region" aria-label="Every preset and what it waits on" tabIndex={0}>
       <table className="triage">
         <thead>
           <tr>

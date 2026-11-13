@@ -460,7 +460,11 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
         </div>
       </div>
       <p className="chart-unit">{smoothingOption?.axis}</p>
-      <PlotFigure render={render} onWidth={setFigureWidth} />
+      <PlotFigure
+        render={render}
+        onWidth={setFigureWidth}
+        label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: ${(smoothingOption?.axis ?? "share").toLowerCase()}, one line per group. The table below the chart gives each group's share over the last ${TRAILING_MONTHS} months.`}
+      />
       <table className="key">
         <thead>
           <tr>

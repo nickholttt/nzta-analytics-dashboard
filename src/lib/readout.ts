@@ -17,8 +17,16 @@ export type Readout = {
   extra?: string[];
 };
 
-const count = (n: number) => Math.round(n).toLocaleString("en-NZ");
+export const count = (n: number) => Math.round(n).toLocaleString("en-NZ");
 const vehicles = (n: number) => `${count(n)} ${Math.round(n) === 1 ? "vehicle" : "vehicles"}`;
+
+// Why a figure is greyed, in the same words in a readout and in a chart's table of figures.
+export const greyedReason = (greyed: Greyed | undefined, minDenominator?: number) =>
+  greyed === "thin"
+    ? `Greyed: fewer than ${minDenominator ?? ""} vehicles behind this figure`
+    : greyed === "collapsed"
+      ? "Greyed: far fewer vehicles than the months before, so it may not describe a normal month"
+      : "";
 
 export const monthPeriod = (month: string, rolling = false) =>
   rolling ? `${TRAILING_MONTHS} months to ${monthLabel(month)}` : monthLabel(month);
@@ -30,11 +38,5 @@ export function readout(r: Readout): string {
     figure = pct(r.share);
     if (r.n !== undefined && r.base !== undefined) figure += ` · ${count(r.n)} of ${vehicles(r.base)}`;
   } else if (r.n !== undefined) figure = vehicles(r.n);
-  const greyed =
-    r.greyed === "thin"
-      ? `Greyed: fewer than ${r.minDenominator ?? ""} vehicles behind this figure`
-      : r.greyed === "collapsed"
-        ? "Greyed: far fewer vehicles than the months before, so it may not describe a normal month"
-        : "";
-  return [r.name, r.period, figure, greyed, ...(r.extra ?? [])].filter(Boolean).join("\n");
+  return [r.name, r.period, figure, greyedReason(r.greyed, r.minDenominator), ...(r.extra ?? [])].filter(Boolean).join("\n");
 }
