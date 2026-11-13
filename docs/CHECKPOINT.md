@@ -5,6 +5,15 @@ Last updated by claude on 2026-10-22
 ## Where we left off
 
 - The 8 October gate run passed (`docs/STATE.md`); the 8 November run is the second.
+- 2026-10-22, third session: the user asked to plan the visitor site's look and feel. Headless
+  screenshots of `/` and `/build` at 390px and 1280px; a private design board (claude.ai
+  artifact Q29nmEBkCn6Svb4jutwq6Q, figures from the local August 2026 cube) shows three
+  directions: A, today's long scroll refined; B, a one-chart workbench where the builder's sentence
+  drives every chart and the Explore questions are starting points; C, a grid of question cards.
+  The user then judged the site not flexible enough: visitors must be able to ask their own
+  questions (example: BYD and Geely by count and by share over time). The board is set aside.
+  Measured a fact table, timed DuckDB-Wasm and hyparquet in a scratch prototype, proposed D-058.
+  The user approved all three rule changes (D-059); building item 9.
 - 2026-10-22, second session: the old queue item 1 is done. Three independent sub-agent reviews of
   the six pushed branches; every real finding fixed on the branch that introduced it and merged
   forward, with no rebase or force push; the choices and the points not taken are in D-057. Six pull
@@ -77,7 +86,12 @@ Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
 8. **`age-distribution-moving-hole`.** The distribution drawn year by year (a ridgeline inside the
    distribution shape) with its events. Re-triage the preset first (`presets.json` `$status`).
    UI work, so it may be built before the gate (D-041), as a local build only.
-9. **Map follow-ups.** A visitor name for "Area Outside Region" (STATE known issue 2); a
+9. **Free exploration (D-058, approved in D-059).** Three pull requests: (A) the fact
+   table as one file per column, on a branch from `main`, unmerged until the gate (D-043); (B) the
+   question builder on the UI stack, reading a locally built fact table; (C) Explore's presets open
+   in the builder. Done when the BYD and Geely Holding question draws by count and by share at 320px
+   and 1280px, and its phone-profile first load is measured.
+10. **Map follow-ups.** A visitor name for "Area Outside Region" (STATE known issue 2); a
    per-capita map needs a population reference file (`docs/METRICS.md`, Per capita).
 
 ## Questions for the user
@@ -91,5 +105,5 @@ Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
 ## Prompt for the next session
 
 /start. Read `docs/STATE.md` and this file. If it is on or after 8 November 2026, take item 1 (the
-gate run) first. Before then, everything open waits on the user, except items 8 and 9, which are UI
+gate run) first. Before then, everything open waits on the user, except items 8 to 10, which are UI
 work that may be built ahead of the gate as local builds.

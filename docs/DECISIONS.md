@@ -1322,3 +1322,163 @@ New entries use this template:
   concentration chart's disclosure; the Build page gains the disclosure on distributions, the age note's sentence and
   the map's changes. The narrowed-chart line shows once a build carries the pairs (D-053).
 - Status: decided by Claude (unreviewed)
+
+## D-058 2026-10-22 — Free exploration: one fact table the browser aggregates, and a question builder over it (proposed)
+- Agent: claude, at the user's request: "the underlying platform of this site must let users create their own story";
+  their example was BYD and Geely registrations over time, by share and by count.
+- Basis: measured on 2026-10-22 from the staged build of the saved 2026-08 pull (`data/staging/work.duckdb`, table
+  `dims`), copied to a scratch folder; the npm registry; Cloudflare's Pages docs ("Serving Pages", updated 2026-10-10,
+  and "Limits"); a throwaway prototype timed in headless Chromium. Nothing in the repo was changed by the measurements.
+- Context: why the site is not flexible. The data was never the limit: `make` and `parent_group` are in the published
+  cube by month since 1912 (BYD 15,155 still registered, Geely Holding 25,951). The limits are design choices:
+  1. The brief chose them: Build is "a constrained sentence-builder", there is no SQL console, and the shape is
+     inferred so "the user never picks a chart type" (CLAUDE.md).
+  2. The cube holds one dimension per file, plus pairs added one at a time (D-047). A question that crosses
+     dimensions, such as BYD among battery EVs in Auckland, has no file until the pipeline adds that pair, and each pair
+     is a pipeline change behind the gate.
+  3. The builder picks a dimension, never values: a visitor cannot name BYD and Geely Holding, and high-cardinality
+     dimensions are cut to a top N with the rest folded (D-050).
+  4. The builder offers share only (D-044).
+  5. Explore is a fixed canon of presets.
+- Measured:
+  - A fact table of `registrations_surviving`: rows grouped by month and eleven dimensions (make, parent group, owner
+    country, model as capped by the pipeline, powertrain, import status, region, segment, built in, engine size band,
+    age at registration band) with a count. 1,729,052 rows summing to 4,502,964, the dataset's row count; BYD and Geely
+    Holding total the same as the cube. 5.45 MB as Parquet with zstd, 7.31 MB with snappy.
+  - Column sizes, snappy: model 1.37 MB, region 1.09, age band 1.00, count 0.94, engine band 0.85, built in 0.53,
+    powertrain 0.44, segment 0.37, import status 0.34, make 0.13, parent group 0.11, owner country 0.08, month 0.01.
+    The BYD and Geely question needs month, parent group and count: 1.06 MB.
+  - Prototype: BYD and Geely Holding, monthly count and share since 2018, served locally with brotli. "Phone" is the
+    STATE known issue 1 profile (390px, 150 ms latency, 1.6 Mbps, CPU slowed four times).
+    - DuckDB-Wasm 1.32.0: the engine is 34.2 MB (5.2 MB brotli), and the first query fetches its Parquet extension from
+      extensions.duckdb.org (about 8 s). Drawn after 12.3 s on desktop and 60.8 s on the phone profile; a second,
+      different query took 20 ms.
+    - hyparquet 1.31.5 (already a site dependency) and plain JavaScript: drawn after 2.7 s on desktop and 33.5 s on
+      the phone profile, 29.1 s of it downloading the whole 7.3 MB file.
+    - Both gave BYD 6,145 and Geely Holding 2,740 of 234,328 vehicles in the 12 months to August 2026.
+  - Cloudflare Pages: 25 MiB at most per file; a range request gets the whole file with a 200, not a 206.
+- Options considered:
+  - Engine:
+    - (a) DuckDB-Wasm (MIT): full SQL and the fastest repeat queries. Its engine file is over Pages' 25 MiB, so it would
+      load from a CDN, and it fetches extensions from duckdb.org: two outside services. Slowest first load. Its last
+      stable release is 1.32.0 (December 2025); npm's `latest` tag is a dev build. Mosaic (`@uwdata/vgplot` 0.34.0,
+      BSD-3) builds on it and carries the same costs. Not chosen.
+    - (b) Perspective 3.8.0 (FINOS, Apache-2.0): a pivot engine with a complete pivot-and-chart interface, about 3.3 MB
+      of Wasm, reading Arrow rather than Parquet. Its interface is built for analysts. A candidate for a later
+      "pivot table" view for power users, not the main surface.
+    - (c) Graphic Walker 0.5.3 (Kanaries, Apache-2.0): Tableau-style drag and drop over Vega-Lite, about 400 KB gzipped
+      by its docs, which advise server-side computation above about 100,000 rows, so it would sit on our own
+      aggregation. Drag and drop asks a visitor to know what a field and an encoding are. Not chosen.
+    - (d) Server BI (Superset, Metabase): needs a server and a running cost, which the brief rules out.
+    - (e) hyparquet with our own aggregation, drawn by Observable Plot: both already dependencies, no outside service,
+      fits Pages. Chosen.
+  - Delivery without range requests: the fact table published as one file per column, in the same row order, so a
+    question downloads only its columns (1.06 MB for the example). The existing small cube files stay for Explore's
+    first paint.
+  - Surface: a question builder. Measure: count, share, or both as two charts one above the other (never two axes).
+    Compare: any values of any dimension, found by typing (BYD, Geely Holding, a model, a region). Filter: by any other
+    dimension. Time: month, quarter or year, with or without 12-month rolling, over any range. A table view, a CSV of
+    exactly what is drawn, and a link that reopens the view. Drawn by the existing renderers, with the shape inferred
+    and switchable among the shapes that fit the question. The events layer and the definition line on every view.
+- Decision: proposed; needs the user's approval because it changes hard rules (below).
+- Consequences:
+  - Hard rules it changes: CLAUDE.md's "constrained sentence-builder" becomes a question builder; §Shapes' "the user
+    never picks a chart type" becomes "the shape is inferred, and the visitor may switch among the shapes that fit";
+    invariant 6 keeps "the browser never scans raw data" (the fact table holds counts, no vehicle rows), with
+    "precompute everything" read as "precompute the fact table". The five renderers stay; no sixth.
+  - The fact table is a cube contract change (`docs/CUBE_SCHEMA.md`, pipeline outputs, golden test), frozen until the
+    8 November gate; built before it on a branch from `main` (D-043). The builder is UI work (D-041).
+  - Risks: cells as small as one vehicle (the source register is already public vehicle by vehicle, with no owner
+    data); free comparison makes `registrations_surviving` easier to misread as sales, so every view keeps its
+    definition line. First load on the phone profile for a three-column question is estimated at 5 to 6 s from 1.06 MB
+    at 1.6 Mbps: not measured.
+  - Not built or measured: the per-column split, the builder, and the parent-group and owner-country columns as
+    browser-side lookups from `brand_registry.csv` instead of stored columns.
+  - The look-and-feel board of 2026-10-22 (CHECKPOINT) is set aside: the user judged the site's flexibility, not its
+    look, to be the problem.
+- Status: proposed
+
+## D-059 2026-10-22 — The user approves D-058's three rule changes
+- Agent: user ("1, do all three", answering CHECKPOINT question 2 in session).
+- Basis: this session.
+- Context: D-058 proposed free exploration and listed three changes to hard rules.
+- Decision: all three are approved. (a) Build becomes a question builder in place of the constrained sentence.
+  (b) Where more than one of the five shapes fits a question, the visitor may switch among them; the shape is still
+  inferred first, and no sixth is added. (c) The pipeline publishes a fact table of counts, one file per column, beside
+  the slices. CLAUDE.md's opening, invariant 6 and §Shapes are reworded to match in the same commit.
+- Consequences: D-058's status becomes accepted through this entry (D-058 itself is not edited). The fact table is
+  pipeline work, built on `claude/fact-table` from `claude/deploy-workflow` and unmerged until the 8 November gate
+  (D-043); the builder is UI work on the UI stack (D-041). The golden contract changes with the fact table and is shown
+  to the user (AGENTS.md hard rule 4).
+- Status: accepted, decided by user
+
+## D-060 2026-10-22 — The question builder: what it asks, and the choices inside it
+- Agent: claude, building D-058 under D-059.
+- Basis: branches `claude/fact-table` (the fact table) and `claude/question-builder`; headless checks on 2026-10-22
+  against a dry-run build of the saved 2026-08 pull that carries the fact table.
+- Context: D-059 approved a question builder over a fact table. These are the choices made building it that a
+  reviewer could want to reverse.
+- Decision:
+  - A question is a measure, a breakdown, the values of that breakdown to compare, and conditions ("Only vehicles
+    where"), each a dimension and the values it keeps. Values and conditions are summed in the browser from the fact
+    table (`factView` in `src/lib/data.ts`); a question with neither reads the slices, as before.
+  - Measures: share, number (count), share and number (two charts, one above the other, never two axes), and the
+    share of the 5 largest. Count is offered now, with the note that these are vehicles still registered, not sales,
+    and that older months are thinned by scrappage; D-044 had withheld it. Models are offered, with the existing note
+    on the model cap.
+  - A count broken down draws one line per chosen value (the trend renderer, extended to several lines: still the
+    trend shape). With none chosen it starts on the five largest in the last 12 months, which the visitor can change.
+    A share with no values chosen draws the canon's mix chart, the largest values with the rest as All other.
+  - At most 8 values at once: the palette has eight colours that stay distinguishable (`src/lib/theme.ts`).
+  - A question that names values opens on 10 years (`period_when_comparing` in `config/presets.json`), not all time:
+    most named values have little history before that. The time row still offers all time.
+  - Count lines take colours by vehicles in the last 12 months, largest first, the rule the mix chart uses for its
+    first slots, so a value wears the same colour on the share and the count chart.
+  - "Show as" offers lines over time beside a map or a distribution, where a share is broken down by region or a
+    band: the only places a second shape fits today. A ranking stays in the time row, as before (D-045).
+  - Value lists come from the 1-D slices, largest in the last 12 months first, then largest over all time, so a brand
+    no longer sold can still be found by typing.
+  - A condition on a dimension the fact table lacks, or the config does not define, blocks the chart rather than
+    being dropped: a chart quietly missing a filter answers a different question. So Explore's light-passenger
+    powertrain chart offers no "Change this chart" link until `segment_group` is defined in `config/dimensions.json`
+    (pull request #28).
+  - The question lives in the address bar (`build.measure`, `build.by`, a `build.value` per value, a
+    `build.where.<dimension>` per kept value, `build.view`), so "Copy link" shares it. Explore's links use the same form.
+  - The old sentence builder (`SentenceBuilder.tsx`) is removed; `builder.ts` keeps its role with a question in place
+    of a choice.
+- Not done: a 12-month running total on count comparisons (the trend renderer offers it to `rolling_12m` presets
+  only); events scoped to a parent group appear only where their scope matches the breakdown; aggregation runs on the
+  main thread, not in a worker; first load of a fact-table question has not been measured at the phone profile.
+- Consequences: the Build page answers questions such as BYD and Geely Holding, by share and by number, over time, or
+  the share of BYD, Tesla and Toyota among battery EVs. On the 2026-08 dry run each drew in about 1.6 to 2.5 s
+  headless at 1280px and 390px against the local dev server, with no console errors and no sideways scroll.
+- Status: decided by Claude (unreviewed)
+
+## D-061 2026-10-22 — What the independent review of the fact table and the question builder changed
+- Agent: claude. A sub-agent that had not seen the work reviewed both branches (`claude/fact-table`,
+  `claude/question-builder`) and found 13 problems; each was checked and fixed on the branch it belongs to.
+- Basis: headless checks on 2026-10-22 at 1280px and 320px against the 2026-08 dry run with the fact table: seven
+  questions, axe (WCAG 2.1 A and AA) with no violations, no console errors, no sideways scroll; the fact-table, golden
+  and pair tests (24 passed).
+- Decision, site:
+  - A number broken down always draws lines (trend), whatever the breakdown's own shape: the map and the distribution
+    draw shares only, so "the number of vehicles by owner's region" had drawn a share map. "Show as" applies to the
+    share chart only. This extends D-060.
+  - Chosen values are never ranked: a ranking of three hand-picked brands read as their place in the market.
+  - Count copy says what is counted: "Vehicles first registered each month, still registered", and "N first
+    registered in the last 12 months" beside each value, not "N in the last 12 months".
+  - The fact table's view has every month, with a denominator of 0 where the conditions keep nothing, so a narrow
+    count runs through true zeros instead of breaking; a share there is still left blank.
+  - Starting values and the figures beside each suggestion are counted among the vehicles the other conditions keep.
+  - Values from the address bar are de-duplicated and capped at 8. A condition on the breakdown itself becomes the
+    values compared instead of being dropped. Both charts' settings clear when the question changes.
+  - Late work (starting values arriving) builds on the question as it is then, not as it was when it started, so a
+    condition added meanwhile is kept.
+  - "Add a condition on" is a select and an Add button: a select that acted on change added a condition per arrow key.
+    Focus returns to the search box after a value is added or removed, and to the select after a condition is removed;
+    each remove button names its condition; remove targets are 44px.
+  - A small count's axis ticks are whole vehicles.
+- Decision, pipeline: an empty `facts` list aborts (it reached DuckDB as a syntax error); a table whose dimensions are
+  all waiting holds the month totals alone; a new test adds copies of one vehicle and checks they share a row, since no
+  fixture vehicle shared a cell and a table that stopped grouping would have passed.
+- Status: decided by Claude (unreviewed)

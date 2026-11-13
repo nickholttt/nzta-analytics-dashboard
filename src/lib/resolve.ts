@@ -30,6 +30,8 @@ export type Resolution = {
   source?: ViewSource;
   // The preset filter that narrows the view, when one does. A filtered dataset's own filter is its definition's to say.
   narrowedBy?: { dimension: string; values: string[] };
+  // A built question's filters, each applied through the fact table.
+  keptBy?: { dimension: string; values: string[] }[];
 };
 
 export function inferShape(preset: Preset, dimension?: Dimension, measure?: Measure): string {
@@ -153,6 +155,24 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     }
   });
 
+  // A built question that names values or filters is summed from the fact table, which carries every configured
+  // dimension at once, so any number of filters applies. Without a fact table, or one that lacks a dimension the question
+  // names, nothing is drawn: a chart quietly missing a filter would answer a different question.
+  let keptBy: Resolution["keptBy"];
+  if (preset.values !== undefined || preset.where !== undefined) {
+    const facts = entry?.facts;
+    const where = Object.fromEntries(Object.entries(preset.where ?? {}).filter(([, kept]) => kept.length > 0));
+    const named = [...(preset.dimension ? [preset.dimension] : []), ...Object.keys(where)];
+    // A dimension the config does not define has no name to show a visitor, so it is as missing as one the table lacks.
+    const missing = named.filter((d) => !facts?.dimensions.includes(d) || !findDimension(d));
+    if (!facts) add("blocked", "this build carries no fact table, so a question with chosen values or filters cannot be answered");
+    else if (missing.length) add("blocked", `the fact table does not carry ${missing.join(", ")}`);
+    else if (cubeDataset) {
+      source = { dataset: cubeDataset, dimension: preset.dimension ?? null, facts: { values: preset.values, where } };
+      keptBy = Object.entries(where).map(([d, values]) => ({ dimension: d, values }));
+    }
+  }
+
   const shape = inferShape(preset, dimension, measure);
   if (!RENDERED_SHAPES.has(shape)) add("blocked", `shape "${shape}" has no renderer in this tool`);
   // A breakdown drawn frame by frame through time is a different picture from one period's distribution: nothing draws
@@ -178,6 +198,7 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     measure,
     source: preventsRender.length === 0 ? source : undefined,
     narrowedBy: preventsRender.length === 0 ? narrowedBy : undefined,
+    keptBy: preventsRender.length === 0 ? keptBy : undefined,
   };
 }
 

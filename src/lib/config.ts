@@ -38,6 +38,10 @@ export type Preset = {
   derived?: string;
   series?: unknown[];
   filter_value?: string;
+  // A question built on the Build page: the breakdown values it compares, and the vehicles it keeps, by dimension.
+  // Either one draws from the fact table (D-058).
+  values?: string[];
+  where?: Record<string, string[]>;
   smoothing?: string;
   granularity_options?: GranularityOption[];
 };
@@ -82,12 +86,15 @@ export type BuilderMeasure = {
   top_n?: Record<string, number>;
   note?: string;
   note_template?: string;
+  // A measure drawn as two charts, one per part: each part is another measure's id.
+  parts?: string[];
 };
 
 export type BuilderSpec = {
   id: string;
   dataset: string;
   period: string;
+  period_when_comparing: string;
   period_by_shape: Record<string, string>;
   ranking_period: string;
   lead: string;

@@ -60,10 +60,12 @@
     }
   },
   "builder": {
-    "$comment": "The Build page: a sentence a visitor completes to draw one chart, through the same panel and resolver as Explore. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
+    "$comment": "The Build page: a question a visitor builds (what to measure, what to compare, which vehicles to keep, D-058), drawn through the same panel and resolver as Explore. Values and filters are summed from the fact table; without them a chart reads the slices. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
     "id": "build",
     "dataset": "registrations_surviving",
     "period": "all",
+    "period_when_comparing": "10y",
+    "$period_when_comparing_comment": "A question that names values (brands, models) opens on the last ten years: most named values have little or no history before that, and all time would spend most of the chart on empty decades. The time row still offers all time.",
     "period_by_shape": {
       "distribution": "5y",
       "geo": "latest_year"
@@ -89,7 +91,9 @@
           "vehicle_year_band": "vehicle age",
           "engine_size_band": "engine size",
           "age_at_registration_band": "age when registered here",
-          "region": "owner's region"
+          "region": "owner's region",
+          "segment_group": "vehicle class",
+          "model": "model"
         },
         "top_n": {
           "make": 10,
@@ -98,6 +102,36 @@
         },
         "$top_n_comment": "The values that keep their own line on a mix chart; the rest become one remainder, All other. Reserved tokens (not recorded, no reference match) keep their own grey line and never join it (D-046). make and parent_group as brand-share uses. built_in is capped at 10 of its 46 values in the 2026-09 cube: its country is not recorded for almost every vehicle first registered before about 1986, and that gap shows as its own Not recorded line.",
         "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every group shares, but groups leave the register at different rates, so older months lean towards groups whose vehicles stay registered longer."
+      },
+      {
+        "id": "count",
+        "phrase": "the number of vehicles",
+        "joiner": "by",
+        "dimensions": {
+          "powertrain": "powertrain",
+          "import_status": "whether new or used",
+          "segment": "vehicle type",
+          "make": "brand",
+          "parent_group": "manufacturer group",
+          "owner_country": "brand owner's country",
+          "heritage_country": "brand's original country",
+          "built_in": "country where built",
+          "engine_size_band": "engine size",
+          "age_at_registration_band": "age when registered here",
+          "region": "owner's region",
+          "segment_group": "vehicle class",
+          "model": "model"
+        },
+        "$dimensions_comment": "A count by a breakdown draws one line per chosen value, so it needs the fact table; with no breakdown it is the total of the vehicles kept.",
+        "note": "Vehicles still registered today, not sales. Older months are thinned by scrappage, so a line that falls back in time partly measures how many have left the register since, and groups leave it at different rates."
+      },
+      {
+        "id": "share_and_count",
+        "phrase": "the share and number of vehicles",
+        "joiner": "by",
+        "parts": ["share", "count"],
+        "dimensions": {},
+        "$parts_comment": "Two charts, one above the other, never one chart with two axes: the share, then the count, of the same question. Offers the dimensions both parts offer."
       },
       {
         "id": "top_5_share",
@@ -120,9 +154,7 @@
       "region": "Where each vehicle's registered owner lives now, from their most recent address: not where the vehicle is driven, and not necessarily where it was first registered. Rental and lease fleets count at the address of the company that owns them. Each owner is placed in a region by their district, and a few districts cross a regional boundary, so their vehicles are counted in one region even where part of the district lies in another."
     },
     "not_offered": [
-      "Numbers of vehicles. These figures count vehicles still registered today, so older months are thinned by scrappage and a count would read as sales. Counts wait for true monthly registrations.",
-      "Only new or only used vehicles. The site's figures are not yet split that way.",
-      "Models. Only the most common models are named, so older months are mostly grouped as other. Models wait for true monthly registrations."
+      "Every vehicle registered each month, including those since scrapped. These figures count vehicles still registered today; true monthly registrations wait for Stats NZ's series."
     ]
   },
   "groups": [
