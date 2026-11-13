@@ -778,3 +778,51 @@ New entries use this template:
   whether pipeline work (POST_GATE A1–A3) may also be built on branches before 8 November without being
   merged to `main` (CHECKPOINT question 1).
 - Status: user decided scope and timing; implementation decided by Claude (unreviewed)
+
+## D-042 2026-10-21 — One row of time options per chart, and visitor wording in a public_copy block
+- Agent: claude, under D-041
+- Basis: this commit; `src/components/PresetPanel.tsx`, `src/components/MixChart.tsx`,
+  `src/lib/composition.ts`, `config/presets.json`, `src/styles/site.css`; headless checks of `/` on
+  2026-10-21.
+- Context: CHECKPOINT queue item 1, from D-041's screenshots. Every all-time mix chart showed two
+  controls that both said "All time": the panel's horizon row (3, 5, 10 years, All time) and the chart's
+  own "From Jun 1937 / All time". The dataset definition said "first registered in month M"; the owner
+  country eyebrow read "Brand owned from"; a bare "#" was the permalink; the notes under mix charts
+  stated the start rule and the rolling share in maintainer terms ("categories", "trailing", "computed in
+  the browser"). The definition and the label live in `config/dimensions.json`, frozen until the gate.
+- Options considered: for the controls, (1) relabel the chart's toggle and keep two rows: two
+  controls still change the same axis; (2) one row in the panel, which the chart reads: chosen. For
+  the wording, (1) a field per preset, as D-041 did for one note: the same dataset definition would be
+  repeated on every preset; (2) one `public_copy` block keyed by dataset and dimension id: chosen, and it
+  supersedes D-041's `public_dimension_note`; (3) wait for the gate: visitors would read "month M" until
+  then.
+- Decision: the panel's time row reads "3 years, 5 years, 10 years", then, on a mix chart that opens
+  later than its first month of data, "Since <month>" and "All records" (otherwise "All time"). "All
+  records" keeps the `range=all` URL parameter the chart used, so old links still work. The start month
+  comes from one helper, `compositionStart`, used by both the panel and the chart. Toggle options wrap
+  at narrow widths, with the separators drawn as 1px gaps so every wrapped option keeps its border.
+  `public_copy` gives visitors a plain dataset definition ("Each month counts the vehicles first
+  registered in New Zealand that month that are still registered on the snapshot date"; the month is
+  `FIRST_NZ_REGISTRATION_MONTH`, `config/pipeline.json`), "Country of the brand's owner", and the
+  powertrain note. The permalink is a "Copy link to this chart" button. Visitors get plain versions of
+  the start rule, the rolling share, the grey-months note (with a link to `/method`) and the mild hybrid
+  coverage line (stated-confidence figures only); `/status` keeps the exact wording. "Granularity"
+  becomes "Show by" for screen readers.
+- Consequences: measured headless on `/`: every chart has one time row; three all-time mix charts open
+  late, two reading "Since Jun 1937" and one "Since Oct 2009", each with "All records"; picking it
+  draws from Jan 1912, writes `?<id>.range=all`, and survives a reload. 0 of 39 toggle options clipped at
+  320px or 1280px. No "month M", "Brand owned from", "manifest", ".json" or snake_case identifier in
+  the page text. A first draft of the start-rule sentence said "before that one group was almost
+  everything", which the rule does not test (powertrain had two large groups before 2009); it now states
+  the rule. The `public_copy` block is a holding place: after the gate its entries belong on the
+  datasets and dimensions (CHECKPOINT queue).
+  - After an independent review: three visitor sentences said more than the code does and were
+    corrected. A gap blanks every point whose 12-month window holds it, not just that month; the mild
+    hybrid figure is "at least" (unresolved hybrids count as missed); a collapsed month is not "too few
+    to read" but "may not describe a normal month". The start rule names the 12-month window it tests.
+    Wrapped toggle options centre their text at 640px and below. The copy button falls back to "The
+    address bar now links to this chart" when the clipboard is missing or refuses (checked headless both
+    ways). `public_copy` also covers `nz_new` and `used_imports`, so no visitor definition says "month
+    M". The `.panel-anchor` and `.badge.copied` styles, now unused, are removed. Not changed: `preset.dataset !== "used_imports"` in
+  `PresetPanel.tsx` names a dataset in code (invariant 1), found while reading; listed in STATE.
+- Status: decided by Claude (unreviewed)

@@ -17,7 +17,6 @@ uncommitted changes owned by claude.
 | `derived` | a derived measure id that `src/lib/derived.ts` registers (instead of `measure`) |
 | `shape_override` | forces one of the five shapes when inference isn't enough |
 | `note_template` / `note` | a note on the chart. Any figure must come from `{dotted.path}` into the manifest, never typed in |
-| `public_dimension_note` | optional; replaces the dimension's note on the Explore page when that note is written for maintainers (D-041) |
 
 Shape is inferred from measure plus dimension. Never add a sixth renderer.
 
@@ -27,6 +26,13 @@ Shape is inferred from measure plus dimension. Never add a sixth renderer.
 navigation), `title` (the section heading), optional `lead: true` (larger charts), and `presets`. The
 page shows only the presets that draw against the current build, and drops a group left with none;
 `/status` shows every preset with its diagnostics (D-041).
+
+## Visitor wording
+
+`public_copy` (top level) holds visitor-facing text where frozen `config/dimensions.json` carries text
+written for maintainers: `dataset_definitions`, `dimension_labels` and `dimension_notes`, each keyed by
+id. The Explore page uses an entry when there is one and falls back to `dimensions.json`; `/status`
+always shows the original. After the 8 November gate the entries move into `dimensions.json` (D-042).
 
 ## Rules
 

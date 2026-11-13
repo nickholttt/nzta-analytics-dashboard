@@ -1,9 +1,10 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
-import { compositeRules, findDataset, findDerived, findPreset, hybrid, isComposite } from "../lib/config";
+import { compositeRules, findDataset, findDerived, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
+import { compositionStart } from "../lib/composition";
 import { loadEvents, loadManifest, loadSlice } from "../lib/data";
 import type { Event, Manifest, SliceRow } from "../lib/data";
-import { TRAILING_MONTHS, guardsFor, pct } from "../lib/measures";
+import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { presetView, resolvePreset } from "../lib/resolve";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
@@ -46,7 +47,13 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
     const fromUrl = getParam(presetId, "period", defaultPeriod);
     return TIME_PERIODS.some((p) => p.id === fromUrl) ? fromUrl : defaultPeriod;
   });
-  const [copied, setCopied] = useState(false);
+  // All records: an all-time mix chart opens on its composition start; this draws it from the first
+  // month with data. Kept in the URL as range=all, the parameter the chart used before.
+  const [fullHistory, setFullHistory] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return getParam(presetId, "range", "default") === "all";
+  });
+  const [copied, setCopied] = useState<"" | "copied" | "address">("");
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
@@ -59,21 +66,24 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
     }
   };
 
-  const handlePeriodChange = (newPeriod: string) => {
+  const handlePeriodChange = (newPeriod: string, full = false) => {
     setActivePeriod(newPeriod);
     setParam(presetId, "period", newPeriod, defaultPeriod);
+    setFullHistory(full);
+    setParam(presetId, "range", full ? "all" : "default", "default");
   };
 
-  const handleCopyLink = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      const shareUrl = getShareableUrl(presetId);
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-      window.history.replaceState(null, "", `#${presetId}`);
-    }
+  // Where the clipboard is unavailable or refuses, the address bar still ends up holding the link, and
+  // the button says so rather than doing nothing.
+  const handleCopyLink = () => {
+    const shareUrl = getShareableUrl(presetId);
+    window.history.replaceState(null, "", `#${presetId}`);
+    const done = (state: "copied" | "address") => {
+      setCopied(state);
+      setTimeout(() => setCopied(""), 4000);
+    };
+    if (typeof navigator !== "undefined" && navigator.clipboard) navigator.clipboard.writeText(shareUrl).then(() => done("copied"), () => done("address"));
+    else done("address");
   };
 
   const activeGranularity = useMemo(() => {
@@ -152,7 +162,8 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
     } else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
-  if (!internal && effectivePreset.public_dimension_note) addNote("dimension", effectivePreset.public_dimension_note);
+  const publicDimensionNote = !internal && dimension ? publicCopy.dimension_notes[dimension.id] : undefined;
+  if (publicDimensionNote) addNote("dimension", publicDimensionNote);
   else addNote("dimension", dimension?.note, dimension?.note_template);
   // A visitor is told what the chart includes in plain words; the reason, in config terms, is internal.
   const publicLimits = notApplied.length
@@ -176,6 +187,8 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
           collapseFraction={collapseFraction}
           label={label}
           lead={lead}
+          fullHistory={fullHistory}
+          internal={internal}
         />
       );
     } else if (shape === "distribution" && dimension) {
@@ -197,24 +210,27 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
     }
   }
 
-  const eyebrow = dimension?.label ?? derived?.label ?? measure?.label;
+  // Visitor wording from config/presets.json public_copy, where the frozen dimensions.json carries text
+  // written for maintainers (D-042).
+  const dimensionLabel = (!internal && dimension && publicCopy.dimension_labels[dimension.id]) || dimension?.label;
+  const definition = (!internal && effectivePreset.dataset && publicCopy.dataset_definitions[effectivePreset.dataset]) || dataset?.definition;
+  const eyebrow = dimensionLabel ?? derived?.label ?? measure?.label;
+
+  // One row of time options. An all-time mix chart that opens on a later start names that start, and
+  // offers the full record as its own option, so no two buttons say the same thing.
+  const start = shape === "mix" && rows ? compositionStart(rows, dimension, guard) : undefined;
+  const rangeOptions = [
+    ...TIME_PERIODS.filter((p) => p.id !== "all").map((p) => ({ key: p.id, id: p.id, label: p.label, full: false })),
+    { key: "all", id: "all", label: start ? `Since ${monthLabel(start)}` : "All time", full: false },
+    ...(start ? [{ key: "all-records", id: "all", label: "All records", full: true }] : []),
+  ];
 
   return (
     <section className={panelClass} id={preset.id}>
       <header className="panel-head">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h3 className="panel-question">
-          <a
-            href={`#${preset.id}`}
-            className="panel-anchor"
-            onClick={handleCopyLink}
-            title="Click to copy permalink"
-            aria-label={`Copy link to ${preset.question}`}
-          >
-            #
-          </a>
           <span>{preset.question}</span>
-          {copied ? <span className="badge copied">Link copied</span> : null}
           {internal && status !== "live" ? (
             <>
               {" "}
@@ -222,12 +238,15 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
             </>
           ) : null}
         </h3>
-        {dataset?.definition ? <p className="panel-definition">{dataset.definition}</p> : null}
+        {definition ? <p className="panel-definition">{definition}</p> : null}
+        <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
+          {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
+        </button>
       </header>
 
       <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
         {preset.granularity_options && preset.granularity_options.length > 0 ? (
-          <div className="toggle" role="radiogroup" aria-label="Granularity">
+          <div className="toggle" role="radiogroup" aria-label="Show by">
             {preset.granularity_options.map((opt) => (
               <label key={opt.id}>
                 <input
@@ -243,16 +262,16 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
         ) : null}
 
         {shape !== "distribution" && preset.dataset !== "used_imports" && preventsRender.length === 0 ? (
-          <div className="toggle" role="radiogroup" aria-label="Time horizon">
-            {TIME_PERIODS.map((p) => (
-              <label key={p.id}>
+          <div className="toggle" role="radiogroup" aria-label="Time range">
+            {rangeOptions.map((o) => (
+              <label key={o.key}>
                 <input
                   type="radio"
                   name={`period-${preset.id}`}
-                  checked={activePeriod === p.id}
-                  onChange={() => handlePeriodChange(p.id)}
+                  checked={activePeriod === o.id && (o.id !== "all" || fullHistory === o.full || !start)}
+                  onChange={() => handlePeriodChange(o.id, o.full)}
                 />{" "}
-                {p.label}
+                {o.label}
               </label>
             ))}
           </div>
@@ -331,7 +350,14 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
             {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
           </li>
         ))}
-        {relabels && coverage ? (
+        {relabels && coverage && !internal ? (
+          <li>
+            {coverage.label}: at least {pct(coverage.trailing.coverage_stated_confidence ?? 0)} of mild hybrids registered in the last{" "}
+            {coverage.trailing.window_months} months are identified (at least {pct(coverage.all_time.coverage_stated_confidence ?? 0)} over
+            all time), so this line may undercount them.
+          </li>
+        ) : null}
+        {relabels && coverage && internal ? (
           <li>
             {coverage.label}: over the trailing {coverage.trailing.window_months} months,{" "}
             {pct(coverage.trailing.coverage_stated_confidence ?? 0)} of mild hybrids are identified at stated confidence and{" "}
@@ -339,7 +365,14 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
             {pct(coverage.all_time.coverage_stated_confidence ?? 0)} and {pct(coverage.all_time.coverage_high_confidence_only ?? 0)}). A lower bound: every unresolved hybrid counts as a missed mild hybrid.
           </li>
         ) : null}
-        {guard > 0 && preventsRender.length === 0 ? (
+        {guard > 0 && preventsRender.length === 0 && !internal ? (
+          <li>
+            Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably
+            {collapseFraction > 0 ? ", and months with far fewer vehicles than the months before them, which may not describe a normal month" : ""}.
+            They are drawn in grey, not dropped. <a href="/method">How the figures are made</a>.
+          </li>
+        ) : null}
+        {guard > 0 && preventsRender.length === 0 && internal ? (
           <li>
             Grey: months with fewer than {guard} vehicles behind the figure drawn
             {collapseFraction > 0

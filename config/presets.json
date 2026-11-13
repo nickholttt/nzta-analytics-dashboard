@@ -41,6 +41,20 @@
       "$cardinality_note": "Only low-cardinality dimensions. The test measures diversity, and diversity saturates immediately when a dimension has hundreds of values: on make it returns whatever month the denominator floor allows and the composition clause never binds."
     }
   },
+  "public_copy": {
+    "$comment": "Wording for visitors on the Explore page, where config/dimensions.json (frozen until the 8 November 2026 gate) carries text written for maintainers. Keyed by dataset or dimension id; anything not listed falls back to dimensions.json. After the gate each entry moves onto its dataset or dimension there (D-042).",
+    "dataset_definitions": {
+      "registrations_surviving": "Each month counts the vehicles first registered in New Zealand that month that are still registered on the snapshot date.",
+      "nz_new": "Each month counts the vehicles first registered in New Zealand that month, new when they arrived, that are still registered on the snapshot date.",
+      "used_imports": "Each month counts the vehicles first registered in New Zealand that month, previously registered overseas, that are still registered on the snapshot date."
+    },
+    "dimension_labels": {
+      "owner_country": "Country of the brand's owner"
+    },
+    "dimension_notes": {
+      "powertrain": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is."
+    }
+  },
   "groups": [
     {
       "id": "tier-1",
@@ -70,7 +84,6 @@
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "powertrain",
-          "public_dimension_note": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is.",
           "period": "all",
           "filters": [
             {

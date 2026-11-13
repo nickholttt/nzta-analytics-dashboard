@@ -36,9 +36,6 @@ export type Preset = {
   filter_value?: string;
   smoothing?: string;
   granularity_options?: GranularityOption[];
-  // Replaces the dimension's note on the Explore page, where the dimension's own note is written for
-  // maintainers (D-041).
-  public_dimension_note?: string;
 };
 
 export type Band = { label: string; min?: number; max?: number | null; unknown?: boolean; no_engine?: boolean };
@@ -73,6 +70,11 @@ export type SmoothingOption = { id: string; label: string; axis: string };
 type PresetsDoc = {
   // label and title head the group's section on the Explore page; lead marks the charts that carry it.
   groups: { id: string; label: string; title: string; lead?: boolean; presets: Preset[] }[];
+  public_copy: {
+    dataset_definitions: Record<string, string>;
+    dimension_labels: Record<string, string>;
+    dimension_notes: Record<string, string>;
+  };
   defaults: {
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
@@ -94,6 +96,7 @@ const presetsFile = presetsDoc as unknown as PresetsDoc;
 export const presetGroups = presetsFile.groups;
 export const presets: Preset[] = presetsFile.groups.flatMap((g) => g.presets);
 export const chartDefaults = presetsFile.defaults;
+export const publicCopy = presetsFile.public_copy;
 export const compositeRules = presetsFile.$composite;
 
 export const measures = measuresDoc.measures as unknown as Measure[];
