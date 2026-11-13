@@ -114,6 +114,8 @@ pipeline/
 .github/workflows/
   monthly-build.yml    # monthly cron; skips when the change key is unchanged
 src/                   # the local reference UI: pages, renderers (components/), cube and config readers (lib/)
+public/geo/            # committed: region outlines for the map (Stats NZ, CC BY 4.0), written by scripts/
+scripts/               # maintainer scripts run by hand, never by the pipeline
 ```
 
 ---
