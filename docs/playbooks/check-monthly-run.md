@@ -47,17 +47,18 @@ the forced run of 11 September 2026) and publishes the release.
 
 ## Also each month: has step 1b's source appeared?
 
-Step 1b (`registrations_flow`) waits until Stats NZ publishes its monthly new and ex-overseas
-registrations in the Aotearoa Data Explorer (the user's choice on 2026-10-22; `docs/DATA_SOURCES.md`
-§C). The Explorer's catalogue needs no key. Git Bash, repository root:
+Stats NZ's monthly new and ex-overseas registrations are on Infoshare, which has no API
+(`docs/DATA_SOURCES.md` §C; D-065 proposes using them from there). When they reach the Aotearoa Data
+Explorer they can be fetched by API. The Explorer's catalogue needs no key. Git Bash, repository root:
 
 ```bash
-curl -s "https://api.data.stats.govt.nz/rest/dataflow/STATSNZ/all/latest" | .venv/Scripts/python.exe -I -c "import json,sys; d=json.load(sys.stdin)['references']; flows=[v for k,v in d.items() if 'Dataflow' in k]; hits=[v['id']+': '+v.get('name','') for v in flows if not v['id'].startswith('CEN') and any(w in v.get('name','').lower() for w in ('motor vehicle','vehicles registered','transport','tpt'))]; print(len(flows),'dataflows;', '; '.join(hits) or 'no transport series')"
+curl -s "https://api.data.stats.govt.nz/rest/dataflow/STATSNZ/all/latest?format=sdmx-json" | .venv/Scripts/python.exe -I -c "import json,sys; flows=json.load(sys.stdin)['data']['dataflows']; hits=[f['id']+': '+f.get('name','') for f in flows if not f['id'].startswith('CEN') and any(w in f.get('name','').lower() for w in ('motor vehicle','vehicles registered','transport','tpt'))]; print(len(flows),'dataflows;', '; '.join(hits) or 'no transport series')"
 ```
 
-It leaves out the census tables, which count motor vehicles per household. On 2026-10-22 it printed
-`911 dataflows; no transport series`. Report the line; a hit means step 1b can be planned, so tell
-the user.
+It leaves out the census tables, which count motor vehicles per household. On 2026-11-13 it printed
+`913 dataflows; no transport series` (911 on 2026-10-22). The address needs `?format=sdmx-json`: without
+it the service answered in XML on 2026-11-13 and the command failed. Report the line; a hit means the
+series can be fetched by API, so tell the user.
 
 ## Real example
 
