@@ -38,6 +38,14 @@
   },
   "change_key_fields": ["registration_year", "registration_month", "import_status", "vehicle_type"],
   "trailing_window_months": 12,
+  "snapshot": {
+    "$comment": "A first-registration month is the snapshot month only if it holds at least this share of the median of the months before it (trailing_window_months of them). A few rows dated after the register's own month are then not mistaken for the next snapshot. The lowest real month on record, 2020-04, held 7% of its trailing median (measured on the 2026-10 snapshot).",
+    "min_share_of_trailing_median": 0.01
+  },
+  "schedule": {
+    "$comment": "From this day of the month (UTC) a run that builds nothing fails if the previous month's snapshot is still not built (docs/DATA_SOURCES.md, Refresh timing).",
+    "missed_month_alarm_day": 15
+  },
   "reference_dir": "data/reference",
   "boolean_true": "true",
   "sentinels": {
@@ -106,7 +114,13 @@
   "engine": { "reference": "powertrain_map.csv", "field": "motive_power", "key": "nzta_motive_power", "flag": "has_combustion_engine" },
   "alternative_fuel": { "primary": "motive_power", "alternative": "alternative_motive_power" },
   "datasets": {
-    "registrations_surviving": { "require": ["in_scope", "fleet_entry"] }
+    "registrations_surviving": {
+      "require": ["in_scope", "fleet_entry"],
+      "$pairs_comment": "The two-dimensional slices this dataset emits, each [dim_a, dim_b], written to pairs/{dataset}/{dim_a}__{dim_b}.parquet. Only pairs a chart or filter needs (docs/CUBE_SCHEMA.md, Pair slices).",
+      "pairs": [["import_status", "age_at_registration_band"], ["powertrain", "segment_group"]],
+      "$facts_comment": "The fact table: counts by month and every dimension listed here, one Parquet file per column under facts/{dataset}/, so the browser can answer any combination by downloading only the columns a question needs (docs/CUBE_SCHEMA.md, Fact table; D-058). region is left out on purpose until the Stage 2 privacy review (D-078): it is where the vehicle's owner lives, and with it two in three of the table's rows counted a single vehicle.",
+      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "import_status", "engine_size_band", "age_at_registration_band", "model"]
+    }
   },
   "fuel_consumption": { "field": "fuel_consumption", "valid_min_exclusive": 0, "valid_max_inclusive": 60, "sum_decimals": 3 },
   "guardrails": {
@@ -132,11 +146,18 @@
     "unpublished_columns": ["notes"],
     "values_separator": "|",
     "scope_without_values": ["market"],
-    "scope_dimension_aliases": { "brand_group": "parent_group" }
+    "scope_dimension_aliases": { "brand_group": "parent_group" },
+    "$enum_columns_comment": "The columns whose values must come from their enum in the schema table of enum_doc. The values are read from the table; this list makes a row that stops parsing as an enum abort the build instead of dropping its check.",
+    "enum_columns": ["category", "mechanism", "scope", "expected_effect", "confidence"]
   },
   "snapshot_archive": {
     "dir": "data/snapshots",
     "group_by": ["registration_year", "registration_month", "import_status", "vehicle_type", "motive_power", "make"]
+  },
+  "register_archive": {
+    "$comment": "The whole register for each snapshot month, one row per vehicle, kept as one Parquet file in a private store outside git (pipeline/archive.py). It holds every field of pipeline/expected_schema.json except never_pulled: the chassis and engine numbers, which are never asked for. The first 11 characters of the VIN and the owner's postcode are kept in this private file only: neither is bound, built into the cube or published (D-076). The row id is pulled for paging and left out of the file.",
+    "never_pulled": ["CHASSIS7", "ENGINE_NUMBER"],
+    "attribution": "Motor Vehicle Register open data, NZ Transport Agency Waka Kotahi, licensed CC BY 4.0. One row per vehicle on the register at the snapshot date."
   },
   "paths": {
     "raw": "data/raw",

@@ -9,12 +9,79 @@ from datetime import date, datetime, timezone
 import duckdb
 
 from . import derive, events, guardrails, metrics, normalise, outputs, schema
+from .contract import FACT_COUNT, FACT_MONTH, FACTS_DIR, PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
 
 
 def iso_utc(moment: datetime) -> str:
     return moment.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, staging, aborts: list[str],
+                warnings: list[str]) -> tuple[list[str], dict[str, str]]:
+    """The pair slices config/pipeline.json names for this dataset. An entry that is not two different dimension ids, a
+    pair listed twice in either order, or a dimension the dataset cannot derive is a configuration error and aborts; a
+    pair whose dimension is not live this run waits, as the dimension does, with a warning."""
+    known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
+    by_id = {d.dim_id: d for d in live}
+    written, waiting, seen = [], {}, set()
+    for pair in dataset_cfg.get("pairs") or []:
+        if not (isinstance(pair, list) and len(pair) == 2 and all(isinstance(d, str) for d in pair)) or pair[0] == pair[1]:
+            aborts.append(f"{dataset}: pair {pair!r} must name two different dimensions")
+            continue
+        key = PAIR_SEPARATOR.join(pair)
+        # The same two dimensions in the other order would write a second, transposed copy of the same counts.
+        if frozenset(pair) in seen:
+            aborts.append(f"{dataset}: pair {pair} is listed twice, in one order or the other")
+            continue
+        seen.add(frozenset(pair))
+        unknown = [d for d in pair if d not in known]
+        if unknown:
+            aborts.append(f"{dataset}.{key}: {', '.join(unknown)} is not a derivable dimension of this dataset in dimensions.json")
+            continue
+        missing = [d for d in pair if d not in by_id]
+        if missing:
+            waiting[key] = f"dimensions not live: {', '.join(missing)}"
+            warnings.append(f"{dataset}.{key} is not live: {waiting[key]}")
+            continue
+        outputs.write_pair(con, cfg, by_id[pair[0]], by_id[pair[1]], ds, staging / "pairs" / dataset / f"{key}.parquet")
+        written.append(key)
+    return written, waiting
+
+
+def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, staging,
+                     aborts: list[str], warnings: list[str]) -> dict | None:
+    """The fact table config/pipeline.json names for this dataset. A list that is not distinct dimension ids, or names a
+    dimension the dataset cannot derive, aborts; a dimension not live this run waits, with a warning, and the table is
+    written without it. Its counts must total the dataset's vehicles, or the run aborts."""
+    configured = dataset_cfg.get("facts")
+    if configured is None:
+        return None
+    known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
+    reserved = {FACT_MONTH[0], FACT_COUNT[0], outputs.FACT_ROW_ORDER}
+    if (
+        not (isinstance(configured, list) and configured and all(isinstance(d, str) for d in configured))
+        or len(set(configured)) != len(configured)
+    ):
+        aborts.append(f"{dataset}: facts must list distinct dimension ids, at least one")
+        return None
+    problems = [d for d in configured if d not in known or d in reserved]
+    if problems:
+        aborts.append(f"{dataset}: facts names {', '.join(problems)}, not a derivable dimension of this dataset in dimensions.json")
+        return None
+    by_id = {d.dim_id: d for d in live}
+    waiting = {d: "dimension not live" for d in configured if d not in by_id}
+    for dim_id in waiting:
+        warnings.append(f"{dataset}: the fact table is written without {dim_id}, which is not live")
+    columns = [by_id[d] for d in configured if d in by_id]
+    fact_rows, total = outputs.write_facts(con, columns, ds, staging / FACTS_DIR / dataset)
+    # Counted from rows, the vehicles before the dimension lookups are joined on. The table is grouped from dims, so a
+    # count of dims would agree with it even where one of those joins had repeated or lost a vehicle.
+    vehicles = con.execute(f"SELECT count(*) FROM rows WHERE {ds}").fetchone()[0]
+    if total != vehicles:
+        aborts.append(f"{dataset}: the fact table counts {total:,} vehicles, but the dataset has {vehicles:,}")
+    return {"rows": fact_rows, "dimensions": [d.dim_id for d in columns], "not_live": waiting}
 
 
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:
@@ -100,8 +167,10 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
                 exclude(d.dim_id, f"unmapped rate {rates[d.dim_id]:.2%} is above {g['max_unmapped_rate']:.0%} of in-scope rows")
         for d in live:
             outputs.write_slice(con, cfg, d, ds, staging / "cube" / dataset / f"{d.dim_id}.parquet")
+        live_pairs, not_live_pairs = write_pairs(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
 
         counts = metrics.month_counts(con, ds)
+        facts = write_fact_table(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
         month_counts[dataset] = counts
         live_dimensions[dataset] = [d.dim_id for d in live]
         if counts.get(snapshot_key, 0) == 0:
@@ -118,6 +187,9 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "months": len(counts),
             "live_dimensions": live_dimensions[dataset],
             "not_live": not_live,
+            "live_pairs": live_pairs,
+            "not_live_pairs": not_live_pairs,
+            "facts": facts,
             "unmapped_rates": rates,
             "unmapped_guard": guard,
             "mild_hybrid_identification_coverage": metrics.hybrid_coverage(con, cfg, ds, window_start, snapshot_month, window),

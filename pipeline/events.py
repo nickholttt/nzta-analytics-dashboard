@@ -9,12 +9,20 @@ from .contract import MODEL_KEY_SEPARATOR
 from .normalise import lit
 from .reference import quote
 
-ENUM_LINE = re.compile(r"^\| `scope` \| enum \|(?P<values>[^|]*)\|", re.M)
+# The schema table in docs/EVENTS_LAYER.md is the only statement of each column's rules, so they are read from it.
+ENUM_ROW = re.compile(r"^\| `(?P<column>[a-z_]+)` \| enum \|(?P<values>[^|]*)\|", re.M)
+TITLE_ROW = re.compile(r"^\| `title` \|[^|]*\|\s*≤(?P<max>\d+) chars", re.M)
 
 
-def scope_enum(cfg) -> set[str] | None:
-    match = ENUM_LINE.search(cfg.path("events_doc").read_text(encoding="utf-8"))
-    return set(re.findall(r"`([a-z_]+)`", match.group("values"))) if match else None
+def schema_enums(cfg) -> dict[str, set[str]]:
+    """Every enum column in the schema table, with its values."""
+    text = cfg.path("events_doc").read_text(encoding="utf-8")
+    return {m.group("column"): set(re.findall(r"`([a-z_]+)`", m.group("values"))) for m in ENUM_ROW.finditer(text)}
+
+
+def title_limit(cfg) -> int | None:
+    match = TITLE_ROW.search(cfg.path("events_doc").read_text(encoding="utf-8"))
+    return int(match.group("max")) if match else None
 
 
 def vocabularies(con, cfg, snapshot_year: int) -> dict[str, set[str]]:
@@ -47,9 +55,14 @@ def vocabularies(con, cfg, snapshot_year: int) -> dict[str, set[str]]:
 def build(cfg, vocab: dict[str, set[str]]) -> tuple[list[dict], list[str]]:
     e = cfg.pipeline["events"]
     doc = cfg.path("events_doc")
-    enum = scope_enum(cfg)
-    if enum is None:
-        return [], [f"could not find the scope enum table row in {doc}"]
+    enums, title_max = schema_enums(cfg), title_limit(cfg)
+    # A table row reworded so it no longer parses as an enum would otherwise drop its check without a word.
+    unread = [c for c in e["enum_columns"] if c not in enums]
+    if unread:
+        return [], [f"could not find the enum table rows for {unread} in {doc}"]
+    if title_max is None:
+        return [], [f"could not find the title length in the table row for title in {doc}"]
+    enum = enums["scope"]
     rows = reference.read(cfg.reference(e["file"]))
     problems: list[str] = []
     try:
@@ -76,6 +89,12 @@ def build(cfg, vocab: dict[str, set[str]]) -> tuple[list[dict], list[str]]:
                 unresolved = [v for v in values if v not in vocab[dim_id]]
                 if unresolved:
                     problems.append(f"{event_id}: {scope} values do not resolve: {unresolved}")
+        # A mechanism outside the enum would also lose the measurement warning on the chart (invariant 7).
+        for column, allowed in sorted(enums.items()):
+            if column != "scope" and row.get(column) not in allowed:
+                problems.append(f"{event_id}: {column} {row.get(column)!r} is not in the enum in {doc.name}")
+        if len(row["title"]) > title_max:
+            problems.append(f"{event_id}: title is {len(row['title'])} characters, over the {title_max} allowed in {doc.name}")
         if not row["source_url"]:
             problems.append(f"{event_id}: verified without a source_url")
         if not row["date_start"]:

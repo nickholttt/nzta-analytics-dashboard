@@ -1,16 +1,22 @@
-# Monthly pipeline run. Checks the source; pulls and builds only when the change key differs from the
-# last good run. A failed guardrail fails the job, so nothing is committed and the last good build stands.
+# The monthly build, tried every day. Checks the source; pulls and builds only when the source has changed since the
+# last good run and its snapshot month is not built yet, so each month is built once. A failed guardrail fails the
+# job, so nothing is committed and the last good build stands. From the 15th, a run that builds nothing fails if the
+# month before is still not built (docs/DATA_SOURCES.md, Refresh timing).
 name: Monthly build
 
 on:
   schedule:
-    # 8th of each month at 06:17 UTC: 18:17 NZST, 19:17 NZDT. NZTA refreshes the register in the first days of
-    # the month (docs/DATA_SOURCES.md). The odd minute avoids the top-of-the-hour queue for scheduled runs.
-    - cron: "17 6 8 * *"
+    # Every day at 06:17 UTC: 18:17 NZST, 19:17 NZDT. NZTA's refresh has no fixed day, so the run asks daily and a
+    # refresh is built within a day of landing. The odd minute avoids the top-of-the-hour queue for scheduled runs.
+    - cron: "17 6 * * *"
   workflow_dispatch:
     inputs:
       force:
         description: Build even if the source is unchanged since the last good run
+        type: boolean
+        default: false
+      archive:
+        description: Archive the last built snapshot if it is not archived yet (builds nothing by itself)
         type: boolean
         default: false
 
@@ -26,6 +32,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      built: ${{ steps.pipeline.outputs.built }}
+      snapshot: ${{ steps.pipeline.outputs.snapshot }}
     steps:
       # v7 of each action runs on Node 24; GitHub removes Node 20 from its runners on 23 September 2026.
       - name: Checkout
@@ -53,9 +62,12 @@ jobs:
       - name: Contract, guardrail and invariant tests
         run: python -m pytest pipeline/tests -q -p no:cacheprovider
 
+      # Unbuffered, so each line in the log is stamped when it was printed and the pull and build times can be told apart.
       - name: Check source; pull and build if it changed
         id: pipeline
-        run: python -m pipeline run --github-output "$GITHUB_OUTPUT" ${{ inputs.force && '--force' || '' }}
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: python -m pipeline run --github-output "$GITHUB_OUTPUT" --github-summary "$GITHUB_STEP_SUMMARY" ${{ inputs.force && '--force' || '' }}
 
       - name: Upload public data
         if: steps.pipeline.outputs.built == 'true'
@@ -84,9 +96,160 @@ jobs:
           git commit -m "Snapshot ${{ steps.pipeline.outputs.snapshot }} [skip ci]"
           git push
 
+      # The cube the site is deployed from (D-056, D-057): one release per snapshot, which, unlike the artifact above,
+      # does not expire. It comes after the state is committed, so a failed release never costs the month's snapshot,
+      # and a release always belongs to a run whose state was committed. Only on main: a forced run on a branch must not
+      # publish a cube the site would deploy. A second build of the same snapshot replaces the release's file. If this
+      # step fails, the state is committed and the site keeps the previous cube until a forced run on main publishes it
+      # (docs/playbooks/check-monthly-run.md).
+      - name: Publish the cube as a release
+        if: steps.pipeline.outputs.built == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT: ${{ steps.pipeline.outputs.snapshot }}
+        run: |
+          tag="cube-$SNAPSHOT"
+          tar -czf "$RUNNER_TEMP/public-data.tar.gz" -C public/data .
+          if gh release view "$tag" > /dev/null 2>&1; then
+            gh release upload "$tag" "$RUNNER_TEMP/public-data.tar.gz" --clobber
+          else
+            gh release create "$tag" "$RUNNER_TEMP/public-data.tar.gz" --target "$(git rev-parse HEAD)" --title "Cube $tag" \
+              --notes "The cube built from the $SNAPSHOT snapshot. The site is deployed from the newest of these."
+          fi
+
       - name: Resource report
         if: always()
         run: |
           elapsed=$(( $(date -u +%s) - $(cat "$RUNNER_TEMP/started") ))
           peak=$(sort -n "$RUNNER_TEMP/memory.log" | tail -1)
           echo "Peak memory used: ${peak% *} MiB of ${peak#* } MiB. ${elapsed}s from checkout to this step." | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # The site is deployed only when a month was built: a run that skips is a success too, and with a run every day
+  # the site would otherwise be deployed every day. Started here, not by deploy.yml watching this workflow, because
+  # only this run knows whether it built. A job of its own, so the token that can start workflows is not in the job
+  # that installs the pipeline's dependencies. Only on main, as the release is.
+  deploy:
+    needs: build
+    if: needs.build.outputs.built == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Start the deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref main
+
+  # The register archive (D-063, D-067): the whole snapshot, one row per vehicle, kept as one Parquet file in a release
+  # of a private repository. A job of its own for three reasons. It names the environment that holds the archive's
+  # token, which only main can use, and a job that names an environment is recorded as a deployment, so it must not
+  # run on the days nothing is built. The token is then not in the job that builds the cube. And the file cannot be
+  # handed over from the build job: an artifact of a public repository can be downloaded by anyone signed in to
+  # GitHub, so this job pulls the register again itself, and only goes ahead while the register is still the one the
+  # build read. It runs after a month is built, or when a run is started by hand with "archive" ticked, which is how
+  # a month whose archive failed is retried. A month's file is never replaced.
+  archive:
+    needs: build
+    if: github.ref == 'refs/heads/main' && (needs.build.outputs.built == 'true' || inputs.archive)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: archive
+    permissions:
+      contents: read
+    env:
+      ARCHIVE_REPO: ${{ vars.ARCHIVE_REPO || format('{0}/nzta-register-archive', github.repository_owner) }}
+      SNAPSHOT: ${{ needs.build.outputs.snapshot }}
+    steps:
+      # First, before anything is pulled: an expired or missing token must fail here and say so, the repository must
+      # be private, because the file holds one row per vehicle, and a month already archived must stop here.
+      - name: Can the archive be written, and is this month already there
+        id: store
+        env:
+          GH_TOKEN: ${{ secrets.ARCHIVE_REPO_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "Not archived: the secret ARCHIVE_REPO_TOKEN is not set in the environment 'archive'." | tee -a "$GITHUB_STEP_SUMMARY" >&2
+            exit 1
+          fi
+          if ! private=$(gh api "repos/$ARCHIVE_REPO" --jq .private); then
+            echo "Not archived: the token in ARCHIVE_REPO_TOKEN cannot reach $ARCHIVE_REPO. It has expired, was revoked, or is not allowed that repository. Make a new one, store it in the environment 'archive', then start this workflow by hand with 'archive' ticked." | tee -a "$GITHUB_STEP_SUMMARY" >&2
+            exit 1
+          fi
+          if [ "$private" != "true" ]; then
+            echo "Not archived: $ARCHIVE_REPO is not a private repository. The file holds one row per vehicle and must not be published." | tee -a "$GITHUB_STEP_SUMMARY" >&2
+            exit 1
+          fi
+          tag="snapshot-$SNAPSHOT"
+          file="mvr-$SNAPSHOT.parquet"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+          # Only a file that finished uploading counts. One left half-uploaded by a failed run is not the archive, and
+          # the upload below then fails on its name until it is deleted by hand, which is loud.
+          if gh release view "$tag" --repo "$ARCHIVE_REPO" --json assets --jq '.assets[] | select(.state == "uploaded" and .size > 0) | .name' > "$RUNNER_TEMP/assets" 2> /dev/null; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            if grep -qxF "$file" "$RUNNER_TEMP/assets"; then
+              echo "archived=true" >> "$GITHUB_OUTPUT"
+              echo "Snapshot $SNAPSHOT is already archived ($tag in $ARCHIVE_REPO). A month's file is never replaced." | tee -a "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+      # The branch as it is now, not the commit that started the run: the state the build just committed is the record
+      # of which register was built.
+      - name: Checkout
+        if: steps.store.outputs.archived != 'true'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Start memory sampler
+        if: steps.store.outputs.archived != 'true'
+        run: |
+          date -u +%s > "$RUNNER_TEMP/started"
+          nohup bash -c 'while true; do free -m | awk "/^Mem:/ {print \$3, \$2}" >> "$RUNNER_TEMP/memory.log"; sleep 2; done' > /dev/null 2>&1 &
+
+      - name: Set up Python
+        if: steps.store.outputs.archived != 'true'
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: Dependencies
+        if: steps.store.outputs.archived != 'true'
+        run: pip install --disable-pip-version-check --no-input -r pipeline/requirements.txt
+
+      # The file is written to the runner's temporary folder and goes nowhere but the private release.
+      - name: Pull the register and write the file
+        if: steps.store.outputs.archived != 'true'
+        env:
+          PYTHONUNBUFFERED: "1"
+          FILE: ${{ steps.store.outputs.file }}
+        run: python -m pipeline archive --snapshot "$SNAPSHOT" --out "$RUNNER_TEMP/$FILE"
+
+      # No --clobber anywhere: if the file appeared since the first step, the upload fails rather than replace it.
+      - name: Keep the file in the private archive
+        if: steps.store.outputs.archived != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.ARCHIVE_REPO_TOKEN }}
+          TAG: ${{ steps.store.outputs.tag }}
+          FILE: ${{ steps.store.outputs.file }}
+          HAS_RELEASE: ${{ steps.store.outputs.release }}
+        run: |
+          if [ "$HAS_RELEASE" = "true" ]; then
+            gh release upload "$TAG" "$RUNNER_TEMP/$FILE" --repo "$ARCHIVE_REPO"
+          else
+            gh release create "$TAG" "$RUNNER_TEMP/$FILE" --repo "$ARCHIVE_REPO" --title "Register snapshot $SNAPSHOT" \
+              --notes "NZTA's Motor Vehicle Register as it stood for the $SNAPSHOT snapshot, one row per vehicle. Written by run $GITHUB_RUN_ID of $GITHUB_REPOSITORY at $GITHUB_SHA. NZTA open data, CC BY 4.0. Private: do not publish."
+          fi
+          echo "Archived snapshot $SNAPSHOT: $FILE, $(stat -c %s "$RUNNER_TEMP/$FILE") bytes, in $ARCHIVE_REPO ($TAG)." | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Resource report
+        if: always() && steps.store.outcome == 'success' && steps.store.outputs.archived != 'true'
+        run: |
+          elapsed=$(( $(date -u +%s) - $(cat "$RUNNER_TEMP/started") ))
+          peak=$(sort -n "$RUNNER_TEMP/memory.log" | tail -1)
+          echo "Archive job: peak memory used ${peak% *} MiB of ${peak#* } MiB. ${elapsed}s from the sampler's start to this step." | tee -a "$GITHUB_STEP_SUMMARY"

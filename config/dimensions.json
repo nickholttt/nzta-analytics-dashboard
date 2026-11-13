@@ -73,7 +73,8 @@
       "source": "reference:brand_registry",
       "derive": { "kind": "brand", "value": "parent_group" },
       "shape_hint": "mix",
-      "cardinality": "medium",
+      "cardinality": "high",
+      "$cardinality_comment": "high, like make: 43 named groups in the 2026-08 cube, every one with vehicles in the last 12 months, the 14 largest holding 88% of those vehicles. A single 12-month window of competitors is drawn as a ranking (league), as for brands; longer periods stay a mix chart (D-050).",
       "help": "Who owns the brand. Toyota, Lexus and Daihatsu all roll up to Toyota Group."
     },
     {
@@ -132,6 +133,24 @@
       "cardinality": "low",
       "help": "Car, ute, van, truck or other. The register records most SUVs as station wagons, so they count as cars.",
       "$comment": "segment_map matches on vehicle_type + body_type. Where gvm_min_kg/gvm_max_kg are set, GVM must fall in that inclusive range and a missing GVM matches nothing; where both are blank, GVM is not used."
+    },
+    {
+      "id": "segment_group",
+      "label": "Vehicle class",
+      "source": "nzta:vehicle_type + nzta:body_type + nzta:gross_vehicle_mass + reference:segment_map",
+      "derive": {
+        "kind": "range_lookup",
+        "reference": "segment_map.csv",
+        "keys": { "vehicle_type": "vehicle_type", "body_type": "body_type" },
+        "range_field": "gvm",
+        "range_min": "gvm_min_kg",
+        "range_max": "gvm_max_kg",
+        "value": "segment_group"
+      },
+      "shape_hint": "mix",
+      "cardinality": "low",
+      "help": "Light passenger, light commercial, heavy commercial or other, from the same vehicle type, body and gross vehicle mass as vehicle type. Not the same split: utes and vans fall in all three classes.",
+      "$comment": "The same segment_map.csv match as segment, reading its segment_group column, so powertrain-mix can narrow to light passenger vehicles. segment = Car is not light passenger: light passenger also holds the passenger-registered utes and vans."
     },
     {
       "id": "import_status",

@@ -12,7 +12,7 @@ from datetime import date
 import duckdb
 import pytest
 
-from pipeline import build, fetch, metrics, reference, schema
+from pipeline import build, derive, fetch, metrics, reference, schema
 from pipeline.errors import GuardrailError
 
 from .conftest import NOW, load_rows, make_cfg, source_for, with_dimension_change, write_pages
@@ -169,6 +169,119 @@ def test_live_dimension_cannot_silently_drop_out(tmp_path, workspace):
     assert "region" in manifest["datasets"]["registrations_surviving"]["not_live"]
 
 
+def test_a_pair_waits_while_one_of_its_dimensions_is_not_live(tmp_path, workspace):
+    rows = load_rows()
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    extra = [dict(template, OBJECTID=2000 + i, TLA=f"UNKNOWN DISTRICT {i}") for i in range(5)]
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["pairs"] = [["import_status", "region"]]
+    manifest = run(tmp_path, cfg, rows + extra, publish=False)
+    info = manifest["datasets"]["registrations_surviving"]
+    assert "region" in info["not_live"]
+    assert info["live_pairs"] == []
+    assert info["not_live_pairs"] == {"import_status__region": "dimensions not live: region"}
+    assert any("import_status__region is not live" in w for w in manifest["warnings"]), manifest["warnings"]
+    assert not (workspace["staging"] / "build" / "pairs").exists()
+
+
+@pytest.mark.parametrize("pairs, fragment", [
+    ([["import_status", "import_status"]], "must name two different dimensions"),
+    ([["import_status"]], "must name two different dimensions"),
+    ([["import_status", None]], "must name two different dimensions"),
+    (["import_status"], "must name two different dimensions"),
+    ([["import_status", "age_at_registration_band"]] * 2, "is listed twice"),
+    ([["import_status", "age_at_registration_band"], ["age_at_registration_band", "import_status"]], "is listed twice"),
+    ([["import_status", "imported_from"]], "imported_from is not a derivable dimension of this dataset"),
+    ([["import_status", "no_such_dimension"]], "no_such_dimension is not a derivable dimension of this dataset"),
+])
+def test_a_misconfigured_pair_aborts(tmp_path, workspace, pairs, fragment):
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["pairs"] = pairs
+    expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
+
+
+def test_the_fact_table_is_written_without_a_dimension_that_is_not_live(tmp_path, workspace):
+    rows = load_rows()
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    extra = [dict(template, OBJECTID=2000 + i, TLA=f"UNKNOWN DISTRICT {i}") for i in range(5)]
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["facts"] = ["import_status", "region"]
+    manifest = run(tmp_path, cfg, rows + extra, publish=False)
+    facts = manifest["datasets"]["registrations_surviving"]["facts"]
+    assert facts["dimensions"] == ["import_status"]
+    assert facts["not_live"] == {"region": "dimension not live"}
+    assert any("fact table is written without region" in w for w in manifest["warnings"]), manifest["warnings"]
+    written = sorted(p.name for p in (workspace["staging"] / "build" / "facts" / "registrations_surviving").iterdir())
+    assert written == ["import_status.parquet", "month.parquet", "n.parquet"]
+
+
+def test_the_fact_table_counts_vehicles_that_share_every_value_in_one_row(tmp_path, workspace):
+    # The fixture's vehicles all differ somewhere, so add copies of one: the table must group them, not list them.
+    rows = load_rows()
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    copies = [dict(template, OBJECTID=4000 + i) for i in range(3)]
+    cfg = make_cfg(workspace)
+    manifest = run(tmp_path, cfg, rows + copies, publish=False)
+    info = manifest["datasets"]["registrations_surviving"]
+    folder = workspace["staging"] / "build" / "facts" / "registrations_surviving"
+    con = duckdb.connect()
+    counts = [r[0] for r in con.execute(f"SELECT n FROM read_parquet('{(folder / 'n.parquet').as_posix()}')").fetchall()]
+    assert max(counts) >= 4, counts
+    assert sum(counts) == info["rows"] and len(counts) == info["facts"]["rows"]
+
+
+def test_a_fact_table_whose_dimensions_are_all_waiting_holds_the_month_totals(tmp_path, workspace):
+    rows = load_rows()
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    extra = [dict(template, OBJECTID=2000 + i, TLA=f"UNKNOWN DISTRICT {i}") for i in range(5)]
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["facts"] = ["region"]
+    manifest = run(tmp_path, cfg, rows + extra, publish=False)
+    facts = manifest["datasets"]["registrations_surviving"]["facts"]
+    assert facts["dimensions"] == [] and facts["not_live"] == {"region": "dimension not live"}
+    written = sorted(p.name for p in (workspace["staging"] / "build" / "facts" / "registrations_surviving").iterdir())
+    assert written == ["month.parquet", "n.parquet"]
+    assert facts["rows"] == manifest["datasets"]["registrations_surviving"]["months"]
+
+
+def test_a_fact_table_that_counts_a_vehicle_twice_aborts(tmp_path, workspace, monkeypatch):
+    # A lookup that matched a vehicle twice would repeat it in dims, and in every count taken from dims with it.
+    build_dims = derive.build_dims
+
+    def repeating_one_vehicle(con, cfg, derived):
+        build_dims(con, cfg, derived)
+        con.execute("INSERT INTO dims SELECT * FROM dims WHERE fleet_entry AND reg_month IS NOT NULL ORDER BY reg_month LIMIT 1")
+
+    monkeypatch.setattr(derive, "build_dims", repeating_one_vehicle)
+    expect_abort(lambda: run(tmp_path, make_cfg(workspace), load_rows(), publish=False), "the fact table counts")
+
+
+@pytest.mark.parametrize("facts, fragment", [
+    ("import_status", "facts must list distinct dimension ids"),
+    ([], "facts must list distinct dimension ids, at least one"),
+    (["import_status", "import_status"], "facts must list distinct dimension ids"),
+    (["import_status", None], "facts must list distinct dimension ids"),
+    (["imported_from"], "facts names imported_from, not a derivable dimension"),
+    (["no_such_dimension"], "facts names no_such_dimension, not a derivable dimension"),
+])
+def test_a_misconfigured_fact_table_aborts(tmp_path, workspace, facts, fragment):
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["facts"] = facts
+    expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
+
+
+@pytest.mark.parametrize("lookup", ["vehicle", "status"])
+def test_a_scope_key_listed_twice_aborts(tmp_path, workspace, lookup):
+    # Both scope files are joined to every vehicle, so a repeated key would double its vehicles in every count.
+    cfg = make_cfg(workspace)
+    ref = tmp_path / "reference"
+    shutil.copytree(cfg.reference("x").parent, ref)
+    file = ref / cfg.pipeline["scope"][lookup]["file"]
+    lines = file.read_text(encoding="utf-8").splitlines()
+    file.write_text("\n".join(lines + [lines[1]]) + "\n", encoding="utf-8", newline="\n")
+    expect_abort(lambda: run(tmp_path, make_cfg(workspace, reference_dir=ref), load_rows()), "keys defined more than once")
+
+
 def test_unknown_vehicle_type_aborts(tmp_path, workspace):
     rows = load_rows() + [dict(load_rows()[0], OBJECTID=3000, VEHICLE_TYPE="NOT A REAL TYPE")]
     cfg = make_cfg(workspace)
@@ -189,6 +302,44 @@ def test_unresolvable_event_scope_value_aborts(tmp_path, workspace):
         fh.write(",".join(row[c] for c in header) + "\n")
     cfg = make_cfg(workspace, reference_dir=ref)
     expect_abort(lambda: run(tmp_path, cfg, load_rows()), "do not resolve")
+
+
+@pytest.mark.parametrize("changes, fragment", [
+    ({"mechanism": "measurment"}, "test-schema: mechanism 'measurment' is not in the enum"),
+    ({"category": "polcy"}, "test-schema: category 'polcy' is not in the enum"),
+    ({"expected_effect": "sideways"}, "test-schema: expected_effect 'sideways' is not in the enum"),
+    ({"confidence": "rumoured"}, "test-schema: confidence 'rumoured' is not in the enum"),
+    ({"title": "x" * 61}, "test-schema: title is 61 characters, over the 60 allowed"),
+])
+def test_a_verified_event_outside_the_schema_table_aborts(tmp_path, workspace, changes, fragment):
+    cfg = make_cfg(workspace)
+    ref = tmp_path / "reference"
+    shutil.copytree(cfg.reference("x").parent, ref)
+    events_file = ref / cfg.pipeline["events"]["file"]
+    header = events_file.read_text(encoding="utf-8").splitlines()[0].split(",")
+    row = {c: "" for c in header}
+    row.update(id="test-schema", date_start="2026-01-01", category="policy", mechanism="demand", scope="market",
+               title="t", summary="s", expected_effect="none", confidence="documented",
+               verified=cfg.pipeline["boolean_true"], source_url="https://example.invalid")
+    row.update(changes)
+    with events_file.open("a", encoding="utf-8", newline="") as fh:
+        fh.write(",".join(row[c] for c in header) + "\n")
+    cfg = make_cfg(workspace, reference_dir=ref)
+    expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
+
+
+@pytest.mark.parametrize("before, after, fragment", [
+    ("| `mechanism` | enum |", "| `mechanism` | enum, required |", "could not find the enum table rows for ['mechanism']"),
+    ("| `title` | short | ≤60 chars", "| `title` | short | at most 60 chars", "could not find the title length"),
+])
+def test_a_schema_table_row_that_stops_parsing_aborts(tmp_path, workspace, before, after, fragment):
+    cfg = make_cfg(workspace)
+    doc = tmp_path / "EVENTS_LAYER.md"
+    text = cfg.path("events_doc").read_text(encoding="utf-8")
+    assert before in text
+    doc.write_text(text.replace(before, after), encoding="utf-8", newline="\n")
+    cfg = make_cfg(workspace, events_doc=doc)
+    expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
 
 
 def test_abort_leaves_last_good_build_untouched(tmp_path, workspace):
