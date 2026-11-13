@@ -143,8 +143,11 @@ def test_the_fact_table_is_one_column_per_file_and_adds_up_to_every_slice(tmp_pa
     assert contract["facts"], "no fact table was written"
     for dataset, info in contract["manifest"]["datasets"].items():
         facts = info["facts"]
-        names = [FACT_MONTH[0], *facts["dimensions"], FACT_COUNT[0]]
         files = {k.split("/")[1][: -len(".parquet")]: doc for k, doc in contract["facts"].items() if k.startswith(f"{dataset}/")}
+        if facts is None:
+            assert not files, f"{dataset} has fact table files but no facts in its manifest entry"
+            continue
+        names = [FACT_MONTH[0], *facts["dimensions"], FACT_COUNT[0]]
         assert sorted(files) == sorted(names), dataset
         types = {FACT_MONTH[0]: FACT_MONTH[1], FACT_COUNT[0]: FACT_COUNT[1]}
         for name, doc in files.items():
