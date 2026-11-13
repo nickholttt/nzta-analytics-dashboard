@@ -41,9 +41,8 @@ D-064, then D-063, and screenshots of the site stack for the user (CHECKPOINT).
 
 ## Branches and pull requests (checked 2026-11-13)
 
-- `main`: origin `912cada`. Local `main` matches.
+- `main`: origin `912cada`; local matches. The five merged pipeline branches are deleted.
 - `ui/explore`: origin `3c10716`, PRs #1–#16 merged on 2026-10-21. Nothing merged since.
-- The five merged pipeline branches are deleted, on GitHub and locally.
 - **15 open pull requests**, the site stack, each into the one before, the first into
   `ui/explore`: #17 to #25 and #30 to #34 (branch names and five lines on each:
   `docs/brief/STAGE_1_REPORT.md` §6); and #36 `next-stage-brief` into `claude/question-builder`.
