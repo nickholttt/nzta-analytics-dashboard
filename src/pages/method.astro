@@ -159,15 +159,15 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
     <div class="callout warning">
       <span class="callout-label">Case study: April 2020 lockdown</span>
       <p>
-        April 2020 was New Zealand's Alert Level 4 lockdown. At the August 2026 snapshot, 1,542 vehicles first
-        registered that month were still registered, against a median of 22,108 for the {trailing} months before: a
-        fall of 93%. Hyundai Motor Group's share that month was 16.9% (261 of 1,542), against
+        April 2020 was New Zealand's Alert Level 4 lockdown. At the October 2026 snapshot, 1,538 vehicles first
+        registered that month were still registered, against a median of 22,013 for the {trailing} months before: a
+        fall of 93%. Hyundai Motor Group's share that month was 16.9% (260 of 1,538), against
         5.9% over the {trailing} months before.
       </p>
       <p>
-        That 16.9% is not noise. With 261 of 1,542, chance alone would typically move the figure by about 0.95
+        That 16.9% is not noise. With 260 of 1,538, chance alone would typically move the figure by about 0.96
         percentage points (its standard error), and it sat about eleven times that above normal. The month was precisely measured; it was a different mix of
-        vehicles. NZ-new vehicles were 63.6% of the month against 54.3% over the {trailing} months before, trucks
+        vehicles. NZ-new vehicles were 63.7% of the month against 54.5% over the {trailing} months before, trucks
         6.8% against 2.5%, and vans 6.2% against 4.5%. A precision guard cannot see this, because nothing about the
         figure is imprecise. Only a guard that compares the month with its own recent history catches it.
       </p>
@@ -218,8 +218,8 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
       These vehicles always count in the total, so every share is out of all in-scope vehicles. They never take a
       colour or a place among the largest groups: on a chart that keeps only its largest groups they fall
       into {ALL_OTHER}, and on any other chart they are a thin grey line of their own, like any group past the
-      palette. At the August 2026 snapshot, 26,427 vehicles (0.59%) had a make with no match in the brand list. On
-      the segment chart, 89 vehicles are {RESERVED_LABELS.__UNDEFINED__.toLowerCase()}, at most three in a month between
+      palette. At the October 2026 snapshot, 26,433 vehicles (0.58%) had a make with no match in the brand list. On
+      the segment chart, 88 vehicles are {RESERVED_LABELS.__UNDEFINED__.toLowerCase()}, at most three in a month between
       1957 and February 2022, so their line stays near zero except in greyed months, where a single vehicle out of a
       few dozen shows as a spike.
     </p>
@@ -280,8 +280,8 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
       counts every unresolved hybrid as a missed mild hybrid. It is published twice: counting every classification,
       and counting high-confidence classifications only. While the figure that counts every classification is
       under {completeAt}%, over all time or over the last {trailing} months, a chart that splits out mild hybrids labels them <em>{hybrid.labels.partial}</em> and states the coverage under the chart. A build
-      warns if the high-confidence figure over the last {trailing} months falls under {warnBelow}%. No live chart splits
-      out mild hybrids today.
+      warns if the high-confidence figure over the last {trailing} months falls under {warnBelow}%. The powertrain
+      charts split out mild hybrids.
     </p>
 
     <h2>Estimation Principles</h2>
