@@ -27,8 +27,12 @@ Verified on Windows 11: Python 3.13.7 in `.venv/`, Node v22.19.0, npm 10.9.3. CI
 ubuntu-latest. On Linux or macOS, replace `.venv/Scripts/python.exe` with `.venv/bin/python`.
 
 Commands are written for **Git Bash**. They also work in PowerShell except for the
-`VAR=1 command` env prefix (use `$env:VAR = "1"` there), which was not run in PowerShell. The repo path
-contains spaces (`F:\Users\Dev Environment\Desktop\nzta_analytics_dashboard`), so quote it.
+`VAR=1 command` env prefix (use `$env:VAR = "1"` there), which was not run in PowerShell. The repo's path
+on the user's computer contains spaces, so quote it.
+
+**No path from the user's computer goes into a doc, a commit message or a pull request** (user,
+2026-11-14, D-081): nothing that shows their folders, drive layout or user name. Name a folder by
+what it is, or give it relative to the repo root. `gh`'s standard install location is not one.
 
 ## Commands
 

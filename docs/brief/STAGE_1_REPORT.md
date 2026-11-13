@@ -60,12 +60,13 @@ and writes only under gitignored `data/raw/`.
 | Checked | Every page re-read after the pull: the rows add up to the service's count, all 36 fields are present, and none of the four left-out fields appears (looked for in the first 50 rows and the last row of each page) |
 
 It is on one disk, like the August pull. Once you name a backed-up folder, these copy both and lose
-nothing (PowerShell; replace `D:\nzta-archive` with your folder). I have not run them.
+nothing (PowerShell, from the repo folder; replace `D:\nzta-archive` with your folder). I have not
+run them.
 
 ```powershell
 New-Item -ItemType Directory -Force "D:\nzta-archive\raw"
-Copy-Item -Recurse "F:\Users\Dev Environment\Desktop\nzta_analytics_dashboard\data\raw\2026-08" "D:\nzta-archive\raw\2026-08"
-Copy-Item -Recurse "F:\Users\Dev Environment\Desktop\nzta_analytics_dashboard\data\raw\2026-10" "D:\nzta-archive\raw\2026-10"
+Copy-Item -Recurse "data\raw\2026-08" "D:\nzta-archive\raw\2026-08"
+Copy-Item -Recurse "data\raw\2026-10" "D:\nzta-archive\raw\2026-10"
 ```
 
 November needs the same hand pull after NZTA's December refresh, unless D-063 is on `main` by then.
@@ -144,8 +145,8 @@ so I expect it to move on to November on 1 December. That is an inference: nobod
 5. If the page also links a file to download (CSV or Excel) beside the dashboard, download that too.
 6. Select all the text on the page and paste it into a text file named `page-text.txt`: what the
    data counts, when it updates, and its licence or terms.
-7. Save everything, with the files' own names, in
-   `F:\Users\Dev Environment\Desktop\nzta_analytics_dashboard\data\raw\nzta-dashboard\2026-10\`.
+7. Save everything, with the files' own names, in the repo folder under
+   `data\raw\nzta-dashboard\2026-10\`.
    `data\raw\` is ignored by git, so nothing there can be committed.
 8. Tell me it is there.
 
@@ -390,6 +391,5 @@ merged, unless you want them sooner.
   lines, and where the pipeline branches stand);
   D-066 and D-067; `docs/DATA_MAP.md` (`POSTCODE`); `docs/DATA_SOURCES.md` §A and §D; this report;
   STATE and CHECKPOINT.
-- **Scratch files** (the pull script, the saved pull request descriptions) are in
-  `C:\Users\NICKHO~1\AppData\Local\Temp\claude\3d8652c0f86f18ac\6edd460f-ef3f-47e3-8a40-cc6083c8eb79\scratchpad`
-  and can be deleted.
+- **Scratch files** (the pull script, the saved pull request descriptions) are in claude's scratch
+  folder for that session, outside the repo, and can be deleted.

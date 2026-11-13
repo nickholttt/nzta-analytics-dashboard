@@ -1869,8 +1869,8 @@ New entries use this template:
      reasoning agrees, stopping at the first problem. Chosen by the user.
 - Decision:
   - **The user's answers.**
-    1. The raw pulls' backup is `F:\nzta-data-backup`. claude checks both pulls are there and complete and copies
-       anything missing. Checked on 2026-11-13: 373 files (186 for 2026-08, 187 for 2026-10), 524,915,027 bytes,
+    1. The raw pulls' backup is a folder outside the repo (its path was removed, D-081). claude checks both pulls
+       are there and complete and copies anything missing. Checked on 2026-11-13: 373 files (186 for 2026-08, 187 for 2026-10), 524,915,027 bytes,
        every file's SHA-256 equal to the original's; nothing was missing. It is on the same physical disk as the
        project, so it is a second copy, not yet a backup.
     2. Secrets: 3a, for the archive and for Cloudflare. Each lives in an environment that only `main` can use.
