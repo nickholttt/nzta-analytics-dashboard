@@ -9,7 +9,7 @@ import { factView, loadManifest, loadSlice } from "../lib/data";
 import type { SliceRow } from "../lib/data";
 import { addMonths } from "../lib/measures";
 import { count } from "../lib/readout";
-import PresetPanel, { RESERVED_LABELS } from "./PresetPanel";
+import PresetPanel, { reservedLabel } from "./PresetPanel";
 
 // The chart's own settings in the address bar. A new question clears them, so its charts open on their defaults.
 const CHART_PARAMS = ["period", "range", "smoothing"];
@@ -18,7 +18,7 @@ const STARTING_VALUES = 5;
 const SUGGESTIONS = 8;
 const VIEW_LABELS: Record<string, string> = { mix: "Lines over time", geo: "Map", distribution: "Bars by band", league: "Ranking", trend: "Line" };
 
-const valueLabel = (v: string) => RESERVED_LABELS[v] ?? v;
+const valueLabel = reservedLabel;
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 // Focus moves after React has drawn the change, so the element it moves to exists.
 const focusSoon = (find: () => HTMLElement | null | undefined) => requestAnimationFrame(() => find()?.focus());
