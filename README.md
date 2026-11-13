@@ -49,6 +49,7 @@ python -m pytest pipeline/tests           # golden contract, guardrails, invaria
 python -m pipeline run                    # check the source; pull and build only if it changed
 python -m pipeline build data/raw/YYYY-MM/<timestamp> --dry-run   # rebuild a saved pull, publish nothing
 python -m pipeline init-schema            # once, deliberately: capture pipeline/expected_schema.json
+python -m pipeline archive --out FILE     # the last built snapshot's whole register as one Parquet file (the workflow's archive job)
 ```
 
 A run writes `public/data/` (gitignored) and, only on success, commits
