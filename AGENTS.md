@@ -96,6 +96,11 @@ Setup, **not re-run this session** (the environment already existed):
    Post-gate work is queued in `POST_GATE.md`, in order. Source: user instruction (D-013, D-020);
    `config/pipeline.json` and `docs/CUBE_SCHEMA.md` are on this list by inference from "pipeline,
    workflow, cube schema and reference data" (inferred — confirm).
+   Exception (user, 2026-10-21, D-043): work on these paths may be built and tested before the gate on
+   `claude/`/`gemini/` branches cut from `main`, with pull requests into `main` that stay unmerged until
+   the 8 November run passes. Nothing on those paths reaches `main`, or `ui/explore`, before then. Tests
+   and `pipeline build <saved pull> --dry-run` may run locally; `pipeline run` and `init-schema` still
+   may not, and a golden change still follows rule 4.
 3. **Never hand-edit `data/snapshots/` or `data/state/`.** Only the monthly Action writes them.
 4. **Golden changes are contract changes.** Regenerate `pipeline/tests/golden/contract.json` only
    deliberately, in the same commit as the change that causes it (one cube change per commit,

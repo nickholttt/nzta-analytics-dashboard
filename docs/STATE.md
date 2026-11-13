@@ -26,6 +26,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 | `claude/notes-after-merge` | origin | the notes after the merge. PR #17 into `ui/explore` |
 | `claude/public-explore` | origin | `/` for visitors, diagnostics on `/status` (D-041). PR #18 into `claude/notes-after-merge` |
 | `claude/explore-copy-controls` | origin | one row of time options, plain visitor wording, `public_copy` (D-042). PR #19 into `claude/public-explore` |
+| `claude/pipeline-branch-rule` | origin | AGENTS.md rule 2 exception for branches before the gate (D-043). PR #20 into `claude/explore-copy-controls` |
 
 PRs #1–#16 were merged into `ui/explore` in order with merge commits; their 16 remote branches are
 deleted. Local copies of those branches and the local `ui/explore` (behind origin) were left as they
@@ -107,8 +108,8 @@ Pages and TanStack Table are planned, that the UI was built ahead of the build o
 
 - **Freeze** on `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
-  `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2).
-- `docs/CHECKPOINT.md` question 1: may pipeline work be built on branches before the gate?
+  `docs/CUBE_SCHEMA.md` until the **8 November 2026** run passes (AGENTS.md hard rule 2). Since
+  2026-10-21 (D-043) that work may be built on branches from `main`, unmerged until the gate passes.
 - Older open questions: what `shaken-clock` in D-020 refers to; which Gemini client is in use.
 
 ## How to run
