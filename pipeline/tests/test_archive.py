@@ -85,6 +85,22 @@ def test_the_file_holds_every_row_as_recorded_without_the_row_id(tmp_path, cfg):
     assert not (cfg.path("staging") / "archive").exists(), "the working copy of the rows must not be left behind"
 
 
+def test_the_vin_prefix_and_the_postcode_are_written_as_recorded(tmp_path, cfg):
+    # The fixture rows carry neither field, so without this the two columns would only ever be written as nulls.
+    rows = load_rows()
+    object_id = cfg.source_field("object_id")
+    given = {rows[0][object_id]: ("ABCDE12345F", 110), rows[1][object_id]: ("ZYXWV98765G", 9016), rows[2][object_id]: (None, 6011)}
+    for row in rows:
+        row["VIN11"], row["POSTCODE"] = given.get(row[object_id], (None, None))
+    out = tmp_path / "register.parquet"
+    archive.write(cfg, write_pages(tmp_path / "pages", rows), expected_schema(cfg), pulled(cfg, rows), out)
+    columns, records = read(out)
+    written = sorted(((r[columns.index("VIN11")], r[columns.index("POSTCODE")]) for r in records), key=str)
+    assert written == sorted(((r["VIN11"], r["POSTCODE"]) for r in rows), key=str)
+    # NZTA records the postcode as a number, so one that starts with zero arrives without it; the file keeps the number.
+    assert ("ABCDE12345F", 110) in written and (None, 6011) in written
+
+
 def test_the_same_register_gives_the_same_rows_in_the_same_order(tmp_path, cfg):
     rows = load_rows()
     shuffled = rows[:]
