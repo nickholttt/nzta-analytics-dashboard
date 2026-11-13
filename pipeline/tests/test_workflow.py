@@ -91,3 +91,18 @@ def test_a_run_that_builds_nothing_cannot_start_a_deploy():
     job = lines[lines.index("  deploy:"):]
     assert "    needs: build" in job
     assert "    if: needs.build.outputs.built == 'true' && github.ref == 'refs/heads/main'" in job
+
+
+def test_the_cloudflare_secrets_are_read_only_by_a_job_that_names_the_main_only_environment():
+    """The secrets live in an environment only main can use. A job reads an environment's secrets only if it names
+    the environment, so the upload job must name it and nothing else may refer to the secrets."""
+    lines = (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()
+    start = lines.index("  upload:")
+    before, upload = lines[:start], lines[start:]
+    assert not [line for line in before if "secrets." in line]
+    assert [line for line in upload if "secrets.CLOUDFLARE_API_TOKEN" in line]
+    assert "    environment: production" in upload
+    assert "    if: needs.build.outputs.upload == 'true' && github.ref == 'refs/heads/main'" in upload
+    # The site's dependencies are installed by the build job only.
+    assert "        run: npm ci --no-audit --no-fund" in before
+    assert not [line for line in upload if "npm ci" in line and ".github/deploy" not in line]
