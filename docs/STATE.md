@@ -17,8 +17,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
     writes it and publishes it in that month's cube release.
   - **The archive job** keeps each built month's whole register in the private repository, with
     `VIN11` and `POSTCODE` since #42 (D-063, D-071, D-076): 37 fields from the next built month.
-  - `Checks` tests every pull request into `main`; `Deploy` stops before building (no
-    `src/lib/site.ts` on `main`).
+  - `Checks` tests every pull request whose branch carries the workflow: all into `main`, and
+    into `ui/explore` from #45 on. `Deploy` stops before building (no `src/lib/site.ts` on `main`).
 - **Nothing is deployed.** The site is a local reference UI (`npm run dev`, 127.0.0.1:4321).
 - **The archive:** the private repository `nickholttt/nzta-register-archive` holds one release,
   `snapshot-2026-10`, with two files (read back with `gh` on 2026-11-13):
@@ -54,8 +54,8 @@ says they are ready.
 - `main`: origin `f78e3e1`; local matches.
 - `ui/explore`: origin is the merge of #36 (`git rev-parse origin/ui/explore`). The local branch of
   that name is far behind; use `origin/ui/explore`.
-- **1 open pull request: #45** `claude/explore-meets-main` into `ui/explore` (no check runs on
-  pull requests into `ui/explore`). Merged today and deleted here and on GitHub: `claude/fact-table` (#41),
+- **1 open pull request: #45** `claude/explore-meets-main` into `ui/explore`: `Checks` green,
+  reviewer agreed. Merged on 2026-11-13 and deleted here and on GitHub: `claude/fact-table` (#41),
   `claude/archive-vin11-postcode` (#42), `claude/next-stage-brief` (#36); and `claude/look-and-feel`.
 
 ## Raw pulls on this computer (gitignored)
