@@ -6,12 +6,19 @@ artifacts.
 
 ## Why precompute
 
-The builder is bounded by config — datasets × live dimensions × measures —
-and that cross-product is small enough to compute entirely at build time,
-so every user query becomes a lookup rather than a scan. This is the direct
-payoff of a constrained builder: no query engine in the browser, instant
-response, works on a phone, nothing to secure. No count of dimensions is
-fixed in this document or anywhere else; see *Live dimensions*.
+Two kinds of artefact, both computed at build time:
+
+- **Slices** answer the preset charts: one dimension (or a configured pair)
+  by month, small enough for a first paint on a phone.
+- **The fact table** answers any question a visitor builds (D-058): counts
+  by month and every configured dimension at once, so any combination of
+  values, filters and periods is a sum over its rows. It holds counts, never
+  a vehicle row, and the browser aggregates it without a query engine (the
+site's code, `src/lib/data.ts`, which is on `ui/explore` and not yet on
+`main`; nothing in the pipeline shows it).
+
+No count of dimensions is fixed in this document or anywhere else; see
+*Live dimensions*.
 
 ## Artifacts
 
@@ -22,14 +29,17 @@ fixed in this document or anywhere else; see *Live dimensions*.
     {dataset}/{dimension}.parquet       # 1-D slices: one file per live dimension
   events.json                           # verified events only
   pairs/
-    {dataset}/{dim_a}__{dim_b}.parquet  # later build step: only pairs used by filters
+    {dataset}/{dim_a}__{dim_b}.parquet  # 2-D slices: only the pairs config/pipeline.json names
+  facts/
+    {dataset}/{column}.parquet          # the fact table, one column per file: month, each dimension, n
   presets/
     {preset_id}.json                    # later build step: fully resolved, for first paint
   reference/
     brand_registry.json                 # later build step: for the methodology panel
 ```
 
-Build step 1 emits `manifest.json`, `cube/registrations_surviving/` and
+Build step 1 emits `manifest.json`, `cube/registrations_surviving/`,
+`pairs/registrations_surviving/`, `facts/registrations_surviving/` and
 `events.json`.
 
 Pipeline state lives outside `/public/data` and is committed to the repo:
@@ -39,6 +49,10 @@ Pipeline state lives outside `/public/data` and is committed to the repo:
 - `data/state/last_good.json`: the last successful run's change key, row
   counts, per-month counts, live dimensions and moving cutoff. Every
   guardrail that compares against "the previous run" reads this file.
+
+The whole snapshot, one row per vehicle, is kept as well, but not here and
+not as part of this contract: it goes to a private store
+(`docs/DATA_SOURCES.md`, the register archive). Nothing published reads it.
 
 ## Live dimensions
 
@@ -115,7 +129,89 @@ never opened. Start with these and add on demand:
 
 `powertrain__segment`, `powertrain__region`, `powertrain__import_status`,
 `make__powertrain`, `owner_country__segment`, `built_in__make`,
-`import_status__segment`
+`import_status__segment`, `import_status__age_at_registration_band`,
+`powertrain__segment_group`
+
+Each dataset's `pairs` in `config/pipeline.json` lists the pairs a build
+emits, as `[dim_a, dim_b]`; the list above is what may be added. Emitted
+today: `import_status__age_at_registration_band`, which serves `used_imports`
+and `nz_new` (`registrations_surviving` filtered by import status) by age
+when first registered here, and `powertrain__segment_group`, which applies a
+filter such as light passenger vehicles to the powertrain mix. A pair is live in a run when both of its
+dimensions are live, and `manifest.json` lists the live ones per dataset as
+`live_pairs`, which the site reads rather than assuming a pair exists. A
+pair whose dimension is not live waits, as the dimension does, and is listed
+under `not_live_pairs` with a warning. An entry that is not two different
+dimension ids, a pair listed twice in either order, or a dimension the
+dataset cannot derive aborts the run.
+
+### Pair slice schema
+
+| column | type | notes |
+|---|---|---|
+| `month` | date | as in a 1-D slice |
+| `a_value` | string | the value of `dim_a`, or a reserved token |
+| `b_value` | string | the value of `dim_b`, or a reserved token |
+| `n` | int32 | count |
+| `denominator` | int32 | dataset total for that month, repeated: the same as in a 1-D slice |
+| `fc_sum`, `fc_n`, `fc_eligible_n` | | as in a 1-D slice |
+
+Rows are sorted by `month`, then `a_value`, then `b_value`. A pair carries
+the same vehicles as its 1-D slices: summed over `b_value` it gives
+`dim_a`'s slice, and summed over `a_value` it gives `dim_b`'s, row for row
+in `n`, `denominator`, `fc_n` and `fc_eligible_n`. `fc_sum` is rounded per
+row, so a sum of a pair's `fc_sum` matches the slice's only to within that
+rounding. The denominator is the whole dataset's month, not the filtered
+subset's, so a filtered share is computed in the browser: `n` over the sum
+of `n` for the same `month` and filter value.
+
+## Fact table
+
+Each dataset's `facts` in `config/pipeline.json` lists the dimensions the
+fact table carries. A build groups the dataset's vehicles by `month` and
+every listed dimension that is live, counts them, and writes each column to
+its own file: `facts/{dataset}/month.parquet`, one
+`facts/{dataset}/{dimension}.parquet` per dimension, and
+`facts/{dataset}/n.parquet`. Every file holds the same rows in the same
+order, so row *i* of each file is one row of the table. The host answers a
+range request with the whole file (Cloudflare Pages, from its documentation
+as read for D-058; nothing is deployed, so this is not observed), so one
+file per column is what lets a question download only the columns it names.
+
+| column | file | type | notes |
+|---|---|---|---|
+| `month` | `month.parquet` | date | as in a 1-D slice |
+| `{dimension}` | `{dimension}.parquet` | string | the value, or a reserved token, exactly as in that dimension's slice |
+| `n` | `n.parquet` | int32 | vehicles with this month and these values |
+
+Rows are unique on `month` and the dimension values, and sorted by `month`,
+then each dimension in the order configured. Summed over every dimension
+but one, the table gives that dimension's 1-D slice, row for row in `n`;
+summed over all of them it gives the dataset's month totals, the slices'
+`denominator`. The table carries no fuel consumption. A share is computed in
+the browser: `n` over the sum of `n` for the same month and filter.
+
+A list that is empty or not distinct dimension ids, or names a dimension the
+dataset cannot derive (or `month`, `n` or `rid`), aborts the run. A listed dimension
+that is not live this run is left out of the table, with a warning, and listed
+in the manifest's `facts.not_live`; if none is live, the table holds the month
+totals alone.
+
+The table carries nothing about a vehicle's owner. `region` is where the
+owner lives, and it is left out of `facts` until the Stage 2 privacy review
+(D-078): with it, two in three of the table's rows counted a single vehicle
+(64.8% on the 2026-10 pull), each with the owner's region beside the model
+and the month. The `region` slice is not affected, and a question that only
+breaks down by region is still answered from it. Putting `region` back is a
+one-word change to `facts`, and a contract change shown to the user.
+
+The table's total is checked against the vehicles themselves: the counts are
+read back from the written `n.parquet` and must equal the dataset's vehicles
+counted before the dimension lookups are joined on, or the run aborts. A
+dimension lookup that matched a vehicle twice, or lost one, is caught here.
+The lookups joined on before that count (scope, import status, brand, the
+model and hybrid exceptions, engine) each abort on a key defined twice or on
+two rows that match the same vehicle (Aborts, below).
 
 ## manifest.json
 
@@ -145,6 +241,9 @@ never opened. Start with these and add on demand:
       "months": 1195,
       "live_dimensions": ["powertrain", "make", "..."],
       "not_live": { "imported_from": "does not apply to this dataset" },
+      "live_pairs": ["import_status__age_at_registration_band"],
+      "not_live_pairs": {},
+      "facts": { "rows": 643414, "dimensions": ["powertrain", "make", "..."], "not_live": {} },
       "unmapped_rates": { "make": 0.0062, "powertrain": 0.0 },
       "unmapped_guard": {
         "make": {
@@ -188,9 +287,16 @@ never opened. Start with these and add on demand:
     "cluster": [9, 13], "share_cluster": 0.60, "shares": { "0": 0.003, "31+": 0.001 }
   },
   "snapshot_archive": { "path": "data/snapshots/2026-08.parquet", "status": "new" },
+  "payload_bytes": 3158670,
   "warnings": []
 }
 ```
+
+`payload_bytes` is the size of every file the build writes to `/public/data`
+except `manifest.json` itself: what the site can download. The golden test
+compares it, so anything that changes it (a new slice, a DuckDB upgrade that
+changes the Parquet layout) is a deliberate contract update. The golden
+build reads a frozen events file, so adding an event to `events.csv` is not.
 
 This drives the freshness badge and the provenance panel. Every count is
 published even when zero: a count that disappears is itself a silent
@@ -224,17 +330,36 @@ loudly. More than one match: the most recently modified is used, with a
 warning.
 
 **Snapshot date.** There is no snapshot field. `latest_snapshot` is the
-last day of the earlier of the latest first-registration month in the
-table and the month before the fetch. First registrations dated after that
-are counted, excluded and warned about.
+last day of the latest first-registration month in the table that holds a
+month of registrations, and no later than the month before the fetch. A
+month holds a month of registrations when it has at least 1% of the median
+of the 12 months before it (`snapshot.min_share_of_trailing_median` in
+`config/pipeline.json`; the lowest real month, April 2020, had 7%). So a
+few rows dated after the register's own month never become a snapshot.
+First registrations dated after the snapshot are counted, excluded and
+warned about.
+
+One case is not caught: a register that holds a substantial part of the
+following month (1% of a normal month or more) and is edited again at any
+time after its own month was built. Once the cap passes that following
+month, the next run builds it as that month, and the real refresh is then
+refused as a rebuild. None of the three snapshots built so far holds any
+row dated after its month (`data/snapshots/`).
 
 **Change key.** No file exists to hash, so the key is the composite of the
 total row count, the snapshot date, and the sha256 of one canonical
 grouped-statistics response: row counts by first-registration year,
 first-registration month, import status and vehicle type, sorted and
-serialised as canonical JSON. If the key equals the last good run's key,
-the build is skipped: nothing is pulled, nothing is published, the run
-succeeds.
+serialised as canonical JSON. If the row count and the digest equal the
+last good run's, the source is unchanged and the build is skipped: nothing
+is pulled, nothing is published, the run succeeds. The snapshot date is
+left out of that comparison: its cap moves on the first of each month
+while the register does not.
+
+**Each month is built once.** If the source changes again after its
+snapshot month was built, the run says so on its summary page and builds
+nothing. Only a run started by hand with `force` rebuilds a month, so a
+later edit by NZTA never replaces what the first build published.
 
 ## Guardrails — abort the run and keep the last good build
 
@@ -266,7 +391,14 @@ Freshness:
 
 - `latest_snapshot` is older than the last good run's.
 - `latest_snapshot` and the total row count are both unchanged but the
-  change key differs.
+  change key differs. Only a forced run reaches this check: an unforced
+  run does not rebuild a month.
+- A month was missed. From the 15th of a month (UTC;
+  `schedule.missed_month_alarm_day` in `config/pipeline.json`), a run that
+  builds nothing fails if the last good run's `latest_snapshot` is older
+  than the end of the month before, and names the missing month. It fails
+  every day until that month is built. A run that builds is never stopped
+  by this check, so an overdue month is still committed.
 
 Mapping:
 
@@ -284,11 +416,30 @@ guard would trip on them. But the whole run dilutes anything new: at the
 registrations, so a new brand missing from `brand_registry.csv` could
 reach that scale unnoticed. The trailing basis catches it.
 
+Pairs:
+
+- A dataset's `pairs` in `config/pipeline.json` holds an entry that is not
+  two different dimension ids, lists a pair twice in either order, or names
+  a dimension the dataset cannot derive.
+
+Fact table:
+
+- A dataset's `facts` is not a non-empty list of distinct dimension ids, or names a
+  dimension the dataset cannot derive.
+- The table's counts, read back from `n.parquet`, do not total the dataset's
+  vehicles as counted before the dimension lookups are joined on.
+
 Events:
 
 - A verified event has a scope outside the enum in `EVENTS_LAYER.md`, a
   `scope_value` that does not resolve through the vocabulary its dimension
-  produces, no `date_start`, or no `source_url`.
+  produces, no `date_start`, or no `source_url`; or a value outside the
+  enum for any other column the schema table calls an enum (`category`,
+  `mechanism`, `expected_effect`, `confidence`), or a `title` longer than
+  the table allows.
+- The schema table in `EVENTS_LAYER.md` no longer reads as an enum for a
+  column `config/pipeline.json` lists in `events.enum_columns`, or no longer
+  states the title limit.
 
 Failing loudly is the point. A dashboard that quietly serves wrong numbers
 is worse than one that is visibly stale.
@@ -313,6 +464,10 @@ is worse than one that is visibly stale.
   rises every year by construction; a changed vehicle year is the signal.
 - A dimension that was not live last run still exceeds its unmapped
   threshold, or lacks a reference file, and stays excluded.
+- A configured pair waits because one of its dimensions is not live this
+  run. It is listed under `not_live_pairs`.
+- A dimension listed in `facts` is not live this run, so the fact table is
+  written without it. It is listed under `facts.not_live`.
 - `data/snapshots/YYYY-MM.parquet` already exists with different content.
   The first observation is kept.
 - The payload exceeds the size budget.
@@ -323,3 +478,13 @@ is worse than one that is visibly stale.
 
 Whole `/public/data` payload target: **under 8 MB**. Preset JSON under
 40 KB each so the first paint needs no Parquet fetch at all.
+
+Measured on dry runs of 2026-11-13, without `region` in the fact table. The
+2026-10 pull: the fact table is 641,618 rows in 1,726,119 bytes over its 14
+files, the largest `n` (0.38 MB), `age_at_registration_band` (0.29 MB) and
+`model` (0.28 MB); the whole payload is 3,149,458 bytes. A question about
+brand groups over time reads `month`, `parent_group` and `n`: 0.48 MB. Half
+of the table's rows (50.2%) count one vehicle, 7.1% of the vehicles. The
+2026-08 pull, the snapshot of the manifest example above: 643,414 rows in
+1,736,400 bytes. With `region` the 2026-10 table was 1,734,417 rows in
+3,885,012 bytes.

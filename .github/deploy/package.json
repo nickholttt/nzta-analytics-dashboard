@@ -1,0 +1,8 @@
+{
+  "name": "nzta-site-deploy",
+  "private": true,
+  "description": "The tool deploy.yml uploads the site with, pinned by this folder's own lockfile so that installing the site never installs it (D-057).",
+  "dependencies": {
+    "wrangler": "4.148.0"
+  }
+}

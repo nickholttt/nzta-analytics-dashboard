@@ -29,17 +29,21 @@ algorithmically cleaned make and model errors.
   several fields from the same row (make with model, segment from three
   fields, fuel consumption stored as text): a grouped query over them would
   be as large as the rows.
-- **Refresh timing.** The register refreshes in the first days of the
-  month, later each time so far: the 2026-08 snapshot was last edited on
-  3 September 2026, 2026-09 on 6 October, and 2026-10 on 9 November
-  (09:50 UTC). The monthly workflow is set for the 8th at 06:17 UTC;
-  GitHub started both scheduled runs about seven hours late (13:25 and
-  13:19 UTC). If a refresh lands after the run, the change key is
-  unchanged, the run skips, and the site stays a month behind until the
-  next run or a manual dispatch. This happened on 8 November 2026; the
-  2026-10 snapshot was built by a dispatched run on 13 November. A
-  snapshot that is never built is never archived. A daily run is accepted
-  (D-064, D-066) and not yet built.
+- **Refresh timing.** The register refreshes early in the month, on no
+  fixed day: the 2026-08 snapshot was last edited on 3 September 2026,
+  2026-09 on 6 October and 2026-10 on 9 November. So the workflow asks
+  every day (06:17 UTC) and builds within a day of a refresh landing. Two
+  rules go with a daily run:
+  - **Each month is built once.** If NZTA edits the register again after
+    its snapshot month was built, the run reports the change on its
+    summary page and builds nothing. Rebuilding a month takes a run
+    started by hand with `force`. This keeps the first observation of
+    every month.
+  - **A missed month fails the run.** From the 15th (UTC;
+    `schedule.missed_month_alarm_day` in `config/pipeline.json`), a run
+    that builds nothing fails, every day, while the month before is still
+    not built, and names it. A skipped run is green, so without this a
+    month NZTA never published would pass unseen.
 
 ## B. Azure Blob CSVs — full fleet (for the stock cube)
 
@@ -105,7 +109,9 @@ licensed, each monthly, quarterly and annual.
 
 The user chose on 2026-10-22 to wait for the Data Explorer, and on
 2026-11-13 to use the Infoshare series now (`docs/brief/MASTER_BRIEF.md`
-§7). D-065 proposes how; until it is accepted nothing is built. The
+§7). D-065 says how, and the user accepted it that day by its option 2
+(D-066): the user exports the series from Infoshare by hand each month.
+Nothing is built yet. The
 monthly check still looks for the series in the Explorer
 (`docs/playbooks/check-monthly-run.md`).
 
@@ -209,6 +215,59 @@ scrapped. Each run commits a small aggregate of the snapshot, never raw
 rows, to `data/snapshots/YYYY-MM.parquet`. Differencing consecutive
 snapshots gives new registrations and scrappage from our own observations,
 and is the input to cohort survival.
+
+**The register archive keeps the whole snapshot, outside git.** The
+committed aggregate holds five dimensions; everything finer is gone once
+NZTA refreshes. So after a month is built, a second job
+(`archive` in `monthly-build.yml`, `pipeline/archive.py`) pulls the
+register again and keeps it as one Parquet file, one row per vehicle:
+
+- **Fields:** every field of `pipeline/expected_schema.json` except those
+  in `register_archive.never_pulled` in `config/pipeline.json`:
+  `CHASSIS7` and `ENGINE_NUMBER`, which are never asked for. The row id is
+  pulled for paging and left out of the file. Values are as NZTA records
+  them; nothing is normalised.
+- **`VIN11` and `POSTCODE` are kept here and nowhere else** (D-076). The
+  build's own pull does not take them, so neither reaches the cube, the
+  committed aggregate or any published file. `VIN11` itself is never
+  published; what is derived from it may be, once it has been checked
+  against the data. Postcode figures wait for the privacy review, and
+  then only as area totals above a minimum count. NZTA records the
+  postcode as a number, so one that starts with zero arrives without it:
+  in the 2026-10 file 152 postcodes, holding 885,064 vehicles, are below
+  1000.
+- **A pull saved by hand** can be written to the same file with
+  `pipeline archive --from-pull`, but only if it took every archive
+  field. The pulls saved before D-076 did not take `VIN11` or `POSTCODE`
+  and are refused.
+- **October 2026 has two files**, because a month's file is never
+  replaced: `mvr-2026-10.parquet` at 35 fields, written before D-076, and
+  `mvr-2026-10-vin11-postcode.parquet`, the same register at 37 fields
+  (5,926,990 rows, 55,125,916 bytes, pulled and uploaded by hand on
+  2026-11-13). The two do not line up row for row: neither keeps a row
+  id. Later months have one file at 37 fields.
+- **Where:** a release `snapshot-YYYY-MM` holding `mvr-YYYY-MM.parquet`
+  in a **private** repository, `nzta-register-archive`. The file holds
+  vehicle rows with their owner's district and postcode and the first 11
+  characters of the VIN, so it is never published,
+  never committed here and never uploaded as an artifact of this public
+  repository.
+- **Only the register that was built.** The job goes ahead only while the
+  live register has the row count and digest of the last good build. If
+  NZTA has refreshed since, it fails and says the month can no longer be
+  archived.
+- **Never replaced.** If the month's file is already there the job stops
+  without pulling.
+- **When it fails** (an expired token is the likely cause; the job says
+  so), the month's build and commit stand and the run is red. Fix the
+  cause, then start the workflow by hand with `archive` ticked: it
+  archives the last built snapshot. It builds nothing unless NZTA has
+  refreshed since; then it builds the new month and archives that one,
+  and the month whose archive failed is lost.
+- The job refuses to upload unless the archive repository is private, and
+  counts a month as archived only if its file finished uploading.
+- A release keeps no history and can be deleted by hand. A second copy
+  somewhere backed up is the maintainer's to keep.
 
 **Region** is not a field. The register records `TLA`: the territorial
 authority where the registered owner lives *as at the snapshot*, from their

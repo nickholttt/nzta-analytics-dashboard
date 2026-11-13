@@ -22,12 +22,15 @@ Last updated by claude on 2026-11-13
     data (`docs/MODEL_AND_AGE.md` §1) and its definitions (`docs/DATA_MAP.md`). The make and
     model cleansing code it links to answers "Not Found" on GitHub.
   - Four playbooks and two skills no longer describe the freeze.
-  - **#36 is in `ui/explore`**: these notes, D-062 to D-079.
-- Earlier on 2026-11-13: D-066 to D-077.
+  - **#36 is in `ui/explore`** (`2236422`): these notes, D-062 to D-079.
+  - **#45 is open into `ui/explore`**: `main` merged in, the two conflicts resolved, the stale
+    docs brought up to date. Tests, typecheck, build and screens pass. Its reviewer agreed with
+    follow-ups, none blocking; the ones that are docs on that branch are done.
 
-## Open pull requests waiting on the user (0)
+## Open pull requests waiting on the user (1)
 
-None.
+- **#45** `claude/explore-meets-main` into `ui/explore`: say "merge 45". After it, `ui/explore`
+  into `main` has no conflict.
 
 ## Work queue (in order)
 
@@ -45,11 +48,11 @@ None.
    should skip, green, with "Source unchanged". At NZTA's December refresh: the first build with
    the fact table, its cube release, the deploy start, and an archive file of 37 fields.
 3. **The deploy, each step asked for:**
-   - `ui/explore` into `main`. First, on a branch from `origin/ui/explore`: merge `origin/main`
-     into it, resolve `README.md` (the only conflict), and bring up to date what STATE lists as
-     disagreeing (the freeze in `README.md` and `POST_GATE.md`; AGENTS.md rules 7 and 8 and its
-     dry-run command). Run the pipeline tests, `tsc`, `astro build` and the headless screens;
-     have it reviewed; open it into `ui/explore`. Then `ui/explore` into `main` on the user's word.
+   - `ui/explore` into `main`. First "merge 45" (merge commit; delete the branch). Then open
+     `ui/explore` into `main`: `Checks` must be green and a reviewer agree, and the user says
+     "merge N". After it `Deploy` builds the site on every push to `main` and uploads nothing
+     until the Cloudflare switch. AGENTS.md hard rules 7 and 8 still carry wording the day has
+     overtaken; changing a hard rule's text needs the user's approval (question 1).
    - A cube with the fact table: NZTA's December refresh builds one, or a forced run of October
      does (ask).
    - Numbered console steps, all production: a Cloudflare Pages project for Direct Upload named
@@ -62,6 +65,10 @@ None.
    slice's small cells need a minimum count (the slice's are not measured); postcode totals and
    their minimum (D-076); whether a model year for the makes whose VINs carry one is wanted (D-079).
 5. **Small corrections and follow-ups, none blocking** (the reviewers' claims):
+   - #45's: event markers ignore a preset's filter, and `powertrain-mix` now has one
+     (`src/lib/events.ts`); `docs/CUBE_SCHEMA.md` says `src/lib/data.ts` is not yet on `main`
+     (correct it with `ui/explore` into `main`); D-063's and D-064's headings still read
+     "(proposed)" though D-066 accepted them (the file is append-only; D-066 is the record).
    - The fact table's (#41): a test that builds a second dataset with no `facts`; the abort
      message for a reserved name (`month`, `n`, `rid`) reads as if the dimension were not
      derivable, and no test covers it; the Aborts list in `docs/CUBE_SCHEMA.md` does not name the
@@ -88,11 +95,12 @@ None.
 
 ## Questions for the user
 
-1. **May `ui/explore` go into `main`?** That puts the site's code on `main`, so `Deploy` starts
-   building the site on every push; nothing is public until the Cloudflare switch. (a) Yes, once
-   the branch in queue item 3 is reviewed and merged: say "merge N" for each. (b) Not yet.
-   Recommend (a). With no answer the branch is prepared and stops as a pull request into
-   `ui/explore`.
+1. **May #45 merge, and then `ui/explore` go into `main`?** That puts the site's code on
+   `main`, so `Deploy` starts building the site on every push; nothing is public until the
+   Cloudflare switch. (a) Yes: say "merge 45", and claude opens `ui/explore` into `main`, has it
+   reviewed, and asks for that merge by number; with it, AGENTS.md hard rules 7 and 8 are
+   reworded to drop the merges already done and the gate that has passed. (b) Not yet.
+   Recommend (a). With no answer #45 stays open and nothing reaches `main`.
 2. **A cube with the fact table: a forced run of October now, or wait for December's refresh?**
    The Build page of a deployed site needs one. A forced run publishes the fact table in a public
    release about three weeks sooner. Recommend waiting unless the site should go public before

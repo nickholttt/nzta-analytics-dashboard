@@ -34,6 +34,7 @@
      "heritage_country",
      "built_in",
      "segment",
+     "segment_group",
      "import_status",
      "region",
      "vehicle_year_band",
@@ -44,6 +45,29 @@
     "not_live": {
      "imported_from": "does not apply to this dataset"
     },
+    "live_pairs": [
+     "import_status__age_at_registration_band",
+     "powertrain__segment_group"
+    ],
+    "not_live_pairs": {},
+    "facts": {
+     "rows": 55,
+     "dimensions": [
+      "powertrain",
+      "make",
+      "parent_group",
+      "owner_country",
+      "heritage_country",
+      "built_in",
+      "segment",
+      "segment_group",
+      "import_status",
+      "engine_size_band",
+      "age_at_registration_band",
+      "model"
+     ],
+     "not_live": {}
+    },
     "unmapped_rates": {
      "powertrain": 0.0,
      "make": 0.016949,
@@ -52,6 +76,7 @@
      "heritage_country": 0.016949,
      "built_in": 0.0,
      "segment": 0.0,
+     "segment_group": 0.0,
      "import_status": 0.0,
      "region": 0.016949,
      "vehicle_year_band": 0.0,
@@ -145,6 +170,7 @@
       "heritage_country": 0.9804,
       "built_in": 0.9804,
       "segment": 0.9804,
+      "segment_group": 0.9804,
       "import_status": 1.0,
       "region": 0.9608,
       "model": 1.0
@@ -241,6 +267,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
+  "payload_bytes": 37545,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -4780,6 +4807,256 @@
     ]
    ]
   },
+  "registrations_surviving/segment_group.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "Light passenger",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "Light passenger",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "Light passenger",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "Light passenger",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "Light passenger",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "Light passenger",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "Light commercial",
+     1,
+     2,
+     8.8,
+     1,
+     1
+    ],
+    [
+     "2025-10-01",
+     "Light passenger",
+     1,
+     2,
+     1.9,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "Light passenger",
+     2,
+     2,
+     15.3,
+     2,
+     2
+    ],
+    [
+     "2025-12-01",
+     "Light passenger",
+     2,
+     2,
+     14.6,
+     2,
+     2
+    ],
+    [
+     "2026-01-01",
+     "Light passenger",
+     2,
+     2,
+     10.3,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "Light passenger",
+     3,
+     3,
+     17.3,
+     3,
+     3
+    ],
+    [
+     "2026-03-01",
+     "Light commercial",
+     1,
+     5,
+     10.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Light passenger",
+     4,
+     5,
+     13.6,
+     3,
+     3
+    ],
+    [
+     "2026-04-01",
+     "Heavy commercial",
+     1,
+     5,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Light passenger",
+     4,
+     5,
+     16.8,
+     3,
+     3
+    ],
+    [
+     "2026-05-01",
+     "Light commercial",
+     1,
+     6,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Light passenger",
+     5,
+     6,
+     30.0,
+     5,
+     5
+    ],
+    [
+     "2026-06-01",
+     "Light passenger",
+     5,
+     6,
+     14.0,
+     3,
+     3
+    ],
+    [
+     "2026-06-01",
+     "__UNDEFINED__",
+     1,
+     6,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-07-01",
+     "Light commercial",
+     1,
+     5,
+     8.9,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "Light passenger",
+     4,
+     5,
+     18.4,
+     4,
+     4
+    ],
+    [
+     "2026-08-01",
+     "Light commercial",
+     1,
+     11,
+     7.6,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "Light passenger",
+     10,
+     11,
+     40.1,
+     8,
+     8
+    ]
+   ]
+  },
   "registrations_surviving/vehicle_year_band.parquet": {
    "schema": [
     [
@@ -5084,5 +5361,3341 @@
     ]
    ]
   }
- }
+ },
+ "pairs": {
+  "registrations_surviving/import_status__age_at_registration_band.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "a_value",
+     "VARCHAR"
+    ],
+    [
+     "b_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "NZ New",
+     "0",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "NZ New",
+     "1",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "Used Import",
+     "8",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "NZ New",
+     "0",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "Used Import",
+     "14",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "NZ New",
+     "0",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "NZ New",
+     "0",
+     1,
+     2,
+     8.8,
+     1,
+     1
+    ],
+    [
+     "2025-10-01",
+     "Used Import",
+     "13",
+     1,
+     2,
+     1.9,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "NZ New",
+     "0",
+     1,
+     2,
+     9.1,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "Used Import",
+     "12",
+     1,
+     2,
+     6.2,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "NZ New",
+     "0",
+     1,
+     2,
+     6.8,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "NZ New",
+     "unknown",
+     1,
+     2,
+     7.8,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "NZ New",
+     "0",
+     1,
+     2,
+     4.9,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "Used Import",
+     "13",
+     1,
+     2,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "NZ New",
+     "0",
+     2,
+     3,
+     13.9,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "Used Import",
+     "14",
+     1,
+     3,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "NZ New",
+     "0",
+     3,
+     5,
+     15.2,
+     2,
+     2
+    ],
+    [
+     "2026-03-01",
+     "Used Import",
+     "13",
+     1,
+     5,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Used Import",
+     "14",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "NZ New",
+     "0",
+     1,
+     5,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-04-01",
+     "NZ New",
+     "unknown",
+     1,
+     5,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Used Import",
+     "13",
+     1,
+     5,
+     4.6,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Used Import",
+     "14",
+     2,
+     5,
+     7.2,
+     1,
+     2
+    ],
+    [
+     "2026-05-01",
+     "NZ New",
+     "0",
+     2,
+     6,
+     16.3,
+     2,
+     2
+    ],
+    [
+     "2026-05-01",
+     "NZ New",
+     "unknown",
+     1,
+     6,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Used Import",
+     "13",
+     1,
+     6,
+     3.6,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Used Import",
+     "14",
+     1,
+     6,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Used Import",
+     "20-24",
+     1,
+     6,
+     7.6,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "NZ New",
+     "0",
+     4,
+     6,
+     6.9,
+     1,
+     2
+    ],
+    [
+     "2026-06-01",
+     "Used Import",
+     "13",
+     1,
+     6,
+     3.2,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "Used Import",
+     "14",
+     1,
+     6,
+     3.9,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "NZ New",
+     "0",
+     3,
+     5,
+     18.8,
+     3,
+     3
+    ],
+    [
+     "2026-07-01",
+     "Used Import",
+     "13",
+     1,
+     5,
+     3.9,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "Used Import",
+     "14",
+     1,
+     5,
+     4.6,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "NZ New",
+     "0",
+     8,
+     11,
+     40.3,
+     7,
+     7
+    ],
+    [
+     "2026-08-01",
+     "Used Import",
+     "13",
+     2,
+     11,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "Used Import",
+     "14",
+     1,
+     11,
+     4.0,
+     1,
+     1
+    ]
+   ]
+  },
+  "registrations_surviving/powertrain__segment_group.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "a_value",
+     "VARCHAR"
+    ],
+    [
+     "b_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "Petrol",
+     "Light passenger",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "Petrol",
+     "Light passenger",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "Petrol",
+     "Light passenger",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "Petrol",
+     "Light passenger",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "Petrol",
+     "Light passenger",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "Petrol",
+     "Light passenger",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "Diesel",
+     "Light commercial",
+     1,
+     2,
+     8.8,
+     1,
+     1
+    ],
+    [
+     "2025-10-01",
+     "PHEV",
+     "Light passenger",
+     1,
+     2,
+     1.9,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "Petrol",
+     "Light passenger",
+     2,
+     2,
+     15.3,
+     2,
+     2
+    ],
+    [
+     "2025-12-01",
+     "Petrol",
+     "Light passenger",
+     2,
+     2,
+     14.6,
+     2,
+     2
+    ],
+    [
+     "2026-01-01",
+     "Petrol",
+     "Light passenger",
+     2,
+     2,
+     10.3,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "Hybrid",
+     "Light passenger",
+     1,
+     3,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "Petrol",
+     "Light passenger",
+     2,
+     3,
+     13.9,
+     2,
+     2
+    ],
+    [
+     "2026-03-01",
+     "Diesel",
+     "Light commercial",
+     1,
+     5,
+     10.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Hybrid",
+     "Light passenger",
+     2,
+     5,
+     8.5,
+     2,
+     2
+    ],
+    [
+     "2026-03-01",
+     "Petrol",
+     "Light passenger",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "__UNDEFINED__",
+     "Light passenger",
+     1,
+     5,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-04-01",
+     "BEV",
+     "Light passenger",
+     1,
+     5,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-04-01",
+     "Diesel",
+     "Heavy commercial",
+     1,
+     5,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Petrol",
+     "Light passenger",
+     3,
+     5,
+     16.8,
+     3,
+     3
+    ],
+    [
+     "2026-05-01",
+     "Hybrid",
+     "Light passenger",
+     2,
+     6,
+     12.0,
+     2,
+     2
+    ],
+    [
+     "2026-05-01",
+     "Mild hybrid",
+     "Light commercial",
+     1,
+     6,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Petrol",
+     "Light passenger",
+     3,
+     6,
+     18.0,
+     3,
+     3
+    ],
+    [
+     "2026-06-01",
+     "BEV",
+     "Light passenger",
+     2,
+     6,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-06-01",
+     "Diesel",
+     "__UNDEFINED__",
+     1,
+     6,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-06-01",
+     "Hybrid",
+     "Light passenger",
+     2,
+     6,
+     7.1,
+     2,
+     2
+    ],
+    [
+     "2026-06-01",
+     "Petrol",
+     "Light passenger",
+     1,
+     6,
+     6.9,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "Diesel",
+     "Light commercial",
+     1,
+     5,
+     8.9,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "Hybrid",
+     "Light passenger",
+     3,
+     5,
+     13.8,
+     3,
+     3
+    ],
+    [
+     "2026-07-01",
+     "Petrol",
+     "Light passenger",
+     1,
+     5,
+     4.6,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "BEV",
+     "Light passenger",
+     2,
+     11,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-08-01",
+     "Diesel",
+     "Light commercial",
+     1,
+     11,
+     7.6,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "Hybrid",
+     "Light passenger",
+     4,
+     11,
+     18.2,
+     4,
+     4
+    ],
+    [
+     "2026-08-01",
+     "Mild hybrid",
+     "Light passenger",
+     1,
+     11,
+     4.0,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "Petrol",
+     "Light passenger",
+     3,
+     11,
+     17.9,
+     3,
+     3
+    ]
+   ]
+  }
+ },
+ "facts": {
+  "registrations_surviving/age_at_registration_band.parquet": {
+   "schema": [
+    [
+     "age_at_registration_band",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "0"
+    ],
+    [
+     "1"
+    ],
+    [
+     "8"
+    ],
+    [
+     "0"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "0"
+    ],
+    [
+     "12"
+    ],
+    [
+     "0"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "14"
+    ],
+    [
+     "13"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "14"
+    ],
+    [
+     "13"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "14"
+    ],
+    [
+     "20-24"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "13"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "13"
+    ],
+    [
+     "14"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
+    ]
+   ]
+  },
+  "registrations_surviving/built_in.parquet": {
+   "schema": [
+    [
+     "built_in",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "UNITED KINGDOM"
+    ],
+    [
+     "AUSTRALIA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "UNITED STATES"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "SOUTH KOREA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "THAILAND"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "SOUTH KOREA"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "UNITED KINGDOM"
+    ],
+    [
+     "THAILAND"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CZECH REPUBLIC"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "THAILAND"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "SPAIN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "ITALY"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "THAILAND"
+    ],
+    [
+     "CHINA"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "JAPAN"
+    ],
+    [
+     "SOUTH KOREA"
+    ],
+    [
+     "INDIA"
+    ],
+    [
+     "JAPAN"
+    ]
+   ]
+  },
+  "registrations_surviving/engine_size_band.parquet": {
+   "schema": [
+    [
+     "engine_size_band",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Under 1.0 L"
+    ],
+    [
+     "3.0-3.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "4.0 L and over"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "Under 1.0 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.5-2.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "none"
+    ],
+    [
+     "4.0 L and over"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "Under 1.0 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.5-2.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "Under 1.0 L"
+    ],
+    [
+     "none"
+    ],
+    [
+     "none"
+    ],
+    [
+     "4.0 L and over"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "none"
+    ],
+    [
+     "none"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.0-1.4 L"
+    ],
+    [
+     "1.5-1.9 L"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "1.5-1.9 L"
+    ]
+   ]
+  },
+  "registrations_surviving/heritage_country.parquet": {
+   "schema": [
+    [
+     "heritage_country",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "United Kingdom"
+    ],
+    [
+     "Australia"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United Kingdom"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United Kingdom"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Czechia"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Germany"
+    ],
+    [
+     "China"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Italy"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ]
+   ]
+  },
+  "registrations_surviving/import_status.parquet": {
+   "schema": [
+    [
+     "import_status",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
+    ]
+   ]
+  },
+  "registrations_surviving/make.parquet": {
+   "schema": [
+    [
+     "make",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "MORRIS"
+    ],
+    [
+     "HOLDEN"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "FORD"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "KGM"
+    ],
+    [
+     "MITSUBISHI"
+    ],
+    [
+     "FORD"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "HAVAL"
+    ],
+    [
+     "HYUNDAI"
+    ],
+    [
+     "SUZUKI"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "MG"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "HONDA"
+    ],
+    [
+     "MINI"
+    ],
+    [
+     "BYD"
+    ],
+    [
+     "ISUZU"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "SKODA"
+    ],
+    [
+     "SUBARU"
+    ],
+    [
+     "HONDA"
+    ],
+    [
+     "TANK"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "VOLKSWAGEN"
+    ],
+    [
+     "ORA"
+    ],
+    [
+     "TESLA"
+    ],
+    [
+     "HINO"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "FIAT"
+    ],
+    [
+     "HAVAL"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "TESLA"
+    ],
+    [
+     "FORD"
+    ],
+    [
+     "HAVAL"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "HONDA"
+    ],
+    [
+     "KIA"
+    ],
+    [
+     "SUZUKI"
+    ],
+    [
+     "TOYOTA"
+    ]
+   ]
+  },
+  "registrations_surviving/model.parquet": {
+   "schema": [
+    [
+     "model",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "__OTHER__"
+    ],
+    [
+     "__OTHER__"
+    ],
+    [
+     "__OTHER__"
+    ],
+    [
+     "TOYOTA|COROLLA"
+    ],
+    [
+     "__OTHER__"
+    ],
+    [
+     "FORD|MUSTANG"
+    ],
+    [
+     "MAZDA|2"
+    ],
+    [
+     "KGM|REXTON"
+    ],
+    [
+     "MITSUBISHI|OUTLANDER"
+    ],
+    [
+     "FORD|EVEREST"
+    ],
+    [
+     "TOYOTA|COROLLA"
+    ],
+    [
+     "HAVAL|H6"
+    ],
+    [
+     "HYUNDAI|TUCSON"
+    ],
+    [
+     "SUZUKI|SWIFT"
+    ],
+    [
+     "TOYOTA|TANK"
+    ],
+    [
+     "TOYOTA|AQUA"
+    ],
+    [
+     "NISSAN|X-TRAIL"
+    ],
+    [
+     "ZZZ MOTORS|ONE"
+    ],
+    [
+     "TOYOTA|LANDCRUISER"
+    ],
+    [
+     "MG|ZS"
+    ],
+    [
+     "TOYOTA|AQUA"
+    ],
+    [
+     "HONDA|FIT"
+    ],
+    [
+     "MINI|COOPER"
+    ],
+    [
+     "BYD|ATTO 3"
+    ],
+    [
+     "ISUZU|FORWARD"
+    ],
+    [
+     "NISSAN|NOTE"
+    ],
+    [
+     "SKODA|FABIA"
+    ],
+    [
+     "SUBARU|IMPREZA"
+    ],
+    [
+     "HONDA|FIT"
+    ],
+    [
+     "TANK|TANK"
+    ],
+    [
+     "TOYOTA|HILUX"
+    ],
+    [
+     "MAZDA|DEMIO"
+    ],
+    [
+     "MAZDA|ROADSTER"
+    ],
+    [
+     "VOLKSWAGEN|POLO"
+    ],
+    [
+     "ORA|ORA"
+    ],
+    [
+     "TESLA|MODEL Y"
+    ],
+    [
+     "HINO|300"
+    ],
+    [
+     "MAZDA|AXELA"
+    ],
+    [
+     "TOYOTA|PRIUS"
+    ],
+    [
+     "TOYOTA|CAMRY"
+    ],
+    [
+     "FIAT|DUCATO"
+    ],
+    [
+     "HAVAL|JOLION"
+    ],
+    [
+     "TOYOTA|RAV4"
+    ],
+    [
+     "TOYOTA|PRIUS"
+    ],
+    [
+     "NISSAN|NOTE"
+    ],
+    [
+     "NISSAN|LEAF"
+    ],
+    [
+     "TESLA|MODEL Y"
+    ],
+    [
+     "FORD|RANGER"
+    ],
+    [
+     "HAVAL|H6"
+    ],
+    [
+     "TOYOTA|RAV4"
+    ],
+    [
+     "TOYOTA|AQUA"
+    ],
+    [
+     "HONDA|FIT"
+    ],
+    [
+     "KIA|SPORTAGE"
+    ],
+    [
+     "SUZUKI|SWIFT"
+    ],
+    [
+     "TOYOTA|COROLLA"
+    ]
+   ]
+  },
+  "registrations_surviving/month.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01"
+    ],
+    [
+     "1998-01-01"
+    ],
+    [
+     "2007-06-01"
+    ],
+    [
+     "2019-03-01"
+    ],
+    [
+     "2025-08-01"
+    ],
+    [
+     "2025-09-01"
+    ],
+    [
+     "2025-09-01"
+    ],
+    [
+     "2025-10-01"
+    ],
+    [
+     "2025-10-01"
+    ],
+    [
+     "2025-11-01"
+    ],
+    [
+     "2025-11-01"
+    ],
+    [
+     "2025-12-01"
+    ],
+    [
+     "2025-12-01"
+    ],
+    [
+     "2026-01-01"
+    ],
+    [
+     "2026-01-01"
+    ],
+    [
+     "2026-02-01"
+    ],
+    [
+     "2026-02-01"
+    ],
+    [
+     "2026-02-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ]
+   ]
+  },
+  "registrations_surviving/n.parquet": {
+   "schema": [
+    [
+     "n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     2
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ]
+   ]
+  },
+  "registrations_surviving/owner_country.parquet": {
+   "schema": [
+    [
+     "owner_country",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "United Kingdom"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Germany"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Germany"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Germany"
+    ],
+    [
+     "China"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Netherlands"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "United States"
+    ],
+    [
+     "China"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "South Korea"
+    ],
+    [
+     "Japan"
+    ],
+    [
+     "Japan"
+    ]
+   ]
+  },
+  "registrations_surviving/parent_group.parquet": {
+   "schema": [
+    [
+     "parent_group",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "British Leyland"
+    ],
+    [
+     "General Motors"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Ford Motor Company"
+    ],
+    [
+     "Mazda Motor Corporation"
+    ],
+    [
+     "KG Mobility"
+    ],
+    [
+     "Mitsubishi Motors"
+    ],
+    [
+     "Ford Motor Company"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Hyundai Motor Group"
+    ],
+    [
+     "Suzuki Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Nissan Motor"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "SAIC Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Honda Motor"
+    ],
+    [
+     "BMW Group"
+    ],
+    [
+     "BYD"
+    ],
+    [
+     "Isuzu Motors"
+    ],
+    [
+     "Nissan Motor"
+    ],
+    [
+     "Volkswagen Group"
+    ],
+    [
+     "Subaru Corporation"
+    ],
+    [
+     "Honda Motor"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Mazda Motor Corporation"
+    ],
+    [
+     "Mazda Motor Corporation"
+    ],
+    [
+     "Volkswagen Group"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Tesla"
+    ],
+    [
+     "ARCHION"
+    ],
+    [
+     "Mazda Motor Corporation"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Stellantis"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Nissan Motor"
+    ],
+    [
+     "Nissan Motor"
+    ],
+    [
+     "Tesla"
+    ],
+    [
+     "Ford Motor Company"
+    ],
+    [
+     "Great Wall Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Honda Motor"
+    ],
+    [
+     "Hyundai Motor Group"
+    ],
+    [
+     "Suzuki Motor"
+    ],
+    [
+     "Toyota Group"
+    ]
+   ]
+  },
+  "registrations_surviving/powertrain.parquet": {
+   "schema": [
+    [
+     "powertrain",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "PHEV"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Mild hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "BEV"
+    ],
+    [
+     "Diesel"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Hybrid"
+    ],
+    [
+     "Mild hybrid"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ],
+    [
+     "Petrol"
+    ]
+   ]
+  },
+  "registrations_surviving/segment.parquet": {
+   "schema": [
+    [
+     "segment",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Ute"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Ute"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Truck"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Ute"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Van"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Ute"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ],
+    [
+     "Car"
+    ]
+   ]
+  },
+  "registrations_surviving/segment_group.parquet": {
+   "schema": [
+    [
+     "segment_group",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Heavy commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ],
+    [
+     "Light passenger"
+    ]
+   ]
+  }
+ },
+ "events": [
+  {
+   "id": "esc-new-light-vehicles",
+   "date_start": "2015-07-01",
+   "date_end": null,
+   "category": "regulatory",
+   "mechanism": "supply",
+   "scope": "import_status",
+   "scope_values": [
+    "NZ New"
+   ],
+   "title": "Stability control required on all new light vehicles",
+   "summary": "ESC became mandatory for all newly registered new light passenger and goods vehicles.",
+   "expected_effect": "none",
+   "announced_date": "2014-02-26",
+   "confidence": "documented",
+   "source_url": "https://www.globalncap.org/news/new-zealand-makes-esc-mandatory-on-all-imports"
+  },
+  {
+   "id": "toyota-drive-happy",
+   "date_start": "2018-03-27",
+   "date_end": null,
+   "category": "marketing",
+   "mechanism": "measurement",
+   "scope": "make",
+   "scope_values": [
+    "TOYOTA"
+   ],
+   "title": "Toyota New Zealand moves to an agency model",
+   "summary": "The Drive Happy Project replaced dealer-owned stock and price negotiation with fixed national pricing and three distributor-held vehicle pools. Dealers became agents earning a fee. MEASUREMENT WARNING: this changes who is recorded as the registering party and how demonstrator stock enters the register.",
+   "expected_effect": "mixed",
+   "announced_date": null,
+   "confidence": "documented",
+   "source_url": "https://www.toyota.co.nz/about-toyota/toyota-news/2018/april/the-drive-happy-project/"
+  },
+  {
+   "id": "clean-car-discount-rebate-phase",
+   "date_start": "2021-07-01",
+   "date_end": "2022-03-31",
+   "category": "policy",
+   "mechanism": "demand",
+   "scope": "powertrain",
+   "scope_values": [
+    "BEV",
+    "PHEV"
+   ],
+   "title": "Clean Car Discount rebates begin",
+   "summary": "A rebate was paid on application to the first registered person of an eligible low-emission vehicle.",
+   "expected_effect": "up",
+   "announced_date": null,
+   "confidence": "documented",
+   "source_url": "https://www.ird.govt.nz/topics/clean-car-discount-scheme"
+  },
+  {
+   "id": "kgm-rename",
+   "date_start": "2024-03-31",
+   "date_end": null,
+   "category": "brand_entry",
+   "mechanism": "measurement",
+   "scope": "make",
+   "scope_values": [
+    "KGM"
+   ],
+   "title": "SsangYong renamed KG Mobility",
+   "summary": "SsangYong New Zealand became KGM at the end of March 2024, a renaming after the company's acquisition by KG Group, not a market entry. The brand registry maps SSANGYONG and KG MOBILITY to KGM, so the make series is continuous.",
+   "expected_effect": "none",
+   "announced_date": "2024-03-07",
+   "confidence": "documented",
+   "source_url": "https://autotrader.co.nz/news/ssangyong-rebrands-to-kgm-in-new-zealand"
+  },
+  {
+   "id": "ccs-charges-cut",
+   "date_start": "2026-01-01",
+   "date_end": "2027-12-31",
+   "category": "regulatory",
+   "mechanism": "supply",
+   "scope": "market",
+   "scope_values": [],
+   "title": "Clean Car Standard charges cut by around 80 percent",
+   "summary": "The top rate for new vehicles fell from $67.50 to $15 per gram of CO2 and for used vehicles from $33.75 to $7.50. Existing credits protected from expiring before 31 December 2028. At the time 86 percent of importers faced a net charge.",
+   "expected_effect": "up",
+   "announced_date": "2025-11-17",
+   "confidence": "documented",
+   "source_url": "https://www.1news.co.nz/2025/11/17/clean-car-standard-under-review-import-charges-lowered/"
+  }
+ ]
 }

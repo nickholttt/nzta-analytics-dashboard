@@ -36,13 +36,13 @@ Run from the repo root.
 
 | Purpose | Command | Verified result 2026-09-13 |
 |---|---|---|
-| Pipeline tests (as CI) | `.venv/Scripts/python.exe -m pytest pipeline/tests -q -p no:cacheprovider` | 38 passed, 170 s |
+| Pipeline tests (as CI) | `.venv/Scripts/python.exe -m pytest pipeline/tests -q -p no:cacheprovider` | 100 passed, 520 s with a site build going (2026-11-13) |
 | Typecheck site | `npx -y -p typescript tsc --noEmit` | exit 0. TypeScript isn't a dependency, so plain `npx tsc` fails |
 | Build site | `npx astro build` | 7 pages built to `dist/`, `404.html` among them (2026-10-22). No npm `build` script exists |
 | Build the public site, as the deploy does (D-056) | Git Bash: `INTERNAL_PAGES=false npx astro build && rm -rf dist/status dist/sense-check` | 2026-10-22, against the 2026-08 cube: 5 pages left, none linking to `/status` or `/sense-check`; in a preview those two and any unknown address return 404 |
 | Dev server | `npm run dev`, then `npx astro dev status` / `npx astro dev stop` | 200 on `http://127.0.0.1:4321/`. Runs in the background |
-| Rebuild cube from a saved pull, publish nothing | `.venv/Scripts/python.exe -m pipeline build data/raw/2026-08/20260911T093818Z --dry-run` | exit 0, 397 s, output identical to `public/data`. Writes only gitignored `data/staging/` |
-| Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build`; and, on `main` since #38, `archive` (run from that branch on 2026-11-13) |
+| Rebuild cube from a saved pull, publish nothing | `.venv/Scripts/python.exe -m pipeline build data/raw/2026-10/20261113T045017Z --dry-run` | exit 0, 11 min 3 s (2026-11-13); every slice, pair and `events.json` identical to the release `cube-2026-10`. Writes only gitignored `data/staging/`. The 2026-08 pull now stops with exit 2: it is older than the last good build |
+| Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build` and `archive` (2026-11-13) |
 | CI runs | Git Bash: `"/c/Program Files/GitHub CLI/gh.exe" run list --repo nickholttt/nzta-analytics-dashboard`; PowerShell: `& "C:\Program Files\GitHub CLI\gh.exe" run list --repo nickholttt/nzta-analytics-dashboard` | two green runs, 2026-09-11 |
 
 Setup, **not re-run this session** (the environment already existed):
@@ -76,7 +76,8 @@ Setup, **not re-run this session** (the environment already existed):
   with `data/state/last_good.json`) → `outputs.py`. It writes to `data/staging/` and promotes to
   `public/data/` only if every guardrail passes. Exit codes: 2 guardrail, 3 source, 4 DuckDB.
 - The output contract (`public/data/manifest.json`, `cube/<dataset>/<dimension>.parquet`,
-  `events.json`) is `docs/CUBE_SCHEMA.md`, locked by `pipeline/tests/test_golden.py`.
+  `pairs/<dataset>/<a>__<b>.parquet`, `facts/<dataset>/<column>.parquet`, `events.json`) is
+  `docs/CUBE_SCHEMA.md`, locked by `pipeline/tests/test_golden.py`.
 - `.github/workflows/monthly-build.yml`: cron 06:17 UTC **every day** → tests → `pipeline run`,
   which builds each snapshot month once and, from the 15th, fails while the month before is still
   not built (D-064, D-070) → on a build, the bot commits `data/snapshots/` and `data/state/` with

@@ -55,9 +55,16 @@ exactly what the project is not.
 The build fails, and the last good build stays deployed, if any
 `verified=true` row has a `scope` outside the enum above, a `scope_value`
 that does not resolve through the vocabulary its dimension produces from
-the data and reference files, or an empty `source_url`. An event whose
-values cannot match any chart is a silent failure; it is caught at build
-time instead.
+the data and reference files, an empty `source_url` or `date_start`, a
+value outside the enum of any other enum column above (`category`,
+`mechanism`, `expected_effect`, `confidence`), or a `title` longer than the
+limit above. An event whose values cannot match any chart is a silent
+failure; it is caught at build time instead.
+
+The build reads each enum's values and the title limit from the table
+above, so they live in one place. `config/pipeline.json` (`events.enum_columns`)
+names the enum columns, so a row reworded until it no longer reads as an
+enum fails the build too, instead of quietly losing its check.
 
 ### Why `mechanism` matters
 
@@ -103,8 +110,10 @@ These describe the code as it runs (`src/lib/events.ts`,
   (through `scope_dimension_aliases` in `config/pipeline.json`, so
   `brand_group` matches `parent_group`) and it has no `scope_values` or one
   of them has vehicles in the period drawn. A `make=BYD` brand entry does
-  not clutter a powertrain chart. No live chart applies a preset filter, so
-  scoping does not yet consider filters; once one can be applied, it must.
+  not clutter a powertrain chart. Scoping does not consider a preset's
+  filter, and it must: one live chart now applies one (`powertrain-mix`
+  counts light passenger vehicles only), and its events are chosen as if
+  it counted every vehicle (`src/lib/events.ts`; listed in `docs/STATE.md`).
 - Only events inside the period drawn appear: starting no later than the
   latest snapshot, and starting (or, for a windowed event, ending) no
   earlier than the chart's first month.
