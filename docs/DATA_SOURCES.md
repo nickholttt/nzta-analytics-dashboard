@@ -155,6 +155,40 @@ rows, to `data/snapshots/YYYY-MM.parquet`. Differencing consecutive
 snapshots gives new registrations and scrappage from our own observations,
 and is the input to cohort survival.
 
+**The register archive keeps the whole snapshot, outside git.** The
+committed aggregate holds five dimensions; everything finer is gone once
+NZTA refreshes. So after a month is built, a second job
+(`archive` in `monthly-build.yml`, `pipeline/archive.py`) pulls the
+register again and keeps it as one Parquet file, one row per vehicle:
+
+- **Fields:** every field of `pipeline/expected_schema.json` except those
+  in `register_archive.never_pulled` in `config/pipeline.json`: `VIN11`,
+  `CHASSIS7`, `ENGINE_NUMBER` and `POSTCODE`, which are never asked for.
+  The row id is pulled for paging and left out of the file. Values are as
+  NZTA records them; nothing is normalised. The 2026-10 snapshot is
+  5,926,990 rows at 35 fields in 39.3 MB (measured from a saved pull).
+- **Where:** a release `snapshot-YYYY-MM` holding `mvr-YYYY-MM.parquet`
+  in a **private** repository, `nzta-register-archive`. The file holds
+  vehicle rows with their owner's district, so it is never published,
+  never committed here and never uploaded as an artifact of this public
+  repository.
+- **Only the register that was built.** The job goes ahead only while the
+  live register has the row count and digest of the last good build. If
+  NZTA has refreshed since, it fails and says the month can no longer be
+  archived.
+- **Never replaced.** If the month's file is already there the job stops
+  without pulling.
+- **When it fails** (an expired token is the likely cause; the job says
+  so), the month's build and commit stand and the run is red. Fix the
+  cause, then start the workflow by hand with `archive` ticked: it
+  archives the last built snapshot. It builds nothing unless NZTA has
+  refreshed since; then it builds the new month and archives that one,
+  and the month whose archive failed is lost.
+- The job refuses to upload unless the archive repository is private, and
+  counts a month as archived only if its file finished uploading.
+- A release keeps no history and can be deleted by hand. A second copy
+  somewhere backed up is the maintainer's to keep.
+
 **Region** is not a field. The register records `TLA`: the territorial
 authority where the registered owner lives *as at the snapshot*, from their
 most recent address. It is not where the vehicle is used, and not where the

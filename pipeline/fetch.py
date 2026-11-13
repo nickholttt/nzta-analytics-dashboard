@@ -113,10 +113,9 @@ def report(github_summary: str | None, line: str) -> None:
             fh.write(line + "\n")
 
 
-def run(cfg, force: bool = False, github_output: str | None = None, now: datetime | None = None,
-        github_summary: str | None = None) -> int:
-    now = now or datetime.now(timezone.utc)
-    client = Client(cfg.pipeline["source"])
+def look(cfg, client, now: datetime) -> tuple[dict, dict]:
+    """Find the service, assert its schema and describe the source as it stands now, without pulling a row.
+    Returns (source, expected schema)."""
     service = client.discover()
     expected_path = cfg.path("expected_schema")
     if not expected_path.exists():
@@ -130,6 +129,39 @@ def run(cfg, force: bool = False, github_output: str | None = None, now: datetim
     key, after_cap = snapshot_and_key(cfg, stats, row_count, now.date())
     if after_cap:
         warnings.append(f"{after_cap:,} rows have a first-registration month after the snapshot cap {key['snapshot']}")
+    edited = (service.layer.get("editingInfo") or {}).get("dataLastEditDate")
+    return {
+        "item_id": service.item_id,
+        "discovery": service.discovery,
+        "service_name": service.service_name,
+        "service_url": service.layer_url,
+        "data_last_edit": iso_utc(datetime.fromtimestamp(edited / 1000, timezone.utc)) if edited else None,
+        "fetched_at": iso_utc(now),
+        "row_count": row_count,
+        "change_key": key,
+        "warnings": warnings,
+    }, expected
+
+
+def pull(cfg, client, source: dict, fields: list[str], pull_dir: Path) -> str:
+    """Save every row at these fields under pull_dir, beside a record of what the source was. Returns the pages' glob."""
+    print(f"Pulling {source['row_count']:,} rows from {source['service_name']} (snapshot {source['change_key']['snapshot']}) "
+          f"into {pull_dir}")
+    started = time.monotonic()
+    source["rows_saved"] = client.pull_rows(source["service_url"], cfg.source_field("object_id"), fields, pull_dir / "pages")
+    source["out_fields"] = fields
+    # The runner log can then split the step's time between the pull and what follows it.
+    print(f"Pulled {source['rows_saved']:,} rows in {time.monotonic() - started:.1f}s")
+    (pull_dir / "source.json").write_text(json.dumps(source, indent=2) + "\n", encoding="utf-8", newline="\n")
+    return (pull_dir / "pages" / "*.json.gz").as_posix()
+
+
+def run(cfg, force: bool = False, github_output: str | None = None, now: datetime | None = None,
+        github_summary: str | None = None) -> int:
+    now = now or datetime.now(timezone.utc)
+    client = Client(cfg.pipeline["source"])
+    source, _ = look(cfg, client, now)
+    key = source["change_key"]
     state = load_state(cfg)
     emit(github_output, {"snapshot": key["snapshot"][:7]})
     building, reason = plan(key, state, force)
@@ -149,26 +181,8 @@ def run(cfg, force: bool = False, github_output: str | None = None, now: datetim
         return 0
 
     pull_dir = cfg.path("raw") / key["snapshot"][:7] / now.strftime("%Y%m%dT%H%M%SZ")
-    edited = (service.layer.get("editingInfo") or {}).get("dataLastEditDate")
-    source = {
-        "item_id": service.item_id,
-        "discovery": service.discovery,
-        "service_name": service.service_name,
-        "service_url": service.layer_url,
-        "data_last_edit": iso_utc(datetime.fromtimestamp(edited / 1000, timezone.utc)) if edited else None,
-        "fetched_at": iso_utc(now),
-        "row_count": row_count,
-        "change_key": key,
-        "warnings": warnings,
-    }
-    print(f"Pulling {row_count:,} rows from {service.service_name} (snapshot {key['snapshot']}) into {pull_dir}")
-    started = time.monotonic()
-    source["rows_saved"] = client.pull_rows(service.layer_url, object_id, list(cfg.pipeline["fields"].values()), pull_dir / "pages")
-    # The runner log can then split the step's time between the pull and the build.
-    print(f"Pulled {source['rows_saved']:,} rows in {time.monotonic() - started:.1f}s")
-    (pull_dir / "source.json").write_text(json.dumps(source, indent=2) + "\n", encoding="utf-8", newline="\n")
-
-    manifest = build_step.build(cfg, source, (pull_dir / "pages" / "*.json.gz").as_posix(), state, now)
+    pages = pull(cfg, client, source, list(cfg.pipeline["fields"].values()), pull_dir)
+    manifest = build_step.build(cfg, source, pages, state, now)
     emit(github_output, {"built": "true"})
     print_summary(manifest)
     return 0
