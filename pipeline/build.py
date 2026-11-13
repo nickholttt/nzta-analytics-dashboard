@@ -9,12 +9,45 @@ from datetime import date, datetime, timezone
 import duckdb
 
 from . import derive, events, guardrails, metrics, normalise, outputs, schema
+from .contract import PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
 
 
 def iso_utc(moment: datetime) -> str:
     return moment.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, staging, aborts: list[str],
+                warnings: list[str]) -> tuple[list[str], dict[str, str]]:
+    """The pair slices config/pipeline.json names for this dataset. An entry that is not two different dimension ids, a
+    pair listed twice in either order, or a dimension the dataset cannot derive is a configuration error and aborts; a
+    pair whose dimension is not live this run waits, as the dimension does, with a warning."""
+    known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
+    by_id = {d.dim_id: d for d in live}
+    written, waiting, seen = [], {}, set()
+    for pair in dataset_cfg.get("pairs") or []:
+        if not (isinstance(pair, list) and len(pair) == 2 and all(isinstance(d, str) for d in pair)) or pair[0] == pair[1]:
+            aborts.append(f"{dataset}: pair {pair!r} must name two different dimensions")
+            continue
+        key = PAIR_SEPARATOR.join(pair)
+        # The same two dimensions in the other order would write a second, transposed copy of the same counts.
+        if frozenset(pair) in seen:
+            aborts.append(f"{dataset}: pair {pair} is listed twice, in one order or the other")
+            continue
+        seen.add(frozenset(pair))
+        unknown = [d for d in pair if d not in known]
+        if unknown:
+            aborts.append(f"{dataset}.{key}: {', '.join(unknown)} is not a derivable dimension of this dataset in dimensions.json")
+            continue
+        missing = [d for d in pair if d not in by_id]
+        if missing:
+            waiting[key] = f"dimensions not live: {', '.join(missing)}"
+            warnings.append(f"{dataset}.{key} is not live: {waiting[key]}")
+            continue
+        outputs.write_pair(con, cfg, by_id[pair[0]], by_id[pair[1]], ds, staging / "pairs" / dataset / f"{key}.parquet")
+        written.append(key)
+    return written, waiting
 
 
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:
@@ -100,6 +133,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
                 exclude(d.dim_id, f"unmapped rate {rates[d.dim_id]:.2%} is above {g['max_unmapped_rate']:.0%} of in-scope rows")
         for d in live:
             outputs.write_slice(con, cfg, d, ds, staging / "cube" / dataset / f"{d.dim_id}.parquet")
+        live_pairs, not_live_pairs = write_pairs(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
 
         counts = metrics.month_counts(con, ds)
         month_counts[dataset] = counts
@@ -118,6 +152,8 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "months": len(counts),
             "live_dimensions": live_dimensions[dataset],
             "not_live": not_live,
+            "live_pairs": live_pairs,
+            "not_live_pairs": not_live_pairs,
             "unmapped_rates": rates,
             "unmapped_guard": guard,
             "mild_hybrid_identification_coverage": metrics.hybrid_coverage(con, cfg, ds, window_start, snapshot_month, window),

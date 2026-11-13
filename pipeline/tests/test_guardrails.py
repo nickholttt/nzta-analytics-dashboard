@@ -169,6 +169,37 @@ def test_live_dimension_cannot_silently_drop_out(tmp_path, workspace):
     assert "region" in manifest["datasets"]["registrations_surviving"]["not_live"]
 
 
+def test_a_pair_waits_while_one_of_its_dimensions_is_not_live(tmp_path, workspace):
+    rows = load_rows()
+    template = next(r for r in rows if r["OBJECTID"] == 62)
+    extra = [dict(template, OBJECTID=2000 + i, TLA=f"UNKNOWN DISTRICT {i}") for i in range(5)]
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["pairs"] = [["import_status", "region"]]
+    manifest = run(tmp_path, cfg, rows + extra, publish=False)
+    info = manifest["datasets"]["registrations_surviving"]
+    assert "region" in info["not_live"]
+    assert info["live_pairs"] == []
+    assert info["not_live_pairs"] == {"import_status__region": "dimensions not live: region"}
+    assert any("import_status__region is not live" in w for w in manifest["warnings"]), manifest["warnings"]
+    assert not (workspace["staging"] / "build" / "pairs").exists()
+
+
+@pytest.mark.parametrize("pairs, fragment", [
+    ([["import_status", "import_status"]], "must name two different dimensions"),
+    ([["import_status"]], "must name two different dimensions"),
+    ([["import_status", None]], "must name two different dimensions"),
+    (["import_status"], "must name two different dimensions"),
+    ([["import_status", "age_at_registration_band"]] * 2, "is listed twice"),
+    ([["import_status", "age_at_registration_band"], ["age_at_registration_band", "import_status"]], "is listed twice"),
+    ([["import_status", "imported_from"]], "imported_from is not a derivable dimension of this dataset"),
+    ([["import_status", "no_such_dimension"]], "no_such_dimension is not a derivable dimension of this dataset"),
+])
+def test_a_misconfigured_pair_aborts(tmp_path, workspace, pairs, fragment):
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["pairs"] = pairs
+    expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
+
+
 def test_unknown_vehicle_type_aborts(tmp_path, workspace):
     rows = load_rows() + [dict(load_rows()[0], OBJECTID=3000, VEHICLE_TYPE="NOT A REAL TYPE")]
     cfg = make_cfg(workspace)
