@@ -1482,3 +1482,991 @@ New entries use this template:
   all waiting holds the month totals alone; a new test adds copies of one vehicle and checks they share a row, since no
   fixture vehicle shared a cell and a table that stopped grouping would have passed.
 - Status: decided by Claude (unreviewed)
+
+## D-062 2026-11-13 — CLAUDE.md for the next stage: the goal, generated narrative, model-level lookups, explicit sub-agent models
+
+- Agent: user, with Claude (claude.ai planning session; CLAUDE.md drafted there and reviewed by the user)
+- Basis: user, in session on 2026-11-13. CLAUDE.md as on `claude/question-builder` (`06d727e`); `docs/brief/MASTER_BRIEF.md`;
+  vstat.mta.org.nz read on 2026-11-13.
+- Context: the user set the direction for the next stage:
+  - the site should be the go-to place for reliable information on New Zealand's vehicle market, and visitors
+    should digest an answer "without getting bogged down in irrelevant data";
+  - everything the register carries should be askable, with visitors in control;
+  - explanatory text must stay neutral and need no hand-writing per snapshot: "sets of phrases which explain the
+    situation, with placeholders infilled with facts like brands, percentages or powertrains, built once";
+  - a VFACTS-style segmentation and launch RRPs, which the register cannot supply;
+  - infrastructure stays open until a prototype exists;
+  - Claude Code sub-agents set their own model and never inherit the lead's.
+
+  Several of these touch CLAUDE.md's invariants and non-goals, which AGENTS.md hard rule 1 says only the user may change.
+- Options considered:
+  1. Leave CLAUDE.md alone and record the direction only in the brief. Every agent reads CLAUDE.md first, so it
+     would keep finding the direction in conflict with the non-goals ("written commentary") and with invariant 4.
+  2. Reword the invariants broadly to fit the direction. That would loosen the rules that keep the site correct
+     to fix a scope question.
+  3. Make narrow, tagged edits, and state the goal once where every agent reads it.
+- Decision: (3).
+  - Audience: a second group is named beside non-analysts: analysts, the trade and informed buyers, who today
+    download, clean, filter and redraw the register by hand every month. Explore sets the stage; Build is the
+    full engine and must bend to any question the data can honestly answer.
+  - New §The goal: one question, one clear answer, the evidence, the freedom to dig; nothing on the page that does
+    not bear on the question. Nine rules for how a page reads (answer first; one question per view; only what
+    bears on it; one-line caveats; defaults do the work; every figure one step from definition, source and
+    snapshot; everything askable, little shown until asked; a field is defined in the data map before it is
+    askable; a saved question keeps itself up to date).
+  - Opening: no hand-written reports or commentary. The only prose about the data is generated (invariant 8).
+  - Invariant 4 gains a paragraph. A lookup keyed on canonical make and model is a reference lookup, provided it
+    guards coverage as make does: `__UNMAPPED__`, a trailing guard, live only above a threshold. It is maintained
+    when a nameplate appears, never row by row.
+  - Invariant 8 (new): words are data. Phrase templates in config are filled with facts computed by generic
+    per-shape code, rendered deterministically with no model at run time. Templates carry no domain value,
+    figure or year, say what and never why, and drop a sentence they cannot fill. It generalises `note_template`.
+    A "(planned)" note says where the repo departs from it today: `/caveats` and `/method` state figures and
+    names by hand (the D-040 convention).
+  - §Shapes: which shapes fit a question comes from one rule table in config, read against each field's kind and
+    number of values in the data map; no field lists its own charts; a table of figures is always available. A
+    shape's look comes from the design system. A config-chosen variant inside a shape is not a sixth shape, and
+    a new variant is still a decision.
+  - Invariant 6 and §Stack (user, 2026-11-13: "a web page, desktop and mobile, with data being hosted and
+    queried"): invariant 6 becomes "the browser never sees a vehicle row". The stage stays on precomputed
+    files. The workbench asks a hosted query service that answers only with aggregates, only for fields the
+    data map makes public, and never takes SQL from the browser. "No database, no API server, no runtime cost"
+    now describes the stage only. Both carry a "(planned)" note: no service is chosen or built.
+  - Chosen values may be ranked, labelled as ranked among the values the visitor picked, with one step to the
+    same ranking over every value. This supersedes that point of D-061. (The user asked Claude to decide,
+    2026-11-13; the user's own example question needs it.)
+  - §Repo layout: planned `config/narrative/`, `model_segment.csv`, `docs/NARRATIVE.md`, `docs/DATA_MAP.md`,
+    `docs/brief/MASTER_BRIEF.md` and `.claude/agents/`.
+  - §Build order: steps 9 to 13 (the data map; the full engine; answer pages; what the industry expects; the rest
+    only when a question needs it).
+  - New §Sub-agents: an explicit `model:` in every definition, no `inherit`, checked by a test. Reviews stay
+    independent.
+  - Non-goals: "written commentary" becomes "hand-written commentary", with generated statements excluded.
+    VIN11, CHASSIS7 and ENGINE_NUMBER never reach a published file.
+- Consequences:
+  - AGENTS.md hard rule 1 says "seven design invariants"; change it to "eight" in the same commit.
+  - D-003 stands: `segment_map.csv` keeps no SUV segment. The model-level segment is a separate dimension.
+  - Launch prices are allowed by invariant 4's new paragraph but are not planned work (the brief parks them).
+  - `model_segment.csv`, `config/narrative/` and their pipeline, test and contract changes sit on frozen paths.
+    They follow D-043 until the gate has passed, and each golden change follows hard rule 4.
+  - A hosted query service has a running cost and must be kept up, which the project has avoided until now.
+    Which service, its cost and its limits are a later decision on measurements (the brief, Stage 2).
+  - Invariant 1 is enforced for `pipeline/*.py` only. A scan of `src/` and of templates is owed before
+    invariant 8 can be called enforced.
+  - Nothing is built by this entry. The work is queued through CHECKPOINT from the brief.
+  - Reversing it: revert this commit. No code depends on it yet.
+- Status: accepted, decided by user (when the user commits it with CLAUDE.md)
+
+## D-063 2026-11-13 — The archive: keep each month's whole snapshot, every field, as one file outside git (proposed)
+- Agent: claude, for the user to decide (the brief, Stage 0 item 4).
+- Basis: measured on 2026-11-13 in a scratch folder: `data/snapshots/2026-08.parquet` and `2026-09.parquet` from
+  `origin/main`; the staged build of the saved 2026-08 pull (`data/staging/work.duckdb`, table `src`, 5,905,376 rows,
+  opened read-only); 83,951 rows first registered from August to October 2026, pulled once from NZTA's service at
+  every field but the three identifiers (`POSTCODE` among them; the rows were deleted after sizing); Stats NZ's table
+  `TPT052601` (D-065). Nothing in the repo was changed by the measurements. All sizes are Parquet with zstd, rows
+  sorted.
+- Context:
+  - What a run keeps today: `data/snapshots/YYYY-MM.parquet`, counts by first-registration month, import status,
+    vehicle type, motive power and make (279,294 rows and 531,545 bytes for 2026-08). The rows it pulled go with the
+    runner. The cube is an artifact for 90 days, and a release once #35 merges.
+  - What is lost when NZTA refreshes: the register **as it stood** at that month's end, at anything finer than that
+    aggregate. Later snapshots still hold the month's registrations, less the vehicles removed since (0.16% in
+    August's first month), and as they are recorded then, not as they were. What cannot be rebuilt is the snapshot
+    itself: which vehicles were on the register that day by model, region or segment (what survival is computed
+    from), each month as first observed, and any of the 23 fields the pull does not take.
+  - A snapshot that is never built is not archived at all, at any grain (D-064).
+- Measured:
+  - **How much a month moves after it is first seen**, in the one month that can be measured. August 2026 held
+    24,949 vehicles in the 2026-08 snapshot and 24,908 a month later: 41 fewer (0.16%). NEW fell 24 of 15,238 and
+    USED 16 of 9,022. By make, 15 of 273 moved and none rose; Toyota fell most, 16 of 6,906. At the archive's own
+    grain the cells differ by 65 vehicles in all, with 4 cells higher. The thirteen months before August each fell
+    by 0.04% to 0.12%.
+  - **Against Stats NZ**, cars, August 2026 as first seen: 9,136 NEW passenger cars/vans against Stats NZ's 9,138
+    (99.98%), and 8,156 USED against 8,159 (99.96%). Stats NZ's figures come from NZTA's register too, so this shows
+    two readings of one source agreeing, not an independent check.
+  - **(a) The newest months at every bound field** (16, without `OBJECTID`), as rows: 1 month 24,949 rows, 96 KB;
+    3 months 74,926 rows, 247 KB; 12 months 293,935 rows, 946 KB. Grouped into counts they are no smaller (3 months:
+    41,370 groups, 237 KB). At every field but the identifiers (36), the three months to October 2026 are 651 KB:
+    2.56 times the same rows at the bound fields (255 KB), or 2.17 times without `POSTCODE` (552 KB).
+  - **(b) The whole-snapshot aggregate, widened.** With model: 1,056,643 rows, 4.6 MB. With district: 1,737,943 rows,
+    2.7 MB. With body type and gross mass (what segment is derived from): 1,172,879 rows, 2.8 MB. With model and
+    district: 3,041,829 rows, 9.0 MB. With all four: 3,801,887 rows, 14.0 MB.
+  - **(c) The whole snapshot at the bound fields, as rows:** 22.6 MB (65.7 MB unsorted). Grouped into counts over the
+    same fields: 4,219,010 groups, 21.4 MB, so an aggregate at this grain saves nothing. At every field but the
+    identifiers and `POSTCODE`: **about 49 MB, an estimate** (22.6 MB times the 2.17 measured on the newest three
+    months only; about 58 MB with `POSTCODE`).
+- Options considered:
+  1. (a) alone: commit the newest few months at every field. Small: 0.65 MB a run for three months. It gives
+     registrations as first observed and nothing else: no survival by model, region or segment. At every field it is
+     row-level data in git, which `data/snapshots/` has never held. A missed run loses that month's first
+     observation; three missed runs in a row lose the month.
+  2. (b) alone: widen the committed aggregate. 9 to 14 MB a month in git is 110 to 170 MB a year, too much for a
+     repository meant to last ten years. It also fixes today's choice of fields: whatever is left out is lost.
+  3. (c): keep the whole snapshot as one file, outside git. Everything in (a) and (b) can be computed from it later,
+     at any grain, including for fields not yet bound. This goes further than the brief's (c), "the raw bound
+     columns": the pull itself widens from 17 fields to 36.
+  4. (c), with the committed aggregate left exactly as it is, because the guardrails compare with it.
+- Decision: proposed, option 4.
+  - Each built run writes the whole snapshot to one Parquet file: every source field except `VIN11`, `CHASSIS7`,
+    `ENGINE_NUMBER`, `OBJECTID` and, until the user decides its privacy class, `POSTCODE` (`docs/DATA_MAP.md`); values
+    as NZTA records them; rows sorted.
+  - **Where the file is kept is the user's choice**, because it holds one row per vehicle:
+    - (i) a release in a **private** GitHub repository, written by the run with a token kept as a secret.
+      Recommended: it can be made public later, and publishing cannot be taken back. The repository and the token
+      are the user's to set up. Not tested.
+    - (ii) a public release on this repository, beside the cube (#35's release step).
+    - (iii) nowhere on GitHub: the user downloads it from the run's artifact by hand within 90 days.
+  - A month's file is never replaced (D-064).
+  - Nothing else is widened now. Registrations as first observed (the brief, Stage 4) and survival by model, region
+    and segment are built from these files when their stage comes.
+- Consequences:
+  - **If the file is public, vehicles can be followed from month to month.** NZTA publishes one current snapshot. A
+    series of monthly files with the same fine fields (make, model, submodel, model codes, engine size, vehicle
+    year, first-registration month, colour) would let one vehicle be picked out in each, showing its owner's
+    district, usage and industry class changing over time. `docs/DATA_MAP.md` classes those three as public only
+    above a minimum count, and CLAUDE.md's non-goals rule out vehicle-level lookup. That is why (i) is recommended.
+    Under (ii) the file should leave out or coarsen the owner fields, which costs survival by district.
+  - CLAUDE.md's "never raw rows" is said of `data/snapshots/` and invariant 6 of the browser; neither forbids a
+    private file. The data is NZTA's open data under CC BY 4.0, and the file carries NZTA's attribution.
+  - It changes `pipeline/`, `config/pipeline.json`, `.github/workflows/monthly-build.yml` and the tests: frozen
+    paths, built under D-043. The published cube should not change (inferred — confirm when built), so no golden
+    change is expected.
+  - **It cannot reach `main` quickly.** It builds on the pipeline stack (#26 to #29, #35), so it waits for the user
+    to lift the freeze and merge five pull requests in order, and it adds one more to a queue the brief wants
+    held to five.
+  - Not measured: the run's time and memory with a 36-field pull. On 8 October the run took 7m20s and peaked at
+    2,546 MiB of 15,989 MiB with 17 fields. Per row the wider pull is more than twice the bytes.
+  - GitHub allows 2 GiB per release file and sets no total (GitHub's documentation; not re-read this session).
+  - A release can be deleted by hand and has no history. A second copy is the user's to keep.
+  - **The 2026-10-31 snapshot.** The register holds it until NZTA's December refresh. A dispatched run (the user's
+    decision) archives it at today's grain only. Capturing it at every field through the pipeline afterwards would
+    take a forced rebuild of a month already built, which D-064's rule exists to stop. A one-off pull by hand into
+    gitignored `data/raw/` is the practical way to keep it, and the user's to approve.
+  - The 2026-09-30 snapshot was kept only as the committed aggregate. The 2026-08-31 snapshot survives at the 17
+    bound fields in the saved local pull (`data/raw/2026-08/`, 177 MB, on one disk).
+  - Reversing it: stop writing the file and delete the releases. Nothing reads them yet.
+- Status: proposed
+
+## D-064 2026-11-13 — The monthly run: try every day, build each month once, fail loudly when a month is missed (proposed)
+- Agent: claude, for the user to decide (the brief, Stage 0 item 5).
+- Basis: read on 2026-11-13: the three Monthly build runs' logs and the two cube artifacts' manifests (`gh`); NZTA's
+  service, asked once with the run's own change-detection query from a scratch script that writes nothing;
+  `.github/workflows/monthly-build.yml` and `pipeline/fetch.py` on `origin/main`.
+- Context:
+  - The run is set for the 8th at 06:17 UTC. The 8 November run (42484367432) was scheduled, green and skipped:
+    "Source unchanged since the last good build (snapshot 2026-09-30)". 38 tests passed; 1m17s; peak memory 1,015 MiB.
+  - NZTA refreshed the register the next day. The service's last edit is 2026-11-09 09:50 UTC, it now holds
+    5,926,990 rows with 28,864 first registered in October 2026, and its change key differs from the last good one. A
+    run today would build 2026-10.
+  - The refresh has come later each month: the 2026-08 snapshot was last edited on 3 September, 2026-09 on 6 October,
+    2026-10 on 9 November. GitHub started both scheduled runs about seven hours after the set time (13:25 and
+    13:19 UTC).
+  - Nothing tells anyone. A skip is a green run, so the site would stay a month behind until 8 December. If NZTA
+    refreshes again before the next run, that snapshot is never built: `data/snapshots/` would have no 2026-10, the
+    survival series would have a gap, and October would first be seen a month late.
+- Options considered:
+  1. Leave the schedule; the user dispatches by hand when a run skips. Costs nothing to build. It depends on someone
+     noticing a green run that did nothing, which is how this month was missed.
+  2. A window: daily from the 3rd to the 14th (the brief's example). 12 runs a month. It covers every refresh seen so
+     far, with five days to spare after the latest. The window's edges are a guess from three months, and the refresh
+     has moved three days later each month.
+  3. Every day. One schedule line, no edge to tune, and a refresh is picked up within a day whenever it lands, which
+     is what the brief's Fresh measure asks for (live within 2 days). About 30 runs a month, each 1m17s when it skips
+     (measured on 8 November, 51 s of it the tests). It also runs the tests daily, so a broken dependency shows before
+     the real run.
+  4. Two runs, the 8th and the 15th. Fewer runs, but a month behind for up to a week, and still a guess.
+- Decision: proposed, option 3, with two rules that a retry needs:
+  - **Each month is built once.** With one run a month a snapshot could not be rebuilt by accident. With a daily run it
+    could: if NZTA edits the register again in the same month, the change key differs and today's code would rebuild
+    the same snapshot and overwrite its archive. So once a snapshot month is built, a later change to the source in
+    that month is reported in the run summary and not built, unless the run is forced. This keeps
+    `docs/DATA_SOURCES.md`'s rule: store every monthly snapshot and never overwrite.
+  - **A missed month fails the run.** From the 15th, a run that finds the last good snapshot older than the previous
+    month end fails with a message naming the missing month. Invariant 5 already says a missing month aborts; this
+    applies it to the month that never arrived. A failed scheduled run should reach the user by GitHub's
+    notification email (inferred — confirm: it depends on the user's notification settings). As drafted it fails
+    every day until the month is built; whether once is enough is settled when it is built.
+- Consequences:
+  - It changes `.github/workflows/monthly-build.yml`, `pipeline/fetch.py`, a threshold in `config/pipeline.json` (the
+    day the alarm starts) and their tests: all frozen paths. Built under D-043 on a branch from `main`, with a pull
+    request that stays unmerged until the user lifts the freeze.
+  - Runner time: about 40 minutes a month of skips (30 × 1m17s) plus one build (7m20s on 8 October). GitHub does not
+    charge for standard runners on public repositories (GitHub's published terms; not re-read this session).
+  - The Actions list gains about 30 green entries a month. The playbook's "built or skipped" check reads the same.
+  - The first build of a month wins. If NZTA publishes a faulty refresh and corrects it days later, the correction
+    needs a forced run, which is the user's to start.
+  - The gate's wording ("the scheduled monthly runs on 8 October and 8 November") describes the old schedule. This
+    entry does not change what the gate was.
+  - Not decided here: whether October 2026 is built by a dispatch now. That is the user's (STATE, Blocked).
+  - Reversing it: restore the one schedule line; the two rules are harmless with a monthly run.
+- Status: proposed
+
+## D-065 2026-11-13 — True registration totals from Stats NZ's Infoshare series now (drafted for the user to accept)
+- Agent: claude, drafting the user's direction of 2026-11-13 (the brief §7) with the facts checked. The source and
+  the hand export are the user's; the corrections and the option to script the fetch are Claude's.
+- Basis: read on 2026-11-13: Infoshare (`infoshare.stats.govt.nz`), walked by a scratch script through its own browse
+  pages, and table `TPT052601` exported from it as CSV; `stats.govt.nz/about-us/copyright/`;
+  `stats.govt.nz/tools/we-are-changing-our-data-tools`; the Aotearoa Data Explorer's catalogue;
+  `data/snapshots/2026-08.parquet` and `2026-09.parquet` on `origin/main`. Details: `docs/DATA_SOURCES.md` §C.
+- Context:
+  - The register holds survivors, so a count by first-registration month is not a count of registrations, and older
+    months shrink (measured below). CLAUDE.md build step 1b planned `registrations_flow` from Stats NZ's transport
+    series. On 2026-10-22 the series had no API and the user chose to wait for the Data Explorer. On 2026-11-13 the
+    user chose to use it now.
+  - What the series is: "New and Ex-Oseas Motor Vehicles Registered by Type (Monthly)", file `TPT052601`, table
+    reference `TPT001AA`, last updated 19 October 2026, "Source: NZ Transport Agency". The cars total runs from
+    January 1961 to September 2026.
+  - What it does not have, which the brief's §7 table assumes it does:
+    - New and ex-overseas are split **for cars only**, and only from July 1975. "New Cars and Station Wagons Total"
+      and the seven engine-size bands all include the ex-overseas cars (August 2026: the bands sum to the total,
+      17,297). Commercial vehicles (ten gross-mass bands), buses and motorcycles are not split.
+    - There are no trailers, no brands, no fuels and no regions.
+    - It publishes a month about two weeks after NZTA's service has it, on the one month observed: September 2026
+      was in the service by 6 October and in the series on 19 October. On 13 November it has no October.
+  - Where the two can be compared they agree. Cars, August 2026: Stats NZ 9,138 new and 8,159 ex-overseas; our
+    2026-08 snapshot, taken days after the month ended, 9,136 `NEW` and 8,156 `USED` passenger cars/vans (99.98% and
+    99.96%). Both come from NZTA's register, so this is agreement between two readings, not an independent check.
+    For the nine months of 2026 in the 2026-09 snapshot the share runs from 98.8% to 99.98%.
+  - Survivors of older years, cars, 2026-09 snapshot as a share of Stats NZ's registrations, new then ex-overseas:
+    2025 99.2% and 98.0%; 2022 97.4% and 89.8%; 2018 94.8% and 73.8%; 2014 88.5% and 58.3%; 2010 76.9% and 34.8%;
+    2005 50.1% and 17.0%; 2000 24.2% and 7.7%; 1990 5.6% and 2.3%. These assume Stats NZ's "cars and station wagons"
+    and NZTA's "passenger car/van" have meant the same vehicles throughout, which was checked for 2026 only.
+  - Licence: CC BY 4.0. Stats NZ's statement for adapted content: "This work is based on/includes Stats NZ's data
+    which are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence."
+  - Infoshare has no API and no stable link to a table: the address changes each session. It exports CSV. Stats NZ
+    plans to replace it with the Data Explorer's time series in 2027; the Explorer's catalogue holds no transport
+    series today (913 dataflows).
+- Options considered (how the series is fetched):
+  1. Keep waiting for the Data Explorer. No totals until 2027 at the earliest. Superseded by the user's direction.
+  2. A hand export: the user downloads the CSV from Infoshare each month and a maintainer script checks it and writes
+     the file the pipeline reads, as `scripts/region-boundaries.mjs` does for the map. The user's direction. One hand
+     step a month.
+  3. The maintainer script fetches it: one command that walks Infoshare's browse pages, asks for the CSV, checks it and
+     writes the file. It worked on 2026-11-13 from a short scratch script. No clicking, but it drives a web form that
+     is being retired, and whether Stats NZ's terms allow automated use of Infoshare was not checked.
+  4. Figure.NZ's copy. A third party, behind Stats NZ, with edited headings. Not chosen.
+- Decision (for the user to accept): the Stats NZ series is the source of true monthly totals now, by option 2: a
+  maintainer script run by hand on a hand export, never by the pipeline. Option 3 can replace the hand step if the
+  user wants it and the terms allow it.
+  - It supersedes the 2026-10-22 choice to wait for the Data Explorer. When the series reaches the Explorer only the
+    fetch changes.
+  - Three sources, three jobs, never on one chart (the brief §7): Stats NZ for totals and the long-run volume;
+    registrations as first observed for detail going forward (D-063); survivors for detail in the past.
+  - Completeness is shown and never used to scale a figure. It can be shown for cars, new and ex-overseas, from July
+    1975. For commercial vehicles and motorcycles it waits until Stats NZ's classes are lined up with NZTA's vehicle
+    types, which is not done: August 2026 has 474 "New Motor Cycles" against 452 `NEW` motorcycles, and 3,548 total
+    commercial vehicles (buses included) against 3,221 `NEW` and `USED` goods vehicles. It cannot be shown for
+    trailers.
+  - Every chart and CSV that uses the series carries Stats NZ's statement beside NZTA's attribution.
+- Consequences:
+  - The brief's §7 table says "Vehicle type and new/used only" and "January 1961 onward". Both are narrower in fact
+    (above). The user updates the brief.
+  - The newest month has no Stats NZ figure at first. The headline count for that month has to come from the
+    register as first observed or wait. Which is the user's choice when the headline is designed (the brief,
+    Stage 1 item 4).
+  - The pipeline reading the file, the `registrations_flow` dataset and its cube files are frozen-path work under
+    D-043 and a contract change under hard rule 4. Where the downloaded file lives in the repo is decided with that
+    work.
+  - `docs/DATA_SOURCES.md` §C is rewritten with what was read; the monthly check keeps looking for the series in the
+    Explorer.
+  - Not checked: whether Stats NZ revises past months of the series (the export shows no status flags).
+  - Nothing is built by this entry.
+- Status: proposed; accepted when the user says so
+
+## D-066 2026-11-13 — The user's answers to Stage 0: October is built, the gate has passed, the freeze is lifted; D-063 to D-065 accepted
+- Agent: user, answering the ten decisions of `docs/brief/STAGE_0_REPORT.md` by number in the session that followed
+  it. Recorded by claude.
+- Basis: this session. The run, its log and its commit were read with `gh` and `git fetch`; the hand pull was
+  checked page by page after it was saved.
+- Context: Stage 0 left ten decisions with the user, the first five tied to NZTA's December refresh.
+- Decision, in the report's numbering:
+  1. **October 2026 is built.** The user had claude start one unforced Monthly build on `main`. Run 43367551467
+     (`workflow_dispatch`, `main` at `e3246bb`): success; 38 tests passed; built snapshot 2026-10-31 from 5,926,990
+     rows with no warnings; peak memory 2,431 MiB of 15,982 MiB; 291 s. The bot committed
+     `a5fb60c Snapshot 2026-10 [skip ci]`. Artifact `public-data-2026-10` expires 2027-02-11.
+  2. **The gate has passed and the freeze is lifted**, the user having made both conditional on that run being green.
+     This ends the freeze of D-013 and D-020 and changes AGENTS.md hard rule 2, which is rewritten in the same
+     commit as this entry. D-043's exception is no longer needed. Work on the pipeline paths still reaches `main`
+     only through a branch and a pull request the user merges. The new wording keeps `pipeline run` and
+     `init-schema` as things not run locally, as AGENTS.md §Commands already says; the user did not speak to that.
+  3. **D-063 is accepted**, with its files kept in releases in a private GitHub repository: the Stage 0 report's
+     option (a), which is D-063's own (i). The user sets up the repository and the token (D-067; the steps are in
+     `docs/brief/STAGE_1_REPORT.md` §4).
+  4. **October is pulled by hand.** `data/raw/2026-10/20261113T045017Z` (gitignored): 5,926,990 rows in 186 pages,
+     348,353,175 bytes, 36 of the 40 fields. `VIN11`, `CHASSIS7`, `ENGINE_NUMBER` and `POSTCODE` were not asked for.
+     `OBJECTID` is included, as in every pull, because the pipeline pages by it. Its change key equals the one the
+     run committed, so both read the same register.
+  5. **The August and October raw pulls are to be copied to a backed-up folder.** The user's message left the folder
+     as a placeholder, so nothing is copied yet.
+  6. **D-064 is accepted**: option 3 (run every day) with both rules (each month is built once; a missed month fails
+     the run).
+  7. **D-065 is accepted**, by its option 2: the user exports the series from Infoshare by hand each month.
+  8. **NZTA's registrations dashboard is read from one hand export** (the brief, Stage 1 item 6). The user asked
+     what to export; the steps are in the Stage 1 report §5. That it should be October 2026, taken before
+     1 December, is claude's recommendation, not the user's word (inferred: the dashboard was not seen; its listing
+     says it shows the most recent calendar month). `docs/DATA_SOURCES.md` §D's rule stands until the user decides,
+     after the export is read, whether it becomes a source.
+  9. **`POSTCODE` is never published, never pulled and never archived.**
+  10. **CLAUDE.md's three untagged changes are accepted** as they are: "static" dropped from the first sentence, the
+      `segment_map.csv` comment, and "monthly" dropped from the first non-goal.
+- Consequences:
+  - The five pipeline pull requests (#26 to #29, #35) may merge, in order, when the user has reviewed them.
+    `ui/explore` keeps the old hard rule 2 until #36 merges. `main` has no AGENTS.md until `ui/explore` merges into
+    it, and its `POST_GATE.md` still describes the freeze.
+  - D-064 and D-063 are queued to be built (CHECKPOINT). Neither is on `main` yet, so November's snapshot depends
+    on the 8 December run or a dispatch, and is kept at every field only by another hand pull.
+  - D-063's whole-snapshot file leaves out `POSTCODE` for good, not "until the user decides".
+  - The playbooks and the two skills that still describe the freeze are out of date (STATE).
+- Status: accepted, decided by user
+
+## D-067 2026-11-13 — The archive's repository, token and secret: the names the setup steps use
+- Agent: claude, for D-063's option (i) as the user accepted it in D-066.
+- Basis: this session. GitHub's pages were not seen; the permission a release needs, the need for one commit and who
+  can download a public repository's artifacts are from GitHub's documentation as claude knows it, not re-read
+  (inferred — confirm when D-063 is built).
+- Context: the user asked for the setup steps before D-063 is built, so the names have to be fixed now for the build
+  to match them.
+- Options considered:
+  1. A fine-grained personal access token limited to the one private repository, with Contents: read and write.
+     Chosen: the narrowest token that can create a release there.
+  2. A classic token with `repo` scope. Not chosen: it can write to every repository the user owns.
+  3. A GitHub App. Not chosen: more to set up and maintain than one token for one step.
+  4. No token: the run uploads the file as an artifact and the user moves it. Not chosen: an artifact of a public
+     repository can be downloaded by anyone signed in to GitHub, which is the publication D-063 avoids.
+- Decision:
+  - The private repository is `nickholttt/nzta-register-archive`, created with a README so that a release has a
+    commit to attach to.
+  - The token is fine-grained, named `nzta-archive-write`, limited to that repository, Contents: read and write,
+    expiring 12 November 2027.
+  - The monthly run reads it as the secret `ARCHIVE_REPO_TOKEN`. Whether that is an environment secret (an
+    environment `archive` that only `main` can use; recommended) or a repository secret is the user's choice at
+    step 3 of the setup, and D-063's workflow step is built to match.
+  - The archive file is never uploaded as an artifact of this repository.
+- Consequences:
+  - The archive step is to be built so that an expired token fails it and the run says why (invariant 5). Whether
+    a failed archive step also holds back the month's commit is settled when D-063 is built.
+  - If the secret is an environment secret, only a job that names the environment can read it, and GitHub records a
+    deployment each time such a job runs (GitHub's "Managing environments" page, read by the reviewer on
+    2026-11-13). So the archive step belongs in a job of its own that runs only when a month is built: otherwise the
+    daily run (D-064) would record a deployment a day, and a forced run from a branch other than `main` could not
+    start.
+  - The release's tag and the file's name are chosen when D-063 is built.
+  - Reversing it: delete the secret and the token. Renaming anything is a one-line change before D-063 merges.
+- Status: decided by Claude (unreviewed)
+
+## D-068 2026-11-13 — What claude may do without asking again: merge the pipeline stack and D-064 and D-063 under a reviewer, one forced run, the archive repository; and the user's three answers
+- Agent: user, in the first message of the session that followed `docs/brief/STAGE_1_REPORT.md`. Recorded by claude.
+- Basis: this session, the user's message. The backup was checked by claude (below).
+- Context: the Stage 1 report left three questions (CHECKPOINT questions 1 to 3) and twenty open pull requests, every
+  merge the user's. The user does not follow the technical detail and asked claude to do as much as it can, with
+  anything left to the user given one small step at a time.
+- Options considered:
+  1. The user merges every pull request by hand (the rule until now: AGENTS.md's `main` line and hard rules 2 and 7;
+     the brief's §9, "The user merges; the lead never merges"). Not kept: the user cannot judge the diffs, so the
+     merges would wait on a review the user cannot give.
+  2. claude merges on its own judgement. Not chosen by the user.
+  3. claude merges only when the pull request's checks are green and a reviewer sub-agent that has not seen claude's
+     reasoning agrees, stopping at the first problem. Chosen by the user.
+- Decision:
+  - **The user's answers.**
+    1. The raw pulls' backup is `F:\nzta-data-backup`. claude checks both pulls are there and complete and copies
+       anything missing. Checked on 2026-11-13: 373 files (186 for 2026-08, 187 for 2026-10), 524,915,027 bytes,
+       every file's SHA-256 equal to the original's; nothing was missing. It is on the same physical disk as the
+       project, so it is a second copy, not yet a backup.
+    2. Secrets: 3a, for the archive and for Cloudflare. Each lives in an environment that only `main` can use.
+    3. Yes: claude pulls November by hand, as it did October, if the archive is not on `main` when NZTA refreshes.
+  - **What claude may now do without asking again.**
+    1. Merge the pipeline stack (#26, #27, #28, #29, #35) into `main`, in order, each as a merge commit, only if
+       its checks are green and a reviewer sub-agent that has not seen claude's reasoning agrees. Stop at the first
+       problem.
+    2. Then, if claude and the reviewer judge it safe, dispatch one forced run on `main`, to run the new code and
+       the release step against October while NZTA still holds it; check it and report the result.
+    3. Create the private repository `nzta-register-archive` and the environment `archive`, limited to `main`.
+    4. Build D-064, then D-063, open their pull requests, and merge them into `main` under the rule in 1.
+    5. The site stack: send the user screenshots of the main screens, at phone and desktop width, from the top of
+       the stack. When the user says go, merge #17 to #34 into `ui/explore`, in order, from the command line.
+       `ui/explore` is not merged into `main` without asking first.
+  - **What only the user does**, walked through one step at a time, each waiting for "done": creating the archive
+    token and putting it where it is needed (it is never pasted into a chat); exporting October from NZTA's
+    registrations dashboard before 1 December.
+  - **Never without asking:** anything that cannot be undone, anything that makes the site public, anything that
+    costs money, any change to the invariants or the chart shapes.
+- Consequences:
+  - This changes AGENTS.md's `main` line and hard rules 2 and 7, with the user's approval in the message itself, and
+    the brief's §9 line; all are amended in the same commit as this entry.
+  - It is not a general licence. It names five pull requests, two decisions to build, one run, one repository and
+    one environment. Any other merge into `main`, any second forced run and `ui/explore` into `main` are still
+    asked for.
+  - A merge can be reverted; the bot's commit from a forced run can be reverted; a release can be deleted. A deleted
+    branch is restored from its pull request's page.
+  - The Cloudflare secrets go in an environment limited to `main`, so `deploy.yml`'s upload job must name that
+    environment before the first deploy. `deploy.yml` (#35) reads them as repository secrets today; that is changed
+    before the deploy step of Stage 1, not in #35.
+  - Reversing it: the user says so; the three AGENTS.md lines and the brief's line go back to "the user merges".
+- Status: accepted, decided by user
+
+## D-069 2026-11-13 — The user's answers after the pipeline stack: the archive token is stored, the backup is off the disk, the fact table may merge under D-068's rule
+- Agent: user, in the first message of the fourth session of 2026-11-13, answering CHECKPOINT's questions. Recorded by
+  claude.
+- Basis: this session, the user's messages; the secret's presence was read with `gh`.
+- Context: CHECKPOINT left the archive token and two questions with the user.
+- Decision:
+  1. **The archive token exists and is stored.** The user made it in seven steps, one at a time, and never showed
+     it to claude. As the user reported it: fine-grained, named `nzta-archive-write`, limited to
+     `nzta-register-archive`, Contents: read and write (Metadata: read-only added by GitHub), expiring
+     **13 November 2027**, the latest date GitHub offered, not D-067's 12 November. Read by claude:
+     `ARCHIVE_REPO_TOKEN` is a secret of the environment `archive` (created 2026-11-13T06:20:34Z), the environment
+     still allows only `main`, and no repository-level secret exists. Whether the token works is not known until
+     the first archive run.
+  2. **The raw pulls are copied off the project's disk**: "backed up to a separate OneDrive" (the user's word; not
+     checked by claude, which has no reason to read the user's OneDrive).
+  3. **claude may merge `claude/fact-table` into `main` under the same rule as the pipeline stack**: a merge commit,
+     only with a green check and the agreement of a reviewer sub-agent that has not seen claude's reasoning.
+  - The same message asked for D-064, D-063, the screenshots of the site stack, and the reviewers' follow-up on the
+    Cloudflare upload, with a stop and report after them.
+- Consequences:
+  - AGENTS.md hard rule 7 gains the fact table's pull request, with the user's approval in the message itself; it is
+    amended in the same commit as this entry.
+  - The token's expiry is a date the user has to remember: a reminder for early November 2027. An expired token
+    fails the archive job, which says so (D-071).
+  - Reversing 3: the user says so, and the rule 7 line goes back.
+- Status: accepted, decided by user
+
+## D-070 2026-11-13 — D-064 as built: what the daily run decides, and the choices D-064 left open
+- Agent: claude, building D-064 (accepted in D-066) as D-068 allows. Pull request #37.
+- Basis: this session. The code and tests were written and run here; the reviewer's finding was reproduced by the
+  reviewer and fixed; month counts were read from `data/state/last_good.json` on `main` and the three files in
+  `data/snapshots/`.
+- Context: D-064 fixed three things (run every day; each month is built once; a missed month fails the run from the
+  15th) and left others to the build.
+- Options considered and decision, point by point:
+  1. **The alarm fails every day until the month is built**, not once. Failing once would need the run to remember
+     it had failed, and a run cannot write state without committing. Daily failure is hard to miss and stops by
+     itself.
+  2. **Whether the source changed is read from the row count and the digest, not from the snapshot date in the
+     key.** That date is capped by the day of the fetch, so it can move on the first of a month while the register
+     has not. Comparing the whole key (the old code) would have built a new month from an unchanged register.
+  3. **A month is a snapshot month only if it holds a month of registrations**: at least 1% of the median of the
+     twelve months before it (`snapshot.min_share_of_trailing_median`). This came from the independent review of
+     #37, which refused the first version: with an edit by NZTA inside a built month and a few rows dated in the
+     following month, the run would have built those rows as a month once the cap passed them, and then refused the
+     real refresh as a rebuild. Other fixes considered: cap the snapshot at the month before the service's last
+     edit (not chosen: an edit early in the next month, before the refresh, passes it, and it needs the source's
+     time zone); keep the uncapped latest month in the key (not chosen: it fails when one refresh has such rows and
+     the next has none). Measured: the lowest real month, 2020-04, held 7.0% of its trailing median; the next
+     lowest, 2023-07, 58%. None of the three snapshots so far holds a row dated after its month.
+  4. **The build starts the deploy, only when it built a month** (STATE known issue 10). `deploy.yml` no longer
+     follows every successful run: a skip is a success, so that was a deploy a day. Not chosen: leave the trigger
+     and have the deploy ask whether its trigger built (a Deploy run every day, each to say "nothing to do").
+     The start is a job of its own with `actions: write` and no checkout.
+  5. **The workflow keeps the name "Monthly build".** It builds one month at a time; the playbooks, the skills and
+     the cube artifacts' history use the name.
+  6. **The alarm's day is counted in UTC, must be 1 to 28, and never stops a run that builds**: an overdue month is
+     committed, and the next run that builds nothing reports the month still missing.
+  7. **The advice to force a rebuild is given only where a forced run would build.** A forced run on an unchanged
+     row count is stopped by the existing check "the source changed without advancing".
+- Consequences:
+  - About 30 runs a month; a skip took 1m17s on 8 November. The Actions list fills with green skips.
+  - Not caught: a register holding 1% or more of a normal month dated after its own month, and edited again at any
+     time after it was built, is built as the following month once the cap passes it, and the real refresh is then
+     refused as a rebuild. Stated in `docs/CUBE_SCHEMA.md`. The reviewer's second pass confirmed it and agreed to
+     merge with it written down; only a check on the service's last-edit date would close it fully.
+  - The first build of a month wins. A corrected refresh needs a forced run, which is the user's to start (D-064).
+  - GitHub switches a schedule off after 60 days without activity in a public repository (GitHub's documentation as
+     claude knows it; not re-read). The bot's monthly commit is activity, so this bites only after two months
+     with no build, by which time the alarm has been failing for weeks.
+  - Whether a failed scheduled run reaches the user by email depends on the user's GitHub notification settings
+     (inferred — confirm).
+  - Reversing it: restore the one schedule line and the `workflow_run` trigger; the rules are harmless monthly.
+- Status: decided by Claude (unreviewed)
+
+## D-071 2026-11-13 — D-063 as built: the archive job pulls for itself; the file, its name, and what happens when it fails
+- Agent: claude, building D-063 (accepted in D-066, names in D-067) as D-068 allows. Pull request #38.
+- Basis: this session. The code and tests were written and run here. The file was written once from the saved
+  2026-10 hand pull and read back. The archive job has not run: it can only run on `main`.
+- Context: D-063 expected the build's own pull to widen to 36 fields and the build to write the file. D-067 then put
+  the token in an environment only `main` can use and said the archive step belongs in a job of its own. The two do
+  not fit: the file cannot pass from the build job to another job, because an artifact of a public repository can be
+  downloaded by anyone signed in to GitHub (D-067), and D-063 forbids that.
+- Options considered:
+  1. One job does everything and names the environment. Not chosen: a deployment is recorded every day the run is
+     tried, the token sits in the job that installs the pipeline's dependencies and runs the build, and a run
+     started on any branch but `main` could not start.
+  2. A first job decides whether to build and a second, naming the environment, pulls, builds, commits, releases
+     and archives. Not chosen: the token is still in the build's job, and the proven build is restructured.
+  3. The build job is left as it is and a separate job pulls the register again for the archive. Chosen.
+  4. Encrypt the file to a key the archive job holds and pass it as an artifact. Not chosen: a second secret and a
+     key to manage, for the sake of one pull a month.
+- Decision:
+  - **A job `archive` in `monthly-build.yml`**, after `build`, on `main` only, naming the environment `archive`. It
+    runs when the build built a month, or when a run is started by hand with the new input `archive` ticked.
+  - **It pulls the register itself**, at every field of `pipeline/expected_schema.json` except
+    `register_archive.never_pulled` in `config/pipeline.json` (`VIN11`, `CHASSIS7`, `ENGINE_NUMBER`, `POSTCODE`). The
+    build's pull stays at its 17 bound fields, so the cube cannot change. The field list comes from the expected
+    schema, not the live service: a field NZTA adds is not archived until the schema is captured again on purpose.
+    A name in `never_pulled` that the schema does not hold aborts, so a misspelling cannot let a field through.
+  - **It archives only the register that was built**: it goes ahead only while the live register has the row count
+    and digest in `data/state/last_good.json`, and labels the file with that state's month.
+  - **The file**: release `snapshot-YYYY-MM` in `nickholttt/nzta-register-archive`, one file `mvr-YYYY-MM.parquet`,
+    zstd, rows sorted on every column, the row id left out, values as NZTA records them. NZTA's attribution, the
+    snapshot date, the row count, the source's last edit and the digest are in the Parquet file's own metadata.
+  - **Never replaced**: the job looks first and stops, green, if the month's file is there. Nothing uploads with
+    `--clobber`.
+  - **A failed archive does not hold back the month** (the question D-067 left open). The build's commit and cube
+    release are done before the archive job starts. The run is red. The retry is a run started by hand with
+    `archive` ticked: the build job skips, and the archive job archives the last built snapshot if the register
+    still holds it.
+  - **A missing or refused token fails the job before anything is pulled**, and says which.
+  - `python -m pipeline archive --from-pull <dir>` writes the same file from a pull saved on disk, for a month
+    pulled by hand (D-068 answer 3).
+- Consequences:
+  - One more pull of the register a month, in a second job. Measured from the saved 2026-10 hand pull on the
+    development machine: 5,926,990 rows at 35 fields, 39,298,142 bytes (D-063 estimated about 49 MB), 524 s with
+    other test runs going. The job's time and memory on the runner are not measured; it reports both.
+  - If NZTA refreshes between a failed archive and its retry, that month's archive is lost and the job says so. The
+    committed aggregate still holds the month at five dimensions.
+  - The archive job installs the pipeline's two pinned dependencies (duckdb, pytest) in the job that holds the
+    token. The token is given only to the two steps that call `gh`. It can write to one private repository.
+  - GitHub records a deployment to `archive` each time the job starts, about once a month.
+  - October 2026 can be archived as soon as this is on `main`, by a run started by hand with `archive` ticked,
+    while NZTA still holds it. Otherwise from the hand pull with `--from-pull` and an upload by hand.
+  - Reversing it: delete the job and the command; delete the releases. Nothing reads them yet.
+- Status: decided by Claude (unreviewed)
+
+## D-072 2026-11-13 — The Cloudflare upload is a job of its own behind the environment `production`, switched on by a variable
+- Agent: claude, on the user's instruction in the session (D-069), doing the follow-up the reviewers of #35 raised
+  (STATE known issue 11) and D-068's answer 2. Pull request #39.
+- Basis: this session. The environment was created with `gh` and read back. The workflow parses and its tests pass.
+  No upload has run: there is no Cloudflare project or secret, and `main` has no public site yet.
+- Context: `deploy.yml` read the Cloudflare secrets as repository secrets and uploaded in the job that installs the
+  site's dependencies. The user chose an environment only `main` can use (D-068 answer 2).
+- Options considered:
+  1. Add `environment:` to the existing single job. Not chosen: the site's whole dependency tree would still be
+     installed beside the token, and every run, uploading or not, would be recorded as a deployment.
+  2. Two jobs, the upload job starting on every run on `main` and stopping politely when the secrets are missing.
+     Not chosen: GitHub records a deployment to the environment when the job starts, so the repository would show
+     "deployed to production" for deploys that never happened.
+  3. Two jobs, the upload job starting only when deploying is switched on. Chosen. The switch has to be something
+     the build job can see, and it cannot see an environment's secrets, so it is a repository variable.
+- Decision:
+  - **The environment is `production`**: created 2026-11-13, limited to the branch `main`, holding no secret.
+  - **`build`** builds the site and reads no secret. **`upload`** names `production`, runs only on `main`, checks out
+    only `.github/deploy`, installs only the pinned upload tool, takes the built site from the build job and
+    uploads it.
+  - **Deploying is switched on by the repository variable `CLOUDFLARE_PAGES_PROJECT`**, set to the Pages project's
+    name. The workflow's default project name is gone. Until the variable is set the site is built and the run
+    stops, green, as before.
+  - **Once it is switched on, missing secrets fail the run.**
+  - The built site passes between the jobs as an artifact kept one day, uploaded only when it is about to be
+    published.
+- Consequences:
+  - The deploy's console steps (CHECKPOINT) change: the two secrets go in the environment `production`, not the
+    repository, and one step is added, setting the variable, which claude can do with `gh` on the user's word.
+  - Merging #39 into `main` is not among the merges D-068 and D-069 name: it is asked for.
+  - Reversing it: restore the single job; delete the environment.
+- Status: decided by Claude (unreviewed)
+
+## D-073 2026-11-13 — The user's word on the merges: #37, #38 and #39 into `main`, the site stack into `ui/explore`; and the first archive run
+- Agent: user, in a message later in the fourth session of 2026-11-13, after Claude Code's permission check had
+  refused claude's merge of #37. Recorded by claude.
+- Basis: this session, the user's message; the merges, the run and its log were read with `gh` and `git fetch`.
+- Context: #37, #38 and #39 were built and reviewed and nothing was merged (CHECKPOINT as it stood). The user had the
+  screenshots of the site stack.
+- Decision, in the user's words where short:
+  1. "Merge 37 now." Merged as `693ecf3`.
+  2. Merge #38 only once its independent reviewer agrees; if not, fix it and get a second review first. The
+     reviewer agreed to `3ba6e01`, with follow-ups. claude added the first two before merging (the job refuses a
+     repository that is not private; a half-uploaded file is not an archive), the same reviewer agreed to
+     `aa7db27`, the check was run again against `main` with #39 in it, and it merged as `d50bfc6`.
+  3. "Yes: merge 39 under the same rule." Its reviewer had agreed; merged as `b507d53`.
+  4. "Site stack: go." #17 to #25 and #30 to #34 merged into `ui/explore`, in order, each as a merge commit, each
+     pointed at `ui/explore` first so it carried only its own change. No conflict. `ui/explore` is `a3ec1f3`, the same
+     tree as the top of the stack. `ui/explore` is not merged into `main` without asking first.
+  5. Fix the stale words on `/method` and `/caveats` and the phone ranking table on top, before anything is public
+     (D-074).
+  6. Once #38 is on `main`, start the archive-only run for October and report. **Run 43382023139: the build job
+     skipped as it should; the archive job failed at its first step**, before pulling anything: "the token in
+     ARCHIVE_REPO_TOKEN cannot reach nickholttt/nzta-register-archive". GitHub answered 404, not 401: the token is
+     valid and cannot see the repository. The likeliest cause is that the repository was not selected when the
+     token was made; a fine-grained token's repositories can be edited without making a new one. Nothing was
+     uploaded.
+  7. Then the walk-through of NZTA's dashboard export, one step at a time.
+- Consequences:
+  - `main` is `d50bfc6`: the daily run, the build-once rule, the missed-month alarm, the archive job and the
+    two-job deploy are live. The first scheduled daily run is 14 November 2026, 06:17 UTC.
+  - The merged branches are deleted here and on GitHub: the three pipeline branches and the fourteen of the site
+    stack. Each can be restored from its pull request's page.
+  - October's whole snapshot is not archived until the token can see the repository and the run is started again
+    with `archive` ticked. NZTA holds October until its December refresh; the hand pull is the fallback
+    (`pipeline archive --from-pull`).
+  - Reversing a merge: `git revert -m 1 <merge commit>` on a branch and a pull request, on the user's word.
+- Status: accepted, decided by user
+
+## D-074 2026-11-13 — What the screenshots called for: the hand-written figures recomputed for October, plain words on `/caveats`, and the ranking table on a phone
+- Agent: claude, on the user's instruction in D-073 (item 5). Pull request #40 into `ui/explore`.
+- Basis: this session. The figures were recomputed from the `cube-2026-10` release and the 2026-10 register (the
+  file written from the hand pull), and again by the reviewer, who was given neither claude's values nor its
+  reasoning. The ranking was measured headless at seven widths.
+- Context: the screenshots of the site stack (STATE known issue 10 as it stood) showed `/method` and `/caveats`
+  quoting August figures beside an October site, a sentence that was no longer true, internal references shown to
+  visitors, a chart label the charts do not use, and a ranking table that hid two columns on a phone with nothing
+  to say it scrolls.
+- Options considered and decision:
+  1. **The hand-written figures are recomputed for October and stay hand-written and dated.** Not chosen: compute
+     them when the site is built. That is the narrative engine's job (D-062, invariant 8), and doing a piece of it
+     here would be a second way of writing sentences. Not chosen: leave them dated August. They read as stale
+     beside "Snapshot 31 October 2026". One dated comparison is left as it is, between the August and September
+     snapshots on `/caveats`: no September register exists to move it on.
+  2. **`/method` says "The powertrain charts split out mild hybrids"** in place of "No live chart splits out mild
+     hybrids today". **`/caveats` says "Explore has no regional charts. The map on Build a chart shows each region's
+     share of vehicles, with this caveat under it"** in place of the decision numbers, and "a count of every
+     vehicle first registered each month" in place of "build step 1b". All three are true of the site as built and
+     will go false silently if the site changes; they are the kind of sentence the narrative engine replaces.
+  3. **`/caveats` reads the two chart labels it quotes from config**, and the build fails if config has no such
+     dimension.
+  4. **The ranking table's columns are reordered at every width**: Rank, Move, the breakdown, Share, Change in share,
+     Still registered, Rank before. The share comes before the count, as in the map's table, so a phone shows the
+     ranking without scrolling. Not chosen: hide columns on a phone (figures would be out of reach there).
+  5. **Headings stay on one line, and the last reads "Rank before"**, with "in the 12 months" kept for a screen
+     reader. The blank gap under the chart was the header row made tall by a heading wrapping in a narrow column.
+  6. **A box that scrolls sideways shows a shadow at the edge with more beyond it**, on every such box, and under the
+     ranking a line says so in words. The line shows only while the table is wider than its box, which is measured:
+     the reviewer found a fixed breakpoint showed it with nothing to scroll.
+- Consequences:
+  - The figures are a month behind again after each refresh, until the narrative engine (STATE known issue 9).
+  - Not done from the screenshots: the map legend's "0%" label outside the chart box; the dense grey band before
+    1970 on the concentration chart; a dark theme (STATE known issue 10).
+  - `claude/question-builder` changes `src/styles/site.css` near line 272 only; this change is near line 808.
+  - Reversing it: revert the pull request's merge in `ui/explore`.
+- Status: decided by Claude (unreviewed)
+
+## D-075 2026-11-13 — NZTA's registrations dashboard, read from one hand export: what it is, how it compares, and whether it becomes a source (proposed)
+- Agent: claude, for the user to decide (the brief, Stage 1 item 6; D-066 item 8).
+- Basis: this session. The user opened the dashboard and saved, into gitignored
+  `data/raw/nzta-dashboard/2026-10/`: three screenshots, NZTA's page as HTML, and one export
+  (`89cff00a-3572-4b37-990d-c77df9a01368.xlsx`, 4,263,616 bytes). claude read the saved page and the export; it did
+  not open NZTA's site or the dashboard. The register figures are from the 2026-10 archive file.
+- Context: `docs/DATA_SOURCES.md` §D says of this dashboard "do not automate" and "never build a dependency on it".
+  Nobody here had seen it. The site has no count of every vehicle first registered each month: Stats NZ's series
+  (D-065) gives totals for new and ex-overseas cars and commercials, with no make or model.
+- What it is (NZTA's page, and the screenshots):
+  - A Qlik report builder, "First registration", at `qap.nzta.govt.nz`. The visitor ticks up to 12 of 34 dimensions,
+    filters by month, and exports the table.
+  - It holds vehicles "with a date of first ownership within the past five years": the month list runs from
+    January 2021 to October 2026 (the user read it). It is updated at the start of each month and is "a snapshot of
+    the data at the end of every month". Past months can change: vehicles are added or removed and a registration
+    month can be updated. It includes "a subset of reregistered vehicles".
+  - Licence: "This data and its accompanying information are released under a Creative Commons Attribution 4.0
+    International licence".
+  - Dimensions the open register does not have: **Owner type** (Individual, Company, Other), Physical town, Vehicle
+    status (active, inactive, reversed), and groupings of engine size, mass and motive power. It also offers
+    "VIN - first 11" and "Physical post code", which were not ticked (D-066 item 9; CLAUDE.md's non-goals).
+  - The page carries NZTA's own history of what `vehicle_year` has meant, period by period, a user guide (PDF), and
+    a link to NZTA's make and model cleansing code on GitHub. None is read into the docs yet.
+- Measured, October 2026, twelve dimensions (body type, country of origin, import status, make, model, motive power,
+  owner type, territorial authority, vehicle status, vehicle type, vehicle usage, vehicle year):
+  - The export is whole: 6,509 rows, 68 districts by import status across the columns, cells summing to 28,896, the
+    figure the dashboard shows. Every vehicle is ACTIVE.
+  - The register holds 28,864 vehicles first registered in October 2026: 32 fewer (0.11%). By import status, the
+    dashboard against the register: NEW 18,657 and 18,665; USED 9,259 and 9,259; RE-REG 807 and 767; SCRATCH 173
+    and 173. By vehicle type and import status, 35 of 41 groups are identical. The differences: 40 re-registered
+    vehicles the dashboard counts in October and the register does not (18 motorcycles, 17 passenger cars, 5 goods
+    vehicles), and 8 fewer NEW (passenger cars 8 fewer, a trailer more, a motorcycle fewer). The cause of the 8 is
+    not known.
+  - Owner type: Company 14,724, Individual 13,923, Other 249.
+- Options considered:
+  1. Leave it unused, as §D says. It costs nothing. The site then has no true monthly registrations by make or model
+     for any month before the first one it archives itself.
+  2. Use it for the newest month only. Not worth it: for the newest month it agrees with the register to 0.11%.
+  3. Use its history as the detail of `registrations_flow`: every vehicle first registered in each month from
+     January 2021, by make, model, motive power, import status, district and owner type, exported by hand. Stats NZ's
+     series stays the source of totals before 2021 (D-065). Never automated: the user exports, as with Infoshare.
+- Decision: proposed, option 3, in two steps, each on the user's word.
+  - First a test, which costs one export: one old month (January 2021) at the same twelve dimensions, compared with
+    the register's survivors for that month. It shows what the history holds (the vehicles since scrapped) and
+    whether an old month exports whole.
+  - Then, if it holds, the backfill: the 70 months, a year at a time, and one export a month from then on.
+- Consequences:
+  - It would change `docs/DATA_SOURCES.md` §D from "never build a dependency on it" to "a hand export, never
+    automated", which is the user's decision, and it needs a decision record of its own with the dataset's
+    definition (`docs/METRICS.md`) before any chart uses it. A flow series never goes on the same chart as
+    survivors (CLAUDE.md, build step 1b).
+  - Past months in the dashboard change, so a month exported once is that month as first exported; a later export
+    of the same month can differ. The export date belongs with every file.
+  - It depends on the user's time each month, and on NZTA keeping the dashboard and its window: the window is "the
+    past five years", so January 2021 may drop out. The backfill is worth doing soon if at all.
+  - Owner type is askable only once the data map defines it (the goal's point 8).
+  - Whether "VIN - first 11" and "Physical post code" may be used is a separate question the user raised in this
+    session: the licence allows it; D-066 item 9 and CLAUDE.md's non-goals forbid it on privacy grounds until the
+    user changes them (CHECKPOINT, question 1).
+  - Reversing it: stop exporting; nothing published reads it yet.
+- Status: proposed
+
+## D-076 2026-11-13 — `VIN11` and `POSTCODE` are kept in the private archive only and neither is published; October gets a second file
+- Agent: user, answering CHECKPOINT question 1 in the first message of the fifth session of 2026-11-13. Recorded by
+  claude, with the choices claude made building it marked as such.
+- Basis: this session, the user's message. The change, its tests and October's file were written, run and read back
+  here; the upload was read back with `gh`.
+- Context: D-066 item 9 ruled `POSTCODE` never published, never pulled and never archived, and CLAUDE.md's non-goals
+  kept `VIN11`, `CHASSIS7` and `ENGINE_NUMBER` out of every published file. The archive (D-063, D-071) left all four
+  out. In the fourth session the user asked whether the postcode and the VIN prefix may be used; NZTA's licence
+  (CC BY 4.0) allows it. October was archived at 35 fields, and NZTA replaces October early in December.
+- Options considered:
+  1. Leave both out (D-066 item 9). Not kept: once NZTA refreshes, a month's postcodes and VIN prefixes are gone, and
+     nothing finer than a district, and nothing read from the VIN, can ever be derived for that month.
+  2. Keep both and publish postcode totals now. Not chosen by the user: publishing waits for the privacy review.
+  3. Keep both in the private archive only and publish neither. Chosen by the user.
+- Decision, in the user's words where short:
+  1. `POSTCODE` and `VIN11`: "keep both in the private archive only. Publish neither."
+  2. `VIN11` itself is never published, "only what is derived from it, after you check it against the data".
+  3. Postcode figures "wait for the Stage 2 privacy review, and then only as area totals above a minimum count".
+  4. `CHASSIS7` and `ENGINE_NUMBER` "stay out entirely".
+  5. For October, the two fields are added "as an additional file"; the file already archived is not replaced.
+  6. This supersedes D-066 item 9, and the field lists of D-063 and D-071 as far as these two fields go. CLAUDE.md's
+     non-goal and `docs/DATA_MAP.md` are changed in the same commit as this entry.
+- As built (decided by Claude, unreviewed), pull request #42 into `main`:
+  - `register_archive.never_pulled` in `config/pipeline.json` is `CHASSIS7` and `ENGINE_NUMBER`. No pipeline code or
+    workflow changes: the archive job already takes every field of the expected schema but those.
+  - The build's own pull stays at its 17 bound fields, so neither field can reach the cube, the committed aggregate
+    or a published file. A test fails if either is ever bound.
+  - **October's additional file is a whole register at 37 fields**, `mvr-2026-10-vin11-postcode.parquet`, in the
+    release `snapshot-2026-10` beside `mvr-2026-10.parquet`. Not chosen: a file of the two columns alone. The first
+    file keeps no row id, so two columns could not be matched to its rows.
+  - It was written on the development machine by `python -m pipeline archive --snapshot 2026-10` from the branch,
+    which pulls NZTA's live register and goes ahead only while it has the row count and digest of the built month,
+    and uploaded with `gh` under the user's login, without `--clobber`. Not chosen: the workflow's archive job. It
+    runs only on `main`, stops when the month has a file, and would have needed a merge and a change of its own for
+    one file.
+  - The local pull and the local file were deleted once the upload's SHA-256 matched, so the two fields are in the
+    private archive and nowhere else.
+- Measured, 2026-11-13:
+  - The pull: 5,926,990 rows at 38 fields in 151.6 s. The file: 5,926,990 rows, 37 fields, 55,125,916 bytes (the
+    35-field file is 39,298,142). 13 min 7 s in all, with three other heavy jobs running.
+  - `VIN11`: 4,811,252 vehicles have one (81.2%), every one 11 characters, 200,725 distinct.
+  - `POSTCODE`: 5,638,818 vehicles have one above zero (95.1%); 1,331 distinct values in the file (the data map
+    counted 1,330 on the live service; whether the one more is a zero standing for "not recorded" was not checked
+    before the local file was deleted). NZTA records it as a number, so one that starts with zero arrives without
+    it: 152 postcodes, holding 885,064 vehicles, are below 1000.
+  - The release, read back: both files `uploaded`; the new file's SHA-256 is `25f0a20d…5041ce`, equal to the local
+    file's before it was deleted. The repository is private.
+  - The independent reviewer of #42 (not shown claude's reasoning) agreed with follow-ups, none blocking, and ran
+    the whole suite: 86 passed.
+- Consequences:
+  - Until #42 is on `main` the archive job leaves the two fields out. If NZTA refreshes first, November is archived
+    at 35 fields and needs a second file by hand, as October did, while NZTA still holds it.
+  - The private archive is more sensitive than it was: a VIN prefix beside a postcode narrows a vehicle to very
+    few. The repository must stay private; the job already refuses one that is not.
+  - Nothing is derived from `VIN11` yet, and nothing has been checked against the data. What it can give (a model
+    year, a factory) is Stage 2 work, read from the archive's file.
+  - The minimum count for postcode totals is not set; it is the Stage 2 privacy review's to set.
+  - `pipeline archive --from-pull` now refuses both saved pulls (August has 17 fields, October 36): a pull saved by
+    hand must take all 38.
+  - The user did not speak to the dashboard's own "VIN - first 11" and "Physical post code" dimensions (D-075).
+    They stay unticked in every export.
+  - Reversing it: put the two names back in `never_pulled` and delete October's second file. Files already written
+    with the fields stay until deleted by hand.
+- Status: accepted, decided by user; the points under "As built" decided by Claude (unreviewed)
+
+## D-077 2026-11-13 — The user's answers on the dashboard, the `ui/explore` merges and the queue; what the reviews changed; and the fact table held for a question
+- Agent: user, in the first message of the fifth session of 2026-11-13 (answers 2 and 3 and the instruction that
+  follows them; answer 1 is D-076). Recorded by claude, with what claude did and decided marked as such.
+- Basis: this session, the user's message; the merges and checks were read with `gh` and `git fetch`; the reviewers'
+  reports; headless checks at 320, 390 and 1280px; the saved October export and NZTA's saved page (nothing of
+  NZTA's was opened).
+- Decision, the user's:
+  1. **The dashboard: yes to the January 2021 test export**, walked through one step at a time. It is not yet agreed
+     as a source: first the user wants to know how many exports the whole history from January 2021 needs, how
+     long that takes, and whether several months fit in one export.
+  2. **Yes: claude merges the question builder and the two preset corrections into `ui/explore`** once each has a
+     reviewer's agreement.
+  3. **Then the queue: the fact table, then the deploy steps.** Asked first: `ui/explore` into `main`, and anything
+     that becomes public. Plain words, and one step at a time for anything the user must do.
+- What was done:
+  - **The question builder is in `ui/explore`** (#43, merge `c367672`). Its independent reviewer first refused it,
+    for three faults: a link's condition on a field the fact table lacks was dropped without a word, so the chart
+    drew a wider question; two buttons were under 44px; a number by a breakdown with no values drew the total alone
+    under a title promising a breakdown. All fixed (`7646a0d`). The second pass agreed, and found a hand-typed link
+    with a condition named like a built-in property crashed the page: fixed (`05f9cf4`) and checked headless by
+    claude, not re-reviewed. Every figure the reviewer recomputed from the Parquet files matched the page.
+  - **The two preset corrections are in `ui/explore`** (#44, merge `85b7dd6`): `used-import-age` and `powertrain-mix`
+    are live and the ranking period comment follows D-050. Its reviewer agreed and recomputed both charts' figures.
+    One line more than asked: `age-distribution-moving-hole` no longer says it waits for a pair the cube carries.
+  - **The fact table is reviewed and not merged** (#41): brought up to date with `main` by a merge commit, 95 tests
+    passed, `Checks` green, and its reviewer agreed with follow-ups. A dry-run build of the saved 2026-10 pull gave
+    a table of 1,734,417 rows over 13 dimensions, 3.8 MB, and every existing slice, pair and `events.json` (17
+    files) byte-identical to the released `cube-2026-10`.
+- Decided by Claude (unreviewed):
+  1. **The fact table's merge is held for the user**, though D-069 and the user's message allow it. The reviewer
+     measured, on the 2026-08 table, that 65% of its rows count one vehicle: 25% of all vehicles, and 17% of the
+     last 12 months', are alone in their row, and each row carries the owner's region beside the model, the month
+     and the vehicle's bands. D-058 called this risk "cells as small as one vehicle" in a register that is "already
+     public vehicle by vehicle, with no owner data". The last part was wrong: region is where the owner lives.
+     Options: (a) merge as it is, since every column is a coarsening of a field NZTA itself publishes per vehicle
+     (district, not region), so a reader learns nothing NZTA does not already publish (the reviewer's reading, not
+     checked against the live register); (b) leave `region` out of the table until the Stage 2 privacy review,
+     which costs Build its conditions on region and its count comparisons between regions, while the region map
+     still draws from its slice; (c) a minimum cell size, which breaks the table's totals and is new design. Not
+     chosen without the user: once `main` has the table, the next build publishes it in a public release, which
+     cannot be taken back, and the user's rule in this session is that anything becoming public is asked first and
+     that owner location finer than a district is published only above a minimum count. Recommended: (b).
+  2. **The preset corrections are merged though `ui/explore` alone cannot yet draw one of them rightly.**
+     `ui/explore`'s `config/dimensions.json` has no `segment_group`, so there `powertrain-mix` would draw without
+     its light-passenger filter, with a warning, until `ui/explore` meets `main`. They were checked on a local test
+     merge with `main`. Not chosen: hold them until that merge (STATE asked for them before it, and the site is
+     built from `main`).
+  3. **A condition that cannot be applied stays in the question and blocks the chart**, with its row saying why and
+     how to remove it. Not chosen: drop it and say so in a notice (the chart would still answer a different
+     question from the link's).
+  4. **A number by a breakdown with no values chosen draws nothing** and says it is finding the largest to start
+     from, or that there is none. Not chosen: the total line with a corrected title (the question asked for a
+     breakdown).
+- The dashboard arithmetic, for the user's decision (measured from the October export and NZTA's saved page;
+  times are estimates, since no export has been timed):
+  - The history is 70 months, January 2021 to October 2026. One month an export is 70 exports.
+  - October's export is 6,509 rows by 263 columns (ten fields down the side; district by import status across the
+    top), 4.3 MB.
+  - Several months can go in one export in principle: NZTA's page says the reporting period can be "select months",
+    and "Registration MMM-YYYY" is one of the 34 dimensions, so each row can say its month. It takes one of the
+    twelve places, so one of October's twelve gives way. A year at a time is 6 exports. A year would be about
+    78,000 rows by 263 columns, some 12 times October's file. Whether the dashboard exports that is not known:
+    NZTA's page says only that "export times will increase if you include more data". The test settles it.
+  - NZTA says the dashboard holds "the past five years"; January 2021 is already older than that, so 2021 may drop
+    out at any refresh (inferred — confirm).
+- Consequences:
+  - Open follow-ups, none blocking (the reviewers' claims): the question builder's are listed on #43; the fact
+    table's are in CHECKPOINT (its total check compares two counts of the same table, so it cannot fail; one golden
+    test would crash on a dataset with no `facts`; two figures in `docs/CUBE_SCHEMA.md` disagree).
+  - `ui/explore` into `main` will conflict in `README.md` only (tested with `git merge-tree`).
+  - The public site's Build page needs a cube with a fact table. `cube-2026-10` has none.
+  - Reversing a merge into `ui/explore`: `git revert -m 1 <merge commit>` on a branch, and a pull request.
+- Status: accepted, decided by user (the three answers); the four points under "Decided by Claude" unreviewed
+
+## D-078 2026-11-13 — The user's answers: the fact table leaves out the owner's region until the Stage 2 privacy review; #42 and #36 merge; the dashboard's first step waits for the user; and D-058's "no owner data" is corrected
+- Agent: user, in the first message of the sixth session of 2026-11-13. Recorded by claude, with what claude did and
+  decided marked as such.
+- Basis: this session, the user's message. The dry runs, the tests and the headless checks were run here; the merges
+  and checks were read back with `gh`; the reviewer's report.
+- Decision, the user's, in the user's words where short:
+  1. "The fact table: (b). Leave owner's region out until the Stage 2 privacy review, then merge #41 under the usual
+     rule. Correct the earlier decision record that said it held no owner data."
+  2. "Merge 42. Merge 36."
+  3. The dashboard's step 1: the user does it, with Claude in the browser, when free the next day, and is walked
+     through it "one step at a time when I say I'm ready".
+  4. "Then carry on with the queue. Ask me before ui/explore goes into main or anything becomes public."
+- **Correction to D-058.** Its risks say the source register is "already public vehicle by vehicle, with no owner
+  data". The last four words are wrong. `TLA` is the district of the vehicle's registered owner, `region` is derived
+  from it (`tla_region.csv`), and NZTA's own definition is "the region where the registered owner is based" (its
+  dashboard page, read into `docs/DATA_MAP.md` this session). The table D-058 measured listed region among its
+  dimensions. D-058 is not edited (this file is append-only): read its risk as "cells as small as one vehicle, in a
+  register that is public vehicle by vehicle and gives each owner's district". The data map's first reading of privacy
+  classes already puts `TLA` among the fields that are public only above a minimum count when crossed with fine
+  vehicle detail.
+- What was done:
+  - **#42 is merged into `main`** (merge commit `a0c1943`), and its branch and worktree are deleted. From the next
+    build the archive job keeps `VIN11` and `POSTCODE` (D-076).
+  - **The fact table carries no `region`** (`claude/fact-table`, commit `489e2c3`): the word is out of `facts` in
+    `config/pipeline.json`, whose comment says why; the golden contract was regenerated for that change alone (11
+    lines added, 232 removed: the table's `region` file, the rows that differed only by region, `region` in
+    `facts.dimensions`, and `payload_bytes` 37,998 to 37,545; no slice, pair or event changed).
+  - **The earlier reviewer's follow-ups are done** (commits `488399b`, `809bcbd`, `f7c97b5`): the total check; the
+    golden test over a dataset with no fact table; `docs/CUBE_SCHEMA.md`'s figures re-measured and its manifest
+    example made to agree; two claims the pipeline's code does not show marked.
+  - **#41 is merged into `main`** (merge commit `f78e3e1`, head `7d3f2f8`), on the user's word in this session, with
+    `Checks` green and the reviewer's agreement; its branch and worktree are deleted.
+- Measured, 2026-11-13, from dry runs that publish nothing:
+  - The 2026-10 pull: exit 0 in 11 min 3 s. The fact table is 641,618 rows over 12 dimensions in 1,726,119 bytes as
+    14 files; with region it was 1,734,417 rows and 3,885,012 bytes. `payload_bytes` is 3,149,458. Every slice, pair
+    and `events.json` (17 files) is byte-identical to the released `cube-2026-10`.
+  - Rows that count one vehicle: 321,973, which is 50.2% of rows and 7.1% of vehicles; among the last 12 months'
+    vehicles, 4.6%. With region: 1,124,745 rows, 64.8% of rows and 24.9% of vehicles; last 12 months, 16.8%.
+  - The 2026-08 pull: the build stops with exit 2 at the comparison with the last good build, which is October's
+    since the forced run, after its files are staged. Its fact table is 643,414 rows in 1,736,400 bytes.
+  - The whole test suite: 98 passed in 397 s. The new abort test fails on the code before its commit.
+  - The Build page, a local build of `ui/explore` with October's dry-run files, headless at 390 and 1280 px: region is
+    not offered as a condition, nor as a breakdown of a count; "the share of vehicles by owner's region" still draws,
+    from the slice; a link carrying a region condition draws nothing and says why, with a link that removes the
+    condition; a brand comparison and a new-or-used condition draw as before; no page scrolls sideways.
+- The independent review of #41 (a reviewer not shown claude's reasoning): "agree with follow-ups" on `f7c97b5`. It
+  recomputed every figure above from the October dry run and found them equal, found nothing about an owner left in
+  the table, and found the golden change to be the removal of `region` alone. What it raised, and what was done
+  (commits `84ae0cf`, `7d3f2f8`):
+  - The total check was described as counted "before any reference lookup is joined on", which was false: `rows`
+    is itself built by joining the scope, brand, model, hybrid and engine lookups. And it proved a gap that `main`
+    already had: a vehicle type listed twice in `vehicle_scope.csv` counted each of its vehicles twice, in the slices
+    too, with no abort. Fixed: both scope files abort on a repeated key, with a test that fails on the old code; the
+    comment and `docs/CUBE_SCHEMA.md` now say what is counted from where.
+  - A dimension named after the table's working row-order column would have been written as row numbers: the name
+    is reserved. The manifest example's `payload_bytes` was smaller than the fact table inside it: re-measured.
+  - Left open (CHECKPOINT): no test in the repo builds a second dataset without `facts` (the reviewer did, by hand,
+    and the guard holds).
+  - The same reviewer, on `7d3f2f8`: "agree". It reran its probes (the repeated scope row aborts; a dimension named
+    after the row-order column aborts), found the golden contract untouched by the two commits, and ran the golden,
+    guardrail and invariant tests: 67 passed. `Checks` was green on `7d3f2f8`. Its smaller points are in CHECKPOINT.
+- Decided by Claude (unreviewed):
+  1. **The total check compares the written file with a count of `rows`.** The counts are read back from
+     `n.parquet` and compared with the dataset's vehicles counted from `rows`, before the dimension lookups are
+     joined on. Not chosen: counting from `src`, before every lookup (the dataset's own conditions come from the
+     scope lookups, so that count cannot be made without them; their keys are guarded instead).
+  2. **Nothing in code stops `region` being listed again.** The config comment and `docs/CUBE_SCHEMA.md` say why it
+     is out, and putting it back changes the golden contract, which is shown to the user (hard rule 4). Not chosen:
+     a list of withheld dimensions in config that aborts the run (a second line in the same file protects little
+     more than the first).
+  3. **The `region` slice stays, and Build still offers "the share of vehicles by owner's region" from it.** That is
+     (b) as CHECKPOINT put it to the user: "the region map still draws".
+  4. **#36 was merged last**, with this entry and the session's notes in it, where the user's message lists it second.
+     Not chosen: merge it first and open a second notes pull request the same hour.
+- Consequences:
+  - **The next build publishes the fact table** in that month's cube release, which is public and cannot be taken
+    back. It carries the vehicle and its brand only.
+  - Build cannot narrow by region or compare regions by number. A saved link with a region condition draws nothing
+    and says why; that row names the field by its id, "region", not its label (a follow-up).
+  - Half of the table's rows still count one vehicle. Whether a minimum count is wanted regardless, and what the
+    `region` slice's own small cells call for, are the Stage 2 privacy review's. The slice's small cells were not
+    measured this session.
+  - AGENTS.md's dry-run command names the 2026-08 pull with "exit 0"; that build now stops with exit 2 (STATE).
+  - Putting `region` back after the review: one word in `facts`, the golden regenerated and shown, the doc's
+    figures re-measured.
+- Status: accepted, decided by user (the four answers); the four points under "Decided by Claude" unreviewed
+
+## D-079 2026-11-13 — `VIN11` checked against the data: no model year for used imports, one for about four in ten NZ-new vehicles; nothing is derived from it
+- Agent: claude, doing CHECKPOINT queue item 6 on the user's "carry on with the queue" (sixth session of 2026-11-13).
+- Basis: measured in this session from the private archive's `mvr-2026-10-vin11-postcode.parquet` (SHA-256
+  `25f0a20d…5041ce`, as in D-076), downloaded with `gh` into a scratch folder and deleted after the check. Counts only;
+  no VIN was written anywhere. The figures and the method are in `docs/DATA_MAP.md`, "`VIN11` checked against the data".
+- Context: D-076 keeps `VIN11` in the private archive and allows only what is derived from it to be published, "after
+  you check it against the data". It named two things a VIN might give: a model year (the tenth character) and a
+  factory (the eleventh). `vehicle_year` is not a model year (`docs/MODEL_AND_AGE.md` §1), so a model year would be new.
+- Measured (5,926,990 vehicles, every vehicle type):
+  - 4,811,252 have a `VIN11`, each 11 characters; 494 hold a character a VIN does not allow.
+  - 1,675,639 (34.8%) start `7A`: 83.5% of the used imports that have one, 2.3% of the NZ-new. These are VINs
+    assigned in New Zealand (inferred — confirm against NZTA's VIN rules), and their tenth character is not a year: on
+    the largest prefix it equals the first NZ registration year on none of 1,313,576 vehicles.
+  - Of the 3,135,613 manufacturer VINs, the tenth character is a year code on 66.9% and a zero on 32.9%.
+  - Among NZ-new vehicles first registered from 2010 with a manufacturer's VIN (2,198,959): 34.2% are of makes whose
+    VINs mostly carry no year code; 38.0% are of 112 makes where the decoded year is within one of the registration
+    year on 95% or more; 7.5% of makes at 80% to 95%; 20.2% of makes where a valid-looking character agrees on under
+    80%, so is not a year.
+  - The eleventh character: "built in" is the commonest country of the vehicle's three-character prefix on 93.1%, and
+    of the prefix and the eleventh character together on 95.1%.
+  - `POSTCODE`, while the file was open: 288,172 vehicles hold zero and none is empty, so the 1,331st value D-076 could
+    not account for is the zero that stands for "not recorded"; 1,330 postcodes are above zero, 154 of them with fewer
+    than 5 vehicles and 237 with fewer than 20.
+- Options considered:
+  1. A model year for every vehicle, read from the tenth character. Not chosen: it would be wrong for the NZ-assigned
+     third, absent for the third of manufacturer VINs that hold a zero, and wrong for the makes where the character
+     is not a year.
+  2. A model year only for the makes or prefixes shown to use a year code, through a reference lookup with a coverage
+     guard (invariant 4). Not built: it would cover about four in ten NZ-new vehicles and almost no used import, so it
+     could not be a market-wide breakdown, only a field for some makes. Whether that is wanted is the user's, in
+     Stage 2.
+  3. Derive nothing now and record what was found. Chosen.
+- Decision (decided by Claude, unreviewed): nothing is derived from `VIN11`. The data map records the check. No factory
+  field is derived either: the repo has no table of plant codes, and the eleventh character adds two points to what
+  the prefix already says about "built in".
+- Consequences:
+  - Nothing published changes, and the archive keeps the field (D-076), so option 2 stays open for any month archived.
+  - The `7A` prefix is a second sign of a vehicle that arrived without a manufacturer's VIN. It mostly repeats the
+    import status, and is not used.
+  - The check was made once, by scratch scripts. If a field is ever derived, the check becomes a maintainer script in
+    `scripts/` first, run against each month's file.
+- Status: decided by Claude (unreviewed)

@@ -49,6 +49,44 @@ Across 1990–2006 the mismatches follow the calendar: 14% of January
 registrations carry the previous year (manufacture-year behaviour) and 9%
 of December registrations carry the next year (model-year behaviour).
 
+**NZTA's own history of the field, against the data.** NZTA's dashboard page
+("Motor vehicle registrations – dashboard and open data", saved by the user
+on 2026-11-13 in `data/raw/nzta-dashboard/2026-10/`) defines vehicle year as
+"the year of first registration anywhere" and gives a table, "Vehicle year
+data collection", of what was recorded by date of first NZ registration.
+Checked on 2026-11-13 against the staged build of the 2026-08 pull (in-scope
+NZ-new vehicles still registered; a scratch script, not in the repo):
+
+| NZTA: first registered | NZTA: recorded for new vehicles | NZ-new vehicles | Same as registration year | A year earlier | A year later |
+|---|---|---|---|---|---|
+| Before 1994 (1990 to 1993 measured) | "Year of manufacture" | 29,030 | 84.8% | 14.4% | 0.0% |
+| From 1994, to June 1995 | "year of manufacture or model year" | 15,518 | 74.1% | 24.7% | 0.0% |
+| July 1995 to October 1999 | the same | 58,400 | 99.4% | 0.5% | 0.0% |
+| From November 1999, to February 2005 | "Year of manufacture, or if unknown, year of first registration" | 176,636 | 98.7% | 1.2% | 0.0% |
+| From 28 February 2005 (March to November 2005 measured) | "Year of manufacture" | 42,945 | 98.1% | 1.7% | 0.1% |
+| From 5 December 2005, to December 2006 | "Year of manufacture or model year" | 62,028 | 93.6% | 1.2% | 5.1% |
+| From 1 January 2007 | "Year of first registration" | 2,213,876 | 100.0% | 0.0% | 0.0% |
+
+What the data adds to NZTA's table:
+
+- **The first break is July 1995, not 1994.** In each year from 1992 to
+  1995 a January registration carries the year before on 82% to 88% of
+  vehicles and a February to November one on 11% to 18%, which is how a year
+  of manufacture behaves. From 1996 to 2000 almost none do (0.1% of January registrations
+  at most). NZTA's notes date an "upgraded MVR" to 1 July 1995 and say that
+  for new vehicles the manufacturer's model year "used year of first
+  registration"; that is the regime the data shows from that date.
+- **November 1999 and 28 February 2005 leave no step.** A year earlier comes
+  back slowly instead: 1.5% of January registrations in 2001, 4.9% in 2002,
+  6.7% in 2003, 5.6% in 2004 and 5.1% in 2005.
+- **5 December 2005 is visible in one month.** 59.0% of NZ-new vehicles
+  first registered in December 2005 carry 2006. Through 2006 a year later
+  rises from 0.3% in July to 9.1% in December, which is how a model year
+  behaves.
+- **1 January 2007 is exact**: from that month the two years are equal.
+- **Used imports show none of these dates.** In every one of NZTA's periods
+  95% to 98% of them carry a year more than one before their NZ registration.
+
 **Used imports show no break at 2007.** Their age distribution is
 continuous across the boundary. `vehicle_year` behaves as a calendar year
 fixed by an event overseas: for Japanese used imports since 2015, mean age

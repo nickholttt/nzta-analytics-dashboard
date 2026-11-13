@@ -1,6 +1,6 @@
 ---
 name: check-monthly-run
-description: Check the scheduled Monthly build GitHub Action (8th of each month, gate runs 8 Oct and 8 Nov 2026) with the gh CLI and report green, built or skipped.
+description: Check the Monthly build GitHub Action (tried every day, builds each month once, archives it) with the gh CLI and report green, built, skipped or failing.
 ---
 
 Read and follow `docs/playbooks/check-monthly-run.md` exactly. It is the source of truth, shared with Gemini;

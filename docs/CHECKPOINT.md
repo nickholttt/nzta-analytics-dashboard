@@ -1,109 +1,111 @@
 # Checkpoint
 
-Last updated by claude on 2026-10-22
+Last updated by claude on 2026-11-13
 
 ## Where we left off
 
-- The 8 October gate run passed (`docs/STATE.md`); the 8 November run is the second.
-- 2026-10-22, third session: the user asked to plan the visitor site's look and feel. Headless
-  screenshots of `/` and `/build` at 390px and 1280px; a private design board (claude.ai
-  artifact Q29nmEBkCn6Svb4jutwq6Q, figures from the local August 2026 cube) shows three
-  directions: A, today's long scroll refined; B, a one-chart workbench where the builder's sentence
-  drives every chart and the Explore questions are starting points; C, a grid of question cards.
-  The user then judged the site not flexible enough: visitors must be able to ask their own
-  questions (example: BYD and Geely by count and by share over time). The board is set aside.
-  Measured a fact table, timed DuckDB-Wasm and hyparquet in a scratch prototype, proposed D-058.
-  The user approved all three rule changes (D-059); building item 9.
-- 2026-10-22, second session: the old queue item 1 is done. Three independent sub-agent reviews of
-  the six pushed branches; every real finding fixed on the branch that introduced it and merged
-  forward, with no rebase or force push; the choices and the points not taken are in D-057. Six pull
-  requests opened: #30–#34 on the UI stack, #35 on the pipeline stack. Checked: every new commit
-  typechecks and builds; headless at 320px and 1280px on each UI branch head (axe, console, sideways
-  scroll, every "Change this chart" link); #35 by CI.
-- 2026-10-22, first session: #26–#29 built on `main`'s side; step 1b blocked for lack of a source.
-  The user's answers: step 1b waits for the Stats NZ Data Explorer; deploy by D-055's option (C)
-  without the internal pages (D-056); the region map stays on the Build page.
-- Earlier: the UI is Claude's (D-027); the visitor site is local only until the gate (D-041);
-  frozen-path work is built on branches before it (D-043); the Build page is D-044 to D-046.
+- 2026-11-13, sixth session.
+  - **The user's answers** (D-078): the fact table leaves out the owner's region until the Stage 2
+    privacy review; merge #42 and #36; the dashboard's first step is the user's, when they say
+    they are ready; then the queue, asking before `ui/explore` goes into `main` or anything
+    becomes public.
+  - **#42 is in `main`** (`a0c1943`): the archive job keeps `VIN11` and `POSTCODE` from the next
+    built month.
+  - **#41, the fact table, is in `main`** (`f78e3e1`), without region. Its reviewer agreed twice
+    (once with follow-ups, then on the fixes). October's dry run: 641,618 rows in 1.73 MB, and
+    every slice byte-identical to `cube-2026-10`. The next build publishes the table.
+  - **The review found a gap `main` already had**, now closed: a vehicle type listed twice in
+    `vehicle_scope.csv` counted its vehicles twice with no abort.
+  - **`VIN11` is checked against the data** (D-079): no model year for used imports, one for about
+    four in ten NZ-new vehicles; nothing is derived. `POSTCODE`'s zero means "not recorded".
+  - **NZTA's dashboard page is read into the docs**: its history of `vehicle_year` against the
+    data (`docs/MODEL_AND_AGE.md` §1) and its definitions (`docs/DATA_MAP.md`). The make and
+    model cleansing code it links to answers "Not Found" on GitHub.
+  - Four playbooks and two skills no longer describe the freeze.
+  - **#36 is in `ui/explore`**: these notes, D-062 to D-079.
+- Earlier on 2026-11-13: D-066 to D-077.
 
-## Open pull requests waiting on the user
+## Open pull requests waiting on the user (0)
 
-UI stack, merged in order into `ui/explore` (as each merges, retarget the next to `ui/explore`):
-
-1. #17 `claude/notes-after-merge`: STATE and CHECKPOINT after #1–#16.
-2. #18 `claude/public-explore`: the visitor Explore page and `/status` (D-041).
-3. #19 `claude/explore-copy-controls`: one time row, visitor wording (D-042).
-4. #20 `claude/pipeline-branch-rule`: AGENTS.md rule 2's exception (D-043).
-5. #21 `claude/sentence-builder`: the Build page (D-044).
-6. #22 `claude/builder-league`: the 12-month ranking (D-045).
-7. #23 `claude/reserved-values`: reserved values on their own line (D-046).
-8. #24 `claude/prototype-queue`: the prototype's queue items. Docs only.
-9. #25 `claude/pipeline-decisions`: D-047 to D-051 and the step 1b finding. Docs only.
-10. #30 `claude/explore-build-together`: "Change this chart" and one readout (D-052).
-11. #31 `claude/pair-views`: the site reads pair slices (D-053, D-057).
-12. #32 `claude/a11y-pass`: screen readers, tables of figures, the visitor-test playbook (D-057).
-13. #33 `claude/geo-map`: the map on the Build page (D-054, D-057).
-14. #34 `claude/deploy-proposal`: the public build, a not-found page, D-055 to D-057, these notes.
-
-Pipeline stack, into `main`. **Do not merge before the 8 November run passes**:
-
-15. #26 `claude/pr-checks`: tests on every pull request (D-048).
-16. #27 `claude/pair-slice-import-age`: POST_GATE A1, pair slices (D-047).
-17. #28 `claude/segment-group`: POST_GATE A3.
-18. #29 `claude/post-gate-fixes`: B1–B3, the `measures.json` comment, `events.csv`, event schema
-    checks, manufacturer group's cardinality (D-049 to D-051).
-19. #35 `claude/deploy-workflow`: the cube release and `deploy.yml` (D-056, D-057). It may merge
-    before `ui/explore` reaches `main`: until then `deploy.yml` stops before building.
+None.
 
 ## Work queue (in order)
 
-1. **8 November 2026 gate run.** Scope: `docs/playbooks/check-monthly-run.md`, step 1b's source
-   check included. Fast-forward local `main` to `origin/main` first. Done when: green, built or
-   skipped, and committed are reported. If clean, the freeze lifts.
-2. **Merging after the gate.** The user merges the UI stack into `ui/explore` and the pipeline stack
-   into `main`, each in order. When #29 meets `ui/explore`, correct `$ranking_period_comment`
-   (STATE known issue 4).
-3. **`ui/explore` into `main`** (the user merges; it touches no frozen path, checked 2026-10-22).
-4. **Once a monthly build carries #27 and #28**: flip `used-import-age` and `powertrain-mix` to live
-   (STATE known issue 5); in one commit, move each `public_copy` entry onto `config/dimensions.json`
-   and drop the block (D-042); size and add the `import_status` pairs that "of [all / new / used]
-   vehicles" needs on the Build page (one pair per dimension, a pipeline config change each), then
-   widen the builder (D-044).
-5. **Step 1b, POST_GATE A2.** Waits until the TPT series reaches Stats NZ's Data Explorer (the
-   user's choice); the monthly check looks each month. When it appears, plan the dataset.
-6. **Deploy.** Built (D-056, D-057). After items 1 to 3, give the user numbered console steps, one
-   at a time, all production: a Cloudflare Pages project for Direct Upload named
-   `nz-vehicle-registrations` (or set the repository variable `CLOUDFLARE_PAGES_PROJECT`) with `main`
-   as its production branch; an API token limited to Cloudflare Pages: Edit; the GitHub secrets
-   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, placed as question 1 decides. Then run
-   `deploy.yml` by hand on `main`. Done when a `pages.dev` URL serves `/` and `/build` from a
-   monthly run's cube, `/status` returns 404 with the not-found page, and first-load time is
-   measured there at phone width.
-7. **Visitor sessions and first-load speed.** Visitor sessions (the user runs them:
-   `docs/playbooks/visitor-test.md`); first-load time on the deployed site; first-load speed (STATE
-   known issue 1): small first-paint files per chart, which `docs/CUBE_SCHEMA.md` already plans
-   (`presets/{preset_id}.json`), or a lighter bundle. Measure before and after, at phone width.
-8. **`age-distribution-moving-hole`.** The distribution drawn year by year (a ridgeline inside the
-   distribution shape) with its events. Re-triage the preset first (`presets.json` `$status`).
-   UI work, so it may be built before the gate (D-041), as a local build only.
-9. **Free exploration (D-058, approved in D-059).** Three pull requests: (A) the fact
-   table as one file per column, on a branch from `main`, unmerged until the gate (D-043); (B) the
-   question builder on the UI stack, reading a locally built fact table; (C) Explore's presets open
-   in the builder. Done when the BYD and Geely Holding question draws by count and by share at 320px
-   and 1280px, and its phone-profile first load is measured.
-10. **Map follow-ups.** A visitor name for "Area Outside Region" (STATE known issue 2); a
-   per-capita map needs a population reference file (`docs/METRICS.md`, Per capita).
+1. **The dashboard test export**, when the user says "ready", one step at a time (D-077). Step
+   1: open the dashboard, set Month year to January 2021, and report the total it shows. Then the
+   same twelve dimensions as October, exported into `data/raw/nzta-dashboard/2021-01/`, timed.
+   Then try the whole of 2021 in one export, with "Registration MMM-YYYY" ticked in place of one
+   dimension (choose which once January 2021 shows whether every vehicle is ACTIVE there too).
+   Compare January 2021 with the register's survivors for that month from the archive file; write
+   the comparison as a maintainer script in `scripts/` if the dashboard becomes a source. Report
+   the measured count, time and fit, and ask whether it becomes a source. NZTA's page says the
+   dashboard holds vehicles "with a date of first ownership within the past five years", so
+   January 2021 may already be gone.
+2. **Watch the first daily runs** (from 14 November, `docs/playbooks/check-monthly-run.md`): each
+   should skip, green, with "Source unchanged". At NZTA's December refresh: the first build with
+   the fact table, its cube release, the deploy start, and an archive file of 37 fields.
+3. **The deploy, each step asked for:**
+   - `ui/explore` into `main`. First, on a branch from `origin/ui/explore`: merge `origin/main`
+     into it, resolve `README.md` (the only conflict), and bring up to date what STATE lists as
+     disagreeing (the freeze in `README.md` and `POST_GATE.md`; AGENTS.md rules 7 and 8 and its
+     dry-run command). Run the pipeline tests, `tsc`, `astro build` and the headless screens;
+     have it reviewed; open it into `ui/explore`. Then `ui/explore` into `main` on the user's word.
+   - A cube with the fact table: NZTA's December refresh builds one, or a forced run of October
+     does (ask).
+   - Numbered console steps, all production: a Cloudflare Pages project for Direct Upload named
+     `nz-vehicle-registrations`; an API token limited to Cloudflare Pages: Edit; the secrets
+     `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment `production`; then the
+     switch, the repository variable `CLOUDFLARE_PAGES_PROJECT` (claude sets it with `gh` on the
+     user's word). Setting the variable is what makes the site public.
+4. **For the Stage 2 privacy review** (the user's): whether `region` returns to the fact table
+   and above what count; whether the table's one-vehicle rows (half of them) and the `region`
+   slice's small cells need a minimum count (the slice's are not measured); postcode totals and
+   their minimum (D-076); whether a model year for the makes whose VINs carry one is wanted (D-079).
+5. **Small corrections and follow-ups, none blocking** (the reviewers' claims):
+   - The fact table's (#41): a test that builds a second dataset with no `facts`; the abort
+     message for a reserved name (`month`, `n`, `rid`) reads as if the dimension were not
+     derivable, and no test covers it; the Aborts list in `docs/CUBE_SCHEMA.md` does not name the
+     hybrid file's and the model registry's checks; `FACT_ROW_ORDER` belongs in `contract.py`.
+   - The question builder's, listed on #43: a value in a link that is not in the data draws as a
+     zero line; the address bar is not rewritten until the first change; a condition with no
+     value yet is lost on any other change; and five smaller ones. Also: a link's condition on a
+     field Build cannot apply is named by its id, not its label.
+   - Each `public_copy` entry onto `config/dimensions.json` (D-042); STATE issues 9 and 10.
+   - The pipeline stack's: a failed release upload could leave a release with no file;
+     `persist-credentials: false` in `checks.yml`; `pipeline/events.py` blames the CSV when an
+     enum row parses to no values; `docs/METRICS.md` does not say the share guards apply to a
+     pair slice's filtered base; `write_pairs` accepts a dimension id containing `__`.
+   - #37's: the alarm-day check accepts `true` as day 1 and runs only on runs that build nothing.
+     #38's: check the digest of the pulled rows, not only their count; pin the pipeline's
+     dependencies by hash; take the archive job's month from the state file. #39's: turn off
+     admin bypass on `production`; let a full re-run replace the `site` artifact; try
+     `npm ci --ignore-scripts`. #40's: the line under the ranking names three columns whichever
+     are hidden.
+6. **The rest of Stage 1** (the brief §9): About, feedback and "why these figures differ" pages;
+   the Stats NZ series (D-065); visitor tests; first load measured on the deployed site.
+7. **Stages 2 to 5 of the brief**, each on the user's word. Kept from the old queue:
+   `age-distribution-moving-hole`; a visitor name for "Area Outside Region"; a per-capita map.
 
 ## Questions for the user
 
-1. **Where the Cloudflare secrets live.** (a) Repository secrets: the workflow works as it is, and
-   it already uploads only from `main`. (b) A GitHub environment limited to `main`: safer, because
-   a workflow edited on another branch could not read them; `deploy.yml` needs one line
-   (`environment:`) and the secrets go into the environment. I recommend (b). If there is no answer,
-   I write the console steps for (a) and the workflow stays as it is.
+1. **May `ui/explore` go into `main`?** That puts the site's code on `main`, so `Deploy` starts
+   building the site on every push; nothing is public until the Cloudflare switch. (a) Yes, once
+   the branch in queue item 3 is reviewed and merged: say "merge N" for each. (b) Not yet.
+   Recommend (a). With no answer the branch is prepared and stops as a pull request into
+   `ui/explore`.
+2. **A cube with the fact table: a forced run of October now, or wait for December's refresh?**
+   The Build page of a deployed site needs one. A forced run publishes the fact table in a public
+   release about three weeks sooner. Recommend waiting unless the site should go public before
+   December. With no answer, no forced run.
+3. **The dashboard, step 1**: say "ready" and it starts.
+
+Also the user's (the brief's §12): the `matrix` shape; running cost; the About page; name and domain.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. If it is on or after 8 November 2026, take item 1 (the
-gate run) first. Before then, everything open waits on the user, except items 8 to 10, which are UI
-work that may be built ahead of the gate as local builds.
+/start. Read `docs/STATE.md`, this file, and D-078 and D-079 in `docs/DECISIONS.md`. Check first:
+what `main` and `ui/explore` are; the newest `Monthly build` runs (daily from 14 November) and
+whether NZTA has refreshed; that the private repository's `snapshot-2026-10` still has two files.
+Then take the queue in order with the user's answers. Merge into `main` only with a green check,
+a reviewer that has not seen your reasoning, and the user's word in the session; if Claude Code
+refuses a merge, say so and do not work around it. Do not start a forced run without asking.

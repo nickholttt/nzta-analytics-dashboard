@@ -42,7 +42,7 @@ Run from the repo root.
 | Build the public site, as the deploy does (D-056) | Git Bash: `INTERNAL_PAGES=false npx astro build && rm -rf dist/status dist/sense-check` | 2026-10-22, against the 2026-08 cube: 5 pages left, none linking to `/status` or `/sense-check`; in a preview those two and any unknown address return 404 |
 | Dev server | `npm run dev`, then `npx astro dev status` / `npx astro dev stop` | 200 on `http://127.0.0.1:4321/`. Runs in the background |
 | Rebuild cube from a saved pull, publish nothing | `.venv/Scripts/python.exe -m pipeline build data/raw/2026-08/20260911T093818Z --dry-run` | exit 0, 397 s, output identical to `public/data`. Writes only gitignored `data/staging/` |
-| Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build` |
+| Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build`; and, on `main` since #38, `archive` (run from that branch on 2026-11-13) |
 | CI runs | Git Bash: `"/c/Program Files/GitHub CLI/gh.exe" run list --repo nickholttt/nzta-analytics-dashboard`; PowerShell: `& "C:\Program Files\GitHub CLI\gh.exe" run list --repo nickholttt/nzta-analytics-dashboard` | two green runs, 2026-09-11 |
 
 Setup, **not re-run this session** (the environment already existed):
@@ -57,9 +57,10 @@ Setup, **not re-run this session** (the environment already existed):
 
 ## Branches in this repo
 
-- `main`: what the monthly Action runs and commits to. Leave it alone during the freeze.
+- `main`: what the monthly Action runs and commits to. The user merges into it, and claude does
+  only where D-068 names the pull request (hard rule 7).
 - `ui/explore`: the user's UI branch (it predates the `claude/`/`gemini/` naming rule). Its boundary
-  is in hard rule 2 and D-020.
+  is in D-020.
 - New agent work: `claude/<topic>` or `gemini/<topic>`, branched from the branch the work belongs on.
 
 ## Architecture
@@ -76,13 +77,17 @@ Setup, **not re-run this session** (the environment already existed):
   `public/data/` only if every guardrail passes. Exit codes: 2 guardrail, 3 source, 4 DuckDB.
 - The output contract (`public/data/manifest.json`, `cube/<dataset>/<dimension>.parquet`,
   `events.json`) is `docs/CUBE_SCHEMA.md`, locked by `pipeline/tests/test_golden.py`.
-- `.github/workflows/monthly-build.yml`: cron 06:17 UTC on the 8th → tests → `pipeline run` → on a
-  build, the bot commits `data/snapshots/` and `data/state/` with `[skip ci]`, then, on `main` only,
-  keeps the cube as a release `cube-<snapshot>` (D-056, D-057). `checks.yml` runs the pipeline tests on
-  every pull request (D-048). `deploy.yml` builds the public site from the newest cube release and
-  uploads it to Cloudflare Pages, from `main` only and once its secrets exist; its upload tool, wrangler,
-  is pinned by its own lockfile in `.github/deploy/` (D-057). The release step, `checks.yml`,
-  `deploy.yml` and `.github/deploy/` are on the pipeline branches, which merge after the 8 November gate.
+- `.github/workflows/monthly-build.yml`: cron 06:17 UTC **every day** → tests → `pipeline run`,
+  which builds each snapshot month once and, from the 15th, fails while the month before is still
+  not built (D-064, D-070) → on a build, the bot commits `data/snapshots/` and `data/state/` with
+  `[skip ci]`, then, on `main` only, keeps the cube as a release `cube-<snapshot>` (D-056, D-057),
+  starts `deploy.yml`, and a job `archive` keeps the whole register for the month as one Parquet
+  file in the private repository `nzta-register-archive` (D-063, D-071). `checks.yml` runs the
+  pipeline tests on every pull request (D-048). `deploy.yml` builds the public site from the newest
+  cube release; a second job uploads it to Cloudflare Pages from `main` only, behind the environment
+  `production`, once the repository variable `CLOUDFLARE_PAGES_PROJECT` switches it on (D-072); its
+  upload tool, wrangler, is pinned by its own lockfile in `.github/deploy/` (D-057). All of it is on
+  `main` since 2026-11-13 (#26 to #29, #35, #37 to #39), and the first release, `cube-2026-10`, exists.
 - `src/pages/index.astro` hosts React islands. `src/lib/config.ts` loads `config/*.json`, `data.ts`
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
   `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo}Chart.tsx`
@@ -96,20 +101,18 @@ Setup, **not re-run this session** (the environment already existed):
 
 ## Hard rules: changing any of these needs the user's explicit approval
 
-1. **CLAUDE.md's seven design invariants** and **the five shapes** (mix, trend, league, distribution,
+1. **CLAUDE.md's eight design invariants** and **the five shapes** (mix, trend, league, distribution,
    geo). No sixth renderer.
-2. **Freeze until the 8 November 2026 scheduled run passes** (the gate is the 8 October and
-   8 November runs, both clean and unattended; `POST_GATE.md`): no changes to `pipeline/`,
-   `.github/workflows/`, `config/dimensions.json`, `config/measures.json`, `config/pipeline.json`,
-   `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`, `docs/CUBE_SCHEMA.md`.
-   Post-gate work is queued in `POST_GATE.md`, in order. Source: user instruction (D-013, D-020);
-   `config/pipeline.json` and `docs/CUBE_SCHEMA.md` are on this list by inference from "pipeline,
-   workflow, cube schema and reference data" (inferred — confirm).
-   Exception (user, 2026-10-21, D-043): work on these paths may be built and tested before the gate on
-   `claude/`/`gemini/` branches cut from `main`, with pull requests into `main` that stay unmerged until
-   the 8 November run passes. Nothing on those paths reaches `main`, or `ui/explore`, before then. Tests
-   and `pipeline build <saved pull> --dry-run` may run locally; `pipeline run` and `init-schema` still
-   may not, and a golden change still follows rule 4.
+2. **The freeze is lifted (user, 2026-11-13, D-066).** The gate was the 8 October and 8 November
+   2026 scheduled runs, both clean and unattended (D-013, D-020); the user ruled it passed once the
+   run of 13 November had built October. The paths it covered are the **pipeline paths**:
+   `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
+   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
+   `docs/CUBE_SCHEMA.md`. Work on them no longer waits for a date. It still reaches `main` only
+   through a `claude/`/`gemini/` branch, cut from `main` or stacked on an open pipeline pull
+   request, and a pull request merged as rule 7 allows. Tests and
+   `pipeline build <saved pull> --dry-run` may run locally; `pipeline run` and `init-schema` are
+   still not run locally (§Commands), and a golden change still follows rule 4.
 3. **Never hand-edit `data/snapshots/` or `data/state/`.** Only the monthly Action writes them.
 4. **Golden changes are contract changes.** Regenerate `pipeline/tests/golden/contract.json` only
    deliberately, in the same commit as the change that causes it (one cube change per commit,
@@ -118,8 +121,14 @@ Setup, **not re-run this session** (the environment already existed):
    Every commit must build, not just the branch tip.
 6. **Resolve field meanings empirically** against the data before rewriting a doc. Surface counts
    for edge cases; never silently bucket.
-7. **Don't push to `main`** without asking in that session. An agent may push its own branches
-   (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19). GitHub API access
+7. **Don't push to `main` or merge into it** without asking in that session. An agent may push its
+   own branches (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19).
+   Exception (user, 2026-11-13, D-068): claude may merge into `main`, as merge commits and in
+   order, the pipeline stack (#26, #27, #28, #29, #35), the pull requests that build D-064 and
+   D-063, and `claude/fact-table`'s pull request (user, 2026-11-13, D-069), each only when its
+   checks are green and a reviewer sub-agent that has not seen claude's reasoning agrees, stopping
+   at the first problem; and may dispatch one forced Monthly build on `main` after the stack. On the user's "go", claude merges #17 to #34 into `ui/explore` from the
+   command line. `ui/explore` into `main` is still asked for. GitHub API access
    goes through `gh` only (full path above; not on the Git Bash PATH), never the Git Credential
    Manager token.
 8. **Don't build ahead of the current step.** The user works in gated steps with a stop-and-report
