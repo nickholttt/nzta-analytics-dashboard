@@ -54,6 +54,22 @@ data. Small, long history. This is the source of `registrations_flow`
 since scrapped, which the register snapshot cannot give. Also an
 independent sanity check on our own totals.
 
+**No automatable source yet (checked 2026-10-22).**
+
+- Stats NZ's Aotearoa Data Explorer, the successor to NZ.Stat, answers
+  structure queries without a key: `api.data.stats.govt.nz/rest/dataflow/STATSNZ/all/latest`
+  returned 911 dataflows, and none is a transport or vehicle registration
+  series. Its data queries need a subscription key from the Stats NZ API
+  portal (`portal.apis.stats.govt.nz`).
+- The TPT tables, among them "New and Ex-Oseas Motor Vehicles Registered by
+  Type (Monthly)" (Stats NZ's spelling), are on Infoshare, which has no API.
+  Figure.NZ republishes them and cites a June 2026 release (from Figure.NZ's
+  chart pages; not checked on Infoshare itself).
+
+So step 1b cannot be built as planned until the series reaches the Data
+Explorer or another source is chosen. The choice is open in
+`docs/CHECKPOINT.md`.
+
 ## D. Registrations dashboard — do not automate
 
 Export-only, no API. Useful for manual verification of a suspect figure.

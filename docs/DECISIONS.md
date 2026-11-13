@@ -998,3 +998,114 @@ New entries use this template:
     window is taken out of "All other" without a key row of its own; kept values already behave this way and
     no live chart has such a period.
 - Status: decided by Claude (unreviewed). Supersedes the fold described in D-044's consequences.
+
+## D-047 2026-10-22 — Pair slices: one schema, the whole month as denominator, listed per dataset in pipeline.json
+- Agent: claude, CHECKPOINT queue item 2 (POST_GATE A1), under D-043
+- Basis: branch `claude/pair-slice-import-age` (a pull request into `main`, unmerged until the 8 November gate):
+  `pipeline/build.py`, `pipeline/outputs.py`, `pipeline/contract.py`, `config/pipeline.json`, `docs/CUBE_SCHEMA.md`, the
+  golden and guardrail tests; dry-run rebuilds of the saved August pull on 2026-10-22.
+- Context: `used_imports` and `nz_new` are `registrations_surviving` filtered by import status (`config/dimensions.json`),
+  and the cube carried one-dimensional slices only, so `used-import-age` and `age-distribution-moving-hole` could not be
+  served. `docs/CUBE_SCHEMA.md` named the path `pairs/{dataset}/{dim_a}__{dim_b}.parquet` and a list of candidate pairs,
+  but no schema, no denominator rule and no place in config for the list.
+- Options considered:
+  - What to emit: (1) the filtered datasets as their own 1-D cubes (`cube/used_imports/...`): simplest to read, but each
+    filtered dataset multiplies every slice, and a filter by another dimension (powertrain within light passenger,
+    POST_GATE A3) needs a pair anyway. (2) Pair slices, as CUBE_SCHEMA planned: chosen.
+  - Columns: (1) named after the two dimensions: self-describing, but each file would have its own schema to lock.
+    (2) Fixed `a_value` and `b_value`, the file name saying which dimension is which: chosen; one `PAIR_COLUMNS`.
+  - Denominator: (1) the filtered subset's month total: saves the browser a sum, but a pair's rows would then depend on
+    which side is filtered. (2) The dataset's whole month, as in a 1-D slice: chosen. A pair is then its two 1-D slices
+    split further, which a test checks (summed over either side it gives that side's slice in every count, and `fc_sum`
+    to within its per-row rounding); a filtered share is `n` over the summed `n` of the filter value that month.
+  - Where the list lives: `config/pipeline.json` `datasets.<id>.pairs`, beside the dataset's `require`, not
+    `config/dimensions.json` (the Build vocabulary).
+- Decision: as above. An entry that is not two different dimension ids, a pair listed twice in either order, or a
+  dimension the dataset cannot derive aborts; a pair whose dimension is not live this run waits, as the dimension does
+  (`not_live_pairs` and a warning). The manifest lists `live_pairs` per dataset, and the site reads that list. Only the
+  pair A1 names is emitted; CUBE_SCHEMA keeps the other seven as candidates and adds this one, as POST_GATE A1 asked.
+- Consequences: the golden contract gains a `pairs` section and two manifest keys; every 1-D slice is unchanged. On the
+  August pull the pair holds 15,791 rows, 91,558 bytes, and matches both 1-D slices exactly. The state file is
+  unchanged: a pair can drop out only when a dimension does, which already aborts if it was live. An independent review
+  of the stack found no corruption; its points on validation (non-string entries, reversed duplicates) and wording ("row
+  for row" holds for the counts, not for the rounded `fc_sum`) were folded into the commit.
+- Status: decided by Claude (unreviewed)
+
+## D-048 2026-10-22 — Pull requests run the pipeline tests on the runner the monthly build uses
+- Agent: claude, under D-043
+- Basis: branch `claude/pr-checks` (a pull request into `main`): `.github/workflows/checks.yml`; `monthly-build.yml` and
+  STATE ("No CI runs on pull requests") read on 2026-10-22.
+- Context: pipeline changes were first tested on Linux by the monthly run, after they had merged. POST_GATE B3 makes the
+  golden test compare `payload_bytes`, the bytes the build writes, and this machine has no Linux to check them on (no
+  WSL and no container runtime, checked 2026-10-22).
+- Options considered: (1) leave Linux testing to the monthly run: a change that breaks there fails that month's build.
+  (2) A workflow on pull requests running the monthly build's test step on the same runner, read-only: chosen. (3) Also
+  build the site in CI: `astro build` needs `public/data`, which is gitignored; left for the deploy item (CHECKPOINT 8).
+- Decision: `checks.yml` runs on `pull_request` from any base, so stacked pull requests are tested too, with
+  `contents: read`, the same checkout and setup-python versions, Python 3.13, pip cache and pytest line as
+  `monthly-build.yml`. It never pulls from the source.
+- Consequences: a change to a frozen path, built on a branch before the gate (D-043); it reaches `main` after 8 November.
+  Until then it runs on the pull requests whose head contains it, which is the pipeline stack. Free on a public
+  repository. UI pull requests are still not tested in CI.
+- Status: decided by Claude (unreviewed)
+
+## D-049 2026-10-22 — A brand renaming is a measurement event, even where the registry hides the step
+- Agent: claude, CHECKPOINT queue item 5 (STATE known issue 2)
+- Basis: branch `claude/post-gate-fixes` (the `events.csv` commit); `docs/EVENTS_LAYER.md` §Why `mechanism` matters;
+  `data/reference/brand_registry.csv`; D-037.
+- Context: `kgm-rename` was `mix`, while EVENTS_LAYER.md names a brand renaming as its example of `measurement`. The
+  registry maps SSANGYONG and KG MOBILITY to KGM, so the make series shows no step.
+- Options considered: (1) keep `mix` and change the doc's example: `mix` ("composition shifted within an unchanged
+  total") does not describe a renaming either, and it is the label a reader could take for market behaviour (invariant
+  7). (2) `measurement`, doc unchanged: chosen. The recorded make changed, not the market. The warning ("this reflects a
+  change in how the data was recorded, not a change in the market") is true of a renaming whether or not the line steps,
+  and the row's summary says why it does not. (3) A new mechanism value: the enum is the schema; not needed.
+- Decision: (2). The same commit shortens the 63-character ESC title to "Stability control required on all new light
+  vehicles" (52; STATE known issue 3).
+- Consequences: on `brand-share`, the KGM marker draws as a dashed, darker rule with the measurement warning in its list
+  entry. `expected_effect` stays `none`.
+- Status: decided by Claude (unreviewed)
+
+## D-050 2026-10-22 — Manufacturer group is high cardinality, so a 12-month window ranks it
+- Agent: claude, CHECKPOINT queue item 5 (the question D-045 left open)
+- Basis: branch `claude/post-gate-fixes` (the `config/dimensions.json` commit); the 2026-08 cube; `src/lib/resolve.ts`
+  `inferShape` and `src/lib/composition.ts`; headless screenshots on 2026-10-22 with that branch's `dimensions.json` in a
+  scratch worktree over the dry-run cube.
+- Context: D-045 left manufacturer group a mix chart on `/build` because `dimensions.json` called it medium; `inferShape`
+  draws a league only for high and very high cardinality.
+- Measured: 43 named groups in the 2026-08 cube, every one with vehicles in the last 12 months, the 14 largest holding
+  88.3% of those vehicles (`__UNMAPPED__`, 212 vehicles, besides). For comparison, make has 99 values (high), country
+  where built 46 (medium), region 18 (medium).
+- Options considered: (1) leave medium: the Build page ranks brands but not manufacturer groups. (2) High, for
+  `parent_group` only: chosen; a 12-month window ranks like brands, and longer periods are unchanged. (3) A count
+  threshold in code: cardinality is config, and a threshold would also turn country where built (46) into a ranking,
+  which asks a different question.
+- Decision: (2). The pipeline never reads cardinality, so the cube and the golden contract are unchanged.
+- Consequences: measured headless, `/build` "the share of vehicles by manufacturer group" offers "12-month ranking":
+  Toyota Group 29.9%, Nissan Motor 7.6%, Mazda Motor Corporation 7.0% (up one place), Ford Motor Company 6.7% (down one),
+  Mitsubishi Motors 6.6%. Explore's `brand-share`, manufacturer group view, keeps its 10-year line chart and its time
+  row. No sideways scroll at 320px. The composition start applies to low cardinality only, so nothing else moves. The
+  `$ranking_period_comment` in `config/presets.json` says manufacturer group stays a mix chart: correct it when this
+  merges.
+- Status: decided by Claude (unreviewed)
+
+## D-051 2026-10-22 — The golden build reads frozen events, so adding an event is not a contract change
+- Agent: claude, CHECKPOINT queue item 5 (POST_GATE B3), after an independent review
+- Basis: branch `claude/post-gate-fixes` (the B1-B3 commit): `pipeline/tests/test_golden.py`,
+  `pipeline/tests/fixtures/events.csv`, `docs/CUBE_SCHEMA.md`; design invariant 3.
+- Context: B3 asked the golden test to stop dropping `payload_bytes`, so that a change in what the site downloads never
+  passes unnoticed. `payload_bytes` counts `events.json`, and the golden built it from the live
+  `data/reference/events.csv`. With B3 as written, every new event row would fail the golden test, and a row committed
+  straight to `main` would fail the next monthly run's test step, so nothing would build that month. Invariant 3 says
+  adding an event is one CSV row. An independent review found this; the first build of the stack had needed a golden
+  update for an `events.csv` edit.
+- Options considered: (1) drop `payload_bytes` again: undoes B3. (2) Leave `events.json` out of the compared size: the
+  golden would still miss a change in how `events.json` is written. (3) Build the golden with a frozen copy of six real
+  rows (windowed, market-wide, make-scoped, import-status and measurement events, and one unverified row) and lock the
+  `events.json` it produces in the contract: chosen. The live file is still validated by every guardrail test's build
+  and by every run.
+- Decision: (3).
+- Consequences: the golden's `payload_bytes` is 31,487, measured with the five verified fixture events. A change to how
+  `events.json` is written (a column published, a field renamed) now fails the golden. The fixture will drift from the
+  live file; that is intended.
+- Status: decided by Claude (unreviewed)
