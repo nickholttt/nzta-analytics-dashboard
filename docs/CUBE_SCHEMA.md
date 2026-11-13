@@ -194,6 +194,14 @@ that is not live this run is left out of the table, with a warning, and listed
 in the manifest's `facts.not_live`; if none is live, the table holds the month
 totals alone.
 
+The table carries nothing about a vehicle's owner. `region` is where the
+owner lives, and it is left out of `facts` until the Stage 2 privacy review
+(D-078): with it, two in three of the table's rows counted a single vehicle
+(64.8% on the 2026-10 pull), each with the owner's region beside the model
+and the month. The `region` slice is not affected, and a question that only
+breaks down by region is still answered from it. Putting `region` back is a
+one-word change to `facts`, and a contract change shown to the user.
+
 The table's total is checked against the vehicles themselves: the counts are
 read back from the written `n.parquet` and must equal the dataset's vehicles
 counted before any reference lookup is joined on, or the run aborts. A
@@ -229,7 +237,7 @@ lookup that matched a vehicle twice, or lost one, is caught here.
       "not_live": { "imported_from": "does not apply to this dataset" },
       "live_pairs": ["import_status__age_at_registration_band"],
       "not_live_pairs": {},
-      "facts": { "rows": 1729052, "dimensions": ["powertrain", "make", "..."], "not_live": {} },
+      "facts": { "rows": 643414, "dimensions": ["powertrain", "make", "..."], "not_live": {} },
       "unmapped_rates": { "make": 0.0062, "powertrain": 0.0 },
       "unmapped_guard": {
         "make": {
@@ -465,8 +473,12 @@ is worse than one that is visibly stale.
 Whole `/public/data` payload target: **under 8 MB**. Preset JSON under
 40 KB each so the first paint needs no Parquet fetch at all.
 
-Measured on a dry run of the 2026-08 pull (2026-10-22): the fact table is
-1,735,008 rows in 3.91 MB over its 15 files, the largest `model` (0.76 MB),
-`age_at_registration_band` (0.66 MB), `n` (0.59 MB) and `region`
-(0.58 MB); the whole payload is 5,336,736 bytes. A question about brand
-groups over time reads `month`, `parent_group` and `n`: 0.73 MB.
+Measured on dry runs of 2026-11-13, without `region` in the fact table. The
+2026-10 pull: the fact table is 641,618 rows in 1,726,119 bytes over its 14
+files, the largest `n` (0.38 MB), `age_at_registration_band` (0.29 MB) and
+`model` (0.28 MB); the whole payload is 3,149,458 bytes. A question about
+brand groups over time reads `month`, `parent_group` and `n`: 0.48 MB. Half
+of the table's rows (50.2%) count one vehicle, 7.1% of the vehicles. The
+2026-08 pull, the snapshot of the manifest example above: 643,414 rows in
+1,736,400 bytes. With `region` the 2026-10 table was 1,734,417 rows in
+3,885,012 bytes.

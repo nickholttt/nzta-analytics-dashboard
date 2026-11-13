@@ -51,7 +51,7 @@
     ],
     "not_live_pairs": {},
     "facts": {
-     "rows": 56,
+     "rows": 55,
      "dimensions": [
       "powertrain",
       "make",
@@ -62,7 +62,6 @@
       "segment",
       "segment_group",
       "import_status",
-      "region",
       "engine_size_band",
       "age_at_registration_band",
       "model"
@@ -268,7 +267,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 37998,
+  "payload_bytes": 37545,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -6264,10 +6263,10 @@
      "0"
     ],
     [
-     "20-24"
+     "14"
     ],
     [
-     "14"
+     "20-24"
     ],
     [
      "unknown"
@@ -6307,9 +6306,6 @@
     ],
     [
      "13"
-    ],
-    [
-     "0"
     ],
     [
      "0"
@@ -6505,9 +6501,6 @@
      "JAPAN"
     ],
     [
-     "JAPAN"
-    ],
-    [
      "SOUTH KOREA"
     ],
     [
@@ -6620,10 +6613,10 @@
      "2.5-2.9 L"
     ],
     [
-     "1.5-1.9 L"
+     "1.0-1.4 L"
     ],
     [
-     "1.0-1.4 L"
+     "1.5-1.9 L"
     ],
     [
      "Under 1.0 L"
@@ -6672,9 +6665,6 @@
     ],
     [
      "1.5-1.9 L"
-    ],
-    [
-     "2.0-2.4 L"
     ],
     [
      "2.0-2.4 L"
@@ -6861,9 +6851,6 @@
      "Japan"
     ],
     [
-     "Japan"
-    ],
-    [
      "South Korea"
     ],
     [
@@ -7019,9 +7006,6 @@
     ],
     [
      "Used Import"
-    ],
-    [
-     "NZ New"
     ],
     [
      "NZ New"
@@ -7214,9 +7198,6 @@
      "TOYOTA"
     ],
     [
-     "TOYOTA"
-    ],
-    [
      "HONDA"
     ],
     [
@@ -7332,10 +7313,10 @@
      "TOYOTA|HILUX"
     ],
     [
-     "MAZDA|ROADSTER"
+     "MAZDA|DEMIO"
     ],
     [
-     "MAZDA|DEMIO"
+     "MAZDA|ROADSTER"
     ],
     [
      "VOLKSWAGEN|POLO"
@@ -7384,9 +7365,6 @@
     ],
     [
      "HAVAL|H6"
-    ],
-    [
-     "TOYOTA|RAV4"
     ],
     [
      "TOYOTA|RAV4"
@@ -7580,9 +7558,6 @@
     ],
     [
      "2026-08-01"
-    ],
-    [
-     "2026-08-01"
     ]
    ]
   },
@@ -7742,10 +7717,7 @@
      1
     ],
     [
-     1
-    ],
-    [
-     1
+     2
     ],
     [
      1
@@ -7929,9 +7901,6 @@
      "Japan"
     ],
     [
-     "Japan"
-    ],
-    [
      "South Korea"
     ],
     [
@@ -8096,9 +8065,6 @@
     ],
     [
      "Great Wall Motor"
-    ],
-    [
-     "Toyota Group"
     ],
     [
      "Toyota Group"
@@ -8282,9 +8248,6 @@
      "Hybrid"
     ],
     [
-     "Hybrid"
-    ],
-    [
      "Mild hybrid"
     ],
     [
@@ -8295,184 +8258,6 @@
     ],
     [
      "Petrol"
-    ]
-   ]
-  },
-  "registrations_surviving/region.parquet": {
-   "schema": [
-    [
-     "region",
-     "VARCHAR"
-    ]
-   ],
-   "rows": [
-    [
-     "Canterbury"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Bay of Plenty"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "__UNDEFINED__"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Canterbury"
-    ],
-    [
-     "Waikato"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Nelson"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Wellington"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Bay of Plenty"
-    ],
-    [
-     "Canterbury"
-    ],
-    [
-     "Canterbury"
-    ],
-    [
-     "Gisborne"
-    ],
-    [
-     "Canterbury"
-    ],
-    [
-     "Manawatū-Whanganui"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Wellington"
-    ],
-    [
-     "Southland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "__UNMAPPED__"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Northland"
-    ],
-    [
-     "Otago"
-    ],
-    [
-     "Waikato"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Otago"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Hawke's Bay"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Waikato"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Waikato"
-    ],
-    [
-     "Canterbury"
-    ],
-    [
-     "Auckland"
-    ],
-    [
-     "Auckland"
     ]
    ]
   },
@@ -8648,9 +8433,6 @@
     ],
     [
      "Car"
-    ],
-    [
-     "Car"
     ]
    ]
   },
@@ -8805,9 +8587,6 @@
     ],
     [
      "Light commercial"
-    ],
-    [
-     "Light passenger"
     ],
     [
      "Light passenger"
