@@ -1,5 +1,9 @@
 # Deferred until after the gate
 
+**The gate has passed and the freeze is lifted** (the user, 2026-11-13, D-066; AGENTS.md hard
+rule 2). This file is kept as it was written, as the list of what was waiting. What is done and
+what is next are in `docs/STATE.md` and `docs/CHECKPOINT.md`.
+
 The gate is the scheduled monthly runs on 8 October and 8 November 2026
 completing clean and unattended. Every item here touches pipeline code, a
 reference file, a test or the workflow, so none of it happens before both

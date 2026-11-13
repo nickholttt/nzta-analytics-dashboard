@@ -1,9 +1,9 @@
 # NZ Vehicle Registration Analytics
 
 A static analytics site built on NZTA open data: domain research,
-reference data and configuration, a Python + DuckDB pipeline that builds
-monthly in GitHub Actions, and a local reference UI (Astro, React,
-Observable Plot). Nothing is deployed.
+reference data and configuration, a Python + DuckDB pipeline that is tried
+every day in GitHub Actions and builds each month once, and a local
+reference UI (Astro, React, Observable Plot). Nothing is deployed.
 
 **Start at `AGENTS.md`, then `CLAUDE.md` (the project brief).** What is
 built and what is in progress is in `docs/STATE.md`.
@@ -14,7 +14,7 @@ built and what is in progress is in `docs/STATE.md`.
 |---|---|
 | `AGENTS.md` | For any coding agent: how to run and test, hard rules, what needs the user's approval |
 | `CLAUDE.md` | Project brief. Design invariants, stack, build order, field traps. |
-| `POST_GATE.md` | Work queued until the 8 November 2026 scheduled run passes |
+| `POST_GATE.md` | Work queued while the pipeline paths were frozen. The freeze was lifted on 13 November 2026 (D-066) |
 | `docs/STATE.md`, `docs/CHECKPOINT.md`, `docs/DECISIONS.md` | What is true now, the work queue, and why things are the way they are |
 | `docs/playbooks/` | Step-by-step guides: checks, the local UI, a cube rebuild, the monthly run check, adding an event, changing a preset or reference data, the session handoff, and testing the site with visitors |
 | `docs/DATA_SOURCES.md` | Endpoints, cadence, licence, and the field definitions that will mislead you |
