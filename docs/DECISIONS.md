@@ -2470,3 +2470,36 @@ New entries use this template:
   - The check was made once, by scratch scripts. If a field is ever derived, the check becomes a maintainer script in
     `scripts/` first, run against each month's file.
 - Status: decided by Claude (unreviewed)
+
+## D-080 2026-11-14 — The user's answers: #45 merges; `ui/explore` into `main` is reviewed and asked for by number; hard rules 7 and 8 are shown before they are reworded; October is forced only after a yes; nothing becomes public without asking
+- Agent: user (the answers), claude (the record and what was read)
+- Basis: the user's message of 2026-11-14, answering CHECKPOINT's three questions; `.github/workflows/monthly-build.yml`,
+  `pipeline/fetch.py` and `pipeline/guardrails.py` as read that day; `gh` read-backs of the release and the variables.
+- Context: #45 had joined `main` and `ui/explore` and waited. The next steps of the deploy each reach further than a
+  branch: the site's code on `main`, a second build of a month already released, and the text of two hard rules.
+- Decision (user):
+  1. Merge #45. Then open `ui/explore` into `main`, have it reviewed, and ask for that merge by number.
+  2. Before AGENTS.md hard rules 7 and 8 are reworded, the user is shown the old and the new text in plain words and
+     says yes. Until then both stand as written.
+  3. A forced run of October comes after `ui/explore` is in `main`. First the user is told what it does to the existing
+     release `cube-2026-10` (replaced, kept or refused), and says yes if anything would be overwritten.
+  4. The dashboard export starts when the user says "ready".
+  5. Nothing becomes public without asking. Anything the user must do is given in plain words, one step at a time.
+- What a forced run of October does, as read (not run):
+  - `pipeline run --force` builds whatever the register is on that day. If NZTA has not touched it, the month is built
+    again from the same source. If it has, and the row count moved, the changed register is built as October; if it
+    changed without the row count moving, the build stops (exit 2) and nothing is written.
+  - On a build: `data/snapshots/2026-10.parquet` and `data/state/last_good.json` are committed again to `main`; the
+    release `cube-2026-10` is kept and its one file, `public-data.tar.gz`, is **replaced** (`gh release upload
+    --clobber`). The file it replaces is not kept by the release; a copy is in the 90-day artifact of run 43374803222.
+  - The new file holds the fact table, which no public file has held: counts only, of which half the rows count one
+    vehicle (STATE, known issues).
+  - The archive job finds `mvr-2026-10.parquet` already in the private release and stops: a month's file is never
+    replaced. `Deploy` is started and builds the site; it uploads nothing while `CLOUDFLARE_PAGES_PROJECT` is unset.
+- Options considered: none by claude; these are the user's answers. Point 5 is taken to cover the forced run whether or
+  not NZTA has changed the register, because either way a public release's file changes.
+- Consequences:
+  - #45 was merged on the user's word (`50caa55`), and #46 opened from `ui/explore` into `main`.
+  - Hard rules 7 and 8 are not touched by #46. The proposed text is in CHECKPOINT until the user answers.
+  - No forced run is started on the strength of an earlier permission (D-068's one forced run is spent).
+- Status: accepted, decided by user; the reading of point 5 is claude's (unreviewed)
