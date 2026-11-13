@@ -120,10 +120,10 @@ Setup, **not re-run this session** (the environment already existed):
 7. **Don't push to `main` or merge into it** without asking in that session. An agent may push its
    own branches (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19).
    Exception (user, 2026-11-13, D-068): claude may merge into `main`, as merge commits and in
-   order, the pipeline stack (#26, #27, #28, #29, #35) and the pull requests that build D-064 and
-   D-063, each only when its checks are green and a reviewer sub-agent that has not seen claude's
-   reasoning agrees, stopping at the first problem; and may dispatch one forced Monthly build on
-   `main` after the stack. On the user's "go", claude merges #17 to #34 into `ui/explore` from the
+   order, the pipeline stack (#26, #27, #28, #29, #35), the pull requests that build D-064 and
+   D-063, and `claude/fact-table`'s pull request (user, 2026-11-13, D-069), each only when its
+   checks are green and a reviewer sub-agent that has not seen claude's reasoning agrees, stopping
+   at the first problem; and may dispatch one forced Monthly build on `main` after the stack. On the user's "go", claude merges #17 to #34 into `ui/explore` from the
    command line. `ui/explore` into `main` is still asked for. GitHub API access
    goes through `gh` only (full path above; not on the Git Bash PATH), never the Git Credential
    Manager token.

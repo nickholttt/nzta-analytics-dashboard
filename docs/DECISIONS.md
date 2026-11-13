@@ -1904,3 +1904,164 @@ New entries use this template:
     before the deploy step of Stage 1, not in #35.
   - Reversing it: the user says so; the three AGENTS.md lines and the brief's line go back to "the user merges".
 - Status: accepted, decided by user
+
+## D-069 2026-11-13 — The user's answers after the pipeline stack: the archive token is stored, the backup is off the disk, the fact table may merge under D-068's rule
+- Agent: user, in the first message of the fourth session of 2026-11-13, answering CHECKPOINT's questions. Recorded by
+  claude.
+- Basis: this session, the user's messages; the secret's presence was read with `gh`.
+- Context: CHECKPOINT left the archive token and two questions with the user.
+- Decision:
+  1. **The archive token exists and is stored.** The user made it in seven steps, one at a time, and never showed
+     it to claude. As the user reported it: fine-grained, named `nzta-archive-write`, limited to
+     `nzta-register-archive`, Contents: read and write (Metadata: read-only added by GitHub), expiring
+     **13 November 2027**, the latest date GitHub offered, not D-067's 12 November. Read by claude:
+     `ARCHIVE_REPO_TOKEN` is a secret of the environment `archive` (created 2026-11-13T06:20:34Z), the environment
+     still allows only `main`, and no repository-level secret exists. Whether the token works is not known until
+     the first archive run.
+  2. **The raw pulls are copied off the project's disk**: "backed up to a separate OneDrive" (the user's word; not
+     checked by claude, which has no reason to read the user's OneDrive).
+  3. **claude may merge `claude/fact-table` into `main` under the same rule as the pipeline stack**: a merge commit,
+     only with a green check and the agreement of a reviewer sub-agent that has not seen claude's reasoning.
+  - The same message asked for D-064, D-063, the screenshots of the site stack, and the reviewers' follow-up on the
+    Cloudflare upload, with a stop and report after them.
+- Consequences:
+  - AGENTS.md hard rule 7 gains the fact table's pull request, with the user's approval in the message itself; it is
+    amended in the same commit as this entry.
+  - The token's expiry is a date the user has to remember: a reminder for early November 2027. An expired token
+    fails the archive job, which says so (D-071).
+  - Reversing 3: the user says so, and the rule 7 line goes back.
+- Status: accepted, decided by user
+
+## D-070 2026-11-13 — D-064 as built: what the daily run decides, and the choices D-064 left open
+- Agent: claude, building D-064 (accepted in D-066) as D-068 allows. Pull request #37.
+- Basis: this session. The code and tests were written and run here; the reviewer's finding was reproduced by the
+  reviewer and fixed; month counts were read from `data/state/last_good.json` on `main` and the three files in
+  `data/snapshots/`.
+- Context: D-064 fixed three things (run every day; each month is built once; a missed month fails the run from the
+  15th) and left others to the build.
+- Options considered and decision, point by point:
+  1. **The alarm fails every day until the month is built**, not once. Failing once would need the run to remember
+     it had failed, and a run cannot write state without committing. Daily failure is hard to miss and stops by
+     itself.
+  2. **Whether the source changed is read from the row count and the digest, not from the snapshot date in the
+     key.** That date is capped by the day of the fetch, so it can move on the first of a month while the register
+     has not. Comparing the whole key (the old code) would have built a new month from an unchanged register.
+  3. **A month is a snapshot month only if it holds a month of registrations**: at least 1% of the median of the
+     twelve months before it (`snapshot.min_share_of_trailing_median`). This came from the independent review of
+     #37, which refused the first version: with an edit by NZTA inside a built month and a few rows dated in the
+     following month, the run would have built those rows as a month once the cap passed them, and then refused the
+     real refresh as a rebuild. Other fixes considered: cap the snapshot at the month before the service's last
+     edit (not chosen: an edit early in the next month, before the refresh, passes it, and it needs the source's
+     time zone); keep the uncapped latest month in the key (not chosen: it fails when one refresh has such rows and
+     the next has none). Measured: the lowest real month, 2020-04, held 7.0% of its trailing median; the next
+     lowest, 2023-07, 58%. None of the three snapshots so far holds a row dated after its month.
+  4. **The build starts the deploy, only when it built a month** (STATE known issue 10). `deploy.yml` no longer
+     follows every successful run: a skip is a success, so that was a deploy a day. Not chosen: leave the trigger
+     and have the deploy ask whether its trigger built (a Deploy run every day, each to say "nothing to do").
+     The start is a job of its own with `actions: write` and no checkout.
+  5. **The workflow keeps the name "Monthly build".** It builds one month at a time; the playbooks, the skills and
+     the cube artifacts' history use the name.
+  6. **The alarm's day is counted in UTC, must be 1 to 28, and never stops a run that builds**: an overdue month is
+     committed, and the next run that builds nothing reports the month still missing.
+  7. **The advice to force a rebuild is given only where a forced run would build.** A forced run on an unchanged
+     row count is stopped by the existing check "the source changed without advancing".
+- Consequences:
+  - About 30 runs a month; a skip took 1m17s on 8 November. The Actions list fills with green skips.
+  - Not caught: a register holding 1% or more of a normal month dated after its own month, and edited again at any
+     time after it was built, is built as the following month once the cap passes it, and the real refresh is then
+     refused as a rebuild. Stated in `docs/CUBE_SCHEMA.md`. The reviewer's second pass confirmed it and agreed to
+     merge with it written down; only a check on the service's last-edit date would close it fully.
+  - The first build of a month wins. A corrected refresh needs a forced run, which is the user's to start (D-064).
+  - GitHub switches a schedule off after 60 days without activity in a public repository (GitHub's documentation as
+     claude knows it; not re-read). The bot's monthly commit is activity, so this bites only after two months
+     with no build, by which time the alarm has been failing for weeks.
+  - Whether a failed scheduled run reaches the user by email depends on the user's GitHub notification settings
+     (inferred — confirm).
+  - Reversing it: restore the one schedule line and the `workflow_run` trigger; the rules are harmless monthly.
+- Status: decided by Claude (unreviewed)
+
+## D-071 2026-11-13 — D-063 as built: the archive job pulls for itself; the file, its name, and what happens when it fails
+- Agent: claude, building D-063 (accepted in D-066, names in D-067) as D-068 allows. Pull request #38.
+- Basis: this session. The code and tests were written and run here. The file was written once from the saved
+  2026-10 hand pull and read back. The archive job has not run: it can only run on `main`.
+- Context: D-063 expected the build's own pull to widen to 36 fields and the build to write the file. D-067 then put
+  the token in an environment only `main` can use and said the archive step belongs in a job of its own. The two do
+  not fit: the file cannot pass from the build job to another job, because an artifact of a public repository can be
+  downloaded by anyone signed in to GitHub (D-067), and D-063 forbids that.
+- Options considered:
+  1. One job does everything and names the environment. Not chosen: a deployment is recorded every day the run is
+     tried, the token sits in the job that installs the pipeline's dependencies and runs the build, and a run
+     started on any branch but `main` could not start.
+  2. A first job decides whether to build and a second, naming the environment, pulls, builds, commits, releases
+     and archives. Not chosen: the token is still in the build's job, and the proven build is restructured.
+  3. The build job is left as it is and a separate job pulls the register again for the archive. Chosen.
+  4. Encrypt the file to a key the archive job holds and pass it as an artifact. Not chosen: a second secret and a
+     key to manage, for the sake of one pull a month.
+- Decision:
+  - **A job `archive` in `monthly-build.yml`**, after `build`, on `main` only, naming the environment `archive`. It
+    runs when the build built a month, or when a run is started by hand with the new input `archive` ticked.
+  - **It pulls the register itself**, at every field of `pipeline/expected_schema.json` except
+    `register_archive.never_pulled` in `config/pipeline.json` (`VIN11`, `CHASSIS7`, `ENGINE_NUMBER`, `POSTCODE`). The
+    build's pull stays at its 17 bound fields, so the cube cannot change. The field list comes from the expected
+    schema, not the live service: a field NZTA adds is not archived until the schema is captured again on purpose.
+    A name in `never_pulled` that the schema does not hold aborts, so a misspelling cannot let a field through.
+  - **It archives only the register that was built**: it goes ahead only while the live register has the row count
+    and digest in `data/state/last_good.json`, and labels the file with that state's month.
+  - **The file**: release `snapshot-YYYY-MM` in `nickholttt/nzta-register-archive`, one file `mvr-YYYY-MM.parquet`,
+    zstd, rows sorted on every column, the row id left out, values as NZTA records them. NZTA's attribution, the
+    snapshot date, the row count, the source's last edit and the digest are in the Parquet file's own metadata.
+  - **Never replaced**: the job looks first and stops, green, if the month's file is there. Nothing uploads with
+    `--clobber`.
+  - **A failed archive does not hold back the month** (the question D-067 left open). The build's commit and cube
+    release are done before the archive job starts. The run is red. The retry is a run started by hand with
+    `archive` ticked: the build job skips, and the archive job archives the last built snapshot if the register
+    still holds it.
+  - **A missing or refused token fails the job before anything is pulled**, and says which.
+  - `python -m pipeline archive --from-pull <dir>` writes the same file from a pull saved on disk, for a month
+    pulled by hand (D-068 answer 3).
+- Consequences:
+  - One more pull of the register a month, in a second job. Measured from the saved 2026-10 hand pull on the
+    development machine: 5,926,990 rows at 35 fields, 39,298,142 bytes (D-063 estimated about 49 MB), 524 s with
+    other test runs going. The job's time and memory on the runner are not measured; it reports both.
+  - If NZTA refreshes between a failed archive and its retry, that month's archive is lost and the job says so. The
+    committed aggregate still holds the month at five dimensions.
+  - The archive job installs the pipeline's two pinned dependencies (duckdb, pytest) in the job that holds the
+    token. The token is given only to the two steps that call `gh`. It can write to one private repository.
+  - GitHub records a deployment to `archive` each time the job starts, about once a month.
+  - October 2026 can be archived as soon as this is on `main`, by a run started by hand with `archive` ticked,
+    while NZTA still holds it. Otherwise from the hand pull with `--from-pull` and an upload by hand.
+  - Reversing it: delete the job and the command; delete the releases. Nothing reads them yet.
+- Status: decided by Claude (unreviewed)
+
+## D-072 2026-11-13 — The Cloudflare upload is a job of its own behind the environment `production`, switched on by a variable
+- Agent: claude, on the user's instruction in the session (D-069), doing the follow-up the reviewers of #35 raised
+  (STATE known issue 11) and D-068's answer 2. Pull request #39.
+- Basis: this session. The environment was created with `gh` and read back. The workflow parses and its tests pass.
+  No upload has run: there is no Cloudflare project or secret, and `main` has no public site yet.
+- Context: `deploy.yml` read the Cloudflare secrets as repository secrets and uploaded in the job that installs the
+  site's dependencies. The user chose an environment only `main` can use (D-068 answer 2).
+- Options considered:
+  1. Add `environment:` to the existing single job. Not chosen: the site's whole dependency tree would still be
+     installed beside the token, and every run, uploading or not, would be recorded as a deployment.
+  2. Two jobs, the upload job starting on every run on `main` and stopping politely when the secrets are missing.
+     Not chosen: GitHub records a deployment to the environment when the job starts, so the repository would show
+     "deployed to production" for deploys that never happened.
+  3. Two jobs, the upload job starting only when deploying is switched on. Chosen. The switch has to be something
+     the build job can see, and it cannot see an environment's secrets, so it is a repository variable.
+- Decision:
+  - **The environment is `production`**: created 2026-11-13, limited to the branch `main`, holding no secret.
+  - **`build`** builds the site and reads no secret. **`upload`** names `production`, runs only on `main`, checks out
+    only `.github/deploy`, installs only the pinned upload tool, takes the built site from the build job and
+    uploads it.
+  - **Deploying is switched on by the repository variable `CLOUDFLARE_PAGES_PROJECT`**, set to the Pages project's
+    name. The workflow's default project name is gone. Until the variable is set the site is built and the run
+    stops, green, as before.
+  - **Once it is switched on, missing secrets fail the run.**
+  - The built site passes between the jobs as an artifact kept one day, uploaded only when it is about to be
+    published.
+- Consequences:
+  - The deploy's console steps (CHECKPOINT) change: the two secrets go in the environment `production`, not the
+    repository, and one step is added, setting the variable, which claude can do with `gh` on the user's word.
+  - Merging #39 into `main` is not among the merges D-068 and D-069 name: it is asked for.
+  - Reversing it: restore the single job; delete the environment.
+- Status: decided by Claude (unreviewed)
