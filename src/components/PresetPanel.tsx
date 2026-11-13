@@ -1,14 +1,14 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
 import { builderChoiceFor, builderHref, builderPreset } from "../lib/builder";
-import { compositeRules, findDataset, findDerived, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
+import { compositeRules, findDataset, findDerived, findPeriod, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
 import { compositionStart } from "../lib/composition";
-import { loadEvents, loadManifest, loadSlice } from "../lib/data";
+import { loadEvents, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { presetView, rankingPeriods, resolvePreset } from "../lib/resolve";
+import { presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { LeagueChart } from "./LeagueChart";
@@ -29,6 +29,12 @@ const TIME_PERIODS = [
   { id: "10y", label: "10 years" },
   { id: "all", label: "All time" },
 ];
+
+// A period the time row offers: one of its spans, the preset's own period, or a period that ranks the view.
+const offers = (preset: Preset, granularityId: string | null, id: string) =>
+  TIME_PERIODS.some((p) => p.id === id) || id === (preset.period ?? "all") || rankingPeriods(presetView(preset, granularityId)).includes(id);
+
+const spanLabel = (months: number) => (months >= 24 && months % 12 === 0 ? `${months / 12} years` : `${months} months`);
 
 // lead: one of the charts that carries the page. Larger heading, taller plot; nothing else differs.
 // audience: "public" is what a visitor reads on the Explore page: the chart, its controls, its notes and
@@ -62,8 +68,7 @@ export default function PresetPanel({
   const [activePeriod, setActivePeriod] = useState<string>(() => {
     if (typeof window === "undefined" || !preset) return defaultPeriod;
     const fromUrl = getParam(presetId, "period", defaultPeriod);
-    const offered = TIME_PERIODS.some((p) => p.id === fromUrl) || rankingPeriods(presetView(preset, activeGranularityId)).includes(fromUrl);
-    return offered ? fromUrl : defaultPeriod;
+    return offers(preset, activeGranularityId, fromUrl) ? fromUrl : defaultPeriod;
   });
   // All records: an all-time mix chart opens on its composition start; this draws it from the first
   // month with data. Kept in the URL as range=all, the parameter the chart used before.
@@ -83,7 +88,7 @@ export default function PresetPanel({
       setParam(presetId, "granularity", newId, defaultGranularityId);
     }
     // A ranking period the new view cannot rank over is not in its row, so the view opens on its default.
-    if (preset && !TIME_PERIODS.some((p) => p.id === activePeriod) && !rankingPeriods(presetView(preset, newId)).includes(activePeriod)) {
+    if (preset && !offers(preset, newId, activePeriod)) {
       handlePeriodChange(defaultPeriod);
     }
   };
@@ -122,14 +127,21 @@ export default function PresetPanel({
 
   const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
 
+  // The resolver says where the rows come from: a 1-D slice, or a pair slice narrowed to the view's filter. A view
+  // changed again before its rows arrive drops them, so a slow earlier load cannot draw under a later view.
   useEffect(() => {
-    if (!effectivePreset?.dataset || !resolution || resolution.preventsRender.length > 0) return;
-    const sliceDimension = effectivePreset.dimension ?? manifest?.datasets[effectivePreset.dataset]?.live_dimensions[0];
-    if (sliceDimension && manifest?.datasets[effectivePreset.dataset]?.live_dimensions.includes(sliceDimension)) {
-      setRows(null);
-      loadSlice(effectivePreset.dataset, sliceDimension).then(setRows, (e) => setError(String(e)));
-    }
-  }, [effectivePreset, resolution, manifest]);
+    const source = resolution?.source;
+    if (!source) return;
+    let current = true;
+    setRows(null);
+    loadView(source).then(
+      (loaded) => current && setRows(loaded),
+      (e) => current && setError(String(e)),
+    );
+    return () => {
+      current = false;
+    };
+  }, [resolution]);
 
   const panelClass = `panel${lead ? " lead" : ""}`;
   if (!preset || !effectivePreset)
@@ -157,10 +169,11 @@ export default function PresetPanel({
       </section>
     );
 
-  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure } = resolution;
+  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy } = resolution;
   const dataset = findDataset(effectivePreset.dataset);
   const derived = findDerived(effectivePreset.derived);
-  const dsManifest = effectivePreset.dataset ? manifest.datasets[effectivePreset.dataset] : undefined;
+  const served = servedFrom(effectivePreset.dataset, manifest);
+  const dsManifest = served ? manifest.datasets[served] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
   const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : RESERVED_LABELS[v] ?? v);
@@ -168,8 +181,9 @@ export default function PresetPanel({
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
   const snapshotsNeeded = derived?.snapshots_needed;
-  // A ranking sums one window and greys no month, so the note on grey months stays off it.
-  const greyNote = guard > 0 && preventsRender.length === 0 && shape !== "league";
+  // Only a chart drawn month by month greys months. A ranking or a distribution sums one window and greys the whole
+  // chart or nothing, which its own unit line says, so the note on grey months stays off them.
+  const greyNote = guard > 0 && preventsRender.length === 0 && (shape === "mix" || shape === "trend");
 
   // Notes that state a figure are templated from the build; a plain note that carries one is flagged
   // rather than trusted, because it will drift the next time the data moves. The dataset definition is
@@ -189,12 +203,19 @@ export default function PresetPanel({
   const publicDimensionNote = !internal && dimension ? publicCopy.dimension_notes[dimension.id] : undefined;
   if (publicDimensionNote) addNote("dimension", publicDimensionNote);
   else addNote("dimension", dimension?.note, dimension?.note_template);
-  // A visitor is told what the chart includes in plain words; the reason, in config terms, is internal.
-  const publicLimits = notApplied.length
-    ? (effectivePreset.filters ?? []).flatMap((f) =>
-        Object.values(f).map((v) => `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`),
-      )
+  // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
+  // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
+  // terms, is internal.
+  const scope = narrowedBy ? `Only ${narrowedBy.values.map((v) => `“${RESERVED_LABELS[v] ?? v}”`).join(" or ")} vehicles are counted.` : undefined;
+  const unapplied = notApplied.length
+    ? (effectivePreset.filters ?? []).flatMap((f) => Object.entries(f)).filter(([key]) => key !== narrowedBy?.dimension)
     : [];
+  const narrowed = Boolean(resolution.source?.filter);
+  const publicLimits = unapplied.map(([, v]) =>
+    narrowed
+      ? `This chart is not narrowed to “${v}”: the data can't be narrowed that way yet.`
+      : `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`,
+  );
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   // Visitor wording from config/presets.json public_copy, where the frozen dimensions.json carries text
@@ -203,7 +224,21 @@ export default function PresetPanel({
 
   let chart = null;
   if (preventsRender.length === 0 && rows) {
-    if (shape === "mix" && dimension) {
+    // A view that loads no rows is said, not drawn: every renderer needs at least one month. A filter value that matches
+    // nothing in the data does this, so the internal page names the source to check.
+    if (rows.length === 0) {
+      const filter = resolution.source?.filter;
+      chart = (
+        <div className="callout blocked">
+          <span className="callout-label">Nothing to draw</span>
+          {internal
+            ? `No rows: ${resolution.source?.dataset} by ${resolution.source?.dimension}${
+                filter ? `, narrowed to ${filter.dimension} = ${filter.values.join(" or ")}` : ""
+              } loaded nothing. Check the view's filter values against the data.`
+            : "No vehicles in the data match this view."}
+        </div>
+      );
+    } else if (shape === "mix" && dimension) {
       chart = (
         <MixChart
           preset={effectivePreset}
@@ -266,11 +301,21 @@ export default function PresetPanel({
   // offers the full record as its own option, so no two buttons say the same thing. A period that ranks
   // the chart comes last: it draws a different chart, not a shorter span of the same one.
   const start = shape === "mix" && rows ? compositionStart(rows, dimension, guard) : undefined;
+  // A preset whose own period is none of the spans and does not rank it (a distribution of the last 12 months) keeps
+  // that period as a span of its own, in order of length, so the option it opens on is always in the row.
+  const ranking = rankingPeriods(presetView(preset, activeGranularityId));
+  const own = findPeriod(defaultPeriod);
+  const spans = [
+    ...TIME_PERIODS.filter((p) => p.id !== "all").map((p) => ({ key: p.id, id: p.id, label: p.label, full: false, months: findPeriod(p.id)?.months ?? 0 })),
+    ...(own?.months && !TIME_PERIODS.some((p) => p.id === own.id) && !ranking.includes(own.id)
+      ? [{ key: own.id, id: own.id, label: spanLabel(own.months), full: false, months: own.months }]
+      : []),
+  ].sort((a, b) => a.months - b.months);
   const rangeOptions = [
-    ...TIME_PERIODS.filter((p) => p.id !== "all").map((p) => ({ key: p.id, id: p.id, label: p.label, full: false })),
+    ...spans,
     { key: "all", id: "all", label: start ? `Since ${monthLabel(start)}` : "All time", full: false },
     ...(start ? [{ key: "all-records", id: "all", label: "All records", full: true }] : []),
-    ...rankingPeriods(presetView(preset, activeGranularityId)).map((id) => ({
+    ...ranking.map((id) => ({
       key: id,
       id,
       // LeagueChart ranks the trailing window whatever the period, so the label names that window.
@@ -292,7 +337,7 @@ export default function PresetPanel({
             </>
           ) : null}
         </h3>
-        {definition ? <p className="panel-definition">{definition}</p> : null}
+        {definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null}
         <div className="panel-actions">
           <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
             {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
@@ -322,7 +367,7 @@ export default function PresetPanel({
           </div>
         ) : null}
 
-        {preset.dataset !== "used_imports" && preventsRender.length === 0 ? (
+        {preventsRender.length === 0 ? (
           <div className="toggle" role="radiogroup" aria-label="Time range">
             {rangeOptions.map((o) => (
               <label key={o.key}>

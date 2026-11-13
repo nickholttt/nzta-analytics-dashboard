@@ -33,6 +33,8 @@ export type Preset = {
   note_template?: string;
   top_n?: number;
   shape_override?: string;
+  // Draw the breakdown frame by frame through time; no renderer does yet, so the resolver blocks it.
+  animate_by?: string;
   derived?: string;
   series?: unknown[];
   filter_value?: string;

@@ -1141,3 +1141,40 @@ New entries use this template:
   share · n of base; move; change in share). A greyed point now says which guard greyed it. No console errors, no
   sideways scroll. Only Chromium was run.
 - Status: decided by Claude (unreviewed)
+
+## D-053 2026-10-22 — The site serves filtered datasets and preset filters from pair slices, built against a dry-run cube
+- Agent: claude, under D-043 (the site's side of POST_GATE A1 and A3)
+- Basis: branch `claude/pair-views`: `src/lib/data.ts` (`narrowPair`, `loadView`), `src/lib/resolve.ts` (`servedFrom`,
+  `findPair`, the view source), `src/lib/notes.ts`, `src/components/PresetPanel.tsx`, `src/components/DistributionChart.tsx`,
+  `config/presets.json`; headless checks on 2026-10-22 against the published 2026-08 cube, and against a dry-run cube
+  with both pairs plus A3's `config/dimensions.json` in a scratch worktree.
+- Context: the pipeline branches emit pair slices (D-047) and `segment_group` (POST_GATE A3). The site read 1-D slices
+  only, so `used_imports` could not be served and `powertrain-mix`'s filter was described, not applied. STATE known
+  issue 4: `PresetPanel` hid the time row for the dataset id "used_imports", in code.
+- Options considered:
+  - Where narrowing happens: (1) in each renderer. (2) Once, where rows are loaded, so the renderers keep reading slice
+    rows: chosen.
+  - Which filter a view takes: a pair is two-dimensional, so one. The dataset's own filter first, since without it the
+    chart is a different dataset, then the preset's first filter.
+  - A missing pair: a filtered dataset draws nothing, since its base would be a different chart; a preset filter draws
+    the chart un-narrowed and says so, as before.
+  - `used-import-age`'s measure: (1) count, as authored. (2) Share: chosen. On survivors data a count reads as sales
+    (D-044), and the chart's time row now reaches back years, where scrappage thins counts.
+  - `age-distribution-moving-hole`: with pairs it would draw one all-time histogram, which smears the moving cutoff
+    across the years it moved through. A resolver rule blocks any preset with `animate_by` until a renderer draws a
+    distribution year by year.
+  - The time row: a preset's own period becomes a span of its own when it is none of the spans and does not rank the
+    chart (`used-import-age`: "12 months, 3 years, 5 years, 10 years, All time"). This replaces the dataset id in code.
+- Decision: as above. Authored statuses stay as they are: they describe the published cube, which has no pairs until the
+  pipeline branches merge after the gate. `/status` then shows "Status out of date" for `used-import-age` and
+  `powertrain-mix`, which is the signal to flip them.
+- Consequences: against the published cube, Explore is unchanged (six charts, the same time rows) and every preset
+  resolves to its authored status. Against the dry-run cube: `used-import-age` draws on Explore (91,521 used imports
+  over the last 12 months, 59% aged 9 to 13); `powertrain-mix` applies its filter, its key matching the light-passenger
+  shares computed in DuckDB (hybrid 37.9%, petrol 37.8%, BEV 8.9%, diesel 4.8%, against diesel's 16.7% across all
+  vehicles) and opening in Aug 2009 instead of Oct 2009; `age-distribution-moving-hole` stays blocked. Found while
+  checking and fixed on the same branch: the grey-months note no longer appears on distributions, which grey a whole
+  window or nothing, and at 320px a distribution labels every step-th band so labels do not run together (age when
+  first registered: 0, 3 ... 18, 25+). Not changed: on a filtered powertrain chart the mild hybrid coverage note gives
+  the whole dataset's coverage, not light passenger vehicles' alone.
+- Status: decided by Claude (unreviewed)
