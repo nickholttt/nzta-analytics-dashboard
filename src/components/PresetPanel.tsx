@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { compositeRules, findDataset, findDerived, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { loadEvents, loadManifest, loadSlice } from "../lib/data";
+import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
@@ -32,9 +33,24 @@ const TIME_PERIODS = [
 // audience: "public" is what a visitor reads on the Explore page: the chart, its controls, its notes and
 // any honest limit on what it shows. "internal" (/status) adds the build diagnostics: status badges,
 // what blocks the preset, drifting notes and the preset's spec line (D-041).
-export default function PresetPanel({ presetId, lead = false, audience = "public" }: { presetId: string; lead?: boolean; audience?: "public" | "internal" }) {
+// preset: a preset built outside presets.json (the sentence builder), drawn exactly as a canon one is.
+// anchored: the copied link jumps to this panel. Off where the controls that made the chart sit above it.
+export default function PresetPanel({
+  presetId: requestedId,
+  preset: supplied,
+  lead = false,
+  audience = "public",
+  anchored = true,
+}: {
+  presetId?: string;
+  preset?: Preset;
+  anchored?: boolean;
+  lead?: boolean;
+  audience?: "public" | "internal";
+}) {
   const internal = audience === "internal";
-  const preset = findPreset(presetId);
+  const preset = supplied ?? findPreset(requestedId ?? "");
+  const presetId = preset?.id ?? requestedId ?? "";
   const defaultGranularityId = preset?.granularity_options?.[0]?.id ?? null;
   const [activeGranularityId, setActiveGranularityId] = useState<string | null>(() => {
     if (!defaultGranularityId || typeof window === "undefined") return defaultGranularityId;
@@ -76,8 +92,8 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
   // Where the clipboard is unavailable or refuses, the address bar still ends up holding the link, and
   // the button says so rather than doing nothing.
   const handleCopyLink = () => {
-    const shareUrl = getShareableUrl(presetId);
-    window.history.replaceState(null, "", `#${presetId}`);
+    const shareUrl = anchored ? getShareableUrl(presetId) : window.location.href;
+    if (anchored) window.history.replaceState(null, "", `#${presetId}`);
     const done = (state: "copied" | "address") => {
       setCopied(state);
       setTimeout(() => setCopied(""), 4000);
@@ -261,7 +277,7 @@ export default function PresetPanel({ presetId, lead = false, audience = "public
           </div>
         ) : null}
 
-        {shape !== "distribution" && preset.dataset !== "used_imports" && preventsRender.length === 0 ? (
+        {preset.dataset !== "used_imports" && preventsRender.length === 0 ? (
           <div className="toggle" role="radiogroup" aria-label="Time range">
             {rangeOptions.map((o) => (
               <label key={o.key}>

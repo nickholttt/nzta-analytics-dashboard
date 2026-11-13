@@ -849,3 +849,67 @@ New entries use this template:
   review before 8 November. UI work that needs a new slice waits for its pipeline PR to merge after the
   gate, or is built against a dry-run cube and marked so.
 - Status: user decided the rule; terms decided by Claude (unreviewed)
+
+## D-044 2026-10-21 — The Build page: a sentence of what the cube can honestly answer, share only for now
+- Agent: claude, under D-041 (the user asked for the sentence builder after Explore: "an interactive
+  platform, easy to understand, less restricted than VSTATS", local only until 8 November)
+- Basis: this branch (`claude/sentence-builder`); `src/lib/builder.ts`, `src/components/SentenceBuilder.tsx`,
+  `src/pages/build.astro`, `config/presets.json` `builder`; headless checks of `/build` on 2026-10-21.
+- Context: build step 5. The cube has one dataset, `registrations_surviving`, with 13 live
+  one-dimensional slices (`manifest.json`, 2026-09 snapshot). Renderers exist for mix, trend, league and
+  distribution, not geo. CHECKPOINT left four things to settle: whether counts are offered, how the
+  sentence reads, URL state, and reusing `PresetPanel` so Build and Explore cannot drift.
+- Options considered:
+  - Counts: (1) offer "the number" and "the 12-month running total": on vehicles still registered, older
+    months are thinned by scrappage, so a count reads as sales, which is what `brand-share`'s note and
+    D-024 already refuse. (2) Share only, saying on the page that counts wait for true monthly
+    registrations: chosen.
+  - What the sentence may say: (1) a hand-written list of sentences: drifts from the cube. (2) every
+    dimension the cube has: would offer `model` (68% all-time coverage on survivors, D-024 holds it for
+    step 1b) and `region` (no geo renderer; the TLA is the owner's current address, D-024). (3) each
+    measure lists the dimensions it may be split by, with the words the sentence uses, and of those only
+    the ones `resolvePreset` says draw are offered, worked out at build time as the Explore page does:
+    chosen.
+  - Time: (1) a period blank in the sentence: a second time control beside the panel's row (D-042 made
+    it one row). (2) the panel's existing time row: chosen.
+  - Drawing: (1) a builder renderer: a second path that drifts. (2) `PresetPanel` takes a preset object
+    as well as an id: chosen. The built preset has id `build`, so the URL helpers scope its parameters
+    (`?build.measure=…&build.by=…&build.period=…`) and "Copy link to this chart" shares it.
+- Decision: `/build` reads "Show [the share of vehicles] by [breakdown]" or "Show [the share of the 5
+  largest] [brands | manufacturer groups]" (the concentration measure). Share is offered by powertrain,
+  whether new or used, vehicle type, brand (top 10), manufacturer group (top 14), brand owner's country,
+  brand's original country, country where built, vehicle age, engine size and age when registered here.
+  Powertrain is drawn across every in-scope vehicle; Explore's `powertrain-mix` asks for light
+  passenger vehicles only and shows the same chart with a "What this chart includes" warning. The
+  sentence says "vehicles", so the builder needs no warning. A distribution opens on 5 years, because summing all
+  time mixes eras whose records differ (MODEL_AND_AGE §1); distribution charts now get the time row
+  (none is live on Explore, so `/` is unchanged). A "Not offered yet" list under the chart names counts,
+  new-only or used-only, models and regions, each with its reason. Notes come from the same places as on
+  Explore, plus, from the `builder` block, a share-not-volume note, a concentration note, and what the
+  canon presets say about four dimensions (SUVs recorded as station wagons; new and used leaving the
+  register at different rates; ownership as at today for owner country and manufacturer group), kept
+  there so Explore does not show them twice. Visitor notes are added for the two age dimensions (age on
+  the snapshot date; the year is less consistent for NZ-new vehicles before 2007) and for country where
+  built. A new sentence clears the chart's period, range and smoothing, so each opens on its own defaults.
+  The copied link carries no `#build`, so opening it does not scroll the sentence out of view.
+- Consequences:
+  - Measured headless: all 13 sentences draw at 320px and 1280px, with no console errors and no sideways
+    scroll; a reloaded address reopens the same chart and time range; switching measure keeps the
+    breakdown when the new measure offers it. `/` and `/status` draw as before (6 charts each).
+  - Country where built is not recorded for 98% of vehicles first registered before November 1985 that
+    are still registered, and for almost none from December 1985 (measured on the 2026-09 cube). With a
+    top-10 cap, `MixChart` folds reserved values into "All other", so that gap read as "All other" near
+    100%. Country where built is therefore uncapped (46 values, so a long key) and carries a note on the
+    gap. The fold itself is unchanged and also applies to `brand-share`'s early months (STATE known issue).
+  - Phrases are at most 24 characters, so each fits a 320px line (296px of text at 22px; the longest
+    measures 245px in Chromium), including in browsers without `field-sizing`, which size a select to
+    its longest option. "Age when first registered here" reads "age when registered here"; the dataset
+    definition under the heading says "first registered".
+  - After an independent review: the four canon caveats above were missing from built charts; vehicle age
+    did not say "on the snapshot date"; the time range carried over only when it differed from the
+    previous chart's default; the copied link scrolled past the sentence; the panel's h3 followed the h1
+    directly; three phrases were clipped at 320px even in Chromium. All fixed and rechecked headless.
+    Only Chromium was run; Firefox and Safari were not.
+  - When the gate lifts the freeze: "of [all / new / used] vehicles" needs POST_GATE A1's pair slices;
+    counts and models need A2 (`registrations_flow`). Each is a `builder` config edit plus that data.
+- Status: decided by Claude (unreviewed)

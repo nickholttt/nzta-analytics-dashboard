@@ -21,6 +21,8 @@ Last updated by claude on 2026-10-21
   `claude/public-explore`, then `claude/explore-copy-controls` (D-042).
 - 2026-10-21: the user agreed that frozen-path work may be built on branches before the gate, kept off
   `main` until it passes (D-043, AGENTS.md rule 2).
+- 2026-10-21: the Build page, PR #21 (D-044). Share only; 13 sentences draw at 320px and 1280px.
+  An independent review found 7 issues: 6 fixed, 1 recorded in D-044.
 - Still frozen until the gate, found along the way: the `kgm-rename` mechanism, a 63-character event
   title, and the 0.29 percentile comment in `config/measures.json` (queue item 7).
 
@@ -32,24 +34,24 @@ Last updated by claude on 2026-10-21
    merged.
 3. #19 `claude/explore-copy-controls`: D-042. One row of time options per chart, plain visitor wording.
    Into `claude/public-explore`; same base change once #18 is merged.
+4. #20 `claude/pipeline-branch-rule`: D-043. AGENTS.md rule 2 lets frozen-path work be built on branches
+   before the gate. Into `claude/explore-copy-controls`.
+5. #21 `claude/sentence-builder`: D-044. The Build page `/build`, with seven decisions listed at the top
+   of the PR. Into `claude/pipeline-branch-rule`.
 
 ## Work queue (in order)
 
-1. **Build surface (the sentence builder)**, build step 5; plan first (plan mode), then PRs stacked on
-   #19. Facts checked 2026-10-21: the cube has one dataset (`registrations_surviving`) with 13 live
-   one-dimensional slices (`manifest.json` `live_dimensions`); `config/measures.json` already labels
-   measures for a sentence ("the number", "the share", "the change on a year ago", "the 12-month
-   running total"); renderers exist for mix, trend, league and distribution, not geo (region would
-   need a map asset: a new dependency and a decision record). To settle in the plan: whether counts
-   are offered on a dataset of vehicles still registered (the `brand-share` note says volume charts
-   wait for true monthly registrations; recommendation: share only until `registrations_flow` lands,
-   since a count here reads as sales); how the sentence reads with `public_copy` labels; URL state so a
-   built chart can be shared; reusing `PresetPanel` so the builder and Explore cannot drift.
-   Done when a visitor can build any chart the cube can honestly answer, at 320px and 1280px.
-2. **Small `ui/explore` fix**, stacked on the newest UI branch: the time-horizon toggle on a league chart (STATE known
-   issue 1). No live preset is a league, so check it by pointing a scratch copy of a preset at a
-   league shape, not by editing `config/presets.json` for good. Done when switching horizon on a
-   league chart keeps it a league, and mix and trend charts behave as before.
+1. **Builder PR B: league in the builder, and the league time-row fix** (STATE known issue 1), stacked
+   on #21. Add a "Last 12 months" option to the time row where the breakdown can be a league (brand,
+   manufacturer group), so "ranked over the last 12 months" draws `LeagueChart`; switching back keeps
+   mix and trend charts as before. Check the canon side with a scratch copy of a preset, not by editing
+   `config/presets.json` for good. Done when, at 320px and 1280px, a league can be built and left
+   without changing shape by accident (D-044 lists what PR A offers).
+2. **Reserved values in "All other"** (STATE known issue 6): decide whether a capped mix chart draws
+   "Not recorded" and "No reference match" as their own grey line instead of folding them into "All
+   other". It changes `brand-share` on Explore, so one PR with before and after screenshots of every mix
+   chart, and a decision record that supersedes the fold. If it lands, the builder can cap country where
+   built again.
 3. **8 November 2026 gate run.**
    - Scope: `docs/playbooks/check-monthly-run.md`. Fast-forward local `main` to `origin/main` first.
    - Done when: green/built/committed reported. If clean, the freeze lifts.
@@ -65,6 +67,9 @@ Last updated by claude on 2026-10-21
    Separately, one commit: correct `$min_share_of_trailing_median_comment` in `config/measures.json`
    to the D-033 figures (1st percentile 0.67 among months that clear 200; next-lowest after April 2020
    is 0.55). Done when the comment matches METRICS.md.
+   Separately, after A1 and A2 merge: widen the builder (D-044) with "of [all / new / used] vehicles"
+   (A1's pair slices), counts and models (A2), each a `builder` config edit, and drop the matching
+   "Not offered yet" lines.
    Separately, one commit: settle `kgm-rename`'s mechanism against EVENTS_LAYER.md (STATE known
    issue 3); the registry merge means it marks no artefact, so the doc's rename example may be the
    part to change. Same commit or the next: shorten the 63-character title (known issue 4).
@@ -77,6 +82,5 @@ None open.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md` and this file. Take queue item 1 (the builder): plan it first, then build on a
-`claude/` branch stacked on #19. If it is on or after 8 November 2026, run
-`docs/playbooks/check-monthly-run.md` first.
+/start. Read `docs/STATE.md` and this file. Take queue item 1 (league in the builder) on a `claude/` branch
+stacked on #21. If it is on or after 8 November 2026, run `docs/playbooks/check-monthly-run.md` first.

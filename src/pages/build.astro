@@ -1,0 +1,29 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SentenceBuilder from "../components/SentenceBuilder";
+import { builderOptions } from "../lib/builder";
+import manifest from "../../public/data/manifest.json";
+import type { Manifest } from "../lib/data";
+
+// What the sentence may say is decided here, at build time, against the cube as built: the same check
+// the Explore page makes before it shows a chart (D-044).
+const options = builderOptions(manifest as Manifest);
+---
+
+<Layout title="Build a chart" activeNav="build">
+  <Fragment slot="masthead">
+    <h1>Build a chart</h1>
+    <p class="standfirst">Choose the words of the sentence and the chart redraws. Every option here can be drawn from the data.</p>
+  </Fragment>
+
+  {
+    options.length > 0 ? (
+      <SentenceBuilder client:only="react" options={options} />
+    ) : (
+      <div class="callout blocked">
+        <span class="callout-label">Not available</span>
+        No chart can be built from this snapshot's data. The <a href="/">Explore page</a> lists the charts that can.
+      </div>
+    )
+  }
+</Layout>

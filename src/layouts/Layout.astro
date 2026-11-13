@@ -4,7 +4,7 @@ import manifest from "../../public/data/manifest.json";
 
 interface Props {
   title: string;
-  activeNav?: "explore" | "method" | "caveats";
+  activeNav?: "explore" | "build" | "method" | "caveats";
   // Internal pages (D-028) stay out of search engines and out of the main navigation.
   noindex?: boolean;
 }
@@ -35,6 +35,13 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
               style={`text-decoration: none; font-weight: ${activeNav === "explore" ? "600" : "400"}; border-bottom: ${activeNav === "explore" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "explore" ? "var(--ink)" : "var(--ink-2)"};`}
             >
               Explore
+            </a>
+            <a
+              href="/build"
+              class="meta"
+              style={`text-decoration: none; font-weight: ${activeNav === "build" ? "600" : "400"}; border-bottom: ${activeNav === "build" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "build" ? "var(--ink)" : "var(--ink-2)"};`}
+            >
+              Build a chart
             </a>
             <a
               href="/method"
