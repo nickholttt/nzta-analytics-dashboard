@@ -1853,3 +1853,54 @@ New entries use this template:
   - The release's tag and the file's name are chosen when D-063 is built.
   - Reversing it: delete the secret and the token. Renaming anything is a one-line change before D-063 merges.
 - Status: decided by Claude (unreviewed)
+
+## D-068 2026-11-13 — What claude may do without asking again: merge the pipeline stack and D-064 and D-063 under a reviewer, one forced run, the archive repository; and the user's three answers
+- Agent: user, in the first message of the session that followed `docs/brief/STAGE_1_REPORT.md`. Recorded by claude.
+- Basis: this session, the user's message. The backup was checked by claude (below).
+- Context: the Stage 1 report left three questions (CHECKPOINT questions 1 to 3) and twenty open pull requests, every
+  merge the user's. The user does not follow the technical detail and asked claude to do as much as it can, with
+  anything left to the user given one small step at a time.
+- Options considered:
+  1. The user merges every pull request by hand (the rule until now: AGENTS.md's `main` line and hard rules 2 and 7;
+     the brief's §9, "The user merges; the lead never merges"). Not kept: the user cannot judge the diffs, so the
+     merges would wait on a review the user cannot give.
+  2. claude merges on its own judgement. Not chosen by the user.
+  3. claude merges only when the pull request's checks are green and a reviewer sub-agent that has not seen claude's
+     reasoning agrees, stopping at the first problem. Chosen by the user.
+- Decision:
+  - **The user's answers.**
+    1. The raw pulls' backup is `F:\nzta-data-backup`. claude checks both pulls are there and complete and copies
+       anything missing. Checked on 2026-11-13: 373 files (186 for 2026-08, 187 for 2026-10), 524,915,027 bytes,
+       every file's SHA-256 equal to the original's; nothing was missing. It is on the same physical disk as the
+       project, so it is a second copy, not yet a backup.
+    2. Secrets: 3a, for the archive and for Cloudflare. Each lives in an environment that only `main` can use.
+    3. Yes: claude pulls November by hand, as it did October, if the archive is not on `main` when NZTA refreshes.
+  - **What claude may now do without asking again.**
+    1. Merge the pipeline stack (#26, #27, #28, #29, #35) into `main`, in order, each as a merge commit, only if
+       its checks are green and a reviewer sub-agent that has not seen claude's reasoning agrees. Stop at the first
+       problem.
+    2. Then, if claude and the reviewer judge it safe, dispatch one forced run on `main`, to run the new code and
+       the release step against October while NZTA still holds it; check it and report the result.
+    3. Create the private repository `nzta-register-archive` and the environment `archive`, limited to `main`.
+    4. Build D-064, then D-063, open their pull requests, and merge them into `main` under the rule in 1.
+    5. The site stack: send the user screenshots of the main screens, at phone and desktop width, from the top of
+       the stack. When the user says go, merge #17 to #34 into `ui/explore`, in order, from the command line.
+       `ui/explore` is not merged into `main` without asking first.
+  - **What only the user does**, walked through one step at a time, each waiting for "done": creating the archive
+    token and putting it where it is needed (it is never pasted into a chat); exporting October from NZTA's
+    registrations dashboard before 1 December.
+  - **Never without asking:** anything that cannot be undone, anything that makes the site public, anything that
+    costs money, any change to the invariants or the chart shapes.
+- Consequences:
+  - This changes AGENTS.md's `main` line and hard rules 2 and 7, with the user's approval in the message itself, and
+    the brief's §9 line; all are amended in the same commit as this entry.
+  - It is not a general licence. It names five pull requests, two decisions to build, one run, one repository and
+    one environment. Any other merge into `main`, any second forced run and `ui/explore` into `main` are still
+    asked for.
+  - A merge can be reverted; the bot's commit from a forced run can be reverted; a release can be deleted. A deleted
+    branch is restored from its pull request's page.
+  - The Cloudflare secrets go in an environment limited to `main`, so `deploy.yml`'s upload job must name that
+    environment before the first deploy. `deploy.yml` (#35) reads them as repository secrets today; that is changed
+    before the deploy step of Stage 1, not in #35.
+  - Reversing it: the user says so; the three AGENTS.md lines and the brief's line go back to "the user merges".
+- Status: accepted, decided by user

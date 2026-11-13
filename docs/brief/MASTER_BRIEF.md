@@ -331,7 +331,8 @@ jobs, each labelled for what it is and never mixed on one chart. A fourth is bei
 ## 9. The plan
 
 Six stages. Each ends in a stop-and-report (AGENTS.md hard rule 8). Frozen-path work follows D-043
-until the gate passes. The user merges; the lead never merges.
+until the gate passes. The user merges; the lead merges only what D-068 names, and only when the
+checks are green and a reviewer that has not seen the lead's reasoning agrees.
 
 ### Stage 0: land and protect (closed 2026-11-13; kept for the record)
 

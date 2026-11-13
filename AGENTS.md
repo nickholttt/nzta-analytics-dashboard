@@ -57,7 +57,8 @@ Setup, **not re-run this session** (the environment already existed):
 
 ## Branches in this repo
 
-- `main`: what the monthly Action runs and commits to. Only the user merges into it.
+- `main`: what the monthly Action runs and commits to. The user merges into it, and claude does
+  only where D-068 names the pull request (hard rule 7).
 - `ui/explore`: the user's UI branch (it predates the `claude/`/`gemini/` naming rule). Its boundary
   is in D-020.
 - New agent work: `claude/<topic>` or `gemini/<topic>`, branched from the branch the work belongs on.
@@ -105,7 +106,7 @@ Setup, **not re-run this session** (the environment already existed):
    `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
    `docs/CUBE_SCHEMA.md`. Work on them no longer waits for a date. It still reaches `main` only
    through a `claude/`/`gemini/` branch, cut from `main` or stacked on an open pipeline pull
-   request, and a pull request the user merges (rule 7). Tests and
+   request, and a pull request merged as rule 7 allows. Tests and
    `pipeline build <saved pull> --dry-run` may run locally; `pipeline run` and `init-schema` are
    still not run locally (§Commands), and a golden change still follows rule 4.
 3. **Never hand-edit `data/snapshots/` or `data/state/`.** Only the monthly Action writes them.
@@ -116,8 +117,14 @@ Setup, **not re-run this session** (the environment already existed):
    Every commit must build, not just the branch tip.
 6. **Resolve field meanings empirically** against the data before rewriting a doc. Surface counts
    for edge cases; never silently bucket.
-7. **Don't push to `main`** without asking in that session. An agent may push its own branches
-   (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19). GitHub API access
+7. **Don't push to `main` or merge into it** without asking in that session. An agent may push its
+   own branches (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19).
+   Exception (user, 2026-11-13, D-068): claude may merge into `main`, as merge commits and in
+   order, the pipeline stack (#26, #27, #28, #29, #35) and the pull requests that build D-064 and
+   D-063, each only when its checks are green and a reviewer sub-agent that has not seen claude's
+   reasoning agrees, stopping at the first problem; and may dispatch one forced Monthly build on
+   `main` after the stack. On the user's "go", claude merges #17 to #34 into `ui/explore` from the
+   command line. `ui/explore` into `main` is still asked for. GitHub API access
    goes through `gh` only (full path above; not on the Git Bash PATH), never the Git Credential
    Manager token.
 8. **Don't build ahead of the current step.** The user works in gated steps with a stop-and-report
