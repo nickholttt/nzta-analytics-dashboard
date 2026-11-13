@@ -2065,3 +2065,39 @@ New entries use this template:
   - Merging #39 into `main` is not among the merges D-068 and D-069 name: it is asked for.
   - Reversing it: restore the single job; delete the environment.
 - Status: decided by Claude (unreviewed)
+
+## D-073 2026-11-13 — The user's word on the merges: #37, #38 and #39 into `main`, the site stack into `ui/explore`; and the first archive run
+- Agent: user, in a message later in the fourth session of 2026-11-13, after Claude Code's permission check had
+  refused claude's merge of #37. Recorded by claude.
+- Basis: this session, the user's message; the merges, the run and its log were read with `gh` and `git fetch`.
+- Context: #37, #38 and #39 were built and reviewed and nothing was merged (CHECKPOINT as it stood). The user had the
+  screenshots of the site stack.
+- Decision, in the user's words where short:
+  1. "Merge 37 now." Merged as `693ecf3`.
+  2. Merge #38 only once its independent reviewer agrees; if not, fix it and get a second review first. The
+     reviewer agreed to `3ba6e01`, with follow-ups. claude added the first two before merging (the job refuses a
+     repository that is not private; a half-uploaded file is not an archive), the same reviewer agreed to
+     `aa7db27`, the check was run again against `main` with #39 in it, and it merged as `d50bfc6`.
+  3. "Yes: merge 39 under the same rule." Its reviewer had agreed; merged as `b507d53`.
+  4. "Site stack: go." #17 to #25 and #30 to #34 merged into `ui/explore`, in order, each as a merge commit, each
+     pointed at `ui/explore` first so it carried only its own change. No conflict. `ui/explore` is `a3ec1f3`, the same
+     tree as the top of the stack. `ui/explore` is not merged into `main` without asking first.
+  5. Fix the stale words on `/method` and `/caveats` and the phone ranking table on top, before anything is public
+     (D-074).
+  6. Once #38 is on `main`, start the archive-only run for October and report. **Run 43382023139: the build job
+     skipped as it should; the archive job failed at its first step**, before pulling anything: "the token in
+     ARCHIVE_REPO_TOKEN cannot reach nickholttt/nzta-register-archive". GitHub answered 404, not 401: the token is
+     valid and cannot see the repository. The likeliest cause is that the repository was not selected when the
+     token was made; a fine-grained token's repositories can be edited without making a new one. Nothing was
+     uploaded.
+  7. Then the walk-through of NZTA's dashboard export, one step at a time.
+- Consequences:
+  - `main` is `d50bfc6`: the daily run, the build-once rule, the missed-month alarm, the archive job and the
+    two-job deploy are live. The first scheduled daily run is 14 November 2026, 06:17 UTC.
+  - The merged branches are deleted here and on GitHub: the three pipeline branches and the fourteen of the site
+    stack. Each can be restored from its pull request's page.
+  - October's whole snapshot is not archived until the token can see the repository and the run is started again
+    with `archive` ticked. NZTA holds October until its December refresh; the hand pull is the fallback
+    (`pipeline archive --from-pull`).
+  - Reversing a merge: `git revert -m 1 <merge commit>` on a branch and a pull request, on the user's word.
+- Status: accepted, decided by user
