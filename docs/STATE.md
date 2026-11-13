@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-13
+Last updated by claude on 2026-11-14
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is in
 `docs/CHECKPOINT.md`. The direction and order of work are in `docs/brief/MASTER_BRIEF.md` (D-062).
@@ -33,30 +33,29 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 ## Current step
 
-**Stage 1 of the master brief.** `ui/explore` holds the site (the site stack, #40, the question
-builder #43, the preset corrections #44) and these notes. `main` holds the pipeline with the fact
-table. Next is the deploy, each step asked for, starting with `ui/explore` into `main`: #45
-joins the two in `ui/explore` first (CHECKPOINT). The dashboard test export starts when the user
-says they are ready.
+**Stage 1 of the master brief.** `ui/explore` holds the site, these notes and, since #45, all of
+`main`. `main` holds the pipeline with the fact table. Next is the deploy, each step asked for:
+**#46, `ui/explore` into `main`, is open and waits for "merge 46"**; then a forced run of
+October, on the user's yes (CHECKPOINT). Nothing becomes public without asking (user, 2026-11-14).
+The dashboard test export starts when the user says "ready".
 
 ## In progress (nothing by gemini)
 
-- `claude/explore-meets-main` (claude, #45 into `ui/explore`, this folder): `main` merged into
-  `ui/explore`, two conflicts resolved, and README, POST_GATE and AGENTS.md's command table
-  brought up to date. Pushed; waits for "merge 45". This folder's `public/data` holds the
-  2026-10 dry run with the fact table.
-- `../nzta-screens`: a detached checkout of `ui/explore` at `85b7dd6` with `node_modules` and the
-  2026-10 dry run in `public/data`, kept from earlier screenshots; it can be removed.
-- `../nzta-presets` is an empty folder Windows will not delete ("resource busy"). Delete it by hand.
+- `claude/explore-in-main-notes` (claude, this folder), cut from `ui/explore`: these notes.
+  Pushed, with no pull request yet: it is opened into `main` once #46 is merged, and then also
+  carries the corrections that merge makes due (CHECKPOINT queue 3). This folder's `public/data`
+  holds the 2026-10 dry run with the fact table.
+- `../nzta-screens`: a detached checkout of `ui/explore` at `85b7dd6`, kept from earlier
+  screenshots; it can be removed. `../nzta-presets` is an empty folder Windows will not delete.
 
-## Branches and pull requests (checked 2026-11-13)
+## Branches and pull requests (checked 2026-11-14)
 
 - `main`: origin `f78e3e1`; local matches.
-- `ui/explore`: origin is the merge of #36 (`git rev-parse origin/ui/explore`). The local branch of
+- `ui/explore`: origin `50caa55`, the merge of #45; it contains `main`. The local branch of
   that name is far behind; use `origin/ui/explore`.
-- **1 open pull request: #45** `claude/explore-meets-main` into `ui/explore`: `Checks` green,
-  reviewer agreed. Merged on 2026-11-13 and deleted here and on GitHub: `claude/fact-table` (#41),
-  `claude/archive-vin11-postcode` (#42), `claude/next-stage-brief` (#36); and `claude/look-and-feel`.
+- **1 open pull request: #46** `ui/explore` into `main`: no conflict, `Checks` green
+  (run 43414898655), reviewer agreed with follow-ups, none blocking. Waits for "merge 46".
+- Merged on 2026-11-14 on the user's word, and deleted: `claude/explore-meets-main` (#45).
 
 ## Raw pulls on this computer (gitignored)
 
@@ -79,45 +78,46 @@ says they are ready.
 2. "Area Outside Region" (Stats NZ's name for the Chatham Islands) reaches visitors as is.
 3. On a filtered powertrain chart the mild hybrid coverage note states the whole dataset's
    coverage, not the filtered vehicles'.
-4. On `ui/explore` alone `powertrain-mix` draws without its light-passenger filter, with a
-   warning (no `segment_group` there). #45 brings it.
-5. `ui/explore` into `main` conflicts in `README.md` and `docs/DATA_SOURCES.md` until #45 merges.
-6. On `main` until `ui/explore` merges: `METRICS.md` has the old representativeness-guard
+4. **The released cube, `cube-2026-10`, has no fact table.** On the public build made from it
+   (headless, 390 and 1280 px, 2026-11-14) Explore and Build's default question draw; Build offers
+   no control for which vehicles to count, and a link with a condition shows "This view can't be
+   drawn from the data yet". A forced run of October or December's refresh ends this.
+5. On `main` until #46 merges: `METRICS.md` has the old representativeness-guard
    figures; `config/measures.json`'s comment has D-033's; no decision file, AGENTS.md or STATE.
-7. The public build still ships the status page's script chunk, unlinked and holding no data.
-8. **Half of the fact table's rows still count one vehicle** (50.2% of rows, 7.1% of vehicles, on
+6. The public build still ships the status page's script chunk, unlinked and holding no data.
+7. **Half of the fact table's rows still count one vehicle** (50.2% of rows, 7.1% of vehicles, on
    the 2026-10 dry run). No column describes the owner any more; whether a minimum count is
    wanted anyway is for the Stage 2 privacy review, with the `region` slice's small cells.
-9. `/method` and `/caveats` state figures by hand, recomputed for October (#40); they fall a
+8. `/method` and `/caveats` state figures by hand, recomputed for October (#40); they fall a
    month behind at each refresh until the narrative engine (D-062).
-10. Seen in the screenshots and not fixed: the map's legend label "0%" hangs outside the chart
+9. Seen in the screenshots and not fixed: the map's legend label "0%" hangs outside the chart
     box; "Is the market getting more crowded?" shows a dense grey band before 1970; no dark theme;
     a link's condition on a field Build cannot apply is named by its id ("region"), not its label.
-11. The question builder's open follow-ups are on #43; the fact table's and the other reviewers'
+10. The question builder's open follow-ups are on #43; the fact table's and the other reviewers'
     are in CHECKPOINT.
 
 ## Where docs and code disagree (noted, not changed)
 
-- Until #45 merges, `ui/explore` still has: the freeze in `README.md` and `POST_GATE.md`; a
-  dry-run command in AGENTS.md that names the 2026-08 pull, which now stops with exit 2; and no
-  register archive or fact table in `docs/DATA_SOURCES.md` and `docs/CUBE_SCHEMA.md`.
-- **Events are scoped without regard to a preset's filter** (`src/lib/events.ts`), and with #45
+- **Events are scoped without regard to a preset's filter** (`src/lib/events.ts`), and
   `powertrain-mix` applies one: its markers are chosen as if it counted every vehicle.
   `docs/EVENTS_LAYER.md` now says so; the code is not changed.
-- `docs/CUBE_SCHEMA.md` says `src/lib/data.ts` is "not yet on `main`": true until `ui/explore`
-  merges into `main`; correct it with that merge.
+- `docs/CUBE_SCHEMA.md` says `src/lib/data.ts` is "not yet on `main`", and `deploy.yml`'s
+  comments speak of "before ui/explore reaches main": true until #46 merges; corrected after it.
 - AGENTS.md hard rule 7 still lists the merges D-068 allowed (all are done), and rule 8's exception
-  still reads "until the 8 November 2026 gate passes" (it has; deploying is Stage 1, on the user's word).
+  still reads "until the 8 November 2026 gate passes" (it has). The user sees the old and new
+  text and says yes before either is reworded (user, 2026-11-14); the proposal is in CHECKPOINT.
 - `main`'s own CLAUDE.md still says "monthly cron" and has the old non-goal; `ui/explore`'s is
   current (D-076).
+- CLAUDE.md says "a test checks" that each sub-agent definition names its model: there is no such
+  test and no `.claude/agents/` yet (#46's reviewer; checked).
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
 - D-061 stopped chosen values being ranked and D-062 allows it: the code follows D-061.
 
 ## Blocked or waiting on the user
 
-- **"merge 45"**, then **`ui/explore` into `main`**; a forced run; anything public: asked first
-  (CHECKPOINT).
-- **The dashboard test export**: the user starts it and says "ready".
+- **"merge 46"** (`ui/explore` into `main`); **a yes to the new text of hard rules 7 and 8**;
+  **a yes to the forced run of October**, which replaces the public release's file (CHECKPOINT).
+- **The dashboard test export**: the user starts it and says "ready" (user, 2026-11-14).
 - Also waiting: visitor tests; the brief's §12; two NZTA pages an automated reader cannot open.
 
 ## How to run
@@ -128,6 +128,7 @@ last commits, and the three test files they touch, 67 passed, after; `python -m 
 <the 2026-10 pull> --dry-run`, exit 0 in 11 min 3 s. `astro build` (7 pages) on `ui/explore` in
 `../nzta-screens`. On `claude/explore-meets-main`: the pipeline tests, 100 passed in 520 s; `tsc --noEmit`
 exit 0; `astro build`, 7 pages; headless at 390 and 1280 px, every page and five Build questions.
+On 2026-11-14, `ui/explore`'s tree, built as `Deploy` does against `cube-2026-10`: exit 0, 5 pages.
 
 - `python -m pipeline archive --snapshot YYYY-MM` pulls NZTA's live register (about 186 requests)
   and writes nothing committed. It refuses unless the register still is the built month.
