@@ -162,14 +162,33 @@ NZTA refreshes. So after a month is built, a second job
 register again and keeps it as one Parquet file, one row per vehicle:
 
 - **Fields:** every field of `pipeline/expected_schema.json` except those
-  in `register_archive.never_pulled` in `config/pipeline.json`: `VIN11`,
-  `CHASSIS7`, `ENGINE_NUMBER` and `POSTCODE`, which are never asked for.
-  The row id is pulled for paging and left out of the file. Values are as
-  NZTA records them; nothing is normalised. The 2026-10 snapshot is
-  5,926,990 rows at 35 fields in 39.3 MB (measured from a saved pull).
+  in `register_archive.never_pulled` in `config/pipeline.json`:
+  `CHASSIS7` and `ENGINE_NUMBER`, which are never asked for. The row id is
+  pulled for paging and left out of the file. Values are as NZTA records
+  them; nothing is normalised.
+- **`VIN11` and `POSTCODE` are kept here and nowhere else** (D-076). The
+  build's own pull does not take them, so neither reaches the cube, the
+  committed aggregate or any published file. `VIN11` itself is never
+  published; what is derived from it may be, once it has been checked
+  against the data. Postcode figures wait for the privacy review, and
+  then only as area totals above a minimum count. NZTA records the
+  postcode as a number, so one that starts with zero arrives without it:
+  in the 2026-10 file 152 postcodes, holding 885,064 vehicles, are below
+  1000.
+- **A pull saved by hand** can be written to the same file with
+  `pipeline archive --from-pull`, but only if it took every archive
+  field. The pulls saved before D-076 did not take `VIN11` or `POSTCODE`
+  and are refused.
+- **October 2026 has two files**, because a month's file is never
+  replaced: `mvr-2026-10.parquet` at 35 fields, written before D-076, and
+  `mvr-2026-10-vin11-postcode.parquet`, the same register at 37 fields
+  (5,926,990 rows, 55,125,916 bytes, pulled and uploaded by hand on
+  2026-11-13). The two do not line up row for row: neither keeps a row
+  id. Later months have one file at 37 fields.
 - **Where:** a release `snapshot-YYYY-MM` holding `mvr-YYYY-MM.parquet`
   in a **private** repository, `nzta-register-archive`. The file holds
-  vehicle rows with their owner's district, so it is never published,
+  vehicle rows with their owner's district and postcode and the first 11
+  characters of the VIN, so it is never published,
   never committed here and never uploaded as an artifact of this public
   repository.
 - **Only the register that was built.** The job goes ahead only while the
