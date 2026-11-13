@@ -276,10 +276,12 @@ few rows dated after the register's own month never become a snapshot.
 First registrations dated after the snapshot are counted, excluded and
 warned about.
 
-One case is not caught: a register that held a substantial part of the
-following month (1% of a normal month or more) and was then edited again
-after that month ended would be built as that month. No snapshot seen so
-far holds any row dated after its month.
+One case is not caught: a register that holds a substantial part of the
+following month (1% of a normal month or more) and is edited again at any
+time after its own month was built. Once the cap passes that following
+month, the next run builds it as that month, and the real refresh is then
+refused as a rebuild. None of the three snapshots built so far holds any
+row dated after its month (`data/snapshots/`).
 
 **Change key.** No file exists to hash, so the key is the composite of the
 total row count, the snapshot date, and the sha256 of one canonical
