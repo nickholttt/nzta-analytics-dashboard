@@ -1,0 +1,17 @@
+---
+// Built to 404.html at the site's root. Cloudflare Pages serves it, with a 404 status, for any address the site does
+// not have; without it Pages treats the site as a single-page app and answers every unknown address with Explore and
+// a 200, including the internal pages a public build leaves out (D-057).
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Page not found" noindex>
+  <Fragment slot="masthead">
+    <h1>Page not found</h1>
+    <p class="standfirst">There is no page at this address. It may have been mistyped, or the page may have moved.</p>
+  </Fragment>
+
+  <article class="prose">
+    <p>The charts are on <a href="/">Explore</a>, and you can draw one of your own on <a href="/build">Build a chart</a>.</p>
+  </article>
+</Layout>

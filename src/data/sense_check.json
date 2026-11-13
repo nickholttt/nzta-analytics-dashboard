@@ -1,0 +1,8497 @@
+{
+ "extracted": "2026-09-13",
+ "source_rows": 5905376,
+ "sections": [
+  {
+   "id": "fleet-totals",
+   "title": "Register totals by body type",
+   "definition": "Vehicles on the register in the extracted pull, all years.",
+   "columns": [
+    {
+     "key": "label",
+     "label": "Measure",
+     "kind": "text"
+    },
+    {
+     "key": "n",
+     "label": "Vehicles",
+     "kind": "count"
+    }
+   ],
+   "rows": [
+    {
+     "label": "total vehicles",
+     "n": 5905376
+    },
+    {
+     "label": "body suv count",
+     "n": 0
+    },
+    {
+     "label": "station wagons total",
+     "n": 1697835
+    },
+    {
+     "label": "utilities total",
+     "n": 571332
+    },
+    {
+     "label": "hatchbacks total",
+     "n": 1227456
+    },
+    {
+     "label": "saloons total",
+     "n": 624168
+    }
+   ]
+  },
+  {
+   "id": "body-type-by-model",
+   "title": "How NZTA records the body type of 35 common models",
+   "definition": "Each model's vehicles on the register, split by NZTA body type.",
+   "columns": [
+    {
+     "key": "model",
+     "label": "Model",
+     "kind": "text"
+    },
+    {
+     "key": "total",
+     "label": "On register",
+     "kind": "count"
+    },
+    {
+     "key": "body",
+     "label": "NZTA body type",
+     "kind": "text"
+    },
+    {
+     "key": "count",
+     "label": "Vehicles",
+     "kind": "count"
+    },
+    {
+     "key": "share",
+     "label": "% of model",
+     "kind": "pct"
+    }
+   ],
+   "rows": [
+    {
+     "model": "TOYOTA COROLLA",
+     "total": 173605,
+     "body": "HATCHBACK",
+     "count": 101258,
+     "share": 58.3
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "total": 173605,
+     "body": "STATION WAGON",
+     "count": 47063,
+     "share": 27.1
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "total": 173605,
+     "body": "SALOON",
+     "count": 24223,
+     "share": 14.0
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "total": 173605,
+     "body": "SPORTS CAR",
+     "count": 817,
+     "share": 0.5
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "total": 173605,
+     "body": "LIGHT VAN",
+     "count": 237,
+     "share": 0.1
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "total": 173605,
+     "body": "OTHER TRUCK",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "total": 173605,
+     "body": "MOBILE MACHINE",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "total": 173605,
+     "body": "CONVERTIBLE",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "total": 164966,
+     "body": "UTILITY",
+     "count": 134776,
+     "share": 81.7
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "total": 164966,
+     "body": "STATION WAGON",
+     "count": 13914,
+     "share": 8.4
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "total": 164966,
+     "body": "CAB AND CHASSIS ONLY",
+     "count": 11611,
+     "share": 7.0
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "total": 164966,
+     "body": "FLAT-DECK TRUCK",
+     "count": 2281,
+     "share": 1.4
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "total": 164966,
+     "body": "OTHER TRUCK",
+     "count": 1880,
+     "share": 1.1
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "total": 164966,
+     "body": "LIGHT VAN",
+     "count": 296,
+     "share": 0.2
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "total": 164966,
+     "body": "SELF PROPELLED CARAVAN",
+     "count": 151,
+     "share": 0.1
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "total": 164966,
+     "body": "SALOON",
+     "count": 23,
+     "share": 0.0
+    },
+    {
+     "model": "FORD RANGER",
+     "total": 133823,
+     "body": "UTILITY",
+     "count": 132832,
+     "share": 99.3
+    },
+    {
+     "model": "FORD RANGER",
+     "total": 133823,
+     "body": "CAB AND CHASSIS ONLY",
+     "count": 635,
+     "share": 0.5
+    },
+    {
+     "model": "FORD RANGER",
+     "total": 133823,
+     "body": "SELF PROPELLED CARAVAN",
+     "count": 286,
+     "share": 0.2
+    },
+    {
+     "model": "FORD RANGER",
+     "total": 133823,
+     "body": "FLAT-DECK TRUCK",
+     "count": 25,
+     "share": 0.0
+    },
+    {
+     "model": "FORD RANGER",
+     "total": 133823,
+     "body": "LIGHT VAN",
+     "count": 24,
+     "share": 0.0
+    },
+    {
+     "model": "FORD RANGER",
+     "total": 133823,
+     "body": "STATION WAGON",
+     "count": 9,
+     "share": 0.0
+    },
+    {
+     "model": "FORD RANGER",
+     "total": 133823,
+     "body": "DOMESTIC TRAILER",
+     "count": 6,
+     "share": 0.0
+    },
+    {
+     "model": "FORD RANGER",
+     "total": 133823,
+     "body": "OTHER TRUCK",
+     "count": 4,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "total": 111119,
+     "body": "STATION WAGON",
+     "count": 109846,
+     "share": 98.9
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "total": 111119,
+     "body": "HATCHBACK",
+     "count": 1141,
+     "share": 1.0
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "total": 111119,
+     "body": "SALOON",
+     "count": 76,
+     "share": 0.1
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "total": 111119,
+     "body": "LIGHT VAN",
+     "count": 35,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "total": 111119,
+     "body": "CONVERTIBLE",
+     "count": 17,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "total": 111119,
+     "body": "MOTORCYCLE",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "total": 111119,
+     "body": "SPORTS CAR",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "total": 111119,
+     "body": "UTILITY",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "total": 102553,
+     "body": "HATCHBACK",
+     "count": 102088,
+     "share": 99.5
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "total": 102553,
+     "body": "STATION WAGON",
+     "count": 331,
+     "share": 0.3
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "total": 102553,
+     "body": "SALOON",
+     "count": 123,
+     "share": 0.1
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "total": 102553,
+     "body": "LIGHT VAN",
+     "count": 9,
+     "share": 0.0
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "total": 102553,
+     "body": "SPORTS CAR",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "total": 102553,
+     "body": "OTHER TRUCK",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "total": 99959,
+     "body": "LIGHT VAN",
+     "count": 76877,
+     "share": 76.9
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "total": 99959,
+     "body": "MINIBUS",
+     "count": 17253,
+     "share": 17.3
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "total": 99959,
+     "body": "SELF PROPELLED CARAVAN",
+     "count": 3055,
+     "share": 3.1
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "total": 99959,
+     "body": "STATION WAGON",
+     "count": 1693,
+     "share": 1.7
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "total": 99959,
+     "body": "HEAVY VAN",
+     "count": 505,
+     "share": 0.5
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "total": 99959,
+     "body": "FLAT-DECK TRUCK",
+     "count": 309,
+     "share": 0.3
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "total": 99959,
+     "body": "OTHER TRUCK",
+     "count": 165,
+     "share": 0.2
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "total": 99959,
+     "body": "UTILITY",
+     "count": 69,
+     "share": 0.1
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "total": 79496,
+     "body": "STATION WAGON",
+     "count": 79272,
+     "share": 99.7
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "total": 79496,
+     "body": "HATCHBACK",
+     "count": 200,
+     "share": 0.3
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "total": 79496,
+     "body": "SALOON",
+     "count": 16,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "total": 79496,
+     "body": "LIGHT VAN",
+     "count": 5,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "total": 79496,
+     "body": "MOTORCYCLE",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA AQUA",
+     "total": 69518,
+     "body": "HATCHBACK",
+     "count": 69399,
+     "share": 99.8
+    },
+    {
+     "model": "TOYOTA AQUA",
+     "total": 69518,
+     "body": "STATION WAGON",
+     "count": 64,
+     "share": 0.1
+    },
+    {
+     "model": "TOYOTA AQUA",
+     "total": 69518,
+     "body": "SALOON",
+     "count": 53,
+     "share": 0.1
+    },
+    {
+     "model": "TOYOTA AQUA",
+     "total": 69518,
+     "body": "SELF PROPELLED CARAVAN",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA AQUA",
+     "total": 69518,
+     "body": "OTHER TRUCK",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA AXELA",
+     "total": 67087,
+     "body": "HATCHBACK",
+     "count": 47421,
+     "share": 70.7
+    },
+    {
+     "model": "MAZDA AXELA",
+     "total": 67087,
+     "body": "SALOON",
+     "count": 14169,
+     "share": 21.1
+    },
+    {
+     "model": "MAZDA AXELA",
+     "total": 67087,
+     "body": "STATION WAGON",
+     "count": 5478,
+     "share": 8.2
+    },
+    {
+     "model": "MAZDA AXELA",
+     "total": 67087,
+     "body": "SPORTS CAR",
+     "count": 17,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA AXELA",
+     "total": 67087,
+     "body": "UTILITY",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA AXELA",
+     "total": 67087,
+     "body": "LIGHT VAN",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "total": 61334,
+     "body": "SALOON",
+     "count": 48306,
+     "share": 78.8
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "total": 61334,
+     "body": "STATION WAGON",
+     "count": 10983,
+     "share": 17.9
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "total": 61334,
+     "body": "UTILITY",
+     "count": 1997,
+     "share": 3.3
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "total": 61334,
+     "body": "LIGHT VAN",
+     "count": 30,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "total": 61334,
+     "body": "OTHER TRUCK",
+     "count": 7,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "total": 61334,
+     "body": "HATCHBACK",
+     "count": 4,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "total": 61334,
+     "body": "SPORTS CAR",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "total": 61334,
+     "body": "SELF PROPELLED CARAVAN",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "total": 61241,
+     "body": "STATION WAGON",
+     "count": 51559,
+     "share": 84.2
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "total": 61241,
+     "body": "CAB AND CHASSIS ONLY",
+     "count": 4258,
+     "share": 7.0
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "total": 61241,
+     "body": "UTILITY",
+     "count": 2762,
+     "share": 4.5
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "total": 61241,
+     "body": "OTHER TRUCK",
+     "count": 1061,
+     "share": 1.7
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "total": 61241,
+     "body": "FLAT-DECK TRUCK",
+     "count": 639,
+     "share": 1.0
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "total": 61241,
+     "body": "LIGHT VAN",
+     "count": 552,
+     "share": 0.9
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "total": 61241,
+     "body": "MINIBUS",
+     "count": 166,
+     "share": 0.3
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "total": 61241,
+     "body": "HEAVY VAN",
+     "count": 85,
+     "share": 0.1
+    },
+    {
+     "model": "TOYOTA PRIUS",
+     "total": 59987,
+     "body": "HATCHBACK",
+     "count": 45532,
+     "share": 75.9
+    },
+    {
+     "model": "TOYOTA PRIUS",
+     "total": 59987,
+     "body": "STATION WAGON",
+     "count": 12370,
+     "share": 20.6
+    },
+    {
+     "model": "TOYOTA PRIUS",
+     "total": 59987,
+     "body": "SALOON",
+     "count": 2082,
+     "share": 3.5
+    },
+    {
+     "model": "TOYOTA PRIUS",
+     "total": 59987,
+     "body": "LIGHT VAN",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "total": 57352,
+     "body": "UTILITY",
+     "count": 53171,
+     "share": 92.7
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "total": 57352,
+     "body": "CAB AND CHASSIS ONLY",
+     "count": 3440,
+     "share": 6.0
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "total": 57352,
+     "body": "FLAT-DECK TRUCK",
+     "count": 449,
+     "share": 0.8
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "total": 57352,
+     "body": "OTHER TRUCK",
+     "count": 186,
+     "share": 0.3
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "total": 57352,
+     "body": "STATION WAGON",
+     "count": 57,
+     "share": 0.1
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "total": 57352,
+     "body": "LIGHT VAN",
+     "count": 40,
+     "share": 0.1
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "total": 57352,
+     "body": "SELF PROPELLED CARAVAN",
+     "count": 4,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "total": 57352,
+     "body": "SALOON",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "total": 57011,
+     "body": "UTILITY",
+     "count": 56972,
+     "share": 99.9
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "total": 57011,
+     "body": "SELF PROPELLED CARAVAN",
+     "count": 13,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "total": 57011,
+     "body": "LIGHT VAN",
+     "count": 8,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "total": 57011,
+     "body": "STATION WAGON",
+     "count": 8,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "total": 57011,
+     "body": "FLAT-DECK TRUCK",
+     "count": 8,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "total": 57011,
+     "body": "MOBILE MACHINE",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "total": 57011,
+     "body": "OTHER TRUCK",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA CX-5",
+     "total": 50887,
+     "body": "STATION WAGON",
+     "count": 49950,
+     "share": 98.2
+    },
+    {
+     "model": "MAZDA CX-5",
+     "total": 50887,
+     "body": "HATCHBACK",
+     "count": 926,
+     "share": 1.8
+    },
+    {
+     "model": "MAZDA CX-5",
+     "total": 50887,
+     "body": "SALOON",
+     "count": 11,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA DEMIO",
+     "total": 50244,
+     "body": "HATCHBACK",
+     "count": 48666,
+     "share": 96.9
+    },
+    {
+     "model": "MAZDA DEMIO",
+     "total": 50244,
+     "body": "STATION WAGON",
+     "count": 1484,
+     "share": 3.0
+    },
+    {
+     "model": "MAZDA DEMIO",
+     "total": 50244,
+     "body": "SALOON",
+     "count": 92,
+     "share": 0.2
+    },
+    {
+     "model": "MAZDA DEMIO",
+     "total": 50244,
+     "body": "LIGHT VAN",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "total": 49371,
+     "body": "STATION WAGON",
+     "count": 49145,
+     "share": 99.5
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "total": 49371,
+     "body": "HATCHBACK",
+     "count": 216,
+     "share": 0.4
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "total": 49371,
+     "body": "SALOON",
+     "count": 6,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "total": 49371,
+     "body": "LIGHT VAN",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "total": 49371,
+     "body": "UTILITY",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "HONDA FIT",
+     "total": 47319,
+     "body": "HATCHBACK",
+     "count": 42422,
+     "share": 89.7
+    },
+    {
+     "model": "HONDA FIT",
+     "total": 47319,
+     "body": "STATION WAGON",
+     "count": 4437,
+     "share": 9.4
+    },
+    {
+     "model": "HONDA FIT",
+     "total": 47319,
+     "body": "SALOON",
+     "count": 456,
+     "share": 1.0
+    },
+    {
+     "model": "HONDA FIT",
+     "total": 47319,
+     "body": "MOTORCYCLE",
+     "count": 4,
+     "share": 0.0
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "total": 45751,
+     "body": "HATCHBACK",
+     "count": 40470,
+     "share": 88.5
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "total": 45751,
+     "body": "STATION WAGON",
+     "count": 4595,
+     "share": 10.0
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "total": 45751,
+     "body": "CONVERTIBLE",
+     "count": 476,
+     "share": 1.0
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "total": 45751,
+     "body": "SALOON",
+     "count": 192,
+     "share": 0.4
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "total": 45751,
+     "body": "SPORTS CAR",
+     "count": 10,
+     "share": 0.0
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "total": 45751,
+     "body": "UTILITY",
+     "count": 4,
+     "share": 0.0
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "total": 45751,
+     "body": "LIGHT VAN",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "total": 45751,
+     "body": "MOTORCYCLE",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "FORD FALCON",
+     "total": 43655,
+     "body": "SALOON",
+     "count": 32498,
+     "share": 74.4
+    },
+    {
+     "model": "FORD FALCON",
+     "total": 43655,
+     "body": "UTILITY",
+     "count": 7619,
+     "share": 17.5
+    },
+    {
+     "model": "FORD FALCON",
+     "total": 43655,
+     "body": "STATION WAGON",
+     "count": 3026,
+     "share": 6.9
+    },
+    {
+     "model": "FORD FALCON",
+     "total": 43655,
+     "body": "LIGHT VAN",
+     "count": 277,
+     "share": 0.6
+    },
+    {
+     "model": "FORD FALCON",
+     "total": 43655,
+     "body": "SPORTS CAR",
+     "count": 77,
+     "share": 0.2
+    },
+    {
+     "model": "FORD FALCON",
+     "total": 43655,
+     "body": "OTHER TRUCK",
+     "count": 59,
+     "share": 0.1
+    },
+    {
+     "model": "FORD FALCON",
+     "total": 43655,
+     "body": "HEAVY VAN",
+     "count": 50,
+     "share": 0.1
+    },
+    {
+     "model": "FORD FALCON",
+     "total": 43655,
+     "body": "CONVERTIBLE",
+     "count": 26,
+     "share": 0.1
+    },
+    {
+     "model": "SUBARU IMPREZA",
+     "total": 37585,
+     "body": "HATCHBACK",
+     "count": 19095,
+     "share": 50.8
+    },
+    {
+     "model": "SUBARU IMPREZA",
+     "total": 37585,
+     "body": "STATION WAGON",
+     "count": 10425,
+     "share": 27.7
+    },
+    {
+     "model": "SUBARU IMPREZA",
+     "total": 37585,
+     "body": "SALOON",
+     "count": 7946,
+     "share": 21.1
+    },
+    {
+     "model": "SUBARU IMPREZA",
+     "total": 37585,
+     "body": "SPORTS CAR",
+     "count": 117,
+     "share": 0.3
+    },
+    {
+     "model": "SUBARU IMPREZA",
+     "total": 37585,
+     "body": "UTILITY",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "SUBARU IMPREZA",
+     "total": 37585,
+     "body": "LIGHT VAN",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "total": 37211,
+     "body": "STATION WAGON",
+     "count": 28086,
+     "share": 75.5
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "total": 37211,
+     "body": "SALOON",
+     "count": 9030,
+     "share": 24.3
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "total": 37211,
+     "body": "HATCHBACK",
+     "count": 87,
+     "share": 0.2
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "total": 37211,
+     "body": "SPORTS CAR",
+     "count": 4,
+     "share": 0.0
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "total": 37211,
+     "body": "UTILITY",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "total": 37211,
+     "body": "LIGHT VAN",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI ASX",
+     "total": 36200,
+     "body": "STATION WAGON",
+     "count": 36164,
+     "share": 99.9
+    },
+    {
+     "model": "MITSUBISHI ASX",
+     "total": 36200,
+     "body": "HATCHBACK",
+     "count": 33,
+     "share": 0.1
+    },
+    {
+     "model": "MITSUBISHI ASX",
+     "total": 36200,
+     "body": "SALOON",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI ASX",
+     "total": 36200,
+     "body": "LIGHT VAN",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN TIIDA",
+     "total": 35815,
+     "body": "HATCHBACK",
+     "count": 27702,
+     "share": 77.3
+    },
+    {
+     "model": "NISSAN TIIDA",
+     "total": 35815,
+     "body": "SALOON",
+     "count": 7620,
+     "share": 21.3
+    },
+    {
+     "model": "NISSAN TIIDA",
+     "total": 35815,
+     "body": "STATION WAGON",
+     "count": 491,
+     "share": 1.4
+    },
+    {
+     "model": "NISSAN TIIDA",
+     "total": 35815,
+     "body": "MOTORCYCLE",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN TIIDA",
+     "total": 35815,
+     "body": "OTHER TRUCK",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "total": 34983,
+     "body": "HATCHBACK",
+     "count": 34051,
+     "share": 97.3
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "total": 34983,
+     "body": "SALOON",
+     "count": 795,
+     "share": 2.3
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "total": 34983,
+     "body": "STATION WAGON",
+     "count": 99,
+     "share": 0.3
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "total": 34983,
+     "body": "LIGHT VAN",
+     "count": 34,
+     "share": 0.1
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "total": 34983,
+     "body": "SPORTS CAR",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "total": 34983,
+     "body": "OTHER TRUCK",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "total": 34983,
+     "body": "UTILITY",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COLORADO",
+     "total": 33763,
+     "body": "UTILITY",
+     "count": 32522,
+     "share": 96.3
+    },
+    {
+     "model": "HOLDEN COLORADO",
+     "total": 33763,
+     "body": "STATION WAGON",
+     "count": 1221,
+     "share": 3.6
+    },
+    {
+     "model": "HOLDEN COLORADO",
+     "total": 33763,
+     "body": "SELF PROPELLED CARAVAN",
+     "count": 8,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COLORADO",
+     "total": 33763,
+     "body": "FLAT-DECK TRUCK",
+     "count": 7,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COLORADO",
+     "total": 33763,
+     "body": "LIGHT VAN",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COLORADO",
+     "total": 33763,
+     "body": "OTHER TRUCK",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COLORADO",
+     "total": 33763,
+     "body": "CAB AND CHASSIS ONLY",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "KIA SPORTAGE",
+     "total": 32968,
+     "body": "STATION WAGON",
+     "count": 32931,
+     "share": 99.9
+    },
+    {
+     "model": "KIA SPORTAGE",
+     "total": 32968,
+     "body": "HATCHBACK",
+     "count": 21,
+     "share": 0.1
+    },
+    {
+     "model": "KIA SPORTAGE",
+     "total": 32968,
+     "body": "SALOON",
+     "count": 16,
+     "share": 0.0
+    },
+    {
+     "model": "HONDA CRV",
+     "total": 32725,
+     "body": "STATION WAGON",
+     "count": 25613,
+     "share": 78.3
+    },
+    {
+     "model": "HONDA CRV",
+     "total": 32725,
+     "body": "LIGHT VAN",
+     "count": 6516,
+     "share": 19.9
+    },
+    {
+     "model": "HONDA CRV",
+     "total": 32725,
+     "body": "SALOON",
+     "count": 301,
+     "share": 0.9
+    },
+    {
+     "model": "HONDA CRV",
+     "total": 32725,
+     "body": "HATCHBACK",
+     "count": 295,
+     "share": 0.9
+    },
+    {
+     "model": "TOYOTA CAMRY",
+     "total": 32366,
+     "body": "SALOON",
+     "count": 30515,
+     "share": 94.3
+    },
+    {
+     "model": "TOYOTA CAMRY",
+     "total": 32366,
+     "body": "STATION WAGON",
+     "count": 1815,
+     "share": 5.6
+    },
+    {
+     "model": "TOYOTA CAMRY",
+     "total": 32366,
+     "body": "HATCHBACK",
+     "count": 34,
+     "share": 0.1
+    },
+    {
+     "model": "TOYOTA CAMRY",
+     "total": 32366,
+     "body": "SPORTS CAR",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA MAZDA3",
+     "total": 31882,
+     "body": "HATCHBACK",
+     "count": 26994,
+     "share": 84.7
+    },
+    {
+     "model": "MAZDA MAZDA3",
+     "total": 31882,
+     "body": "SALOON",
+     "count": 4795,
+     "share": 15.0
+    },
+    {
+     "model": "MAZDA MAZDA3",
+     "total": 31882,
+     "body": "STATION WAGON",
+     "count": 91,
+     "share": 0.3
+    },
+    {
+     "model": "MAZDA MAZDA3",
+     "total": 31882,
+     "body": "SPORTS CAR",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA MAZDA3",
+     "total": 31882,
+     "body": "LIGHT VAN",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA VITZ",
+     "total": 30701,
+     "body": "HATCHBACK",
+     "count": 30352,
+     "share": 98.9
+    },
+    {
+     "model": "TOYOTA VITZ",
+     "total": 30701,
+     "body": "STATION WAGON",
+     "count": 271,
+     "share": 0.9
+    },
+    {
+     "model": "TOYOTA VITZ",
+     "total": 30701,
+     "body": "SALOON",
+     "count": 73,
+     "share": 0.2
+    },
+    {
+     "model": "TOYOTA VITZ",
+     "total": 30701,
+     "body": "SPORTS CAR",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA VITZ",
+     "total": 30701,
+     "body": "LIGHT VAN",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA VITZ",
+     "total": 30701,
+     "body": "CONVERTIBLE",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "HONDA JAZZ",
+     "total": 29409,
+     "body": "HATCHBACK",
+     "count": 29315,
+     "share": 99.7
+    },
+    {
+     "model": "HONDA JAZZ",
+     "total": 29409,
+     "body": "STATION WAGON",
+     "count": 82,
+     "share": 0.3
+    },
+    {
+     "model": "HONDA JAZZ",
+     "total": 29409,
+     "body": "SALOON",
+     "count": 6,
+     "share": 0.0
+    },
+    {
+     "model": "HONDA JAZZ",
+     "total": 29409,
+     "body": "MOTORCYCLE",
+     "count": 4,
+     "share": 0.0
+    },
+    {
+     "model": "HONDA JAZZ",
+     "total": 29409,
+     "body": "SPORTS CAR",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "HONDA JAZZ",
+     "total": 29409,
+     "body": "LIGHT VAN",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN NOTE",
+     "total": 28665,
+     "body": "HATCHBACK",
+     "count": 27752,
+     "share": 96.8
+    },
+    {
+     "model": "NISSAN NOTE",
+     "total": 28665,
+     "body": "STATION WAGON",
+     "count": 895,
+     "share": 3.1
+    },
+    {
+     "model": "NISSAN NOTE",
+     "total": 28665,
+     "body": "SALOON",
+     "count": 17,
+     "share": 0.1
+    },
+    {
+     "model": "NISSAN NOTE",
+     "total": 28665,
+     "body": "LIGHT VAN",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA ATENZA",
+     "total": 28346,
+     "body": "STATION WAGON",
+     "count": 13671,
+     "share": 48.2
+    },
+    {
+     "model": "MAZDA ATENZA",
+     "total": 28346,
+     "body": "SALOON",
+     "count": 10865,
+     "share": 38.3
+    },
+    {
+     "model": "MAZDA ATENZA",
+     "total": 28346,
+     "body": "HATCHBACK",
+     "count": 3780,
+     "share": 13.3
+    },
+    {
+     "model": "MAZDA ATENZA",
+     "total": 28346,
+     "body": "SPORTS CAR",
+     "count": 29,
+     "share": 0.1
+    },
+    {
+     "model": "MAZDA ATENZA",
+     "total": 28346,
+     "body": "LIGHT VAN",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA HIGHLANDER",
+     "total": 28057,
+     "body": "STATION WAGON",
+     "count": 28057,
+     "share": 100.0
+    }
+   ]
+  },
+  {
+   "id": "motive-power-by-model",
+   "title": "Motive power of the same 35 models",
+   "definition": "Raw NZTA motive power, before the powertrain map.",
+   "columns": [
+    {
+     "key": "model",
+     "label": "Model",
+     "kind": "text"
+    },
+    {
+     "key": "power",
+     "label": "NZTA motive power",
+     "kind": "text"
+    },
+    {
+     "key": "count",
+     "label": "Vehicles",
+     "kind": "count"
+    },
+    {
+     "key": "share",
+     "label": "% of model",
+     "kind": "pct"
+    }
+   ],
+   "rows": [
+    {
+     "model": "TOYOTA COROLLA",
+     "power": "PETROL",
+     "count": 130407,
+     "share": 75.1
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "power": "PETROL HYBRID",
+     "count": 41983,
+     "share": 24.2
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "power": "DIESEL",
+     "count": 1163,
+     "share": 0.7
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 51,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "power": "CNG",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "power": "DIESEL",
+     "count": 140398,
+     "share": 85.1
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "power": "PETROL",
+     "count": 12759,
+     "share": 7.7
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "power": "DIESEL HYBRID",
+     "count": 11787,
+     "share": 7.1
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "power": "ELECTRIC",
+     "count": 15,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "power": "NOT RECORDED",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA HILUX",
+     "power": "LPG",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "FORD RANGER",
+     "power": "DIESEL",
+     "count": 130027,
+     "share": 97.2
+    },
+    {
+     "model": "FORD RANGER",
+     "power": "PETROL",
+     "count": 3119,
+     "share": 2.3
+    },
+    {
+     "model": "FORD RANGER",
+     "power": "PLUGIN PETROL HYBRID",
+     "count": 670,
+     "share": 0.5
+    },
+    {
+     "model": "FORD RANGER",
+     "power": "NOT RECORDED",
+     "count": 6,
+     "share": 0.0
+    },
+    {
+     "model": "FORD RANGER",
+     "power": "ELECTRIC",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "power": "PETROL",
+     "count": 61872,
+     "share": 55.7
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "power": "PETROL HYBRID",
+     "count": 46036,
+     "share": 41.4
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "power": "PLUGIN PETROL HYBRID",
+     "count": 2013,
+     "share": 1.8
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "power": "DIESEL",
+     "count": 1192,
+     "share": 1.1
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 5,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA RAV4",
+     "power": "ELECTRIC",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "power": "PETROL",
+     "count": 96214,
+     "share": 93.8
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "power": "PETROL HYBRID",
+     "count": 6181,
+     "share": 6.0
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "power": "DIESEL",
+     "count": 149,
+     "share": 0.1
+    },
+    {
+     "model": "SUZUKI SWIFT",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 9,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "power": "DIESEL",
+     "count": 66567,
+     "share": 66.6
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "power": "PETROL",
+     "count": 33384,
+     "share": 33.4
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "power": "LPG",
+     "count": 7,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA HIACE",
+     "power": "DIESEL ELECTRIC HYBRID",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "power": "PETROL",
+     "count": 62705,
+     "share": 78.9
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "power": "PLUGIN PETROL HYBRID",
+     "count": 14233,
+     "share": 17.9
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "power": "DIESEL",
+     "count": 2551,
+     "share": 3.2
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "power": "PETROL HYBRID",
+     "count": 6,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA AQUA",
+     "power": "PETROL HYBRID",
+     "count": 68542,
+     "share": 98.6
+    },
+    {
+     "model": "TOYOTA AQUA",
+     "power": "PETROL",
+     "count": 610,
+     "share": 0.9
+    },
+    {
+     "model": "TOYOTA AQUA",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 365,
+     "share": 0.5
+    },
+    {
+     "model": "TOYOTA AQUA",
+     "power": "LPG",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA AXELA",
+     "power": "PETROL",
+     "count": 62760,
+     "share": 93.6
+    },
+    {
+     "model": "MAZDA AXELA",
+     "power": "PETROL HYBRID",
+     "count": 3884,
+     "share": 5.8
+    },
+    {
+     "model": "MAZDA AXELA",
+     "power": "DIESEL",
+     "count": 395,
+     "share": 0.6
+    },
+    {
+     "model": "MAZDA AXELA",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 34,
+     "share": 0.1
+    },
+    {
+     "model": "MAZDA AXELA",
+     "power": "LPG",
+     "count": 14,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "power": "PETROL",
+     "count": 61001,
+     "share": 99.5
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "power": "DIESEL",
+     "count": 168,
+     "share": 0.3
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "power": "LPG",
+     "count": 164,
+     "share": 0.3
+    },
+    {
+     "model": "HOLDEN COMMODORE",
+     "power": "NOT RECORDED",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "power": "DIESEL",
+     "count": 49567,
+     "share": 80.9
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "power": "PETROL",
+     "count": 8517,
+     "share": 13.9
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "power": "DIESEL HYBRID",
+     "count": 3148,
+     "share": 5.1
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "power": "LPG",
+     "count": 6,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "power": "CNG",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "power": "OTHER",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA PRIUS",
+     "power": "PETROL HYBRID",
+     "count": 56608,
+     "share": 94.4
+    },
+    {
+     "model": "TOYOTA PRIUS",
+     "power": "PLUGIN PETROL HYBRID",
+     "count": 2425,
+     "share": 4.0
+    },
+    {
+     "model": "TOYOTA PRIUS",
+     "power": "PETROL",
+     "count": 584,
+     "share": 1.0
+    },
+    {
+     "model": "TOYOTA PRIUS",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 370,
+     "share": 0.6
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "power": "DIESEL",
+     "count": 54645,
+     "share": 95.3
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "power": "PETROL",
+     "count": 2706,
+     "share": 4.7
+    },
+    {
+     "model": "NISSAN NAVARA",
+     "power": "ELECTRIC",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "power": "DIESEL",
+     "count": 55964,
+     "share": 98.2
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "power": "PETROL",
+     "count": 1046,
+     "share": 1.8
+    },
+    {
+     "model": "MITSUBISHI TRITON",
+     "power": "DIESEL HYBRID",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA CX-5",
+     "power": "PETROL",
+     "count": 41540,
+     "share": 81.6
+    },
+    {
+     "model": "MAZDA CX-5",
+     "power": "DIESEL",
+     "count": 9344,
+     "share": 18.4
+    },
+    {
+     "model": "MAZDA CX-5",
+     "power": "PETROL HYBRID",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA DEMIO",
+     "power": "PETROL",
+     "count": 49786,
+     "share": 99.1
+    },
+    {
+     "model": "MAZDA DEMIO",
+     "power": "DIESEL",
+     "count": 446,
+     "share": 0.9
+    },
+    {
+     "model": "MAZDA DEMIO",
+     "power": "PETROL HYBRID",
+     "count": 11,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA DEMIO",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "power": "PETROL",
+     "count": 43855,
+     "share": 88.8
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "power": "PETROL HYBRID",
+     "count": 2284,
+     "share": 4.6
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 1959,
+     "share": 4.0
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "power": "DIESEL",
+     "count": 1273,
+     "share": 2.6
+    },
+    {
+     "model": "HONDA FIT",
+     "power": "PETROL",
+     "count": 30639,
+     "share": 64.7
+    },
+    {
+     "model": "HONDA FIT",
+     "power": "PETROL HYBRID",
+     "count": 16618,
+     "share": 35.1
+    },
+    {
+     "model": "HONDA FIT",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 62,
+     "share": 0.1
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "power": "PETROL",
+     "count": 42858,
+     "share": 93.7
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "power": "DIESEL",
+     "count": 2116,
+     "share": 4.6
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "power": "ELECTRIC",
+     "count": 390,
+     "share": 0.9
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "power": "PLUGIN PETROL HYBRID",
+     "count": 324,
+     "share": 0.7
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "power": "PETROL HYBRID",
+     "count": 62,
+     "share": 0.1
+    },
+    {
+     "model": "VOLKSWAGEN GOLF",
+     "power": "OTHER",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "FORD FALCON",
+     "power": "PETROL",
+     "count": 43169,
+     "share": 98.9
+    },
+    {
+     "model": "FORD FALCON",
+     "power": "LPG",
+     "count": 398,
+     "share": 0.9
+    },
+    {
+     "model": "FORD FALCON",
+     "power": "DIESEL",
+     "count": 82,
+     "share": 0.2
+    },
+    {
+     "model": "FORD FALCON",
+     "power": "OTHER",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "FORD FALCON",
+     "power": "NOT RECORDED",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "FORD FALCON",
+     "power": "PETROL HYBRID",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "SUBARU IMPREZA",
+     "power": "PETROL",
+     "count": 36543,
+     "share": 97.2
+    },
+    {
+     "model": "SUBARU IMPREZA",
+     "power": "PETROL HYBRID",
+     "count": 1030,
+     "share": 2.7
+    },
+    {
+     "model": "SUBARU IMPREZA",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 12,
+     "share": 0.0
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "power": "PETROL",
+     "count": 37176,
+     "share": 99.9
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "power": "DIESEL",
+     "count": 33,
+     "share": 0.1
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "power": "PETROL HYBRID",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "MITSUBISHI ASX",
+     "power": "PETROL",
+     "count": 33884,
+     "share": 93.6
+    },
+    {
+     "model": "MITSUBISHI ASX",
+     "power": "DIESEL",
+     "count": 2316,
+     "share": 6.4
+    },
+    {
+     "model": "NISSAN TIIDA",
+     "power": "PETROL",
+     "count": 35811,
+     "share": 100.0
+    },
+    {
+     "model": "NISSAN TIIDA",
+     "power": "PETROL HYBRID",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "NISSAN TIIDA",
+     "power": "LPG",
+     "count": 1,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "power": "PETROL",
+     "count": 26291,
+     "share": 75.2
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "power": "PETROL HYBRID",
+     "count": 8687,
+     "share": 24.8
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "power": "DIESEL",
+     "count": 3,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA YARIS",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "HOLDEN COLORADO",
+     "power": "DIESEL",
+     "count": 33735,
+     "share": 99.9
+    },
+    {
+     "model": "HOLDEN COLORADO",
+     "power": "PETROL",
+     "count": 28,
+     "share": 0.1
+    },
+    {
+     "model": "KIA SPORTAGE",
+     "power": "PETROL",
+     "count": 24892,
+     "share": 75.5
+    },
+    {
+     "model": "KIA SPORTAGE",
+     "power": "DIESEL",
+     "count": 4799,
+     "share": 14.6
+    },
+    {
+     "model": "KIA SPORTAGE",
+     "power": "PETROL HYBRID",
+     "count": 3277,
+     "share": 9.9
+    },
+    {
+     "model": "HONDA CRV",
+     "power": "PETROL",
+     "count": 31966,
+     "share": 97.7
+    },
+    {
+     "model": "HONDA CRV",
+     "power": "PETROL HYBRID",
+     "count": 744,
+     "share": 2.3
+    },
+    {
+     "model": "HONDA CRV",
+     "power": "DIESEL",
+     "count": 15,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA CAMRY",
+     "power": "PETROL",
+     "count": 20714,
+     "share": 64.0
+    },
+    {
+     "model": "TOYOTA CAMRY",
+     "power": "PETROL HYBRID",
+     "count": 11487,
+     "share": 35.5
+    },
+    {
+     "model": "TOYOTA CAMRY",
+     "power": "DIESEL",
+     "count": 84,
+     "share": 0.3
+    },
+    {
+     "model": "TOYOTA CAMRY",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 81,
+     "share": 0.3
+    },
+    {
+     "model": "MAZDA MAZDA3",
+     "power": "PETROL",
+     "count": 31540,
+     "share": 98.9
+    },
+    {
+     "model": "MAZDA MAZDA3",
+     "power": "PETROL HYBRID",
+     "count": 279,
+     "share": 0.9
+    },
+    {
+     "model": "MAZDA MAZDA3",
+     "power": "DIESEL",
+     "count": 63,
+     "share": 0.2
+    },
+    {
+     "model": "TOYOTA VITZ",
+     "power": "PETROL",
+     "count": 28683,
+     "share": 93.4
+    },
+    {
+     "model": "TOYOTA VITZ",
+     "power": "PETROL HYBRID",
+     "count": 2011,
+     "share": 6.6
+    },
+    {
+     "model": "TOYOTA VITZ",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 7,
+     "share": 0.0
+    },
+    {
+     "model": "HONDA JAZZ",
+     "power": "PETROL",
+     "count": 23008,
+     "share": 78.2
+    },
+    {
+     "model": "HONDA JAZZ",
+     "power": "PETROL HYBRID",
+     "count": 6328,
+     "share": 21.5
+    },
+    {
+     "model": "HONDA JAZZ",
+     "power": "DIESEL",
+     "count": 73,
+     "share": 0.2
+    },
+    {
+     "model": "NISSAN NOTE",
+     "power": "PETROL",
+     "count": 19967,
+     "share": 69.7
+    },
+    {
+     "model": "NISSAN NOTE",
+     "power": "PETROL ELECTRIC HYBRID",
+     "count": 7356,
+     "share": 25.7
+    },
+    {
+     "model": "NISSAN NOTE",
+     "power": "PETROL HYBRID",
+     "count": 1342,
+     "share": 4.7
+    },
+    {
+     "model": "MAZDA ATENZA",
+     "power": "PETROL",
+     "count": 27280,
+     "share": 96.2
+    },
+    {
+     "model": "MAZDA ATENZA",
+     "power": "DIESEL",
+     "count": 1060,
+     "share": 3.7
+    },
+    {
+     "model": "MAZDA ATENZA",
+     "power": "PETROL HYBRID",
+     "count": 4,
+     "share": 0.0
+    },
+    {
+     "model": "MAZDA ATENZA",
+     "power": "LPG",
+     "count": 2,
+     "share": 0.0
+    },
+    {
+     "model": "TOYOTA HIGHLANDER",
+     "power": "PETROL",
+     "count": 21482,
+     "share": 76.6
+    },
+    {
+     "model": "TOYOTA HIGHLANDER",
+     "power": "PETROL HYBRID",
+     "count": 6575,
+     "share": 23.4
+    }
+   ]
+  },
+  {
+   "id": "model-classification",
+   "title": "Hand classification of the 35 models",
+   "definition": "The market segment and category were assigned by hand in the extract, not derived from the register. The pipeline segment is the coarse segment the pipeline derives.",
+   "columns": [
+    {
+     "key": "model",
+     "label": "Model",
+     "kind": "text"
+    },
+    {
+     "key": "mia_segment",
+     "label": "Market segment (hand)",
+     "kind": "text"
+    },
+    {
+     "key": "category",
+     "label": "Category (hand)",
+     "kind": "text"
+    },
+    {
+     "key": "pipeline_segment",
+     "label": "Pipeline segment",
+     "kind": "text"
+    }
+   ],
+   "rows": [
+    {
+     "mia_segment": "Small Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "TOYOTA COROLLA"
+    },
+    {
+     "mia_segment": "Pick-up / Cab Chassis (Ute)",
+     "category": "Commercial",
+     "pipeline_segment": "Ute / Commercial",
+     "model": "TOYOTA HILUX"
+    },
+    {
+     "mia_segment": "Pick-up / Cab Chassis (Ute)",
+     "category": "Commercial",
+     "pipeline_segment": "Ute / Commercial",
+     "model": "FORD RANGER"
+    },
+    {
+     "mia_segment": "Medium SUV",
+     "category": "SUV / Passenger",
+     "pipeline_segment": "Car (Station Wagon)",
+     "model": "TOYOTA RAV4"
+    },
+    {
+     "mia_segment": "Light Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "SUZUKI SWIFT"
+    },
+    {
+     "mia_segment": "Medium Van",
+     "category": "Commercial",
+     "pipeline_segment": "Van",
+     "model": "TOYOTA HIACE"
+    },
+    {
+     "mia_segment": "Medium SUV",
+     "category": "SUV / Passenger",
+     "pipeline_segment": "Car (Station Wagon)",
+     "model": "MITSUBISHI OUTLANDER"
+    },
+    {
+     "mia_segment": "Light Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "TOYOTA AQUA"
+    },
+    {
+     "mia_segment": "Small Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "MAZDA AXELA"
+    },
+    {
+     "mia_segment": "Large Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "HOLDEN COMMODORE"
+    },
+    {
+     "mia_segment": "Large / Upper Large SUV",
+     "category": "SUV / Passenger",
+     "pipeline_segment": "Car (Station Wagon)",
+     "model": "TOYOTA LANDCRUISER"
+    },
+    {
+     "mia_segment": "Small / Medium Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "TOYOTA PRIUS"
+    },
+    {
+     "mia_segment": "Pick-up / Cab Chassis (Ute)",
+     "category": "Commercial",
+     "pipeline_segment": "Ute / Commercial",
+     "model": "NISSAN NAVARA"
+    },
+    {
+     "mia_segment": "Pick-up / Cab Chassis (Ute)",
+     "category": "Commercial",
+     "pipeline_segment": "Ute / Commercial",
+     "model": "MITSUBISHI TRITON"
+    },
+    {
+     "mia_segment": "Medium SUV",
+     "category": "SUV / Passenger",
+     "pipeline_segment": "Car (Station Wagon)",
+     "model": "MAZDA CX-5"
+    },
+    {
+     "mia_segment": "Light Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "MAZDA DEMIO"
+    },
+    {
+     "mia_segment": "Medium SUV",
+     "category": "SUV / Passenger",
+     "pipeline_segment": "Car (Station Wagon)",
+     "model": "NISSAN X-TRAIL"
+    },
+    {
+     "mia_segment": "Light Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "HONDA FIT"
+    },
+    {
+     "mia_segment": "Small Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "VOLKSWAGEN GOLF"
+    },
+    {
+     "mia_segment": "Large Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "FORD FALCON"
+    },
+    {
+     "mia_segment": "Small Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "SUBARU IMPREZA"
+    },
+    {
+     "mia_segment": "Medium Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "SUBARU LEGACY"
+    },
+    {
+     "mia_segment": "Small SUV",
+     "category": "SUV / Passenger",
+     "pipeline_segment": "Car (Station Wagon)",
+     "model": "MITSUBISHI ASX"
+    },
+    {
+     "mia_segment": "Small Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "NISSAN TIIDA"
+    },
+    {
+     "mia_segment": "Light Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "TOYOTA YARIS"
+    },
+    {
+     "mia_segment": "Pick-up / Cab Chassis (Ute)",
+     "category": "Commercial",
+     "pipeline_segment": "Ute / Commercial",
+     "model": "HOLDEN COLORADO"
+    },
+    {
+     "mia_segment": "Medium SUV",
+     "category": "SUV / Passenger",
+     "pipeline_segment": "Car (Station Wagon)",
+     "model": "KIA SPORTAGE"
+    },
+    {
+     "mia_segment": "Medium SUV",
+     "category": "SUV / Passenger",
+     "pipeline_segment": "Car (Station Wagon)",
+     "model": "HONDA CRV"
+    },
+    {
+     "mia_segment": "Medium Car",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "TOYOTA CAMRY"
+    },
+    {
+     "mia_segment": "Passenger / Commercial",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "MAZDA MAZDA3"
+    },
+    {
+     "mia_segment": "Passenger / Commercial",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "TOYOTA VITZ"
+    },
+    {
+     "mia_segment": "Passenger / Commercial",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "HONDA JAZZ"
+    },
+    {
+     "mia_segment": "Passenger / Commercial",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "NISSAN NOTE"
+    },
+    {
+     "mia_segment": "Passenger / Commercial",
+     "category": "Passenger",
+     "pipeline_segment": "Car",
+     "model": "MAZDA ATENZA"
+    },
+    {
+     "mia_segment": "Large SUV",
+     "category": "SUV / Passenger",
+     "pipeline_segment": "Car (Station Wagon)",
+     "model": "TOYOTA HIGHLANDER"
+    }
+   ]
+  },
+  {
+   "id": "top-station-wagons",
+   "title": "The 20 models most often recorded as a station wagon",
+   "definition": "The SUV column is a hand classification in the extract.",
+   "columns": [
+    {
+     "key": "model",
+     "label": "Model",
+     "kind": "text"
+    },
+    {
+     "key": "station_wagon_count",
+     "label": "As station wagon",
+     "kind": "count"
+    },
+    {
+     "key": "total_model_count",
+     "label": "All of model",
+     "kind": "count"
+    },
+    {
+     "key": "station_wagon_pct",
+     "label": "% station wagon",
+     "kind": "pct"
+    },
+    {
+     "key": "suv",
+     "label": "SUV (hand)",
+     "kind": "text"
+    }
+   ],
+   "rows": [
+    {
+     "model": "TOYOTA RAV4",
+     "station_wagon_count": 109846,
+     "total_model_count": 111119,
+     "station_wagon_pct": 98.9,
+     "suv": "yes"
+    },
+    {
+     "model": "MITSUBISHI OUTLANDER",
+     "station_wagon_count": 79272,
+     "total_model_count": 79496,
+     "station_wagon_pct": 99.7,
+     "suv": "yes"
+    },
+    {
+     "model": "TOYOTA LANDCRUISER",
+     "station_wagon_count": 51559,
+     "total_model_count": 61241,
+     "station_wagon_pct": 84.2,
+     "suv": "yes"
+    },
+    {
+     "model": "MAZDA CX-5",
+     "station_wagon_count": 49950,
+     "total_model_count": 50887,
+     "station_wagon_pct": 98.2,
+     "suv": "yes"
+    },
+    {
+     "model": "NISSAN X-TRAIL",
+     "station_wagon_count": 49145,
+     "total_model_count": 49371,
+     "station_wagon_pct": 99.5,
+     "suv": "yes"
+    },
+    {
+     "model": "TOYOTA COROLLA",
+     "station_wagon_count": 47063,
+     "total_model_count": 173605,
+     "station_wagon_pct": 27.1,
+     "suv": "no"
+    },
+    {
+     "model": "MITSUBISHI ASX",
+     "station_wagon_count": 36164,
+     "total_model_count": 36200,
+     "station_wagon_pct": 99.9,
+     "suv": "yes"
+    },
+    {
+     "model": "KIA SPORTAGE",
+     "station_wagon_count": 32931,
+     "total_model_count": 32968,
+     "station_wagon_pct": 99.9,
+     "suv": "yes"
+    },
+    {
+     "model": "SUBARU LEGACY",
+     "station_wagon_count": 28086,
+     "total_model_count": 37211,
+     "station_wagon_pct": 75.5,
+     "suv": "no"
+    },
+    {
+     "model": "TOYOTA HIGHLANDER",
+     "station_wagon_count": 28057,
+     "total_model_count": 28057,
+     "station_wagon_pct": 100.0,
+     "suv": "yes"
+    },
+    {
+     "model": "HONDA CRV",
+     "station_wagon_count": 25613,
+     "total_model_count": 32725,
+     "station_wagon_pct": 78.3,
+     "suv": "yes"
+    },
+    {
+     "model": "SUBARU OUTBACK",
+     "station_wagon_count": 24663,
+     "total_model_count": 24697,
+     "station_wagon_pct": 99.9,
+     "suv": "yes"
+    },
+    {
+     "model": "HYUNDAI SANTA FE",
+     "station_wagon_count": 24571,
+     "total_model_count": 24581,
+     "station_wagon_pct": 100.0,
+     "suv": "yes"
+    },
+    {
+     "model": "HYUNDAI TUCSON",
+     "station_wagon_count": 22746,
+     "total_model_count": 22759,
+     "station_wagon_pct": 99.9,
+     "suv": "yes"
+    },
+    {
+     "model": "TOYOTA WISH",
+     "station_wagon_count": 21942,
+     "total_model_count": 22167,
+     "station_wagon_pct": 99.0,
+     "suv": "no"
+    },
+    {
+     "model": "SUBARU FORESTER",
+     "station_wagon_count": 20192,
+     "total_model_count": 20319,
+     "station_wagon_pct": 99.4,
+     "suv": "yes"
+    },
+    {
+     "model": "HOLDEN CAPTIVA",
+     "station_wagon_count": 17279,
+     "total_model_count": 17285,
+     "station_wagon_pct": 100.0,
+     "suv": "yes"
+    },
+    {
+     "model": "MAZDA PREMACY",
+     "station_wagon_count": 17273,
+     "total_model_count": 17489,
+     "station_wagon_pct": 98.8,
+     "suv": "no"
+    },
+    {
+     "model": "MITSUBISHI ECLIPSE CROSS",
+     "station_wagon_count": 16925,
+     "total_model_count": 16940,
+     "station_wagon_pct": 99.9,
+     "suv": "yes"
+    },
+    {
+     "model": "KIA SELTOS",
+     "station_wagon_count": 16128,
+     "total_model_count": 16131,
+     "station_wagon_pct": 100.0,
+     "suv": "yes"
+    }
+   ]
+  },
+  {
+   "id": "ute-models-by-year",
+   "title": "Ute registrations by model and year",
+   "definition": "Utes first registered in each year that are still registered, NZ-new and used imports together (the extract labelled them new; its yearly totals match the cube's Ute segment across all import statuses, within 3%). The latest year is partial. MAZDA BT-50 is 0 in every year, which suggests the extract's model match missed it; not checked against the raw pull.",
+   "columns": [
+    {
+     "key": "year",
+     "label": "Year",
+     "kind": "text"
+    },
+    {
+     "key": "total_utes",
+     "label": "All utes",
+     "kind": "count"
+    },
+    {
+     "key": "ford_ranger",
+     "label": "FORD RANGER",
+     "kind": "count"
+    },
+    {
+     "key": "ford_ranger_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "FORD RANGER share"
+    },
+    {
+     "key": "toyota_hilux",
+     "label": "TOYOTA HILUX",
+     "kind": "count"
+    },
+    {
+     "key": "toyota_hilux_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "TOYOTA HILUX share"
+    },
+    {
+     "key": "mitsubishi_triton",
+     "label": "MITSUBISHI TRITON",
+     "kind": "count"
+    },
+    {
+     "key": "mitsubishi_triton_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "MITSUBISHI TRITON share"
+    },
+    {
+     "key": "isuzu_d-max",
+     "label": "ISUZU D-MAX",
+     "kind": "count"
+    },
+    {
+     "key": "isuzu_d-max_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "ISUZU D-MAX share"
+    },
+    {
+     "key": "nissan_navara",
+     "label": "NISSAN NAVARA",
+     "kind": "count"
+    },
+    {
+     "key": "nissan_navara_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "NISSAN NAVARA share"
+    },
+    {
+     "key": "mazda_bt-50",
+     "label": "MAZDA BT-50",
+     "kind": "count"
+    },
+    {
+     "key": "mazda_bt-50_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "MAZDA BT-50 share"
+    },
+    {
+     "key": "gwm_cannon",
+     "label": "GWM CANNON",
+     "kind": "count"
+    },
+    {
+     "key": "gwm_cannon_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "GWM CANNON share"
+    },
+    {
+     "key": "byd_shark 6",
+     "label": "BYD SHARK 6",
+     "kind": "count"
+    },
+    {
+     "key": "byd_shark 6_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "BYD SHARK 6 share"
+    },
+    {
+     "key": "volkswagen_amarok",
+     "label": "VOLKSWAGEN AMAROK",
+     "kind": "count"
+    },
+    {
+     "key": "volkswagen_amarok_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "VOLKSWAGEN AMAROK share"
+    }
+   ],
+   "rows": [
+    {
+     "year": 2015,
+     "total_utes": 26671,
+     "ford_ranger": 6420,
+     "ford_ranger_share": 24.1,
+     "toyota_hilux": 5401,
+     "toyota_hilux_share": 20.3,
+     "mitsubishi_triton": 2297,
+     "mitsubishi_triton_share": 8.6,
+     "isuzu_d-max": 1580,
+     "isuzu_d-max_share": 5.9,
+     "nissan_navara": 2954,
+     "nissan_navara_share": 11.1,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 0,
+     "gwm_cannon_share": 0.0,
+     "byd_shark 6": 0,
+     "byd_shark 6_share": 0.0,
+     "volkswagen_amarok": 788,
+     "volkswagen_amarok_share": 3.0
+    },
+    {
+     "year": 2016,
+     "total_utes": 30854,
+     "ford_ranger": 8119,
+     "ford_ranger_share": 26.3,
+     "toyota_hilux": 5968,
+     "toyota_hilux_share": 19.3,
+     "mitsubishi_triton": 3032,
+     "mitsubishi_triton_share": 9.8,
+     "isuzu_d-max": 2196,
+     "isuzu_d-max_share": 7.1,
+     "nissan_navara": 3006,
+     "nissan_navara_share": 9.7,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 0,
+     "gwm_cannon_share": 0.0,
+     "byd_shark 6": 0,
+     "byd_shark 6_share": 0.0,
+     "volkswagen_amarok": 656,
+     "volkswagen_amarok_share": 2.1
+    },
+    {
+     "year": 2017,
+     "total_utes": 36639,
+     "ford_ranger": 9127,
+     "ford_ranger_share": 24.9,
+     "toyota_hilux": 7866,
+     "toyota_hilux_share": 21.5,
+     "mitsubishi_triton": 3924,
+     "mitsubishi_triton_share": 10.7,
+     "isuzu_d-max": 2372,
+     "isuzu_d-max_share": 6.5,
+     "nissan_navara": 3038,
+     "nissan_navara_share": 8.3,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 0,
+     "gwm_cannon_share": 0.0,
+     "byd_shark 6": 0,
+     "byd_shark 6_share": 0.0,
+     "volkswagen_amarok": 890,
+     "volkswagen_amarok_share": 2.4
+    },
+    {
+     "year": 2018,
+     "total_utes": 38812,
+     "ford_ranger": 9649,
+     "ford_ranger_share": 24.9,
+     "toyota_hilux": 7879,
+     "toyota_hilux_share": 20.3,
+     "mitsubishi_triton": 4591,
+     "mitsubishi_triton_share": 11.8,
+     "isuzu_d-max": 2167,
+     "isuzu_d-max_share": 5.6,
+     "nissan_navara": 3566,
+     "nissan_navara_share": 9.2,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 0,
+     "gwm_cannon_share": 0.0,
+     "byd_shark 6": 0,
+     "byd_shark 6_share": 0.0,
+     "volkswagen_amarok": 931,
+     "volkswagen_amarok_share": 2.4
+    },
+    {
+     "year": 2019,
+     "total_utes": 37131,
+     "ford_ranger": 9327,
+     "ford_ranger_share": 25.1,
+     "toyota_hilux": 6996,
+     "toyota_hilux_share": 18.8,
+     "mitsubishi_triton": 5213,
+     "mitsubishi_triton_share": 14.0,
+     "isuzu_d-max": 1732,
+     "isuzu_d-max_share": 4.7,
+     "nissan_navara": 3262,
+     "nissan_navara_share": 8.8,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 0,
+     "gwm_cannon_share": 0.0,
+     "byd_shark 6": 0,
+     "byd_shark 6_share": 0.0,
+     "volkswagen_amarok": 695,
+     "volkswagen_amarok_share": 1.9
+    },
+    {
+     "year": 2020,
+     "total_utes": 28361,
+     "ford_ranger": 7923,
+     "ford_ranger_share": 27.9,
+     "toyota_hilux": 5698,
+     "toyota_hilux_share": 20.1,
+     "mitsubishi_triton": 3644,
+     "mitsubishi_triton_share": 12.8,
+     "isuzu_d-max": 1148,
+     "isuzu_d-max_share": 4.0,
+     "nissan_navara": 2366,
+     "nissan_navara_share": 8.3,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 0,
+     "gwm_cannon_share": 0.0,
+     "byd_shark 6": 0,
+     "byd_shark 6_share": 0.0,
+     "volkswagen_amarok": 454,
+     "volkswagen_amarok_share": 1.6
+    },
+    {
+     "year": 2021,
+     "total_utes": 38621,
+     "ford_ranger": 12473,
+     "ford_ranger_share": 32.3,
+     "toyota_hilux": 8321,
+     "toyota_hilux_share": 21.5,
+     "mitsubishi_triton": 4919,
+     "mitsubishi_triton_share": 12.7,
+     "isuzu_d-max": 2372,
+     "isuzu_d-max_share": 6.1,
+     "nissan_navara": 3547,
+     "nissan_navara_share": 9.2,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 0,
+     "gwm_cannon_share": 0.0,
+     "byd_shark 6": 0,
+     "byd_shark 6_share": 0.0,
+     "volkswagen_amarok": 514,
+     "volkswagen_amarok_share": 1.3
+    },
+    {
+     "year": 2022,
+     "total_utes": 35607,
+     "ford_ranger": 11553,
+     "ford_ranger_share": 32.4,
+     "toyota_hilux": 9704,
+     "toyota_hilux_share": 27.3,
+     "mitsubishi_triton": 6075,
+     "mitsubishi_triton_share": 17.1,
+     "isuzu_d-max": 1827,
+     "isuzu_d-max_share": 5.1,
+     "nissan_navara": 1995,
+     "nissan_navara_share": 5.6,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 0,
+     "gwm_cannon_share": 0.0,
+     "byd_shark 6": 0,
+     "byd_shark 6_share": 0.0,
+     "volkswagen_amarok": 327,
+     "volkswagen_amarok_share": 0.9
+    },
+    {
+     "year": 2023,
+     "total_utes": 26199,
+     "ford_ranger": 9885,
+     "ford_ranger_share": 37.7,
+     "toyota_hilux": 7998,
+     "toyota_hilux_share": 30.5,
+     "mitsubishi_triton": 3084,
+     "mitsubishi_triton_share": 11.8,
+     "isuzu_d-max": 1033,
+     "isuzu_d-max_share": 3.9,
+     "nissan_navara": 1154,
+     "nissan_navara_share": 4.4,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 0,
+     "gwm_cannon_share": 0.0,
+     "byd_shark 6": 0,
+     "byd_shark 6_share": 0.0,
+     "volkswagen_amarok": 533,
+     "volkswagen_amarok_share": 2.0
+    },
+    {
+     "year": 2024,
+     "total_utes": 29466,
+     "ford_ranger": 11750,
+     "ford_ranger_share": 39.9,
+     "toyota_hilux": 7274,
+     "toyota_hilux_share": 24.7,
+     "mitsubishi_triton": 4205,
+     "mitsubishi_triton_share": 14.3,
+     "isuzu_d-max": 1295,
+     "isuzu_d-max_share": 4.4,
+     "nissan_navara": 1900,
+     "nissan_navara_share": 6.4,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 270,
+     "gwm_cannon_share": 0.9,
+     "byd_shark 6": 61,
+     "byd_shark 6_share": 0.2,
+     "volkswagen_amarok": 766,
+     "volkswagen_amarok_share": 2.6
+    },
+    {
+     "year": 2025,
+     "total_utes": 29658,
+     "ford_ranger": 9726,
+     "ford_ranger_share": 32.8,
+     "toyota_hilux": 8173,
+     "toyota_hilux_share": 27.6,
+     "mitsubishi_triton": 3290,
+     "mitsubishi_triton_share": 11.1,
+     "isuzu_d-max": 942,
+     "isuzu_d-max_share": 3.2,
+     "nissan_navara": 2505,
+     "nissan_navara_share": 8.4,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 549,
+     "gwm_cannon_share": 1.9,
+     "byd_shark 6": 1869,
+     "byd_shark 6_share": 6.3,
+     "volkswagen_amarok": 262,
+     "volkswagen_amarok_share": 0.9
+    },
+    {
+     "year": 2026,
+     "total_utes": 19738,
+     "ford_ranger": 6287,
+     "ford_ranger_share": 31.9,
+     "toyota_hilux": 5223,
+     "toyota_hilux_share": 26.5,
+     "mitsubishi_triton": 2613,
+     "mitsubishi_triton_share": 13.2,
+     "isuzu_d-max": 778,
+     "isuzu_d-max_share": 3.9,
+     "nissan_navara": 1436,
+     "nissan_navara_share": 7.3,
+     "mazda_bt-50": 0,
+     "mazda_bt-50_share": 0.0,
+     "gwm_cannon": 434,
+     "gwm_cannon_share": 2.2,
+     "byd_shark 6": 1117,
+     "byd_shark 6_share": 5.7,
+     "volkswagen_amarok": 173,
+     "volkswagen_amarok_share": 0.9
+    }
+   ]
+  },
+  {
+   "id": "powertrain-by-month",
+   "title": "Powertrain by month, 2021 onward",
+   "definition": "Vehicles first registered in each month that are still registered, by powertrain. Within 0.5% of the cube where checked (December 2023, January 2024).",
+   "columns": [
+    {
+     "key": "month",
+     "label": "Month",
+     "kind": "text"
+    },
+    {
+     "key": "total",
+     "label": "All",
+     "kind": "count"
+    },
+    {
+     "key": "bev",
+     "label": "BEV",
+     "kind": "count"
+    },
+    {
+     "key": "bev_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "BEV share"
+    },
+    {
+     "key": "phev",
+     "label": "PHEV",
+     "kind": "count"
+    },
+    {
+     "key": "phev_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "PHEV share"
+    },
+    {
+     "key": "hybrid",
+     "label": "HYBRID",
+     "kind": "count"
+    },
+    {
+     "key": "hybrid_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "HYBRID share"
+    },
+    {
+     "key": "petrol",
+     "label": "PETROL",
+     "kind": "count"
+    },
+    {
+     "key": "petrol_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "PETROL share"
+    },
+    {
+     "key": "diesel",
+     "label": "DIESEL",
+     "kind": "count"
+    },
+    {
+     "key": "diesel_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "DIESEL share"
+    }
+   ],
+   "rows": [
+    {
+     "month": "2021-01",
+     "total": 21771,
+     "bev": 460,
+     "bev_share": 2.1,
+     "phev": 148,
+     "phev_share": 0.7,
+     "hybrid": 2461,
+     "hybrid_share": 11.3,
+     "petrol": 13065,
+     "petrol_share": 60.0,
+     "diesel": 5439,
+     "diesel_share": 25.0
+    },
+    {
+     "month": "2021-02",
+     "total": 20265,
+     "bev": 361,
+     "bev_share": 1.8,
+     "phev": 142,
+     "phev_share": 0.7,
+     "hybrid": 2159,
+     "hybrid_share": 10.7,
+     "petrol": 12593,
+     "petrol_share": 62.1,
+     "diesel": 4777,
+     "diesel_share": 23.6
+    },
+    {
+     "month": "2021-03",
+     "total": 24845,
+     "bev": 676,
+     "bev_share": 2.7,
+     "phev": 217,
+     "phev_share": 0.9,
+     "hybrid": 2575,
+     "hybrid_share": 10.4,
+     "petrol": 14675,
+     "petrol_share": 59.1,
+     "diesel": 6434,
+     "diesel_share": 25.9
+    },
+    {
+     "month": "2021-04",
+     "total": 21736,
+     "bev": 395,
+     "bev_share": 1.8,
+     "phev": 187,
+     "phev_share": 0.9,
+     "hybrid": 2627,
+     "hybrid_share": 12.1,
+     "petrol": 12972,
+     "petrol_share": 59.7,
+     "diesel": 5357,
+     "diesel_share": 24.6
+    },
+    {
+     "month": "2021-05",
+     "total": 24201,
+     "bev": 491,
+     "bev_share": 2.0,
+     "phev": 194,
+     "phev_share": 0.8,
+     "hybrid": 2956,
+     "hybrid_share": 12.2,
+     "petrol": 14594,
+     "petrol_share": 60.3,
+     "diesel": 5733,
+     "diesel_share": 23.7
+    },
+    {
+     "month": "2021-06",
+     "total": 24820,
+     "bev": 411,
+     "bev_share": 1.7,
+     "phev": 92,
+     "phev_share": 0.4,
+     "hybrid": 2889,
+     "hybrid_share": 11.6,
+     "petrol": 14989,
+     "petrol_share": 60.4,
+     "diesel": 6136,
+     "diesel_share": 24.7
+    },
+    {
+     "month": "2021-07",
+     "total": 26439,
+     "bev": 1260,
+     "bev_share": 4.8,
+     "phev": 624,
+     "phev_share": 2.4,
+     "hybrid": 3254,
+     "hybrid_share": 12.3,
+     "petrol": 14762,
+     "petrol_share": 55.8,
+     "diesel": 6256,
+     "diesel_share": 23.7
+    },
+    {
+     "month": "2021-08",
+     "total": 13065,
+     "bev": 479,
+     "bev_share": 3.7,
+     "phev": 158,
+     "phev_share": 1.2,
+     "hybrid": 2007,
+     "hybrid_share": 15.4,
+     "petrol": 7523,
+     "petrol_share": 57.6,
+     "diesel": 2739,
+     "diesel_share": 21.0
+    },
+    {
+     "month": "2021-09",
+     "total": 23039,
+     "bev": 1631,
+     "bev_share": 7.1,
+     "phev": 607,
+     "phev_share": 2.6,
+     "hybrid": 2455,
+     "hybrid_share": 10.7,
+     "petrol": 12361,
+     "petrol_share": 53.7,
+     "diesel": 5791,
+     "diesel_share": 25.1
+    },
+    {
+     "month": "2021-10",
+     "total": 23429,
+     "bev": 715,
+     "bev_share": 3.1,
+     "phev": 317,
+     "phev_share": 1.4,
+     "hybrid": 3214,
+     "hybrid_share": 13.7,
+     "petrol": 13042,
+     "petrol_share": 55.7,
+     "diesel": 5918,
+     "diesel_share": 25.3
+    },
+    {
+     "month": "2021-11",
+     "total": 26328,
+     "bev": 1166,
+     "bev_share": 4.4,
+     "phev": 547,
+     "phev_share": 2.1,
+     "hybrid": 3389,
+     "hybrid_share": 12.9,
+     "petrol": 14490,
+     "petrol_share": 55.0,
+     "diesel": 6455,
+     "diesel_share": 24.5
+    },
+    {
+     "month": "2021-12",
+     "total": 21011,
+     "bev": 1314,
+     "bev_share": 6.3,
+     "phev": 271,
+     "phev_share": 1.3,
+     "hybrid": 2917,
+     "hybrid_share": 13.9,
+     "petrol": 10884,
+     "petrol_share": 51.8,
+     "diesel": 5364,
+     "diesel_share": 25.5
+    },
+    {
+     "month": "2022-01",
+     "total": 22483,
+     "bev": 655,
+     "bev_share": 2.9,
+     "phev": 291,
+     "phev_share": 1.3,
+     "hybrid": 2560,
+     "hybrid_share": 11.4,
+     "petrol": 12981,
+     "petrol_share": 57.7,
+     "diesel": 5687,
+     "diesel_share": 25.3
+    },
+    {
+     "month": "2022-02",
+     "total": 22395,
+     "bev": 991,
+     "bev_share": 4.4,
+     "phev": 488,
+     "phev_share": 2.2,
+     "hybrid": 2639,
+     "hybrid_share": 11.8,
+     "petrol": 11863,
+     "petrol_share": 53.0,
+     "diesel": 6132,
+     "diesel_share": 27.4
+    },
+    {
+     "month": "2022-03",
+     "total": 43619,
+     "bev": 2237,
+     "bev_share": 5.1,
+     "phev": 622,
+     "phev_share": 1.4,
+     "hybrid": 1919,
+     "hybrid_share": 4.4,
+     "petrol": 26066,
+     "petrol_share": 59.8,
+     "diesel": 12414,
+     "diesel_share": 28.5
+    },
+    {
+     "month": "2022-04",
+     "total": 15682,
+     "bev": 843,
+     "bev_share": 5.4,
+     "phev": 1206,
+     "phev_share": 7.7,
+     "hybrid": 4717,
+     "hybrid_share": 30.1,
+     "petrol": 6785,
+     "petrol_share": 43.3,
+     "diesel": 1761,
+     "diesel_share": 11.2
+    },
+    {
+     "month": "2022-05",
+     "total": 19546,
+     "bev": 1003,
+     "bev_share": 5.1,
+     "phev": 903,
+     "phev_share": 4.6,
+     "hybrid": 3950,
+     "hybrid_share": 20.2,
+     "petrol": 9522,
+     "petrol_share": 48.7,
+     "diesel": 3837,
+     "diesel_share": 19.6
+    },
+    {
+     "month": "2022-06",
+     "total": 18726,
+     "bev": 888,
+     "bev_share": 4.7,
+     "phev": 932,
+     "phev_share": 5.0,
+     "hybrid": 3783,
+     "hybrid_share": 20.2,
+     "petrol": 9108,
+     "petrol_share": 48.6,
+     "diesel": 3666,
+     "diesel_share": 19.6
+    },
+    {
+     "month": "2022-07",
+     "total": 18620,
+     "bev": 935,
+     "bev_share": 5.0,
+     "phev": 840,
+     "phev_share": 4.5,
+     "hybrid": 4713,
+     "hybrid_share": 25.3,
+     "petrol": 8188,
+     "petrol_share": 44.0,
+     "diesel": 3560,
+     "diesel_share": 19.1
+    },
+    {
+     "month": "2022-08",
+     "total": 21916,
+     "bev": 2817,
+     "bev_share": 12.9,
+     "phev": 790,
+     "phev_share": 3.6,
+     "hybrid": 4239,
+     "hybrid_share": 19.3,
+     "petrol": 9010,
+     "petrol_share": 41.1,
+     "diesel": 4680,
+     "diesel_share": 21.4
+    },
+    {
+     "month": "2022-09",
+     "total": 21558,
+     "bev": 2588,
+     "bev_share": 12.0,
+     "phev": 644,
+     "phev_share": 3.0,
+     "hybrid": 4011,
+     "hybrid_share": 18.6,
+     "petrol": 9107,
+     "petrol_share": 42.2,
+     "diesel": 4812,
+     "diesel_share": 22.3
+    },
+    {
+     "month": "2022-10",
+     "total": 21278,
+     "bev": 1313,
+     "bev_share": 6.2,
+     "phev": 1097,
+     "phev_share": 5.2,
+     "hybrid": 4607,
+     "hybrid_share": 21.7,
+     "petrol": 9131,
+     "petrol_share": 42.9,
+     "diesel": 4666,
+     "diesel_share": 21.9
+    },
+    {
+     "month": "2022-11",
+     "total": 22112,
+     "bev": 2728,
+     "bev_share": 12.3,
+     "phev": 717,
+     "phev_share": 3.2,
+     "hybrid": 4047,
+     "hybrid_share": 18.3,
+     "petrol": 8883,
+     "petrol_share": 40.2,
+     "diesel": 5350,
+     "diesel_share": 24.2
+    },
+    {
+     "month": "2022-12",
+     "total": 18233,
+     "bev": 2413,
+     "bev_share": 13.2,
+     "phev": 540,
+     "phev_share": 3.0,
+     "hybrid": 3602,
+     "hybrid_share": 19.8,
+     "petrol": 7283,
+     "petrol_share": 39.9,
+     "diesel": 4028,
+     "diesel_share": 22.1
+    },
+    {
+     "month": "2023-01",
+     "total": 19023,
+     "bev": 1413,
+     "bev_share": 7.4,
+     "phev": 633,
+     "phev_share": 3.3,
+     "hybrid": 4577,
+     "hybrid_share": 24.1,
+     "petrol": 7896,
+     "petrol_share": 41.5,
+     "diesel": 4070,
+     "diesel_share": 21.4
+    },
+    {
+     "month": "2023-02",
+     "total": 16855,
+     "bev": 921,
+     "bev_share": 5.5,
+     "phev": 494,
+     "phev_share": 2.9,
+     "hybrid": 3948,
+     "hybrid_share": 23.4,
+     "petrol": 7035,
+     "petrol_share": 41.7,
+     "diesel": 3884,
+     "diesel_share": 23.0
+    },
+    {
+     "month": "2023-03",
+     "total": 24945,
+     "bev": 2944,
+     "bev_share": 11.8,
+     "phev": 728,
+     "phev_share": 2.9,
+     "hybrid": 6023,
+     "hybrid_share": 24.1,
+     "petrol": 9209,
+     "petrol_share": 36.9,
+     "diesel": 5272,
+     "diesel_share": 21.1
+    },
+    {
+     "month": "2023-04",
+     "total": 17700,
+     "bev": 1269,
+     "bev_share": 7.2,
+     "phev": 744,
+     "phev_share": 4.2,
+     "hybrid": 4838,
+     "hybrid_share": 27.3,
+     "petrol": 6495,
+     "petrol_share": 36.7,
+     "diesel": 3769,
+     "diesel_share": 21.3
+    },
+    {
+     "month": "2023-05",
+     "total": 22510,
+     "bev": 1497,
+     "bev_share": 6.7,
+     "phev": 938,
+     "phev_share": 4.2,
+     "hybrid": 6228,
+     "hybrid_share": 27.7,
+     "petrol": 8505,
+     "petrol_share": 37.8,
+     "diesel": 4648,
+     "diesel_share": 20.6
+    },
+    {
+     "month": "2023-06",
+     "total": 39662,
+     "bev": 2888,
+     "bev_share": 7.3,
+     "phev": 1530,
+     "phev_share": 3.9,
+     "hybrid": 9230,
+     "hybrid_share": 23.3,
+     "petrol": 16789,
+     "petrol_share": 42.3,
+     "diesel": 7863,
+     "diesel_share": 19.8
+    },
+    {
+     "month": "2023-07",
+     "total": 12340,
+     "bev": 1053,
+     "bev_share": 8.5,
+     "phev": 564,
+     "phev_share": 4.6,
+     "hybrid": 4426,
+     "hybrid_share": 35.9,
+     "petrol": 3875,
+     "petrol_share": 31.4,
+     "diesel": 2094,
+     "diesel_share": 17.0
+    },
+    {
+     "month": "2023-08",
+     "total": 18058,
+     "bev": 1241,
+     "bev_share": 6.9,
+     "phev": 968,
+     "phev_share": 5.4,
+     "hybrid": 6511,
+     "hybrid_share": 36.1,
+     "petrol": 5623,
+     "petrol_share": 31.1,
+     "diesel": 3148,
+     "diesel_share": 17.4
+    },
+    {
+     "month": "2023-09",
+     "total": 19294,
+     "bev": 2509,
+     "bev_share": 13.0,
+     "phev": 971,
+     "phev_share": 5.0,
+     "hybrid": 6344,
+     "hybrid_share": 32.9,
+     "petrol": 5771,
+     "petrol_share": 29.9,
+     "diesel": 3132,
+     "diesel_share": 16.2
+    },
+    {
+     "month": "2023-10",
+     "total": 22060,
+     "bev": 2566,
+     "bev_share": 11.6,
+     "phev": 1143,
+     "phev_share": 5.2,
+     "hybrid": 7397,
+     "hybrid_share": 33.5,
+     "petrol": 6705,
+     "petrol_share": 30.4,
+     "diesel": 3532,
+     "diesel_share": 16.0
+    },
+    {
+     "month": "2023-11",
+     "total": 23580,
+     "bev": 3152,
+     "bev_share": 13.4,
+     "phev": 1456,
+     "phev_share": 6.2,
+     "hybrid": 7727,
+     "hybrid_share": 32.8,
+     "petrol": 6880,
+     "petrol_share": 29.2,
+     "diesel": 3465,
+     "diesel_share": 14.7
+    },
+    {
+     "month": "2023-12",
+     "total": 21890,
+     "bev": 4388,
+     "bev_share": 20.0,
+     "phev": 1589,
+     "phev_share": 7.3,
+     "hybrid": 9784,
+     "hybrid_share": 44.7,
+     "petrol": 4227,
+     "petrol_share": 19.3,
+     "diesel": 1273,
+     "diesel_share": 5.8
+    },
+    {
+     "month": "2024-01",
+     "total": 21220,
+     "bev": 288,
+     "bev_share": 1.4,
+     "phev": 302,
+     "phev_share": 1.4,
+     "hybrid": 5462,
+     "hybrid_share": 25.7,
+     "petrol": 9248,
+     "petrol_share": 43.6,
+     "diesel": 5247,
+     "diesel_share": 24.7
+    },
+    {
+     "month": "2024-02",
+     "total": 18196,
+     "bev": 485,
+     "bev_share": 2.7,
+     "phev": 267,
+     "phev_share": 1.5,
+     "hybrid": 5178,
+     "hybrid_share": 28.5,
+     "petrol": 7391,
+     "petrol_share": 40.6,
+     "diesel": 4212,
+     "diesel_share": 23.1
+    },
+    {
+     "month": "2024-03",
+     "total": 20319,
+     "bev": 605,
+     "bev_share": 3.0,
+     "phev": 350,
+     "phev_share": 1.7,
+     "hybrid": 6087,
+     "hybrid_share": 30.0,
+     "petrol": 8007,
+     "petrol_share": 39.4,
+     "diesel": 4537,
+     "diesel_share": 22.3
+    },
+    {
+     "month": "2024-04",
+     "total": 17669,
+     "bev": 380,
+     "bev_share": 2.2,
+     "phev": 295,
+     "phev_share": 1.7,
+     "hybrid": 5769,
+     "hybrid_share": 32.7,
+     "petrol": 7134,
+     "petrol_share": 40.4,
+     "diesel": 3329,
+     "diesel_share": 18.8
+    },
+    {
+     "month": "2024-05",
+     "total": 18705,
+     "bev": 516,
+     "bev_share": 2.8,
+     "phev": 274,
+     "phev_share": 1.5,
+     "hybrid": 5349,
+     "hybrid_share": 28.6,
+     "petrol": 7671,
+     "petrol_share": 41.0,
+     "diesel": 3816,
+     "diesel_share": 20.4
+    },
+    {
+     "month": "2024-06",
+     "total": 16976,
+     "bev": 613,
+     "bev_share": 3.6,
+     "phev": 316,
+     "phev_share": 1.9,
+     "hybrid": 4732,
+     "hybrid_share": 27.9,
+     "petrol": 6791,
+     "petrol_share": 40.0,
+     "diesel": 3460,
+     "diesel_share": 20.4
+    },
+    {
+     "month": "2024-07",
+     "total": 18185,
+     "bev": 624,
+     "bev_share": 3.4,
+     "phev": 326,
+     "phev_share": 1.8,
+     "hybrid": 5174,
+     "hybrid_share": 28.5,
+     "petrol": 7767,
+     "petrol_share": 42.7,
+     "diesel": 3172,
+     "diesel_share": 17.4
+    },
+    {
+     "month": "2024-08",
+     "total": 17916,
+     "bev": 656,
+     "bev_share": 3.7,
+     "phev": 316,
+     "phev_share": 1.8,
+     "hybrid": 5175,
+     "hybrid_share": 28.9,
+     "petrol": 7381,
+     "petrol_share": 41.2,
+     "diesel": 3213,
+     "diesel_share": 17.9
+    },
+    {
+     "month": "2024-09",
+     "total": 18716,
+     "bev": 943,
+     "bev_share": 5.0,
+     "phev": 490,
+     "phev_share": 2.6,
+     "hybrid": 5706,
+     "hybrid_share": 30.5,
+     "petrol": 7321,
+     "petrol_share": 39.1,
+     "diesel": 3255,
+     "diesel_share": 17.4
+    },
+    {
+     "month": "2024-10",
+     "total": 19441,
+     "bev": 723,
+     "bev_share": 3.7,
+     "phev": 394,
+     "phev_share": 2.0,
+     "hybrid": 5632,
+     "hybrid_share": 29.0,
+     "petrol": 8195,
+     "petrol_share": 42.2,
+     "diesel": 3227,
+     "diesel_share": 16.6
+    },
+    {
+     "month": "2024-11",
+     "total": 18600,
+     "bev": 773,
+     "bev_share": 4.2,
+     "phev": 436,
+     "phev_share": 2.3,
+     "hybrid": 6329,
+     "hybrid_share": 34.0,
+     "petrol": 6631,
+     "petrol_share": 35.7,
+     "diesel": 3338,
+     "diesel_share": 17.9
+    },
+    {
+     "month": "2024-12",
+     "total": 17190,
+     "bev": 959,
+     "bev_share": 5.6,
+     "phev": 761,
+     "phev_share": 4.4,
+     "hybrid": 5093,
+     "hybrid_share": 29.6,
+     "petrol": 6273,
+     "petrol_share": 36.5,
+     "diesel": 3040,
+     "diesel_share": 17.7
+    },
+    {
+     "month": "2025-01",
+     "total": 18018,
+     "bev": 718,
+     "bev_share": 4.0,
+     "phev": 532,
+     "phev_share": 3.0,
+     "hybrid": 5257,
+     "hybrid_share": 29.2,
+     "petrol": 7571,
+     "petrol_share": 42.0,
+     "diesel": 2733,
+     "diesel_share": 15.2
+    },
+    {
+     "month": "2025-02",
+     "total": 16462,
+     "bev": 691,
+     "bev_share": 4.2,
+     "phev": 726,
+     "phev_share": 4.4,
+     "hybrid": 4917,
+     "hybrid_share": 29.9,
+     "petrol": 6333,
+     "petrol_share": 38.5,
+     "diesel": 2718,
+     "diesel_share": 16.5
+    },
+    {
+     "month": "2025-03",
+     "total": 19119,
+     "bev": 751,
+     "bev_share": 3.9,
+     "phev": 529,
+     "phev_share": 2.8,
+     "hybrid": 5911,
+     "hybrid_share": 30.9,
+     "petrol": 7358,
+     "petrol_share": 38.5,
+     "diesel": 3493,
+     "diesel_share": 18.3
+    },
+    {
+     "month": "2025-04",
+     "total": 15164,
+     "bev": 597,
+     "bev_share": 3.9,
+     "phev": 365,
+     "phev_share": 2.4,
+     "hybrid": 4681,
+     "hybrid_share": 30.9,
+     "petrol": 5919,
+     "petrol_share": 39.0,
+     "diesel": 2570,
+     "diesel_share": 16.9
+    },
+    {
+     "month": "2025-05",
+     "total": 17388,
+     "bev": 638,
+     "bev_share": 3.7,
+     "phev": 429,
+     "phev_share": 2.5,
+     "hybrid": 5220,
+     "hybrid_share": 30.0,
+     "petrol": 6486,
+     "petrol_share": 37.3,
+     "diesel": 3375,
+     "diesel_share": 19.4
+    },
+    {
+     "month": "2025-06",
+     "total": 18513,
+     "bev": 1177,
+     "bev_share": 6.4,
+     "phev": 973,
+     "phev_share": 5.3,
+     "hybrid": 5390,
+     "hybrid_share": 29.1,
+     "petrol": 6525,
+     "petrol_share": 35.2,
+     "diesel": 3236,
+     "diesel_share": 17.5
+    },
+    {
+     "month": "2025-07",
+     "total": 19546,
+     "bev": 766,
+     "bev_share": 3.9,
+     "phev": 839,
+     "phev_share": 4.3,
+     "hybrid": 5770,
+     "hybrid_share": 29.5,
+     "petrol": 6671,
+     "petrol_share": 34.1,
+     "diesel": 3688,
+     "diesel_share": 18.9
+    },
+    {
+     "month": "2025-08",
+     "total": 18925,
+     "bev": 662,
+     "bev_share": 3.5,
+     "phev": 579,
+     "phev_share": 3.1,
+     "hybrid": 6170,
+     "hybrid_share": 32.6,
+     "petrol": 6596,
+     "petrol_share": 34.9,
+     "diesel": 3643,
+     "diesel_share": 19.2
+    },
+    {
+     "month": "2025-09",
+     "total": 20896,
+     "bev": 826,
+     "bev_share": 4.0,
+     "phev": 602,
+     "phev_share": 2.9,
+     "hybrid": 6725,
+     "hybrid_share": 32.2,
+     "petrol": 7638,
+     "petrol_share": 36.6,
+     "diesel": 3747,
+     "diesel_share": 17.9
+    },
+    {
+     "month": "2025-10",
+     "total": 21010,
+     "bev": 735,
+     "bev_share": 3.5,
+     "phev": 711,
+     "phev_share": 3.4,
+     "hybrid": 7507,
+     "hybrid_share": 35.7,
+     "petrol": 7060,
+     "petrol_share": 33.6,
+     "diesel": 3772,
+     "diesel_share": 18.0
+    },
+    {
+     "month": "2025-11",
+     "total": 20155,
+     "bev": 847,
+     "bev_share": 4.2,
+     "phev": 745,
+     "phev_share": 3.7,
+     "hybrid": 6713,
+     "hybrid_share": 33.3,
+     "petrol": 6812,
+     "petrol_share": 33.8,
+     "diesel": 3632,
+     "diesel_share": 18.0
+    },
+    {
+     "month": "2025-12",
+     "total": 15759,
+     "bev": 780,
+     "bev_share": 4.9,
+     "phev": 731,
+     "phev_share": 4.6,
+     "hybrid": 5553,
+     "hybrid_share": 35.2,
+     "petrol": 5118,
+     "petrol_share": 32.5,
+     "diesel": 2765,
+     "diesel_share": 17.5
+    },
+    {
+     "month": "2026-01",
+     "total": 19400,
+     "bev": 950,
+     "bev_share": 4.9,
+     "phev": 820,
+     "phev_share": 4.2,
+     "hybrid": 6136,
+     "hybrid_share": 31.6,
+     "petrol": 7129,
+     "petrol_share": 36.7,
+     "diesel": 3362,
+     "diesel_share": 17.3
+    },
+    {
+     "month": "2026-02",
+     "total": 17116,
+     "bev": 845,
+     "bev_share": 4.9,
+     "phev": 774,
+     "phev_share": 4.5,
+     "hybrid": 4956,
+     "hybrid_share": 29.0,
+     "petrol": 6522,
+     "petrol_share": 38.1,
+     "diesel": 3189,
+     "diesel_share": 18.6
+    },
+    {
+     "month": "2026-03",
+     "total": 23200,
+     "bev": 2985,
+     "bev_share": 12.9,
+     "phev": 1570,
+     "phev_share": 6.8,
+     "hybrid": 6401,
+     "hybrid_share": 27.6,
+     "petrol": 6286,
+     "petrol_share": 27.1,
+     "diesel": 4094,
+     "diesel_share": 17.6
+    },
+    {
+     "month": "2026-04",
+     "total": 16737,
+     "bev": 1316,
+     "bev_share": 7.9,
+     "phev": 1269,
+     "phev_share": 7.6,
+     "hybrid": 5768,
+     "hybrid_share": 34.5,
+     "petrol": 4914,
+     "petrol_share": 29.4,
+     "diesel": 2270,
+     "diesel_share": 13.6
+    },
+    {
+     "month": "2026-05",
+     "total": 18580,
+     "bev": 1893,
+     "bev_share": 10.2,
+     "phev": 1110,
+     "phev_share": 6.0,
+     "hybrid": 5458,
+     "hybrid_share": 29.4,
+     "petrol": 5689,
+     "petrol_share": 30.6,
+     "diesel": 3118,
+     "diesel_share": 16.8
+    },
+    {
+     "month": "2026-06",
+     "total": 21080,
+     "bev": 3079,
+     "bev_share": 14.6,
+     "phev": 1502,
+     "phev_share": 7.1,
+     "hybrid": 5708,
+     "hybrid_share": 27.1,
+     "petrol": 6155,
+     "petrol_share": 29.2,
+     "diesel": 3433,
+     "diesel_share": 16.3
+    },
+    {
+     "month": "2026-07",
+     "total": 19926,
+     "bev": 2339,
+     "bev_share": 11.7,
+     "phev": 1583,
+     "phev_share": 7.9,
+     "hybrid": 6092,
+     "hybrid_share": 30.6,
+     "petrol": 5965,
+     "petrol_share": 29.9,
+     "diesel": 2882,
+     "diesel_share": 14.5
+    },
+    {
+     "month": "2026-08",
+     "total": 20513,
+     "bev": 1418,
+     "bev_share": 6.9,
+     "phev": 1390,
+     "phev_share": 6.8,
+     "hybrid": 6684,
+     "hybrid_share": 32.6,
+     "petrol": 6605,
+     "petrol_share": 32.2,
+     "diesel": 2900,
+     "diesel_share": 14.1
+    }
+   ]
+  },
+  {
+   "id": "china-owned-brands-by-year",
+   "title": "China-owned brands by year",
+   "definition": "All import statuses; the market total is within 0.1% of the cube for 2025. Which makes count as China-owned was decided in the extract, not taken from brand_registry.csv.",
+   "columns": [
+    {
+     "key": "year",
+     "label": "Year",
+     "kind": "text"
+    },
+    {
+     "key": "market_total",
+     "label": "Market",
+     "kind": "count"
+    },
+    {
+     "key": "china_total",
+     "label": "China-owned",
+     "kind": "count"
+    },
+    {
+     "key": "china_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "China-owned share"
+    },
+    {
+     "key": "mg",
+     "label": "MG",
+     "kind": "count"
+    },
+    {
+     "key": "byd",
+     "label": "BYD",
+     "kind": "count"
+    },
+    {
+     "key": "haval",
+     "label": "HAVAL",
+     "kind": "count"
+    },
+    {
+     "key": "ldv",
+     "label": "LDV",
+     "kind": "count"
+    },
+    {
+     "key": "volvo",
+     "label": "VOLVO",
+     "kind": "count"
+    },
+    {
+     "key": "gwm",
+     "label": "GWM",
+     "kind": "count"
+    },
+    {
+     "key": "chery",
+     "label": "CHERY",
+     "kind": "count"
+    },
+    {
+     "key": "jaecoo",
+     "label": "JAECOO",
+     "kind": "count"
+    },
+    {
+     "key": "polestar",
+     "label": "POLESTAR",
+     "kind": "count"
+    },
+    {
+     "key": "omoda",
+     "label": "OMODA",
+     "kind": "count"
+    }
+   ],
+   "rows": [
+    {
+     "year": 2018,
+     "market_total": 272500,
+     "china_total": 4291,
+     "china_share": 1.57,
+     "mg": 18,
+     "byd": 0,
+     "haval": 534,
+     "ldv": 1555,
+     "volvo": 1502,
+     "gwm": 249,
+     "chery": 1,
+     "jaecoo": 0,
+     "polestar": 0,
+     "omoda": 0
+    },
+    {
+     "year": 2019,
+     "market_total": 267579,
+     "china_total": 4438,
+     "china_share": 1.66,
+     "mg": 657,
+     "byd": 0,
+     "haval": 661,
+     "ldv": 1027,
+     "volvo": 1492,
+     "gwm": 397,
+     "chery": 0,
+     "jaecoo": 0,
+     "polestar": 0,
+     "omoda": 0
+    },
+    {
+     "year": 2020,
+     "market_total": 216539,
+     "china_total": 4986,
+     "china_share": 2.3,
+     "mg": 1363,
+     "byd": 0,
+     "haval": 822,
+     "ldv": 996,
+     "volvo": 1280,
+     "gwm": 431,
+     "chery": 0,
+     "jaecoo": 0,
+     "polestar": 0,
+     "omoda": 0
+    },
+    {
+     "year": 2021,
+     "market_total": 270949,
+     "china_total": 11794,
+     "china_share": 4.35,
+     "mg": 3752,
+     "byd": 4,
+     "haval": 2243,
+     "ldv": 2561,
+     "volvo": 1624,
+     "gwm": 1393,
+     "chery": 0,
+     "jaecoo": 0,
+     "polestar": 46,
+     "omoda": 0
+    },
+    {
+     "year": 2022,
+     "market_total": 266168,
+     "china_total": 14512,
+     "china_share": 5.45,
+     "mg": 5201,
+     "byd": 1667,
+     "haval": 2251,
+     "ldv": 2152,
+     "volvo": 1599,
+     "gwm": 569,
+     "chery": 0,
+     "jaecoo": 0,
+     "polestar": 801,
+     "omoda": 0
+    },
+    {
+     "year": 2023,
+     "market_total": 257917,
+     "china_total": 15570,
+     "china_share": 6.04,
+     "mg": 6060,
+     "byd": 3701,
+     "haval": 2329,
+     "ldv": 1092,
+     "volvo": 1063,
+     "gwm": 171,
+     "chery": 2,
+     "jaecoo": 0,
+     "polestar": 537,
+     "omoda": 0
+    },
+    {
+     "year": 2024,
+     "market_total": 223133,
+     "china_total": 9723,
+     "china_share": 4.36,
+     "mg": 3051,
+     "byd": 963,
+     "haval": 2163,
+     "ldv": 640,
+     "volvo": 899,
+     "gwm": 383,
+     "chery": 0,
+     "jaecoo": 235,
+     "polestar": 230,
+     "omoda": 463
+    },
+    {
+     "year": 2025,
+     "market_total": 220955,
+     "china_total": 18085,
+     "china_share": 8.18,
+     "mg": 4180,
+     "byd": 3788,
+     "haval": 2694,
+     "ldv": 1195,
+     "volvo": 889,
+     "gwm": 549,
+     "chery": 1023,
+     "jaecoo": 972,
+     "polestar": 468,
+     "omoda": 823
+    },
+    {
+     "year": 2026,
+     "market_total": 156552,
+     "china_total": 20890,
+     "china_share": 13.34,
+     "mg": 3430,
+     "byd": 4770,
+     "haval": 2480,
+     "ldv": 559,
+     "volvo": 713,
+     "gwm": 434,
+     "chery": 1768,
+     "jaecoo": 1208,
+     "polestar": 91,
+     "omoda": 505
+    }
+   ]
+  },
+  {
+   "id": "region-mix",
+   "title": "Powertrain and ute share by region, 2021 onward",
+   "definition": "Region comes from the owner's current address, not where the vehicle was registered. That is why regional views were cut from the Explore page (D-024).",
+   "columns": [
+    {
+     "key": "region",
+     "label": "Region",
+     "kind": "text"
+    },
+    {
+     "key": "total",
+     "label": "Vehicles",
+     "kind": "count"
+    },
+    {
+     "key": "bev_count",
+     "label": "BEV",
+     "kind": "count"
+    },
+    {
+     "key": "bev_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "BEV share"
+    },
+    {
+     "key": "ute_count",
+     "label": "Ute",
+     "kind": "count"
+    },
+    {
+     "key": "ute_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "Ute share"
+    },
+    {
+     "key": "diesel_count",
+     "label": "Diesel",
+     "kind": "count"
+    },
+    {
+     "key": "diesel_share",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "Diesel share"
+    }
+   ],
+   "rows": [
+    {
+     "region": "Auckland",
+     "total": 565003,
+     "bev_share": 7.0,
+     "ute_share": 8.8,
+     "diesel_share": 16.4,
+     "bev_count": 39759,
+     "ute_count": 49734,
+     "diesel_count": 92778
+    },
+    {
+     "region": "Canterbury",
+     "total": 188980,
+     "bev_share": 6.4,
+     "ute_share": 12.8,
+     "diesel_share": 20.5,
+     "bev_count": 12018,
+     "ute_count": 24151,
+     "diesel_count": 38829
+    },
+    {
+     "region": "Waikato",
+     "total": 132020,
+     "bev_share": 4.5,
+     "ute_share": 17.2,
+     "diesel_share": 25.0,
+     "bev_count": 5886,
+     "ute_count": 22659,
+     "diesel_count": 32970
+    },
+    {
+     "region": "Wellington",
+     "total": 120576,
+     "bev_share": 9.3,
+     "ute_share": 9.8,
+     "diesel_share": 15.4,
+     "bev_count": 11219,
+     "ute_count": 11848,
+     "diesel_count": 18554
+    },
+    {
+     "region": "Bay of Plenty",
+     "total": 83333,
+     "bev_share": 4.6,
+     "ute_share": 16.4,
+     "diesel_share": 22.9,
+     "bev_count": 3870,
+     "ute_count": 13634,
+     "diesel_count": 19082
+    },
+    {
+     "region": "Otago",
+     "total": 60467,
+     "bev_share": 5.5,
+     "ute_share": 17.9,
+     "diesel_share": 25.9,
+     "bev_count": 3319,
+     "ute_count": 10853,
+     "diesel_count": 15636
+    },
+    {
+     "region": "Manawatū-Whanganui",
+     "total": 57681,
+     "bev_share": 4.0,
+     "ute_share": 15.7,
+     "diesel_share": 21.9,
+     "bev_count": 2314,
+     "ute_count": 9071,
+     "diesel_count": 12608
+    },
+    {
+     "region": "Northland",
+     "total": 40439,
+     "bev_share": 5.2,
+     "ute_share": 20.0,
+     "diesel_share": 27.9,
+     "bev_count": 2116,
+     "ute_count": 8082,
+     "diesel_count": 11292
+    },
+    {
+     "region": "Hawke's Bay",
+     "total": 40012,
+     "bev_share": 3.7,
+     "ute_share": 18.8,
+     "diesel_share": 26.2,
+     "bev_count": 1467,
+     "ute_count": 7531,
+     "diesel_count": 10496
+    },
+    {
+     "region": "Taranaki",
+     "total": 27455,
+     "bev_share": 4.5,
+     "ute_share": 16.0,
+     "diesel_share": 23.2,
+     "bev_count": 1227,
+     "ute_count": 4394,
+     "diesel_count": 6365
+    },
+    {
+     "region": "Southland",
+     "total": 24230,
+     "bev_share": 1.7,
+     "ute_share": 24.9,
+     "diesel_share": 33.4,
+     "bev_count": 419,
+     "ute_count": 6022,
+     "diesel_count": 8101
+    },
+    {
+     "region": "Tasman",
+     "total": 13038,
+     "bev_share": 6.6,
+     "ute_share": 18.8,
+     "diesel_share": 25.2,
+     "bev_count": 861,
+     "ute_count": 2455,
+     "diesel_count": 3287
+    },
+    {
+     "region": "Nelson",
+     "total": 11765,
+     "bev_share": 7.1,
+     "ute_share": 12.3,
+     "diesel_share": 18.4,
+     "bev_count": 834,
+     "ute_count": 1451,
+     "diesel_count": 2162
+    },
+    {
+     "region": "Gisborne",
+     "total": 10613,
+     "bev_share": 1.5,
+     "ute_share": 26.7,
+     "diesel_share": 32.9,
+     "bev_count": 163,
+     "ute_count": 2831,
+     "diesel_count": 3496
+    },
+    {
+     "region": "Marlborough",
+     "total": 10599,
+     "bev_share": 4.2,
+     "ute_share": 24.2,
+     "diesel_share": 30.7,
+     "bev_count": 443,
+     "ute_count": 2563,
+     "diesel_count": 3259
+    },
+    {
+     "region": "West Coast",
+     "total": 7437,
+     "bev_share": 1.9,
+     "ute_share": 21.9,
+     "diesel_share": 29.0,
+     "bev_count": 142,
+     "ute_count": 1627,
+     "diesel_count": 2156
+    },
+    {
+     "region": "Area Outside Region",
+     "total": 39,
+     "bev_share": 0.0,
+     "ute_share": 59.0,
+     "diesel_share": 74.4,
+     "bev_count": 0,
+     "ute_count": 23,
+     "diesel_count": 29
+    }
+   ]
+  },
+  {
+   "id": "brand-composition",
+   "title": "What the 20 largest makes consist of, 2021 onward",
+   "definition": "Vehicles first registered from 2021 that are still registered, all import statuses.",
+   "columns": [
+    {
+     "key": "make",
+     "label": "Make",
+     "kind": "text"
+    },
+    {
+     "key": "part",
+     "label": "Split by",
+     "kind": "text"
+    },
+    {
+     "key": "value",
+     "label": "Value",
+     "kind": "text"
+    },
+    {
+     "key": "n",
+     "label": "Vehicles",
+     "kind": "count"
+    },
+    {
+     "key": "pct",
+     "label": "% of make",
+     "kind": "pct"
+    }
+   ],
+   "rows": [
+    {
+     "make": "TOYOTA",
+     "part": "Segment",
+     "value": "Car",
+     "n": 308147,
+     "pct": 81.3
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 49197,
+     "pct": 13.0
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Segment",
+     "value": "Van",
+     "n": 19604,
+     "pct": 5.2
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 1799,
+     "pct": 0.5
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Segment",
+     "value": "Other",
+     "n": 96,
+     "pct": 0.0
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 236889,
+     "pct": 62.5
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 62743,
+     "pct": 16.6
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 60110,
+     "pct": 15.9
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 14943,
+     "pct": 3.9
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 3356,
+     "pct": 0.9
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 769,
+     "pct": 0.2
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Powertrain",
+     "value": "Hydrogen",
+     "n": 31,
+     "pct": 0.0
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Powertrain",
+     "value": "LPG",
+     "n": 2,
+     "pct": 0.0
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Top model",
+     "value": "TOYOTA AQUA",
+     "n": 61224,
+     "pct": 16.2
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Top model",
+     "value": "TOYOTA RAV4",
+     "n": 49353,
+     "pct": 13.0
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Top model",
+     "value": "TOYOTA HILUX",
+     "n": 46950,
+     "pct": 12.4
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Top model",
+     "value": "TOYOTA COROLLA",
+     "n": 42612,
+     "pct": 11.2
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Top model",
+     "value": "TOYOTA PRIUS",
+     "n": 38742,
+     "pct": 10.2
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Top model",
+     "value": "TOYOTA HIACE",
+     "n": 16909,
+     "pct": 4.5
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Top model",
+     "value": "TOYOTA C-HR",
+     "n": 16409,
+     "pct": 4.3
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Top model",
+     "value": "TOYOTA LANDCRUISER",
+     "n": 11960,
+     "pct": 3.2
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 208204,
+     "pct": 55.0
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 168799,
+     "pct": 44.6
+    },
+    {
+     "make": "TOYOTA",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 1840,
+     "pct": 0.5
+    },
+    {
+     "make": "NISSAN",
+     "part": "Segment",
+     "value": "Car",
+     "n": 92738,
+     "pct": 82.3
+    },
+    {
+     "make": "NISSAN",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 12574,
+     "pct": 11.2
+    },
+    {
+     "make": "NISSAN",
+     "part": "Segment",
+     "value": "Van",
+     "n": 6784,
+     "pct": 6.0
+    },
+    {
+     "make": "NISSAN",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 513,
+     "pct": 0.5
+    },
+    {
+     "make": "NISSAN",
+     "part": "Segment",
+     "value": "Other",
+     "n": 77,
+     "pct": 0.1
+    },
+    {
+     "make": "NISSAN",
+     "part": "Segment",
+     "value": "__UNDEFINED__",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "make": "NISSAN",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 59305,
+     "pct": 52.6
+    },
+    {
+     "make": "NISSAN",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 15371,
+     "pct": 13.6
+    },
+    {
+     "make": "NISSAN",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 15098,
+     "pct": 13.4
+    },
+    {
+     "make": "NISSAN",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 14953,
+     "pct": 13.3
+    },
+    {
+     "make": "NISSAN",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 7960,
+     "pct": 7.1
+    },
+    {
+     "make": "NISSAN",
+     "part": "Top model",
+     "value": "NISSAN X-TRAIL",
+     "n": 24208,
+     "pct": 21.5
+    },
+    {
+     "make": "NISSAN",
+     "part": "Top model",
+     "value": "NISSAN NOTE",
+     "n": 16737,
+     "pct": 14.9
+    },
+    {
+     "make": "NISSAN",
+     "part": "Top model",
+     "value": "NISSAN LEAF",
+     "n": 15033,
+     "pct": 13.3
+    },
+    {
+     "make": "NISSAN",
+     "part": "Top model",
+     "value": "NISSAN NAVARA",
+     "n": 12543,
+     "pct": 11.1
+    },
+    {
+     "make": "NISSAN",
+     "part": "Top model",
+     "value": "NISSAN SERENA",
+     "n": 10930,
+     "pct": 9.7
+    },
+    {
+     "make": "NISSAN",
+     "part": "Top model",
+     "value": "NISSAN QASHQAI",
+     "n": 4969,
+     "pct": 4.4
+    },
+    {
+     "make": "NISSAN",
+     "part": "Top model",
+     "value": "NISSAN JUKE",
+     "n": 3570,
+     "pct": 3.2
+    },
+    {
+     "make": "NISSAN",
+     "part": "Top model",
+     "value": "NISSAN NV350",
+     "n": 3185,
+     "pct": 2.8
+    },
+    {
+     "make": "NISSAN",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 83821,
+     "pct": 74.4
+    },
+    {
+     "make": "NISSAN",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 28335,
+     "pct": 25.1
+    },
+    {
+     "make": "NISSAN",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 531,
+     "pct": 0.5
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Segment",
+     "value": "Car",
+     "n": 83925,
+     "pct": 76.6
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 24216,
+     "pct": 22.1
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Segment",
+     "value": "Van",
+     "n": 1326,
+     "pct": 1.2
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 44,
+     "pct": 0.0
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Segment",
+     "value": "Other",
+     "n": 13,
+     "pct": 0.0
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 61106,
+     "pct": 55.8
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 29080,
+     "pct": 26.6
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 19217,
+     "pct": 17.5
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 69,
+     "pct": 0.1
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 51,
+     "pct": 0.0
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Top model",
+     "value": "MITSUBISHI OUTLANDER",
+     "n": 39810,
+     "pct": 36.3
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Top model",
+     "value": "MITSUBISHI TRITON",
+     "n": 24188,
+     "pct": 22.1
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Top model",
+     "value": "MITSUBISHI ASX",
+     "n": 20636,
+     "pct": 18.8
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Top model",
+     "value": "MITSUBISHI ECLIPSE CROSS",
+     "n": 13423,
+     "pct": 12.3
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Top model",
+     "value": "MITSUBISHI PAJERO",
+     "n": 3533,
+     "pct": 3.2
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Top model",
+     "value": "MITSUBISHI MIRAGE",
+     "n": 2449,
+     "pct": 2.2
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Top model",
+     "value": "MITSUBISHI DELICA",
+     "n": 1619,
+     "pct": 1.5
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 92301,
+     "pct": 84.3
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 16777,
+     "pct": 15.3
+    },
+    {
+     "make": "MITSUBISHI",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 446,
+     "pct": 0.4
+    },
+    {
+     "make": "MAZDA",
+     "part": "Segment",
+     "value": "Car",
+     "n": 99427,
+     "pct": 96.2
+    },
+    {
+     "make": "MAZDA",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 3482,
+     "pct": 3.4
+    },
+    {
+     "make": "MAZDA",
+     "part": "Segment",
+     "value": "Van",
+     "n": 223,
+     "pct": 0.2
+    },
+    {
+     "make": "MAZDA",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 179,
+     "pct": 0.2
+    },
+    {
+     "make": "MAZDA",
+     "part": "Segment",
+     "value": "Other",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "make": "MAZDA",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 87552,
+     "pct": 84.7
+    },
+    {
+     "make": "MAZDA",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 8748,
+     "pct": 8.5
+    },
+    {
+     "make": "MAZDA",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 3432,
+     "pct": 3.3
+    },
+    {
+     "make": "MAZDA",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 3012,
+     "pct": 2.9
+    },
+    {
+     "make": "MAZDA",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 440,
+     "pct": 0.4
+    },
+    {
+     "make": "MAZDA",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 124,
+     "pct": 0.1
+    },
+    {
+     "make": "MAZDA",
+     "part": "Powertrain",
+     "value": "LPG",
+     "n": 6,
+     "pct": 0.0
+    },
+    {
+     "make": "MAZDA",
+     "part": "Top model",
+     "value": "MAZDA CX-5",
+     "n": 23796,
+     "pct": 23.0
+    },
+    {
+     "make": "MAZDA",
+     "part": "Top model",
+     "value": "MAZDA AXELA",
+     "n": 23120,
+     "pct": 22.4
+    },
+    {
+     "make": "MAZDA",
+     "part": "Top model",
+     "value": "MAZDA DEMIO",
+     "n": 14164,
+     "pct": 13.7
+    },
+    {
+     "make": "MAZDA",
+     "part": "Top model",
+     "value": "MAZDA ATENZA",
+     "n": 6886,
+     "pct": 6.7
+    },
+    {
+     "make": "MAZDA",
+     "part": "Top model",
+     "value": "MAZDA PREMACY",
+     "n": 5685,
+     "pct": 5.5
+    },
+    {
+     "make": "MAZDA",
+     "part": "Top model",
+     "value": "MAZDA CX-3",
+     "n": 4992,
+     "pct": 4.8
+    },
+    {
+     "make": "MAZDA",
+     "part": "Top model",
+     "value": "MAZDA CX-30",
+     "n": 4120,
+     "pct": 4.0
+    },
+    {
+     "make": "MAZDA",
+     "part": "Top model",
+     "value": "MAZDA MAZDA3",
+     "n": 3731,
+     "pct": 3.6
+    },
+    {
+     "make": "MAZDA",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 72207,
+     "pct": 69.9
+    },
+    {
+     "make": "MAZDA",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 30563,
+     "pct": 29.6
+    },
+    {
+     "make": "MAZDA",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 544,
+     "pct": 0.5
+    },
+    {
+     "make": "FORD",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 62159,
+     "pct": 66.9
+    },
+    {
+     "make": "FORD",
+     "part": "Segment",
+     "value": "Car",
+     "n": 25454,
+     "pct": 27.4
+    },
+    {
+     "make": "FORD",
+     "part": "Segment",
+     "value": "Van",
+     "n": 5241,
+     "pct": 5.6
+    },
+    {
+     "make": "FORD",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 106,
+     "pct": 0.1
+    },
+    {
+     "make": "FORD",
+     "part": "Segment",
+     "value": "Other",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "make": "FORD",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 74865,
+     "pct": 80.5
+    },
+    {
+     "make": "FORD",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 10137,
+     "pct": 10.9
+    },
+    {
+     "make": "FORD",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 3022,
+     "pct": 3.3
+    },
+    {
+     "make": "FORD",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 1944,
+     "pct": 2.1
+    },
+    {
+     "make": "FORD",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 1739,
+     "pct": 1.9
+    },
+    {
+     "make": "FORD",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 1253,
+     "pct": 1.3
+    },
+    {
+     "make": "FORD",
+     "part": "Powertrain",
+     "value": "LPG",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "make": "FORD",
+     "part": "Top model",
+     "value": "FORD RANGER",
+     "n": 61691,
+     "pct": 66.4
+    },
+    {
+     "make": "FORD",
+     "part": "Top model",
+     "value": "FORD EVEREST",
+     "n": 11929,
+     "pct": 12.8
+    },
+    {
+     "make": "FORD",
+     "part": "Top model",
+     "value": "FORD TRANSIT",
+     "n": 5330,
+     "pct": 5.7
+    },
+    {
+     "make": "FORD",
+     "part": "Top model",
+     "value": "FORD ESCAPE",
+     "n": 4205,
+     "pct": 4.5
+    },
+    {
+     "make": "FORD",
+     "part": "Top model",
+     "value": "FORD PUMA",
+     "n": 3394,
+     "pct": 3.7
+    },
+    {
+     "make": "FORD",
+     "part": "Top model",
+     "value": "FORD MUSTANG",
+     "n": 2964,
+     "pct": 3.2
+    },
+    {
+     "make": "FORD",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 88672,
+     "pct": 95.4
+    },
+    {
+     "make": "FORD",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 3790,
+     "pct": 4.1
+    },
+    {
+     "make": "FORD",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 501,
+     "pct": 0.5
+    },
+    {
+     "make": "HONDA",
+     "part": "Segment",
+     "value": "Car",
+     "n": 63433,
+     "pct": 99.8
+    },
+    {
+     "make": "HONDA",
+     "part": "Segment",
+     "value": "Van",
+     "n": 109,
+     "pct": 0.2
+    },
+    {
+     "make": "HONDA",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 23,
+     "pct": 0.0
+    },
+    {
+     "make": "HONDA",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 13,
+     "pct": 0.0
+    },
+    {
+     "make": "HONDA",
+     "part": "Segment",
+     "value": "Other",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "make": "HONDA",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 32840,
+     "pct": 51.7
+    },
+    {
+     "make": "HONDA",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 21840,
+     "pct": 34.4
+    },
+    {
+     "make": "HONDA",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 8618,
+     "pct": 13.6
+    },
+    {
+     "make": "HONDA",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 281,
+     "pct": 0.4
+    },
+    {
+     "make": "HONDA",
+     "part": "Top model",
+     "value": "HONDA FIT",
+     "n": 17184,
+     "pct": 27.0
+    },
+    {
+     "make": "HONDA",
+     "part": "Top model",
+     "value": "HONDA JAZZ",
+     "n": 8345,
+     "pct": 13.1
+    },
+    {
+     "make": "HONDA",
+     "part": "Top model",
+     "value": "HONDA CRV",
+     "n": 6773,
+     "pct": 10.7
+    },
+    {
+     "make": "HONDA",
+     "part": "Top model",
+     "value": "HONDA VEZEL",
+     "n": 6196,
+     "pct": 9.7
+    },
+    {
+     "make": "HONDA",
+     "part": "Top model",
+     "value": "HONDA ODYSSEY",
+     "n": 3742,
+     "pct": 5.9
+    },
+    {
+     "make": "HONDA",
+     "part": "Top model",
+     "value": "HONDA HR-V",
+     "n": 3030,
+     "pct": 4.8
+    },
+    {
+     "make": "HONDA",
+     "part": "Top model",
+     "value": "HONDA ZRV",
+     "n": 2763,
+     "pct": 4.3
+    },
+    {
+     "make": "HONDA",
+     "part": "Top model",
+     "value": "HONDA ACCORD",
+     "n": 2097,
+     "pct": 3.3
+    },
+    {
+     "make": "HONDA",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 43180,
+     "pct": 67.9
+    },
+    {
+     "make": "HONDA",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 20165,
+     "pct": 31.7
+    },
+    {
+     "make": "HONDA",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 234,
+     "pct": 0.4
+    },
+    {
+     "make": "SUBARU",
+     "part": "Segment",
+     "value": "Car",
+     "n": 55285,
+     "pct": 99.9
+    },
+    {
+     "make": "SUBARU",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 24,
+     "pct": 0.0
+    },
+    {
+     "make": "SUBARU",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 14,
+     "pct": 0.0
+    },
+    {
+     "make": "SUBARU",
+     "part": "Segment",
+     "value": "Van",
+     "n": 4,
+     "pct": 0.0
+    },
+    {
+     "make": "SUBARU",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 49914,
+     "pct": 90.2
+    },
+    {
+     "make": "SUBARU",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 5326,
+     "pct": 9.6
+    },
+    {
+     "make": "SUBARU",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 73,
+     "pct": 0.1
+    },
+    {
+     "make": "SUBARU",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 14,
+     "pct": 0.0
+    },
+    {
+     "make": "SUBARU",
+     "part": "Top model",
+     "value": "SUBARU IMPREZA",
+     "n": 15184,
+     "pct": 27.4
+    },
+    {
+     "make": "SUBARU",
+     "part": "Top model",
+     "value": "SUBARU XV",
+     "n": 10600,
+     "pct": 19.2
+    },
+    {
+     "make": "SUBARU",
+     "part": "Top model",
+     "value": "SUBARU OUTBACK",
+     "n": 8205,
+     "pct": 14.8
+    },
+    {
+     "make": "SUBARU",
+     "part": "Top model",
+     "value": "SUBARU FORESTER",
+     "n": 7380,
+     "pct": 13.3
+    },
+    {
+     "make": "SUBARU",
+     "part": "Top model",
+     "value": "SUBARU LEGACY",
+     "n": 6546,
+     "pct": 11.8
+    },
+    {
+     "make": "SUBARU",
+     "part": "Top model",
+     "value": "SUBARU LEVORG",
+     "n": 1991,
+     "pct": 3.6
+    },
+    {
+     "make": "SUBARU",
+     "part": "Top model",
+     "value": "SUBARU CROSSTREK",
+     "n": 1624,
+     "pct": 2.9
+    },
+    {
+     "make": "SUBARU",
+     "part": "Top model",
+     "value": "SUBARU EXIGA",
+     "n": 1491,
+     "pct": 2.7
+    },
+    {
+     "make": "SUBARU",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 42282,
+     "pct": 76.4
+    },
+    {
+     "make": "SUBARU",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 12785,
+     "pct": 23.1
+    },
+    {
+     "make": "SUBARU",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 260,
+     "pct": 0.5
+    },
+    {
+     "make": "KIA",
+     "part": "Segment",
+     "value": "Car",
+     "n": 54421,
+     "pct": 98.7
+    },
+    {
+     "make": "KIA",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 699,
+     "pct": 1.3
+    },
+    {
+     "make": "KIA",
+     "part": "Segment",
+     "value": "Van",
+     "n": 30,
+     "pct": 0.1
+    },
+    {
+     "make": "KIA",
+     "part": "Segment",
+     "value": "Other",
+     "n": 2,
+     "pct": 0.0
+    },
+    {
+     "make": "KIA",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 32993,
+     "pct": 59.8
+    },
+    {
+     "make": "KIA",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 8559,
+     "pct": 15.5
+    },
+    {
+     "make": "KIA",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 7307,
+     "pct": 13.2
+    },
+    {
+     "make": "KIA",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 4889,
+     "pct": 8.9
+    },
+    {
+     "make": "KIA",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 1404,
+     "pct": 2.5
+    },
+    {
+     "make": "KIA",
+     "part": "Top model",
+     "value": "KIA SELTOS",
+     "n": 13050,
+     "pct": 23.7
+    },
+    {
+     "make": "KIA",
+     "part": "Top model",
+     "value": "KIA SPORTAGE",
+     "n": 11380,
+     "pct": 20.6
+    },
+    {
+     "make": "KIA",
+     "part": "Top model",
+     "value": "KIA STONIC",
+     "n": 10103,
+     "pct": 18.3
+    },
+    {
+     "make": "KIA",
+     "part": "Top model",
+     "value": "KIA NIRO",
+     "n": 5074,
+     "pct": 9.2
+    },
+    {
+     "make": "KIA",
+     "part": "Top model",
+     "value": "KIA SORENTO",
+     "n": 4726,
+     "pct": 8.6
+    },
+    {
+     "make": "KIA",
+     "part": "Top model",
+     "value": "KIA CARNIVAL",
+     "n": 3185,
+     "pct": 5.8
+    },
+    {
+     "make": "KIA",
+     "part": "Top model",
+     "value": "KIA PICANTO",
+     "n": 1044,
+     "pct": 1.9
+    },
+    {
+     "make": "KIA",
+     "part": "Top model",
+     "value": "KIA EV3",
+     "n": 725,
+     "pct": 1.3
+    },
+    {
+     "make": "KIA",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 54703,
+     "pct": 99.2
+    },
+    {
+     "make": "KIA",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 314,
+     "pct": 0.6
+    },
+    {
+     "make": "KIA",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 135,
+     "pct": 0.2
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Segment",
+     "value": "Car",
+     "n": 48816,
+     "pct": 98.3
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 349,
+     "pct": 0.7
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Segment",
+     "value": "Van",
+     "n": 285,
+     "pct": 0.6
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 201,
+     "pct": 0.4
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Segment",
+     "value": "Other",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 39601,
+     "pct": 79.8
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 8673,
+     "pct": 17.5
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 1276,
+     "pct": 2.6
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 101,
+     "pct": 0.2
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Top model",
+     "value": "SUZUKI SWIFT",
+     "n": 25585,
+     "pct": 51.5
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Top model",
+     "value": "SUZUKI JIMNY",
+     "n": 6786,
+     "pct": 13.7
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Top model",
+     "value": "SUZUKI VITARA",
+     "n": 4727,
+     "pct": 9.5
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Top model",
+     "value": "SUZUKI IGNIS",
+     "n": 4600,
+     "pct": 9.3
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Top model",
+     "value": "SUZUKI FRONX",
+     "n": 1635,
+     "pct": 3.3
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Top model",
+     "value": "SUZUKI S-CROSS",
+     "n": 1439,
+     "pct": 2.9
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Top model",
+     "value": "SUZUKI SOLIO",
+     "n": 605,
+     "pct": 1.2
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Top model",
+     "value": "SUZUKI CARRY",
+     "n": 394,
+     "pct": 0.8
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 35769,
+     "pct": 72.0
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 13646,
+     "pct": 27.5
+    },
+    {
+     "make": "SUZUKI",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 237,
+     "pct": 0.5
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Segment",
+     "value": "Car",
+     "n": 31637,
+     "pct": 90.5
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Segment",
+     "value": "Van",
+     "n": 2826,
+     "pct": 8.1
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 503,
+     "pct": 1.4
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Segment",
+     "value": "Other",
+     "n": 2,
+     "pct": 0.0
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 13630,
+     "pct": 39.0
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 8300,
+     "pct": 23.7
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 7560,
+     "pct": 21.6
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 4988,
+     "pct": 14.3
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 487,
+     "pct": 1.4
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Powertrain",
+     "value": "Hydrogen",
+     "n": 4,
+     "pct": 0.0
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Top model",
+     "value": "HYUNDAI KONA",
+     "n": 9636,
+     "pct": 27.6
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Top model",
+     "value": "HYUNDAI TUCSON",
+     "n": 8219,
+     "pct": 23.5
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Top model",
+     "value": "HYUNDAI SANTA FE",
+     "n": 5506,
+     "pct": 15.7
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Top model",
+     "value": "HYUNDAI STARIA LOAD",
+     "n": 1668,
+     "pct": 4.8
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Top model",
+     "value": "HYUNDAI MIGHTY",
+     "n": 472,
+     "pct": 1.3
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 34195,
+     "pct": 97.8
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 684,
+     "pct": 2.0
+    },
+    {
+     "make": "HYUNDAI",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 90,
+     "pct": 0.3
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Segment",
+     "value": "Car",
+     "n": 29974,
+     "pct": 86.8
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 2588,
+     "pct": 7.5
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Segment",
+     "value": "Van",
+     "n": 1935,
+     "pct": 5.6
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 23,
+     "pct": 0.1
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Segment",
+     "value": "Other",
+     "n": 7,
+     "pct": 0.0
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 26194,
+     "pct": 75.9
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 6214,
+     "pct": 18.0
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 1340,
+     "pct": 3.9
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 611,
+     "pct": 1.8
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 129,
+     "pct": 0.4
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 39,
+     "pct": 0.1
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Top model",
+     "value": "VOLKSWAGEN GOLF",
+     "n": 12006,
+     "pct": 34.8
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Top model",
+     "value": "VOLKSWAGEN TIGUAN",
+     "n": 5386,
+     "pct": 15.6
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Top model",
+     "value": "VOLKSWAGEN POLO",
+     "n": 3492,
+     "pct": 10.1
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Top model",
+     "value": "VOLKSWAGEN AMAROK",
+     "n": 2578,
+     "pct": 7.5
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Top model",
+     "value": "VOLKSWAGEN T-ROC",
+     "n": 2482,
+     "pct": 7.2
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Top model",
+     "value": "VOLKSWAGEN TOUAREG",
+     "n": 1737,
+     "pct": 5.0
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Top model",
+     "value": "VOLKSWAGEN ID.4",
+     "n": 780,
+     "pct": 2.3
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Top model",
+     "value": "VOLKSWAGEN TAYRON",
+     "n": 178,
+     "pct": 0.5
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 18887,
+     "pct": 54.7
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 15479,
+     "pct": 44.8
+    },
+    {
+     "make": "VOLKSWAGEN",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 161,
+     "pct": 0.5
+    },
+    {
+     "make": "BMW",
+     "part": "Segment",
+     "value": "Car",
+     "n": 26853,
+     "pct": 100.0
+    },
+    {
+     "make": "BMW",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 17992,
+     "pct": 67.0
+    },
+    {
+     "make": "BMW",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 4582,
+     "pct": 17.1
+    },
+    {
+     "make": "BMW",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 1851,
+     "pct": 6.9
+    },
+    {
+     "make": "BMW",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 1810,
+     "pct": 6.7
+    },
+    {
+     "make": "BMW",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 359,
+     "pct": 1.3
+    },
+    {
+     "make": "BMW",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 259,
+     "pct": 1.0
+    },
+    {
+     "make": "BMW",
+     "part": "Top model",
+     "value": "BMW 320",
+     "n": 4065,
+     "pct": 15.1
+    },
+    {
+     "make": "BMW",
+     "part": "Top model",
+     "value": "BMW 116I",
+     "n": 2873,
+     "pct": 10.7
+    },
+    {
+     "make": "BMW",
+     "part": "Top model",
+     "value": "BMW X5",
+     "n": 2824,
+     "pct": 10.5
+    },
+    {
+     "make": "BMW",
+     "part": "Top model",
+     "value": "BMW X1",
+     "n": 2530,
+     "pct": 9.4
+    },
+    {
+     "make": "BMW",
+     "part": "Top model",
+     "value": "BMW X3",
+     "n": 1760,
+     "pct": 6.6
+    },
+    {
+     "make": "BMW",
+     "part": "Top model",
+     "value": "BMW 3 SERIES",
+     "n": 964,
+     "pct": 3.6
+    },
+    {
+     "make": "BMW",
+     "part": "Top model",
+     "value": "BMW X7",
+     "n": 926,
+     "pct": 3.4
+    },
+    {
+     "make": "BMW",
+     "part": "Top model",
+     "value": "BMW 1 SERIES",
+     "n": 717,
+     "pct": 2.7
+    },
+    {
+     "make": "BMW",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 17104,
+     "pct": 63.7
+    },
+    {
+     "make": "BMW",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 9583,
+     "pct": 35.7
+    },
+    {
+     "make": "BMW",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 166,
+     "pct": 0.6
+    },
+    {
+     "make": "MG",
+     "part": "Segment",
+     "value": "Car",
+     "n": 25552,
+     "pct": 99.5
+    },
+    {
+     "make": "MG",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 122,
+     "pct": 0.5
+    },
+    {
+     "make": "MG",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 14008,
+     "pct": 54.6
+    },
+    {
+     "make": "MG",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 7108,
+     "pct": 27.7
+    },
+    {
+     "make": "MG",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 2533,
+     "pct": 9.9
+    },
+    {
+     "make": "MG",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 1903,
+     "pct": 7.4
+    },
+    {
+     "make": "MG",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 122,
+     "pct": 0.5
+    },
+    {
+     "make": "MG",
+     "part": "Top model",
+     "value": "MG ZS",
+     "n": 13864,
+     "pct": 54.0
+    },
+    {
+     "make": "MG",
+     "part": "Top model",
+     "value": "MG 3",
+     "n": 4266,
+     "pct": 16.6
+    },
+    {
+     "make": "MG",
+     "part": "Top model",
+     "value": "MG HS",
+     "n": 3816,
+     "pct": 14.9
+    },
+    {
+     "make": "MG",
+     "part": "Top model",
+     "value": "MG 4",
+     "n": 2618,
+     "pct": 10.2
+    },
+    {
+     "make": "MG",
+     "part": "Top model",
+     "value": "MG S5",
+     "n": 403,
+     "pct": 1.6
+    },
+    {
+     "make": "MG",
+     "part": "Top model",
+     "value": "MG QS",
+     "n": 352,
+     "pct": 1.4
+    },
+    {
+     "make": "MG",
+     "part": "Top model",
+     "value": "MG U9",
+     "n": 122,
+     "pct": 0.5
+    },
+    {
+     "make": "MG",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 25468,
+     "pct": 99.2
+    },
+    {
+     "make": "MG",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 129,
+     "pct": 0.5
+    },
+    {
+     "make": "MG",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 77,
+     "pct": 0.3
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Segment",
+     "value": "Car",
+     "n": 19467,
+     "pct": 87.8
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Segment",
+     "value": "Van",
+     "n": 1962,
+     "pct": 8.8
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 732,
+     "pct": 3.3
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 11,
+     "pct": 0.0
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Segment",
+     "value": "Other",
+     "n": 5,
+     "pct": 0.0
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 13460,
+     "pct": 60.7
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 5021,
+     "pct": 22.6
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 1615,
+     "pct": 7.3
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 1364,
+     "pct": 6.2
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 675,
+     "pct": 3.0
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 41,
+     "pct": 0.2
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Powertrain",
+     "value": "CNG",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Top model",
+     "value": "MERCEDES-BENZ A180",
+     "n": 1904,
+     "pct": 8.6
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Top model",
+     "value": "MERCEDES-BENZ GLC",
+     "n": 1678,
+     "pct": 7.6
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Top model",
+     "value": "MERCEDES-BENZ SPRINTER",
+     "n": 1526,
+     "pct": 6.9
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Top model",
+     "value": "MERCEDES-BENZ GLE",
+     "n": 1520,
+     "pct": 6.9
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Top model",
+     "value": "MERCEDES-BENZ C20",
+     "n": 1283,
+     "pct": 5.8
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Top model",
+     "value": "MERCEDES-BENZ GLA",
+     "n": 826,
+     "pct": 3.7
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Top model",
+     "value": "MERCEDES-BENZ C-CLASS",
+     "n": 822,
+     "pct": 3.7
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Top model",
+     "value": "MERCEDES-BENZ A-CLASS",
+     "n": 798,
+     "pct": 3.6
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 11613,
+     "pct": 52.4
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 10419,
+     "pct": 47.0
+    },
+    {
+     "make": "MERCEDES-BENZ",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 145,
+     "pct": 0.7
+    },
+    {
+     "make": "TESLA",
+     "part": "Segment",
+     "value": "Car",
+     "n": 21307,
+     "pct": 100.0
+    },
+    {
+     "make": "TESLA",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 21307,
+     "pct": 100.0
+    },
+    {
+     "make": "TESLA",
+     "part": "Top model",
+     "value": "TESLA MODEL Y",
+     "n": 12678,
+     "pct": 59.5
+    },
+    {
+     "make": "TESLA",
+     "part": "Top model",
+     "value": "TESLA MODEL 3",
+     "n": 8297,
+     "pct": 38.9
+    },
+    {
+     "make": "TESLA",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 20313,
+     "pct": 95.3
+    },
+    {
+     "make": "TESLA",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 917,
+     "pct": 4.3
+    },
+    {
+     "make": "TESLA",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 77,
+     "pct": 0.4
+    },
+    {
+     "make": "AUDI",
+     "part": "Segment",
+     "value": "Car",
+     "n": 20197,
+     "pct": 100.0
+    },
+    {
+     "make": "AUDI",
+     "part": "Segment",
+     "value": "Other",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "make": "AUDI",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 16295,
+     "pct": 80.7
+    },
+    {
+     "make": "AUDI",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 1670,
+     "pct": 8.3
+    },
+    {
+     "make": "AUDI",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 1033,
+     "pct": 5.1
+    },
+    {
+     "make": "AUDI",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 618,
+     "pct": 3.1
+    },
+    {
+     "make": "AUDI",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 517,
+     "pct": 2.6
+    },
+    {
+     "make": "AUDI",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 65,
+     "pct": 0.3
+    },
+    {
+     "make": "AUDI",
+     "part": "Top model",
+     "value": "AUDI A3",
+     "n": 2811,
+     "pct": 13.9
+    },
+    {
+     "make": "AUDI",
+     "part": "Top model",
+     "value": "AUDI A4",
+     "n": 2782,
+     "pct": 13.8
+    },
+    {
+     "make": "AUDI",
+     "part": "Top model",
+     "value": "AUDI Q5",
+     "n": 2317,
+     "pct": 11.5
+    },
+    {
+     "make": "AUDI",
+     "part": "Top model",
+     "value": "AUDI Q3",
+     "n": 2109,
+     "pct": 10.4
+    },
+    {
+     "make": "AUDI",
+     "part": "Top model",
+     "value": "AUDI Q7",
+     "n": 1416,
+     "pct": 7.0
+    },
+    {
+     "make": "AUDI",
+     "part": "Top model",
+     "value": "AUDI A1",
+     "n": 1388,
+     "pct": 6.9
+    },
+    {
+     "make": "AUDI",
+     "part": "Top model",
+     "value": "AUDI A6",
+     "n": 792,
+     "pct": 3.9
+    },
+    {
+     "make": "AUDI",
+     "part": "Top model",
+     "value": "AUDI S3",
+     "n": 736,
+     "pct": 3.6
+    },
+    {
+     "make": "AUDI",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 12053,
+     "pct": 59.7
+    },
+    {
+     "make": "AUDI",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 8052,
+     "pct": 39.9
+    },
+    {
+     "make": "AUDI",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 93,
+     "pct": 0.5
+    },
+    {
+     "make": "LEXUS",
+     "part": "Segment",
+     "value": "Car",
+     "n": 17238,
+     "pct": 100.0
+    },
+    {
+     "make": "LEXUS",
+     "part": "Segment",
+     "value": "Van",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "make": "LEXUS",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 11732,
+     "pct": 68.0
+    },
+    {
+     "make": "LEXUS",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 3742,
+     "pct": 21.7
+    },
+    {
+     "make": "LEXUS",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 712,
+     "pct": 4.1
+    },
+    {
+     "make": "LEXUS",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 583,
+     "pct": 3.4
+    },
+    {
+     "make": "LEXUS",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 472,
+     "pct": 2.7
+    },
+    {
+     "make": "LEXUS",
+     "part": "Top model",
+     "value": "LEXUS CT200H",
+     "n": 2205,
+     "pct": 12.8
+    },
+    {
+     "make": "LEXUS",
+     "part": "Top model",
+     "value": "LEXUS NX",
+     "n": 1487,
+     "pct": 8.6
+    },
+    {
+     "make": "LEXUS",
+     "part": "Top model",
+     "value": "LEXUS IS300H",
+     "n": 1449,
+     "pct": 8.4
+    },
+    {
+     "make": "LEXUS",
+     "part": "Top model",
+     "value": "LEXUS RX450H",
+     "n": 1196,
+     "pct": 6.9
+    },
+    {
+     "make": "LEXUS",
+     "part": "Top model",
+     "value": "LEXUS HS250H",
+     "n": 1061,
+     "pct": 6.2
+    },
+    {
+     "make": "LEXUS",
+     "part": "Top model",
+     "value": "LEXUS RX",
+     "n": 959,
+     "pct": 5.6
+    },
+    {
+     "make": "LEXUS",
+     "part": "Top model",
+     "value": "LEXUS LBX",
+     "n": 806,
+     "pct": 4.7
+    },
+    {
+     "make": "LEXUS",
+     "part": "Top model",
+     "value": "LEXUS NX300H",
+     "n": 709,
+     "pct": 4.1
+    },
+    {
+     "make": "LEXUS",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 10195,
+     "pct": 59.1
+    },
+    {
+     "make": "LEXUS",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 6971,
+     "pct": 40.4
+    },
+    {
+     "make": "LEXUS",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 75,
+     "pct": 0.4
+    },
+    {
+     "make": "ISUZU",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 8258,
+     "pct": 48.1
+    },
+    {
+     "make": "ISUZU",
+     "part": "Segment",
+     "value": "Truck",
+     "n": 7228,
+     "pct": 42.1
+    },
+    {
+     "make": "ISUZU",
+     "part": "Segment",
+     "value": "Car",
+     "n": 1592,
+     "pct": 9.3
+    },
+    {
+     "make": "ISUZU",
+     "part": "Segment",
+     "value": "Van",
+     "n": 96,
+     "pct": 0.6
+    },
+    {
+     "make": "ISUZU",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 17071,
+     "pct": 99.4
+    },
+    {
+     "make": "ISUZU",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 47,
+     "pct": 0.3
+    },
+    {
+     "make": "ISUZU",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 42,
+     "pct": 0.2
+    },
+    {
+     "make": "ISUZU",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 14,
+     "pct": 0.1
+    },
+    {
+     "make": "ISUZU",
+     "part": "Top model",
+     "value": "ISUZU D-MAX",
+     "n": 8251,
+     "pct": 48.0
+    },
+    {
+     "make": "ISUZU",
+     "part": "Top model",
+     "value": "ISUZU N SERIES",
+     "n": 2410,
+     "pct": 14.0
+    },
+    {
+     "make": "ISUZU",
+     "part": "Top model",
+     "value": "ISUZU F SERIES",
+     "n": 2199,
+     "pct": 12.8
+    },
+    {
+     "make": "ISUZU",
+     "part": "Top model",
+     "value": "ISUZU MU-X",
+     "n": 1575,
+     "pct": 9.2
+    },
+    {
+     "make": "ISUZU",
+     "part": "Top model",
+     "value": "ISUZU ELF",
+     "n": 1335,
+     "pct": 7.8
+    },
+    {
+     "make": "ISUZU",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 14969,
+     "pct": 87.2
+    },
+    {
+     "make": "ISUZU",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 2127,
+     "pct": 12.4
+    },
+    {
+     "make": "ISUZU",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 78,
+     "pct": 0.5
+    },
+    {
+     "make": "BYD",
+     "part": "Segment",
+     "value": "Car",
+     "n": 11846,
+     "pct": 79.5
+    },
+    {
+     "make": "BYD",
+     "part": "Segment",
+     "value": "Ute",
+     "n": 3047,
+     "pct": 20.5
+    },
+    {
+     "make": "BYD",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 9665,
+     "pct": 64.9
+    },
+    {
+     "make": "BYD",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 5228,
+     "pct": 35.1
+    },
+    {
+     "make": "BYD",
+     "part": "Top model",
+     "value": "BYD ATTO 3",
+     "n": 6495,
+     "pct": 43.6
+    },
+    {
+     "make": "BYD",
+     "part": "Top model",
+     "value": "BYD SHARK 6",
+     "n": 3047,
+     "pct": 20.5
+    },
+    {
+     "make": "BYD",
+     "part": "Top model",
+     "value": "BYD SEALION 6",
+     "n": 1350,
+     "pct": 9.1
+    },
+    {
+     "make": "BYD",
+     "part": "Top model",
+     "value": "BYD DOLPHIN",
+     "n": 923,
+     "pct": 6.2
+    },
+    {
+     "make": "BYD",
+     "part": "Top model",
+     "value": "BYD SEALION 7",
+     "n": 744,
+     "pct": 5.0
+    },
+    {
+     "make": "BYD",
+     "part": "Top model",
+     "value": "BYD ATTO 1",
+     "n": 567,
+     "pct": 3.8
+    },
+    {
+     "make": "BYD",
+     "part": "Top model",
+     "value": "BYD ATTO 2",
+     "n": 565,
+     "pct": 3.8
+    },
+    {
+     "make": "BYD",
+     "part": "Top model",
+     "value": "BYD SEALION 5",
+     "n": 452,
+     "pct": 3.0
+    },
+    {
+     "make": "BYD",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 14682,
+     "pct": 98.6
+    },
+    {
+     "make": "BYD",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 188,
+     "pct": 1.3
+    },
+    {
+     "make": "BYD",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 23,
+     "pct": 0.2
+    },
+    {
+     "make": "HAVAL",
+     "part": "Segment",
+     "value": "Car",
+     "n": 14160,
+     "pct": 100.0
+    },
+    {
+     "make": "HAVAL",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 6990,
+     "pct": 49.4
+    },
+    {
+     "make": "HAVAL",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 6185,
+     "pct": 43.7
+    },
+    {
+     "make": "HAVAL",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 985,
+     "pct": 7.0
+    },
+    {
+     "make": "HAVAL",
+     "part": "Top model",
+     "value": "HAVAL H6",
+     "n": 7864,
+     "pct": 55.5
+    },
+    {
+     "make": "HAVAL",
+     "part": "Top model",
+     "value": "HAVAL JOLION",
+     "n": 5745,
+     "pct": 40.6
+    },
+    {
+     "make": "HAVAL",
+     "part": "Import status",
+     "value": "NZ New",
+     "n": 14087,
+     "pct": 99.5
+    },
+    {
+     "make": "HAVAL",
+     "part": "Import status",
+     "value": "Re-registered",
+     "n": 47,
+     "pct": 0.3
+    },
+    {
+     "make": "HAVAL",
+     "part": "Import status",
+     "value": "Used Import",
+     "n": 26,
+     "pct": 0.2
+    }
+   ]
+  },
+  {
+   "id": "segment-leaders",
+   "title": "Leading makes, models and powertrains in each segment, 2021 onward",
+   "definition": "Vehicles first registered from 2021 that are still registered, all import statuses. Segment is the pipeline's coarse segment (no SUV segment exists, D-003).",
+   "columns": [
+    {
+     "key": "segment",
+     "label": "Segment",
+     "kind": "text"
+    },
+    {
+     "key": "part",
+     "label": "Split by",
+     "kind": "text"
+    },
+    {
+     "key": "value",
+     "label": "Value",
+     "kind": "text"
+    },
+    {
+     "key": "n",
+     "label": "Vehicles",
+     "kind": "count"
+    },
+    {
+     "key": "pct",
+     "label": "% of segment",
+     "kind": "pct"
+    }
+   ],
+   "rows": [
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "TOYOTA",
+     "n": 308147,
+     "pct": 27.2
+    },
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "MAZDA",
+     "n": 99427,
+     "pct": 8.8
+    },
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "NISSAN",
+     "n": 92738,
+     "pct": 8.2
+    },
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "MITSUBISHI",
+     "n": 83925,
+     "pct": 7.4
+    },
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "HONDA",
+     "n": 63433,
+     "pct": 5.6
+    },
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "SUBARU",
+     "n": 55285,
+     "pct": 4.9
+    },
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "KIA",
+     "n": 54421,
+     "pct": 4.8
+    },
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "SUZUKI",
+     "n": 48816,
+     "pct": 4.3
+    },
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "HYUNDAI",
+     "n": 31637,
+     "pct": 2.8
+    },
+    {
+     "segment": "Car",
+     "part": "Make",
+     "value": "VOLKSWAGEN",
+     "n": 29974,
+     "pct": 2.6
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "TOYOTA AQUA",
+     "n": 61224,
+     "pct": 5.4
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "TOYOTA RAV4",
+     "n": 49353,
+     "pct": 4.4
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "TOYOTA COROLLA",
+     "n": 42604,
+     "pct": 3.8
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "MITSUBISHI OUTLANDER",
+     "n": 39807,
+     "pct": 3.5
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "TOYOTA PRIUS",
+     "n": 38742,
+     "pct": 3.4
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "SUZUKI SWIFT",
+     "n": 25585,
+     "pct": 2.3
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "NISSAN X-TRAIL",
+     "n": 24207,
+     "pct": 2.1
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "MAZDA CX-5",
+     "n": 23795,
+     "pct": 2.1
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "MAZDA AXELA",
+     "n": 23120,
+     "pct": 2.0
+    },
+    {
+     "segment": "Car",
+     "part": "Model",
+     "value": "MITSUBISHI ASX",
+     "n": 20634,
+     "pct": 1.8
+    },
+    {
+     "segment": "Car",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 571024,
+     "pct": 50.4
+    },
+    {
+     "segment": "Car",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 336401,
+     "pct": 29.7
+    },
+    {
+     "segment": "Car",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 83649,
+     "pct": 7.4
+    },
+    {
+     "segment": "Car",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 60060,
+     "pct": 5.3
+    },
+    {
+     "segment": "Car",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 42624,
+     "pct": 3.8
+    },
+    {
+     "segment": "Car",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 39105,
+     "pct": 3.5
+    },
+    {
+     "segment": "Car",
+     "part": "Powertrain",
+     "value": "Hydrogen",
+     "n": 33,
+     "pct": 0.0
+    },
+    {
+     "segment": "Car",
+     "part": "Powertrain",
+     "value": "LPG",
+     "n": 7,
+     "pct": 0.0
+    },
+    {
+     "segment": "Car",
+     "part": "Powertrain",
+     "value": "Other",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "FORD",
+     "n": 62159,
+     "pct": 34.7
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "TOYOTA",
+     "n": 49197,
+     "pct": 27.4
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "MITSUBISHI",
+     "n": 24216,
+     "pct": 13.5
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "NISSAN",
+     "n": 12574,
+     "pct": 7.0
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "ISUZU",
+     "n": 8258,
+     "pct": 4.6
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "GWM",
+     "n": 3498,
+     "pct": 2.0
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "MAZDA",
+     "n": 3482,
+     "pct": 1.9
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "BYD",
+     "n": 3047,
+     "pct": 1.7
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "LDV",
+     "n": 2744,
+     "pct": 1.5
+    },
+    {
+     "segment": "Ute",
+     "part": "Make",
+     "value": "VOLKSWAGEN",
+     "n": 2588,
+     "pct": 1.4
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "FORD RANGER",
+     "n": 61674,
+     "pct": 34.4
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "TOYOTA HILUX",
+     "n": 46693,
+     "pct": 26.0
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "MITSUBISHI TRITON",
+     "n": 24186,
+     "pct": 13.5
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "NISSAN NAVARA",
+     "n": 12537,
+     "pct": 7.0
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "ISUZU D-MAX",
+     "n": 8247,
+     "pct": 4.6
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "BYD SHARK 6",
+     "n": 3047,
+     "pct": 1.7
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "VOLKSWAGEN AMAROK",
+     "n": 2575,
+     "pct": 1.4
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "TOYOTA LANDCRUISER",
+     "n": 2445,
+     "pct": 1.4
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "LDV T60",
+     "n": 2311,
+     "pct": 1.3
+    },
+    {
+     "segment": "Ute",
+     "part": "Model",
+     "value": "RAM 1500",
+     "n": 1469,
+     "pct": 0.8
+    },
+    {
+     "segment": "Ute",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 154184,
+     "pct": 86.0
+    },
+    {
+     "segment": "Ute",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 11819,
+     "pct": 6.6
+    },
+    {
+     "segment": "Ute",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 8781,
+     "pct": 4.9
+    },
+    {
+     "segment": "Ute",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 3921,
+     "pct": 2.2
+    },
+    {
+     "segment": "Ute",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 504,
+     "pct": 0.3
+    },
+    {
+     "segment": "Ute",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 76,
+     "pct": 0.0
+    },
+    {
+     "segment": "Ute",
+     "part": "Powertrain",
+     "value": "LPG",
+     "n": 4,
+     "pct": 0.0
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "TOYOTA",
+     "n": 19604,
+     "pct": 41.0
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "NISSAN",
+     "n": 6784,
+     "pct": 14.2
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "FORD",
+     "n": 5241,
+     "pct": 11.0
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "LDV",
+     "n": 4824,
+     "pct": 10.1
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "HYUNDAI",
+     "n": 2826,
+     "pct": 5.9
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "MERCEDES-BENZ",
+     "n": 1962,
+     "pct": 4.1
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "VOLKSWAGEN",
+     "n": 1935,
+     "pct": 4.0
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "MITSUBISHI",
+     "n": 1326,
+     "pct": 2.8
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "RENAULT",
+     "n": 1085,
+     "pct": 2.3
+    },
+    {
+     "segment": "Van",
+     "part": "Make",
+     "value": "PEUGEOT",
+     "n": 551,
+     "pct": 1.2
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "TOYOTA HIACE",
+     "n": 16778,
+     "pct": 35.1
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "FORD TRANSIT",
+     "n": 5156,
+     "pct": 10.8
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "NISSAN NV350",
+     "n": 3160,
+     "pct": 6.6
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "LDV G10",
+     "n": 1860,
+     "pct": 3.9
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "HYUNDAI STARIA LOAD",
+     "n": 1668,
+     "pct": 3.5
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "LDV DELIVER 9",
+     "n": 1510,
+     "pct": 3.2
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "MERCEDES-BENZ SPRINTER",
+     "n": 1495,
+     "pct": 3.1
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "TOYOTA REGIUS",
+     "n": 1100,
+     "pct": 2.3
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "NISSAN SERENA",
+     "n": 1071,
+     "pct": 2.2
+    },
+    {
+     "segment": "Van",
+     "part": "Model",
+     "value": "NISSAN CARAVAN",
+     "n": 1035,
+     "pct": 2.2
+    },
+    {
+     "segment": "Van",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 33869,
+     "pct": 70.8
+    },
+    {
+     "segment": "Van",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 10790,
+     "pct": 22.5
+    },
+    {
+     "segment": "Van",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 1723,
+     "pct": 3.6
+    },
+    {
+     "segment": "Van",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 752,
+     "pct": 1.6
+    },
+    {
+     "segment": "Van",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 628,
+     "pct": 1.3
+    },
+    {
+     "segment": "Van",
+     "part": "Powertrain",
+     "value": "PHEV",
+     "n": 90,
+     "pct": 0.2
+    },
+    {
+     "segment": "Van",
+     "part": "Powertrain",
+     "value": "LPG",
+     "n": 1,
+     "pct": 0.0
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "ISUZU",
+     "n": 7228,
+     "pct": 20.7
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "FUSO",
+     "n": 6276,
+     "pct": 18.0
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "HINO",
+     "n": 5891,
+     "pct": 16.9
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "SCANIA",
+     "n": 2851,
+     "pct": 8.2
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "TOYOTA",
+     "n": 1799,
+     "pct": 5.2
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "UD TRUCKS",
+     "n": 1406,
+     "pct": 4.0
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "VOLVO",
+     "n": 1395,
+     "pct": 4.0
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "KENWORTH",
+     "n": 1261,
+     "pct": 3.6
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "DAF",
+     "n": 1090,
+     "pct": 3.1
+    },
+    {
+     "segment": "Truck",
+     "part": "Make",
+     "value": "FOTON",
+     "n": 882,
+     "pct": 2.5
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "ISUZU N SERIES",
+     "n": 2404,
+     "pct": 6.9
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "ISUZU F SERIES",
+     "n": 2188,
+     "pct": 6.3
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "HINO 500",
+     "n": 1636,
+     "pct": 4.7
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "HINO DUTRO",
+     "n": 1558,
+     "pct": 4.5
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "HINO 300",
+     "n": 1461,
+     "pct": 4.2
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "ISUZU ELF",
+     "n": 1286,
+     "pct": 3.7
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "TOYOTA DYNA",
+     "n": 1155,
+     "pct": 3.3
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "FUSO CANTER",
+     "n": 1041,
+     "pct": 3.0
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "DAF CF",
+     "n": 985,
+     "pct": 2.8
+    },
+    {
+     "segment": "Truck",
+     "part": "Model",
+     "value": "FOTON AUMARK",
+     "n": 790,
+     "pct": 2.3
+    },
+    {
+     "segment": "Truck",
+     "part": "Powertrain",
+     "value": "Diesel",
+     "n": 33422,
+     "pct": 95.9
+    },
+    {
+     "segment": "Truck",
+     "part": "Powertrain",
+     "value": "Petrol",
+     "n": 796,
+     "pct": 2.3
+    },
+    {
+     "segment": "Truck",
+     "part": "Powertrain",
+     "value": "Hybrid",
+     "n": 301,
+     "pct": 0.9
+    },
+    {
+     "segment": "Truck",
+     "part": "Powertrain",
+     "value": "BEV",
+     "n": 300,
+     "pct": 0.9
+    },
+    {
+     "segment": "Truck",
+     "part": "Powertrain",
+     "value": "Mild hybrid",
+     "n": 14,
+     "pct": 0.0
+    },
+    {
+     "segment": "Truck",
+     "part": "Powertrain",
+     "value": "Hydrogen",
+     "n": 8,
+     "pct": 0.0
+    },
+    {
+     "segment": "Truck",
+     "part": "Powertrain",
+     "value": "LPG",
+     "n": 3,
+     "pct": 0.0
+    },
+    {
+     "segment": "Truck",
+     "part": "Powertrain",
+     "value": "CNG",
+     "n": 3,
+     "pct": 0.0
+    }
+   ]
+  },
+  {
+   "id": "brand-count-and-concentration",
+   "title": "Number of makes and market concentration by year",
+   "definition": "NZ-new vehicles first registered in each year that are still registered (2025 is within 0.1% of the cube). HHI is the Herfindahl index of make shares (0 to 10,000). The latest year is partial.",
+   "columns": [
+    {
+     "key": "year",
+     "label": "Year",
+     "kind": "text"
+    },
+    {
+     "key": "brands_count",
+     "label": "Makes",
+     "kind": "count"
+    },
+    {
+     "key": "total_units",
+     "label": "Vehicles",
+     "kind": "count"
+    },
+    {
+     "key": "avg_units",
+     "label": "Mean per make",
+     "kind": "count"
+    },
+    {
+     "key": "median_units",
+     "label": "Median per make",
+     "kind": "count"
+    },
+    {
+     "key": "brands_100_plus",
+     "label": "Makes with 100+",
+     "kind": "count"
+    },
+    {
+     "key": "brands_1000_plus",
+     "label": "Makes with 1,000+",
+     "kind": "count"
+    },
+    {
+     "key": "hhi",
+     "label": "HHI",
+     "kind": "count"
+    },
+    {
+     "key": "top3_share",
+     "label": "Top 3 %",
+     "kind": "pct"
+    },
+    {
+     "key": "top5_share",
+     "label": "Top 5 %",
+     "kind": "pct"
+    },
+    {
+     "key": "top10_share",
+     "label": "Top 10 %",
+     "kind": "pct"
+    }
+   ],
+   "rows": [
+    {
+     "year": 2015,
+     "brands_count": 66,
+     "total_units": 118932,
+     "avg_units": 1802,
+     "median_units": 250,
+     "brands_100_plus": 43,
+     "brands_1000_plus": 18,
+     "hhi": 847,
+     "top3_share": 40.5,
+     "top5_share": 54.8,
+     "top10_share": 77.0
+    },
+    {
+     "year": 2016,
+     "brands_count": 64,
+     "total_units": 131791,
+     "avg_units": 2059,
+     "median_units": 330,
+     "brands_100_plus": 41,
+     "brands_1000_plus": 20,
+     "hhi": 819,
+     "top3_share": 39.8,
+     "top5_share": 54.3,
+     "top10_share": 77.2
+    },
+    {
+     "year": 2017,
+     "brands_count": 64,
+     "total_units": 145600,
+     "avg_units": 2275,
+     "median_units": 261,
+     "brands_100_plus": 45,
+     "brands_1000_plus": 20,
+     "hhi": 859,
+     "top3_share": 40.1,
+     "top5_share": 55.4,
+     "top10_share": 77.8
+    },
+    {
+     "year": 2018,
+     "brands_count": 64,
+     "total_units": 149010,
+     "avg_units": 2328,
+     "median_units": 317,
+     "brands_100_plus": 45,
+     "brands_1000_plus": 20,
+     "hhi": 840,
+     "top3_share": 38.5,
+     "top5_share": 54.3,
+     "top10_share": 77.0
+    },
+    {
+     "year": 2019,
+     "brands_count": 64,
+     "total_units": 144474,
+     "avg_units": 2257,
+     "median_units": 412,
+     "brands_100_plus": 46,
+     "brands_1000_plus": 19,
+     "hhi": 814,
+     "top3_share": 37.8,
+     "top5_share": 53.0,
+     "top10_share": 76.4
+    },
+    {
+     "year": 2020,
+     "brands_count": 62,
+     "total_units": 112721,
+     "avg_units": 1818,
+     "median_units": 392,
+     "brands_100_plus": 44,
+     "brands_1000_plus": 20,
+     "hhi": 734,
+     "top3_share": 36.6,
+     "top5_share": 50.4,
+     "top10_share": 74.1
+    },
+    {
+     "year": 2021,
+     "brands_count": 63,
+     "total_units": 157557,
+     "avg_units": 2501,
+     "median_units": 502,
+     "brands_100_plus": 47,
+     "brands_1000_plus": 25,
+     "hhi": 781,
+     "top3_share": 40.7,
+     "top5_share": 52.7,
+     "top10_share": 73.5
+    },
+    {
+     "year": 2022,
+     "brands_count": 67,
+     "total_units": 158056,
+     "avg_units": 2359,
+     "median_units": 503,
+     "brands_100_plus": 48,
+     "brands_1000_plus": 24,
+     "hhi": 800,
+     "top3_share": 41.7,
+     "top5_share": 53.8,
+     "top10_share": 72.9
+    },
+    {
+     "year": 2023,
+     "brands_count": 66,
+     "total_units": 143826,
+     "avg_units": 2179,
+     "median_units": 487,
+     "brands_100_plus": 49,
+     "brands_1000_plus": 26,
+     "hhi": 861,
+     "top3_share": 41.9,
+     "top5_share": 54.0,
+     "top10_share": 72.1
+    },
+    {
+     "year": 2024,
+     "brands_count": 72,
+     "total_units": 123793,
+     "avg_units": 1719,
+     "median_units": 309,
+     "brands_100_plus": 48,
+     "brands_1000_plus": 21,
+     "hhi": 1020,
+     "top3_share": 48.9,
+     "top5_share": 60.0,
+     "top10_share": 74.9
+    },
+    {
+     "year": 2025,
+     "brands_count": 82,
+     "total_units": 133795,
+     "avg_units": 1632,
+     "median_units": 262,
+     "brands_100_plus": 52,
+     "brands_1000_plus": 23,
+     "hhi": 965,
+     "top3_share": 46.0,
+     "top5_share": 56.3,
+     "top10_share": 72.7
+    },
+    {
+     "year": 2026,
+     "brands_count": 84,
+     "total_units": 93367,
+     "avg_units": 1112,
+     "median_units": 248,
+     "brands_100_plus": 53,
+     "brands_1000_plus": 20,
+     "hhi": 791,
+     "top3_share": 40.0,
+     "top5_share": 51.9,
+     "top10_share": 67.2
+    }
+   ]
+  },
+  {
+   "id": "makes-by-volume-band",
+   "title": "Makes grouped by volume, 2025",
+   "definition": "NZ-new vehicles first registered in 2025 that are still registered: 133,795 vehicles across 82 makes.",
+   "columns": [
+    {
+     "key": "threshold",
+     "label": "Vehicles per make",
+     "kind": "text"
+    },
+    {
+     "key": "brands_count",
+     "label": "Makes",
+     "kind": "count"
+    },
+    {
+     "key": "total_units",
+     "label": "Vehicles",
+     "kind": "count"
+    },
+    {
+     "key": "share_pct",
+     "label": "%",
+     "kind": "pct",
+     "spoken": "Share of vehicles"
+    },
+    {
+     "key": "avg_units",
+     "label": "Mean per make",
+     "kind": "count"
+    },
+    {
+     "key": "brands",
+     "label": "Makes in band",
+     "kind": "text"
+    }
+   ],
+   "rows": [
+    {
+     "threshold": "≥ 10,000 units/yr",
+     "brands_count": 3,
+     "total_units": 61570,
+     "share_pct": 46.0,
+     "avg_units": 20523,
+     "brands": "TOYOTA, FORD, MITSUBISHI"
+    },
+    {
+     "threshold": "3,000 – 9,999 units/yr",
+     "brands_count": 8,
+     "total_units": 39338,
+     "share_pct": 29.4,
+     "avg_units": 4917,
+     "brands": "KIA, SUZUKI, MAZDA, NISSAN, HYUNDAI, MG, BYD, HONDA"
+    },
+    {
+     "threshold": "1,000 – 2,999 units/yr",
+     "brands_count": 12,
+     "total_units": 20007,
+     "share_pct": 15.0,
+     "avg_units": 1667,
+     "brands": "HAVAL, SUBARU, VOLKSWAGEN, ISUZU, MERCEDES-BENZ, BMW, TESLA, LEXUS, AUDI, LDV, LAND ROVER, CHERY"
+    },
+    {
+     "threshold": "200 – 999 units/yr",
+     "brands_count": 22,
+     "total_units": 10930,
+     "share_pct": 8.2,
+     "avg_units": 497,
+     "brands": "JAECOO, SKODA, MINI, OMODA, VOLVO, FUSO, GWM, PEUGEOT, HINO, PORSCHE, TANK, POLESTAR, KGM, CUPRA, MAHINDRA, SCANIA, LEAPMOTOR, JEEP, GEELY, RAM, CHEVROLET, RENAULT"
+    },
+    {
+     "threshold": "< 200 units/yr",
+     "brands_count": 37,
+     "total_units": 1950,
+     "share_pct": 1.5,
+     "avg_units": 53,
+     "brands": "KENWORTH, JAGUAR, IVECO, JAC, DAF, UD TRUCKS, FOTON, FIAT, ALFA ROMEO, DONGFENG, ZEEKR, ORA, INEOS, ASTON MARTIN, GMC, MASERATI, OPEL, LAMBORGHINI, CITROEN, FERRARI, BENTLEY, MAN, ABARTH, SMART, FARIZON, MACK, FREIGHTLINER, INTERNATIONAL, CADILLAC, LOTUS, ROLLS-ROYCE, MCLAREN, BAIC, XPENG, GENESIS, FORTHING, DENZA"
+    }
+   ]
+  },
+  {
+   "id": "recent-new-makes",
+   "title": "Makes first seen recently",
+   "definition": "First year a make appears among NZ-new registrations, and its vehicles since. Origin was assigned in the extract.",
+   "columns": [
+    {
+     "key": "make",
+     "label": "Make",
+     "kind": "text"
+    },
+    {
+     "key": "first_year",
+     "label": "First year",
+     "kind": "text"
+    },
+    {
+     "key": "units_recent",
+     "label": "Vehicles since",
+     "kind": "count"
+    },
+    {
+     "key": "origin",
+     "label": "Origin (extract)",
+     "kind": "text"
+    }
+   ],
+   "rows": [
+    {
+     "make": "BYD",
+     "first_year": 2022,
+     "units_recent": 14682,
+     "origin": "China"
+    },
+    {
+     "make": "JAECOO",
+     "first_year": 2024,
+     "units_recent": 2414,
+     "origin": "China"
+    },
+    {
+     "make": "POLESTAR",
+     "first_year": 2021,
+     "units_recent": 2154,
+     "origin": "China"
+    },
+    {
+     "make": "OMODA",
+     "first_year": 2024,
+     "units_recent": 1789,
+     "origin": "China"
+    },
+    {
+     "make": "TANK",
+     "first_year": 2024,
+     "units_recent": 1345,
+     "origin": "China"
+    },
+    {
+     "make": "DONGFENG",
+     "first_year": 2025,
+     "units_recent": 971,
+     "origin": "China"
+    },
+    {
+     "make": "LEAPMOTOR",
+     "first_year": 2024,
+     "units_recent": 711,
+     "origin": "China"
+    },
+    {
+     "make": "ORA",
+     "first_year": 2023,
+     "units_recent": 706,
+     "origin": "China"
+    },
+    {
+     "make": "BAIC",
+     "first_year": 2025,
+     "units_recent": 516,
+     "origin": "China"
+    },
+    {
+     "make": "ZEEKR",
+     "first_year": 2025,
+     "units_recent": 513,
+     "origin": "China"
+    },
+    {
+     "make": "GAC",
+     "first_year": 2026,
+     "units_recent": 372,
+     "origin": "China"
+    },
+    {
+     "make": "DENZA",
+     "first_year": 2025,
+     "units_recent": 285,
+     "origin": "China"
+    },
+    {
+     "make": "INEOS",
+     "first_year": 2023,
+     "units_recent": 177,
+     "origin": "United Kingdom"
+    },
+    {
+     "make": "XPENG",
+     "first_year": 2025,
+     "units_recent": 173,
+     "origin": "China"
+    },
+    {
+     "make": "FARIZON",
+     "first_year": 2024,
+     "units_recent": 134,
+     "origin": "China"
+    },
+    {
+     "make": "FORTHING",
+     "first_year": 2025,
+     "units_recent": 125,
+     "origin": "China"
+    },
+    {
+     "make": "GENESIS",
+     "first_year": 2020,
+     "units_recent": 36,
+     "origin": "South Korea"
+    }
+   ]
+  }
+ ]
+}

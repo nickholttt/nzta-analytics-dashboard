@@ -1,0 +1,297 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { chartDefaults, findDerived, findMeasure, hybrid } from "../lib/config";
+import { TOP_N_SHARE } from "../lib/derived";
+import { MAX_MARKERS, MEASUREMENT_WARNING } from "../lib/events";
+import { SERIES } from "../lib/theme";
+import { ALL_OTHER } from "../components/MixChart";
+import { RESERVED_LABELS } from "../components/PresetPanel";
+
+// Thresholds come from config so the page cannot drift from what the charts apply. Prose here
+// restates docs/METRICS.md for readers who are not analysts; METRICS.md is the source.
+const shareGuards = findMeasure("share")?.guards ?? {};
+const floor = (shareGuards.min_denominator ?? 0).toLocaleString("en-NZ");
+const collapsePct = Math.round((shareGuards.min_share_of_trailing_median ?? 0) * 100);
+const yoyFloor = findMeasure("yoy")?.guards?.min_denominator ?? 0;
+const trailing = chartDefaults.trailing_window_months;
+const topN = findDerived(TOP_N_SHARE)?.top_n;
+const completeAt = Math.round(hybrid.complete_at_coverage * 100);
+const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage * 100);
+const colourSlots = chartDefaults.colour_slots_by_trailing;
+---
+
+<Layout title="Methodology" activeNav="method">
+  <Fragment slot="masthead">
+    <h1>Methodology & Metric Definitions</h1>
+    <p class="standfirst">
+      Every figure on this site comes from a definition on this page. Nothing is forecast, and a missing month is
+      left blank rather than filled in.
+    </p>
+  </Fragment>
+
+  <article class="prose">
+    <h2>Data Grains</h2>
+    <p>
+      The register can be counted in three different ways. They answer different questions, and putting two of them
+      on one axis gives misleading figures.
+    </p>
+    <ul>
+      <li>
+        <strong>Survivors (<code>registrations_surviving</code>)</strong>: vehicles first registered in month <em>M</em> that
+        are still registered as at the snapshot date. Every chart on this site uses this dataset, and each one
+        says so. Older months shrink with every snapshot as vehicles are scrapped, so a share for an older month
+        describes the vehicles still registered, not everything registered then: if one group is scrapped faster than
+        another, its older share reads lower than it was at the time. <em>A survivors series and a flow series never
+        go on the same chart.</em>
+      </li>
+      <li>
+        <strong>Flow (<code>registrations_flow</code>)</strong>: every first registration in month <em>M</em>,
+        including vehicles since scrapped, from the Stats NZ Transport (TPT) series. This is the dataset
+        for how many vehicles entered the fleet. No chart on this site uses it.
+      </li>
+      <li>
+        <strong>Stock (<code>fleet</code>)</strong>: every vehicle registered at a month end, whenever it was first
+        registered. No chart on this site uses it.
+      </li>
+    </ul>
+
+    <h2>Vehicle Scope</h2>
+    <p>
+      Every dataset counts <strong>in-scope vehicles only</strong>. Out-of-scope vehicles stay in the archived
+      monthly snapshot totals, marked as out of scope, but never reach the charts.
+    </p>
+    <ul>
+      <li>
+        <strong>Vehicle types</strong>: passenger cars and vans, and goods vans, utes and trucks (per <code>vehicle_scope.csv</code>).
+        Every other type is out, including motorcycles, mopeds, buses, motorhomes,
+        trailers and caravans, and tractors and other machinery.
+      </li>
+      <li>
+        <strong>Entering the fleet</strong>: survivors and flow count only vehicles registered in New Zealand for the
+        first time, whether new or used imports (per <code>import_status_map.csv</code>). Re-registered vehicles, which
+        are returning to the register, are left out of both and count only in stock. Scratch-built vehicles are left out
+        everywhere.
+      </li>
+    </ul>
+
+    <h2>Core Measures</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Measure</th>
+          <th>Definition</th>
+          <th>Shown as</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Count</strong></td>
+          <td>Number of in-scope vehicles matching the chart's filters in the month.</td>
+          <td class="num">Vehicles</td>
+        </tr>
+        <tr>
+          <td><strong>Share</strong></td>
+          <td>A group's count ÷ the count of all in-scope vehicles in the same month and dataset.</td>
+          <td class="num">Percent (%)</td>
+        </tr>
+        <tr>
+          <td><strong>{trailing}-month share</strong></td>
+          <td>
+            A group's count over the {trailing} months to this one ÷ all vehicles over the same months. It is not an
+            average of monthly shares, which would weight a quiet month the same as a busy one.
+          </td>
+          <td class="num">Percent (%)</td>
+        </tr>
+        <tr>
+          <td><strong>Change on the {trailing} months before</strong></td>
+          <td>A group's share over the last {trailing} months minus its share over the {trailing} months before that.</td>
+          <td class="num">Percentage points (pp)</td>
+        </tr>
+        <tr>
+          <td><strong>12-month running total</strong></td>
+          <td>Sum of the count over the 12 months to this one, including this one.</td>
+          <td class="num">Vehicles</td>
+        </tr>
+        <tr>
+          <td><strong>Change on a year ago</strong></td>
+          <td>
+            (this month − the same month last year) ÷ the same month last year. Not shown when last year's count is
+            under {yoyFloor}.
+          </td>
+          <td class="num">Percent (%)</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>Percentage points vs percentages</strong>: a movement from 10% to 15% is always reported as <strong>+5.0 pp</strong>, never as +50%.
+    </p>
+    <p>
+      A running total or a {trailing}-month share needs every one of its months. If one is missing, the line breaks
+      there.
+    </p>
+    <p>
+      Every chart on the site today shows a share. No live chart uses the count, the running total or the change on a
+      year ago; they are defined here because the configuration allows them.
+    </p>
+
+    <h2>The Two Suppression Guards</h2>
+    <p>
+      On any share chart, a figure is greyed out when <strong>either</strong> of two guards trips. Greyed figures are
+      drawn as a thin grey line over a shaded band, and marked “suppressed” in the tables under a chart, not dropped
+      and not set to zero. The two guards catch different
+      problems, so one cannot stand in for the other.
+    </p>
+
+    <h3>1. The Precision Floor (Fewer Than {floor} Vehicles)</h3>
+    <p>
+      When fewer than {floor} vehicles sit behind a share, each vehicle moves the percentage visibly, so the figure is
+      too rough to read. For a {trailing}-month share, the floor applies to the {trailing} months' total. This is the
+      guard that covers the sparse early record: every month under {floor} vehicles is before 1990.
+    </p>
+
+    <h3>2. The Representativeness Floor (A Collapse Against Recent Months)</h3>
+    <p>
+      A month can clear the precision floor comfortably and still describe a different population from the months
+      around it. This guard trips when a month's total is below <strong>{collapsePct}% of the median</strong> of the
+      previous {trailing} months. It applies to monthly shares only: a {trailing}-month share is not greyed for one
+      collapsed month inside its window.
+    </p>
+    <div class="callout warning">
+      <span class="callout-label">Case study: April 2020 lockdown</span>
+      <p>
+        April 2020 was New Zealand's Alert Level 4 lockdown. At the October 2026 snapshot, 1,538 vehicles first
+        registered that month were still registered, against a median of 22,013 for the {trailing} months before: a
+        fall of 93%. Hyundai Motor Group's share that month was 16.9% (260 of 1,538), against
+        5.9% over the {trailing} months before.
+      </p>
+      <p>
+        That 16.9% is not noise. With 260 of 1,538, chance alone would typically move the figure by about 0.96
+        percentage points (its standard error), and it sat about eleven times that above normal. The month was precisely measured; it was a different mix of
+        vehicles. NZ-new vehicles were 63.7% of the month against 54.5% over the {trailing} months before, trucks
+        6.8% against 2.5%, and vans 6.2% against 4.5%. A precision guard cannot see this, because nothing about the
+        figure is imprecise. Only a guard that compares the month with its own recent history catches it.
+      </p>
+    </div>
+
+    <h2>Reading a Mix Chart</h2>
+    <p>
+      A mix chart shows how a total splits into groups: each line is one group's share of the month's vehicles. These
+      are the only charts that carry event markers, though not every one of them does.
+    </p>
+
+    <h3>Lines and the Key</h3>
+    <p>
+      Up to {SERIES.length} lines get their own colour. The first {colourSlots} go to the largest groups over the
+      last {trailing} months; the rest go to the groups with the highest {trailing}-month share at any point in the chart's
+      period, so a group that mattered decades ago keeps a colour. Any further group is drawn as a thin grey line.
+      On a chart that does not keep only its largest groups, every group with vehicles in the period shown gets a
+      line, even one with none today. The
+      key under the chart names every line, with its share over the last {trailing} months and the change on
+      the {trailing} months before.
+    </p>
+
+    <h3>“{ALL_OTHER}”</h3>
+    <p>
+      A chart that keeps only its largest groups, such as the brand chart, adds every other group together into one
+      grey line called <em>{ALL_OTHER}</em>. Which groups keep their own line is decided by vehicles over the
+      last {trailing} months, and that choice holds across the whole chart. So a brand that was large decades ago but is
+      small now sits inside {ALL_OTHER} in every year, including the years it was large.
+    </p>
+
+    <h3>Values With No Name</h3>
+    <p>Three labels mark vehicles that cannot be put in a named group. They mean different things and are never merged.</p>
+    <ul>
+      <li>
+        <strong>{RESERVED_LABELS.__UNDEFINED__}</strong>: the register has no value for this vehicle, or a value that means
+        “none”.
+      </li>
+      <li>
+        <strong>{RESERVED_LABELS.__UNMAPPED__}</strong>: the register has a value, but it is not in this site's reference
+        lists, for example a make missing from the brand list.
+      </li>
+      <li>
+        <strong>{RESERVED_LABELS.__OTHER__}</strong>: a recognised value folded together because there are too many to
+        show separately. Only models use it, and no live chart shows models.
+      </li>
+    </ul>
+    <p>
+      These vehicles always count in the total, so every share is out of all in-scope vehicles. They never take a
+      colour or a place among the largest groups: on a chart that keeps only its largest groups they fall
+      into {ALL_OTHER}, and on any other chart they are a thin grey line of their own, like any group past the
+      palette. At the October 2026 snapshot, 26,433 vehicles (0.58%) had a make with no match in the brand list. On
+      the segment chart, 88 vehicles are {RESERVED_LABELS.__UNDEFINED__.toLowerCase()}, at most three in a month between
+      1957 and February 2022, so their line stays near zero except in greyed months, where a single vehicle out of a
+      few dozen shows as a spike.
+    </p>
+
+    <h3>Event Markers</h3>
+    <p>
+      A marker places a dated event next to the line. It says when something happened, not that it caused what the
+      line does.
+    </p>
+    <ul>
+      <li><strong>Solid thin line</strong>: the date an event took effect.</li>
+      <li>
+        <strong>Dotted faint line</strong>: the date it was announced, where that is known, so the two dates can be
+        compared.
+      </li>
+      <li><strong>Shaded band</strong>: an event that lasted a while, shaded from its start to its end.</li>
+      <li>
+        <strong>Dashed darker line</strong>: a change in how the register records vehicles, not in what people bought.
+        Its entry in the list carries the warning <em>“{MEASUREMENT_WARNING}”</em>
+      </li>
+    </ul>
+    <p>
+      Each marker has a number above the chart, and the list under it (“events marked on the chart”) gives each
+      event's title, dates, a one-line summary and its source. Events too close together to label separately share a
+      number: <em>3 (2)</em> means marker 3 covers two events. Each still has its own line. A chart shows at
+      most {MAX_MARKERS} numbers, grouping more events under each number on charts that cover longer periods and on
+      narrow screens, so the numbering on a phone can differ from a desktop's.
+    </p>
+    <p>
+      A chart shows only the events about what it breaks down by: an event about used imports appears on the
+      chart that splits new from used, not on the segment chart. Events that affect every vehicle, such as a fuel tax change, are hidden until you
+      press the button in the list that shows market-wide events. Only events checked against a source are shown,
+      and none dated after the latest snapshot.
+    </p>
+
+    <h2>Derived Measures</h2>
+    <h3>Market Concentration (Top-{topN} Share)</h3>
+    <p>
+      The combined share of the {topN} largest groups in the chart's breakdown that month, for example
+      the {topN} largest makes. Which {topN} they are is worked out again every month, so the line tracks concentration rather
+      than the fortunes of a fixed set. Vehicles with no recorded or recognised value never take a place, but they still count in the total. A
+      falling line means the largest groups hold less of the total, so read the early decades with care: about a fifth
+      of vehicles from the 1950s and 1960s have a make with no match in the brand list, which holds the line down. It
+      carries both suppression guards.
+    </p>
+
+    <h3>Mild Hybrid Identification Coverage</h3>
+    <p>
+      The main hybrid code in NZTA's records does not say whether a hybrid is mild (MHEV) or full (FHEV). We classify
+      hybrid nameplates as mild or full from manufacturer specifications in <code>mild_hybrid_models.csv</code>.
+      Nameplates that the sources disagree on, or that the records cannot separate, stay unresolved rather than
+      guessed. One diesel hybrid code is counted as mild by default, because since February 2024 almost all of it is
+      Toyota Hilux and Land Cruiser diesels with a 48-volt mild-hybrid system; the full hybrids recorded under it are
+      moved out by nameplate.
+    </p>
+    <p>
+      Coverage is <code>identified mild ÷ (identified mild + unresolved hybrids)</code>. It is a lower bound, because it
+      counts every unresolved hybrid as a missed mild hybrid. It is published twice: counting every classification,
+      and counting high-confidence classifications only. While the figure that counts every classification is
+      under {completeAt}%, over all time or over the last {trailing} months, a chart that splits out mild hybrids labels them <em>{hybrid.labels.partial}</em> and states the coverage under the chart. A build
+      warns if the high-confidence figure over the last {trailing} months falls under {warnBelow}%. The powertrain
+      charts split out mild hybrids.
+    </p>
+
+    <h2>Estimation Principles</h2>
+    <ul>
+      <li><strong>No interpolation</strong>: a missing month is never filled in; the line breaks.</li>
+      <li><strong>No extrapolation</strong>: charts end at the latest snapshot. Nothing is projected or forecast.</li>
+      <li><strong>Greyed, not zeroed</strong>: a figure that trips a guard is greyed out, never shown as 0%.</li>
+      <li>
+        <strong>Basis note</strong>: every chart states its dataset's definition and carries the note <em>“Registrations recorded by NZTA. Not the same as vehicle sales.”</em>
+      </li>
+    </ul>
+  </article>
+</Layout>

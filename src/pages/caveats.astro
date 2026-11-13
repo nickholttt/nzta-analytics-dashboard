@@ -1,0 +1,128 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { findDimension, publicCopy } from "../lib/config";
+import { INTERNAL_PAGES } from "../lib/site";
+
+// The labels the charts show, read from config so this page cannot name one the charts do not use. An id config
+// does not hold fails the build: printing an empty label would pass unseen.
+const chartLabel = (id: string) => {
+  const label = publicCopy.dimension_labels[id] ?? findDimension(id)?.label;
+  if (!label) throw new Error(`caveats: config has no dimension "${id}" to take a chart label from`);
+  return label;
+};
+const builtInLabel = chartLabel("built_in");
+const ownerLabel = chartLabel("owner_country");
+---
+
+<Layout title="Data Caveats" activeNav="caveats">
+  <Fragment slot="masthead">
+    <h1>Data Caveats & Field Traps</h1>
+    <p class="standfirst">
+      Administrative register data is collected to license vehicles, not to measure economic trends.
+      Understanding these measurement artefacts prevents mistaking data collection rules for market behaviour.
+    </p>
+  </Fragment>
+
+  <article class="prose">
+    <h2>1. A Registration is Not a Sale</h2>
+    <p>
+      The charts count <strong>vehicles first registered in a month that are still registered at the latest snapshot</strong>. This is not a count of sales, and it is not every vehicle ever first registered: vehicles scrapped since have dropped out (section 2). Registrations and sales also differ in timing and basis:
+    </p>
+    <ul>
+      <li>
+        <strong>Registration ahead of sale</strong>: A vehicle can be registered before anyone buys it, for example ahead of a policy deadline such as the end of the Clean Car Discount on 31 December 2023, and held in stock until it sells.
+      </li>
+      <li>
+        <strong>Counted when registered</strong>: A vehicle counts in the month it was first registered, not the month it was ordered or paid for.
+      </li>
+      <li>
+        <strong>Industry figures</strong>: The Motor Industry Association (MIA) counts vehicles delivered to buyers. That is a different basis, so these figures will not match MIA releases, and we do not adjust them to match.
+      </li>
+    </ul>
+
+    <h2>2. Survivors Bias</h2>
+    <p>
+      The open Motor Vehicle Register contains records of vehicles <em>currently registered</em>.
+    </p>
+    <div class="callout warning">
+      <span class="callout-label">Important Limitation</span>
+      <p>
+        When grouping the register by first-registration month, you are counting <strong>vehicles first registered in that month that are still alive today</strong>. Older cohorts have been naturally thinned by decades of crashes, mechanical failures, and scrappage.
+      </p>
+    </div>
+    <p>
+      A count of surviving vehicles naturally shrinks the past. For example, surviving 1995 registrations will always show a downward slope compared to 2015 registrations, regardless of how many cars were actually bought in 1995. Volume trends cannot be read from these figures. That needs a count of every vehicle first registered each month, including those since scrapped, which this site does not have yet.
+    </p>
+    <p>
+      Shares are skewed too, because vehicles do not leave the register at the same rate. Take passenger cars and vans first registered in 2015. Between the August and September 2026 snapshots, the number of used imports still registered fell by 0.72%, and the number of NZ New vehicles by 0.17%. Among the ten most-registered makes, the fall ran from 0.22% (Holden) to 0.75% (Nissan). The gap is not the same in every cohort: for cars first registered in the 1990s, NZ New fell faster than used imports. So an older month's shares lean towards whichever vehicles from that month stay registered longer, and do not show exactly what was bought at the time. How large that lean is for a given month is not yet known. For new against used, a count of every vehicle first registered each month will measure it once the site has one; for makes, no source we use counts what was first registered, so the monthly snapshots we keep can only track how makes leave the register from now on.
+    </p>
+
+    <h2>3. The 2007 Break in <code>vehicle_year</code></h2>
+    <p>
+      The field <code>vehicle_year</code> in the NZTA register is <strong>not model year</strong>.
+    </p>
+    <ul>
+      <li>
+        <strong>NZ-New (2007 onwards)</strong>: For New Zealand-new vehicles first registered from 2007, <code>vehicle_year</code> equals the New Zealand first registration year on 99.98% of rows (verified on over 2.2 million records). Age at registration is therefore 0 by definition.
+      </li>
+      <li>
+        <strong>NZ-New (pre-2007)</strong>: Prior to 2007, registration regimes mixed manufacture year, overseas model year, and compliance year inconsistently.
+      </li>
+      <li>
+        <strong>Used Imports</strong>: For second-hand imports, <code>vehicle_year</code> reflects a year from the vehicle's prior life overseas.
+      </li>
+    </ul>
+    <p>
+      Because of this structural break, age-at-registration measures are scoped strictly to used imports.
+    </p>
+
+    <h2>4. What a Territorial Authority (TLA) Means</h2>
+    <p>
+      The register records a Territorial Authority code (<code>TLA</code>) representing the <strong>current residential address of the registered owner as at the snapshot date</strong>.
+    </p>
+    <ul>
+      <li>It is <strong>not</strong> where the vehicle was originally purchased or registered.</li>
+      <li>It is <strong>not</strong> where the vehicle is driven or kept.</li>
+      <li>
+        <strong>Fleet Distortion</strong>: Rental companies, national courier fleets, government agencies, and leasing providers register tens of thousands of vehicles to corporate headquarters in Auckland or Christchurch, while the vehicles operate across provincial New Zealand.
+      </li>
+    </ul>
+    <p>
+      Because regional registration counts reflect corporate head-office locations rather than local buying decisions, Explore has no regional charts. The map on Build a chart shows each region's share of vehicles, with this caveat under it.
+    </p>
+
+    <h2>5. "Built In" vs "Brand Nationality"</h2>
+    <p>
+      NZTA's <code>ORIGINAL_COUNTRY</code> field records the country where the vehicle was <strong>principally manufactured</strong>, not the nationality of the brand:
+    </p>
+    <ul>
+      <li>A Toyota Hilux built in Thailand records <code>Thailand</code>, not Japan.</li>
+      <li>An Audi Q7 assembled in Slovakia records <code>Slovakia</code>, not Germany.</li>
+      <li>A Tesla Model 3 assembled in Shanghai records <code>China</code>, not the United States.</li>
+    </ul>
+    <p>
+      Brand nationality (e.g. Toyota as Japanese, Audi as German, Tesla as American) is maintained separately in our curated brand registry. On our charts the two are labelled <strong>“{builtInLabel}”</strong> and <strong>“{ownerLabel}”</strong>, so one is not read as the other.
+    </p>
+
+    <h2>6. Mild Hybrid Identification Limits</h2>
+    <p>
+      NZTA motive power codes do not distinguish between mild hybrids (MHEVs, which cannot drive on electric power alone) and full hybrids (FHEVs). We classify mild hybrids by nameplate matching. Contested nameplates where international specifications disagree (such as Subaru e-Boxer models) remain unclassified rather than guessed, and identification coverage is openly published alongside all hybrid figures.
+    </p>
+
+    <h2>7. Why There Is No SUV Category</h2>
+    <p>
+      The open NZTA register has no <code>SUV</code> body type. Its 27 body types do not include one, and <strong>none</strong> of the 5,926,990 vehicles, trailers and machines on it at 31 October 2026 is recorded as an SUV.
+    </p>
+    <p>
+      Models usually thought of as SUVs are mostly recorded as <code>STATION WAGON</code>: 98.9% of Toyota RAV4s, 98.1% of Mazda CX-5s and 99.7% of Mitsubishi Outlanders on the register. An SUV segment therefore cannot be derived from the register's own fields; it would need a model-by-model classification.
+    </p>
+    {
+      INTERNAL_PAGES && (
+        <p>
+          The body type counts behind this are in the <a href="/sense-check#body-type-by-model">sense-check tables</a>, an internal page outside the Explore charts.
+        </p>
+      )
+    }
+  </article>
+</Layout>
+

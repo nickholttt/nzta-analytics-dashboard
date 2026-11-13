@@ -38,7 +38,7 @@ scope flag; they never reach the cube.
 | Measure | Definition |
 |---|---|
 | Count | Number of vehicles matching the filters in the period. |
-| Share | Count ÷ count of all vehicles in the same dataset and month. Suppressed by both guards below. |
+| Share | Count ÷ count of all vehicles in the same dataset and month. Suppressed by both guards below; the representativeness guard applies to monthly shares only, not 12-month ones. |
 | Change on a year ago | (this month − same month last year) ÷ same month last year. Suppressed when the base is under 50. |
 | 12-month running total | Sum of the trailing 12 months inclusive of the current month. |
 
@@ -55,7 +55,7 @@ read this section first.
 too few vehicles for a percentage to mean anything, and each further
 vehicle moves the figure visibly. It is also what covers the sparse early
 history: 493 of the 1,195 months in `registrations_surviving` sit under
-200, almost all of them before 1990.
+200, all of them before 1990 (the latest is February 1970).
 
 **The representativeness floor — denominator under a third of the median
 of the 12 months before it.** A month can clear the precision floor
@@ -65,8 +65,9 @@ either side of it.
 The reference case is April 2020, NZ's level-4 lockdown, and it is the
 only month in the whole series that collapses this way while clearing
 200. Its denominator was 1,542 against a trailing median of 22,108, down
-93%. Hyundai Motor Group shows 16.9% in that month against a 4.5–7.5%
-band either side.
+93%. Hyundai Motor Group shows 16.9% in that month against 5.9% over the
+12 months before; its monthly share across the 12 months either side
+ranges from 4.2% to 9.4%.
 
 **That 16.9% is not noise, and this is the point of the second guard.**
 At n = 261 of 1,542 the binomial standard error is 0.95pp, so the reading
@@ -74,23 +75,35 @@ sits about eleven standard errors above normal. Precision was never the
 problem. The problem is that the ~7% of registrations that happened under
 a level-4 lockdown were not a small random sample of a normal month:
 
-| | April 2020 | months either side |
-|---|---|---|
-| NZ New | 63.6% | ~51% |
-| Trucks | 6.8% | ~2.3% |
-| Vans | 6.2% | ~4.5% |
+| | April 2020 | 12 months before | 12 months after |
+|---|---|---|---|
+| NZ New | 63.6% | 54.3% | 55.1% |
+| Trucks | 6.8% | 2.5% | 2.5% |
+| Vans | 6.2% | 4.5% | 4.3% |
 
-Essential-goods vehicles, not a market. Every percentage in that month is
-precisely measured and describes a population no reader is asking about.
-A precision guard cannot see this, because there is nothing imprecise
-about it; only a guard that compares the month against its own recent
-history can.
+Baselines are each window's combined share (vehicles of that kind over all
+vehicles), the 12 months before being the guard's own window. More trucks,
+more vans, more NZ-new: not the mix of a normal month. Every percentage in
+that month is precisely measured and describes a population no reader is
+asking about. A precision guard cannot see this, because there is nothing
+imprecise about it; only a guard that compares the month against its own
+recent history can.
 
-The fraction is not finely tuned. Every threshold from 0.2 to 0.5 selects
-exactly the same single month across all 1,195, so the choice is
-insensitive; 0.33 sits well clear of ordinary seasonal variation, whose
-1st percentile is 0.29. Both figures live in `config/measures.json` and
-are applied in the browser, so neither needs a rebuild to change.
+The fraction is not finely tuned. Among the 702 months that clear the
+precision floor (every one has the full 12 months before it), every
+threshold from 0.2 to 0.5 selects only April 2020, so the choice is
+insensitive. In those months the next-lowest ratio after April 2020's
+0.07 is 0.55 (November 1985), and the 1st percentile is 0.67, so 0.33
+sits well clear of ordinary seasonal variation. Across all months, sparse
+early ones included, the guard on its own trips more often (12 months at
+0.33) and the 1st percentile is 0.29, but every one of those months is
+under 200, so the precision floor already suppresses it. Both figures live in
+`config/measures.json` and are applied in the browser, so neither needs a
+rebuild to change.
+
+Figures in this section were measured on the cube at the 2026-08-31
+snapshot. They are survivors counts, so they drift slightly as vehicles
+leave the register.
 
 ## Derived measures
 

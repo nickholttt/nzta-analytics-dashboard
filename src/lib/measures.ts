@@ -27,6 +27,10 @@ export function addMonths(key: string, k: number): string {
 
 export const monthDate = (key: string) => new Date(`${key}-01T00:00:00Z`);
 
+// A month as a reader says it: "Aug 2026", not "2026-08".
+const MONTH_FORMAT = new Intl.DateTimeFormat("en-NZ", { month: "short", year: "numeric", timeZone: "UTC" });
+export const monthLabel = (key: string) => MONTH_FORMAT.format(monthDate(key));
+
 export function monthRange(from: string, to: string): string[] {
   const out: string[] = [];
   for (let k = from; k <= to; k = addMonths(k, 1)) out.push(k);

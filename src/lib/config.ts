@@ -7,6 +7,14 @@ import pipelineDoc from "../../config/pipeline.json";
 
 export type PresetStatus = "live" | "blocked" | "invalid";
 
+export type GranularityOption = {
+  id: string;
+  label: string;
+  dimension: string;
+  top_n?: number;
+  note?: string;
+};
+
 export type Preset = {
   id: string;
   question: string;
@@ -17,16 +25,25 @@ export type Preset = {
   measure?: string;
   dimension?: string | null;
   period?: string;
+  // A period the time row also offers, where it turns the chart into a ranking of one window.
+  ranking_period?: string;
   filters?: Record<string, string>[];
   events?: boolean;
   note?: string;
   note_template?: string;
   top_n?: number;
   shape_override?: string;
+  // Draw the breakdown frame by frame through time; no renderer does yet, so the resolver blocks it.
+  animate_by?: string;
   derived?: string;
   series?: unknown[];
   filter_value?: string;
+  // A question built on the Build page: the breakdown values it compares, and the vehicles it keeps, by dimension.
+  // Either one draws from the fact table (D-058).
+  values?: string[];
+  where?: Record<string, string[]>;
   smoothing?: string;
+  granularity_options?: GranularityOption[];
 };
 
 export type Band = { label: string; min?: number; max?: number | null; unknown?: boolean; no_engine?: boolean };
@@ -58,13 +75,48 @@ export type DerivedMeasure = Measure & { snapshots_needed?: number; top_n?: numb
 export type Period = { id: string; label: string; months?: number };
 export type SmoothingOption = { id: string; label: string; axis: string };
 
+// One measure the sentence builder offers: its words, and the dimensions it may be split by, keyed by
+// dimension id with the words the sentence uses for each.
+export type BuilderMeasure = {
+  id: string;
+  derived?: boolean;
+  phrase: string;
+  joiner: string;
+  dimensions: Record<string, string>;
+  top_n?: Record<string, number>;
+  note?: string;
+  note_template?: string;
+  // A measure drawn as two charts, one per part: each part is another measure's id.
+  parts?: string[];
+};
+
+export type BuilderSpec = {
+  id: string;
+  dataset: string;
+  period: string;
+  period_when_comparing: string;
+  period_by_shape: Record<string, string>;
+  ranking_period: string;
+  lead: string;
+  measures: BuilderMeasure[];
+  dimension_notes: Record<string, string>;
+  not_offered: string[];
+};
+
 type PresetsDoc = {
-  groups: { id: string; label: string; presets: Preset[] }[];
+  // label and title head the group's section on the Explore page; lead marks the charts that carry it.
+  groups: { id: string; label: string; title: string; lead?: boolean; presets: Preset[] }[];
+  public_copy: {
+    dataset_definitions: Record<string, string>;
+    dimension_labels: Record<string, string>;
+    dimension_notes: Record<string, string>;
+  };
   defaults: {
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
     trailing_window_months: number;
+    colour_slots_by_trailing: number;
     mix_default_start: {
       min_share: number;
       min_categories: number;
@@ -73,6 +125,7 @@ type PresetsDoc = {
     };
   };
   $composite: { max_series: number; builder_available: boolean; members: string[] };
+  builder: BuilderSpec;
 };
 
 const presetsFile = presetsDoc as unknown as PresetsDoc;
@@ -80,7 +133,9 @@ const presetsFile = presetsDoc as unknown as PresetsDoc;
 export const presetGroups = presetsFile.groups;
 export const presets: Preset[] = presetsFile.groups.flatMap((g) => g.presets);
 export const chartDefaults = presetsFile.defaults;
+export const publicCopy = presetsFile.public_copy;
 export const compositeRules = presetsFile.$composite;
+export const builderSpec = presetsFile.builder;
 
 export const measures = measuresDoc.measures as unknown as Measure[];
 export const derivedMeasures = measuresDoc.derived_measures as unknown as DerivedMeasure[];

@@ -63,10 +63,71 @@ data. Small, long history. This is the source of `registrations_flow`
 since scrapped, which the register snapshot cannot give. Also an
 independent sanity check on our own totals.
 
+**Read on Infoshare on 2026-11-13** (`infoshare.stats.govt.nz`, Browse >
+Industry sectors > Transport - TPT). Six tables: registrations and vehicles
+licensed, each monthly, quarterly and annual.
+
+- **"New and Ex-Oseas Motor Vehicles Registered by Type (Monthly)"**
+  (Stats NZ's spelling): file `TPT052601`, table reference `TPT001AA`,
+  January 1961 to September 2026, last updated 19 October 2026, footnote
+  "Source: NZ Transport Agency". 26 series: cars and station wagons in
+  seven engine-size bands and in total, cars previously registered
+  overseas, motorcycles, power cycles, tractors, commercial vehicles in ten
+  gross-mass bands, buses and coaches in two, and two commercial totals.
+  - "New Cars and Station Wagons Total" **includes** the ex-overseas cars,
+    and so do the seven engine-size bands (August 2026: they sum to the
+    total, 17,297). New cars are the total less "New Cars/Stat'n Wags Prev
+    Reg'd Ovrseas".
+  - Only the cars total goes back to January 1961. The new and ex-overseas
+    split exists **for cars only**, from July 1975. Commercial vehicles
+    and motorcycles are not split, and trailers are not in the table.
+  - For cars it agrees with the register, which is its own source. August
+    2026: 9,138 new and 8,159 ex-overseas cars, against 9,136 `NEW` and
+    8,156 `USED` passenger cars/vans in our 2026-08 snapshot. Its
+    commercial and motorcycle classes are not yet lined up with NZTA's
+    vehicle types (August 2026: 474 "New Motor Cycles" against 452 `NEW`
+    motorcycles).
+  - It publishes a month about two weeks after NZTA's service has it, on
+    the one month observed: September 2026 was in the service by 6 October
+    and in the series on 19 October. On 2026-11-13 its latest month was
+    September, while the service held October.
+- **"Motor Vehicles Currently Licensed by Type (Monthly)"**: file
+  `TPT053001`, January 1988 to September 2026.
+- **Export**: on screen, Excel, CSV, or a saved "Table Query" that the
+  "Export direct" page re-runs. A table's address changes with every
+  session, so there is no stable download link and no API.
+- **Licence**: CC BY 4.0 (`stats.govt.nz/about-us/copyright/`, page updated
+  3 May 2021). For adapted content Stats NZ asks for: "This work is based
+  on/includes Stats NZ's data which are licensed by Stats NZ for reuse
+  under the Creative Commons Attribution 4.0 International licence."
+- **Infoshare is being replaced.** Stats NZ plans to move its time series
+  to the Aotearoa Data Explorer in 2027, and Infoshare stays the official
+  source until then (`stats.govt.nz/tools/we-are-changing-our-data-tools`).
+  The Explorer's catalogue (`api.data.stats.govt.nz/rest/dataflow/STATSNZ/all/latest`)
+  held 913 dataflows on 2026-11-13 and none is a transport series. Its data
+  queries need a subscription key (`portal.apis.stats.govt.nz`).
+
+The user chose on 2026-10-22 to wait for the Data Explorer, and on
+2026-11-13 to use the Infoshare series now (`docs/brief/MASTER_BRIEF.md`
+§7). D-065 says how, and the user accepted it that day by its option 2
+(D-066): the user exports the series from Infoshare by hand each month.
+Nothing is built yet. The
+monthly check still looks for the series in the Explorer
+(`docs/playbooks/check-monthly-run.md`).
+
 ## D. Registrations dashboard — do not automate
 
 Export-only, no API. Useful for manual verification of a suspect figure.
 Never build a dependency on it.
+
+That rule stands until the user decides otherwise. On 2026-11-13 the user
+chose to export one month by hand so the dashboard can be read: its
+fields, its history, its terms, and how its counts compare with the
+register as first observed (D-066; the brief, Stage 1 item 6). vstat and
+StatsHub both take first registrations and buyer type from it. Its
+address, from NZTA's open data listing (the page itself was not read:
+`nzta.govt.nz` blocks automated readers):
+`https://www.nzta.govt.nz/vehicles/how-the-motor-vehicle-register-affects-you/motor-vehicle-registrations-dashboard-and-open-data/`
 
 ## E. Motor Industry Association — reference only
 

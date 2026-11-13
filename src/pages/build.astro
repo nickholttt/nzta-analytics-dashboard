@@ -1,0 +1,32 @@
+---
+import Layout from "../layouts/Layout.astro";
+import QuestionBuilder from "../components/QuestionBuilder";
+import { builderVocabulary } from "../lib/builder";
+import manifest from "../../public/data/manifest.json";
+import type { Manifest } from "../lib/data";
+
+// What a question may ask is decided here, at build time, against the cube as built: the same check the Explore page
+// makes before it shows a chart (D-044, D-058).
+const vocabulary = builderVocabulary(manifest as Manifest);
+---
+
+<Layout title="Build a chart" activeNav="build">
+  <Fragment slot="masthead">
+    <h1>Build a chart</h1>
+    <p class="standfirst">
+      Ask your own question: what to show, what to compare, and which vehicles to count. The chart redraws as you
+      choose, and every option here can be drawn from the data.
+    </p>
+  </Fragment>
+
+  {
+    vocabulary.measures.length > 0 ? (
+      <QuestionBuilder client:only="react" vocabulary={vocabulary} />
+    ) : (
+      <div class="callout blocked">
+        <span class="callout-label">Not available</span>
+        No chart can be built from this snapshot's data. The <a href="/">Explore page</a> lists the charts that can.
+      </div>
+    )
+  }
+</Layout>

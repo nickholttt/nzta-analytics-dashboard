@@ -4,8 +4,9 @@
 
 An append-only registry of dated things that plausibly moved the market:
 government policy, tax changes, macro shocks, brand entries and exits,
-model launches, marketing pushes. Rendered as markers on any time-series
-chart whose dimension the event is scoped to.
+model launches, marketing pushes. Rendered as markers on time-series
+charts whose dimension the event is scoped to (which charts, today: see
+§Rendering rules).
 
 This is the feature that stops the site going stale. A chart of BEV share
 is a picture of a line. The same chart with `2021-07-01 Clean Car Discount
@@ -19,11 +20,12 @@ no code.
 The site places a dated marker next to an inflection. It does **not** say
 the event caused the inflection. The user draws the conclusion.
 
-- Marker label: what happened, and when. Nothing else.
-- Tooltip: one-sentence factual summary + source link.
-- `expected_effect` in the data is a *directional hypothesis*, used only
-  to decide default visibility and to power pull-forward detection. It is
-  never rendered as prose on the chart.
+- Marker label: a number. The list under the chart gives each event's
+  title, dates, one-sentence factual summary and source link, and for a
+  `measurement` event the warning below. Nothing else.
+- `expected_effect` in the data is a *directional hypothesis*, kept to
+  power pull-forward detection (not built yet). Nothing in the site reads
+  it, and it is never rendered as prose on the chart.
 
 Getting this wrong turns a data product into an opinion piece, which is
 exactly what the project is not.
@@ -39,8 +41,8 @@ exactly what the project is not.
 | `mechanism` | enum | `demand` `supply` `measurement` `mix` — **see below** |
 | `scope` | enum | `market` `powertrain` `make` `brand_group` `origin` `owner_country` `segment` `region` `import_status` `imported_from` `built_in` `model` |
 | `scope_values` | pipe-list, nullable | e.g. `BEV\|PHEV`. Empty = applies to whole scope. Values are the dimension's own output vocabulary: the label from its reference file where it has one (`NZ New` via `import_status_map.csv`, `Auckland` via `tla_region.csv`), otherwise the raw NZTA value (`JAPAN`) |
-| `title` | short | ≤60 chars, shown on the marker |
-| `summary` | 1 sentence | tooltip body |
+| `title` | short | ≤60 chars, shown in the event list under the chart |
+| `summary` | 1 sentence | shown in the event list under the chart |
 | `expected_effect` | enum | `up` `down` `pull_forward` `mixed` `none` |
 | `announced_date` | ISO date, nullable | **see below** |
 | `confidence` | enum | `documented` `reported` `inferred` |
@@ -83,9 +85,10 @@ the most likely way this site misleads someone.
 - **`mix`** — composition shifted within an unchanged total, e.g. a
   nameplate's production moving country.
 
-Render `measurement` markers in a visually distinct style with a plain
-warning in the tooltip: *this reflects a change in how the data was
-recorded, not a change in the market.* Everything else can share a style.
+Render `measurement` markers in a visually distinct style (a dashed,
+darker rule) with a plain warning in the event's list entry: *this
+reflects a change in how the data was recorded, not a change in the
+market.* Everything else can share a style.
 
 ### Why `announced_date` matters
 
@@ -98,13 +101,57 @@ often the most interesting part of the picture.
 
 ## Rendering rules
 
-- Markers appear only when the event's `scope`/`scope_values` intersect the
-  chart's dimension and active filters. A `make=BYD` brand entry does not
-  clutter a powertrain chart.
-- `market`-scope events show everywhere but default to collapsed behind a
-  single "show events" toggle, on by default.
-- Windowed events (`date_end` present) render as a shaded band, not two pins.
-- Max 8 visible markers; beyond that, cluster by year and expand on tap.
+These describe the code as it runs (`src/lib/events.ts`,
+`src/components/MixChart.tsx`, `src/components/EventList.tsx`).
+
+- A chart carries markers only when its preset sets `"events": true`.
+  Today only the `mix` renderer draws them.
+- Markers appear only when the event's `scope` is the chart's dimension
+  (through `scope_dimension_aliases` in `config/pipeline.json`, so
+  `brand_group` matches `parent_group`) and it has no `scope_values` or one
+  of them has vehicles in the period drawn. A `make=BYD` brand entry does
+  not clutter a powertrain chart. Scoping does not consider a preset's
+  filter, and it must: one live chart now applies one (`powertrain-mix`
+  counts light passenger vehicles only), and its events are chosen as if
+  it counted every vehicle (`src/lib/events.ts`; listed in `docs/STATE.md`).
+- Only events inside the period drawn appear: starting no later than the
+  latest snapshot, and starting (or, for a windowed event, ending) no
+  earlier than the chart's first month.
+- `market`-scope events (`scope_without_values` in `config/pipeline.json`)
+  can show on every chart that carries markers, but are hidden until the
+  reader presses "Show N market-wide events" in the event list. They are
+  off by default so they don't bury the events about what the chart breaks
+  down by.
+- Every event draws a thin rule at `date_start` (dashed and darker for
+  `measurement`). An event with an `announced_date` also draws a faint
+  dotted rule there, and its list entry says "(announced …)".
+- Windowed events (`date_end` present) render as a shaded band from
+  `date_start` to `date_end`, with the usual rule at `date_start`, not two
+  pins.
+- Bands and rules are clipped to the chart's frame: a window that runs past
+  the latest snapshot stops at the right edge, and an event that starts (or
+  was announced) before the chart does draws no rule in the margin.
+- At most 8 numbered markers. In date order, an event within 2% of the
+  chart's time axis of the first event in the current group joins that
+  group, and otherwise starts a new one. If that leaves more than 8 groups,
+  or labels that cannot all fit in 4 lanes (next rule), the 2% is
+  multiplied by 1.6 and the grouping redone until both hold. Clustering
+  follows the axis and the chart's width, not the calendar: `brand-share`'s
+  8 events draw as 8 markers over 10 years and as 4 over all time (D-037),
+  and `powertrain-mix` with market-wide events shown draws 8 markers at
+  1280px and 6 at 320px (D-039). The list under the chart numbers its
+  entries as the chart does, so numbers can differ between a phone and a
+  desktop. A shared number reads `3 (2)` (marker 3 covers two events) and
+  sits on its first event's date. Every event keeps its own rule and band,
+  and its own line under its marker's number in the list under the chart,
+  which is collapsed until opened.
+- Labels are laid out in pixels against the chart's frame. Each is
+  estimated at 7px a character plus a 4px gap and centred on its date, then
+  slid inward just far enough to stay inside the frame, so a window that
+  runs past the latest snapshot, or an event that started before the chart
+  did, labels at the edge it touches. A label that would overlap one already
+  placed goes up a lane, up to 4. Labels never overlap and never wrap back
+  to the first lane; clustering works harder instead.
 - `verified=false` rows are excluded from the build entirely.
 
 ## Derived analysis: pull-forward and payback

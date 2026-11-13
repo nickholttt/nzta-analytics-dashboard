@@ -1,79 +1,261 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
-import { compositeRules, findDataset, findDerived, findPreset, hybrid, isComposite } from "../lib/config";
-import { loadEvents, loadManifest, loadSlice } from "../lib/data";
+import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
+import { compositeRules, findDataset, findDerived, findDimension, findPeriod, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
+import { compositionStart } from "../lib/composition";
+import { loadEvents, loadManifest, loadView } from "../lib/data";
+import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
-import { TRAILING_MONTHS, guardsFor, pct } from "../lib/measures";
+import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { resolvePreset } from "../lib/resolve";
+import { presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
+import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
+import { GeoChart } from "./GeoChart";
+import { LeagueChart } from "./LeagueChart";
 import { MixChart } from "./MixChart";
 import { TrendChart } from "./TrendChart";
 
 const BASIS_NOTE = "Registrations recorded by NZTA. Not the same as vehicle sales.";
 
-const RESERVED_LABELS: Record<string, string> = {
+// A value's own words where it is one of the reserved tokens, otherwise the value as it is. Asked with hasOwn, since a
+// value can be any text and a plain lookup would answer a built-in for one such as "constructor".
+export const reservedLabel = (v: string) => (Object.hasOwn(RESERVED_LABELS, v) ? RESERVED_LABELS[v] : v);
+
+export const RESERVED_LABELS: Record<string, string> = {
   __UNDEFINED__: "Not recorded",
   __UNMAPPED__: "No reference match",
   __OTHER__: "Other (beyond the cap)",
 };
 
-export default function PresetPanel({ presetId }: { presetId: string }) {
-  const preset = findPreset(presetId);
+const TIME_PERIODS = [
+  { id: "3y", label: "3 years" },
+  { id: "5y", label: "5 years" },
+  { id: "10y", label: "10 years" },
+  { id: "all", label: "All time" },
+];
+
+// A period the time row offers: one of its spans, the preset's own period, or a period that ranks the view.
+const offers = (preset: Preset, granularityId: string | null, id: string) =>
+  TIME_PERIODS.some((p) => p.id === id) || id === (preset.period ?? "all") || rankingPeriods(presetView(preset, granularityId)).includes(id);
+
+const spanLabel = (months: number) => (months >= 24 && months % 12 === 0 ? `${months / 12} years` : `${months} months`);
+
+// lead: one of the charts that carries the page. Larger heading, taller plot; nothing else differs.
+// audience: "public" is what a visitor reads on the Explore page: the chart, its controls, its notes and
+// any honest limit on what it shows. "internal" (/status) adds the build diagnostics: status badges,
+// what blocks the preset, drifting notes and the preset's spec line (D-041).
+// preset: a preset built outside presets.json (the sentence builder), drawn exactly as a canon one is.
+// anchored: the copied link jumps to this panel. Off where the controls that made the chart sit above it.
+export default function PresetPanel({
+  presetId: requestedId,
+  preset: supplied,
+  lead = false,
+  audience = "public",
+  anchored = true,
+}: {
+  presetId?: string;
+  preset?: Preset;
+  anchored?: boolean;
+  lead?: boolean;
+  audience?: "public" | "internal";
+}) {
+  const internal = audience === "internal";
+  const preset = supplied ?? findPreset(requestedId ?? "");
+  const presetId = preset?.id ?? requestedId ?? "";
+  const defaultGranularityId = preset?.granularity_options?.[0]?.id ?? null;
+  const [activeGranularityId, setActiveGranularityId] = useState<string | null>(() => {
+    if (!defaultGranularityId || typeof window === "undefined") return defaultGranularityId;
+    const fromUrl = getParam(presetId, "granularity", defaultGranularityId);
+    return preset?.granularity_options?.some((g) => g.id === fromUrl) ? fromUrl : defaultGranularityId;
+  });
+  const defaultPeriod = preset?.period ?? "all";
+  const [activePeriod, setActivePeriod] = useState<string>(() => {
+    if (typeof window === "undefined" || !preset) return defaultPeriod;
+    const fromUrl = getParam(presetId, "period", defaultPeriod);
+    return offers(preset, activeGranularityId, fromUrl) ? fromUrl : defaultPeriod;
+  });
+  // All records: an all-time mix chart opens on its composition start; this draws it from the first
+  // month with data. Kept in the URL as range=all, the parameter the chart used before.
+  const [fullHistory, setFullHistory] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return getParam(presetId, "range", "default") === "all";
+  });
+  const [copied, setCopied] = useState<"" | "copied" | "address">("");
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const handleGranularityChange = (newId: string) => {
+    setActiveGranularityId(newId);
+    if (defaultGranularityId) {
+      setParam(presetId, "granularity", newId, defaultGranularityId);
+    }
+    // A ranking period the new view cannot rank over is not in its row, so the view opens on its default.
+    if (preset && !offers(preset, newId, activePeriod)) {
+      handlePeriodChange(defaultPeriod);
+    }
+  };
+
+  const handlePeriodChange = (newPeriod: string, full = false) => {
+    setActivePeriod(newPeriod);
+    setParam(presetId, "period", newPeriod, defaultPeriod);
+    setFullHistory(full);
+    setParam(presetId, "range", full ? "all" : "default", "default");
+  };
+
+  // Where the clipboard is unavailable or refuses, the address bar still ends up holding the link, and
+  // the button says so rather than doing nothing.
+  const handleCopyLink = () => {
+    const shareUrl = anchored ? getShareableUrl(presetId) : window.location.href;
+    if (anchored) window.history.replaceState(null, "", `#${presetId}`);
+    const done = (state: "copied" | "address") => {
+      setCopied(state);
+      setTimeout(() => setCopied(""), 4000);
+    };
+    if (typeof navigator !== "undefined" && navigator.clipboard) navigator.clipboard.writeText(shareUrl).then(() => done("copied"), () => done("address"));
+    else done("address");
+  };
+
+  const activeGranularity = useMemo(() => {
+    if (!preset?.granularity_options) return null;
+    return preset.granularity_options.find((g) => g.id === activeGranularityId) ?? preset.granularity_options[0];
+  }, [preset, activeGranularityId]);
+
+  const effectivePreset = useMemo(() => (preset ? presetView(preset, activeGranularityId, activePeriod) : null), [preset, activeGranularityId, activePeriod]);
 
   useEffect(() => {
     loadManifest().then(setManifest, (e) => setError(String(e)));
     loadEvents().then(setEvents, (e) => setError(String(e)));
   }, []);
 
-  const resolution = useMemo(() => (preset && manifest ? resolvePreset(preset, manifest) : null), [preset, manifest]);
+  const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
 
+  // The resolver says where the rows come from: a 1-D slice, or a pair slice narrowed to the view's filter. A view
+  // changed again before its rows arrive drops them, so a slow earlier load cannot draw under a later view.
   useEffect(() => {
-    if (!preset?.dataset || !resolution || resolution.preventsRender.length > 0) return;
-    const sliceDimension = preset.dimension ?? manifest?.datasets[preset.dataset]?.live_dimensions[0];
-    if (sliceDimension && manifest?.datasets[preset.dataset]?.live_dimensions.includes(sliceDimension)) {
-      loadSlice(preset.dataset, sliceDimension).then(setRows, (e) => setError(String(e)));
-    }
-  }, [preset, resolution, manifest]);
+    const source = resolution?.source;
+    if (!source) return;
+    let current = true;
+    setRows(null);
+    loadView(source).then(
+      (loaded) => current && setRows(loaded),
+      (e) => current && setError(String(e)),
+    );
+    return () => {
+      current = false;
+    };
+  }, [resolution]);
 
-  if (!preset) return <section className="panel blocked">No preset "{presetId}" in config/presets.json.</section>;
-  if (error) return <section className="panel blocked">{error}</section>;
-  if (!manifest || !resolution) return <section className="panel">Loading…</section>;
+  const panelClass = `panel${lead ? " lead" : ""}`;
+  if (!preset || !effectivePreset)
+    return (
+      <section className={panelClass}>
+        <div className="callout blocked">
+          <span className="callout-label">Missing preset</span>
+          {internal ? `No preset "${presetId}" in config/presets.json.` : "This chart is not available."}
+        </div>
+      </section>
+    );
+  if (error)
+    return (
+      <section className={panelClass}>
+        <div className="callout blocked">
+          <span className="callout-label">Could not load</span>
+          {internal ? error : "This chart's data did not load. Reload the page to try again."}
+        </div>
+      </section>
+    );
+  if (!manifest || !resolution)
+    return (
+      <section className={`${panelClass} loading`}>
+        <p className="meta">Loading…</p>
+      </section>
+    );
 
-  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure } = resolution;
-  const dataset = findDataset(preset.dataset);
-  const dsManifest = preset.dataset ? manifest.datasets[preset.dataset] : undefined;
+  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy, keptBy } = resolution;
+  const dataset = findDataset(effectivePreset.dataset);
+  const derived = findDerived(effectivePreset.derived);
+  const served = servedFrom(effectivePreset.dataset, manifest);
+  const dsManifest = served ? manifest.datasets[served] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
-  const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : RESERVED_LABELS[v] ?? v);
-  const guards = guardsFor(preset.measure, preset.derived);
+  const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : reservedLabel(v));
+  const guards = guardsFor(effectivePreset.measure, effectivePreset.derived);
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
-  const snapshotsNeeded = findDerived(preset.derived)?.snapshots_needed;
+  const snapshotsNeeded = derived?.snapshots_needed;
+  // Only a chart drawn month by month greys months. A ranking or a distribution sums one window and greys the whole
+  // chart or nothing, which its own unit line says, so the note on grey months stays off them.
+  const greyNote = guard > 0 && preventsRender.length === 0 && (shape === "mix" || shape === "trend");
 
   // Notes that state a figure are templated from the build; a plain note that carries one is flagged
-  // rather than trusted, because it will drift the next time the data moves.
-  const context = noteContext(preset, manifest);
+  // rather than trusted, because it will drift the next time the data moves. The dataset definition is
+  // not among them: it is the sentence every chart on this dataset must carry, so it sits under the
+  // question rather than in the footnotes.
+  const context = noteContext(effectivePreset, manifest);
   const notes: { key: string; text: string; unresolved: string[] }[] = [];
+  // On a chart that can't be drawn, a missing value is expected (its dataset may not exist yet), so the
+  // note is left out instead of shown with gaps. On a drawn chart a gap is a build fault and stays visible.
   const addNote = (key: string, plain?: string, template?: string) => {
-    if (template) notes.push({ key, ...fillNote(template, context) });
-    else if (plain) notes.push({ key, text: plain, unresolved: [] });
+    if (template) {
+      const filled = fillNote(template, context);
+      if (filled.unresolved.length === 0 || preventsRender.length === 0) notes.push({ key, ...filled });
+    } else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
-  if (dataset?.definition) addNote("definition", dataset.definition);
-  addNote("preset", preset.note, preset.note_template);
-  addNote("dimension", dimension?.note, dimension?.note_template);
-  const driftingNotes = [preset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
+  addNote("preset", effectivePreset.note, effectivePreset.note_template);
+  const publicDimensionNote = !internal && dimension ? publicCopy.dimension_notes[dimension.id] : undefined;
+  if (publicDimensionNote) addNote("dimension", publicDimensionNote);
+  else addNote("dimension", dimension?.note, dimension?.note_template);
+  // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
+  // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
+  // terms, is internal.
+  const quoted = (values: string[]) => values.map((v) => `“${reservedLabel(v)}”`).join(" or ");
+  const nameOf = (id: string) => {
+    const words = (!internal && publicCopy.dimension_labels[id]) || findDimension(id)?.label || id;
+    return words.charAt(0).toLowerCase() + words.slice(1);
+  };
+  const scope = keptBy?.length
+    ? `Only vehicles where ${keptBy.map((k) => `${nameOf(k.dimension)} is ${quoted(k.values)}`).join(", and ")} are counted.`
+    : narrowedBy
+      ? `Only ${quoted(narrowedBy.values)} vehicles are counted.`
+      : undefined;
+  const unapplied = notApplied.length
+    ? (effectivePreset.filters ?? []).flatMap((f) => Object.entries(f)).filter(([key]) => key !== narrowedBy?.dimension)
+    : [];
+  const narrowed = Boolean(resolution.source?.filter);
+  const publicLimits = unapplied.map(([, v]) =>
+    narrowed
+      ? `This chart is not narrowed to “${v}”: the data can't be narrowed that way yet.`
+      : `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`,
+  );
+  const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
+
+  // Visitor wording from config/presets.json public_copy, where the frozen dimensions.json carries text
+  // written for maintainers (D-042).
+  const dimensionLabel = (!internal && dimension && publicCopy.dimension_labels[dimension.id]) || dimension?.label;
 
   let chart = null;
   if (preventsRender.length === 0 && rows) {
-    if (shape === "mix" && dimension) {
+    // A view that loads no rows is said, not drawn: every renderer needs at least one month. A filter value that matches
+    // nothing in the data does this, so the internal page names the source to check.
+    if (rows.length === 0) {
+      const filter = resolution.source?.filter;
+      chart = (
+        <div className="callout blocked">
+          <span className="callout-label">Nothing to draw</span>
+          {internal
+            ? `No rows: ${resolution.source?.dataset} by ${resolution.source?.dimension}${
+                filter ? `, narrowed to ${filter.dimension} = ${filter.values.join(" or ")}` : ""
+              } loaded nothing. Check the view's filter values against the data.`
+            : "No vehicles in the data match this view."}
+        </div>
+      );
+    } else if (shape === "mix" && dimension) {
       chart = (
         <MixChart
-          preset={preset}
+          preset={effectivePreset}
           dimension={dimension}
           rows={rows}
           manifest={manifest}
@@ -81,47 +263,190 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
           minDenominator={guard}
           collapseFraction={collapseFraction}
           label={label}
+          lead={lead}
+          fullHistory={fullHistory}
+          internal={internal}
         />
       );
     } else if (shape === "distribution" && dimension) {
-      chart = <DistributionChart preset={preset} dimension={dimension} rows={rows} manifest={manifest} minDenominator={guard} label={label} />;
+      chart = (
+        <DistributionChart
+          preset={effectivePreset}
+          dimension={dimension}
+          rows={rows}
+          manifest={manifest}
+          minDenominator={guard}
+          label={label}
+          dimensionLabel={dimensionLabel}
+          lead={lead}
+        />
+      );
     } else if (shape === "trend") {
-      chart = <TrendChart preset={preset} rows={rows} manifest={manifest} minDenominator={guard} collapseFraction={collapseFraction} />;
+      chart = (
+        <TrendChart
+          preset={effectivePreset}
+          rows={rows}
+          manifest={manifest}
+          minDenominator={guard}
+          collapseFraction={collapseFraction}
+          lead={lead}
+          label={label}
+        />
+      );
+    } else if (shape === "league" && dimension) {
+      chart = (
+        <LeagueChart
+          preset={effectivePreset}
+          dimension={dimension}
+          rows={rows}
+          manifest={manifest}
+          minDenominator={guard}
+          label={label}
+          valueHeading={dimensionLabel ?? dimension.label}
+          lead={lead}
+        />
+      );
+    } else if (shape === "geo" && dimension) {
+      chart = (
+        <GeoChart
+          preset={effectivePreset}
+          dimension={dimension}
+          rows={rows}
+          manifest={manifest}
+          minDenominator={guard}
+          label={label}
+          dimensionLabel={dimensionLabel}
+        />
+      );
     }
   }
 
+  const definition = (!internal && effectivePreset.dataset && publicCopy.dataset_definitions[effectivePreset.dataset]) || dataset?.definition;
+  const eyebrow = dimensionLabel ?? derived?.label ?? measure?.label;
+
+  // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube
+  // draws what it says, and opened on the time range shown here.
+  const builderQuestion = builderQuestionFor(effectivePreset);
+  const builderLink =
+    builderQuestion && builderPresets(builderQuestion).every((p) => resolvePreset(p, manifest).preventsRender.length === 0)
+      ? builderHref(builderQuestion, activePeriod, fullHistory)
+      : undefined;
+  const questionId = `${preset.id}-question`;
+
+  // One row of time options. An all-time mix chart that opens on a later start names that start, and
+  // offers the full record as its own option, so no two buttons say the same thing. A period that ranks
+  // the chart comes last: it draws a different chart, not a shorter span of the same one.
+  const start = shape === "mix" && rows ? compositionStart(rows, dimension, guard) : undefined;
+  // A preset whose own period is none of the spans and does not rank it (a distribution of the last 12 months) keeps
+  // that period as a span of its own, in order of length, so the option it opens on is always in the row.
+  const ranking = rankingPeriods(presetView(preset, activeGranularityId));
+  const own = findPeriod(defaultPeriod);
+  const spans = [
+    ...TIME_PERIODS.filter((p) => p.id !== "all").map((p) => ({ key: p.id, id: p.id, label: p.label, full: false, months: findPeriod(p.id)?.months ?? 0 })),
+    ...(own?.months && !TIME_PERIODS.some((p) => p.id === own.id) && !ranking.includes(own.id)
+      ? [{ key: own.id, id: own.id, label: spanLabel(own.months), full: false, months: own.months }]
+      : []),
+  ].sort((a, b) => a.months - b.months);
+  const rangeOptions = [
+    ...spans,
+    { key: "all", id: "all", label: start ? `Since ${monthLabel(start)}` : "All time", full: false },
+    ...(start ? [{ key: "all-records", id: "all", label: "All records", full: true }] : []),
+    ...ranking.map((id) => ({
+      key: id,
+      id,
+      // LeagueChart ranks the trailing window whatever the period, so the label names that window.
+      label: `${TRAILING_MONTHS}-month ranking`,
+      full: false,
+    })),
+  ];
+
   return (
-    <section className="panel">
-      <h3>
-        {preset.question} <span className={`badge ${status}`}>{status}</span>
-      </h3>
-      <p className="meta">
-        preset {preset.id} · shape {shape} · dataset {preset.dataset ?? "composite"} · {preset.derived ? `derived ${preset.derived}` : `measure ${measure?.id ?? preset.measure}`}
-        {preset.dimension ? ` · dimension ${preset.dimension}` : ""} · period {preset.period ?? "none"}
-        {preset.top_n ? ` · top ${preset.top_n} by vehicles over the trailing window, the rest as one line` : ""} · snapshot {manifest.latest_snapshot}
-      </p>
+    <section className={panelClass} id={preset.id}>
+      <header className="panel-head">
+        {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+        <h3 className="panel-question">
+          <span id={questionId}>{preset.question}</span>
+          {internal && status !== "live" ? (
+            <>
+              {" "}
+              <span className={`badge ${status}`}>{status}</span>
+            </>
+          ) : null}
+        </h3>
+        {definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null}
+        <div className="panel-actions">
+          <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
+            {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
+          </button>
+          {builderLink ? (
+            <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
+              Change this chart
+            </a>
+          ) : null}
+        </div>
+      </header>
+
+      <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
+        {preset.granularity_options && preset.granularity_options.length > 0 ? (
+          <div className="toggle" role="radiogroup" aria-label="Show by">
+            {preset.granularity_options.map((opt) => (
+              <label key={opt.id}>
+                <input
+                  type="radio"
+                  name={`granularity-${preset.id}`}
+                  checked={activeGranularity?.id === opt.id}
+                  onChange={() => handleGranularityChange(opt.id)}
+                />{" "}
+                {opt.label}
+              </label>
+            ))}
+          </div>
+        ) : null}
+
+        {preventsRender.length === 0 ? (
+          <div className="toggle" role="radiogroup" aria-label="Time range">
+            {rangeOptions.map((o) => (
+              <label key={o.key}>
+                <input
+                  type="radio"
+                  name={`period-${preset.id}`}
+                  checked={activePeriod === o.id && (o.id !== "all" || fullHistory === o.full || !start)}
+                  onChange={() => handlePeriodChange(o.id, o.full)}
+                />{" "}
+                {o.label}
+              </label>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
       {isComposite(preset) ? (
-        <div className="curated">
-          <strong>Curated comparison.</strong> Two series on one frame, a deliberate exception to one chart per question. Not offered in the builder
+        <div className="callout curated">
+          <span className="callout-label">Curated comparison</span>
+          Two series on one frame, a deliberate exception to one chart per question. Not offered in the builder
           {compositeRules.builder_available ? "" : ", and never will be"}: the builder grammar describes a single series.
         </div>
       ) : null}
 
-      {statusDisagreement ? <div className="warning">{statusDisagreement}</div> : null}
+      {internal && statusDisagreement ? (
+        <div className="callout warning">
+          <span className="callout-label">Status out of date</span>
+          {statusDisagreement}
+        </div>
+      ) : null}
 
-      {snapshotsNeeded !== undefined ? (
-        <div className="scaffold">
+      {internal && snapshotsNeeded !== undefined ? (
+        <div className="callout scaffold">
+          <span className="callout-label">Waiting on snapshots</span>
           Needs {snapshotsNeeded} or more snapshots; this build carries 1 ({manifest.latest_snapshot}). Nothing is drawn until then.
         </div>
       ) : null}
 
-      {blocking.length > 0 ? (
-        <div className={preventsRender.length > 0 ? "blocked" : "warning"}>
+      {internal && blocking.length > 0 ? (
+        <div className={`callout ${preventsRender.length > 0 ? "blocked" : "warning"}`}>
+          <span className="callout-label">{preventsRender.length > 0 ? "Cannot be drawn yet" : "Drawn with a gap"}</span>
           <strong>
-            {preventsRender.length > 0
-              ? "Nothing can be drawn from the cube as built:"
-              : "Drawn, but not what the preset asks for:"}
+            {preventsRender.length > 0 ? "Nothing can be drawn from the cube as built:" : "Drawn, but not what the preset asks for:"}
           </strong>
           <ul>{blocking.map((b) => <li key={b}>{b}</li>)}</ul>
           {preset.requires?.length ? (
@@ -132,23 +457,49 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
           ) : null}
         </div>
       ) : null}
-      {notApplied.map((w) => <div key={w} className="warning">{w}</div>)}
-      {driftingNotes.map((n) => (
-        <div key={n} className="warning">
-          This preset's note states a figure but is not templated from the build, so it will drift: “{n}”
+      {!internal && preventsRender.length > 0 ? (
+        <div className="callout blocked">
+          <span className="callout-label">Not available</span>
+          This view can't be drawn from the data yet. Choose another option above.
+        </div>
+      ) : null}
+      {internal
+        ? notApplied.map((w) => (
+            <div key={w} className="callout warning">
+              <span className="callout-label">Filter not applied</span>
+              {w}
+            </div>
+          ))
+        : publicLimits.map((w) => (
+            <div key={w} className="callout warning">
+              <span className="callout-label">What this chart includes</span>
+              {w}
+            </div>
+          ))}
+      {(internal ? driftingNotes : []).map((n) => (
+        <div key={n} className="callout warning">
+          <span className="callout-label">Note will drift</span>
+          This preset's note states a figure but is not templated from the build: “{n}”
         </div>
       ))}
 
       {chart}
 
       <ul className="notes">
-        {notes.map((n) => (
+        {notes.filter((n) => internal || n.unresolved.length === 0).map((n) => (
           <li key={n.key}>
             {n.text}
             {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
           </li>
         ))}
-        {relabels && coverage ? (
+        {relabels && coverage && !internal ? (
+          <li>
+            {coverage.label}: at least {pct(coverage.trailing.coverage_stated_confidence ?? 0)} of mild hybrids registered in the last{" "}
+            {coverage.trailing.window_months} months are identified (at least {pct(coverage.all_time.coverage_stated_confidence ?? 0)} over
+            all time), so this line may undercount them.
+          </li>
+        ) : null}
+        {relabels && coverage && internal ? (
           <li>
             {coverage.label}: over the trailing {coverage.trailing.window_months} months,{" "}
             {pct(coverage.trailing.coverage_stated_confidence ?? 0)} of mild hybrids are identified at stated confidence and{" "}
@@ -156,7 +507,14 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
             {pct(coverage.all_time.coverage_stated_confidence ?? 0)} and {pct(coverage.all_time.coverage_high_confidence_only ?? 0)}). A lower bound: every unresolved hybrid counts as a missed mild hybrid.
           </li>
         ) : null}
-        {guard > 0 && preventsRender.length === 0 ? (
+        {greyNote && !internal ? (
+          <li>
+            Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably
+            {collapseFraction > 0 ? ", and months with far fewer vehicles than the months before them, which may not describe a normal month" : ""}.
+            They are drawn in grey, not dropped. <a href="/method">How the figures are made</a>.
+          </li>
+        ) : null}
+        {greyNote && internal ? (
           <li>
             Grey: months with fewer than {guard} vehicles behind the figure drawn
             {collapseFraction > 0
@@ -165,8 +523,16 @@ export default function PresetPanel({ presetId }: { presetId: string }) {
             . Their shares are drawn in grey, not dropped and not zeroed.
           </li>
         ) : null}
-        <li>{BASIS_NOTE}</li>
+        <li className="basis">{BASIS_NOTE}</li>
       </ul>
+
+      {internal ? (
+        <p className="spec">
+          {effectivePreset.id} · {shape} · {effectivePreset.dataset ?? "composite"} · {effectivePreset.derived ?? measure?.id ?? effectivePreset.measure}
+          {effectivePreset.dimension ? ` · ${effectivePreset.dimension}` : ""} · {effectivePreset.period ?? "no period"}
+          {effectivePreset.top_n ? ` · top ${effectivePreset.top_n} by trailing vehicles` : ""} · snapshot {manifest.latest_snapshot}
+        </p>
+      ) : null}
     </section>
   );
 }
