@@ -2101,3 +2101,103 @@ New entries use this template:
     (`pipeline archive --from-pull`).
   - Reversing a merge: `git revert -m 1 <merge commit>` on a branch and a pull request, on the user's word.
 - Status: accepted, decided by user
+
+## D-074 2026-11-13 — What the screenshots called for: the hand-written figures recomputed for October, plain words on `/caveats`, and the ranking table on a phone
+- Agent: claude, on the user's instruction in D-073 (item 5). Pull request #40 into `ui/explore`.
+- Basis: this session. The figures were recomputed from the `cube-2026-10` release and the 2026-10 register (the
+  file written from the hand pull), and again by the reviewer, who was given neither claude's values nor its
+  reasoning. The ranking was measured headless at seven widths.
+- Context: the screenshots of the site stack (STATE known issue 10 as it stood) showed `/method` and `/caveats`
+  quoting August figures beside an October site, a sentence that was no longer true, internal references shown to
+  visitors, a chart label the charts do not use, and a ranking table that hid two columns on a phone with nothing
+  to say it scrolls.
+- Options considered and decision:
+  1. **The hand-written figures are recomputed for October and stay hand-written and dated.** Not chosen: compute
+     them when the site is built. That is the narrative engine's job (D-062, invariant 8), and doing a piece of it
+     here would be a second way of writing sentences. Not chosen: leave them dated August. They read as stale
+     beside "Snapshot 31 October 2026". One dated comparison is left as it is, between the August and September
+     snapshots on `/caveats`: no September register exists to move it on.
+  2. **`/method` says "The powertrain charts split out mild hybrids"** in place of "No live chart splits out mild
+     hybrids today". **`/caveats` says "Explore has no regional charts. The map on Build a chart shows each region's
+     share of vehicles, with this caveat under it"** in place of the decision numbers, and "a count of every
+     vehicle first registered each month" in place of "build step 1b". All three are true of the site as built and
+     will go false silently if the site changes; they are the kind of sentence the narrative engine replaces.
+  3. **`/caveats` reads the two chart labels it quotes from config**, and the build fails if config has no such
+     dimension.
+  4. **The ranking table's columns are reordered at every width**: Rank, Move, the breakdown, Share, Change in share,
+     Still registered, Rank before. The share comes before the count, as in the map's table, so a phone shows the
+     ranking without scrolling. Not chosen: hide columns on a phone (figures would be out of reach there).
+  5. **Headings stay on one line, and the last reads "Rank before"**, with "in the 12 months" kept for a screen
+     reader. The blank gap under the chart was the header row made tall by a heading wrapping in a narrow column.
+  6. **A box that scrolls sideways shows a shadow at the edge with more beyond it**, on every such box, and under the
+     ranking a line says so in words. The line shows only while the table is wider than its box, which is measured:
+     the reviewer found a fixed breakpoint showed it with nothing to scroll.
+- Consequences:
+  - The figures are a month behind again after each refresh, until the narrative engine (STATE known issue 9).
+  - Not done from the screenshots: the map legend's "0%" label outside the chart box; the dense grey band before
+    1970 on the concentration chart; a dark theme (STATE known issue 10).
+  - `claude/question-builder` changes `src/styles/site.css` near line 272 only; this change is near line 808.
+  - Reversing it: revert the pull request's merge in `ui/explore`.
+- Status: decided by Claude (unreviewed)
+
+## D-075 2026-11-13 — NZTA's registrations dashboard, read from one hand export: what it is, how it compares, and whether it becomes a source (proposed)
+- Agent: claude, for the user to decide (the brief, Stage 1 item 6; D-066 item 8).
+- Basis: this session. The user opened the dashboard and saved, into gitignored
+  `data/raw/nzta-dashboard/2026-10/`: three screenshots, NZTA's page as HTML, and one export
+  (`89cff00a-3572-4b37-990d-c77df9a01368.xlsx`, 4,263,616 bytes). claude read the saved page and the export; it did
+  not open NZTA's site or the dashboard. The register figures are from the 2026-10 archive file.
+- Context: `docs/DATA_SOURCES.md` §D says of this dashboard "do not automate" and "never build a dependency on it".
+  Nobody here had seen it. The site has no count of every vehicle first registered each month: Stats NZ's series
+  (D-065) gives totals for new and ex-overseas cars and commercials, with no make or model.
+- What it is (NZTA's page, and the screenshots):
+  - A Qlik report builder, "First registration", at `qap.nzta.govt.nz`. The visitor ticks up to 12 of 34 dimensions,
+    filters by month, and exports the table.
+  - It holds vehicles "with a date of first ownership within the past five years": the month list runs from
+    January 2021 to October 2026 (the user read it). It is updated at the start of each month and is "a snapshot of
+    the data at the end of every month". Past months can change: vehicles are added or removed and a registration
+    month can be updated. It includes "a subset of reregistered vehicles".
+  - Licence: "This data and its accompanying information are released under a Creative Commons Attribution 4.0
+    International licence".
+  - Dimensions the open register does not have: **Owner type** (Individual, Company, Other), Physical town, Vehicle
+    status (active, inactive, reversed), and groupings of engine size, mass and motive power. It also offers
+    "VIN - first 11" and "Physical post code", which were not ticked (D-066 item 9; CLAUDE.md's non-goals).
+  - The page carries NZTA's own history of what `vehicle_year` has meant, period by period, a user guide (PDF), and
+    a link to NZTA's make and model cleansing code on GitHub. None is read into the docs yet.
+- Measured, October 2026, twelve dimensions (body type, country of origin, import status, make, model, motive power,
+  owner type, territorial authority, vehicle status, vehicle type, vehicle usage, vehicle year):
+  - The export is whole: 6,509 rows, 68 districts by import status across the columns, cells summing to 28,896, the
+    figure the dashboard shows. Every vehicle is ACTIVE.
+  - The register holds 28,864 vehicles first registered in October 2026: 32 fewer (0.11%). By import status, the
+    dashboard against the register: NEW 18,657 and 18,665; USED 9,259 and 9,259; RE-REG 807 and 767; SCRATCH 173
+    and 173. By vehicle type and import status, 35 of 41 groups are identical. The differences: 40 re-registered
+    vehicles the dashboard counts in October and the register does not (18 motorcycles, 17 passenger cars, 5 goods
+    vehicles), and 8 fewer NEW (passenger cars 8 fewer, a trailer more, a motorcycle fewer). The cause of the 8 is
+    not known.
+  - Owner type: Company 14,724, Individual 13,923, Other 249.
+- Options considered:
+  1. Leave it unused, as §D says. It costs nothing. The site then has no true monthly registrations by make or model
+     for any month before the first one it archives itself.
+  2. Use it for the newest month only. Not worth it: for the newest month it agrees with the register to 0.11%.
+  3. Use its history as the detail of `registrations_flow`: every vehicle first registered in each month from
+     January 2021, by make, model, motive power, import status, district and owner type, exported by hand. Stats NZ's
+     series stays the source of totals before 2021 (D-065). Never automated: the user exports, as with Infoshare.
+- Decision: proposed, option 3, in two steps, each on the user's word.
+  - First a test, which costs one export: one old month (January 2021) at the same twelve dimensions, compared with
+    the register's survivors for that month. It shows what the history holds (the vehicles since scrapped) and
+    whether an old month exports whole.
+  - Then, if it holds, the backfill: the 70 months, a year at a time, and one export a month from then on.
+- Consequences:
+  - It would change `docs/DATA_SOURCES.md` §D from "never build a dependency on it" to "a hand export, never
+    automated", which is the user's decision, and it needs a decision record of its own with the dataset's
+    definition (`docs/METRICS.md`) before any chart uses it. A flow series never goes on the same chart as
+    survivors (CLAUDE.md, build step 1b).
+  - Past months in the dashboard change, so a month exported once is that month as first exported; a later export
+    of the same month can differ. The export date belongs with every file.
+  - It depends on the user's time each month, and on NZTA keeping the dashboard and its window: the window is "the
+    past five years", so January 2021 may drop out. The backfill is worth doing soon if at all.
+  - Owner type is askable only once the data map defines it (the goal's point 8).
+  - Whether "VIN - first 11" and "Physical post code" may be used is a separate question the user raised in this
+    session: the licence allows it; D-066 item 9 and CLAUDE.md's non-goals forbid it on privacy grounds until the
+    user changes them (CHECKPOINT, question 1).
+  - Reversing it: stop exporting; nothing published reads it yet.
+- Status: proposed
