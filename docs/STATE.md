@@ -8,8 +8,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - `main` is `f78e3e1`. The last build is the forced run 43374803222 (snapshot 2026-10;
-    5,926,990 rows); its cube is the release `cube-2026-10`, which has no fact table.
+  - `main` is `a41c2cf`, the merge of #46. The last build is the forced run 43374803222 (snapshot
+    2026-10; 5,926,990 rows); its cube is the release `cube-2026-10`, which has no fact table.
   - **The build is tried every day** at 06:17 UTC (D-064, D-070). It builds each month once; from
     the 15th a run that builds nothing fails while the month before is missing. The first daily
     run is 14 November 2026. NZTA's refresh has come on 3 September, 6 October and 9 November.
@@ -17,9 +17,12 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
     writes it and publishes it in that month's cube release.
   - **The archive job** keeps each built month's whole register in the private repository, with
     `VIN11` and `POSTCODE` since #42 (D-063, D-071, D-076): 37 fields from the next built month.
-  - `Checks` tests every pull request whose branch carries the workflow: all into `main`, and
-    into `ui/explore` from #45 on. `Deploy` stops before building (no `src/lib/site.ts` on `main`).
-- **Nothing is deployed.** The site is a local reference UI (`npm run dev`, 127.0.0.1:4321).
+  - `Checks` tests every pull request into `main`.
+- **The site's code is on `main`** since #46 (2026-11-14). `Deploy` builds the public site from
+  the newest cube release on each push that touches the site, and uploads nothing: run
+  43420177311 built 7 pages from `cube-2026-10`, its upload job was skipped, and the environment
+  `production` has no deployment.
+- **Nothing is deployed.** The site is seen locally (`npm run dev`, 127.0.0.1:4321).
 - **The archive:** the private repository `nickholttt/nzta-register-archive` holds one release,
   `snapshot-2026-10`, with two files (read back with `gh` on 2026-11-13):
   - `mvr-2026-10.parquet`: 35 fields, 39,298,142 bytes.
@@ -33,29 +36,30 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 ## Current step
 
-**Stage 1 of the master brief.** `ui/explore` holds the site, these notes and, since #45, all of
-`main`. `main` holds the pipeline with the fact table. Next is the deploy, each step asked for:
-**#46, `ui/explore` into `main`, is open and waits for "merge 46"**; then a forced run of
-October, on the user's yes (CHECKPOINT). Nothing becomes public without asking (user, 2026-11-14).
-The dashboard test export starts when the user says "ready".
+**Stage 1 of the master brief.** `main` holds the pipeline and the site. Next in the deploy, each
+step asked for: **the forced run of October, only if the daily run of 14 November (06:17 UTC)
+reports the source unchanged** (D-081); then the Cloudflare steps (CHECKPOINT). Nothing becomes
+public without asking. The dashboard test export starts when the user says "ready".
 
 ## In progress (nothing by gemini)
 
-- `claude/explore-in-main-notes` (claude, this folder), cut from `ui/explore`: these notes.
-  Pushed, with no pull request yet: it is opened into `main` once #46 is merged, and then also
-  carries the corrections that merge makes due (CHECKPOINT queue 3). This folder's `public/data`
-  holds the 2026-10 dry run with the fact table.
+- `claude/explore-in-main-notes` (claude, #47 into `main`, this folder): these notes, hard rules
+  7 and 8 as approved, the paths from the user's computer removed, and the lines #46 made stale.
+  Waits for "merge 47". This folder's `public/data` holds the 2026-10 dry run with the fact table.
+- **A check-in is scheduled in claude's session of 14 November** for 20:07 NZDT that day: it
+  reads the daily run and starts the forced run only if D-081's condition holds. It exists only
+  while that session is open; if it did not fire, nothing was forced.
 - `../nzta-screens`: a detached checkout of `ui/explore` at `85b7dd6`, kept from earlier
   screenshots; it can be removed. `../nzta-presets` is an empty folder Windows will not delete.
 
 ## Branches and pull requests (checked 2026-11-14)
 
-- `main`: origin `f78e3e1`; local matches.
-- `ui/explore`: origin `50caa55`, the merge of #45; it contains `main`. The local branch of
-  that name is far behind; use `origin/ui/explore`.
-- **1 open pull request: #46** `ui/explore` into `main`: no conflict, `Checks` green
-  (run 43414898655), reviewer agreed with follow-ups, none blocking. Waits for "merge 46".
-- Merged on 2026-11-14 on the user's word, and deleted: `claude/explore-meets-main` (#45).
+- `main`: origin `a41c2cf`. The local branch of that name is one merge behind.
+- `ui/explore`: origin `50caa55`; all of it is in `main` (#46, same tree). Kept: it is the
+  user's branch. The local branch of that name is far behind.
+- **1 open pull request: #47** `claude/explore-in-main-notes` into `main`: its reviewer agreed
+  with follow-ups, none blocking, both done. Waits for "merge 47".
+- Merged on 2026-11-14 on the user's word: #45 (branch deleted) and #46.
 
 ## Raw pulls on this computer (gitignored)
 
@@ -64,8 +68,8 @@ The dashboard test export starts when the user says "ready".
   `ENGINE_NUMBER`, `POSTCODE`), 348 MB. Pulled by hand (D-066).
 - **No local file holds `VIN11` or `POSTCODE`**: the archive's file was read into a scratch folder
   for the check of D-079 and deleted the same session.
-- **Copies:** `F:\nzta-data-backup` holds both pulls (SHA-256 checked 2026-11-13), on the
-  project's own disk; the user has also copied them to a separate OneDrive (the user's word).
+- **Copies:** a backup folder on the project's own disk holds both pulls (SHA-256 checked
+  2026-11-13); the user has also copied them to a separate OneDrive (the user's word).
 - `data/raw/nzta-dashboard/2026-10/`: the user's hand export of October (D-075): one spreadsheet
   (6,509 rows by 263 columns, 28,896 vehicles), NZTA's page as HTML, four screenshots. The page is
   read into `docs/DATA_MAP.md` and `docs/MODEL_AND_AGE.md` §1.
@@ -82,8 +86,8 @@ The dashboard test export starts when the user says "ready".
    (headless, 390 and 1280 px, 2026-11-14) Explore and Build's default question draw; Build offers
    no control for which vehicles to count, and a link with a condition shows "This view can't be
    drawn from the data yet". A forced run of October or December's refresh ends this.
-5. On `main` until #46 merges: `METRICS.md` has the old representativeness-guard
-   figures; `config/measures.json`'s comment has D-033's; no decision file, AGENTS.md or STATE.
+5. The commits before #47 still hold paths from the user's computer (D-081): history is not
+   rewritten.
 6. The public build still ships the status page's script chunk, unlinked and holding no data.
 7. **Half of the fact table's rows still count one vehicle** (50.2% of rows, 7.1% of vehicles, on
    the 2026-10 dry run). No column describes the owner any more; whether a minimum count is
@@ -101,22 +105,18 @@ The dashboard test export starts when the user says "ready".
 - **Events are scoped without regard to a preset's filter** (`src/lib/events.ts`), and
   `powertrain-mix` applies one: its markers are chosen as if it counted every vehicle.
   `docs/EVENTS_LAYER.md` now says so; the code is not changed.
-- `docs/CUBE_SCHEMA.md` says `src/lib/data.ts` is "not yet on `main`", and `deploy.yml`'s
-  comments speak of "before ui/explore reaches main": true until #46 merges; corrected after it.
-- AGENTS.md hard rule 7 still lists the merges D-068 allowed (all are done), and rule 8's exception
-  still reads "until the 8 November 2026 gate passes" (it has). The user sees the old and new
-  text and says yes before either is reworded (user, 2026-11-14); the proposal is in CHECKPOINT.
-- `main`'s own CLAUDE.md still says "monthly cron" and has the old non-goal; `ui/explore`'s is
-  current (D-076).
-- CLAUDE.md says "a test checks" that each sub-agent definition names its model: there is no such
-  test and no `.claude/agents/` yet (#46's reviewer; checked).
+- Until #47 merges, `main` still has: the old text of hard rules 7 and 8; "not yet on `main`" in
+  `docs/CUBE_SCHEMA.md`; and CLAUDE.md's "a test checks" each sub-agent definition's model, with
+  no such test and no `.claude/agents/` yet.
+- `deploy.yml`'s step "Is the public site here" can no longer be false on `main`; it is kept for
+  a branch cut before #46.
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
 - D-061 stopped chosen values being ranked and D-062 allows it: the code follows D-061.
 
 ## Blocked or waiting on the user
 
-- **"merge 46"** (`ui/explore` into `main`); **a yes to the new text of hard rules 7 and 8**;
-  **a yes to the forced run of October**, which replaces the public release's file (CHECKPOINT).
+- **"merge 47"**. Whether `ui/explore` is kept. The Cloudflare console steps, when the user
+  wants the site public (CHECKPOINT).
 - **The dashboard test export**: the user starts it and says "ready" (user, 2026-11-14).
 - Also waiting: visitor tests; the brief's §12; two NZTA pages an automated reader cannot open.
 
@@ -125,10 +125,10 @@ The dashboard test export starts when the user says "ready".
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). Checked on
 2026-11-13, on what is now `main`: the pipeline tests, 98 passed in 397 s before the review's two
 last commits, and the three test files they touch, 67 passed, after; `python -m pipeline build
-<the 2026-10 pull> --dry-run`, exit 0 in 11 min 3 s. `astro build` (7 pages) on `ui/explore` in
-`../nzta-screens`. On `claude/explore-meets-main`: the pipeline tests, 100 passed in 520 s; `tsc --noEmit`
-exit 0; `astro build`, 7 pages; headless at 390 and 1280 px, every page and five Build questions.
-On 2026-11-14, `ui/explore`'s tree, built as `Deploy` does against `cube-2026-10`: exit 0, 5 pages.
+<the 2026-10 pull> --dry-run`, exit 0 in 11 min 3 s. On the tree that is now `main`: the pipeline
+tests, 100 passed in 520 s; `tsc --noEmit` exit 0; `astro build`, 7 pages; headless at 390 and
+1280 px, every page and five Build questions; and on 2026-11-14 the public build as `Deploy`
+does it against `cube-2026-10`, exit 0 and 5 pages, locally and in run 43420177311.
 
 - `python -m pipeline archive --snapshot YYYY-MM` pulls NZTA's live register (about 186 requests)
   and writes nothing committed. It refuses unless the register still is the built month.

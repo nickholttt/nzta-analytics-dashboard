@@ -17,9 +17,9 @@ register monthly in GitHub Actions and precomputes a small "cube" of aggregates.
 Observable Plot site renders question-titled charts from that cube. Audience: non-analysts. No
 forecasts, no commentary.
 
-Current state: build step 1 (the `registrations_surviving` dataset) runs on GitHub. The site is a
-**local reference UI only**; nothing is deployed. Repo: github.com/nickholttt/nzta-analytics-dashboard
-(public). Default branch `main`.
+Current state: build step 1 (the `registrations_surviving` dataset) runs on GitHub. The site's code
+is on `main` since #46 (2026-11-14) and `Deploy` builds it there; **nothing is deployed**.
+Repo: github.com/nickholttt/nzta-analytics-dashboard (public). Default branch `main`.
 
 ## Environment
 

@@ -2503,6 +2503,7 @@ New entries use this template:
   - Hard rules 7 and 8 are not touched by #46. The proposed text is in CHECKPOINT until the user answers.
   - No forced run is started on the strength of an earlier permission (D-068's one forced run is spent).
 - Status: accepted, decided by user; the reading of point 5 is claude's (unreviewed)
+
 ## D-081 2026-11-14 — The user's second answers: #46 merges; hard rules 7 and 8 are reworded as proposed; October is forced only if the daily run reports the source unchanged; no path from the user's computer stays in the docs
 - Agent: user (the answers), claude (the record)
 - Basis: the user's second message of 2026-11-14, answering the three questions of D-080's session; AGENTS.md as it
