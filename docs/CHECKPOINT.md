@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-10-21
+Last updated by claude on 2026-10-22
 
 ## Where we left off
 
@@ -29,6 +29,8 @@ Last updated by claude on 2026-10-21
 - 2026-10-21: PR #23 (D-046). Capped mix charts draw "Not recorded" and "No reference match" as their own
   grey line, not inside "All other" (former STATE known issue 5); the builder caps country where built at 10.
   It changes `brand-share` on Explore: a "No reference match" row and line; uncapped charts are unchanged.
+- 2026-10-22: the user agreed four prototype items for the queue, after the existing ones: Explore and
+  Build together, deploy, testing with non-analysts, and the map chart (items 7–10). Docs only.
 - Still frozen until the gate, found along the way: the `kgm-rename` mechanism, a 63-character event
   title, and the 0.29 percentile comment in `config/measures.json` (queue item 5).
 
@@ -48,6 +50,8 @@ Last updated by claude on 2026-10-21
    ranking. Into `claude/sentence-builder`.
 7. #23 `claude/reserved-values`: D-046. Reserved values keep their own line on capped mix charts; the builder
    caps country where built. Into `claude/builder-league`.
+8. #24 `claude/prototype-queue`: queue items 7–10 for a first interactive prototype. Docs only. Into
+   `claude/reserved-values`.
 
 ## Work queue (in order)
 
@@ -78,6 +82,31 @@ Last updated by claude on 2026-10-21
 6. **When `ui/explore` is ready**: a PR from it into `main` (the user merges; it touches no frozen
    path, checked 2026-10-19 with `git diff --stat origin/main...ui/explore` on the frozen paths).
 
+Items 7–10 are the rest of a first interactive prototype, agreed with the user on 2026-10-22. Item 7
+touches no frozen path, so it may be taken before the gate while the PRs for items 2–5 wait on it.
+
+7. **Explore and Build work together.** Scope: a "change this chart" link on each Explore chart that
+   the builder can express, opening `/build` with the sentence filled in (`/build` already reads it
+   from the URL, D-044); the same hover readout in all four renderers (each has pointer code; what
+   each shows is unchecked). Composite presets stay out of the builder (`$composite` in
+   `config/presets.json`). Done when: every eligible live preset has the link, the PR lists the hover
+   fields each renderer shows and they match, and headless screenshots at 320px and 1280px show both.
+8. **Deploy.** Not before the 8 November gate passes (D-041, AGENTS.md rule 8). Scope: Cloudflare
+   Pages, as `CLAUDE.md` plans. The monthly Action builds the cube on its runner but commits only
+   `data/snapshots` and `data/state`, and `public/data/` is gitignored, so the Action must also
+   publish the cube. A workflow and deploy change: a decision record first, the user's approval, and
+   the user does the console setup (stop list). Done when: a preview URL serves `/` and `/build`
+   from a monthly run's cube.
+9. **Test with non-analysts.** Scope: the brief's questions put to a few people the user picks; an
+   accessibility pass (keyboard, labels, contrast) and a 320px pass over every page (the site has no
+   dark theme); first-load time measured on the deployed site at phone width. Done when: findings are
+   fixed or queued here.
+10. **Map chart (`geo`).** Scope: the fifth renderer for `region`; a NZ region boundary file (new data,
+    so a decision record with its source and licence); the builder's "Regions" not-offered line (the
+    register holds each owner's current address, not where the vehicle was first registered) becomes a
+    note shown with region charts. Done when: a region preset draws at 320px and 1280px with that
+    note. Last because a prototype can ship without it.
+
 ## Questions for the user
 
 None open.
@@ -86,4 +115,5 @@ None open.
 
 /start. Read `docs/STATE.md` and this file. If it is on or after 8 November 2026, take queue item 1 (the gate
 run, `docs/playbooks/check-monthly-run.md`) first. Otherwise take queue item 2 (POST_GATE A1) on a `claude/`
-branch cut from `main`, with its PR into `main` left unmerged until the gate passes (D-043).
+branch cut from `main`, with its PR into `main` left unmerged until the gate passes (D-043). If items
+2–5 are all built and waiting on the gate, take item 7 on a `claude/` branch from `ui/explore`.
