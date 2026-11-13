@@ -283,7 +283,8 @@ transform. The short version:
 - Every definition in `.claude/agents/` names its model in `model:` (an
   alias or a full model id) and, where Claude Code supports it, its
   `effort:`. A missing `model:` and `model: inherit` are not allowed, and a
-  test checks this (D-062).
+  test checks this (D-062). (Planned: no definition and no such test exist
+  yet.)
 - A sub-agent spawned without a definition is given its model explicitly.
 - Reviews stay independent (D-057, D-061). The reviewer gets the work and
   the spec, never the author's reasoning.
