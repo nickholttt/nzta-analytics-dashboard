@@ -6,6 +6,7 @@ import json
 import shutil
 from pathlib import Path
 
+from .contract import FACT_COUNT, FACT_MONTH
 from .normalise import lit
 from .reference import quote
 
@@ -22,6 +23,38 @@ def write_slice(con, cfg, derived, ds: str, path: Path) -> None:
 
 def write_pair(con, cfg, a, b, ds: str, path: Path) -> None:
     _write_counts(con, cfg, [(a.column, "a_value"), (b.column, "b_value")], ds, path)
+
+
+# The working column that fixes the fact table's row order across its files. A dimension may not take the name.
+FACT_ROW_ORDER = "rid"
+
+
+def write_facts(con, derived: list, ds: str, directory: Path) -> tuple[int, int]:
+    """The fact table: counts by month and each given dimension, written one column per file. Every file holds the same
+    rows in the same order (month, then the dimensions as configured), so the site rebuilds any subset of columns row
+    for row. Returns the row count and the total of the counts."""
+    directory.mkdir(parents=True, exist_ok=True)
+    month, count = FACT_MONTH[0], FACT_COUNT[0]
+    names = [month] + [d.dim_id for d in derived]
+    # With no dimension live, the table is the month totals alone, still a valid table.
+    selected = ", ".join([f"reg_month AS {month}"] + [f"{d.column} AS {quote(d.dim_id)}" for d in derived])
+    order = ", ".join(quote(n) for n in names)
+    con.execute(f"""
+        CREATE OR REPLACE TEMP TABLE facts AS
+        SELECT row_number() OVER (ORDER BY {order}) AS {FACT_ROW_ORDER}, *
+        FROM (SELECT {selected}, CAST(count(*) AS INTEGER) AS {count}
+              FROM dims WHERE {ds} GROUP BY ALL)
+    """)
+    for name in names + [count]:
+        con.execute(f"""
+            COPY (SELECT {quote(name)} FROM facts ORDER BY {FACT_ROW_ORDER})
+            TO {lit((directory / f"{name}.parquet").as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)
+        """)
+    con.execute("DROP TABLE facts")
+    # Read back from the file the site downloads, so the caller's check is of what is published, not of the query.
+    written = lit((directory / f"{count}.parquet").as_posix())
+    rows, total = con.execute(f"SELECT count(*), coalesce(sum({count}), 0) FROM read_parquet({written})").fetchone()
+    return rows, total
 
 
 def _write_counts(con, cfg, keys: list[tuple[str, str]], ds: str, path: Path) -> None:

@@ -79,11 +79,15 @@ def build_rows(con, cfg) -> None:
     p = cfg.pipeline
     true = lit(p["boolean_true"])
     vehicle, status = p["scope"]["vehicle"], p["scope"]["status"]
+    vehicle_rows, status_rows = reference.read(cfg.reference(vehicle["file"])), reference.read(cfg.reference(status["file"]))
+    # Both are joined to every vehicle below: a key listed twice would count each of its vehicles twice.
+    reference.require_unique([r[vehicle["key"]] for r in vehicle_rows], vehicle["file"])
+    reference.require_unique([r[status["key"]] for r in status_rows], status["file"])
     reference.register(con, "ref_vehicle_scope", ["key", "in_scope"],
-                       [(r[vehicle["key"]], r[vehicle["in_scope"]]) for r in reference.read(cfg.reference(vehicle["file"]))])
+                       [(r[vehicle["key"]], r[vehicle["in_scope"]]) for r in vehicle_rows])
     reference.register(con, "ref_status", ["key", "in_scope", "fleet_entry", "label"],
                        [(r[status["key"]], r[status["in_scope"]], r[status["fleet_entry"]], r[status["label"]])
-                        for r in reference.read(cfg.reference(status["file"]))])
+                        for r in status_rows])
     for table, logical, file in (("ref_vehicle_scope", vehicle["field"], vehicle["file"]), ("ref_status", status["field"], status["file"])):
         unknown = con.execute(
             f"SELECT DISTINCT {quote(logical)} FROM src WHERE {quote(logical)} IS NULL "

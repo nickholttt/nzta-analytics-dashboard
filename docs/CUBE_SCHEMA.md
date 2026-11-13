@@ -6,12 +6,19 @@ artifacts.
 
 ## Why precompute
 
-The builder is bounded by config — datasets × live dimensions × measures —
-and that cross-product is small enough to compute entirely at build time,
-so every user query becomes a lookup rather than a scan. This is the direct
-payoff of a constrained builder: no query engine in the browser, instant
-response, works on a phone, nothing to secure. No count of dimensions is
-fixed in this document or anywhere else; see *Live dimensions*.
+Two kinds of artefact, both computed at build time:
+
+- **Slices** answer the preset charts: one dimension (or a configured pair)
+  by month, small enough for a first paint on a phone.
+- **The fact table** answers any question a visitor builds (D-058): counts
+  by month and every configured dimension at once, so any combination of
+  values, filters and periods is a sum over its rows. It holds counts, never
+  a vehicle row, and the browser aggregates it without a query engine (the
+site's code, `src/lib/data.ts`, which is on `ui/explore` and not yet on
+`main`; nothing in the pipeline shows it).
+
+No count of dimensions is fixed in this document or anywhere else; see
+*Live dimensions*.
 
 ## Artifacts
 
@@ -23,6 +30,8 @@ fixed in this document or anywhere else; see *Live dimensions*.
   events.json                           # verified events only
   pairs/
     {dataset}/{dim_a}__{dim_b}.parquet  # 2-D slices: only the pairs config/pipeline.json names
+  facts/
+    {dataset}/{column}.parquet          # the fact table, one column per file: month, each dimension, n
   presets/
     {preset_id}.json                    # later build step: fully resolved, for first paint
   reference/
@@ -30,7 +39,8 @@ fixed in this document or anywhere else; see *Live dimensions*.
 ```
 
 Build step 1 emits `manifest.json`, `cube/registrations_surviving/`,
-`pairs/registrations_surviving/` and `events.json`.
+`pairs/registrations_surviving/`, `facts/registrations_surviving/` and
+`events.json`.
 
 Pipeline state lives outside `/public/data` and is committed to the repo:
 
@@ -155,6 +165,54 @@ rounding. The denominator is the whole dataset's month, not the filtered
 subset's, so a filtered share is computed in the browser: `n` over the sum
 of `n` for the same `month` and filter value.
 
+## Fact table
+
+Each dataset's `facts` in `config/pipeline.json` lists the dimensions the
+fact table carries. A build groups the dataset's vehicles by `month` and
+every listed dimension that is live, counts them, and writes each column to
+its own file: `facts/{dataset}/month.parquet`, one
+`facts/{dataset}/{dimension}.parquet` per dimension, and
+`facts/{dataset}/n.parquet`. Every file holds the same rows in the same
+order, so row *i* of each file is one row of the table. The host answers a
+range request with the whole file (Cloudflare Pages, from its documentation
+as read for D-058; nothing is deployed, so this is not observed), so one
+file per column is what lets a question download only the columns it names.
+
+| column | file | type | notes |
+|---|---|---|---|
+| `month` | `month.parquet` | date | as in a 1-D slice |
+| `{dimension}` | `{dimension}.parquet` | string | the value, or a reserved token, exactly as in that dimension's slice |
+| `n` | `n.parquet` | int32 | vehicles with this month and these values |
+
+Rows are unique on `month` and the dimension values, and sorted by `month`,
+then each dimension in the order configured. Summed over every dimension
+but one, the table gives that dimension's 1-D slice, row for row in `n`;
+summed over all of them it gives the dataset's month totals, the slices'
+`denominator`. The table carries no fuel consumption. A share is computed in
+the browser: `n` over the sum of `n` for the same month and filter.
+
+A list that is empty or not distinct dimension ids, or names a dimension the
+dataset cannot derive (or `month`, `n` or `rid`), aborts the run. A listed dimension
+that is not live this run is left out of the table, with a warning, and listed
+in the manifest's `facts.not_live`; if none is live, the table holds the month
+totals alone.
+
+The table carries nothing about a vehicle's owner. `region` is where the
+owner lives, and it is left out of `facts` until the Stage 2 privacy review
+(D-078): with it, two in three of the table's rows counted a single vehicle
+(64.8% on the 2026-10 pull), each with the owner's region beside the model
+and the month. The `region` slice is not affected, and a question that only
+breaks down by region is still answered from it. Putting `region` back is a
+one-word change to `facts`, and a contract change shown to the user.
+
+The table's total is checked against the vehicles themselves: the counts are
+read back from the written `n.parquet` and must equal the dataset's vehicles
+counted before the dimension lookups are joined on, or the run aborts. A
+dimension lookup that matched a vehicle twice, or lost one, is caught here.
+The lookups joined on before that count (scope, import status, brand, the
+model and hybrid exceptions, engine) each abort on a key defined twice or on
+two rows that match the same vehicle (Aborts, below).
+
 ## manifest.json
 
 ```json
@@ -185,6 +243,7 @@ of `n` for the same `month` and filter value.
       "not_live": { "imported_from": "does not apply to this dataset" },
       "live_pairs": ["import_status__age_at_registration_band"],
       "not_live_pairs": {},
+      "facts": { "rows": 643414, "dimensions": ["powertrain", "make", "..."], "not_live": {} },
       "unmapped_rates": { "make": 0.0062, "powertrain": 0.0 },
       "unmapped_guard": {
         "make": {
@@ -228,7 +287,7 @@ of `n` for the same `month` and filter value.
     "cluster": [9, 13], "share_cluster": 0.60, "shares": { "0": 0.003, "31+": 0.001 }
   },
   "snapshot_archive": { "path": "data/snapshots/2026-08.parquet", "status": "new" },
-  "payload_bytes": 1238896,
+  "payload_bytes": 3158670,
   "warnings": []
 }
 ```
@@ -363,6 +422,13 @@ Pairs:
   two different dimension ids, lists a pair twice in either order, or names
   a dimension the dataset cannot derive.
 
+Fact table:
+
+- A dataset's `facts` is not a non-empty list of distinct dimension ids, or names a
+  dimension the dataset cannot derive.
+- The table's counts, read back from `n.parquet`, do not total the dataset's
+  vehicles as counted before the dimension lookups are joined on.
+
 Events:
 
 - A verified event has a scope outside the enum in `EVENTS_LAYER.md`, a
@@ -400,6 +466,8 @@ is worse than one that is visibly stale.
   threshold, or lacks a reference file, and stays excluded.
 - A configured pair waits because one of its dimensions is not live this
   run. It is listed under `not_live_pairs`.
+- A dimension listed in `facts` is not live this run, so the fact table is
+  written without it. It is listed under `facts.not_live`.
 - `data/snapshots/YYYY-MM.parquet` already exists with different content.
   The first observation is kept.
 - The payload exceeds the size budget.
@@ -410,3 +478,13 @@ is worse than one that is visibly stale.
 
 Whole `/public/data` payload target: **under 8 MB**. Preset JSON under
 40 KB each so the first paint needs no Parquet fetch at all.
+
+Measured on dry runs of 2026-11-13, without `region` in the fact table. The
+2026-10 pull: the fact table is 641,618 rows in 1,726,119 bytes over its 14
+files, the largest `n` (0.38 MB), `age_at_registration_band` (0.29 MB) and
+`model` (0.28 MB); the whole payload is 3,149,458 bytes. A question about
+brand groups over time reads `month`, `parent_group` and `n`: 0.48 MB. Half
+of the table's rows (50.2%) count one vehicle, 7.1% of the vehicles. The
+2026-08 pull, the snapshot of the manifest example above: 643,414 rows in
+1,736,400 bytes. With `region` the 2026-10 table was 1,734,417 rows in
+3,885,012 bytes.
