@@ -4,104 +4,97 @@ Last updated by claude on 2026-11-13
 
 ## Where we left off
 
-- 2026-11-13, second session: the user answered Stage 0's ten decisions (D-066). Report:
-  `docs/brief/STAGE_1_REPORT.md`.
-  - **October 2026 is built.** Run 43367551467, started on the user's instruction, green; the bot
-    committed `a5fb60c Snapshot 2026-10` to `main`.
-  - **The gate has passed and the freeze is lifted.** AGENTS.md hard rule 2 is rewritten (#36).
-  - **D-063, D-064 and D-065 are accepted.** None is built.
-  - **October was pulled by hand** at 36 fields into gitignored `data/raw/2026-10/`.
-  - `POSTCODE` is never published, pulled or archived. CLAUDE.md's three untagged changes stand.
-  - The user's corrected brief replaced `docs/brief/MASTER_BRIEF.md` (`8364e8f`).
-  - **Stage 1 item 1:** a five-line summary of each open pull request, in merge order, five at a
-    time (the report §6). Then stop and report, as asked. Nothing was merged.
-  - An independent review (opus) checked the report against the pull requests before the stop.
-- 2026-11-13, first session: Stage 0 of the brief (`docs/brief/STAGE_0_REPORT.md`), D-062 filed,
-  D-063 to D-065 proposed, the data map's first pass.
-- 2026-10-22: the question builder and the fact table were built and reviewed (D-058 to D-061) on
-  `claude/question-builder` and `claude/fact-table`; neither has a pull request.
+- 2026-11-13, third session: the user answered the three open questions and gave standing
+  permissions (D-068).
+  - **The backup is complete:** `F:\nzta-data-backup` holds both raw pulls, every file identical
+    to the original. It is on the project's own disk.
+  - **The pipeline stack is on `main`:** #26, #27, #28, #29, #35, in order, each a merge commit,
+    each with a reviewer's agreement (five reviewers on opus, one per pull request, none given
+    claude's reasoning) and a fresh green check against `main`. Before the first cube-changing
+    merge, the whole stack was merged into a scratch copy of `main` and October was rebuilt there
+    from the saved pull: same totals, no warnings.
+  - **The one forced run is used:** 43374803222, green. It rebuilt October with the new code,
+    committed `912cada` (state only) and made the first cube release, `cube-2026-10`.
+  - **The archive's repository and environment exist**, empty of files and of the secret.
+  - Then stop and report, as asked. D-064, D-063 and the screenshots are not started.
+- 2026-11-13, second session: the user's Stage 0 answers (D-066); October built; the freeze
+  lifted; the Stage 1 report (`docs/brief/STAGE_1_REPORT.md`).
+- 2026-11-13, first session: Stage 0 of the brief, D-062 filed, D-063 to D-065 proposed.
 
-## Open pull requests waiting on the user (20)
+## Open pull requests waiting on the user (15)
 
-Merge order, and five lines on each: `docs/brief/STAGE_1_REPORT.md` §6. Every merge is a merge
-commit, then "Delete branch"; the next pull request should then point at the base by itself.
-
-- **Batch 1, into `main`:** #26 tests on every pull request (D-048); #27 pair slices (D-047); #28
-  `segment_group`; #29 B1–B3 and D-049 to D-051; #35 the cube release and `deploy.yml` (D-056).
-- **Batch 2, into `ui/explore`:** #17 notes; #18 the visitor Explore page (D-041); #19 one time
-  row, visitor wording (D-042); #20 D-043; #21 the Build page (D-044).
-- **Batch 3:** #22 the 12-month ranking (D-045); #23 reserved values (D-046); #24 the prototype's
-  queue; #25 D-047 to D-051; #30 "Change this chart" (D-052).
-- **Batch 4:** #31 pair slices on the site (D-053); #32 screen readers and tables of figures; #33
-  the map (D-054); #34 the public build (D-055 to D-057); then `claude/question-builder`'s pull
-  request (not open yet); then #36, this branch.
+The site stack, into `ui/explore`, in this order: #17, #18, #19, #20, #21, #22, #23, #24, #25,
+#30, #31, #32, #33, #34; then `claude/question-builder`'s pull request (not open yet); then #36,
+this branch. Five lines on each: the Stage 1 report §6. The user says "go" after seeing the
+screenshots, and claude merges #17 to #34 from the command line (D-068).
 
 ## Work queue (in order)
 
-1. **Batch 1 merges** (the user). As each merges: check the next pull request points at `main` and
-   its check is green. After #35: check the `Deploy` run stopped before building, as designed.
-   Done when `main` holds #26 to #29 and #35.
-2. **Build D-064** (the daily run): the schedule, the build-once rule, the missed-month alarm from
-   the 15th, tests. On a branch from `origin/main` once batch 1 is merged; before that, on top of
-   `claude/deploy-workflow`, because #29 and #35 change the same two files. Settle STATE known
-   issue 10 here. Done when CI is green on its pull request.
-3. **Build D-063** (the archive), on top of D-064: the pull widens to 36 fields (never
-   `POSTCODE`); each built run writes the whole snapshot as one Parquet file to a release in
-   `nickholttt/nzta-register-archive`, using the secret `ARCHIVE_REPO_TOKEN` (D-067), never as an
-   artifact; a month's file is never replaced. Measure the run's time and memory. Needs the user's
-   setup and "3a" or "3b" (question 2). Done when CI is green and a dry run writes the file.
-4. **The rest of the merges** (the user), batches 2 to 4. Open `claude/question-builder`'s pull
-   request when #34 is merged and `claude/fact-table`'s when #35 is, each with five lines. Then
-   a commit on the site stack correcting `$ranking_period_comment` (STATE issue 4), and
-   `ui/explore` into `main`.
-5. **November's snapshot.** If D-064 is not on `main` when NZTA refreshes in December, the 8
-   December run or a dispatch builds it. If D-063 is not, it is kept at every field only by a
-   hand pull like October's (question 3).
-6. **The rest of Stage 1** (the brief §9, items 2 to 8), each on the user's word:
-   - Deploy: numbered console steps, all production: a Cloudflare Pages project for Direct Upload
-     named `nz-vehicle-registrations` with `main` as its production branch; an API token limited
-     to Cloudflare Pages: Edit; the GitHub secrets `CLOUDFLARE_API_TOKEN` and
-     `CLOUDFLARE_ACCOUNT_ID`, placed as question 2 decides. Done when a `pages.dev` address serves
-     `/` and `/build` from a monthly run's cube and `/status` returns the not-found page.
+1. **The archive token** (the user, walked through one step at a time, each waiting for "done").
+   The steps are the Stage 1 report §4, steps 2 and 3a; step 1 and the environment are done. Done
+   when `gh api repos/nickholttt/nzta-analytics-dashboard/environments/archive/secrets` lists
+   `ARCHIVE_REPO_TOKEN`.
+2. **Build D-064** (the daily run) on `claude/daily-run` from `origin/main`: the schedule, the
+   build-once rule, the missed-month alarm from the 15th, tests. Settle STATE known issue 10 here.
+   Open its pull request; merge it under D-068's rule (green check, independent reviewer).
+3. **Build D-063** (the archive), on top of D-064 or on `main` once D-064 is merged: the pull
+   widens to 36 fields (never `POSTCODE`); each built run writes the whole snapshot as one Parquet
+   file to a release in `nickholttt/nzta-register-archive`, in a job of its own that names the
+   environment `archive` and reads `ARCHIVE_REPO_TOKEN` (D-067), never as an artifact; a month's
+   file is never replaced. Measure the run's time and memory. Open its pull request; merge it
+   under D-068's rule. Its first real run needs item 1.
+4. **Screenshots of the site stack** for the user: the main screens (`/`, `/build`, the map, the
+   ranking, the not-found page) at phone and desktop width, from the top of the stack (#34,
+   `claude/deploy-proposal`), headless, against the `cube-2026-10` release so the pair charts
+   draw. Then wait for "go".
+5. **On "go": merge #17 to #34 into `ui/explore`**, in order, from the command line. Then open
+   `claude/question-builder`'s pull request, and a commit correcting `$ranking_period_comment`
+   and flipping `used-import-age` and `powertrain-mix` to live (STATE issues 4 and 5).
+   **`ui/explore` into `main`: ask first.**
+6. **Open `claude/fact-table`'s pull request into `main`**, with five lines. Merging it is not in
+   D-068 (question 2).
+7. **The October export from NZTA's dashboard** (the user, before 1 December; the Stage 1 report
+   §5), one step at a time. Then read it and propose whether it becomes a source.
+8. **November's snapshot.** If D-064 is not on `main` when NZTA refreshes in December, the
+   8 December run or a dispatch builds it. If D-063 is not, claude pulls it by hand at 36 fields
+   into `data/raw/2026-11/` (allowed, D-068) and copies it to `F:\nzta-data-backup`.
+9. **The rest of Stage 1** (the brief §9), each on the user's word:
+   - Deploy: before any Cloudflare secret exists, `deploy.yml`'s upload moves to a job that names
+     an environment limited to `main` (D-068 answer 2; STATE issue 11). Then numbered console
+     steps, all production: a Cloudflare Pages project for Direct Upload named
+     `nz-vehicle-registrations`; an API token limited to Cloudflare Pages: Edit; the secrets
+     `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in that environment. Making the site
+     public is asked for first.
    - About, feedback and corrections, and "why these figures differ" pages.
-   - The Stats NZ series (D-065): a maintainer script over the user's hand export; the long-run
-     volume and completeness for cars.
-   - Read the user's export of NZTA's registrations dashboard
-     (`data/raw/nzta-dashboard/2026-10/`) and propose whether it becomes a source.
+   - The Stats NZ series (D-065): a maintainer script over the user's hand export.
    - Visitor tests (`docs/playbooks/visitor-test.md`) and first load measured on the deployed site.
-7. **Small corrections the lifted freeze allows:** the freeze wording in the playbooks, skills,
-   `README.md` and `POST_GATE.md` (STATE); once a build carries #27 and #28, flip
-   `used-import-age` and `powertrain-mix` to live (STATE issue 5); move each `public_copy` entry
-   onto `config/dimensions.json` (D-042).
-8. **Stages 2 to 5 of the brief**, each on the user's word.
-9. **Kept from the old queue, unplaced by the brief:** `age-distribution-moving-hole`; a visitor
-   name for "Area Outside Region"; a per-capita map.
+10. **Small corrections:** the freeze wording in the playbooks, skills, `README.md` and
+    `POST_GATE.md`; the reviewers' follow-ups (STATE issue 11); move each `public_copy` entry onto
+    `config/dimensions.json` (D-042).
+11. **Stages 2 to 5 of the brief**, each on the user's word.
+12. **Kept from the old queue, unplaced by the brief:** `age-distribution-moving-hole`; a visitor
+    name for "Area Outside Region"; a per-capita map.
 
 ## Questions for the user
 
-1. **Which backed-up folder do the August and October raw pulls go to?** Your answer 5 left
-   `<YOUR BACKED-UP FOLDER>` unfilled. Give me a path and I run the three copy commands in the
-   report §3, or run them yourself. With no answer they stay on one disk.
-2. **Where do the secrets live: an environment only `main` can use, or repository secrets?** It
-   decides step 3 of the archive setup (3a or 3b) and the Cloudflare secrets. Recommend the
-   environment for both: a workflow on any other branch then cannot read them. With no answer I
-   build for whichever the archive secret turns out to be, and write the Cloudflare steps the
-   same way.
-3. **May I pull November by hand, as I did October, if D-063 is not on `main` when NZTA
-   refreshes in December?** Recommend yes: the same read-only pull, 36 fields, into
-   `data/raw/2026-11/`. With no answer I ask again when the refresh lands.
-4. **When do the two unopened pull requests open?** Recommend: each when the pull request below
-   it has merged, so no more wait on you than now. With no answer, that.
+1. **Where does a copy of the backup go that is not on the project's disk?** `F:\nzta-data-backup`
+   is on the same disk as the project, so one failed disk loses both. Recommend: claude copies it
+   to `E:\nzta-data-backup` (a different disk in the same computer), and the user also drags that
+   folder into OneDrive or onto a USB drive, so one copy is outside the computer. With no answer
+   it stays on one disk.
+2. **May claude merge `claude/fact-table` into `main` under the same rule as the pipeline stack?**
+   It is the fact table the question builder reads, and it changes the published cube. Recommend
+   yes. With no answer claude opens the pull request and leaves the merge to the user.
 
-Also yours, from the brief's §12: the `matrix` shape; the acceptable running cost; the limit of
-five pull requests; the About page; the name and domain. And two pages NZTA's site would not show
-an automated reader (the Stage 0 report §6).
+Also the user's, from the brief's §12: the `matrix` shape; the acceptable running cost; the limit
+of five pull requests; the About page; the name and domain. And two pages NZTA's site would not
+show an automated reader (the Stage 0 report §6).
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md`, this file and `docs/brief/STAGE_1_REPORT.md`. Check first what has
-merged (`gh pr list`, `git log origin/main`), whether the secret `ARCHIVE_REPO_TOKEN` exists and
-where, whether `data/raw/nzta-dashboard/2026-10/` holds the user's export, and whether NZTA has
-refreshed again. Then take the first queue item the user's answers allow: support the merges, or
-build D-064 and then D-063. Merge nothing, dispatch nothing, and pull nothing without the user's
-word.
+/start. Read `docs/STATE.md`, this file and D-068 in `docs/DECISIONS.md`. Check first: that `main`
+is still `912cada` or what has moved it; whether the secret `ARCHIVE_REPO_TOKEN` is in the
+environment `archive`; whether `data/raw/nzta-dashboard/2026-10/` holds the user's export; whether
+NZTA has refreshed again. Then take the queue in order: the token walk-through if the user is
+there, D-064, D-063, the screenshots. Merge only what D-068 names, only with a green check and a
+reviewer that has not seen your reasoning. The forced run is used: ask before another.

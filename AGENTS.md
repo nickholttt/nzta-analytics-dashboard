@@ -82,8 +82,8 @@ Setup, **not re-run this session** (the environment already existed):
   keeps the cube as a release `cube-<snapshot>` (D-056, D-057). `checks.yml` runs the pipeline tests on
   every pull request (D-048). `deploy.yml` builds the public site from the newest cube release and
   uploads it to Cloudflare Pages, from `main` only and once its secrets exist; its upload tool, wrangler,
-  is pinned by its own lockfile in `.github/deploy/` (D-057). The release step, `checks.yml`,
-  `deploy.yml` and `.github/deploy/` are on the pipeline branches, which the user has yet to merge (#26 to #29, #35).
+  is pinned by its own lockfile in `.github/deploy/` (D-057). All of it is on `main` since
+  2026-11-13 (#26 to #29, #35), and the first release, `cube-2026-10`, exists.
 - `src/pages/index.astro` hosts React islands. `src/lib/config.ts` loads `config/*.json`, `data.ts`
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
   `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo}Chart.tsx`

@@ -8,65 +8,76 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - 13 November 2026 run 43367551467: started by claude on the user's instruction, unforced,
-    green. It **built snapshot 2026-10** (5,926,990 rows, no warnings; peak memory 2,431 MiB), and
-    the bot committed `a5fb60c Snapshot 2026-10 [skip ci]`.
-  - Before it: 8 November, scheduled, green, skipped (NZTA refreshed the next day); 8 October,
-    scheduled, green, built 2026-09.
+  - **The pipeline stack is on `main`** (2026-11-13, merged by claude under D-068, each a merge
+    commit): #26 `c946f5b`, #27 `31e6389`, #28 `31acd3c`, #29 `a0690f7`, #35 `a8df1ce`. Each had
+    a reviewer's agreement and a fresh green check against `main`.
+  - **Forced run 43374803222** (`workflow_dispatch`, `force`, `main` at `a8df1ce`): green. 55 tests
+    passed; 5,926,990 rows pulled in 56.8 s; built snapshot 2026-10 with no warnings; peak memory
+    2,491 MiB of 15,983 MiB; 346 s. Fourteen live dimensions (`segment_group` is new) and two pair
+    slices. The bot committed `912cada Snapshot 2026-10 [skip ci]`, which changes only
+    `data/state/last_good.json` (`generated_at`, and `segment_group` among the live dimensions).
+    `data/snapshots/2026-10.parquet` is unchanged.
+  - **The first cube release exists:** `cube-2026-10`, on `912cada`, one file
+    `public-data.tar.gz` (1,393,784 bytes), holding both pair files and the `segment_group` slice.
+  - `Checks` runs the pipeline tests on every pull request (#26).
+  - `Deploy` ran twice (after #35's merge and after the forced run). Both stopped before building:
+    `main` has no `src/lib/site.ts`. No Cloudflare secret exists.
+  - Earlier runs: 13 November, unforced, built 2026-10 with the old code (`a5fb60c`); 8 November,
+    scheduled, skipped; 8 October, scheduled, built 2026-09.
   - The schedule is still the 8th of each month. The daily run is accepted (D-064) and not built.
     NZTA's refresh has come on 3 September, 6 October and 9 November.
   - Cube artifacts: `public-data-2026-08` (expires 2026-12-10), `public-data-2026-09` (expires
-    2027-01-06), `public-data-2026-10` (expires 2027-02-11). No release exists.
+    2027-01-06), two named `public-data-2026-10` (expire 2027-02-11; the newer is the forced run's).
 - **Nothing is deployed.** The site is a local reference UI (`npm run dev`, 127.0.0.1:4321).
+- **The archive's home exists, empty:** the private repository `nickholttt/nzta-register-archive`
+  (one README commit), and in this repository the environment `archive`, limited to `main`, with
+  no secret yet (D-067, D-068).
 - **Events**: 54 rows, 50 verified. Four are unverified on purpose (Honda and Mercedes-Benz agency
   starts, the semiconductor window, the weak yen). Don't guess dates to clear them.
 
 ## Current step
 
-**Stage 1 of the master brief, stopped after item 1** (`docs/brief/STAGE_1_REPORT.md`).
+**Stage 1 of the master brief.** The user's standing permissions are D-068: claude merges the
+pipeline stack and the D-064 and D-063 pull requests under a green check and an independent
+reviewer; one forced run (used); the archive repository and environment (made).
 
-- **The freeze is lifted** (the user, D-066): the gate passed once the 13 November run was green.
-  AGENTS.md hard rule 2 is rewritten on this branch.
-- Item 0, the user's time-bound decisions: done, except copying the raw pulls (no folder named).
-- Item 1: a five-line summary of each of the 20 open pull requests, in merge order, in batches of
-  five. Merging is the user's. Nothing was merged.
-- Items 2 to 8 are not started. D-063, D-064 and D-065 are accepted and not built.
+- Done this session: the backup checked; D-068 recorded; the pipeline stack merged; the forced
+  run dispatched and checked. Then stop and report, as asked.
+- Next: D-064, then D-063; screenshots of the site stack for the user (CHECKPOINT).
 
 ## In progress
 
-- `claude/next-stage-brief` (claude, #36): docs only. `docs/brief/`, `docs/DATA_MAP.md`,
-  `docs/DATA_SOURCES.md`, AGENTS.md hard rule 2, D-062 to D-067, STATE, CHECKPOINT. Pushed; nothing
-  uncommitted. Nothing else is in progress by either agent.
+- `claude/next-stage-brief` (claude, #36): docs only. Adds D-068, the amended AGENTS.md lines and
+  brief line, STATE, CHECKPOINT. Pushed; nothing uncommitted. Nothing else is in progress by
+  either agent.
 
 ## Branches and pull requests (checked 2026-11-13)
 
-- `main`: origin `a5fb60c`. Local `main` is behind it (`ba304d2`); branch from `origin/main`.
+- `main`: origin `912cada`. Local `main` matches.
 - `ui/explore`: origin `3c10716`, PRs #1–#16 merged on 2026-10-21. Nothing merged since.
-- **20 open pull requests**, all `claude/...`, all unreviewed by the user, all mergeable. The merge
-  order and a summary of each: `docs/brief/STAGE_1_REPORT.md` §6.
-  - **Pipeline stack**, each into the one before, the first into `main`: #26 `pr-checks`, #27
-    `pair-slice-import-age`, #28 `segment-group`, #29 `post-gate-fixes`, #35 `deploy-workflow`.
-    Checks green on all five. **Batch 1: these merge first.**
-  - **Site stack**, each into the one before, the first into `ui/explore`: #17 `notes-after-merge`,
-    #18 `public-explore`, #19 `explore-copy-controls`, #20 `pipeline-branch-rule`, #21
-    `sentence-builder`, #22 `builder-league`, #23 `reserved-values`, #24 `prototype-queue`, #25
-    `pipeline-decisions`, #30 `explore-build-together`, #31 `pair-views`, #32 `a11y-pass`, #33
-    `geo-map`, #34 `deploy-proposal`. No CI runs on this stack.
-  - **#36 `next-stage-brief`** into `claude/question-builder`. Docs only.
+- The five merged pipeline branches are deleted, on GitHub and locally.
+- **15 open pull requests**, all `claude/...`, the site stack, each into the one before, the first
+  into `ui/explore`: #17 `notes-after-merge`, #18 `public-explore`, #19 `explore-copy-controls`,
+  #20 `pipeline-branch-rule`, #21 `sentence-builder`, #22 `builder-league`, #23 `reserved-values`,
+  #24 `prototype-queue`, #25 `pipeline-decisions`, #30 `explore-build-together`, #31 `pair-views`,
+  #32 `a11y-pass`, #33 `geo-map`, #34 `deploy-proposal`; and #36 `next-stage-brief` into
+  `claude/question-builder`. Five lines on each: `docs/brief/STAGE_1_REPORT.md` §6. `Checks` does
+  not run on them usefully until `ui/explore` holds `checks.yml`.
 - **Built, pushed, no pull request yet:**
   - `claude/question-builder` (`06d727e`, on top of `claude/deploy-proposal`): the question builder
     (D-058 to D-061). It goes between #34 and #36.
-  - `claude/fact-table` (`92d451d`, on top of `claude/deploy-workflow`, worktree
-    `../nzta-fact-table`): the fact table, one file per column. It goes after #35.
-- A test merge of the two stacks' tops (`claude/next-stage-brief` with `claude/fact-table`) has no
-  conflict.
+  - `claude/fact-table` (`92d451d`, worktree `../nzta-fact-table`): the fact table, one file per
+    column. Its base, `claude/deploy-workflow`, is now in `main`, so its pull request can open into
+    `main`. Merging it is not in D-068.
 
-## Raw pulls on this computer (gitignored, one disk, no other copy)
+## Raw pulls on this computer (gitignored)
 
 - `data/raw/2026-08/20260911T093818Z`: 5,905,376 rows, the 17 bound fields, 177 MB.
 - `data/raw/2026-10/20261113T045017Z`: 5,926,990 rows, 36 fields (every field but `VIN11`,
-  `CHASSIS7`, `ENGINE_NUMBER`, `POSTCODE`), 348 MB. Pulled by hand (D-066); the same register the
-  run built from.
+  `CHASSIS7`, `ENGINE_NUMBER`, `POSTCODE`), 348 MB. Pulled by hand (D-066).
+- **Second copy:** `F:\nzta-data-backup` holds both, 373 files, every file's SHA-256 equal to the
+  original's (checked 2026-11-13). It is on the same physical disk as the project (disk 3). The
+  computer has other disks (D:, E:, G:) and a OneDrive folder; nothing is copied there.
 - No pull of September exists anywhere.
 
 ## Known issues
@@ -78,45 +89,60 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
    map's table. A visitor name needs a value-label setting in config.
 3. On a filtered powertrain chart the mild hybrid coverage note states the whole dataset's
    coverage, not the filtered vehicles'.
-4. Once #29 meets `ui/explore`, `config/presets.json` `$ranking_period_comment` is wrong (D-050).
-   Correct it in that merge.
-5. `used-import-age` (blocked) and `powertrain-mix` (invalid) are authored against the published
-   cube. A build carrying #27 and #28 makes them draw; flip them to live then.
+4. Once `ui/explore` meets `main`, `config/presets.json` `$ranking_period_comment` is wrong
+   (D-050). Correct it on the site stack before that merge.
+5. `used-import-age` (blocked) and `powertrain-mix` (invalid) can now draw: the `cube-2026-10`
+   release carries #27 and #28. Flip them to live on the site stack. Until then, by the #28
+   reviewer's reading of `resolve.ts` (not rendered), `powertrain-mix` shows a
+   status-disagreement notice against the new cube.
 6. On `main` until `ui/explore` merges: `METRICS.md` has the old representativeness-guard
-   figures, and #29's `config/measures.json` comment has D-033's.
+   figures; #29's `config/measures.json` comment has D-033's; and the decision records for the
+   code now on `main` (D-047 to D-051, D-056, D-057) are only on the site stack.
 7. The public build still ships the status page's script chunk, unlinked and holding no data.
 8. The monthly run has no retry and no alarm: a refresh that lands after it is missed silently.
    D-064 fixes it and is not built.
-9. The committed archive keeps five dimensions. D-063 (one whole-snapshot file a month, kept
-   privately) fixes it and is not built. Until it is on `main`, a month is kept at every field only
-   by a hand pull.
-10. `deploy.yml` (#35) starts after every successful monthly build, and a skip is a success. Under
-    a daily run that is a deploy every day. Settle it when D-064 is built.
+9. The committed archive keeps five dimensions. D-063 fixes it and is not built. Until it is on
+   `main`, a month is kept at every field only by a hand pull (allowed for November, D-068).
+10. `deploy.yml` starts after every successful monthly build, and a skip is a success. Under a
+    daily run that is a deploy every day. Settle it when D-064 is built.
+11. **The reviewers' follow-ups from the stack, none blocking** (2026-11-13; each is the
+    reviewer's claim, read but not all re-tested):
+    - `deploy.yml` reads the Cloudflare secrets as repository secrets. Before any secret is
+      added, the upload must name an environment limited to `main` (D-068, answer 2).
+    - The upload step shares a job with the site's `npm ci`. A separate upload job would isolate
+      the Cloudflare token from the site's dependencies.
+    - The release step: a failed upload could leave a release with no file, or a draft
+      (inferred). `deploy.yml` skips such a release; recovery is a forced run on `main`.
+    - `checks.yml`: `persist-credentials: false` on checkout would harden it.
+    - `pipeline/events.py`: an enum row in `docs/EVENTS_LAYER.md` that parses to no values aborts
+      every event with a message that blames the CSV, not the doc.
+    - `docs/METRICS.md` does not say the share guards apply to the filtered base of a pair slice.
+    - `write_pairs` does not reject a dimension id containing `__`. No id has one.
 
 ## Where docs and code disagree (noted, not changed)
 
-- **The freeze.** AGENTS.md hard rule 2 says it is lifted, on this branch only. `ui/explore` keeps
-  the old rule until #36 merges; `main` has no AGENTS.md until `ui/explore` merges into it.
-  Still describing the freeze: `README.md`,
-  `POST_GATE.md`, the playbooks `change-reference-data`, `add-event`, `change-preset`,
-  `check-monthly-run` and `session-handoff`, and the skills `add-event`, `change-reference-data`
-  and `check-monthly-run`. AGENTS.md is the rule; the rest is queued for correction.
+- **The freeze and who merges.** AGENTS.md (hard rules 2 and 7) is current on this branch only.
+  `ui/explore` keeps the old rules until #36 merges; `main` has no AGENTS.md until `ui/explore`
+  merges into it. Still describing the freeze: `README.md`, `POST_GATE.md`, the playbooks
+  `change-reference-data`, `add-event`, `change-preset`, `check-monthly-run` and `session-handoff`,
+  and the skills `add-event`, `change-reference-data` and `check-monthly-run`. AGENTS.md is the
+  rule; the rest is queued for correction.
 - AGENTS.md hard rule 8's exception still reads "local dev build only until the 8 November 2026
   gate passes". The gate has passed; deploying is Stage 1 item 2, on the user's word.
 - The brief's §4 says October is unbuilt and the freeze undecided. Both are settled (D-066). Its
-  Stage 1 items 1 and 2 cite CHECKPOINT item numbers that have since moved: merge support is queue
-  items 1 and 4, and the deploy is in item 6. The brief is the user's to update.
+  Stage 1 items cite CHECKPOINT item numbers that have since moved.
 - CLAUDE.md lists `docs/DATA_MAP.md` as planned. A first pass exists, marked as unapproved.
 - D-061 stopped chosen values being ranked; D-062 allows it. The code still follows D-061.
 
 ## Blocked or waiting on the user
 
-- **A backed-up folder** for the August and October raw pulls: the answer left a placeholder.
-- **The private archive**: the six setup steps in the Stage 1 report §4, and whether the token is
-  an environment secret (3a) or a repository secret (3b). The same choice settles where the
-  Cloudflare secrets live (CHECKPOINT question 2).
-- **NZTA's registrations dashboard**: one export of October, before 1 December (the report §5).
-- **Merging**: batch 1 first (#26, #27, #28, #29, #35).
+- **The archive token**: the user creates it and stores it as the secret `ARCHIVE_REPO_TOKEN` in
+  the environment `archive`. claude walks through it one step at a time; the token is never
+  pasted into a chat. D-063 can be built without it but not run.
+- **NZTA's registrations dashboard**: one export of October, before 1 December (the Stage 1
+  report §5), walked through one step at a time.
+- **A copy of the backup off the project's disk** (CHECKPOINT question 1).
+- **"Go" for the site stack**, after the screenshots; and `ui/explore` into `main`, asked first.
 - Also waiting: visitor tests (the user picks the people); the brief's §12 (the `matrix` shape,
   running cost, the pull request limit, the About page, a name); two NZTA pages an automated
   reader cannot open (the Stage 0 report §6). Older: what `shaken-clock` in D-020 refers to; which
@@ -125,8 +151,10 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). Checked on
-2026-10-22: `.venv` Python 3.13.7 and Node v22.19.0; `npx -y -p typescript tsc --noEmit` exits 0;
-`astro build` builds 7 pages. Not re-run on 2026-11-13: both sessions changed docs only.
+2026-11-13 on `main`'s tree: the pipeline tests, 54 passed and 1 skipped locally (the skip needs
+Bash; 437 s with other test runs on the machine), 55 passed in 73 s on GitHub; and
+`pipeline build data/raw/2026-10/20261113T045017Z --dry-run`, exit 0 in 538 s, the same totals as
+the live run. The site commands were not re-run on 2026-11-13.
 
 - `data/staging/work.duckdb` holds the staged build of the saved August pull (tables `src`, `rows`,
   `dims`). Open it read-only for measurements.
@@ -140,3 +168,6 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   until every chart panel has drawn before auditing.
 - In Git Bash, prefix commands whose arguments start with `/` or hold `ref:path` with
   `MSYS_NO_PATHCONV=1`, and never leave a bare `python -` in a command: it waits for input.
+- To merge a stacked pull request: point it at its final base (`gh pr edit N --base main`), close
+  and reopen it so `Checks` runs against that base, wait for green, then `gh pr merge N --merge`.
+  GitHub reports `mergeable` as `UNKNOWN` for a few seconds after the base moves; wait for it.
