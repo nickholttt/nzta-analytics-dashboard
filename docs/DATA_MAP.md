@@ -150,6 +150,38 @@ first character alone gives Japan on 99.1% of `J`, South Korea on 99.6% of `K`, 
 `L`, Thailand on 92.7% of `M` and Germany on 70.8% of `W`. No table of plant codes is in the repo,
 and nothing is derived.
 
+## What NZTA's dashboard page adds
+
+NZTA's page "Motor vehicle registrations – dashboard and open data", saved by the user on 2026-11-13
+(`data/raw/nzta-dashboard/2026-10/`; the website itself is not opened by an agent). Its words are
+quoted; none is checked against the data here except where a note says so.
+
+- **`VEHICLE_YEAR`**: "the year of first registration anywhere", with a history of what was recorded
+  since before 1994. Read against the data in `docs/MODEL_AND_AGE.md` §1.
+- **`VEHICLE_USAGE`**: "the vehicle's primary use or purpose when it was registered". **`IMPORT_STATUS`**:
+  "the vehicle's status when it was registered". These are NZTA's words on the trap in finding 1
+  (as first registered, or as now); two snapshots are still what would settle it.
+- **Region**: "the region where the registered owner is based". **Territorial authority**: "the city
+  or district council where the vehicle is registered". The dashboard also has "Physical town: the
+  town where the registered owner is based" and "Owner Type: ... Individual, Company or Other";
+  neither is a field of the open data service.
+- **`ORIGINAL_COUNTRY`**: "the country where the vehicle was principally manufactured" (CLAUDE.md trap 2).
+- **`CC_RATING`**: "engine size ... This also includes electric vehicles."
+- **`VIN11`**: "This field can be repeated", which the check above bears out.
+- **`MVMA_MODEL_CODE`**, power and axles: "Only recorded for NZ New vehicles" (finding 4).
+- **`ROAD_TRANSPORT_CODE`**: "Data is that provided by the owner or dealer and is not verified or certified."
+- **The dashboard is a different base from the register** (D-075): it shows vehicles "with a date of
+  first ownership within the past five years", which "may differ from the vehicle's latest
+  registration year or its first registration in New Zealand"; it "displays a subset of
+  *reregistered vehicles"; and its vehicle status is "active vehicle – registered. Inactive vehicles –
+  registered and registration cancelled in the same month. Reversed – vehicle was incorrectly
+  registered". It is "updated at the beginning of each month", and "Vehicles may be added to or
+  removed from the dataset" and "A vehicle's registration date (MMM-YYYY) may be updated".
+- **The make and model cleansing code** the page links to
+  (`github.com/NZTA/vehicle-make-and-model-cleansing-code`) could not be read: GitHub answered "Not
+  Found" on 2026-11-13, and a search of NZTA's 20 public repositories for "cleansing" and for "make
+  model" found none. Whether it was moved, made private or removed is not known.
+
 ## Privacy classes: a first reading, for the user to approve in Stage 2
 
 | Class | Fields | Why |
