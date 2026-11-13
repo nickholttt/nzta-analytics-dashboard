@@ -1,6 +1,9 @@
 # Builds the public site from the newest cube and uploads it to Cloudflare Pages (D-055, D-056, D-057). Runs when the
-# monthly build starts it after building a month, on a push to main that changes the site, and by hand. It uploads
-# only from main and only once the Cloudflare secrets exist; until then it builds the site and stops, so the build is
+# monthly build starts it after building a month, on a push to main that changes the site, and by hand. Two jobs. The
+# first builds the site and holds no secret. The second uploads it: it names the environment "production", which only
+# main can use and which is where the Cloudflare secrets live, so no other branch's workflow can read them, and the
+# site's own dependencies are never installed beside the token. Nothing is uploaded until deploying is switched on by
+# the repository variable CLOUDFLARE_PAGES_PROJECT; until then the site is built and the run stops, so the build is
 # still checked. On a ref whose site has no public build yet (before ui/explore reaches main) it stops before building.
 name: Deploy
 
@@ -31,14 +34,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      upload: ${{ steps.plan.outputs.upload }}
     env:
       GH_TOKEN: ${{ github.token }}
-      PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT || 'nz-vehicle-registrations' }}
-      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
-      ON_MAIN: ${{ github.ref == 'refs/heads/main' }}
+      PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
     steps:
       # The same action versions as monthly-build.yml where they overlap (Node 24, D-012).
       - name: Checkout
@@ -111,24 +114,77 @@ jobs:
             exit 1
           fi
 
+      # The upload job is started only when it has something to do. A job that names an environment is recorded as a
+      # deployment to it, so starting it to find the secrets missing would show a deployment that never happened. This
+      # job cannot see the environment's secrets, so the switch is a repository variable.
+      - name: Will it be uploaded
+        id: plan
+        if: steps.site.outputs.ready == 'true'
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Built but not uploaded: only main deploys, and this run is on $GITHUB_REF_NAME." | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [ -z "$PROJECT" ]; then
+            echo "Built but not uploaded: deploying is not switched on. It is switched on by setting the repository variable CLOUDFLARE_PAGES_PROJECT to the Cloudflare Pages project's name." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "upload=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Only what is about to be published, and only when it is: the artifact of a public repository can be downloaded
+      # by anyone signed in to GitHub.
+      - name: Hand the built site to the upload job
+        if: steps.plan.outputs.upload == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: dist
+          retention-days: 1
+          if-no-files-found: error
+
+  upload:
+    needs: build
+    if: needs.build.outputs.upload == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    env:
+      PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+    steps:
+      # Deploying was switched on, so missing secrets are a fault, not a state to wait in.
+      - name: The Cloudflare secrets are set
+        env:
+          HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+          HAS_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+        run: |
+          if [ "$HAS_TOKEN" != "true" ] || [ "$HAS_ACCOUNT" != "true" ]; then
+            echo "Not uploaded: CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID must both be secrets of the environment 'production'." | tee -a "$GITHUB_STEP_SUMMARY" >&2
+            exit 1
+          fi
+
+      # Only the upload tool's folder: this job needs none of the site's source.
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: .github/deploy
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
       # Wrangler is pinned by its own lockfile in .github/deploy, outside the site's dependencies (D-057), and installed
       # before the step that holds the Cloudflare token.
       - name: Upload tool
-        if: steps.site.outputs.ready == 'true' && env.ON_MAIN == 'true' && env.HAS_TOKEN == 'true'
         run: npm ci --prefix .github/deploy --no-audit --no-fund
 
+      - name: The built site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name site --dir dist
+
       - name: Upload to Cloudflare Pages
-        if: steps.site.outputs.ready == 'true' && env.ON_MAIN == 'true' && env.HAS_TOKEN == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: .github/deploy/node_modules/.bin/wrangler pages deploy dist --project-name "$PROJECT" --branch main --commit-dirty=true
-
-      - name: Not uploaded
-        if: steps.site.outputs.ready == 'true' && (env.ON_MAIN != 'true' || env.HAS_TOKEN != 'true')
-        run: |
-          if [ "$ON_MAIN" != "true" ]; then
-            echo "Built but not uploaded: only main deploys, and this run is on $GITHUB_REF_NAME." | tee -a "$GITHUB_STEP_SUMMARY"
-          else
-            echo "Built but not uploaded: the CLOUDFLARE_API_TOKEN secret is not set." | tee -a "$GITHUB_STEP_SUMMARY"
-          fi
