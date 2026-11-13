@@ -1482,3 +1482,77 @@ New entries use this template:
   all waiting holds the month totals alone; a new test adds copies of one vehicle and checks they share a row, since no
   fixture vehicle shared a cell and a table that stopped grouping would have passed.
 - Status: decided by Claude (unreviewed)
+
+## D-062 2026-11-13 — CLAUDE.md for the next stage: the goal, generated narrative, model-level lookups, explicit sub-agent models
+
+- Agent: user, with Claude (claude.ai planning session; CLAUDE.md drafted there and reviewed by the user)
+- Basis: user, in session on 2026-11-13. CLAUDE.md as on `claude/question-builder` (`06d727e`); `docs/brief/MASTER_BRIEF.md`;
+  vstat.mta.org.nz read on 2026-11-13.
+- Context: the user set the direction for the next stage:
+  - the site should be the go-to place for reliable information on New Zealand's vehicle market, and visitors
+    should digest an answer "without getting bogged down in irrelevant data";
+  - everything the register carries should be askable, with visitors in control;
+  - explanatory text must stay neutral and need no hand-writing per snapshot: "sets of phrases which explain the
+    situation, with placeholders infilled with facts like brands, percentages or powertrains, built once";
+  - a VFACTS-style segmentation and launch RRPs, which the register cannot supply;
+  - infrastructure stays open until a prototype exists;
+  - Claude Code sub-agents set their own model and never inherit the lead's.
+
+  Several of these touch CLAUDE.md's invariants and non-goals, which AGENTS.md hard rule 1 says only the user may change.
+- Options considered:
+  1. Leave CLAUDE.md alone and record the direction only in the brief. Every agent reads CLAUDE.md first, so it
+     would keep finding the direction in conflict with the non-goals ("written commentary") and with invariant 4.
+  2. Reword the invariants broadly to fit the direction. That would loosen the rules that keep the site correct
+     to fix a scope question.
+  3. Make narrow, tagged edits, and state the goal once where every agent reads it.
+- Decision: (3).
+  - Audience: a second group is named beside non-analysts: analysts, the trade and informed buyers, who today
+    download, clean, filter and redraw the register by hand every month. Explore sets the stage; Build is the
+    full engine and must bend to any question the data can honestly answer.
+  - New §The goal: one question, one clear answer, the evidence, the freedom to dig; nothing on the page that does
+    not bear on the question. Nine rules for how a page reads (answer first; one question per view; only what
+    bears on it; one-line caveats; defaults do the work; every figure one step from definition, source and
+    snapshot; everything askable, little shown until asked; a field is defined in the data map before it is
+    askable; a saved question keeps itself up to date).
+  - Opening: no hand-written reports or commentary. The only prose about the data is generated (invariant 8).
+  - Invariant 4 gains a paragraph. A lookup keyed on canonical make and model is a reference lookup, provided it
+    guards coverage as make does: `__UNMAPPED__`, a trailing guard, live only above a threshold. It is maintained
+    when a nameplate appears, never row by row.
+  - Invariant 8 (new): words are data. Phrase templates in config are filled with facts computed by generic
+    per-shape code, rendered deterministically with no model at run time. Templates carry no domain value,
+    figure or year, say what and never why, and drop a sentence they cannot fill. It generalises `note_template`.
+    A "(planned)" note says where the repo departs from it today: `/caveats` and `/method` state figures and
+    names by hand (the D-040 convention).
+  - §Shapes: which shapes fit a question comes from one rule table in config, read against each field's kind and
+    number of values in the data map; no field lists its own charts; a table of figures is always available. A
+    shape's look comes from the design system. A config-chosen variant inside a shape is not a sixth shape, and
+    a new variant is still a decision.
+  - Invariant 6 and §Stack (user, 2026-11-13: "a web page, desktop and mobile, with data being hosted and
+    queried"): invariant 6 becomes "the browser never sees a vehicle row". The stage stays on precomputed
+    files. The workbench asks a hosted query service that answers only with aggregates, only for fields the
+    data map makes public, and never takes SQL from the browser. "No database, no API server, no runtime cost"
+    now describes the stage only. Both carry a "(planned)" note: no service is chosen or built.
+  - Chosen values may be ranked, labelled as ranked among the values the visitor picked, with one step to the
+    same ranking over every value. This supersedes that point of D-061. (The user asked Claude to decide,
+    2026-11-13; the user's own example question needs it.)
+  - §Repo layout: planned `config/narrative/`, `model_segment.csv`, `docs/NARRATIVE.md`, `docs/DATA_MAP.md`,
+    `docs/brief/MASTER_BRIEF.md` and `.claude/agents/`.
+  - §Build order: steps 9 to 13 (the data map; the full engine; answer pages; what the industry expects; the rest
+    only when a question needs it).
+  - New §Sub-agents: an explicit `model:` in every definition, no `inherit`, checked by a test. Reviews stay
+    independent.
+  - Non-goals: "written commentary" becomes "hand-written commentary", with generated statements excluded.
+    VIN11, CHASSIS7 and ENGINE_NUMBER never reach a published file.
+- Consequences:
+  - AGENTS.md hard rule 1 says "seven design invariants"; change it to "eight" in the same commit.
+  - D-003 stands: `segment_map.csv` keeps no SUV segment. The model-level segment is a separate dimension.
+  - Launch prices are allowed by invariant 4's new paragraph but are not planned work (the brief parks them).
+  - `model_segment.csv`, `config/narrative/` and their pipeline, test and contract changes sit on frozen paths.
+    They follow D-043 until the gate has passed, and each golden change follows hard rule 4.
+  - A hosted query service has a running cost and must be kept up, which the project has avoided until now.
+    Which service, its cost and its limits are a later decision on measurements (the brief, Stage 2).
+  - Invariant 1 is enforced for `pipeline/*.py` only. A scan of `src/` and of templates is owed before
+    invariant 8 can be called enforced.
+  - Nothing is built by this entry. The work is queued through CHECKPOINT from the brief.
+  - Reversing it: revert this commit. No code depends on it yet.
+- Status: accepted, decided by user (when the user commits it with CLAUDE.md)

@@ -96,7 +96,7 @@ Setup, **not re-run this session** (the environment already existed):
 
 ## Hard rules: changing any of these needs the user's explicit approval
 
-1. **CLAUDE.md's seven design invariants** and **the five shapes** (mix, trend, league, distribution,
+1. **CLAUDE.md's eight design invariants** and **the five shapes** (mix, trend, league, distribution,
    geo). No sixth renderer.
 2. **Freeze until the 8 November 2026 scheduled run passes** (the gate is the 8 October and
    8 November runs, both clean and unattended; `POST_GATE.md`): no changes to `pipeline/`,
