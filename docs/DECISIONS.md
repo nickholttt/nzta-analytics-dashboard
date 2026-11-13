@@ -2503,3 +2503,43 @@ New entries use this template:
   - Hard rules 7 and 8 are not touched by #46. The proposed text is in CHECKPOINT until the user answers.
   - No forced run is started on the strength of an earlier permission (D-068's one forced run is spent).
 - Status: accepted, decided by user; the reading of point 5 is claude's (unreviewed)
+## D-081 2026-11-14 — The user's second answers: #46 merges; hard rules 7 and 8 are reworded as proposed; October is forced only if the daily run reports the source unchanged; no path from the user's computer stays in the docs
+- Agent: user (the answers), claude (the record)
+- Basis: the user's second message of 2026-11-14, answering the three questions of D-080's session; AGENTS.md as it
+  stood; `gh` read-backs of #46 and of the `Deploy` run its merge started.
+- Context: #46 was open, green and reviewed. Hard rule 7 listed exceptions that were all spent (the merges of D-068 and
+  D-069, one forced run, #17 to #34 into `ui/explore`), and rule 8 named a gate that had passed (D-066). The reviewer
+  of #46 had found a temp-folder path holding the Windows short user name in a committed report.
+- Decision (user):
+  1. "Merge 46." Done as a merge commit: `main` is `a41c2cf`, the same tree as `ui/explore`. The `Deploy` run of that
+     push (43420177311) built the site from `cube-2026-10`, 7 pages, and uploaded nothing; the environment
+     `production` has no deployment.
+  2. "Yes to 7 and 8, as proposed." Rule 7 now reads: no push to `main` and no merge into it without the user's word in
+     that session, naming the pull request; a merge into `main` also needs green checks and a reviewer that has not
+     seen the author's reasoning; a forced Monthly build, and anything that makes something public, is asked for each
+     time. The lines on agents' own branches and on `gh` are kept. Rule 8 keeps "don't build ahead of the current
+     step" and D-041's exception for the site, and drops "as a local dev build only until the 8 November 2026 gate
+     passes": the gate passed (D-066), deploying is Stage 1 of the brief, and each step that makes the site public is
+     asked for.
+  3. October is forced on one condition: only if the daily run of 14 November reports the source unchanged. claude
+     reads that run first and tells the user what it said. If NZTA has changed the register, nothing is forced and
+     December's refresh is waited for.
+  4. The follow-up pull request removes the temp-folder path from `docs/brief/STAGE_0_REPORT.md` and any other path
+     from the user's computer in the docs, and they are kept out from now on.
+- Options considered: none for 1 to 3; the text of 2 is the proposal the user was shown (CHECKPOINT of `a2700f5`).
+  For 4, decided by claude:
+  - What counts: a path that shows the user's folders, drive layout or user name. Not counted, and kept: the standard
+    install location of `gh`, which the commands need; `%LOCALAPPDATA%`-style and `~`-style paths, which name no
+    one; paths relative to the repo; and `D:\nzta-archive`, an example the reports tell the user to replace.
+  - This file is append-only, and D-068 named the backup folder's path. The user's instruction covers "the docs", so
+    that one path is replaced in place by a description, and nothing else in D-068 is touched. Not chosen: leaving it
+    because the file is append-only, which would keep the one path the user asked to have removed.
+  - The commits that held the paths stay in the repository's history. Removing them would mean rewriting published
+    history, which was not asked for and is not done.
+- Consequences:
+  - AGENTS.md carries the new rules 7 and 8, its "Branches" section says the site is on `main`, and its "Environment"
+    section carries the rule on paths.
+  - The backup folder's path is kept in claude's private memory, not in the repo.
+  - A later session forces nothing on the strength of point 3: it is one run, tied to one day's report.
+- Status: accepted, decided by user; the reading of point 4 (what counts, and the edit inside D-068) decided by Claude
+  (unreviewed)

@@ -57,11 +57,11 @@ Setup, **not re-run this session** (the environment already existed):
 
 ## Branches in this repo
 
-- `main`: what the monthly Action runs and commits to. The user merges into it, and claude does
-  only where D-068 names the pull request (hard rule 7).
-- `ui/explore`: the user's UI branch (it predates the `claude/`/`gemini/` naming rule). Its boundary
-  is in D-020.
-- New agent work: `claude/<topic>` or `gemini/<topic>`, branched from the branch the work belongs on.
+- `main`: what the monthly Action runs and commits to, and, since #46 on 2026-11-14, the site. An
+  agent merges into it only on the user's word in that session (hard rule 7).
+- `ui/explore`: the user's UI branch (it predates the `claude/`/`gemini/` naming rule; its boundary
+  was D-020). All of it is in `main` since #46; whether it is kept is the user's.
+- New agent work: `claude/<topic>` or `gemini/<topic>`, branched from `main`.
 
 ## Architecture
 
@@ -122,20 +122,19 @@ Setup, **not re-run this session** (the environment already existed):
    Every commit must build, not just the branch tip.
 6. **Resolve field meanings empirically** against the data before rewriting a doc. Surface counts
    for edge cases; never silently bucket.
-7. **Don't push to `main` or merge into it** without asking in that session. An agent may push its
-   own branches (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19).
-   Exception (user, 2026-11-13, D-068): claude may merge into `main`, as merge commits and in
-   order, the pipeline stack (#26, #27, #28, #29, #35), the pull requests that build D-064 and
-   D-063, and `claude/fact-table`'s pull request (user, 2026-11-13, D-069), each only when its
-   checks are green and a reviewer sub-agent that has not seen claude's reasoning agrees, stopping
-   at the first problem; and may dispatch one forced Monthly build on `main` after the stack. On the user's "go", claude merges #17 to #34 into `ui/explore` from the
-   command line. `ui/explore` into `main` is still asked for. GitHub API access
-   goes through `gh` only (full path above; not on the Git Bash PATH), never the Git Credential
-   Manager token.
+7. **Don't push to `main` or merge into it** without the user's word in that session, naming the
+   pull request ("merge N"). A merge into `main` also needs green checks and a reviewer sub-agent
+   that has not seen the author's reasoning. A forced Monthly build, and anything that makes
+   something public, is asked for each time (user, 2026-11-14, D-081). An agent may push its own
+   branches (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19). GitHub
+   API access goes through `gh` only (full path above; not on the Git Bash PATH), never the Git
+   Credential Manager token.
 8. **Don't build ahead of the current step.** The user works in gated steps with a stop-and-report
    after each; the current step is in `docs/STATE.md`. Exception (user, 2026-10-21, D-041): the
    visitor-facing site (`src/`, `config/presets.json` and the docs that describe them) may be built
-   ahead of the build order, as a local dev build only until the 8 November 2026 gate passes.
+   ahead of the build order. The gate that kept it a local build passed on 13 November 2026
+   (D-066). Deploying it is Stage 1 of the brief (`docs/brief/MASTER_BRIEF.md`), and each step
+   that makes it public is asked for (D-081).
 9. **Never present a measurement artefact as market behaviour** (`docs/EVENTS_LAYER.md`,
    `mechanism` column).
 
