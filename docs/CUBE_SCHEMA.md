@@ -13,7 +13,9 @@ Two kinds of artefact, both computed at build time:
 - **The fact table** answers any question a visitor builds (D-058): counts
   by month and every configured dimension at once, so any combination of
   values, filters and periods is a sum over its rows. It holds counts, never
-  a vehicle row, and the browser aggregates it without a query engine.
+  a vehicle row, and the browser aggregates it without a query engine (the
+site's code, `src/lib/data.ts`, which is on `ui/explore` and not yet on
+`main`; nothing in the pipeline shows it).
 
 No count of dimensions is fixed in this document or anywhere else; see
 *Live dimensions*.
@@ -172,8 +174,9 @@ its own file: `facts/{dataset}/month.parquet`, one
 `facts/{dataset}/{dimension}.parquet` per dimension, and
 `facts/{dataset}/n.parquet`. Every file holds the same rows in the same
 order, so row *i* of each file is one row of the table. The host answers a
-range request with the whole file, so one file per column is what lets a
-question download only the columns it names.
+range request with the whole file (Cloudflare Pages, from its documentation
+as read for D-058; nothing is deployed, so this is not observed), so one
+file per column is what lets a question download only the columns it names.
 
 | column | file | type | notes |
 |---|---|---|---|
