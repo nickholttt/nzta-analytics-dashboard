@@ -70,10 +70,10 @@ Bound in `config/pipeline.json`. Their meanings and traps are in `docs/DATA_SOUR
 | `VDAM_WEIGHT` | "The maximum allowable laden weight for the vehicle on the road", kg | number | 5.0% | Heavy vehicles: motor caravans 71.6%, buses 49.7%, goods vehicles 16.0% | |
 | `HEIGHT` | Height, mm | number | 4.2% | Heavy vehicles: motor caravans 70.8%, buses 45.2%, goods vehicles 15.8% | The value 1 appears 10,487 times; largest 44,260 |
 | `WIDTH` | Width, mm | number | 4.3% | Heavy vehicles: motor caravans 71.9%, buses 45.7%, goods vehicles 16.0% | Largest 50,300 |
-| `POSTCODE` | **Not in NZTA's field descriptions** | place, 1,330 values | 95.1% | Every vehicle type | 197 postcodes hold fewer than 10 vehicles, and some hold 1. See privacy below |
-| `VIN11` | "First 11 characters of the Vehicle Identification Number" | identifier | 81.2% | NEW 76.9%, USED 94.8%; 39.3% before 2000 | Never published (D-062) |
-| `CHASSIS7` | "First 7 characters of the Chassis Number" | identifier | 40.4% | USED 91.7%, NEW 13.2% | Never published (D-062) |
-| `ENGINE_NUMBER` | "All characters of the Engine Number" | identifier | 84.2% | Powered vehicles: cars 99.6%, trailers 0.1% | Never published (D-062) |
+| `POSTCODE` | **Not in NZTA's field descriptions** | place, 1,330 values | 95.1% | Every vehicle type | 197 postcodes hold fewer than 10 vehicles, and some hold 1. Kept in the private archive only (D-076). See privacy below |
+| `VIN11` | "First 11 characters of the Vehicle Identification Number" | identifier | 81.2% | NEW 76.9%, USED 94.8%; 39.3% before 2000 | Kept in the private archive only; never published itself (D-076). What it can give (a model year, a factory) is not yet checked against the data |
+| `CHASSIS7` | "First 7 characters of the Chassis Number" | identifier | 40.4% | USED 91.7%, NEW 13.2% | Never pulled, never published (D-062, D-076) |
+| `ENGINE_NUMBER` | "All characters of the Engine Number" | identifier | 84.2% | Powered vehicles: cars 99.6%, trailers 0.1% | Never pulled, never published (D-062, D-076) |
 
 ## What this pass found
 
@@ -107,9 +107,10 @@ Bound in `config/pipeline.json`. Their meanings and traps are in `docs/DATA_SOUR
 
 | Class | Fields | Why |
 |---|---|---|
-| Never published | `VIN11`, `CHASSIS7`, `ENGINE_NUMBER` | D-062 |
+| Never pulled, never published | `CHASSIS7`, `ENGINE_NUMBER` | D-062, D-076 |
+| Kept in the private archive only; never published itself. A field derived from it may be published once it has been checked against the data (the user, 2026-11-13, D-076) | `VIN11` | It narrows a vehicle to a handful. A model year or a factory read from it describes the vehicle, not the owner; neither is derived or checked yet |
 | Never published | `OBJECTID` | A row number, no meaning to a visitor |
-| Never published, never pulled, never archived (the user, 2026-11-13, D-066) | `POSTCODE` | NZTA's own notes say owner location is given by territorial authority "to make sure it isn't possible to identify a person", and its field list leaves postcode out, yet the field is in the service. 197 postcodes hold fewer than 10 vehicles. (One sizing pull on 2026-11-13 took it before this was seen; those rows are deleted. The hand pull of October left it out) |
+| Kept in the private archive only. Publishing waits for the Stage 2 privacy review, and then only as area totals above a minimum count (the user, 2026-11-13, D-076, superseding D-066 item 9) | `POSTCODE` | NZTA's own notes say owner location is given by territorial authority "to make sure it isn't possible to identify a person", and its field list leaves postcode out, yet the field is in the service. 197 postcodes hold fewer than 10 vehicles. The minimum count is not set |
 | Public only above a minimum count | `TLA`, `INDUSTRY_CLASS`, `VEHICLE_USAGE`, `ROAD_TRANSPORT_CODE` when crossed with fine vehicle detail | They describe the owner, not the vehicle. A district crossed with model, colour and year can come down to one vehicle |
 | Not offered as a breakdown | `SUBMODEL`, `MVMA_MODEL_CODE`, `INDUSTRY_MODEL_CODE` | Free text or fine codes. Useful as lookup keys |
 | Public | Everything else | Describes the vehicle |

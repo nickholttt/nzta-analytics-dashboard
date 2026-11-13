@@ -2201,3 +2201,68 @@ New entries use this template:
     user changes them (CHECKPOINT, question 1).
   - Reversing it: stop exporting; nothing published reads it yet.
 - Status: proposed
+
+## D-076 2026-11-13 — `VIN11` and `POSTCODE` are kept in the private archive only and neither is published; October gets a second file
+- Agent: user, answering CHECKPOINT question 1 in the first message of the fifth session of 2026-11-13. Recorded by
+  claude, with the choices claude made building it marked as such.
+- Basis: this session, the user's message. The change, its tests and October's file were written, run and read back
+  here; the upload was read back with `gh`.
+- Context: D-066 item 9 ruled `POSTCODE` never published, never pulled and never archived, and CLAUDE.md's non-goals
+  kept `VIN11`, `CHASSIS7` and `ENGINE_NUMBER` out of every published file. The archive (D-063, D-071) left all four
+  out. In the fourth session the user asked whether the postcode and the VIN prefix may be used; NZTA's licence
+  (CC BY 4.0) allows it. October was archived at 35 fields, and NZTA replaces October early in December.
+- Options considered:
+  1. Leave both out (D-066 item 9). Not kept: once NZTA refreshes, a month's postcodes and VIN prefixes are gone, and
+     nothing finer than a district, and nothing read from the VIN, can ever be derived for that month.
+  2. Keep both and publish postcode totals now. Not chosen by the user: publishing waits for the privacy review.
+  3. Keep both in the private archive only and publish neither. Chosen by the user.
+- Decision, in the user's words where short:
+  1. `POSTCODE` and `VIN11`: "keep both in the private archive only. Publish neither."
+  2. `VIN11` itself is never published, "only what is derived from it, after you check it against the data".
+  3. Postcode figures "wait for the Stage 2 privacy review, and then only as area totals above a minimum count".
+  4. `CHASSIS7` and `ENGINE_NUMBER` "stay out entirely".
+  5. For October, the two fields are added "as an additional file"; the file already archived is not replaced.
+  6. This supersedes D-066 item 9, and the field lists of D-063 and D-071 as far as these two fields go. CLAUDE.md's
+     non-goal and `docs/DATA_MAP.md` are changed in the same commit as this entry.
+- As built (decided by Claude, unreviewed), pull request #42 into `main`:
+  - `register_archive.never_pulled` in `config/pipeline.json` is `CHASSIS7` and `ENGINE_NUMBER`. No pipeline code or
+    workflow changes: the archive job already takes every field of the expected schema but those.
+  - The build's own pull stays at its 17 bound fields, so neither field can reach the cube, the committed aggregate
+    or a published file. A test fails if either is ever bound.
+  - **October's additional file is a whole register at 37 fields**, `mvr-2026-10-vin11-postcode.parquet`, in the
+    release `snapshot-2026-10` beside `mvr-2026-10.parquet`. Not chosen: a file of the two columns alone. The first
+    file keeps no row id, so two columns could not be matched to its rows.
+  - It was written on the development machine by `python -m pipeline archive --snapshot 2026-10` from the branch,
+    which pulls NZTA's live register and goes ahead only while it has the row count and digest of the built month,
+    and uploaded with `gh` under the user's login, without `--clobber`. Not chosen: the workflow's archive job. It
+    runs only on `main`, stops when the month has a file, and would have needed a merge and a change of its own for
+    one file.
+  - The local pull and the local file were deleted once the upload's SHA-256 matched, so the two fields are in the
+    private archive and nowhere else.
+- Measured, 2026-11-13:
+  - The pull: 5,926,990 rows at 38 fields in 151.6 s. The file: 5,926,990 rows, 37 fields, 55,125,916 bytes (the
+    35-field file is 39,298,142). 13 min 7 s in all, with three other heavy jobs running.
+  - `VIN11`: 4,811,252 vehicles have one (81.2%), every one 11 characters, 200,725 distinct.
+  - `POSTCODE`: 5,638,818 vehicles have one above zero (95.1%); 1,331 distinct values in the file (the data map
+    counted 1,330 on the live service; whether the one more is a zero standing for "not recorded" was not checked
+    before the local file was deleted). NZTA records it as a number, so one that starts with zero arrives without
+    it: 152 postcodes, holding 885,064 vehicles, are below 1000.
+  - The release, read back: both files `uploaded`; the new file's SHA-256 is `25f0a20d…5041ce`, equal to the local
+    file's before it was deleted. The repository is private.
+  - The independent reviewer of #42 (not shown claude's reasoning) agreed with follow-ups, none blocking, and ran
+    the whole suite: 86 passed.
+- Consequences:
+  - Until #42 is on `main` the archive job leaves the two fields out. If NZTA refreshes first, November is archived
+    at 35 fields and needs a second file by hand, as October did, while NZTA still holds it.
+  - The private archive is more sensitive than it was: a VIN prefix beside a postcode narrows a vehicle to very
+    few. The repository must stay private; the job already refuses one that is not.
+  - Nothing is derived from `VIN11` yet, and nothing has been checked against the data. What it can give (a model
+    year, a factory) is Stage 2 work, read from the archive's file.
+  - The minimum count for postcode totals is not set; it is the Stage 2 privacy review's to set.
+  - `pipeline archive --from-pull` now refuses both saved pulls (August has 17 fields, October 36): a pull saved by
+    hand must take all 38.
+  - The user did not speak to the dashboard's own "VIN - first 11" and "Physical post code" dimensions (D-075).
+    They stay unticked in every export.
+  - Reversing it: put the two names back in `never_pulled` and delete October's second file. Files already written
+    with the fields stay until deleted by hand.
+- Status: accepted, decided by user; the points under "As built" decided by Claude (unreviewed)

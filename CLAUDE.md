@@ -295,8 +295,12 @@ transform. The short version:
 - Hand-written commentary or reports. Statements generated under
   invariant 8 are not commentary: they say what the data shows, never why
 - Matching MIA's published figures (different basis — say so, don't chase it)
-- Vehicle-level lookup or VIN search. `VIN11`, `CHASSIS7` and
-  `ENGINE_NUMBER` never reach any published file, even aggregated
+- Vehicle-level lookup or VIN search. `VIN11` is kept in the private
+  archive only and is never published itself; a field derived from it may
+  be published once it has been checked against the data. `POSTCODE` is
+  kept in the private archive only; postcode figures wait for the Stage 2
+  privacy review, and then only as area totals above a minimum count.
+  `CHASSIS7` and `ENGINE_NUMBER` are never pulled (D-076)
 - Predicting or forecasting
 - Any interpretation of *why* an inflection happened beyond placing a
   dated event marker next to it
