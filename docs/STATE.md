@@ -46,11 +46,9 @@ says they are ready.
   brought up to date. Pushed; waits for "merge 45". This folder's `public/data` holds the
   2026-10 dry run with the fact table.
 - Nothing is in progress by gemini.
-- `../nzta-screens` is a detached checkout of `ui/explore` (`85b7dd6`) with `node_modules`, a built
-  `dist/`, and in `public/data` the 2026-10 cube **plus the fact table and manifest of this
-  session's dry run** (no region), so the Build page can be looked at locally.
-- `../nzta-presets` is an empty folder Windows would not delete ("resource busy"); git no longer
-  knows it. Delete it by hand.
+- `../nzta-screens`: a detached checkout of `ui/explore` at `85b7dd6` with `node_modules` and the
+  2026-10 dry run in `public/data`, kept from earlier screenshots; it can be removed.
+- `../nzta-presets` is an empty folder Windows will not delete ("resource busy"). Delete it by hand.
 
 ## Branches and pull requests (checked 2026-11-13)
 
