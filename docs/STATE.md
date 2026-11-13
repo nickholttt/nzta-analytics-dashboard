@@ -8,76 +8,60 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - **The pipeline stack is on `main`** (2026-11-13, merged by claude under D-068, each a merge
-    commit): #26 `c946f5b`, #27 `31e6389`, #28 `31acd3c`, #29 `a0690f7`, #35 `a8df1ce`. Each had
-    a reviewer's agreement and a fresh green check against `main`.
-  - **Forced run 43374803222** (`workflow_dispatch`, `force`, `main` at `a8df1ce`): green. 55 tests
-    passed; 5,926,990 rows pulled in 56.8 s; built snapshot 2026-10 with no warnings; peak memory
-    2,491 MiB of 15,983 MiB; 346 s. Fourteen live dimensions (`segment_group` is new) and two pair
-    slices. The bot committed `912cada Snapshot 2026-10 [skip ci]`, which changes only
-    `data/state/last_good.json` (`generated_at`, and `segment_group` among the live dimensions).
-    `data/snapshots/2026-10.parquet` is unchanged.
+  - **The pipeline stack is on `main`** (2026-11-13, merged by claude under D-068, merge commits):
+    #26 `c946f5b`, #27 `31e6389`, #28 `31acd3c`, #29 `a0690f7`, #35 `a8df1ce`.
+  - **Forced run 43374803222** (`main` at `a8df1ce`): green. 55 tests passed; 5,926,990 rows
+    pulled in 56.8 s; built snapshot 2026-10, no warnings; peak memory 2,491 MiB of 15,983 MiB;
+    346 s. Fourteen live dimensions (`segment_group` is new), two pair slices. The bot committed
+    `912cada Snapshot 2026-10 [skip ci]`: only `data/state/last_good.json` changed
+    (`generated_at`, `segment_group` now live). `data/snapshots/2026-10.parquet` is unchanged.
   - **The first cube release exists:** `cube-2026-10`, on `912cada`, one file
     `public-data.tar.gz` (1,393,784 bytes), holding both pair files and the `segment_group` slice.
-  - `Checks` runs the pipeline tests on every pull request (#26).
-  - `Deploy` ran twice (after #35's merge and after the forced run). Both stopped before building:
-    `main` has no `src/lib/site.ts`. No Cloudflare secret exists.
-  - Earlier runs: 13 November, unforced, built 2026-10 with the old code (`a5fb60c`); 8 November,
-    scheduled, skipped; 8 October, scheduled, built 2026-09.
+  - `Checks` runs the pipeline tests on pull requests whose branch holds `checks.yml` (#26).
+    `Deploy` ran twice and stopped before building both times: `main` has no `src/lib/site.ts`.
   - The schedule is still the 8th of each month. The daily run is accepted (D-064) and not built.
     NZTA's refresh has come on 3 September, 6 October and 9 November.
-  - Cube artifacts: `public-data-2026-08` (expires 2026-12-10), `public-data-2026-09` (expires
-    2027-01-06), two named `public-data-2026-10` (expire 2027-02-11; the newer is the forced run's).
+  - Cube artifacts: `public-data-2026-08` (expires 2026-12-10), `-09` (2027-01-06), two `-10`.
 - **Nothing is deployed.** The site is a local reference UI (`npm run dev`, 127.0.0.1:4321).
 - **The archive's home exists, empty:** the private repository `nickholttt/nzta-register-archive`
-  (one README commit), and in this repository the environment `archive`, limited to `main`, with
-  no secret yet (D-067, D-068).
+  (one README commit) and, here, the environment `archive`, limited to `main`, with no secret.
 - **Events**: 54 rows, 50 verified. Four are unverified on purpose (Honda and Mercedes-Benz agency
   starts, the semiconductor window, the weak yen). Don't guess dates to clear them.
 
 ## Current step
 
-**Stage 1 of the master brief.** The user's standing permissions are D-068: claude merges the
-pipeline stack and the D-064 and D-063 pull requests under a green check and an independent
-reviewer; one forced run (used); the archive repository and environment (made).
-
-- Done this session: the backup checked; D-068 recorded; the pipeline stack merged; the forced
-  run dispatched and checked. Then stop and report, as asked.
-- Next: D-064, then D-063; screenshots of the site stack for the user (CHECKPOINT).
+**Stage 1 of the master brief**, stopped to report after the pipeline stack merged and the forced
+run was checked. The user's standing permissions are D-068; its one forced run is used. Next:
+D-064, then D-063, and screenshots of the site stack for the user (CHECKPOINT).
 
 ## In progress
 
-- `claude/next-stage-brief` (claude, #36): docs only. Adds D-068, the amended AGENTS.md lines and
-  brief line, STATE, CHECKPOINT. Pushed; nothing uncommitted. Nothing else is in progress by
-  either agent.
+- `claude/next-stage-brief` (claude, #36): docs only; now also D-068 and the amended AGENTS.md and
+  brief lines. Pushed; nothing uncommitted. Nothing else is in progress by either agent.
 
 ## Branches and pull requests (checked 2026-11-13)
 
 - `main`: origin `912cada`. Local `main` matches.
 - `ui/explore`: origin `3c10716`, PRs #1–#16 merged on 2026-10-21. Nothing merged since.
 - The five merged pipeline branches are deleted, on GitHub and locally.
-- **15 open pull requests**, all `claude/...`, the site stack, each into the one before, the first
-  into `ui/explore`: #17 `notes-after-merge`, #18 `public-explore`, #19 `explore-copy-controls`,
-  #20 `pipeline-branch-rule`, #21 `sentence-builder`, #22 `builder-league`, #23 `reserved-values`,
-  #24 `prototype-queue`, #25 `pipeline-decisions`, #30 `explore-build-together`, #31 `pair-views`,
-  #32 `a11y-pass`, #33 `geo-map`, #34 `deploy-proposal`; and #36 `next-stage-brief` into
-  `claude/question-builder`. Five lines on each: `docs/brief/STAGE_1_REPORT.md` §6. `Checks` does
-  not run on them usefully until `ui/explore` holds `checks.yml`.
+- **15 open pull requests**, the site stack, each into the one before, the first into
+  `ui/explore`: #17 to #25 and #30 to #34 (branch names and five lines on each:
+  `docs/brief/STAGE_1_REPORT.md` §6); and #36 `next-stage-brief` into `claude/question-builder`.
+  No check runs on them: `checks.yml` is not on those branches.
 - **Built, pushed, no pull request yet:**
-  - `claude/question-builder` (`06d727e`, on top of `claude/deploy-proposal`): the question builder
+  - `claude/question-builder` (`06d727e`, on `claude/deploy-proposal`): the question builder
     (D-058 to D-061). It goes between #34 and #36.
-  - `claude/fact-table` (`92d451d`, worktree `../nzta-fact-table`): the fact table, one file per
-    column. Its base, `claude/deploy-workflow`, is now in `main`, so its pull request can open into
-    `main`. Merging it is not in D-068.
+  - `claude/fact-table` (`92d451d`, worktree `../nzta-fact-table`): the fact table. Its base is
+    now in `main`, so its pull request can open into `main`. Merging it is not in D-068.
 
 ## Raw pulls on this computer (gitignored)
 
 - `data/raw/2026-08/20260911T093818Z`: 5,905,376 rows, the 17 bound fields, 177 MB.
 - `data/raw/2026-10/20261113T045017Z`: 5,926,990 rows, 36 fields (every field but `VIN11`,
   `CHASSIS7`, `ENGINE_NUMBER`, `POSTCODE`), 348 MB. Pulled by hand (D-066).
-- **Second copy:** `F:\nzta-data-backup` holds both, 373 files, every file's SHA-256 equal to the
-  original's (checked 2026-11-13). It is on the same physical disk as the project (disk 3). The
-  computer has other disks (D:, E:, G:) and a OneDrive folder; nothing is copied there.
+- **Second copy:** `F:\nzta-data-backup` holds both, 373 files, each identical by SHA-256
+  (checked 2026-11-13). It is on the project's own physical disk. Nothing is on D:, E:, G: or
+  OneDrive.
 - No pull of September exists anywhere.
 
 ## Known issues
@@ -105,19 +89,17 @@ reviewer; one forced run (used); the archive repository and environment (made).
    `main`, a month is kept at every field only by a hand pull (allowed for November, D-068).
 10. `deploy.yml` starts after every successful monthly build, and a skip is a success. Under a
     daily run that is a deploy every day. Settle it when D-064 is built.
-11. **The reviewers' follow-ups from the stack, none blocking** (2026-11-13; each is the
-    reviewer's claim, read but not all re-tested):
-    - `deploy.yml` reads the Cloudflare secrets as repository secrets. Before any secret is
-      added, the upload must name an environment limited to `main` (D-068, answer 2).
-    - The upload step shares a job with the site's `npm ci`. A separate upload job would isolate
-      the Cloudflare token from the site's dependencies.
-    - The release step: a failed upload could leave a release with no file, or a draft
-      (inferred). `deploy.yml` skips such a release; recovery is a forced run on `main`.
-    - `checks.yml`: `persist-credentials: false` on checkout would harden it.
-    - `pipeline/events.py`: an enum row in `docs/EVENTS_LAYER.md` that parses to no values aborts
-      every event with a message that blames the CSV, not the doc.
-    - `docs/METRICS.md` does not say the share guards apply to the filtered base of a pair slice.
-    - `write_pairs` does not reject a dimension id containing `__`. No id has one.
+11. **The reviewers' follow-ups from the stack, none blocking** (2026-11-13; their claims, not
+    all re-tested):
+    - `deploy.yml` reads the Cloudflare secrets as repository secrets, and uploads in the same
+      job as the site's `npm ci`. Before any secret is added, the upload moves to a job of its
+      own that names an environment limited to `main` (D-068, answer 2).
+    - A failed release upload could leave a release with no file, or a draft (inferred).
+      `deploy.yml` skips such a release; recovery is a forced run on `main`.
+    - Smaller: `persist-credentials: false` in `checks.yml`; `pipeline/events.py` blames the CSV
+      when an enum row in `docs/EVENTS_LAYER.md` parses to no values; `docs/METRICS.md` does not
+      say the share guards apply to a pair slice's filtered base; `write_pairs` accepts a
+      dimension id containing `__` (none has one).
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -141,12 +123,10 @@ reviewer; one forced run (used); the archive repository and environment (made).
   pasted into a chat. D-063 can be built without it but not run.
 - **NZTA's registrations dashboard**: one export of October, before 1 December (the Stage 1
   report §5), walked through one step at a time.
-- **A copy of the backup off the project's disk** (CHECKPOINT question 1).
-- **"Go" for the site stack**, after the screenshots; and `ui/explore` into `main`, asked first.
-- Also waiting: visitor tests (the user picks the people); the brief's §12 (the `matrix` shape,
-  running cost, the pull request limit, the About page, a name); two NZTA pages an automated
-  reader cannot open (the Stage 0 report §6). Older: what `shaken-clock` in D-020 refers to; which
-  Gemini client is in use.
+- **A copy of the backup off the project's disk** (CHECKPOINT question 1); **"go" for the site
+  stack**, after the screenshots; `ui/explore` into `main`, asked first.
+- Also waiting: visitor tests; the brief's §12; two NZTA pages an automated reader cannot open
+  (the Stage 0 report §6). Older: what `shaken-clock` in D-020 refers to; which Gemini client.
 
 ## How to run
 
@@ -156,11 +136,9 @@ Bash; 437 s with other test runs on the machine), 55 passed in 73 s on GitHub; a
 `pipeline build data/raw/2026-10/20261113T045017Z --dry-run`, exit 0 in 538 s, the same totals as
 the live run. The site commands were not re-run on 2026-11-13.
 
-- `data/staging/work.duckdb` holds the staged build of the saved August pull (tables `src`, `rows`,
-  `dims`). Open it read-only for measurements.
+- `data/staging/work.duckdb` holds the staged build of the saved August pull. Open it read-only.
 - To profile a field, the October pull holds 36 of the 40. For the live register, ask NZTA's
-  service with count queries (`pipeline/arcgis.py`'s client works from a scratch script and writes
-  nothing).
+  service with count queries (`pipeline/arcgis.py`'s client, from a scratch script).
 - NZTA's website (`nzta.govt.nz`) answers automated readers with a block page. Don't work around
   it. Its open data account (`arcgis.com`, owner `Open.Data_NZTA`) and Infoshare both answer.
 - Headless checks use `playwright-core` 1.64.1 and `axe-core` 4.10.3 from a scratch folder, with
