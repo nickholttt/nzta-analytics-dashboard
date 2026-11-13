@@ -275,9 +275,16 @@ are counted, excluded and warned about.
 total row count, the snapshot date, and the sha256 of one canonical
 grouped-statistics response: row counts by first-registration year,
 first-registration month, import status and vehicle type, sorted and
-serialised as canonical JSON. If the key equals the last good run's key,
-the build is skipped: nothing is pulled, nothing is published, the run
-succeeds.
+serialised as canonical JSON. If the row count and the digest equal the
+last good run's, the source is unchanged and the build is skipped: nothing
+is pulled, nothing is published, the run succeeds. The snapshot date is
+left out of that comparison: its cap moves on the first of each month
+while the register does not.
+
+**Each month is built once.** If the source changes again after its
+snapshot month was built, the run says so on its summary page and builds
+nothing. Only a run started by hand with `force` rebuilds a month, so a
+later edit by NZTA never replaces what the first build published.
 
 ## Guardrails — abort the run and keep the last good build
 
@@ -309,7 +316,8 @@ Freshness:
 
 - `latest_snapshot` is older than the last good run's.
 - `latest_snapshot` and the total row count are both unchanged but the
-  change key differs.
+  change key differs. Only a forced run reaches this check: an unforced
+  run does not rebuild a month.
 
 Mapping:
 
