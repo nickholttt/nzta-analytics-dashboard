@@ -1,6 +1,6 @@
 ---
 name: add-event
-description: Add or correct a row in data/reference/events.csv for the chart annotation layer. Frozen until the 8 Nov 2026 gate.
+description: Add or correct a row in data/reference/events.csv for the chart annotation layer.
 ---
 
 Read and follow `docs/playbooks/add-event.md` exactly. It is the source of truth, shared with Gemini;

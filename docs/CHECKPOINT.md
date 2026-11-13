@@ -24,9 +24,8 @@ Last updated by claude on 2026-11-13
   - Four playbooks and two skills no longer describe the freeze.
   - **#36 is in `ui/explore`** (`2236422`): these notes, D-062 to D-079.
   - **#45 is open into `ui/explore`**: `main` merged in, the two conflicts resolved, the stale
-    docs brought up to date. Tests, typecheck, build and screens pass; its reviewer's verdict is
-    on the pull request.
-- Earlier on 2026-11-13: D-066 to D-077.
+    docs brought up to date. Tests, typecheck, build and screens pass. Its reviewer agreed with
+    follow-ups, none blocking; the ones that are docs on that branch are done.
 
 ## Open pull requests waiting on the user (1)
 
@@ -66,6 +65,10 @@ Last updated by claude on 2026-11-13
    slice's small cells need a minimum count (the slice's are not measured); postcode totals and
    their minimum (D-076); whether a model year for the makes whose VINs carry one is wanted (D-079).
 5. **Small corrections and follow-ups, none blocking** (the reviewers' claims):
+   - #45's: event markers ignore a preset's filter, and `powertrain-mix` now has one
+     (`src/lib/events.ts`); `docs/CUBE_SCHEMA.md` says `src/lib/data.ts` is not yet on `main`
+     (correct it with `ui/explore` into `main`); D-063's and D-064's headings still read
+     "(proposed)" though D-066 accepted them (the file is append-only; D-066 is the record).
    - The fact table's (#41): a test that builds a second dataset with no `facts`; the abort
      message for a reserved name (`month`, `n`, `rid`) reads as if the dimension were not
      derivable, and no test covers it; the Aborts list in `docs/CUBE_SCHEMA.md` does not name the

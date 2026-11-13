@@ -110,8 +110,10 @@ These describe the code as it runs (`src/lib/events.ts`,
   (through `scope_dimension_aliases` in `config/pipeline.json`, so
   `brand_group` matches `parent_group`) and it has no `scope_values` or one
   of them has vehicles in the period drawn. A `make=BYD` brand entry does
-  not clutter a powertrain chart. No live chart applies a preset filter, so
-  scoping does not yet consider filters; once one can be applied, it must.
+  not clutter a powertrain chart. Scoping does not consider a preset's
+  filter, and it must: one live chart now applies one (`powertrain-mix`
+  counts light passenger vehicles only), and its events are chosen as if
+  it counted every vehicle (`src/lib/events.ts`; listed in `docs/STATE.md`).
 - Only events inside the period drawn appear: starting no later than the
   latest snapshot, and starting (or, for a windowed event, ending) no
   earlier than the chart's first month.

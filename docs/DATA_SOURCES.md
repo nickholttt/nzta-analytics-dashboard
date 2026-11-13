@@ -109,7 +109,9 @@ licensed, each monthly, quarterly and annual.
 
 The user chose on 2026-10-22 to wait for the Data Explorer, and on
 2026-11-13 to use the Infoshare series now (`docs/brief/MASTER_BRIEF.md`
-§7). D-065 proposes how; until it is accepted nothing is built. The
+§7). D-065 says how, and the user accepted it that day by its option 2
+(D-066): the user exports the series from Infoshare by hand each month.
+Nothing is built yet. The
 monthly check still looks for the series in the Explorer
 (`docs/playbooks/check-monthly-run.md`).
 
