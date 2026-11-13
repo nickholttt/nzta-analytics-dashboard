@@ -1,7 +1,8 @@
 """The register archive: which fields it takes, what the file holds, and when it refuses to be written.
 
 The file holds one row per vehicle and goes to a private store, so the tests that matter are the ones that keep the
-identifiers and the postcode out of it and stop it being written from a register the build did not read.
+chassis and engine numbers out of it, keep the VIN prefix and the postcode out of everything the build reads, and stop
+it being written from a register the build did not read.
 """
 
 from __future__ import annotations
@@ -40,20 +41,28 @@ def read(path: Path) -> tuple[list[str], list[tuple]]:
     return [c[0] for c in cursor.description], cursor.fetchall()
 
 
-def test_the_identifiers_and_the_postcode_are_never_asked_for(cfg):
+def test_the_chassis_and_engine_numbers_are_never_asked_for(cfg):
     names = archive.fields(cfg, expected_schema(cfg))
-    # CLAUDE.md's non-goals name the three identifiers; D-066 adds the postcode. Named here so that an edit to the
-    # config list cannot quietly let one through.
-    assert not {"VIN11", "CHASSIS7", "ENGINE_NUMBER", "POSTCODE"} & set(names)
+    # D-076: the chassis and engine numbers stay out entirely. Named here so that an edit to the config list cannot
+    # quietly let one through.
+    assert not {"CHASSIS7", "ENGINE_NUMBER"} & set(names)
+    # The VIN prefix and the postcode are kept, in the private file only (D-076, superseding D-066 item 9).
+    assert {"VIN11", "POSTCODE"} <= set(names)
     every = [f["name"] for f in expected_schema(cfg)["fields"]]
     assert sorted(names) == sorted(set(every) - set(cfg.pipeline["register_archive"]["never_pulled"]))
     assert names[0] == cfg.source_field("object_id")
     assert set(cfg.pipeline["fields"].values()) <= set(names), "the archive must hold every field the build binds"
 
 
+def test_the_vin_prefix_and_the_postcode_reach_nothing_the_build_reads(cfg):
+    # Kept in the private archive only: the build's own pull, and so the cube and the committed aggregate, never
+    # holds them. Binding either one is a decision, not an edit.
+    assert not {"VIN11", "POSTCODE"} & set(cfg.pipeline["fields"].values())
+
+
 def test_a_misspelt_never_pulled_field_aborts(cfg):
-    cfg.pipeline["register_archive"]["never_pulled"] = ["POSTCODES"]
-    with pytest.raises(GuardrailError, match="POSTCODES"):
+    cfg.pipeline["register_archive"]["never_pulled"] = ["ENGINE_NUMBERS"]
+    with pytest.raises(GuardrailError, match="ENGINE_NUMBERS"):
         archive.fields(cfg, expected_schema(cfg))
 
 
@@ -74,6 +83,22 @@ def test_the_file_holds_every_row_as_recorded_without_the_row_id(tmp_path, cfg):
     assert metadata["snapshot"] == "2026-08-31" and metadata["rows"] == str(len(rows))
     assert metadata["attribution"] == cfg.pipeline["register_archive"]["attribution"]
     assert not (cfg.path("staging") / "archive").exists(), "the working copy of the rows must not be left behind"
+
+
+def test_the_vin_prefix_and_the_postcode_are_written_as_recorded(tmp_path, cfg):
+    # The fixture rows carry neither field, so without this the two columns would only ever be written as nulls.
+    rows = load_rows()
+    object_id = cfg.source_field("object_id")
+    given = {rows[0][object_id]: ("ABCDE12345F", 110), rows[1][object_id]: ("ZYXWV98765G", 9016), rows[2][object_id]: (None, 6011)}
+    for row in rows:
+        row["VIN11"], row["POSTCODE"] = given.get(row[object_id], (None, None))
+    out = tmp_path / "register.parquet"
+    archive.write(cfg, write_pages(tmp_path / "pages", rows), expected_schema(cfg), pulled(cfg, rows), out)
+    columns, records = read(out)
+    written = sorted(((r[columns.index("VIN11")], r[columns.index("POSTCODE")]) for r in records), key=str)
+    assert written == sorted(((r["VIN11"], r["POSTCODE"]) for r in rows), key=str)
+    # NZTA records the postcode as a number, so one that starts with zero arrives without it; the file keeps the number.
+    assert ("ABCDE12345F", 110) in written and (None, 6011) in written
 
 
 def test_the_same_register_gives_the_same_rows_in_the_same_order(tmp_path, cfg):
