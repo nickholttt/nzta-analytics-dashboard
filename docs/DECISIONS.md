@@ -2266,3 +2266,77 @@ New entries use this template:
   - Reversing it: put the two names back in `never_pulled` and delete October's second file. Files already written
     with the fields stay until deleted by hand.
 - Status: accepted, decided by user; the points under "As built" decided by Claude (unreviewed)
+
+## D-077 2026-11-13 — The user's answers on the dashboard, the `ui/explore` merges and the queue; what the reviews changed; and the fact table held for a question
+- Agent: user, in the first message of the fifth session of 2026-11-13 (answers 2 and 3 and the instruction that
+  follows them; answer 1 is D-076). Recorded by claude, with what claude did and decided marked as such.
+- Basis: this session, the user's message; the merges and checks were read with `gh` and `git fetch`; the reviewers'
+  reports; headless checks at 320, 390 and 1280px; the saved October export and NZTA's saved page (nothing of
+  NZTA's was opened).
+- Decision, the user's:
+  1. **The dashboard: yes to the January 2021 test export**, walked through one step at a time. It is not yet agreed
+     as a source: first the user wants to know how many exports the whole history from January 2021 needs, how
+     long that takes, and whether several months fit in one export.
+  2. **Yes: claude merges the question builder and the two preset corrections into `ui/explore`** once each has a
+     reviewer's agreement.
+  3. **Then the queue: the fact table, then the deploy steps.** Asked first: `ui/explore` into `main`, and anything
+     that becomes public. Plain words, and one step at a time for anything the user must do.
+- What was done:
+  - **The question builder is in `ui/explore`** (#43, merge `c367672`). Its independent reviewer first refused it,
+    for three faults: a link's condition on a field the fact table lacks was dropped without a word, so the chart
+    drew a wider question; two buttons were under 44px; a number by a breakdown with no values drew the total alone
+    under a title promising a breakdown. All fixed (`7646a0d`). The second pass agreed, and found a hand-typed link
+    with a condition named like a built-in property crashed the page: fixed (`05f9cf4`) and checked headless by
+    claude, not re-reviewed. Every figure the reviewer recomputed from the Parquet files matched the page.
+  - **The two preset corrections are in `ui/explore`** (#44, merge `85b7dd6`): `used-import-age` and `powertrain-mix`
+    are live and the ranking period comment follows D-050. Its reviewer agreed and recomputed both charts' figures.
+    One line more than asked: `age-distribution-moving-hole` no longer says it waits for a pair the cube carries.
+  - **The fact table is reviewed and not merged** (#41): brought up to date with `main` by a merge commit, 95 tests
+    passed, `Checks` green, and its reviewer agreed with follow-ups. A dry-run build of the saved 2026-10 pull gave
+    a table of 1,734,417 rows over 13 dimensions, 3.8 MB, and every existing slice, pair and `events.json` (17
+    files) byte-identical to the released `cube-2026-10`.
+- Decided by Claude (unreviewed):
+  1. **The fact table's merge is held for the user**, though D-069 and the user's message allow it. The reviewer
+     measured, on the 2026-08 table, that 65% of its rows count one vehicle: 25% of all vehicles, and 17% of the
+     last 12 months', are alone in their row, and each row carries the owner's region beside the model, the month
+     and the vehicle's bands. D-058 called this risk "cells as small as one vehicle" in a register that is "already
+     public vehicle by vehicle, with no owner data". The last part was wrong: region is where the owner lives.
+     Options: (a) merge as it is, since every column is a coarsening of a field NZTA itself publishes per vehicle
+     (district, not region), so a reader learns nothing NZTA does not already publish (the reviewer's reading, not
+     checked against the live register); (b) leave `region` out of the table until the Stage 2 privacy review,
+     which costs Build its conditions on region and its count comparisons between regions, while the region map
+     still draws from its slice; (c) a minimum cell size, which breaks the table's totals and is new design. Not
+     chosen without the user: once `main` has the table, the next build publishes it in a public release, which
+     cannot be taken back, and the user's rule in this session is that anything becoming public is asked first and
+     that owner location finer than a district is published only above a minimum count. Recommended: (b).
+  2. **The preset corrections are merged though `ui/explore` alone cannot yet draw one of them rightly.**
+     `ui/explore`'s `config/dimensions.json` has no `segment_group`, so there `powertrain-mix` would draw without
+     its light-passenger filter, with a warning, until `ui/explore` meets `main`. They were checked on a local test
+     merge with `main`. Not chosen: hold them until that merge (STATE asked for them before it, and the site is
+     built from `main`).
+  3. **A condition that cannot be applied stays in the question and blocks the chart**, with its row saying why and
+     how to remove it. Not chosen: drop it and say so in a notice (the chart would still answer a different
+     question from the link's).
+  4. **A number by a breakdown with no values chosen draws nothing** and says it is finding the largest to start
+     from, or that there is none. Not chosen: the total line with a corrected title (the question asked for a
+     breakdown).
+- The dashboard arithmetic, for the user's decision (measured from the October export and NZTA's saved page;
+  times are estimates, since no export has been timed):
+  - The history is 70 months, January 2021 to October 2026. One month an export is 70 exports.
+  - October's export is 6,509 rows by 263 columns (ten fields down the side; district by import status across the
+    top), 4.3 MB.
+  - Several months can go in one export in principle: NZTA's page says the reporting period can be "select months",
+    and "Registration MMM-YYYY" is one of the 34 dimensions, so each row can say its month. It takes one of the
+    twelve places, so one of October's twelve gives way. A year at a time is 6 exports. A year would be about
+    78,000 rows by 263 columns, some 12 times October's file. Whether the dashboard exports that is not known:
+    NZTA's page says only that "export times will increase if you include more data". The test settles it.
+  - NZTA says the dashboard holds "the past five years"; January 2021 is already older than that, so 2021 may drop
+    out at any refresh (inferred — confirm).
+- Consequences:
+  - Open follow-ups, none blocking (the reviewers' claims): the question builder's are listed on #43; the fact
+    table's are in CHECKPOINT (its total check compares two counts of the same table, so it cannot fail; one golden
+    test would crash on a dataset with no `facts`; two figures in `docs/CUBE_SCHEMA.md` disagree).
+  - `ui/explore` into `main` will conflict in `README.md` only (tested with `git merge-tree`).
+  - The public site's Build page needs a cube with a fact table. `cube-2026-10` has none.
+  - Reversing a merge into `ui/explore`: `git revert -m 1 <merge commit>` on a branch, and a pull request.
+- Status: accepted, decided by user (the three answers); the four points under "Decided by Claude" unreviewed
