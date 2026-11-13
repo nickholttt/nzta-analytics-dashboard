@@ -42,7 +42,7 @@ Run from the repo root.
 | Build the public site, as the deploy does (D-056) | Git Bash: `INTERNAL_PAGES=false npx astro build && rm -rf dist/status dist/sense-check` | 2026-10-22, against the 2026-08 cube: 5 pages left, none linking to `/status` or `/sense-check`; in a preview those two and any unknown address return 404 |
 | Dev server | `npm run dev`, then `npx astro dev status` / `npx astro dev stop` | 200 on `http://127.0.0.1:4321/`. Runs in the background |
 | Rebuild cube from a saved pull, publish nothing | `.venv/Scripts/python.exe -m pipeline build data/raw/2026-08/20260911T093818Z --dry-run` | exit 0, 397 s, output identical to `public/data`. Writes only gitignored `data/staging/` |
-| Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build` |
+| Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build`; and, on `main` since #38, `archive` (run from that branch on 2026-11-13) |
 | CI runs | Git Bash: `"/c/Program Files/GitHub CLI/gh.exe" run list --repo nickholttt/nzta-analytics-dashboard`; PowerShell: `& "C:\Program Files\GitHub CLI\gh.exe" run list --repo nickholttt/nzta-analytics-dashboard` | two green runs, 2026-09-11 |
 
 Setup, **not re-run this session** (the environment already existed):
@@ -77,13 +77,17 @@ Setup, **not re-run this session** (the environment already existed):
   `public/data/` only if every guardrail passes. Exit codes: 2 guardrail, 3 source, 4 DuckDB.
 - The output contract (`public/data/manifest.json`, `cube/<dataset>/<dimension>.parquet`,
   `events.json`) is `docs/CUBE_SCHEMA.md`, locked by `pipeline/tests/test_golden.py`.
-- `.github/workflows/monthly-build.yml`: cron 06:17 UTC on the 8th → tests → `pipeline run` → on a
-  build, the bot commits `data/snapshots/` and `data/state/` with `[skip ci]`, then, on `main` only,
-  keeps the cube as a release `cube-<snapshot>` (D-056, D-057). `checks.yml` runs the pipeline tests on
-  every pull request (D-048). `deploy.yml` builds the public site from the newest cube release and
-  uploads it to Cloudflare Pages, from `main` only and once its secrets exist; its upload tool, wrangler,
-  is pinned by its own lockfile in `.github/deploy/` (D-057). All of it is on `main` since
-  2026-11-13 (#26 to #29, #35), and the first release, `cube-2026-10`, exists.
+- `.github/workflows/monthly-build.yml`: cron 06:17 UTC **every day** → tests → `pipeline run`,
+  which builds each snapshot month once and, from the 15th, fails while the month before is still
+  not built (D-064, D-070) → on a build, the bot commits `data/snapshots/` and `data/state/` with
+  `[skip ci]`, then, on `main` only, keeps the cube as a release `cube-<snapshot>` (D-056, D-057),
+  starts `deploy.yml`, and a job `archive` keeps the whole register for the month as one Parquet
+  file in the private repository `nzta-register-archive` (D-063, D-071). `checks.yml` runs the
+  pipeline tests on every pull request (D-048). `deploy.yml` builds the public site from the newest
+  cube release; a second job uploads it to Cloudflare Pages from `main` only, behind the environment
+  `production`, once the repository variable `CLOUDFLARE_PAGES_PROJECT` switches it on (D-072); its
+  upload tool, wrangler, is pinned by its own lockfile in `.github/deploy/` (D-057). All of it is on
+  `main` since 2026-11-13 (#26 to #29, #35, #37 to #39), and the first release, `cube-2026-10`, exists.
 - `src/pages/index.astro` hosts React islands. `src/lib/config.ts` loads `config/*.json`, `data.ts`
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
   `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo}Chart.tsx`

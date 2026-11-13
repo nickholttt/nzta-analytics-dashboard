@@ -165,7 +165,8 @@ visual variant chosen by config inside a shape (such as the ridgeline inside
   dependency; `LeagueChart` draws a Plot bar chart over a plain,
   non-virtualised rank table; no Explore preset is a live league, and the
   Build page ranks brands over 12 months, D-045)
-- Python + DuckDB for the pipeline, run in GitHub Actions on a monthly cron
+- Python + DuckDB for the pipeline, run in GitHub Actions: tried every day,
+  building each month once (D-064)
 - Static files for the stage, at no runtime cost. A hosted query service
   for the workbench (planned: not chosen or built; today everything is
   static files, D-058). The browser reads published data only through
@@ -211,7 +212,7 @@ pipeline/
   __main__.py          # python -m pipeline {init-schema | run | build}
   tests/               # golden contract, guardrails, invariant #1 scan
 .github/workflows/
-  monthly-build.yml    # monthly cron; skips when the change key is unchanged; keeps each built cube as a release
+  monthly-build.yml    # tried daily; builds each month once; keeps each built cube as a release and the whole register in a private archive
   checks.yml           # the pipeline tests on every pull request
   deploy.yml           # builds the public site from the newest cube release and uploads it to Cloudflare Pages
 .github/deploy/        # the deploy's upload tool (wrangler), pinned by its own lockfile
