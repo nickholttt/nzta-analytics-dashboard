@@ -49,13 +49,14 @@ python -m pytest pipeline/tests           # golden contract, guardrails, invaria
 python -m pipeline run                    # check the source; pull and build only if it changed
 python -m pipeline build data/raw/YYYY-MM/<timestamp> --dry-run   # rebuild a saved pull, publish nothing
 python -m pipeline init-schema            # once, deliberately: capture pipeline/expected_schema.json
+python -m pipeline archive --out FILE     # the last built snapshot's whole register as one Parquet file (the workflow's archive job)
 ```
 
 A run writes `public/data/` (gitignored) and, only on success, commits
 `data/snapshots/YYYY-MM.parquet` and `data/state/last_good.json`. Any
 failed guardrail exits non-zero and leaves both untouched.
-`.github/workflows/monthly-build.yml` runs it on the 8th of each month;
-`docs/DATA_SOURCES.md` explains the timing.
+`.github/workflows/monthly-build.yml` tries it every day and builds each
+month once; `docs/DATA_SOURCES.md` explains the timing.
 
 ## Maintenance
 

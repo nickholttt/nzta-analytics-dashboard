@@ -29,12 +29,21 @@ algorithmically cleaned make and model errors.
   several fields from the same row (make with model, segment from three
   fields, fuel consumption stored as text): a grouped query over them would
   be as large as the rows.
-- **Refresh timing.** The register refreshes in the first days of the
-  month: the 2026-08 snapshot was last edited on 3 September 2026. The
-  monthly workflow runs on the 8th (06:17 UTC) to leave margin after the
-  refresh. If a refresh lands after the 8th, the change key is unchanged,
-  that run skips, and the site stays a month behind until the next run or
-  a manual dispatch.
+- **Refresh timing.** The register refreshes early in the month, on no
+  fixed day: the 2026-08 snapshot was last edited on 3 September 2026,
+  2026-09 on 6 October and 2026-10 on 9 November. So the workflow asks
+  every day (06:17 UTC) and builds within a day of a refresh landing. Two
+  rules go with a daily run:
+  - **Each month is built once.** If NZTA edits the register again after
+    its snapshot month was built, the run reports the change on its
+    summary page and builds nothing. Rebuilding a month takes a run
+    started by hand with `force`. This keeps the first observation of
+    every month.
+  - **A missed month fails the run.** From the 15th (UTC;
+    `schedule.missed_month_alarm_day` in `config/pipeline.json`), a run
+    that builds nothing fails, every day, while the month before is still
+    not built, and names it. A skipped run is green, so without this a
+    month NZTA never published would pass unseen.
 
 ## B. Azure Blob CSVs — full fleet (for the stock cube)
 
@@ -145,6 +154,40 @@ scrapped. Each run commits a small aggregate of the snapshot, never raw
 rows, to `data/snapshots/YYYY-MM.parquet`. Differencing consecutive
 snapshots gives new registrations and scrappage from our own observations,
 and is the input to cohort survival.
+
+**The register archive keeps the whole snapshot, outside git.** The
+committed aggregate holds five dimensions; everything finer is gone once
+NZTA refreshes. So after a month is built, a second job
+(`archive` in `monthly-build.yml`, `pipeline/archive.py`) pulls the
+register again and keeps it as one Parquet file, one row per vehicle:
+
+- **Fields:** every field of `pipeline/expected_schema.json` except those
+  in `register_archive.never_pulled` in `config/pipeline.json`: `VIN11`,
+  `CHASSIS7`, `ENGINE_NUMBER` and `POSTCODE`, which are never asked for.
+  The row id is pulled for paging and left out of the file. Values are as
+  NZTA records them; nothing is normalised. The 2026-10 snapshot is
+  5,926,990 rows at 35 fields in 39.3 MB (measured from a saved pull).
+- **Where:** a release `snapshot-YYYY-MM` holding `mvr-YYYY-MM.parquet`
+  in a **private** repository, `nzta-register-archive`. The file holds
+  vehicle rows with their owner's district, so it is never published,
+  never committed here and never uploaded as an artifact of this public
+  repository.
+- **Only the register that was built.** The job goes ahead only while the
+  live register has the row count and digest of the last good build. If
+  NZTA has refreshed since, it fails and says the month can no longer be
+  archived.
+- **Never replaced.** If the month's file is already there the job stops
+  without pulling.
+- **When it fails** (an expired token is the likely cause; the job says
+  so), the month's build and commit stand and the run is red. Fix the
+  cause, then start the workflow by hand with `archive` ticked: it
+  archives the last built snapshot. It builds nothing unless NZTA has
+  refreshed since; then it builds the new month and archives that one,
+  and the month whose archive failed is lost.
+- The job refuses to upload unless the archive repository is private, and
+  counts a month as archived only if its file finished uploading.
+- A release keeps no history and can be deleted by hand. A second copy
+  somewhere backed up is the maintainer's to keep.
 
 **Region** is not a field. The register records `TLA`: the territorial
 authority where the registered owner lives *as at the snapshot*, from their
