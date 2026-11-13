@@ -144,15 +144,16 @@ export const MAX_VALUES = 8;
 
 // A question from the address bar, kept only as far as the page offers it; otherwise the nearest one that is. A
 // condition on the breakdown itself becomes the values compared, where the breakdown takes values, so choosing to break
-// down by what was a condition never quietly widens the question.
+// down by what was a condition never quietly widens the question. A condition the page cannot apply (a field the fact
+// table lacks, or one config does not define) is kept for the same reason: the resolver then blocks the chart and the
+// page says which condition to remove, where dropping it would draw a wider question than the link asked.
 export function settle(vocabulary: Vocabulary, q: Partial<Question>): Question {
   const m = vocabulary.measures.find((o) => o.id === q.measure) ?? vocabulary.measures[0];
   const dimension = m.dimensions.find((d) => d.id === q.by);
   const by = dimension ? dimension.id : m.allowsTotal && (q.by === null || q.by === undefined) ? null : (m.dimensions[0]?.id ?? null);
-  const offered = new Set(vocabulary.filters.map((f) => f.id));
   const takesValues = Boolean(by && m.dimensions.find((d) => d.id === by)?.values);
   const onBreakdown = by ? (q.where?.[by] ?? []) : [];
-  const where = Object.fromEntries(Object.entries(q.where ?? {}).filter(([d, kept]) => offered.has(d) && d !== by && kept.length > 0));
+  const where = Object.fromEntries(Object.entries(q.where ?? {}).filter(([d, kept]) => d !== by && kept.length > 0));
   const asked = q.values?.length ? q.values : onBreakdown;
   const values = takesValues ? [...new Set(asked)].slice(0, MAX_VALUES) : [];
   const settled: Question = { measure: m.id, by, values, where, view: null };

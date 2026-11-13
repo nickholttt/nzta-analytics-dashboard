@@ -451,6 +451,13 @@ section[id] {
   font-size: var(--text-sm);
 }
 
+/* The question's text buttons are tap targets, 44px like the chips' remove buttons. */
+.question .button-quiet {
+  min-width: 44px;
+  min-height: 44px;
+  margin-top: 0;
+}
+
 /* The lines of a count comparison, each with its colour and its last 12 months: the key a reader checks first. */
 .series-key {
   list-style: none;
