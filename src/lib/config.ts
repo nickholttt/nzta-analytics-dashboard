@@ -25,6 +25,8 @@ export type Preset = {
   measure?: string;
   dimension?: string | null;
   period?: string;
+  // A period the time row also offers, where it turns the chart into a ranking of one window.
+  ranking_period?: string;
   filters?: Record<string, string>[];
   events?: boolean;
   note?: string;
@@ -85,6 +87,7 @@ export type BuilderSpec = {
   dataset: string;
   period: string;
   period_by_shape: Record<string, string>;
+  ranking_period: string;
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, string>;

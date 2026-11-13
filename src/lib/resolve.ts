@@ -37,6 +37,17 @@ export function inferShape(preset: Preset, dimension?: Dimension, measure?: Meas
   return measure?.shape ?? "trend";
 }
 
+// The periods that rank this view instead of tracing it: its own period and the one it offers for a
+// ranking, kept only where that period makes it a league. The time row adds them to its spans, so a
+// chart that opens as a league, or can become one, can always be brought back to it.
+export function rankingPeriods(view: Preset): string[] {
+  const dimension = findDimension(view.dimension);
+  const measure = findMeasure(view.measure);
+  return [...new Set([view.period, view.ranking_period])].filter(
+    (id): id is string => Boolean(id) && inferShape({ ...view, period: id }, dimension, measure) === "league",
+  );
+}
+
 export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   const invalid: string[] = [];
   const blocked: string[] = [];

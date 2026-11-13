@@ -913,3 +913,47 @@ New entries use this template:
   - When the gate lifts the freeze: "of [all / new / used] vehicles" needs POST_GATE A1's pair slices;
     counts and models need A2 (`registrations_flow`). Each is a `builder` config edit plus that data.
 - Status: decided by Claude (unreviewed)
+
+## D-045 2026-10-21 — A 12-month ranking in the time row, wherever the breakdown ranks
+- Agent: claude, CHECKPOINT queue item 1 (builder PR B), stacked on D-044
+- Basis: this branch (`claude/builder-league`); `src/lib/resolve.ts` `rankingPeriods`, `src/components/PresetPanel.tsx`,
+  `src/components/LeagueChart.tsx`, `config/presets.json` `builder.ranking_period`; headless checks on 2026-10-21.
+- Context: `LeagueChart` existed, but no live chart reached it. The time row offered 3, 5 and 10 years and all
+  time, none of 12 months or less, so a league preset switched to a line chart with no way back (STATE known
+  issue 1), and the builder could not draw a ranking at all.
+- Options considered:
+  - Where the option comes from: (1) the time row offers 12 months on every chart: a 12-month line chart of
+    shares is a thin chart, and on a breakdown that does not rank it would add nothing. (2) A panel prop the
+    Build page sets: a second rule outside config. (3) A preset may name a `ranking_period`; the row offers it,
+    and the preset's own period, only where `inferShape` makes that period a league: chosen. Shape stays
+    inferred from measure and dimension (CLAUDE.md §Shapes); the builder sets `ranking_period` from config.
+  - Explore: (1) give `brand-share` the ranking too: a question-titled chart would answer a different question
+    under its title. (2) Leave canon presets as they are unless they open as a league: chosen. `/` is unchanged.
+  - Manufacturer group: `config/dimensions.json` calls it medium cardinality, so it does not infer a league.
+    Changing that is a frozen-file change, so it stays a line chart; reconsider after the gate.
+  - Counts on the ranking: (1) keep LeagueChart's share/count toggle: the Build page says counts on this
+    dataset read as sales (D-044). (2) Bars follow the measure; the count toggle appears only when the measure
+    is not share: chosen. The table keeps a "Still registered" column, the count each rank and share is made
+    of; the review flagged it against D-044, and it stays because a ranking with its base hidden cannot be
+    checked. Its wording says first registered in the window and still registered.
+- Decision: on `/build`, "Show the share of vehicles by brand" offers "12-month ranking" after the spans. It draws
+  `LeagueChart` over the last 12 months with the move against the 12 months before; any other span returns to
+  the lines, and a new breakdown that cannot rank opens on its default. A canon preset whose own period makes
+  it a league now has that period in its row. LeagueChart's wording is plain (the value column takes the
+  breakdown's visitor label, "Move", "Still registered", "Change in share", "Rank 12 months before"; "places",
+  not "spots"; the unchanged dash reads "Same place" to a screen reader), its up, down and new colours meet AA
+  contrast on the page background, and the grey-months note is left off a ranking, which greys no month. The
+  button names the window `LeagueChart` ranks (12 months, `chart_defaults.trailing_window_months`), not the
+  period's own length. Switching a "Show by" option to a view that cannot rank resets the period to the default.
+- Consequences:
+  - Measured headless at 320px and 1280px: brand offers the ranking; manufacturer group, the concentration
+    measure and powertrain do not; ranking, reload, back to all time, and ranking then switching to
+    manufacturer group all behave; no console errors, no sideways scroll; `/` draws its 6 charts with the
+    same time rows as before; `/status` draws its 10 panels. A scratch league preset on `/` (added to a copy of
+    `presets.json` and removed) opened on its ranking, went to 5 years and came back.
+  - At 320px the ranking table scrolls sideways inside its own box; the page does not.
+  - Only Chromium was run.
+  - An independent review found six points: counts on a share ranking (kept, reworded, above), the window
+    misstated, a label that could disagree with the window, a "Show by" switch leaving no period checked, the
+    bare dash, and stale docs (`CLAUDE.md`'s "no league preset is live", STATE known issue 1). All addressed.
+- Status: decided by Claude (unreviewed)

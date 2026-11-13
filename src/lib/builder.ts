@@ -36,6 +36,7 @@ export function builderPreset(choice: Choice): Preset {
     dataset: builderSpec.dataset,
     dimension: choice.dimension,
     period: builderSpec.period,
+    ranking_period: builderSpec.ranking_period,
     events: true,
     note: joined(m?.note, dimensionNote),
     note_template: m?.note_template ? joined(m.note_template, dimensionNote) : undefined,
