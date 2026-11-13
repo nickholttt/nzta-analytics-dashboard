@@ -295,7 +295,6 @@
           "question": "Which vehicle years can't we import any more?",
           "status": "blocked",
           "requires": [
-            "the used_imports dataset, served from registrations_surviving through an import_status x age_at_registration_band pair slice. Built as POST_GATE A1, which merges into main after the 8 November gate.",
             "a way for the distribution renderer to draw the age distribution year by year (animate_by). One period's histogram smears the moving cutoff across the years it moved through, so it would not answer the question."
           ],
           "dataset": "used_imports",
