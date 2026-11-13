@@ -67,8 +67,9 @@ independent sanity check on our own totals.
   chart pages; not checked on Infoshare itself).
 
 So step 1b cannot be built as planned until the series reaches the Data
-Explorer or another source is chosen. The choice is open in
-`docs/CHECKPOINT.md`.
+Explorer or another source is chosen. The user chose on 2026-10-22 to wait
+for the Data Explorer; the monthly check looks for the series each month
+(`docs/playbooks/check-monthly-run.md`).
 
 ## D. Registrations dashboard — do not automate
 

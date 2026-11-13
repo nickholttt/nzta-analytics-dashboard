@@ -112,7 +112,10 @@ pipeline/
   __main__.py          # python -m pipeline {init-schema | run | build}
   tests/               # golden contract, guardrails, invariant #1 scan
 .github/workflows/
-  monthly-build.yml    # monthly cron; skips when the change key is unchanged
+  monthly-build.yml    # monthly cron; skips when the change key is unchanged; keeps each built cube as a release
+  checks.yml           # the pipeline tests on every pull request
+  deploy.yml           # builds the public site from the newest cube release and uploads it to Cloudflare Pages
+.github/deploy/        # the deploy's upload tool (wrangler), pinned by its own lockfile
 src/                   # the local reference UI: pages, renderers (components/), cube and config readers (lib/)
 public/geo/            # committed: region outlines for the map (Stats NZ, CC BY 4.0), written by scripts/
 scripts/               # maintainer scripts run by hand, never by the pipeline

@@ -1214,3 +1214,111 @@ New entries use this template:
   4.0." That the ArcGIS copy carries the catalogue's licence is inferred: confirm. "Area Outside Region" is Stats NZ's
   name for the Chatham Islands; a visitor-facing name would need a value-label setting in config, not built here.
 - Status: decided by Claude (unreviewed)
+
+## D-055 2026-10-22 — Deploying to Cloudflare Pages: how the cube reaches the site (proposed)
+- Agent: claude, CHECKPOINT queue item 8. Proposed only: deploys and platform consoles need the user (stop list), and
+  item 8 waits for the 8 November gate (D-041, AGENTS.md rule 8).
+- Basis: `.github/workflows/monthly-build.yml`, `src/pages/index.astro`, `src/pages/build.astro`, `.gitignore`, and the
+  repository's artifacts (`gh api .../actions/artifacts`), read on 2026-10-22; `CLAUDE.md` §Stack (Cloudflare Pages).
+- Context, as checked:
+  - The site reads `public/data` when it is built (`index.astro` and `build.astro` import `public/data/manifest.json`)
+    and when it runs, and `public/data` is gitignored.
+  - The monthly build already uploads the cube it builds as an artifact, `public-data-<snapshot>`, kept 90 days:
+    `public-data-2026-09` (1,219,368 bytes, expires 2027-01-06) and `public-data-2026-08` (expires 2026-12-10). A run
+    that finds the source unchanged builds nothing and uploads nothing.
+  - The site's code is on `ui/explore`, not `main`, and workflows run from `main`, so `ui/explore` must reach `main`
+    first (CHECKPOINT item 6).
+  - The production build is 2.9 MB in all, the cube included (measured on 2026-10-22).
+- Options:
+  - (A) Cloudflare Pages' own Git integration builds every push to `main`, with the cube committed to the repository by
+    the monthly run. Fewest moving parts, but about 1.3 MB of binary Parquet joins git history each built month, and a
+    rule changes: `public/data` stops being gitignored.
+  - (B) A `deploy.yml` workflow that builds the site on GitHub's runner and uploads it with Cloudflare's `wrangler pages
+    deploy` (Direct Upload). Triggers: a push to `main` that touches the site, the end of a successful monthly build,
+    and by hand. The cube comes from the newest `public-data-*` artifact. Simple, but if no build runs for 90 days
+    (three unchanged months) the artifact expires and a site change cannot deploy.
+  - (C) As (B), but the monthly build also attaches the cube to a GitHub release, `cube-<snapshot>`, which does not
+    expire, and `deploy.yml` takes the newest release. One more step in the monthly workflow; nothing binary in git.
+- Recommendation: (C). It keeps `public/data` out of git, the cube that is deployed is always the one a monthly run
+  built and checked, and the site and the data can each redeploy without the other.
+- What the user would do (Cloudflare console and GitHub settings, production): create a Pages project for Direct Upload
+  and choose its name (it becomes `<name>.pages.dev`); create an API token limited to Cloudflare Pages: Edit on the
+  account; add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as GitHub Actions secrets. Exact steps follow once an
+  option is chosen.
+- Open with it: whether `/status` and `/sense-check`, internal pages linked from the footer and marked noindex, ship
+  with a public deploy (D-028 left this open).
+- Status: proposed, awaiting the user
+
+## D-056 2026-10-22 — Deploy by D-055's option (C), without the internal pages
+- Agent: user (the choice), claude (the details)
+- Basis: the user's answer on 2026-10-22 to CHECKPOINT question 2 ("do what you recommend"); branch
+  `claude/deploy-workflow` (`.github/workflows/deploy.yml`, a release step in `monthly-build.yml`); `src/lib/site.ts`,
+  `src/layouts/Layout.astro` and `src/pages/caveats.astro` on `claude/deploy-proposal`; checks on 2026-10-22.
+- Decision (user): option (C) of D-055, which this accepts. Each built monthly run keeps its cube as a GitHub release,
+  and a deploy workflow builds the site from the newest one and uploads it to Cloudflare Pages. `/status` and
+  `/sense-check` stay off the public site.
+- Decision (Claude, unreviewed), the details:
+  - The monthly build attaches `public-data.tar.gz` to a release `cube-<snapshot>`; a second build of the same
+    snapshot replaces the file.
+  - `deploy.yml` runs after a successful monthly build on `main`, on a push to `main` that changes the site, and by
+    hand. It takes the newest `cube-*` release by name, or, before the first release exists, the newest unexpired
+    `public-data-*` artifact. It builds with `INTERNAL_PAGES=false`, which drops every link to the internal pages, and
+    removes the two pages from the build. It uploads with `wrangler` 4.148.0 (released 2026-10-06, pinned) to the
+    Pages project named by the repository variable `CLOUDFLARE_PAGES_PROJECT`, `nz-vehicle-registrations` if unset.
+    Without the `CLOUDFLARE_API_TOKEN` secret it builds and stops, so it checks the build until the upload is set up.
+  - Permissions: read only (contents, and actions for the artifact); the Cloudflare secrets reach only the upload step.
+- Consequences: nothing runs before the 8 November gate passes, the pipeline stack with `claude/deploy-workflow` on top
+  merges into `main`, and `ui/explore` reaches `main` (CHECKPOINT item 4). Checked locally on 2026-10-22: the
+  workflow's cube step, run with `gh` against this repository, found no release and took `public-data-2026-09`
+  (snapshot 2026-09-30); the public build from it has four pages and no link to an internal page, and in a preview
+  `/status` and `/sense-check` return 404 while every chart on `/` and the map draw with no console errors. Not
+  checkable before the merge: the release step, and the upload itself. The user's console steps follow the gate:
+  create a Pages project for Direct Upload (named `nz-vehicle-registrations`, or set `CLOUDFLARE_PAGES_PROJECT`), an
+  API token limited to Cloudflare Pages: Edit, and the two GitHub secrets.
+- Status: user decided option (C) and the internal pages; the details are decided by Claude (unreviewed)
+
+## D-057 2026-10-22 — What the independent review of the six pushed branches changed
+- Agent: claude, CHECKPOINT queue item 1
+- Basis: three read-only sub-agent reviews on 2026-10-22 of `claude/explore-build-together` to
+  `claude/deploy-proposal` and of `claude/deploy-workflow`; the fix commits on those branches, each checked as its
+  message says (headless Chromium at 320px and 1280px, axe-core 4.10.3, `tsc --noEmit`, `astro build`, the pipeline's
+  workflow test).
+- Context: the global rules ask for an independent review before a pull request opens. Each real finding was fixed on
+  the branch that introduced it, and that branch was merged forward into the ones stacked on it: no rebase and no force
+  push, since the branches were already pushed.
+- Decision, by branch:
+  - `claude/pair-views`: a chart narrowed by a preset filter says so after its definition ("Only “Light passenger”
+    vehicles are counted."), rather than in a callout, which would style a scope as a warning. The visitor note for age
+    when first registered says longer spans count survivors, rather than `used-import-age` losing its longer spans:
+    D-053 chose to offer every span, and D-032 is to say what the data does. A view that loads no rows shows "Nothing
+    to draw" instead of drawing.
+  - `claude/a11y-pass`: trend and distribution charts end with "The figures behind this chart", a disclosure holding
+    every drawn month or band, built only when opened, rather than a visible table, which would put up to 1,195 rows
+    under the concentration chart.
+  - `claude/geo-map`: a square-root colour scale, which keeps the legend continuous (a binned scale was the other
+    option), with borders in muted ink. Each region's readout is its shape's own title, the browser's tooltip, rather
+    than Plot's tip, which snapped to the nearest region's centre; it looks unlike the other charts' readouts and does
+    not show on a touch screen, where the table serves. An outline the data does not name is left unshaded and named.
+    The credit links CC BY 4.0 and says the outlines were simplified. The table heads its counts "Still registered".
+    The region note says owners are placed by district. The script finds the Chatham Islands by geometry, not by code.
+  - `claude/deploy-workflow`: the cube release follows the state commit and runs on `main` only. `deploy.yml` stops
+    before building on a ref without `src/lib/site.ts`, uploads from `main` only, groups runs per ref, takes the newest
+    published `cube-YYYY-MM` release that holds `public-data.tar.gz`, and fails if the public build links to an
+    internal page. Wrangler is pinned by its own lockfile in `.github/deploy/` rather than as a site devDependency:
+    installed it is 184 MB, which every local install would carry for a tool only the deploy uses.
+  - `claude/deploy-proposal`: a 404 page, so that Cloudflare Pages answers an unknown address with a 404.
+- Corrections to earlier entries: D-056 said nothing runs before `ui/explore` reaches `main`, but the push that merges
+  the pipeline stack would have started `deploy.yml` on `main`'s old reference page; the site check now stops it.
+  D-056's "`/status` and `/sense-check` return 404" held only for a preview: on Cloudflare Pages, without a 404 page,
+  both would have returned Explore with a 200. D-054's outline file is now 76,017 bytes (was 75,957): the same 16
+  regions and 4,155 points, with a longer source line.
+- Not taken: the map draws a share whatever the measure, but no configured sentence sends another measure to it. The
+  status page's script still ships in the public build, unlinked and holding no data. The deploy is one job, not a
+  build job and an upload job, and its actions keep major-version tags as `monthly-build.yml` does (D-012). Keeping the
+  Cloudflare secrets in a GitHub environment limited to `main` is offered with the console steps (CHECKPOINT item 7)
+  rather than required by the workflow. A filtered trend's readout would name "All vehicles", but no trend preset has
+  a filter.
+- Consequences: the six pull requests carry these fixes. On the published 2026-08 cube, Explore changes only by the
+  concentration chart's disclosure; the Build page gains the disclosure on distributions, the age note's sentence and
+  the map's changes. The narrowed-chart line shows once a build carries the pairs (D-053).
+- Status: decided by Claude (unreviewed)

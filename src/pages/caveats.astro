@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { INTERNAL_PAGES } from "../lib/site";
 ---
 
 <Layout title="Data Caveats" activeNav="caveats">
@@ -104,9 +105,13 @@ import Layout from "../layouts/Layout.astro";
     <p>
       Models usually thought of as SUVs are mostly recorded as <code>STATION WAGON</code>: 98.9% of Toyota RAV4s, 98.2% of Mazda CX-5s and 99.7% of Mitsubishi Outlanders on the register. An SUV segment therefore cannot be derived from the register's own fields; it would need a model-by-model classification.
     </p>
-    <p>
-      The body type counts behind this are in the <a href="/sense-check#body-type-by-model">sense-check tables</a>, an internal page outside the Explore charts.
-    </p>
+    {
+      INTERNAL_PAGES && (
+        <p>
+          The body type counts behind this are in the <a href="/sense-check#body-type-by-model">sense-check tables</a>, an internal page outside the Explore charts.
+        </p>
+      )
+    }
   </article>
 </Layout>
 
