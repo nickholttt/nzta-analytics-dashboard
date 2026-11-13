@@ -1,0 +1,37 @@
+# Pull request checks: the pipeline's tests on the runner the monthly build uses, so a change to the pipeline is tested
+# on Linux before it merges. Tests only: this workflow never pulls from the source and holds no write permission.
+name: Checks
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pipeline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # The same action versions as monthly-build.yml (Node 24, D-012).
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: Dependencies
+        run: pip install --disable-pip-version-check --no-input -r pipeline/requirements.txt
+
+      - name: Contract, guardrail and invariant tests
+        run: python -m pytest pipeline/tests -q -p no:cacheprovider
