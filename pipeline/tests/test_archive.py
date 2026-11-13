@@ -1,7 +1,8 @@
 """The register archive: which fields it takes, what the file holds, and when it refuses to be written.
 
 The file holds one row per vehicle and goes to a private store, so the tests that matter are the ones that keep the
-identifiers and the postcode out of it and stop it being written from a register the build did not read.
+chassis and engine numbers out of it, keep the VIN prefix and the postcode out of everything the build reads, and stop
+it being written from a register the build did not read.
 """
 
 from __future__ import annotations
@@ -40,20 +41,28 @@ def read(path: Path) -> tuple[list[str], list[tuple]]:
     return [c[0] for c in cursor.description], cursor.fetchall()
 
 
-def test_the_identifiers_and_the_postcode_are_never_asked_for(cfg):
+def test_the_chassis_and_engine_numbers_are_never_asked_for(cfg):
     names = archive.fields(cfg, expected_schema(cfg))
-    # CLAUDE.md's non-goals name the three identifiers; D-066 adds the postcode. Named here so that an edit to the
-    # config list cannot quietly let one through.
-    assert not {"VIN11", "CHASSIS7", "ENGINE_NUMBER", "POSTCODE"} & set(names)
+    # D-076: the chassis and engine numbers stay out entirely. Named here so that an edit to the config list cannot
+    # quietly let one through.
+    assert not {"CHASSIS7", "ENGINE_NUMBER"} & set(names)
+    # The VIN prefix and the postcode are kept, in the private file only (D-076, superseding D-066 item 9).
+    assert {"VIN11", "POSTCODE"} <= set(names)
     every = [f["name"] for f in expected_schema(cfg)["fields"]]
     assert sorted(names) == sorted(set(every) - set(cfg.pipeline["register_archive"]["never_pulled"]))
     assert names[0] == cfg.source_field("object_id")
     assert set(cfg.pipeline["fields"].values()) <= set(names), "the archive must hold every field the build binds"
 
 
+def test_the_vin_prefix_and_the_postcode_reach_nothing_the_build_reads(cfg):
+    # Kept in the private archive only: the build's own pull, and so the cube and the committed aggregate, never
+    # holds them. Binding either one is a decision, not an edit.
+    assert not {"VIN11", "POSTCODE"} & set(cfg.pipeline["fields"].values())
+
+
 def test_a_misspelt_never_pulled_field_aborts(cfg):
-    cfg.pipeline["register_archive"]["never_pulled"] = ["POSTCODES"]
-    with pytest.raises(GuardrailError, match="POSTCODES"):
+    cfg.pipeline["register_archive"]["never_pulled"] = ["ENGINE_NUMBERS"]
+    with pytest.raises(GuardrailError, match="ENGINE_NUMBERS"):
         archive.fields(cfg, expected_schema(cfg))
 
 
