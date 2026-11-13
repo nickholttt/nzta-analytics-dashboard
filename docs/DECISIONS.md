@@ -1109,3 +1109,35 @@ New entries use this template:
   `events.json` is written (a column published, a field renamed) now fails the golden. The fixture will drift from the
   live file; that is intended.
 - Status: decided by Claude (unreviewed)
+
+## D-052 2026-10-22 — "Change this chart" opens an Explore chart on the Build page, and every renderer shares one readout
+- Agent: claude, CHECKPOINT queue item 7
+- Basis: branch `claude/explore-build-together`: `src/lib/builder.ts` (`builderChoiceFor`, `builderHref`),
+  `src/components/PresetPanel.tsx`, `src/lib/readout.ts` and the four renderers; headless checks on 2026-10-22 against
+  the 2026-08 cube.
+- Context: item 7 asked for a "change this chart" link on each Explore chart the builder can express, opening `/build`
+  with the sentence filled in, and the same hover readout in all four renderers. Before, the mix chart's tooltip gave
+  series, month and share; the trend line month, value and the top five; the distribution only band and figure, with no
+  period or vehicles; the league rank, count, share, move and change.
+- Options considered:
+  - Which charts get the link: (1) every chart: `powertrain-mix` asks for light passenger vehicles, which the sentence
+    cannot say, so its link would open a different chart. (2) Only views the builder draws exactly: its dataset, a
+    measure it offers with this breakdown, the same cap on named values, no filter, not composite, and a built sentence
+    that draws: chosen.
+  - What the link carries: (1) the sentence only. (2) The sentence and the time range shown, left out where it equals
+    the sentence's own default: chosen, so the chart opens as the reader left it. Smoothing is not carried: the chart
+    holds it, not the panel.
+  - The readout: (1) align each renderer's own text by hand: four copies drift apart again. (2) One helper that fixes
+    the order and wording, each renderer passing what it knows: chosen.
+- Decision: as above. The link reads "Change this chart", beside "Copy link to this chart", and names the chart's
+  question for screen readers (`aria-describedby`), so six identical links can be told apart. Every readout reads: what
+  the point is; the period it covers; the figure with the vehicles behind it ("39.8% · 2,282 of 5,732 vehicles"); why it
+  is greyed, if it is; then anything only that chart has.
+- Consequences: measured headless at 320px and 1280px: five of the six Explore charts carry the link (not
+  `powertrain-mix`); `brand-share` follows its "Show by" choice; two followed links landed on the same sentence and time
+  range. Readout fields by renderer: mix (series; month, or "12 months to" a month; share · n of base; greyed reason),
+  trend (the derived measure's label; month; share · n of base; greyed reason; the five largest), distribution
+  (breakdown and band; the span; share · n of base; greyed when the window is thin), league (rank and name; the span;
+  share · n of base; move; change in share). A greyed point now says which guard greyed it. No console errors, no
+  sideways scroll. Only Chromium was run.
+- Status: decided by Claude (unreviewed)

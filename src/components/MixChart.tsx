@@ -20,6 +20,8 @@ import {
   trailingWindow,
   windowShare,
 } from "../lib/measures";
+import { monthPeriod, readout } from "../lib/readout";
+import type { Greyed } from "../lib/readout";
 import {
   EVENT_WINDOW,
   INK_2,
@@ -57,7 +59,16 @@ const BEYOND_CAP = "__OTHER__";
 const ownLine = (v: string) => isReserved(v) && v !== BEYOND_CAP;
 const ROLLING = "rolling_12m";
 
-type Point = { month: string; date: Date; series: string; share?: number; suppressed: boolean; denominator?: number };
+type Point = {
+  month: string;
+  date: Date;
+  series: string;
+  share?: number;
+  n?: number;
+  denominator?: number;
+  suppressed: boolean;
+  greyed?: Greyed;
+};
 
 type Props = {
   preset: Preset;
@@ -188,10 +199,10 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
         const den = denominatorFor(month);
         const n = nFor(month, s);
         if (den === undefined || !den || n === undefined) return undefined;
-        return { share: n / den, denominator: den };
+        return { share: n / den, n, denominator: den };
       }
       const r = rollingShare(month, first, (m) => nFor(m, s), denominatorFor);
-      return r ? { share: r.share, denominator: r.denominator } : undefined;
+      return r ? { share: r.share, n: r.n, denominator: r.denominator } : undefined;
     };
 
     // The guard applies to whatever denominator the drawn figure actually rests on: the month's own
@@ -221,7 +232,8 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       const thin = basis !== undefined && basis < minDenominator;
       // The rolling figure spans a year, so one collapsed month does not make its window
       // unrepresentative; the guard applies to the month's own share.
-      const suppressed = thin || (!rolling && collapsed(m));
+      const greyed: Greyed | undefined = thin ? "thin" : !rolling && collapsed(m) ? "collapsed" : undefined;
+      const suppressed = greyed !== undefined;
       if (suppressed && runStart === null) runStart = m;
       if (!suppressed && runStart !== null) {
         bands.push({ x1: monthDate(runStart), x2: monthDate(m), y1: 0, y2: 1 });
@@ -229,7 +241,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       }
       for (const s of series) {
         const v = valueAt(m, s);
-        points.push({ month: m, date: monthDate(m), series: s, share: v?.share, suppressed, denominator: v?.denominator });
+        points.push({ month: m, date: monthDate(m), series: s, share: v?.share, n: v?.n, denominator: v?.denominator, suppressed, greyed });
       }
     }
     if (runStart !== null) bands.push({ x1: monthDate(runStart), x2: monthDate(addMonths(win.to, 1)), y1: 0, y2: 1 });
@@ -413,15 +425,21 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
               y: "share",
               ...tipStyle,
               title: (p: Point) =>
-                `${label(p.series)}\n${monthLabel(p.month)} · ${pct(p.share as number)}${
-                  p.suppressed ? `\nGreyed: ${(p.denominator ?? 0).toLocaleString()} vehicles behind this figure` : ""
-                }`,
+                readout({
+                  name: label(p.series),
+                  period: monthPeriod(p.month, rolling),
+                  share: p.share,
+                  n: p.n,
+                  base: p.denominator,
+                  greyed: p.greyed,
+                  minDenominator,
+                }),
             }),
           ),
         ],
       });
     },
-    [model, markersAt, endLabels, label, lead, domain],
+    [model, markersAt, endLabels, label, lead, domain, rolling, minDenominator],
   );
 
   return (

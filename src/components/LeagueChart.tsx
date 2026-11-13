@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, monthLabel, monthRange, pct, shareChange } from "../lib/measures";
+import { readout, spanPeriod } from "../lib/readout";
 import {
   FONT_TEXT,
   INK,
@@ -203,14 +204,21 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                     : d.rankDelta < 0
                     ? `Down ${Math.abs(d.rankDelta)} place${Math.abs(d.rankDelta) > 1 ? "s" : ""} (was #${d.priorRank})`
                     : "Same place";
-                return `#${d.rank} · ${d.name}\n${d.n.toLocaleString()} still registered · ${pct(d.share)} share\n${move}\nChange in share: ${shareChange(d.shareDelta)}`;
+                return readout({
+                  name: `#${d.rank} ${d.name}`,
+                  period: spanPeriod(currentFrom, latest),
+                  share: d.share,
+                  n: d.n,
+                  base: model.currentDenom,
+                  extra: [move, `Change in share: ${shareChange(d.shareDelta)}`],
+                });
               },
             }),
           ),
         ],
       });
     },
-    [model, displayMode],
+    [model, displayMode, currentFrom, latest],
   );
 
   return (

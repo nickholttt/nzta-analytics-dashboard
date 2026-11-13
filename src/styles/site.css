@@ -480,6 +480,20 @@ section[id] {
   text-underline-offset: 0.18em;
 }
 
+/* A chart's own links: copy its address, and open it on the Build page. They wrap as a row, each kept whole. */
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.panel-actions .button-quiet {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
 /* Callouts carry build state. Each has a text label, so none depends on colour. */
 .callout {
   font-size: var(--text-sm);

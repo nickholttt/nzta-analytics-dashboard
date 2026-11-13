@@ -11,7 +11,9 @@ import { findDerived } from "../lib/config";
 import type { Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { derivedSeries } from "../lib/derived";
-import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
+import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthRange, periodWindow } from "../lib/measures";
+import { monthPeriod, readout } from "../lib/readout";
+import type { Greyed } from "../lib/readout";
 import {
   LINE_WIDTH,
   PAPER,
@@ -32,11 +34,22 @@ const PERCENT = "percent";
 
 type Props = { preset: Preset; rows: SliceRow[]; manifest: Manifest; minDenominator: number; collapseFraction: number; lead?: boolean };
 
-type Point = { month: string; date: Date; y?: number; suppressed: boolean; denominator?: number; members?: string[] };
+type Point = {
+  month: string;
+  date: Date;
+  y?: number;
+  n?: number;
+  denominator?: number;
+  suppressed: boolean;
+  greyed?: Greyed;
+  members?: string[];
+};
 
 export function TrendChart({ preset, rows, manifest, minDenominator, collapseFraction, lead = false }: Props) {
   const derived = preset.derived ? findDerived(preset.derived) : undefined;
   const share = derived?.unit === PERCENT;
+  // What the line is, for its readout: a derived measure by its definition's own words, otherwise the vehicles counted.
+  const name = derived ? derived.label.charAt(0).toUpperCase() + derived.label.slice(1) : (preset.filter_value ?? "All vehicles");
 
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
@@ -47,11 +60,13 @@ export function TrendChart({ preset, rows, manifest, minDenominator, collapseFra
 
     const byMonth = new Map<string, number>();
     const detail = new Map<string, string[]>();
+    const counts = new Map<string, number>();
     const series = preset.derived ? derivedSeries(preset.derived, rows) : undefined;
     if (series) {
       for (const p of series) {
         if (p.value !== undefined) byMonth.set(p.month, p.value);
         detail.set(p.month, p.members);
+        counts.set(p.month, p.n);
       }
     } else {
       for (const r of rows) {
@@ -73,14 +88,21 @@ export function TrendChart({ preset, rows, manifest, minDenominator, collapseFra
       }
       // A share carries both guards; a count is a count and carries neither.
       const den = denominatorFor(m);
-      const suppressed =
-        share && den !== undefined && (den < minDenominator || collapsedAgainstTrailingMedian(m, denominatorFor, collapseFraction));
+      const greyed: Greyed | undefined =
+        !share || den === undefined
+          ? undefined
+          : den < minDenominator
+            ? "thin"
+            : collapsedAgainstTrailingMedian(m, denominatorFor, collapseFraction)
+              ? "collapsed"
+              : undefined;
+      const suppressed = greyed !== undefined;
       if (suppressed && runStart === null) runStart = m;
       if (!suppressed && runStart !== null) {
         bands.push({ x1: monthDate(runStart), x2: monthDate(m) });
         runStart = null;
       }
-      points.push({ month: m, date: monthDate(m), y, suppressed, denominator: den, members: detail.get(m) });
+      points.push({ month: m, date: monthDate(m), y, n: counts.get(m), denominator: den, suppressed, greyed, members: detail.get(m) });
     }
     if (runStart !== null) bands.push({ x1: monthDate(runStart), x2: monthDate(addMonths(win.to, 1)) });
     return { win, points, bands };
@@ -124,19 +146,20 @@ export function TrendChart({ preset, rows, manifest, minDenominator, collapseFra
               y: "y",
               ...tipStyle,
               title: (p: Point) =>
-                [
-                  `${monthLabel(p.month)} · ${share ? pct(p.y as number) : (p.y as number).toLocaleString()}`,
-                  p.members?.length ? p.members.join(", ") : null,
-                  p.suppressed ? `Greyed: ${(p.denominator ?? 0).toLocaleString()} vehicles behind this figure` : null,
-                ]
-                  .filter(Boolean)
-                  .join("\n"),
+                readout({
+                  name,
+                  period: monthPeriod(p.month, preset.measure === "rolling_12m"),
+                  ...(share ? { share: p.y, n: p.n, base: p.denominator } : { n: p.y }),
+                  greyed: p.greyed,
+                  minDenominator,
+                  extra: p.members?.length ? [`The ${p.members.length} largest: ${p.members.join(", ")}`] : undefined,
+                }),
             }),
           ),
         ],
       });
     },
-    [model, share, lead],
+    [model, share, lead, name, preset.measure, minDenominator],
   );
 
   return (

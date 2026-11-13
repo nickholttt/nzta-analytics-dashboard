@@ -10,7 +10,8 @@ export const TOP_N_SHARE = "top_5_share";
 
 export const RENDERED_DERIVED = new Set([TOP_N_SHARE]);
 
-export type DerivedPoint = { month: string; value?: number; denominator?: number; members: string[] };
+// n: the vehicles the members hold, the figure the value is a share of the denominator for.
+export type DerivedPoint = { month: string; value?: number; n: number; denominator?: number; members: string[] };
 
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 
@@ -33,6 +34,7 @@ export function topNShare(rows: SliceRow[], topN: number): DerivedPoint[] {
       return {
         month,
         value: denominator > 0 ? n / denominator : undefined,
+        n,
         denominator,
         members: top.map((v) => v.value),
       };
