@@ -29,12 +29,21 @@ algorithmically cleaned make and model errors.
   several fields from the same row (make with model, segment from three
   fields, fuel consumption stored as text): a grouped query over them would
   be as large as the rows.
-- **Refresh timing.** The register refreshes in the first days of the
-  month: the 2026-08 snapshot was last edited on 3 September 2026. The
-  monthly workflow runs on the 8th (06:17 UTC) to leave margin after the
-  refresh. If a refresh lands after the 8th, the change key is unchanged,
-  that run skips, and the site stays a month behind until the next run or
-  a manual dispatch.
+- **Refresh timing.** The register refreshes early in the month, on no
+  fixed day: the 2026-08 snapshot was last edited on 3 September 2026,
+  2026-09 on 6 October and 2026-10 on 9 November. So the workflow asks
+  every day (06:17 UTC) and builds within a day of a refresh landing. Two
+  rules go with a daily run:
+  - **Each month is built once.** If NZTA edits the register again after
+    its snapshot month was built, the run reports the change on its
+    summary page and builds nothing. Rebuilding a month takes a run
+    started by hand with `force`. This keeps the first observation of
+    every month.
+  - **A missed month fails the run.** From the 15th (UTC;
+    `schedule.missed_month_alarm_day` in `config/pipeline.json`), a run
+    that builds nothing fails, every day, while the month before is still
+    not built, and names it. A skipped run is green, so without this a
+    month NZTA never published would pass unseen.
 
 ## B. Azure Blob CSVs — full fleet (for the stock cube)
 

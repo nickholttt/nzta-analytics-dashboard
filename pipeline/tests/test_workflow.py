@@ -80,3 +80,14 @@ def test_commit_step_pushes_a_new_snapshot_aggregate_and_skips_when_nothing_chan
     assert second.returncode == 0, second.stderr
     assert "Nothing new to commit." in second.stdout
     assert git("rev-list", "--count", branch, cwd=remote) == commits
+
+
+def test_a_run_that_builds_nothing_cannot_start_a_deploy():
+    """The build is tried every day and a skip is a success, so a deploy that followed every successful run would
+    deploy the site daily. Only the build's own `built` output starts one."""
+    assert "  workflow_run:" not in (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()
+    lines = WORKFLOW.read_text(encoding="utf-8").splitlines()
+    assert "      built: ${{ steps.pipeline.outputs.built }}" in lines
+    job = lines[lines.index("  deploy:"):]
+    assert "    needs: build" in job
+    assert "    if: needs.build.outputs.built == 'true' && github.ref == 'refs/heads/main'" in job

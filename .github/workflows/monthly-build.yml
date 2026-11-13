@@ -1,12 +1,14 @@
-# Monthly pipeline run. Checks the source; pulls and builds only when the change key differs from the
-# last good run. A failed guardrail fails the job, so nothing is committed and the last good build stands.
+# The monthly build, tried every day. Checks the source; pulls and builds only when the source has changed since the
+# last good run and its snapshot month is not built yet, so each month is built once. A failed guardrail fails the
+# job, so nothing is committed and the last good build stands. From the 15th, a run that builds nothing fails if the
+# month before is still not built (docs/DATA_SOURCES.md, Refresh timing).
 name: Monthly build
 
 on:
   schedule:
-    # 8th of each month at 06:17 UTC: 18:17 NZST, 19:17 NZDT. NZTA refreshes the register in the first days of
-    # the month (docs/DATA_SOURCES.md). The odd minute avoids the top-of-the-hour queue for scheduled runs.
-    - cron: "17 6 8 * *"
+    # Every day at 06:17 UTC: 18:17 NZST, 19:17 NZDT. NZTA's refresh has no fixed day, so the run asks daily and a
+    # refresh is built within a day of landing. The odd minute avoids the top-of-the-hour queue for scheduled runs.
+    - cron: "17 6 * * *"
   workflow_dispatch:
     inputs:
       force:
@@ -26,6 +28,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      built: ${{ steps.pipeline.outputs.built }}
     steps:
       # v7 of each action runs on Node 24; GitHub removes Node 20 from its runners on 23 September 2026.
       - name: Checkout
@@ -58,7 +62,7 @@ jobs:
         id: pipeline
         env:
           PYTHONUNBUFFERED: "1"
-        run: python -m pipeline run --github-output "$GITHUB_OUTPUT" ${{ inputs.force && '--force' || '' }}
+        run: python -m pipeline run --github-output "$GITHUB_OUTPUT" --github-summary "$GITHUB_STEP_SUMMARY" ${{ inputs.force && '--force' || '' }}
 
       - name: Upload public data
         if: steps.pipeline.outputs.built == 'true'
@@ -114,3 +118,20 @@ jobs:
           elapsed=$(( $(date -u +%s) - $(cat "$RUNNER_TEMP/started") ))
           peak=$(sort -n "$RUNNER_TEMP/memory.log" | tail -1)
           echo "Peak memory used: ${peak% *} MiB of ${peak#* } MiB. ${elapsed}s from checkout to this step." | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # The site is deployed only when a month was built: a run that skips is a success too, and with a run every day
+  # the site would otherwise be deployed every day. Started here, not by deploy.yml watching this workflow, because
+  # only this run knows whether it built. A job of its own, so the token that can start workflows is not in the job
+  # that installs the pipeline's dependencies. Only on main, as the release is.
+  deploy:
+    needs: build
+    if: needs.build.outputs.built == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Start the deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref main
