@@ -57,9 +57,9 @@ Setup, **not re-run this session** (the environment already existed):
 
 ## Branches in this repo
 
-- `main`: what the monthly Action runs and commits to. Leave it alone during the freeze.
+- `main`: what the monthly Action runs and commits to. Only the user merges into it.
 - `ui/explore`: the user's UI branch (it predates the `claude/`/`gemini/` naming rule). Its boundary
-  is in hard rule 2 and D-020.
+  is in D-020.
 - New agent work: `claude/<topic>` or `gemini/<topic>`, branched from the branch the work belongs on.
 
 ## Architecture
@@ -82,7 +82,7 @@ Setup, **not re-run this session** (the environment already existed):
   every pull request (D-048). `deploy.yml` builds the public site from the newest cube release and
   uploads it to Cloudflare Pages, from `main` only and once its secrets exist; its upload tool, wrangler,
   is pinned by its own lockfile in `.github/deploy/` (D-057). The release step, `checks.yml`,
-  `deploy.yml` and `.github/deploy/` are on the pipeline branches, which merge after the 8 November gate.
+  `deploy.yml` and `.github/deploy/` are on the pipeline branches, which the user has yet to merge (#26 to #29, #35).
 - `src/pages/index.astro` hosts React islands. `src/lib/config.ts` loads `config/*.json`, `data.ts`
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
   `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo}Chart.tsx`
@@ -98,18 +98,16 @@ Setup, **not re-run this session** (the environment already existed):
 
 1. **CLAUDE.md's eight design invariants** and **the five shapes** (mix, trend, league, distribution,
    geo). No sixth renderer.
-2. **Freeze until the 8 November 2026 scheduled run passes** (the gate is the 8 October and
-   8 November runs, both clean and unattended; `POST_GATE.md`): no changes to `pipeline/`,
-   `.github/workflows/`, `config/dimensions.json`, `config/measures.json`, `config/pipeline.json`,
-   `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`, `docs/CUBE_SCHEMA.md`.
-   Post-gate work is queued in `POST_GATE.md`, in order. Source: user instruction (D-013, D-020);
-   `config/pipeline.json` and `docs/CUBE_SCHEMA.md` are on this list by inference from "pipeline,
-   workflow, cube schema and reference data" (inferred — confirm).
-   Exception (user, 2026-10-21, D-043): work on these paths may be built and tested before the gate on
-   `claude/`/`gemini/` branches cut from `main`, with pull requests into `main` that stay unmerged until
-   the 8 November run passes. Nothing on those paths reaches `main`, or `ui/explore`, before then. Tests
-   and `pipeline build <saved pull> --dry-run` may run locally; `pipeline run` and `init-schema` still
-   may not, and a golden change still follows rule 4.
+2. **The freeze is lifted (user, 2026-11-13, D-066).** The gate was the 8 October and 8 November
+   2026 scheduled runs, both clean and unattended (D-013, D-020); the user ruled it passed once the
+   run of 13 November had built October. The paths it covered are the **pipeline paths**:
+   `pipeline/`, `.github/workflows/`, `config/dimensions.json`, `config/measures.json`,
+   `config/pipeline.json`, `data/reference/*`, `pipeline/expected_schema.json`, `pipeline/tests/`,
+   `docs/CUBE_SCHEMA.md`. Work on them no longer waits for a date. It still reaches `main` only
+   through a `claude/`/`gemini/` branch, cut from `main` or stacked on an open pipeline pull
+   request, and a pull request the user merges (rule 7). Tests and
+   `pipeline build <saved pull> --dry-run` may run locally; `pipeline run` and `init-schema` are
+   still not run locally (§Commands), and a golden change still follows rule 4.
 3. **Never hand-edit `data/snapshots/` or `data/state/`.** Only the monthly Action writes them.
 4. **Golden changes are contract changes.** Regenerate `pipeline/tests/golden/contract.json` only
    deliberately, in the same commit as the change that causes it (one cube change per commit,

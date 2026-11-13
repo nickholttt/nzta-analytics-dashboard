@@ -109,7 +109,7 @@ Bound in `config/pipeline.json`. Their meanings and traps are in `docs/DATA_SOUR
 |---|---|---|
 | Never published | `VIN11`, `CHASSIS7`, `ENGINE_NUMBER` | D-062 |
 | Never published | `OBJECTID` | A row number, no meaning to a visitor |
-| **In doubt: the user decides** | `POSTCODE` | NZTA's own notes say owner location is given by territorial authority "to make sure it isn't possible to identify a person", and its field list leaves postcode out, yet the field is in the service. 197 postcodes hold fewer than 10 vehicles. Until decided: not pulled, not archived, not published. (One sizing pull on 2026-11-13 took it before this was seen; those rows are deleted) |
+| Never published, never pulled, never archived (the user, 2026-11-13, D-066) | `POSTCODE` | NZTA's own notes say owner location is given by territorial authority "to make sure it isn't possible to identify a person", and its field list leaves postcode out, yet the field is in the service. 197 postcodes hold fewer than 10 vehicles. (One sizing pull on 2026-11-13 took it before this was seen; those rows are deleted. The hand pull of October left it out) |
 | Public only above a minimum count | `TLA`, `INDUSTRY_CLASS`, `VEHICLE_USAGE`, `ROAD_TRANSPORT_CODE` when crossed with fine vehicle detail | They describe the owner, not the vehicle. A district crossed with model, colour and year can come down to one vehicle |
 | Not offered as a breakdown | `SUBMODEL`, `MVMA_MODEL_CODE`, `INDUSTRY_MODEL_CODE` | Free text or fine codes. Useful as lookup keys |
 | Public | Everything else | Describes the vehicle |

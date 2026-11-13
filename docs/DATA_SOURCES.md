@@ -36,9 +36,10 @@ algorithmically cleaned make and model errors.
   GitHub started both scheduled runs about seven hours late (13:25 and
   13:19 UTC). If a refresh lands after the run, the change key is
   unchanged, the run skips, and the site stays a month behind until the
-  next run or a manual dispatch. This happened on 8 November 2026. A
-  snapshot that is never built is never archived. D-064 proposes a daily
-  run.
+  next run or a manual dispatch. This happened on 8 November 2026; the
+  2026-10 snapshot was built by a dispatched run on 13 November. A
+  snapshot that is never built is never archived. A daily run is accepted
+  (D-064, D-066) and not yet built.
 
 ## B. Azure Blob CSVs — full fleet (for the stock cube)
 
@@ -112,6 +113,15 @@ monthly check still looks for the series in the Explorer
 
 Export-only, no API. Useful for manual verification of a suspect figure.
 Never build a dependency on it.
+
+That rule stands until the user decides otherwise. On 2026-11-13 the user
+chose to export one month by hand so the dashboard can be read: its
+fields, its history, its terms, and how its counts compare with the
+register as first observed (D-066; the brief, Stage 1 item 6). vstat and
+StatsHub both take first registrations and buyer type from it. Its
+address, from NZTA's open data listing (the page itself was not read:
+`nzta.govt.nz` blocks automated readers):
+`https://www.nzta.govt.nz/vehicles/how-the-motor-vehicle-register-affects-you/motor-vehicle-registrations-dashboard-and-open-data/`
 
 ## E. Motor Industry Association — reference only
 

@@ -1772,3 +1772,49 @@ New entries use this template:
   - Not checked: whether Stats NZ revises past months of the series (the export shows no status flags).
   - Nothing is built by this entry.
 - Status: proposed; accepted when the user says so
+
+## D-066 2026-11-13 — The user's answers to Stage 0: October is built, the gate has passed, the freeze is lifted; D-063 to D-065 accepted
+- Agent: user, answering the ten decisions of `docs/brief/STAGE_0_REPORT.md` by number in the session that followed
+  it. Recorded by claude.
+- Basis: this session. The run, its log and its commit were read with `gh` and `git fetch`; the hand pull was
+  checked page by page after it was saved.
+- Context: Stage 0 left ten decisions with the user, the first five tied to NZTA's December refresh.
+- Decision, in the report's numbering:
+  1. **October 2026 is built.** The user had claude start one unforced Monthly build on `main`. Run 43367551467
+     (`workflow_dispatch`, `main` at `e3246bb`): success; 38 tests passed; built snapshot 2026-10-31 from 5,926,990
+     rows with no warnings; peak memory 2,431 MiB of 15,982 MiB; 291 s. The bot committed
+     `a5fb60c Snapshot 2026-10 [skip ci]`. Artifact `public-data-2026-10` expires 2027-02-11.
+  2. **The gate has passed and the freeze is lifted**, the user having made both conditional on that run being green.
+     This ends the freeze of D-013 and D-020 and changes AGENTS.md hard rule 2, which is rewritten in the same
+     commit as this entry. D-043's exception is no longer needed. Work on the pipeline paths still reaches `main`
+     only through a branch and a pull request the user merges. The new wording keeps `pipeline run` and
+     `init-schema` as things not run locally, as AGENTS.md §Commands already says; the user did not speak to that.
+  3. **D-063 is accepted**, with its files kept in releases in a private GitHub repository: the Stage 0 report's
+     option (a), which is D-063's own (i). The user sets up the repository and the token (D-067; the steps are in
+     `docs/brief/STAGE_1_REPORT.md` §4).
+  4. **October is pulled by hand.** `data/raw/2026-10/20261113T045017Z` (gitignored): 5,926,990 rows in 186 pages,
+     348,353,175 bytes, 36 of the 40 fields. `VIN11`, `CHASSIS7`, `ENGINE_NUMBER` and `POSTCODE` were not asked for.
+     `OBJECTID` is included, as in every pull, because the pipeline pages by it. Its change key equals the one the
+     run committed, so both read the same register.
+  5. **The August and October raw pulls are to be copied to a backed-up folder.** The user's message left the folder
+     as a placeholder, so nothing is copied yet.
+  6. **D-064 is accepted**: option 3 (run every day) with both rules (each month is built once; a missed month fails
+     the run).
+  7. **D-065 is accepted**, by its option 2: the user exports the series from Infoshare by hand each month.
+  8. **NZTA's registrations dashboard is read from one hand export** (the brief, Stage 1 item 6). The user asked
+     what to export; the steps are in the Stage 1 report §5. That it should be October 2026, taken before
+     1 December, is claude's recommendation, not the user's word (inferred: the dashboard was not seen; its listing
+     says it shows the most recent calendar month). `docs/DATA_SOURCES.md` §D's rule stands until the user decides,
+     after the export is read, whether it becomes a source.
+  9. **`POSTCODE` is never published, never pulled and never archived.**
+  10. **CLAUDE.md's three untagged changes are accepted** as they are: "static" dropped from the first sentence, the
+      `segment_map.csv` comment, and "monthly" dropped from the first non-goal.
+- Consequences:
+  - The five pipeline pull requests (#26 to #29, #35) may merge, in order, when the user has reviewed them.
+    `ui/explore` keeps the old hard rule 2 until #36 merges. `main` has no AGENTS.md until `ui/explore` merges into
+    it, and its `POST_GATE.md` still describes the freeze.
+  - D-064 and D-063 are queued to be built (CHECKPOINT). Neither is on `main` yet, so November's snapshot depends
+    on the 8 December run or a dispatch, and is kept at every field only by another hand pull.
+  - D-063's whole-snapshot file leaves out `POSTCODE` for good, not "until the user decides".
+  - The playbooks and the two skills that still describe the freeze are out of date (STATE).
+- Status: accepted, decided by user
