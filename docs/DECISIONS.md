@@ -2341,6 +2341,93 @@ New entries use this template:
   - Reversing a merge into `ui/explore`: `git revert -m 1 <merge commit>` on a branch, and a pull request.
 - Status: accepted, decided by user (the three answers); the four points under "Decided by Claude" unreviewed
 
+## D-078 2026-11-13 — The user's answers: the fact table leaves out the owner's region until the Stage 2 privacy review; #42 and #36 merge; the dashboard's first step waits for the user; and D-058's "no owner data" is corrected
+- Agent: user, in the first message of the sixth session of 2026-11-13. Recorded by claude, with what claude did and
+  decided marked as such.
+- Basis: this session, the user's message. The dry runs, the tests and the headless checks were run here; the merges
+  and checks were read back with `gh`; the reviewer's report.
+- Decision, the user's, in the user's words where short:
+  1. "The fact table: (b). Leave owner's region out until the Stage 2 privacy review, then merge #41 under the usual
+     rule. Correct the earlier decision record that said it held no owner data."
+  2. "Merge 42. Merge 36."
+  3. The dashboard's step 1: the user does it, with Claude in the browser, when free the next day, and is walked
+     through it "one step at a time when I say I'm ready".
+  4. "Then carry on with the queue. Ask me before ui/explore goes into main or anything becomes public."
+- **Correction to D-058.** Its risks say the source register is "already public vehicle by vehicle, with no owner
+  data". The last four words are wrong. `TLA` is the district of the vehicle's registered owner, `region` is derived
+  from it (`tla_region.csv`), and NZTA's own definition is "the region where the registered owner is based" (its
+  dashboard page, read into `docs/DATA_MAP.md` this session). The table D-058 measured listed region among its
+  dimensions. D-058 is not edited (this file is append-only): read its risk as "cells as small as one vehicle, in a
+  register that is public vehicle by vehicle and gives each owner's district". The data map's first reading of privacy
+  classes already puts `TLA` among the fields that are public only above a minimum count when crossed with fine
+  vehicle detail.
+- What was done:
+  - **#42 is merged into `main`** (merge commit `a0c1943`), and its branch and worktree are deleted. From the next
+    build the archive job keeps `VIN11` and `POSTCODE` (D-076).
+  - **The fact table carries no `region`** (`claude/fact-table`, commit `489e2c3`): the word is out of `facts` in
+    `config/pipeline.json`, whose comment says why; the golden contract was regenerated for that change alone (11
+    lines added, 232 removed: the table's `region` file, the rows that differed only by region, `region` in
+    `facts.dimensions`, and `payload_bytes` 37,998 to 37,545; no slice, pair or event changed).
+  - **The earlier reviewer's follow-ups are done** (commits `488399b`, `809bcbd`, `f7c97b5`): the total check; the
+    golden test over a dataset with no fact table; `docs/CUBE_SCHEMA.md`'s figures re-measured and its manifest
+    example made to agree; two claims the pipeline's code does not show marked.
+  - **#41 is merged into `main`** (merge commit `f78e3e1`, head `7d3f2f8`), on the user's word in this session, with
+    `Checks` green and the reviewer's agreement; its branch and worktree are deleted.
+- Measured, 2026-11-13, from dry runs that publish nothing:
+  - The 2026-10 pull: exit 0 in 11 min 3 s. The fact table is 641,618 rows over 12 dimensions in 1,726,119 bytes as
+    14 files; with region it was 1,734,417 rows and 3,885,012 bytes. `payload_bytes` is 3,149,458. Every slice, pair
+    and `events.json` (17 files) is byte-identical to the released `cube-2026-10`.
+  - Rows that count one vehicle: 321,973, which is 50.2% of rows and 7.1% of vehicles; among the last 12 months'
+    vehicles, 4.6%. With region: 1,124,745 rows, 64.8% of rows and 24.9% of vehicles; last 12 months, 16.8%.
+  - The 2026-08 pull: the build stops with exit 2 at the comparison with the last good build, which is October's
+    since the forced run, after its files are staged. Its fact table is 643,414 rows in 1,736,400 bytes.
+  - The whole test suite: 98 passed in 397 s. The new abort test fails on the code before its commit.
+  - The Build page, a local build of `ui/explore` with October's dry-run files, headless at 390 and 1280 px: region is
+    not offered as a condition, nor as a breakdown of a count; "the share of vehicles by owner's region" still draws,
+    from the slice; a link carrying a region condition draws nothing and says why, with a link that removes the
+    condition; a brand comparison and a new-or-used condition draw as before; no page scrolls sideways.
+- The independent review of #41 (a reviewer not shown claude's reasoning): "agree with follow-ups" on `f7c97b5`. It
+  recomputed every figure above from the October dry run and found them equal, found nothing about an owner left in
+  the table, and found the golden change to be the removal of `region` alone. What it raised, and what was done
+  (commits `84ae0cf`, `7d3f2f8`):
+  - The total check was described as counted "before any reference lookup is joined on", which was false: `rows`
+    is itself built by joining the scope, brand, model, hybrid and engine lookups. And it proved a gap that `main`
+    already had: a vehicle type listed twice in `vehicle_scope.csv` counted each of its vehicles twice, in the slices
+    too, with no abort. Fixed: both scope files abort on a repeated key, with a test that fails on the old code; the
+    comment and `docs/CUBE_SCHEMA.md` now say what is counted from where.
+  - A dimension named after the table's working row-order column would have been written as row numbers: the name
+    is reserved. The manifest example's `payload_bytes` was smaller than the fact table inside it: re-measured.
+  - Left open (CHECKPOINT): no test in the repo builds a second dataset without `facts` (the reviewer did, by hand,
+    and the guard holds).
+  - The same reviewer, on `7d3f2f8`: "agree". It reran its probes (the repeated scope row aborts; a dimension named
+    after the row-order column aborts), found the golden contract untouched by the two commits, and ran the golden,
+    guardrail and invariant tests: 67 passed. `Checks` was green on `7d3f2f8`. Its smaller points are in CHECKPOINT.
+- Decided by Claude (unreviewed):
+  1. **The total check compares the written file with a count of `rows`.** The counts are read back from
+     `n.parquet` and compared with the dataset's vehicles counted from `rows`, before the dimension lookups are
+     joined on. Not chosen: counting from `src`, before every lookup (the dataset's own conditions come from the
+     scope lookups, so that count cannot be made without them; their keys are guarded instead).
+  2. **Nothing in code stops `region` being listed again.** The config comment and `docs/CUBE_SCHEMA.md` say why it
+     is out, and putting it back changes the golden contract, which is shown to the user (hard rule 4). Not chosen:
+     a list of withheld dimensions in config that aborts the run (a second line in the same file protects little
+     more than the first).
+  3. **The `region` slice stays, and Build still offers "the share of vehicles by owner's region" from it.** That is
+     (b) as CHECKPOINT put it to the user: "the region map still draws".
+  4. **#36 was merged last**, with this entry and the session's notes in it, where the user's message lists it second.
+     Not chosen: merge it first and open a second notes pull request the same hour.
+- Consequences:
+  - **The next build publishes the fact table** in that month's cube release, which is public and cannot be taken
+    back. It carries the vehicle and its brand only.
+  - Build cannot narrow by region or compare regions by number. A saved link with a region condition draws nothing
+    and says why; that row names the field by its id, "region", not its label (a follow-up).
+  - Half of the table's rows still count one vehicle. Whether a minimum count is wanted regardless, and what the
+    `region` slice's own small cells call for, are the Stage 2 privacy review's. The slice's small cells were not
+    measured this session.
+  - AGENTS.md's dry-run command names the 2026-08 pull with "exit 0"; that build now stops with exit 2 (STATE).
+  - Putting `region` back after the review: one word in `facts`, the golden regenerated and shown, the doc's
+    figures re-measured.
+- Status: accepted, decided by user (the four answers); the four points under "Decided by Claude" unreviewed
+
 ## D-079 2026-11-13 — `VIN11` checked against the data: no model year for used imports, one for about four in ten NZ-new vehicles; nothing is derived from it
 - Agent: claude, doing CHECKPOINT queue item 6 on the user's "carry on with the queue" (sixth session of 2026-11-13).
 - Basis: measured in this session from the private archive's `mvr-2026-10-vin11-postcode.parquet` (SHA-256
