@@ -72,7 +72,7 @@
     },
     "$period_by_shape_comment": "A distribution sums its whole period, so all time would mix decades whose records differ (docs/MODEL_AND_AGE.md, before 2007). A map opens on the last 12 months, the vehicles whose owners' addresses are most recent. The time row still offers all time.",
     "ranking_period": "latest_year",
-    "$ranking_period_comment": "The time row offers this period too wherever it makes the chart a league (a high-cardinality breakdown such as brand), so a visitor can rank the latest 12 months and switch back to the lines. Manufacturer group is medium cardinality in config/dimensions.json, so it stays a mix chart (D-045).",
+    "$ranking_period_comment": "The time row offers this period too wherever it makes the chart a league (a high-cardinality breakdown such as brand), so a visitor can rank the latest 12 months and switch back to the lines. Manufacturer group is high cardinality in config/dimensions.json, as brand is, so a 12-month window ranks it too (D-050).",
     "lead": "Show",
     "measures": [
       {
@@ -178,11 +178,7 @@
         {
           "id": "powertrain-mix",
           "question": "How has each powertrain's share of registrations changed?",
-          "status": "invalid",
-          "requires": [
-            "segment_group promoted to a dimension in config/dimensions.json. It is a column in segment_map.csv, not a dimension, so the filter resolves against nothing. Built as POST_GATE A3 on claude/segment-group, which merges into main after the 8 November gate.",
-            "a powertrain x segment_group pair slice, so the filter can be applied rather than described. Built in the same change (POST_GATE A3); the site applies it once a build carries it."
-          ],
+          "status": "live",
           "dataset": "registrations_surviving",
           "measure": "share",
           "dimension": "powertrain",
@@ -208,10 +204,7 @@
         {
           "id": "used-import-age",
           "question": "How old are used imports when they arrive?",
-          "status": "blocked",
-          "requires": [
-            "the used_imports dataset, served from registrations_surviving through an import_status x age_at_registration_band pair slice. Built as POST_GATE A1 on claude/pair-slice-import-age, which merges into main after the 8 November gate; the site draws this chart once a build carries the pair."
-          ],
+          "status": "live",
           "dataset": "used_imports",
           "measure": "share",
           "dimension": "age_at_registration_band",
@@ -302,7 +295,6 @@
           "question": "Which vehicle years can't we import any more?",
           "status": "blocked",
           "requires": [
-            "the used_imports dataset, served from registrations_surviving through an import_status x age_at_registration_band pair slice. Built as POST_GATE A1, which merges into main after the 8 November gate.",
             "a way for the distribution renderer to draw the age distribution year by year (animate_by). One period's histogram smears the moving cutoff across the years it moved through, so it would not answer the question."
           ],
           "dataset": "used_imports",

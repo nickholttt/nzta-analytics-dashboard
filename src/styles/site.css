@@ -451,6 +451,13 @@ section[id] {
   font-size: var(--text-sm);
 }
 
+/* The question's text buttons are tap targets, 44px like the chips' remove buttons. */
+.question .button-quiet {
+  min-width: 44px;
+  min-height: 44px;
+  margin-top: 0;
+}
+
 /* The lines of a count comparison, each with its colour and its last 12 months: the key a reader checks first. */
 .series-key {
   list-style: none;
@@ -1013,6 +1020,20 @@ section[id] {
   max-width: 100%;
   /* Contains the absolutely positioned visually-hidden labels, which would otherwise widen the page. */
   position: relative;
+  /* A shadow at an edge that has more table beyond it, and none at an edge that does not: the two paper-coloured
+     layers move with the table and cover the shadows, which stay put, once that end is reached. */
+  background:
+    linear-gradient(to right, var(--paper) 40%, transparent) left center / 2.5rem 100% no-repeat local,
+    linear-gradient(to left, var(--paper) 40%, transparent) right center / 2.5rem 100% no-repeat local,
+    linear-gradient(to right, rgb(26 27 31 / 0.16), transparent) left center / 0.75rem 100% no-repeat scroll,
+    linear-gradient(to left, rgb(26 27 31 / 0.16), transparent) right center / 0.75rem 100% no-repeat scroll;
+}
+
+/* Said in words too, while the ranking table is wider than its box: the shadow alone is easy to miss. */
+.scroll-hint {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
 }
 
 .key th.text,

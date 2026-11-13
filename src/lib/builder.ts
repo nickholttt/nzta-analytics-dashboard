@@ -144,15 +144,16 @@ export const MAX_VALUES = 8;
 
 // A question from the address bar, kept only as far as the page offers it; otherwise the nearest one that is. A
 // condition on the breakdown itself becomes the values compared, where the breakdown takes values, so choosing to break
-// down by what was a condition never quietly widens the question.
+// down by what was a condition never quietly widens the question. A condition the page cannot apply (a field the fact
+// table lacks, or one config does not define) is kept for the same reason: the resolver then blocks the chart and the
+// page says which condition to remove, where dropping it would draw a wider question than the link asked.
 export function settle(vocabulary: Vocabulary, q: Partial<Question>): Question {
   const m = vocabulary.measures.find((o) => o.id === q.measure) ?? vocabulary.measures[0];
   const dimension = m.dimensions.find((d) => d.id === q.by);
   const by = dimension ? dimension.id : m.allowsTotal && (q.by === null || q.by === undefined) ? null : (m.dimensions[0]?.id ?? null);
-  const offered = new Set(vocabulary.filters.map((f) => f.id));
   const takesValues = Boolean(by && m.dimensions.find((d) => d.id === by)?.values);
   const onBreakdown = by ? (q.where?.[by] ?? []) : [];
-  const where = Object.fromEntries(Object.entries(q.where ?? {}).filter(([d, kept]) => offered.has(d) && d !== by && kept.length > 0));
+  const where = Object.fromEntries(Object.entries(q.where ?? {}).filter(([d, kept]) => d !== by && kept.length > 0));
   const asked = q.values?.length ? q.values : onBreakdown;
   const values = takesValues ? [...new Set(asked)].slice(0, MAX_VALUES) : [];
   const settled: Question = { measure: m.id, by, values, where, view: null };
@@ -164,9 +165,13 @@ export function settle(vocabulary: Vocabulary, q: Partial<Question>): Question {
 const key = (name: string) => `${builderSpec.id}.${name}`;
 const WHERE = "where.";
 
+// Conditions are keyed by text from the address bar or from config. An object with no prototype holds any key as its
+// own, where a plain one would hand back a built-in for a key such as "constructor" and the page would fail on it.
+const noConditions = (): Record<string, string[]> => Object.create(null);
+
 export function readQuestion(search: string): Partial<Question> {
   const params = new URLSearchParams(search);
-  const where: Record<string, string[]> = {};
+  const where = noConditions();
   for (const [k, v] of params) {
     if (k.startsWith(key(WHERE))) (where[k.slice(key(WHERE).length)] ??= []).push(v);
   }
@@ -195,7 +200,7 @@ export function builderQuestionFor(view: Preset): Question | null {
   if (view.id.startsWith(builderSpec.id) || view.series || view.dataset !== builderSpec.dataset || !view.dimension) return null;
   const m = builderSpec.measures.find((x) => !x.parts && (x.derived ? x.id === view.derived : !view.derived && x.id === view.measure));
   if (!m || !(view.dimension in m.dimensions) || m.top_n?.[view.dimension] !== view.top_n) return null;
-  const where: Record<string, string[]> = {};
+  const where = noConditions();
   for (const filter of view.filters ?? []) for (const [d, v] of Object.entries(filter)) (where[d] ??= []).push(v);
   return { measure: m.id, by: view.dimension, values: [], where, view: null };
 }

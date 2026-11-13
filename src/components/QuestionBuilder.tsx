@@ -9,7 +9,7 @@ import { factView, loadManifest, loadSlice } from "../lib/data";
 import type { SliceRow } from "../lib/data";
 import { addMonths } from "../lib/measures";
 import { count } from "../lib/readout";
-import PresetPanel, { RESERVED_LABELS } from "./PresetPanel";
+import PresetPanel, { reservedLabel } from "./PresetPanel";
 
 // The chart's own settings in the address bar. A new question clears them, so its charts open on their defaults.
 const CHART_PARAMS = ["period", "range", "smoothing"];
@@ -18,7 +18,7 @@ const STARTING_VALUES = 5;
 const SUGGESTIONS = 8;
 const VIEW_LABELS: Record<string, string> = { mix: "Lines over time", geo: "Map", distribution: "Bars by band", league: "Ranking", trend: "Line" };
 
-const valueLabel = (v: string) => RESERVED_LABELS[v] ?? v;
+const valueLabel = reservedLabel;
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 // Focus moves after React has drawn the change, so the element it moves to exists.
 const focusSoon = (find: () => HTMLElement | null | undefined) => requestAnimationFrame(() => find()?.focus());
@@ -138,7 +138,13 @@ function ValuePicker({
             <p className="picker-hint">Loading…</p>
           ) : matches.length === 0 ? (
             <p className="picker-hint">
-              {query.trim() ? `Nothing matches “${query.trim()}”${filtered ? " among the vehicles the conditions keep" : ""}.` : "Every value is chosen."}
+              {query.trim()
+                ? `Nothing matches “${query.trim()}”${filtered ? " among the vehicles the conditions keep" : ""}.`
+                : options.length === 0
+                  ? filtered
+                    ? "The other conditions keep no vehicles, so there is nothing to choose from."
+                    : "There is nothing to choose from."
+                  : "Every value is chosen."}
             </p>
           ) : (
             <ul className="suggestions" aria-label={query.trim() ? `Matching “${query.trim()}”` : "The largest in the last 12 months"}>
@@ -186,6 +192,10 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
   const presets = useMemo(() => builderPresets(question, valueLabel), [question]);
   const views = useMemo(() => viewsFor(question), [question]);
   const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? id;
+  // A link can name a condition this data cannot apply. It stays in the question, where it blocks the chart, but the
+  // lists of values are counted among the conditions that can be applied.
+  const canApply = (id: string) => vocabulary.filters.some((f) => f.id === id);
+  const applicable = (where: Record<string, string[]>) => Object.fromEntries(Object.entries(where).filter(([d]) => canApply(d)));
 
   const ask = (next: Partial<Question>) => {
     const settled = settle(vocabulary, { ...latest.current, ...next });
@@ -203,23 +213,29 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
 
   // A count broken down draws one line per chosen value, so with none chosen it starts on the largest few among the
   // vehicles the conditions keep. Applied only if the question is still waiting for them when the list arrives.
-  const whereKey = JSON.stringify(question.where);
+  const whereKey = JSON.stringify(applicable(question.where));
+  const awaitingValues = Boolean(countsLines && question.by && question.values.length === 0 && breakdown?.values);
+  // The question whose starting values were looked for and not found: nothing was first registered in the last 12
+  // months among the vehicles its conditions keep.
+  const startKey = `${question.by}|${whereKey}`;
+  const [noStartFor, setNoStartFor] = useState<string | null>(null);
   useEffect(() => {
     const by = question.by;
-    if (!countsLines || !by || question.values.length > 0 || !breakdown?.values) return;
+    if (!awaitingValues || !by) return;
     let current = true;
-    valueOptions(dataset, by, question.where).then((options) => {
+    valueOptions(dataset, by, JSON.parse(whereKey)).then((options) => {
       const now = latest.current;
       if (!current || now.by !== by || now.values.length > 0) return;
       const top = options.filter((o) => !isReserved(o.value) && o.recent > 0).slice(0, STARTING_VALUES).map((o) => o.value);
       if (top.length) ask({ values: top });
+      else setNoStartFor(startKey);
     });
     return () => {
       current = false;
     };
     // ask reads the latest question through its ref; these are what decide whether starting values are needed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countsLines, question.by, question.values.length, breakdown?.values, dataset, whereKey]);
+  }, [awaitingValues, question.by, dataset, whereKey]);
 
   const unusedFilters = vocabulary.filters.filter((f) => f.id !== question.by && !(f.id in question.where));
   const addCondition = () => {
@@ -270,7 +286,7 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
               dimension={breakdown.id}
               noun={filterLabel(breakdown.id).toLowerCase()}
               chosen={question.values}
-              where={question.where}
+              where={applicable(question.where)}
               max={MAX_VALUES}
               onChange={(values) => ask({ values })}
               emptyHint={countsLines ? undefined : "Showing the largest, with the rest as All other. Choose values to compare only those."}
@@ -298,14 +314,21 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
                     Remove this condition
                   </button>
                 </div>
-                <ValuePicker
-                  dataset={dataset}
-                  dimension={d}
-                  noun={filterLabel(d).toLowerCase()}
-                  chosen={kept}
-                  where={without(question.where, d)}
-                  onChange={(values) => ask({ where: { ...question.where, [d]: values } })}
-                />
+                {canApply(d) ? (
+                  <ValuePicker
+                    dataset={dataset}
+                    dimension={d}
+                    noun={filterLabel(d).toLowerCase()}
+                    chosen={kept}
+                    where={applicable(without(question.where, d))}
+                    onChange={(values) => ask({ where: { ...question.where, [d]: values } })}
+                  />
+                ) : (
+                  <p className="picker-hint">
+                    This link asks for only the vehicles where “{d}” is {kept.join(" or ")}. This data cannot apply that condition, so no chart
+                    is drawn. Remove the condition to see the chart without it.
+                  </p>
+                )}
               </div>
             ))}
             {unusedFilters.length > 0 ? (
@@ -345,9 +368,29 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
       </form>
 
       {/* Keyed by the question, so a new question remounts each panel and reads its cleared settings. */}
-      {presets.map((p) => (
-        <PresetPanel key={`${p.id}:${String(questionParams(question))}`} preset={p} audience="public" anchored={false} />
-      ))}
+      {presets.map((p) =>
+        // A number by a breakdown is one line per chosen value. With none chosen there is no such chart to draw, and
+        // the total alone would sit under a title that promises a breakdown.
+        awaitingValues && p.measure === "count" ? (
+          <section className="panel" key={p.id} aria-live="polite">
+            <header className="panel-head">
+              <h3 className="panel-question">{p.question}</h3>
+            </header>
+            {noStartFor === startKey ? (
+              <div className="callout blocked">
+                <span className="callout-label">Nothing to draw yet</span>
+                Nothing was first registered in the last 12 months
+                {Object.keys(question.where).length ? " among the vehicles the conditions keep" : ""}, so there is no largest to start
+                from. Choose values under Compare to draw a line for each.
+              </div>
+            ) : (
+              <p className="meta">Finding the largest to start from…</p>
+            )}
+          </section>
+        ) : (
+          <PresetPanel key={`${p.id}:${String(questionParams(question))}`} preset={p} audience="public" anchored={false} />
+        ),
+      )}
 
       {builderSpec.not_offered.length > 0 ? (
         <section className="not-offered" aria-labelledby="not-offered-head">

@@ -18,6 +18,10 @@ import { TrendChart } from "./TrendChart";
 
 const BASIS_NOTE = "Registrations recorded by NZTA. Not the same as vehicle sales.";
 
+// A value's own words where it is one of the reserved tokens, otherwise the value as it is. Asked with hasOwn, since a
+// value can be any text and a plain lookup would answer a built-in for one such as "constructor".
+export const reservedLabel = (v: string) => (Object.hasOwn(RESERVED_LABELS, v) ? RESERVED_LABELS[v] : v);
+
 export const RESERVED_LABELS: Record<string, string> = {
   __UNDEFINED__: "Not recorded",
   __UNMAPPED__: "No reference match",
@@ -177,7 +181,7 @@ export default function PresetPanel({
   const dsManifest = served ? manifest.datasets[served] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
-  const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : RESERVED_LABELS[v] ?? v);
+  const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : reservedLabel(v));
   const guards = guardsFor(effectivePreset.measure, effectivePreset.derived);
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
@@ -207,7 +211,7 @@ export default function PresetPanel({
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
   // terms, is internal.
-  const quoted = (values: string[]) => values.map((v) => `“${RESERVED_LABELS[v] ?? v}”`).join(" or ");
+  const quoted = (values: string[]) => values.map((v) => `“${reservedLabel(v)}”`).join(" or ");
   const nameOf = (id: string) => {
     const words = (!internal && publicCopy.dimension_labels[id]) || findDimension(id)?.label || id;
     return words.charAt(0).toLowerCase() + words.slice(1);
