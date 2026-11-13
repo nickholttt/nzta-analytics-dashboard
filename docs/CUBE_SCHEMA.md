@@ -115,13 +115,15 @@ never opened. Start with these and add on demand:
 
 `powertrain__segment`, `powertrain__region`, `powertrain__import_status`,
 `make__powertrain`, `owner_country__segment`, `built_in__make`,
-`import_status__segment`, `import_status__age_at_registration_band`
+`import_status__segment`, `import_status__age_at_registration_band`,
+`powertrain__segment_group`
 
 Each dataset's `pairs` in `config/pipeline.json` lists the pairs a build
 emits, as `[dim_a, dim_b]`; the list above is what may be added. Emitted
 today: `import_status__age_at_registration_band`, which serves `used_imports`
 and `nz_new` (`registrations_surviving` filtered by import status) by age
-when first registered here. A pair is live in a run when both of its
+when first registered here, and `powertrain__segment_group`, which applies a
+filter such as light passenger vehicles to the powertrain mix. A pair is live in a run when both of its
 dimensions are live, and `manifest.json` lists the live ones per dataset as
 `live_pairs`, which the site reads rather than assuming a pair exists. A
 pair whose dimension is not live waits, as the dimension does, and is listed
