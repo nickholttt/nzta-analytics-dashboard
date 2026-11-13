@@ -181,7 +181,11 @@ register again and keeps it as one Parquet file, one row per vehicle:
 - **When it fails** (an expired token is the likely cause; the job says
   so), the month's build and commit stand and the run is red. Fix the
   cause, then start the workflow by hand with `archive` ticked: it
-  archives the last built snapshot and builds nothing.
+  archives the last built snapshot. It builds nothing unless NZTA has
+  refreshed since; then it builds the new month and archives that one,
+  and the month whose archive failed is lost.
+- The job refuses to upload unless the archive repository is private, and
+  counts a month as archived only if its file finished uploading.
 - A release keeps no history and can be deleted by hand. A second copy
   somewhere backed up is the maintainer's to keep.
 

@@ -165,3 +165,12 @@ def test_the_archive_token_is_read_only_by_the_archive_job_and_the_file_is_never
     assert text.count("secrets.ARCHIVE_REPO_TOKEN") == archive_job.count("secrets.ARCHIVE_REPO_TOKEN") > 0
     assert "upload-artifact" not in archive_job
     assert "github.ref == 'refs/heads/main'" in next(line for line in job("archive") if line.startswith("    if:"))
+
+
+def test_the_archive_job_refuses_a_repository_that_is_not_private_before_it_pulls():
+    steps = [line.strip() for line in job("archive") if line.strip().startswith("- name:")]
+    script = "\n".join(job("archive"))
+    refusal = script.index('if [ "$private" != "true" ]; then')
+    assert steps[0] == "- name: Can the archive be written, and is this month already there"
+    assert refusal < script.index("- name: Checkout") < script.index("python -m pipeline archive")
+    assert "exit 1" in script[refusal:script.index("tag=")]

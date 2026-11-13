@@ -153,7 +153,7 @@
     "group_by": ["registration_year", "registration_month", "import_status", "vehicle_type", "motive_power", "make"]
   },
   "register_archive": {
-    "$comment": "The whole register for each snapshot month, one row per vehicle, kept as one Parquet file in a private store outside git (pipeline/archive.py). It holds every field of pipeline/expected_schema.json except never_pulled: the three vehicle identifiers and the owner's postcode, which are never asked for.",
+    "$comment": "The whole register for each snapshot month, one row per vehicle, kept as one Parquet file in a private store outside git (pipeline/archive.py). It holds every field of pipeline/expected_schema.json except never_pulled: the three vehicle identifiers and the owner's postcode, which are never asked for. The row id is pulled for paging and left out of the file.",
     "never_pulled": ["VIN11", "CHASSIS7", "ENGINE_NUMBER", "POSTCODE"],
     "attribution": "Motor Vehicle Register open data, NZ Transport Agency Waka Kotahi, licensed CC BY 4.0. One row per vehicle on the register at the snapshot date."
   },

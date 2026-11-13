@@ -161,8 +161,8 @@ jobs:
       ARCHIVE_REPO: ${{ vars.ARCHIVE_REPO || format('{0}/nzta-register-archive', github.repository_owner) }}
       SNAPSHOT: ${{ needs.build.outputs.snapshot }}
     steps:
-      # First, before anything is pulled: an expired or missing token must fail here and say so, and a month already
-      # archived must stop here.
+      # First, before anything is pulled: an expired or missing token must fail here and say so, the repository must
+      # be private, because the file holds one row per vehicle, and a month already archived must stop here.
       - name: Can the archive be written, and is this month already there
         id: store
         env:
@@ -172,15 +172,21 @@ jobs:
             echo "Not archived: the secret ARCHIVE_REPO_TOKEN is not set in the environment 'archive'." | tee -a "$GITHUB_STEP_SUMMARY" >&2
             exit 1
           fi
-          if ! gh api "repos/$ARCHIVE_REPO" --jq .full_name > /dev/null; then
+          if ! private=$(gh api "repos/$ARCHIVE_REPO" --jq .private); then
             echo "Not archived: the token in ARCHIVE_REPO_TOKEN cannot reach $ARCHIVE_REPO. It has expired, was revoked, or is not allowed that repository. Make a new one, store it in the environment 'archive', then start this workflow by hand with 'archive' ticked." | tee -a "$GITHUB_STEP_SUMMARY" >&2
+            exit 1
+          fi
+          if [ "$private" != "true" ]; then
+            echo "Not archived: $ARCHIVE_REPO is not a private repository. The file holds one row per vehicle and must not be published." | tee -a "$GITHUB_STEP_SUMMARY" >&2
             exit 1
           fi
           tag="snapshot-$SNAPSHOT"
           file="mvr-$SNAPSHOT.parquet"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "file=$file" >> "$GITHUB_OUTPUT"
-          if gh release view "$tag" --repo "$ARCHIVE_REPO" --json assets --jq '.assets[].name' > "$RUNNER_TEMP/assets" 2> /dev/null; then
+          # Only a file that finished uploading counts. One left half-uploaded by a failed run is not the archive, and
+          # the upload below then fails on its name until it is deleted by hand, which is loud.
+          if gh release view "$tag" --repo "$ARCHIVE_REPO" --json assets --jq '.assets[] | select(.state == "uploaded" and .size > 0) | .name' > "$RUNNER_TEMP/assets" 2> /dev/null; then
             echo "release=true" >> "$GITHUB_OUTPUT"
             if grep -qxF "$file" "$RUNNER_TEMP/assets"; then
               echo "archived=true" >> "$GITHUB_OUTPUT"
