@@ -192,8 +192,12 @@ A list that is empty or not distinct dimension ids, or names a dimension the
 dataset cannot derive (or `month` or `n`), aborts the run. A listed dimension
 that is not live this run is left out of the table, with a warning, and listed
 in the manifest's `facts.not_live`; if none is live, the table holds the month
-totals alone. A table whose counts do not total the
-dataset's rows aborts the run.
+totals alone.
+
+The table's total is checked against the vehicles themselves: the counts are
+read back from the written `n.parquet` and must equal the dataset's vehicles
+counted before any reference lookup is joined on, or the run aborts. A
+lookup that matched a vehicle twice, or lost one, is caught here.
 
 ## manifest.json
 
@@ -408,7 +412,8 @@ Fact table:
 
 - A dataset's `facts` is not a non-empty list of distinct dimension ids, or names a
   dimension the dataset cannot derive.
-- The table's counts do not total the dataset's rows.
+- The table's counts, read back from `n.parquet`, do not total the dataset's
+  vehicles as counted before any reference lookup is joined on.
 
 Events:
 

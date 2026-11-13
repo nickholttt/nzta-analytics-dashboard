@@ -50,11 +50,11 @@ def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, 
     return written, waiting
 
 
-def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, rows: int, staging,
+def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, staging,
                      aborts: list[str], warnings: list[str]) -> dict | None:
     """The fact table config/pipeline.json names for this dataset. A list that is not distinct dimension ids, or names a
     dimension the dataset cannot derive, aborts; a dimension not live this run waits, with a warning, and the table is
-    written without it. Its counts must total the dataset's rows, or the run aborts."""
+    written without it. Its counts must total the dataset's vehicles, or the run aborts."""
     configured = dataset_cfg.get("facts")
     if configured is None:
         return None
@@ -76,8 +76,11 @@ def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: 
         warnings.append(f"{dataset}: the fact table is written without {dim_id}, which is not live")
     columns = [by_id[d] for d in configured if d in by_id]
     fact_rows, total = outputs.write_facts(con, columns, ds, staging / FACTS_DIR / dataset)
-    if total != rows:
-        aborts.append(f"{dataset}: the fact table counts {total:,} vehicles, but the dataset has {rows:,}")
+    # Counted from the vehicles themselves, before any lookup is joined on. The table is grouped from dims, so a count
+    # of dims would agree with it even where a join had repeated or lost a vehicle.
+    vehicles = con.execute(f"SELECT count(*) FROM rows WHERE {ds}").fetchone()[0]
+    if total != vehicles:
+        aborts.append(f"{dataset}: the fact table counts {total:,} vehicles, but the dataset has {vehicles:,}")
     return {"rows": fact_rows, "dimensions": [d.dim_id for d in columns], "not_live": waiting}
 
 
@@ -167,7 +170,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
         live_pairs, not_live_pairs = write_pairs(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
 
         counts = metrics.month_counts(con, ds)
-        facts = write_fact_table(con, cfg, dataset, dataset_cfg, live, ds, sum(counts.values()), staging, aborts, warnings)
+        facts = write_fact_table(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
         month_counts[dataset] = counts
         live_dimensions[dataset] = [d.dim_id for d in live]
         if counts.get(snapshot_key, 0) == 0:

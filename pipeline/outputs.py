@@ -46,8 +46,10 @@ def write_facts(con, derived: list, ds: str, directory: Path) -> tuple[int, int]
             COPY (SELECT {quote(name)} FROM facts ORDER BY rid)
             TO {lit((directory / f"{name}.parquet").as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)
         """)
-    rows, total = con.execute(f"SELECT count(*), coalesce(sum({count}), 0) FROM facts").fetchone()
     con.execute("DROP TABLE facts")
+    # Read back from the file the site downloads, so the caller's check is of what is published, not of the query.
+    written = lit((directory / f"{count}.parquet").as_posix())
+    rows, total = con.execute(f"SELECT count(*), coalesce(sum({count}), 0) FROM read_parquet({written})").fetchone()
     return rows, total
 
 
