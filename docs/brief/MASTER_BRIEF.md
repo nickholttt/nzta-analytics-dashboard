@@ -1,7 +1,9 @@
 # Master brief: from prototype to the go-to site
 
-> **Repo:** `nickholttt/nzta-analytics-dashboard`. Aligned to `claude/question-builder` at `06d727e`
-> (STATE and CHECKPOINT dated 2026-10-22) and `main` at `e3246bb`.
+> **Repo:** `nickholttt/nzta-analytics-dashboard`. Aligned to `claude/next-stage-brief` at `cc6a829`
+> (STATE and CHECKPOINT dated 2026-11-13) and `main` at `e3246bb`.
+> **Stage 0 closed on 2026-11-13.** Its report is `docs/brief/STAGE_0_REPORT.md`; this brief is
+> corrected with what it found.
 > **Location:** `docs/brief/MASTER_BRIEF.md`. CLAUDE.md names this file (D-062).
 > **This replaces every earlier draft of this brief.**
 > **Status:** a living document. The user updates §4, §5 and §12 as stages close.
@@ -55,14 +57,25 @@ Both work on a phone and on a desktop.
 - **The register changes once a month,** so every answer can be kept and reused until the next
   snapshot. The same question asked twice is answered once.
 
-**Where others stop:**
+**Where others stop** (read in Stage 0; StatsHub's tool sits behind an email gate, so its
+features are as its page describes them):
 
 | Place | What it gives | What it leaves out |
 |---|---|---|
-| MTA vstat | Latest-month counts, year-on-year change, make, model, fuel, buyer type; month/quarter and month/YTD toggles | No filtering, search, comparison, export or shareable view; no region; definitions not stated on the page as read on 2026-11-13 |
-| NZTA's own dashboard | Five years of first registrations, exportable, CC BY 4.0 | An analyst's tool; not built for phones; filters, not answers |
+| MTA vstat | Latest-month counts against a year ago; make, model, fuel, buyer type, age at import; heavy vehicles and motorcycles; definitions on its About page. Had October on 1 November | No region, search, export or shareable view; no picking of brands; its commentary is hand-written |
+| Autotalk StatsHub (Beta) | First registrations since 2000; any make or model by region, buyer, fuel and body type; questions in plain words; rankings and movers; CSV; its definitions and source stated. Had October on 1 November | An email gate; "SUVs and wagons" as one value; no fleet or survival; no events; completeness stated for one year only |
+| NZTA's registrations dashboard | First registrations for five years, exportable, CC BY 4.0. Both sites above take true registrations and buyer type from it | An analyst's tool; not built for phones; filters, not answers |
 | MIA DataHub | The industry's own figures | Not open |
-| Autotalk StatsHub | Not verified | The lead confirms in Stage 0 |
+
+**So "ask anything" is not the edge by itself.** StatsHub already covers much of that ground.
+What neither site has, and this one will:
+
+- no gate, and the method and code in the open;
+- the fleet: how old it is and how long vehicles last (starter question 10);
+- every field of the register, with what each means and how fields relate;
+- events placed beside the charts;
+- saved questions that update themselves, and links pinned to a snapshot for quoting;
+- every sentence from neutral templates, and completeness stated beside every older figure.
 
 **Six measures.** A stage is not finished until the measures it touches are reported.
 
@@ -71,7 +84,7 @@ Both work on a phone and on a desktop.
 | **Bends** | The acceptance question in §2 and any like it can be asked, drawn, shared and downloaded without leaving the site | Partly: 13 fields, unmerged |
 | **Stays current** | A saved question redraws on the newest month with no work from the visitor | Links redraw; nothing is deployed |
 | **Answerable** | 4 of 5 people who do not work with data answer each starter question (§2) unaided, in under a minute, and say correctly what the figure counts | Not tested |
-| **Fresh** | A new month is live within 2 days of NZTA's refresh | Latest snapshot is September while vstat shows October |
+| **Fresh** | A new month is live within 2 days of NZTA's refresh | Latest snapshot is September. vstat and StatsHub had October on 1 November; NZTA's open service refreshed on 9 November |
 | **Fast** | First answer in under 3 s on the phone profile, on the stage and in the workbench (the user confirms the number) | 6.1 s first chart (STATE known issue 1) |
 | **Traceable and neutral** | Every figure one step from its definition, source and snapshot; every sentence from a template; the same rules for every brand | Definitions yes; `/caveats` and `/method` are hand-written |
 
@@ -103,7 +116,7 @@ whether the site can answer it today.
 | 4 | What share are electric, plug-in and hybrid vehicles now, and how has that changed? | Yes, once #28 lands |
 | 5 | Which models lead? | No: `model-leaderboard` is blocked |
 | 6 | Are SUVs taking over from cars? | No: SUVs count as cars (D-003) |
-| 7 | Who is buying: households, businesses, rental fleets? | No: `VEHICLE_USAGE` is unbound |
+| 7 | Who is buying: households, businesses, rental fleets? | No: unbound, but the register holds it for every vehicle (`docs/DATA_MAP.md`) |
 | 8 | Where do used imports come from, and how old are they? | Partly: waits on pair slices (#27) |
 | 9 | What is happening in my region? | Partly: Build only, by owner's address |
 | 10 | How old is the fleet, and how long do vehicles last? | No: stock and survival are not built |
@@ -131,18 +144,21 @@ CLAUDE.md §The goal has the nine rules. What they mean in practice:
 
 ## 4. Where the project stands
 
-From STATE and CHECKPOINT (2026-10-22), `origin/main`, and a read of the branches on 2026-11-13.
-The lead confirms each item in Stage 0.
+From STATE, CHECKPOINT and the Stage 0 report (2026-11-13).
 
-- **The gate.** The 8 October run passed. `origin/main` has **no 2026-10 snapshot commit**, so the
-  8 November run skipped or failed. vstat shows October 2026 figures, which suggests NZTA's October
-  data is out. The freeze holds until this is resolved.
-- **Open pull requests: 19** (#17 to #35; #1 to #16 merged on 2026-10-21).
+- **The gate.** Both scheduled runs completed clean and unattended. The 8 November run skipped,
+  as designed, because NZTA had not refreshed; NZTA refreshed on 9 November. **October 2026 is
+  unbuilt**, and is lost as a snapshot if NZTA's December refresh (expected between the 3rd and
+  the 12th) comes first. Whether the freeze lifts is the user's to say.
+- **Open pull requests: 20** (#17 to #36; #1 to #16 merged on 2026-10-21).
   - UI stack into `ui/explore`: #17 to #25 and #30 to #34 (14).
   - Pipeline stack into `main`: #26 to #29 and #35 (5).
-  - `claude/fact-table`, `claude/look-and-feel` and `claude/question-builder` have no pull request
-    recorded in STATE.
+  - #36: this brief, D-062 and Stage 0, docs only.
+  - `claude/fact-table` and `claude/question-builder` have no pull request.
   - Every one is unreviewed by the user.
+- **Proposed and waiting on the user:** D-063 (keep each month's whole snapshot as one private
+  file), D-064 (run daily, build each month once, fail when a month is missed), D-065 (Stats NZ's
+  series now).
 - **Nothing is deployed.**
 - **Artifacts expire.** `public-data-2026-08` on **2026-12-10**; `public-data-2026-09` on 2027-01-06.
 - **The workbench today.** Build (D-060, D-061) answers questions over a fact table of 13
@@ -153,7 +169,12 @@ The lead confirms each item in Stage 0.
 - **Fields.** 17 of 40 source fields are bound. The fact table carries counts only. No price
   field exists.
 - **Archive grain.** `data/snapshots/` keeps counts by registration month, import status, vehicle
-  type, motive power and make. Nothing finer can be recovered for a month once it has passed.
+  type, motive power and make. A month's vehicles stay in later snapshots, less those removed. What
+  cannot be rebuilt is the register as it stood that day, at anything finer, and each month as
+  first observed.
+- **A month read days after it ends is a sound count.** August 2026 lost 0.16% in its first month
+  and matched Stats NZ's cars to within 0.04% (one month's evidence).
+- **The data map's first pass exists** (`docs/DATA_MAP.md`, unapproved).
 - **Enforcement gaps.** Invariant 1 is scanned in `pipeline/*.py` only. `/caveats` and `/method`
   state figures and brand names by hand.
 
@@ -208,6 +229,7 @@ answer, and what let a curious visitor find the next question.
 | **Rolls up to** | model → make → parent group → owner country; district → region; body type → vehicle type | Offers drilling up and down; stops a field being crossed with its own parent |
 | **Derived from** | segment from vehicle type, body type and gross mass | Says so on the definition line |
 | **Recorded only for** | power and model code for NZ-new vehicles | Narrows the question to where the field exists, and says so |
+| **Follows a vehicle over time** | make, model, year, first-registration month and colour together | Kept out of anything public at row level. It is why the monthly archive is private (D-063) and why owner fields are public only above a minimum count |
 | **Moves together with** | colour and vehicle weight | Measured, not asserted: the strength of association between every pair of public fields, computed each build and published. The workbench shows it as a neutral note and suggests the field to hold fixed. It never says why two fields move together. |
 
 **Order of work:** all 40 fields are profiled and classified first (research, read-only). They
@@ -258,24 +280,27 @@ changes AGENTS.md hard rule 1, so it needs the user's explicit approval before a
 ## 7. True registrations (the user's direction, 2026-11-13)
 
 Use what is available now; let the detail improve as our own archive grows. Three sources, three
-jobs, each labelled for what it is and never mixed on one chart:
+jobs, each labelled for what it is and never mixed on one chart. A fourth is being looked at.
 
 | Source | What it is | Detail | Covers | Job |
 |---|---|---|---|---|
-| **Stats NZ transport series** | True monthly first registrations, new and ex-overseas | Vehicle type and new/used only | January 1961 onward | The headline count; the long-run volume chart; the yardstick for the other two |
+| **Stats NZ transport series** (D-065) | True monthly first registrations | Vehicle type. New and used are split for cars only | Cars total from January 1961; the new and used split from July 1975. About two weeks behind NZTA's service | The long-run volume chart; the yardstick for the other two |
 | **Registrations as first observed** | Each snapshot's newest months, archived when first seen | Every field | August 2026 onward, growing monthly | The detailed series, going forward |
 | **Survivors** (`registrations_surviving`) | Vehicles first registered in a month and still registered | Every field | All history | Detail for the past, with its completeness shown |
+| **NZTA's registrations dashboard** (not yet read) | First registrations and buyer type, as vstat and StatsHub use | To be read from one hand export | The last five years; out on the 1st of the month | Possibly the detailed series for recent years, and a week's gain on freshness. `docs/DATA_SOURCES.md` §D rules it out today; the user decides after the export is read |
 
-- **Completeness is shown, never corrected.** For each month, vehicle type and new/used split,
-  survivors ÷ the Stats NZ count says how much of what was registered we can still see. It is
+- **The newest month's headline comes from the register as first observed.** Stats NZ has no
+  figure for it for about two weeks, and the first observation is sound (§4).
+- **Completeness is shown, never corrected.** Survivors ÷ the Stats NZ count says how much of what
+  was registered we can still see. It can be shown for cars, new and used, from July 1975. For
+  other vehicle types it waits until Stats NZ's classes are lined up with NZTA's. It is
   published beside older figures. No brand or model figure is ever scaled up by it: that would be
   an estimate presented as data (`METRICS.md`, estimation rules).
 - **Stats NZ is not a stopgap.** It stays the source of true totals. If it later arrives through
   an API, only the fetch changes. What improves over time is detail, from our own archive.
 - **How it is fetched for now:** a maintainer script run by hand from an Infoshare export, as
-  `scripts/region-boundaries.mjs` is. This supersedes the 2026-10-22 choice to wait for the Data
-  Explorer; record it as a decision by the user. The lead confirms Stats NZ's licence terms and
-  the series' latest month before building.
+  `scripts/region-boundaries.mjs` is (D-065). The licence is CC BY 4.0, and every chart and CSV
+  that uses the series carries Stats NZ's statement beside NZTA's attribution.
 - **Headline views default to where the data reads as registrations**, and say so in one line.
 
 ---
@@ -308,7 +333,7 @@ jobs, each labelled for what it is and never mixed on one chart:
 Six stages. Each ends in a stop-and-report (AGENTS.md hard rule 8). Frozen-path work follows D-043
 until the gate passes. The user merges; the lead never merges.
 
-### Stage 0: land and protect (days, not weeks)
+### Stage 0: land and protect (closed 2026-11-13; kept for the record)
 
 Read-only, apart from the docs commit in §0.
 
@@ -340,8 +365,11 @@ Stats NZ), and the user has the artifact commands.
 
 ### Stage 1: ship what exists
 
-The point is a public site. Nothing new is built except items 3 and 4.
+The point is a public site. Nothing new is built except items 3 to 6.
 
+0. **Before anything else, while NZTA still holds October:** the user's time-bound decisions in
+   the Stage 0 report (build October; the gate; the archive; the hand pull of October; where the
+   August pull is copied).
 1. **Merge support.** Follow CHECKPOINT items 2 to 4. Open pull requests for `claude/fact-table`
    and `claude/question-builder`. For each pull request give the user five lines: what it does,
    what to look at, what could go wrong.
@@ -352,11 +380,16 @@ The point is a public site. Nothing new is built except items 3 and 4.
    - **feedback and corrections** (GitHub issues is enough), with a public corrections log;
    - **"Why these figures differ from others":** registrations are not sales; survivors are not
      registrations; MIA counts differently.
-4. **The Stats NZ series** (§7; CLAUDE.md build step 1b): the headline count and the completeness
-   figures.
-5. **Visitor tests** (`docs/playbooks/visitor-test.md`), with §2's starter questions and the
+4. **The Stats NZ series** (§7; D-065; CLAUDE.md build step 1b): the long-run volume and the
+   completeness figures for cars.
+5. **The daily run (D-064), then the archive (D-063)**, if the user accepts them. Frozen paths,
+   built under D-043.
+6. **Read one month of NZTA's registrations dashboard** from the user's hand export: its fields,
+   its history, its terms, and how its counts compare with the register as first observed.
+   Propose whether it becomes a source.
+7. **Visitor tests** (`docs/playbooks/visitor-test.md`), with §2's starter questions and the
    acceptance question.
-6. **First load** measured on the deployed site, and the cheapest fix made.
+8. **First load** measured on the deployed site, and the cheapest fix made.
 
 **Done when:** a public URL serves Explore and Build from a monthly run's cube, and the measures
 have their first real numbers.
@@ -488,10 +521,12 @@ come from Stats NZ now (§7).
 
 Still open:
 
+0. **The ten decisions in `docs/brief/STAGE_0_REPORT.md`.** The first five are tied to NZTA's
+   December refresh.
 1. **A sixth shape, `matrix`** (§6): approve it, or keep to five shapes and use small charts and
    tables for crossed fields?
 2. **Running cost:** what monthly cost is acceptable for the query service? Stage 2 reports the
    real figures.
-3. **Pull requests:** is a limit of five waiting at once acceptable?
+3. **Pull requests:** is a limit of five waiting at once acceptable? Twenty are waiting.
 4. **About page:** what should it say about you and any industry connection?
 5. **Name and domain.**
