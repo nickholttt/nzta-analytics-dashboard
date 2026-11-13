@@ -957,3 +957,44 @@ New entries use this template:
     misstated, a label that could disagree with the window, a "Show by" switch leaving no period checked, the
     bare dash, and stale docs (`CLAUDE.md`'s "no league preset is live", STATE known issue 1). All addressed.
 - Status: decided by Claude (unreviewed)
+
+## D-046 2026-10-21 — Reserved values keep their own line on a capped mix chart (supersedes the fold)
+- Agent: claude, CHECKPOINT queue item 1 (STATE known issue 5)
+- Basis: this branch (`claude/reserved-values`); `src/components/MixChart.tsx`; `config/presets.json`
+  `builder.top_n`; the 2026-09 cube measured with DuckDB; headless screenshots on 2026-10-21.
+- Context: on a mix chart with `top_n`, `MixChart` drew the kept values and "All other", and "All other" was
+  the month's total minus the kept values, so "Not recorded" and "No reference match" were folded into it.
+  Without `top_n` the same tokens already drew as their own context-grey lines. The fold made a gap in the
+  record read as a market of small groups: D-044 left country where built uncapped (46 rows in its key)
+  for that reason, and `brand-share` on all time showed unmatched makes as "All other".
+- Options considered:
+  - (1) Keep the fold and say so in a note: the line still shows the wrong thing.
+  - (2) Draw each reserved value with vehicles in the drawn window as its own line, as uncapped charts do,
+    and make "All other" what is left after the kept and reserved values: chosen. One rule on both kinds of
+    chart.
+  - (3) A distinct style for reserved lines (dashed, say): a new visual rule on every mix chart; not needed
+    to fix the fold, and reviewable on its own.
+- Decision: (2), for the tokens that mark what the record could not place (`__UNDEFINED__` "Not recorded",
+  `__UNMAPPED__` "No reference match"). The pipeline's beyond-the-cap token (`__OTHER__`, a model past the
+  cube's model cap) is a group too small to name, so it stays in "All other". Reserved lines take the context grey and no direct label, as on uncapped charts; the key
+  lists them by their figure, with "All other" still pinned last. The builder caps country where built at 10.
+- Consequences:
+  - Measured on the 2026-09 cube, rolling 12-month shares over windows of 200+ vehicles: "All other" peaks
+    at 74.7% (1959-07) on brand, top 10, where it was 92.4% (1957-08); on manufacturer group, top 14, 68.2%
+    (1957-09), was 87.9% (1952-04). "No reference match" peaks at 30.8% (1951-07) on both. On country where
+    built capped at 10, "All other" would have peaked at 99.9% folded; it peaks at 31.6% (1988-01), and "Not
+    recorded" at 99.8% (1977-01).
+  - Headless, 320px and 1280px, every mix chart on `/`, `brand-share` in all four brand and group views, and
+    the builder's brand, group and country sentences: the SVG of every uncapped chart is identical before and
+    after (brand owner's country, powertrain, new and used, segment; concentration is a trend). Brand and
+    manufacturer group gain a "No reference match" key row (0.1% over the last 12 months); manufacturer group's "All
+    other" goes from 11.7% to 11.6%. Country where built's key goes from 46 rows to 12 ("All other" 3.2%).
+    No console errors, no sideways scroll.
+  - A reserved line shares the context grey with series beyond the eight palette colours (on brand, Subaru
+    and BYD), so on the plot it is told apart by the key, as on uncapped charts already.
+  - An independent review found no correctness bug (no negative remainder: in every month of the three slices
+    the denominator equals the sum of n). It flagged `__OTHER__` (now kept in the remainder, above) and that on
+    a period shorter than the key's 12-month windows a reserved value with vehicles only outside the drawn
+    window is taken out of "All other" without a key row of its own; kept values already behave this way and
+    no live chart has such a period.
+- Status: decided by Claude (unreviewed). Supersedes the fold described in D-044's consequences.

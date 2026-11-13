@@ -51,6 +51,10 @@ const MARGIN_LEFT = 44;
 const MARGIN_BOTTOM = 28;
 
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
+// The pipeline's token for values beyond its own cap (docs/CUBE_SCHEMA.md): a group too small to name, so
+// on a capped chart it belongs in the remainder, unlike the tokens for what the record could not place.
+const BEYOND_CAP = "__OTHER__";
+const ownLine = (v: string) => isReserved(v) && v !== BEYOND_CAP;
 const ROLLING = "rolling_12m";
 
 type Point = { month: string; date: Date; series: string; share?: number; suppressed: boolean; denominator?: number };
@@ -109,7 +113,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     // top_n ranks by vehicles over the trailing window, not over the whole period. A period total
     // ranks the incumbents of the last decade and buries anything that arrived inside it, so a wave
     // of new entrants lands in the remainder where no reader can see it. Reserved tokens never take
-    // a place and fall into the remainder.
+    // a place.
     const rankWin = trailingWindow(win.to, first);
     const totals = new Map<string, number>();
     for (const r of rows) if (r.month >= rankWin.from && r.month <= rankWin.to) totals.set(r.value, (totals.get(r.value) ?? 0) + r.n);
@@ -134,16 +138,21 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     // Without top_n there is no remainder, so every group with vehicles behind the drawn window needs
     // its own line. Drawing only the trailing ranking would drop a group that stopped years ago from
     // the years it was there, and the lines would add up to less than the total.
+    // With top_n, a token for what the record could not place keeps its own line too, as it does without
+    // one: it is not a group too small to name. Folded into the remainder, an era with no country recorded
+    // read as "All other" near 100% (D-046).
     const rankedSet = new Set(ranked);
     const unranked = preset.top_n ? [] : [...drawn].filter((v) => !rankedSet.has(v)).sort();
-    const series = preset.top_n ? [...kept, ALL_OTHER] : [...ranked, ...unranked];
+    const reservedDrawn = preset.top_n ? [...drawn].filter(ownLine).sort() : [];
+    const series = preset.top_n ? [...kept, ...reservedDrawn, ALL_OTHER] : [...ranked, ...unranked];
+    const named = [...kept, ...new Set(rows.map((r) => r.value).filter(ownLine))];
 
     const denominatorFor = (month: string) => denominators.get(month);
     const nFor = (month: string, s: string) => {
       const den = denominators.get(month);
       if (den === undefined) return undefined;
       if (s !== ALL_OTHER) return cell.get(`${month}|${s}`) ?? 0;
-      return den - kept.reduce((sum, k) => sum + (cell.get(`${month}|${k}`) ?? 0), 0);
+      return den - named.reduce((sum, k) => sum + (cell.get(`${month}|${k}`) ?? 0), 0);
     };
 
     // Which series take one of the palette's colours. A mix chart tells two stories, what matters now and
