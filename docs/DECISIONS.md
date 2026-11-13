@@ -1818,3 +1818,38 @@ New entries use this template:
   - D-063's whole-snapshot file leaves out `POSTCODE` for good, not "until the user decides".
   - The playbooks and the two skills that still describe the freeze are out of date (STATE).
 - Status: accepted, decided by user
+
+## D-067 2026-11-13 — The archive's repository, token and secret: the names the setup steps use
+- Agent: claude, for D-063's option (i) as the user accepted it in D-066.
+- Basis: this session. GitHub's pages were not seen; the permission a release needs, the need for one commit and who
+  can download a public repository's artifacts are from GitHub's documentation as claude knows it, not re-read
+  (inferred — confirm when D-063 is built).
+- Context: the user asked for the setup steps before D-063 is built, so the names have to be fixed now for the build
+  to match them.
+- Options considered:
+  1. A fine-grained personal access token limited to the one private repository, with Contents: read and write.
+     Chosen: the narrowest token that can create a release there.
+  2. A classic token with `repo` scope. Not chosen: it can write to every repository the user owns.
+  3. A GitHub App. Not chosen: more to set up and maintain than one token for one step.
+  4. No token: the run uploads the file as an artifact and the user moves it. Not chosen: an artifact of a public
+     repository can be downloaded by anyone signed in to GitHub, which is the publication D-063 avoids.
+- Decision:
+  - The private repository is `nickholttt/nzta-register-archive`, created with a README so that a release has a
+    commit to attach to.
+  - The token is fine-grained, named `nzta-archive-write`, limited to that repository, Contents: read and write,
+    expiring 12 November 2027.
+  - The monthly run reads it as the secret `ARCHIVE_REPO_TOKEN`. Whether that is an environment secret (an
+    environment `archive` that only `main` can use; recommended) or a repository secret is the user's choice at
+    step 3 of the setup, and D-063's workflow step is built to match.
+  - The archive file is never uploaded as an artifact of this repository.
+- Consequences:
+  - The archive step is to be built so that an expired token fails it and the run says why (invariant 5). Whether
+    a failed archive step also holds back the month's commit is settled when D-063 is built.
+  - If the secret is an environment secret, only a job that names the environment can read it, and GitHub records a
+    deployment each time such a job runs (GitHub's "Managing environments" page, read by the reviewer on
+    2026-11-13). So the archive step belongs in a job of its own that runs only when a month is built: otherwise the
+    daily run (D-064) would record a deployment a day, and a forced run from a branch other than `main` could not
+    start.
+  - The release's tag and the file's name are chosen when D-063 is built.
+  - Reversing it: delete the secret and the token. Renaming anything is a one-line change before D-063 merges.
+- Status: decided by Claude (unreviewed)
