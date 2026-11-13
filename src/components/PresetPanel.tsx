@@ -5,7 +5,7 @@ import { loadEvents, loadManifest, loadSlice } from "../lib/data";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { resolvePreset } from "../lib/resolve";
+import { presetView, resolvePreset } from "../lib/resolve";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { LeagueChart } from "./LeagueChart";
@@ -28,7 +28,11 @@ const TIME_PERIODS = [
 ];
 
 // lead: one of the charts that carries the page. Larger heading, taller plot; nothing else differs.
-export default function PresetPanel({ presetId, lead = false }: { presetId: string; lead?: boolean }) {
+// audience: "public" is what a visitor reads on the Explore page: the chart, its controls, its notes and
+// any honest limit on what it shows. "internal" (/status) adds the build diagnostics: status badges,
+// what blocks the preset, drifting notes and the preset's spec line (D-041).
+export default function PresetPanel({ presetId, lead = false, audience = "public" }: { presetId: string; lead?: boolean; audience?: "public" | "internal" }) {
+  const internal = audience === "internal";
   const preset = findPreset(presetId);
   const defaultGranularityId = preset?.granularity_options?.[0]?.id ?? null;
   const [activeGranularityId, setActiveGranularityId] = useState<string | null>(() => {
@@ -77,21 +81,7 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
     return preset.granularity_options.find((g) => g.id === activeGranularityId) ?? preset.granularity_options[0];
   }, [preset, activeGranularityId]);
 
-  const effectivePreset = useMemo(() => {
-    if (!preset) return null;
-    const base = activeGranularity
-      ? {
-          ...preset,
-          dimension: activeGranularity.dimension,
-          top_n: activeGranularity.top_n ?? preset.top_n,
-          note: activeGranularity.note ?? preset.note,
-        }
-      : preset;
-    return {
-      ...base,
-      period: activePeriod,
-    };
-  }, [preset, activeGranularity, activePeriod]);
+  const effectivePreset = useMemo(() => (preset ? presetView(preset, activeGranularityId, activePeriod) : null), [preset, activeGranularityId, activePeriod]);
 
   useEffect(() => {
     loadManifest().then(setManifest, (e) => setError(String(e)));
@@ -114,7 +104,8 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
     return (
       <section className={panelClass}>
         <div className="callout blocked">
-          <span className="callout-label">Missing preset</span>No preset "{presetId}" in config/presets.json.
+          <span className="callout-label">Missing preset</span>
+          {internal ? `No preset "${presetId}" in config/presets.json.` : "This chart is not available."}
         </div>
       </section>
     );
@@ -123,7 +114,7 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
       <section className={panelClass}>
         <div className="callout blocked">
           <span className="callout-label">Could not load</span>
-          {error}
+          {internal ? error : "This chart's data did not load. Reload the page to try again."}
         </div>
       </section>
     );
@@ -161,7 +152,14 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
     } else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
-  addNote("dimension", dimension?.note, dimension?.note_template);
+  if (!internal && effectivePreset.public_dimension_note) addNote("dimension", effectivePreset.public_dimension_note);
+  else addNote("dimension", dimension?.note, dimension?.note_template);
+  // A visitor is told what the chart includes in plain words; the reason, in config terms, is internal.
+  const publicLimits = notApplied.length
+    ? (effectivePreset.filters ?? []).flatMap((f) =>
+        Object.values(f).map((v) => `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`),
+      )
+    : [];
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   let chart = null;
@@ -216,8 +214,8 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
             #
           </a>
           <span>{preset.question}</span>
-          {copied ? <span className="badge copied">Copied link!</span> : null}
-          {status !== "live" ? (
+          {copied ? <span className="badge copied">Link copied</span> : null}
+          {internal && status !== "live" ? (
             <>
               {" "}
               <span className={`badge ${status}`}>{status}</span>
@@ -269,21 +267,21 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
         </div>
       ) : null}
 
-      {statusDisagreement ? (
+      {internal && statusDisagreement ? (
         <div className="callout warning">
           <span className="callout-label">Status out of date</span>
           {statusDisagreement}
         </div>
       ) : null}
 
-      {snapshotsNeeded !== undefined ? (
+      {internal && snapshotsNeeded !== undefined ? (
         <div className="callout scaffold">
           <span className="callout-label">Waiting on snapshots</span>
           Needs {snapshotsNeeded} or more snapshots; this build carries 1 ({manifest.latest_snapshot}). Nothing is drawn until then.
         </div>
       ) : null}
 
-      {blocking.length > 0 ? (
+      {internal && blocking.length > 0 ? (
         <div className={`callout ${preventsRender.length > 0 ? "blocked" : "warning"}`}>
           <span className="callout-label">{preventsRender.length > 0 ? "Cannot be drawn yet" : "Drawn with a gap"}</span>
           <strong>
@@ -298,13 +296,26 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
           ) : null}
         </div>
       ) : null}
-      {notApplied.map((w) => (
-        <div key={w} className="callout warning">
-          <span className="callout-label">Filter not applied</span>
-          {w}
+      {!internal && preventsRender.length > 0 ? (
+        <div className="callout blocked">
+          <span className="callout-label">Not available</span>
+          This view can't be drawn from the data yet. Choose another option above.
         </div>
-      ))}
-      {driftingNotes.map((n) => (
+      ) : null}
+      {internal
+        ? notApplied.map((w) => (
+            <div key={w} className="callout warning">
+              <span className="callout-label">Filter not applied</span>
+              {w}
+            </div>
+          ))
+        : publicLimits.map((w) => (
+            <div key={w} className="callout warning">
+              <span className="callout-label">What this chart includes</span>
+              {w}
+            </div>
+          ))}
+      {(internal ? driftingNotes : []).map((n) => (
         <div key={n} className="callout warning">
           <span className="callout-label">Note will drift</span>
           This preset's note states a figure but is not templated from the build: “{n}”
@@ -314,7 +325,7 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
       {chart}
 
       <ul className="notes">
-        {notes.map((n) => (
+        {notes.filter((n) => internal || n.unresolved.length === 0).map((n) => (
           <li key={n.key}>
             {n.text}
             {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
@@ -340,11 +351,13 @@ export default function PresetPanel({ presetId, lead = false }: { presetId: stri
         <li className="basis">{BASIS_NOTE}</li>
       </ul>
 
-      <p className="spec">
-        {effectivePreset.id} · {shape} · {effectivePreset.dataset ?? "composite"} · {effectivePreset.derived ?? measure?.id ?? effectivePreset.measure}
-        {effectivePreset.dimension ? ` · ${effectivePreset.dimension}` : ""} · {effectivePreset.period ?? "no period"}
-        {effectivePreset.top_n ? ` · top ${effectivePreset.top_n} by trailing vehicles` : ""} · snapshot {manifest.latest_snapshot}
-      </p>
+      {internal ? (
+        <p className="spec">
+          {effectivePreset.id} · {shape} · {effectivePreset.dataset ?? "composite"} · {effectivePreset.derived ?? measure?.id ?? effectivePreset.measure}
+          {effectivePreset.dimension ? ` · ${effectivePreset.dimension}` : ""} · {effectivePreset.period ?? "no period"}
+          {effectivePreset.top_n ? ` · top ${effectivePreset.top_n} by trailing vehicles` : ""} · snapshot {manifest.latest_snapshot}
+        </p>
+      ) : null}
     </section>
   );
 }

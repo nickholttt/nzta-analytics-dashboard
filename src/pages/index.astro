@@ -1,32 +1,17 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PresetPanel from "../components/PresetPanel";
-import PresetTriage from "../components/PresetTriage";
+import { presetGroups } from "../lib/config";
+import { presetView, resolvePreset } from "../lib/resolve";
+import manifest from "../../public/data/manifest.json";
+import type { Manifest } from "../lib/data";
 
-// The Explore page in three tiers (D-020).
-const tiers = [
-  {
-    id: "tier-1",
-    eyebrow: "Tier 1 · The core shifts",
-    title: "Where vehicles come from, what powers them, and whether they arrive new",
-    lead: true,
-    presets: ["brand-owner-origin", "powertrain-mix", "new-vs-used", "used-import-age"],
-  },
-  {
-    id: "tier-2",
-    eyebrow: "Tier 2 · Market structure",
-    title: "Competition, concentration, and vehicle types",
-    lead: false,
-    presets: ["brand-share", "model-leaderboard", "concentration", "segment-mix"],
-  },
-  {
-    id: "tier-3",
-    eyebrow: "Tier 3 · Fleet dynamics and age",
-    title: "The aging curve and vehicle survival",
-    lead: false,
-    presets: ["age-distribution-moving-hole", "cohort-survival"],
-  },
-];
+// The Explore page shows what a visitor can read: each group from config/presets.json, holding only
+// the presets whose opening view draws against this build. A chart that cannot be drawn, and a group left with none,
+// is not shown here; /status lists every preset and what it waits on (D-041).
+const groups = presetGroups
+  .map((g) => ({ ...g, presets: g.presets.filter((p) => resolvePreset(presetView(p), manifest as Manifest).preventsRender.length === 0) }))
+  .filter((g) => g.presets.length > 0);
 ---
 
 <Layout title="Explore" activeNav="explore">
@@ -36,41 +21,26 @@ const tiers = [
       Where the vehicles we register come from, what powers them, and whether they arrived new. Every figure is drawn from the
       NZTA Motor Vehicle Register.
     </p>
-    <nav class="tier-nav" aria-label="Page tiers" style="margin-top: var(--space-4); display: flex; gap: var(--space-4); flex-wrap: wrap;">
-      {tiers.map((t) => (
-        <a href={`#${t.id}`} class="meta" style="color: var(--ink-2); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
-          {t.eyebrow.split("·")[0].trim()}
+    <nav class="tier-nav" aria-label="Sections on this page" style="margin-top: var(--space-4); display: flex; gap: var(--space-4); flex-wrap: wrap;">
+      {groups.map((g) => (
+        <a href={`#${g.id}`} class="meta" style="color: var(--ink-2); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
+          {g.label}
         </a>
       ))}
-      <a href="#triage" class="meta" style="color: var(--ink-3); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
-        Canon triage
-      </a>
     </nav>
   </Fragment>
 
   {
-    tiers.map((t) => (
-      <section id={t.id}>
+    groups.map((g) => (
+      <section id={g.id}>
         <div class="section-head">
-          <p class="eyebrow">{t.eyebrow}</p>
-          <h2 class="section-title">{t.title}</h2>
+          <p class="eyebrow">{g.label}</p>
+          <h2 class="section-title">{g.title}</h2>
         </div>
-        {t.presets.map((id) => (
-          <PresetPanel client:only="react" presetId={id} lead={t.lead} />
+        {g.presets.map((p) => (
+          <PresetPanel client:only="react" presetId={p.id} lead={g.lead ?? false} audience="public" />
         ))}
       </section>
     ))
   }
-  <section id="triage">
-    <div class="section-head">
-      <p class="eyebrow">Canon triage</p>
-      <h2 class="section-title">The canon and what each preset waits on</h2>
-    </div>
-    <p class="panel-definition">
-      Every preset in <code>config/presets.json</code>, its authored status, and what each blocked chart is waiting on.
-      Authored statuses are cross-checked against what this build actually resolves.
-    </p>
-    <PresetTriage client:only="react" />
-  </section>
 </Layout>
-

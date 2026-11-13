@@ -731,3 +731,50 @@ New entries use this template:
   (AGENTS.md hard rule 1). If the user has dropped Cloudflare Pages or TanStack Table, the "(planned)"
   notes become wrong and the lines should go instead.
 - Status: decided by Claude (unreviewed)
+
+## D-041 2026-10-21 — The Explore page is built for visitors now, local only until the 8 November gate; diagnostics move to /status
+- Agent: user (scope and timing), claude (how)
+- Basis: user's answers on 2026-10-21 to CHECKPOINT questions 1–3: "1, a. 2, basic charts, if any. We
+  are essentially trying to remove the restrictions vstat is doing. Let the users have an interactive
+  platform to explore the data while being easy to understand. 3, dev build is local only until 8
+  november. We should have a lot of the work done, if not all before then. Nov 8 is just the
+  verification." This commit; `src/pages/index.astro`, `src/pages/status.astro`,
+  `src/components/PresetPanel.tsx`, `config/presets.json`.
+- Context: `/` mixed what a visitor reads with what an agent checks: a "Canon triage" section, panels
+  for charts that cannot be drawn listing config paths, status badges (`invalid`), preset spec lines,
+  and "note will drift" warnings. AGENTS.md hard rule 8 said not to build ahead of the current step
+  (build step 1).
+- Decision (user): build the visitor-facing Explore page first (option a), then the sentence builder;
+  aim for an interactive platform that is easy to understand and less restricted than VSTATS; dev
+  build local only until 8 November, with most of the work done before then. Hard rule 8 gets an
+  exception for the visitor-facing site.
+- Decision (Claude, unreviewed): one renderer path with an `audience` prop on `PresetPanel`, not a
+  second component, so the public and internal views cannot drift. `/` shows each group from
+  `config/presets.json` with only the presets whose default view draws against this build (decided at
+  build time with `resolvePreset`), and drops a group left with none; the group's `title` and `lead`
+  moved from `index.astro` into the config, so the page layout is data (invariant 2). Public panels
+  leave out status badges, the blocking and drift callouts, the spec line, and a note with a value the
+  build did not supply; a filter that cannot be applied becomes "This chart includes every vehicle, not
+  only “Light passenger”: the data can't be narrowed that way yet." The new internal `/status`
+  (noindex, footer link) carries the triage table and every preset with its full diagnostics. Group
+  labels drop "Tier N ·". "Copied link!" becomes "Link copied" (no exclamation marks in product copy).
+  - After an independent review: the build-time filter and the panel share `presetView` (first
+    granularity option, the preset's own period), so a preset shown on `/` is the view the panel draws;
+    if a visitor's own choice (a URL period, another option) cannot be drawn, public mode says "This
+    view can't be drawn from the data yet. Choose another option above." instead of an empty panel.
+    The powertrain dimension's note names a manifest key; `config/dimensions.json` is frozen, so a
+    preset may carry `public_dimension_note`, which replaces the dimension's note on `/` only
+    (`powertrain-mix` does). After the gate it can move onto the dimension (CHECKPOINT queue). The
+    filter sentence no longer assumes the filter is a vehicle type. Links to `/#triage` and to hidden
+    presets now land at the top of `/`; nothing is deployed, so no outside link carries them.
+- Options considered for "basic charts, if any": show the six charts that draw (five live and
+  `powertrain-mix` with its plain filter notice), or only the five live ones. Six: the filter notice
+  says plainly what the chart includes, and the chart answers its question for all vehicle types.
+- Consequences: visitors see 6 charts in 2 sections; the fleet section returns when one of its charts
+  can draw. Measured headless at 320px and 1280px: 6 panels and 6 charts on `/`, no badges, spec lines,
+  any of "Tier", "preset", "config/", "cube", "invalid", "blocked", "manifest", ".json" or a
+  snake_case identifier in the page text, no sideways scroll; `/status` shows
+  all 10 panels. The site has no dark theme (no `prefers-color-scheme` in `src/styles/site.css`). Open:
+  whether pipeline work (POST_GATE A1–A3) may also be built on branches before 8 November without being
+  merged to `main` (CHECKPOINT question 1).
+- Status: user decided scope and timing; implementation decided by Claude (unreviewed)
