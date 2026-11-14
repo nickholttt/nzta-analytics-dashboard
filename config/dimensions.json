@@ -14,7 +14,7 @@
       "grain": "flow",
       "source": "NZTA registrations dashboard, supplied by hand (supplied.nzta_dashboard in config/pipeline.json)",
       "status": "built only where the supplied store is present",
-      "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard counted them on the day the export was taken, including vehicles since removed from the register.",
+      "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register.",
       "help": "Every vehicle registered in NZ for the first time in a month, including those since scrapped. Never shown on the same chart as registrations still on the road."
     },
     {

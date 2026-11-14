@@ -217,7 +217,7 @@
     }
    },
    "registrations_flow": {
-    "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard counted them on the day the export was taken, including vehicles since removed from the register.",
+    "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register.",
     "not_built": "the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`"
    }
   },
