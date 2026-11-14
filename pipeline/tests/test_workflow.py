@@ -141,3 +141,9 @@ def test_the_public_build_refuses_a_link_to_an_internal_page_however_it_is_quote
     found = subprocess.run([BASH, "--noprofile", "--norc", "-c", f"grep -rlE '{pattern}' ."],
                            cwd=tmp_path, capture_output=True, text=True).stdout.split()
     assert sorted(Path(f).name for f in found) == sorted(cases)
+
+
+def test_a_rerun_of_the_whole_deploy_replaces_the_site_artifact():
+    lines = [line.strip() for line in (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()]
+    step = lines[lines.index("name: site"):]
+    assert "overwrite: true" in step[:6]

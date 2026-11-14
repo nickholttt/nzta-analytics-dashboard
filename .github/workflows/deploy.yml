@@ -139,6 +139,8 @@ jobs:
           name: site
           path: dist
           retention-days: 1
+          # A re-run of the whole workflow builds again under the same run id, and the name is taken by then.
+          overwrite: true
           if-no-files-found: error
 
   upload:
