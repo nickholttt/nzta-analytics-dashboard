@@ -3307,3 +3307,71 @@ New entries use this template:
   - Reversing it: remove the Explore group and `builder.datasets` from `config/presets.json`; the code then offers
     nothing new.
 - Status: decided by Claude (unreviewed)
+
+## D-094 2026-11-15 — `registrations_cars_long_run` is built: Stats NZ's series as a second kind of supplied source, cars from January 1961
+- Agent: claude (the build by a sub-agent on sonnet, to the lead's plan; the definition and this record by the lead)
+- Basis: the work order §5.C; D-065 (accepted by the user in D-066); D-092 (the supplied-source code it builds on);
+  the code and tests on `claude/statsnz-long-run`; the whole suite, 322 passed locally before `main` was merged in;
+  a real run on 2026-11-15: `supply` on the series exported on 14 November 2026, then a dry-run build of the saved
+  October pull with both stores present, exit 0 in 707 s, publishing nothing.
+- Context: D-065 made Stats NZ's Infoshare series the source of true monthly totals before 2021, by a hand export
+  and a maintainer command. The series is a table of counts by month, not rows of vehicles, so it cannot go through
+  the vehicle-row path `registrations_flow` uses. No hand export was on disk; the work order allows read-only access
+  to Infoshare, and a copy was fetched once on 14 November for building and testing.
+- Options considered:
+  1. **How the series enters the build.** (a) A separate script that writes slices directly. (b) A second kind of
+     supplied source, a series, sharing the store, the ledger and their checks with the first kind (counted rows).
+     Chosen (b): the hash check, the temporary-name writes, "not built when the store is absent", "abort if a built
+     dataset's store vanishes" and the per-dataset latest month are one piece of code for both.
+  2. **Which series become a dataset.** (a) All 26. (b) Cars only. Chosen (b): Stats NZ's commercial, bus and
+     motorcycle classes are not lined up with NZTA's vehicle types (D-065). The others are kept in the store.
+  3. **The dataset's breakdowns.** New or ex-overseas, and Stats NZ's seven engine bands, each from July 1975. Not
+     chosen: a fact table crossing the two, because Stats NZ publishes them separately and the cross does not exist.
+  4. **Months before a breakdown starts.** (a) Leave the months out of that breakdown. (b) Carry the month's cars as
+     "not recorded". Chosen (b): the slice then adds up to the month's total, and nothing is guessed.
+  5. **Where the published bands do not add up to the published total** (two months). One car short (May 1976): the
+     car is "not recorded". One car over (July 1975): the bands are shown as published and the manifest names the
+     month; any other month where the bands exceed the total aborts.
+  6. **The names of the two origin values.** The labels `import_status_map.csv` gives new and used imports, so the
+     dataset can be set beside the survivors by new or used. Which series feeds which, and that new cars are the
+     total less the ex-overseas series, is config.
+  7. **Revisions.** A later export that changes a past month aborts unless accepted on the command line, and an
+     accepted revision is recorded in the ledger. The build's month guard for this source allows no change at all
+     without one.
+  8. **Which dimensions apply.** The two new dimensions name the dataset in `applies_to`. The register's
+     dimensions are not edited: a series source carries none of the fields they read, so they are not live for it,
+     with that reason, by the rule D-092 added. Not chosen: an `applies_to` list on every register dimension, which
+     would have to be edited for every dataset added later.
+- Decision: as chosen above. New: `python -m pipeline supply statsnz_tpt <csv>`; `pipeline/series.py`; the derive
+  kind `series`; `data/reference/statsnz_series.csv` (the 26 headers, verbatim, with their group and role); the
+  config block `supplied.statsnz_tpt` (the table's title and reference, the month format, the month from which the
+  totals must add up, the attribution statement); the dataset and its two dimensions; `derive_reads.other_source_kinds`
+  in `config/data_map.json`, so the data map's check skips dimensions that read no register field.
+- Golden contract change, one commit with its reason: the dataset appears in the manifest as not built, with one
+  warning; the survivors dataset's `not_live` gains the two new dimensions ("does not apply to this dataset"). No
+  slice, pair, fact or events file changes, and `payload_bytes` is the same.
+- Measured on the real run:
+  - `supply`: 1.3 s; 789 months, January 1961 to September 2026; 16,432 figures; a store of 36,897 bytes and a ledger
+    of 168,115 bytes. Three warnings, all for months before 1998, where Stats NZ's own totals and parts disagree: the
+    two car months above; five months of the commercial total; four of the commercial total with buses.
+  - The dataset: 9,050,400 cars over 789 months. August 2026: 9,138 new and 8,159 ex-overseas, the figures D-065 read
+    from Infoshare. Not recorded: 971,960 cars over 174 months on new or ex-overseas; 971,961 over 175 months on
+    engine size.
+  - The payload is 3,653,345 bytes, 27,894 more (two slices, 7,770 and 20,124 bytes), against a budget of 8,000,000.
+  - The other two datasets are unchanged: 51 staged files are byte-identical to the build of D-092, and their
+    manifest entries differ only in the two new `not_live` lines.
+  - One new warning: the series ends at September 2026 and the register at October.
+- Consequences:
+  - GitHub's builds mark this dataset not built, as they do `registrations_flow`, until the store question is
+    answered (CHECKPOINT). The user's own hand export replaces the fetched copy; the steps are in
+    `docs/playbooks/supply-statsnz-series.md`, with the clicks that were read from the pages but not made in a
+    browser marked "inferred - confirm".
+  - The site does not show the dataset yet: the long-run chart with Stats NZ's attribution beside NZTA's, and
+    completeness for cars from July 1975, are the next piece of package C. The site builds with the new manifest
+    entry, built or not (checked on this branch).
+  - In July 1975 the engine-band slice's counts add up to one more than the month's total; that month is the one
+    listed exception to the slice rule.
+  - Not checked: whether Stats NZ revises past months; whether its terms say anything about scripted access to
+    Infoshare (the pages read are silent).
+  - Reversing it: remove the dataset's entry from `config/pipeline.json`; the command and the store then feed nothing.
+- Status: decided by Claude (unreviewed)
