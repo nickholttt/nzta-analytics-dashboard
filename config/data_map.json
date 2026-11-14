@@ -1,10 +1,13 @@
 {
-  "$comment": "The data map in machine-readable form: one entry per field of NZTA's register (pipeline/expected_schema.json) and one per column of NZTA's registrations dashboard export (docs/DATA_SOURCES.md section D). docs/DATA_MAP.md is the same map for people, with the measured figures; this file holds no measured figure, because figures go stale and belong to the doc and to a later per-build output. Read by pipeline/tests/test_data_map.py today; planned readers are the chart rule table and Build (which fields are askable and how), the pipeline (which fields may reach a published file) and the method page (each field's definition line). config/dimensions.json stays the list of what Build offers today; a field reaches it only by being bound in config/pipeline.json and given a derive block. Privacy classes are PROPOSED and not approved by the user: until the user approves them, the work order's section 3 is binding (no owner field, postcode or anything derived from VIN11 is published).",
+  "$comment": "The data map in machine-readable form: one entry per field of NZTA's register (pipeline/expected_schema.json) and one per column of NZTA's registrations dashboard export (docs/DATA_SOURCES.md section D). docs/DATA_MAP.md is the same map for people, with the measured figures; this file holds no measured figure, because figures go stale and belong to the doc and to a later per-build output. Read by pipeline/tests/test_data_map.py today; planned readers are the chart rule table and Build (which fields are askable and how), the pipeline (which fields may reach a published file) and the method page (each field's definition line). config/dimensions.json stays the list of what Build offers today; a field reaches it only by being bound in config/pipeline.json and given a derive block. Privacy classes are PROPOSED and not approved by the user: until the user approves them, the work order's section 3 is binding (no owner field, postcode or anything derived from VIN11 is published). Each definition is prose for the method page, not code: where it cannot say what a field holds without naming a value or a source's own words, it names them.",
   "version": 1,
   "approval": {
     "privacy_classes": "proposed",
-    "$comment": "Becomes 'approved' only on the user's word, recorded in a decision record. Until then nothing marked not_published_before_review is published, whatever this file says after the review."
+    "decision": null,
+    "$comment": "Becomes 'approved' only on the user's word, recorded in a decision record named in decision. Until then nothing marked not_published_before_review is published, whatever this file says after the review, and every field in owner_groups stays unpublished."
   },
+  "owner_groups": ["who_has_it"],
+  "$owner_groups_comment": "Groups whose fields describe or locate the owner. The work order's section 3: none of them is published before the user approves the privacy review.",
   "cardinality": {
     "few_max_values": 8,
     "$comment": "A field is 'few' when it has at most this many recorded values in the dataset it serves (the in-scope dataset for register fields; for dashboard columns, the dataset built from the export, whose scope rule is the same), not counting the forms that mean 'not recorded'; otherwise 'many'. Eight because the site's line palette carries eight distinguishable colours (src/lib/theme.ts, D-060). Numbers, identifiers and free text are always 'many'."
@@ -19,7 +22,8 @@
     "nothing_means": ["not_recorded", "none", "not_applicable_or_not_recorded", "depends_on_powertrain"],
     "follows_vehicle": ["alone", "combined", "no"],
     "after_review": ["minimum_count", "area_totals_minimum_count", "derived_fields_only"],
-    "output": ["slice", "pair", "facts"],
+    "output": ["slice", "pair", "facts", "snapshot_archive"],
+    "approval": ["proposed", "approved"],
     "holds_on": ["in_scope_dataset", "by_construction", "as_make_and_model_key", "best_fit_for_straddling_districts"]
   },
   "privacy_classes": {
@@ -56,6 +60,10 @@
     },
     "by_flag": {
       "no_engine": ["engine.field"]
+    },
+    "$by_field_comment": "Fields read whenever a dimension reads the field the key points at. The hybrid classification (pipeline.json hybrid_classification, pipeline/normalise.py) replaces the engine field's motive power using the make, the model and the model registry's conditions, so every dimension that reads motive power reads those too.",
+    "by_field": {
+      "engine.field": ["brand.make_field", "brand.model_field", "brand.model_registry_conditions", "vehicle_year"]
     }
   },
   "moves_together": {
@@ -153,7 +161,7 @@
       "group": "what_the_vehicle_is",
       "kind": "category",
       "cardinality": "few",
-      "definition": "NZTA's vehicle type, such as passenger car or van, or goods van, truck or utility. It decides which vehicles the site counts.",
+      "definition": "NZTA's vehicle type, the broad kind of vehicle. It decides which vehicles the site counts.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
@@ -171,7 +179,7 @@
       "group": "what_the_vehicle_is",
       "kind": "category",
       "cardinality": "many",
-      "definition": "NZTA's body type, such as station wagon, hatchback, saloon or utility. The same body type can sit under more than one vehicle type.",
+      "definition": "NZTA's body type, the shape of the body. The same body type can sit under more than one vehicle type.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
@@ -189,7 +197,7 @@
       "group": "what_the_vehicle_is",
       "kind": "category",
       "cardinality": "few",
-      "definition": "NZTA's vehicle equipment standard class, a short code. The code NA is a class of light goods vehicle, not 'not applicable'.",
+      "definition": "NZTA's vehicle equipment standard class, a short code. One code reads like 'not applicable' and is a real class of light goods vehicle.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
@@ -313,7 +321,7 @@
       "group": "what_the_vehicle_is",
       "kind": "category",
       "cardinality": "many",
-      "definition": "The gearbox, recorded for NZ-new vehicles: the number of gears and whether automatic or manual, or continuously variable.",
+      "definition": "The gearbox, recorded for NZ-new vehicles: the number of gears and the kind of gearbox.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["nz_new"],
       "nothing_means": "not_recorded",
@@ -367,7 +375,7 @@
       "group": "how_it_is_powered",
       "kind": "category",
       "cardinality": "many",
-      "definition": "A second fuel the vehicle can run on, such as LPG or CNG. Empty when the vehicle has none.",
+      "definition": "A second fuel the vehicle can run on. Read as empty when the vehicle has none (inferred - confirm).",
       "uses": { "break_down": false, "filter": true, "measure": ["count"] },
       "recorded_for": ["second_fuel_vehicles"],
       "nothing_means": "none",
@@ -423,7 +431,7 @@
       "group": "how_it_is_powered",
       "kind": "number",
       "cardinality": "many",
-      "definition": "Fuel consumption over the combined test cycle, in litres per 100 km, as recorded at registration. Stored by NZTA as text.",
+      "definition": "Fuel consumption over the combined test cycle, in litres per 100 km, as NZTA records it. Stored by NZTA as text.",
       "uses": { "break_down": true, "filter": true, "measure": ["count", "average", "median"] },
       "guard": { "status": "bound", "valid_min_exclusive": 0, "valid_max_inclusive": 60, "requires_engine": true },
       "recorded_for": ["combustion_vehicles"],
@@ -638,7 +646,7 @@
       "privacy_reason": "Locates the owner; crossed with fine vehicle detail it can come down to one vehicle.",
       "after_review": "minimum_count",
       "published_exceptions": [
-        { "dimension": "region", "outputs": ["slice"], "decision": "D-078" }
+        { "dimension": "region", "outputs": ["slice"], "decision": "D-078", "decision_covers": ["slice"], "$comment": "Kept by D-078's point 3, decided by Claude (unreviewed) on the user's option that the region map still draws. The work order's section 3 names region among the fields not published without asking: whether the slice stays is the user's." }
       ],
       "bound": "tla",
       "relations": {
@@ -671,7 +679,7 @@
       "group": "who_has_it",
       "kind": "category",
       "cardinality": "few",
-      "definition": "How the vehicle is used, in a few groups such as private passenger, rental or taxi. It is the latest usage recorded, not the usage at first registration.",
+      "definition": "How the vehicle is used, in a few broad groups. Read as the latest usage recorded, not the usage at first registration: shown for rental; other values not tested.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
@@ -689,7 +697,7 @@
       "group": "who_has_it",
       "kind": "category",
       "cardinality": "many",
-      "definition": "The industry the vehicle's owner is associated with. At least partly the current owner's, not the first owner's.",
+      "definition": "The class of industry a vehicle is associated with (NZTA's words), read as the owner's industry (inferred - confirm). At least partly the current owner's, not the first owner's.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
@@ -707,7 +715,7 @@
       "group": "who_has_it",
       "kind": "category",
       "cardinality": "many",
-      "definition": "The kind of road transport service, recorded mainly for vehicles in commercial road transport. Provided by the owner or dealer and not verified by NZTA.",
+      "definition": "The kind of road transport service, recorded mainly for vehicles in commercial road transport; read as empty when the vehicle has none (inferred - confirm). Provided by the owner or dealer and not verified by NZTA.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["commercial_road_transport"],
       "nothing_means": "none",
@@ -834,7 +842,7 @@
       "group": "identity_and_time",
       "kind": "time",
       "cardinality": "many",
-      "definition": "The month of first registration as NZTA's dashboard holds it (NZTA calls it the date of first ownership), from January 2021.",
+      "definition": "The dashboard's registration month. NZTA calls it the date of first ownership, which may differ from the first registration in New Zealand; in count it agrees with the register's month of first registration.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
@@ -1007,7 +1015,7 @@
       "group": "identity_and_time",
       "kind": "category",
       "cardinality": "few",
-      "definition": "Whether, at the dashboard's latest monthly update, the vehicle counts as still registered (ACTIVE) or since removed (INACTIVE). Read from the counts, not from NZTA's wording.",
+      "definition": "Whether, at the dashboard's latest monthly update, the vehicle counts as still registered or since removed. Read from the counts, not from NZTA's wording.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
@@ -1025,7 +1033,7 @@
       "group": "who_has_it",
       "kind": "category",
       "cardinality": "few",
-      "definition": "Whether the registered owner is an individual, a company or other. Most likely the owner at first registration; not proven.",
+      "definition": "The kind of registered owner: a person, a company or other. Most likely the owner at first registration; not proven.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
@@ -1065,7 +1073,7 @@
       "group": "who_has_it",
       "kind": "category",
       "cardinality": "many",
-      "definition": "How the vehicle is used, in a finer list than the register's, at an earlier moment than the register's: consistent with the usage at first registration.",
+      "definition": "How the vehicle is used, in a finer list than the register's, at an earlier moment than the register's: consistent with the usage at first registration (shown for rental only).",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",

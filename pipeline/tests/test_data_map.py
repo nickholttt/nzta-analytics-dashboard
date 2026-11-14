@@ -101,26 +101,41 @@ def fields_read(dim: dict, pipeline: dict, reads: dict) -> set[str]:
         if derive.get(flag):
             for item in items:
                 logical |= _resolve(pipeline, item)
+    # Fields read because another field is read (the hybrid classification rewrites motive power from make and model).
+    for key, items in reads.get("by_field", {}).items():
+        if _resolve(pipeline, key) & logical:
+            for item in items:
+                logical |= _resolve(pipeline, item)
     return {pipeline["fields"][f] for f in logical}
 
 
+SNAPSHOT_ARCHIVE = "snapshot_archive"
+
+
 def privacy_breaches(dmap: dict, pipeline: dict, dimensions: dict) -> list[str]:
-    """Every published output (fact table column, pair, slice) whose dimension reads a field not cleared for it."""
+    """Every published output whose fields are not cleared for it.
+
+    Checked: each dataset's fact-table columns and pairs, every dimension's slice, and the committed snapshot
+    aggregate (pipeline.json snapshot_archive.group_by), which is in the public repository.
+    """
     fields = by_name(dmap, REGISTER)
     published = published_classes(dmap)
     dims = {d["id"]: d for d in dimensions["dimensions"] if "derive" in d}
     problems: list[str] = []
 
+    def cleared(name: str, output: str, dim_id: str | None) -> bool:
+        entry = fields[name]
+        if entry["privacy"] in published:
+            return True
+        return any(
+            output in x["outputs"] and (dim_id is None or x["dimension"] == dim_id)
+            for x in entry.get("published_exceptions", [])
+        )
+
     def check(dim_id: str, output: str) -> None:
         for name in sorted(fields_read(dims[dim_id], pipeline, dmap["derive_reads"])):
-            entry = fields[name]
-            if entry["privacy"] in published:
-                continue
-            excepted = any(
-                x["dimension"] == dim_id and output in x["outputs"] for x in entry.get("published_exceptions", [])
-            )
-            if not excepted:
-                problems.append(f"{output} {dim_id!r} reads {name} ({entry['privacy']})")
+            if not cleared(name, output, dim_id):
+                problems.append(f"{output} {dim_id!r} reads {name} ({fields[name]['privacy']})")
 
     for spec in pipeline["datasets"].values():
         for dim_id in spec.get("facts", []):
@@ -130,6 +145,10 @@ def privacy_breaches(dmap: dict, pipeline: dict, dimensions: dict) -> list[str]:
                 check(dim_id, "pair")
     for dim_id in dims:
         check(dim_id, "slice")
+    for logical in pipeline[SNAPSHOT_ARCHIVE]["group_by"]:
+        name = pipeline["fields"][logical]
+        if not cleared(name, SNAPSHOT_ARCHIVE, None):
+            problems.append(f"{SNAPSHOT_ARCHIVE} groups by {name} ({fields[name]['privacy']})")
     return problems
 
 
@@ -340,12 +359,83 @@ def test_every_exception_names_a_decision_record_and_a_real_dimension():
 def test_derive_reads_resolve():
     cfg, dmap = config.load(), load_map()
     reads = dmap["derive_reads"]
-    for items in list(reads["by_kind"].values()) + list(reads["by_flag"].values()):
+    by_field = reads.get("by_field", {})
+    for items in list(reads["by_kind"].values()) + list(reads["by_flag"].values()) + list(by_field.values()):
         for item in items:
             _resolve(cfg.pipeline, item)
+    for key in by_field:
+        _resolve(cfg.pipeline, key)
     for dim in cfg.dimensions["dimensions"]:
         if "derive" in dim:
             assert fields_read(dim, cfg.pipeline, reads), f"dimension {dim['id']} reads no field the map can see"
+
+
+def test_a_dimension_reading_the_engine_field_reads_what_the_hybrid_classification_reads():
+    """The powertrain is a plain lookup on motive power, but motive power is rewritten from make and model first."""
+    cfg, dmap = config.load(), load_map()
+    reads = dmap["derive_reads"]
+    engine = cfg.pipeline["engine"]["field"]
+    make = cfg.pipeline["fields"][cfg.pipeline["brand"]["make_field"]]
+    readers = [d for d in cfg.dimensions["dimensions"] if "derive" in d and engine in _strings(d["derive"])]
+    assert readers, "no dimension reads the engine field; the check would prove nothing"
+    for dim in readers:
+        assert make in fields_read(dim, cfg.pipeline, reads), f"{dim['id']}: the hybrid classification's reads are missed"
+
+
+def test_the_check_catches_a_held_field_in_the_snapshot_archive():
+    cfg, dmap = config.load(), load_map()
+    published = published_classes(dmap)
+    held = [e["bound"] for e in entries(dmap, REGISTER) if e["bound"] and e["privacy"] not in published]
+    if not held:
+        pytest.skip("no bound field is held back, so there is nothing to probe")
+    pipeline = copy.deepcopy(cfg.pipeline)
+    pipeline[SNAPSHOT_ARCHIVE]["group_by"].append(held[0])
+    found = privacy_breaches(dmap, pipeline, cfg.dimensions)
+    assert any(p.startswith(SNAPSHOT_ARCHIVE) for p in found), found
+
+
+def test_approval_names_its_decision():
+    dmap = load_map()
+    approval = dmap["approval"]
+    states = dmap["enums"]["approval"]
+    assert approval["privacy_classes"] in states, f"approval {approval['privacy_classes']!r} outside {states}"
+    if approval["privacy_classes"] == states[0]:
+        assert approval["decision"] is None, "the classes are proposed, so no decision approves them yet"
+    else:
+        recorded = set(re.findall(r"^## (D-\d{3})\b", DECISIONS.read_text(encoding="utf-8"), flags=re.MULTILINE))
+        assert approval["decision"] in recorded, "approved classes must name the decision record that approved them"
+
+
+def test_while_proposed_owner_fields_and_vin_derivatives_stay_unpublished():
+    """The work order's section 3, until the user approves the review: owner fields, postcode and VIN11 stay out."""
+    dmap = load_map()
+    if dmap["approval"]["privacy_classes"] != dmap["enums"]["approval"][0]:
+        pytest.skip("the classes are approved; the decision record governs")
+    published = published_classes(dmap)
+    owner_groups = set(dmap["owner_groups"])
+    assert owner_groups <= set(dmap["enums"]["group"])
+    derived_only = {v for v in dmap["enums"]["after_review"] if v.startswith("derived")}
+    assert derived_only, "no after_review value means 'derived fields only'"
+    for entry in dmap["fields"]:
+        if entry["group"] in owner_groups or entry["after_review"] in derived_only:
+            assert entry["privacy"] not in published, f"{entry['name']}: held by the work order, but marked published"
+
+
+def test_free_text_is_never_a_breakdown_or_a_filter():
+    for entry in load_map()["fields"]:
+        if entry["kind"] == "free_text":
+            assert not entry["uses"]["break_down"] and not entry["uses"]["filter"], f"{entry['name']}: free text"
+
+
+def test_an_exception_stays_inside_what_its_decision_covers():
+    dmap = load_map()
+    proposed = dmap["approval"]["privacy_classes"] == dmap["enums"]["approval"][0]
+    for entry in dmap["fields"]:
+        for exception in entry.get("published_exceptions", []):
+            covers = set(exception["decision_covers"])
+            assert set(exception["outputs"]) <= covers, f"{entry['name']}: outputs reach past {exception['decision']}"
+            if proposed:
+                assert "facts" not in covers, f"{entry['name']}: no held field reaches the fact table before the review"
 
 
 # --- relations ----------------------------------------------------------------------------------------------------
