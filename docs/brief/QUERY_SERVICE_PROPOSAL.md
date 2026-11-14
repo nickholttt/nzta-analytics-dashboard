@@ -127,7 +127,7 @@ which also runs the monthly data build.
       awake; nothing above the included amounts while it is awake under about 50 minutes a day,
       the 25 GiB-hours included).
     - Kept awake all month, so no visitor waits for it to wake: **about $12 low, about $15
-      higher**, *estimate*: memory $6.35 and disk $0.69 above the included amounts, CPU $0 low
+      higher**, *estimate*: memory $6.35 and disk $0.69 (the basic instance's 4 GB) above the included amounts, CPU $0 low
       and $3.15 higher (1.8 million requests × 0.1 s). Durable Objects, which every container uses,
       are billed too; their prices were not read.
     - https://developers.cloudflare.com/containers/pricing/, read 2026-11-14. Whether the product
@@ -135,7 +135,9 @@ which also runs the monthly data build.
       "today".
   - **Fly.io**: a 1 GB shared-CPU machine is **$6.70 a month** running all the time (low and
     higher alike: one machine handles both); a stopped machine pays only for its disk ($0.15 per
-    GB-month). https://docs.fly.io/about/pricing, read 2026-11-14.
+    GB-month). https://docs.fly.io/about/pricing, read 2026-11-14. Fly.io's prices differ by region
+    and the region the figure applies to was not noted when it was read: confirm it for the region
+    nearest New Zealand.
   - **Google Cloud Run**: its free tier is 2 million requests, 180,000 vCPU-seconds and 360,000
     GB-seconds a month (https://docs.cloud.google.com/free/docs/free-cloud-features, read
     2026-11-14), so low traffic would be **$0** and higher traffic close to the free limit. Its
@@ -163,10 +165,16 @@ which also runs the monthly data build.
   cannot be given its password and must not send SQL, so a small function (as in option 2) still
   sits in front and writes the query.
 - **Cost:** the Lite plan is $0 and includes 10 hours of compute a month, billed per query with a
-  1-second minimum, so about 36,000 questions worked out afresh a month. Low traffic: **$0 to $5**
-  if most answers come from the store (plus the function). Higher traffic in the worst case: the
-  Business plan at **$250 a month** plus $0.60 per compute-hour (about 500 hours, $300), so
-  **about $555**, *estimate*. https://motherduck.com/product/pricing/, read 2026-11-14.
+  1-second minimum: about 36,000 requests worked out afresh a month, or 6,000 questions at 6
+  requests each.
+  - Low traffic: in the worst case (60,000 requests, all worked out afresh) that is about 17
+    compute-hours, over the Lite allowance; what Lite does above it was not read, so the worst
+    case is taken as the Business plan, **about $260** ($250 plus about 17 hours at $0.60, $10),
+    plus the function. If most answers come from the store, **$0**, plus the function
+    ($0 to $5). *Estimate.*
+  - Higher traffic in the worst case: **about $555** a month, *estimate*: the Business plan
+    ($250), about 500 compute-hours at $0.60 ($300), and the function on Workers Paid ($5).
+  - https://motherduck.com/product/pricing/, read 2026-11-14.
 - **Wake-up after a quiet spell:** MotherDuck says its compute starts "in about 100 ms".
 - **Monthly refresh:** an upload from GitHub Actions with a MotherDuck token kept as a secret.
 - **When it is down:** two services can fail, the function and MotherDuck.
@@ -211,6 +219,11 @@ not met by the service alone (`docs/QUERY_SERVICE.md`, Measurements).
 - The prototype in `scripts/query_service_prototype/` stays the reference for what the service
   checks and returns: the public list, the limits, the minimum-count hook, the one spelling of a
   question, the answer's shape. The hosted version must pass the same checks.
+- A link pinned to a month keeps working only while the service can answer for that month. The
+  prototype keeps answers it has already given, nothing more (`docs/QUERY_SERVICE.md`, Keeping
+  answers). The hosted service must either keep each month's fact table (a few MB a month) or carry
+  stored answers forward; keeping the tables is the simpler and is assumed in option 2's costs,
+  which are not changed by a few more files.
 - The static fact table keeps being published while Build might fall back to it or the service is
   being proved. Whether to stop publishing it once the service is live is a later decision.
 - A running cost of US$5 a month, and a dependence on Cloudflare for Build as well as for hosting.
@@ -225,6 +238,7 @@ not met by the service alone (`docs/QUERY_SERVICE.md`, Measurements).
 4. The measure (share or number) and the chart's settings are not part of the stored question, so
    one answer serves them all.
 5. The phone profile's upload speed, not recorded before, was set at 750 kbps for both sides.
+6. A hosted service keeps each month's fact table, so a link pinned to any month keeps working.
 
 ## Status
 

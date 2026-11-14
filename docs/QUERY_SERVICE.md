@@ -39,6 +39,7 @@ where the question is the address's query string. `build` is the builder's id
 | `build.snapshot` | no | `YYYY-MM`: pin the question to that month's snapshot. Absent: the newest | yes (new) |
 | `build.measure` | no | Share, number, both, or a derived measure | accepted, not stored |
 | `build.view`, `build.period`, `build.range`, `build.smoothing`, `build.granularity` | no | How the chart draws the rows: map or lines, which months, smoothing | accepted, not stored |
+| `build-<part>.period` and the like | no | The same settings for the second chart of a two-part measure (share and number) | accepted, not stored |
 
 **Why the measure and the chart's settings are not part of the stored question.** The answer is a
 count per month and value, with each month's total. A share is a count over its month's total, a
@@ -72,18 +73,21 @@ anything else:
   "properties": {
     "dataset":  { "type": "string", "description": "From the path: /v1/<dataset>/answer" },
     "by":       { "type": ["string", "null"], "description": "build.by: a field on the public list, or null for all vehicles together" },
-    "values":   { "type": "array", "items": { "type": "string" }, "uniqueItems": true, "maxItems": 8 },
+    "values":   { "type": "array", "items": { "type": "string" }, "maxItems": 8 },
     "by2":      { "type": ["string", "null"], "description": "build.by2: a second field on the public list; needs by" },
-    "values2":  { "type": "array", "items": { "type": "string" }, "uniqueItems": true, "maxItems": 8 },
+    "values2":  { "type": "array", "items": { "type": "string" }, "maxItems": 8 },
     "where":    {
       "type": "object",
       "description": "build.where.<field>: each a field on the public list, never by or by2",
-      "additionalProperties": { "type": "array", "items": { "type": "string" }, "minItems": 1, "maxItems": 50, "uniqueItems": true }
+      "additionalProperties": { "type": "array", "items": { "type": "string" }, "minItems": 1, "maxItems": 500 }
     },
-    "snapshot": { "type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}$" }
+    "snapshot": { "type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}$" }
   }
 }
 ```
+
+A value named twice counts once: duplicates are dropped before the limits are checked, so the
+`maxItems` above count different values.
 
 **One spelling per question.** Before it is stored or looked up, the question is written one way:
 keys in a fixed order, the values of each key sorted, duplicates dropped, chart settings left out,
@@ -108,23 +112,31 @@ In this order, and it answers nothing until every check passes:
    anything derived from `VIN11` is in the fact table (D-076, D-078), so none can be on the list.
 3. **The question makes sense.** A second breakdown needs a first, and differs from it; a field is
    not both a breakdown and a condition; values need their breakdown; a snapshot is `YYYY-MM`.
-4. **The question is not too big.** At most 10 fields named, 8 values per breakdown (Build's own
-   cap, the palette's eight colours), 50 values per condition, 4,096 bytes of question, and 200,000
-   cells in one answer. A question over a limit is refused with the limit named, never cut short:
-   a chart quietly missing part of its question answers a different one. The limits are config
-   (`scripts/query_service_prototype/settings.json`).
+4. **The question is not too big.** At most 16 fields named, 8 values per breakdown (Build's own
+   cap, the palette's eight colours), 500 values per condition, 32,768 bytes of question, and
+   200,000 cells in one answer. These are set at or above what Build can ask today (it offers all 12
+   fact-table fields as conditions, and a condition may keep every value of a field, about 300 for
+   model), so the service answers every question the page answers from the static table; when Build
+   gains fields, it and the limits are raised together. A question over a limit is refused with the
+   limit named, never cut short: a chart quietly missing part of its question answers a different
+   one. The limits are config (`scripts/query_service_prototype/settings.json`).
 5. **The minimum count.** A field may carry a minimum count (`min_count` in the settings). When a
-   question names such a field, every cell counting fewer vehicles than the strictest rule named
-   (and more than none) is withheld: its count is `null`, and the answer's `suppression` block
-   names the rules and how many cells were withheld. **No field has a rule yet**; the Stage 2
-   privacy review sets them (`docs/DATA_MAP.md`). The prototype withholds only the small cells
-   themselves. Whether a withheld cell could be worked back from its month's total and the cells
-   beside it is for that review to settle before any rule is set. Build does not yet draw a chart
-   around withheld cells: it says that some figures count too few vehicles to be shown.
+   question names such a field, as a breakdown or as a condition, the strictest rule named applies
+   to every figure in the answer: each cell, and each month's total, counting fewer vehicles than
+   the rule (and more than none) is withheld as `null`. So a ruled field asked only as a condition,
+   whose answer is month totals, is covered too. A value is listed only if one of its figures is
+   shown or it was chosen, so the list does not reveal that a value too small to show exists. The
+   answer's `suppression` block names the rules and how many cells and totals were withheld. **No
+   field has a rule yet**; the Stage 2 privacy review sets them (`docs/DATA_MAP.md`). Whether a
+   withheld figure could be worked back from the figures beside it, or from two questions asked
+   one after the other, is for that review to settle before any rule is set. Build does not yet
+   draw a chart around withheld figures: it says that some figures count too few vehicles to be
+   shown.
 
 Refusals answer `400` (not a question, or not a public field), `404` (no such dataset, or a
 snapshot the service does not hold and has no stored answer for), `413` (too long) or `422` (over
-a limit), each with one sentence saying what was wrong and what to change:
+a limit), each with one sentence saying what was wrong and what to change. Any other failure
+answers `500` with a sentence that holds nothing internal:
 
 ```json
 { "error": "'region' is not a field this service can answer for. It answers for: powertrain, make, ...", "field": "region" }
@@ -152,7 +164,7 @@ warnings come with it, so a stored answer describes itself.
   "denominator": [3, "...", 12345],
   "values": ["...", "..."],
   "cells": [[1170, 0, 812], [1170, 1, 54]],
-  "suppression": { "rules": {}, "cells_withheld": 0 }
+  "suppression": { "rules": {}, "cells_withheld": 0, "totals_withheld": 0 }
 }
 ```
 
@@ -173,13 +185,22 @@ The register changes once a month, so an answer is computed once per question an
 - **The answer store** keeps each answer under its question's one spelling and its snapshot. The
   same question asked again, by anyone, is served from the store without touching the table.
 - **A new snapshot** means a new key: a question that names no snapshot is answered afresh from
-  the new month the first time it is asked, and from the store after that. Answers pinned to an
-  older snapshot stay in the store and are still served, even once the service no longer holds
-  that month's table.
-- **The browser and any cache in between** may keep an answer too. A pinned answer never changes
-  (`Cache-Control: public, max-age=31536000, immutable`). An answer for the newest snapshot is kept
-  for 5 minutes (`max-age=300`, with an `ETag`), so a visitor sees a new month within minutes of the
-  service loading it.
+  the new month the first time it is asked, and from the store after that.
+- **A month built again** (a corrected run of the same month) replaces that month's stored
+  answers: the store records which build of the month its answers came from (the manifest's
+  `generated_at`) and starts the month afresh when it differs.
+- **An older snapshot's answer** is served only if that same question was asked, and stored on
+  disk (`--store`), while the snapshot was the newest; otherwise the request is refused with 404.
+  So a figure pinned after its month has been replaced cannot be served by the prototype. A hosted
+  service that must keep every pinned link working needs either to keep each month's table or to
+  carry the stored answers forward; that is a choice for the build, recorded in the proposal.
+- **In memory** the prototype keeps at most 10,000 answers, the least recently used dropped
+  first, so a stream of made-up questions cannot grow it for ever. On disk it is not capped.
+- **The browser and any cache in between** may keep an answer too. An answer to an older snapshot
+  never changes (`Cache-Control: public, max-age=31536000, immutable`). An answer for the newest
+  snapshot, pinned or not, is kept for 5 minutes (`max-age=300`, with an `ETag`), since the newest
+  month can still be built again; a visitor sees a new month within minutes of the service loading
+  it.
 
 ## When the service is down
 
@@ -208,8 +229,12 @@ plugs in there and nowhere else:
 - Set, `factView` sends the question to the service instead and turns the answer into the same
   rows. Both the charts and the lists of values to choose from go through `factView`, so both move.
   Everything else (manifest, events, slices, pairs) is read from static files either way.
-- A failure of the service raises a `ServiceError`, whose sentence the chart panel and the value
-  lists show in place of the advice to reload.
+- A failure of the service raises a `ServiceError`. When the service did not answer, the chart and
+  the value lists say it is not answering; when it refused the question, they show its sentence,
+  since trying again would not help. Either replaces the advice to reload.
+- No automated test compares `serviceView` with `factView` yet: the parity was checked by hand on
+  the three measured questions (below), and an independent review ported both to Python and found
+  the same rows on 31 more cases. A test that runs both in Node would close this.
 
 Per the brief, Build keeps reading the static fact table until a hosted service passes the
 acceptance question (`docs/brief/WORK_ORDER.md`, package F), and only then is the setting switched
@@ -226,7 +251,7 @@ the pipeline or the deploy. It uses only what the pipeline already installs (Pyt
 | `server.py` | The service: Python's own HTTP server, DuckDB over the fact table's Parquet files, the checks, the answer store |
 | `settings.json` | Limits, the minimum-count rules (none yet), fields withheld (none), the chart-setting keys |
 | `questions.json` | The questions measured below, as Build links |
-| `test_server.py` | Tests: answers are counts summed over cells and match the published slices; a field off the public list is refused and its column never loaded; no SQL gets in; limits; the minimum-count hook; the store; no domain value in the code |
+| `test_server.py` | 30 tests: answers are counts summed over cells and match the published slices; a field off the public list is refused and its column never loaded; no SQL gets in; the limits, duplicates, every field at once, the snapshot's format; the minimum-count hook on cells, totals and the list of values; the store, its cap and a month built again; no domain value in the code |
 
 **To run it**, from the repository root, with a local build of `public/data` that has a fact table
 (`docs/playbooks/refresh-public-data.md`):
@@ -245,15 +270,18 @@ without the setting before using it for anything else.
 **To test it:** `.venv/Scripts/python.exe -m pytest scripts/query_service_prototype -q -p no:cacheprovider`
 (skipped without a fact table in `public/data`; the CI workflow does not run it).
 
-It is a prototype for measuring, not a service to deploy: it holds one snapshot, has no
-authentication, rate limit or monitoring, and answers several requests at once on one shared
-database connection.
+It is a prototype for measuring, not a service to deploy: it holds one snapshot, and has no
+authentication, rate limit or monitoring.
 
 ## Measurements (2026-11-14)
 
 **What was compared.** (a) Today's site: Build reads the fact table's columns and sums them in the
 browser. (b) The same site built with `PUBLIC_QUERY_SERVICE` pointing at the local prototype. Both
 against the local dry-run build of the 2026-10 pull (the fact table: 641,618 rows over 12 fields).
+The timings were taken before an independent review's fixes to the prototype (the minimum-count
+hook, the limits, the store); those change no query that was timed, and the pages were checked
+again afterwards: the same requests as `main` with the setting off, and identical charts and words
+with it on.
 
 **(b) is a floor, not a forecast.** The prototype ran on the same computer as the browser: no
 distance to a data centre, no cold start, no queue of other visitors. A hosted service adds the
@@ -310,9 +338,10 @@ came from the browser's own cache). No run logged a console error.
   (arithmetic, not measured separately). Reaching 3 s needs a lighter page as well as a service.
 - On the desktop, the 8-field question was slower with the prototype (1.21 s against 0.96 s). Build
   asks for each condition's list of values as well as the chart, so this question sends 9 requests
-  at once, and the prototype answers them on one shared database connection: each took 469 ms
-  (median) at once, against 105 to 157 ms alone (below). A hosted service would answer them in
-  parallel or from its store; the local desktop also has no network to save.
+  at once, and on this one computer the browser and nine queries share the same processor: each
+  took 469 ms (median) at once, against 105 to 157 ms alone (below). That the slowdown is the
+  shared processor is the likely reading, not a measured one. A hosted service runs on its own
+  processor or answers from its store; the local desktop also has no network to save.
 - A repeat by a new visitor is where the store shows: on the desktop 0.31 to 0.35 s whatever the
   question.
 
