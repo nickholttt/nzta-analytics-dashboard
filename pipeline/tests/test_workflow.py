@@ -106,3 +106,18 @@ def test_the_cloudflare_secrets_are_read_only_by_a_job_that_names_the_main_only_
     # The site's dependencies are installed by the build job only.
     assert "        run: npm ci --no-audit --no-fund" in before
     assert not [line for line in upload if "npm ci" in line and ".github/deploy" not in line]
+
+
+def test_the_checks_workflow_never_leaves_its_token_in_the_checkout():
+    """Checks runs the pull request's own code, and pushes nothing, so its checkout does not keep the credentials."""
+    lines = (WORKFLOW.parent / "checks.yml").read_text(encoding="utf-8").splitlines()
+    checkouts = [i for i, line in enumerate(lines) if line.strip().startswith("uses: actions/checkout@")]
+    assert checkouts
+    for start in checkouts:
+        step = []
+        for line in lines[start + 1:]:
+            if line.strip().startswith("- name:"):
+                break
+            step.append(line.strip())
+        assert "persist-credentials: false" in step
+    assert "contents: read" in [line.strip() for line in lines]
