@@ -30,6 +30,11 @@ def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, 
         if not (isinstance(pair, list) and len(pair) == 2 and all(isinstance(d, str) for d in pair)) or pair[0] == pair[1]:
             aborts.append(f"{dataset}: pair {pair!r} must name two different dimensions")
             continue
+        # The separator is how a pair file's name is read back into its two dimensions.
+        if any(PAIR_SEPARATOR in d for d in pair):
+            aborts.append(f"{dataset}: pair {pair!r} names a dimension id containing {PAIR_SEPARATOR!r}, "
+                          f"which separates the two ids in a pair file's name; rename the dimension in dimensions.json")
+            continue
         key = PAIR_SEPARATOR.join(pair)
         # The same two dimensions in the other order would write a second, transposed copy of the same counts.
         if frozenset(pair) in seen:

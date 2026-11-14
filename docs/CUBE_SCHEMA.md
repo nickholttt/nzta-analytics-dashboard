@@ -418,8 +418,9 @@ reach that scale unnoticed. The trailing basis catches it.
 Pairs:
 
 - A dataset's `pairs` in `config/pipeline.json` holds an entry that is not
-  two different dimension ids, lists a pair twice in either order, or names
-  a dimension the dataset cannot derive.
+  two different dimension ids, lists a pair twice in either order, names
+  a dimension the dataset cannot derive, or names a dimension whose id
+  contains `__` (the separator in a pair file's name).
 
 Fact table:
 

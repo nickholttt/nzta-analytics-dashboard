@@ -193,6 +193,8 @@ def test_a_pair_waits_while_one_of_its_dimensions_is_not_live(tmp_path, workspac
     ([["import_status", "age_at_registration_band"], ["age_at_registration_band", "import_status"]], "is listed twice"),
     ([["import_status", "imported_from"]], "imported_from is not a derivable dimension of this dataset"),
     ([["import_status", "no_such_dimension"]], "no_such_dimension is not a derivable dimension of this dataset"),
+    ([["import_status", "age__band"]], "names a dimension id containing '__'"),
+    ([["a__b", "import_status"]], "names a dimension id containing '__'"),
 ])
 def test_a_misconfigured_pair_aborts(tmp_path, workspace, pairs, fragment):
     cfg = make_cfg(workspace)
