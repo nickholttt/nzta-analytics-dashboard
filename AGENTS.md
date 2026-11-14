@@ -49,7 +49,7 @@ Run from the repo root.
 | Dev server | `npm run dev`, then `npx astro dev status` / `npx astro dev stop` | 200 on `http://127.0.0.1:4321/`. Runs in the background |
 | Rebuild cube from a saved pull, publish nothing | `.venv/Scripts/python.exe -m pipeline build data/raw/2026-10/20261113T045017Z --dry-run` | exit 0, 11 min 3 s (2026-11-13); every slice, pair and `events.json` identical to the release `cube-2026-10`. Writes only gitignored `data/staging/`. With the supplied store present it also builds `registrations_flow` (2026-11-14: exit 0, 16 min 28 s, 1,483,403 vehicles over 70 months, payload 3,443,670 bytes); without the store the manifest says `not_built` and the rest is as before. The 2026-08 pull now stops with exit 2: it is older than the last good build |
 | Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build`, `archive` and `supply` (2026-11-14) |
-| Add a hand-exported file to a supplied source's store (D-075; `docs/playbooks/supply-dashboard-month.md`) | `.venv/Scripts/python.exe -m pipeline supply nzta_dashboard <file.csv> [--month YYYY-MM] [--taken YYYY-MM-DD] [--totals <totals.csv>] [--replace YYYY-MM ...]` | exit 0 in 4 s on the 70-month history (2021-01 to 2026-10): 70 months added, the seven totals checked, 1,929,698 bytes of Parquet and a 17,750-byte ledger in the gitignored `data/supplied/nzta_dashboard/`; the one-month January 2021 file then reported that month unchanged and left the store's bytes identical (2026-11-14). Never run by the Action |
+| Add a hand-exported file to a supplied source's store (D-084, defined in D-087; `docs/playbooks/supply-dashboard-month.md`) | `.venv/Scripts/python.exe -m pipeline supply nzta_dashboard <file.csv> [--month YYYY-MM] [--taken YYYY-MM-DD] [--totals <totals.csv>] [--replace YYYY-MM ...]` | exit 0 in 4 s on the 70-month history (2021-01 to 2026-10): 70 months added, the seven totals checked, 1,929,698 bytes of Parquet and a 17,750-byte ledger in the gitignored `data/supplied/nzta_dashboard/`; the one-month January 2021 file then reported that month unchanged and left the store's bytes identical (2026-11-14). Never run by the Action |
 | CI runs | Git Bash: `"/c/Program Files/GitHub CLI/gh.exe" run list --repo nickholttt/nzta-analytics-dashboard`; PowerShell: `& "C:\Program Files\GitHub CLI\gh.exe" run list --repo nickholttt/nzta-analytics-dashboard` | two green runs, 2026-09-11 |
 
 Setup, **not re-run this session** (the environment already existed):
@@ -60,6 +60,9 @@ Setup, **not re-run this session** (the environment already existed):
 - `python -m pipeline run` hits the live NZTA service and, when the source has changed, rewrites the
   committed `data/state/last_good.json` and `data/snapshots/`. That is the monthly Action's job.
 - `python -m pipeline init-schema` overwrites `pipeline/expected_schema.json`, which every run asserts.
+- `python -m pipeline build <pull>` without `--dry-run`, with a supplied store present, writes
+  `registrations_flow` into `data/state/last_good.json`. Never commit that file: GitHub builds have no store and would
+  abort. After supplying a month, build with `--dry-run`.
 - `UPDATE_GOLDEN=1` rewrites `pipeline/tests/golden/contract.json`, which is a contract change.
 
 ## Branches in this repo
