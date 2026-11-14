@@ -6,7 +6,7 @@
 // triage table that has quietly gone stale is worse than no triage table.
 import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, presets } from "./config";
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
-import { PAIR_SEPARATOR } from "./data";
+import { PAIR_SEPARATOR, isBuilt } from "./data";
 import type { Manifest, ViewSource } from "./data";
 import { RENDERED_DERIVED } from "./derived";
 
@@ -66,7 +66,7 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   };
   const dimension = findDimension(preset.dimension);
   const measure = findMeasure(preset.measure);
-  const inCube = Object.keys(manifest.datasets);
+  const inCube = Object.keys(manifest.datasets).filter((id) => isBuilt(manifest, id));
 
   if (isComposite(preset) !== isDeclaredComposite(preset)) {
     add(
@@ -92,7 +92,10 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     add("invalid", "the preset names no dataset");
   } else if (preset.dataset && !cubeDataset) {
     const ds = findDataset(preset.dataset);
-    const msg = `dataset "${preset.dataset}" is not in the cube: manifest.json lists only ${inCube.join(", ")}`;
+    const notBuilt = manifest.datasets[preset.dataset]?.not_built;
+    const msg = notBuilt
+      ? `dataset "${preset.dataset}" was not built in this build (${notBuilt})`
+      : `dataset "${preset.dataset}" is not in the cube: manifest.json lists only ${inCube.join(", ")}`;
     if (!ds) add("invalid", `${msg}, and dimensions.json does not define "${preset.dataset}" either`);
     else add("blocked", ds.status ? `${msg} (${ds.status})` : msg);
   } else if (preset.dataset && cubeDataset !== preset.dataset) {
@@ -208,9 +211,9 @@ type Narrowing = { key: string; values: string[]; own: boolean };
 // that base. A manifest entry, and any note figure drawn from it, belongs to the dataset that is served.
 export function servedFrom(datasetId: string | undefined, manifest: Manifest): string | undefined {
   if (!datasetId) return undefined;
-  if (manifest.datasets[datasetId]) return datasetId;
+  if (isBuilt(manifest, datasetId)) return datasetId;
   const ds = findDataset(datasetId);
-  return ds?.base && ds.filter && manifest.datasets[ds.base] ? ds.base : undefined;
+  return ds?.base && ds.filter && isBuilt(manifest, ds.base) ? ds.base : undefined;
 }
 
 // The live pair that splits one dimension by another, in either order, and which side of it the first one is.
