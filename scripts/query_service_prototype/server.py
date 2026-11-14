@@ -19,6 +19,7 @@ import gzip
 import hashlib
 import json
 import re
+import threading
 import time
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -61,7 +62,8 @@ class Service:
         presets = read_json(REPO / "config" / "presets.json")
         builder = presets["builder"]
         self.prefix = builder["id"] + "."
-        self.part_prefix = builder["id"] + "-"
+        parts = {p for m in builder["measures"] for p in m.get("parts", [])}
+        self.part_keys = {f"{builder['id']}-{p}.{s}" for p in parts for s in self.settings["presentation_keys"]}
         self.dimensions = {d["id"]: d for d in read_json(REPO / "config" / "dimensions.json")["dimensions"]}
         # The words a visitor sees for a dimension sit on the dimension (`public_note`, D-089); Build may add its own.
         public_notes = {d["id"]: d["public_note"] for d in self.dimensions.values() if d.get("public_note")}
@@ -70,6 +72,7 @@ class Service:
         self.snapshot = self.manifest["latest_snapshot"][:7]
         self.store_dir = store
         self.answers: OrderedDict[str, bytes] = OrderedDict()
+        self.lock = threading.Lock()
         self.forget_other_builds()
         self.con = duckdb.connect()
         self.public: dict[str, list[str]] = {}
@@ -128,8 +131,8 @@ class Service:
         presentation = set(self.settings["presentation_keys"])
         for key, value in parse_qsl(query, keep_blank_values=True, strict_parsing=False):
             # A second chart of a two-part measure scopes its settings by the builder's id and its own
-            # (src/lib/builder.ts): build-count.period and the like are chart settings too.
-            if key.startswith(self.part_prefix) and key.rpartition(".")[2] in presentation:
+            # (src/lib/builder.ts): exactly <builder id>-<part>.<chart setting>, such as build-count.period.
+            if key in self.part_keys:
                 continue
             if not key.startswith(self.prefix):
                 raise Refused(400, f"'{key}' is not part of a question. A question is the address of a Build page.", key)
@@ -313,22 +316,26 @@ class Service:
 
     def stored(self, dataset: str, snapshot: str, canonical: str) -> bytes | None:
         key = self.store_key(dataset, snapshot, canonical)
-        if key in self.answers:
-            self.answers.move_to_end(key)
-            return self.answers[key]
+        with self.lock:
+            if key in self.answers:
+                self.answers.move_to_end(key)
+                return self.answers[key]
         if self.store_dir:
             path = self.store_dir / snapshot / f"{key}.json"
             if path.exists():
-                self.remember(key, path.read_bytes())
-                return self.answers[key]
+                body = path.read_bytes()
+                self.remember(key, body)
+                return body
         return None
 
     def remember(self, key: str, body: bytes) -> None:
         # The least recently used answer leaves memory first, so a stream of made-up questions cannot grow it for ever.
-        self.answers[key] = body
-        self.answers.move_to_end(key)
-        while len(self.answers) > self.limits["max_answers_in_memory"]:
-            self.answers.popitem(last=False)
+        # Many requests are answered at once, each on its own thread, so the store is changed under a lock.
+        with self.lock:
+            self.answers[key] = body
+            self.answers.move_to_end(key)
+            while len(self.answers) > self.limits["max_answers_in_memory"]:
+                self.answers.popitem(last=False)
 
     def keep(self, dataset: str, snapshot: str, canonical: str, body: bytes) -> None:
         key = self.store_key(dataset, snapshot, canonical)
@@ -381,6 +388,8 @@ def handler_for(service: Service):
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Vary", "Accept-Encoding")
+            # A refusal repeats what was asked; the browser must read it as JSON and nothing else.
+            self.send_header("X-Content-Type-Options", "nosniff")
             # The site is served from another origin; a plain GET needs no preflight.
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Access-Control-Expose-Headers", "Server-Timing, X-Answer-Store")

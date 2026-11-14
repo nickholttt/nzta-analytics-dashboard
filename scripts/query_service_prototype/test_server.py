@@ -8,8 +8,10 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import sys
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode
 
 import duckdb
 import pytest
@@ -60,8 +62,6 @@ def top_values(dataset, field, k):
 
 
 def q(svc, **parts) -> str:
-    from urllib.parse import urlencode
-
     pairs = []
     for name, value in parts.items():
         for v in value if isinstance(value, list) else [value]:
@@ -166,10 +166,62 @@ def test_a_snapshot_is_exactly_a_year_and_month(svc, dataset, snapshot):
     assert refused.value.status == 400
 
 
-def test_a_second_charts_settings_are_chart_settings(svc, dataset):
-    part = svc.part_prefix + "count."
-    body, _ = svc.answer(dataset, f"{part}period=10y&{part}range=all")
-    assert json.loads(body)["question"].endswith(svc.snapshot)
+def test_the_values_limit_is_at_least_builds_own_cap(svc):
+    """The service must answer every comparison Build can ask: its cap on values compared is read from Build's source,
+    not written here, so raising one without the other fails."""
+    source = (REPO / "src" / "lib" / "builder.ts").read_text(encoding="utf-8")
+    found = re.search(r"export const MAX_VALUES\s*=\s*(\d+)\s*;", source)
+    assert found, "MAX_VALUES not found in src/lib/builder.ts"
+    assert svc.limits["max_values"] >= int(found.group(1))
+
+
+# The shared cases (cases.json): what any implementation must refuse, and some answers it must give ----------------
+
+CASES = json.loads((HERE / "cases.json").read_text(encoding="utf-8"))
+
+
+def case_query(case: dict) -> str:
+    pairs = parse_qsl(case["query"], keep_blank_values=True)
+    for g in case.get("generate", []):
+        for i in range(g["count"]):
+            value = g["same"] * g.get("repeat", 1) if "same" in g else f"{g['prefix']}{i}"
+            pairs.append((g["key"], value))
+    return urlencode(pairs)
+
+
+@pytest.fixture(scope="module")
+def services():
+    made: dict[str, server.Service] = {}
+
+    def get(overrides: dict) -> server.Service:
+        key = json.dumps(overrides, sort_keys=True)
+        if key not in made:
+            made[key] = service(**overrides)
+        return made[key]
+
+    return get
+
+
+@pytest.mark.parametrize("case", CASES["cases"], ids=[c["id"] for c in CASES["cases"]])
+def test_shared_case(services, case):
+    s = services(case.get("settings", {}))
+    query = case_query(case)
+    if case["status"] != 200:
+        with pytest.raises(server.Refused) as refused:
+            s.answer(CASES["dataset"], query)
+        assert refused.value.status == case["status"]
+        return
+    body, _ = s.answer(CASES["dataset"], query)
+    answer = json.loads(body)
+    totals = case.get("totals")
+    if not totals or totals["snapshot"] != answer["snapshot"]:
+        return
+    assert sum(answer["denominator"]) == totals["denominator_sum"]
+    sums: dict[str, int] = {}
+    for cell in answer.get("cells", []):
+        name = answer["values"][cell[1]]
+        sums[name] = sums.get(name, 0) + cell[-1]
+    assert sums == totals["value_sums"]
 
 
 def test_the_store_in_memory_has_a_cap(dataset):
