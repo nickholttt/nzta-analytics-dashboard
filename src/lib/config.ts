@@ -58,7 +58,8 @@ export type Dimension = {
   applies_to?: string[];
   bands?: Band[];
   derive?: { kind: string; value?: string };
-  // The pipeline joins the parts of a compound value (brand and model) with this; a ranking shows them as words.
+  // The separator between the parts of a compound value (brand and model), so a ranking can show them as words. A
+  // copy of the cube contract's constant, which is what the pipeline writes; a pipeline test keeps the two equal.
   key_separator?: string;
   // Wording for visitors, where `label` and `note` are written for maintainers (D-042). Each is used in place of
   // its counterpart on the public pages; /status keeps the original.
