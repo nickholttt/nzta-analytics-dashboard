@@ -63,8 +63,8 @@ of true monthly first registrations (build step 1b), including vehicles
 since scrapped, which the register snapshot cannot give: cars from 1961.
 The name `registrations_flow` now belongs to the dataset built from
 NZTA's dashboard (§D, D-084, D-087); the dataset built from this series
-is named when it is built. Also an independent sanity check on our own
-totals.
+is named `registrations_cars_long_run` and counts cars only. Also an
+independent sanity check on our own totals.
 
 **Read on Infoshare on 2026-11-13** (`infoshare.stats.govt.nz`, Browse >
 Industry sectors > Transport - TPT). Six tables: registrations and vehicles
@@ -157,7 +157,12 @@ as below. The command fetches nothing and the Action never runs it. It aborts, w
 
 The store is `data/supplied/statsnz_tpt/` (gitignored, like the dashboard's): `series.parquet`, a row for
 each month and series that has a figure, and `ledger.json` (`docs/CUBE_SCHEMA.md`, *A source of kind
-`series`*). It holds all 26 series. The step-by-step is `docs/playbooks/supply-statsnz-series.md`.
+`series`*). It holds all 26 series. Only the cars total, the cars
+previously registered overseas and the seven engine-size bands are built into a dataset,
+`registrations_cars_long_run`; commercial vehicles, buses, motorcycles, power cycles and tractors stay in the
+store, because Stats NZ's classes are not lined up with NZTA's vehicle types (D-065). Anything that shows
+the dataset shows Stats NZ's attribution statement, which the build copies from
+`supplied.statsnz_tpt.attribution` into the dataset's block of `manifest.json`. The step-by-step is `docs/playbooks/supply-statsnz-series.md`.
 
 **The hand export** (read from Infoshare's pages on 2026-11-14; the clicks were not confirmed in a browser,
 so the steps marked "inferred - confirm" are to be checked the first time):

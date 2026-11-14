@@ -126,6 +126,11 @@
       "source": "nzta_dashboard",
       "require": ["in_scope", "fleet_entry"],
       "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "import_status", "age_at_registration_band", "model"]
+    },
+    "registrations_cars_long_run": {
+      "$comment": "Read from the supplied source statsnz_tpt, a source of kind series (pipeline/series.py): Stats NZ's monthly count of cars and station wagons registered for the first time, from January 1961. `total` is the series that gives each month's vehicles. Its dimensions (car_origin, car_engine_band in dimensions.json) are Stats NZ's own breakdowns of that total, published separately, so they cannot be crossed with each other or with anything else: there are no pairs and no fact table. Nothing else the table holds (commercial vehicles, buses, motorcycles, power cycles, tractors) is built, because its classes are not lined up with NZTA's vehicle types (D-065).",
+      "source": "statsnz_tpt",
+      "total": "cars_total"
     }
   },
   "supplied": {

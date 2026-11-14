@@ -88,8 +88,9 @@ Setup, **not re-run this session** (the environment already existed):
   `public/data/` only if every guardrail passes. Exit codes: 2 guardrail, 3 source, 4 DuckDB.
 - `pipeline/supplied.py` and `pipeline/series.py`: `python -m pipeline supply`, by hand only, checks one CSV a maintainer exports and adds its
   months to the gitignored store `data/supplied/<id>/` (counts and a ledger). `build` then builds the datasets that name
-  that source (`registrations_flow`) through the same normalise, derive and output code; no store, no dataset, and the
-  manifest says so (`docs/CUBE_SCHEMA.md`, Supplied sources).
+  that source (`registrations_flow`) through the same normalise, derive and output code; for a source of kind `series`
+  (`registrations_cars_long_run`, Stats NZ's table) it writes slices straight from the published series; no store, no
+  dataset, and the manifest says so (`docs/CUBE_SCHEMA.md`, Supplied sources).
 - The output contract (`public/data/manifest.json`, `cube/<dataset>/<dimension>.parquet`,
   `pairs/<dataset>/<a>__<b>.parquet`, `facts/<dataset>/<column>.parquet`, `events.json`) is
   `docs/CUBE_SCHEMA.md`, locked by `pipeline/tests/test_golden.py`.

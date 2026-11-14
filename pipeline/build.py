@@ -9,7 +9,7 @@ from typing import NamedTuple
 
 import duckdb
 
-from . import derive, events, guardrails, metrics, normalise, outputs, schema, supplied
+from . import derive, events, guardrails, metrics, normalise, outputs, schema, series, supplied
 from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
@@ -262,30 +262,40 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
         return {}, {}, {}, {}
     ledger, first, latest = loaded
 
-    supplied_raw(con, cfg, source_id, types)
-    normalise.build_src(con, cfg, types, schema_names)
-    con.execute("DROP TABLE raw")
-    normalise.build_rows(con, cfg)
+    lay = supplied.layout(s)
+    extra = {}
+    if s["kind"] == supplied.SERIES:
+        # The datasets are written from the published series, not from vehicle rows; their month total is the store's own.
+        built = series.build(con, cfg, source_id, names, latest, previous_live, staging, aborts, warnings, lambda d: dataset_definition(cfg, d))
+        store_totals = {d: b.counts for d, b in built.items()}
+        extra = series.manifest_facts(ledger, s)
+    else:
+        supplied_raw(con, cfg, source_id, types)
+        normalise.build_src(con, cfg, types, schema_names)
+        con.execute("DROP TABLE raw")
+        normalise.build_rows(con, cfg)
+        built = {d: build_dataset(con, cfg, d, p["datasets"][d], latest, previous_live, staging, aborts, warnings) for d in names}
+        # The store's own total for each month, whatever scope says: the guard compares these, so an edit to a scope file
+        # cannot move them.
+        store_totals = {d: {m: int(e["vehicles"]) for m, e in ledger["months"].items()} for d in names}
 
     taken = sorted({e["taken"] for e in ledger["months"].values()})
-    # The store's own total for each month, whatever scope says: the guard compares these, so an edit to a scope file
-    # cannot move them. A replacement excuses a month only if its file was taken since the last good build.
-    store_totals = {m: int(e["vehicles"]) for m, e in ledger["months"].items()}
+    # A replacement or revision excuses a month only if its file was taken since the last good build.
     since = ((state or {}).get("generated_at") or "")[:10]
-    replaced = {e["month"] for e in ledger["replaced"] if e["new"]["taken"] >= since}
+    replaced = {e["month"] for e in ledger[lay.replaced_key] if e["new"]["taken"] >= since}
     entries, counts, live = {}, {}, {}
-    for dataset in names:
-        built = build_dataset(con, cfg, dataset, p["datasets"][dataset], latest, previous_live, staging, aborts, warnings)
-        entries[dataset] = {**built.entry, "supplied": {
+    for dataset, b in built.items():
+        entries[dataset] = {**b.entry, "supplied": {
             "source": source_id,
             "months": {"first": supplied.month_key(first), "last": supplied.month_key(latest), "count": len(ledger["months"])},
             "taken": taken,
-            "replaced": ledger["replaced"],
+            lay.replaced_key: ledger[lay.replaced_key],
+            **extra,
         }}
-        counts[dataset], live[dataset] = built.counts, built.live
+        counts[dataset], live[dataset] = b.counts, b.live
         aborts += guardrails.supplied_month_changes(
-            dataset, store_totals, ((state or {}).get("supplied_totals") or {}).get(dataset, {}), replaced, s["max_month_change"])
-    return entries, counts, live, {d: store_totals for d in names}
+            dataset, store_totals[dataset], ((state or {}).get("supplied_totals") or {}).get(dataset, {}), replaced, s["max_month_change"])
+    return entries, counts, live, store_totals
 
 
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:

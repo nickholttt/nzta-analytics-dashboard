@@ -25,6 +25,26 @@ def write_pair(con, cfg, a, b, ds: str, path: Path) -> None:
     _write_counts(con, cfg, [(a.column, "a_value"), (b.column, "b_value")], ds, path)
 
 
+def write_series_slice(con, values: str, totals: str, path: Path) -> None:
+    """A 1-D slice in the cube's schema from counts that are given, not counted from vehicle rows. `values` is a table of
+    (month, dim_value, n) and `totals` one of (month, total). The source carries no fuel consumption, so fc_sum is null
+    and both fuel counts are 0, as for a dataset whose source lacks the field."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    con.execute(f"""
+        COPY (
+            SELECT v.month AS month,
+                   v.dim_value AS dim_value,
+                   CAST(v.n AS INTEGER) AS n,
+                   CAST(t.total AS INTEGER) AS denominator,
+                   CAST(NULL AS DOUBLE) AS fc_sum,
+                   CAST(0 AS INTEGER) AS fc_n,
+                   CAST(0 AS INTEGER) AS fc_eligible_n
+            FROM {values} v JOIN {totals} t USING (month)
+            ORDER BY month, dim_value
+        ) TO {lit(path.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)
+    """)
+
+
 def write_facts(con, derived: list, ds: str, directory: Path) -> tuple[int, int]:
     """The fact table: counts by month and each given dimension, written one column per file. Every file holds the same
     rows in the same order (month, then the dimensions as configured), so the site rebuilds any subset of columns row

@@ -15,14 +15,19 @@ import re
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from typing import NamedTuple
 
 import duckdb
 
-from . import metrics, reference, supplied
+from . import derive, metrics, outputs, reference, supplied
+from .contract import UNDEFINED
+from .errors import GuardrailError
 from .normalise import lit
 from .supplied import MONTH_KEY, STORE_MONTH, STORE_SERIES, STORE_VALUE, abort, month_key, span
 
 INT32_MAX = 2**31 - 1
+# The derive kind in config/dimensions.json whose values are series of a source of this kind.
+DERIVE_KIND = "series"
 # How many individual problems a message spells out before it gives a count.
 LISTED = 12
 
@@ -364,3 +369,166 @@ def supply(cfg, source_id: str, csv_path: Path, taken: str | None = None, accept
 
 def fmt_figure(value: int | None) -> str:
     return "no figure" if value is None else f"{value:,}"
+
+
+# --- the build ---------------------------------------------------------------------------------------------------------
+
+
+class Built(NamedTuple):
+    entry: dict
+    counts: dict[str, int]
+    live: list[str]
+
+
+def manifest_facts(ledger: dict, source: dict) -> dict:
+    """What a dataset's `supplied` block says beyond the dashboard's: each export's vintage, and the attribution Stats NZ
+    asks for with anything that uses its data."""
+    exports = sorted(({"taken": f["taken"], "last_updated": f["last_updated"], "table_reference": f["table_reference"]}
+                      for f in ledger["files"].values()), key=lambda e: (e["taken"], e["last_updated"]))
+    return {"exports": exports, "attribution": source["attribution"]}
+
+
+def resolve_label(cfg, spec: dict) -> str:
+    """One cell of a reference file: the label a value carries is read from the file that names it, so the cube and that
+    file can never say different words."""
+    rows = reference.read(cfg.reference(spec["from"]))
+    hits = [r for r in rows if all(r.get(k) == v for k, v in spec["where"].items())]
+    if len(hits) != 1 or not hits[0].get(spec["column"]):
+        raise abort(f"{len(hits)} rows of {spec['from']} match {spec['where']}; exactly one, with a {spec['column']}, must")
+    return hits[0][spec["column"]]
+
+
+def dimension_rows(cfg, dim: dict, figures: dict, months: list[date], totals: dict[date, int], known: set[str]) -> tuple[list, dict, list, list]:
+    """One dimension's counts by month: (rows of (month, value, n), the vehicles recorded as not recorded, the months where
+    the values exceed the total, problems).
+
+    A value is a series, less the series in `minus`. In a month where none of the values has a figure (before the series
+    start) the whole month is `__UNDEFINED__`: never a guess. Where all have, any vehicles of the total that no value
+    accounts for are `__UNDEFINED__` too. Where the values add up to more than the total the build aborts, unless the month
+    is listed in the dimension's `exceeds_total_allowed`, in which case the values are carried as published. A month where
+    only some of the values have a figure is a problem too."""
+    spec = dim["derive"]
+    try:
+        names = [resolve_label(cfg, v["label"]) for v in spec["values"]]
+    except GuardrailError as exc:
+        return [], {}, [], [f"{dim['id']}: {exc.detail}"]
+    if len(set(names)) != len(names):
+        return [], {}, [], [f"{dim['id']}: two values have the same label {sorted(n for n in names if names.count(n) > 1)}"]
+    unknown = sorted({s for v in spec["values"] for s in (v["series"], *v.get("minus", [])) if s not in known})
+    if unknown:
+        return [], {}, [], [f"{dim['id']}: names series {unknown}, which the source does not have"]
+    allowed = set(spec.get("exceeds_total_allowed", []))
+    rows, problems, exceeds = [], [], []
+    undefined = {"months": 0, "vehicles": 0}
+    for month in months:
+        key, total = month_key(month), totals[month]
+        parts = []
+        for v in spec["values"]:
+            base, minus = figures.get((month, v["series"])), [figures.get((month, s)) for s in v.get("minus", [])]
+            parts.append(None if base is None or any(x is None for x in minus) else base - sum(minus))
+        present = [p is not None for p in parts]
+        if not any(present):
+            if total:
+                rows.append((month, UNDEFINED, total))
+                undefined["months"] += 1
+                undefined["vehicles"] += total
+            continue
+        if not all(present):
+            lacking = [n for n, p in zip(names, parts) if p is None]
+            problems.append(f"{dim['id']} {key}: no figure for {', '.join(lacking)}, though the others have one")
+            continue
+        negative = [n for n, p in zip(names, parts) if p < 0]
+        if negative:
+            problems.append(f"{dim['id']} {key}: {', '.join(negative)} would be below zero")
+            continue
+        rest = total - sum(parts)
+        if rest < 0:
+            if key not in allowed:
+                problems.append(f"{dim['id']} {key}: the values add up to {sum(parts):,}, {-rest:,} above the total {total:,}. If Stats "
+                                f"NZ publishes this month so, list it in exceeds_total_allowed")
+                continue
+            exceeds.append(key)
+        elif rest:
+            rows.append((month, UNDEFINED, rest))
+            undefined["months"] += 1
+            undefined["vehicles"] += rest
+        rows.extend((month, n, p) for n, p in zip(names, parts) if p)
+    return rows, undefined, exceeds, problems
+
+
+def build(con, cfg, source_id: str, names: list[str], latest: date, previous_live: dict, staging: Path, aborts: list[str],
+          warnings: list[str], definition_of) -> dict[str, Built]:
+    """Every dataset that reads this source, from the table `supplied_store` the caller has checked against its ledger.
+    Nothing here goes through the register's vehicle-row path: a dataset's total is one series, its dimensions are
+    published breakdowns of it, and its slices are written from those counts (outputs.write_series_slice)."""
+    source = cfg.supplied(source_id)
+    p = cfg.pipeline
+    try:
+        columns = catalogue(cfg, source)
+    except GuardrailError as exc:
+        aborts.append(f"{source_id}: {exc.detail}")
+        return {}
+    known = {s.id: s.label for s in columns}
+    figures = {(m, sid): v for m, sid, v in con.execute("SELECT month, series_id, value FROM supplied_store").fetchall()}
+    months = sorted({m for m, _ in figures})
+    built = {}
+    for dataset in names:
+        total_id = p["datasets"][dataset].get("total")
+        if total_id not in known:
+            aborts.append(f"{dataset}: `total` in config/pipeline.json names {total_id!r}, which is not a series of {source_id}")
+            continue
+        totals = {m: figures[(m, total_id)] for m in months if (m, total_id) in figures}
+        absent = [month_key(m) for m in months if m not in totals]
+        if absent:
+            aborts.append(f"{dataset}: {known[total_id]}, the dataset's total, has no figure for {listed(absent)}")
+            continue
+        candidates, not_live = derive.applicable(cfg, dataset)
+        was_live = set(previous_live.get(dataset, []))
+        con.execute("CREATE OR REPLACE TABLE series_totals (month DATE, total INTEGER)")
+        con.execute("INSERT INTO series_totals VALUES " + ", ".join(f"(DATE {lit(month_key(m) + '-01')}, {t})" for m, t in totals.items()))
+        live, undefined, exceeds = [], {}, {}
+        for dim in candidates:
+            if dim["derive"]["kind"] != DERIVE_KIND:
+                aborts.append(f"{dataset}.{dim['id']}: a dataset of a series source can only break down by dimensions of derive kind "
+                              f"{DERIVE_KIND!r}; give {dim['id']} an applies_to that leaves {dataset} out")
+                continue
+            missing = [r for r in derive.references_for(cfg, dim["derive"]) if not cfg.reference(r).exists()]
+            if missing:
+                reason = f"reference files missing: {missing}"
+                if dim["id"] in was_live:
+                    aborts.append(f"{dataset}.{dim['id']}: {reason}")
+                else:
+                    not_live[dim["id"]] = reason
+                    warnings.append(f"{dataset}.{dim['id']} is not live: {reason}")
+                continue
+            rows, unrecorded, over, problems = dimension_rows(cfg, dim, figures, months, totals, set(known))
+            if problems:
+                aborts.extend(f"{dataset}.{problem}" for problem in problems)
+                continue
+            con.execute("CREATE OR REPLACE TABLE series_values (month DATE, dim_value VARCHAR, n INTEGER)")
+            con.execute("INSERT INTO series_values VALUES " + ", ".join(f"(DATE {lit(month_key(m) + '-01')}, {lit(v)}, {n})" for m, v, n in rows))
+            outputs.write_series_slice(con, "series_values", "series_totals", staging / "cube" / dataset / f"{dim['id']}.parquet")
+            live.append(dim["id"])
+            undefined[dim["id"]], exceeds[dim["id"]] = unrecorded, over
+        counts = {month_key(m): t for m, t in totals.items()}
+        latest_key = month_key(latest)
+        if counts.get(latest_key, 0) == 0:
+            aborts.append(f"{dataset}: the latest month {latest_key} has no vehicles")
+        window = int(p["trailing_window_months"])
+        deviation = metrics.latest_month_deviation(counts, latest, window)
+        if deviation is not None and abs(deviation) > p["guardrails"]["latest_month_max_deviation"]:
+            warnings.append(f"{dataset}: {latest_key} count deviates {deviation:+.0%} from the median of the previous {window} months")
+        built[dataset] = Built({
+            "definition": definition_of(dataset),
+            "rows": sum(counts.values()),
+            "months": len(counts),
+            "latest_month": latest_key,
+            "live_dimensions": live,
+            "not_live": not_live,
+            "live_pairs": [],
+            "not_live_pairs": {},
+            "facts": None,
+            "undefined": undefined,
+            "exceeds_total": exceeds,
+        }, counts, live)
+    return built

@@ -30,6 +30,17 @@ the export step changes.
 Nothing outside `data/supplied/statsnz_tpt/` is written, and nothing is written at all unless every check
 passes.
 
+**Build with `--dry-run` afterwards**, as for the dashboard (`docs/playbooks/supply-dashboard-month.md`): a
+local `python -m pipeline build <pull>` without `--dry-run`, with the store present, writes the dataset into
+`data/state/last_good.json`, which only the Action may commit; GitHub's builds have no store and would abort for
+want of it. The dry run writes only the gitignored `data/staging/`.
+
+## Attribution
+
+Stats NZ licenses the table under CC BY 4.0 and asks for its statement to be shown with anything that uses
+it. The statement is `supplied.statsnz_tpt.attribution` in `config/pipeline.json`, and the build copies it into
+the dataset's block in `manifest.json`. Do not retype it anywhere else.
+
 ## When it stops
 
 Each message names the cause. What to do:
@@ -50,3 +61,7 @@ Each message names the cause. What to do:
 | adding these months would leave the store with no rows for YYYY-MM | The file does not join the stored months. | Export the whole table (it always starts at 1961M01). |
 | the store disagrees with its ledger, or is not the file this ledger was written with | A store file was edited, or a run was interrupted between writing the two files. | Restore both files together, or remove `data/supplied/statsnz_tpt/` and supply the whole table again. |
 | the store has one of its two files | One of `series.parquet` and `ledger.json` is missing. | Restore it, or remove the other and supply again. |
+
+A revision that you accept changes the dataset's figures for those months. The next build compares each
+month's total with the last good build's and stops unless the ledger records an accepted revision from a file
+taken since that build, so an accepted revision is the only way a past month moves.

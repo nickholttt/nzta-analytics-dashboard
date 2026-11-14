@@ -7,6 +7,7 @@ Kinds:
   raw           the source value itself
   band          a number (a field, or `from` minus `minus`) -> labelled bands
   model         MAKE|MODEL after brand overrides, capped by trailing volume
+  series        published monthly counts of a supplied source of kind series (pipeline/series.py builds it, not this file)
 """
 
 from __future__ import annotations
@@ -49,6 +50,8 @@ def references_for(cfg, spec: dict) -> list[str]:
         return [spec["reference"]]
     if spec["kind"] in ("brand", "model"):
         return [cfg.pipeline["brand"]["registry"], cfg.pipeline["brand"]["model_registry"]]
+    if spec["kind"] == "series":
+        return sorted({v["label"]["from"] for v in spec["values"]})
     return []
 
 
@@ -75,6 +78,9 @@ def carried_fields(cfg, dataset: str) -> set[str] | None:
     if source is None:
         return None
     s = cfg.supplied(source)
+    if "fields" not in s:
+        # A source of published series carries no vehicle's fields.
+        return set()
     return {*s["fields"], s["year_field"], s["month_field"], s["row_id_field"]}
 
 

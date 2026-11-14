@@ -43,7 +43,9 @@ Build step 1 emits `manifest.json`, `cube/registrations_surviving/`,
 
 When the supplied store for `registrations_flow` is present (*Supplied sources*), the build also emits
 `cube/registrations_flow/`, `facts/registrations_flow/` and its block in `manifest.json`; it configures
-no pairs.
+no pairs. When the store for `registrations_cars_long_run` is present, the build emits
+`cube/registrations_cars_long_run/` (one slice for each of its two dimensions) and its block in
+`manifest.json`, and no pair slices and no fact table (*A source of kind `series`*).
 
 Pipeline state lives outside `/public/data` and is committed to the repo:
 
@@ -302,6 +304,22 @@ snapshot month for a register dataset). A dataset built from a supplied source h
 "taken": ["2026-11-14"], "replaced": [ <the ledger's replaced list> ] }`, where `taken` lists the distinct days
 the files were taken. A supplied dataset with no store is `{ "definition": ..., "not_built": "<reason>" }`.
 
+A dataset built from a source of kind `series` (`registrations_cars_long_run`) has `definition`, `rows` (the sum of
+its months' totals), `months`, `latest_month`, `live_dimensions`, `not_live`, `live_pairs` (empty),
+`not_live_pairs` (empty), `facts` (null) and these, where the register's datasets have the unmapped, coverage and
+fuel counts:
+
+- `undefined`: for each live dimension, `{ "months": n, "vehicles": n }`, the months that have vehicles
+  recorded as `__UNDEFINED__` and how many vehicles. A month before a dimension's series exist is all of it;
+  after, it is the difference between the dataset's total and the dimension's values.
+- `exceeds_total`: for each live dimension, the months where the dimension's values add up to more than the total
+  and the config allows it (`exceeds_total_allowed`); the values are carried as published and `n` in that month
+  sums to one or more above `denominator`. Otherwise an empty list.
+- `supplied`: the dashboard's keys (`source`, `months`, `taken`) and `revisions` in place of `replaced` (every
+  accepted revision, with the changed figures), `exports` (for each export supplied: `taken`, `last_updated`, the
+  export's own "Last updated" text, and `table_reference`) and `attribution`, the statement Stats NZ asks for
+  (`supplied.<id>.attribution` in `config/pipeline.json`). Anything that shows this dataset's figures shows it.
+
 `payload_bytes` is the size of every file the build writes to `/public/data`
 except `manifest.json` itself: what the site can download. The golden test
 compares it, so anything that changes it (a new slice, a DuckDB upgrade that
@@ -467,6 +485,41 @@ parts before `arithmetic_from` are warnings (the export of 2026-11-14 has 2 for 
 commercial total, all before 1998), and are recorded in the ledger. `--month`, `--totals` and `--replace` are
 refused for this kind, and `--accept-revisions` for the dashboard.
 
+**The dataset.** `registrations_cars_long_run` (`datasets` in `config/pipeline.json`, grain flow, source
+`statsnz_tpt`): cars and station wagons registered in New Zealand for the first time in month M, new and
+ex-overseas, as Stats NZ publishes them from NZTA's records, January 1961 on. It is built straight from the
+series, not through the register's vehicle-row path (`pipeline/series.py`, `outputs.write_series_slice`): the
+month's vehicles are the series named by the dataset's `total`, and each dimension is a published breakdown of
+that total, so its slice is the breakdown's figures.
+
+- `car_origin` ("New or ex-overseas") has two values, labelled exactly as `import_status_map.csv` labels new and
+  used imports so the site can set the dataset beside the survivors by import status. Used is the ex-overseas
+  series. New is the cars total less the ex-overseas series (the total includes them). Which series feeds
+  which value, and that new is a total less a series, is the dimension's `derive.values` in
+  `config/dimensions.json`; the label of a value is read from the reference file it names.
+- `car_engine_band` ("Engine size (Stats NZ bands)") has the seven engine-size bands, labelled as in
+  `statsnz_series.csv`. The bands include the ex-overseas cars.
+- The two dimensions apply to this dataset only (`applies_to`). No register dimension is live for it: each reads a
+  register field, which a source of kind `series` does not carry, so each is not live with the reason `the source
+  does not carry <FIELD>`, as for any source that lacks a field. They are published separately, so they cannot be crossed: there is no pair slice and no fact table, which would have to
+  invent the joint distribution.
+- Slices use the standard schema (`month`, `dim_value`, `n`, `denominator`, then the fuel columns as for a
+  dataset with no fuel data: `fc_sum` null, both counts 0). `denominator` is the month's total. A value of 0 has
+  no row.
+- **Not recorded.** In a month where none of a dimension's series has a figure (to 1975-06 for both dimensions)
+  the month's vehicles carry `__UNDEFINED__`, never a guess. Where the dimension's values add up to less than the
+  total, the difference is `__UNDEFINED__` (one vehicle in 1976-05 for the bands). Where they add up to more, the
+  build aborts, unless the month is in the dimension's `exceeds_total_allowed` (1975-07, one vehicle over, for the
+  bands), in which case the values are carried as published and the month is noted in the manifest. A month where
+  some of a dimension's series have a figure and others do not aborts.
+- The other 21 series of the table (commercial vehicles, buses, motorcycles, power cycles, tractors) stay in the
+  store and are not built into a dataset: Stats NZ's classes are not lined up with NZTA's vehicle types (D-065).
+- The dataset's latest month is the store's, usually a month or two behind the register's (Stats NZ publishes
+  later): a warning that names the missing months, and never newer than the register's.
+- The state keeps each month's total under `supplied_totals.<dataset>`. A month whose total differs from the last
+  good build's at all (`max_month_change` is 0) aborts, unless the ledger records a revision of that month from a
+  file taken on or after that build's day.
+
 **Without the store** (GitHub's runs, until the user decides whether it may be committed) the build
 succeeds, writes nothing for the dataset, adds a warning, and gives the manifest
 `datasets.<id> = {"definition": ..., "not_built": "<reason>"}`. Anything that reads `datasets` must
@@ -557,6 +610,12 @@ Supplied sources:
   replacement of that month whose file was taken on or after the last good build's day. The totals are kept in
   the state as `supplied_totals.<dataset>`, so an edit to a scope file cannot trip this check.
 - A supplied dataset was built in the last good run and its store is now absent.
+- For a dataset of a source of kind `series`: its `total` names a series the table does not have, or the total
+  series lacks a figure in a month the store holds; a dimension names a series, or a reference row for a label,
+  that does not exist (or whose label is not unique); a dimension's values add up to more than the total in a month
+  not listed in `exceeds_total_allowed`, or one of its values would be below zero; some but not all of a
+  dimension's series have a figure in a month; a dimension that was live in the last good run lacks a reference
+  file; the latest month has no vehicles.
 
 Pairs:
 
@@ -616,6 +675,8 @@ is worse than one that is visibly stale.
 - The payload exceeds the size budget.
 - A supplied dataset was not built because its store is absent.
 - A supplied store ends before the register's snapshot month: the export is missing the months after it.
+- A dataset of a source of kind `series` has a dimension whose reference file is missing and was not live
+  before: it stays out, and the warning names the file.
 - There is no last good state (first run), so previous-run comparisons were
   skipped.
 
