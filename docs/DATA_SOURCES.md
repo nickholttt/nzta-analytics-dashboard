@@ -58,10 +58,13 @@ algorithmically cleaned make and model errors.
 
 Monthly aggregates of vehicles currently licensed by type and new /
 ex-overseas vehicles registered by type, derived from NZTA administrative
-data. Small, long history. This is the source of `registrations_flow`
-(build step 1b): true monthly first registrations, including vehicles
-since scrapped, which the register snapshot cannot give. Also an
-independent sanity check on our own totals.
+data. Small, long history. This is the source of the long-run totals
+of true monthly first registrations (build step 1b), including vehicles
+since scrapped, which the register snapshot cannot give: cars from 1961.
+The name `registrations_flow` now belongs to the dataset built from
+NZTA's dashboard (§D, D-084, D-087); the dataset built from this series
+is named when it is built. Also an independent sanity check on our own
+totals.
 
 **Read on Infoshare on 2026-11-13** (`infoshare.stats.govt.nz`, Browse >
 Industry sectors > Transport - TPT). Six tables: registrations and vehicles
