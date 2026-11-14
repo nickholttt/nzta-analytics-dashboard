@@ -1,0 +1,65 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { corrections } from "../lib/corrections";
+import { issuesUrl } from "../lib/siteCopy";
+
+const day = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const when = (date: string) => day.format(new Date(`${date}T00:00:00Z`));
+---
+
+<Layout title="Feedback and corrections" activeNav="feedback">
+  <Fragment slot="masthead">
+    <h1>Feedback and corrections</h1>
+    <p class="standfirst">
+      Report a figure that looks wrong, or suggest something. Corrections made are listed below.
+    </p>
+  </Fragment>
+
+  <article class="prose">
+    <h2>How to report</h2>
+    <p>
+      Reports and suggestions are taken as issues on the project's repository on GitHub. This is a plain link to
+      GitHub; this site has no form and loads nothing from GitHub. You need a free GitHub account to post.
+    </p>
+    <p><a href={issuesUrl}>Report a figure or make a suggestion on GitHub issues</a></p>
+
+    <h2>What makes a report useful</h2>
+    <ul>
+      <li>The address of the page, copied from the address bar. It holds the question as drawn.</li>
+      <li>The snapshot date shown at the top of the page.</li>
+      <li>The figure you saw, and the figure you expected.</li>
+      <li>Where the figure you expected comes from, with a link if there is one.</li>
+      <li>
+        What you think the figure counts. Many differences come from what is counted (see{" "}
+        <a href="/differences">Why these figures differ from others</a>).
+      </li>
+    </ul>
+
+    <h2 id="corrections">Corrections made</h2>
+    {corrections.length === 0 ? (
+      <p>No correction has been made yet. When one is, it is listed here with its date, what was wrong and what changed.</p>
+    ) : (
+      <table>
+        <caption class="meta">Newest first</caption>
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">What was wrong</th>
+            <th scope="col">What changed</th>
+            <th scope="col">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {corrections.map((c) => (
+            <tr>
+              <td><time datetime={c.date}>{when(c.date)}</time></td>
+              <td>{c.wrong}</td>
+              <td>{c.changed}</td>
+              <td><a href={c.link}>Detail of the correction of {when(c.date)}</a></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </article>
+</Layout>
