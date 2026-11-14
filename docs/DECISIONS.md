@@ -3389,3 +3389,56 @@ New entries use this template:
     the build stops before reading anything if one does not.
   - Reversing it: remove the dataset's entry from `config/pipeline.json`; the command and the store then feed nothing.
 - Status: decided by Claude (unreviewed)
+
+## D-095 2026-11-15 — NZTA's vehicle type becomes a dimension, so completeness can be shown by vehicle type and, for cars, set against Stats NZ's count
+- Agent: claude (the build by a sub-agent on sonnet, to the lead's plan; this record by the lead)
+- Basis: the work order §5.B ("completeness ... by vehicle type and import status") and §5.C ("completeness for cars
+  from July 1975"); D-087, D-090, D-092, D-094; the code and tests on `claude/vehicle-type-dimension`; the whole suite,
+  421 passed locally; a real dry-run build of the saved October pull with both stores, exit 0 in 12 min 48 s,
+  publishing nothing.
+- Context: completeness was shown in total and by new or used only (D-093). The cube had no breakdown by NZTA's own
+  vehicle type: `segment` is the site's finer split (cars, utes, vans, trucks) and needs gross vehicle mass, which
+  the dashboard's export does not carry, so true registrations could not be split by any kind of vehicle at all.
+  The data map proposes `VEHICLE_TYPE` as public (D-090); it was already bound, to decide scope.
+- Options considered:
+  1. **Where the dimension's values come from.** (a) The register's own capitals. (b) A lookup on
+     `vehicle_scope.csv`, the file that already decides scope, with a new `label` column. Chosen (b): one file
+     says both whether a type counts and what it is called, so the two cannot drift, and a type brought into scope
+     later needs only its flag changed. A test holds the dimension to the scope lookup's file, key and field.
+  2. **Its name.** `segment` is already labelled "Vehicle type". Chosen: label "Registered as", and for visitors
+     "NZTA's type of vehicle", with a note that it is not the car, ute, van and truck split (a ute can be registered
+     as a passenger vehicle). `segment` is not renamed.
+  3. **The fact tables.** On `registrations_flow` it is added: it is the only way to ask true registrations by kind
+     of vehicle together with brand or powertrain. On `registrations_surviving` it was to be added only if it grew
+     the table by under 5% in rows: it grew it by none (the type is settled by columns already there), and by 2.4%
+     in bytes, so it is added.
+  4. **Survivors by vehicle type and new or used.** A pair slice, `import_status__vehicle_type`, in the order the
+     existing pairs use. True registrations need no pair: their fact table carries both columns.
+- Decision: as chosen above. Labels, for the two types in scope: "Passenger cars and vans" and "Goods vans, trucks
+  and utes"; every other type has a label too, for the day it is brought into scope.
+- Golden contract changes, each its own commit with its reason: (1) the dimension: a new slice and a new fact column
+  for the survivors dataset, and its manifest lines; (2) the pair: one new file and one manifest line. No other file
+  of the golden build changes. The true-registrations dataset is not in the golden build (it has no store there).
+- Measured on the real run:
+  - Survivors: 3,617,895 passenger cars and vans and 902,409 goods vehicles (4,520,304 in all). True registrations:
+    1,218,768 and 264,635 (1,483,403).
+  - The survivors fact table: 641,618 rows before and after; 1,726,119 bytes, then 1,768,391. The true-registrations
+    fact table: 129,103 rows, then 131,260; 345,774 bytes, then 358,930. The pair: 3,366 rows, 25,038 bytes.
+  - The payload: 3,653,345 bytes, then 3,752,999, against a budget of 8,000,000.
+  - Every other staged file of the survivors and long-run datasets is byte-identical to the build of D-094; the
+    true-registrations fact files were rewritten because the table gained a column.
+  - Completeness by vehicle type and new or used (survivors ÷ true registrations): January 2021, passenger new
+    97.8%, passenger used 85.5%, goods new 97.6%, goods used 94.7%; June 2023, 98.7%, 94.7%, 98.7%, 97.6%; October
+    2026, 100.07% for new passenger vehicles (the 8 vehicles of D-087) and 100.0% for the other three.
+  - NZTA's passenger type against Stats NZ's cars, survivors as a share, new then ex-overseas: March 1976, 3.9% and
+    0.3%; March 1990, 5.7% and 2.3%; March 2005, 49.8% and 16.0%; March 2015, 90.5% and 61.6%; August 2026, 99.8% and
+    99.6%. For August 2026, true registrations of the passenger type are 99.88% of Stats NZ's cars.
+- Consequences:
+  - Completeness by vehicle type from January 2021 can be drawn by the site with no further pipeline work.
+  - For cars before 2021 the figure is a ratio of two sources that name their classes differently (NZTA's
+    "passenger car/van", Stats NZ's "cars and station wagons"), checked against each other for 2026 only (D-065).
+    `docs/METRICS.md` says so, and the site must say so beside the chart.
+  - The next build on GitHub publishes the new slice, pair and fact column for the survivors dataset in the cube
+    release. They hold nothing the release does not already show in a finer form (`segment`).
+  - Reversing it: remove the dimension from `config/dimensions.json` and the two config lists; two golden changes back.
+- Status: decided by Claude (unreviewed)
