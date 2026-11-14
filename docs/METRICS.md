@@ -150,9 +150,9 @@ Source and method: `docs/DATA_SOURCES.md` §C (D-065, D-094). Measured on
   Stats NZ's classes are not lined up with NZTA's vehicle types (D-065).
 - **No fact table.** Origin and engine size are published separately, so
   no figure exists for the two crossed, and none is invented.
-- **Never on a chart with survivors.** Completeness for cars before 2021
-  (survivors ÷ this count, new and ex-overseas, from July 1975) is its
-  own chart, as for `registrations_flow`; it is not built on the site yet.
+- **Never on a chart with survivors.** Cars still registered as a share
+  of this count, new and ex-overseas, from July 1975, is a chart of its
+  own (Derived measures, below); it is not built on the site yet.
 
 ## Core measures
 
@@ -318,15 +318,34 @@ used to scale a figure**: a brand or model count scaled up by it would
 be an estimate presented as data (Estimation rules). A cell can pass
 100% where the register holds a few more vehicles than the dashboard
 (four in-scope cells of month, type and status do, the largest by 8
-vehicles); it is shown as it is, not capped. Measured on the 2026-10
-snapshot for in-scope fleet entries, by year of first registration:
-2021 93.3%; 2022 95.1%; 2023 96.7%; 2024 97.8%; 2025 98.9%; 2026 99.8%.
+vehicles); it is shown as it is, not capped. By vehicle type the
+survivors come from the pair of new or used with NZTA's vehicle type,
+and the registrations from the true-registrations fact table (D-095).
+Measured on the 2026-10 snapshot for in-scope fleet entries, by year of
+first registration: 2021 93.3%; 2022 95.1%; 2023 96.7%; 2024 97.8%;
+2025 98.9%; 2026 99.8%. By type and new or used, for January 2021:
+passenger new 97.8%, passenger used 85.5%, goods new 97.6%, goods used
+94.7%; for June 2023: 98.7%, 94.7%, 98.7% and 97.6%.
 Across every vehicle type and status, outside the dataset's scope, the
 share steps up between October and November 2023 (95.7% to 97.3%),
 most of it in trailers (91.1% to 98.3%); within the dataset's scope
 those two months are 97.0% and 97.4%. The cause is not known and no
-reason is given on the site. Not shown by model (above), and before
-2021 only for cars, from Stats NZ's series, once that is built.
+reason is given on the site. Not shown by model (above).
+
+**Cars still registered against Stats NZ's count** — before 2021 there
+are no true registrations by vehicle, so for cars the survivors of
+NZTA's passenger type, new and used, are set against Stats NZ's count
+of cars registered that month, new and ex-overseas
+(`registrations_cars_long_run`), from July 1975. It is a ratio of two
+sources that name their classes differently (NZTA's "passenger
+car/van", Stats NZ's "cars and station wagons"), compared with each
+other for 2026 only: for August 2026 NZTA's true registrations of the
+passenger type are 99.88% of Stats NZ's cars. So it is shown under its
+own name, with that caveat in one line, and not called completeness.
+Measured on the 2026-10 snapshot, survivors as a share of Stats NZ's
+count, new then ex-overseas: March 1976, 3.9% and 0.3%; March 1990,
+5.7% and 2.3%; March 2005, 49.8% and 16.0%; March 2015, 90.5% and
+61.6%; August 2026, 99.8% and 99.6%. Never used to scale a figure.
 
 **Per capita** — registrations per 1,000 residents, using Stats NZ
 subnational population estimates. Population is a separate reference file
