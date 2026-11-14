@@ -125,7 +125,7 @@
       "$comment": "Read from the supplied source nzta_dashboard (the `supplied` block), through the same normalise, derive and output code as the register. The same require as registrations_surviving, so the two count the same kinds of vehicle: the dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
       "source": "nzta_dashboard",
       "require": ["in_scope", "fleet_entry"],
-      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "import_status", "model"]
+      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "import_status", "age_at_registration_band", "model"]
     }
   },
   "supplied": {

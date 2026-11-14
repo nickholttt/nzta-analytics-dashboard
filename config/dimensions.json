@@ -234,6 +234,7 @@
       "cardinality": "low",
       "applies_to": [
         "registrations_surviving",
+        "registrations_flow",
         "nz_new",
         "used_imports"
       ],
