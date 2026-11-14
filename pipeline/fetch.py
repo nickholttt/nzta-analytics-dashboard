@@ -91,7 +91,8 @@ def missed_month(cfg, state: dict | None, today: date) -> str | None:
     """
     alarm_day = cfg.pipeline["schedule"]["missed_month_alarm_day"]
     # Every month has a 28th. A later day would never come in a short month and the alarm would stay silent.
-    if not isinstance(alarm_day, int) or not 1 <= alarm_day <= 28:
+    # A bool is an int in Python: true would otherwise pass as day 1.
+    if not isinstance(alarm_day, int) or isinstance(alarm_day, bool) or not 1 <= alarm_day <= 28:
         raise GuardrailError("config", f"schedule.missed_month_alarm_day must be a day from 1 to 28, not {alarm_day!r}")
     if not state or today.day < alarm_day:
         return None

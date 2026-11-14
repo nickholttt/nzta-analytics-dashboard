@@ -216,7 +216,7 @@ def test_the_force_advice_is_given_only_where_a_forced_run_would_build(monkeypat
     assert "90 rows then, 90 now" in summary and "A forced run would stop too" in summary and "force ticked" not in summary
 
 
-@pytest.mark.parametrize("day", [0, 29, 31, "15", None])
+@pytest.mark.parametrize("day", [0, 29, 31, "15", None, True])
 def test_an_alarm_day_that_some_month_lacks_is_refused(monkeypatch, tmp_path, cfg, day):
     built_state(cfg, AUGUST, at(2026, 9, 4))
     cfg.pipeline["schedule"]["missed_month_alarm_day"] = day
