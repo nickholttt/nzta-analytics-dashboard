@@ -4,7 +4,7 @@
 // The check also produces a status, and presets.json carries an authored one. They are compared
 // rather than merged: an authored status that no longer matches the build is reported, because a
 // triage table that has quietly gone stale is worse than no triage table.
-import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, presets } from "./config";
+import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, periods, presets } from "./config";
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
 import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt } from "./data";
 import type { Manifest, ViewSource } from "./data";
@@ -47,13 +47,18 @@ export function inferShape(preset: Preset, dimension?: Dimension, measure?: Meas
   return measure?.shape ?? "trend";
 }
 
-// The periods that rank this view instead of tracing it: its own period and the one it offers for a
-// ranking, kept only where that period makes it a league. The time row adds them to its spans, so a
-// chart that opens as a league, or can become one, can always be brought back to it.
+// The periods that rank this view instead of tracing it: its own period, the one it offers for a ranking, and every
+// period of a year or less, kept only where that period makes it a league. The time row adds them to its spans, so a
+// chart that opens as a league, or can become one, can always be brought back to it, and a ranking can be of the last
+// year or of one month.
 export function rankingPeriods(view: Preset): string[] {
   const dimension = findDimension(view.dimension);
   const measure = findMeasure(view.measure);
-  return [...new Set([view.period, view.ranking_period])].filter(
+  const windows = periods
+    .filter((p) => p.months !== undefined && p.months <= chartDefaults.trailing_window_months)
+    .sort((a, b) => (b.months as number) - (a.months as number))
+    .map((p) => p.id);
+  return [...new Set([view.period, view.ranking_period, ...windows])].filter(
     (id): id is string => Boolean(id) && inferShape({ ...view, period: id }, dimension, measure) === "league",
   );
 }
