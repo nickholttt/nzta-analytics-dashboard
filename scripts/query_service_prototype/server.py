@@ -20,6 +20,7 @@ import hashlib
 import json
 import re
 import time
+from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit
@@ -29,7 +30,7 @@ import duckdb
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 CONTRACT = 1
-SNAPSHOT_FORMAT = re.compile(r"^\d{4}-\d{2}$")
+SNAPSHOT_FORMAT = re.compile(r"[0-9]{4}-[0-9]{2}")
 # Columns of the fact table that are not fields: the month and the count (docs/CUBE_SCHEMA.md, Fact table).
 MONTH, COUNT = "month", "n"
 
@@ -60,12 +61,14 @@ class Service:
         presets = read_json(REPO / "config" / "presets.json")
         builder = presets["builder"]
         self.prefix = builder["id"] + "."
+        self.part_prefix = builder["id"] + "-"
         self.dimensions = {d["id"]: d for d in read_json(REPO / "config" / "dimensions.json")["dimensions"]}
         self.notes = {**presets["public_copy"].get("dimension_notes", {}), **builder.get("dimension_notes", {})}
         self.manifest = read_json(data / "manifest.json")
         self.snapshot = self.manifest["latest_snapshot"][:7]
         self.store_dir = store
-        self.answers: dict[str, bytes] = {}
+        self.answers: OrderedDict[str, bytes] = OrderedDict()
+        self.forget_other_builds()
         self.con = duckdb.connect()
         self.public: dict[str, list[str]] = {}
         self.months: dict[str, list[str]] = {}
@@ -75,6 +78,19 @@ class Service:
                 continue
             self.public[dataset] = self.public_fields(entry)
             self.load(data / "facts" / dataset, dataset)
+
+    def forget_other_builds(self) -> None:
+        """A month built again (a corrected run) replaces that month's stored answers: the month's store folder records
+        which build its answers came from, and is emptied when that differs from the build loaded."""
+        if not self.store_dir:
+            return
+        folder = self.store_dir / self.snapshot
+        marker = folder / "build.txt"
+        if folder.exists() and (not marker.exists() or marker.read_text(encoding="utf-8") != self.manifest["generated_at"]):
+            for old in folder.glob("*.json"):
+                old.unlink()
+        folder.mkdir(parents=True, exist_ok=True)
+        marker.write_text(self.manifest["generated_at"], encoding="utf-8")
 
     def public_fields(self, entry: dict) -> list[str]:
         """The public list: defined in config/dimensions.json, live in this build, carried by the fact table, and not
@@ -109,6 +125,10 @@ class Service:
         q: dict = {"by": None, "by2": None, "values": [], "values2": [], "where": {}, "snapshot": None}
         presentation = set(self.settings["presentation_keys"])
         for key, value in parse_qsl(query, keep_blank_values=True, strict_parsing=False):
+            # A second chart of a two-part measure scopes its settings by the builder's id and its own
+            # (src/lib/builder.ts): build-count.period and the like are chart settings too.
+            if key.startswith(self.part_prefix) and key.rpartition(".")[2] in presentation:
+                continue
             if not key.startswith(self.prefix):
                 raise Refused(400, f"'{key}' is not part of a question. A question is the address of a Build page.", key)
             name = key[len(self.prefix):]
@@ -147,15 +167,16 @@ class Service:
             raise Refused(400, "Values for a second breakdown need a second breakdown.", "value2")
         if len(set(named)) > self.limits["max_fields"]:
             raise Refused(422, f"A question may name at most {self.limits['max_fields']} fields; this one names {len(named)}.")
+        # Duplicates are dropped before anything is counted: a value named twice is named once.
         for key in ("values", "values2"):
             q[key] = sorted(set(q[key]))
             if len(q[key]) > self.limits["max_values"]:
                 raise Refused(422, f"At most {self.limits['max_values']} values can be compared at once; this question names {len(q[key])}.", key)
         for field, kept in q["where"].items():
-            q["where"][field] = sorted(set(kept))
+            kept = q["where"][field] = sorted(set(kept))
             if len(kept) > self.limits["max_condition_values"]:
                 raise Refused(422, f"A condition may keep at most {self.limits['max_condition_values']} values; the one on '{field}' keeps {len(kept)}.", field)
-        if q["snapshot"] is not None and not SNAPSHOT_FORMAT.match(q["snapshot"]):
+        if q["snapshot"] is not None and not SNAPSHOT_FORMAT.fullmatch(q["snapshot"]):
             raise Refused(400, "A snapshot is a month written YYYY-MM.", "snapshot")
         return q
 
@@ -203,28 +224,47 @@ class Service:
             ).fetchall()
             if len(rows) > self.limits["max_cells"]:
                 raise Refused(422, f"This question's answer has {len(rows)} cells, more than the {self.limits['max_cells']} one answer may hold. Choose values to compare, or add a condition.")
-            value_lists = [sorted({r[1 + i] for r in rows} | set(chosen)) for i, chosen in enumerate((q["values"], q["values2"])[: len(by)])]
+            rows = [[*r[:-1], int(r[-1])] for r in rows]
+        else:
+            rows = []
+        suppression = self.suppress(q, answer, rows, by)
+        if by:
+            # A value is listed only if it has a figure that is shown, or was chosen: the list of values must not
+            # reveal that a value too small to show exists.
+            chosen_lists = (q["values"], q["values2"])[: len(by)]
+            shown = [r for r in rows if r[-1] is not None]
+            value_lists = [sorted({r[1 + i] for r in shown} | set(chosen)) for i, chosen in enumerate(chosen_lists)]
             index = [{v: j for j, v in enumerate(vs)} for vs in value_lists]
             answer["values"] = value_lists[0]
             if len(by) == 2:
                 answer["values2"] = value_lists[1]
-            answer["cells"] = [[r[0], *(index[i][r[1 + i]] for i in range(len(by))), int(r[-1])] for r in rows]
-        self.suppress(q, answer, by)
+            answer["cells"] = [
+                [r[0], *(index[i][r[1 + i]] for i in range(len(by))), r[-1]]
+                for r in rows
+                if all(r[1 + i] in index[i] for i in range(len(by)))
+            ]
+        answer["suppression"] = suppression
         return answer
 
-    def suppress(self, q: dict, answer: dict, by: list[str]) -> None:
-        """The minimum-count hook. A cell below the strictest rule among the fields the question names is withheld.
-        Primary suppression only: whether a withheld cell could be worked back from the month's total is for the
-        Stage 2 privacy review to settle before any rule is set."""
+    def suppress(self, q: dict, answer: dict, rows: list[list], by: list[str]) -> dict:
+        """The minimum-count hook. When a question names a field that has a rule, the strictest rule named applies to
+        every figure in the answer: a cell, and a month's total, counting fewer vehicles than it (and more than none)
+        is withheld as null. So a ruled field asked only as a condition, whose answer is month totals, is covered
+        too. Whether a withheld figure could be worked back from the figures beside it is for the Stage 2 privacy
+        review to settle before any rule is set."""
         rules = {f: n for f, n in self.settings.get("min_count", {}).items() if f in by or f in q["where"]}
-        withheld = 0
-        if rules and "cells" in answer:
+        cells = totals = 0
+        if rules:
             floor = max(rules.values())
-            for cell in answer["cells"]:
-                if 0 < cell[-1] < floor:
-                    cell[-1] = None
-                    withheld += 1
-        answer["suppression"] = {"rules": rules, "cells_withheld": withheld}
+            for row in rows:
+                if 0 < row[-1] < floor:
+                    row[-1] = None
+                    cells += 1
+            for i, total in enumerate(answer["denominator"]):
+                if 0 < total < floor:
+                    answer["denominator"][i] = None
+                    totals += 1
+        return {"rules": rules, "cells_withheld": cells, "totals_withheld": totals}
 
     def describe(self, dataset: str, q: dict) -> dict:
         entry = self.manifest["datasets"][dataset]
@@ -250,17 +290,19 @@ class Service:
             stored = self.stored(dataset, q["snapshot"], self.canonical(q))
             if stored is None:
                 raise Refused(404, f"This service holds the {self.snapshot} snapshot, not {q['snapshot']}, and has no stored answer to this question for {q['snapshot']}.", "snapshot")
-            return stored, {"store": "hit", "compute_ms": 0.0, "pinned": True}
+            # An older month is not rebuilt, so its answer will not change.
+            return stored, {"store": "hit", "compute_ms": 0.0, "final": True}
         key = self.canonical(q)
         stored = self.stored(dataset, self.snapshot, key)
         if stored is not None:
-            return stored, {"store": "hit", "compute_ms": 0.0, "pinned": q["snapshot"] is not None}
+            return stored, {"store": "hit", "compute_ms": 0.0, "final": False}
         started = time.perf_counter()
         body = {**self.describe(dataset, q), "question": key, **self.compute(dataset, q)}
         compute_ms = (time.perf_counter() - started) * 1000
         encoded = json.dumps(body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
         self.keep(dataset, self.snapshot, key, encoded)
-        return encoded, {"store": "miss", "compute_ms": compute_ms, "pinned": q["snapshot"] is not None}
+        # The newest month can still be rebuilt (a corrected run), so even a pinned answer to it may change.
+        return encoded, {"store": "miss", "compute_ms": compute_ms, "final": False}
 
     # The answer store: each answer kept against its question and snapshot, served from there until the next. ---------
 
@@ -270,17 +312,25 @@ class Service:
     def stored(self, dataset: str, snapshot: str, canonical: str) -> bytes | None:
         key = self.store_key(dataset, snapshot, canonical)
         if key in self.answers:
+            self.answers.move_to_end(key)
             return self.answers[key]
         if self.store_dir:
             path = self.store_dir / snapshot / f"{key}.json"
             if path.exists():
-                self.answers[key] = path.read_bytes()
+                self.remember(key, path.read_bytes())
                 return self.answers[key]
         return None
 
+    def remember(self, key: str, body: bytes) -> None:
+        # The least recently used answer leaves memory first, so a stream of made-up questions cannot grow it for ever.
+        self.answers[key] = body
+        self.answers.move_to_end(key)
+        while len(self.answers) > self.limits["max_answers_in_memory"]:
+            self.answers.popitem(last=False)
+
     def keep(self, dataset: str, snapshot: str, canonical: str, body: bytes) -> None:
         key = self.store_key(dataset, snapshot, canonical)
-        self.answers[key] = body
+        self.remember(key, body)
         if self.store_dir:
             folder = self.store_dir / snapshot
             folder.mkdir(parents=True, exist_ok=True)
@@ -304,10 +354,16 @@ def handler_for(service: Service):
             except Refused as e:
                 body = json.dumps({"error": e.message, "field": e.field}).encode("utf-8")
                 return self.send(e.status, body, {"Cache-Control": "no-store"})
-            etag = '"' + hashlib.sha256(body).hexdigest()[:32] + '"'
+            except Exception as e:  # noqa: BLE001 (any other failure is still answered, with nothing internal in it)
+                print(f"failed: {self.path}: {e!r}", flush=True)
+                body = json.dumps({"error": "The service failed while answering this question.", "field": None}).encode("utf-8")
+                return self.send(500, body, {"Cache-Control": "no-store"})
+            # One tag per body as sent: the gzipped and the plain body differ.
+            gz = "gzip" in self.headers.get("Accept-Encoding", "")
+            etag = '"' + hashlib.sha256(body).hexdigest()[:32] + ("-gz" if gz else "") + '"'
             if self.headers.get("If-None-Match") == etag:
                 return self.send(304, b"", {"ETag": etag})
-            cache = "public, max-age=31536000, immutable" if meta["pinned"] else f"public, max-age={service.settings['cache_seconds_latest']}"
+            cache = "public, max-age=31536000, immutable" if meta["final"] else f"public, max-age={service.settings['cache_seconds_latest']}"
             self.send(200, body, {
                 "Cache-Control": cache,
                 "ETag": etag,

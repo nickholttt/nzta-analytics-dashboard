@@ -145,6 +145,41 @@ def test_more_values_than_the_limit_are_refused(svc, dataset):
     assert refused.value.status == 422
 
 
+def test_a_value_named_twice_counts_once(svc, dataset):
+    field = svc.public[dataset][1]
+    value = top_values(dataset, field, 1)[0]
+    answer, _ = ask(svc, dataset, q(svc, by=svc.public[dataset][0], **{f"where__{field}": [value] * (svc.limits["max_condition_values"] + 1)}))
+    assert answer["question"].count(value.replace(" ", "+")) == 1
+
+
+def test_build_can_ask_every_field_at_once(svc, dataset):
+    fields = svc.public[dataset]
+    conditions = {f"where__{f}": top_values(dataset, f, 1) for f in fields[1:]}
+    answer, _ = ask(svc, dataset, q(svc, by=fields[0], **conditions))
+    assert len(answer["denominator"]) == len(answer["months"])
+
+
+@pytest.mark.parametrize("snapshot", ["2026-10\n", "2026-1", "２０２６-10", "../x"])
+def test_a_snapshot_is_exactly_a_year_and_month(svc, dataset, snapshot):
+    with pytest.raises(server.Refused) as refused:
+        svc.answer(dataset, q(svc, snapshot=snapshot))
+    assert refused.value.status == 400
+
+
+def test_a_second_charts_settings_are_chart_settings(svc, dataset):
+    part = svc.part_prefix + "count."
+    body, _ = svc.answer(dataset, f"{part}period=10y&{part}range=all")
+    assert json.loads(body)["question"].endswith(svc.snapshot)
+
+
+def test_the_store_in_memory_has_a_cap(dataset):
+    small = service(max_answers_in_memory=2)
+    field = small.public[dataset][0]
+    for v in ("a", "b", "c"):
+        small.answer(dataset, q(small, by=field, value=v))
+    assert len(small.answers) == 2
+
+
 def test_an_answer_above_the_cell_limit_is_refused_not_cut(dataset):
     small = service(max_cells=10)
     with pytest.raises(server.Refused) as refused:
@@ -154,18 +189,44 @@ def test_an_answer_above_the_cell_limit_is_refused_not_cut(dataset):
 
 # The minimum-count hook --------------------------------------------------------------------------------------------
 
-def test_the_minimum_count_withholds_small_cells_and_says_so(dataset):
-    base = service()
-    field = base.public[dataset][1]
-    floor = 1000
-    ruled = service(min_count={field: floor})
-    answer, _ = ask(ruled, dataset, q(ruled, by=field))
-    plain, _ = ask(base, dataset, q(base, by=field))
-    small = sum(1 for c in plain["cells"] if c[-1] < floor)
+FLOOR = 1000
+
+
+@pytest.fixture(scope="module")
+def ruled(svc, dataset):
+    field = svc.public[dataset][1]
+    return field, service(min_count={field: FLOOR})
+
+
+def test_the_minimum_count_withholds_small_cells_and_says_so(svc, dataset, ruled):
+    field, rs = ruled
+    answer, _ = ask(rs, dataset, q(rs, by=field))
+    plain, _ = ask(svc, dataset, q(svc, by=field))
+    small = sum(1 for c in plain["cells"] if c[-1] < FLOOR)
     assert small > 0
-    assert answer["suppression"] == {"rules": {field: floor}, "cells_withheld": small}
-    assert all(c[-1] is None or c[-1] >= floor for c in answer["cells"])
-    assert plain["suppression"] == {"rules": {}, "cells_withheld": 0}
+    assert answer["suppression"]["rules"] == {field: FLOOR}
+    assert answer["suppression"]["cells_withheld"] == small
+    assert all(c[-1] is None or c[-1] >= FLOOR for c in answer["cells"])
+    assert all(t is None or t == 0 or t >= FLOOR for t in answer["denominator"])
+    assert plain["suppression"] == {"rules": {}, "cells_withheld": 0, "totals_withheld": 0}
+
+
+def test_a_value_with_no_figure_shown_is_not_listed(svc, dataset, ruled):
+    field, rs = ruled
+    answer, _ = ask(rs, dataset, q(rs, by=field))
+    shown = {answer["values"][c[1]] for c in answer["cells"] if c[-1] is not None}
+    assert set(answer["values"]) == shown
+
+
+def test_a_ruled_field_asked_only_as_a_condition_has_its_totals_withheld(dataset, ruled):
+    field, rs = ruled
+    rarest = duckdb.sql(
+        f"SELECT dim_value FROM read_parquet('{(DATA / 'cube' / dataset / (field + '.parquet')).as_posix()}') "
+        "GROUP BY 1 HAVING SUM(n) > 0 ORDER BY SUM(n) LIMIT 1"
+    ).fetchone()[0]
+    answer, _ = ask(rs, dataset, q(rs, **{f"where__{field}": rarest}))
+    assert answer["suppression"]["totals_withheld"] > 0
+    assert all(t is None or t == 0 or t >= FLOOR for t in answer["denominator"])
 
 
 # The answer store, and a link, a saved question and a request being one thing --------------------------------------
@@ -192,6 +253,16 @@ def test_the_stored_answer_survives_a_restart(tmp_path, dataset):
     two = server.Service(DATA, settings=copy.deepcopy(SETTINGS), store=tmp_path)
     again, meta = two.answer(dataset, "")
     assert again == body and meta["store"] == "hit"
+
+
+def test_a_month_built_again_replaces_its_stored_answers(tmp_path, dataset):
+    one = server.Service(DATA, settings=copy.deepcopy(SETTINGS), store=tmp_path)
+    one.answer(dataset, "")
+    # As if the same month had been built again: the folder says it came from another build.
+    (tmp_path / one.snapshot / "build.txt").write_text("an earlier build", encoding="utf-8")
+    two = server.Service(DATA, settings=copy.deepcopy(SETTINGS), store=tmp_path)
+    _, meta = two.answer(dataset, "")
+    assert meta["store"] == "miss"
 
 
 # Invariant 1 -------------------------------------------------------------------------------------------------------
