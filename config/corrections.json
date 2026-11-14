@@ -1,0 +1,4 @@
+{
+  "$comment": "The public corrections log, shown on /feedback. Add a correction by adding one object to the list: date (YYYY-MM-DD, the day the correction was published), wrong (what the site showed that was wrong), changed (what it shows now), link (an https address with the detail, such as the issue or pull request). Newest first on the page whatever the order here. The page's build fails on a row missing a field, so a malformed row never reaches the site.",
+  "corrections": []
+}

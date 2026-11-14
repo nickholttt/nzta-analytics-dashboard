@@ -1,0 +1,13 @@
+{
+  "$comment": "Words and addresses the public pages share, kept here so each is written once. attribution is the footer's line on every page and the About page's licence statement. The About page's gaps are the user's to fill: each is the text [TO DECIDE: ...], and one search for TO DECIDE finds every one. Replace a value with the real text and the page shows it with no marker; src/pages/about.astro states the page is a draft only while any marker is left.",
+  "attribution": "Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe surviving registrations recorded by NZTA, not sales.",
+  "issues_url": "https://github.com/nickholttt/nzta-analytics-dashboard/issues",
+  "about": {
+    "site_name": "[TO DECIDE: the site's name]",
+    "site_address": "[TO DECIDE: the site's web address]",
+    "operator": "[TO DECIDE: your name, or \"an individual\"]",
+    "contact": "[TO DECIDE: how a visitor can reach you, or \"through GitHub issues only\"]",
+    "industry_connection": "[TO DECIDE: any connection you have to the motor industry, or \"none\"]",
+    "privacy": "[TO DECIDE: what the site promises about advertising, cookies and visitor tracking. The code has none of the three today; say so here only if that is a promise you mean to keep.]"
+  }
+}
