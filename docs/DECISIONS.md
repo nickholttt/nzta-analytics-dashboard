@@ -3082,3 +3082,52 @@ New entries use this template:
   - Reversing it: delete `config/data_map.json` and its test; `docs/DATA_MAP.md`'s history is in git.
 - Status: decided by Claude (unreviewed). The privacy classes: proposed, for the user; they bind
   nothing until the user approves them.
+
+## D-091 2026-11-14 — The query service: its question format and checks are specified, a local prototype is measured, and one way of hosting it is proposed for the user
+- Agent: claude (the work by a sub-agent on opus; this record by the lead)
+- Basis: the work order §5.G; CLAUDE.md invariant 6; the brief §9, Stage 2 item 2; `docs/QUERY_SERVICE.md` and
+  `docs/brief/QUERY_SERVICE_PROPOSAL.md` on `claude/query-service`; measurements made on 2026-11-14 on this computer
+  against the 2026-10 dry-run cube; providers' pricing pages read that day.
+- Context: Build answers a question by downloading columns of the fact table and summing them in the browser (D-058).
+  CLAUDE.md plans a hosted service that takes a structured question and returns only the rows a chart needs. The
+  work order asks for the format, a local prototype, measurements and a proposal, and for nothing to be provisioned.
+- Decision (by Claude, unreviewed), what is built:
+  1. **The question is Build's address-bar form** (D-060), so a link, a saved question and a request are one thing.
+     Two keys are added to the form for later use: a second breakdown (for the `matrix` shape) and a snapshot to pin
+     to. Chart settings are not part of the stored question.
+  2. **What a service checks:** every field is defined in `config/dimensions.json`, live in the manifest, carried by
+     the fact table and not withheld; values are passed as parameters, never written into a query; a question over a
+     limit is refused, never cut short; a minimum-count rule has its hook, and no field has a rule yet.
+  3. **A local prototype** in `scripts/query_service_prototype/` (Python's own HTTP server and DuckDB; no new
+     dependency), with 59 tests, among them that it answers only with counts, refuses a field that is not public,
+     treats a value carrying SQL as a value, and refuses a question over each limit. The hostile and limit cases
+     live in a data file (`cases.json`), so a later implementation can be run against the same cases. It is a
+     maintainer's tool run by hand, not part of the pipeline or the deploy.
+  4. **The seam in `src/lib/data.ts`**, switched by a build-time setting that is off by default. With it off the
+     site makes the same requests as before and ships 147 bytes more of compressed script (measured). When the
+     service is on and not answering, Explore still draws and Build says so plainly; it does not fall back silently.
+- Measured (medians of three runs; the phone profile is the one D-058 used; the service ran on the same computer as
+  the browser, so its figures are a floor, not a forecast):
+  - First answer on the phone, today's static files then the local service, for questions naming 3, 5 and 8 fields:
+    7.4 and 4.2 s; 8.9 and 5.0 s; 11.6 and 5.0 s. Downloaded: 1,024 and 511 KB; 1,218 and 516 KB; 1,671 and 531 KB.
+  - On a desktop: 0.72 and 0.42 s; 0.82 and 0.66 s; 0.96 and 1.21 s.
+  - Neither side meets the 3 second target on the phone: about 460 KB of what the service side downloads is the
+    page's own code and fonts.
+- Proposed, for the user to decide (`docs/brief/QUERY_SERVICE_PROPOSAL.md` has the options, the figures and their
+  sources): a function deployed with the site on Cloudflare, on its paid plan at US$5 a month, running the same sums
+  the browser runs today. Its risk is memory, so the first step would be a short trial on Cloudflare. The other
+  options: no service (no cost; the slowest); a small container (about US$5 to US$15 a month, or free within one
+  provider's free tier, with a wait of a few seconds after a quiet spell); a managed analytics database (nothing to
+  several hundred dollars a month depending on traffic). Several of these figures are estimates and are marked so.
+- Consequences:
+  - Nothing is provisioned, no account is created and nothing is spent. Build keeps reading the static fact table.
+  - The largest saving on first load is not the service: it is the page's own code and fonts, which package D's
+    first-load work measures and trims.
+  - The prototype's tests are not run by `Checks`, which runs `pipeline/tests` only.
+  - The sub-agent ran a review of its own. That is not the independent review the merge needs; the lead ran one,
+    which re-measured the timings (within a few tenths of a second on the phone), read the providers' pricing pages
+    and found the quoted prices on them, and asked for the tests and citations added since.
+  - The recommended option would sum in JavaScript, not in the DuckDB engine that was measured, and its checks
+    would be written a second time: the shared cases are there to hold the two to the same answers.
+  - Reversing it: delete the two docs, the prototype folder and the seam (one setting and one branch in `data.ts`).
+- Status: what is built, decided by Claude (unreviewed); the hosting choice and any spending, proposed, for the user

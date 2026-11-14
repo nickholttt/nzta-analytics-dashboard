@@ -1,0 +1,21 @@
+{
+  "$comment": "The questions the query service was measured with (docs/QUERY_SERVICE.md, Measurements), as Build links. 'fields' counts the fields each question names: its breakdown and its conditions. The values are data, kept here and not in code. The three-field question is the work order's acceptance question (docs/brief/WORK_ORDER.md, package F): three brands only, one powertrain, one vehicle class.",
+  "dataset": "registrations_surviving",
+  "questions": [
+    {
+      "id": "q3",
+      "fields": 3,
+      "link": "/build/?build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger"
+    },
+    {
+      "id": "q5",
+      "fields": 5,
+      "link": "/build/?build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger&build.where.import_status=NZ%20New&build.where.engine_size_band=1.5-1.9%20L&build.where.engine_size_band=2.0-2.4%20L"
+    },
+    {
+      "id": "q8",
+      "fields": 8,
+      "link": "/build/?build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger&build.where.import_status=NZ%20New&build.where.engine_size_band=1.5-1.9%20L&build.where.engine_size_band=2.0-2.4%20L&build.where.built_in=JAPAN&build.where.built_in=THAILAND&build.where.built_in=CHINA&build.where.age_at_registration_band=0&build.where.heritage_country=Japan&build.where.heritage_country=United%20States&build.where.heritage_country=China"
+    }
+  ]
+}

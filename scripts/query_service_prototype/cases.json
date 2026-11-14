@@ -1,0 +1,95 @@
+{
+  "$comment": "Cases any implementation of the query service must pass (docs/QUERY_SERVICE.md): hostile questions, each limit, and a few answers whose totals are known. The prototype's tests read this file, and a later implementation (the proposal's edge function) is to be run against it too. Each case: 'query' is the question as sent after /v1/<dataset>/answer?; 'generate' adds keys built here rather than written out (count copies of key, values prefix0, prefix1, ...); 'settings' overrides the service's settings for that case, for a limit no real field can reach today; 'status' is what the service must answer; 'totals', where given, are checked only against the snapshot named (they are that snapshot's counts): the sum of the month totals, and the sum of each value's cells. Domain values live here, not in code.",
+  "dataset": "registrations_surviving",
+  "cases": [
+    {"id": "sql-key", "why": "SQL is not part of a question", "query": "sql=SELECT%201", "status": 400},
+    {"id": "unknown-key", "why": "a key that is not part of a question", "query": "build.unknown=x", "status": 400},
+    {"id": "loose-part-key", "why": "only <id>-<part>.<chart setting> is accepted for a second chart", "query": "build-count.sql.period=1", "status": 400},
+    {"id": "part-setting", "why": "a second chart's own setting is accepted and ignored", "query": "build-count.period=10y&build-count.range=all", "status": 200},
+    {"id": "region", "why": "a live field the fact table does not carry: the owner's region", "query": "build.by=region", "status": 400},
+    {"id": "region-condition", "why": "the same, as a condition", "query": "build.where.region=Auckland", "status": 400},
+    {"id": "postcode", "why": "never public", "query": "build.by=postcode", "status": 400},
+    {"id": "vin", "why": "never public", "query": "build.where.vin11=x", "status": 400},
+    {"id": "month-column", "why": "a column, not a field", "query": "build.by=month", "status": 400},
+    {"id": "count-column", "why": "a column, not a field", "query": "build.where.n=1", "status": 400},
+    {"id": "field-injection", "why": "a field name carrying SQL", "query": "build.by=make%22%20OR%201%3D1%20--", "status": 400},
+    {"id": "by-twice", "why": "a breakdown given twice", "query": "build.by=make&build.by=model", "status": 400},
+    {"id": "snapshot-twice", "why": "a snapshot given twice", "query": "build.snapshot=2026-10&build.snapshot=2026-09", "status": 400},
+    {"id": "by2-alone", "why": "a second breakdown needs a first", "query": "build.by2=make", "status": 400},
+    {"id": "by2-same", "why": "the second breakdown is the first", "query": "build.by=make&build.by2=make", "status": 400},
+    {"id": "by-and-condition", "why": "a field both a breakdown and a condition", "query": "build.by=make&build.where.make=FORD", "status": 400},
+    {"id": "value-alone", "why": "values need a breakdown", "query": "build.value=FORD", "status": 400},
+    {"id": "snapshot-newline", "why": "a snapshot is exactly YYYY-MM", "query": "build.snapshot=2026-10%0A", "status": 400},
+    {"id": "snapshot-not-held", "why": "a snapshot the service does not hold and has no stored answer for", "query": "build.snapshot=1999-01", "status": 404},
+    {
+      "id": "condition-value-injection",
+      "why": "a condition's value is a parameter, never SQL: it is a value no vehicle has, so every month keeps nothing",
+      "query": "build.by=make&build.where.powertrain=x%27%20OR%20%271%27%3D%271",
+      "status": 200,
+      "totals": {"snapshot": "2026-10-31", "denominator_sum": 0, "value_sums": {}}
+    },
+    {
+      "id": "breakdown-value-injection",
+      "why": "a compared value is a parameter, never SQL",
+      "query": "build.by=make&build.value=x%27%20OR%20%271%27%3D%271",
+      "status": 200,
+      "totals": {"snapshot": "2026-10-31", "denominator_sum": 4520304, "value_sums": {}}
+    },
+    {
+      "id": "limit-values",
+      "why": "more values compared than Build's cap",
+      "query": "build.by=make",
+      "generate": [{"key": "build.value", "count": 9, "prefix": "v"}],
+      "status": 422
+    },
+    {
+      "id": "limit-condition-values",
+      "why": "a condition keeping more values than the limit",
+      "query": "build.by=make",
+      "generate": [{"key": "build.where.model", "count": 501, "prefix": "v"}],
+      "status": 422
+    },
+    {
+      "id": "limit-condition-values-duplicates",
+      "why": "one value named many times is one value",
+      "query": "build.by=make",
+      "generate": [{"key": "build.where.powertrain", "count": 501, "prefix": "", "same": "BEV"}],
+      "status": 200
+    },
+    {
+      "id": "limit-fields",
+      "why": "more fields named than the limit (no real question reaches the real limit yet, so it is lowered)",
+      "query": "build.by=make&build.where.powertrain=BEV&build.where.segment_group=Light%20passenger",
+      "settings": {"max_fields": 2},
+      "status": 422
+    },
+    {
+      "id": "limit-query-bytes",
+      "why": "a question longer than the limit",
+      "query": "build.by=make",
+      "generate": [{"key": "build.value", "count": 1, "prefix": "", "same": "x", "repeat": 40000}],
+      "status": 413
+    },
+    {
+      "id": "limit-cells",
+      "why": "an answer with more cells than the limit is refused, not cut",
+      "query": "build.by=make",
+      "settings": {"max_cells": 10},
+      "status": 422
+    },
+    {
+      "id": "acceptance-question",
+      "why": "the work order's acceptance question: three brands, one powertrain, one vehicle class",
+      "query": "build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger",
+      "status": 200,
+      "totals": {"snapshot": "2026-10-31", "denominator_sum": 409241, "value_sums": {"TOYOTA": 292740, "FORD": 1972}}
+    },
+    {
+      "id": "everything",
+      "why": "no breakdown, no condition: every vehicle, month by month",
+      "query": "",
+      "status": 200,
+      "totals": {"snapshot": "2026-10-31", "denominator_sum": 4520304, "value_sums": {}}
+    }
+  ]
+}
