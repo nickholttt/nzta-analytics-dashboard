@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { compositeRules, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
-import { loadEvents, loadManifest, loadView } from "../lib/data";
+import { ServiceError, loadEvents, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
@@ -109,6 +109,8 @@ export default function PresetPanel({
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [wanted, sentinel]);
+  // What a visitor is told when the query service fails: its own sentence, not the reload advice for a file.
+  const [serviceError, setServiceError] = useState<string | null>(null);
 
   const handleGranularityChange = (newId: string) => {
     setActiveGranularityId(newId);
@@ -176,7 +178,11 @@ export default function PresetPanel({
         setCompanion(second);
         setRows(loaded);
       },
-      (e) => current && setError(String(e)),
+      (e) => {
+        if (!current) return;
+        setServiceError(e instanceof ServiceError ? e.message : null);
+        setError(String(e));
+      },
     );
     return () => {
       current = false;
@@ -198,7 +204,7 @@ export default function PresetPanel({
       <section className={panelClass}>
         <div className="callout blocked">
           <span className="callout-label">Could not load</span>
-          {internal ? error : "This chart's data did not load. Reload the page to try again."}
+          {internal ? error : (serviceError ?? "This chart's data did not load. Reload the page to try again.")}
         </div>
       </section>
     );

@@ -198,16 +198,78 @@ def test_a_store_older_than_the_register_warns_and_uses_its_own_latest_month(tmp
     assert any("the export is missing 2026-08" in w for w in manifest["warnings"])
 
 
-def test_a_month_that_moved_without_a_ledger_entry_aborts(tmp_path, workspace_with_store, workspace):
+def write_ledger(cfg, change):
+    ledger_path = supplied.store_paths(cfg, SOURCE)[1]
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    change(ledger)
+    ledger_path.write_text(json.dumps(ledger), encoding="utf-8", newline="\n")
+
+
+def test_a_month_whose_store_total_moved_aborts_unless_a_replacement_since_the_last_build_is_recorded(
+        tmp_path, workspace_with_store, workspace):
+    cfg = workspace_with_store
+    run(tmp_path, cfg, name="first")
+    state = json.loads(workspace["state"].read_text(encoding="utf-8"))
+    assert state["supplied_totals"][DATASET]["2026-07"] > 0
+    state["supplied_totals"][DATASET]["2026-07"] *= 2
+    expect_abort(lambda: run(tmp_path, cfg, state=copy.deepcopy(state), name="second"), "2026-07")
+
+    # A replacement whose file was taken before the last good build was part of that build: it excuses nothing now.
+    write_ledger(cfg, lambda l: l["replaced"].append({"month": "2026-07", "old": {}, "new": {"taken": "2026-09-05"}}))
+    expect_abort(lambda: run(tmp_path, cfg, state=copy.deepcopy(state), name="stale"), "no replacement recorded")
+
+    write_ledger(cfg, lambda l: l["replaced"][0]["new"].update(taken="2026-10-02"))
+    manifest = run(tmp_path, cfg, state=copy.deepcopy(state), name="third")
+    assert manifest["datasets"][DATASET]["supplied"]["replaced"][0]["month"] == "2026-07"
+
+
+def test_a_scope_change_that_moves_scoped_counts_does_not_trip_the_month_guard(tmp_path, workspace_with_store, workspace):
     cfg = workspace_with_store
     run(tmp_path, cfg, name="first")
     state = json.loads(workspace["state"].read_text(encoding="utf-8"))
     state["month_counts"][DATASET]["2026-07"] *= 2
-    expect_abort(lambda: run(tmp_path, cfg, state=copy.deepcopy(state), name="second"), "not in the ledger's replaced list")
+    run(tmp_path, cfg, state=state, name="second")
 
-    ledger_path = supplied.store_paths(cfg, SOURCE)[1]
-    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
-    ledger["replaced"].append({"month": "2026-07", "old": {}, "new": {}})
-    ledger_path.write_text(json.dumps(ledger), encoding="utf-8", newline="\n")
-    manifest = run(tmp_path, cfg, state=copy.deepcopy(state), name="third")
-    assert manifest["datasets"][DATASET]["supplied"]["replaced"][0]["month"] == "2026-07"
+
+def test_a_store_that_does_not_belong_to_its_ledger_aborts_even_when_the_month_totals_agree(tmp_path, workspace_with_store):
+    cfg = workspace_with_store
+    registrations = supplied.store_paths(cfg, SOURCE)[0]
+    field = next(iter(cfg.supplied(SOURCE)["fields"]))
+    path = registrations.as_posix()
+    # Move one row's value to another row's: the rows and vehicles of every month stay as the ledger says.
+    duckdb.connect().execute(f"""COPY (SELECT * EXCLUDE (rn) REPLACE (CASE WHEN rn = 1 THEN (SELECT max({field}) FROM read_parquet('{path}'))
+                                                          ELSE {field} END AS {field})
+                          FROM (SELECT *, row_number() OVER () AS rn FROM read_parquet('{path}')))
+                TO '{path}.moved' (FORMAT PARQUET)""")
+    registrations.with_name(registrations.name + ".moved").replace(registrations)
+    expect_abort(lambda: run(tmp_path, cfg), "store_sha256")
+    with pytest.raises(GuardrailError) as info:
+        supply(cfg, MONTH, month="2026-09", taken="2026-10-02")
+    assert "store_sha256" in str(info.value)
+
+
+def test_a_store_with_other_columns_than_configured_aborts(tmp_path, workspace_with_store):
+    cfg = workspace_with_store
+    registrations = supplied.store_paths(cfg, SOURCE)[0]
+    duckdb.connect().execute(f"COPY (SELECT *, 1 AS surprise FROM read_parquet('{registrations.as_posix()}')) "
+                             f"TO '{registrations.as_posix()}.wide' (FORMAT PARQUET)")
+    registrations.with_name(registrations.name + ".wide").replace(registrations)
+    # Keep the pair consistent in every other way, so only the column check can refuse it.
+    digest = supplied.sha256_of(registrations)
+    write_ledger(cfg, lambda l: l.update(store_sha256=digest))
+    expect_abort(lambda: run(tmp_path, cfg), "the store's columns are")
+
+
+@pytest.mark.parametrize("keep", ["registrations_file", "ledger_file"])
+def test_a_store_with_only_one_of_its_two_files_aborts_and_is_not_reported_as_not_built(tmp_path, workspace_with_store, keep):
+    cfg = workspace_with_store
+    source = cfg.supplied(SOURCE)
+    (cfg.supplied_store(SOURCE) / source["ledger_file" if keep == "registrations_file" else "registrations_file"]).unlink()
+    expect_abort(lambda: run(tmp_path, cfg), "only one of")
+
+
+def test_a_private_column_mapped_to_a_public_field_aborts_the_build(tmp_path, workspace_with_store):
+    cfg = workspace_with_store
+    source = cfg.pipeline["supplied"][SOURCE]
+    source["extra_fields"] = {**source["extra_fields"], "district": source["private_columns"][1]}
+    expect_abort(lambda: run(tmp_path, cfg), "private_columns")

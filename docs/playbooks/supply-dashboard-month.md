@@ -2,7 +2,7 @@
 
 Once a month, after NZTA has updated the dashboard (at the start of the month), the user exports the
 new month and a maintainer adds it to the local store. This is a hand step: the Action never runs it
-and nothing here fetches anything. Why the data is kept this way is D-075.
+and nothing here fetches anything. Why the data is kept this way is D-084.
 
 ## Steps (Git Bash, repository root)
 
@@ -30,6 +30,12 @@ and nothing here fetches anything. Why the data is kept this way is D-075.
 Nothing outside `data/supplied/nzta_dashboard/` is written, and nothing is written at all unless every
 check passes.
 
+**Build with `--dry-run` afterwards.** A local `python -m pipeline build <pull>` without `--dry-run`, with the
+store present, writes `registrations_flow` into `data/state/last_good.json`. Never commit that file (only the
+Action does; hard rule 3): if it were committed, every GitHub build, which has no store, would abort with "built
+in the last good run". After supplying a month, build with `--dry-run`, or expect that file to change locally and
+leave it uncommitted.
+
 ## When it stops
 
 Each message names the cause. What to do:
@@ -46,7 +52,7 @@ Each message names the cause. What to do:
 | the file does not match the dashboard's own totals | The file's sum differs from the figure you wrote down. | The export may be incomplete. Export again. |
 | N month(s) already in the store differ from this file | The dashboard restated a past month. The message shows the old and new totals. | If the new file is right, run again with `--replace YYYY-MM` for each month. The change goes into the ledger. If you did not expect it, keep the old data and ask. |
 | adding these months would leave the store with no rows for YYYY-MM | The new month is not the one after the store's last month. | Supply the missing month first. |
-| the store disagrees with its ledger | Someone edited a store file by hand. | Restore both files together, or remove `data/supplied/nzta_dashboard/` and supply the history again. |
+| the store disagrees with its ledger, or is not the file this ledger was written with | A store file was edited, or a run was interrupted between writing the two files. | Restore both files together, or remove `data/supplied/nzta_dashboard/` and supply the history again. |
 
 The warning "the totals were not checked against the dashboard" means `--totals` was left out. The month
 is still added; add the figure next time.

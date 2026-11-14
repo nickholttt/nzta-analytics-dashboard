@@ -62,7 +62,8 @@ def main(argv: list[str] | None = None) -> int:
         fetch.print_summary(manifest)
         return 0
     except GuardrailError as exc:
-        print(f"ABORTED: the last good build is unchanged.\n{exc}", file=sys.stderr)
+        unchanged = "the store is unchanged" if args.command == "supply" else "the last good build is unchanged"
+        print(f"ABORTED: {unchanged}.\n{exc}", file=sys.stderr)
         return 2
     except SourceError as exc:
         print(f"SOURCE FAILURE: the last good build is unchanged.\n{exc}", file=sys.stderr)

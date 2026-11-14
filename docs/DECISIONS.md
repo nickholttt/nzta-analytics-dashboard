@@ -2930,3 +2930,292 @@ New entries use this template:
   - Checked headless after the review: the brand and model rankings' line at 320, 390, 480 and 640 px.
   - Reversing any one: each is its own commit.
 - Status: decided by Claude (unreviewed)
+
+## D-090 2026-11-14 — The data map is finished: a new config file beside `dimensions.json`, privacy classes proposed for the user, two roll-ups dropped, and what "moves together" will mean
+- Agent: claude (the definitions editor, a sub-agent on opus), doing the work order's package E, its
+  data-map part. The chart rule table, Build reading it, the association figures each build and any
+  binding are other work.
+- Basis: a read-only profile of the register as at 31 October 2026, run on 2026-11-14 on the private
+  archive's 35-field file (`mvr-2026-10.parquet`), two bases: the in-scope dataset (S, 4,520,476
+  vehicles) and the whole register (W, 5,926,990). Its report and tables are in gitignored
+  `data/staging/profiles/2026-10/`. For `VIN11` and `POSTCODE`, D-076 and D-079; for the dashboard's
+  columns, D-087; for `OBJECTID`, `CHASSIS7` and `ENGINE_NUMBER`, the first pass of 2026-11-13.
+  `pipeline/tests/test_data_map.py`, `test_invariants.py` and `test_agents.py` run on the branch:
+  all passed. Branch `claude/data-map` (pull request #53), commits `9f657e8`, `9440007`, `0f62008`,
+  and, after the independent review, `39c2e6f` and `307d24c`.
+- Context: CLAUDE.md's goal, point 8: "A field is defined before it is askable." The first pass
+  (Stage 0) counted every field on the whole register and left five things open: meanings not checked
+  against the data; coverage on the whole register only; coded values listed but not defined; no
+  relation measured; and whether the machine-readable form extends `config/dimensions.json` or is a
+  new file. The work order (§5.E) asks for all of it, and for the privacy classes as a proposal.
+- Options considered:
+  1. **Where the machine-readable form lives.**
+     - (a) Extend `config/dimensions.json`. Not chosen. That file is the pipeline's build vocabulary:
+       each entry is a dimension with a `derive` block, and a dimension without one is reported as not
+       live in every build's manifest (`derive.applicable`), so 23 unbound fields would change the
+       manifest and the golden contract. It also describes derived dimensions (powertrain, segment,
+       region), not source fields; one source field feeds several dimensions and one dimension reads
+       several fields.
+     - (b) A CSV in `data/reference/`. Not chosen: uses, guards and relations are nested, and
+       `data/reference/` is pipeline input under hard rule 5 (one commit per file).
+     - (c) **A new file, `config/data_map.json`**, one entry per source field and dashboard column.
+       Chosen. `dimensions.json` stays the list of what Build offers today; a field reaches it only by
+       being bound and given a derive block. The new file is read by nothing in the build, so the cube
+       and the golden contract do not change.
+  2. **What the file holds.** Measured figures go stale every month, so they are left out: they live
+     in `docs/DATA_MAP.md` and, later, in a per-build output. The file holds what is stable: kind,
+     few or many values (threshold in config: 8, the number of line colours the site can tell apart,
+     D-060), uses, guards, who a field is recorded for, its forms of "not recorded" and which of them
+     `sentinels.csv` lacks, privacy class, binding, relations, and a one-line definition.
+  3. **How the tests find which fields a dimension reads.** (a) A list per dimension in the map.
+     Not chosen: it would drift from the derive blocks. (b) **Read the derive blocks generically**:
+     any string in a block that is a logical field of `config/pipeline.json`, plus, per derive kind,
+     the fields the kind reads without naming them (`derive_reads` in the map, as paths into
+     `pipeline.json`), plus make and model wherever motive power is read (the hybrid
+     classification rewrites motive power from them). Chosen. The check covers fact-table columns,
+     pairs, every dimension's slice and the committed snapshot aggregate (`snapshot_archive.group_by`).
+     The `region` slice, which reads the owner's district and is public, is recorded as an exception
+     on the `TLA` entry (`published_exceptions`, naming D-078 and the outputs it covers: the slice
+     only), not in code. **That exception rests on D-078's point 3, which was Claude's reading of the
+     user's option ("the region map still draws"), decided by Claude and unreviewed**; the work order
+     §3, written later, names region among the fields not published without asking. Recording it as
+     an exception describes what is published today; it does not approve it, and whether the slice
+     stays is put to the user.
+  4. **The privacy enum.**
+     - (a) The brief's three classes as they stand: public; public above a minimum count; never
+       published. Not chosen: it has no place for "held until the user approves the review", which
+       the work order requires, and it puts never-pulled fields beside fields the archive keeps.
+     - (b) Two classes, published or not, with every nuance in prose. Not chosen: a test could not
+       tell a field held for the review from one never published, and Build could not say why a
+       field is missing.
+     - (c) One class per decision record. Not chosen: too fine to read, and it would change with
+       every decision.
+     - (d) **Four classes, each with flags the code reads** (published, pulled, pending review):
+       proposed public; not published before the review; never published; never pulled. A held field
+       also says what is proposed for after the review (a minimum count; area totals above a minimum
+       count; derived fields only). Chosen.
+  5. **The roll-ups.** The profile tested nine dependencies on S and the same nine on W, plus district
+     to region; two of the first pass's claims failed and are dropped:
+     body type to vehicle type (4 of 13 S body types sit under both vehicle types, 41,952 vehicles off
+     the commoner one) and road transport code to industry class (19 of 20 codes under more than one
+     class, 3,565 of 57,232 vehicles off). Kept: district to region (`tla_region.csv`, a best fit for
+     seven straddling districts); class to vehicle type on S only (1 vehicle of 4,286,433 disagrees;
+     not on W); make to manufacturer group and owner country (by construction); model to make only as
+     the site's make-and-model pair (the raw name sits under more than one make for 1,427 of 28,000 S
+     models). The two model codes are not clean keys (1,329 and 4,915 S codes with more than one make
+     and model).
+  6. **What "moves together with" means on the site.**
+     - (a) Asserted pairs written by hand (the brief's example, "colour and vehicle weight"). Not
+       chosen: the brief asks for measured, and that example measures weak (0.14).
+     - (b) Mutual information or a correlation coefficient. Not chosen: most fields are categories,
+       and neither gives one 0-to-1 scale across fields with different numbers of values as simply.
+     - (c) Show every pair's figure. Not chosen: pairs true by definition (class and vehicle type,
+       1.00) would read as findings, and a list of numbers is not a note a visitor can use.
+     - (d) **Bias-corrected Cramér's V between two fields on the in-scope dataset, computed each build
+       (not by this work), with the pairs true by definition or by construction listed in the map and
+       never offered.** Chosen. For any other strong pair the workbench shows one neutral line (the two
+       fields move together; holding one fixed may change the answer), with the figure one step away,
+       and never a reason. The threshold and the wording are config, set by the work that builds it.
+- Decision:
+  - `docs/DATA_MAP.md` is rewritten as the finished map: 40 register fields and 13 dashboard columns,
+    each with meaning, kind, values, uses, coverage, not recorded, traps, proposed privacy class and
+    relations, then the relations in full, the order for binding, the files it disagrees with, and
+    notes for the work that builds on it.
+  - `config/data_map.json` is the machine-readable form, and `pipeline/tests/test_data_map.py` keeps
+    it whole and true to `pipeline/expected_schema.json`, `config/pipeline.json` (bindings, guards,
+    never-pulled list), `config/dimensions.json` and `sentinels.csv`. It fails if a fact-table
+    column, a pair, a dimension's slice or the committed snapshot aggregate reads a held field other
+    than through a recorded exception (today only the `region` slice). While the classes are
+    proposed it also fails if an approval is recorded without a decision, if an owner field or a
+    field derivable only from `VIN11` is marked published, if free text is offered as a breakdown or
+    filter, or if an exception reaches past the outputs its decision covers or into the fact table.
+    It does not see a published file written by any other route.
+  - **The privacy classes are proposed, for the user** (`approval.privacy_classes` is `proposed`):
+    - Proposed public (31 register fields, 10 dashboard columns): everything that describes the
+      vehicle, the two model codes and submodel included (never offered as breakdowns).
+    - Not published before the review (5 register, 3 dashboard): `TLA` and `region` from it,
+      `POSTCODE`, `VEHICLE_USAGE`, `INDUSTRY_CLASS`, `ROAD_TRANSPORT_CODE`; `Owner Type`,
+      `Territorial authority`, `Vehicle usage`. Proposed for after it: public above a minimum count;
+      the postcode as area totals above a minimum count.
+    - Never published: `VIN11` (a derived field only once checked and approved), `OBJECTID`.
+    - Never pulled: `CHASSIS7`, `ENGINE_NUMBER`.
+  - **What the user is asked to approve:** the vehicle fields as public; what the owner fields become
+    after the review, and the minimum count; whether the public `region` slice stays the one
+    exception; the postcode's rule; and whether vehicles may be matched between two archive files,
+    privately, to settle whether usage and industry class are today's values.
+  - The trap the work order names is settled as far as the data allows: `VEHICLE_USAGE` reads as
+    today's (D-087; shown for rental, other values not tested, taxi does not fit); `INDUSTRY_CLASS` is at least partly today's (the vehicle-trader share falls
+    from 3.6% for October 2026 to 0.2% to 0.5% for months more than a year old, NZ-new passenger cars,
+    S). Two snapshots of the same vehicles would settle both.
+- Contradictions with existing files (noted in `docs/DATA_MAP.md`, none changed):
+  - `config/dimensions.json` still calls `registrations_flow` Stats NZ's series, "planned: build step
+    1b"; D-087 gave the name to the dashboard's dataset.
+  - `sentinels.csv`'s notes carry 2026-08 counts that the October profile does not match in three
+    places.
+  - The bound engine band "4.0 L and over" has no upper limit: 382 S engine sizes above 20,000 cc,
+    which are not real, land in it.
+  - The bound fuel-consumption guard (above 0, at most 60) is wider than the profile's proposed 0.1
+    to 30 (83 S values above 30).
+  - `segment_map.csv`'s goods rows start at 1 kg, so the 1 kg placeholder (1,477 S vehicles, types
+    not split) can place a goods vehicle in a light class.
+  - `docs/brief/MASTER_BRIEF.md` §6 gives body type to vehicle type as a roll-up, "colour and vehicle
+    weight" as an example of moving together (measured 0.14, weak), and `CHASSIS7` and
+    `ENGINE_NUMBER` as never published (they are never pulled).
+  - `docs/CUBE_SCHEMA.md` lists `powertrain__region` among the pairs that may be added; it reads the
+    owner's district.
+  - CLAUDE.md's repo layout marks `docs/DATA_MAP.md` "planned" and does not list
+    `config/data_map.json`; the brief's §4 calls the map a first pass.
+  - The published `region` slice and the work order's §3 (above, option 3).
+  - The profile's report gives 107 used imports with a transmission and with an MVMA code;
+    `coverage.csv` gives 116 and 131 (107 is the count with all three NZ-new fields).
+- Consequences:
+  - Nothing published changes: no binding, no pipeline change, no golden change.
+  - Adding to `sentinels.csv` a form that a field's `not_recorded` already lists fails
+    `test_data_map.py` until that field's `sentinels_pending` is updated in the same commit. A form
+    the map does not list passes unseen; the map's lists are only as complete as the profile.
+  - Binding a field into the fact table puts a new kind of data in the monthly cube release, which is
+    public: the work order's §3 asks first even for a vehicle field. A field bound can only split the
+    table's rows, so the share of vehicles alone in a row stays the same or rises (on the 2026-10 dry
+    run, 50.2% of rows count one vehicle, holding 7.1% of vehicles, D-078).
+  - The chart rule table and Build read `kind`, `cardinality` and `uses` from the new file; the method
+    page reads `definition`.
+  - Reversing it: delete `config/data_map.json` and its test; `docs/DATA_MAP.md`'s history is in git.
+- Status: decided by Claude (unreviewed). The privacy classes: proposed, for the user; they bind
+  nothing until the user approves them.
+
+## D-091 2026-11-14 — The query service: its question format and checks are specified, a local prototype is measured, and one way of hosting it is proposed for the user
+- Agent: claude (the work by a sub-agent on opus; this record by the lead)
+- Basis: the work order §5.G; CLAUDE.md invariant 6; the brief §9, Stage 2 item 2; `docs/QUERY_SERVICE.md` and
+  `docs/brief/QUERY_SERVICE_PROPOSAL.md` on `claude/query-service`; measurements made on 2026-11-14 on this computer
+  against the 2026-10 dry-run cube; providers' pricing pages read that day.
+- Context: Build answers a question by downloading columns of the fact table and summing them in the browser (D-058).
+  CLAUDE.md plans a hosted service that takes a structured question and returns only the rows a chart needs. The
+  work order asks for the format, a local prototype, measurements and a proposal, and for nothing to be provisioned.
+- Decision (by Claude, unreviewed), what is built:
+  1. **The question is Build's address-bar form** (D-060), so a link, a saved question and a request are one thing.
+     Two keys are added to the form for later use: a second breakdown (for the `matrix` shape) and a snapshot to pin
+     to. Chart settings are not part of the stored question.
+  2. **What a service checks:** every field is defined in `config/dimensions.json`, live in the manifest, carried by
+     the fact table and not withheld; values are passed as parameters, never written into a query; a question over a
+     limit is refused, never cut short; a minimum-count rule has its hook, and no field has a rule yet.
+  3. **A local prototype** in `scripts/query_service_prototype/` (Python's own HTTP server and DuckDB; no new
+     dependency), with 59 tests, among them that it answers only with counts, refuses a field that is not public,
+     treats a value carrying SQL as a value, and refuses a question over each limit. The hostile and limit cases
+     live in a data file (`cases.json`), so a later implementation can be run against the same cases. It is a
+     maintainer's tool run by hand, not part of the pipeline or the deploy.
+  4. **The seam in `src/lib/data.ts`**, switched by a build-time setting that is off by default. With it off the
+     site makes the same requests as before and ships 147 bytes more of compressed script (measured). When the
+     service is on and not answering, Explore still draws and Build says so plainly; it does not fall back silently.
+- Measured (medians of three runs; the phone profile is the one D-058 used; the service ran on the same computer as
+  the browser, so its figures are a floor, not a forecast):
+  - First answer on the phone, today's static files then the local service, for questions naming 3, 5 and 8 fields:
+    7.4 and 4.2 s; 8.9 and 5.0 s; 11.6 and 5.0 s. Downloaded: 1,024 and 511 KB; 1,218 and 516 KB; 1,671 and 531 KB.
+  - On a desktop: 0.72 and 0.42 s; 0.82 and 0.66 s; 0.96 and 1.21 s.
+  - Neither side meets the 3 second target on the phone: about 460 KB of what the service side downloads is the
+    page's own code and fonts.
+- Proposed, for the user to decide (`docs/brief/QUERY_SERVICE_PROPOSAL.md` has the options, the figures and their
+  sources): a function deployed with the site on Cloudflare, on its paid plan at US$5 a month, running the same sums
+  the browser runs today. Its risk is memory, so the first step would be a short trial on Cloudflare. The other
+  options: no service (no cost; the slowest); a small container (about US$5 to US$15 a month, or free within one
+  provider's free tier, with a wait of a few seconds after a quiet spell); a managed analytics database (nothing to
+  several hundred dollars a month depending on traffic). Several of these figures are estimates and are marked so.
+- Consequences:
+  - Nothing is provisioned, no account is created and nothing is spent. Build keeps reading the static fact table.
+  - The largest saving on first load is not the service: it is the page's own code and fonts, which package D's
+    first-load work measures and trims.
+  - The prototype's tests are not run by `Checks`, which runs `pipeline/tests` only.
+  - The sub-agent ran a review of its own. That is not the independent review the merge needs; the lead ran one,
+    which re-measured the timings (within a few tenths of a second on the phone), read the providers' pricing pages
+    and found the quoted prices on them, and asked for the tests and citations added since.
+  - The recommended option would sum in JavaScript, not in the DuckDB engine that was measured, and its checks
+    would be written a second time: the shared cases are there to hold the two to the same answers.
+  - Reversing it: delete the two docs, the prototype folder and the seam (one setting and one branch in `data.ts`).
+- Status: what is built, decided by Claude (unreviewed); the hosting choice and any spending, proposed, for the user
+
+## D-092 2026-11-14 — `registrations_flow` is built: a maintainer's `supply` command, a local store, and the dataset run through the register's own code
+- Agent: claude (the build by a sub-agent on sonnet, to the lead's plan; this record by the lead)
+- Basis: the work order §5.B; D-084 (the source) and D-087 (the definition); the code and tests on
+  `claude/registrations-flow`; the whole suite, 178 passed locally; a real run on 2026-11-14: `supply` on the user's two
+  files, then `python -m pipeline build <the saved October pull> --dry-run`, exit 0 in 741 s, publishing nothing; an
+  independent review, whose points are taken below.
+- Context: the dashboard's export is a table of counts on the user's computer. The pipeline builds from one row per
+  vehicle, pulled from NZTA's service, and runs unattended on GitHub. The work order asks for the export to be its
+  own dataset, with guardrails (every month present, totals match, no month replaced silently), checked and converted
+  by a maintainer script, and never fetched by the pipeline.
+- Options considered:
+  1. **Where the check-and-convert step lives.** (a) A stand-alone script in `scripts/`. (b) A command of the pipeline's
+     own program, `python -m pipeline supply <source> <file>`, run by hand. Chosen (b): one tested code path, the same
+     config loader, and no column name of the export in code. It is still a maintainer's step: no workflow runs it
+     and it fetches nothing.
+  2. **How the dataset is built.** (a) New code that sums the export's counts into slices. (b) Turn each counted row
+     back into that many vehicle rows, named as the register's fields, and run the register's own normalise, derive,
+     metrics and output code. Chosen (b): sentinels, scope, brand aliases, the model registry, the hybrid
+     classification, the model cap and every unmapped guard then apply to both datasets identically, and nothing can
+     drift between them. It costs build time (the dry run went from about 11 minutes to about 12 to 15).
+  3. **Where the converted data lives.** (a) Committed to this public repository. (b) The private archive. (c) A local
+     folder, gitignored. Chosen (c) for now, `data/supplied/`: (a) publishes a new kind of data, which the work order
+     keeps for the user; (b) needs a secret in the build. It is the user's question (CHECKPOINT).
+  4. **A build with no store.** (a) Abort. (b) Build everything else and say plainly that the dataset was not built.
+     Chosen (b), because GitHub's runs have no store today and must keep working: the manifest carries
+     `not_built` with the reason, and a warning is printed. A dataset that WAS built in the last good run and whose
+     store has since gone aborts the build, so it can never drop out silently.
+  5. **The dataset's clock.** Its latest month is the last month in its store, not the register's snapshot month. A
+     store older than the register warns and names the missing month; a store newer than the register aborts.
+  6. **Breakdowns the export cannot support** are decided from the source's field list, not from a list of names: a
+     dimension whose derive block reads a field the source lacks is not live, with the reason in the manifest.
+  7. **Age when first registered** applies to this dataset (decided by the lead after the build): the export carries
+     the vehicle year and the month, and every vehicle year in it is one the register holds (D-087). **Vehicle age**
+     (years since the vehicle year, as at the snapshot) does not: an age today for a vehicle no longer on the register
+     is not a sound figure, so that dimension now applies to the survivors datasets only.
+  8. **The owner columns** (`Owner Type`, `Territorial authority`, `Vehicle usage`) must be in the file, so a changed
+     export is noticed, and are dropped before anything is stored. A test asserts the store has none of them.
+- Decision: as chosen above. Also decided in the build, each reversible:
+  - a file's header is checked as a set of columns, not their order;
+  - the export's date must be on or after the last day of its last month;
+  - a month already stored is left alone when a new file gives the same rows; a different month aborts unless it is
+    named with `--replace`, and a replacement is recorded in the store's ledger with both totals, dates and file
+    hashes;
+  - a month whose total in the store moves by more than 2% against the last good build aborts, unless a replacement
+    of that month has been recorded since that build. The comparison is of the store's own totals, kept in the state
+    file, so an edit to a scope file cannot trip it;
+  - the ledger records the store file's hash, and `supply` and the build both refuse a store and a ledger that do
+    not belong together; both files are written under temporary names and the ledger is put in place last. The
+    ledger also records, for each file supplied, the totals it was checked against, or that none were given;
+  - a column listed as private can never be mapped to a stored field: `supply` and the build both refuse such a
+    config;
+  - every dataset's manifest entry gains `latest_month`;
+  - the site treats a dataset the manifest marks as not built as absent (one commit in `src/lib/`): without it the
+    site's own build failed on the manifest GitHub's builds will write, which the independent review found.
+- Golden contract changes, each its own commit with its reason: (1) the dataset appears in the manifest as not built,
+  with one warning, and `latest_month` is added to the survivors dataset's entry (six lines; no slice, pair, fact or
+  events file changes); (2) the definition's wording, one line (D-087's sentence).
+- Measured on the real run:
+  - `supply` on the history file: 3.8 s; all seven of the user's totals matched; the store is 1,929,698 bytes of
+    counts (426,732 rows after the owner columns are summed away, from 991,274 in the file) and a ledger of 17,750
+    bytes. The January 2021 file then reported "unchanged" and wrote nothing.
+  - The dataset: 1,483,403 vehicles over 70 months, January 2021 to October 2026 (the figure D-087 measured
+    independently). Live: powertrain, brand and its three groupings, built in, new or used, age when first
+    registered, model. Not live, each with its reason: vehicle type and class (no gross mass), region (no district),
+    engine size (none), imported from and vehicle age (do not apply).
+  - Unmapped makes: 0.131% of in-scope vehicles after the alias `LANDROVER` was added to `brand_registry.csv`
+    (0.159% before). Powertrain, built in and new or used: none unmapped. No guard warned or aborted.
+  - The 300 named models cover 95.0% of the trailing 12 months and 88.9% of all 70.
+  - The fact table: 129,103 rows over nine dimensions. Files: slices 130,219 bytes, fact table 345,774 bytes. The
+    whole payload is 3,625,451 bytes against a budget of 8,000,000.
+  - One warning: mild hybrids are identified for 62.7% of this dataset's hybrids at high confidence over the
+    trailing 12 months, under the 70% the pipeline warns at (the survivors dataset is above it).
+  - The survivors dataset is unchanged: 4,520,304 vehicles over 1,197 months.
+- Consequences:
+  - GitHub's builds say the dataset is not built until the user decides where the store may live. The site must read
+    `not_built` before treating a dataset as present.
+  - Each month the user's export is added with one command (`docs/playbooks/supply-dashboard-month.md`).
+  - The month-change guard compares with the last good state, which a dry run does not write, so it has run only in
+    tests.
+  - A local build that publishes with the store present writes the dataset into the state file. That file is the
+    Action's to commit (hard rule 3); if a local copy were committed, GitHub's builds would abort for want of the
+    store. The playbook and AGENTS.md say to build with `--dry-run` after supplying a month.
+  - The mild hybrid coverage on this dataset is below the pipeline's warning level; the powertrain label already
+    says "identified" (`docs/METRICS.md`). It is listed in the work queue.
+  - Reversing it: remove the dataset's entry from `config/pipeline.json`; the `supply` command and the store then
+    feed nothing.
+- Status: decided by Claude (unreviewed)
