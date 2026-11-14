@@ -144,11 +144,18 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
   // Whether the table is wider than its box depends on the names in it, not only on the screen, so it is measured:
   // the line that says the table scrolls shows only while it does.
   const tableBox = useRef<HTMLDivElement>(null);
-  const [tableScrolls, setTableScrolls] = useState(false);
+  // The words for each column that starts beyond the box's right edge, so the line names only what is hidden.
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   useEffect(() => {
     const box = tableBox.current;
     if (!box) return;
-    const measure = () => setTableScrolls(box.scrollWidth > box.clientWidth + 1);
+    const measure = () => {
+      const boxLeft = box.getBoundingClientRect().left;
+      const hidden = [...box.querySelectorAll<HTMLElement>("th[data-hint]")]
+        .filter((th) => th.getBoundingClientRect().right - boxLeft + box.scrollLeft > box.clientWidth + 1)
+        .map((th) => th.dataset.hint as string);
+      setHiddenColumns((was) => (was.join() === hidden.join() ? was : hidden));
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(box);
@@ -295,9 +302,9 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
               <th scope="col" style={{ width: "56px" }}>Move</th>
               <th scope="col">{valueHeading}</th>
               <th scope="col" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Share</th>
-              <th scope="col" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>
-              <th scope="col" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Still registered</th>
-              <th scope="col" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+              <th scope="col" data-hint="the change in share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>
+              <th scope="col" data-hint="the vehicles still registered" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Still registered</th>
+              <th scope="col" data-hint="the rank before" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                 Rank <span className="visually-hidden">in the {TRAILING_MONTHS} months </span>before
               </th>
             </tr>
@@ -351,10 +358,10 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
           </tbody>
         </table>
       </div>
-      {tableScrolls ? (
+      {hiddenColumns.length > 0 ? (
         <p className="scroll-hint">
-          The table scrolls sideways: the change in share, the vehicles still registered and the rank before are to the
-          right.
+          The table scrolls sideways: {hiddenColumns.length > 1 ? `${hiddenColumns.slice(0, -1).join(", ")} and ${hiddenColumns[hiddenColumns.length - 1]}` : hiddenColumns[0]}{" "}
+          {hiddenColumns.length > 1 ? "are" : "is"} to the right.
         </p>
       ) : null}
     </>
