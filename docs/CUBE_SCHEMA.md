@@ -196,6 +196,18 @@ summed over all of them it gives the dataset's month totals, the slices'
 `denominator`. The table carries no fuel consumption. A share is computed in
 the browser: `n` over the sum of `n` for the same month and filter.
 
+`vehicle_type` (NZTA's own vehicle type, under the labels in
+`vehicle_scope.csv`) is a column of both register-shaped datasets' tables.
+`registrations_flow` has no `segment`, so the column is the only way to ask
+true registrations by vehicle type together with a brand or a powertrain. On
+`registrations_surviving` it adds no rows: on the 2026-10 pull the table is
+641,618 rows with and without it, and 1,726,119 bytes grow to 1,768,391
+(+2.4%, the column's own file being 42,272). On `registrations_flow` the
+table grows from 129,103 rows and 345,774 bytes to 131,260 rows (+1.7%) and
+358,930 bytes (+3.8%). The dimension has two values on each dataset, and it
+is not live for `registrations_cars_long_run`, which carries no register
+field (*Supplied sources*).
+
 A list that is empty or not distinct dimension ids, or names a dimension the
 dataset cannot derive (or `month`, `n` or `rid`), aborts the run. A listed dimension
 that is not live this run is left out of the table, with a warning, and listed

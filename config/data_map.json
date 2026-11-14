@@ -163,7 +163,7 @@
       "group": "what_the_vehicle_is",
       "kind": "category",
       "cardinality": "few",
-      "definition": "NZTA's vehicle type, the broad kind of vehicle. It decides which vehicles the site counts.",
+      "definition": "NZTA's vehicle type, the broad kind of vehicle. It decides which vehicles the site counts, and the site offers it, under readable labels, for the types it counts.",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",

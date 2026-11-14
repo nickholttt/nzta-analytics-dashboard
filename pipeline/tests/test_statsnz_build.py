@@ -117,6 +117,14 @@ def test_no_register_dimension_is_live_because_the_source_carries_none_of_their_
     assert any(reason.startswith("the source does not carry ") for reason in entry["not_live"].values())
 
 
+def test_the_vehicle_type_is_not_live_because_a_series_carries_no_vehicle_type(built):
+    cfg, entry = built["cfg"], built["manifest"]["datasets"][DATASET]
+    dim = next(d for d in cfg.dimensions["dimensions"] if d["id"] == "vehicle_type")
+    assert dim["id"] not in entry["live_dimensions"]
+    assert entry["not_live"][dim["id"]] == "the source does not carry " + cfg.source_field(dim["derive"]["field"])
+    assert not (built["public"] / "cube" / DATASET / f"{dim['id']}.parquet").exists()
+
+
 def test_only_slices_are_written_for_it_and_they_have_the_cube_schema(built):
     cfg, public = built["cfg"], built["public"]
     assert sorted(p.stem for p in (public / "cube" / DATASET).glob("*.parquet")) == sorted(dimension_ids(cfg))

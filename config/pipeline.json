@@ -119,13 +119,13 @@
       "$pairs_comment": "The two-dimensional slices this dataset emits, each [dim_a, dim_b], written to pairs/{dataset}/{dim_a}__{dim_b}.parquet. Only pairs a chart or filter needs (docs/CUBE_SCHEMA.md, Pair slices).",
       "pairs": [["import_status", "age_at_registration_band"], ["powertrain", "segment_group"]],
       "$facts_comment": "The fact table: counts by month and every dimension listed here, one Parquet file per column under facts/{dataset}/, so the browser can answer any combination by downloading only the columns a question needs (docs/CUBE_SCHEMA.md, Fact table; D-058). region is left out on purpose until the Stage 2 privacy review (D-078): it is where the vehicle's owner lives, and with it two in three of the table's rows counted a single vehicle.",
-      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "import_status", "engine_size_band", "age_at_registration_band", "model"]
+      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "vehicle_type", "import_status", "engine_size_band", "age_at_registration_band", "model"]
     },
     "registrations_flow": {
       "$comment": "Read from the supplied source nzta_dashboard (the `supplied` block), through the same normalise, derive and output code as the register. The same require as registrations_surviving, so the two count the same kinds of vehicle: the dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
       "source": "nzta_dashboard",
       "require": ["in_scope", "fleet_entry"],
-      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "import_status", "age_at_registration_band", "model"]
+      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "import_status", "age_at_registration_band", "model"]
     },
     "registrations_cars_long_run": {
       "$comment": "Read from the supplied source statsnz_tpt, a source of kind series (pipeline/series.py): Stats NZ's monthly count of cars and station wagons registered for the first time, from January 1961. `total` is the series that gives each month's vehicles. Its dimensions (car_origin, car_engine_band in dimensions.json) are Stats NZ's own breakdowns of that total, published separately, so they cannot be crossed with each other or with anything else: there are no pairs and no fact table. Nothing else the table holds (commercial vehicles, buses, motorcycles, power cycles, tractors) is built, because its classes are not lined up with NZTA's vehicle types (D-065).",

@@ -197,6 +197,18 @@
       "$comment": "The same segment_map.csv match as segment, reading its segment_group column, so powertrain-mix can narrow to light passenger vehicles. segment = Car is not light passenger: light passenger also holds the passenger-registered utes and vans."
     },
     {
+      "id": "vehicle_type",
+      "label": "Registered as",
+      "public_label": "NZTA's type of vehicle",
+      "public_note": "NZTA's own vehicle type, not the car, ute, van and truck split of Vehicle type, which also reads the body type and weight. A ute registered as a passenger vehicle is a passenger car or van here and a ute there. Only the two types the site counts are shown.",
+      "source": "nzta:vehicle_type + reference:vehicle_scope",
+      "derive": { "kind": "lookup", "field": "vehicle_type", "reference": "vehicle_scope.csv", "key": "vehicle_type", "value": "label" },
+      "shape_hint": "mix",
+      "cardinality": "low",
+      "help": "The vehicle type NZTA records the vehicle under: passenger cars and vans, or goods vans, trucks and utes. It is not the car, ute, van and truck split of Vehicle type, which also reads the body type and weight.",
+      "$comment": "The lookup reads the same vehicle_scope.csv key that decides which vehicles are in scope, so it cannot meet a type that scope does not know (the build aborts on one). Only in-scope types reach a slice; a type brought into scope later appears under its label with no other change. A series source carries no register field, so the dimension is not live for registrations_cars_long_run (derive.applicable), with no applies_to."
+    },
+    {
       "id": "import_status",
       "label": "New or used",
       "source": "nzta:import_status + reference:import_status_map",
