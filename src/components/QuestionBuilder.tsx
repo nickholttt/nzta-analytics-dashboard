@@ -2,7 +2,7 @@
 // among which vehicles, and the charts that answer it are drawn by the same panel as Explore (D-058, D-059). The
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { builderSpec } from "../lib/config";
+import { builderSpec, dimensionLabel } from "../lib/config";
 import { MAX_VALUES, builderPresets, questionParams, readQuestion, settle, viewsFor } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { factView, loadManifest, loadSlice } from "../lib/data";
@@ -191,7 +191,7 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
   const countsLines = measure.id === "count" || builderSpec.measures.find((m) => m.id === measure.id)?.parts?.includes("count");
   const presets = useMemo(() => builderPresets(question, valueLabel), [question]);
   const views = useMemo(() => viewsFor(question), [question]);
-  const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? id;
+  const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
   // A link can name a condition this data cannot apply. It stays in the question, where it blocks the chart, but the
   // lists of values are counted among the conditions that can be applied.
   const canApply = (id: string) => vocabulary.filters.some((f) => f.id === id);
@@ -325,7 +325,7 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
                   />
                 ) : (
                   <p className="picker-hint">
-                    This link asks for only the vehicles where “{d}” is {kept.join(" or ")}. This data cannot apply that condition, so no chart
+                    This link asks for only the vehicles where “{filterLabel(d)}” is {kept.join(" or ")}. This data cannot apply that condition, so no chart
                     is drawn. Remove the condition to see the chart without it.
                   </p>
                 )}
