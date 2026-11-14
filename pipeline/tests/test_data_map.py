@@ -363,3 +363,17 @@ def test_relations_point_at_known_fields_and_files():
                 assert cfg.reference(roll["via"]).exists(), f"{entry['name']}: no reference file {roll['via']}"
         unknown = set(entry["relations"]["derived_from"]) - same_source
         assert not unknown, f"{entry['name']}: derived from unknown fields {unknown}"
+
+
+def test_pairs_true_by_definition_name_known_fields():
+    cfg, dmap = config.load(), load_map()
+    known = set(by_name(dmap, REGISTER)) | {d["id"] for d in cfg.dimensions["dimensions"]}
+    together = dmap["moves_together"]
+    seen = set()
+    for pair in together["true_by_definition"]:
+        assert {pair["a"], pair["b"]} <= known, f"unknown field in {pair}"
+        assert pair["a"] != pair["b"], f"a field paired with itself: {pair}"
+        assert pair["basis"] in together["basis"], f"basis {pair['basis']!r} outside {together['basis']}"
+        key = frozenset((pair["a"], pair["b"]))
+        assert key not in seen, f"pair listed twice: {pair}"
+        seen.add(key)

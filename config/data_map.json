@@ -58,6 +58,22 @@
       "no_engine": ["engine.field"]
     }
   },
+  "moves_together": {
+    "$comment": "How strongly two fields move together is measured each build and is not stored here (docs/DATA_MAP.md, Moves together with). Listed here are the pairs that move together because of how they are defined or built, so the site never offers them as a finding. A field and any dimension derived from it are always such a pair and are not listed. basis: by_construction where the data shows the rule (docs/MODEL_AND_AGE.md section 1, or the site's own derivation); by_definition_inferred where it rests on NZTA's codes and is marked inferred - confirm in the doc. a and b are register field names or dimension ids.",
+    "basis": ["by_construction", "by_definition_inferred"],
+    "true_by_definition": [
+      { "a": "CLASS", "b": "VEHICLE_TYPE", "basis": "by_definition_inferred" },
+      { "a": "BODY_TYPE", "b": "VEHICLE_TYPE", "basis": "by_definition_inferred" },
+      { "a": "CLASS", "b": "BODY_TYPE", "basis": "by_definition_inferred" },
+      { "a": "CLASS", "b": "GROSS_VEHICLE_MASS", "basis": "by_definition_inferred" },
+      { "a": "ROAD_TRANSPORT_CODE", "b": "VEHICLE_TYPE", "basis": "by_definition_inferred" },
+      { "a": "ROAD_TRANSPORT_CODE", "b": "VEHICLE_USAGE", "basis": "by_definition_inferred" },
+      { "a": "age_at_registration_band", "b": "IMPORT_STATUS", "basis": "by_construction" },
+      { "a": "age_at_registration_band", "b": "VEHICLE_YEAR", "basis": "by_construction" },
+      { "a": "FIRST_NZ_REGISTRATION_YEAR", "b": "VEHICLE_YEAR", "basis": "by_construction" },
+      { "a": "IMPORT_STATUS", "b": "VEHICLE_YEAR", "basis": "by_construction" }
+    ]
+  },
   "fields": [
     {
       "name": "OBJECTID",
