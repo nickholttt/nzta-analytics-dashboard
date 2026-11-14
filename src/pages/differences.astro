@@ -1,0 +1,54 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Why these figures differ from others" activeNav="differences">
+  <Fragment slot="masthead">
+    <h1>Why these figures differ from others</h1>
+    <p class="standfirst">
+      Two sources can both be right and still give different numbers, because they count different things. This
+      page says what each one counts. It does not try to make the figures match.
+    </p>
+  </Fragment>
+
+  <article class="prose">
+    <h2>Registrations are not sales</h2>
+    <p>
+      A vehicle is counted in the month it was first registered, not the month it was ordered, paid for or handed
+      over. A vehicle can be registered before it is sold.
+      <a href="/method#data-grains">What the charts count</a>.
+    </p>
+
+    <h2>Survivors are not registrations</h2>
+    <p>
+      The charts count vehicles first registered in a month that are still registered at the latest snapshot.
+      Vehicles that have left the register since are not in the count, so a count for an older month is smaller than the
+      number first registered then. <a href="/method#data-grains">The three ways to count the register</a>.
+    </p>
+
+    <h2>Scope can differ</h2>
+    <p>
+      This site counts only some vehicle types, and only vehicles registered in New Zealand for the first time.
+      A source that counts other types, or counts returning vehicles, will give a different total.
+      <a href="/method#vehicle-scope">Which vehicles are counted</a>.
+    </p>
+
+    <h2>The Motor Industry Association counts differently</h2>
+    <p>
+      The Motor Industry Association (MIA) counts vehicles delivered to buyers. Its figures are not open data, so
+      this site cannot check them or line them up with its own, and it does not adjust its figures to match.
+    </p>
+
+    <h2>Other sites take a different source</h2>
+    <p>
+      Some other sites take first registrations from NZTA's registrations dashboard rather than from the open
+      register this site reads. They count what that dashboard counts. This site does not claim to match them.
+      <a href="/caveats">Other limits of the data</a>.
+    </p>
+
+    <h2>If a figure here still looks wrong</h2>
+    <p>
+      <a href="/feedback">Report it</a>, with the page address and the figure you expected.
+    </p>
+  </article>
+</Layout>
