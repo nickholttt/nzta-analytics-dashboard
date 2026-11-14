@@ -261,6 +261,7 @@
       "label": "Model",
       "source": "nzta:make + nzta:model + reference:model_registry",
       "derive": { "kind": "model", "cap": 300 },
+      "key_separator": "|",
       "shape_hint": "league",
       "cardinality": "very_high",
       "help": "The nameplate, as brand and model. Only the models with the most registrations over the trailing 12 months keep their name; the rest are grouped as other. The cap is in this dimension's derive block and every build publishes it. Never use submodel, which is free text.",

@@ -112,12 +112,9 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
       const priorShare = priorDenom > 0 ? priorN / priorDenom : 0;
       const shareDelta = share - priorShare;
 
-      // Clean name formatting for models e.g. "TOYOTA|RAV4" -> "Toyota RAV4"
-      let formattedName = label(val);
-      if (dimension.id === "model" && val.includes("|")) {
-        const [make, mod] = val.split("|");
-        formattedName = `${make} ${mod}`;
-      }
+      // A compound value reads as words: the dimension's separator becomes a space.
+      const separator = dimension.key_separator;
+      const formattedName = separator && val.includes(separator) ? val.split(separator).join(" ") : label(val);
 
       return {
         rank,

@@ -58,6 +58,8 @@ export type Dimension = {
   applies_to?: string[];
   bands?: Band[];
   derive?: { kind: string; value?: string };
+  // The pipeline joins the parts of a compound value (brand and model) with this; a ranking shows them as words.
+  key_separator?: string;
 };
 
 export type Dataset = {
