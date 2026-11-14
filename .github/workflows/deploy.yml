@@ -104,7 +104,9 @@ jobs:
 
       # The internal pages, /status and /sense-check, stay off the public site (D-056): INTERNAL_PAGES=false drops the
       # links to them, and the pages themselves are removed from the build. A link to one that a later change lets back
-      # in (an island reading the switch in the browser, where it reads as unset) fails the deploy here.
+      # in (an island reading the switch in the browser, where it reads as unset) fails the deploy here. The check
+      # looks for the site's own paths only: a path that follows a letter, a digit, a slash or a colon is part of a
+      # longer address, such as a source link in events.json that has a /status/ segment, and is not a link to a page here.
       - name: Build the public site
         if: steps.site.outputs.ready == 'true'
         env:
@@ -112,7 +114,7 @@ jobs:
         run: |
           npx astro build
           rm -rf dist/status dist/sense-check
-          if grep -rlE '/(status|sense-check)([^A-Za-z0-9_-]|$)' dist; then
+          if grep -rlE '(^|[^A-Za-z0-9_~%/:-])/(status|sense-check)([^A-Za-z0-9_-]|$)' dist; then
             echo "The public build links to an internal page, in the files above." >&2
             exit 1
           fi

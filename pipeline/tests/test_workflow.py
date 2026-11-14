@@ -132,10 +132,18 @@ def test_the_public_build_refuses_a_link_to_an_internal_page_however_it_is_quote
         "single.html": "<a href='/sense-check'>",
         "template.js": "`/status/${id}`",
         "query.js": 'fetch("/sense-check?x=1")',
-        "absolute.html": "https://example.invalid/status",
+        "relative.html": '<a href="./status">',
         "bare.js": "/status",
     }
-    harmless = {"other.html": '<a href="/statuses"><a href="/status-page"><a href="/build">', "data.js": "/data/stats.json"}
+    # Another site's address with the same word in it is not a link to an internal page: an event's source link can
+    # hold one, and it must not stop the deploy.
+    harmless = {
+        "other.html": '<a href="/statuses"><a href="/status-page"><a href="/build">',
+        "data.js": "/data/stats.json",
+        "elsewhere.json": '{"source_url": "https://example.invalid/someone/status/123"}',
+        "host.json": '{"source_url": "https://status.example.invalid/"}',
+        "segment.json": '{"source_url": "https://example.invalid/status"}',
+    }
     for name, text in {**cases, **harmless}.items():
         (tmp_path / name).write_text(text + "\n", encoding="utf-8")
     found = subprocess.run([BASH, "--noprofile", "--norc", "-c", f"grep -rlE '{pattern}' ."],
