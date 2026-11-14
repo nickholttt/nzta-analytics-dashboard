@@ -115,19 +115,57 @@ Nothing is built yet. The
 monthly check still looks for the series in the Explorer
 (`docs/playbooks/check-monthly-run.md`).
 
-## D. Registrations dashboard — do not automate
+## D. Registrations dashboard: a hand export, never automated
 
-Export-only, no API. Useful for manual verification of a suspect figure.
-Never build a dependency on it.
+Export-only, no API. The pipeline never fetches it and the Action never
+touches it. The user exports a file by hand and a maintainer adds it to a
+local store with one command; the build then reads the store (D-075; the
+build is in `docs/CUBE_SCHEMA.md`, *Supplied sources*).
 
-That rule stands until the user decides otherwise. On 2026-11-13 the user
-chose to export one month by hand so the dashboard can be read: its
-fields, its history, its terms, and how its counts compare with the
-register as first observed (D-066; the brief, Stage 1 item 6). vstat and
-StatsHub both take first registrations and buyer type from it. Its
-address, from NZTA's open data listing (the page itself was not read:
-`nzta.govt.nz` blocks automated readers):
+On 2026-11-13 the user chose to export one month by hand so the dashboard
+could be read: its fields, its history, its terms, and how its counts
+compare with the register as first observed (D-066; the brief, Stage 1
+item 6). vstat and StatsHub both take first registrations and buyer type
+from it. Its address, from NZTA's open data listing (the page itself was
+not read: `nzta.govt.nz` blocks automated readers):
 `https://www.nzta.govt.nz/vehicles/how-the-motor-vehicle-register-affects-you/motor-vehicle-registrations-dashboard-and-open-data/`
+
+**How a file is supplied.** Export the twelve dimensions of the earlier
+files (the three owner columns included), then, from the repository root:
+
+```
+.venv/Scripts/python.exe -m pipeline supply nzta_dashboard <file.csv> [--month YYYY-MM] [--taken YYYY-MM-DD] [--totals <totals.csv>] [--replace YYYY-MM ...]
+```
+
+The file is the history form (with a `Registration month` column such as
+`Jan 2021`) or the one-month form (without it, and `--month` names the
+month). The command aborts, writing nothing, unless:
+
+- the header is exactly the configured columns (`supplied.nzta_dashboard`
+  in `config/pipeline.json`), the three owner columns among them;
+- every count is a whole number above zero, every numeric field parses,
+  and no two rows share all their key columns;
+- every month text parses, and the months in the file have no gap;
+- `--taken` (default: the file's modified date) is not before the last
+  month in the file ends;
+- when `--totals` is given (a CSV of `period,vehicles`, a period being
+  `YYYY-MM` or `YYYY`), each period's total equals the file's sum. Without
+  it the command runs and prints a warning that the totals were not
+  checked;
+- a month already in the store gives the same rows (reported unchanged), or
+  is named in `--replace`, in which case the old and new totals, taken dates
+  and file hashes are recorded in the ledger. The dashboard restates past
+  months, so a changed month is never replaced silently;
+- the months added join the stored months without a gap.
+
+The three owner columns (`Owner Type`, `Territorial authority`,
+`Vehicle usage`) are checked and dropped: no owner field is in the store or in
+anything built from it. The store is `data/supplied/nzta_dashboard/`
+(gitignored until the user decides whether it may be committed to this public
+repository): `registrations.parquet`, counts by month and the public fields
+with `vehicle_status`, and `ledger.json`, which records for each month the
+file's name, its SHA-256, the day it was taken, and its rows and vehicles.
+The step-by-step is `docs/playbooks/supply-dashboard-month.md`.
 
 ## E. Motor Industry Association — reference only
 

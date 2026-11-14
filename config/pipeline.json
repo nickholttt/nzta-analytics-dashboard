@@ -122,6 +122,34 @@
       "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "import_status", "engine_size_band", "age_at_registration_band", "model"]
     }
   },
+  "supplied": {
+    "$comment": "Sources a maintainer supplies by hand as a CSV, checked and kept in a local store by `python -m pipeline supply <id> <csv>` (pipeline/supplied.py). The Action never runs that command and nothing here is fetched. `fields` maps a logical field name of the top-level `fields` block to the CSV column that carries it; `extra_fields` are public columns the register does not have, kept in the store under the name given; `private_columns` must be in the header and are dropped, so no owner field reaches the store or any output. The store is kept out of git for now (.gitignore): whether it may live in the public repository is the user's decision.",
+    "nzta_dashboard": {
+      "store": "data/supplied/nzta_dashboard",
+      "registrations_file": "registrations.parquet",
+      "ledger_file": "ledger.json",
+      "month": { "column": "Registration month", "format": "%b %Y" },
+      "count_column": "Vehicles",
+      "fields": {
+        "import_status": "Import status",
+        "vehicle_type": "Vehicle type",
+        "body_type": "Body type",
+        "motive_power": "Motive power",
+        "make": "Make",
+        "model": "Model",
+        "original_country": "Country of origin",
+        "vehicle_year": "Vehicle year"
+      },
+      "extra_fields": { "vehicle_status": "Vehicle Status" },
+      "private_columns": ["Owner Type", "Territorial authority", "Vehicle usage"],
+      "year_field": "registration_year",
+      "month_field": "registration_month",
+      "row_id_field": "object_id",
+      "totals": { "period_column": "period", "count_column": "vehicles" },
+      "$max_month_change_comment": "A month already in the last good build may differ from it by at most this share, unless the ledger records that month as replaced (the dashboard restates past months; a restatement is recorded, not silent).",
+      "max_month_change": 0.02
+    }
+  },
   "fuel_consumption": { "field": "fuel_consumption", "valid_min_exclusive": 0, "valid_max_inclusive": 60, "sum_decimals": 3 },
   "guardrails": {
     "max_in_scope_row_change": 0.02,

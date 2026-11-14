@@ -360,6 +360,34 @@ snapshot month was built, the run says so on its summary page and builds
 nothing. Only a run started by hand with `force` rebuilds a month, so a
 later edit by NZTA never replaces what the first build published.
 
+## Supplied sources
+
+A dataset may be built from a file a maintainer supplies by hand instead of from the register. The
+source is named in `supplied` in `config/pipeline.json`; its first user is `nzta_dashboard`, NZTA's
+registrations dashboard (`docs/DATA_SOURCES.md` §D, D-075). Nothing fetches it and the Action never
+runs `python -m pipeline supply`.
+
+**The store**, `data/supplied/<id>/` (gitignored for now: whether it may live in the public repository
+is the user's decision):
+
+- `registrations.parquet`: one row per month and combination of the public fields. Columns, in order:
+  `month` (DATE, the first day), the fields named in `supplied.<id>.fields` under their logical names,
+  the fields in `extra_fields` (`vehicle_status`), and `vehicles` (INTEGER). Rows are summed over the
+  columns in `private_columns` (for the dashboard, the three owner columns), which are asserted present
+  in the file and then dropped, so no owner field is in the store or in any output. Sorted, and written
+  with the Parquet options of the cube (ZSTD), so the same input gives the same bytes.
+- `ledger.json`: `months`, for each month the source file's name (name only), its SHA-256, the day it
+  was taken, and its rows and vehicles in the store; and `replaced`, one entry for each month a later
+  file restated, with the old and new vehicles, rows, taken dates, hashes and file names. A month is
+  never replaced without an entry.
+
+`supply` aborts, writing nothing, on any of: a header that is not the configured columns, a count that
+is not a whole number above zero, a numeric field that does not parse, two rows with the same key, a
+month that does not parse or a gap between months, `--taken` before the last month ends, a total in
+`--totals` that differs from the file's sum, a month already in the store that differs and is not named
+in `--replace`, or a new month that would leave a gap in the store. Without `--totals` it runs and
+prints a warning.
+
 ## Guardrails — abort the run and keep the last good build
 
 The build writes to a staging directory. It replaces `/public/data` and
