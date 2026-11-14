@@ -3135,7 +3135,7 @@ New entries use this template:
 ## D-092 2026-11-14 — `registrations_flow` is built: a maintainer's `supply` command, a local store, and the dataset run through the register's own code
 - Agent: claude (the build by a sub-agent on sonnet, to the lead's plan; this record by the lead)
 - Basis: the work order §5.B; D-084 (the source) and D-087 (the definition); the code and tests on
-  `claude/registrations-flow`; the whole suite, 178 passed locally; a real run on 2026-11-14: `supply` on the user's two
+  `claude/registrations-flow`; the whole suite, 254 passed locally with `main` merged in; real runs on 14 and 15 November 2026 (New Zealand time): `supply` on the user's two
   files, then `python -m pipeline build <the saved October pull> --dry-run`, exit 0 in 741 s, publishing nothing; an
   independent review, whose points are taken below.
 - Context: the dashboard's export is a table of counts on the user's computer. The pipeline builds from one row per
@@ -3176,8 +3176,9 @@ New entries use this template:
     named with `--replace`, and a replacement is recorded in the store's ledger with both totals, dates and file
     hashes;
   - a month whose total in the store moves by more than 2% against the last good build aborts, unless a replacement
-    of that month has been recorded since that build. The comparison is of the store's own totals, kept in the state
-    file, so an edit to a scope file cannot trip it;
+    of that month is in the ledger from a file taken on or after the day of that build (the file's taken date
+    decides, not the day it was supplied: an older export supplied late does not excuse its month). The comparison
+    is of the store's own totals, kept in the state file, so an edit to a scope file cannot trip it;
   - the ledger records the store file's hash, and `supply` and the build both refuse a store and a ledger that do
     not belong together; both files are written under temporary names and the ledger is put in place last. The
     ledger also records, for each file supplied, the totals it was checked against, or that none were given;
@@ -3191,8 +3192,8 @@ New entries use this template:
   events file changes); (2) the definition's wording, one line (D-087's sentence).
 - Measured on the real run:
   - `supply` on the history file: 3.8 s; all seven of the user's totals matched; the store is 1,929,698 bytes of
-    counts (426,732 rows after the owner columns are summed away, from 991,274 in the file) and a ledger of 17,750
-    bytes. The January 2021 file then reported "unchanged" and wrote nothing.
+    counts (426,732 rows after the owner columns are summed away, from 991,274 in the file) and a ledger of 18,238
+    bytes (17,750 before it recorded the store's hash and each file's checked totals). The January 2021 file then reported "unchanged" and wrote nothing.
   - The dataset: 1,483,403 vehicles over 70 months, January 2021 to October 2026 (the figure D-087 measured
     independently). Live: powertrain, brand and its three groupings, built in, new or used, age when first
     registered, model. Not live, each with its reason: vehicle type and class (no gross mass), region (no district),
@@ -3211,6 +3212,8 @@ New entries use this template:
   - Each month the user's export is added with one command (`docs/playbooks/supply-dashboard-month.md`).
   - The month-change guard compares with the last good state, which a dry run does not write, so it has run only in
     tests.
+  - The state file GitHub's builds commit gains one empty entry, `supplied_totals`, beside `latest_month` in the
+    manifest; nothing reads it while there is no store.
   - A local build that publishes with the store present writes the dataset into the state file. That file is the
     Action's to commit (hard rule 3); if a local copy were committed, GitHub's builds would abort for want of the
     store. The playbook and AGENTS.md say to build with `--dry-run` after supplying a month.
