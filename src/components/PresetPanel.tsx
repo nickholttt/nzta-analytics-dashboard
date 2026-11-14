@@ -431,7 +431,7 @@ export default function PresetPanel({
       </header>
 
       <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
-        {preset.granularity_options && preset.granularity_options.length > 0 ? (
+        {preset.granularity_options && preset.granularity_options.length > 0 && !(notBuilt && !internal) ? (
           <div className="toggle" role="radiogroup" aria-label="Show by">
             {preset.granularity_options.map((opt) => (
               <label key={opt.id}>
@@ -530,7 +530,7 @@ export default function PresetPanel({
       {chart}
 
       <ul className="notes">
-        {notes.filter((n) => internal || n.unresolved.length === 0).map((n) => (
+        {notes.filter((n) => (internal || n.unresolved.length === 0) && (internal || !notBuilt)).map((n) => (
           <li key={n.key}>
             {n.text}
             {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
@@ -567,7 +567,7 @@ export default function PresetPanel({
             . Their shares are drawn in grey, not dropped and not zeroed.
           </li>
         ) : null}
-        <li className="basis">{BASIS_NOTE}</li>
+        {notBuilt && !internal ? null : <li className="basis">{BASIS_NOTE}</li>}
       </ul>
 
       {internal ? (
