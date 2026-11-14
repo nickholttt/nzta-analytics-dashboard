@@ -1,4 +1,4 @@
-"""Every Claude Code sub-agent definition names its model (CLAUDE.md, Sub-agents; D-062, D-082).
+"""Every Claude Code sub-agent definition names its model (CLAUDE.md, Sub-agents; D-062, D-085).
 
 A definition with no `model:` line, or with `model: inherit`, runs on whatever model the lead happens to
 be on. The user chose the model for each kind of work, so the choice has to be written down: this test
@@ -32,12 +32,14 @@ def frontmatter(path: Path) -> dict[str, str]:
             break
         key, separator, value = line.partition(":")
         assert separator, f"{path.name}: frontmatter line without a colon: {line!r}"
+        # A key given twice would let `model: inherit` hide behind a later `model:` line.
+        assert key.strip() not in fields, f"{path.name}: `{key.strip()}:` appears twice"
         fields[key.strip()] = value.strip().strip("\"'")
     return fields
 
 
 def definitions() -> list[Path]:
-    return sorted(AGENTS.glob("*.md"))
+    return sorted(AGENTS.rglob("*.md"))
 
 
 def test_definitions_exist():
@@ -64,6 +66,7 @@ def test_definition_names_its_model(path: Path):
         ("---\nname: x\ndescription: d\nmodel:\n---\n", "missing or `inherit`"),
         ("---\nname: x\ndescription: d\nmodel: best\n---\n", "not a model alias or id"),
         ("---\nname: x\ndescription: d\nmodel: opus\neffort: extreme\n---\n", "is not one of"),
+        ("---\nname: x\ndescription: d\nmodel: inherit\nmodel: opus\n---\n", "appears twice"),
     ],
 )
 def test_the_check_refuses_a_bad_definition(tmp_path: Path, text: str, message: str):

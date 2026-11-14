@@ -15,7 +15,7 @@ uncommitted changes owned by claude.
 | `requires` | every outstanding deliverable, as prose; omit when `live` |
 | `dataset`, `measure`, `dimension`, `period` | what to read; must exist in `config/dimensions.json` / `config/measures.json` |
 | `derived` | a derived measure id that `src/lib/derived.ts` registers (instead of `measure`) |
-| `shape_override` | forces one of the six shapes when inference isn't enough |
+| `shape_override` | forces one of the shapes that has a renderer (five of the six today) when inference isn't enough |
 | `note_template` / `note` | a note on the chart. Any figure must come from `{dotted.path}` into the manifest, never typed in |
 
 Shape is inferred from measure plus dimension. Never add a seventh renderer (the sixth, `matrix`, is D-083).

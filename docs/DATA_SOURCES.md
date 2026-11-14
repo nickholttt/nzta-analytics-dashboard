@@ -142,10 +142,10 @@ first registrations and buyer type from the same dashboard.
   `Vehicle usage`, `Vehicle year`. `VIN - first 11` and
   `Physical post code` are not taken (D-076).
 - **What is held** (measured 2026-11-14, D-084): January 2021 to
-  October 2026, 70 months, 991,274 rows, 1,883,786 vehicles, taken on
-  14 November 2026. January 2021 is 30,011 vehicles, of which 2,970 are
-  now `INACTIVE`: the history holds vehicles since removed from the
-  register.
+  October 2026, 70 months, 991,274 rows, 1,883,786 vehicles. It was taken
+  on 14 November 2026 (the user's account). January 2021 is 30,011
+  vehicles, of which 2,970 are marked `INACTIVE`. What `Vehicle Status`
+  means is defined with the dataset (the work order's package B).
 - **The engine cuts an export off at 5,000,000 cells**, so the history
   was taken a year at a time and joined (the user's account).
 - **Not published:** `Owner Type`, `Territorial authority` and

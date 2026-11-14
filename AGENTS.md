@@ -123,7 +123,8 @@ Setup, **not re-run this session** (the environment already existed):
 3. **Never hand-edit `data/snapshots/` or `data/state/`.** Only the monthly Action writes them.
 4. **Golden changes are contract changes.** Regenerate `pipeline/tests/golden/contract.json` only
    deliberately, in the same commit as the change that causes it (one cube change per commit,
-   `POST_GATE.md`), with the diff shown to the user.
+   `POST_GATE.md`), with the diff shown to the user. During work order 1 the diff is shown in the
+   pull request's description and listed in the order's final report (D-082).
 5. **One commit per reference file**, with the docs that describe it changed in the same commit.
    Every commit must build, not just the branch tip.
 6. **Resolve field meanings empirically** against the data before rewriting a doc. Surface counts
@@ -131,21 +132,26 @@ Setup, **not re-run this session** (the environment already existed):
 7. **Don't push to `main` or merge into it** without the user's word in that session, naming the
    pull request ("merge N"). A merge into `main` also needs green checks and a reviewer sub-agent
    that has not seen the author's reasoning. A forced Monthly build, and anything that makes
-   something public, is asked for each time (user, 2026-11-14, D-081).
-   **Amended for the life of work order 1** (`docs/brief/WORK_ORDER.md` §2 and §3; user,
-   2026-11-14, D-082): claude may merge a pull request of that work order into `main`, as a merge
-   commit, when its checks are green, an independent reviewer agrees, it is inside the order's
-   packages and it touches nothing on the order's "never without asking" list. If Claude Code's
-   own permission check refuses a merge, it is not worked around: the pull request stays open,
-   the next package is stacked on it, and the user is given one batch line. One forced run of
-   October is allowed, once, only if the most recent daily run reports the source unchanged; a
-   second is not. Making anything public is still asked for. An agent may push its own
+   something public, is asked for each time (user, 2026-11-14, D-081). An agent may push its own
    branches (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19). GitHub
    API access goes through `gh` only (full path above; not on the Git Bash PATH), never the Git
    Credential Manager token.
+
+   **Amended for the life of work order 1, and only for it** (`docs/brief/WORK_ORDER.md` §2 and
+   §3; user, 2026-11-14, D-082). When the order closes, this paragraph is removed and the rule
+   above stands as written.
+   - claude may merge a pull request of that work order into `main`, as a merge commit, when its
+     checks are green, an independent reviewer agrees, it is inside the order's packages and it
+     touches nothing on the order's "never without asking" list.
+   - If Claude Code's own permission check refuses a merge, it is not worked around: the pull
+     request stays open, the next package is stacked on it, and the user is given one batch line.
+   - One forced run of October is allowed, once, only if the most recent daily run reports the
+     source unchanged; a second is not.
+   - Making anything public is still asked for.
 8. **Don't build ahead of the current step.** The user works in gated steps with a stop-and-report
    after each; the current step is in `docs/STATE.md`. During work order 1 the steps are its
-   packages A to I, worked in order with one report at the end, not a stop after each (D-082).
+   packages A to I, worked down the list, the ones marked (parallel) beside the one before, with
+   one report at the end, not a stop after each (D-082).
    Exception (user, 2026-10-21, D-041): the
    visitor-facing site (`src/`, `config/presets.json` and the docs that describe them) may be built
    ahead of the build order. The gate that kept it a local build passed on 13 November 2026

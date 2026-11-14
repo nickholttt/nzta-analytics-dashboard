@@ -2579,8 +2579,12 @@ New entries use this template:
   - Hard rule 7 gets the amendment as a marked passage "for the life of work order 1", and its old text is kept, so
     the rule returns to what it was when the order closes without a further edit of its sense. Not chosen: rewriting
     the rule outright, which would outlive the order.
-  - Hard rule 8 gets one sentence: during the order the steps are its packages, with one report at the end. The user
-    did not name rule 8; "one report, at the end" (§1.3) cannot hold beside "a stop-and-report after each".
+  - Hard rule 8 gets one sentence: during the order the steps are its packages, worked down the list with the
+    (parallel) ones beside the one before, and one report at the end. The user did not name rule 8; "one report, at
+    the end" (§1.3) cannot hold beside "a stop-and-report after each".
+  - Hard rule 4 asks for a golden diff "shown to the user". The order has claude merge without stopping, so during
+    the order the diff is shown in the pull request's description and listed in the final report. Not chosen:
+    stopping for each golden change, which the order rules out; or dropping the showing.
 - Consequences:
   - Done on 2026-11-14 on this authority: #47 merged (`6b69fcc`), `ui/explore` deleted on GitHub (all of it was in
     `main`; no history rewritten).
@@ -2588,7 +2592,7 @@ New entries use this template:
     allowed until the user said it in the session. The order says so in its own first message and in the "continue"
     message for later sessions.
   - A later session reads the order and CHECKPOINT, not this entry, for where the work stands.
-- Status: accepted, decided by user; the two readings above decided by Claude (unreviewed)
+- Status: accepted, decided by user; the three readings above decided by Claude (unreviewed)
 
 ## D-083 2026-11-14 — A sixth shape, `matrix`, is approved
 - Agent: user
