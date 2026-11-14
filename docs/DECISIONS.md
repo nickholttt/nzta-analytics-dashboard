@@ -3343,11 +3343,11 @@ New entries use this template:
      unless it is accepted on the command line, and record an accepted one in the ledger. Chosen (c): (a) lets a
      figure already shown change with nobody deciding it, and (b) would leave a real correction by Stats NZ out for
      good. The build's month guard for this source allows no change at all without an accepted revision.
-  9. **A damaged file.** An export with a break in its month rows (a blank line, a mistyped month) was at first read
+  8. **A damaged file.** An export with a break in its month rows (a blank line, a mistyped month) was at first read
      up to the break and accepted, dropping every later month; the independent review found it. The footer must now
      start on the line straight after the last month, and no later line may look like a row of the table; otherwise
      the command stops and names the line.
-  8. **Which dimensions apply.** The two new dimensions name the dataset in `applies_to`. The register's
+  9. **Which dimensions apply.** The two new dimensions name the dataset in `applies_to`. The register's
      dimensions are not edited: a series source carries none of the fields they read, so they are not live for it,
      with that reason, by the rule D-092 added. Not chosen: an `applies_to` list on every register dimension, which
      would have to be edited for every dataset added later.
