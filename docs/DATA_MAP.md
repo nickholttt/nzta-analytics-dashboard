@@ -83,9 +83,11 @@ Bound in `config/pipeline.json`. Their meanings and traps are in `docs/DATA_SOUR
    first registered in October 2026 (11,832):
    by usage, private passenger 6,912 and rental 4,868; by industry class, private 6,862,
    tourism/leisure 3,171, business/financial 1,122, vehicle trader 422.
-   - **Trap, not yet checked:** whether these describe the vehicle when it was first registered or
-     as it is now. If they are current values, they answer "who owns it now", which matches "who
-     bought it" only for the newest months. Two snapshots at these fields would settle it (D-063).
+   - **Trap, checked on 2026-11-14 for usage (D-087): the register's `VEHICLE_USAGE` is the usage
+     today.** It answers "how is it used now", which matches "who bought it" only for the newest
+     months. The dashboard's `Vehicle usage` holds an earlier value, most likely the one at first
+     registration (below, "The dashboard's fields"). `INDUSTRY_CLASS` is not in the dashboard and
+     is not settled: two snapshots at that field would settle it (D-063).
 2. **Zero stands for "not recorded"** in the number fields. A mean must leave those zeros out, and
    each field needs its sentinels in `sentinels.csv` before it is bound.
 3. **Several fields hold values that cannot be real**: seats and power of 999, an engine size of
@@ -181,6 +183,43 @@ quoted; none is checked against the data here except where a note says so.
   (`github.com/NZTA/vehicle-make-and-model-cleansing-code`) could not be read: GitHub answered "Not
   Found" on 2026-11-13, and a search of NZTA's 20 public repositories for "cleansing" and for "make
   model" found none. Whether it was moved, made private or removed is not known.
+
+## The dashboard's fields
+
+The source of `registrations_flow` (`docs/METRICS.md`; `docs/DATA_SOURCES.md` §D). Measured on
+2026-11-14 from the user's export of January 2021 to October 2026 (991,274 rows, 1,883,786
+vehicles) against the register as at 31 October 2026, vehicles first registered in the same 70
+months (D-087). The file has no empty cell: what is not recorded is written as text.
+
+| Dashboard field | Register field | Kind | Values | How it lines up with the register | Class (proposed) |
+|---|---|---|---|---|---|
+| `Registration month` | first NZ registration year and month | time | 70 months, none missing | For vehicles still registered, the month totals agree to within 0.08% | Public |
+| `Import status` | `IMPORT_STATUS` | category | 4 | The same four values | Public |
+| `Vehicle type` | `VEHICLE_TYPE` | category | 14 | The same values | Public |
+| `Body type` | `BODY_TYPE` | category | 27 | The same values | Public |
+| `Motive power` | `MOTIVE_POWER` | category | 19 | The same 18, plus `-` where the register is empty (267,782 vehicles, all trailers) | Public |
+| `Make` | `MAKE` | category | 853 | Three values the register does not have, the largest `LANDROVER` beside `LAND ROVER` (424 vehicles, most in 2021); no make is in the register only. 99.82% of in-scope vehicles map through `brand_registry.csv` | Public |
+| `Model` | `MODEL` | category | 58,164 | NZTA's cleaned name. 2,854 values (18,946 vehicles) are in the register nowhere: some nameplates are split finer than the register holds them. `UNKNOWN` for 12 vehicles; some are placeholders for a class of vehicle | Public |
+| `Country of origin` | `ORIGINAL_COUNTRY` | category | 48 | The same values; `NOT KNOWN` 720 and `OTHER` 760 vehicles | Public |
+| `Vehicle year` | `VEHICLE_YEAR` | number, year | 129 | Every value is in the register | Public |
+| `Vehicle Status` | none | category | 2 | `ACTIVE`: still registered on the export's date. `INACTIVE`: since removed (80,852 vehicles; 9.9% of January 2021, none of October 2026). NZTA's page also names "reversed"; the file has none | Public |
+| `Owner Type` | none | category | 3 | Individual 1,045,469; Company 810,118; Other 28,199. Whether it is the owner at first registration or today is **not settled**: the company share of still-registered passenger cars is 30.9% for 2021 and 39.0% for 2026, with no sharp fall with age | Describes the owner: not published before the Stage 2 review |
+| `Territorial authority` | `TLA` | place | 70 | The owner's district. `UNKNOWN` 5,141 vehicles (the register leaves it empty); two values the register does not have: `AUCKLAND CITY` (272 vehicles) and `OVERSEAS` (22) | Describes the owner: not published before the Stage 2 review |
+| `Vehicle usage` | `VEHICLE_USAGE` | category | 20 | **A finer list, and a different moment** (below). `UNDEFINED` 382 vehicles | Describes the owner: not published before the Stage 2 review |
+
+**Usage: the dashboard and the register hold different moments.** The two hold the same vehicles
+(still-registered vehicles differ by under 0.1%), and for the newest month they agree: of
+passenger cars and vans first registered in October 2026, 25.1% are rental in the dashboard and
+25.3% in the register. For older months they part. January 2023: 7.6% rental in the dashboard
+(1,197 vehicles) and 2.2% in the register (342). January 2021: 1.45% (254) and 0.21% (37). The
+register's rental share shrinks as a cohort ages, as today's usage would when rental cars are
+sold on; the dashboard's does not. So the register's `VEHICLE_USAGE` is the usage today, and the
+dashboard's is an earlier value, consistent with NZTA's words for it ("when it was registered").
+It is not proof of the exact moment. Taxi does not follow the pattern: the register counts more
+taxis than the dashboard in every year, the newest month included (165 against 36 passenger
+vehicles for October 2026), so that category is defined differently in the two and is not used as
+evidence. The dashboard's 20 usage values are finer than the register's 8, and two names differ
+only in punctuation.
 
 ## Privacy classes: a first reading, for the user to approve in Stage 2
 
