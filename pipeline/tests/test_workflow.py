@@ -104,5 +104,54 @@ def test_the_cloudflare_secrets_are_read_only_by_a_job_that_names_the_main_only_
     assert "    environment: production" in upload
     assert "    if: needs.build.outputs.upload == 'true' && github.ref == 'refs/heads/main'" in upload
     # The site's dependencies are installed by the build job only.
-    assert "        run: npm ci --no-audit --no-fund" in before
+    assert "        run: npm ci --ignore-scripts --no-audit --no-fund" in before
     assert not [line for line in upload if "npm ci" in line and ".github/deploy" not in line]
+
+
+def test_the_checks_workflow_never_leaves_its_token_in_the_checkout():
+    """Checks runs the pull request's own code, and pushes nothing, so its checkout does not keep the credentials."""
+    lines = (WORKFLOW.parent / "checks.yml").read_text(encoding="utf-8").splitlines()
+    checkouts = [i for i, line in enumerate(lines) if line.strip().startswith("uses: actions/checkout@")]
+    assert checkouts
+    for start in checkouts:
+        step = []
+        for line in lines[start + 1:]:
+            if line.strip().startswith("- name:"):
+                break
+            step.append(line.strip())
+        assert "persist-credentials: false" in step
+    assert "contents: read" in [line.strip() for line in lines]
+
+
+def test_the_public_build_refuses_a_link_to_an_internal_page_however_it_is_quoted(tmp_path):
+    lines = (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()
+    check = next(line.strip() for line in lines if line.strip().startswith("if grep -rlE '"))
+    pattern = check.split("'")[1]
+    cases = {
+        "double.html": '<a href="/status">',
+        "single.html": "<a href='/sense-check'>",
+        "template.js": "`/status/${id}`",
+        "query.js": 'fetch("/sense-check?x=1")',
+        "relative.html": '<a href="./status">',
+        "bare.js": "/status",
+    }
+    # Another site's address with the same word in it is not a link to an internal page: an event's source link can
+    # hold one, and it must not stop the deploy.
+    harmless = {
+        "other.html": '<a href="/statuses"><a href="/status-page"><a href="/build">',
+        "data.js": "/data/stats.json",
+        "elsewhere.json": '{"source_url": "https://example.invalid/someone/status/123"}',
+        "host.json": '{"source_url": "https://status.example.invalid/"}',
+        "segment.json": '{"source_url": "https://example.invalid/status"}',
+    }
+    for name, text in {**cases, **harmless}.items():
+        (tmp_path / name).write_text(text + "\n", encoding="utf-8")
+    found = subprocess.run([BASH, "--noprofile", "--norc", "-c", f"grep -rlE '{pattern}' ."],
+                           cwd=tmp_path, capture_output=True, text=True).stdout.split()
+    assert sorted(Path(f).name for f in found) == sorted(cases)
+
+
+def test_a_rerun_of_the_whole_deploy_replaces_the_site_artifact():
+    lines = [line.strip() for line in (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()]
+    step = lines[lines.index("name: site"):]
+    assert "overwrite: true" in step[:6]

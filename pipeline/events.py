@@ -60,6 +60,11 @@ def build(cfg, vocab: dict[str, set[str]]) -> tuple[list[dict], list[str]]:
     unread = [c for c in e["enum_columns"] if c not in enums]
     if unread:
         return [], [f"could not find the enum table rows for {unread} in {doc}"]
+    # A row whose values lost their backticks still matches as an enum, with nothing in it: every event would then be
+    # blamed for a value "outside the enum", when the fault is in the table.
+    empty = [c for c in e["enum_columns"] if not enums[c]]
+    if empty:
+        return [], [f"the enum table rows for {empty} in {doc} list no values in backticks"]
     if title_max is None:
         return [], [f"could not find the title length in the table row for title in {doc}"]
     enum = enums["scope"]
