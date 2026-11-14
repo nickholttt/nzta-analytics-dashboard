@@ -3,7 +3,14 @@
 **Status: finished (the work order's package E, 2026-11-14), with the privacy classes PROPOSED and
 not approved.** Until the user approves them, the work order's §3 is binding: no owner field
 (district, region, usage, industry class, owner type), no postcode and nothing derived from `VIN11`
-is published. Nothing here binds a field. Build still offers only what `config/dimensions.json`
+is published without asking. **One owner-derived output is published today:** the `region` slice
+(share of vehicles by the owner's region, by month) is in the public cube release `cube-2026-10` and
+in every build. It rests on D-078, where the user chose to leave region out of the fact table "until
+the Stage 2 privacy review" on the option that "the region map still draws"; keeping the slice
+itself was Claude's reading of that option (D-078, point 3, decided by Claude, unreviewed). The work
+order, written later, names region among the fields not published without asking, so the slice sits
+awkwardly with §3's wording. Whether it stays is the user's to decide, and is one of the questions
+put to the user. Nothing here binds a field. Build still offers only what `config/dimensions.json`
 defines.
 
 The same map in machine-readable form is `config/data_map.json`, kept true to the pipeline's config
@@ -91,8 +98,9 @@ and a median). Values are S then W. Privacy is the proposed class, and is not ap
 | `ENGINE_NUMBER` | identifier | not measured | none | never pulled | no |
 | `OBJECTID` | identifier | one per row | none | never published | `object_id` |
 
-The dashboard's 13 columns follow the same shape in "The dashboard's fields" below: ten are proposed
-public; `Owner Type`, `Territorial authority` and `Vehicle usage` are held for the review.
+The dashboard's 13 columns are in "The dashboard's fields" below: each is as its register field
+except where that section says otherwise. Ten are proposed public; `Owner Type`, `Territorial
+authority` and `Vehicle usage` are held for the review.
 
 Counts. Register: 17 bound and 23 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
 2 place, 1 free text. By proposed class: 31 public, 5 held for the review, 2 never published,
@@ -107,20 +115,32 @@ Counts. Register: 17 bound and 23 not. By kind: 17 category, 12 number, 6 identi
 | Never published | `VIN11`, `OBJECTID` | `VIN11` narrows a vehicle to a handful, and only a field derived from it may be published, once checked and approved (D-076, D-079). `OBJECTID` is a row number |
 | Never pulled | `CHASSIS7`, `ENGINE_NUMBER` | They identify a vehicle and serve no question (D-062, D-076; `register_archive.never_pulled`) |
 
-**Where the classes already have an exception.** The `region` slice, derived from `TLA`, is in the
-public release `cube-2026-10` and in every build; the fact table leaves `region` out (D-078). The
-data map records this as the one exception (`published_exceptions` on `TLA`), and the test fails if
-any other published output reads a held field.
+**The one exception in place, and what the test checks.** The `region` slice, derived from `TLA`, is
+published (status line above); the fact table leaves `region` out (D-078). The map records the
+slice as an exception on the `TLA` entry (`published_exceptions`, with the outputs its decision
+covers: the slice only). `pipeline/tests/test_data_map.py` fails if a field whose class is not
+published is read by any of these, other than through a recorded exception: a fact-table column, a
+pair, a dimension's slice, or the committed snapshot aggregate (`snapshot_archive.group_by` in
+`config/pipeline.json`, written to the public repository's `data/snapshots/`). It works out which
+fields a dimension reads from its `derive` block, plus the fields its kind reads without naming
+them, plus make and model wherever motive power is read (the hybrid classification rewrites motive
+power from them). It does not see a published file the pipeline writes by any other route, or a
+field read by code that `config/data_map.json`'s `derive_reads` does not describe. While the classes
+are proposed it also fails if an owner field or a field derivable only from `VIN11` is marked
+published, or if an exception reaches the fact table.
+
+**Context from NZTA.** NZTA's notes say owner location is given by territorial authority "to make
+sure it isn't possible to identify a person", and its field list leaves the postcode out, though the
+field is in the service (as quoted in this map's first pass, 2026-11-13).
 
 **Why public fields still need care.** A cell that counts one vehicle shows nothing NZTA does not
-publish for that vehicle today. What the site adds is time: a monthly series of published files.
-With fine vehicle detail alone, half the fact table's rows already count one vehicle (50.2% of rows,
-7.1% of vehicles, the 2026-10 dry run, D-078). Each field bound into the table makes that share
-larger. With no owner field in the table, following such a cell from month to month shows only
-whether a vehicle is still registered.
+publish for that vehicle today. What the site adds is a monthly series of such files. On the
+2026-10 dry run, 50.2% of the fact table's rows count one vehicle, and those rows hold 7.1% of the
+vehicles (D-078). Binding another field into the table can only split rows, so the share of vehicles
+alone in a row can only stay the same or rise. The table holds no owner field, so following a
+one-vehicle row from month to month shows only whether that vehicle is still registered.
 
-The questions the user is asked are listed in the draft decision record for this map, and in the
-report that delivered it.
+The questions for the user are put with this map's pull request (#53).
 
 ## Identity and time
 
@@ -319,7 +339,7 @@ report that delivered it.
   4-gear auto 280,612; 5-gear manual 254,689.
 - **Uses.** Break down and filter, NZ-new vehicles only. Count only. A grouping into automatic,
   manual, continuously variable and other would be a reference lookup (invariant 4).
-- **Coverage.** **NZ-new only**: NEW 92.1%, USED 0.0% (107 vehicles). Nothing before 1990; 1990s
+- **Coverage.** **NZ-new only**: NEW 92.1%, USED 0.0% (116 vehicles). Nothing before 1990; 1990s
   33.9%; from 2000 between 56.9% and 64.2% of all S vehicles. W 43.7%.
 - **Not recorded.** NULL, covered.
 - **Traps.** `OTHER` is a recorded value on 110,739 S vehicles, 105,880 of them first registered from
@@ -365,16 +385,18 @@ report that delivered it.
 
 ### `ALTERNATIVE_MOTIVE_POWER`
 
-- **Meaning.** A second fuel. Empty when the vehicle has none: an empty value means "none", not "not
-  recorded".
+- **Meaning.** A second fuel. Read as empty when the vehicle has none, so an empty value would mean
+  "none", not "not recorded" (inferred - confirm: nothing in the data or in NZTA's words checked here
+  shows it; it rests on 99.9% of S vehicles being empty).
 - **Kind and values.** Category, 9 values. 5,792 S vehicles (0.13%) have one: LPG 3,084, CNG 2,612.
 - **Uses.** Filter only ("also runs on LPG or CNG"). Too sparse to break down. Bound today only so the
   build can report dual-fuel vehicles; the powertrain ignores it (`docs/DATA_SOURCES.md`).
-- **Coverage.** S 0.1%; before 1990, 3.4%.
-- **Not recorded.** None: NULL is "none".
-- **Traps.** **`sentinels.csv`'s rule for every field turns NULL into "not recorded", which is wrong
-  here**: binding it as a breakdown needs a "none" label instead. Petrol (S 51), diesel (24) and
-  `OTHER` (1) as a second fuel are odd beside a primary fuel.
+- **Coverage.** S 0.1%: before 1990 3.4%, 1990s 0.1%, 2000s 0.0%, 2010s 0.1%, 2020 to 2026 0.0%.
+  W 0.1% (6,789 vehicles).
+- **Not recorded.** If the reading above holds, none: NULL is "none".
+- **Traps.** **`sentinels.csv`'s rule for every field turns NULL into "not recorded"**, which would
+  be wrong if the reading holds: binding it as a breakdown would need a "none" label instead.
+  Petrol (S 51), diesel (24) and `OTHER` (1) as a second fuel are odd beside a primary fuel.
 - **Privacy.** Proposed public.
 - **Relations.** Not measured for moving together.
 
@@ -393,11 +415,15 @@ report that delivered it.
 - **Not recorded.** Zero means "no engine" on an electric vehicle and "not recorded" on one with an
   engine. It is deliberately not a sentinel: the engine band decides it from
   `has_combustion_engine` in `powertrain_map.csv` (`docs/DATA_SOURCES.md`).
-- **Traps.** 999 cc is a real size (S 11,811, Ford and Volkswagen 1.0-litre petrol), not a
-  placeholder. 1 cc appears on 13,446 S vehicles, 12,802 of them electric. 16,350 cc on 1,093 trucks
-  is real; above 20,000 (S 382, up to 98,930) is not. Proposed guard: 50 to 20,000, engines only;
-  13,952 S vehicles fall outside it. **The bound band "4.0 L and over" has no upper limit**, so those
-  382 values land in it today. Never average over every vehicle: the zeros pull it down.
+- **Traps.** 999 cc is read as a real size, not a placeholder: it is on 11,811 S vehicles, which the
+  profile finds are Ford and Volkswagen petrol vehicles with 1.0-litre engines (not checked against
+  specifications). 1 cc appears on 13,446 S vehicles, 12,802 of them electric. 16,350 cc on 1,093
+  trucks is read as a real heavy engine; above 20,000 (S 382, up to 98,930) is read as not real.
+  Proposed guard: 50 to 20,000, engines only. 13,952 S vehicles fall outside 50 to 20,000; that count
+  includes the 12,802 electric vehicles at 1 cc, which "engines only" leaves out anyway, and how many
+  vehicles with an engine fall outside was not measured. **The bound band "4.0 L and over" has no
+  upper limit**, so the 382 values land in it today. Never average over every vehicle: the zeros
+  pull it down.
 - **Privacy.** Proposed public.
 - **Relations.** Picks out a vehicle in combination. Moves together with: gross vehicle mass (banded)
   0.52, vehicle type 0.52, class 0.44, combined fuel consumption (banded) 0.42 (measured).
@@ -410,7 +436,7 @@ report that delivered it.
 - **Uses.** Break down banded and filter, NZ-new only; average and median inside the guard. Bands,
   S share inside the range: under 75 (7.3%), 75-99 (13.0%), 100-149 (54.6%), 150-199 (16.0%),
   200-299 (6.9%), 300-499 (2.1%), 500 and over (0.1%).
-- **Coverage.** **NZ-new only**: NEW 92.7%, USED 0.0%. Nothing before 1990. W 46.3%.
+- **Coverage.** **NZ-new only**: NEW 92.7%, USED 0.0% (141 vehicles). Nothing before 1990. W 46.3%.
 - **Not recorded.** Zero (S 1,988,207: every used import and about 200,000 NZ-new vehicles). **Not in
   `sentinels.csv`.**
 - **Traps.** 999 on 118 S vehicles (107 of them Jaguar petrol) is a placeholder. 99 on 4,016
@@ -418,15 +444,16 @@ report that delivered it.
   Proposed guard: 5 to 900 (192 S vehicles outside).
 - **Privacy.** Proposed public.
 - **Relations.** Recorded on the same vehicles as transmission and the MVMA code: all three on
-  2,517,036 S vehicles (2,516,929 NZ-new, 107 used), 92.1% of NZ-new. Picks out a vehicle in
+  2,517,036 S vehicles (2,516,929 NZ-new, and 107 used imports, which is the count of used imports
+  with all three, not with any one), 92.1% of NZ-new. Picks out a vehicle in
   combination. Moves together with: engine size (banded) 0.37, transmission 0.32, combined fuel
   consumption (banded) 0.31 (measured). Its 0.34 with previous country rests on 114 vehicles and
   means nothing.
 
 ### `FC_COMBINED`
 
-- **Meaning.** Fuel consumption over the combined test cycle, litres per 100 km, as recorded at
-  registration. Stored as text.
+- **Meaning.** Fuel consumption over the combined test cycle, litres per 100 km, as NZTA records it
+  (when it is recorded is not shown by the data). Stored as text.
 - **Kind and values.** Number. 292 values on S, 300 on W. Median on S 7.1.
 - **Uses.** The site's mean fuel consumption (`fc_sum`, `fc_n`: `docs/METRICS.md`); break down
   banded and filter. Bands, S share inside the range: under 2 (1.2%), 2-3.9 (7.6%), 4-5.9 (20.4%),
@@ -457,7 +484,7 @@ report that delivered it.
 - **Not recorded.** NULL, covered.
 - **Traps.** The combined figure is outside the urban-to-extra-urban range on 5,297 of 1,280,676 S
   vehicles that have all three. Proposed guards: urban above 0 to 40 (11 S above), extra-urban above
-  0 to 30 (60 S at 30 or more).
+  0 to 30 (60 S above 30).
 - **Privacy.** Proposed public.
 - **Relations.** 97.6% of the S vehicles with an urban figure also have power (1,359,738 of
   1,393,284). Not measured for moving together.
@@ -495,6 +522,7 @@ report that delivered it.
 - **Uses.** Filter; average and median inside the guard for heavy vehicles. Bands, S share: under
   13,000 (25.6%), 13,000-19,999 (44.3%), 20,000-24,999 (16.9%), 25,000 and over (13.3%).
 - **Coverage.** Heavy vehicles: goods 16.0% on S (used goods 28.5%, NZ-new goods 13.7%), cars 1.1%.
+  Of all S vehicles: before 1990 6.4%, 1990s 8.1%, 2000s 6.2%, 2010s 3.1%, 2020 to 2026 3.6%.
   W 5.0%.
 - **Not recorded.** Zero (S 4,337,512). **Not in `sentinels.csv`.**
 - **Traps.** Bunched on a few values. Proposed guard: 1,000 to 60,000 (none outside on S, 2 on W).
@@ -513,7 +541,9 @@ report that delivered it.
   2,500-2,600 (32.2%).
 - **Coverage.** Goods vehicles over 3.5 t, not cars: height on 93,654 of 94,640 S goods vehicles over
   7.5 t, 47,503 of 65,998 from 3.5 t to 7.5 t, and 1,153 of 741,938 under 3.5 t. S 3.2% each (goods
-  15.8% and 16.0%; cars 0.0%). W 4.2% and 4.3%. Together on 143,775 S vehicles.
+  15.8% and 16.0%; cars 0.0%). Of all S vehicles, height then width: before 1990 6.0% and 7.4%,
+  1990s 7.3% and 7.6%, 2000s 5.4% each, 2010s 2.3% each, 2020 to 2026 2.6% each. W 4.2% and 4.3%.
+  Together on 143,775 S vehicles.
 - **Not recorded.** Zero. **Not in `sentinels.csv`.**
 - **Traps.** **The worst guards in the register.** 1 mm is a placeholder (height S 4,722; width
   S 822). Some values look like centimetres (height 100 to 460: 92 S; width 150 to 299: 1,967 S) and
@@ -562,7 +592,9 @@ report that delivered it.
 - **Kind and values.** Category. 45 values on S, 49 on W.
 - **Uses.** Break down and filter, used imports only (`imported_from`, which applies to
   `used_imports`). Count only.
-- **Coverage.** **Used imports**: USED 100.0%, NEW 0.0% on S.
+- **Coverage.** **Used imports**: USED 100.0%, NEW 0.0% on S. As a share of all S vehicles, which
+  follows the used share of each period: before 1990 4.5%, 1990s 34.6%, 2000s 34.1%, 2010s 42.0%,
+  2020 to 2026 42.0%. W 34.2%.
 - **Not recorded.** `NONE` (S 2,732,667: every NZ-new vehicle, where it means "not applicable", and
   334 used imports, where it means "not recorded") and `USED UN-REGIST` (S 40), both covered.
 - **Traps.** `OTHER` (S 1,172) is a catch-all. `NEW ZEALAND` is the previous country of 299 S used
@@ -579,7 +611,7 @@ report that delivered it.
   32,564; `UNKNOWN` 184,863.
 - **Uses.** Break down and filter from 2000. Count only.
 - **Coverage.** S 95.9%: before 1990 0.0% (`UNKNOWN` on 119,994 of 120,012), 1990s 59.6%, 100% from
-  2000 (371 of 4.24 million unknown). W 94.1%.
+  2000 (370 of 4.24 million unknown). W 94.1%.
 - **Not recorded.** `UNKNOWN` (W 350,980; S 184,863: 162,984 NZ-new, 21,879 used). **Not in
   `sentinels.csv`.**
 - **Traps.** The first pass counted it "100% filled" because it counted `UNKNOWN` as a value.
@@ -602,8 +634,9 @@ report that delivered it.
   18,721, Rangitikei 14,717, Stratford 10,292, Waitomo 8,528 S vehicles; 179,212 in all), so region is
   a best fit there (`tla_region.csv`). Rental and lease fleets are counted at their owner's address
   (`docs/DATA_SOURCES.md`).
-- **Privacy.** **Held for the review.** The `region` slice is the recorded exception (D-078). Proposed
-  for after the review: public above a minimum count.
+- **Privacy.** **Held for the review.** The `region` slice derived from it is published today, as the
+  recorded exception (status line above): keeping it rests on D-078's unreviewed point 3, and whether
+  it stays is the user's call. Proposed for after the review: public above a minimum count.
 - **Relations.** Rolls up to region through `tla_region.csv`: all 67 S values are in the file, none
   twice. Picks out a vehicle in combination. Moves together with nothing above 0.15 (road transport
   code 0.15, vehicle type 0.13).
@@ -626,16 +659,19 @@ report that delivered it.
 ### `VEHICLE_USAGE`
 
 - **Meaning.** NZTA: "Classification of how a vehicle is used. This field groups several more
-  detailed usage types". **It is the latest usage recorded, not the usage at first registration**
-  (D-087): for the newest month the register and the dashboard agree, and for older months the
-  register's rental share is far lower (below, "As first registered, or today").
+  detailed usage types". **Read as the latest usage recorded, not the usage at first registration:
+  shown for rental; other values not tested** (D-087). For the newest month the register and the
+  dashboard agree on rental, and for older months the register's rental share is far lower; taxi
+  does not fit the pattern (below, "As first registered, or today").
 - **Kind and values.** Category, 7 values on S, 8 on W. S: private passenger 4,226,874; transport
   licensed goods 93,914; other goods 85,136; rental 60,172; taxi 25,987; other 23,662; emergency 4,731.
-- **Uses.** Break down, filter. Count only. It answers "how are they used now", not "who bought them".
+- **Uses.** Break down, filter. Count only. For rental at least, it answers "how are they used now",
+  not "who bought them".
 - **Coverage.** Every vehicle.
 - **Not recorded.** No form seen. `OTHER` (S 23,662) is a recorded catch-all.
-- **Traps.** Rental is 41.1% of NZ-new passenger cars first registered in October 2026 (S), so the
-  newest months swing with fleet buying. The dashboard's usage list is finer (20 values).
+- **Traps.** The rental share differs widely between months: among NZ-new passenger cars on S it is
+  41.1% for October 2026, 4.6% for July 2026 and 0.9% for March 2026. The dashboard's usage list is
+  finer (20 values).
 - **Privacy.** **Held for the review**; then above a minimum count.
 - **Relations.** Moves together with: road transport code 0.44 (57,232 vehicles; partly by
   definition, inferred - confirm); industry class 0.41, gross vehicle mass (banded) 0.41 and vehicle
@@ -643,16 +679,17 @@ report that delivered it.
 
 ### `INDUSTRY_CLASS`
 
-- **Meaning.** NZTA: "The class of industry a vehicle is associated with". **At least partly the
-  current owner's** (below, "As first registered, or today").
+- **Meaning.** NZTA: "The class of industry a vehicle is associated with". Read as the owner's
+  industry (inferred - confirm), and **at least partly the current owner's** (below, "As first
+  registered, or today").
 - **Kind and values.** Category: 14 classes and `UNKNOWN` (W and S). S: private 4,129,137;
   business/financial 116,081; constructing 54,312; commercial road transport 53,667.
 - **Uses.** Break down, filter. Count only.
 - **Coverage.** S 99.6% (before 1990, 88.0%). W 92.6%: `UNKNOWN` is mostly trailers and machines.
 - **Not recorded.** NULL (S 18), covered; `UNKNOWN` (W 441,020; S 18,653, 0.4%). **`UNKNOWN` is not in
   `sentinels.csv`.**
-- **Traps.** `VEHICLE DEALER` (S 15) and `VEHICLE TRADER` (S 8,610) are two names for one idea, which
-  binding should join by a reference lookup.
+- **Traps.** `VEHICLE DEALER` (S 15) and `VEHICLE TRADER` (S 8,610) read as two names for one idea
+  (inferred - confirm); if so, binding should join them by a reference lookup.
 - **Privacy.** **Held for the review**; then above a minimum count.
 - **Relations.** Road transport code does not roll up to it (below). Moves together with: usage 0.41,
   vehicle type 0.36, class 0.30 (measured).
@@ -665,9 +702,15 @@ report that delivered it.
 - **Kind and values.** Category, 20 values. S: general goods, local 19,882; general goods, line
   haulage 10,547; bulk cartage, solids 7,765.
 - **Uses.** Break down and filter, for heavy-vehicle topics only. Count only.
-- **Coverage.** S 1.3% (57,232 vehicles): goods 5.9%, cars 0.1%. W 1.6%.
-- **Not recorded.** None: an empty value means the vehicle has no road transport code. As with the
-  second fuel, `sentinels.csv`'s rule for every field would call it "not recorded".
+- **Coverage.** S 1.3% (57,232 vehicles): goods 5.9%, cars 0.1%. Of all S vehicles: before 1990
+  0.8%, 1990s 1.3%, 2000s 1.4%, 2010s 1.2%, 2020 to 2026 1.4%. W 1.6%.
+- **Not recorded.** Read as none: an empty value would mean the vehicle has no road transport code
+  (inferred - confirm). Partial support: NZTA ties the code to the commercial road transport class.
+  On S that class holds 53,667 vehicles, and 53,667 of the 57,232 vehicles with a code sit under
+  their code's commoner class, which the profile's examples show is that class for the largest codes.
+  That fits every vehicle in the class having a code; it was not measured directly. If the reading
+  holds, `sentinels.csv`'s rule for every field would wrongly call an empty value "not recorded", as
+  for the second fuel.
 - **Traps.** 6.2% of its vehicles sit outside the commercial road transport class. 669 S log haulage
   vehicles are passenger cars.
 - **Privacy.** **Held for the review**: it describes the owner's business, in the owner's own words.
@@ -699,7 +742,7 @@ report that delivered it.
 - **Kind and values.** Identifier. 24,866 values on S, 30,633 on W.
 - **Uses.** None as a breakdown. A possible key for a model-level lookup (the work order's package I),
   with care.
-- **Coverage.** **NZ-new only**: NEW 92.6%, USED 107 vehicles; nothing before 1990. S 56.0%, W 46.2%.
+- **Coverage.** **NZ-new only**: NEW 92.6%, USED 131 vehicles; nothing before 1990. S 56.0%, W 46.2%.
 - **Not recorded.** NULL, covered.
 - **Traps.** **Not a clean key.** On S, 96 codes hold more than one make (253 vehicles off the
   commoner make) and 1,306 more than one model name (11,861 vehicles off). Many are spellings of one
@@ -743,20 +786,28 @@ report that delivered it.
 
 - **Meaning.** NZTA: "First 7 characters of the Chassis Number" and "All characters of the Engine
   Number".
+- **Kind and values.** Identifiers. Number of values not measured: they were counted, never listed.
+- **Uses.** None.
 - **Coverage (first pass, W).** Chassis 40.4% (USED 91.7%, NEW 13.2%); engine number 84.2% (cars
-  99.6%, trailers 0.1%).
-- **Uses, values, not recorded.** None: never pulled, so never measured beyond the first pass.
+  99.6%, trailers 0.1%). Not measured on S or by period.
+- **Not recorded.** Not measured.
+- **Traps.** Each identifies a vehicle, so neither is ever asked for: the archive job leaves both out
+  of its pull, and the build's own pull takes only the bound fields.
 - **Privacy.** **Never pulled** (`register_archive.never_pulled`; D-062, D-076).
 - **Relations.** Each picks out a vehicle on its own.
 
 ### `OBJECTID`
 
 - **Meaning.** A row number in NZTA's service, used to page the pull. Not a property of the vehicle.
+- **Kind and values.** Identifier, one value per row.
+- **Uses.** None for a visitor. The pull pages by it; the archive leaves it out of its file.
 - **Coverage.** Every row (W).
-- **Uses.** None for a visitor. The archive leaves it out of its file.
+- **Not recorded.** No form seen.
+- **Traps.** It belongs to one release of NZTA's service. Whether it stays the same for a vehicle
+  across releases was not measured, so it is no key for following vehicles or joining two pulls (the
+  archive's two October files do not line up row for row: `docs/DATA_SOURCES.md`).
 - **Privacy.** Never published.
-- **Relations.** Picks out one row of one release of the service. Whether it stays the same for a
-  vehicle across releases was not measured.
+- **Relations.** Picks out one row of one release.
 
 ## The dashboard's fields
 
@@ -765,21 +816,61 @@ The source of `registrations_flow` (`docs/METRICS.md`; `docs/DATA_SOURCES.md` §
 31 October 2026, vehicles first registered in the same 70 months (D-087). The file has no empty
 cell: what is not recorded is written as text. `Vehicles` is the count column, not a field.
 
-| Column | Register field | Kind | Values (D) | How it lines up with the register | Not recorded | Privacy (proposed) |
-|---|---|---|---|---|---|---|
-| `Registration month` | first NZ registration year and month | time | 70 months, none missing | For vehicles still registered, totals agree to 0.08% over the 70 months and within 65 vehicles (0.23%) in any month. NZTA calls it the date of first ownership | none seen | public |
-| `Import status` | `IMPORT_STATUS` | category, few | 4 | The same four values | none seen | public |
-| `Vehicle type` | `VEHICLE_TYPE` | category | 14 | The same values | none seen | public |
-| `Body type` | `BODY_TYPE` | category | 27 | The same values | none seen | public |
-| `Motive power` | `MOTIVE_POWER` | category | 19 | The same 18, plus `-` where the register is empty (267,782 vehicles, all trailers) | `-` | public |
-| `Make` | `MAKE` | category | 853 | Three values the whole register lacks, the largest `LANDROVER` beside `LAND ROVER` (424 vehicles, 165 of them in 2021); 30 makes of the register's same 70 months are absent, most with one to four vehicles. Over 99.8% of in-scope vehicles map through `brand_registry.csv` | none seen | public |
-| `Model` | `MODEL` | category | 58,164 | NZTA's cleaned name. 2,854 values (18,946 vehicles) are nowhere in the register: some nameplates are split finer (since January 2025 the largest are `COROLLA CROSS` and `LANDCRUISER PRADO`). Since January 2025, 98.2% of vehicles carry a make and model spelled the same in the register | `UNKNOWN` (12 vehicles); some values are placeholders for a class of vehicle | public |
-| `Country of origin` | `ORIGINAL_COUNTRY` | category | 48 | The same values | `NOT KNOWN` (720); `OTHER` (760) is a catch-all | public |
-| `Vehicle year` | `VEHICLE_YEAR` | number | 129 | Every value is in the register | none seen | public |
-| `Vehicle Status` | none | category, few | 2 | `ACTIVE` behaves as still registered at the dashboard's latest monthly update, `INACTIVE` as since removed (80,852 vehicles; 9.9% of January 2021, none of October 2026), read from the counts (`docs/METRICS.md`). NZTA's page also names "reversed"; the file has none | none seen | public |
-| `Owner Type` | none | category, few | 3 | Individual 1,045,469; Company 810,118; Other 28,199. Most likely the owner at first registration, **not proven** (below) | none seen | held for the review |
-| `Territorial authority` | `TLA` | place | 70 | The owner's district. Two values the register lacks: `AUCKLAND CITY` (272) and `OVERSEAS` (22) | `UNKNOWN` (5,141; the register leaves it empty, for a different count: 4,848 still-registered `UNKNOWN` against 2,935 empty) | held for the review |
-| `Vehicle usage` | `VEHICLE_USAGE` | category | 20 | **A finer list, and an earlier moment** (below); two names differ only in punctuation | `UNDEFINED` (382) | held for the review |
+**What holds for every column, unless a line below says otherwise.** Its meaning, kind, uses, who
+it is recorded for, traps, privacy and relations are its register field's (above). Its coverage is
+the whole file: every row carries a value, so coverage is the share not written as "not recorded",
+and it covers January 2021 to October 2026 only. It is few or many as in the dataset built from the
+file, whose scope is the survivors dataset's (D-087): for example vehicle type has 14 values in the
+file and 2 in the dataset. It is not bound: the dataset is not built yet.
+
+**Two dashboard columns are not taken** in any export: `VIN - first 11` and `Physical post code`.
+They are the dashboard's forms of `VIN11` and `POSTCODE`, which are kept in the private archive
+only and published in no form (D-076, D-084).
+
+| Column | Register field | Values in the file | Where it differs from the register field | Not recorded | Privacy (proposed) |
+|---|---|---|---|---|---|
+| `Registration month` | first NZ registration year and month | 70 months, none missing | The dashboard's registration month. NZTA calls it the date of first ownership, which "may differ from" the first registration in New Zealand; in count it agrees with the register's month (below) | none seen | public |
+| `Import status` | `IMPORT_STATUS` | 4 | none | none seen | public |
+| `Vehicle type` | `VEHICLE_TYPE` | 14 | none | none seen | public |
+| `Body type` | `BODY_TYPE` | 27 | none | none seen | public |
+| `Motive power` | `MOTIVE_POWER` | 19 | `-` where the register is empty | `-` (267,782, all trailers) | public |
+| `Make` | `MAKE` | 853 | Spellings (below) | none seen | public |
+| `Model` | `MODEL` | 58,164 | Finer for some nameplates (below) | `UNKNOWN` (12) | public |
+| `Country of origin` | `ORIGINAL_COUNTRY` | 48 | none | `NOT KNOWN` (720) | public |
+| `Vehicle year` | `VEHICLE_YEAR` | 129 | none | none seen | public |
+| `Vehicle Status` | none | 2 | A column of the dashboard only (below) | none seen | public |
+| `Owner Type` | none | 3 | A column of the dashboard only (below) | none seen | held for the review |
+| `Territorial authority` | `TLA` | 70 | Two values the register lacks (below) | `UNKNOWN` (5,141) | held for the review |
+| `Vehicle usage` | `VEHICLE_USAGE` | 20 | A finer list, at an earlier moment (below) | `UNDEFINED` (382) | held for the review |
+
+**How each lines up with the register** (D-087):
+
+- **Registration month.** For vehicles still registered, the totals agree to 0.08% over the 70
+  months and within 65 vehicles (0.23%) in any one month.
+- **Make.** Three values the whole register lacks, the largest `LANDROVER` beside `LAND ROVER`
+  (424 vehicles, 165 of them in 2021). 30 makes of the register's same 70 months are absent, most
+  with one to four vehicles. Over 99.8% of in-scope vehicles map through `brand_registry.csv`.
+- **Model.** NZTA's cleaned name. 2,854 values (18,946 vehicles) are nowhere in the register, because
+  some nameplates are split finer; since January 2025 the largest are `COROLLA CROSS` and
+  `LANDCRUISER PRADO`. Since January 2025, 98.2% of vehicles carry a make and model spelled the same
+  in the register. Some values are placeholders for a class of vehicle.
+- **Country of origin.** The same values; `OTHER` (760) is a catch-all.
+- **Territorial authority.** The owner's district. Two values the register lacks: `AUCKLAND CITY`
+  (272) and `OVERSEAS` (22). The register leaves an unknown district empty, for a different count:
+  4,848 still-registered `UNKNOWN` against 2,935 empty.
+- **Vehicle usage.** 20 values to the register's 8; two names differ only in punctuation. It holds an
+  earlier moment than the register's, shown for rental ("As first registered, or today").
+
+**The two columns with no register field:**
+
+- **`Vehicle Status`** (category, few). Whether the dashboard counts the vehicle as still registered
+  (`ACTIVE`) or since removed (`INACTIVE`) at its latest monthly update, read from the counts
+  (`docs/METRICS.md`), not from NZTA's wording. 80,852 vehicles are `INACTIVE`: 9.9% of January 2021,
+  none of October 2026. NZTA's page also names "reversed"; the file has none. Uses: break down and
+  filter, count only. Proposed public: it says whether the vehicle is still registered.
+- **`Owner Type`** (category, few). Individual 1,045,469; Company 810,118; Other 28,199. Uses: break
+  down and filter, count only, once approved. Held for the review: it describes the owner. Most
+  likely the owner at first registration, **not proven** (below).
 
 What the export cannot give: gross vehicle mass and engine size, so the site's `segment`,
 `segment_group` and engine bands cannot be asked of true registrations (`docs/METRICS.md`).
@@ -808,11 +899,12 @@ pattern: the register counts more taxis than the dashboard in every year, the ne
 evidence (D-087).
 
 **`INDUSTRY_CLASS`: at least partly today's.** It is not in the dashboard, so only the register's own
-cohorts can be read (S, NZ-new passenger cars). The vehicle-trader share falls with the cohort's age:
-3.6% for October 2026, 3.2% for August, 2.2% to 2.8% for April to July, 2.1% for March, 1.2% and
-1.5% for January and February 2026, 1.0% for December 2025, then 0.2% to 0.5% for every month from
-January to November 2025. Used-import cohorts show the same drop over a few months (1.7%, 1.1%,
-1.1% for October, September and August 2026, then 0.5% or less). A value kept from first
+cohorts can be read (S, NZ-new passenger cars). The vehicle-trader share falls with the cohort's age
+overall, though not month by month: 3.6% for October 2026, 2.8% for September, 3.2% for August,
+2.2% to 2.8% for April to July, 2.1% for March, 1.2% and 1.5% for January and February 2026, 1.0%
+for December 2025, then 0.2% to 0.5% for every month from January to November 2025. Used-import
+cohorts show the same drop over a few months (1.7%, 1.1%, 1.1% for October, September and August
+2026, then 0.5% or less). A value kept from first
 registration would not depend on how long ago the month was. Tourism/leisure does not settle it: it
 is concentrated in August to November cohorts (17.9%, 26.5%, 26.8% for August to October 2026;
 9.3%, 20.0%, 24.0% a year earlier) and still high a year later, which the cohort method cannot
@@ -827,7 +919,9 @@ it is done, and how, is the user's to decide.
 
 ### Rolls up to
 
-Five roll-ups were tested on S (the profile, §2); two of the first pass's claims failed.
+The profile (§2) tested nine dependencies on S and the same nine on W (body type, road transport
+code twice, the MVMA code three ways, the industry model code, class and model), and district to
+region through `tla_region.csv`. Two of the first pass's claims failed.
 
 | Roll-up | Holds? | Evidence |
 |---|---|---|
@@ -845,7 +939,9 @@ cross a field with its own parent.
 
 ### Derived from
 
-What `config/dimensions.json` derives from which register fields (its `derive` blocks):
+These are the derived fields the site offers today. Each one's definition lives in
+`config/dimensions.json` (its `help`, `basis` and `bands`), not here; this table says only what it
+is derived from, read from its `derive` block:
 
 | Dimension | Register fields | Reference |
 |---|---|---|
@@ -884,20 +980,24 @@ time starts where the field does.
 Some fields pick out a vehicle on their own: `VIN11`, `CHASSIS7`, `ENGINE_NUMBER`, and `OBJECTID`
 within one release. Others do it in combination: the first registration year and month, vehicle
 year, make, model, submodel, the two model codes, engine size, power, gross mass and colour, with the
-owner's district and postcode. In each monthly file the same combination finds the same vehicle, and
-so shows its owner fields changing. That is why the archive is private (D-063), why owner fields wait
+owner's district and postcode. In each monthly file the same combination can find the same vehicle,
+and so show its owner fields changing. That is why the archive is private (D-063), why owner fields wait
 for the review, and why no row-level file is ever published. Measured: on the 2026-10 dry run, month
 and the twelve vehicle dimensions of the fact table already leave 50.2% of its rows counting one
 vehicle (7.1% of vehicles; D-078). How unique the full combination is was not measured.
 
 ### Moves together with
 
-Measured on S by the profile for 24 columns: 14 categories, previous country (used imports only),
-six numbers cut into the profile's bands (seats, gross mass, engine size, power, combined fuel
-consumption, vehicle year), registration year in bands, registration month, and age at registration
-in bands. Not measured: make, model, codes, free text, the second fuel, axles, height, width and VDAM
-weight. Fields with many values (district, 67; refrigerant, 37) have many sparse cells, and their
-figures are less stable. Where a pair rests on few vehicles it is said.
+The figure says how far knowing one field tells you the other. An example: knowing a vehicle's
+class tells you its vehicle type exactly (1.00), while knowing its colour tells you almost nothing
+about its type (0.25). It says nothing about why.
+
+What was measured: the profile, on S, for 24 columns. Those are the 14 categories; previous country
+(used imports only); six numbers cut into bands (seats, gross mass, engine size, power, combined fuel
+consumption, vehicle year); registration year in bands; registration month; and age at registration
+in bands. Not measured: make, model, the codes, free text, the second fuel, axles, height, width and
+VDAM weight. A field with many values (district, 67; refrigerant, 37) leaves many cells nearly empty,
+so its figures are less stable. Where a pair rests on few vehicles it is said.
 
 **True by definition or by construction** (listed in `config/data_map.json`, `moves_together`; the
 site never offers these as a finding):
@@ -955,11 +1055,12 @@ anywhere in the repo. The scratch scripts are not in the repo. D-079.
 letters and digits a VIN allows; 494 do not (478 hold an I, O or Q, 16 a character that is neither
 a letter nor a digit).
 
-**A third were assigned in New Zealand, and say nothing about the vehicle's year.** 1,675,639
+**A third start `7A`, which reads as a VIN assigned in New Zealand, and say nothing about the
+vehicle's year.** 1,675,639
 (34.8%) start `7A`: 83.5% of the used imports that have a `VIN11` (1,534,504 of 1,838,550) and 2.3%
 of the NZ-new (64,289 of 2,828,885). The two largest prefixes are `7AT` (1,313,576) and `7A8`
 (320,938). `7A` is the range the VIN standard gives New Zealand, and NZTA assigns a VIN to a vehicle
-that arrives without a 17-character one (inferred — confirm against NZTA's VIN rules; the data
+that arrives without a 17-character one (inferred - confirm against NZTA's VIN rules; the data
 agrees: the prefix is on most used imports and on NZ-built trailers). On `7AT` the tenth character
 looks like a year code on 99.8% and equals the first NZ registration year on none: it is not a
 year.
@@ -1048,8 +1149,8 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | `CC_RATING` as a measure | Guard 50 to 20,000, engines only. Decide whether the top engine band should stop at 20,000 (a contract change) |
 | `ALTERNATIVE_MOTIVE_POWER` as a filter | NULL must read "none", not `__UNDEFINED__`: a reference lookup or a sentinel exception, decided when bound |
 | `NUMBER_OF_AXLES` as a filter | Add `0`. Guard 2 to 6 |
-| `VDAM_WEIGHT`, `HEIGHT`, `WIDTH`, `ROAD_TRANSPORT_CODE` | With the heavy-vehicle topic (package I). Add `0` for the three numbers; guards 1,000 to 60,000, 1,000 to 4,600 and 1,200 to 2,600. The road transport code's NULL reads "none" |
-| `VEHICLE_USAGE`, `INDUSTRY_CLASS` | Bound but kept out of every published file until the review. Add `UNKNOWN` for industry class; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup. Labels say "now", not "when first registered" |
+| `VDAM_WEIGHT`, `HEIGHT`, `WIDTH`, `ROAD_TRANSPORT_CODE` | With the heavy-vehicle topic (package I). Add `0` for the three numbers; guards 1,000 to 60,000, 1,000 to 4,600 and 1,200 to 2,600. The road transport code's NULL reads "none" once that reading is confirmed |
+| `VEHICLE_USAGE`, `INDUSTRY_CLASS` | Bound but kept out of every published file until the review. Add `UNKNOWN` for industry class; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup once confirmed. Labels do not say "when first registered"; usage is shown to be current for rental only |
 | `MODEL` (already bound) | Add the clear forms of nothing (`UNKNOWN`, `NOT KNOWN`, `UNK`, `N/A`, `-`, `.`, `0`, `000`); look at `X`, `XX`, `OTHER` and `NA` by make first. Trim stray spaces |
 
 **Not bound as fields:** `MVMA_MODEL_CODE` and `INDUSTRY_MODEL_CODE` (lookup keys for the model-level
@@ -1080,6 +1181,12 @@ segment, package I, each needing its forms of nothing first); `SUBMODEL` (never 
 8. **The first pass** gave whole-register coverage only, counted `UNKNOWN` as filled for where
    assembled and industry class, and read some numbers (999 seats, 99,999 cc) as the guards' main
    problem; on S the zeros and ones matter more.
+9. **The `region` slice and the work order's §3.** The slice is published today on D-078's
+   unreviewed point 3, while §3 names region among the fields not published without asking (status
+   line at the top). The user decides.
+10. **The profile's own report** gives 107 used imports with a transmission and with an MVMA code;
+    its `coverage.csv` gives 116 and 131. 107 is the count with all three NZ-new fields. This map
+    uses `coverage.csv`.
 
 ## What builds on this
 
