@@ -56,13 +56,16 @@ export function inferShape(preset: Preset, dimension?: Dimension, measure?: Meas
 export function rankingPeriods(view: Preset): string[] {
   const dimension = findDimension(view.dimension);
   const measure = findMeasure(view.measure);
+  const own = [...new Set([view.period, view.ranking_period])].filter(
+    (id): id is string => Boolean(id) && inferShape({ ...view, period: id }, dimension, measure) === "league",
+  );
+  // Only a view that is already a ranking, or offers one, gains the other windows: a chart that had no ranking keeps none.
+  if (own.length === 0) return own;
   const windows = periods
     .filter((p) => p.months !== undefined && p.months <= chartDefaults.trailing_window_months)
     .sort((a, b) => (b.months as number) - (a.months as number))
     .map((p) => p.id);
-  return [...new Set([view.period, view.ranking_period, ...windows])].filter(
-    (id): id is string => Boolean(id) && inferShape({ ...view, period: id }, dimension, measure) === "league",
-  );
+  return [...new Set([...own, ...windows])];
 }
 
 export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
