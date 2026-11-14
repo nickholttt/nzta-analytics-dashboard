@@ -16,7 +16,9 @@ export function readCorrections(rows: unknown): Correction[] {
       }
     }
     const r = row as Correction;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(r.date) || Number.isNaN(Date.parse(`${r.date}T00:00:00Z`))) {
+    // Parsed and written back: a day that does not exist (31 February) would otherwise roll into the next month.
+    const parsed = /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? new Date(`${r.date}T00:00:00Z`) : null;
+    if (!parsed || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== r.date) {
       throw new Error(`corrections: row ${i + 1} has the date "${r.date}"; write it as YYYY-MM-DD`);
     }
     if (!/^https:\/\/\S+$/.test(r.link)) {
