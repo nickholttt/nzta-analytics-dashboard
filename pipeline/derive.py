@@ -52,12 +52,42 @@ def references_for(cfg, spec: dict) -> list[str]:
     return []
 
 
+def needed_fields(cfg, spec: dict) -> set[str]:
+    """The logical source fields a derive block reads."""
+    kind, b = spec["kind"], cfg.pipeline["brand"]
+    if kind in ("lookup", "raw"):
+        return {spec["field"]}
+    if kind == "range_lookup":
+        return {*spec["keys"], spec["range_field"]}
+    if kind in ("brand", "model"):
+        return {b["make_field"], b["model_field"]}
+    if kind == "band":
+        needs = {spec["field"]} if "field" in spec else {spec["minus"]} | ({spec["from"]} - {SNAPSHOT_YEAR})
+        if spec.get("no_engine"):
+            needs.add(cfg.pipeline["engine"]["field"])
+        return needs
+    return set()
+
+
+def carried_fields(cfg, dataset: str) -> set[str] | None:
+    """The logical fields a dataset's source carries, or None for the register, which carries them all."""
+    source = cfg.pipeline["datasets"].get(dataset, {}).get("source")
+    if source is None:
+        return None
+    s = cfg.supplied(source)
+    return {*s["fields"], s["year_field"], s["month_field"], s["row_id_field"]}
+
+
 def applicable(cfg, dataset: str) -> tuple[list[dict], dict[str, str]]:
     dims, not_live = [], {}
+    carried = carried_fields(cfg, dataset)
     for dim in cfg.dimensions["dimensions"]:
         applies = dim.get("applies_to")
+        lacking = sorted(needed_fields(cfg, dim["derive"]) - carried) if carried is not None and "derive" in dim else []
         if applies is not None and dataset not in applies:
             not_live[dim["id"]] = "does not apply to this dataset"
+        elif lacking:
+            not_live[dim["id"]] = "the source does not carry " + ", ".join(cfg.source_field(f) for f in lacking)
         elif "derive" not in dim:
             not_live[dim["id"]] = "no derive block in dimensions.json"
         else:

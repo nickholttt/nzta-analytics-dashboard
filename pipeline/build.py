@@ -9,7 +9,7 @@ from typing import NamedTuple
 
 import duckdb
 
-from . import derive, events, guardrails, metrics, normalise, outputs, schema
+from . import derive, events, guardrails, metrics, normalise, outputs, schema, supplied
 from .contract import FACT_COUNT, FACT_MONTH, FACTS_DIR, PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
@@ -161,6 +161,7 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
         "definition": next((x.get("definition") for x in cfg.dimensions["datasets"] if x["id"] == dataset), None),
         "rows": sum(counts.values()),
         "months": len(counts),
+        "latest_month": snapshot_key,
         "live_dimensions": [d.dim_id for d in live],
         "not_live": not_live,
         "live_pairs": live_pairs,
@@ -184,6 +185,107 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
         warnings.append(f"{dataset}: mild hybrid identification coverage over the trailing {window} months is "
                         f"{trailing_high:.1%} counting high-confidence classifications only, below {floor:.0%}")
     return Built(entry, counts, [d.dim_id for d in live], ds)
+
+
+def dataset_definition(cfg, dataset: str) -> str | None:
+    return next((x.get("definition") for x in cfg.dimensions["datasets"] if x["id"] == dataset), None)
+
+
+def supplied_sources(p: dict) -> list[str]:
+    """The supplied sources some dataset names, in the order the datasets are configured."""
+    return list(dict.fromkeys(c["source"] for c in p["datasets"].values() if "source" in c))
+
+
+def supplied_raw(con, cfg, source_id: str, types: dict[str, str]) -> None:
+    """`raw` in the register's shape from the store: one row per vehicle, the register's column names and types, NULL for
+    a field the source does not carry, the registration year and month from the store's month, and a running row id."""
+    s = cfg.supplied(source_id)
+    month = quote(supplied.STORE_MONTH)
+    special = {
+        s["row_id_field"]: "row_number() OVER ()",
+        s["year_field"]: f"year({month})",
+        s["month_field"]: f"month({month})",
+    }
+    columns = []
+    for logical, source_name in cfg.pipeline["fields"].items():
+        if logical in special:
+            value = special[logical]
+        elif logical in s["fields"]:
+            value = quote(logical)
+        else:
+            value = "NULL"
+        columns.append(f"CAST({value} AS {types[source_name]}) AS {quote(source_name)}")
+    # unnest(range(n)) repeats each store row n times: a vehicle each.
+    con.execute(f"""
+        CREATE OR REPLACE TABLE raw AS
+        SELECT {', '.join(columns)}
+        FROM (SELECT *, unnest(range({quote(supplied.STORE_COUNT)})) AS repeat_index FROM supplied_store)
+    """)
+
+
+def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names: set[str], register_month: date,
+                   state: dict | None, staging, aborts: list[str], warnings: list[str]) -> tuple[dict, dict, dict]:
+    """Every dataset that reads the supplied source: (manifest entries, month counts, live dimensions). The store is checked
+    against its ledger first. The source's own latest month is the dataset's snapshot month: older than the register's is a
+    warning, newer aborts (the register is the clock). With no store the datasets are not built, and say so."""
+    p, s = cfg.pipeline, cfg.supplied(source_id)
+    names = [d for d, c in p["datasets"].items() if c.get("source") == source_id]
+    previous_live = (state or {}).get("live_dimensions", {})
+    registrations, ledger_path = supplied.store_paths(cfg, source_id)
+    if not registrations.exists() and not ledger_path.exists():
+        reason = (f"the supplied store for {source_id} is absent ({s['store']}); add a file with "
+                  f"`python -m pipeline supply {source_id} <csv>`")
+        entries = {d: {"definition": dataset_definition(cfg, d), "not_built": reason} for d in names}
+        for dataset in names:
+            warnings.append(f"{dataset} was not built: {reason}")
+            if dataset in previous_live:
+                aborts.append(f"{dataset}: it was built in the last good run, but {reason}")
+        return entries, {}, {}
+    if not (registrations.exists() and ledger_path.exists()):
+        aborts.append(f"{source_id}: the supplied store has only one of {s['registrations_file']} and {s['ledger_file']}")
+        return {}, {}, {}
+
+    con.execute(f"CREATE OR REPLACE TABLE supplied_store AS SELECT * FROM read_parquet({normalise.lit(registrations.as_posix())})")
+    found = [c for c, *_ in con.execute("DESCRIBE supplied_store").fetchall()]
+    if found != supplied.store_columns(s):
+        aborts.append(f"{source_id}: the store's columns are {found}, but config/pipeline.json expects {supplied.store_columns(s)}")
+        return {}, {}, {}
+    ledger = supplied.read_ledger(ledger_path)
+    problems = supplied.store_problems(con, "supplied_store", ledger)
+    if problems:
+        aborts.extend(f"{source_id}: the store disagrees with its ledger: {problem}" for problem in problems)
+        return {}, {}, {}
+
+    first, latest = con.execute(f"SELECT min({supplied.STORE_MONTH}), max({supplied.STORE_MONTH}) FROM supplied_store").fetchone()
+    if latest > register_month:
+        aborts.append(f"{source_id}: the store's latest month {supplied.month_key(latest)} is after the register's "
+                      f"{supplied.month_key(register_month)}; the register is the clock, so the store cannot be ahead of it")
+        return {}, {}, {}
+    if latest < register_month:
+        missing = [supplied.month_key(m) for m in supplied.month_range(metrics.month_add(latest, 1), register_month)]
+        warnings.append(f"{source_id}: the export is missing {', '.join(missing)}: the store ends at "
+                        f"{supplied.month_key(latest)} and the register at {supplied.month_key(register_month)}")
+
+    supplied_raw(con, cfg, source_id, types)
+    normalise.build_src(con, cfg, types, schema_names)
+    con.execute("DROP TABLE raw")
+    normalise.build_rows(con, cfg)
+
+    taken = sorted({e["taken"] for e in ledger["months"].values()})
+    replaced = {e["month"] for e in ledger["replaced"]}
+    entries, counts, live = {}, {}, {}
+    for dataset in names:
+        built = build_dataset(con, cfg, dataset, p["datasets"][dataset], latest, previous_live, staging, aborts, warnings)
+        entries[dataset] = {**built.entry, "supplied": {
+            "source": source_id,
+            "months": {"first": supplied.month_key(first), "last": supplied.month_key(latest), "count": len(ledger["months"])},
+            "taken": taken,
+            "replaced": ledger["replaced"],
+        }}
+        counts[dataset], live[dataset] = built.counts, built.live
+        aborts += guardrails.supplied_month_changes(
+            dataset, built.counts, ((state or {}).get("month_counts") or {}).get(dataset, {}), replaced, s["max_month_change"])
+    return entries, counts, live
 
 
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:
@@ -244,6 +346,19 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     event_rows, event_problems = events.build(cfg, events.vocabularies(con, cfg, snapshot_month.year))
     aborts += [f"events: {problem}" for problem in event_problems]
 
+    archive_path = cfg.path("snapshots") / f"{snapshot_key}.parquet"
+    staged_archive = staging.parent / "archive.parquet"
+    outputs.write_archive(con, cfg, staged_archive)
+
+    # After this point `src`, `rows` and `dims` hold a supplied source, not the register.
+    schema_names = {f["name"] for f in expected["fields"]}
+    for source_id in supplied_sources(p):
+        entries, counts, live = build_supplied(con, cfg, source_id, types, schema_names, snapshot_month, state, staging,
+                                               aborts, warnings)
+        datasets.update(entries)
+        month_counts.update(counts)
+        live_dimensions.update(live)
+
     current = {
         "row_count": source["row_count"],
         "in_scope_row_count": in_scope_rows,
@@ -256,9 +371,6 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     aborts += compare_aborts
     warnings += compare_warnings
 
-    archive_path = cfg.path("snapshots") / f"{snapshot_key}.parquet"
-    staged_archive = staging.parent / "archive.parquet"
-    outputs.write_archive(con, cfg, staged_archive)
     archive_status = "new"
     if archive_path.exists():
         if outputs.same_parquet(con, staged_archive, archive_path):
