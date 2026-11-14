@@ -317,7 +317,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
         {all.datasets.length > 1 ? (
           <p className="sentence-text">
             Counting{" "}
-            <select aria-label="What is counted" value={dataset} onChange={(e) => ask({ dataset: e.target.value, view: null })}>
+            <select className="dataset-select" aria-label="What is counted" value={dataset} onChange={(e) => ask({ dataset: e.target.value, view: null })}>
               {all.datasets.map((v) => (
                 <option key={v.dataset} value={v.dataset}>
                   {v.label}

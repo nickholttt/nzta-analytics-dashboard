@@ -1138,3 +1138,10 @@ section[id] {
     font-size: var(--text-xl);
   }
 }
+
+/* The dataset's name is long, and a select cannot wrap: on a phone it is set smaller so the whole name shows. */
+@media (max-width: 480px) {
+  .question .dataset-select {
+    font-size: var(--text-md);
+  }
+}

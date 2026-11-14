@@ -215,12 +215,17 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
       const isShare = displayMode === "share";
       const maxVal = Math.max(0.01, ...model.items.map((d) => (isShare ? d.share : d.n)));
       const xMax = maxVal * 1.18;
+      // A name wider than the room the labels have would run off the chart's left edge: it is cut with an ellipsis, and the
+      // table below and the readout carry the whole name.
+      const marginLeft = Math.min(180, Math.max(110, width * 0.28));
+      const room = Math.floor((marginLeft - 8) / 6.4);
+      const fit = (name: string) => (name.length > room ? `${name.slice(0, Math.max(1, room - 1))}…` : name);
 
       return Plot.plot({
         width,
         height,
         style: plotStyle,
-        marginLeft: Math.min(180, Math.max(110, width * 0.28)),
+        marginLeft,
         marginRight: 45,
         marginTop: 20,
         marginBottom: 30,
@@ -228,6 +233,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
           domain: model.items.map((d) => d.name),
           label: null,
           tickSize: 0,
+          tickFormat: fit,
         },
         x: {
           domain: [0, xMax],
