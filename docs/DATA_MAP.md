@@ -198,7 +198,8 @@ The questions for the user are put with this map's pull request (#53).
 
 ### `VEHICLE_TYPE`
 
-- **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`).
+- **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`, which also
+  gives every type a readable label: the name a visitor reads, with no part in scope).
 - **Kind and values.** Category. 2 values on S (passenger car/van 3,617,900; goods van, truck or
   utility 902,576), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
 - **Uses.** Break down, filter. Count only.
