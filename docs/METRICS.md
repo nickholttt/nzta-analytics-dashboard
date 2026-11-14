@@ -129,6 +129,17 @@ A share is suppressed when **either** guard trips. They look similar and
 they are not redundant. Anyone tempted to collapse them into one should
 read this section first.
 
+Both guards test the share's own denominator. On a plain slice that is the
+dataset's whole month. A pair slice carries the same whole-month
+denominator on every row (D-047), so a view narrowed through a pair, such as
+the powertrain mix of light passenger vehicles only, takes its denominator
+as the sum of `n` over the kept values of the other dimension, month by
+month, and both guards are tested on that filtered base. The precision floor
+is then the filtered month's vehicles under 200, and the representativeness
+floor is the filtered month against the median of the filtered base over the
+12 months before it. A filtered chart can therefore suppress a month the
+unfiltered chart draws.
+
 **The precision floor — denominator under 200.** Below this the month has
 too few vehicles for a percentage to mean anything, and each further
 vehicle moves the figure visibly. It is also what covers the sparse early
