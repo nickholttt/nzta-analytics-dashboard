@@ -218,7 +218,7 @@ pipeline/
   checks.yml           # the pipeline tests on every pull request
   deploy.yml           # builds the public site from the newest cube release and uploads it to Cloudflare Pages
 .github/deploy/        # the deploy's upload tool (wrangler), pinned by its own lockfile
-.claude/agents/        # planned (D-062): Claude Code sub-agent definitions, each naming its model
+.claude/agents/        # Claude Code sub-agent definitions, each naming its model (D-062, D-085)
 src/                   # the local reference UI: pages, renderers (components/), cube and config readers (lib/)
 public/geo/            # committed: region outlines for the map (Stats NZ, CC BY 4.0), written by scripts/
 scripts/               # maintainer scripts run by hand, never by the pipeline
@@ -285,8 +285,8 @@ transform. The short version:
 - Every definition in `.claude/agents/` names its model in `model:` (an
   alias or a full model id) and, where Claude Code supports it, its
   `effort:`. A missing `model:` and `model: inherit` are not allowed, and a
-  test checks this (D-062). (Planned: no definition and no such test exist
-  yet.)
+  test checks this (D-062): `pipeline/tests/test_agents.py`, run on every
+  pull request (D-085).
 - A sub-agent spawned without a definition is given its model explicitly.
 - Reviews stay independent (D-057, D-061). The reviewer gets the work and
   the spec, never the author's reasoning.

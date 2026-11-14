@@ -2648,3 +2648,35 @@ New entries use this template:
   - Two more copies of the history file, byte for byte the same, are still in the user's Downloads folder. They are
     the user's to delete.
 - Status: accepted, decided by user
+
+## D-085 2026-11-14 — Six sub-agent definitions, each naming its model, and a test on every pull request
+- Agent: claude
+- Basis: the work order §1.5; CLAUDE.md §Sub-agents (D-062), which marked both as planned; the brief §10's table.
+- Context: no `.claude/agents/` definition existed, so every sub-agent was spawned ad hoc with its model given by
+  hand, and nothing checked it.
+- Options considered:
+  1. One definition per job in the brief's table (about fifteen). Many would be used once.
+  2. A few definitions by kind of work, each with the model the user named for that kind. Chosen: fewer files to
+     keep right, and the brief's jobs each fall under one.
+  3. No definitions, the model given at each spawn. Leaves the rule unenforced.
+- Decision: six definitions in `.claude/agents/`:
+  - `reviewer` (opus, read-only tools): independent review; gets the work and the spec, never the author's reasoning.
+  - `data-engineer` (sonnet): pipeline, maintainer scripts, reference files, guardrails.
+  - `page-builder` (sonnet): the site.
+  - `researcher` (sonnet, read-only tools): profiling, comparing sources, reading runs, measuring pages.
+  - `definitions-editor` (opus): the data map, definitions, privacy classes, the segment scheme, the narrative spec,
+    design direction.
+  - `bulk-worker` (haiku): bulk, rule-like work with a checkable result.
+  - Each also names its `effort:`. Builders do not push, merge or edit STATE, CHECKPOINT or this file; they report
+    to the lead.
+  - The check is `pipeline/tests/test_agents.py`: every definition has a `name:` equal to its file name, a
+    `description:`, and a `model:` that is an alias (haiku, sonnet, opus, fable) or a full model id; a missing model
+    and `inherit` fail; an `effort:` must be one Claude Code knows. It also proves that it refuses five bad
+    definitions. It sits with the pipeline tests because `checks.yml` already runs that folder on every pull
+    request, so no workflow changes.
+- Consequences:
+  - A definition written during a session may not be loaded until the next one; until then a spawn names its model
+    by hand, as CLAUDE.md already requires.
+  - A review of a contract or invariant change may still be given to a stronger model at the spawn.
+  - Reversing it: delete the folder and the test; CLAUDE.md's line returns to "planned".
+- Status: decided by Claude (unreviewed)
