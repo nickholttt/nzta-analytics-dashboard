@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 import duckdb
 
 from . import derive, events, guardrails, metrics, normalise, outputs, schema
-from .contract import FACT_COUNT, FACT_MONTH, FACTS_DIR, PAIR_SEPARATOR
+from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
 
@@ -59,7 +59,7 @@ def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: 
     if configured is None:
         return None
     known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
-    reserved = {FACT_MONTH[0], FACT_COUNT[0], outputs.FACT_ROW_ORDER}
+    reserved = {FACT_MONTH[0], FACT_COUNT[0], FACT_ROW_ORDER}
     if (
         not (isinstance(configured, list) and configured and all(isinstance(d, str) for d in configured))
         or len(set(configured)) != len(configured)

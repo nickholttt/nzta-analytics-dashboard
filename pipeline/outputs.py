@@ -6,7 +6,7 @@ import json
 import shutil
 from pathlib import Path
 
-from .contract import FACT_COUNT, FACT_MONTH
+from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER
 from .normalise import lit
 from .reference import quote
 
@@ -23,10 +23,6 @@ def write_slice(con, cfg, derived, ds: str, path: Path) -> None:
 
 def write_pair(con, cfg, a, b, ds: str, path: Path) -> None:
     _write_counts(con, cfg, [(a.column, "a_value"), (b.column, "b_value")], ds, path)
-
-
-# The working column that fixes the fact table's row order across its files. A dimension may not take the name.
-FACT_ROW_ORDER = "rid"
 
 
 def write_facts(con, derived: list, ds: str, directory: Path) -> tuple[int, int]:
