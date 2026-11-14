@@ -2,6 +2,7 @@
 import "../styles/site.css";
 import manifest from "../../public/data/manifest.json";
 import { INTERNAL_PAGES } from "../lib/site";
+import { attribution } from "../lib/siteCopy";
 
 interface Props {
   title: string;
@@ -66,9 +67,7 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
       <slot />
 
       <footer style="margin-top: var(--space-8); padding-top: var(--space-5); border-top: 1px solid var(--rule-strong); font-size: var(--text-xs); color: var(--ink-3); line-height: 1.5;">
-        <p>
-          Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe surviving registrations recorded by NZTA, not sales.
-        </p>
+        <p>{attribution}</p>
         {
           INTERNAL_PAGES && (
             <p style="margin-top: var(--space-2);">
