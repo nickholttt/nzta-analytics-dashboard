@@ -2840,7 +2840,7 @@ New entries use this template:
   6. `checks.yml`: the checkout does not keep the job's token (`persist-credentials: false`).
   7. `deploy.yml`: dependencies are installed without running their install scripts (`npm ci --ignore-scripts`;
      tried on a copy of the site on Windows, where the public build then succeeded; not yet run on GitHub's
-     runner until the trial below); a re-run of the whole workflow may replace the `site` artifact
+     runner before the trial run recorded below); a re-run of the whole workflow may replace the `site` artifact
      (`overwrite: true`); and the check for links to internal pages matches single-quoted, templated and relative
      paths of the site's own, and not another site's address that holds the same word (an event's source link in
      `events.json` can).
@@ -2863,7 +2863,8 @@ New entries use this template:
     runner with the changed install, and the upload job was skipped, as it is for any branch but `main`.
   - Merging this starts `Deploy` on `main`, because the workflow file is in its own paths. It builds the site and
     uploads nothing: the Cloudflare variable is unset.
-  - `docs/CHECKPOINT.md` item 5's pipeline entries are cleared or carry the reasons above. Two it also listed are not
+  - `docs/CHECKPOINT.md` item 5's pipeline entries are each done here or carry a reason above. The file itself is
+    rewritten with the site follow-ups' pull request (#52), not in this one. Two entries it also listed are not
     code: D-063's and D-064's headings still read "(proposed)" because this file is append-only (D-066 records
     that both were accepted); and no island reads `INTERNAL_PAGES` in the browser today (checked by the reviewer of
     the site follow-ups), so that entry is closed.
