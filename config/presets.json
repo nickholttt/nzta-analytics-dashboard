@@ -21,6 +21,25 @@
     "members": []
   },
   "defaults": {
+    "year_change_measure": "yoy",
+    "$year_change_measure_comment": "The measure whose floor (guards.min_denominator in config/measures.json) decides when a change on a year ago is withheld.",
+    "phrases": {
+      "$comment": "The words around a figure's change on a year ago, a ranking's window and a month the address names that the chart cannot show. Each is a template: the placeholders it may use are listed in config/narrative/rules.json, and pipeline/tests/test_site_config.py holds every template to them and to the banned words. A template says what the data shows, never why. {change|pct} is a proportion shown by one rule: under 10% with one decimal, otherwise whole.",
+      "year_up": "Up {change|pct} on {prior_month} ({prior_count})",
+      "year_down": "Down {change|pct} on {prior_month} ({prior_count})",
+      "year_same": "Same as {prior_month} ({prior_count})",
+      "no_year_ago": "No figures a year earlier to compare with",
+      "window_last": "in the last {span} months",
+      "window_to": "in the {span} months to {end}",
+      "window_month": "in {end}",
+      "prior_month": "the same month a year earlier",
+      "prior_months": "the same {span} months a year earlier",
+      "ranking_dates": "({current})",
+      "ranking_compare": "The move compares each rank with {prior_window} ({prior}).",
+      "ranking_no_prior": "There are no figures a year earlier, so no move or change is shown.",
+      "pick_month": "Click or tap the chart to read another month.",
+      "bad_month": "The address asked for {asked}, which this chart has no figures for, so {shown} is shown."
+    },
     "$comment": "Chart-level defaults that are not per-preset decisions. mix_smoothing: monthly share on survivors data swings too hard to read, so a mix chart defaults to a trailing share and offers monthly as a toggle. top_n_basis: which window ranks the values that keep their own line; the rest become one remainder series.",
     "mix_smoothing": "rolling_12m",
     "mix_smoothing_options": [

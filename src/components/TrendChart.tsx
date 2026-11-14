@@ -9,8 +9,10 @@
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
 import type { MouseEvent } from "react";
-import { datasetWords, findDerived, findMeasure } from "../lib/config";
-import type { AnswerTemplates, Preset } from "../lib/config";
+import { datasetWords, findDataset, findDerived, phrases, yearChangeFloor, yearPhrases } from "../lib/config";
+import type { Preset } from "../lib/config";
+import { fillTemplate, sayAnswer, sayBadMonth, sayYearChange, yearChange } from "../lib/sentences";
+import { percent } from "../lib/sentences";
 import type { Manifest, SliceRow } from "../lib/data";
 import { COMPLETENESS, completenessSeries, derivedSeries } from "../lib/derived";
 import type { RatioPoint, RatioSeries } from "../lib/derived";
@@ -71,43 +73,6 @@ export function TrendChart(props: Props) {
   if (preset.derived === COMPLETENESS && props.companion) return <RatioTrend {...props} companion={props.companion} />;
   if (!preset.derived && preset.values?.length) return <ValuesTrend {...props} values={preset.values} />;
   return <OneTrend {...props} />;
-}
-
-const yearFloor = () => findMeasure("yoy")?.guards?.min_denominator ?? 0;
-
-// The change on the same month a year earlier, as a proportion, where that month has a count at or over the floor.
-function yearChange(points: Point[], month: string): { prior: number; change: number } | undefined {
-  const now = points.find((p) => p.month === month)?.y;
-  const prior = points.find((p) => p.month === addMonths(month, -12))?.y;
-  if (now === undefined || prior === undefined || prior <= 0 || prior < yearFloor()) return undefined;
-  return { prior, change: (now - prior) / prior };
-}
-
-// What a point says about the year before it, for the hover readout.
-function comparison(points: Point[], month: string): string[] | undefined {
-  const c = yearChange(points, month);
-  if (!c) return undefined;
-  const word = Math.abs(c.change) < 0.0005 ? "Same as" : c.change > 0 ? "Up on" : "Down on";
-  const size = word === "Same as" ? "" : ` ${pct(Math.abs(c.change))}`;
-  return [`${word}${size} ${monthLabel(addMonths(month, -12))} (${count(c.prior)})`];
-}
-
-// The figure and the sentence for a month, from the preset's templates. A template that cannot be filled is dropped for the
-// plain one rather than shown with gaps.
-function sayAnswer(templates: AnswerTemplates, points: Point[], month: string): { figure: string; sentence: string } | undefined {
-  const now = points.find((p) => p.month === month)?.y;
-  if (now === undefined) return undefined;
-  const c = yearChange(points, month);
-  const context = {
-    month: monthLabel(month),
-    count: count(now),
-    prior_month: monthLabel(addMonths(month, -12)),
-    prior_count: c ? count(c.prior) : "",
-    change: c ? Math.abs(c.change) : 0,
-  };
-  const key = !c ? "alone" : Math.abs(c.change) < 0.0005 ? "same" : c.change > 0 ? "up" : "down";
-  const filled = fillNote(templates[key], context);
-  return { figure: count(now), sentence: filled.unresolved.length === 0 ? filled.text : fillNote(templates.alone, context).text };
 }
 
 // One line per value of the dimension and one for the total, each a share of the denominator dataset's count for the same
@@ -179,15 +144,13 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (
           </li>
         ))}
       </ul>
-      <p className="chart-unit">
-        Share of the vehicles first registered each month that are still on the register. The axis starts at {Math.round(model.base * 100)}%.
-      </p>
+      <p className="chart-unit">{fillTemplate(derived?.unit_note ?? "", { base: percent(model.base) }).text}</p>
       <PlotFigure
         render={render}
         label={`Line chart, ${monthLabel(model.from)} to ${monthLabel(model.to)}: ${series.map(name).join(", ")}, month by month.`}
       />
       <FiguresTable
-        label={`Completeness: figures, ${monthLabel(model.from)} to ${monthLabel(model.to)}`}
+        label={fillTemplate(derived?.table_label ?? "", { from: monthLabel(model.from), to: monthLabel(model.to) }).text}
         columns={[{ name: "Month" }, ...series.map((s) => ({ name: name(s) }))]}
         rows={() => {
           const at = series.map((s) => new Map(s.points.map((p) => [p.month, p.value])));
@@ -380,14 +343,22 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
       points.push({ month: m, date: monthDate(m), y, n: counts.get(m), denominator: den, suppressed, greyed, members: detail.get(m) });
     }
     if (runStart !== null) bands.push({ x1: monthDate(runStart), x2: monthDate(addMonths(win.to, 1)) });
-    return { win, points, bands };
+    return { win, points, bands, byMonth };
   }, [rows, preset, manifest, share, minDenominator, collapseFraction]);
 
   // The answer: the count for one month, against the same month a year earlier. Months come from the points that have a
   // figure, newest first, so the choice offers only months the data has.
-  const answerMonths = useMemo(() => (preset.answer ? model.points.filter((p) => p.y !== undefined).map((p) => p.month).reverse() : []), [model, preset.answer]);
+  // The year-ago figure is read from every month the dataset has, so the window a visitor draws never changes the answer.
+  const countFor = useCallback((m: string) => model.byMonth.get(m), [model]);
+  const answerMonths = useMemo(() => (preset.answer ? [...model.byMonth.keys()].sort().reverse() : []), [model, preset.answer]);
   const chosen = month && answerMonths.includes(month) ? month : answerMonths[0];
-  const answer = useMemo(() => (preset.answer && chosen ? sayAnswer(preset.answer, model.points, chosen) : undefined), [preset.answer, model, chosen]);
+  const answer = useMemo(() => (preset.answer && chosen ? sayAnswer(preset.answer, countFor, chosen, yearChangeFloor()) : undefined), [preset.answer, countFor, chosen]);
+  const monthNotice = preset.answer && chosen ? sayBadMonth(phrases.bad_month, month, chosen) : undefined;
+  const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
+  const yearLine = (m: string) => {
+    const c = showYear ? yearChange(countFor, m, yearChangeFloor()) : undefined;
+    return c ? [sayYearChange(yearPhrases, m, c)] : [fillTemplate(phrases.no_year_ago, {}).text];
+  };
 
   const render = useCallback(
     (width: number) => {
@@ -441,8 +412,8 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
                   minDenominator,
                   extra: p.members?.length
                     ? [`The ${p.members.length} largest: ${p.members.join(", ")}`]
-                    : preset.answer
-                      ? comparison(model.points, p.month)
+                    : showYear
+                      ? yearLine(p.month)
                       : undefined,
                 }),
             }),
@@ -450,7 +421,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
         ],
       });
     },
-    [model, share, lead, name, preset.measure, minDenominator, chosen, preset.answer],
+    [model, share, lead, name, preset.measure, minDenominator, chosen, showYear, countFor],
   );
 
   // A click or tap on the chart reads the month nearest to it. The month list is the keyboard's way to the same thing.
@@ -487,7 +458,8 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
           </label>
         </div>
       ) : null}
-      <p className="chart-unit">{share ? "Share of the month's vehicles" : "Vehicles"}{preset.answer ? ". Click or tap the chart to read another month." : ""}</p>
+      {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
+      <p className="chart-unit">{share ? "Share of the month's vehicles" : "Vehicles"}{preset.answer ? `. ${phrases.pick_month}` : ""}</p>
       {/* The click only repeats what the month list does, so the wrapper needs no role of its own. */}
       <div onClick={preset.answer ? pick : undefined}>
         <PlotFigure

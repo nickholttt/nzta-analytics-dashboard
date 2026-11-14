@@ -1,11 +1,11 @@
 // league: ranked horizontal bar + rank delta. Measure = count/share, single period, high-cardinality dimension.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { datasetWords, findDataset, findMeasure, findPeriod } from "../lib/config";
+import { datasetWords, findDataset, findPeriod, phrases, yearChangeFloor } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, monthLabel, monthRange, pct, shareChange } from "../lib/measures";
-import { fillNote } from "../lib/notes";
+import { fillTemplate, sayBadMonth, sayRanking } from "../lib/sentences";
 import { count, readout, spanPeriod } from "../lib/readout";
 import { latestMonthOf } from "../lib/resolve";
 import {
@@ -86,8 +86,8 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
   const priorFrom = addMonths(currentFrom, -TRAILING_MONTHS);
   const priorTo = addMonths(end, -TRAILING_MONTHS);
   const words = datasetWords(preset.dataset);
-  const showYear = findDataset(preset.dataset)?.grain === "flow";
-  const yearFloor = findMeasure("yoy")?.guards?.min_denominator ?? 0;
+  const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
+  const yearFloor = yearChangeFloor();
 
   const model = useMemo(() => {
     const currentCounts = new Map<string, number>();
@@ -168,15 +168,25 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
   }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, dimension, label]);
 
   // What the ranking covers, in words: the window and the months it is compared with.
-  const basis = fillNote(
-    words?.ranking_basis ?? "Ranked by vehicles in the window ({current}). The move compares each rank with {prior_window} ({prior}).",
-    {
-      window: span === 1 ? `in ${monthLabel(end)}` : end === latest ? `in the last ${span} months` : `in the ${span} months to ${monthLabel(end)}`,
-      prior_window: span === 1 ? "the same month a year earlier" : `the same ${span} months a year earlier`,
-      current: spanPeriod(currentFrom, end),
-      prior: spanPeriod(priorFrom, priorTo),
-    },
-  ).text;
+  const basis = sayRanking(phrases, {
+    basis: words?.ranking_basis ?? "Ranked by vehicles {window}",
+    span,
+    end,
+    latest,
+    currentFrom,
+    priorFrom,
+    priorTo,
+    hasPrior: model.hasPrior,
+  });
+  const monthNotice = sayBadMonth(phrases.bad_month, month, end);
+  const noYearAgo = fillTemplate(phrases.no_year_ago, {}).text;
+  const yearLine = (d: LeagueItem) => {
+    if (d.yearChange === undefined) return [];
+    const direction = Math.abs(d.yearChange) < 0.0005 ? "same" : d.yearChange > 0 ? "up" : "down";
+    return [
+      fillTemplate(phrases[`year_${direction}`], { change: Math.abs(d.yearChange), prior_month: spanPeriod(priorFrom, priorTo), prior_count: count(d.priorN) }).text,
+    ];
+  };
 
   // Whether the table is wider than its box depends on the names in it, not only on the screen, so it is measured:
   // the line that says the table scrolls shows only while it does.
@@ -252,7 +262,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
               ...tipStyle,
               title: (d: LeagueItem) => {
                 const move = !model.hasPrior
-                  ? "No figures a year earlier to compare with"
+                  ? noYearAgo
                   : d.rankDelta === null
                     ? "New: not ranked a year earlier"
                     : d.rankDelta > 0
@@ -269,7 +279,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                   extra: [
                     move,
                     ...(d.shareDelta !== undefined ? [`Change in share: ${shareChange(d.shareDelta)}`] : []),
-                    ...(showYear && d.yearChange !== undefined ? [`Change on a year ago: ${signed(d.yearChange)} (${count(d.priorN)} a year earlier)`] : []),
+                    ...(showYear ? yearLine(d) : []),
                   ],
                 });
               },
@@ -346,6 +356,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
         ) : null}
       </div>
 
+      {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
       <p className="chart-unit">{basis}</p>
 
       <PlotFigure

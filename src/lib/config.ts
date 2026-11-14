@@ -1,6 +1,8 @@
 // Everything the charts know comes from config/: presets, measures, dimensions, and the pipeline's
 // category and event-scope bindings. No domain value is written in this code.
 import presetsDoc from "../../config/presets.json";
+import type { AnswerTemplates as Answer } from "./sentences";
+import type { RankingPhrases, YearPhrases } from "./sentences";
 import measuresDoc from "../../config/measures.json";
 import dimensionsDoc from "../../config/dimensions.json";
 import pipelineDoc from "../../config/pipeline.json";
@@ -16,7 +18,7 @@ export type GranularityOption = {
 };
 
 // The sentence above a count's chart, for the month shown, by what the figure did against the same month a year earlier.
-export type AnswerTemplates = { up: string; down: string; same: string; alone: string };
+export type AnswerTemplates = Answer;
 
 export type Preset = {
   id: string;
@@ -90,6 +92,8 @@ export type Dataset = {
   // The name a visitor reads for what is counted (D-042); label is for maintainers.
   public_label?: string;
   grain?: string;
+  // Whether a count's change on a year ago is shown for this dataset (a ranking's column, the monthly answer's comparison).
+  shows_year_change?: boolean;
   definition?: string;
   public_definition?: string;
   // Where the figures come from and the export's date, filled from the manifest. Said under every chart of the dataset.
@@ -112,6 +116,9 @@ export type DerivedMeasure = Measure & {
   denominator_dataset?: string;
   total_label?: string;
   definition?: string;
+  // The line under a ratio chart ({base}: where its axis starts) and the name of its table of figures ({from}, {to}).
+  unit_note?: string;
+  table_label?: string;
   note?: string;
   note_template?: string;
 };
@@ -162,6 +169,8 @@ type PresetsDoc = {
   // defer: the section draws its data only when scrolled to.
   groups: { id: string; label: string; title: string; lead?: boolean; defer?: boolean; presets: Preset[] }[];
   defaults: {
+    year_change_measure: string;
+    phrases: RankingPhrases & { year_up: string; year_down: string; year_same: string; no_year_ago: string; bad_month: string; pick_month: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
@@ -183,6 +192,11 @@ const presetsFile = presetsDoc as unknown as PresetsDoc;
 export const presetGroups = presetsFile.groups;
 export const presets: Preset[] = presetsFile.groups.flatMap((g) => g.presets);
 export const chartDefaults = presetsFile.defaults;
+export const phrases = chartDefaults.phrases;
+// The hover's words for a change on a year ago, by direction.
+export const yearPhrases: YearPhrases = { up: phrases.year_up, down: phrases.year_down, same: phrases.year_same };
+// The count under which a change on a year ago is withheld: the floor of the measure config names.
+export const yearChangeFloor = (): number => findMeasure(chartDefaults.year_change_measure)?.guards?.min_denominator ?? 0;
 export const compositeRules = presetsFile.$composite;
 export const builderSpec = presetsFile.builder;
 
