@@ -154,13 +154,15 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
         only as a recorded step.
       </li>
       <li>
-        <strong>Fewer ways to split</strong>: the dashboard has no engine size, no gross vehicle mass and no region, so
-        charts of true registrations cannot be split by them. Model names can differ from the register's for some
+        <strong>Fewer ways to split</strong>: the export this site uses carries no engine size and no gross vehicle
+        mass, so charts of true registrations cannot be split by them. It does carry the owner's district, which this
+        site does not publish, so there is no regional chart of true registrations. Model names can differ from the register's for some
         nameplates, so a model's count here and its survivors are not always the same vehicles.
       </li>
       <li>
         <strong>Change on a year ago</strong> is shown beside a count where the same month a year earlier had at least
-        {yoyFloor} vehicles, and left out otherwise. The wording says whether a figure is up or down, never why.
+        {yoyFloor} vehicles, and left out otherwise. The wording says whether a figure is up or down, never why. In a
+        sentence or a hover, a percentage under 10% has one decimal place and any other is a whole number.
       </li>
       <li>
         <strong>The build page</strong> can count either vehicles still registered or true registrations. They are
