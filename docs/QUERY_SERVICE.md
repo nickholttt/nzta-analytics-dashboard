@@ -98,8 +98,9 @@ question's key in the answer store, and the answer carries it.
 
 In this order, and it answers nothing until every check passes:
 
-1. **Only a question.** Every key must be one of those above. Anything else (`sql=`, a misspelt
-   key) is refused. The browser never sends SQL, and the service has nowhere to put it: the only
+1. **Only a question.** Every key must be one of those above, written exactly (a second chart's
+   setting only as `<builder id>-<part>.<setting>`, for a part a measure in config has). Anything
+   else (`sql=`, a misspelt key, `build-count.sql.period`) is refused. The browser never sends SQL, and the service has nowhere to put it: the only
    SQL is written inside the service, from field names that passed check 2, with every value passed
    as a parameter, never spliced into the text.
 2. **Every field is on the public list.** `by`, `by2` and every condition's field. Today the list
@@ -119,7 +120,11 @@ In this order, and it answers nothing until every check passes:
    model), so the service answers every question the page answers from the static table; when Build
    gains fields, it and the limits are raised together. A question over a limit is refused with the
    limit named, never cut short: a chart quietly missing part of its question answers a different
-   one. The limits are config (`scripts/query_service_prototype/settings.json`).
+   one. The limits are config (`scripts/query_service_prototype/settings.json`). The cell limit
+   bounds the answer's size, not the work: it is checked once the sums are done, because a bound
+   worked out beforehand (months times values) would refuse questions Build answers today, such as
+   every model under one condition. The work of any one question is bounded by the table itself:
+   one pass over its rows.
 5. **The minimum count.** A field may carry a minimum count (`min_count` in the settings). When a
    question names such a field, as a breakdown or as a condition, the strictest rule named applies
    to every figure in the answer: each cell, and each month's total, counting fewer vehicles than
@@ -210,7 +215,9 @@ The register changes once a month, so an answer is computed once per question an
   service is not answering, so this chart cannot be drawn just now. Explore's charts do not need it
   and still work. Try again in a few minutes." Each list of values says: "The question service is
   not answering, so the values to choose from did not load. Try again in a few minutes." A refused
-  question shows the service's own sentence.
+  question shows the service's own sentence. A question measured as share and number has two
+  charts, so the sentence appears twice, once in each; saying it once would need the two panels to
+  know of each other, left for when Build is reworked in package F.
 - **No silent fallback** to the static fact table: while the static table is still published it
   could be, but the point of the service is that a phone does not download the table, and a page
   that sometimes downloads a megabyte and sometimes does not is harder to reason about. Recorded as
@@ -251,7 +258,8 @@ the pipeline or the deploy. It uses only what the pipeline already installs (Pyt
 | `server.py` | The service: Python's own HTTP server, DuckDB over the fact table's Parquet files, the checks, the answer store |
 | `settings.json` | Limits, the minimum-count rules (none yet), fields withheld (none), the chart-setting keys |
 | `questions.json` | The questions measured below, as Build links |
-| `test_server.py` | 30 tests: answers are counts summed over cells and match the published slices; a field off the public list is refused and its column never loaded; no SQL gets in; the limits, duplicates, every field at once, the snapshot's format; the minimum-count hook on cells, totals and the list of values; the store, its cap and a month built again; no domain value in the code |
+| `cases.json` | The cases any implementation must pass, as data: hostile questions (SQL, fields off the list, a value carrying SQL in a breakdown and in a condition, a key given twice), one refusal per limit, and the totals of a few answers for the 2026-10 snapshot. A later implementation, such as the proposal's edge function, is run against the same file |
+| `test_server.py` | 59 tests: every case in `cases.json`; answers are counts summed over cells and match the published slices; a field off the public list is refused and its column never loaded; the values limit is at least Build's own `MAX_VALUES`, read from `src/lib/builder.ts`; duplicates, every field at once, the snapshot's format; the minimum-count hook on cells, totals and the list of values; the store, its cap and a month built again; no domain value in the code. Each guard was removed in turn on 2026-11-14 and a test failed every time (the condition-value injection, each limit, a key given twice, the loose second-chart key) |
 
 **To run it**, from the repository root, with a local build of `public/data` that has a fact table
 (`docs/playbooks/refresh-public-data.md`):
@@ -271,7 +279,9 @@ without the setting before using it for anything else.
 (skipped without a fact table in `public/data`; the CI workflow does not run it).
 
 It is a prototype for measuring, not a service to deploy: it holds one snapshot, and has no
-authentication, rate limit or monitoring.
+authentication, rate limit or monitoring. Its in-memory store is changed under a lock, since each
+request runs on its own thread; every response carries `X-Content-Type-Options: nosniff`, since a
+refusal repeats what was asked.
 
 ## Measurements (2026-11-14)
 

@@ -109,9 +109,18 @@ which also runs the monthly data build.
   codes instead of text, the table would need about 20 MB (*estimate*: 641,618 rows × 14 columns ×
   2 bytes, plus the counts). That change and a measurement on Cloudflare itself come before
   anything else; measuring there needs the paid plan.
+- **A second risk: this is not the engine that was measured.** The prototype that was built and
+  timed is Python with DuckDB. This option sums in JavaScript, and its checks (the public list,
+  the limits, the minimum count, refusing anything that is not a question) would be written a
+  second time. Its summing is the browser's own code, checked against the prototype on the three
+  measured questions; its checks are not written yet. To keep the two from drifting, the hostile and
+  limit cases are kept as data (`scripts/query_service_prototype/cases.json`: each request, the
+  status it must get, and where it applies the totals it must give), which the prototype's tests
+  read and any later implementation must pass.
 - **Why chosen:** the cheapest real service; one provider, one deploy, no new secret; no machine
   to wake; the monthly refresh is the deploy that already exists; and it is the browser's own,
-  already-checked arithmetic moved to a server, so its answers cannot drift from today's.
+  arithmetic moved to a server, so its sums are the ones Build already draws (its checks are new
+  code; see the second risk above).
 
 ### 3. A small container running the prototype as it is (DuckDB)
 
@@ -135,18 +144,24 @@ which also runs the monthly data build.
       "today".
   - **Fly.io**: a 1 GB shared-CPU machine is **$6.70 a month** running all the time (low and
     higher alike: one machine handles both); a stopped machine pays only for its disk ($0.15 per
-    GB-month). https://docs.fly.io/about/pricing, read 2026-11-14. Fly.io's prices differ by region
-    and the region the figure applies to was not noted when it was read: confirm it for the region
-    nearest New Zealand.
+    GB-month). https://docs.fly.io/about/pricing, read 2026-11-14. That price is for its
+    "lowest-priced regions" (Ashburn and Secaucus, in the United States); the same page shows the
+    machine at $7.73 in Frankfurt and $8.50 in Singapore, and names no price for Sydney. The region
+    nearest New Zealand is likely to cost more than $6.70.
   - **Google Cloud Run**: its free tier is 2 million requests, 180,000 vCPU-seconds and 360,000
     GB-seconds a month (https://docs.cloud.google.com/free/docs/free-cloud-features, read
     2026-11-14), so low traffic would be **$0** and higher traffic close to the free limit. Its
     prices beyond the free tier are **not read**: the pricing page
     (https://cloud.google.com/run/pricing) returned no content to the reader.
-- **Wake-up after a quiet spell:** Cloudflare says container cold starts "can often be in the 1-3
-  second range"; Fly.io says starting a stopped machine "takes about 2 seconds or more"; Google
-  gives no figure. Add the prototype's own 2.0 to 2.2 s to load the table: **about 3 to 5 s** before
-  the first answer after a quiet spell, *estimate*, unless it is kept awake (and paid for).
+- **Wake-up after a quiet spell:** Cloudflare says "Container cold starts can often be in the 1-3
+  second range", depending on image size and start-up code
+  (https://developers.cloudflare.com/containers/platform-details/architecture/, read 2026-11-14);
+  Fly.io says "A cold start takes about 2 seconds or more for common apps"
+  (https://docs.fly.io/launch/autostop-autostart, read 2026-11-14); Google gives no figure on the
+  page read (https://docs.cloud.google.com/run/docs/tips/general). Add the prototype's own 2.0 to
+  2.2 s to load the table (measured): **about 3 to 5 s** before the first answer after a quiet
+  spell, *estimate*, unless it is kept awake (and paid for). The providers' figures are their own
+  general statements, not measured for this container.
 - **Monthly refresh:** a new container each month with the new files, or one that fetches the
   newest files when it starts. A step in GitHub Actions that deploys to the host.
 - **When it is down:** the same as option 2 for visitors. More can go wrong: a container, its
@@ -175,7 +190,10 @@ which also runs the monthly data build.
   - Higher traffic in the worst case: **about $555** a month, *estimate*: the Business plan
     ($250), about 500 compute-hours at $0.60 ($300), and the function on Workers Paid ($5).
   - https://motherduck.com/product/pricing/, read 2026-11-14.
-- **Wake-up after a quiet spell:** MotherDuck says its compute starts "in about 100 ms".
+- **Wake-up after a quiet spell:** MotherDuck says "Ducklings stay on warm standby, so they start in
+  about 100 ms" (https://motherduck.com/docs/concepts/architecture-and-capabilities/, read
+  2026-11-14): its own general statement, not measured here. The function in front adds its own
+  start, as in option 2.
 - **Monthly refresh:** an upload from GitHub Actions with a MotherDuck token kept as a secret.
 - **When it is down:** two services can fail, the function and MotherDuck.
 - **Accounts and secrets:** a new MotherDuck account; a token in GitHub and in the function.
