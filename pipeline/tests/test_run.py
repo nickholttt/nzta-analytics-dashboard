@@ -119,7 +119,8 @@ def test_the_cap_moving_on_the_first_of_a_month_is_not_a_changed_source(monkeypa
     state = built_state(cfg, with_later_rows, at(2026, 9, 4))
     assert state["latest_snapshot"] == "2026-08-31"
     code, outputs, summary = attempt(monkeypatch, tmp_path, cfg, with_later_rows, at(2026, 10, 1))
-    assert code == 0 and outputs == {"snapshot": "2026-09", "built": "false"}
+    # The month named is the one built, not the key's capped one, so an archive started by hand finds its month.
+    assert code == 0 and outputs == {"snapshot": "2026-08", "built": "false"}
     assert "Source unchanged since the last good build (snapshot 2026-08-31)" in summary
 
 
@@ -216,7 +217,7 @@ def test_the_force_advice_is_given_only_where_a_forced_run_would_build(monkeypat
     assert "90 rows then, 90 now" in summary and "A forced run would stop too" in summary and "force ticked" not in summary
 
 
-@pytest.mark.parametrize("day", [0, 29, 31, "15", None])
+@pytest.mark.parametrize("day", [0, 29, 31, "15", None, True])
 def test_an_alarm_day_that_some_month_lacks_is_refused(monkeypatch, tmp_path, cfg, day):
     built_state(cfg, AUGUST, at(2026, 9, 4))
     cfg.pipeline["schedule"]["missed_month_alarm_day"] = day

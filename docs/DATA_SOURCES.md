@@ -58,10 +58,13 @@ algorithmically cleaned make and model errors.
 
 Monthly aggregates of vehicles currently licensed by type and new /
 ex-overseas vehicles registered by type, derived from NZTA administrative
-data. Small, long history. This is the source of `registrations_flow`
-(build step 1b): true monthly first registrations, including vehicles
-since scrapped, which the register snapshot cannot give. Also an
-independent sanity check on our own totals.
+data. Small, long history. This is the source of the long-run totals
+of true monthly first registrations (build step 1b), including vehicles
+since scrapped, which the register snapshot cannot give: cars from 1961.
+The name `registrations_flow` now belongs to the dataset built from
+NZTA's dashboard (§D, D-084, D-087); the dataset built from this series
+is named when it is built. Also an independent sanity check on our own
+totals.
 
 **Read on Infoshare on 2026-11-13** (`infoshare.stats.govt.nz`, Browse >
 Industry sectors > Transport - TPT). Six tables: registrations and vehicles
@@ -115,19 +118,49 @@ Nothing is built yet. The
 monthly check still looks for the series in the Explorer
 (`docs/playbooks/check-monthly-run.md`).
 
-## D. Registrations dashboard: a hand export, never automated
+## D. Registrations dashboard — a hand export, never automated
 
-Export-only, no API. The pipeline never fetches it and the Action never
-touches it. The user exports a file by hand and a maintainer adds it to a
-local store with one command; the build then reads the store (D-075; the
-build is in `docs/CUBE_SCHEMA.md`, *Supplied sources*).
+The source of true first registrations from January 2021 (the user,
+2026-11-14, D-084, accepting D-075's option 3). vstat and StatsHub take
+first registrations and buyer type from the same dashboard.
 
-On 2026-11-13 the user chose to export one month by hand so the dashboard
-could be read: its fields, its history, its terms, and how its counts
-compare with the register as first observed (D-066; the brief, Stage 1
-item 6). vstat and StatsHub both take first registrations and buyer type
-from it. Its address, from NZTA's open data listing (the page itself was
-not read: `nzta.govt.nz` blocks automated readers):
+- **What it is.** A report builder, "First registration", at
+  `qap.nzta.govt.nz`. It holds vehicles "with a date of first ownership
+  within the past five years", is updated at the start of each month, and
+  is "a snapshot of the data at the end of every month". Past months can
+  change, and it includes "a subset of reregistered vehicles" (NZTA's
+  page, read from the user's saved copy, D-075). Licence: CC BY 4.0.
+- **How it is fetched.** Never by the pipeline and never by an agent
+  working in this repository: `nzta.govt.nz` and the dashboard block
+  automated readers, and that is not worked around. A Claude session in
+  the user's own browser reads the dashboard's data engine and saves a
+  CSV, which the user puts in gitignored `data/raw/nzta-dashboard/`:
+  `<YYYY-MM>/` for one month, `history/` for the backfill. Each month the
+  same export is taken for the newest month.
+- **The file.** A long table: one row per combination, then a `Vehicles`
+  count. The history file starts with `Registration month` (text such as
+  "Jan 2021"). The twelve dimensions: `Body type`, `Country of origin`,
+  `Import status`, `Make`, `Model`, `Motive power`, `Owner Type`,
+  `Territorial authority`, `Vehicle Status`, `Vehicle type`,
+  `Vehicle usage`, `Vehicle year`. `VIN - first 11` and
+  `Physical post code` are not taken (D-076).
+- **What is held** (measured 2026-11-14, D-084): January 2021 to
+  October 2026, 70 months, 991,274 rows, 1,883,786 vehicles. It was taken
+  on 14 November 2026 (the user's account). January 2021 is 30,011
+  vehicles, of which 2,970 are marked `INACTIVE`. What `Vehicle Status`
+  means is defined with the dataset (`docs/METRICS.md`, D-087).
+- **The engine cuts an export off at 5,000,000 cells**, so the history
+  was taken a year at a time and joined (the user's account).
+- **Not published:** `Owner Type`, `Territorial authority` and
+  `Vehicle usage` describe the owner, and wait for the Stage 2 privacy
+  review (the work order §3).
+- **How it reaches the cube.** A maintainer adds each file to a local
+  store with one command, below; the build reads the store and writes the
+  dataset `registrations_flow` (`docs/CUBE_SCHEMA.md`, *Supplied
+  sources*). The store is gitignored: GitHub's runs build without it and
+  say so in the manifest, until the user decides where it may live.
+
+Its address, from NZTA's open data listing:
 `https://www.nzta.govt.nz/vehicles/how-the-motor-vehicle-register-affects-you/motor-vehicle-registrations-dashboard-and-open-data/`
 
 **How a file is supplied.** Export the twelve dimensions of the earlier

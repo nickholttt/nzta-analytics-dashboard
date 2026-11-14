@@ -91,7 +91,8 @@ def missed_month(cfg, state: dict | None, today: date) -> str | None:
     """
     alarm_day = cfg.pipeline["schedule"]["missed_month_alarm_day"]
     # Every month has a 28th. A later day would never come in a short month and the alarm would stay silent.
-    if not isinstance(alarm_day, int) or not 1 <= alarm_day <= 28:
+    # A bool is an int in Python: true would otherwise pass as day 1.
+    if not isinstance(alarm_day, int) or isinstance(alarm_day, bool) or not 1 <= alarm_day <= 28:
         raise GuardrailError("config", f"schedule.missed_month_alarm_day must be a day from 1 to 28, not {alarm_day!r}")
     if not state or today.day < alarm_day:
         return None
@@ -163,8 +164,11 @@ def run(cfg, force: bool = False, github_output: str | None = None, now: datetim
     source, _ = look(cfg, client, now)
     key = source["change_key"]
     state = load_state(cfg)
-    emit(github_output, {"snapshot": key["snapshot"][:7]})
     building, reason = plan(key, state, force)
+    # A run that builds nothing names the month the last good build was made from, not the month the source's key now
+    # names: the key's snapshot is capped by today's date and can move on while the register has not. The archive job
+    # (a run started by hand with "archive" ticked) archives the month named here.
+    emit(github_output, {"snapshot": key["snapshot"][:7] if building else state["latest_snapshot"][:7]})
     if not building:
         report(github_summary, reason)
         emit(github_output, {"built": "false"})

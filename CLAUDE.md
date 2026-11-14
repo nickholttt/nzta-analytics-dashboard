@@ -63,7 +63,7 @@ Violating any of them is a bug, not a shortcut.
 
 2. **Charts are data, not components.** A preset chart is a JSON object in
    `config/presets.json`. Adding a chart = adding an object. There are
-   exactly five renderers (see §Shapes) and no sixth is permitted without
+   exactly six renderers (see §Shapes) and no seventh is permitted without
    an explicit decision.
 
 3. **Events are append-only data.** `data/reference/events.csv`. Adding the
@@ -130,10 +130,11 @@ Violating any of them is a bug, not a shortcut.
 
 ## Shapes
 
-The only five renderers. Every preset and every builder output maps to one.
+The only six renderers. Every preset and every builder output maps to one.
 Shape is **inferred** from measure + dimension. Where more than one shape
 fits the question, the visitor may switch among those that fit; they never
-get a shape that does not fit, and there is no sixth.
+get a shape that does not fit, and there is no seventh. The sixth, `matrix`,
+was approved by the user on 2026-11-14 (D-083); its renderer is planned.
 
 | Shape | Renderer | Triggered by |
 |---|---|---|
@@ -142,6 +143,7 @@ get a shape that does not fit, and there is no sixth.
 | `league` | ranked horizontal bar + rank delta | measure = `count`/`share`, single period, high-cardinality dimension |
 | `distribution` | histogram / ridgeline over time | dimension is an ordered band (age, engine size, vehicle age) |
 | `geo` | choropleth by region/TA | dimension = `region` |
+| `matrix` | grid: one field down the side, one across the top, a shaded count, share or average in each cell | two fields crossed, neither of them time |
 
 Which shapes fit a question is decided by one rule table in config. It
 reads each field's kind from the data map (category, ordered band, number,
@@ -151,7 +153,7 @@ always available (D-062).
 
 A shape's look comes from the design system, not from the renderer. A
 visual variant chosen by config inside a shape (such as the ridgeline inside
-`distribution`) is not a sixth shape. A new variant is still a decision
+`distribution`) is not a new shape. A new variant is still a decision
 (D-062).
 
 ---
@@ -160,7 +162,7 @@ visual variant chosen by config inside a shape (such as the ridgeline inside
 
 - Astro + React islands, static output, deployed to Cloudflare Pages
   (planned: nothing is deployed yet; the site runs locally, D-014)
-- Observable Plot for all five shapes
+- Observable Plot for all six shapes
 - TanStack Table (virtualised) for league tables (planned: not yet a
   dependency; `LeagueChart` draws a Plot bar chart over a plain,
   non-virtualised rank table; no Explore preset is a live league, and the
@@ -216,7 +218,7 @@ pipeline/
   checks.yml           # the pipeline tests on every pull request
   deploy.yml           # builds the public site from the newest cube release and uploads it to Cloudflare Pages
 .github/deploy/        # the deploy's upload tool (wrangler), pinned by its own lockfile
-.claude/agents/        # planned (D-062): Claude Code sub-agent definitions, each naming its model
+.claude/agents/        # Claude Code sub-agent definitions, each naming its model (D-062, D-085)
 src/                   # the local reference UI: pages, renderers (components/), cube and config readers (lib/)
 public/geo/            # committed: region outlines for the map (Stats NZ, CC BY 4.0), written by scripts/
 scripts/               # maintainer scripts run by hand, never by the pipeline
@@ -231,8 +233,10 @@ scripts/               # maintainer scripts run by hand, never by the pipeline
    are still registered at the snapshot), committing a small aggregate of
    every snapshot to `data/snapshots/`. Prove the Action runs unattended
    two months running before building any UI.
-   - 1b. `registrations_flow` from the Stats NZ TPT series: true monthly
-     first registrations. Never on the same chart as
+   - 1b. True monthly first registrations: `registrations_flow` from the
+     user's exports of NZTA's registrations dashboard, with make and model,
+     from January 2021 (D-084, D-087), and the long-run totals from the
+     Stats NZ TPT series (D-065). Never on the same chart as
      `registrations_surviving`.
 2. Cube contract locked (`docs/CUBE_SCHEMA.md`), with a golden-file test.
 3. Explore surface, rendering `mix` and `trend` presets only.
@@ -283,8 +287,8 @@ transform. The short version:
 - Every definition in `.claude/agents/` names its model in `model:` (an
   alias or a full model id) and, where Claude Code supports it, its
   `effort:`. A missing `model:` and `model: inherit` are not allowed, and a
-  test checks this (D-062). (Planned: no definition and no such test exist
-  yet.)
+  test checks this (D-062): `pipeline/tests/test_agents.py`, run on every
+  pull request (D-085).
 - A sub-agent spawned without a definition is given its model explicitly.
 - Reviews stay independent (D-057, D-061). The reviewer gets the work and
   the spec, never the author's reasoning.

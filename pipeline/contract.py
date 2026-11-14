@@ -33,4 +33,6 @@ PAIR_COLUMNS = [
 FACTS_DIR = "facts"
 FACT_MONTH = ("month", "DATE")
 FACT_COUNT = ("n", "INTEGER")
+# The working column that fixes the fact table's row order across its files. A dimension may not take the name.
+FACT_ROW_ORDER = "rid"
 FACT_DIMENSION_TYPE = "VARCHAR"

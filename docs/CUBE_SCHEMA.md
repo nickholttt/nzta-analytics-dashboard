@@ -444,6 +444,23 @@ Source and schema:
   decided.
 - A reference file is malformed: a key defined twice, overlapping ranges,
   or a `make_promotion` to a make that is not in `brand_registry.csv`.
+- `model_registry.csv` has a row whose match columns (motive power, import
+  status, vehicle type, vehicle year from and to) hold a value the reference
+  files do not know, a year that is not digits, or a year from after its year
+  to. It has match columns on a row that is not a `make_promotion` or
+  `not_promoted` row. A `make_promotion` row names a make, or a target make,
+  that is not in `brand_registry.csv`. A `make_promotion` row can move a
+  vehicle that a `not_promoted` row with the same make and target forbids
+  moving. A make and model key (a model or one of its aliases) is defined
+  twice among the alias and promotion rows.
+- `mild_hybrid_models.csv` has a row whose make is not in
+  `brand_registry.csv`, with no models, with a type that is not one of mild,
+  full or unresolved, or without a basis or a confidence from the configured
+  levels. It has a match column with an unknown value, as above, or an
+  override that is not a known motive power, or an override without a motive
+  power to match. It classifies a nameplate mild when the powertrain it would
+  get is not the mild one, or full when it is. Two rows can match the same
+  vehicle of one make and model.
 
 Volume:
 
@@ -495,8 +512,9 @@ Supplied sources:
 Pairs:
 
 - A dataset's `pairs` in `config/pipeline.json` holds an entry that is not
-  two different dimension ids, lists a pair twice in either order, or names
-  a dimension the dataset cannot derive.
+  two different dimension ids, lists a pair twice in either order, names
+  a dimension the dataset cannot derive, or names a dimension whose id
+  contains `__` (the separator in a pair file's name).
 
 Fact table:
 
@@ -514,8 +532,8 @@ Events:
   `mechanism`, `expected_effect`, `confidence`), or a `title` longer than
   the table allows.
 - The schema table in `EVENTS_LAYER.md` no longer reads as an enum for a
-  column `config/pipeline.json` lists in `events.enum_columns`, or no longer
-  states the title limit.
+  column `config/pipeline.json` lists in `events.enum_columns` (or lists no
+  values for it), or no longer states the title limit.
 
 Failing loudly is the point. A dashboard that quietly serves wrong numbers
 is worse than one that is visibly stale.
