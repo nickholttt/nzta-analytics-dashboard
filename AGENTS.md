@@ -50,6 +50,7 @@ Run from the repo root.
 | Rebuild cube from a saved pull, publish nothing | `.venv/Scripts/python.exe -m pipeline build data/raw/2026-10/20261113T045017Z --dry-run` | exit 0, 11 min 3 s (2026-11-13); every slice, pair and `events.json` identical to the release `cube-2026-10`. Writes only gitignored `data/staging/`. With the supplied store present it also builds `registrations_flow` (2026-11-15: exit 0 in 741 s (12 min 21 s), 1,483,403 vehicles over 70 months, nine live dimensions including `age_at_registration_band`, a fact table of 129,103 rows, payload 3,625,451 bytes, one warning: mild hybrid coverage 62.7%); without the store the manifest says `not_built` and the rest is as before. The 2026-08 pull now stops with exit 2: it is older than the last good build |
 | Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build`, `archive` and `supply` (2026-11-14) |
 | Add a hand-exported file to a supplied source's store (D-084, defined in D-087; `docs/playbooks/supply-dashboard-month.md`) | `.venv/Scripts/python.exe -m pipeline supply nzta_dashboard <file.csv> [--month YYYY-MM] [--taken YYYY-MM-DD] [--totals <totals.csv>] [--replace YYYY-MM ...]` | exit 0 in 4 s on the 70-month history (2021-01 to 2026-10): 70 months added, the seven totals checked, 1,929,698 bytes of Parquet and a 18,238-byte ledger in the gitignored `data/supplied/nzta_dashboard/`; the one-month January 2021 file then reported that month unchanged and left the store's bytes identical (2026-11-14). Never run by the Action |
+| Add Stats NZ's hand-exported table to its store (D-065; `docs/playbooks/supply-statsnz-series.md`) | `.venv/Scripts/python.exe -m pipeline supply statsnz_tpt <export.csv> [--taken YYYY-MM-DD] [--accept-revisions]` | exit 0 in 1.3 s on the saved export of 2026-11-14 (789 months, 1961-01 to 2026-09, last updated 19 October 2026): 16,432 figures, 36,897 bytes of Parquet and a 168,115-byte ledger in the gitignored `data/supplied/statsnz_tpt/`; three warnings (the cars total differs from its seven bands in 1975-07 and 1976-05 by one vehicle; the commercial totals in five months before 1998); the same file again reported every month unchanged and left the bytes identical (2026-11-15). Never run by the Action |
 | CI runs | Git Bash: `"/c/Program Files/GitHub CLI/gh.exe" run list --repo nickholttt/nzta-analytics-dashboard`; PowerShell: `& "C:\Program Files\GitHub CLI\gh.exe" run list --repo nickholttt/nzta-analytics-dashboard` | two green runs, 2026-09-11 |
 
 Setup, **not re-run this session** (the environment already existed):
@@ -85,7 +86,7 @@ Setup, **not re-run this session** (the environment already existed):
   `derive.py` (dimensions per `config/dimensions.json`) → `metrics.py` → `guardrails.py` (compares
   with `data/state/last_good.json`) → `outputs.py`. It writes to `data/staging/` and promotes to
   `public/data/` only if every guardrail passes. Exit codes: 2 guardrail, 3 source, 4 DuckDB.
-- `pipeline/supplied.py`: `python -m pipeline supply`, by hand only, checks one CSV a maintainer exports and adds its
+- `pipeline/supplied.py` and `pipeline/series.py`: `python -m pipeline supply`, by hand only, checks one CSV a maintainer exports and adds its
   months to the gitignored store `data/supplied/<id>/` (counts and a ledger). `build` then builds the datasets that name
   that source (`registrations_flow`) through the same normalise, derive and output code; no store, no dataset, and the
   manifest says so (`docs/CUBE_SCHEMA.md`, Supplied sources).
@@ -180,4 +181,5 @@ Setup, **not re-run this session** (the environment already existed):
 ## Playbooks
 
 `docs/playbooks/`: `run-checks`, `local-ui-dev`, `refresh-public-data`, `check-monthly-run`,
-`change-reference-data`, `add-event`, `change-preset`, `session-handoff`.
+`change-reference-data`, `add-event`, `change-preset`, `session-handoff`,
+`supply-statsnz-series`.

@@ -131,9 +131,49 @@ The user chose on 2026-10-22 to wait for the Data Explorer, and on
 2026-11-13 to use the Infoshare series now (`docs/brief/MASTER_BRIEF.md`
 §7). D-065 says how, and the user accepted it that day by its option 2
 (D-066): the user exports the series from Infoshare by hand each month.
-Nothing is built yet. The
-monthly check still looks for the series in the Explorer
-(`docs/playbooks/check-monthly-run.md`).
+The monthly check
+still looks for the series in the Explorer (`docs/playbooks/check-monthly-run.md`).
+
+**How an export is supplied.** From the repository root:
+
+```
+.venv/Scripts/python.exe -m pipeline supply statsnz_tpt <export.csv> [--taken YYYY-MM-DD] [--accept-revisions]
+```
+
+The file is the CSV Infoshare writes for the table (`TPT052601_<date>_<time>_26.csv`), exported by hand
+as below. The command fetches nothing and the Action never runs it. It aborts, writing nothing, unless:
+
+- the title and the 26 column headers are exactly the configured ones (`supplied.statsnz_tpt` in
+  `config/pipeline.json` and `data/reference/statsnz_series.csv`), in that order;
+- the months parse (`1961M01`), run oldest first, have no gap and none is repeated;
+- every figure is a whole number or `..`, and a `..` appears only before a series' first month;
+- the footer says the table reference is `TPT001AA` and has a "Last updated" line;
+- each total equals the sum of its parts in every month from `arithmetic_from` (1998-01 in the config;
+  all seven disagreements in the file of 2026-11-14 are earlier, and earlier ones are only warnings);
+- a month already in the store gives the same figures. If Stats NZ revised a figure, the command lists
+  every changed figure and stops; `--accept-revisions` replaces the month and records the change in the ledger
+  (D-065 did not check whether Stats NZ revises: this is how the first revision will be seen);
+- the months added join the stored months without a gap.
+
+The store is `data/supplied/statsnz_tpt/` (gitignored, like the dashboard's): `series.parquet`, a row for
+each month and series that has a figure, and `ledger.json` (`docs/CUBE_SCHEMA.md`, *A source of kind
+`series`*). It holds all 26 series. The step-by-step is `docs/playbooks/supply-statsnz-series.md`.
+
+**The hand export** (read from Infoshare's pages on 2026-11-14; the clicks were not confirmed in a browser,
+so the steps marked "inferred - confirm" are to be checked the first time):
+
+1. Open `https://infoshare.stats.govt.nz/` (the "Browse" tab).
+2. Under "Subject categories", click **Industry sectors** (inferred - confirm).
+3. Click **Transport - TPT**.
+4. Click the table **New and Ex-Oseas Motor Vehicles Registered by Type (Monthly)**, not the
+   "(Annual-Dec)" or "(Qrtly-Mar/Jun/Sep/Dec)" tables beside it.
+5. Click **Select variables** (inferred - confirm).
+6. In the first box ("New Motor Vehicles Registered by Type", Total: 26), click **Select all**.
+7. In the "Time" box, click **Select all**.
+8. At the bottom right, change "Table on screen" to **Comma delimited (.csv)**.
+9. Click **Go** (inferred - confirm the button's caption).
+10. The browser saves `TPT052601_<date>_<time>_26.csv`. Put it in `data/raw/statsnz/<today's date>/` and
+    run the command.
 
 ## D. Registrations dashboard — a hand export, never automated
 

@@ -427,6 +427,46 @@ dimension ids. For the dashboard these are the dimensions that need the gross ve
 size and the district. Fuel consumption is all missing: `fc_n` is 0 and `fc_sum` is null in every row.
 `vehicle_status` is kept in the store only; it is not a dimension.
 
+### A source of kind `series`
+
+Stats NZ's long-run table of motor vehicles registered by type is the second supplied source (`statsnz_tpt`,
+`docs/DATA_SOURCES.md` section C, D-065). It supplies published series, not counted rows, so its store is
+laid out differently; the checks around the store are the same code (`pipeline/supplied.py`).
+`python -m pipeline supply statsnz_tpt <export.csv> [--taken YYYY-MM-DD] [--accept-revisions]` checks one export
+of the table and fetches nothing. The table's title, footer, month format and header live in
+`supplied.statsnz_tpt` in `config/pipeline.json`, the meaning of each of its 26 columns in
+`data/reference/statsnz_series.csv`; no `.py` file names one.
+
+- `data/supplied/statsnz_tpt/series.parquet` (gitignored): one row for each month and series that has a
+  figure. Columns, in order: `month` (DATE, the first day), `series_id` (the reference file's id),
+  `value` (INTEGER). A figure that Stats NZ marks `..` (not available) has no row. Sorted by month, then
+  series, in the cube's Parquet options, so the same input gives the same bytes.
+- `ledger.json`, beside it: `store_sha256`, the SHA-256 of `series.parquet` as written with it; `files`, for
+  each export supplied (keyed by its SHA-256) the file's name, the day it was taken, the export's "Last
+  updated" text, its table reference, its first and last month and count of months, and what the arithmetic
+  check found (for each total: the months checked, and the months before the check applies where it
+  differs, with the difference); `months`, for each month the hash of the file it came from, the day it was
+  taken, and the number of figures (`rows`) and their `sum` in the store; and `revisions`, one entry for
+  each month a later export revised, with the old and new file's name, hash, taken day and "Last updated"
+  text, and every changed figure (`series_id`, `old`, `new`; null where there was no figure). Both files are
+  written under temporary names and the ledger is renamed last, as for the dashboard.
+
+`supply` aborts, writing nothing, on any of: a title or header that is not the configured one (the message
+says what is missing, what is not expected, or that the order differs); a line with the wrong number of
+fields; a month that does not parse, is repeated, comes out of order or leaves a gap; a figure that is not a
+whole number (no sign, comma or decimal point, and not above the 32-bit range) or `..`; a `..` after a series
+has started; a missing or different table reference; no "Last updated" line; `--taken` before the last month
+ends; a total that differs from the sum of its parts in any month from `arithmetic_from` (config; the
+parts are `total_of` in the reference file, and a month is checked when the total and every part have a
+figure); a reference file that contradicts itself; a store that disagrees with its ledger (a month's figures
+or sum, a gap, a different hash, only one of its two files); a new month that would leave a gap in the store;
+or **a figure in a month already in the store that differs from the export**. The last is a revision. The
+command lists every changed figure, with its old and new value, and refuses unless `--accept-revisions`
+is given; then it replaces the month and records the revision in the ledger. Disagreements of a total with its
+parts before `arithmetic_from` are warnings (the export of 2026-11-14 has 2 for the cars total and 5 for the
+commercial total, all before 1998), and are recorded in the ledger. `--month`, `--totals` and `--replace` are
+refused for this kind, and `--accept-revisions` for the dashboard.
+
 **Without the store** (GitHub's runs, until the user decides whether it may be committed) the build
 succeeds, writes nothing for the dataset, adds a warning, and gives the manifest
 `datasets.<id> = {"definition": ..., "not_built": "<reason>"}`. Anything that reads `datasets` must

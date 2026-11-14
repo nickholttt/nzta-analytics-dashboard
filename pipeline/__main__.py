@@ -10,9 +10,24 @@ from pathlib import Path
 import duckdb
 
 from . import build as build_step
-from . import archive, config, fetch, schema, supplied
+from . import archive, config, fetch, schema, series, supplied
 from .arcgis import Client
 from .errors import GuardrailError, SourceError
+
+
+def supply_one(cfg, args) -> None:
+    """Hand the file to the code for the kind of source it is. A flag that belongs to the other kind is refused."""
+    kind = cfg.pipeline.get("supplied", {}).get(args.source, {}).get("kind")
+    if kind == supplied.SERIES:
+        wrong = [flag for flag, given in (("--month", args.month), ("--totals", args.totals), ("--replace", args.replace)) if given]
+        if wrong:
+            raise supplied.abort(f"{', '.join(wrong)} do not apply to {args.source}, a published table of series. "
+                                 "A month Stats NZ has revised is accepted with --accept-revisions.")
+        series.supply(cfg, args.source, args.csv, taken=args.taken, accept_revisions=args.accept_revisions)
+        return
+    if args.accept_revisions:
+        raise supplied.abort(f"--accept-revisions does not apply to {args.source}. Name each restated month in --replace.")
+    supplied.supply(cfg, args.source, args.csv, month=args.month, taken=args.taken, totals=args.totals, replace=args.replace)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -37,6 +52,8 @@ def main(argv: list[str] | None = None) -> int:
     supply.add_argument("--taken", help="YYYY-MM-DD: the day the export was taken (default: the file's modified date)")
     supply.add_argument("--totals", type=Path, help="a CSV of the dashboard's own totals (period, vehicles) to check the file against")
     supply.add_argument("--replace", nargs="+", default=[], metavar="YYYY-MM", help="months already in the store that this file restates")
+    supply.add_argument("--accept-revisions", action="store_true",
+                        help="for a source of kind series: accept the figures this file revises in months already in the store")
     args = parser.parse_args(argv)
 
     cfg = config.load()
@@ -54,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
                   f"{done['bytes']:,} bytes, to {args.out}")
             return 0
         if args.command == "supply":
-            supplied.supply(cfg, args.source, args.csv, month=args.month, taken=args.taken, totals=args.totals, replace=args.replace)
+            supply_one(cfg, args)
             return 0
         source = json.loads((args.pull_dir / "source.json").read_text(encoding="utf-8"))
         manifest = build_step.build(cfg, source, (args.pull_dir / "pages" / "*.json.gz").as_posix(),

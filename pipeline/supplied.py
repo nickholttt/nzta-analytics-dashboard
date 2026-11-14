@@ -29,7 +29,9 @@ MONTH_KEY = "%Y-%m"
 PERIOD = re.compile(r"^\d{4}(-\d{2})?$")
 PERIOD_MONTH_FORMAT = "%Y-%m"
 STORE_MONTH, STORE_COUNT = "month", "vehicles"
-COUNTED_ROWS = "counted_rows"
+COUNTED_ROWS, SERIES = "counted_rows", "series"
+# A store of kind series: one row for each month and series that has a figure.
+STORE_SERIES, STORE_VALUE = "series_id", "value"
 
 
 class Layout(NamedTuple):
@@ -54,7 +56,9 @@ def layout(source: dict) -> Layout:
     kind = source.get("kind", COUNTED_ROWS)
     if kind == COUNTED_ROWS:
         return Layout("registrations_file", store_columns(source), STORE_COUNT, "vehicles", "replaced")
-    raise abort(f"supplied source kind {kind!r} is not one this pipeline reads ({COUNTED_ROWS!r})")
+    if kind == SERIES:
+        return Layout("series_file", [STORE_MONTH, STORE_SERIES, STORE_VALUE], STORE_VALUE, "sum", "revisions")
+    raise abort(f"supplied source kind {kind!r} is not one this pipeline reads ({COUNTED_ROWS!r}, {SERIES!r})")
 
 
 def check_config(source: dict) -> list[str]:
