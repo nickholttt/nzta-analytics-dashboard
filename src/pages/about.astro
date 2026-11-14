@@ -1,0 +1,66 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { aboutCopy, attribution, PLACEHOLDER_MARK } from "../lib/siteCopy";
+
+// A value still carrying the marker is a gap the author has not filled. It is shown highlighted, and the draft
+// notice stays while any gap is left (config/site.json).
+const isGap = (text: string) => text.includes(PLACEHOLDER_MARK);
+const isDraft = Object.values(aboutCopy).some(isGap);
+---
+
+<Layout title="About" activeNav="about">
+  <Fragment slot="masthead">
+    <h1>About this site</h1>
+    <p class="standfirst">Who runs it, what it is, and where its data comes from.</p>
+  </Fragment>
+
+  <article class="prose">
+    {isDraft && (
+      <div class="callout warning" role="note">
+        <span class="callout-label">Draft</span>
+        <p>This page is a draft. Highlighted text in square brackets is still to be decided.</p>
+      </div>
+    )}
+
+    <h2>Who runs it</h2>
+    <p>
+      {isGap(aboutCopy.site_name) ? <mark>{aboutCopy.site_name}</mark> : aboutCopy.site_name} is run by
+      {" "}{isGap(aboutCopy.operator) ? <mark>{aboutCopy.operator}</mark> : aboutCopy.operator}.
+      You can reach the author: {isGap(aboutCopy.contact) ? <mark>{aboutCopy.contact}</mark> : aboutCopy.contact}.
+    </p>
+    <p>
+      The site's address is {isGap(aboutCopy.site_address) ? <mark>{aboutCopy.site_address}</mark> : aboutCopy.site_address}.
+    </p>
+
+    <h2>A personal project</h2>
+    <p>
+      This is a personal project, built from NZTA's open data. The site has no advertising, and it does not use
+      cookies or visitor tracking.
+    </p>
+
+    <h2>Any connection to the motor industry</h2>
+    <p>
+      The author's connection to the motor industry: {isGap(aboutCopy.industry_connection) ? <mark>{aboutCopy.industry_connection}</mark> : aboutCopy.industry_connection}.
+    </p>
+
+    <h2>No affiliation</h2>
+    <p>
+      This site has no affiliation with the NZ Transport Agency (NZTA), the Motor Industry Association (MIA) or
+      the Motor Trade Association (MTA). None of them has reviewed or endorsed it, and none is responsible for
+      what it shows.
+    </p>
+
+    <h2>Data licence and attribution</h2>
+    <p>{attribution}</p>
+    <p>
+      The register is open data, licensed for reuse under the Creative Commons Attribution 4.0 International licence
+      (CC BY 4.0). What each figure counts is on <a href="/method">Methodology</a>, and why these figures differ from
+      other sources is on <a href="/differences">Why these figures differ from others</a>.
+    </p>
+
+    <h2>Found a mistake</h2>
+    <p>
+      Report it on <a href="/feedback">Feedback and corrections</a>. Corrections made are listed there.
+    </p>
+  </article>
+</Layout>
