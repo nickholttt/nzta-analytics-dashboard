@@ -4,9 +4,11 @@ For any coding agent (Claude Code, Gemini) arriving with no context. Read in thi
 
 1. This file.
 2. `docs/STATE.md`: what's done, what's in progress and who owns it, what's blocked.
-3. `CLAUDE.md`: the project brief (design invariants, the five chart shapes, build order, field
+3. `CLAUDE.md`: the project brief (design invariants, the six chart shapes, build order, field
    traps). It is named for Claude but is **the brief for every agent**.
 4. `docs/DECISIONS.md` before any change of direction, and `docs/playbooks/` for how to do things.
+5. `docs/brief/WORK_ORDER.md`: the user's standing work order of 2026-11-14 (packages A to I, what
+   may be done without asking, what never is). `docs/CHECKPOINT.md` says where it has got to.
 
 Everything below was checked on 2026-09-13 unless marked "inferred — confirm".
 
@@ -96,7 +98,7 @@ Setup, **not re-run this session** (the environment already existed):
 - `src/pages/index.astro` hosts React islands. `src/lib/config.ts` loads `config/*.json`, `data.ts`
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
   `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo}Chart.tsx`
-  are the five allowed shapes' renderers, and `PresetTriage.tsx` lists every preset with what blocks it.
+  are the renderers of five of the six allowed shapes (`matrix`, approved in D-083, has none yet), and `PresetTriage.tsx` lists every preset with what blocks it.
 - `scripts/region-boundaries.mjs` writes `public/geo/nz-regions.json`, the region outlines the map draws,
   from Stats NZ's coastline-clipped regional council boundaries (CC BY 4.0, D-054). Run by hand from the
   repository root when the boundaries change; it fails without writing if a region's code or name
@@ -106,8 +108,8 @@ Setup, **not re-run this session** (the environment already existed):
 
 ## Hard rules: changing any of these needs the user's explicit approval
 
-1. **CLAUDE.md's eight design invariants** and **the five shapes** (mix, trend, league, distribution,
-   geo). No sixth renderer.
+1. **CLAUDE.md's eight design invariants** and **the six shapes** (mix, trend, league, distribution,
+   geo, matrix). No seventh renderer. The sixth, `matrix`, is the user's approval of 2026-11-14 (D-083).
 2. **The freeze is lifted (user, 2026-11-13, D-066).** The gate was the 8 October and 8 November
    2026 scheduled runs, both clean and unattended (D-013, D-020); the user ruled it passed once the
    run of 13 November had built October. The paths it covered are the **pipeline paths**:
@@ -121,7 +123,8 @@ Setup, **not re-run this session** (the environment already existed):
 3. **Never hand-edit `data/snapshots/` or `data/state/`.** Only the monthly Action writes them.
 4. **Golden changes are contract changes.** Regenerate `pipeline/tests/golden/contract.json` only
    deliberately, in the same commit as the change that causes it (one cube change per commit,
-   `POST_GATE.md`), with the diff shown to the user.
+   `POST_GATE.md`), with the diff shown to the user. During work order 1 the diff is shown in the
+   pull request's description and listed in the order's final report (D-082).
 5. **One commit per reference file**, with the docs that describe it changed in the same commit.
    Every commit must build, not just the branch tip.
 6. **Resolve field meanings empirically** against the data before rewriting a doc. Surface counts
@@ -133,8 +136,23 @@ Setup, **not re-run this session** (the environment already existed):
    branches (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19). GitHub
    API access goes through `gh` only (full path above; not on the Git Bash PATH), never the Git
    Credential Manager token.
+
+   **Amended for the life of work order 1, and only for it** (`docs/brief/WORK_ORDER.md` §2 and
+   §3; user, 2026-11-14, D-082). When the order closes, this paragraph is removed and the rule
+   above stands as written.
+   - claude may merge a pull request of that work order into `main`, as a merge commit, when its
+     checks are green, an independent reviewer agrees, it is inside the order's packages and it
+     touches nothing on the order's "never without asking" list.
+   - If Claude Code's own permission check refuses a merge, it is not worked around: the pull
+     request stays open, the next package is stacked on it, and the user is given one batch line.
+   - One forced run of October is allowed, once, only if the most recent daily run reports the
+     source unchanged; a second is not.
+   - Making anything public is still asked for.
 8. **Don't build ahead of the current step.** The user works in gated steps with a stop-and-report
-   after each; the current step is in `docs/STATE.md`. Exception (user, 2026-10-21, D-041): the
+   after each; the current step is in `docs/STATE.md`. During work order 1 the steps are its
+   packages A to I, worked down the list, the ones marked (parallel) beside the one before, with
+   one report at the end, not a stop after each (D-082).
+   Exception (user, 2026-10-21, D-041): the
    visitor-facing site (`src/`, `config/presets.json` and the docs that describe them) may be built
    ahead of the build order. The gate that kept it a local build passed on 13 November 2026
    (D-066). Deploying it is Stage 1 of the brief (`docs/brief/MASTER_BRIEF.md`), and each step
