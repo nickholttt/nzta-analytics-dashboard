@@ -45,8 +45,9 @@ Run from the repo root.
 | Build site | `npx astro build` | 7 pages built to `dist/`, `404.html` among them (2026-10-22). No npm `build` script exists |
 | Build the public site, as the deploy does (D-056) | Git Bash: `INTERNAL_PAGES=false npx astro build && rm -rf dist/status dist/sense-check` | 2026-10-22, against the 2026-08 cube: 5 pages left, none linking to `/status` or `/sense-check`; in a preview those two and any unknown address return 404 |
 | Dev server | `npm run dev`, then `npx astro dev status` / `npx astro dev stop` | 200 on `http://127.0.0.1:4321/`. Runs in the background |
-| Rebuild cube from a saved pull, publish nothing | `.venv/Scripts/python.exe -m pipeline build data/raw/2026-10/20261113T045017Z --dry-run` | exit 0, 11 min 3 s (2026-11-13); every slice, pair and `events.json` identical to the release `cube-2026-10`. Writes only gitignored `data/staging/`. The 2026-08 pull now stops with exit 2: it is older than the last good build |
-| Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build` and `archive` (2026-11-13) |
+| Rebuild cube from a saved pull, publish nothing | `.venv/Scripts/python.exe -m pipeline build data/raw/2026-10/20261113T045017Z --dry-run` | exit 0, 11 min 3 s (2026-11-13); every slice, pair and `events.json` identical to the release `cube-2026-10`. Writes only gitignored `data/staging/`. With the supplied store present it also builds `registrations_flow` (2026-11-14: exit 0, 16 min 28 s, 1,483,403 vehicles over 70 months, payload 3,443,670 bytes); without the store the manifest says `not_built` and the rest is as before. The 2026-08 pull now stops with exit 2: it is older than the last good build |
+| Pipeline CLI help | `.venv/Scripts/python.exe -m pipeline --help` | lists `init-schema`, `run`, `build`, `archive` and `supply` (2026-11-14) |
+| Add a hand-exported file to a supplied source's store (D-075; `docs/playbooks/supply-dashboard-month.md`) | `.venv/Scripts/python.exe -m pipeline supply nzta_dashboard <file.csv> [--month YYYY-MM] [--taken YYYY-MM-DD] [--totals <totals.csv>] [--replace YYYY-MM ...]` | exit 0 in 4 s on the 70-month history (2021-01 to 2026-10): 70 months added, the seven totals checked, 1,929,698 bytes of Parquet and a 17,750-byte ledger in the gitignored `data/supplied/nzta_dashboard/`; the one-month January 2021 file then reported that month unchanged and left the store's bytes identical (2026-11-14). Never run by the Action |
 | CI runs | Git Bash: `"/c/Program Files/GitHub CLI/gh.exe" run list --repo nickholttt/nzta-analytics-dashboard`; PowerShell: `& "C:\Program Files\GitHub CLI\gh.exe" run list --repo nickholttt/nzta-analytics-dashboard` | two green runs, 2026-09-11 |
 
 Setup, **not re-run this session** (the environment already existed):
@@ -79,6 +80,10 @@ Setup, **not re-run this session** (the environment already existed):
   `derive.py` (dimensions per `config/dimensions.json`) → `metrics.py` → `guardrails.py` (compares
   with `data/state/last_good.json`) → `outputs.py`. It writes to `data/staging/` and promotes to
   `public/data/` only if every guardrail passes. Exit codes: 2 guardrail, 3 source, 4 DuckDB.
+- `pipeline/supplied.py`: `python -m pipeline supply`, by hand only, checks one CSV a maintainer exports and adds its
+  months to the gitignored store `data/supplied/<id>/` (counts and a ledger). `build` then builds the datasets that name
+  that source (`registrations_flow`) through the same normalise, derive and output code; no store, no dataset, and the
+  manifest says so (`docs/CUBE_SCHEMA.md`, Supplied sources).
 - The output contract (`public/data/manifest.json`, `cube/<dataset>/<dimension>.parquet`,
   `pairs/<dataset>/<a>__<b>.parquet`, `facts/<dataset>/<column>.parquet`, `events.json`) is
   `docs/CUBE_SCHEMA.md`, locked by `pipeline/tests/test_golden.py`.
