@@ -23,7 +23,7 @@ the export step changes.
    ```
 
 4. Read the summary. "Months added: 2026-10" (or the new months) is the normal result, with every earlier
-   month unchanged. "The export says it was last updated ..." should be a later date than last time. The
+   month unchanged. "The export says it was last updated ..." should be a later date than last time. If the export ends before the store does, the summary says so and nothing is added. The
    three warnings about a total and its parts (the cars total in 1975-07 and 1976-05, the commercial totals in
    five months before 1998) are expected and are recorded in the ledger.
 
@@ -51,6 +51,7 @@ Each message names the cause. What to do:
 | the table's header is not the configured columns | A series was added, dropped, renamed or reordered. The message says which. | Export all 26 series in Infoshare's order. If Stats NZ changed the table, update `data/reference/statsnz_series.csv` (header, series id, label, group, role, total_of) in its own commit, with `docs/DATA_SOURCES.md` section C. |
 | line N has K fields | The file was cut short or edited. | Export again. Do not edit the file. |
 | month(s) do not read as ... / more than once / oldest first / no row for YYYY-MM | A month is malformed, repeated, out of order or missing. | Export again with every month selected ("Time", Select all). |
+| line N should be the footer's first line ... but is ... / line(s) ... come after the footer starts but look like rows | The month rows stop before the footer: a blank line or a mistyped month in the middle of the file, or a row after the footer begins. The months after it would be lost. | Export again. Do not edit the file. |
 | figure(s) are not a whole number ... | A figure is signed, decimal, has a comma or is text. | Export again. Do not edit the file. |
 | a series has a gap inside its range | A `..` appears after a series has begun. | Export again. If Stats NZ now withholds a figure, that needs a decision before the pipeline can use the series. |
 | the file has no 'Table reference:' line / the table reference is ... | The footer is missing, or it names another table. | Export again; check the file was not cut short. |

@@ -146,6 +146,9 @@ as below. The command fetches nothing and the Action never runs it. It aborts, w
 - the title and the 26 column headers are exactly the configured ones (`supplied.statsnz_tpt` in
   `config/pipeline.json` and `data/reference/statsnz_series.csv`), in that order;
 - the months parse (`1961M01`), run oldest first, have no gap and none is repeated;
+- the month rows run unbroken into the footer: the line after the last month row is the footer's first line
+  (`Table information:`), and no later line has the table's 27 fields or begins like a month. A blank line or a
+  mistyped month in the middle of the file would otherwise end the rows early and drop every month after it;
 - every figure is a whole number or `..`, and a `..` appears only before a series' first month;
 - the footer says the table reference is `TPT001AA` and has a "Last updated" line;
 - each total equals the sum of its parts in every month from `arithmetic_from` (1998-01 in the config;

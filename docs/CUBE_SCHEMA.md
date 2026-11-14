@@ -471,7 +471,10 @@ of the table and fetches nothing. The table's title, footer, month format and he
 
 `supply` aborts, writing nothing, on any of: a title or header that is not the configured one (the message
 says what is missing, what is not expected, or that the order differs); a line with the wrong number of
-fields; a month that does not parse, is repeated, comes out of order or leaves a gap; a figure that is not a
+fields; a month that does not parse, is repeated, comes out of order or leaves a gap; a line straight after the last month
+row that is not the footer's first line (`footer.first_line` in the config: a blank line or a mistyped month in the middle of
+the data ends the month rows early, and every month after it would be dropped), or any later line that has the table's
+field count or begins like a month; a figure that is not a
 whole number (no sign, comma or decimal point, and not above the 32-bit range) or `..`; a `..` after a series
 has started; a missing or different table reference; no "Last updated" line; `--taken` before the last month
 ends; a total that differs from the sum of its parts in any month from `arithmetic_from` (config; the

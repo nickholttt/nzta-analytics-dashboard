@@ -153,6 +153,7 @@ def read_table(cfg, source: dict, path: Path) -> Table:
                 cells[(month, s.id)] = int(text)
     if not months and not unreadable:
         raise abort("the file has no month rows after the header")
+    check_footer_follows(lines, index, width, pattern, source)
     if unreadable:
         raise abort(f"{len(unreadable)} month(s) do not read as {fmt!r}: {listed(unreadable)}")
     if repeated:
@@ -189,6 +190,32 @@ def read_table(cfg, source: dict, path: Path) -> Table:
 
     arithmetic, warnings = check_arithmetic(source, series, months, cells)
     return Table(series, months, cells, updated, reference_found, arithmetic, warnings)
+
+
+def describe_line(row: list[str] | None) -> str:
+    if row is None:
+        return "the end of the file"
+    if not row or row == [""]:
+        return "a blank line"
+    return f"{len(row)} field(s) starting {row[0][:40]!r}"
+
+
+def check_footer_follows(lines: list[list[str]], index: int, width: int, pattern, source: dict) -> None:
+    """The month rows must run unbroken into the footer. `index` is the first line that is not a month row: it has to be
+    the footer's first line, and no later line may have the table's field count or begin like a month. Without this a
+    blank line or a mistyped month in the middle of the data ends the rows early, the footer further down is still found,
+    and every month after the damage is dropped without a word."""
+    first = source["footer"]["first_line"]
+    row = lines[index] if index < len(lines) else None
+    if row is None or [cell.strip() for cell in row] != [first]:
+        raise abort(f"line {index + 1} should be the footer's first line {first!r}, straight after the last month row, but is "
+                    f"{describe_line(row)}. The month rows stop here, so the months after it would be lost. The file is damaged "
+                    "or was edited: export it again; do not edit it by hand.")
+    stray = [n for n, later in enumerate(lines[index:], start=index + 1) if len(later) == width or (later and pattern.match(later[0]))]
+    if stray:
+        raise abort(f"line(s) {listed([str(n) for n in stray])} come after the footer starts but look like rows of the table "
+                    f"(the table's {width} fields, or a month first). Months in the file may have been misplaced: export it "
+                    "again; do not edit it by hand.")
 
 
 def footer(lines: list[list[str]], labels: dict) -> tuple[str | None, str | None]:
@@ -358,6 +385,9 @@ def supply(cfg, source_id: str, csv_path: Path, taken: str | None = None, accept
     echo(f"Months added: {span(result['added'])}")
     echo(f"Months unchanged: {span(result['unchanged'])}")
     echo(f"Months revised: {span(result['revised'])}")
+    if stored_months and table.months[-1] < max(stored_months):
+        echo(f"This export ends at {month_key(table.months[-1])}, before the store's {month_key(max(stored_months))}: "
+             "it has nothing newer than the store.")
     echo(f"The export says it was last updated {table.last_updated}.")
     for warning in result["warnings"]:
         echo(f"WARNING: {warning}")
