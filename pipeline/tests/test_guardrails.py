@@ -359,6 +359,8 @@ def test_a_verified_event_outside_the_schema_table_aborts(tmp_path, workspace, c
 @pytest.mark.parametrize("before, after, fragment", [
     ("| `mechanism` | enum |", "| `mechanism` | enum, required |", "could not find the enum table rows for ['mechanism']"),
     ("| `title` | short | ≤60 chars", "| `title` | short | at most 60 chars", "could not find the title length"),
+    ("| `mechanism` | enum | `demand` `supply` `measurement` `mix` ", "| `mechanism` | enum | demand, supply, measurement, mix ",
+     "the enum table rows for ['mechanism']"),
 ])
 def test_a_schema_table_row_that_stops_parsing_aborts(tmp_path, workspace, before, after, fragment):
     cfg = make_cfg(workspace)

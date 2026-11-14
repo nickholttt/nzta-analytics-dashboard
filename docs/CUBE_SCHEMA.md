@@ -438,8 +438,8 @@ Events:
   `mechanism`, `expected_effect`, `confidence`), or a `title` longer than
   the table allows.
 - The schema table in `EVENTS_LAYER.md` no longer reads as an enum for a
-  column `config/pipeline.json` lists in `events.enum_columns`, or no longer
-  states the title limit.
+  column `config/pipeline.json` lists in `events.enum_columns` (or lists no
+  values for it), or no longer states the title limit.
 
 Failing loudly is the point. A dashboard that quietly serves wrong numbers
 is worse than one that is visibly stale.
