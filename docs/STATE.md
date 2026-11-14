@@ -20,7 +20,6 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   - **The archive**: the private repository `nickholttt/nzta-register-archive` holds one
     release, `snapshot-2026-10`, two files, unchanged (39,298,142 and 55,125,916 bytes; the
     second holds `VIN11` and `POSTCODE`).
-  - `Checks` tests every pull request into `main` (the pipeline's tests only).
 - **`registrations_flow` is built wherever its store is** (#55, D-092): true first
   registrations from the user's exports of NZTA's dashboard, January 2021 on, through
   `python -m pipeline supply` and the register's own code. The store is on this computer only
@@ -53,9 +52,8 @@ first-load work, the rest of E, F, H and I are not started. One report at the en
 | `claude/vehicle-type-dimension` | NZTA's vehicle type as a dimension on the two datasets built from vehicle rows, a pair with new or used on the survivors, and a column of the true-registrations fact table: what completeness by vehicle type, and for cars back to 1975, needs | A sonnet worker is mid-way, in a git worktree in the session's scratch folder (`git worktree list`); cut from #57's branch; local, not pushed |
 
 - **This folder's `public/data`** (gitignored) is the dry-run build of #55: two datasets.
-  `data/supplied/` (gitignored) holds both stores, `nzta_dashboard` and `statsnz_tpt`.
-- Gitignored and local: the field profile behind the data map
-  (`data/staging/profiles/2026-10/`) and the packages' plans (`data/staging/work-order/`).
+  `data/supplied/` (gitignored) holds both stores, `nzta_dashboard` and `statsnz_tpt`. Also
+  local: the data map's field profile and the packages' plans, under `data/staging/`.
 
 ## Branches and pull requests (checked 2026-11-15)
 
