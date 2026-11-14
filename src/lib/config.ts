@@ -104,7 +104,17 @@ export type Dataset = {
 
 export type Guards = { min_denominator?: number; min_share_of_trailing_median?: number; min_coverage?: number };
 export type Measure = { id: string; label: string; unit: string; shape?: string; guards?: Guards };
-export type DerivedMeasure = Measure & { snapshots_needed?: number; top_n?: number };
+// A derived measure that divides one dataset's slice by another's names both, and the dimensions it can be split by.
+export type DerivedMeasure = Measure & {
+  snapshots_needed?: number;
+  top_n?: number;
+  numerator_dataset?: string;
+  denominator_dataset?: string;
+  total_label?: string;
+  definition?: string;
+  note?: string;
+  note_template?: string;
+};
 export type Period = { id: string; label: string; months?: number };
 export type SmoothingOption = { id: string; label: string; axis: string };
 

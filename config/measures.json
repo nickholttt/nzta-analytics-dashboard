@@ -69,6 +69,23 @@
       }
     },
     {
+      "id": "completeness",
+      "label": "the share of registrations still on the register",
+      "formula": "n(numerator_dataset) / n(denominator_dataset), for the same month and value",
+      "unit": "percent",
+      "shape": "trend",
+      "numerator_dataset": "registrations_surviving",
+      "denominator_dataset": "registrations_flow",
+      "total_label": "All vehicles",
+      "definition": "For each month, the vehicles first registered that month and still on the register at the snapshot, as a share of the vehicles first registered that month according to NZTA's registrations dashboard.",
+      "note_template": "Each line divides the vehicles still on the register by the vehicles registered, for the same month. A figure above 100% is drawn as it is. Months with fewer than {measure.guards.min_denominator} registrations behind the figure, or far fewer than the months before, are left out, not drawn as zero. The two counts come from different sources, so this is a ratio of counts, not a match of vehicles one by one. It is not used to scale any figure on this site.",
+      "guards": {
+        "$comment": "The share guards, applied to the denominator dataset's counts. See docs/METRICS.md, Two suppression guards.",
+        "min_denominator": 200,
+        "min_share_of_trailing_median": 0.33
+      }
+    },
+    {
       "id": "cohort_survival",
       "label": "the share still on the road",
       "formula": "survivors(C, t) / survivors(C, t0)",

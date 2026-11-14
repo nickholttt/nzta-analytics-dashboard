@@ -92,6 +92,8 @@ export default function PresetPanel({
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
+  // For a measure that divides one dataset by another: the numerator's rows, beside `rows`, the denominator's.
+  const [companion, setCompanion] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [wanted, setWanted] = useState(!defer);
   const [sentinel, setSentinel] = useState<HTMLElement | null>(null);
@@ -166,8 +168,14 @@ export default function PresetPanel({
     if (!source || !wanted) return;
     let current = true;
     setRows(null);
-    loadView(source).then(
-      (loaded) => current && setRows(loaded),
+    setCompanion(null);
+    const other = resolution?.companion;
+    Promise.all([loadView(source), other ? loadView(other) : Promise.resolve(null)]).then(
+      ([loaded, second]) => {
+        if (!current) return;
+        setCompanion(second);
+        setRows(loaded);
+      },
       (e) => current && setError(String(e)),
     );
     return () => {
@@ -216,7 +224,7 @@ export default function PresetPanel({
   const snapshotsNeeded = derived?.snapshots_needed;
   // Only a chart drawn month by month greys months. A ranking or a distribution sums one window and greys the whole
   // chart or nothing, which its own unit line says, so the note on grey months stays off them.
-  const greyNote = guard > 0 && preventsRender.length === 0 && (shape === "mix" || shape === "trend");
+  const greyNote = guard > 0 && preventsRender.length === 0 && (shape === "mix" || shape === "trend") && !derived?.numerator_dataset;
 
   // Notes that state a figure are templated from the build; a plain note that carries one is flagged
   // rather than trusted, because it will drift the next time the data moves. The dataset definition is
@@ -233,6 +241,7 @@ export default function PresetPanel({
     } else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
+  addNote("measure", undefined, derived?.note_template);
   // Where the figures come from and the date of the export, said under every chart whose dataset is supplied.
   const sourceNote = findDataset(effectivePreset.dataset)?.source_note;
   if (sourceNote && !notBuilt) addNote("source", undefined, sourceNote);
@@ -321,6 +330,7 @@ export default function PresetPanel({
           collapseFraction={collapseFraction}
           lead={lead}
           label={label}
+          companion={companion}
           month={month}
           onMonth={handleMonthChange}
         />
@@ -355,7 +365,7 @@ export default function PresetPanel({
     }
   }
 
-  const definition = notBuilt ? undefined : (!internal && dataset?.public_definition) || dataset?.definition;
+  const definition = notBuilt ? undefined : (derived?.definition ?? ((!internal && dataset?.public_definition) || dataset?.definition));
   const eyebrow = dimensionLabel ?? derived?.label ?? measure?.label;
 
   // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube

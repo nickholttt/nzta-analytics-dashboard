@@ -12,7 +12,8 @@ import type { MouseEvent } from "react";
 import { datasetWords, findDerived, findMeasure } from "../lib/config";
 import type { AnswerTemplates, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
-import { derivedSeries } from "../lib/derived";
+import { COMPLETENESS, completenessSeries, derivedSeries } from "../lib/derived";
+import type { RatioPoint, RatioSeries } from "../lib/derived";
 import { latestMonthOf } from "../lib/resolve";
 import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
 import { fillNote } from "../lib/notes";
@@ -47,6 +48,8 @@ type Props = {
   lead?: boolean;
   // How a value is named for a reader: reserved tokens in words. Needed only where lines are values.
   label?: (value: string) => string;
+  // For a ratio of two datasets (completeness): the numerator's rows, where `rows` are the denominator's.
+  companion?: SliceRow[] | null;
   // The month a figure and sentence are read for (a count with an answer); empty is the latest. The panel keeps it in the address.
   month?: string;
   onMonth?: (month: string) => void;
@@ -65,6 +68,7 @@ type Point = {
 
 export function TrendChart(props: Props) {
   const { preset } = props;
+  if (preset.derived === COMPLETENESS && props.companion) return <RatioTrend {...props} companion={props.companion} />;
   if (!preset.derived && preset.values?.length) return <ValuesTrend {...props} values={preset.values} />;
   return <OneTrend {...props} />;
 }
@@ -104,6 +108,96 @@ function sayAnswer(templates: AnswerTemplates, points: Point[], month: string): 
   const key = !c ? "alone" : Math.abs(c.change) < 0.0005 ? "same" : c.change > 0 ? "up" : "down";
   const filled = fillNote(templates[key], context);
   return { figure: count(now), sentence: filled.unresolved.length === 0 ? filled.text : fillNote(templates.alone, context).text };
+}
+
+// One line per value of the dimension and one for the total, each a share of the denominator dataset's count for the same
+// month. The axis starts where the data does, and says so, since a share that stays near 100% would otherwise draw flat.
+function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (v) => v }: Props & { companion: SliceRow[] }) {
+  const derived = findDerived(preset.derived);
+  const guards = derived?.guards ?? {};
+  const totalLabel = derived?.total_label ?? "All";
+  const series = useMemo(() => {
+    const whole = completenessSeries(companion, rows, guards);
+    const first = whole.reduce((m, s) => (s.points[0] && s.points[0].month < m ? s.points[0].month : m), "9999-12");
+    const win = periodWindow(preset.period, first, latestMonthOf(preset, manifest));
+    return whole
+      .map((s) => ({ ...s, points: s.points.filter((p) => p.month >= win.from && p.month <= win.to) }))
+      .filter((s) => s.points.length > 0);
+  }, [companion, rows, guards, preset, manifest]);
+  const name = (s: RatioSeries) => (s.series === "" ? totalLabel : label(s.series));
+  const model = useMemo(() => {
+    const all = series.flatMap((s) => s.points.map((p) => p.month)).sort();
+    const low = series.reduce((m, s) => s.points.reduce((x, p) => Math.min(x, p.value), m), 1);
+    const high = series.reduce((m, s) => s.points.reduce((x, p) => Math.max(x, p.value), m), 1);
+    return { from: all[0], to: all[all.length - 1], base: Math.max(0, Math.floor(low * 20) / 20 - 0.05), top: Math.max(1, high) * 1.02 };
+  }, [series]);
+  const colour = (i: number) => seriesColour(i);
+  const render = useCallback(
+    (width: number) =>
+      Plot.plot({
+        width,
+        height: chartHeight(width, lead),
+        marginTop: 16,
+        marginLeft: 48,
+        marginRight: 16,
+        marginBottom: 28,
+        style: plotStyle,
+        x: { type: "utc", label: null, domain: [monthDate(model.from), monthDate(addMonths(model.to, 1))] },
+        y: { label: null, domain: [model.base, model.top] },
+        marks: [
+          Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
+          Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => `${Math.round(d * 100)}%` }),
+          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
+          Plot.ruleY([1], { stroke: RULE_STRONG, strokeDasharray: "3,3" }),
+          ...series.flatMap((s, i) => {
+            const data = s.points.map((p) => ({ ...p, date: monthDate(p.month), name: name(s) }));
+            return [
+              Plot.lineY(data, { x: "date", y: "value", stroke: colour(i), strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" }),
+              Plot.tip(
+                data,
+                Plot.pointerX({
+                  x: "date",
+                  y: "value",
+                  ...tipStyle,
+                  title: (p: RatioPoint & { name: string }) => readout({ name: p.name, period: monthPeriod(p.month), share: p.value, n: p.n, base: p.denominator }),
+                }),
+              ),
+            ];
+          }),
+        ],
+      }),
+    [model, series, lead, label, totalLabel],
+  );
+  const lastOf = (s: RatioSeries) => s.points[s.points.length - 1];
+  return (
+    <>
+      <ul className="series-key" aria-label="Lines on this chart, with the latest month's figure">
+        {series.map((s, i) => (
+          <li key={s.series}>
+            <span className="swatch" style={{ background: colour(i) }} aria-hidden="true" />
+            {name(s)} <span className="series-key-figure">{pct(lastOf(s).value)} in {monthLabel(lastOf(s).month)}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="chart-unit">
+        Share of the vehicles first registered each month that are still on the register. The axis starts at {Math.round(model.base * 100)}%.
+      </p>
+      <PlotFigure
+        render={render}
+        label={`Line chart, ${monthLabel(model.from)} to ${monthLabel(model.to)}: ${series.map(name).join(", ")}, month by month.`}
+      />
+      <FiguresTable
+        label={`Completeness: figures, ${monthLabel(model.from)} to ${monthLabel(model.to)}`}
+        columns={[{ name: "Month" }, ...series.map((s) => ({ name: name(s) }))]}
+        rows={() => {
+          const at = series.map((s) => new Map(s.points.map((p) => [p.month, p.value])));
+          return monthRange(model.from, model.to).flatMap((m) =>
+            at.every((x) => !x.has(m)) ? [] : [[monthPeriod(m), ...at.map((x) => (x.has(m) ? pct(x.get(m) as number) : ""))]],
+          );
+        }}
+      />
+    </>
+  );
 }
 
 type ValuePoint = { month: string; date: Date; series: string; y?: number };

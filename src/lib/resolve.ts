@@ -35,6 +35,8 @@ export type Resolution = {
   narrowedBy?: { dimension: string; values: string[] };
   // A built question's filters, each applied through the fact table.
   keptBy?: { dimension: string; values: string[] }[];
+  // For a measure that divides one dataset by another: where the numerator's rows come from. `source` is the denominator's.
+  companion?: ViewSource;
 };
 
 export function inferShape(preset: Preset, dimension?: Dimension, measure?: Measure): string {
@@ -191,6 +193,21 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   // it yet, and drawing the period's total instead would not answer the question.
   if (preset.animate_by) add("blocked", `"animate_by": "${preset.animate_by}" has no renderer in this tool: the ${shape} renderer draws one period at a time`);
 
+  // A measure that divides one dataset by another needs both built, and the breakdown live in both.
+  let companion: ViewSource | undefined;
+  const ratio = preset.derived ? findDerived(preset.derived) : undefined;
+  if (ratio?.numerator_dataset && ratio.denominator_dataset) {
+    for (const id of [ratio.numerator_dataset, ratio.denominator_dataset]) {
+      if (!isBuilt(manifest, id)) {
+        notBuilt ??= manifest.datasets[id]?.not_built ? id : undefined;
+        add("blocked", manifest.datasets[id]?.not_built ? `dataset "${id}" was not built in this build (${manifest.datasets[id].not_built})` : `dataset "${id}" is not in the cube`);
+      } else if (preset.dimension && !manifest.datasets[id].live_dimensions.includes(preset.dimension)) {
+        add("blocked", `dimension "${preset.dimension}" is not live in ${id}`);
+      }
+    }
+    if (preset.dimension) companion = { dataset: ratio.numerator_dataset, dimension: preset.dimension };
+  }
+
   const status: PresetStatus = invalid.length > 0 ? "invalid" : blocked.length > 0 ? "blocked" : "live";
   const statusDisagreement =
     preset.status === status
@@ -212,6 +229,7 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     source: preventsRender.length === 0 ? source : undefined,
     narrowedBy: preventsRender.length === 0 ? narrowedBy : undefined,
     keptBy: preventsRender.length === 0 ? keptBy : undefined,
+    companion: preventsRender.length === 0 ? companion : undefined,
   };
 }
 
