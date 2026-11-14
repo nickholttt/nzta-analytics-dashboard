@@ -3244,7 +3244,7 @@ New entries use this template:
      `build.dataset` only when it is not the first dataset, so every existing link means what it meant.
   3. **A chosen month.** (a) Only for the new dataset. (b) For every ranking on the site. Chosen (b): the ranking's
      window can end on any month (`<preset>.month` in the address), and a one-month ranking sits beside the
-     12-month one wherever a view can be ranked.
+     12-month one wherever a chart already ranks or offers a ranking.
   4. **Completeness.** (a) Two lines, survivors and registrations, on one chart. Ruled out: a flow series never
      shares a chart with survivors. (b) A ratio computed in the browser from the two datasets' slices for the same
      dimension and month, on a chart of its own. Chosen (b), declared in config (numerator dataset, denominator
@@ -3273,19 +3273,23 @@ New entries use this template:
     judgement words none may contain; `pipeline/tests/test_site_config.py` checks every new template against it
     (fillable placeholders, no digit or year, no banned word), and that the datasets and measures the new config
     names exist. This is the first file of the narrative config CLAUDE.md plans.
-  - `tests/site/sentences.test.ts`: eight tests of the sentence-building, run with Node's own test runner and no
-    new dependency (`node --test "tests/site/*.test.ts"`). They are not in `Checks` yet: that is a workflow change,
-    queued with the chart rules. `tests/` is a new top-level folder.
+  - `tests/site/sentences.test.ts`: eleven tests, run with Node's own test runner and no new dependency
+    (`node --test "tests/site/*.test.ts"`). The sentence module takes the dataset's whole rows and decides for
+    itself whether earlier figures exist, so a chart cannot hand it a narrowed view; two of the tests read the two
+    chart components' source to hold them to passing rows through. Each of the three faults the review found,
+    put back in the module or in a component, fails a test. They are not in `Checks` yet: that is a workflow
+    change, queued with the chart rules. `tests/` is a new top-level folder.
 - Measured on the local build:
   - March 2021, June 2023 and October 2026: the site shows 26,333, 40,598 and 23,554 vehicles registered, the
     totals in the cube's file. Completeness shows 92.9%, 97.0% and 100.0%; computed from the two datasets' files:
     92.92%, 97.03% and 100.03%.
   - What the browser downloads at phone width, before and after: the home page to its first chart, 18 requests and
-    983,654 bytes, then 17 and 932,734 (the old model chart no longer loads at the start); Build to its first
-    answer, 12 requests and 509,627 bytes, then 12 and 514,635.
+    983,654 bytes, then 17 and 934,603 (the old model chart no longer loads at the start); Build to its first
+    answer, 12 requests and 509,627 bytes, then 12 and 516,704.
   - axe: the home page is clean at both widths; Build has the one heading-order finding it had before (D-089).
-  - Not covered by a test, checked in the browser only: Build's two notices, and that the chart passes every month
-    to the year-ago lookup.
+  - Not covered by a test, checked in the browser only: Build's two notices (the first version of them vanished
+    when Build chose its own starting values, which the review caught; a notice is now cleared only by the
+    visitor's own change), and any route by which a component might bypass the sentence module altogether.
 - Consequences:
   - Starter question 1 is answered from true registrations on a local build, and starter question 5 (which models
     lead) is answered for the first time: the model ranking that was blocked since D-029 is live on this dataset.

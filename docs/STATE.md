@@ -123,7 +123,7 @@ Nothing stops the work. Parked for the final report (CHECKPOINT, questions).
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). On
 2026-11-15: the pipeline tests, 254 passed locally in 650 s on what became #55, and they pass
 in `Checks` in about 90 s; a dry-run build with the store, exit 0 in 741 s; on what became
-#56, `tsc --noEmit` exit 0, `astro build` with and without the dataset, the site's 8 tests
+#56, `tsc --noEmit` exit 0, `astro build` with and without the dataset, the site's 11 tests
 (`node --test "tests/site/*.test.ts"`), and the new pages headless at 320, 390 and 1280 px.
 
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
