@@ -2711,6 +2711,13 @@ New entries use this template:
 - Decision: as chosen above. `/differences` states no figure, year or brand: it says what each source counts
   (registrations are not sales; survivors are not registrations; the industry association counts deliveries and its
   figures are not open; other sites read NZTA's dashboard), each point linking to its definition.
+  - **Invariant 8.** `/differences` is hand-written text about what the data counts, as `/method` and `/caveats`
+    are. CLAUDE.md's "planned" note under invariant 8 names only those two. `/differences` is in the same position:
+    it states definitions, no figure and no reason, and it moves onto templates with them when the narrative engine
+    is built (package H). CLAUDE.md's invariants are not edited here; whether its note should name the page is the
+    user's.
+  - "A vehicle can be registered before it is sold" rests on D-030 and the caveat already on `/caveats`, which the
+    page links.
 - Consequences:
   - The user fills six gaps in `config/site.json` before the site goes public: the site's name, its address, who
     runs it, how to reach them, any connection to the motor industry, and what it promises about advertising,
@@ -2718,7 +2725,13 @@ New entries use this template:
   - `/differences` says other sites read the dashboard "rather than the open register this site reads". When the
     true-registrations dataset (package B) reaches the site, that sentence changes with it.
   - `docs/playbooks/go-public.md` lists the Cloudflare steps. None is started, and its console wording is marked
-    "inferred - confirm": nobody here has seen Cloudflare's screens.
+    "inferred - confirm": nobody here has seen Cloudflare's screens. The project's name is the user's to choose
+    first, because it becomes the public address; it says where an early upload would be public and to stop there;
+    and it says to stop at any request for payment.
+  - The link to GitHub issues shows the repository owner's account name on the public site, which partly answers
+    "who runs it" before the user has decided what the About page says. It is put to the user with the About gaps.
+  - The attribution line and the About page name NZTA only. Both change when Stats NZ's series (package C) or the
+    dashboard's dataset (package B) reaches the site.
   - `docs/playbooks/visitor-test.md` carries the ten starter questions, the acceptance question, the pass rule and a
     record sheet. No question has been tested.
   - Reversing it: delete the three pages, the two config files and the footer group.
