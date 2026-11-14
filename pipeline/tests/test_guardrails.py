@@ -270,6 +270,19 @@ def test_a_misconfigured_fact_table_aborts(tmp_path, workspace, facts, fragment)
     expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
 
 
+@pytest.mark.parametrize("name", ["month", "n", "rid"])
+def test_a_dimension_named_for_a_reserved_fact_column_is_blamed_for_its_name(tmp_path, workspace, name):
+    # The abort must name the real cause (the id is taken), not say the dimension cannot be derived.
+    cfg = make_cfg(workspace)
+    cfg.pipeline["datasets"]["registrations_surviving"]["facts"] = ["import_status", name]
+    with pytest.raises(GuardrailError) as info:
+        run(tmp_path, cfg, load_rows())
+    message = str(info.value)
+    assert f"facts names {name}, a name the fact table reserves" in message, message
+    assert "rename its id in dimensions.json" in message, message
+    assert "not a derivable dimension" not in message, message
+
+
 @pytest.mark.parametrize("lookup", ["vehicle", "status"])
 def test_a_scope_key_listed_twice_aborts(tmp_path, workspace, lookup):
     # Both scope files are joined to every vehicle, so a repeated key would double its vehicles in every count.

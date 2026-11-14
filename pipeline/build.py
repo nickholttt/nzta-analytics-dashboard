@@ -66,7 +66,13 @@ def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: 
     ):
         aborts.append(f"{dataset}: facts must list distinct dimension ids, at least one")
         return None
-    problems = [d for d in configured if d not in known or d in reserved]
+    taken = [d for d in configured if d in reserved]
+    if taken:
+        # A dimension may well be derivable; its id is the problem, because the id becomes a column and file name.
+        aborts.append(f"{dataset}: facts names {', '.join(taken)}, a name the fact table reserves for its own columns "
+                      f"({', '.join(sorted(reserved))}); a dimension cannot take it, so rename its id in dimensions.json")
+        return None
+    problems = [d for d in configured if d not in known]
     if problems:
         aborts.append(f"{dataset}: facts names {', '.join(problems)}, not a derivable dimension of this dataset in dimensions.json")
         return None
