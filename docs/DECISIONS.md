@@ -2544,3 +2544,107 @@ New entries use this template:
   - A later session forces nothing on the strength of point 3: it is one run, tied to one day's report.
 - Status: accepted, decided by user; the reading of point 4 (what counts, and the edit inside D-068) decided by Claude
   (unreviewed)
+
+## D-082 2026-11-14 — Work order 1: what claude may do without asking, what it never does, and one report at the end
+- Agent: user (the order), claude (the record)
+- Basis: the user's message of 2026-11-14, saved unchanged as `docs/brief/WORK_ORDER.md` (commit `31dd24f`); AGENTS.md
+  hard rules 7 and 8 as they stood after #47.
+- Context: hard rule 7 asked for the user's word, by number, before every merge into `main`, and rule 8 for a stop and
+  a report after every step. The brief's §10 capped the pull requests waiting on the user at five. The user wants the
+  rest of the brief built across many sessions without being asked step by step.
+- Decision (user), the order's §1 to §4:
+  1. **Merges.** claude may merge a pull request of this work order into `main`, as a merge commit, when its checks
+     are green, an independent reviewer agrees, it is inside the order's packages, and it touches nothing on the
+     "never" list below. If Claude Code's own permission check refuses a merge, it is not worked around: the pull
+     request stays open, the next package is stacked on it, and the user is given one batch line to say.
+  2. **Also allowed:** merge #47 and delete `ui/explore` on GitHub, history untouched; one forced run of October, once,
+     only if the most recent daily run reports the source unchanged; a hand pull of November if the archive job has
+     not stored it within two days of NZTA's December refresh; creating, changing and deleting claude's own branches
+     and pull requests; anything read-only against NZTA's open data service, Infoshare and the private archive.
+  3. **Never without asking:** making the site public or publishing a new kind of data; anything that costs money or
+     creates an account; anything that cannot be undone (deleting data, rewriting history, replacing an archived
+     file); publishing an owner field (district, region, usage, industry class, owner type), postcode or anything
+     derived from `VIN11` (building and testing them privately is allowed); changing CLAUDE.md's invariants,
+     non-goals or shapes beyond what the order states; working around NZTA's block on automated readers; a second
+     forced run.
+  4. **No stopping for questions.** A choice not on the "never" list is taken by claude, recorded as "decided by
+     Claude (unreviewed)", and listed in the final report. A blocked item is parked in CHECKPOINT with a
+     recommendation and what happens with no answer. One report, when every package is done or parked.
+  5. **The limit of five waiting pull requests is replaced** by point 1 (the brief §10 and §12 question 3).
+  6. **Sub-agents:** only the lead spawns; each names its model; haiku for bulk rule-like work, sonnet for research,
+     data engineering, pages and most code, opus for definitions, the data map, segmentation, the narrative spec,
+     design and every independent review. The definitions and their check are D-085.
+  7. **Nothing is public yet**, so definitions, names and layouts may change freely, each change recorded.
+- Options considered: none; these are the user's instructions. Decided by claude, in recording them:
+  - Hard rule 7 gets the amendment as a marked passage "for the life of work order 1", and its old text is kept, so
+    the rule returns to what it was when the order closes without a further edit of its sense. Not chosen: rewriting
+    the rule outright, which would outlive the order.
+  - Hard rule 8 gets one sentence: during the order the steps are its packages, with one report at the end. The user
+    did not name rule 8; "one report, at the end" (§1.3) cannot hold beside "a stop-and-report after each".
+- Consequences:
+  - Done on 2026-11-14 on this authority: #47 merged (`6b69fcc`), `ui/explore` deleted on GitHub (all of it was in
+    `main`; no history rewritten).
+  - The memory of earlier sessions holds: on 2026-11-13 Claude Code's permission check refused a merge the docs
+    allowed until the user said it in the session. The order says so in its own first message and in the "continue"
+    message for later sessions.
+  - A later session reads the order and CHECKPOINT, not this entry, for where the work stands.
+- Status: accepted, decided by user; the two readings above decided by Claude (unreviewed)
+
+## D-083 2026-11-14 — A sixth shape, `matrix`, is approved
+- Agent: user
+- Basis: the work order §4.1; the brief §6 ("A sixth shape is proposed") and §12 question 1.
+- Context: CLAUDE.md allowed exactly five renderers and AGENTS.md hard rule 1 said "No sixth renderer". Once any field
+  can be crossed with any other, a question such as brand by segment in one period fits none of the five.
+- Decision (user): `matrix` is the sixth shape: a grid with one field down the side, one across the top, and a shaded
+  count, share or average in each cell. CLAUDE.md's Shapes section and invariant 2, and AGENTS.md hard rule 1, say
+  six. There is no seventh without a decision.
+- Options considered (the brief §6): keep to five and draw crossed fields as small charts side by side or a table.
+  Not chosen by the user. A table of the figures stays available for every question.
+- Consequences:
+  - The renderer is not built by this entry. It is package F's "second breakdown", and the chart rule table
+    (package E) is what offers it: for two fields crossed, neither of them time.
+  - It is drawn with Observable Plot, like the other five, and takes its look from the design system.
+  - The brief also says a matrix "draws two numbers against each other, each cut into bands". That is the same grid
+    with two ordered bands as its fields, not a seventh shape.
+- Status: accepted, decided by user
+
+## D-084 2026-11-14 — NZTA's registrations dashboard becomes a source: true registrations from January 2021, from the user's hand exports
+- Agent: user (the decision and the exports), claude (the checks and the record)
+- Basis: the work order §4.2, accepting D-075's option 3; the two files the user supplied, read on 2026-11-14 with a
+  scratch script (DuckDB, counts only).
+- Context: D-075 proposed the dashboard's history as the detail of true first registrations, after a test of one old
+  month. `docs/DATA_SOURCES.md` §D said "never build a dependency on it". The user ran the test and the backfill.
+- Decision (user): the dashboard is a source for registrations from January 2021.
+  - **How it is fetched.** Not by the pipeline and not by claude. A Claude session in the user's own Chrome browser
+    reads the dashboard's data engine and saves a CSV: a long table, one row per combination of the twelve
+    dimensions, with a `Vehicles` count. `VIN - first 11` and `Physical post code` are not taken. Each month the same
+    export is taken for the newest month. NZTA's block on automated readers is not worked around from this side.
+  - **Where the files live:** gitignored `data/raw/nzta-dashboard/<YYYY-MM>/` for one month and
+    `data/raw/nzta-dashboard/history/` for the backfill, with a copy in the user's backup folder.
+  - Stats NZ's series stays the source of true totals before 2021 (D-065).
+- Measured on 2026-11-14 (every figure equals the one the user gave):
+  - January 2021 (`nzta-first-registrations-2021-01.csv`, 2,151,173 bytes): 17,221 rows, 30,011 vehicles. By import
+    status: NEW 18,082; USED 10,542; RE-REG 1,217; SCRATCH 170. By owner type: Individual 18,863; Company 10,737;
+    Other 411. By vehicle status: ACTIVE 27,041; INACTIVE 2,970.
+  - The history (`nzta-first-registrations-2021-01_to_2026-10.csv`, 133,320,124 bytes, taken 14 November 2026): 70
+    months, 991,274 rows, 1,883,786 vehicles. By year: 2021 370,014; 2022 355,210; 2023 332,105; 2024 290,504; 2025
+    282,525; 2026 to October 253,428. Every `Vehicles` value is a whole number above zero and no header row is
+    repeated inside the file. January 2021 inside it is the same 17,221 rows and 30,011 vehicles; October 2026 is
+    28,896 vehicles, the figure of D-075.
+  - Across the history: NEW 1,134,695; USED 682,892; RE-REG 55,135; SCRATCH 11,064. ACTIVE 1,802,934; INACTIVE
+    80,852. Individual 1,045,469; Company 810,118; Other 28,199.
+  - The export was taken as six yearly exports joined, because the engine cuts an export off at 5,000,000 cells (the
+    user's account; each year's rows and total matched the engine's own count).
+- Options considered: D-075's three. The user chose option 3.
+- Consequences:
+  - `docs/DATA_SOURCES.md` §D is rewritten: a hand export, never automated, in place of "never build a dependency".
+  - The dataset, its definition in `docs/METRICS.md`, its guardrails and the maintainer script that checks and
+    converts each file are the work order's package B. A flow series never shares a chart with survivors.
+  - **Owner type is in the files and is not published** until the Stage 2 privacy review (the order §3). The
+    territorial authority in these files is the owner's district and is held back the same way.
+  - Past months in the dashboard can change, so each file is that month as exported on its date; the export date is
+    kept with the file.
+  - It rests on the user's export each month and on NZTA keeping the dashboard and its five-year window.
+  - Two more copies of the history file, byte for byte the same, are still in the user's Downloads folder. They are
+    the user's to delete.
+- Status: accepted, decided by user

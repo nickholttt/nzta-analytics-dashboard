@@ -63,7 +63,7 @@ Violating any of them is a bug, not a shortcut.
 
 2. **Charts are data, not components.** A preset chart is a JSON object in
    `config/presets.json`. Adding a chart = adding an object. There are
-   exactly five renderers (see §Shapes) and no sixth is permitted without
+   exactly six renderers (see §Shapes) and no seventh is permitted without
    an explicit decision.
 
 3. **Events are append-only data.** `data/reference/events.csv`. Adding the
@@ -130,10 +130,11 @@ Violating any of them is a bug, not a shortcut.
 
 ## Shapes
 
-The only five renderers. Every preset and every builder output maps to one.
+The only six renderers. Every preset and every builder output maps to one.
 Shape is **inferred** from measure + dimension. Where more than one shape
 fits the question, the visitor may switch among those that fit; they never
-get a shape that does not fit, and there is no sixth.
+get a shape that does not fit, and there is no seventh. The sixth, `matrix`,
+was approved by the user on 2026-11-14 (D-083); its renderer is planned.
 
 | Shape | Renderer | Triggered by |
 |---|---|---|
@@ -142,6 +143,7 @@ get a shape that does not fit, and there is no sixth.
 | `league` | ranked horizontal bar + rank delta | measure = `count`/`share`, single period, high-cardinality dimension |
 | `distribution` | histogram / ridgeline over time | dimension is an ordered band (age, engine size, vehicle age) |
 | `geo` | choropleth by region/TA | dimension = `region` |
+| `matrix` | grid: one field down the side, one across the top, a shaded count, share or average in each cell | two fields crossed, neither of them time |
 
 Which shapes fit a question is decided by one rule table in config. It
 reads each field's kind from the data map (category, ordered band, number,
@@ -151,7 +153,7 @@ always available (D-062).
 
 A shape's look comes from the design system, not from the renderer. A
 visual variant chosen by config inside a shape (such as the ridgeline inside
-`distribution`) is not a sixth shape. A new variant is still a decision
+`distribution`) is not a new shape. A new variant is still a decision
 (D-062).
 
 ---
@@ -160,7 +162,7 @@ visual variant chosen by config inside a shape (such as the ridgeline inside
 
 - Astro + React islands, static output, deployed to Cloudflare Pages
   (planned: nothing is deployed yet; the site runs locally, D-014)
-- Observable Plot for all five shapes
+- Observable Plot for all six shapes
 - TanStack Table (virtualised) for league tables (planned: not yet a
   dependency; `LeagueChart` draws a Plot bar chart over a plain,
   non-virtualised rank table; no Explore preset is a live league, and the
