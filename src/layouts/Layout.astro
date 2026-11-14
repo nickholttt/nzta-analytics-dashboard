@@ -68,6 +68,19 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
 
       <footer style="margin-top: var(--space-8); padding-top: var(--space-5); border-top: 1px solid var(--rule-strong); font-size: var(--text-xs); color: var(--ink-3); line-height: 1.5;">
         <p>{attribution}</p>
+        <nav aria-label="About this site" style="display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin-top: var(--space-2);">
+          {
+            [
+              { id: "about", href: "/about", label: "About" },
+              { id: "differences", href: "/differences", label: "Why these figures differ from others" },
+              { id: "feedback", href: "/feedback", label: "Feedback and corrections" },
+            ].map((link) => (
+              <a href={link.href} aria-current={activeNav === link.id ? "page" : undefined} style="color: var(--ink-2);">
+                {link.label}
+              </a>
+            ))
+          }
+        </nav>
         {
           INTERNAL_PAGES && (
             <p style="margin-top: var(--space-2);">
