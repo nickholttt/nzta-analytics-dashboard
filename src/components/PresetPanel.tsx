@@ -1,7 +1,7 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
-import { compositeRules, findDataset, findDerived, findDimension, findPeriod, findPreset, hybrid, isComposite, publicCopy } from "../lib/config";
+import { compositeRules, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { loadEvents, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
@@ -205,7 +205,7 @@ export default function PresetPanel({
     } else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
-  const publicDimensionNote = !internal && dimension ? publicCopy.dimension_notes[dimension.id] : undefined;
+  const publicDimensionNote = !internal && dimension ? dimension.public_note : undefined;
   if (publicDimensionNote) addNote("dimension", publicDimensionNote);
   else addNote("dimension", dimension?.note, dimension?.note_template);
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
@@ -213,7 +213,7 @@ export default function PresetPanel({
   // terms, is internal.
   const quoted = (values: string[]) => values.map((v) => `“${reservedLabel(v)}”`).join(" or ");
   const nameOf = (id: string) => {
-    const words = (!internal && publicCopy.dimension_labels[id]) || findDimension(id)?.label || id;
+    const words = dimensionWords(id, internal) || id;
     return words.charAt(0).toLowerCase() + words.slice(1);
   };
   const scope = keptBy?.length
@@ -232,9 +232,8 @@ export default function PresetPanel({
   );
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
-  // Visitor wording from config/presets.json public_copy, where the frozen dimensions.json carries text
-  // written for maintainers (D-042).
-  const dimensionLabel = (!internal && dimension && publicCopy.dimension_labels[dimension.id]) || dimension?.label;
+  // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
+  const dimensionLabel = dimension ? dimensionWords(dimension.id, internal) : undefined;
 
   let chart = null;
   if (preventsRender.length === 0 && rows) {
@@ -321,7 +320,7 @@ export default function PresetPanel({
     }
   }
 
-  const definition = (!internal && effectivePreset.dataset && publicCopy.dataset_definitions[effectivePreset.dataset]) || dataset?.definition;
+  const definition = (!internal && dataset?.public_definition) || dataset?.definition;
   const eyebrow = dimensionLabel ?? derived?.label ?? measure?.label;
 
   // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube

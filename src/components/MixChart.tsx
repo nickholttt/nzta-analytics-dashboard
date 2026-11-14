@@ -308,7 +308,10 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       const laneCount = laned.reduce((n, m) => Math.max(n, m.lane + 1), 1);
       // Every marker lane needs its own row of clear space above the frame.
       const marginTop = 24 + (laneCount - 1) * LANE_HEIGHT;
-      const yMax = Math.min(1, Math.max(0.05, ...model.points.map((p) => p.share ?? 0)) * 1.05);
+      // Reduced, not spread into Math.max: a breakdown with many values over a long period has more points than a
+      // call can take as arguments, and the chart would fail to draw.
+      const highest = model.points.reduce((top, p) => Math.max(top, p.share ?? 0), 0.05);
+      const yMax = Math.min(1, highest * 1.05);
       const bands = model.bands.map((b) => ({ ...b, y2: yMax }));
       const { ownColour } = model;
 

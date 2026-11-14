@@ -9,7 +9,7 @@ from datetime import date, datetime, timezone
 import duckdb
 
 from . import derive, events, guardrails, metrics, normalise, outputs, schema
-from .contract import FACT_COUNT, FACT_MONTH, FACTS_DIR, PAIR_SEPARATOR
+from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
 
@@ -29,6 +29,11 @@ def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, 
     for pair in dataset_cfg.get("pairs") or []:
         if not (isinstance(pair, list) and len(pair) == 2 and all(isinstance(d, str) for d in pair)) or pair[0] == pair[1]:
             aborts.append(f"{dataset}: pair {pair!r} must name two different dimensions")
+            continue
+        # The separator is how a pair file's name is read back into its two dimensions.
+        if any(PAIR_SEPARATOR in d for d in pair):
+            aborts.append(f"{dataset}: pair {pair!r} names a dimension id containing {PAIR_SEPARATOR!r}, "
+                          f"which separates the two ids in a pair file's name; rename the dimension in dimensions.json")
             continue
         key = PAIR_SEPARATOR.join(pair)
         # The same two dimensions in the other order would write a second, transposed copy of the same counts.
@@ -59,14 +64,20 @@ def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: 
     if configured is None:
         return None
     known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
-    reserved = {FACT_MONTH[0], FACT_COUNT[0], outputs.FACT_ROW_ORDER}
+    reserved = {FACT_MONTH[0], FACT_COUNT[0], FACT_ROW_ORDER}
     if (
         not (isinstance(configured, list) and configured and all(isinstance(d, str) for d in configured))
         or len(set(configured)) != len(configured)
     ):
         aborts.append(f"{dataset}: facts must list distinct dimension ids, at least one")
         return None
-    problems = [d for d in configured if d not in known or d in reserved]
+    taken = [d for d in configured if d in reserved]
+    if taken:
+        # A dimension may well be derivable; its id is the problem, because the id becomes a column and file name.
+        aborts.append(f"{dataset}: facts names {', '.join(taken)}, a name the fact table reserves for its own columns "
+                      f"({', '.join(sorted(reserved))}); a dimension cannot take it, so rename its id in dimensions.json")
+        return None
+    problems = [d for d in configured if d not in known]
     if problems:
         aborts.append(f"{dataset}: facts names {', '.join(problems)}, not a derivable dimension of this dataset in dimensions.json")
         return None
