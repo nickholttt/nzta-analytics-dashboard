@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 from datetime import date, datetime, timezone
+from typing import NamedTuple
 
 import duckdb
 
@@ -84,6 +85,107 @@ def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: 
     return {"rows": fact_rows, "dimensions": [d.dim_id for d in columns], "not_live": waiting}
 
 
+class Built(NamedTuple):
+    entry: dict
+    counts: dict[str, int]
+    live: list[str]
+    ds: str
+
+
+def register_datasets(p: dict) -> dict:
+    """The datasets read from the register itself: those that name no other source."""
+    return {name: cfg for name, cfg in p["datasets"].items() if "source" not in cfg}
+
+
+def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: date, previous_live: dict, staging,
+                  aborts: list[str], warnings: list[str]) -> Built:
+    """One dataset's slices, pairs and fact table from the tables `rows` and `dims` the caller has built, and its
+    manifest entry. `snapshot_month` is the dataset's own latest month."""
+    p, g = cfg.pipeline, cfg.pipeline["guardrails"]
+    snapshot_key = snapshot_month.strftime("%Y-%m")
+    window = int(p["trailing_window_months"])
+    window_start = metrics.month_add(snapshot_month, -(window - 1))
+    require = dataset_cfg["require"]
+    ds = metrics.dataset_filter(require, snapshot_month)
+    candidates, not_live = derive.applicable(cfg, dataset)
+    was_live = set(previous_live.get(dataset, []))
+
+    def exclude(dim_id: str, reason: str) -> None:
+        if dim_id in g["abort_on_unmapped"] or dim_id in was_live:
+            aborts.append(f"{dataset}.{dim_id}: {reason}")
+        else:
+            not_live[dim_id] = reason
+            warnings.append(f"{dataset}.{dim_id} is not live: {reason}")
+
+    derived = []
+    for index, dim in enumerate(candidates):
+        missing = [r for r in derive.references_for(cfg, dim["derive"]) if not cfg.reference(r).exists()]
+        if missing:
+            exclude(dim["id"], f"reference files missing: {missing}")
+        else:
+            derived.append(derive.derive(con, cfg, dim, index, snapshot_month.year))
+    derive.build_dims(con, cfg, derived)
+    caps = {d.dim_id: derive.apply_model_cap(con, d, ds, window_start, snapshot_month) for d in derived if d.kind == "model"}
+    rates = metrics.unmapped_rates(con, derived)
+    guard = metrics.unmapped_guard(con, derived, g, window_start, snapshot_month, window)
+    for dim_id, figures in guard.items():
+        t = figures["trailing"]
+        detail = (f"{dataset}.{dim_id}: unmapped rate over the trailing {window} months is {t['rate'] or 0:.2%} "
+                  f"({t['unmapped']:,} of {t['rows']:,} in-scope rows)")
+        if t["unmapped"] > t["abort_above"] * t["rows"]:
+            aborts.append(f"{detail}, above {t['abort_above']:.0%}")
+        elif t["unmapped"] > t["warn_above"] * t["rows"]:
+            warnings.append(f"{detail}, above the {t['warn_above']:.1%} warning level; the run aborts above "
+                            f"{t['abort_above']:.0%}, {t['headroom_rows']:,} rows away")
+    live = []
+    for d in derived:
+        if rates[d.dim_id] <= g["max_unmapped_rate"]:
+            live.append(d)
+        else:
+            exclude(d.dim_id, f"unmapped rate {rates[d.dim_id]:.2%} is above {g['max_unmapped_rate']:.0%} of in-scope rows")
+    for d in live:
+        outputs.write_slice(con, cfg, d, ds, staging / "cube" / dataset / f"{d.dim_id}.parquet")
+    live_pairs, not_live_pairs = write_pairs(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
+
+    counts = metrics.month_counts(con, ds)
+    facts = write_fact_table(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
+    if counts.get(snapshot_key, 0) == 0:
+        aborts.append(f"{dataset}: the snapshot month {snapshot_key} has no rows")
+    deviation = metrics.latest_month_deviation(counts, snapshot_month, window)
+    if deviation is not None and abs(deviation) > g["latest_month_max_deviation"]:
+        warnings.append(f"{dataset}: {snapshot_key} count deviates {deviation:+.0%} from the median of the previous {window} months")
+    quality = metrics.quality_counts(con, derived, require, snapshot_month)
+    if quality["registration_after_snapshot"]:
+        warnings.append(f"{dataset}: {quality['registration_after_snapshot']:,} rows are dated after the snapshot month and were excluded")
+    entry = {
+        "definition": next((x.get("definition") for x in cfg.dimensions["datasets"] if x["id"] == dataset), None),
+        "rows": sum(counts.values()),
+        "months": len(counts),
+        "live_dimensions": [d.dim_id for d in live],
+        "not_live": not_live,
+        "live_pairs": live_pairs,
+        "not_live_pairs": not_live_pairs,
+        "facts": facts,
+        "unmapped_rates": rates,
+        "unmapped_guard": guard,
+        "mild_hybrid_identification_coverage": metrics.hybrid_coverage(con, cfg, ds, window_start, snapshot_month, window),
+        "coverage_trailing": metrics.coverage(con, derived, ds, window_start, snapshot_month, window),
+        "counts": quality,
+        "model_cap": caps,
+    }
+    hybrid_coverage = entry["mild_hybrid_identification_coverage"]
+    disagreeing = hybrid_coverage["classification_disagrees_with_powertrain"]
+    if disagreeing:
+        warnings.append(f"{dataset}: {disagreeing:,} vehicles show a powertrain that contradicts their classification in "
+                        f"{p['hybrid_classification']['file']}")
+    trailing_high = hybrid_coverage["trailing"]["coverage_high_confidence_only"]
+    floor = hybrid_coverage["warn_below_trailing_high_confidence_coverage"]
+    if trailing_high is not None and trailing_high < floor:
+        warnings.append(f"{dataset}: mild hybrid identification coverage over the trailing {window} months is "
+                        f"{trailing_high:.1%} counting high-confidence classifications only, below {floor:.0%}")
+    return Built(entry, counts, [d.dim_id for d in live], ds)
+
+
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:
     now = now or datetime.now(timezone.utc)
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
@@ -126,89 +228,13 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     datasets, month_counts, live_dimensions = {}, {}, {}
     moving = {"vehicle_year": None, "age": None, "snapshot_year": snapshot_month.year}
     age_report = {"window_months": window, "rows": 0}
-    for dataset, dataset_cfg in p["datasets"].items():
-        require = dataset_cfg["require"]
-        ds = metrics.dataset_filter(require, snapshot_month)
-        candidates, not_live = derive.applicable(cfg, dataset)
-        was_live = set(previous_live.get(dataset, []))
-
-        def exclude(dim_id: str, reason: str) -> None:
-            if dim_id in g["abort_on_unmapped"] or dim_id in was_live:
-                aborts.append(f"{dataset}.{dim_id}: {reason}")
-            else:
-                not_live[dim_id] = reason
-                warnings.append(f"{dataset}.{dim_id} is not live: {reason}")
-
-        derived = []
-        for index, dim in enumerate(candidates):
-            missing = [r for r in derive.references_for(cfg, dim["derive"]) if not cfg.reference(r).exists()]
-            if missing:
-                exclude(dim["id"], f"reference files missing: {missing}")
-            else:
-                derived.append(derive.derive(con, cfg, dim, index, snapshot_month.year))
-        derive.build_dims(con, cfg, derived)
-        caps = {d.dim_id: derive.apply_model_cap(con, d, ds, window_start, snapshot_month) for d in derived if d.kind == "model"}
-        rates = metrics.unmapped_rates(con, derived)
-        guard = metrics.unmapped_guard(con, derived, g, window_start, snapshot_month, window)
-        for dim_id, figures in guard.items():
-            t = figures["trailing"]
-            detail = (f"{dataset}.{dim_id}: unmapped rate over the trailing {window} months is {t['rate'] or 0:.2%} "
-                      f"({t['unmapped']:,} of {t['rows']:,} in-scope rows)")
-            if t["unmapped"] > t["abort_above"] * t["rows"]:
-                aborts.append(f"{detail}, above {t['abort_above']:.0%}")
-            elif t["unmapped"] > t["warn_above"] * t["rows"]:
-                warnings.append(f"{detail}, above the {t['warn_above']:.1%} warning level; the run aborts above "
-                                f"{t['abort_above']:.0%}, {t['headroom_rows']:,} rows away")
-        live = []
-        for d in derived:
-            if rates[d.dim_id] <= g["max_unmapped_rate"]:
-                live.append(d)
-            else:
-                exclude(d.dim_id, f"unmapped rate {rates[d.dim_id]:.2%} is above {g['max_unmapped_rate']:.0%} of in-scope rows")
-        for d in live:
-            outputs.write_slice(con, cfg, d, ds, staging / "cube" / dataset / f"{d.dim_id}.parquet")
-        live_pairs, not_live_pairs = write_pairs(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
-
-        counts = metrics.month_counts(con, ds)
-        facts = write_fact_table(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
-        month_counts[dataset] = counts
-        live_dimensions[dataset] = [d.dim_id for d in live]
-        if counts.get(snapshot_key, 0) == 0:
-            aborts.append(f"{dataset}: the snapshot month {snapshot_key} has no rows")
-        deviation = metrics.latest_month_deviation(counts, snapshot_month, window)
-        if deviation is not None and abs(deviation) > g["latest_month_max_deviation"]:
-            warnings.append(f"{dataset}: {snapshot_key} count deviates {deviation:+.0%} from the median of the previous {window} months")
-        quality = metrics.quality_counts(con, derived, require, snapshot_month)
-        if quality["registration_after_snapshot"]:
-            warnings.append(f"{dataset}: {quality['registration_after_snapshot']:,} rows are dated after the snapshot month and were excluded")
-        datasets[dataset] = {
-            "definition": next((x.get("definition") for x in cfg.dimensions["datasets"] if x["id"] == dataset), None),
-            "rows": sum(counts.values()),
-            "months": len(counts),
-            "live_dimensions": live_dimensions[dataset],
-            "not_live": not_live,
-            "live_pairs": live_pairs,
-            "not_live_pairs": not_live_pairs,
-            "facts": facts,
-            "unmapped_rates": rates,
-            "unmapped_guard": guard,
-            "mild_hybrid_identification_coverage": metrics.hybrid_coverage(con, cfg, ds, window_start, snapshot_month, window),
-            "coverage_trailing": metrics.coverage(con, derived, ds, window_start, snapshot_month, window),
-            "counts": quality,
-            "model_cap": caps,
-        }
-        hybrid_coverage = datasets[dataset]["mild_hybrid_identification_coverage"]
-        disagreeing = hybrid_coverage["classification_disagrees_with_powertrain"]
-        if disagreeing:
-            warnings.append(f"{dataset}: {disagreeing:,} vehicles show a powertrain that contradicts their classification in "
-                            f"{p['hybrid_classification']['file']}")
-        trailing_high = hybrid_coverage["trailing"]["coverage_high_confidence_only"]
-        floor = hybrid_coverage["warn_below_trailing_high_confidence_coverage"]
-        if trailing_high is not None and trailing_high < floor:
-            warnings.append(f"{dataset}: mild hybrid identification coverage over the trailing {window} months is "
-                            f"{trailing_high:.1%} counting high-confidence classifications only, below {floor:.0%}")
+    for dataset, dataset_cfg in register_datasets(p).items():
+        built = build_dataset(con, cfg, dataset, dataset_cfg, snapshot_month, previous_live, staging, aborts, warnings)
+        datasets[dataset] = built.entry
+        month_counts[dataset] = built.counts
+        live_dimensions[dataset] = built.live
         if dataset == p["used_imports"]["dataset"]:
-            by_vehicle_year, by_age = metrics.used_import_years(con, cfg, ds, window_start, snapshot_month)
+            by_vehicle_year, by_age = metrics.used_import_years(con, cfg, built.ds, window_start, snapshot_month)
             year, age = metrics.moving_cutoff(by_vehicle_year, snapshot_month.year, cfg)
             moving = {"vehicle_year": year, "age": age, "snapshot_year": snapshot_month.year}
             age_report = metrics.age_report(by_age, cfg, window)
