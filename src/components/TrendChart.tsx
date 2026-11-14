@@ -105,7 +105,8 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
 
   const render = useCallback(
     (width: number) => {
-      const yMax = Math.max(1, ...model.points.map((p) => p.y ?? 0)) * 1.05;
+      // Reduced, not spread into Math.max: many series over a long period are more points than a call can take.
+      const yMax = model.points.reduce((top, p) => Math.max(top, p.y ?? 0), 1) * 1.05;
       const drawn = model.points.filter((p) => p.y !== undefined);
       // Vehicles come whole: a small count gets a tick per vehicle, never half of one.
       const ticks = yMax <= 6 ? Array.from({ length: Math.floor(yMax) + 1 }, (_, i) => i) : 5;
@@ -246,7 +247,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
 
   const render = useCallback(
     (width: number) => {
-      const top = Math.max(0.01, ...model.points.map((p) => p.y ?? 0));
+      const top = model.points.reduce((most, p) => Math.max(most, p.y ?? 0), 0.01);
       const yMax = share ? Math.min(1, top * 1.05) : top * 1.05;
       const format = share ? (d: number) => `${Math.round(d * 100)}%` : (d: number) => d.toLocaleString();
       return Plot.plot({

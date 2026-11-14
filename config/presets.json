@@ -41,24 +41,6 @@
       "$cardinality_note": "Only low-cardinality dimensions. The test measures diversity, and diversity saturates immediately when a dimension has hundreds of values: on make it returns whatever month the denominator floor allows and the composition clause never binds."
     }
   },
-  "public_copy": {
-    "$comment": "Wording for visitors on the Explore page, where config/dimensions.json (frozen until the 8 November 2026 gate) carries text written for maintainers. Keyed by dataset or dimension id; anything not listed falls back to dimensions.json. After the gate each entry moves onto its dataset or dimension there (D-042).",
-    "dataset_definitions": {
-      "registrations_surviving": "Each month counts the vehicles first registered in New Zealand that month that are still registered on the snapshot date.",
-      "nz_new": "Each month counts the vehicles first registered in New Zealand that month, new when they arrived, that are still registered on the snapshot date.",
-      "used_imports": "Each month counts the vehicles first registered in New Zealand that month, previously registered overseas, that are still registered on the snapshot date."
-    },
-    "dimension_labels": {
-      "owner_country": "Country of the brand's owner",
-      "region": "Owner's region"
-    },
-    "dimension_notes": {
-      "built_in": "Where a vehicle was built is not recorded for almost every vehicle first registered before late 1985, and is recorded for almost all since. The grey line near the top of the chart until then is that gap in the record, not where vehicles came from.",
-      "vehicle_year_band": "Age on the snapshot date, not when the vehicle was bought. It is counted from the year NZTA records for each vehicle, not from when it was built: for a vehicle sold new here since 2007, the year it was first registered here; for a used import, a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year.",
-      "age_at_registration_band": "Age when first registered in New Zealand, counted from the year NZTA records for each vehicle. A vehicle sold new here since 2007 is 0 years old by definition, because that year is its first registration here; for a used import it is a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year. Counted among vehicles still registered at the snapshot: arrivals from earlier years have had longer to leave the register, and vehicles do not all leave at the same rate, so the longer the span, the more the ages shown may differ from those that arrived at the time.",
-      "powertrain": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is."
-    }
-  },
   "builder": {
     "$comment": "The Build page: a question a visitor builds (what to measure, what to compare, which vehicles to keep, D-058), drawn through the same panel and resolver as Explore. Values and filters are summed from the fact table; without them a chart reads the slices. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
     "id": "build",
@@ -146,7 +128,7 @@
       }
     ],
     "dimension_notes": {
-      "$comment": "What a canon preset says about a dimension in its own note, which a built chart would otherwise lose. Here rather than in public_copy.dimension_notes so Explore does not show it twice.",
+      "$comment": "What a canon preset says about a dimension in its own note, which a built chart would otherwise lose. Here rather than in a dimension's public_note so Explore does not show it twice.",
       "segment": "The register records most SUVs as station wagons, so they count as cars here.",
       "import_status": "These are vehicles still registered at the snapshot, and new and used vehicles leave the register at different rates, so an older month's split may differ from what was bought at the time. In recent cohorts used imports leave faster, which understates their share; in some older cohorts it runs the other way.",
       "owner_country": "Ownership is as at today, not at registration: every year shown counts each brand under the country that owns it now.",
