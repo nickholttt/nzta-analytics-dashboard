@@ -125,6 +125,21 @@ def test_a_type_brought_into_scope_appears_under_its_label_with_no_other_change(
     assert after["datasets"][SURVIVING]["rows"] == before["datasets"][SURVIVING]["rows"] + 1
 
 
+def test_the_pair_with_import_status_is_live_and_adds_up_to_both_slices(tmp_path, workspace):
+    cfg, _, manifest = build_fixture(tmp_path, workspace)
+    pairs = [p for p in cfg.pipeline["datasets"][SURVIVING]["pairs"] if DIM in p]
+    assert len(pairs) == 1 and set(pairs[0]) == {DIM, "import_status"}
+    name = "__".join(pairs[0])
+    assert name in manifest["datasets"][SURVIVING]["live_pairs"]
+    con = duckdb.connect()
+    public = workspace["public"]
+    pair = f"read_parquet('{(public / 'pairs' / SURVIVING / (name + '.parquet')).as_posix()}')"
+    for side, dim in zip(("a_value", "b_value"), pairs[0]):
+        single = f"read_parquet('{(public / 'cube' / SURVIVING / (dim + '.parquet')).as_posix()}')"
+        summed = con.execute(f"SELECT month, {side}, sum(n) FROM {pair} GROUP BY ALL ORDER BY ALL").fetchall()
+        assert summed == con.execute(f"SELECT month, dim_value, n FROM {single} ORDER BY ALL").fetchall(), dim
+
+
 def test_a_dimension_cannot_be_live_where_the_source_carries_no_vehicle_type(workspace):
     cfg = make_cfg(workspace)
     field = dimension(cfg)["derive"]["field"]

@@ -51,7 +51,8 @@
     },
     "live_pairs": [
      "import_status__age_at_registration_band",
-     "powertrain__segment_group"
+     "powertrain__segment_group",
+     "import_status__vehicle_type"
     ],
     "not_live_pairs": {},
     "facts": {
@@ -282,7 +283,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 39459,
+  "payload_bytes": 41521,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -6035,6 +6036,374 @@
      4.0,
      1,
      1
+    ]
+   ]
+  },
+  "registrations_surviving/import_status__vehicle_type.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "a_value",
+     "VARCHAR"
+    ],
+    [
+     "b_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "NZ New",
+     "Passenger cars and vans",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "NZ New",
+     "Passenger cars and vans",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "Used Import",
+     "Passenger cars and vans",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "NZ New",
+     "Passenger cars and vans",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "Used Import",
+     "Passenger cars and vans",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "NZ New",
+     "Passenger cars and vans",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "NZ New",
+     "Goods vans, trucks and utes",
+     1,
+     2,
+     8.8,
+     1,
+     1
+    ],
+    [
+     "2025-10-01",
+     "Used Import",
+     "Passenger cars and vans",
+     1,
+     2,
+     1.9,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "NZ New",
+     "Passenger cars and vans",
+     1,
+     2,
+     9.1,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "Used Import",
+     "Passenger cars and vans",
+     1,
+     2,
+     6.2,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "NZ New",
+     "Passenger cars and vans",
+     2,
+     2,
+     14.6,
+     2,
+     2
+    ],
+    [
+     "2026-01-01",
+     "NZ New",
+     "Passenger cars and vans",
+     1,
+     2,
+     4.9,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "Used Import",
+     "Passenger cars and vans",
+     1,
+     2,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "NZ New",
+     "Passenger cars and vans",
+     2,
+     3,
+     13.9,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "Used Import",
+     "Passenger cars and vans",
+     1,
+     3,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "NZ New",
+     "Goods vans, trucks and utes",
+     1,
+     5,
+     10.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "NZ New",
+     "Passenger cars and vans",
+     2,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Used Import",
+     "Passenger cars and vans",
+     2,
+     5,
+     8.5,
+     2,
+     2
+    ],
+    [
+     "2026-04-01",
+     "NZ New",
+     "Passenger cars and vans",
+     2,
+     5,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Used Import",
+     "Goods vans, trucks and utes",
+     1,
+     5,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Used Import",
+     "Passenger cars and vans",
+     2,
+     5,
+     11.8,
+     2,
+     2
+    ],
+    [
+     "2026-05-01",
+     "NZ New",
+     "Goods vans, trucks and utes",
+     1,
+     6,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "NZ New",
+     "Passenger cars and vans",
+     2,
+     6,
+     13.8,
+     2,
+     2
+    ],
+    [
+     "2026-05-01",
+     "Used Import",
+     "Passenger cars and vans",
+     3,
+     6,
+     16.2,
+     3,
+     3
+    ],
+    [
+     "2026-06-01",
+     "NZ New",
+     "Goods vans, trucks and utes",
+     1,
+     6,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-06-01",
+     "NZ New",
+     "Passenger cars and vans",
+     3,
+     6,
+     6.9,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "Used Import",
+     "Passenger cars and vans",
+     2,
+     6,
+     7.1,
+     2,
+     2
+    ],
+    [
+     "2026-07-01",
+     "NZ New",
+     "Goods vans, trucks and utes",
+     1,
+     5,
+     8.9,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "NZ New",
+     "Passenger cars and vans",
+     2,
+     5,
+     9.9,
+     2,
+     2
+    ],
+    [
+     "2026-07-01",
+     "Used Import",
+     "Passenger cars and vans",
+     2,
+     5,
+     8.5,
+     2,
+     2
+    ],
+    [
+     "2026-08-01",
+     "NZ New",
+     "Goods vans, trucks and utes",
+     1,
+     11,
+     7.6,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "NZ New",
+     "Passenger cars and vans",
+     7,
+     11,
+     32.7,
+     6,
+     6
+    ],
+    [
+     "2026-08-01",
+     "Used Import",
+     "Passenger cars and vans",
+     3,
+     11,
+     7.4,
+     2,
+     2
     ]
    ]
   },
