@@ -26,6 +26,7 @@ from .reference import quote
 CHECK = "supply"
 MONTH_KEY = "%Y-%m"
 PERIOD = re.compile(r"^\d{4}(-\d{2})?$")
+PERIOD_MONTH_FORMAT = "%Y-%m"
 STORE_MONTH, STORE_COUNT = "month", "vehicles"
 
 
@@ -36,6 +37,13 @@ def abort(message: str) -> GuardrailError:
 def store_columns(source: dict) -> list[str]:
     """The store's columns, in order: the month, the public fields under their logical names, the count."""
     return [STORE_MONTH, *source["fields"], *source["extra_fields"], STORE_COUNT]
+
+
+def check_config(source: dict) -> list[str]:
+    """No column the file carries for the owner may also be a public field: it would be stored."""
+    mapped = {*source["fields"].values(), *source["extra_fields"].values()}
+    return [f"{c} is listed in private_columns and also mapped to a public field in config/pipeline.json; "
+            "a private column is dropped, never stored" for c in source["private_columns"] if c in mapped]
 
 
 def store_paths(cfg, source_id: str) -> tuple[Path, Path]:
@@ -72,6 +80,14 @@ def sha256_of(path: Path) -> str:
         for block in iter(lambda: fh.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def hash_problems(registrations: Path, ledger: dict) -> list[str]:
+    """The ledger names the store file it was written with. A different file means the pair does not belong together."""
+    if sha256_of(registrations) != ledger.get("store_sha256"):
+        return [f"{registrations.name} is not the file this ledger was written with (its SHA-256 differs from the "
+                "ledger's store_sha256). The two may come from different runs or one was edited."]
+    return []
 
 
 def store_problems(con, table: str, ledger: dict) -> list[str]:
@@ -130,10 +146,17 @@ def parse_totals(source: dict, path: Path) -> dict[str, int]:
             raise abort(f"the totals file needs the columns {t['period_column']} and {t['count_column']}")
         out: dict[str, int] = {}
         for row in reader:
-            period, count = row[t["period_column"]].strip(), row[t["count_column"]].strip()
-            if not PERIOD.match(period) or not count.isdigit():
-                raise abort(f"totals row {period!r}, {count!r}: a period is YYYY-MM or YYYY and a count is a whole number "
-                            "with no commas")
+            period, count = (row[t["period_column"]] or "").strip(), (row[t["count_column"]] or "").strip()
+            line = f"totals line {reader.line_num}"
+            if not PERIOD.match(period):
+                raise abort(f"{line}: {period!r} is not a period. A period is YYYY-MM or YYYY.")
+            if len(period) == 7:
+                try:
+                    datetime.strptime(period, PERIOD_MONTH_FORMAT)
+                except ValueError:
+                    raise abort(f"{line}: {period!r} is not a real month. A period is YYYY-MM or YYYY.") from None
+            if not count.isdigit():
+                raise abort(f"{line}: {count!r} is not a whole number with no commas.")
             if period in out:
                 raise abort(f"the totals file lists {period} twice")
             out[period] = int(count)
@@ -246,6 +269,9 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
     if source_id not in cfg.pipeline.get("supplied", {}):
         raise abort(f"{source_id!r} is not a supplied source in config/pipeline.json ({sorted(cfg.pipeline.get('supplied', {}))})")
     source = cfg.supplied(source_id)
+    bad = check_config(source)
+    if bad:
+        raise abort("; ".join(bad))
     if not csv_path.is_file():
         raise abort(f"{csv_path.name} is not a file")
     has_month = check_header(source, read_header(csv_path))
@@ -282,8 +308,10 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
         raise abort(f"--taken {taken_on} is before {month_key(months[-1])} ends ({ends}). Give the day the export was taken.")
 
     warnings = []
+    checked = None
     if totals:
-        problems = check_totals(con, parse_totals(source, totals))
+        checked = parse_totals(source, totals)
+        problems = check_totals(con, checked)
         if problems:
             raise abort("the file does not match the dashboard's own totals:\n  - " + "\n  - ".join(problems)
                         + "\nThe export may be incomplete. Export it again.")
@@ -294,7 +322,7 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
     con.execute(f"CREATE TABLE incoming_rows AS SELECT {columns}, CAST(sum({STORE_COUNT}) AS INTEGER) AS {STORE_COUNT} "
                 "FROM typed GROUP BY ALL")
     registrations, ledger_path = store_paths(cfg, source_id)
-    ledger = {"months": {}, "replaced": []}
+    ledger = {"store_sha256": None, "files": {}, "months": {}, "replaced": []}
     have = bool(registrations.exists() or ledger_path.exists())
     if have:
         if not (registrations.exists() and ledger_path.exists()):
@@ -302,7 +330,7 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
         ledger = read_ledger(ledger_path)
         con.execute(f"CREATE TABLE stored AS SELECT {', '.join(quote(c) for c in store_columns(source))} "
                     f"FROM read_parquet({lit(registrations.as_posix())})")
-        problems = store_problems(con, "stored", ledger)
+        problems = hash_problems(registrations, ledger) + store_problems(con, "stored", ledger)
         if problems:
             raise abort("the store disagrees with its ledger: " + "; ".join(problems))
     else:
@@ -342,6 +370,8 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
               "written": bool(added or replaced)}
     if result["written"]:
         digest = sha256_of(csv_path)
+        ledger["files"][digest] = {"source_file": csv_path.name, "taken": taken_on.isoformat(),
+                                   "totals_checked": dict(sorted(checked.items())) if checked is not None else None}
         for m in replaced:
             old = ledger["months"][m]
             ledger["replaced"].append({
@@ -355,6 +385,7 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
             ledger["months"][m] = {"source_file": csv_path.name, "sha256": digest, "taken": taken_on.isoformat(),
                                    "rows": incoming[m][0], "vehicles": incoming[m][1]}
         ledger["months"] = dict(sorted(ledger["months"].items()))
+        ledger["files"] = dict(sorted(ledger["files"].items()))
         out = [f"DATE {lit(m + '-01')}" for m in replaced]
         drop = f"WHERE {STORE_MONTH} NOT IN ({', '.join(out)})" if out else ""
         incoming_months = [f"DATE {lit(m + '-01')}" for m in added + replaced]
@@ -371,6 +402,9 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
         registrations.parent.mkdir(parents=True, exist_ok=True)
         staged = registrations.with_name(registrations.name + ".new")
         con.execute(f"COPY merged TO {lit(staged.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)")
+        # Both files are written under temporary names first and the ledger is renamed last. An interruption between the
+        # two renames leaves a store the old ledger does not describe, and the hash in the ledger catches that.
+        ledger["store_sha256"] = sha256_of(staged)
         staged_ledger = ledger_path.with_name(ledger_path.name + ".new")
         outputs.write_json(staged_ledger, ledger)
         os.replace(staged, registrations)

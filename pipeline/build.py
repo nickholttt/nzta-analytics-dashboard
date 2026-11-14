@@ -169,7 +169,7 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
     if quality["registration_after_snapshot"]:
         warnings.append(f"{dataset}: {quality['registration_after_snapshot']:,} rows are dated after the snapshot month and were excluded")
     entry = {
-        "definition": next((x.get("definition") for x in cfg.dimensions["datasets"] if x["id"] == dataset), None),
+        "definition": dataset_definition(cfg, dataset),
         "rows": sum(counts.values()),
         "months": len(counts),
         "latest_month": snapshot_key,
@@ -235,8 +235,9 @@ def supplied_raw(con, cfg, source_id: str, types: dict[str, str]) -> None:
 
 
 def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names: set[str], register_month: date,
-                   state: dict | None, staging, aborts: list[str], warnings: list[str]) -> tuple[dict, dict, dict]:
-    """Every dataset that reads the supplied source: (manifest entries, month counts, live dimensions). The store is checked
+                   state: dict | None, staging, aborts: list[str], warnings: list[str]) -> tuple[dict, dict, dict, dict]:
+    """Every dataset that reads the supplied source: (manifest entries, month counts, live dimensions,
+    the store's own vehicles per month). The store is checked
     against its ledger first. The source's own latest month is the dataset's snapshot month: older than the register's is a
     warning, newer aborts (the register is the clock). With no store the datasets are not built, and say so."""
     p, s = cfg.pipeline, cfg.supplied(source_id)
@@ -251,27 +252,31 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
             warnings.append(f"{dataset} was not built: {reason}")
             if dataset in previous_live:
                 aborts.append(f"{dataset}: it was built in the last good run, but {reason}")
-        return entries, {}, {}
+        return entries, {}, {}, {}
     if not (registrations.exists() and ledger_path.exists()):
         aborts.append(f"{source_id}: the supplied store has only one of {s['registrations_file']} and {s['ledger_file']}")
-        return {}, {}, {}
+        return {}, {}, {}, {}
 
+    bad = supplied.check_config(s)
+    if bad:
+        aborts.extend(f"{source_id}: {problem}" for problem in bad)
+        return {}, {}, {}, {}
     con.execute(f"CREATE OR REPLACE TABLE supplied_store AS SELECT * FROM read_parquet({normalise.lit(registrations.as_posix())})")
     found = [c for c, *_ in con.execute("DESCRIBE supplied_store").fetchall()]
     if found != supplied.store_columns(s):
         aborts.append(f"{source_id}: the store's columns are {found}, but config/pipeline.json expects {supplied.store_columns(s)}")
-        return {}, {}, {}
+        return {}, {}, {}, {}
     ledger = supplied.read_ledger(ledger_path)
-    problems = supplied.store_problems(con, "supplied_store", ledger)
+    problems = supplied.hash_problems(registrations, ledger) + supplied.store_problems(con, "supplied_store", ledger)
     if problems:
         aborts.extend(f"{source_id}: the store disagrees with its ledger: {problem}" for problem in problems)
-        return {}, {}, {}
+        return {}, {}, {}, {}
 
     first, latest = con.execute(f"SELECT min({supplied.STORE_MONTH}), max({supplied.STORE_MONTH}) FROM supplied_store").fetchone()
     if latest > register_month:
         aborts.append(f"{source_id}: the store's latest month {supplied.month_key(latest)} is after the register's "
                       f"{supplied.month_key(register_month)}; the register is the clock, so the store cannot be ahead of it")
-        return {}, {}, {}
+        return {}, {}, {}, {}
     if latest < register_month:
         missing = [supplied.month_key(m) for m in supplied.month_range(metrics.month_add(latest, 1), register_month)]
         warnings.append(f"{source_id}: the export is missing {', '.join(missing)}: the store ends at "
@@ -283,7 +288,11 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
     normalise.build_rows(con, cfg)
 
     taken = sorted({e["taken"] for e in ledger["months"].values()})
-    replaced = {e["month"] for e in ledger["replaced"]}
+    # The store's own total for each month, whatever scope says: the guard compares these, so an edit to a scope file
+    # cannot move them. A replacement excuses a month only if its file was taken since the last good build.
+    store_totals = {m: int(e["vehicles"]) for m, e in ledger["months"].items()}
+    since = ((state or {}).get("generated_at") or "")[:10]
+    replaced = {e["month"] for e in ledger["replaced"] if e["new"]["taken"] >= since}
     entries, counts, live = {}, {}, {}
     for dataset in names:
         built = build_dataset(con, cfg, dataset, p["datasets"][dataset], latest, previous_live, staging, aborts, warnings)
@@ -295,8 +304,8 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
         }}
         counts[dataset], live[dataset] = built.counts, built.live
         aborts += guardrails.supplied_month_changes(
-            dataset, built.counts, ((state or {}).get("month_counts") or {}).get(dataset, {}), replaced, s["max_month_change"])
-    return entries, counts, live
+            dataset, store_totals, ((state or {}).get("supplied_totals") or {}).get(dataset, {}), replaced, s["max_month_change"])
+    return entries, counts, live, {d: store_totals for d in names}
 
 
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:
@@ -361,14 +370,16 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     staged_archive = staging.parent / "archive.parquet"
     outputs.write_archive(con, cfg, staged_archive)
 
+    supplied_totals: dict[str, dict[str, int]] = {}
     # After this point `src`, `rows` and `dims` hold a supplied source, not the register.
     schema_names = {f["name"] for f in expected["fields"]}
     for source_id in supplied_sources(p):
-        entries, counts, live = build_supplied(con, cfg, source_id, types, schema_names, snapshot_month, state, staging,
+        entries, counts, live, totals = build_supplied(con, cfg, source_id, types, schema_names, snapshot_month, state, staging,
                                                aborts, warnings)
         datasets.update(entries)
         month_counts.update(counts)
         live_dimensions.update(live)
+        supplied_totals.update(totals)
 
     current = {
         "row_count": source["row_count"],
@@ -442,5 +453,6 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "live_dimensions": live_dimensions,
             "moving_cutoff": moving,
             "month_counts": month_counts,
+            "supplied_totals": supplied_totals,
         })
     return manifest

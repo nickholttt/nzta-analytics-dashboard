@@ -375,7 +375,7 @@ later edit by NZTA never replaces what the first build published.
 
 A dataset may be built from a file a maintainer supplies by hand instead of from the register. The
 source is named in `supplied` in `config/pipeline.json`; its first user is `nzta_dashboard`, NZTA's
-registrations dashboard (`docs/DATA_SOURCES.md` §D, D-075). Nothing fetches it and the Action never
+registrations dashboard (`docs/DATA_SOURCES.md` §D, D-084; the definition is D-087). Nothing fetches it and the Action never
 runs `python -m pipeline supply`.
 
 **The store**, `data/supplied/<id>/` (gitignored for now: whether it may live in the public repository
@@ -387,10 +387,14 @@ is the user's decision):
   columns in `private_columns` (for the dashboard, the three owner columns), which are asserted present
   in the file and then dropped, so no owner field is in the store or in any output. Sorted, and written
   with the Parquet options of the cube (ZSTD), so the same input gives the same bytes.
-- `ledger.json`: `months`, for each month the source file's name (name only), its SHA-256, the day it
-  was taken, and its rows and vehicles in the store; and `replaced`, one entry for each month a later
-  file restated, with the old and new vehicles, rows, taken dates, hashes and file names. A month is
-  never replaced without an entry.
+- `ledger.json`: `store_sha256`, the SHA-256 of `registrations.parquet` as written with it; `files`, for
+  each file supplied (keyed by its SHA-256) the file's name (name only), the day it was taken, and
+  `totals_checked`, the dashboard totals it was checked against (period to vehicles), or null when
+  `--totals` was not given; `months`, for each month the hash of the file it came from, the day it was
+  taken, and its rows and vehicles in the store; and `replaced`, one entry for each month a later file
+  restated, with the old and new vehicles, rows, taken dates, hashes and file names. A month is never
+  replaced without an entry. Both files are written under temporary names and the ledger is renamed
+  last; the hash is the backstop if a run is interrupted between the two renames.
 
 `supply` aborts, writing nothing, on any of: a header that is not the configured columns, a count that
 is not a whole number above zero, a numeric field that does not parse, two rows with the same key, a
@@ -505,8 +509,12 @@ Supplied sources:
   other), has a gap between its first and last month, or has columns other than the configured ones, or
   has only one of its two files.
 - The store's latest month is after the register's.
-- A month's count differs from the last good build's by more than `supplied.<id>.max_month_change`
-  (2%) and the ledger's `replaced` list has no entry for that month.
+- The store file is not the one the ledger was written with (`store_sha256` differs), or a column named in
+  `private_columns` is also mapped to a public field.
+- A month's own total in the store (every vehicle the ledger records for it, before any scope applies) differs
+  from the last good build's by more than `supplied.<id>.max_month_change` (2%), and the ledger has no
+  replacement of that month whose file was taken on or after the last good build's day. The totals are kept in
+  the state as `supplied_totals.<dataset>`, so an edit to a scope file cannot trip this check.
 - A supplied dataset was built in the last good run and its store is now absent.
 
 Pairs:

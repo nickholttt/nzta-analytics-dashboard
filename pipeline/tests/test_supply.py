@@ -177,7 +177,7 @@ def with_columns(tmp_path, drop=None, add=None):
 
 def test_the_header_must_be_the_configured_columns(tmp_path, cfg, source):
     owner = source["private_columns"][0]
-    aborts(owner, lambda: supply(cfg, with_columns(tmp_path, drop=owner)))
+    aborts(f"missing ['{owner}']", lambda: supply(cfg, with_columns(tmp_path, drop=owner)))
     aborts("Surprise", lambda: supply(cfg, with_columns(tmp_path, add="Surprise")))
     assert not supplied.store_paths(cfg, SOURCE)[0].exists()
 
@@ -261,3 +261,94 @@ def test_the_summary_names_few_months_and_ranges_many(cfg):
     assert lines[0] == "Months added: 2026-06, 2026-07, 2026-08"
     assert supplied.span([f"2021-{m:02d}" for m in range(1, 8)]) == "7 months, 2021-01 to 2021-07"
     assert supplied.span([]) == "none"
+
+
+def test_a_repeated_header_column_is_refused(tmp_path, cfg, source):
+    column = source["fields"]["make"]
+    aborts(f"repeated ['{column}']", lambda: supply(cfg, with_columns(tmp_path, add=column)))
+
+
+def test_a_hole_inside_the_file_is_refused_even_when_the_stored_months_make_the_range_continuous(tmp_path, cfg, source):
+    supply(cfg, HISTORY)
+    column, fmt = source["month"]["column"], source["month"]["format"]
+    july, august, september = (datetime(2026, m, 1).strftime(fmt) for m in (7, 8, 9))
+
+    def holed(rows):
+        later = [dict(r, **{column: september}) for r in rows if r[column] == august]
+        return [r for r in rows if r[column] != july] + later
+
+    path = edited(tmp_path, HISTORY, holed)
+    aborts("the file has no rows for 2026-07", lambda: supply(cfg, path, taken="2026-10-02"))
+    assert "2026-09" not in store_table(cfg)[2]["months"]
+
+
+@pytest.mark.parametrize("keep", ["registrations_file", "ledger_file"])
+def test_a_store_with_one_of_its_two_files_stops_the_command(cfg, source, keep):
+    supply(cfg, HISTORY)
+    gone = "ledger_file" if keep == "registrations_file" else "registrations_file"
+    (cfg.supplied_store(SOURCE) / source[gone]).unlink()
+    aborts("one of its two files", lambda: supply(cfg, MONTH, month="2026-09", taken="2026-10-02"))
+
+
+def test_the_ledger_records_the_stores_hash_and_each_files_totals(cfg):
+    supply(cfg, HISTORY, totals=TOTALS)
+    supply(cfg, MONTH, month="2026-09", taken="2026-10-02")
+    registrations, _ = supplied.store_paths(cfg, SOURCE)
+    ledger = store_table(cfg)[2]
+    assert ledger["store_sha256"] == supplied.sha256_of(registrations)
+    by_name = {f["source_file"]: f for f in ledger["files"].values()}
+    assert by_name[HISTORY.name]["totals_checked"] == {"2026": 462, "2026-08": 154}
+    assert by_name[MONTH.name]["totals_checked"] is None
+    assert ledger["months"]["2026-06"]["sha256"] in ledger["files"]
+
+
+def test_a_store_replaced_with_the_same_month_totals_but_different_rows_is_refused(cfg, source):
+    supply(cfg, HISTORY)
+    registrations = supplied.store_paths(cfg, SOURCE)[0]
+    field = next(iter(source["fields"]))
+    con = duckdb.connect()
+    path = registrations.as_posix()
+    con.execute(f"""COPY (SELECT * EXCLUDE (rn) REPLACE (CASE WHEN rn = 1 THEN (SELECT max({field}) FROM read_parquet('{path}'))
+                                                          ELSE {field} END AS {field})
+                          FROM (SELECT *, row_number() OVER () AS rn FROM read_parquet('{path}')))
+                TO '{path}.moved' (FORMAT PARQUET)""")
+    registrations.with_name(registrations.name + ".moved").replace(registrations)
+    aborts("store_sha256", lambda: supply(cfg, MONTH, month="2026-09", taken="2026-10-02"))
+
+
+def test_an_interruption_between_the_two_renames_leaves_a_pair_the_next_run_refuses(cfg, monkeypatch):
+    supply(cfg, HISTORY)
+    real, calls = os.replace, []
+
+    def interrupted(src, dst):
+        calls.append(dst)
+        if len(calls) == 2:
+            raise OSError("interrupted")
+        return real(src, dst)
+
+    monkeypatch.setattr(supplied.os, "replace", interrupted)
+    with pytest.raises(OSError):
+        supply(cfg, MONTH, month="2026-09", taken="2026-10-02")
+    monkeypatch.undo()
+    aborts("disagrees with its ledger", lambda: supply(cfg, MONTH, month="2026-09", taken="2026-10-02"))
+
+
+@pytest.mark.parametrize("period, fragment", [("2026-13", "line 2"), ("2026-1", "line 2"), ("abcd", "line 2")])
+def test_a_totals_period_that_is_not_real_names_its_line(tmp_path, cfg, period, fragment):
+    totals = tmp_path / "bad_totals.csv"
+    totals.write_text(f"period,vehicles\n{period},5\n", encoding="utf-8", newline="\n")
+    aborts(fragment, lambda: supply(cfg, HISTORY, totals=totals))
+    assert not supplied.store_paths(cfg, SOURCE)[0].exists()
+
+
+def test_a_private_column_mapped_to_a_public_field_is_refused(cfg, source):
+    cfg.pipeline["supplied"][SOURCE]["extra_fields"] = {"district": source["private_columns"][1]}
+    aborts("private_columns", lambda: supply(cfg, HISTORY))
+    assert not supplied.store_paths(cfg, SOURCE)[0].exists()
+
+
+def test_a_refused_supply_says_the_store_is_unchanged(capsys):
+    from pipeline.__main__ import main
+    assert main(["supply", SOURCE, "no-such-file.csv"]) == 2
+    err = capsys.readouterr().err
+    assert "the store is unchanged" in err and "last good build" not in err
