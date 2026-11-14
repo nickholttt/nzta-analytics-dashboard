@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { builderSpec } from "../lib/config";
 import { MAX_VALUES, builderPresets, questionParams, readQuestion, settle, viewsFor } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
-import { factView, loadManifest, loadSlice } from "../lib/data";
+import { ServiceError, factView, loadManifest, loadSlice } from "../lib/data";
 import type { SliceRow } from "../lib/data";
 import { addMonths } from "../lib/measures";
 import { count } from "../lib/readout";
@@ -48,7 +48,8 @@ async function valueOptions(dataset: string, dimension: string, where: Record<st
 
 function useValueOptions(dataset: string, dimension: string, where: Record<string, string[]>) {
   const [options, setOptions] = useState<ValueOption[] | null>(null);
-  const [failed, setFailed] = useState(false);
+  // "service" when the query service failed, so the hint names it rather than advising a reload.
+  const [failed, setFailed] = useState<false | "file" | "service">(false);
   const whereKey = JSON.stringify(where);
   useEffect(() => {
     let current = true;
@@ -56,7 +57,7 @@ function useValueOptions(dataset: string, dimension: string, where: Record<strin
     setFailed(false);
     valueOptions(dataset, dimension, JSON.parse(whereKey)).then(
       (o) => current && setOptions(o),
-      () => current && setFailed(true),
+      (e) => current && setFailed(e instanceof ServiceError ? "service" : "file"),
     );
     return () => {
       current = false;
@@ -124,7 +125,9 @@ function ValuePicker({
       ) : emptyHint ? (
         <p className="picker-hint">{emptyHint}</p>
       ) : null}
-      {failed ? (
+      {failed === "service" ? (
+        <p className="picker-hint">The question service is not answering, so the values to choose from did not load. Try again in a few minutes.</p>
+      ) : failed ? (
         <p className="picker-hint">The values to choose from did not load. Reload the page to try again.</p>
       ) : full ? (
         <p className="picker-hint">Up to {max} can be compared at once. Remove one to add another.</p>

@@ -3,6 +3,7 @@
 import { parquetRead, parquetReadObjects } from "hyparquet";
 import type { ColumnData } from "hyparquet";
 import { compressors } from "hyparquet-compressors";
+import { builderSpec } from "./config";
 
 const DATA = "/data";
 
@@ -176,6 +177,67 @@ const loadFactMonths = (dataset: string) =>
     return out;
   });
 
+// The seam for the query service (docs/QUERY_SERVICE.md). Set at build time; unset, as by default, the fact table is
+// read in the browser exactly as before and the service is never asked. Set, a question that needs the fact table is
+// sent to the service in Build's own address-bar form, and its answer is turned into the same rows. Nothing else
+// changes: the stage's slices, pairs, manifest and events are static files either way.
+const QUERY_SERVICE: string = import.meta.env.PUBLIC_QUERY_SERVICE ?? "";
+
+// A failure of the service, with a sentence a visitor can be shown: the chart says the service is not answering,
+// rather than that the page should be reloaded.
+export class ServiceError extends Error {}
+
+type ServiceAnswer = { months: string[]; denominator: number[]; values?: string[]; cells?: (number | null)[][]; suppression?: { cells_withheld: number } };
+
+function serviceQuestion(dimension: string | null, values: string[] | undefined, where: Record<string, string[]>): string {
+  const params = new URLSearchParams();
+  const key = (name: string) => `${builderSpec.id}.${name}`;
+  if (dimension) params.set(key("by"), dimension);
+  for (const v of [...new Set(values ?? [])].sort()) params.append(key("value"), v);
+  for (const [d, kept] of Object.entries(where).sort(([a], [b]) => a.localeCompare(b)))
+    for (const v of [...new Set(kept)].sort()) params.append(key(`where.${d}`), v);
+  return params.toString();
+}
+
+const askService = (dataset: string, question: string) =>
+  once(`service:${dataset}?${question}`, async (): Promise<ServiceAnswer> => {
+    let res: Response;
+    try {
+      res = await fetch(`${QUERY_SERVICE}/v1/${encodeURIComponent(dataset)}/answer?${question}`);
+    } catch {
+      throw new ServiceError("The question service is not answering, so this chart cannot be drawn just now. Explore's charts do not need it and still work. Try again in a few minutes.");
+    }
+    if (res.ok) return res.json() as Promise<ServiceAnswer>;
+    const reason = await res.json().then((b: { error?: string }) => b.error, () => undefined);
+    if (res.status >= 500 || !reason) throw new ServiceError(`The question service could not answer (HTTP ${res.status}), so this chart cannot be drawn just now. Explore's charts still work.`);
+    throw new ServiceError(`The question service did not answer this question: ${reason}`);
+  });
+
+// The service's answer as the rows factView gives for the same question, in the same order.
+async function serviceView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>) {
+  const filters = Object.fromEntries(Object.entries(where).filter(([, kept]) => kept.length > 0));
+  const answer = await askService(dataset, serviceQuestion(dimension, values, filters));
+  if (answer.suppression && answer.suppression.cells_withheld > 0)
+    throw new ServiceError("Some figures in this question count too few vehicles to be shown, and drawing a chart around them is not built yet.");
+  const out: SliceRow[] = [];
+  if (!dimension) {
+    answer.months.forEach((month, i) => out.push({ month, value: "", n: answer.denominator[i], denominator: answer.denominator[i] }));
+    return out;
+  }
+  const names = answer.values ?? [];
+  const cells = answer.months.map(() => new Map<string, number>());
+  for (const [mi, vi, n] of answer.cells ?? []) cells[mi as number].set(names[vi as number], n as number);
+  answer.months.forEach((month, i) => {
+    const cell = cells[i];
+    const shown = values ?? [...cell.keys()];
+    for (const value of [...shown].sort()) {
+      const n = cell.get(value) ?? 0;
+      if (n > 0 || values) out.push({ month, value, n, denominator: answer.denominator[i] });
+    }
+  });
+  return out;
+}
+
 // The fact table summed to slice rows: for each month, every vehicle the filters keep is in the denominator, and each
 // breakdown value (or only the chosen ones) gets its count. Every month in the table is present, with a denominator of 0
 // where the filters keep nothing: there the count is a true 0, not a month missing from the data, and a share is still
@@ -183,6 +245,7 @@ const loadFactMonths = (dataset: string) =>
 // has none, so its line runs through that month rather than breaking. With no breakdown, one row per month holds the
 // total.
 export async function factView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>) {
+  if (QUERY_SERVICE) return serviceView(dataset, dimension, values, where);
   const filters = Object.entries(where).filter(([, kept]) => kept.length > 0);
   const [months, counts, breakdown, ...filterColumns] = await Promise.all([
     loadFactMonths(dataset),
