@@ -14,8 +14,7 @@ Two kinds of artefact, both computed at build time:
   by month and every configured dimension at once, so any combination of
   values, filters and periods is a sum over its rows. It holds counts, never
   a vehicle row, and the browser aggregates it without a query engine (the
-site's code, `src/lib/data.ts`, which is on `ui/explore` and not yet on
-`main`; nothing in the pipeline shows it).
+site's code, `src/lib/data.ts`; nothing in the pipeline shows it).
 
 No count of dimensions is fixed in this document or anywhere else; see
 *Live dimensions*.

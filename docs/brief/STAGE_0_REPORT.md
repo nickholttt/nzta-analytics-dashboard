@@ -80,12 +80,12 @@ $repo = "nickholttt/nzta-analytics-dashboard"
 **The August raw pull** is `data\raw\2026-08\20260911T093818Z` in the repo folder: 185 pages and a
 `source.json`, 177 MB, gitignored, on one disk. It is the only copy of the August snapshot finer
 than the committed aggregate, and it holds the 17 bound fields only. Where should it be copied
-(decision 5)? Once you name a folder, these two lines copy it and lose nothing. I have not run
-them; the path is yours to choose.
+(decision 5)? Once you name a folder, these two lines, run from the repo folder, copy it and lose
+nothing. I have not run them; the path is yours to choose.
 
 ```powershell
 New-Item -ItemType Directory -Force "D:\nzta-archive\raw"
-Copy-Item -Recurse "F:\Users\Dev Environment\Desktop\nzta_analytics_dashboard\data\raw\2026-08" "D:\nzta-archive\raw\2026-08"
+Copy-Item -Recurse "data\raw\2026-08" "D:\nzta-archive\raw\2026-08"
 ```
 
 No raw pull of September exists anywhere: the runner's copy went with the runner.
@@ -394,8 +394,7 @@ page, and the name.
   it included `POSTCODE`, before I had seen that its privacy class was in doubt. The rows stayed
   in my scratch folder, were used only to measure file sizes, and are deleted, with every file
   cut from them.
-- **Scratch files** are in
-  `C:\Users\NICKHO~1\AppData\Local\Temp\claude\3d8652c0f86f18ac\a8f73255-3d96-4273-b61e-d4f120165978\scratchpad`:
+- **Scratch files** are in claude's scratch folder for that session, outside the repo:
   the scripts, the count results, the two downloaded cubes, the Stats NZ CSV, saved web pages, and
   size-test files cut from the saved August pull (bound fields only). They are not part of the
   repo and can be deleted.

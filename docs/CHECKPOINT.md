@@ -1,36 +1,28 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-13
+Last updated by claude on 2026-11-14
 
 ## Where we left off
 
-- 2026-11-13, sixth session.
-  - **The user's answers** (D-078): the fact table leaves out the owner's region until the Stage 2
-    privacy review; merge #42 and #36; the dashboard's first step is the user's, when they say
-    they are ready; then the queue, asking before `ui/explore` goes into `main` or anything
-    becomes public.
-  - **#42 is in `main`** (`a0c1943`): the archive job keeps `VIN11` and `POSTCODE` from the next
-    built month.
-  - **#41, the fact table, is in `main`** (`f78e3e1`), without region. Its reviewer agreed twice
-    (once with follow-ups, then on the fixes). October's dry run: 641,618 rows in 1.73 MB, and
-    every slice byte-identical to `cube-2026-10`. The next build publishes the table.
-  - **The review found a gap `main` already had**, now closed: a vehicle type listed twice in
-    `vehicle_scope.csv` counted its vehicles twice with no abort.
-  - **`VIN11` is checked against the data** (D-079): no model year for used imports, one for about
-    four in ten NZ-new vehicles; nothing is derived. `POSTCODE`'s zero means "not recorded".
-  - **NZTA's dashboard page is read into the docs**: its history of `vehicle_year` against the
-    data (`docs/MODEL_AND_AGE.md` §1) and its definitions (`docs/DATA_MAP.md`). The make and
-    model cleansing code it links to answers "Not Found" on GitHub.
-  - Four playbooks and two skills no longer describe the freeze.
-  - **#36 is in `ui/explore`** (`2236422`): these notes, D-062 to D-079.
-  - **#45 is open into `ui/explore`**: `main` merged in, the two conflicts resolved, the stale
-    docs brought up to date. Tests, typecheck, build and screens pass. Its reviewer agreed with
-    follow-ups, none blocking; the ones that are docs on that branch are done.
+- 2026-11-14, seventh session.
+  - **The user's answers** (D-080, D-081): merge #45 and #46; hard rules 7 and 8 reworded as
+    proposed; October forced only if the daily run of 14 November reports the source
+    unchanged; no path from the user's computer in the docs; the dashboard on "ready"; nothing
+    becomes public without asking.
+  - **#46 is in `main`** (`a41c2cf`, the same tree as `ui/explore`). The `Deploy` run of that
+    push built the site from `cube-2026-10` and uploaded nothing. That cube has no fact table,
+    so Build draws its default question and offers no conditions (STATE, issue 4).
+  - **#47 is open into `main`**: the new rules 7 and 8, the paths removed, the lines #46 made
+    stale, D-080, D-081 and these notes. Its reviewer agreed.
+  - **What a forced run of October does was read, not run** (D-080): the release's file is
+    replaced, the state committed again, the archive's file kept, and nothing uploaded.
+  - **A check-in was scheduled in that session** for 20:07 NZDT on 14 November, to read the
+    daily run and force October only if D-081's condition held. It lives only while that
+    session is open. Nothing in the repo says whether it fired: check (prompt below).
 
 ## Open pull requests waiting on the user (1)
 
-- **#45** `claude/explore-meets-main` into `ui/explore`: say "merge 45". After it, `ui/explore`
-  into `main` has no conflict.
+- **#47** `claude/explore-in-main-notes` into `main`: say "merge 47".
 
 ## Work queue (in order)
 
@@ -44,17 +36,18 @@ Last updated by claude on 2026-11-13
    the measured count, time and fit, and ask whether it becomes a source. NZTA's page says the
    dashboard holds vehicles "with a date of first ownership within the past five years", so
    January 2021 may already be gone.
-2. **Watch the first daily runs** (from 14 November, `docs/playbooks/check-monthly-run.md`): each
-   should skip, green, with "Source unchanged". At NZTA's December refresh: the first build with
-   the fact table, its cube release, the deploy start, and an archive file of 37 fields.
+2. **Watch the daily runs** (from 14 November, `docs/playbooks/check-monthly-run.md`): each should
+   skip, green, with "Source unchanged". At NZTA's December refresh: a build with the fact table,
+   its release, the deploy start, an archive of 37 fields.
 3. **The deploy, each step asked for:**
-   - `ui/explore` into `main`. First "merge 45" (merge commit; delete the branch). Then open
-     `ui/explore` into `main`: `Checks` must be green and a reviewer agree, and the user says
-     "merge N". After it `Deploy` builds the site on every push to `main` and uploads nothing
-     until the Cloudflare switch. AGENTS.md hard rules 7 and 8 still carry wording the day has
-     overtaken; changing a hard rule's text needs the user's approval (question 1).
-   - A cube with the fact table: NZTA's December refresh builds one, or a forced run of October
-     does (ask).
+   - **The forced run of October** (D-081): only if the scheduled run of 14 November 06:17 UTC
+     reported the source unchanged, and only once. If no forced run followed that day (`gh run
+     list --workflow "Monthly build"`), the user's condition was for that run: tell the user
+     what it said and ask again before forcing. If one did run, check: the release's file holds
+     `facts/`; the state commit; the archive job stopped at "already archived"; `Deploy`
+     uploaded nothing; Build's conditions on a build from the new release.
+   - **On "merge 47"**: merge commit, delete the branch. It starts one `Deploy` run (the
+     workflow's comments changed), which builds and uploads nothing.
    - Numbered console steps, all production: a Cloudflare Pages project for Direct Upload named
      `nz-vehicle-registrations`; an API token limited to Cloudflare Pages: Edit; the secrets
      `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment `production`; then the
@@ -65,19 +58,18 @@ Last updated by claude on 2026-11-13
    slice's small cells need a minimum count (the slice's are not measured); postcode totals and
    their minimum (D-076); whether a model year for the makes whose VINs carry one is wanted (D-079).
 5. **Small corrections and follow-ups, none blocking** (the reviewers' claims):
-   - #45's: event markers ignore a preset's filter, and `powertrain-mix` now has one
-     (`src/lib/events.ts`); `docs/CUBE_SCHEMA.md` says `src/lib/data.ts` is not yet on `main`
-     (correct it with `ui/explore` into `main`); D-063's and D-064's headings still read
-     "(proposed)" though D-066 accepted them (the file is append-only; D-066 is the record).
+   - #46's: `deploy.yml`'s check for links to internal pages misses a single-quoted or templated
+     path and an island reading `INTERNAL_PAGES` in the browser; `LeagueChart.tsx` tests
+     `dimension.id === "model"` and splits on the pipeline's `"|"`. #47's: none left.
+   - #45's: event markers ignore a preset's filter, and `powertrain-mix` has one
+     (`src/lib/events.ts`); D-063's and D-064's headings still read "(proposed)" (D-066 accepted).
    - The fact table's (#41): a test that builds a second dataset with no `facts`; the abort
      message for a reserved name (`month`, `n`, `rid`) reads as if the dimension were not
      derivable, and no test covers it; the Aborts list in `docs/CUBE_SCHEMA.md` does not name the
      hybrid file's and the model registry's checks; `FACT_ROW_ORDER` belongs in `contract.py`.
-   - The question builder's, listed on #43: a value in a link that is not in the data draws as a
-     zero line; the address bar is not rewritten until the first change; a condition with no
-     value yet is lost on any other change; and five smaller ones. Also: a link's condition on a
-     field Build cannot apply is named by its id, not its label.
-   - Each `public_copy` entry onto `config/dimensions.json` (D-042); STATE issues 9 and 10.
+   - The question builder's eight are listed on #43. Also: a link's condition on a field Build
+     cannot apply is named by its id, not its label. Each `public_copy` entry onto
+     `config/dimensions.json` (D-042); STATE issues 8 and 9.
    - The pipeline stack's: a failed release upload could leave a release with no file;
      `persist-credentials: false` in `checks.yml`; `pipeline/events.py` blames the CSV when an
      enum row parses to no values; `docs/METRICS.md` does not say the share guards apply to a
@@ -85,9 +77,8 @@ Last updated by claude on 2026-11-13
    - #37's: the alarm-day check accepts `true` as day 1 and runs only on runs that build nothing.
      #38's: check the digest of the pulled rows, not only their count; pin the pipeline's
      dependencies by hash; take the archive job's month from the state file. #39's: turn off
-     admin bypass on `production`; let a full re-run replace the `site` artifact; try
-     `npm ci --ignore-scripts`. #40's: the line under the ranking names three columns whichever
-     are hidden.
+     admin bypass on `production`; let a full re-run replace the `site` artifact; try `npm ci
+     --ignore-scripts`. #40's: the line under the ranking names three columns whichever are hidden.
 6. **The rest of Stage 1** (the brief §9): About, feedback and "why these figures differ" pages;
    the Stats NZ series (D-065); visitor tests; first load measured on the deployed site.
 7. **Stages 2 to 5 of the brief**, each on the user's word. Kept from the old queue:
@@ -95,25 +86,22 @@ Last updated by claude on 2026-11-13
 
 ## Questions for the user
 
-1. **May #45 merge, and then `ui/explore` go into `main`?** That puts the site's code on
-   `main`, so `Deploy` starts building the site on every push; nothing is public until the
-   Cloudflare switch. (a) Yes: say "merge 45", and claude opens `ui/explore` into `main`, has it
-   reviewed, and asks for that merge by number; with it, AGENTS.md hard rules 7 and 8 are
-   reworded to drop the merges already done and the gate that has passed. (b) Not yet.
-   Recommend (a). With no answer #45 stays open and nothing reaches `main`.
-2. **A cube with the fact table: a forced run of October now, or wait for December's refresh?**
-   The Build page of a deployed site needs one. A forced run publishes the fact table in a public
-   release about three weeks sooner. Recommend waiting unless the site should go public before
-   December. With no answer, no forced run.
+1. **May #47 merge?** Docs and two workflow comments. Say "merge 47". Recommend yes. With no
+   answer it stays open, and `main` keeps the old text of hard rules 7 and 8.
+2. **Is `ui/explore` kept?** All of it is in `main`, and new work branches from `main`. (a) Keep
+   it. (b) Delete it on GitHub; it can be recreated from `main`. Recommend (b), to leave one
+   place to look. With no answer it stays.
 3. **The dashboard, step 1**: say "ready" and it starts.
 
-Also the user's (the brief's §12): the `matrix` shape; running cost; the About page; name and domain.
+Also the user's: the Cloudflare steps, when the site should be public; and the brief's §12: the
+`matrix` shape; running cost; the About page; name and domain.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md`, this file, and D-078 and D-079 in `docs/DECISIONS.md`. Check first:
-what `main` and `ui/explore` are; the newest `Monthly build` runs (daily from 14 November) and
-whether NZTA has refreshed; that the private repository's `snapshot-2026-10` still has two files.
-Then take the queue in order with the user's answers. Merge into `main` only with a green check,
-a reviewer that has not seen your reasoning, and the user's word in the session; if Claude Code
-refuses a merge, say so and do not work around it. Do not start a forced run without asking.
+/start. Read `docs/STATE.md`, this file, and D-080 and D-081 in `docs/DECISIONS.md`. Check first:
+whether #47 is merged and what `main` is; the `Monthly build` runs since 14 November: what the
+daily runs said, and whether a forced run followed; whether `cube-2026-10`'s file holds `facts/`;
+that `CLOUDFLARE_PAGES_PROJECT` is still unset. Then the queue. Merge into `main` only with a
+green check, a reviewer that has not seen your reasoning, and the user's word in the session; if
+Claude Code refuses a merge, say so and do not work around it. No forced run without the user's
+yes in the session. No path from the user's computer in a doc, a commit or a pull request.

@@ -4,7 +4,8 @@
 # main can use and which is where the Cloudflare secrets live, so no other branch's workflow can read them, and the
 # site's own dependencies are never installed beside the token. Nothing is uploaded until deploying is switched on by
 # the repository variable CLOUDFLARE_PAGES_PROJECT; until then the site is built and the run stops, so the build is
-# still checked. On a ref whose site has no public build yet (before ui/explore reaches main) it stops before building.
+# still checked. On a ref whose site has no public build (a branch cut from main before the site reached it with #46)
+# it stops before building.
 name: Deploy
 
 on:
@@ -49,8 +50,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      # The public build needs the site's switch for it, src/lib/site.ts, which reaches main with ui/explore (CHECKPOINT
-      # item 4). Before then main carries the old local reference page, which must not be built as the public site.
+      # The public build needs the site's switch for it, src/lib/site.ts, which reached main with ui/explore (#46). A
+      # branch cut from main before then carries the old local reference page, which must not be built as the public site.
       - name: Is the public site here
         id: site
         run: |
