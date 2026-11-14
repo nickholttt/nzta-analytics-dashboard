@@ -41,6 +41,10 @@ Build step 1 emits `manifest.json`, `cube/registrations_surviving/`,
 `pairs/registrations_surviving/`, `facts/registrations_surviving/` and
 `events.json`.
 
+When the supplied store for `registrations_flow` is present (*Supplied sources*), the build also emits
+`cube/registrations_flow/`, `facts/registrations_flow/` and its block in `manifest.json`; it configures
+no pairs.
+
 Pipeline state lives outside `/public/data` and is committed to the repo:
 
 - `data/snapshots/YYYY-MM.parquet`: a small aggregate of every snapshot,
@@ -238,6 +242,7 @@ two rows that match the same vehicle (Aborts, below).
       "definition": "Vehicles first registered in month M that are still registered as at the snapshot date.",
       "rows": 4503000,
       "months": 1195,
+      "latest_month": "2026-08",
       "live_dimensions": ["powertrain", "make", "..."],
       "not_live": { "imported_from": "does not apply to this dataset" },
       "live_pairs": ["import_status__age_at_registration_band"],
@@ -290,6 +295,12 @@ two rows that match the same vehicle (Aborts, below).
   "warnings": []
 }
 ```
+
+Every dataset entry carries `latest_month`: the month the dataset's own snapshot ends at (the register's
+snapshot month for a register dataset). A dataset built from a supplied source has the same keys plus
+`supplied`: `{ "source": "nzta_dashboard", "months": { "first": "2021-01", "last": "2026-10", "count": 70 },
+"taken": ["2026-11-14"], "replaced": [ <the ledger's replaced list> ] }`, where `taken` lists the distinct days
+the files were taken. A supplied dataset with no store is `{ "definition": ..., "not_built": "<reason>" }`.
 
 `payload_bytes` is the size of every file the build writes to `/public/data`
 except `manifest.json` itself: what the site can download. The golden test
@@ -359,6 +370,62 @@ while the register does not.
 snapshot month was built, the run says so on its summary page and builds
 nothing. Only a run started by hand with `force` rebuilds a month, so a
 later edit by NZTA never replaces what the first build published.
+
+## Supplied sources
+
+A dataset may be built from a file a maintainer supplies by hand instead of from the register. The
+source is named in `supplied` in `config/pipeline.json`; its first user is `nzta_dashboard`, NZTA's
+registrations dashboard (`docs/DATA_SOURCES.md` §D, D-075). Nothing fetches it and the Action never
+runs `python -m pipeline supply`.
+
+**The store**, `data/supplied/<id>/` (gitignored for now: whether it may live in the public repository
+is the user's decision):
+
+- `registrations.parquet`: one row per month and combination of the public fields. Columns, in order:
+  `month` (DATE, the first day), the fields named in `supplied.<id>.fields` under their logical names,
+  the fields in `extra_fields` (`vehicle_status`), and `vehicles` (INTEGER). Rows are summed over the
+  columns in `private_columns` (for the dashboard, the three owner columns), which are asserted present
+  in the file and then dropped, so no owner field is in the store or in any output. Sorted, and written
+  with the Parquet options of the cube (ZSTD), so the same input gives the same bytes.
+- `ledger.json`: `months`, for each month the source file's name (name only), its SHA-256, the day it
+  was taken, and its rows and vehicles in the store; and `replaced`, one entry for each month a later
+  file restated, with the old and new vehicles, rows, taken dates, hashes and file names. A month is
+  never replaced without an entry.
+
+`supply` aborts, writing nothing, on any of: a header that is not the configured columns, a count that
+is not a whole number above zero, a numeric field that does not parse, two rows with the same key, a
+month that does not parse or a gap between months, `--taken` before the last month ends, a total in
+`--totals` that differs from the file's sum, a month already in the store that differs and is not named
+in `--replace`, or a new month that would leave a gap in the store. Without `--totals` it runs and
+prints a warning.
+
+**The build.** A dataset in `config/pipeline.json` whose `datasets` entry has `"source": "<id>"` is built
+from the store, after the register's datasets, through the same `normalise`, `derive`, `metrics` and
+`outputs` code (`registrations_flow` is the first). The store is checked against its ledger (months, rows
+and vehicles per month equal, no gap between its first and last month), then `raw` is made in the
+register's shape: one row per vehicle (each store row repeated `vehicles` times), the register's column
+names, NULL for a field the source does not carry, and the registration year and month from `month`.
+Sentinels, scope, brand aliases, the model registry, the hybrid classification, the model cap and the
+unmapped guards then apply exactly as to the register. `registrations_flow` takes `require`
+`in_scope` and `fleet_entry`, as `registrations_surviving` does: the dashboard's RE-REG and SCRATCH
+rows are in the store and are not fleet entries.
+
+**The dataset's own latest month.** A supplied dataset's snapshot month is the last month in its store,
+not the register's. It sets the dataset filter, the trailing window, the model cap and the latest-month
+checks. Older than the register's: a warning naming the missing month(s). Newer: the run aborts (the
+register is the clock).
+
+**Dimensions the source lacks.** A dimension whose derive block reads a field the source does not carry
+is not live for the dataset, with the reason `the source does not carry <FIELD>` in `not_live`. This is
+decided from the derive block and the source's field list (`derive.applicable`), never from a list of
+dimension ids. For the dashboard these are the dimensions that need the gross vehicle mass, the engine
+size and the district. Fuel consumption is all missing: `fc_n` is 0 and `fc_sum` is null in every row.
+`vehicle_status` is kept in the store only; it is not a dimension.
+
+**Without the store** (GitHub's runs, until the user decides whether it may be committed) the build
+succeeds, writes nothing for the dataset, adds a warning, and gives the manifest
+`datasets.<id> = {"definition": ..., "not_built": "<reason>"}`. Anything that reads `datasets` must
+check for `not_built` before reading the other keys.
 
 ## Guardrails — abort the run and keep the last good build
 
@@ -432,6 +499,16 @@ guard would trip on them. But the whole run dilutes anything new: at the
 registrations, so a new brand missing from `brand_registry.csv` could
 reach that scale unnoticed. The trailing basis catches it.
 
+Supplied sources:
+
+- The store disagrees with its ledger (a month's rows or vehicles differ, a month is in one and not the
+  other), has a gap between its first and last month, or has columns other than the configured ones, or
+  has only one of its two files.
+- The store's latest month is after the register's.
+- A month's count differs from the last good build's by more than `supplied.<id>.max_month_change`
+  (2%) and the ledger's `replaced` list has no entry for that month.
+- A supplied dataset was built in the last good run and its store is now absent.
+
 Pairs:
 
 - A dataset's `pairs` in `config/pipeline.json` holds an entry that is not
@@ -488,6 +565,8 @@ is worse than one that is visibly stale.
 - `data/snapshots/YYYY-MM.parquet` already exists with different content.
   The first observation is kept.
 - The payload exceeds the size budget.
+- A supplied dataset was not built because its store is absent.
+- A supplied store ends before the register's snapshot month: the export is missing the months after it.
 - There is no last good state (first run), so previous-run comparisons were
   skipped.
 

@@ -148,17 +148,57 @@ first registrations and buyer type from the same dashboard.
   October 2026, 70 months, 991,274 rows, 1,883,786 vehicles. It was taken
   on 14 November 2026 (the user's account). January 2021 is 30,011
   vehicles, of which 2,970 are marked `INACTIVE`. What `Vehicle Status`
-  means is defined with the dataset (the work order's package B).
+  means is defined with the dataset (`docs/METRICS.md`, D-087).
 - **The engine cuts an export off at 5,000,000 cells**, so the history
   was taken a year at a time and joined (the user's account).
 - **Not published:** `Owner Type`, `Territorial authority` and
   `Vehicle usage` describe the owner, and wait for the Stage 2 privacy
   review (the work order §3).
-- **Not yet built:** the maintainer script that checks and converts each
-  file, the dataset and its guardrails (the work order's package B).
+- **How it reaches the cube.** A maintainer adds each file to a local
+  store with one command, below; the build reads the store and writes the
+  dataset `registrations_flow` (`docs/CUBE_SCHEMA.md`, *Supplied
+  sources*). The store is gitignored: GitHub's runs build without it and
+  say so in the manifest, until the user decides where it may live.
 
 Its address, from NZTA's open data listing:
 `https://www.nzta.govt.nz/vehicles/how-the-motor-vehicle-register-affects-you/motor-vehicle-registrations-dashboard-and-open-data/`
+
+**How a file is supplied.** Export the twelve dimensions of the earlier
+files (the three owner columns included), then, from the repository root:
+
+```
+.venv/Scripts/python.exe -m pipeline supply nzta_dashboard <file.csv> [--month YYYY-MM] [--taken YYYY-MM-DD] [--totals <totals.csv>] [--replace YYYY-MM ...]
+```
+
+The file is the history form (with a `Registration month` column such as
+`Jan 2021`) or the one-month form (without it, and `--month` names the
+month). The command aborts, writing nothing, unless:
+
+- the header is exactly the configured columns (`supplied.nzta_dashboard`
+  in `config/pipeline.json`), the three owner columns among them;
+- every count is a whole number above zero, every numeric field parses,
+  and no two rows share all their key columns;
+- every month text parses, and the months in the file have no gap;
+- `--taken` (default: the file's modified date) is not before the last
+  month in the file ends;
+- when `--totals` is given (a CSV of `period,vehicles`, a period being
+  `YYYY-MM` or `YYYY`), each period's total equals the file's sum. Without
+  it the command runs and prints a warning that the totals were not
+  checked;
+- a month already in the store gives the same rows (reported unchanged), or
+  is named in `--replace`, in which case the old and new totals, taken dates
+  and file hashes are recorded in the ledger. The dashboard restates past
+  months, so a changed month is never replaced silently;
+- the months added join the stored months without a gap.
+
+The three owner columns (`Owner Type`, `Territorial authority`,
+`Vehicle usage`) are checked and dropped: no owner field is in the store or in
+anything built from it. The store is `data/supplied/nzta_dashboard/`
+(gitignored until the user decides whether it may be committed to this public
+repository): `registrations.parquet`, counts by month and the public fields
+with `vehicle_status`, and `ledger.json`, which records for each month the
+file's name, its SHA-256, the day it was taken, and its rows and vehicles.
+The step-by-step is `docs/playbooks/supply-dashboard-month.md`.
 
 ## E. Motor Industry Association — reference only
 

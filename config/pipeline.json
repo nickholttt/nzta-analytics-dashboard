@@ -120,6 +120,40 @@
       "pairs": [["import_status", "age_at_registration_band"], ["powertrain", "segment_group"]],
       "$facts_comment": "The fact table: counts by month and every dimension listed here, one Parquet file per column under facts/{dataset}/, so the browser can answer any combination by downloading only the columns a question needs (docs/CUBE_SCHEMA.md, Fact table; D-058). region is left out on purpose until the Stage 2 privacy review (D-078): it is where the vehicle's owner lives, and with it two in three of the table's rows counted a single vehicle.",
       "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "import_status", "engine_size_band", "age_at_registration_band", "model"]
+    },
+    "registrations_flow": {
+      "$comment": "Read from the supplied source nzta_dashboard (the `supplied` block), through the same normalise, derive and output code as the register. The same require as registrations_surviving, so the two count the same kinds of vehicle: the dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
+      "source": "nzta_dashboard",
+      "require": ["in_scope", "fleet_entry"],
+      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "import_status", "age_at_registration_band", "model"]
+    }
+  },
+  "supplied": {
+    "$comment": "Sources a maintainer supplies by hand as a CSV, checked and kept in a local store by `python -m pipeline supply <id> <csv>` (pipeline/supplied.py). The Action never runs that command and nothing here is fetched. `fields` maps a logical field name of the top-level `fields` block to the CSV column that carries it; `extra_fields` are public columns the register does not have, kept in the store under the name given; `private_columns` must be in the header and are dropped, so no owner field reaches the store or any output. The store is kept out of git for now (.gitignore): whether it may live in the public repository is the user's decision.",
+    "nzta_dashboard": {
+      "store": "data/supplied/nzta_dashboard",
+      "registrations_file": "registrations.parquet",
+      "ledger_file": "ledger.json",
+      "month": { "column": "Registration month", "format": "%b %Y" },
+      "count_column": "Vehicles",
+      "fields": {
+        "import_status": "Import status",
+        "vehicle_type": "Vehicle type",
+        "body_type": "Body type",
+        "motive_power": "Motive power",
+        "make": "Make",
+        "model": "Model",
+        "original_country": "Country of origin",
+        "vehicle_year": "Vehicle year"
+      },
+      "extra_fields": { "vehicle_status": "Vehicle Status" },
+      "private_columns": ["Owner Type", "Territorial authority", "Vehicle usage"],
+      "year_field": "registration_year",
+      "month_field": "registration_month",
+      "row_id_field": "object_id",
+      "totals": { "period_column": "period", "count_column": "vehicles" },
+      "$max_month_change_comment": "A month already in the last good build may differ from it by at most this share, unless the ledger records that month as replaced (the dashboard restates past months; a restatement is recorded, not silent).",
+      "max_month_change": 0.02
     }
   },
   "fuel_consumption": { "field": "fuel_consumption", "valid_min_exclusive": 0, "valid_max_inclusive": 60, "sum_decimals": 3 },

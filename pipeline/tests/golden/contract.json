@@ -26,6 +26,7 @@
     "definition": "Vehicles first registered in month M that are still registered as at the snapshot date.",
     "rows": 56,
     "months": 17,
+    "latest_month": "2026-08",
     "live_dimensions": [
      "powertrain",
      "make",
@@ -214,6 +215,10 @@
       "coverage_all_time": 0.9286
      }
     }
+   },
+   "registrations_flow": {
+    "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register.",
+    "not_built": "the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`"
    }
   },
   "moving_cutoff_vehicle_year": 2012,
@@ -273,6 +278,7 @@
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
    "registrations_surviving: 1 rows are dated after the snapshot month and were excluded",
    "registrations_surviving: mild hybrid identification coverage over the trailing 12 months is 33.3% counting high-confidence classifications only, below 70%",
+   "registrations_flow was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
    "no last good state: first run, so previous-run comparisons were skipped"
   ]
  },

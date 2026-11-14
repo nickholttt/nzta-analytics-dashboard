@@ -28,6 +28,15 @@ class Config:
             return Path(self.overrides["reference_dir"]) / name
         return self.root / self.pipeline["reference_dir"] / name
 
+    def supplied(self, source_id: str) -> dict:
+        return self.pipeline["supplied"][source_id]
+
+    def supplied_store(self, source_id: str) -> Path:
+        """The directory of a supplied source's store. An override names the folder that holds one store per source id."""
+        if "supplied" in self.overrides:
+            return Path(self.overrides["supplied"]) / source_id
+        return self.root / self.supplied(source_id)["store"]
+
     def source_field(self, logical: str) -> str:
         return self.pipeline["fields"][logical]
 

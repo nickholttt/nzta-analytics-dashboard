@@ -43,3 +43,16 @@ def compare(cfg, current: dict, previous: dict | None) -> tuple[list[str], list[
             "an import rule or the data changed"
         )
     return aborts, warnings
+
+
+def supplied_month_changes(dataset: str, counts: dict[str, int], before: dict[str, int], replaced: set[str], limit: float) -> list[str]:
+    """A supplied month whose count moved by more than `limit` since the last good build, with no entry for it in the
+    ledger's replaced list. The source restates past months; a restatement has to be recorded, not slip in."""
+    moved = []
+    for month in sorted(set(counts) & set(before)):
+        if before[month] and month not in replaced and abs(counts[month] - before[month]) / before[month] > limit:
+            moved.append(f"{month} ({before[month]:,} -> {counts[month]:,})")
+    if not moved:
+        return []
+    return [f"{dataset}: {len(moved)} month(s) differ from the last good build by more than {limit:.0%} and are not in the "
+            f"ledger's replaced list: {', '.join(moved[:12])}"]

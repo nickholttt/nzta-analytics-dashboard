@@ -123,6 +123,9 @@ def test_every_pair_has_the_contract_schema_and_adds_up_to_both_of_its_slices(tm
 def test_live_dimensions_match_files_and_events_are_verified_only(tmp_path, workspace):
     contract, extra = built_contract(tmp_path, workspace)
     for dataset, info in contract["manifest"]["datasets"].items():
+        if "not_built" in info:
+            assert not any(k.startswith(f"{dataset}/") for kind in ("slices", "pairs", "facts") for k in contract[kind]), dataset
+            continue
         files = sorted(k.split("/")[1][: -len(".parquet")] for k in contract["slices"] if k.startswith(f"{dataset}/"))
         assert files == sorted(info["live_dimensions"])
         pairs = sorted(k.split("/")[1][: -len(".parquet")] for k in contract["pairs"] if k.startswith(f"{dataset}/"))
@@ -142,6 +145,8 @@ def test_the_fact_table_is_one_column_per_file_and_adds_up_to_every_slice(tmp_pa
     contract, _ = built_contract(tmp_path, workspace)
     assert contract["facts"], "no fact table was written"
     for dataset, info in contract["manifest"]["datasets"].items():
+        if "not_built" in info:
+            continue
         facts = info["facts"]
         files = {k.split("/")[1][: -len(".parquet")]: doc for k, doc in contract["facts"].items() if k.startswith(f"{dataset}/")}
         if facts is None:

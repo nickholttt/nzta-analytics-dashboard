@@ -195,7 +195,10 @@ def run(cfg, force: bool = False, github_output: str | None = None, now: datetim
 def print_summary(manifest: dict) -> None:
     print(f"Built snapshot {manifest['latest_snapshot']} from {manifest['source']['rows_pulled']:,} rows.")
     for dataset, d in manifest["datasets"].items():
-        print(f"  {dataset}: {d['rows']:,} rows over {d['months']} months; live: {', '.join(d['live_dimensions'])}")
+        if "not_built" in d:
+            print(f"  {dataset}: not built: {d['not_built']}")
+            continue
+        print(f"  {dataset}: {d['rows']:,} rows over {d['months']} months to {d['latest_month']}; live: {', '.join(d['live_dimensions'])}")
         if d["not_live"]:
             print(f"    not live: {d['not_live']}")
     print(f"  moving cutoff: vehicle year {manifest['moving_cutoff_vehicle_year']}, age {manifest['moving_cutoff_age']}")
