@@ -5,22 +5,22 @@ Last updated by claude on 2026-11-14
 ## Where we left off
 
 - 2026-11-14, eighth session: the first of work order 1 (`docs/brief/WORK_ORDER.md`, D-082).
-  - **Merged:** #47 to #52. In order: the reworded rules; the order saved with D-082 to D-085
-    and the sub-agent definitions; three public pages (D-086); `registrations_flow` defined
-    (D-087); the pipeline's follow-ups (D-088); the site's follow-ups (D-089, with these notes).
-    `ui/explore` is deleted on GitHub.
+  - **Merged:** #47 to #52: the reworded rules; the order saved with D-082 to D-085 and the
+    sub-agent definitions; three public pages (D-086); `registrations_flow` defined (D-087);
+    the pipeline's and the site's follow-ups (D-088, D-089). `ui/explore` is deleted on GitHub.
   - **The user's dashboard files** add up to every total the user gave (D-084). Against the
     register: 82,335 more vehicles, of which 80,852 are marked as since removed (D-087).
     Stats NZ's series is on disk too, fetched read-only (STATE, raw files).
-  - **Three workers were mid-way when these notes were written** (STATE, In progress). Their
-    branches are local and unpushed. Read `git worktree list` and each branch's log before
-    anything else: a branch may be finished and waiting only for its push, review and merge.
+  - **Three branches were in hand when these notes were written** (STATE, In progress): one
+    in review as #53, two local and unpushed. Read `git worktree list` and each branch's log
+    before anything else: a branch may be waiting only for its push, review and merge.
   - **October's forced run: not decided.** GitHub had not started the first daily run by
     06:47 UTC on 14 November. Read it first (prompt below).
-  - **One slip:** #50 was merged about a minute before its last check finished; the check
-    then passed. STATE's "How to run" says how a merge is done now.
+  - **One slip:** #50 was merged a minute before its last check finished; it then passed.
 
-## Open pull requests (none)
+## Open pull requests (1)
+
+- **#53** `claude/data-map` into `main`: in review. claude merges it under D-082.
 
 ## Work queue: the work order's packages, in order
 
@@ -53,7 +53,7 @@ Last updated by claude on 2026-11-14
 - **D. The rest of Stage 1.** Pages and playbooks are in (#49). Left: first load measured at
   phone width on a production build, the cheapest fix, measured again (target: a first answer
   under 3 seconds).
-- **E. The data map.** `claude/data-map`: finish, review, merge. Then two more pieces: the
+- **E. The data map.** #53: review, add its decision record, merge. Then two more pieces: the
   chart rule table in config with Build's shape choice reading it (site tests can run with
   Node's own test runner, which needs a job in `checks.yml`); and the pipeline writing the
   "moves together" figures each build.

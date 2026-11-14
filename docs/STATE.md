@@ -40,15 +40,15 @@ write-up and G are being built. One report at the end; a blocked item is parked 
 
 ## In progress (all claude; nothing by gemini)
 
-Unpushed work sits in git worktrees in the session's scratch folder and in a second checkout
+Work in hand sits in git worktrees in the session's scratch folder and in a second checkout
 beside this folder: `git worktree list` shows them. Each branch is a local branch of this
-repository; none is on GitHub yet.
+repository; only `claude/data-map` is on GitHub.
 
 | Branch | What | State when this was written |
 |---|---|---|
-| `claude/registrations-flow` | Package B, pipeline half: `python -m pipeline supply`, a local store, the dataset built through the register's own code (plan: `data/staging/work-order/spec-B-pipeline.md`) | A sonnet worker is mid-way: five commits |
-| `claude/data-map` | Package E: `docs/DATA_MAP.md` in full, `config/data_map.json`, schema tests | An opus worker is mid-way: two commits |
-| `claude/query-service` | Package G: `docs/QUERY_SERVICE.md`, a local prototype, measurements, a proposal | An opus worker is mid-way, in the second checkout: two commits |
+| `claude/data-map` | #53. Package E: `docs/DATA_MAP.md` in full, `config/data_map.json`, schema tests | Written (opus); an independent review is running. Its decision record is appended at merge |
+| `claude/registrations-flow` | Package B, pipeline half: `python -m pipeline supply`, a local store, the dataset built through the register's own code (plan: `data/staging/work-order/spec-B-pipeline.md`) | Built (sonnet), 135 tests passing; `main` merged in; not pushed, not reviewed |
+| `claude/query-service` | Package G: `docs/QUERY_SERVICE.md`, a local prototype, measurements, a proposal | An opus worker is mid-way, in the second checkout |
 
 - **The profile of every register field** is in gitignored `data/staging/profiles/2026-10/`
   (`REPORT.md` and 48 CSV files): the evidence for the data map.
@@ -56,7 +56,7 @@ repository; none is on GitHub yet.
 
 ## Branches and pull requests (checked 2026-11-14)
 
-- Merged this session: #47, #48, #49, #50, #51 and #52. **No pull request is open.**
+- Merged this session: #47 to #52. **1 open pull request: #53**, the data map, into `main`.
 - `ui/explore` is deleted on GitHub (all of it was in `main`; no history rewritten). The local
   branch of that name remains and is far behind.
 
@@ -135,8 +135,8 @@ at 320 to 1280 px.
   under `%LOCALAPPDATA%\ms-playwright`. Serve a build with `npx astro preview --port N` and
   stop it with `npx astro preview stop`. The Build page's question is in the address bar:
   `/build/?build.measure=share&build.by=make`; a condition is
-  `&build.where.<dimension>=<value>`. The ranking is a toggle on the chart ("12-month
-  ranking"), not part of the address.
+  `&build.where.<dimension>=<value>`; the ranking is the chart's "12-month ranking" toggle,
+  `&build.period=latest_year`.
 - In Git Bash, prefix commands whose arguments start with `/` with `MSYS_NO_PATHCONV=1`, and
   write any script that holds quotes, backticks or backslashes to a file first.
 - A sub-agent that needs its own copy of the repository gets a worktree made by hand
