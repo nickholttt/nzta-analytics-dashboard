@@ -70,9 +70,11 @@ jobs:
           node-version: "22"
           cache: npm
 
+      # --ignore-scripts: no dependency runs an install script on the runner. The only ones in the lockfile are esbuild's,
+      # which only checks its binary (the platform package carries it), and fsevents', for macOS.
       - name: Dependencies
         if: steps.site.outputs.ready == 'true'
-        run: npm ci --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       # The newest snapshot's cube: the newest published cube-YYYY-MM release that carries the cube's file (one whose
       # upload failed has none), or before the first release, the newest unexpired artifact a monthly build uploaded.

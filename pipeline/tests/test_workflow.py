@@ -104,7 +104,7 @@ def test_the_cloudflare_secrets_are_read_only_by_a_job_that_names_the_main_only_
     assert "    environment: production" in upload
     assert "    if: needs.build.outputs.upload == 'true' && github.ref == 'refs/heads/main'" in upload
     # The site's dependencies are installed by the build job only.
-    assert "        run: npm ci --no-audit --no-fund" in before
+    assert "        run: npm ci --ignore-scripts --no-audit --no-fund" in before
     assert not [line for line in upload if "npm ci" in line and ".github/deploy" not in line]
 
 
