@@ -1,6 +1,8 @@
 // Everything the charts know comes from config/: presets, measures, dimensions, and the pipeline's
 // category and event-scope bindings. No domain value is written in this code.
 import presetsDoc from "../../config/presets.json";
+import type { AnswerTemplates as Answer } from "./sentences";
+import type { RankingPhrases, YearPhrases } from "./sentences";
 import measuresDoc from "../../config/measures.json";
 import dimensionsDoc from "../../config/dimensions.json";
 import pipelineDoc from "../../config/pipeline.json";
@@ -14,6 +16,9 @@ export type GranularityOption = {
   top_n?: number;
   note?: string;
 };
+
+// The sentence above a count's chart, for the month shown, by what the figure did against the same month a year earlier.
+export type AnswerTemplates = Answer;
 
 export type Preset = {
   id: string;
@@ -36,6 +41,8 @@ export type Preset = {
   // Draw the breakdown frame by frame through time; no renderer does yet, so the resolver blocks it.
   animate_by?: string;
   derived?: string;
+  // A figure and a sentence for one month above the chart (the latest, or the one the visitor chooses).
+  answer?: AnswerTemplates;
   series?: unknown[];
   filter_value?: string;
   // A question built on the Build page: the breakdown values it compares, and the vehicles it keeps, by dimension.
@@ -67,11 +74,33 @@ export type Dimension = {
   public_note?: string;
 };
 
+// How a chart says what its dataset counts. Each is a template; the chart fills in the {names} it knows.
+export type DatasetWords = {
+  count_heading: string;
+  month_unit: string;
+  window_unit: string;
+  recent_figure: string;
+  ranking_basis: string;
+  suggestion_recent: string;
+  suggestion_total: string;
+  none_recent: string;
+};
+
 export type Dataset = {
   id: string;
   label: string;
+  // The name a visitor reads for what is counted (D-042); label is for maintainers.
+  public_label?: string;
+  grain?: string;
+  // Whether a count's change on a year ago is shown for this dataset (a ranking's column, the monthly answer's comparison).
+  shows_year_change?: boolean;
   definition?: string;
   public_definition?: string;
+  // Where the figures come from and the export's date, filled from the manifest. Said under every chart of the dataset.
+  source_note?: string;
+  // What a chart says when a build did not make the dataset.
+  not_built_message?: string;
+  words?: DatasetWords;
   base?: string;
   filter?: Record<string, string[]>;
   status?: string;
@@ -79,7 +108,20 @@ export type Dataset = {
 
 export type Guards = { min_denominator?: number; min_share_of_trailing_median?: number; min_coverage?: number };
 export type Measure = { id: string; label: string; unit: string; shape?: string; guards?: Guards };
-export type DerivedMeasure = Measure & { snapshots_needed?: number; top_n?: number };
+// A derived measure that divides one dataset's slice by another's names both, and the dimensions it can be split by.
+export type DerivedMeasure = Measure & {
+  snapshots_needed?: number;
+  top_n?: number;
+  numerator_dataset?: string;
+  denominator_dataset?: string;
+  total_label?: string;
+  definition?: string;
+  // The line under a ratio chart ({base}: where its axis starts) and the name of its table of figures ({from}, {to}).
+  unit_note?: string;
+  table_label?: string;
+  note?: string;
+  note_template?: string;
+};
 export type Period = { id: string; label: string; months?: number };
 export type SmoothingOption = { id: string; label: string; axis: string };
 
@@ -92,29 +134,44 @@ export type BuilderMeasure = {
   joiner: string;
   dimensions: Record<string, string>;
   top_n?: Record<string, number>;
-  note?: string;
+  // Words that say what the measure counts. One text for every dataset, or one for each dataset that needs its own.
+  note?: PerDataset;
   note_template?: string;
   // A measure drawn as two charts, one per part: each part is another measure's id.
   parts?: string[];
 };
 
+// A text that is the same for every dataset, or one text for each dataset that has its own.
+export type PerDataset = string | Record<string, string>;
+export const forDataset = (text: PerDataset | undefined, dataset: string): string | undefined =>
+  typeof text === "string" ? text : text?.[dataset];
+
+// A line the Build page says it does not offer: shown always, or only where the build lacks a dataset.
+export type NotOffered = string | { text: string; when_not_built: string };
+
 export type BuilderSpec = {
   id: string;
+  // What is counted when the address does not say; datasets lists every one the page can offer, in order, where built.
   dataset: string;
+  datasets: string[];
   period: string;
   period_when_comparing: string;
   period_by_shape: Record<string, string>;
   ranking_period: string;
   lead: string;
   measures: BuilderMeasure[];
-  dimension_notes: Record<string, string>;
-  not_offered: string[];
+  dimension_notes: Record<string, PerDataset>;
+  notices: { dataset: string; by: string };
+  not_offered: NotOffered[];
 };
 
 type PresetsDoc = {
   // label and title head the group's section on the Explore page; lead marks the charts that carry it.
-  groups: { id: string; label: string; title: string; lead?: boolean; presets: Preset[] }[];
+  // defer: the section draws its data only when scrolled to.
+  groups: { id: string; label: string; title: string; lead?: boolean; defer?: boolean; presets: Preset[] }[];
   defaults: {
+    year_change_measure: string;
+    phrases: RankingPhrases & YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
@@ -136,6 +193,9 @@ const presetsFile = presetsDoc as unknown as PresetsDoc;
 export const presetGroups = presetsFile.groups;
 export const presets: Preset[] = presetsFile.groups.flatMap((g) => g.presets);
 export const chartDefaults = presetsFile.defaults;
+export const phrases = chartDefaults.phrases;
+// The count under which a change on a year ago is withheld: the floor of the measure config names.
+export const yearChangeFloor = (): number => findMeasure(chartDefaults.year_change_measure)?.guards?.min_denominator ?? 0;
 export const compositeRules = presetsFile.$composite;
 export const builderSpec = presetsFile.builder;
 
@@ -162,6 +222,11 @@ export const dimensionLabel = (id: string, internal = false) => {
   return (!internal && d?.public_label) || d?.label;
 };
 export const findDataset = (id?: string) => datasets.find((d) => d.id === id);
+// A dataset's words for what it counts: its own, or its base dataset's where it is another one filtered.
+export function datasetWords(id?: string): DatasetWords | undefined {
+  const dataset = findDataset(id);
+  return dataset?.words ?? (dataset?.base ? findDataset(dataset.base)?.words : undefined);
+}
 export const findMeasure = (id?: string) => measures.find((m) => m.id === id);
 export const findDerived = (id?: string) => derivedMeasures.find((m) => m.id === id);
 export const findPeriod = (id?: string) => periods.find((p) => p.id === id);

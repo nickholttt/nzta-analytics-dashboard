@@ -15,6 +15,20 @@ Run them from the repo root in Git Bash on Windows (on Linux or macOS, use `.ven
 - The tests never read `src/` or `config/presets.json`. A UI-only change can't break them, but
   run them anyway if you're unsure what you touched.
 
+## 1b. Site sentence tests (Node's own test runner, no dependency)
+
+```bash
+node --test "tests/site/*.test.ts"
+```
+
+- Tests the pure sentence-building in `src/lib/sentences.ts` (the change on a year ago, the monthly answer, a ranking's
+  description, a month the address names) against the real phrase templates in `config/presets.json` and
+  `config/dimensions.json`. Needs Node 22.18 or later, which runs `.ts` files that use only erasable type syntax: the
+  module under test has no imports, and the tests import it by its `.ts` path.
+- Quote the glob: Node 22's `--test` treats an unquoted directory as a file.
+- Expect `# pass 8`, `# fail 0` (2026-11-15). The config rules for the same templates are in
+  `pipeline/tests/test_site_config.py`, part of the pytest run above.
+
 ## 2. Typecheck the site
 
 ```bash

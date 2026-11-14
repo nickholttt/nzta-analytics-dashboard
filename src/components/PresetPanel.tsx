@@ -8,7 +8,7 @@ import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
+import { latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
@@ -53,10 +53,14 @@ export default function PresetPanel({
   lead = false,
   audience = "public",
   anchored = true,
+  defer = false,
 }: {
   presetId?: string;
   preset?: Preset;
   anchored?: boolean;
+  // Draw nothing from the cube until the panel is scrolled into view, so a section below the first charts adds no
+  // downloads before they draw.
+  defer?: boolean;
   lead?: boolean;
   audience?: "public" | "internal";
 }) {
@@ -81,11 +85,32 @@ export default function PresetPanel({
     if (typeof window === "undefined") return false;
     return getParam(presetId, "range", "default") === "all";
   });
+  // The month a ranking ends on, or the month a monthly figure is read for; empty is the dataset's latest. Kept in the
+  // address as `<preset>.month`.
+  const [month, setMonth] = useState<string>(() => (typeof window === "undefined" ? "" : getParam(presetId, "month", "")));
   const [copied, setCopied] = useState<"" | "copied" | "address">("");
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
+  // For a measure that divides one dataset by another: the numerator's rows, beside `rows`, the denominator's.
+  const [companion, setCompanion] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // A link to this chart (#id) loads it whether or not it is deferred, and brings it into view once it is drawn.
+  const linked = typeof window !== "undefined" && window.location.hash === `#${presetId}`;
+  const [wanted, setWanted] = useState(!defer || linked);
+  const [sentinel, setSentinel] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (wanted || !sentinel) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setWanted(true);
+      return;
+    }
+    const observer = new IntersectionObserver((seen) => {
+      if (seen.some((s) => s.isIntersecting)) setWanted(true);
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [wanted, sentinel]);
   // What a visitor is told when the query service fails: its own sentence, not the reload advice for a file.
   const [serviceError, setServiceError] = useState<string | null>(null);
 
@@ -98,6 +123,12 @@ export default function PresetPanel({
     if (preset && !offers(preset, newId, activePeriod)) {
       handlePeriodChange(defaultPeriod);
     }
+  };
+
+  const handleMonthChange = (chosen: string) => {
+    const value = manifest && effectivePreset && chosen === latestMonthOf(effectivePreset, manifest) ? "" : chosen;
+    setMonth(value);
+    setParam(presetId, "month", value, "");
   };
 
   const handlePeriodChange = (newPeriod: string, full = false) => {
@@ -138,11 +169,17 @@ export default function PresetPanel({
   // changed again before its rows arrive drops them, so a slow earlier load cannot draw under a later view.
   useEffect(() => {
     const source = resolution?.source;
-    if (!source) return;
+    if (!source || !wanted) return;
     let current = true;
     setRows(null);
-    loadView(source).then(
-      (loaded) => current && setRows(loaded),
+    setCompanion(null);
+    const other = resolution?.companion;
+    Promise.all([loadView(source), other ? loadView(other) : Promise.resolve(null)]).then(
+      ([loaded, second]) => {
+        if (!current) return;
+        setCompanion(second);
+        setRows(loaded);
+      },
       (e) => {
         if (!current) return;
         setServiceError(e instanceof ServiceError ? e.message : null);
@@ -152,9 +189,15 @@ export default function PresetPanel({
     return () => {
       current = false;
     };
-  }, [resolution]);
+  }, [resolution, wanted]);
 
-  const panelClass = `panel${lead ? " lead" : ""}`;
+  const panelClass = `panel${lead ? " lead" : ""}${wanted ? "" : " loading"}`;
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    if (!linked || scrolled || !rows || !sentinel) return;
+    setScrolled(true);
+    sentinel.scrollIntoView();
+  }, [linked, scrolled, rows, sentinel]);
   if (!preset || !effectivePreset)
     return (
       <section className={panelClass}>
@@ -175,12 +218,13 @@ export default function PresetPanel({
     );
   if (!manifest || !resolution)
     return (
-      <section className={`${panelClass} loading`}>
+      <section className={`${panelClass} loading`} ref={setSentinel}>
         <p className="meta">Loading…</p>
       </section>
     );
 
-  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy, keptBy } = resolution;
+  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy, keptBy, notBuilt } = resolution;
+  const notBuiltMessage = notBuilt ? findDataset(notBuilt)?.not_built_message : undefined;
   const dataset = findDataset(effectivePreset.dataset);
   const derived = findDerived(effectivePreset.derived);
   const served = servedFrom(effectivePreset.dataset, manifest);
@@ -194,7 +238,7 @@ export default function PresetPanel({
   const snapshotsNeeded = derived?.snapshots_needed;
   // Only a chart drawn month by month greys months. A ranking or a distribution sums one window and greys the whole
   // chart or nothing, which its own unit line says, so the note on grey months stays off them.
-  const greyNote = guard > 0 && preventsRender.length === 0 && (shape === "mix" || shape === "trend");
+  const greyNote = guard > 0 && preventsRender.length === 0 && (shape === "mix" || shape === "trend") && !derived?.numerator_dataset;
 
   // Notes that state a figure are templated from the build; a plain note that carries one is flagged
   // rather than trusted, because it will drift the next time the data moves. The dataset definition is
@@ -211,6 +255,15 @@ export default function PresetPanel({
     } else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
+  addNote("measure", undefined, derived?.note_template);
+  // A ratio of two datasets says what each one counts, so neither definition is more than a glance away.
+  for (const id of [derived?.denominator_dataset, derived?.numerator_dataset]) {
+    const ds = findDataset(id);
+    if (ds?.public_definition && !notBuilt) notes.push({ key: `definition-${id}`, text: `${ds.public_label ?? ds.label}: ${ds.public_definition}`, unresolved: [] });
+  }
+  // Where the figures come from and the date of the export, said under every chart whose dataset is supplied.
+  const sourceNote = findDataset(effectivePreset.dataset)?.source_note;
+  if (sourceNote && !notBuilt) addNote("source", undefined, sourceNote);
   const publicDimensionNote = !internal && dimension ? dimension.public_note : undefined;
   if (publicDimensionNote) addNote("dimension", publicDimensionNote);
   else addNote("dimension", dimension?.note, dimension?.note_template);
@@ -296,6 +349,20 @@ export default function PresetPanel({
           collapseFraction={collapseFraction}
           lead={lead}
           label={label}
+          companion={companion}
+          after={
+            preset.answer
+              ? () => (
+                  <>
+                    {definitionBlock}
+                    {actionsBlock}
+                    {controlsBlock}
+                  </>
+                )
+              : undefined
+          }
+          month={month}
+          onMonth={handleMonthChange}
         />
       );
     } else if (shape === "league" && dimension) {
@@ -309,6 +376,8 @@ export default function PresetPanel({
           label={label}
           valueHeading={dimensionLabel ?? dimension.label}
           lead={lead}
+          month={month}
+          onMonth={handleMonthChange}
         />
       );
     } else if (shape === "geo" && dimension) {
@@ -326,7 +395,7 @@ export default function PresetPanel({
     }
   }
 
-  const definition = (!internal && dataset?.public_definition) || dataset?.definition;
+  const definition = notBuilt ? undefined : (derived?.definition ?? ((!internal && dataset?.public_definition) || dataset?.definition));
   const eyebrow = dimensionLabel ?? derived?.label ?? measure?.label;
 
   // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube
@@ -346,8 +415,10 @@ export default function PresetPanel({
   // that period as a span of its own, in order of length, so the option it opens on is always in the row.
   const ranking = rankingPeriods(presetView(preset, activeGranularityId));
   const own = findPeriod(defaultPeriod);
+  // A span as long as the data, or longer, draws what All time draws, so it is not offered as a second button.
+  const dataMonths = rows ? new Set(rows.map((r) => r.month)).size : Infinity;
   const spans = [
-    ...TIME_PERIODS.filter((p) => p.id !== "all").map((p) => ({ key: p.id, id: p.id, label: p.label, full: false, months: findPeriod(p.id)?.months ?? 0 })),
+    ...TIME_PERIODS.filter((p) => p.id !== "all" && (findPeriod(p.id)?.months ?? 0) < dataMonths).map((p) => ({ key: p.id, id: p.id, label: p.label, full: false, months: findPeriod(p.id)?.months ?? 0 })),
     ...(own?.months && !TIME_PERIODS.some((p) => p.id === own.id) && !ranking.includes(own.id)
       ? [{ key: own.id, id: own.id, label: spanLabel(own.months), full: false, months: own.months }]
       : []),
@@ -359,14 +430,65 @@ export default function PresetPanel({
     ...ranking.map((id) => ({
       key: id,
       id,
-      // LeagueChart ranks the trailing window whatever the period, so the label names that window.
-      label: `${TRAILING_MONTHS}-month ranking`,
+      // LeagueChart ranks the period's own months (a month, or the last 12), so the label names them.
+      label: `${findPeriod(id)?.months ?? TRAILING_MONTHS}-month ranking`,
       full: false,
     })),
   ];
 
+  // On a count that opens with an answer, the answer comes straight under the question and the rest follows it.
+  const answerFirst = Boolean(preset.answer) && shape === "trend" && preventsRender.length === 0 && Boolean(rows?.length);
+  const definitionBlock = definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null;
+  const actionsBlock = (
+    <div className="panel-actions">
+      <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
+        {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
+      </button>
+      {builderLink ? (
+        <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
+          Change this chart
+        </a>
+      ) : null}
+    </div>
+  );
+  const controlsBlock = (
+    <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
+      {preset.granularity_options && preset.granularity_options.length > 0 && !(notBuilt && !internal) ? (
+        <div className="toggle" role="radiogroup" aria-label="Show by">
+          {preset.granularity_options.map((opt) => (
+            <label key={opt.id}>
+              <input
+                type="radio"
+                name={`granularity-${preset.id}`}
+                checked={activeGranularity?.id === opt.id}
+                onChange={() => handleGranularityChange(opt.id)}
+              />{" "}
+              {opt.label}
+            </label>
+          ))}
+        </div>
+      ) : null}
+
+      {preventsRender.length === 0 ? (
+        <div className="toggle" role="radiogroup" aria-label="Time range">
+          {rangeOptions.map((o) => (
+            <label key={o.key}>
+              <input
+                type="radio"
+                name={`period-${preset.id}`}
+                checked={activePeriod === o.id && (o.id !== "all" || fullHistory === o.full || !start)}
+                onChange={() => handlePeriodChange(o.id, o.full)}
+              />{" "}
+              {o.label}
+            </label>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+
   return (
-    <section className={panelClass} id={preset.id}>
+    <section className={panelClass} id={preset.id} ref={setSentinel}>
       <header className="panel-head">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h3 className="panel-question">
@@ -378,52 +500,11 @@ export default function PresetPanel({
             </>
           ) : null}
         </h3>
-        {definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null}
-        <div className="panel-actions">
-          <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
-            {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
-          </button>
-          {builderLink ? (
-            <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
-              Change this chart
-            </a>
-          ) : null}
-        </div>
+        {answerFirst ? null : definitionBlock}
+        {answerFirst ? null : actionsBlock}
       </header>
 
-      <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
-        {preset.granularity_options && preset.granularity_options.length > 0 ? (
-          <div className="toggle" role="radiogroup" aria-label="Show by">
-            {preset.granularity_options.map((opt) => (
-              <label key={opt.id}>
-                <input
-                  type="radio"
-                  name={`granularity-${preset.id}`}
-                  checked={activeGranularity?.id === opt.id}
-                  onChange={() => handleGranularityChange(opt.id)}
-                />{" "}
-                {opt.label}
-              </label>
-            ))}
-          </div>
-        ) : null}
-
-        {preventsRender.length === 0 ? (
-          <div className="toggle" role="radiogroup" aria-label="Time range">
-            {rangeOptions.map((o) => (
-              <label key={o.key}>
-                <input
-                  type="radio"
-                  name={`period-${preset.id}`}
-                  checked={activePeriod === o.id && (o.id !== "all" || fullHistory === o.full || !start)}
-                  onChange={() => handlePeriodChange(o.id, o.full)}
-                />{" "}
-                {o.label}
-              </label>
-            ))}
-          </div>
-        ) : null}
-      </div>
+      {answerFirst ? null : controlsBlock}
 
       {isComposite(preset) ? (
         <div className="callout curated">
@@ -465,7 +546,7 @@ export default function PresetPanel({
       {!internal && preventsRender.length > 0 ? (
         <div className="callout blocked">
           <span className="callout-label">Not available</span>
-          This view can't be drawn from the data yet. Choose another option above.
+          {notBuiltMessage ?? "This view can't be drawn from the data yet. Choose another option above."}
         </div>
       ) : null}
       {internal
@@ -491,7 +572,7 @@ export default function PresetPanel({
       {chart}
 
       <ul className="notes">
-        {notes.filter((n) => internal || n.unresolved.length === 0).map((n) => (
+        {notes.filter((n) => (internal || n.unresolved.length === 0) && (internal || !notBuilt)).map((n) => (
           <li key={n.key}>
             {n.text}
             {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
@@ -528,7 +609,7 @@ export default function PresetPanel({
             . Their shares are drawn in grey, not dropped and not zeroed.
           </li>
         ) : null}
-        <li className="basis">{BASIS_NOTE}</li>
+        {notBuilt && !internal ? null : <li className="basis">{BASIS_NOTE}</li>}
       </ul>
 
       {internal ? (

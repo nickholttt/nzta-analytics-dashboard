@@ -1,25 +1,34 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PresetPanel from "../components/PresetPanel";
-import { presetGroups } from "../lib/config";
+import { findDataset, presetGroups } from "../lib/config";
 import { presetView, resolvePreset } from "../lib/resolve";
 import manifest from "../../public/data/manifest.json";
 import type { Manifest } from "../lib/data";
 
 // The Explore page shows what a visitor can read: each group from config/presets.json, holding only
 // the presets whose opening view draws against this build. A chart that cannot be drawn, and a group left with none,
-// is not shown here; /status lists every preset and what it waits on (D-041).
+// is not shown here; /status lists every preset and what it waits on (D-041). The exception is a chart whose dataset
+// this build did not make: the group says so once, in the dataset's own words, so a missing dataset is never just missing.
 const groups = presetGroups
-  .map((g) => ({ ...g, presets: g.presets.filter((p) => resolvePreset(presetView(p), manifest as Manifest).preventsRender.length === 0) }))
-  .filter((g) => g.presets.length > 0);
+  .map((g) => {
+    const resolved = g.presets.map((p) => ({ p, resolution: resolvePreset(presetView(p), manifest as Manifest) }));
+    const unbuilt = [...new Set(resolved.flatMap((r) => (r.resolution.notBuilt ? [r.resolution.notBuilt] : [])))];
+    return {
+      ...g,
+      presets: resolved.filter((r) => r.resolution.preventsRender.length === 0).map((r) => r.p),
+      messages: unbuilt.flatMap((id) => findDataset(id)?.not_built_message ?? []),
+    };
+  })
+  .filter((g) => g.presets.length > 0 || g.messages.length > 0);
 ---
 
 <Layout title="Explore" activeNav="explore">
   <Fragment slot="masthead">
     <h1>New Zealand vehicle registrations</h1>
     <p class="standfirst">
-      Where the vehicles we register come from, what powers them, and whether they arrived new. Every figure is drawn from the
-      NZTA Motor Vehicle Register.
+      Where the vehicles we register come from, what powers them, and whether they arrived new. Every figure is drawn from
+      NZTA's open data: the Motor Vehicle Register and, where a chart says so, its registrations dashboard.
     </p>
     <nav class="tier-nav" aria-label="Sections on this page" style="margin-top: var(--space-4); display: flex; gap: var(--space-4); flex-wrap: wrap;">
       {groups.map((g) => (
@@ -38,7 +47,13 @@ const groups = presetGroups
           <h2 class="section-title">{g.title}</h2>
         </div>
         {g.presets.map((p) => (
-          <PresetPanel client:only="react" presetId={p.id} lead={g.lead ?? false} audience="public" />
+          <PresetPanel client:only="react" presetId={p.id} lead={g.lead ?? false} defer={g.defer ?? false} audience="public" />
+        ))}
+        {g.messages.map((m) => (
+          <div class="callout blocked">
+            <span class="callout-label">Not in this build</span>
+            {m}
+          </div>
         ))}
       </section>
     ))

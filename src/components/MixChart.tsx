@@ -41,6 +41,7 @@ import {
   tipStyle,
   xTicks,
 } from "../lib/theme";
+import { latestMonthOf } from "../lib/resolve";
 import { getParam, setParam } from "../lib/url";
 import { EventList } from "./EventList";
 import { PlotFigure } from "./PlotFigure";
@@ -101,7 +102,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     setParam(preset.id, "smoothing", newSmoothing, defaultSmoothing);
   };
 
-  const latest = manifest.latest_snapshot.slice(0, 7);
+  const latest = latestMonthOf(preset, manifest);
   const rolling = smoothing === ROLLING;
   const smoothingOption = chartDefaults.mix_smoothing_options.find((o) => o.id === smoothing);
 

@@ -25,3 +25,125 @@ def test_a_compound_dimension_declares_the_separator_the_pipeline_writes():
         )
     declared = [d["id"] for d in dimensions if "key_separator" in d and d not in compound]
     assert not declared, f"key_separator is declared on dimensions whose values are not compound: {declared}"
+
+
+# ---- The sentences the site writes about the data (CLAUDE.md invariant 8) ----
+#
+# The templates in config are words, written once. Each may use only the placeholders the code fills, names no figure or
+# year, and carries no causal or judgement word. The lists they are held to are in config/narrative/rules.json.
+
+import json
+import re
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
+# The pattern src/lib/sentences.ts fills: {dotted.path} with an optional |filter.
+PLACEHOLDER = re.compile(r"\{([a-z_]+(?:\.[A-Za-z0-9_]+)*)(\|[a-z]+)?\}")
+
+
+def _json(relative: str) -> dict:
+    return json.loads((ROOT / relative).read_text(encoding="utf-8"))
+
+
+def _templates() -> list[tuple[str, str, str]]:
+    """(kind, where, text) for every template the sentence work added to config."""
+    presets, dimensions, measures = _json("config/presets.json"), _json("config/dimensions.json"), _json("config/measures.json")
+    found: list[tuple[str, str, str]] = []
+    for group in presets["groups"]:
+        for preset in group["presets"]:
+            for key, text in (preset.get("answer") or {}).items():
+                if not key.startswith("$"):
+                    found.append(("answer", f"preset {preset['id']} answer.{key}", text))
+    for key, text in presets["defaults"]["phrases"].items():
+        if not key.startswith("$"):
+            found.append(("phrases", f"defaults.phrases.{key}", text))
+    for key, text in presets["builder"]["notices"].items():
+        if not key.startswith("$"):
+            found.append(("notices", f"builder.notices.{key}", text))
+    for dataset in dimensions["datasets"]:
+        for key, text in (dataset.get("words") or {}).items():
+            if not key.startswith("$"):
+                found.append(("words", f"dataset {dataset['id']} words.{key}", text))
+        for key in ("source_note", "not_built_message"):
+            if key in dataset:
+                found.append(("note", f"dataset {dataset['id']} {key}", dataset[key]))
+    for derived in measures["derived_measures"]:
+        if "numerator_dataset" not in derived:
+            continue
+        for key in ("note_template", "unit_note", "table_label"):
+            if key in derived:
+                found.append(("note" if key == "note_template" else key, f"derived {derived['id']} {key}", derived[key]))
+    return found
+
+
+def _allowed(rules: dict, kind: str, path: str) -> bool:
+    for allowed in rules["placeholders"][kind]:
+        if allowed.endswith(".*") and path.startswith(allowed[:-1]):
+            return True
+        if path == allowed:
+            return True
+    return False
+
+
+def _id(value):
+    return value if isinstance(value, str) and len(value) < 70 else None
+
+
+def test_there_are_templates_to_check():
+    assert len(_templates()) >= 10, "the sentence config has gone missing: this test would pass without checking anything"
+
+
+@pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)
+def test_a_template_uses_only_what_the_code_fills(kind, where, text):
+    rules = _json("config/narrative/rules.json")
+    for path, filter_ in PLACEHOLDER.findall(text):
+        assert _allowed(rules, kind, path), f"{where}: {{{path}}} is not a placeholder the code fills for a {kind} template"
+        assert filter_ == "" or filter_[1:] in rules["filters"], f"{where}: |{filter_[1:]} is not a filter the code applies"
+    rest = PLACEHOLDER.sub("", text)
+    assert "{" not in rest and "}" not in rest, f"{where}: a brace that is not a placeholder"
+
+
+@pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)
+def test_a_template_names_no_figure_and_no_cause(kind, where, text):
+    rules = _json("config/narrative/rules.json")
+    bare = PLACEHOLDER.sub(" ", text)
+    assert not re.search(r"\d", bare), f"{where}: a template holds no digit; a figure comes from the data"
+    for word in rules["banned_words"]:
+        assert not re.search(rf"\b{re.escape(word)}\b", bare, re.IGNORECASE), f"{where}: '{word}' is a causal or judgement word"
+
+
+def test_every_dataset_the_builder_offers_is_defined():
+    ids = {d["id"] for d in _json("config/dimensions.json")["datasets"]}
+    builder = _json("config/presets.json")["builder"]
+    offered = builder["datasets"]
+    assert offered and set(offered) <= ids, f"builder.datasets names a dataset config/dimensions.json does not define: {set(offered) - ids}"
+    assert builder["dataset"] == offered[0], "the first dataset offered is the default"
+
+
+def test_a_ratio_measure_divides_one_defined_dataset_by_another():
+    ids = {d["id"] for d in _json("config/dimensions.json")["datasets"]}
+    ratios = [m for m in _json("config/measures.json")["derived_measures"] if "numerator_dataset" in m or "denominator_dataset" in m]
+    assert ratios, "no ratio measure: this test would pass without checking anything"
+    for m in ratios:
+        assert m["numerator_dataset"] in ids and m["denominator_dataset"] in ids, f"{m['id']}: a dataset it names is not defined"
+        assert m["numerator_dataset"] != m["denominator_dataset"], f"{m['id']}: it divides a dataset by itself"
+
+
+def test_a_preset_with_an_answer_names_a_dataset_and_a_measure_that_exist():
+    datasets = {d["id"] for d in _json("config/dimensions.json")["datasets"]}
+    measures = {m["id"] for m in _json("config/measures.json")["measures"]}
+    answered = [p for g in _json("config/presets.json")["groups"] for p in g["presets"] if "answer" in p]
+    assert answered, "no preset has an answer: this test would pass without checking anything"
+    for preset in answered:
+        assert preset.get("dataset") in datasets, f"{preset['id']}: dataset {preset.get('dataset')} is not defined"
+        assert preset.get("measure") in measures, f"{preset['id']}: measure {preset.get('measure')} is not defined"
+        assert {"up", "down", "same", "alone"} <= set(preset["answer"]), f"{preset['id']}: an answer needs up, down, same and alone"
+
+
+def test_the_measure_that_sets_the_year_change_floor_exists():
+    defaults = _json("config/presets.json")["defaults"]
+    measures = {m["id"]: m for m in _json("config/measures.json")["measures"]}
+    measure = measures.get(defaults["year_change_measure"])
+    assert measure and measure.get("guards", {}).get("min_denominator"), "year_change_measure must name a measure with a min_denominator"
