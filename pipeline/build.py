@@ -254,33 +254,13 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
                 aborts.append(f"{dataset}: it was built in the last good run, but {reason}")
         return entries, {}, {}, {}
     if not (registrations.exists() and ledger_path.exists()):
-        aborts.append(f"{source_id}: the supplied store has only one of {s['registrations_file']} and {s['ledger_file']}")
+        aborts.append(f"{source_id}: the supplied store has only one of {s[supplied.layout(s).file_key]} and {s['ledger_file']}")
         return {}, {}, {}, {}
 
-    bad = supplied.check_config(s)
-    if bad:
-        aborts.extend(f"{source_id}: {problem}" for problem in bad)
+    loaded = supplied.load_store(con, cfg, source_id, aborts)
+    if loaded is None or not supplied.check_clock(source_id, loaded[2], register_month, aborts, warnings):
         return {}, {}, {}, {}
-    con.execute(f"CREATE OR REPLACE TABLE supplied_store AS SELECT * FROM read_parquet({normalise.lit(registrations.as_posix())})")
-    found = [c for c, *_ in con.execute("DESCRIBE supplied_store").fetchall()]
-    if found != supplied.store_columns(s):
-        aborts.append(f"{source_id}: the store's columns are {found}, but config/pipeline.json expects {supplied.store_columns(s)}")
-        return {}, {}, {}, {}
-    ledger = supplied.read_ledger(ledger_path)
-    problems = supplied.hash_problems(registrations, ledger) + supplied.store_problems(con, "supplied_store", ledger)
-    if problems:
-        aborts.extend(f"{source_id}: the store disagrees with its ledger: {problem}" for problem in problems)
-        return {}, {}, {}, {}
-
-    first, latest = con.execute(f"SELECT min({supplied.STORE_MONTH}), max({supplied.STORE_MONTH}) FROM supplied_store").fetchone()
-    if latest > register_month:
-        aborts.append(f"{source_id}: the store's latest month {supplied.month_key(latest)} is after the register's "
-                      f"{supplied.month_key(register_month)}; the register is the clock, so the store cannot be ahead of it")
-        return {}, {}, {}, {}
-    if latest < register_month:
-        missing = [supplied.month_key(m) for m in supplied.month_range(metrics.month_add(latest, 1), register_month)]
-        warnings.append(f"{source_id}: the export is missing {', '.join(missing)}: the store ends at "
-                        f"{supplied.month_key(latest)} and the register at {supplied.month_key(register_month)}")
+    ledger, first, latest = loaded
 
     supplied_raw(con, cfg, source_id, types)
     normalise.build_src(con, cfg, types, schema_names)

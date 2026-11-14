@@ -15,6 +15,7 @@ import os
 import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from typing import NamedTuple
 
 import duckdb
 
@@ -28,6 +29,16 @@ MONTH_KEY = "%Y-%m"
 PERIOD = re.compile(r"^\d{4}(-\d{2})?$")
 PERIOD_MONTH_FORMAT = "%Y-%m"
 STORE_MONTH, STORE_COUNT = "month", "vehicles"
+COUNTED_ROWS = "counted_rows"
+
+
+class Layout(NamedTuple):
+    """What differs between kinds of supplied source in how the store is kept and checked."""
+    file_key: str  # the key in config/pipeline.json that names the store's data file
+    columns: list[str]
+    count: str  # the column that is summed
+    total_key: str  # the ledger key that holds a month's summed count
+    replaced_key: str  # the ledger key that lists the months a later file restated
 
 
 def abort(message: str) -> GuardrailError:
@@ -39,16 +50,23 @@ def store_columns(source: dict) -> list[str]:
     return [STORE_MONTH, *source["fields"], *source["extra_fields"], STORE_COUNT]
 
 
+def layout(source: dict) -> Layout:
+    kind = source.get("kind", COUNTED_ROWS)
+    if kind == COUNTED_ROWS:
+        return Layout("registrations_file", store_columns(source), STORE_COUNT, "vehicles", "replaced")
+    raise abort(f"supplied source kind {kind!r} is not one this pipeline reads ({COUNTED_ROWS!r})")
+
+
 def check_config(source: dict) -> list[str]:
     """No column the file carries for the owner may also be a public field: it would be stored."""
-    mapped = {*source["fields"].values(), *source["extra_fields"].values()}
+    mapped = {*source.get("fields", {}).values(), *source.get("extra_fields", {}).values()}
     return [f"{c} is listed in private_columns and also mapped to a public field in config/pipeline.json; "
-            "a private column is dropped, never stored" for c in source["private_columns"] if c in mapped]
+            "a private column is dropped, never stored" for c in source.get("private_columns", []) if c in mapped]
 
 
 def store_paths(cfg, source_id: str) -> tuple[Path, Path]:
     source, directory = cfg.supplied(source_id), cfg.supplied_store(source_id)
-    return directory / source["registrations_file"], directory / source["ledger_file"]
+    return directory / source[layout(source).file_key], directory / source["ledger_file"]
 
 
 def read_ledger(path: Path) -> dict:
@@ -90,11 +108,11 @@ def hash_problems(registrations: Path, ledger: dict) -> list[str]:
     return []
 
 
-def store_problems(con, table: str, ledger: dict) -> list[str]:
-    """What is wrong with a store table against its ledger: months, rows or vehicles that differ, or a gap."""
+def store_problems(con, table: str, ledger: dict, count: str = STORE_COUNT, total_key: str = "vehicles") -> list[str]:
+    """What is wrong with a store table against its ledger: months, rows or counts that differ, or a gap."""
     found = {month_key(m): (int(n), int(v)) for m, n, v in con.execute(
-        f"SELECT {STORE_MONTH}, count(*), sum({STORE_COUNT}) FROM {table} GROUP BY 1").fetchall()}
-    recorded = {k: (int(e["rows"]), int(e["vehicles"])) for k, e in ledger["months"].items()}
+        f"SELECT {STORE_MONTH}, count(*), sum({count}) FROM {table} GROUP BY 1").fetchall()}
+    recorded = {k: (int(e["rows"]), int(e[total_key])) for k, e in ledger["months"].items()}
     problems = []
     for month in sorted(set(found) | set(recorded)):
         if month not in recorded:
@@ -102,12 +120,67 @@ def store_problems(con, table: str, ledger: dict) -> list[str]:
         elif month not in found:
             problems.append(f"{month} is in the ledger but has no rows in the store")
         elif found[month] != recorded[month]:
-            problems.append(f"{month} has {found[month][0]:,} rows and {found[month][1]:,} vehicles in the store, but the "
+            problems.append(f"{month} has {found[month][0]:,} rows and {found[month][1]:,} {total_key} in the store, but the "
                             f"ledger says {recorded[month][0]:,} and {recorded[month][1]:,}")
     missing = gaps([date.fromisoformat(m + "-01") for m in found])
     if missing:
         problems.append(f"the store has no rows for {', '.join(missing)}, between its first and last month")
     return problems
+
+
+def load_store(con, cfg, source_id: str, aborts: list[str]) -> tuple[dict, date, date] | None:
+    """The build's view of a store that has both its files: it becomes the table `supplied_store`, after it is checked
+    against its ledger. Returns the ledger and the store's first and last month, or None after adding to `aborts`."""
+    source = cfg.supplied(source_id)
+    registrations, ledger_path = store_paths(cfg, source_id)
+    bad = check_config(source)
+    if bad:
+        aborts.extend(f"{source_id}: {problem}" for problem in bad)
+        return None
+    lay = layout(source)
+    con.execute(f"CREATE OR REPLACE TABLE supplied_store AS SELECT * FROM read_parquet({lit(registrations.as_posix())})")
+    found = [c for c, *_ in con.execute("DESCRIBE supplied_store").fetchall()]
+    if found != lay.columns:
+        aborts.append(f"{source_id}: the store's columns are {found}, but config/pipeline.json expects {lay.columns}")
+        return None
+    ledger = read_ledger(ledger_path)
+    problems = hash_problems(registrations, ledger) + store_problems(con, "supplied_store", ledger, lay.count, lay.total_key)
+    if problems:
+        aborts.extend(f"{source_id}: the store disagrees with its ledger: {problem}" for problem in problems)
+        return None
+    first, latest = con.execute(f"SELECT min({STORE_MONTH}), max({STORE_MONTH}) FROM supplied_store").fetchone()
+    return ledger, first, latest
+
+
+def check_clock(source_id: str, latest: date, register_month: date, aborts: list[str], warnings: list[str]) -> bool:
+    """The register is the clock: a store newer than it aborts, an older one warns and names what is missing."""
+    if latest > register_month:
+        aborts.append(f"{source_id}: the store's latest month {month_key(latest)} is after the register's "
+                      f"{month_key(register_month)}; the register is the clock, so the store cannot be ahead of it")
+        return False
+    if latest < register_month:
+        missing = [month_key(m) for m in month_range(metrics.month_add(latest, 1), register_month)]
+        warnings.append(f"{source_id}: the export is missing {span(missing)}: the store ends at "
+                        f"{month_key(latest)} and the register at {month_key(register_month)}")
+    return True
+
+
+def commit_store(con, table: str, registrations: Path, ledger_path: Path, ledger: dict, lay: Layout) -> None:
+    """Write the merged store and its ledger. The table is checked against the ledger first, and nothing is written if
+    they disagree."""
+    problems = store_problems(con, table, ledger, lay.count, lay.total_key)
+    if problems:
+        raise abort("internal check failed, nothing was written: " + "; ".join(problems))
+    registrations.parent.mkdir(parents=True, exist_ok=True)
+    staged = registrations.with_name(registrations.name + ".new")
+    con.execute(f"COPY {table} TO {lit(staged.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)")
+    # Both files are written under temporary names first and the ledger is renamed last. An interruption between the
+    # two renames leaves a store the old ledger does not describe, and the hash in the ledger catches that.
+    ledger["store_sha256"] = sha256_of(staged)
+    staged_ledger = ledger_path.with_name(ledger_path.name + ".new")
+    outputs.write_json(staged_ledger, ledger)
+    os.replace(staged, registrations)
+    os.replace(staged_ledger, ledger_path)
 
 
 def read_header(path: Path) -> list[str]:
@@ -396,19 +469,7 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
                 UNION ALL
                 SELECT {columns_all} FROM incoming_rows WHERE {STORE_MONTH} IN ({', '.join(incoming_months)})
             ) ORDER BY ALL""")
-        problems = store_problems(con, "merged", ledger)
-        if problems:
-            raise abort("internal check failed, nothing was written: " + "; ".join(problems))
-        registrations.parent.mkdir(parents=True, exist_ok=True)
-        staged = registrations.with_name(registrations.name + ".new")
-        con.execute(f"COPY merged TO {lit(staged.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)")
-        # Both files are written under temporary names first and the ledger is renamed last. An interruption between the
-        # two renames leaves a store the old ledger does not describe, and the hash in the ledger catches that.
-        ledger["store_sha256"] = sha256_of(staged)
-        staged_ledger = ledger_path.with_name(ledger_path.name + ".new")
-        outputs.write_json(staged_ledger, ledger)
-        os.replace(staged, registrations)
-        os.replace(staged_ledger, ledger_path)
+        commit_store(con, "merged", registrations, ledger_path, ledger, layout(source))
     final = per_year(con, "merged") if result["written"] else per_year(con, "stored")
     result["per_year"] = final
 

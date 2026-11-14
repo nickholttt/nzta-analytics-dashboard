@@ -131,6 +131,7 @@
   "supplied": {
     "$comment": "Sources a maintainer supplies by hand as a CSV, checked and kept in a local store by `python -m pipeline supply <id> <csv>` (pipeline/supplied.py). The Action never runs that command and nothing here is fetched. `fields` maps a logical field name of the top-level `fields` block to the CSV column that carries it; `extra_fields` are public columns the register does not have, kept in the store under the name given; `private_columns` must be in the header and are dropped, so no owner field reaches the store or any output. The store is kept out of git for now (.gitignore): whether it may live in the public repository is the user's decision.",
     "nzta_dashboard": {
+      "kind": "counted_rows",
       "store": "data/supplied/nzta_dashboard",
       "registrations_file": "registrations.parquet",
       "ledger_file": "ledger.json",
