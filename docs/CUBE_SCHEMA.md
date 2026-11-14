@@ -395,7 +395,8 @@ A dataset may be built from a file a maintainer supplies by hand instead of from
 source is named in `supplied` in `config/pipeline.json`; its first user is `nzta_dashboard`, NZTA's
 registrations dashboard (`docs/DATA_SOURCES.md` §D, D-084; the definition is D-087). Nothing fetches it and the Action never
 runs `python -m pipeline supply`. Each source names its `kind` in `config/pipeline.json`, which says how its store
-is laid out and how its datasets are built; `counted_rows` (the dashboard) is the only kind so far.
+is laid out and how its datasets are built: `counted_rows` (the dashboard) or `series` (a published table of monthly
+series, below).
 
 **The store**, `data/supplied/<id>/` (gitignored for now: whether it may live in the public repository
 is the user's decision):
