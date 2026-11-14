@@ -2773,8 +2773,9 @@ New entries use this template:
   - Measured again by the reviewer of the pull request, independently, from the same two files: every figure above
     matched. Three in the docs were restated to what both measures support: the share of vehicles whose make and
     model appear in the register (98.2%), the share mapped by the brand registry (over 99.8%), and the goods vehicles
-    whose class depends on mass (about 18%). The reviewer also measured the owner-type and industry-class evidence
-    now in `docs/DATA_MAP.md`.
+    whose class depends on mass (about 18%). The reviewer also measured the owner-type figures and the
+    tourism/leisure and rental shares now in `docs/DATA_MAP.md`; the vehicle-trader shares there come from a separate
+    profile of the register made the same day.
 - Options considered:
   1. Which vehicles the dataset counts. (a) Everything in the export, re-registrations and every vehicle type. It
      would match the dashboard's own total and nobody else's, and could not be set beside survivors. (b) In-scope
