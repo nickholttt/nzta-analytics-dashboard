@@ -244,6 +244,19 @@ def test_a_fact_table_whose_dimensions_are_all_waiting_holds_the_month_totals(tm
     assert facts["rows"] == manifest["datasets"]["registrations_surviving"]["months"]
 
 
+def test_a_dataset_with_no_facts_configured_builds_without_a_fact_table(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    datasets = cfg.pipeline["datasets"]
+    datasets["without_facts"] = {"require": ["in_scope"]}
+    manifest = run(tmp_path, cfg, load_rows(), publish=False)
+    assert manifest["datasets"]["without_facts"]["facts"] is None
+    assert manifest["datasets"]["without_facts"]["live_dimensions"]
+    assert manifest["datasets"]["registrations_surviving"]["facts"] is not None
+    facts = workspace["staging"] / "build" / "facts"
+    assert [p.name for p in facts.iterdir()] == ["registrations_surviving"]
+    assert (workspace["staging"] / "build" / "cube" / "without_facts").is_dir()
+
+
 def test_a_fact_table_that_counts_a_vehicle_twice_aborts(tmp_path, workspace, monkeypatch):
     # A lookup that matched a vehicle twice would repeat it in dims, and in every count taken from dims with it.
     build_dims = derive.build_dims
