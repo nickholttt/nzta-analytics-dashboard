@@ -9,56 +9,58 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - `main` is `9596c60`, the merge of #48. The last build is the forced run 43374803222
-    (snapshot 2026-10; 5,926,990 rows); its cube is the release `cube-2026-10`, which has no
-    fact table.
-  - **The build is tried every day** at 06:17 UTC (D-064, D-070). The first daily run is
-    14 November 2026; it had not started when this was written (06:10 UTC that day).
+  - `main` is the merge of #52, on `dd134ed` (the merge of #51). The last build is the forced
+    run 43374803222 (snapshot 2026-10; 5,926,990 rows); its cube is the release `cube-2026-10`,
+    which has no fact table.
+  - **The build is tried every day** at 06:17 UTC (D-064, D-070). The first daily run is due on
+    14 November 2026; GitHub had not started it by 06:47 UTC that day.
   - **The fact table is on `main`** (#41, D-078), without the owner's region. The next build
     writes it.
   - **The archive job** keeps each built month's whole register in the private repository
-    `nickholttt/nzta-register-archive`. It holds one release, `snapshot-2026-10`, with two
-    files, read back on 2026-11-14: `mvr-2026-10.parquet` (39,298,142 bytes) and
-    `mvr-2026-10-vin11-postcode.parquet` (55,125,916 bytes).
+    `nickholttt/nzta-register-archive`: one release, `snapshot-2026-10`, two files, read back
+    on 2026-11-14 (39,298,142 and 55,125,916 bytes; the second holds `VIN11` and `POSTCODE`).
   - `Checks` tests every pull request into `main`.
-- **The site's code is on `main`** since #46. `Deploy` builds it from the newest cube release
-  and uploads nothing. **Nothing is deployed**: the variable `CLOUDFLARE_PAGES_PROJECT` is
-  unset (checked 2026-11-14). The site is seen locally (`npm run dev`, 127.0.0.1:4321).
-- **Six sub-agent definitions** in `.claude/agents/`, each naming its model;
-  `pipeline/tests/test_agents.py` checks it on every pull request (D-085). A definition written
-  in a session may not load until the next: until then a spawn names its model by hand.
+- **The site's code is on `main`**, with three new public pages since #49: `/about` (a draft
+  with six gaps for the user), `/feedback` (with a corrections log, empty) and `/differences`.
+  `Deploy` builds the public site from the newest cube release and uploads nothing: run
+  43567634682 (after #51) built it with the changed install and its upload job was skipped.
+  **Nothing is deployed**: the variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked
+  2026-11-14). The site is seen locally (`npm run dev`, 127.0.0.1:4321).
+- **`registrations_flow` is defined, not built** (#50, D-087): true first registrations from
+  the user's exports of NZTA's dashboard, January 2021 on (`docs/METRICS.md`).
+- **Six sub-agent definitions** in `.claude/agents/`, each naming its model, with a test
+  (D-085). A definition written in a session may not load until the next: until then a spawn
+  names its model by hand.
 - **Six shapes are allowed** (D-083): `matrix` is approved and has no renderer yet.
 - **Events**: 54 rows, 50 verified; four are unverified on purpose. Don't guess dates.
 
 ## Current step
 
-**Work order 1, packages A to D, with E's profiling started.** One report at the end; a
-blocked item is parked in CHECKPOINT and the next package goes on (D-082).
+**Work order 1.** Package A is done but for the forced run of October. B's pipeline half, E's
+write-up and G are being built. One report at the end; a blocked item is parked in CHECKPOINT
+and the next package goes on (D-082).
 
 ## In progress (all claude; nothing by gemini)
 
-Unpushed work sits in git worktrees in the session's scratch folder: `git worktree list`
-shows them, and each branch below is a local branch of this repository.
+Unpushed work sits in git worktrees in the session's scratch folder and in a second checkout
+beside this folder: `git worktree list` shows them. Each branch is a local branch of this
+repository; none is on GitHub yet.
 
-| Branch | Where | What | State |
-|---|---|---|---|
-| `claude/stage1-pages` | #49, the second checkout `../nzta-screens` | About, feedback and corrections, why figures differ; `go-public` and `visitor-test` playbooks (D-086) | Checks green; an independent review is running |
-| `claude/site-follow-ups` | this folder | CHECKPOINT's small site follow-ups; these notes | A sonnet worker is mid-way; not pushed |
-| `claude/pipeline-follow-ups` | a worktree | CHECKPOINT's small pipeline and workflow follow-ups | A sonnet worker is mid-way; not pushed |
-| `claude/registrations-flow` | a worktree | Package B, pipeline half: `python -m pipeline supply`, the store, the `registrations_flow` dataset | A sonnet worker is mid-way; not pushed |
-| `claude/flow-definition` | a worktree | Package B: the dataset defined in METRICS, the dashboard's fields in the data map | One commit, not pushed. D-087 is appended once #49 has merged (it follows D-086) |
+| Branch | What | State when this was written |
+|---|---|---|
+| `claude/registrations-flow` | Package B, pipeline half: `python -m pipeline supply`, a local store, the dataset built through the register's own code (plan: `data/staging/work-order/spec-B-pipeline.md`) | A sonnet worker is mid-way: five commits |
+| `claude/data-map` | Package E: `docs/DATA_MAP.md` in full, `config/data_map.json`, schema tests | An opus worker is mid-way: two commits |
+| `claude/query-service` | Package G: `docs/QUERY_SERVICE.md`, a local prototype, measurements, a proposal | An opus worker is mid-way, in the second checkout: two commits |
 
-- **A profile of every register field** (package E) is being written by a sonnet worker to
-  gitignored `data/staging/profiles/2026-10/` (`REPORT.md` and CSV files).
-- **The build plans** for package B's pipeline half and package C are in gitignored
-  `data/staging/work-order/` (`spec-B-pipeline.md`, `spec-C-statsnz.md`).
+- **The profile of every register field** is in gitignored `data/staging/profiles/2026-10/`
+  (`REPORT.md` and 48 CSV files): the evidence for the data map.
+- **The plan for package C** is `data/staging/work-order/spec-C-statsnz.md` (gitignored).
 
 ## Branches and pull requests (checked 2026-11-14)
 
-- `main`: origin `9596c60`. Merged this session: #47 (`6b69fcc`) and #48 (`9596c60`).
+- Merged this session: #47, #48, #49, #50, #51 and #52. **No pull request is open.**
 - `ui/explore` is deleted on GitHub (all of it was in `main`; no history rewritten). The local
   branch of that name remains and is far behind.
-- **1 open pull request: #49** `claude/stage1-pages` into `main`.
 
 ## Raw files on this computer (gitignored)
 
@@ -76,8 +78,7 @@ shows them, and each branch below is a local branch of this repository.
   scratch folder for a check and deleted after.
 - **Copies:** a backup folder on the project's own disk holds both register pulls (SHA-256
   checked 2026-11-13) and both dashboard CSV files (checked 2026-11-14). The user's Downloads
-  folder still holds two
-  more copies of the history file, byte for byte the same; they are the user's to delete.
+  folder still holds two more copies of the history file; they are the user's to delete.
 
 ## Known issues
 
@@ -92,9 +93,11 @@ shows them, and each branch below is a local branch of this repository.
 5. Commits before #47 still hold paths from the user's computer (D-081); history stays as is.
 6. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). Whether a minimum count is wanted is for the Stage 2 privacy review.
-7. `/method` and `/caveats` state figures by hand; they fall a month behind at each refresh
-   until the narrative engine (package H).
-8. No dark theme. Other small faults seen in screenshots: `claude/site-follow-ups`.
+7. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
+   fall a month behind at each refresh until the narrative engine (package H; D-086).
+8. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
+   share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
+9. The public build still ships the status page's script chunk, unlinked, holding no data.
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -104,30 +107,30 @@ shows them, and each branch below is a local branch of this repository.
   shapes", and keeps the cap of five waiting pull requests. The work order wins (its §5); the
   brief is updated with the final report (its §6).
 - `config/dimensions.json` still describes `registrations_flow` as planned from Stats NZ's
-  series. It is now the dashboard's dataset (D-084); `claude/registrations-flow` changes it.
-- `docs/METRICS.md` on `main` says the same until `claude/flow-definition` merges.
-- Events are scoped without regard to a preset's filter (`src/lib/events.ts`); on the
-  follow-ups list.
+  series. `docs/METRICS.md` and CLAUDE.md say it is the dashboard's dataset (D-087);
+  `claude/registrations-flow` changes the config.
+- An event marker can appear on a chart whose filter excludes the vehicles the event is about
+  (`docs/EVENTS_LAYER.md`, D-089). No chart shows a wrong marker today.
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
 - D-061 stopped chosen values being ranked and D-062 allows it: the code follows D-061 until
   package F.
 - NZTA's page says an inactive vehicle is one "registered and registration cancelled in the
-  same month". The data says `INACTIVE` means since removed from the register (measured
-  2026-11-14; `claude/flow-definition`).
+  same month". The counts say `INACTIVE` behaves as since removed (`docs/METRICS.md`, D-087).
+- `docs/DATA_MAP.md` on `main` is the first pass plus the dashboard's fields. The profile
+  contradicts it in places (body type does not roll up to vehicle type; "100% filled" counts
+  `UNKNOWN`); `claude/data-map` rewrites it.
 
 ## Blocked or waiting on the user
 
-Nothing stops the work. Parked for the final report (CHECKPOINT, questions): where the
-converted dashboard data may live; the About page's six gaps and the site's name; whether the
-monthly export takes mass and engine-size groupings; the Stats NZ hand export; the Cloudflare
-steps; the privacy classes.
+Nothing stops the work. Parked for the final report (CHECKPOINT, questions).
 
 ## How to run
 
-`AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). On what is now
-`main`: the pipeline tests pass in `Checks` (#48's run, 1 min 26 s on GitHub's runner); locally
-they take 7 to 9 minutes. `tsc --noEmit` exit 0 and `astro build` were last run on the tree of
-#46.
+`AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). On
+2026-11-14: the pipeline tests, 111 passed locally in 604 s on what became #51, and they pass
+in `Checks` in about 90 s; `tsc --noEmit` exit 0 and `astro build`, 10 pages, on what became
+#52; the brand and model rankings, share and count by model, the map and a bad link, headless
+at 320 to 1280 px.
 
 - `python -m pipeline archive --snapshot YYYY-MM` pulls NZTA's live register (about 186
   requests) and writes nothing committed.
@@ -135,15 +138,19 @@ they take 7 to 9 minutes. `tsc --noEmit` exit 0 and `astro build` were last run 
   it: the dashboard is read only from files the user supplies. NZTA's open data service and
   Stats NZ's Infoshare both answer.
 - Headless screenshots: `playwright-core` 1.64.1 in a scratch folder, `executablePath` set to
-  Chromium headless shell 1248 under `%LOCALAPPDATA%\ms-playwright`. Serve a build with
-  `npx astro preview --port N` and stop it with `npx astro preview stop`. The Build page's
-  question is in the address bar: `/build/?build.measure=share_and_count`
-  `&build.by=parent_group&build.value=BYD`; a condition is `&build.where.<dimension>=<value>`.
+  `chrome-headless-shell.exe` in `chromium_headless_shell-1248\chrome-headless-shell-win64`
+  under `%LOCALAPPDATA%\ms-playwright`. Serve a build with `npx astro preview --port N` and
+  stop it with `npx astro preview stop`. The Build page's question is in the address bar:
+  `/build/?build.measure=share&build.by=make`; a condition is
+  `&build.where.<dimension>=<value>`. The ranking is a toggle on the chart ("12-month
+  ranking"), not part of the address.
 - In Git Bash, prefix commands whose arguments start with `/` with `MSYS_NO_PATHCONV=1`, and
   write any script that holds quotes, backticks or backslashes to a file first.
 - A sub-agent that needs its own copy of the repository gets a worktree made by hand
   (`git worktree add`); Claude Code's own isolated worktree failed to start in this folder.
-  A worktree has no `.venv` or `node_modules`: use this folder's Python by its full path, and
-  `../nzta-screens` (which has `node_modules`) for a second site worker.
-- If Claude Code's permission check refuses a merge into `main`, say so and do not work around
-  it (hard rule 7).
+  A worktree has no `.venv` or `node_modules`: give it this folder's Python by its full path,
+  and use the second checkout (it has `node_modules`) for a second site worker.
+- Before a merge: wait for the `Checks` run on the pull request's newest commit, in a command
+  of its own, and only then merge. #50 was merged about a minute before its last check had
+  finished (it then passed). If Claude Code's permission check refuses a merge into `main`,
+  say so and do not work around it (hard rule 7).

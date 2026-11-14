@@ -5,55 +5,65 @@ Last updated by claude on 2026-11-14
 ## Where we left off
 
 - 2026-11-14, eighth session: the first of work order 1 (`docs/brief/WORK_ORDER.md`, D-082).
-  - **Merged:** #47 (the reworded rules) and #48 (the order saved; D-082 to D-085; six sub-agent
-    definitions and their check). `ui/explore` is deleted on GitHub.
+  - **Merged:** #47 to #52. In order: the reworded rules; the order saved with D-082 to D-085
+    and the sub-agent definitions; three public pages (D-086); `registrations_flow` defined
+    (D-087); the pipeline's follow-ups (D-088); the site's follow-ups (D-089, with these notes).
+    `ui/explore` is deleted on GitHub.
   - **The user's dashboard files** are in `data/raw/nzta-dashboard/` and the backup folder.
-    They add up to every total the user gave (D-084).
-  - **Compared with the register** (read-only, D-087, on `claude/flow-definition`): the history
-    adds 82,335 vehicles (4.4%) since removed; `ACTIVE` means still on the register; the
-    register's `VEHICLE_USAGE` is today's usage, the dashboard's an earlier one.
+    They add up to every total the user gave (D-084). Against the register: 82,335 more
+    vehicles, of which 80,852 are marked as since removed (D-087).
   - **Stats NZ's series** is on disk, fetched read-only (STATE, raw files).
-  - **Workers were mid-way when these notes were written** (STATE, In progress). Their branches
-    are local and unpushed. Read `git worktree list` and each branch's log before anything
-    else: a branch may be finished and waiting only for its push, review and merge.
-  - **October's forced run: not decided.** The first daily run (14 November, 06:17 UTC) had not
-    started. Read it first (prompt below).
+  - **Three workers were mid-way when these notes were written** (STATE, In progress). Their
+    branches are local and unpushed. Read `git worktree list` and each branch's log before
+    anything else: a branch may be finished and waiting only for its push, review and merge.
+  - **October's forced run: not decided.** GitHub had not started the first daily run by
+    06:47 UTC on 14 November. Read it first (prompt below).
+  - **One slip:** #50 was merged about a minute before its last check finished; the check
+    then passed. STATE's "How to run" says how a merge is done now.
 
-## Open pull requests (1)
+## Open pull requests
 
-- **#49** `claude/stage1-pages` into `main`: checks green, review running. claude merges it
-  under D-082 when the reviewer agrees.
+None.
 
 ## Work queue: the work order's packages, in order
 
-- **A. Housekeeping.** Done: #47, `ui/explore`, the start-up checks. Left:
+- **A. Housekeeping.** Done, but for:
   - the forced run of October, once, only if the most recent daily run says "Source
     unchanged" (D-082). Then check: the release's file holds `facts/`; the state commit; the
     archive job stopped at "already archived"; `Deploy` uploaded nothing.
-  - `claude/site-follow-ups` and `claude/pipeline-follow-ups`: finish, review, merge. Each
-    item not done needs its reason written here.
+  - Follow-ups left, each with its reason in D-088 or D-089: a digest of the rows the archive
+    job pulls; pipeline dependencies pinned by hash (tried on a pull request, after December's
+    build); a draft-then-publish release step (after December's build); admin bypass on the
+    `production` environment (the user's, on GitHub); the status page's script chunk in the
+    public build (with D's first-load work); a value in a link that is not in the data, and the
+    refill of the five largest (package F); a share by model draws 300 lines (package E's chart
+    rules); a model's name shows its separator, and `/build/` skips a heading level (package H).
+  - **A second scope for events** (D-089): an event should be able to say which vehicles it
+    applies to, so a filtered chart can leave it out. A change to `events.csv`'s schema.
 - **B. True registrations from the dashboard.**
-  - `claude/flow-definition`: append D-087 (after D-086), push, review, merge.
-  - `claude/registrations-flow` (plan: `data/staging/work-order/spec-B-pipeline.md`): the
-    `supply` command, a local store under gitignored `data/supplied/`, the dataset built
-    through the register's own code, guardrails. Then one commit adding the alias `LANDROVER`
-    to `brand_registry.csv`.
+  - `claude/registrations-flow`: finish, add D-090, review, merge. Then one commit adding the
+    alias `LANDROVER` to `brand_registry.csv`. Its definition sentence in
+    `config/dimensions.json` must match `docs/METRICS.md` ("at its latest monthly update before
+    the export was taken").
   - Then the site half: the dataset in Build and Explore; "how many were registered last
-    month, and is that up or down on a year ago", by make and model; completeness (survivors ÷
-    registrations, by vehicle type and import status; needs a `vehicle_type` dimension on both
-    datasets, a golden change). A flow series never shares a chart with survivors.
+    month, and is that up or down on a year ago", by make and model; completeness (its own
+    chart; needs NZTA's vehicle type as a dimension on both datasets, a golden change). A flow
+    series never shares a chart with survivors. `/differences` and the attribution line change
+    with it (D-086).
 - **C. Stats NZ's long-run series** (plan: `data/staging/work-order/spec-C-statsnz.md`), after
-  B's pipeline half: `supply statsnz_tpt`, the dataset `registrations_cars_long_run`, the
-  long-run chart, completeness for cars from July 1975, the hand-export playbook.
-- **D. The rest of Stage 1.** #49 covers the pages and the two playbooks. Left: first load
-  measured at phone width on a production build, the cheapest fix, measured again (target: a
-  first answer under 3 seconds).
-- **E. The data map.** The profile is being written to `data/staging/profiles/2026-10/`. Then
-  an opus editor writes `docs/DATA_MAP.md` in full, the config form with schema tests, and the
-  chart rule table that Build's shape choice reads.
-- **F. The full engine**, **G. the query service** (measure and propose only), **H. labels,
-  words, topic pages**, **I. what the industry expects**: not started. The order has each
-  one's "done when".
+  B's pipeline half: `supply statsnz_tpt`, the dataset, the long-run chart, completeness for
+  cars from July 1975, the hand-export playbook.
+- **D. The rest of Stage 1.** Pages and playbooks are in (#49). Left: first load measured at
+  phone width on a production build, the cheapest fix, measured again (target: a first answer
+  under 3 seconds).
+- **E. The data map.** `claude/data-map`: finish, review, merge. Then two more pieces: the
+  chart rule table in config with Build's shape choice reading it (site tests can run with
+  Node's own test runner, which needs a job in `checks.yml`); and the pipeline writing the
+  "moves together" figures each build.
+- **F. The full engine.** Not started.
+- **G. The query service.** `claude/query-service`: finish, review. The proposal is a parked
+  decision for the user; nothing is provisioned.
+- **H. Labels, words, topic pages** and **I. what the industry expects**: not started.
 - **For the Stage 2 privacy review** (the user's): `region` in the fact table; a minimum count;
   postcode totals (D-076); a model year from `VIN11` (D-079); the privacy classes (package E).
 
@@ -66,20 +76,20 @@ Last updated by claude on 2026-11-14
    site would not show true registrations.
 2. **The About page** has six gaps in `config/site.json` (search `TO DECIDE`): the site's
    name, its address, who runs it, how to reach them, any connection to the motor industry,
-   and what it promises about advertising, cookies and tracking. With no answer the page
-   stays a marked draft.
-3. **The site's name.** Five proposals, none checked for availability: Rego Counts; On the
-   Register; First Registered; NZ Vehicle Facts; The Fleet Book. Recommend "Rego Counts":
-   plain, local, and it says what the site holds. With no answer the gap stays.
+   and what it promises about advertising, cookies and tracking. The feedback link already
+   shows the GitHub account's name. With no answer the page stays a marked draft.
+3. **The site's name**, which also decides the Cloudflare project's name and address. Five
+   proposals, none checked for availability: Rego Counts; On the Register; First Registered;
+   NZ Vehicle Facts; The Fleet Book. Recommend "Rego Counts". With no answer the gap stays.
 4. **Should the monthly dashboard export also take the mass and engine-size groupings**, and
    the history be taken again with them? Without them, true registrations cannot be split
    into cars, utes, vans and trucks, or by engine size. Recommend yes, when convenient. With
    no answer those breakdowns stay on survivors only.
 5. **The Stats NZ hand export.** A read-only copy fetched on 14 November is used for local
-   builds. The steps for exporting it by hand go in a playbook with package C. Recommend
-   doing it once to confirm the steps. With no answer local builds keep the fetched copy and
-   nothing of it is committed.
-6. **Going public:** `docs/playbooks/go-public.md` (#49) has the Cloudflare steps. Not started.
+   builds. Recommend doing the export once by hand to confirm the steps (they go in a
+   playbook with package C). With no answer local builds keep the fetched copy and nothing of
+   it is committed.
+6. **Going public:** `docs/playbooks/go-public.md` has the Cloudflare steps. Not started.
 
 ## Decided for the user this session (each is in DECISIONS, unreviewed)
 
@@ -88,12 +98,15 @@ Last updated by claude on 2026-11-14
 2. Six sub-agent definitions by kind of work, and a test for them (D-085).
 3. The three pages' wording, their words in config, the corrections log as data, feedback by
    a link to GitHub issues, links in the footer (D-086).
-4. `registrations_flow` counts the same kinds of vehicle as the survivors dataset (in-scope
-   types, new and used), not everything in the export; `Vehicle Status` is defined from the
-   data, not from NZTA's page; completeness is not shown by model (D-087).
-5. Stats NZ's series was fetched once, read-only, so package C can be built and tested before
-   the user's hand export exists (the order §2). Nothing of it is committed.
-6. The converted dashboard data stays local and gitignored until question 1 is answered.
+4. `registrations_flow` counts the same kinds of vehicle as the survivors dataset, not
+   everything in the export; `Vehicle Status` is read from the counts, not from NZTA's page;
+   completeness is its own chart and is not shown by model; the name `registrations_flow`
+   moves from Stats NZ's series to the dashboard's dataset (D-087).
+5. Three workflow hardenings, and which follow-ups wait for the runner (D-088).
+6. Visitor wording moves onto the dimensions; which site faults are left and why (D-089).
+7. Stats NZ's series was fetched once, read-only, so package C can be built before the user's
+   hand export exists (the order §2). Nothing of it is committed.
+8. The converted dashboard data stays local and gitignored until question 1 is answered.
 
 ## Prompt for the next session
 
@@ -103,8 +116,8 @@ green and an independent reviewer agrees, and nothing in its §3 is touched. Do 
 questions; park what needs me and keep going.
 
 Check first: `git worktree list` and the log of every `claude/` branch not on GitHub (work
-from the last session may be finished and unpushed); what #49 is; the `Monthly build` runs
-since 14 November: what the daily runs said and whether a forced run followed (none is allowed
+from the last session may be finished and unpushed); the `Monthly build` runs since
+14 November: what the daily runs said and whether a forced run followed (none is allowed
 unless the most recent daily run said "Source unchanged", and only one, ever); that
 `CLOUDFLARE_PAGES_PROJECT` is still unset. No path from the user's computer in a doc, a commit
 or a pull request.
