@@ -63,7 +63,9 @@ class Service:
         self.prefix = builder["id"] + "."
         self.part_prefix = builder["id"] + "-"
         self.dimensions = {d["id"]: d for d in read_json(REPO / "config" / "dimensions.json")["dimensions"]}
-        self.notes = {**presets["public_copy"].get("dimension_notes", {}), **builder.get("dimension_notes", {})}
+        # The words a visitor sees for a dimension sit on the dimension (`public_note`, D-089); Build may add its own.
+        public_notes = {d["id"]: d["public_note"] for d in self.dimensions.values() if d.get("public_note")}
+        self.notes = {**public_notes, **builder.get("dimension_notes", {})}
         self.manifest = read_json(data / "manifest.json")
         self.snapshot = self.manifest["latest_snapshot"][:7]
         self.store_dir = store
