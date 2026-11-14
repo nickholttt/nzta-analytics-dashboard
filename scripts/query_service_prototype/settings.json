@@ -1,0 +1,18 @@
+{
+  "$comment": "Settings of the local query service prototype (docs/QUERY_SERVICE.md). Limits on how much one question may ask for, the minimum-count rule per field, and the address-bar keys that change how a chart is drawn but not which rows it needs. Not read by the site or the pipeline.",
+  "limits": {
+    "max_query_bytes": 4096,
+    "max_fields": 10,
+    "max_values": 8,
+    "max_condition_values": 50,
+    "max_cells": 200000
+  },
+  "$limits_comment": "max_fields counts every field a question names: its breakdowns and its conditions. max_values is Build's own cap on values compared (MAX_VALUES in src/lib/builder.ts, the palette's eight colours). max_cells caps the cells of one answer (month by value by value); an answer above it is refused rather than cut.",
+  "min_count": {},
+  "$min_count_comment": "A field listed here with a number N is answered only above that count: a cell counting fewer than N vehicles (and more than none) is withheld, reported as null, and counted in the answer's suppression block. No field has a rule yet; the Stage 2 privacy review sets them (docs/DATA_MAP.md, privacy classes).",
+  "withheld": [],
+  "$withheld_comment": "Fields the fact table carries that the service must still not serve. Empty: today every fact-table column is on the public list.",
+  "presentation_keys": ["measure", "view", "period", "range", "smoothing", "granularity"],
+  "$presentation_keys_comment": "Address-bar keys of a Build link that change how the same rows are drawn (share or count, map or lines, which months), not which rows. The service accepts them, so a whole link can be sent as it is, and leaves them out of the stored question, so a share and a count of one question are one answer.",
+  "cache_seconds_latest": 300
+}
