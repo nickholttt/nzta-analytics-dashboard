@@ -221,6 +221,12 @@ section[id] {
   margin: 0;
 }
 
+/* A colour ramp's first tick label is centred on the ramp's left edge, so half of it hangs outside the chart's box.
+   The indent is half the widest first label ("0%") and a little over. */
+.chart svg[class$="-ramp"] {
+  margin-left: 10px;
+}
+
 /* ---------- Sentence builder (/build) ---------- */
 
 /* The choices sit inside the sentence as words, underlined like a blank to fill. They stay native
