@@ -223,6 +223,13 @@ def check_totals(con, totals: dict[str, int]) -> list[str]:
     return problems
 
 
+def span(months: list[str], most: int = 6) -> str:
+    """A list of months for the summary: all of them when few, else the count and the range."""
+    if not months:
+        return "none"
+    return ", ".join(months) if len(months) <= most else f"{len(months)} months, {months[0]} to {months[-1]}"
+
+
 def figures(con, table: str) -> dict[str, tuple[int, int]]:
     return {month_key(m): (int(n), int(v)) for m, n, v in con.execute(
         f"SELECT {STORE_MONTH}, count(*), sum({STORE_COUNT}) FROM {table} GROUP BY 1 ORDER BY 1").fetchall()}
@@ -371,9 +378,9 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
     final = per_year(con, "merged") if result["written"] else per_year(con, "stored")
     result["per_year"] = final
 
-    echo(f"Months added: {', '.join(added) or 'none'}")
-    echo(f"Months unchanged: {', '.join(unchanged) or 'none'}")
-    echo(f"Months replaced: {', '.join(replaced) or 'none'}")
+    echo(f"Months added: {span(added)}")
+    echo(f"Months unchanged: {span(unchanged)}")
+    echo(f"Months replaced: {span(replaced)}")
     for warning in warnings:
         echo(f"WARNING: {warning}")
     echo("The store now holds, by year:" if result["written"] else "Nothing to write. The store holds, by year:")

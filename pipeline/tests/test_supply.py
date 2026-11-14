@@ -253,3 +253,11 @@ def test_a_store_that_disagrees_with_its_ledger_stops_the_command(cfg):
 
 def test_an_unknown_source_id_is_refused(cfg):
     aborts("not a supplied source", lambda: supplied.supply(cfg, "nowhere", HISTORY, echo=lambda *_: None))
+
+
+def test_the_summary_names_few_months_and_ranges_many(cfg):
+    lines = []
+    supplied.supply(cfg, SOURCE, HISTORY, taken=TAKEN, echo=lines.append)
+    assert lines[0] == "Months added: 2026-06, 2026-07, 2026-08"
+    assert supplied.span([f"2021-{m:02d}" for m in range(1, 8)]) == "7 months, 2021-01 to 2021-07"
+    assert supplied.span([]) == "none"
