@@ -8,7 +8,7 @@ import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
+import { latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
@@ -81,6 +81,9 @@ export default function PresetPanel({
     if (typeof window === "undefined") return false;
     return getParam(presetId, "range", "default") === "all";
   });
+  // The month a ranking ends on, or the month a monthly figure is read for; empty is the dataset's latest. Kept in the
+  // address as `<preset>.month`.
+  const [month, setMonth] = useState<string>(() => (typeof window === "undefined" ? "" : getParam(presetId, "month", "")));
   const [copied, setCopied] = useState<"" | "copied" | "address">("");
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
@@ -96,6 +99,12 @@ export default function PresetPanel({
     if (preset && !offers(preset, newId, activePeriod)) {
       handlePeriodChange(defaultPeriod);
     }
+  };
+
+  const handleMonthChange = (chosen: string) => {
+    const value = manifest && effectivePreset && chosen === latestMonthOf(effectivePreset, manifest) ? "" : chosen;
+    setMonth(value);
+    setParam(presetId, "month", value, "");
   };
 
   const handlePeriodChange = (newPeriod: string, full = false) => {
@@ -304,6 +313,8 @@ export default function PresetPanel({
           label={label}
           valueHeading={dimensionLabel ?? dimension.label}
           lead={lead}
+          month={month}
+          onMonth={handleMonthChange}
         />
       );
     } else if (shape === "geo" && dimension) {
@@ -354,8 +365,8 @@ export default function PresetPanel({
     ...ranking.map((id) => ({
       key: id,
       id,
-      // LeagueChart ranks the trailing window whatever the period, so the label names that window.
-      label: `${TRAILING_MONTHS}-month ranking`,
+      // LeagueChart ranks the period's own months (a month, or the last 12), so the label names them.
+      label: `${findPeriod(id)?.months ?? TRAILING_MONTHS}-month ranking`,
       full: false,
     })),
   ];

@@ -4,8 +4,11 @@
 // renders a warning where one does, so the rule is enforced in front of the reader.
 import { findDerived, findDimension, findMeasure } from "./config";
 import type { Preset } from "./config";
-import type { Manifest } from "./data";
+import type { DatasetManifest, Manifest } from "./data";
+import { monthLabel } from "./measures";
 import { servedFrom } from "./resolve";
+
+const DATE_FORMAT = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 const PLACEHOLDER = /\{([a-z_]+(?:\.[A-Za-z0-9_]+)*)(\|[a-z]+)?\}/g;
 
@@ -18,10 +21,16 @@ export function noteContext(preset: Preset, manifest: Manifest): NoteContext {
   const served = servedFrom(preset.dataset, manifest);
   return {
     manifest,
-    dataset: served ? manifest.datasets[served] : undefined,
+    dataset: served ? withLatestExport(manifest.datasets[served]) : undefined,
     measure: findMeasure(preset.measure) ?? findDerived(preset.derived),
     dimension: findDimension(preset.dimension),
   };
+}
+
+// A supplied dataset's manifest entry with the date of its newest export under supplied.taken_latest, which a template can name.
+function withLatestExport(entry: DatasetManifest): DatasetManifest {
+  const supplied = entry.supplied;
+  return supplied ? { ...entry, supplied: { ...supplied, taken_latest: supplied.taken[supplied.taken.length - 1] } as typeof supplied } : entry;
 }
 
 function lookup(context: NoteContext, path: string): unknown {
@@ -33,6 +42,8 @@ function lookup(context: NoteContext, path: string): unknown {
 
 function format(value: unknown, filter?: string): string {
   if (value === undefined || value === null) return UNRESOLVED;
+  if (filter === "|month" && typeof value === "string") return monthLabel(value);
+  if (filter === "|date" && typeof value === "string") return DATE_FORMAT.format(new Date(`${value}T00:00:00Z`));
   if (filter === "|pct") return typeof value === "number" ? `${(value * 100).toFixed(value * 100 < 10 ? 1 : 0)}%` : UNRESOLVED;
   return String(value);
 }

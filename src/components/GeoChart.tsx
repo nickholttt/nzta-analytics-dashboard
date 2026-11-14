@@ -3,6 +3,7 @@
 // (public/geo/nz-regions.json, D-054); a region in the cube with no outline appears in the table only.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { datasetWords } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import { loadRegions } from "../lib/data";
 import type { Manifest, RegionOutlines, SliceRow } from "../lib/data";
@@ -153,7 +154,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
                   {heading}
                 </th>
                 <th scope="col">Share</th>
-                <th scope="col">Still registered</th>
+                <th scope="col">{datasetWords(preset.dataset)?.count_heading ?? "Vehicles"}</th>
               </tr>
             </thead>
             <tbody>

@@ -1,10 +1,13 @@
 // league: ranked horizontal bar + rank delta. Measure = count/share, single period, high-cardinality dimension.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { datasetWords, findDataset, findMeasure, findPeriod } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, monthLabel, monthRange, pct, shareChange } from "../lib/measures";
-import { readout, spanPeriod } from "../lib/readout";
+import { fillNote } from "../lib/notes";
+import { count, readout, spanPeriod } from "../lib/readout";
+import { latestMonthOf } from "../lib/resolve";
 import {
   FONT_TEXT,
   INK,
@@ -33,7 +36,11 @@ export type LeagueItem = {
   share: number;
   priorN: number;
   priorShare: number;
-  shareDelta: number;
+  // Undefined where there is no earlier window to compare with.
+  shareDelta: number | undefined;
+  // The change in the count on the same months a year earlier, as a proportion; undefined where the earlier count is under
+  // the change-on-a-year-ago floor, which is the measure's own guard.
+  yearChange: number | undefined;
   colour: string;
   isRemainder: boolean;
 };
@@ -48,19 +55,39 @@ type Props = {
   // The heading of the column that names each ranked value, in the words the panel uses for the dimension.
   valueHeading: string;
   lead?: boolean;
+  // The month the ranking's window ends on. Undefined, or one outside the data, is the dataset's latest month. The panel
+  // keeps it in the address (`<preset>.month`), so a ranking of a past month can be linked.
+  month?: string;
+  onMonth?: (month: string) => void;
 };
+
+// The change on a year ago, as a percentage with its sign.
+const signed = (x: number) => `${x > 0.0005 ? "+" : x < -0.0005 ? "−" : "±"}${Math.abs(x * 100).toFixed(Math.abs(x) * 100 < 10 ? 1 : 0)}%`;
 
 // Bars follow the preset's measure. A count is offered beside the share only when the measure is not
 // share: on a share preset the dataset may be one whose counts read as sales (D-044).
-export function LeagueChart({ preset, dimension, rows, manifest, minDenominator, label, valueHeading, lead = false }: Props) {
+export function LeagueChart({ preset, dimension, rows, manifest, minDenominator, label, valueHeading, lead = false, month, onMonth }: Props) {
   const [topN, setTopN] = useState<number>(preset.top_n ?? 15);
   const offersCount = preset.measure !== "share";
   const [displayMode, setDisplayMode] = useState<"share" | "count">(offersCount ? "count" : "share");
 
-  const latest = manifest.latest_snapshot.slice(0, 7);
-  const currentFrom = addMonths(latest, -(TRAILING_MONTHS - 1));
-  const priorFrom = addMonths(latest, -(2 * TRAILING_MONTHS - 1));
-  const priorTo = addMonths(latest, -TRAILING_MONTHS);
+  // The window is the preset's period where that is a span of a year or less (a month, or the last 12 months), otherwise the
+  // trailing window. It is compared with the same months a year earlier, so a single month is set against the same month
+  // last year, and a year against the year before it.
+  const spanMonths = findPeriod(preset.period)?.months;
+  const span = spanMonths !== undefined && spanMonths <= TRAILING_MONTHS ? spanMonths : TRAILING_MONTHS;
+  const latest = latestMonthOf(preset, manifest);
+  const available = useMemo(() => {
+    const first = rows.reduce((m, r) => (r.month < m ? r.month : m), latest);
+    return monthRange(addMonths(first, span - 1), latest).reverse();
+  }, [rows, latest, span]);
+  const end = month && available.includes(month) ? month : latest;
+  const currentFrom = addMonths(end, -(span - 1));
+  const priorFrom = addMonths(currentFrom, -TRAILING_MONTHS);
+  const priorTo = addMonths(end, -TRAILING_MONTHS);
+  const words = datasetWords(preset.dataset);
+  const showYear = findDataset(preset.dataset)?.grain === "flow";
+  const yearFloor = findMeasure("yoy")?.guards?.min_denominator ?? 0;
 
   const model = useMemo(() => {
     const currentCounts = new Map<string, number>();
@@ -71,7 +98,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
       if (!monthDenoms.has(r.month)) {
         monthDenoms.set(r.month, r.denominator);
       }
-      if (r.month >= currentFrom && r.month <= latest) {
+      if (r.month >= currentFrom && r.month <= end) {
         currentCounts.set(r.value, (currentCounts.get(r.value) ?? 0) + r.n);
       } else if (r.month >= priorFrom && r.month <= priorTo) {
         priorCounts.set(r.value, (priorCounts.get(r.value) ?? 0) + r.n);
@@ -79,9 +106,12 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
     }
 
     let currentDenom = 0;
-    for (const m of monthRange(currentFrom, latest)) {
+    for (const m of monthRange(currentFrom, end)) {
       currentDenom += monthDenoms.get(m) ?? 0;
     }
+    // A comparison needs every month of the earlier window: a ranking that starts in the data's first year has nothing a
+    // year earlier, and showing every value as new would say something the data does not.
+    const hasPrior = monthRange(priorFrom, priorTo).every((m) => monthDenoms.has(m));
     let priorDenom = 0;
     for (const m of monthRange(priorFrom, priorTo)) {
       priorDenom += monthDenoms.get(m) ?? 0;
@@ -110,7 +140,8 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
       const priorN = priorCounts.get(val) ?? 0;
       const share = currentDenom > 0 ? n / currentDenom : 0;
       const priorShare = priorDenom > 0 ? priorN / priorDenom : 0;
-      const shareDelta = share - priorShare;
+      const shareDelta = hasPrior ? share - priorShare : undefined;
+      const yearChange = hasPrior && priorN >= yearFloor && priorN > 0 ? (n - priorN) / priorN : undefined;
 
       // A compound value reads as words: the dimension's separator becomes a space.
       const separator = dimension.key_separator;
@@ -127,19 +158,25 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
         priorN,
         priorShare,
         shareDelta,
+        yearChange,
         colour: seriesColour(idx),
         isRemainder: false,
       };
     });
 
-    return {
-      items: topItems,
-      currentDenom,
-      priorDenom,
-      currentPeriodLabel: `${monthLabel(currentFrom)} – ${monthLabel(latest)}`,
-      priorPeriodLabel: `${monthLabel(priorFrom)} – ${monthLabel(priorTo)}`,
-    };
-  }, [rows, latest, currentFrom, priorFrom, priorTo, topN, dimension, label]);
+    return { items: topItems, currentDenom, priorDenom, hasPrior };
+  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, dimension, label]);
+
+  // What the ranking covers, in words: the window and the months it is compared with.
+  const basis = fillNote(
+    words?.ranking_basis ?? "Ranked by vehicles in the window ({current}). The move compares each rank with {prior_window} ({prior}).",
+    {
+      window: span === 1 ? `in ${monthLabel(end)}` : end === latest ? `in the last ${span} months` : `in the ${span} months to ${monthLabel(end)}`,
+      prior_window: span === 1 ? "the same month a year earlier" : `the same ${span} months a year earlier`,
+      current: spanPeriod(currentFrom, end),
+      prior: spanPeriod(priorFrom, priorTo),
+    },
+  ).text;
 
   // Whether the table is wider than its box depends on the names in it, not only on the screen, so it is measured:
   // the line that says the table scrolls shows only while it does.
@@ -214,9 +251,10 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
               x: isShare ? "share" : "n",
               ...tipStyle,
               title: (d: LeagueItem) => {
-                const move =
-                  d.rankDelta === null
-                    ? `New: not ranked in the ${TRAILING_MONTHS} months before`
+                const move = !model.hasPrior
+                  ? "No figures a year earlier to compare with"
+                  : d.rankDelta === null
+                    ? "New: not ranked a year earlier"
                     : d.rankDelta > 0
                     ? `Up ${d.rankDelta} place${d.rankDelta > 1 ? "s" : ""} (was #${d.priorRank})`
                     : d.rankDelta < 0
@@ -224,11 +262,15 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                     : "Same place";
                 return readout({
                   name: `#${d.rank} ${d.name}`,
-                  period: spanPeriod(currentFrom, latest),
+                  period: spanPeriod(currentFrom, end),
                   share: d.share,
                   n: d.n,
                   base: model.currentDenom,
-                  extra: [move, `Change in share: ${shareChange(d.shareDelta)}`],
+                  extra: [
+                    move,
+                    ...(d.shareDelta !== undefined ? [`Change in share: ${shareChange(d.shareDelta)}`] : []),
+                    ...(showYear && d.yearChange !== undefined ? [`Change on a year ago: ${signed(d.yearChange)} (${count(d.priorN)} a year earlier)`] : []),
+                  ],
                 });
               },
             }),
@@ -236,7 +278,18 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
         ],
       });
     },
-    [model, displayMode, currentFrom, latest],
+    [model, displayMode, currentFrom, end, showYear],
+  );
+
+  const countHead = (
+    <th scope="col" data-hint="the number of vehicles" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+      {words?.count_heading ?? "Vehicles"}
+    </th>
+  );
+  const yearHead = (
+    <th scope="col" data-hint="the change on a year ago" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+      Change on a year ago
+    </th>
   );
 
   return (
@@ -278,16 +331,26 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
           </label>
         </div>
         ) : null}
+
+        {onMonth && available.length > 1 ? (
+          <label className="month-pick">
+            {span === 1 ? "Month" : "Ranking ends in"}
+            <select value={end} onChange={(e) => onMonth(e.target.value)}>
+              {available.map((m) => (
+                <option key={m} value={m}>
+                  {monthLabel(m)}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
       </div>
 
-      <p className="chart-unit">
-        Ranked by vehicles first registered in the last {TRAILING_MONTHS} months that are still registered ({model.currentPeriodLabel}). The move compares each rank with the {TRAILING_MONTHS} months
-        before ({model.priorPeriodLabel}).
-      </p>
+      <p className="chart-unit">{basis}</p>
 
       <PlotFigure
         render={render}
-        label={`Ranked bar chart, ${spanPeriod(currentFrom, latest)}: the ${model.items.length} largest by share. The table below the chart lists each place, its move and its change in share.`}
+        label={`Ranked bar chart, ${spanPeriod(currentFrom, end)}: the ${model.items.length} largest by ${displayMode === "share" ? "share" : "number of vehicles"}. The table below the chart lists each place, its move and its change.`}
       />
 
       {/* On a phone the table scrolls sideways in its own box, so the box takes keyboard focus and a name. The
@@ -301,11 +364,13 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
               <th scope="col" style={{ width: "45px" }}>Rank</th>
               <th scope="col" style={{ width: "56px" }}>Move</th>
               <th scope="col">{valueHeading}</th>
+              {showYear ? countHead : null}
+              {showYear ? yearHead : null}
               <th scope="col" data-hint="the share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Share</th>
               <th scope="col" data-hint="the change in share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>
-              <th scope="col" data-hint="the vehicles still registered" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Still registered</th>
-              <th scope="col" data-hint="the rank before" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                Rank <span className="visually-hidden">in the {TRAILING_MONTHS} months </span>before
+              {showYear ? null : countHead}
+              <th scope="col" data-hint="the rank a year earlier" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                Rank <span className="visually-hidden">a year </span>before
               </th>
             </tr>
           </thead>
@@ -321,7 +386,12 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                     #{item.rank}
                   </td>
                   <td>
-                    {!hasMovement ? (
+                    {!model.hasPrior ? (
+                      <span style={{ color: "var(--ink-3)", fontSize: "12px" }}>
+                        <span aria-hidden="true">—</span>
+                        <span className="visually-hidden">No figures a year earlier</span>
+                      </span>
+                    ) : !hasMovement ? (
                       <span className="badge" style={{ background: "rgba(3, 105, 161, 0.1)", color: "#0369a1", fontSize: "11px" }}>
                         New
                       </span>
@@ -344,11 +414,17 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                     <span className="swatch" style={{ background: item.colour }} aria-hidden="true" />
                     <strong>{item.name}</strong>
                   </td>
+                  {showYear ? <td className="figure">{item.n.toLocaleString()}</td> : null}
+                  {showYear ? (
+                    <td className="change" style={{ textAlign: "right" }}>
+                      {item.yearChange === undefined ? "—" : signed(item.yearChange)}
+                    </td>
+                  ) : null}
                   <td className="figure">{pct(item.share)}</td>
                   <td className="change" style={{ textAlign: "right" }}>
-                    {shareChange(item.shareDelta)}
+                    {item.shareDelta === undefined ? "—" : shareChange(item.shareDelta)}
                   </td>
-                  <td className="figure">{item.n.toLocaleString()}</td>
+                  {showYear ? null : <td className="figure">{item.n.toLocaleString()}</td>}
                   <td style={{ textAlign: "right", color: "var(--ink-3)" }}>
                     {item.priorRank !== null ? `#${item.priorRank}` : "—"}
                   </td>

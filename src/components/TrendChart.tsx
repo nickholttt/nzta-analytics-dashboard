@@ -8,12 +8,13 @@
 // per-month selection the count path has no notion of.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
-import { findDerived } from "../lib/config";
+import { datasetWords, findDerived } from "../lib/config";
 import type { Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { derivedSeries } from "../lib/derived";
 import { latestMonthOf } from "../lib/resolve";
-import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
+import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
+import { fillNote } from "../lib/notes";
 import { count, greyedReason, monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
 import {
@@ -146,20 +147,21 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   );
 
   const names = values.map(label).join(", ");
+  const words = datasetWords(preset.dataset);
+  const trailing = { months: TRAILING_MONTHS };
+  const recent = fillNote(words?.recent_figure ?? "in the last {months} months", trailing).text;
   return (
     <>
-      <ul className="series-key" aria-label="Lines on this chart, with vehicles first registered in the last 12 months that are still registered">
+      <ul className="series-key" aria-label={`Lines on this chart, with vehicles ${recent}`}>
         {model.totals.map((t) => (
           <li key={t.series}>
             <span className="swatch" style={{ background: colour(t.series) }} aria-hidden="true" />
-            {label(t.series)} <span className="series-key-figure">{count(t.n)} first registered in the last 12 months, still registered</span>
+            {label(t.series)} <span className="series-key-figure">{count(t.n)} {recent}</span>
           </li>
         ))}
       </ul>
       <p className="chart-unit">
-        {rolling
-          ? "Vehicles first registered in the 12 months to each month, still registered"
-          : "Vehicles first registered each month, still registered"}
+        {fillNote((rolling ? words?.window_unit : words?.month_unit) ?? "Vehicles", trailing).text}
       </p>
       <PlotFigure
         render={render}

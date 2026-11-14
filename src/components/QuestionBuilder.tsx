@@ -12,7 +12,7 @@ import { count } from "../lib/readout";
 import PresetPanel, { reservedLabel } from "./PresetPanel";
 
 // The chart's own settings in the address bar. A new question clears them, so its charts open on their defaults.
-const CHART_PARAMS = ["period", "range", "smoothing"];
+const CHART_PARAMS = ["period", "range", "smoothing", "month"];
 // Values filled in when a count is broken down and none are chosen yet: a count draws one line per value.
 const STARTING_VALUES = 5;
 const SUGGESTIONS = 8;
