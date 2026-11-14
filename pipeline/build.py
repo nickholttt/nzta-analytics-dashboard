@@ -301,6 +301,10 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:
     now = now or datetime.now(timezone.utc)
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
+    # Before anything is read: a series dimension that would be offered to a register dataset cannot be derived there.
+    misconfigured = derive.series_dimension_problems(cfg)
+    if misconfigured:
+        raise GuardrailError("build", "\n  - " + "\n  - ".join(misconfigured))
     aborts: list[str] = []
     warnings: list[str] = list(source.get("warnings", []))
 

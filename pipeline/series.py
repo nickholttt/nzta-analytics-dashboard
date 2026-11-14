@@ -27,7 +27,7 @@ from .supplied import MONTH_KEY, STORE_MONTH, STORE_SERIES, STORE_VALUE, abort, 
 
 INT32_MAX = 2**31 - 1
 # The derive kind in config/dimensions.json whose values are series of a source of this kind.
-DERIVE_KIND = "series"
+DERIVE_KIND = derive.SERIES_KIND
 # How many individual problems a message spells out before it gives a count.
 LISTED = 12
 

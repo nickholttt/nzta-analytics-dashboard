@@ -614,6 +614,8 @@ Supplied sources:
   replacement of that month whose file was taken on or after the last good build's day. The totals are kept in
   the state as `supplied_totals.<dataset>`, so an edit to a scope file cannot trip this check.
 - A supplied dataset was built in the last good run and its store is now absent.
+- A dimension of the `series` derive kind names no datasets in `applies_to`, or names one that does not read a source of
+  kind `series`: it would be offered to datasets that cannot derive it. The build stops before it reads anything.
 - For a dataset of a source of kind `series`: its `total` names a series the table does not have, or the total
   series lacks a figure in a month the store holds; a dimension names a series, or a reference row for a label,
   that does not exist (or whose label is not unique); a dimension's values add up to more than the total in a month

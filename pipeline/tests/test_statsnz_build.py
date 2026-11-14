@@ -471,3 +471,18 @@ def test_no_private_or_register_field_reaches_the_new_files(built):
     for path in (public / "cube" / DATASET).glob("*.parquet"):
         names |= {d[0] for d in con.execute(f"SELECT * FROM read_parquet('{path.as_posix()}') LIMIT 0").description}
     assert names == {c[0] for c in SLICE_COLUMNS}
+
+
+@pytest.mark.parametrize("applies_to", [None, [], ["registrations_surviving"]], ids=["no list", "an empty list", "a register dataset"])
+def test_a_series_dimension_must_name_the_series_datasets_it_is_for(tmp_path, workspace, applies_to):
+    cfg = make_cfg(workspace)
+    origin = next(d for d in cfg.dimensions["dimensions"] if d.get("applies_to") == [DATASET])
+    if applies_to is None:
+        del origin["applies_to"]
+    else:
+        origin["applies_to"] = applies_to
+    expect_abort(lambda: run(tmp_path, cfg), f"dimension {origin['id']} derives from a published series")
+
+
+def test_the_real_configuration_has_no_series_dimension_problem(workspace):
+    assert derive.series_dimension_problems(make_cfg(workspace)) == []
