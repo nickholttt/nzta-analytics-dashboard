@@ -171,7 +171,7 @@ type PresetsDoc = {
   groups: { id: string; label: string; title: string; lead?: boolean; defer?: boolean; presets: Preset[] }[];
   defaults: {
     year_change_measure: string;
-    phrases: RankingPhrases & { year_up: string; year_down: string; year_same: string; no_year_ago: string; bad_month: string; pick_month: string };
+    phrases: RankingPhrases & YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
@@ -194,8 +194,6 @@ export const presetGroups = presetsFile.groups;
 export const presets: Preset[] = presetsFile.groups.flatMap((g) => g.presets);
 export const chartDefaults = presetsFile.defaults;
 export const phrases = chartDefaults.phrases;
-// The hover's words for a change on a year ago, by direction.
-export const yearPhrases: YearPhrases = { up: phrases.year_up, down: phrases.year_down, same: phrases.year_same };
 // The count under which a change on a year ago is withheld: the floor of the measure config names.
 export const yearChangeFloor = (): number => findMeasure(chartDefaults.year_change_measure)?.guards?.min_denominator ?? 0;
 export const compositeRules = presetsFile.$composite;

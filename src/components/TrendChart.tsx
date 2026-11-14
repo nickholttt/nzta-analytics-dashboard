@@ -9,9 +9,9 @@
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
 import type { MouseEvent, ReactNode } from "react";
-import { datasetWords, findDataset, findDerived, phrases, yearChangeFloor, yearPhrases } from "../lib/config";
+import { datasetWords, findDataset, findDerived, phrases, yearChangeFloor } from "../lib/config";
 import type { Preset } from "../lib/config";
-import { fillTemplate, sayAnswer, sayBadMonth, sayYearChange, yearChange } from "../lib/sentences";
+import { answerLine, fillTemplate, hoverLine, monthsOf, sayBadMonth, sayOffChart } from "../lib/sentences";
 import { percent } from "../lib/sentences";
 import type { Manifest, SliceRow } from "../lib/data";
 import { COMPLETENESS, completenessSeries, derivedSeries } from "../lib/derived";
@@ -351,16 +351,14 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
   // The answer: the count for one month, against the same month a year earlier. Months come from the points that have a
   // figure, newest first, so the choice offers only months the data has.
   // The year-ago figure is read from every month the dataset has, so the window a visitor draws never changes the answer.
-  const countFor = useCallback((m: string) => model.byMonth.get(m), [model]);
-  const answerMonths = useMemo(() => (preset.answer ? [...model.byMonth.keys()].sort().reverse() : []), [model, preset.answer]);
+  // `rows` is every month the dataset has; the sentences take it whole.
+  const answerMonths = useMemo(() => (preset.answer ? monthsOf(rows) : []), [rows, preset.answer]);
   const chosen = month && answerMonths.includes(month) ? month : answerMonths[0];
-  const answer = useMemo(() => (preset.answer && chosen ? sayAnswer(preset.answer, countFor, chosen, yearChangeFloor()) : undefined), [preset.answer, countFor, chosen]);
+  const answer = useMemo(() => (preset.answer && chosen ? answerLine(preset.answer, rows, chosen, yearChangeFloor()) : undefined), [preset.answer, rows, chosen]);
   const monthNotice = preset.answer && chosen ? sayBadMonth(phrases.bad_month, month, chosen) : undefined;
+  const offChart = chosen && preset.answer ? sayOffChart(phrases.month_off_chart, chosen, model.win.from, model.win.to) : undefined;
   const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
-  const yearLine = (m: string) => {
-    const c = showYear ? yearChange(countFor, m, yearChangeFloor()) : undefined;
-    return c ? [sayYearChange(yearPhrases, m, c)] : [fillTemplate(phrases.no_year_ago, {}).text];
-  };
+  const yearLine = (m: string) => [hoverLine(phrases, rows, m, yearChangeFloor())];
 
   const render = useCallback(
     (width: number) => {
@@ -423,7 +421,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
         ],
       });
     },
-    [model, share, lead, name, preset.measure, minDenominator, chosen, showYear, countFor],
+    [model, share, lead, name, preset.measure, minDenominator, chosen, showYear, rows],
   );
 
   // A click or tap on the chart reads the month nearest to it. The month list is the keyboard's way to the same thing.
@@ -462,6 +460,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
       ) : null}
       {preset.answer && answer && chosen ? after?.() : null}
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
+      {offChart ? <p className="chart-unit" role="status">{offChart}</p> : null}
       <p className="chart-unit">{share ? "Share of the month's vehicles" : "Vehicles"}{preset.answer ? `. ${phrases.pick_month}` : ""}</p>
       {/* The click only repeats what the month list does, so the wrapper needs no role of its own. */}
       <div onClick={preset.answer ? pick : undefined}>

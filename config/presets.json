@@ -29,6 +29,8 @@
       "year_down": "Down {change|pct} on {prior_month} ({prior_count})",
       "year_same": "Same as {prior_month} ({prior_count})",
       "no_year_ago": "No figures a year earlier to compare with",
+      "year_too_few": "The same month a year earlier has too few vehicles to compare with",
+      "month_off_chart": "{month} is outside the time range drawn here, so it is not marked on the chart. Choose a longer range to see it.",
       "window_last": "in the last {span} months",
       "window_to": "in the {span} months to {end}",
       "window_month": "in {end}",

@@ -5,7 +5,7 @@ import { datasetWords, findDataset, findPeriod, phrases, yearChangeFloor } from 
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, monthLabel, monthRange, pct, shareChange } from "../lib/measures";
-import { fillTemplate, sayBadMonth, sayRanking } from "../lib/sentences";
+import { changeOnYear, fillTemplate, rankingText, rankingWindows, sayBadMonth } from "../lib/sentences";
 import { count, readout, spanPeriod } from "../lib/readout";
 import { latestMonthOf } from "../lib/resolve";
 import {
@@ -23,6 +23,20 @@ import {
   tipStyle,
 } from "../lib/theme";
 import { PlotFigure } from "./PlotFigure";
+
+// A function that cuts a name with an ellipsis to the room a label has, measured in the chart's own font, so capitals and
+// narrow letters both fit. Without a canvas (no browser) it estimates generously.
+function fitter(room: number) {
+  const context = typeof document === "undefined" ? null : document.createElement("canvas").getContext("2d");
+  if (context) context.font = `${plotStyle.fontSize} ${FONT_TEXT}`;
+  const width = (s: string) => (context ? context.measureText(s).width : s.length * 8);
+  return (name: string) => {
+    if (width(name) <= room) return name;
+    let end = name.length;
+    while (end > 1 && width(`${name.slice(0, end)}…`) > room) end--;
+    return `${name.slice(0, end)}…`;
+  };
+}
 
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 
@@ -82,10 +96,13 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
     return monthRange(addMonths(first, span - 1), latest).reverse();
   }, [rows, latest, span]);
   const end = month && available.includes(month) ? month : latest;
-  const currentFrom = addMonths(end, -(span - 1));
-  const priorFrom = addMonths(currentFrom, -TRAILING_MONTHS);
-  const priorTo = addMonths(end, -TRAILING_MONTHS);
+  const { currentFrom, priorFrom, priorTo } = rankingWindows(end, span);
   const words = datasetWords(preset.dataset);
+  // What the ranking covers and whether there are figures a year earlier: decided from the rows, in one place.
+  const ranking = useMemo(
+    () => rankingText(phrases, { basis: words?.ranking_basis ?? "Ranked by vehicles {window}", span, end, latest, monthsPresent: new Set(rows.map((r) => r.month)) }),
+    [rows, words, span, end, latest],
+  );
   const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
   const yearFloor = yearChangeFloor();
 
@@ -109,9 +126,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
     for (const m of monthRange(currentFrom, end)) {
       currentDenom += monthDenoms.get(m) ?? 0;
     }
-    // A comparison needs every month of the earlier window: a ranking that starts in the data's first year has nothing a
-    // year earlier, and showing every value as new would say something the data does not.
-    const hasPrior = monthRange(priorFrom, priorTo).every((m) => monthDenoms.has(m));
+    const hasPrior = ranking.hasPrior;
     let priorDenom = 0;
     for (const m of monthRange(priorFrom, priorTo)) {
       priorDenom += monthDenoms.get(m) ?? 0;
@@ -141,7 +156,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
       const share = currentDenom > 0 ? n / currentDenom : 0;
       const priorShare = priorDenom > 0 ? priorN / priorDenom : 0;
       const shareDelta = hasPrior ? share - priorShare : undefined;
-      const yearChange = hasPrior && priorN >= yearFloor && priorN > 0 ? (n - priorN) / priorN : undefined;
+      const yearChange = hasPrior ? changeOnYear(n, priorN, yearFloor)?.change : undefined;
 
       // A compound value reads as words: the dimension's separator becomes a space.
       const separator = dimension.key_separator;
@@ -165,23 +180,13 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
     });
 
     return { items: topItems, currentDenom, priorDenom, hasPrior };
-  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, dimension, label]);
+  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, dimension, label, ranking]);
 
-  // What the ranking covers, in words: the window and the months it is compared with.
-  const basis = sayRanking(phrases, {
-    basis: words?.ranking_basis ?? "Ranked by vehicles {window}",
-    span,
-    end,
-    latest,
-    currentFrom,
-    priorFrom,
-    priorTo,
-    hasPrior: model.hasPrior,
-  });
+  const basis = ranking.text;
   const monthNotice = sayBadMonth(phrases.bad_month, month, end);
   const noYearAgo = fillTemplate(phrases.no_year_ago, {}).text;
   const yearLine = (d: LeagueItem) => {
-    if (d.yearChange === undefined) return [];
+    if (d.yearChange === undefined) return model.hasPrior ? [fillTemplate(phrases.year_too_few, {}).text] : [];
     const direction = Math.abs(d.yearChange) < 0.0005 ? "same" : d.yearChange > 0 ? "up" : "down";
     return [
       fillTemplate(phrases[`year_${direction}`], { change: Math.abs(d.yearChange), prior_month: spanPeriod(priorFrom, priorTo), prior_count: count(d.priorN) }).text,
@@ -218,8 +223,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
       // A name wider than the room the labels have would run off the chart's left edge: it is cut with an ellipsis, and the
       // table below and the readout carry the whole name.
       const marginLeft = Math.min(180, Math.max(110, width * 0.28));
-      const room = Math.floor((marginLeft - 8) / 6.4);
-      const fit = (name: string) => (name.length > room ? `${name.slice(0, Math.max(1, room - 1))}…` : name);
+      const fit = fitter(marginLeft - 14);
 
       return Plot.plot({
         width,
@@ -406,7 +410,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                     {!model.hasPrior ? (
                       <span style={{ color: "var(--ink-3)", fontSize: "12px" }}>
                         <span aria-hidden="true">—</span>
-                        <span className="visually-hidden">No figures a year earlier</span>
+                        <span className="visually-hidden">{noYearAgo}</span>
                       </span>
                     ) : !hasMovement ? (
                       <span className="badge" style={{ background: "rgba(3, 105, 161, 0.1)", color: "#0369a1", fontSize: "11px" }}>
