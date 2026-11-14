@@ -237,7 +237,9 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   // after the first change.
   useEffect(() => writeAddress(latest.current, true), []);
 
-  const ask = (next: Partial<Question>) => {
+  // fromVisitor: false for the page settling a question itself (starting values arriving), which must not clear what the
+  // link was told.
+  const ask = (next: Partial<Question>, fromVisitor = true) => {
     const asked = { ...latest.current, ...next };
     // Another dataset carries other conditions and other values: the ones it does not carry go, and the chosen values start over.
     if (next.dataset && next.dataset !== latest.current.dataset) {
@@ -251,7 +253,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     const settled = settle(all, asked);
     for (const [d] of held) if (d !== settled.by && !(d in settled.where)) settled.where[d] = [];
     latest.current = settled;
-    setNotices([]);
+    if (fromVisitor) setNotices([]);
     setQuestion(settled);
     writeAddress(settled, false);
   };
@@ -275,7 +277,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
         const now = latest.current;
         if (!current || now.by !== by || now.values.length > 0) return;
         const top = options.filter((o) => !isReserved(o.value) && o.recent > 0).slice(0, STARTING_VALUES).map((o) => o.value);
-        if (top.length) ask({ values: top });
+        if (top.length) ask({ values: top }, false);
         else setNoStartFor(startKey);
       },
       () => current && setStartFailedFor(startKey),

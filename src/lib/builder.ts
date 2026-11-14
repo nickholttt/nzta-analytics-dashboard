@@ -185,17 +185,20 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
 
 // What a link asked for that the page did not give, so it can say so: the dataset it named and the breakdown it named, each
 // with what is shown instead. A condition the page cannot apply is already said where it is kept.
+// A label as it reads inside a sentence.
+const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+
 export type Reading = { dataset?: { asked: string; shown: string }; by?: { asked: string; dataset: string; shown: string } };
 
 export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled: Question): Reading {
   const note: Reading = {};
   if (asked.dataset && asked.dataset !== settled.dataset) {
-    note.dataset = { asked: findDataset(asked.dataset)?.public_label ?? asked.dataset, shown: datasetName(settled.dataset) };
+    note.dataset = { asked: lowerFirst(findDataset(asked.dataset)?.public_label ?? asked.dataset), shown: lowerFirst(datasetName(settled.dataset)) };
   }
   if (typeof asked.by === "string" && asked.by !== "" && asked.by !== settled.by) {
     const offered = all.datasets.find((v) => v.dataset === settled.dataset)?.measures.find((m) => m.id === settled.measure);
     const shown = settled.by ? offered?.dimensions.find((d) => d.id === settled.by)?.phrase : undefined;
-    note.by = { asked: dimensionLabel(asked.by) ?? asked.by, dataset: datasetName(settled.dataset), shown: shown ?? "all of them together" };
+    note.by = { asked: lowerFirst(dimensionLabel(asked.by) ?? asked.by), dataset: lowerFirst(datasetName(settled.dataset)), shown: shown ?? "all of them together" };
   }
   return note;
 }
