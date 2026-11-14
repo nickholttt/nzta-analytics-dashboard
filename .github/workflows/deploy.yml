@@ -110,7 +110,7 @@ jobs:
         run: |
           npx astro build
           rm -rf dist/status dist/sense-check
-          if grep -rlE 'href="/(status|sense-check)|"/(status|sense-check)"' dist; then
+          if grep -rlE '/(status|sense-check)([^A-Za-z0-9_-]|$)' dist; then
             echo "The public build links to an internal page, in the files above." >&2
             exit 1
           fi

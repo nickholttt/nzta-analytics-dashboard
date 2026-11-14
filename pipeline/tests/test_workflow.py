@@ -121,3 +121,23 @@ def test_the_checks_workflow_never_leaves_its_token_in_the_checkout():
             step.append(line.strip())
         assert "persist-credentials: false" in step
     assert "contents: read" in [line.strip() for line in lines]
+
+
+def test_the_public_build_refuses_a_link_to_an_internal_page_however_it_is_quoted(tmp_path):
+    lines = (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()
+    check = next(line.strip() for line in lines if line.strip().startswith("if grep -rlE '"))
+    pattern = check.split("'")[1]
+    cases = {
+        "double.html": '<a href="/status">',
+        "single.html": "<a href='/sense-check'>",
+        "template.js": "`/status/${id}`",
+        "query.js": 'fetch("/sense-check?x=1")',
+        "absolute.html": "https://example.invalid/status",
+        "bare.js": "/status",
+    }
+    harmless = {"other.html": '<a href="/statuses"><a href="/status-page"><a href="/build">', "data.js": "/data/stats.json"}
+    for name, text in {**cases, **harmless}.items():
+        (tmp_path / name).write_text(text + "\n", encoding="utf-8")
+    found = subprocess.run([BASH, "--noprofile", "--norc", "-c", f"grep -rlE '{pattern}' ."],
+                           cwd=tmp_path, capture_output=True, text=True).stdout.split()
+    assert sorted(Path(f).name for f in found) == sorted(cases)
