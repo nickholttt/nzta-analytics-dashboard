@@ -9,11 +9,11 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - `main` is the merge of #52, on `dd134ed` (the merge of #51). The last build is the forced
-    run 43374803222 (snapshot 2026-10; 5,926,990 rows); its cube is the release `cube-2026-10`,
-    which has no fact table.
+  - `main` is `11fb51a`, the merge of #53. The last build is the forced run 43374803222
+    (snapshot 2026-10; 5,926,990 rows); its cube is the release `cube-2026-10`, which has no
+    fact table.
   - **The build is tried every day** at 06:17 UTC (D-064, D-070). The first daily run is due on
-    14 November 2026; GitHub had not started it by 06:47 UTC that day.
+    14 November 2026; GitHub had not started it by 07:19 UTC that day.
   - **The fact table is on `main`** (#41, D-078), without the owner's region. The next build
     writes it.
   - **The archive job** keeps each built month's whole register in the private repository
@@ -26,39 +26,39 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   43567634682 (after #51) built it with the changed install and its upload job was skipped.
   **Nothing is deployed**: the variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked
   2026-11-14). The site is seen locally (`npm run dev`, 127.0.0.1:4321).
-- **`registrations_flow` is defined, not built** (#50, D-087): true first registrations from
-  the user's exports of NZTA's dashboard, January 2021 on (`docs/METRICS.md`).
+- **`registrations_flow` is defined** (#50, D-087) **and built on a branch** (#55, in review):
+  true first registrations from the user's exports of NZTA's dashboard, January 2021 on.
+- **The data map is finished** (#53, D-090): `docs/DATA_MAP.md`, `config/data_map.json`, tests.
+  Its privacy classes are proposed, not approved; nothing is bound by it.
 - **Six sub-agent definitions** in `.claude/agents/`, each naming its model, with a test
   (D-085). Until a definition loads (the next session), a spawn names its model by hand.
-- **Six shapes are allowed** (D-083): `matrix` is approved and has no renderer yet.
 - **Events**: 54 rows, 50 verified; four are unverified on purpose. Don't guess dates.
 
 ## Current step
 
-**Work order 1.** Package A is done but for the forced run of October. B's pipeline half, E's
-write-up and G are being built. One report at the end; a blocked item is parked (D-082).
+**Work order 1.** Package A is done but for the forced run of October. B's pipeline half and G
+are in review; B's site half is being built. One report at the end (D-082).
 
 ## In progress (all claude; nothing by gemini)
 
-Work in hand sits in git worktrees in the session's scratch folder and in a second checkout
-beside this folder: `git worktree list` shows them. Each branch is a local branch of this
-repository; only `claude/data-map` is on GitHub.
+Work in hand sits in this folder, in git worktrees in the session's scratch folder and in a
+second checkout beside this folder: `git worktree list` shows them.
 
 | Branch | What | State when this was written |
 |---|---|---|
-| `claude/data-map` | #53. Package E: `docs/DATA_MAP.md` in full, `config/data_map.json`, schema tests | Written (opus); an independent review is running. Its decision record is appended at merge |
-| `claude/registrations-flow` | Package B, pipeline half: `python -m pipeline supply`, a local store, the dataset built through the register's own code (plan: `data/staging/work-order/spec-B-pipeline.md`) | Built (sonnet), 135 tests passing; `main` merged in; not pushed, not reviewed |
-| `claude/query-service` | Package G: `docs/QUERY_SERVICE.md`, a local prototype, measurements, a proposal | An opus worker is mid-way, in the second checkout |
+| `claude/registrations-flow` | #55. Package B, pipeline half: `python -m pipeline supply`, a local store, the dataset built through the register's own code | Built (sonnet); 160 tests pass; a real dry-run build passed in 908 s; an independent review is running. Its decision record is appended at merge |
+| `claude/flow-site` | Package B, site half, stacked on #55 (plan: `data/staging/work-order/spec-B-site.md`); these notes | A sonnet worker is mid-way, in this folder; not pushed |
+| `claude/query-service` | #54. Package G: `docs/QUERY_SERVICE.md`, a local prototype, measurements, a proposal for the user | Written (opus); an independent review is running. Its decision record is appended at merge |
 
-- **The profile of every register field** is in gitignored `data/staging/profiles/2026-10/`
-  (`REPORT.md` and 48 CSV files): the evidence for the data map.
-- **The plan for package C** is `data/staging/work-order/spec-C-statsnz.md` (gitignored).
+- **This folder's `public/data`** (gitignored) is the dry-run build of #55's branch: both
+  datasets. `data/supplied/nzta_dashboard/` (gitignored once #55 merges) is the converted store.
+- Gitignored and local: the field profile behind the data map
+  (`data/staging/profiles/2026-10/`) and the packages' plans (`data/staging/work-order/`).
 
 ## Branches and pull requests (checked 2026-11-14)
 
-- Merged this session: #47 to #52. **1 open pull request: #53**, the data map, into `main`.
-- `ui/explore` is deleted on GitHub (all of it was in `main`; no history rewritten). The local
-  branch of that name remains and is far behind.
+- Merged this session: #47 to #53. **2 open pull requests: #54 and #55**, into `main`.
+- `ui/explore` is deleted on GitHub; a local branch of that name remains, far behind.
 
 ## Raw files on this computer (gitignored)
 
@@ -79,9 +79,8 @@ repository; only `claude/data-map` is on GitHub.
 
 ## Known issues
 
-1. First load at phone width is slow: `/` first chart 6.1 s, all six 13.4 s; `/build` 5.4 s
-   (local production build, throttled, 2026-10-22). Not measured since. Package D measures it
-   again and makes the cheapest fix.
+1. First load at phone width is slow: a Build question's first answer takes 7.4 to 11.6 s
+   (local, throttled, 2026-11-14, #54). Package D trims the page's own code and fonts first.
 2. "Area Outside Region" (the Chatham Islands) reaches visitors as is. On a filtered powertrain
    chart the mild hybrid coverage note states the whole dataset's coverage.
 3. **The released cube, `cube-2026-10`, has no fact table**, so the public build's Build page
@@ -111,9 +110,11 @@ repository; only `claude/data-map` is on GitHub.
 - D-061 stopped chosen values being ranked; D-062 allows it. The code follows D-061 until F.
 - NZTA's page says an inactive vehicle is one "registered and registration cancelled in the
   same month". The counts say `INACTIVE` behaves as since removed (`docs/METRICS.md`, D-087).
-- `docs/DATA_MAP.md` on `main` is the first pass plus the dashboard's fields. The profile
-  contradicts it in places (body type does not roll up to vehicle type; "100% filled" counts
-  `UNKNOWN`); `claude/data-map` rewrites it.
+- `docs/DATA_MAP.md` lists ten places where it disagrees with other files (an engine band
+  with no upper limit; a fuel guard looser than the profile supports; stale counts in
+  `sentinels.csv`'s notes). Each is fixed when its field is next touched (package F).
+- A `region` slice is published, and the work order §3 names region among the fields not
+  published without asking. It predates the order (D-078); keeping it is the user's question.
 
 ## Blocked or waiting on the user
 
@@ -122,10 +123,9 @@ Nothing stops the work. Parked for the final report (CHECKPOINT, questions).
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). On
-2026-11-14: the pipeline tests, 111 passed locally in 604 s on what became #51, and they pass
-in `Checks` in about 90 s; `tsc --noEmit` exit 0 and `astro build`, 10 pages, on what became
-#52; the brand and model rankings, share and count by model, the map and a bad link, headless
-at 320 to 1280 px.
+2026-11-14: the pipeline tests, 160 passed locally in 766 s on #55's branch, and they pass in
+`Checks` in about 90 s; `tsc --noEmit` exit 0 and `astro build`, 10 pages, on what became #52;
+the rankings, share and count by model, the map and a bad link, headless at 320 to 1280 px.
 
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and
