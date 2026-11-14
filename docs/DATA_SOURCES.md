@@ -110,6 +110,23 @@ licensed, each monthly, quarterly and annual.
   held 913 dataflows on 2026-11-13 and none is a transport series. Its data
   queries need a subscription key (`portal.apis.stats.govt.nz`).
 
+**What each column means is data**, in `data/reference/statsnz_series.csv`
+(a supplied source of kind `series`, `docs/CUBE_SCHEMA.md`). One row for each
+of the table's 26 column headers, in the order the table has them: `header`
+(verbatim, as Infoshare writes it, including its spelling), `series_id` (the
+name everything else uses), `label` (the words a visitor sees), `group` (cars,
+motorcycles, power cycles, tractors, commercial, buses), `role`, `total_of`
+and `notes`. `role` is `total` where the column is the sum of other columns
+(`total_of` lists them, separated by `|`), `subset` where it is already
+counted inside another column (the cars previously registered overseas, in the
+cars total), and `part` otherwise, which covers a component of a total and a
+series that stands alone (motorcycles, power cycles, tractors). Three columns
+are totals: the cars total (of the seven engine-size bands), the commercial
+total excluding buses (of the ten gross-mass bands) and the commercial total
+including buses (of the total excluding buses and the two bus bands). The
+headers, the notes and these relations were checked against the 2026-11-14
+export.
+
 The user chose on 2026-10-22 to wait for the Data Explorer, and on
 2026-11-13 to use the Infoshare series now (`docs/brief/MASTER_BRIEF.md`
 §7). D-065 says how, and the user accepted it that day by its option 2

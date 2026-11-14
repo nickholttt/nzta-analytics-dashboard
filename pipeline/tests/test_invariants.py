@@ -25,6 +25,7 @@ VOCABULARY_COLUMNS = {
     "mild_hybrid_models.csv": ["make", "models", "override_value", "match_motive_power", "match_import_status"],
     "events.csv": ["id", "title", "scope_values"],
     "sentinels.csv": ["raw_value"],
+    "statsnz_series.csv": ["header", "series_id", "label", "group"],
 }
 
 

@@ -1,0 +1,27 @@
+header,series_id,label,group,role,total_of,notes
+New Cars&Station Wagons up to 850 cc,cars_cc_up_to_850,Up to 850 cc,cars,part,,An engine-size band of the cars total. The seven bands start in 1975-07 and include the ex-overseas cars.
+New Cars&Station Wagons 851 to 1300 cc,cars_cc_851_1300,851 to 1300 cc,cars,part,,An engine-size band of the cars total.
+New Cars&Station Wagons 1301 to 1600 cc,cars_cc_1301_1600,1301 to 1600 cc,cars,part,,An engine-size band of the cars total.
+New Cars&Station Wagons 1601 to 2000 cc,cars_cc_1601_2000,1601 to 2000 cc,cars,part,,An engine-size band of the cars total.
+New Cars&Station Wagons 2001 to 2500 cc,cars_cc_2001_2500,2001 to 2500 cc,cars,part,,An engine-size band of the cars total.
+New Cars&Station Wagons 2501 to 5000 cc,cars_cc_2501_5000,2501 to 5000 cc,cars,part,,An engine-size band of the cars total.
+New Cars&Station Wagons 5001 cc & Over,cars_cc_5001_over,5001 cc and over,cars,part,,An engine-size band of the cars total.
+New Motor Cycles,motorcycles,Motorcycles,motorcycles,part,,Starts in 1975-07. Not split into new and ex-overseas. Stats NZ's class is not lined up with NZTA's vehicle types (D-065).
+New Power Cycles,power_cycles,Power cycles,power cycles,part,,Starts in 1975-07.
+New Cars and Station Wagons Total,cars_total,Cars and station wagons (total),cars,total,cars_cc_up_to_850|cars_cc_851_1300|cars_cc_1301_1600|cars_cc_1601_2000|cars_cc_2001_2500|cars_cc_2501_5000|cars_cc_5001_over,"Starts in 1961-01. Includes the cars previously registered overseas. The seven bands sum to it in 613 of the 615 months from 1975-07: 1975-07 is one over, 1976-05 one under."
+New Cars/Stat'n Wags Prev Reg'd Ovrseas,cars_ex_overseas,Cars and station wagons previously registered overseas,cars,subset,,"Starts in 1975-07. Already counted in the cars total, so cars new to New Zealand are the total less this series."
+New Tractors,tractors,Tractors,tractors,part,,Starts in 1974-03.
+Commercial Vehicles 1500 Kg or Less,commercial_kg_up_to_1500,Commercial vehicles up to 1500 kg,commercial,part,,A gross-mass band of the commercial vehicles. The ten bands start in 1974-01.
+Commercial Vehicles 1501 to 2500 Kg,commercial_kg_1501_2500,Commercial vehicles 1501 to 2500 kg,commercial,part,,A gross-mass band of the commercial vehicles.
+Commercial Vehicles 2501 to 3500 Kg,commercial_kg_2501_3500,Commercial vehicles 2501 to 3500 kg,commercial,part,,A gross-mass band of the commercial vehicles.
+Commercial Vehicles 3501 to 4500 Kg,commercial_kg_3501_4500,Commercial vehicles 3501 to 4500 kg,commercial,part,,A gross-mass band of the commercial vehicles.
+Commercial Vehicles 4501 to 6500 Kg,commercial_kg_4501_6500,Commercial vehicles 4501 to 6500 kg,commercial,part,,A gross-mass band of the commercial vehicles.
+Commercial Vehicles 6501 to 7500 Kg,commercial_kg_6501_7500,Commercial vehicles 6501 to 7500 kg,commercial,part,,A gross-mass band of the commercial vehicles.
+Commercial Vehicles 7501 to 9000 Kg,commercial_kg_7501_9000,Commercial vehicles 7501 to 9000 kg,commercial,part,,A gross-mass band of the commercial vehicles.
+Commercial Vehicles 9001 to 10500 Kg,commercial_kg_9001_10500,Commercial vehicles 9001 to 10500 kg,commercial,part,,A gross-mass band of the commercial vehicles.
+Commercial Vehicles 10501 to 14500 Kg,commercial_kg_10501_14500,Commercial vehicles 10501 to 14500 kg,commercial,part,,A gross-mass band of the commercial vehicles.
+Commercial Vehicles 14501 Kg and Over,commercial_kg_14501_over,Commercial vehicles 14501 kg and over,commercial,part,,A gross-mass band of the commercial vehicles.
+Buses and Coaches 3500 Kg or Less,buses_kg_up_to_3500,Buses and coaches up to 3500 kg,buses,part,,A gross-mass band of the buses and coaches. The two bands start in 1974-01.
+Buses and Coaches 3501 Kg and Over,buses_kg_3501_over,Buses and coaches 3501 kg and over,buses,part,,A gross-mass band of the buses and coaches.
+Tot Com'l Vehicles Exc Buses & Coaches,commercial_excl_buses_total,Commercial vehicles excluding buses and coaches (total),commercial,total,commercial_kg_up_to_1500|commercial_kg_1501_2500|commercial_kg_2501_3500|commercial_kg_3501_4500|commercial_kg_4501_6500|commercial_kg_6501_7500|commercial_kg_7501_9000|commercial_kg_9001_10500|commercial_kg_10501_14500|commercial_kg_14501_over,"Differs from the sum of the ten bands in 1977-02, 1978-07, 1981-03, 1996-04 and 1997-08, and not from 1998-01."
+Total Commercial Vehicles,commercial_total,Commercial vehicles including buses and coaches (total),commercial,total,commercial_excl_buses_total|buses_kg_up_to_3500|buses_kg_3501_over,"Buses and coaches are in this total. Differs from the commercial total excluding buses plus the two bus bands in 1977-02, 1978-07, 1996-04 and 1997-08, and not from 1998-01."
