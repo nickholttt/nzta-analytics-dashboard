@@ -29,11 +29,10 @@ page shows only the presets that draw against the current build, and drops a gro
 
 ## Visitor wording
 
-`public_copy` (top level) holds visitor-facing text where `config/dimensions.json` carries text
-written for maintainers: `dataset_definitions`, `dimension_labels` and `dimension_notes`, each keyed by
-id. The Explore page uses an entry when there is one and falls back to `dimensions.json`; `/status`
-always shows the original. The entries are to move into `dimensions.json` now the freeze is lifted
-(D-042, D-066); until they have, edit them here.
+A dimension in `config/dimensions.json` may carry `public_label` and `public_note`, and a dataset a
+`public_definition`: visitor wording for text that is written for maintainers (D-042). The Explore
+and Build pages use one when there is one and fall back to `label`, `note` and `definition`;
+`/status` always shows the original.
 
 ## Rules
 

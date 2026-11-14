@@ -60,12 +60,17 @@ export type Dimension = {
   derive?: { kind: string; value?: string };
   // The pipeline joins the parts of a compound value (brand and model) with this; a ranking shows them as words.
   key_separator?: string;
+  // Wording for visitors, where `label` and `note` are written for maintainers (D-042). Each is used in place of
+  // its counterpart on the public pages; /status keeps the original.
+  public_label?: string;
+  public_note?: string;
 };
 
 export type Dataset = {
   id: string;
   label: string;
   definition?: string;
+  public_definition?: string;
   base?: string;
   filter?: Record<string, string[]>;
   status?: string;
@@ -108,11 +113,6 @@ export type BuilderSpec = {
 type PresetsDoc = {
   // label and title head the group's section on the Explore page; lead marks the charts that carry it.
   groups: { id: string; label: string; title: string; lead?: boolean; presets: Preset[] }[];
-  public_copy: {
-    dataset_definitions: Record<string, string>;
-    dimension_labels: Record<string, string>;
-    dimension_notes: Record<string, string>;
-  };
   defaults: {
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
@@ -135,7 +135,6 @@ const presetsFile = presetsDoc as unknown as PresetsDoc;
 export const presetGroups = presetsFile.groups;
 export const presets: Preset[] = presetsFile.groups.flatMap((g) => g.presets);
 export const chartDefaults = presetsFile.defaults;
-export const publicCopy = presetsFile.public_copy;
 export const compositeRules = presetsFile.$composite;
 export const builderSpec = presetsFile.builder;
 
@@ -156,6 +155,11 @@ export const scopeWithoutValues = pipeline.events.scope_without_values;
 
 export const findPreset = (id: string) => presets.find((p) => p.id === id);
 export const findDimension = (id?: string | null) => dimensions.find((d) => d.id === id);
+// The words for a dimension: the visitor wording where config has it, unless the page is an internal one.
+export const dimensionLabel = (id: string, internal = false) => {
+  const d = findDimension(id);
+  return (!internal && d?.public_label) || d?.label;
+};
 export const findDataset = (id?: string) => datasets.find((d) => d.id === id);
 export const findMeasure = (id?: string) => measures.find((m) => m.id === id);
 export const findDerived = (id?: string) => derivedMeasures.find((m) => m.id === id);
