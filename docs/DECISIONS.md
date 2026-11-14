@@ -2870,3 +2870,63 @@ New entries use this template:
     the site follow-ups), so that entry is closed.
   - Reversing any one: each is its own commit.
 - Status: decided by Claude (unreviewed)
+
+## D-089 2026-11-14 — The site's small follow-ups: visitor wording moves onto the dimensions, a filter narrows event markers only in part, and what is left
+- Agent: claude
+- Basis: the work order §5.A; the follow-ups listed in CHECKPOINT (the reviews of #40, #43, #45 and #46); the code as
+  read and as run headless at 390 and 1280 px on `claude/site-follow-ups`.
+- Context: earlier reviews left a list of small faults on the site. Each was read against the code before anything
+  was changed; one turned out not to be a fault, and one turned out to be half of one.
+- Decision:
+  1. **Visitor wording lives on the dimension.** The `public_copy` block in `config/presets.json` is gone. In
+     `config/dimensions.json` a dimension may carry `public_label` and `public_note`, and a dataset
+     `public_definition`: the words a visitor sees, beside the ones `/status` shows. The wording is unchanged. This
+     is the move D-042 intended. Not chosen: leaving it in the presets file, where a dimension's words sat apart
+     from the dimension.
+  2. **A ranking reads a compound value's separator from config** (`key_separator` on the dimension). The code no
+     longer names one dimension or one separator (invariant 1). The pipeline does not read that key: it joins the
+     parts with the cube contract's constant, and a new test (`pipeline/tests/test_site_config.py`) holds the two
+     equal.
+  3. **A preset's filter narrows event markers only in part.** A chart tests an event's values against the rows it
+     draws, and a filtered preset draws the filtered rows, so an event whose values have no vehicles left is not
+     shown. But an event names one dimension: an event about heavy electric vehicles, scoped to the electric
+     powertrain, is still marked on a chart of light passenger vehicles. `docs/EVENTS_LAYER.md` now says both. The
+     follow-up from #45's review stays open (below); the first reading here, that it was no fault at all, was wrong,
+     and the pull request's reviewer showed why with a row of `events.csv` dated July 2027.
+  4. **Build:** a condition Build cannot apply is named by its label; a condition with no value yet survives a
+     change elsewhere; the address is rewritten to the settled question when a link is read; a failed load of the
+     starting values says so; the empty panel carries the dataset's definition.
+  5. **The ranking table's line** names only the columns that are cut off or off the screen, the share column
+     included on a narrow phone. **The map legend's** first label sits inside the chart box.
+  6. **A chart with very many points draws.** Share or count by model over all time threw "Maximum call stack size
+     exceeded" and drew nothing; the highest value is now found by reducing over the points.
+- Left, each with its reason:
+  - **An event cannot say which vehicles of a value it concerns.** It needs a second scope on an event (for example
+    the vehicle class it applies to), a change to `events.csv`'s schema and to how the pipeline checks it. No chart
+    shows a wrong marker today: the one event known to be affected is dated July 2027. It is on the work queue.
+  - **A model's name shows as its two parts joined by the separator** everywhere in Build but the ranking (chips,
+    suggestions, line labels, the panel's title). It was so before; it is visible now that share by model draws. It
+    is fixed with "labels as data" (package H), where every value gets one display label.
+  - **A heading level is skipped on `/build/`** (axe: `heading-order`, moderate; the same on `main` before this
+    change). It is fixed with the page's redesign (package H).
+  - **The grey band before 1970 on "Is the market getting more crowded?"** is what the data shows: months with too
+    few surviving vehicles for a share, drawn grey on purpose, and the chart's note says so. Quietening it is a
+    design choice for package H, not a fix.
+  - **The status page's script chunk in the public build.** Astro emits it from the import whatever the page does
+    at run time. Removing it needs a route filter in `astro.config.mjs` or a step in `deploy.yml`. It is unlinked
+    and holds no data; it waits for package D's first-load work, which measures what the public build ships.
+  - **A value in a link that is not in the data** shows as a chip and can draw an empty line; and **removing the
+    last chosen value refills the five largest.** Both are choices about how Build behaves, and both are settled
+    with package F's rework of chosen values.
+  - **A share by model draws every named model** (300 lines and a 300-row table). It draws; whether it should is
+    for the chart rule table (package E), which decides what fits a breakdown with many values.
+- Consequences:
+  - `config/dimensions.json` has three new optional keys. The pipeline does not read them (checked by reading
+    `derive.py` and `outputs.py`), so the cube and the golden contract do not change.
+  - The address rewrite also adds the default question to a bare `/build/` address.
+  - What the browser downloads, public build, before and after (the reviewer's measure, gzipped): the Explore
+    panel's script 72 bytes more, the question builder's 205 more, a shared runtime chunk 123 fewer: about 154
+    bytes more in all (about 650 uncompressed).
+  - Checked headless after the review: the brand and model rankings' line at 320, 390, 480 and 640 px.
+  - Reversing any one: each is its own commit.
+- Status: decided by Claude (unreviewed)
