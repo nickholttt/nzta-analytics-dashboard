@@ -401,7 +401,7 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
             {startFailedFor === startKey ? (
               <div className="callout blocked">
                 <span className="callout-label">Nothing to draw yet</span>
-                The values to start from did not load. Reload the page to try again, or choose values under Compare.
+                The values to start from did not load. Reload the page to try again.
               </div>
             ) : noStartFor === startKey ? (
               <div className="callout blocked">

@@ -144,7 +144,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
   // Whether the table is wider than its box depends on the names in it, not only on the screen, so it is measured:
   // the line that says the table scrolls shows only while it does.
   const tableBox = useRef<HTMLDivElement>(null);
-  // The words for each column that starts beyond the box's right edge, so the line names only what is hidden.
+  // The words for each column that ends beyond the box's right edge, so the line names only what is cut off or hidden.
   const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   useEffect(() => {
     const box = tableBox.current;
@@ -301,7 +301,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
               <th scope="col" style={{ width: "45px" }}>Rank</th>
               <th scope="col" style={{ width: "56px" }}>Move</th>
               <th scope="col">{valueHeading}</th>
-              <th scope="col" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Share</th>
+              <th scope="col" data-hint="the share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Share</th>
               <th scope="col" data-hint="the change in share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>
               <th scope="col" data-hint="the vehicles still registered" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Still registered</th>
               <th scope="col" data-hint="the rank before" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
