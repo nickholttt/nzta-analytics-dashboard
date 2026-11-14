@@ -2,7 +2,7 @@
 // among which vehicles, and the charts that answer it are drawn by the same panel as Explore (D-058, D-059). The
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { builderSpec, dimensionLabel } from "../lib/config";
+import { builderSpec, dimensionLabel, findDataset } from "../lib/config";
 import { MAX_VALUES, builderPresets, questionParams, readQuestion, settle, viewsFor } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { factView, loadManifest, loadSlice } from "../lib/data";
@@ -160,7 +160,7 @@ function ValuePicker({
                   >
                     <span className="suggestion-name">{valueLabel(o.value)}</span>
                     <span className="suggestion-figure">
-                      {o.recent > 0 ? `${count(o.recent)} first registered in the last 12 months` : `${count(o.total)} still registered`}
+                      {o.recent > 0 ? `${count(o.recent)} still registered, first registered in the last 12 months` : `${count(o.total)} still registered`}
                     </span>
                   </button>
                 </li>
@@ -197,18 +197,32 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
   const canApply = (id: string) => vocabulary.filters.some((f) => f.id === id);
   const applicable = (where: Record<string, string[]>) => Object.fromEntries(Object.entries(where).filter(([d]) => canApply(d)));
 
-  const ask = (next: Partial<Question>) => {
-    const settled = settle(vocabulary, { ...latest.current, ...next });
-    latest.current = settled;
-    setQuestion(settled);
+  // The builder's settings in the address, replaced by the question's. A new question clears the charts' own settings
+  // (the first chart's are scoped by the builder's id, a second chart's by its own); the first read keeps them.
+  const writeAddress = (settled: Question, keepChart: boolean) => {
     const url = new URL(window.location.href);
-    // Both charts' settings go: the first chart's are scoped by the builder's id, a second chart's by its own.
     for (const k of [...url.searchParams.keys()]) {
-      if (k.startsWith(`${builderSpec.id}.`) || k.startsWith(`${builderSpec.id}-`)) url.searchParams.delete(k);
+      const chartSetting = k.startsWith(`${builderSpec.id}-`) || CHART_PARAMS.some((p) => k === `${builderSpec.id}.${p}`);
+      if ((k.startsWith(`${builderSpec.id}.`) || k.startsWith(`${builderSpec.id}-`)) && !(keepChart && chartSetting)) url.searchParams.delete(k);
     }
     for (const [k, v] of questionParams(settled)) url.searchParams.append(k, v);
-    for (const p of CHART_PARAMS) url.searchParams.delete(`${builderSpec.id}.${p}`);
-    window.history.replaceState(null, "", `${url.pathname}?${url.searchParams}${url.hash}`);
+    const next = `${url.pathname}?${url.searchParams}${url.hash}`;
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) window.history.replaceState(null, "", next);
+  };
+  // So a link that named something the page does not offer is corrected in the address where it is read, not only
+  // after the first change.
+  useEffect(() => writeAddress(latest.current, true), []);
+
+  const ask = (next: Partial<Question>) => {
+    const asked = { ...latest.current, ...next };
+    // A condition with no value yet keeps every vehicle and has no place in the address, so settle drops it. It stays
+    // on the page while the visitor changes something else, and goes only when they remove it.
+    const held = Object.entries(asked.where ?? {}).filter(([d, kept]) => kept.length === 0 && canApply(d));
+    const settled = settle(vocabulary, asked);
+    for (const [d] of held) if (d !== settled.by && !(d in settled.where)) settled.where[d] = [];
+    latest.current = settled;
+    setQuestion(settled);
+    writeAddress(settled, false);
   };
 
   // A count broken down draws one line per chosen value, so with none chosen it starts on the largest few among the
@@ -219,17 +233,22 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
   // months among the vehicles its conditions keep.
   const startKey = `${question.by}|${whereKey}`;
   const [noStartFor, setNoStartFor] = useState<string | null>(null);
+  // The question whose starting values could not be loaded at all.
+  const [startFailedFor, setStartFailedFor] = useState<string | null>(null);
   useEffect(() => {
     const by = question.by;
     if (!awaitingValues || !by) return;
     let current = true;
-    valueOptions(dataset, by, JSON.parse(whereKey)).then((options) => {
-      const now = latest.current;
-      if (!current || now.by !== by || now.values.length > 0) return;
-      const top = options.filter((o) => !isReserved(o.value) && o.recent > 0).slice(0, STARTING_VALUES).map((o) => o.value);
-      if (top.length) ask({ values: top });
-      else setNoStartFor(startKey);
-    });
+    valueOptions(dataset, by, JSON.parse(whereKey)).then(
+      (options) => {
+        const now = latest.current;
+        if (!current || now.by !== by || now.values.length > 0) return;
+        const top = options.filter((o) => !isReserved(o.value) && o.recent > 0).slice(0, STARTING_VALUES).map((o) => o.value);
+        if (top.length) ask({ values: top });
+        else setNoStartFor(startKey);
+      },
+      () => current && setStartFailedFor(startKey),
+    );
     return () => {
       current = false;
     };
@@ -237,6 +256,8 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [awaitingValues, question.by, dataset, whereKey]);
 
+  const datasetInfo = findDataset(dataset);
+  const datasetDefinition = datasetInfo?.public_definition ?? datasetInfo?.definition;
   const unusedFilters = vocabulary.filters.filter((f) => f.id !== question.by && !(f.id in question.where));
   const addCondition = () => {
     const id = adding;
@@ -376,7 +397,13 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
             <header className="panel-head">
               <h3 className="panel-question">{p.question}</h3>
             </header>
-            {noStartFor === startKey ? (
+            {datasetDefinition ? <p className="panel-definition">{datasetDefinition}</p> : null}
+            {startFailedFor === startKey ? (
+              <div className="callout blocked">
+                <span className="callout-label">Nothing to draw yet</span>
+                The values to start from did not load. Reload the page to try again, or choose values under Compare.
+              </div>
+            ) : noStartFor === startKey ? (
               <div className="callout blocked">
                 <span className="callout-label">Nothing to draw yet</span>
                 Nothing was first registered in the last 12 months
