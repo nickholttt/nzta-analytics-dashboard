@@ -65,6 +65,11 @@
     "id": "build",
     "dataset": "registrations_surviving",
     "datasets": ["registrations_surviving", "registrations_flow"],
+    "notices": {
+      "$comment": "What the page says when a link asks for something the page cannot give and shows the nearest question instead. The address is corrected as it is for a condition the page cannot apply; the words say so, so a link never quietly counts something else. Placeholders: config/narrative/rules.json.",
+      "dataset": "This link asked to count {asked}, which this build does not have. It is counting {shown} instead.",
+      "by": "This link asked to break the figures down by {asked}, which is not available for {dataset}. It shows {shown} instead."
+    },
     "$datasets_comment": "What a question counts. The first is the default, and an address with no build.dataset means it. Each is offered only where the build made it, and only the dimensions, values and conditions that dataset carries are offered with it. A text that differs by dataset (note, dimension_notes) is an object keyed by dataset id.",
     "period": "all",
     "period_when_comparing": "10y",

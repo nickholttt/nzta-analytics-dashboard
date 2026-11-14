@@ -3,7 +3,7 @@
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { builderSpec, datasetWords, dimensionLabel, findDataset } from "../lib/config";
-import { MAX_VALUES, builderPresets, questionParams, readQuestion, settle, viewsFor } from "../lib/builder";
+import { MAX_VALUES, builderPresets, questionParams, readQuestion, readingNotes, settle, viewsFor } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
 import type { SliceRow } from "../lib/data";
@@ -191,6 +191,16 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const [question, setQuestion] = useState<Question>(() =>
     settle(all, typeof window === "undefined" ? {} : readQuestion(window.location.search)),
   );
+  // What the link asked for that the page could not give. Said until the visitor changes the question.
+  const [notices, setNotices] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    const asked = readQuestion(window.location.search);
+    const note = readingNotes(all, asked, settle(all, asked));
+    return [
+      ...(note.dataset ? [fillNote(builderSpec.notices.dataset, note.dataset).text] : []),
+      ...(note.by ? [fillNote(builderSpec.notices.by, note.by).text] : []),
+    ];
+  });
   // What the chosen dataset offers: its measures, and the conditions its fact table can apply.
   const vocabulary = all.datasets.find((v) => v.dataset === question.dataset) ?? all.datasets[0];
   const { dataset } = vocabulary;
@@ -241,6 +251,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     const settled = settle(all, asked);
     for (const [d] of held) if (d !== settled.by && !(d in settled.where)) settled.where[d] = [];
     latest.current = settled;
+    setNotices([]);
     setQuestion(settled);
     writeAddress(settled, false);
   };
@@ -296,6 +307,12 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
 
   return (
     <>
+      {notices.map((text) => (
+        <div className="callout warning" role="status" key={text}>
+          <span className="callout-label">This link was changed</span>
+          {text}
+        </div>
+      ))}
       <form className="question" aria-label="Build a question" onSubmit={(e) => e.preventDefault()}>
         {all.datasets.length > 1 ? (
           <p className="sentence-text">

@@ -183,6 +183,23 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   return { ...settled, view: q.view && viewsFor(settled).includes(q.view) ? q.view : null };
 }
 
+// What a link asked for that the page did not give, so it can say so: the dataset it named and the breakdown it named, each
+// with what is shown instead. A condition the page cannot apply is already said where it is kept.
+export type Reading = { dataset?: { asked: string; shown: string }; by?: { asked: string; dataset: string; shown: string } };
+
+export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled: Question): Reading {
+  const note: Reading = {};
+  if (asked.dataset && asked.dataset !== settled.dataset) {
+    note.dataset = { asked: findDataset(asked.dataset)?.public_label ?? asked.dataset, shown: datasetName(settled.dataset) };
+  }
+  if (typeof asked.by === "string" && asked.by !== "" && asked.by !== settled.by) {
+    const offered = all.datasets.find((v) => v.dataset === settled.dataset)?.measures.find((m) => m.id === settled.measure);
+    const shown = settled.by ? offered?.dimensions.find((d) => d.id === settled.by)?.phrase : undefined;
+    note.by = { asked: dimensionLabel(asked.by) ?? asked.by, dataset: datasetName(settled.dataset), shown: shown ?? "all of them together" };
+  }
+  return note;
+}
+
 // The address-bar form of a question, scoped by the builder's id. Values repeat a key rather than join with a
 // separator, since a value may contain any character.
 const key = (name: string) => `${builderSpec.id}.${name}`;
