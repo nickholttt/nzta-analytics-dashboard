@@ -29,16 +29,14 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **`registrations_flow` is defined, not built** (#50, D-087): true first registrations from
   the user's exports of NZTA's dashboard, January 2021 on (`docs/METRICS.md`).
 - **Six sub-agent definitions** in `.claude/agents/`, each naming its model, with a test
-  (D-085). A definition written in a session may not load until the next: until then a spawn
-  names its model by hand.
+  (D-085). Until a definition loads (the next session), a spawn names its model by hand.
 - **Six shapes are allowed** (D-083): `matrix` is approved and has no renderer yet.
 - **Events**: 54 rows, 50 verified; four are unverified on purpose. Don't guess dates.
 
 ## Current step
 
 **Work order 1.** Package A is done but for the forced run of October. B's pipeline half, E's
-write-up and G are being built. One report at the end; a blocked item is parked in CHECKPOINT
-and the next package goes on (D-082).
+write-up and G are being built. One report at the end; a blocked item is parked (D-082).
 
 ## In progress (all claude; nothing by gemini)
 
@@ -67,9 +65,8 @@ repository; none is on GitHub yet.
 - `data/raw/2026-08/20260911T093818Z`: 5,905,376 rows, the 17 bound fields.
 - `data/raw/2026-10/20261113T045017Z`: 5,926,990 rows, 36 fields. Pulled by hand (D-066).
 - `data/raw/nzta-dashboard/`: the user's exports of NZTA's registrations dashboard (D-084).
-  - `history/nzta-first-registrations-2021-01_to_2026-10.csv`: 70 months, 991,274 rows,
-    1,883,786 vehicles, 133,320,124 bytes.
-  - `2021-01/nzta-first-registrations-2021-01.csv`: 17,221 rows, 30,011 vehicles.
+  - `history/`: January 2021 to October 2026, 991,274 rows, 1,883,786 vehicles.
+  - `2021-01/`: January 2021 alone, 17,221 rows, 30,011 vehicles.
   - `2026-10/`: the first hand export (a spreadsheet), NZTA's page as HTML, screenshots (D-075).
 - `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's monthly series, January 1961 to
   September 2026, 26 series, 95,024 bytes. Fetched read-only from Infoshare for building and
@@ -85,19 +82,18 @@ repository; none is on GitHub yet.
 1. First load at phone width is slow: `/` first chart 6.1 s, all six 13.4 s; `/build` 5.4 s
    (local production build, throttled, 2026-10-22). Not measured since. Package D measures it
    again and makes the cheapest fix.
-2. "Area Outside Region" (Stats NZ's name for the Chatham Islands) reaches visitors as is.
-3. On a filtered powertrain chart the mild hybrid coverage note states the whole dataset's
-   coverage, not the filtered vehicles'.
-4. **The released cube, `cube-2026-10`, has no fact table**, so the public build's Build page
+2. "Area Outside Region" (the Chatham Islands) reaches visitors as is. On a filtered powertrain
+   chart the mild hybrid coverage note states the whole dataset's coverage.
+3. **The released cube, `cube-2026-10`, has no fact table**, so the public build's Build page
    offers no conditions. A forced run of October or December's refresh ends this.
-5. Commits before #47 still hold paths from the user's computer (D-081); history stays as is.
-6. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
+4. Commits before #47 still hold paths from the user's computer (D-081); history stays as is.
+5. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). Whether a minimum count is wanted is for the Stage 2 privacy review.
-7. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
+6. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
-8. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
+7. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
    share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
-9. The public build still ships the status page's script chunk, unlinked, holding no data.
+8. The public build still ships the status page's script chunk, unlinked, holding no data.
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -112,8 +108,7 @@ repository; none is on GitHub yet.
 - An event marker can appear on a chart whose filter excludes the vehicles the event is about
   (`docs/EVENTS_LAYER.md`, D-089). No chart shows a wrong marker today.
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
-- D-061 stopped chosen values being ranked and D-062 allows it: the code follows D-061 until
-  package F.
+- D-061 stopped chosen values being ranked; D-062 allows it. The code follows D-061 until F.
 - NZTA's page says an inactive vehicle is one "registered and registration cancelled in the
   same month". The counts say `INACTIVE` behaves as since removed (`docs/METRICS.md`, D-087).
 - `docs/DATA_MAP.md` on `main` is the first pass plus the dashboard's fields. The profile
@@ -132,8 +127,6 @@ in `Checks` in about 90 s; `tsc --noEmit` exit 0 and `astro build`, 10 pages, on
 #52; the brand and model rankings, share and count by model, the map and a bad link, headless
 at 320 to 1280 px.
 
-- `python -m pipeline archive --snapshot YYYY-MM` pulls NZTA's live register (about 186
-  requests) and writes nothing committed.
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and
   Stats NZ's Infoshare both answer.

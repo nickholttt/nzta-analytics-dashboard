@@ -9,10 +9,9 @@ Last updated by claude on 2026-11-14
     and the sub-agent definitions; three public pages (D-086); `registrations_flow` defined
     (D-087); the pipeline's follow-ups (D-088); the site's follow-ups (D-089, with these notes).
     `ui/explore` is deleted on GitHub.
-  - **The user's dashboard files** are in `data/raw/nzta-dashboard/` and the backup folder.
-    They add up to every total the user gave (D-084). Against the register: 82,335 more
-    vehicles, of which 80,852 are marked as since removed (D-087).
-  - **Stats NZ's series** is on disk, fetched read-only (STATE, raw files).
+  - **The user's dashboard files** add up to every total the user gave (D-084). Against the
+    register: 82,335 more vehicles, of which 80,852 are marked as since removed (D-087).
+    Stats NZ's series is on disk too, fetched read-only (STATE, raw files).
   - **Three workers were mid-way when these notes were written** (STATE, In progress). Their
     branches are local and unpushed. Read `git worktree list` and each branch's log before
     anything else: a branch may be finished and waiting only for its push, review and merge.
@@ -21,9 +20,7 @@ Last updated by claude on 2026-11-14
   - **One slip:** #50 was merged about a minute before its last check finished; the check
     then passed. STATE's "How to run" says how a merge is done now.
 
-## Open pull requests
-
-None.
+## Open pull requests (none)
 
 ## Work queue: the work order's packages, in order
 
@@ -86,9 +83,8 @@ None.
    into cars, utes, vans and trucks, or by engine size. Recommend yes, when convenient. With
    no answer those breakdowns stay on survivors only.
 5. **The Stats NZ hand export.** A read-only copy fetched on 14 November is used for local
-   builds. Recommend doing the export once by hand to confirm the steps (they go in a
-   playbook with package C). With no answer local builds keep the fetched copy and nothing of
-   it is committed.
+   builds. Recommend doing the export once by hand to confirm the steps (a playbook comes
+   with package C). With no answer local builds keep the fetched copy; none of it is committed.
 6. **Going public:** `docs/playbooks/go-public.md` has the Cloudflare steps. Not started.
 
 ## Decided for the user this session (each is in DECISIONS, unreviewed)
@@ -102,11 +98,11 @@ None.
    everything in the export; `Vehicle Status` is read from the counts, not from NZTA's page;
    completeness is its own chart and is not shown by model; the name `registrations_flow`
    moves from Stats NZ's series to the dashboard's dataset (D-087).
-5. Three workflow hardenings, and which follow-ups wait for the runner (D-088).
-6. Visitor wording moves onto the dimensions; which site faults are left and why (D-089).
-7. Stats NZ's series was fetched once, read-only, so package C can be built before the user's
-   hand export exists (the order §2). Nothing of it is committed.
-8. The converted dashboard data stays local and gitignored until question 1 is answered.
+5. Three workflow hardenings (D-088); visitor wording on the dimensions (D-089); and which
+   follow-ups are left, each with its reason.
+6. Stats NZ's series was fetched once, read-only, so package C can be built before the user's
+   hand export exists (the order §2). The converted dashboard data stays local and gitignored
+   until question 1 is answered. Nothing of either is committed.
 
 ## Prompt for the next session
 
