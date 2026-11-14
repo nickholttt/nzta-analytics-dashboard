@@ -33,7 +33,7 @@ where the question is the address's query string. `build` is the builder's id
 |---|---|---|---|
 | `build.by` | no | The breakdown: a field id. Empty or absent: all vehicles together | yes |
 | `build.value` | yes, up to 8 | A value of the breakdown to compare. None: every value | yes |
-| `build.where.<field>` | yes, up to 50 per field | Keep only vehicles whose `<field>` is one of these values. Several fields: all must hold | yes |
+| `build.where.<field>` | yes, up to 500 per field | Keep only vehicles whose `<field>` is one of these values. Several fields: all must hold | yes |
 | `build.by2` | no | A second breakdown, for the `matrix` shape (D-083). Needs `build.by` | yes (new) |
 | `build.value2` | yes, up to 8 | A value of the second breakdown to compare | yes (new) |
 | `build.snapshot` | no | `YYYY-MM`: pin the question to that month's snapshot. Absent: the newest | yes (new) |
