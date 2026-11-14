@@ -34,8 +34,8 @@ const isDraft = Object.values(aboutCopy).some(isGap);
 
     <h2>A personal project</h2>
     <p>
-      This is a personal project, built from NZTA's open data. The site has no advertising, and it does not use
-      cookies or visitor tracking.
+      This is a personal project, built from NZTA's open data.
+      {" "}{isGap(aboutCopy.privacy) ? <mark>{aboutCopy.privacy}</mark> : aboutCopy.privacy}
     </p>
 
     <h2>Any connection to the motor industry</h2>

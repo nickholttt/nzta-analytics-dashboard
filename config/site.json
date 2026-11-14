@@ -7,6 +7,7 @@
     "site_address": "[TO DECIDE: the site's web address]",
     "operator": "[TO DECIDE: your name, or \"an individual\"]",
     "contact": "[TO DECIDE: how a visitor can reach you, or \"through GitHub issues only\"]",
-    "industry_connection": "[TO DECIDE: any connection you have to the motor industry, or \"none\"]"
+    "industry_connection": "[TO DECIDE: any connection you have to the motor industry, or \"none\"]",
+    "privacy": "[TO DECIDE: what the site promises about advertising, cookies and visitor tracking. The code has none of the three today; say so here only if that is a promise you mean to keep.]"
   }
 }
