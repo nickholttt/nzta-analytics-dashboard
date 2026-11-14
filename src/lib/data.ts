@@ -33,6 +33,9 @@ export type CoverageBasis = {
 
 export type DatasetManifest = {
   definition?: string;
+  // Set instead of every other field where the build did not make the dataset (no supplied store): the reason. Such an
+  // entry is not in the cube; `isBuilt` says so.
+  not_built?: string;
   live_dimensions: string[];
   // Absent from a manifest built before pair slices existed.
   live_pairs?: string[];
@@ -46,6 +49,12 @@ export type Manifest = {
   datasets: Record<string, DatasetManifest>;
   snapshot_archive?: { path: string; status: string };
   warnings: string[];
+};
+
+// Whether the build made this dataset: it has an entry, and the entry is not the one that says it was not built.
+export const isBuilt = (manifest: Manifest, dataset?: string): boolean => {
+  const entry = dataset ? manifest.datasets[dataset] : undefined;
+  return Boolean(entry) && !entry?.not_built;
 };
 
 export type Event = {

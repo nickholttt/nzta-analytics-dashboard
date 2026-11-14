@@ -5,6 +5,8 @@ __pycache__/
 .DS_Store
 .pytest_cache/
 data/raw/
+# Supplied sources' stores (pipeline/supplied.py). Ignored until the user decides whether they may be committed to this public repository.
+data/supplied/
 data/staging/
 public/data/
 public/data.previous/

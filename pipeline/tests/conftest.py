@@ -45,6 +45,8 @@ def workspace(tmp_path) -> dict:
         "public": tmp_path / "public",
         "state": tmp_path / "state" / "last_good.json",
         "snapshots": tmp_path / "snapshots",
+        # No test reads a store a maintainer has supplied on this computer.
+        "supplied": tmp_path / "supplied",
     }
 
 

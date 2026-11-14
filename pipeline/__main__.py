@@ -1,4 +1,4 @@
-"""python -m pipeline {init-schema | run | build | archive}"""
+"""python -m pipeline {init-schema | run | build | archive | supply}"""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 import duckdb
 
 from . import build as build_step
-from . import archive, config, fetch, schema
+from . import archive, config, fetch, schema, supplied
 from .arcgis import Client
 from .errors import GuardrailError, SourceError
 
@@ -30,6 +30,13 @@ def main(argv: list[str] | None = None) -> int:
     keep.add_argument("--out", type=Path, required=True, help="the Parquet file to write")
     keep.add_argument("--snapshot", help="fail unless the last good build is this month (YYYY-MM)")
     keep.add_argument("--from-pull", type=Path, help="write from a saved pull directory, not from the live register")
+    supply = sub.add_parser("supply", help="check one supplied CSV and add its months to a local store (by hand, never in the Action)")
+    supply.add_argument("source", help="the supplied source's id in config/pipeline.json")
+    supply.add_argument("csv", type=Path, help="the file to check and add")
+    supply.add_argument("--month", help="YYYY-MM: the month of a one-month file that has no month column")
+    supply.add_argument("--taken", help="YYYY-MM-DD: the day the export was taken (default: the file's modified date)")
+    supply.add_argument("--totals", type=Path, help="a CSV of the dashboard's own totals (period, vehicles) to check the file against")
+    supply.add_argument("--replace", nargs="+", default=[], metavar="YYYY-MM", help="months already in the store that this file restates")
     args = parser.parse_args(argv)
 
     cfg = config.load()
@@ -46,13 +53,17 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Wrote the register for snapshot {done['snapshot']}: {done['rows']:,} rows at {done['fields']} fields, "
                   f"{done['bytes']:,} bytes, to {args.out}")
             return 0
+        if args.command == "supply":
+            supplied.supply(cfg, args.source, args.csv, month=args.month, taken=args.taken, totals=args.totals, replace=args.replace)
+            return 0
         source = json.loads((args.pull_dir / "source.json").read_text(encoding="utf-8"))
         manifest = build_step.build(cfg, source, (args.pull_dir / "pages" / "*.json.gz").as_posix(),
                                     fetch.load_state(cfg), publish=not args.dry_run)
         fetch.print_summary(manifest)
         return 0
     except GuardrailError as exc:
-        print(f"ABORTED: the last good build is unchanged.\n{exc}", file=sys.stderr)
+        unchanged = "the store is unchanged" if args.command == "supply" else "the last good build is unchanged"
+        print(f"ABORTED: {unchanged}.\n{exc}", file=sys.stderr)
         return 2
     except SourceError as exc:
         print(f"SOURCE FAILURE: the last good build is unchanged.\n{exc}", file=sys.stderr)

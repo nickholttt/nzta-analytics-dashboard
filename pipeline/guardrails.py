@@ -43,3 +43,17 @@ def compare(cfg, current: dict, previous: dict | None) -> tuple[list[str], list[
             "an import rule or the data changed"
         )
     return aborts, warnings
+
+
+def supplied_month_changes(dataset: str, totals: dict[str, int], before: dict[str, int], replaced: set[str], limit: float) -> list[str]:
+    """A supplied month whose own total (every vehicle the store holds for it, before any scope is applied) moved by more
+    than `limit` since the last good build, with no replacement recorded since then. The source restates past months; a
+    restatement has to be recorded, not slip in."""
+    moved = []
+    for month in sorted(set(totals) & set(before)):
+        if before[month] and month not in replaced and abs(totals[month] - before[month]) / before[month] > limit:
+            moved.append(f"{month} ({before[month]:,} -> {totals[month]:,})")
+    if not moved:
+        return []
+    return [f"{dataset}: {len(moved)} month(s) differ from the last good build by more than {limit:.0%} and have no "
+            f"replacement recorded in the ledger since then: {', '.join(moved[:12])}"]
