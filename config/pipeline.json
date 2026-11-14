@@ -164,6 +164,7 @@
     "statsnz_tpt": {
       "$comment": "Stats NZ's table of new and ex-overseas motor vehicles registered by type, monthly (Infoshare TPT052601), exported by hand as CSV. A source of kind series: pipeline/series.py. Everything about the table is here and in the reference file named under catalogue: the title and footer the export must carry, the months' format, the columns (catalogue: one row per column header, in order) and what each is. The store holds a figure for each month and series; a `..` (figure not available) is never stored.",
       "kind": "series",
+      "publisher": "Stats NZ",
       "store": "data/supplied/statsnz_tpt",
       "series_file": "series.parquet",
       "ledger_file": "ledger.json",
@@ -180,7 +181,7 @@
       },
       "title": "New and Ex-Oseas Motor Vehicles Registered by Type (Monthly)",
       "table_reference": "TPT001AA",
-      "footer": { "table_reference": "Table reference:", "last_updated": "Last updated:" },
+      "footer": { "first_line": "Table information:", "table_reference": "Table reference:", "last_updated": "Last updated:" },
       "month": { "pattern": "^[0-9]{4}M[0-9]{2}$", "format": "%YM%m" },
       "missing": "..",
       "$arithmetic_from_comment": "From this month a total must equal the sum of its parts or the export is refused. Before it the disagreements are warnings: they are all in 1975-07, 1976-05, 1977-02, 1978-07, 1981-03, 1996-04 and 1997-08 in the export of 2026-11-14, and there are none from 1998-01.",

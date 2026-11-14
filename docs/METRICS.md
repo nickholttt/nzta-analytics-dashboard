@@ -138,10 +138,10 @@ Source and method: `docs/DATA_SOURCES.md` §C (D-065, D-094). Measured on
   add up to the published total: May 1976, one car short, which is shown
   as "not recorded"; and July 1975, one car over, where the bands are
   shown as published and the manifest names the month.
-- **It runs behind the register.** Stats NZ publishes a month about two
-  weeks after NZTA's service has it, so the newest month here is usually
-  one month older than the register's. The build says which month is
-  missing and never fills it.
+- **It runs behind the register.** On the one month observed, Stats NZ
+  published about two weeks after NZTA's service had it, so the series'
+  newest month is usually a month behind the register's (an estimate).
+  The build says which month is missing and never fills it.
 - **Revisions.** Whether Stats NZ revises past months is not known. A
   later export that changes a past month is refused unless the change is
   accepted deliberately, and then it is recorded.

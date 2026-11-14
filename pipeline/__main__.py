@@ -22,7 +22,7 @@ def supply_one(cfg, args) -> None:
         wrong = [flag for flag, given in (("--month", args.month), ("--totals", args.totals), ("--replace", args.replace)) if given]
         if wrong:
             raise supplied.abort(f"{', '.join(wrong)} do not apply to {args.source}, a published table of series. "
-                                 "A month Stats NZ has revised is accepted with --accept-revisions.")
+                                 "A month whose figures differ from the store is accepted with --accept-revisions.")
         series.supply(cfg, args.source, args.csv, taken=args.taken, accept_revisions=args.accept_revisions)
         return
     if args.accept_revisions:

@@ -90,6 +90,13 @@ rule 2 or 3 aborts the run: dimensions never silently drop out.
 Rows are sorted by `month`, then `dim_value`. A month with no rows in the
 dataset is absent, never a row of zeros.
 
+For each month a slice's `n` sums to its `denominator`, the dataset's total for the month: every vehicle has one value of
+the dimension (`test_golden.py` checks it on the golden build). The one exception is a dataset built from a published
+series (*A source of kind `series`*): where the dimension's values add up to more than the total and the config allows it
+for that month, the values are carried as published and `n` sums to more than `denominator`. The manifest names those
+months under `exceeds_total`. **A reader of the cube must read `exceeds_total` before treating a slice's sum as the
+month's total.**
+
 Derive `share`, `yoy`, `rolling_12m`, mean fuel consumption
 (`fc_sum / fc_n`) and fuel-consumption coverage (`fc_n / fc_eligible_n`)
 in the browser. Do not precompute them — it triples file size and makes the
@@ -99,7 +106,7 @@ suppression thresholds impossible to change without a rebuild.
 
 | token | meaning |
 |---|---|
-| `__UNDEFINED__` | Not recorded: the source value is empty or listed in `sentinels.csv`. |
+| `__UNDEFINED__` | Not recorded: the source value is empty or listed in `sentinels.csv`. For a dataset built from a published series it also means vehicles the published breakdown does not account for: every vehicle of a month before the breakdown starts, or the difference where its values fall short of the total. |
 | `__UNMAPPED__` | Recorded, but no reference row matches it (a make absent from `brand_registry.csv`). |
 | `__OTHER__` | Recorded and mapped, but collapsed by a cardinality cap (a model beyond the cap). |
 
@@ -410,7 +417,8 @@ A dataset may be built from a file a maintainer supplies by hand instead of from
 source is named in `supplied` in `config/pipeline.json`; its first user is `nzta_dashboard`, NZTA's
 registrations dashboard (`docs/DATA_SOURCES.md` §D, D-084; the definition is D-087). Nothing fetches it and the Action never
 runs `python -m pipeline supply`. Each source names its `kind` in `config/pipeline.json`, which says how its store
-is laid out and how its datasets are built; `counted_rows` (the dashboard) is the only kind so far.
+is laid out and how its datasets are built: `counted_rows` (the dashboard) or `series` (a published table of monthly
+series, below).
 
 **The store**, `data/supplied/<id>/` (gitignored for now: whether it may live in the public repository
 is the user's decision):
@@ -486,7 +494,10 @@ of the table and fetches nothing. The table's title, footer, month format and he
 
 `supply` aborts, writing nothing, on any of: a title or header that is not the configured one (the message
 says what is missing, what is not expected, or that the order differs); a line with the wrong number of
-fields; a month that does not parse, is repeated, comes out of order or leaves a gap; a figure that is not a
+fields; a month that does not parse, is repeated, comes out of order or leaves a gap; a line straight after the last month
+row that is not the footer's first line (`footer.first_line` in the config: a blank line or a mistyped month in the middle of
+the data ends the month rows early, and every month after it would be dropped), or any later line that has the table's
+field count or begins like a month; a figure that is not a
 whole number (no sign, comma or decimal point, and not above the 32-bit range) or `..`; a `..` after a series
 has started; a missing or different table reference; no "Last updated" line; `--taken` before the last month
 ends; a total that differs from the sum of its parts in any month from `arithmetic_from` (config; the
@@ -496,8 +507,11 @@ or sum, a gap, a different hash, only one of its two files); a new month that wo
 or **a figure in a month already in the store that differs from the export**. The last is a revision. The
 command lists every changed figure, with its old and new value, and refuses unless `--accept-revisions`
 is given; then it replaces the month and records the revision in the ledger. Disagreements of a total with its
-parts before `arithmetic_from` are warnings (the export of 2026-11-14 has 2 for the cars total and 5 for the
-commercial total, all before 1998), and are recorded in the ledger. `--month`, `--totals` and `--replace` are
+parts before `arithmetic_from` are warnings, recorded in the ledger (the export of 2026-11-14 has 11 of them in 7
+distinct months, all before 1998: the cars total against its seven bands in 2 months, 1975-07 and 1976-05; the
+commercial total excluding buses against its ten bands in 5, 1977-02, 1978-07, 1981-03, 1996-04 and 1997-08; the
+commercial total including buses against the total excluding buses plus the two bus bands in 4, 1977-02, 1978-07,
+1996-04 and 1997-08). `--month`, `--totals` and `--replace` are
 refused for this kind, and `--accept-revisions` for the dashboard.
 
 **The dataset.** `registrations_cars_long_run` (`datasets` in `config/pipeline.json`, grain flow, source
@@ -529,8 +543,8 @@ that total, so its slice is the breakdown's figures.
   some of a dimension's series have a figure and others do not aborts.
 - The other 21 series of the table (commercial vehicles, buses, motorcycles, power cycles, tractors) stay in the
   store and are not built into a dataset: Stats NZ's classes are not lined up with NZTA's vehicle types (D-065).
-- The dataset's latest month is the store's, usually a month or two behind the register's (Stats NZ publishes
-  later): a warning that names the missing months, and never newer than the register's.
+- The dataset's latest month is the store's. Stats NZ published about two weeks after NZTA's service on the one month observed, so the series' newest month is usually a month behind the register's (an estimate). A warning names the missing
+  months, and the store is never newer than the register's.
 - The state keeps each month's total under `supplied_totals.<dataset>`. A month whose total differs from the last
   good build's at all (`max_month_change` is 0) aborts, unless the ledger records a revision of that month from a
   file taken on or after that build's day.
@@ -625,6 +639,8 @@ Supplied sources:
   replacement of that month whose file was taken on or after the last good build's day. The totals are kept in
   the state as `supplied_totals.<dataset>`, so an edit to a scope file cannot trip this check.
 - A supplied dataset was built in the last good run and its store is now absent.
+- A dimension of the `series` derive kind names no datasets in `applies_to`, or names one that does not read a source of
+  kind `series`: it would be offered to datasets that cannot derive it. The build stops before it reads anything.
 - For a dataset of a source of kind `series`: its `total` names a series the table does not have, or the total
   series lacks a figure in a month the store holds; a dimension names a series, or a reference row for a label,
   that does not exist (or whose label is not unique); a dimension's values add up to more than the total in a month

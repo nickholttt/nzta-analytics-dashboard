@@ -491,3 +491,108 @@ def test_the_summary_says_what_was_added_and_what_the_store_holds(cfg):
     assert lines[0] == "Months added: " + ", ".join(MONTHS)
     assert any(line.startswith("The store now holds 5 months, 2026-04 to 2026-08") for line in lines)
     assert any("19 September 2026 10:45am" in line for line in lines)
+
+
+def later_export_lines(lines):
+    """The fixture with one more month, as a later export would be."""
+    last = lines[FIRST_DATA_LINE + len(MONTHS) - 1]
+    lines.insert(FIRST_DATA_LINE + len(MONTHS), ["2026M09", *last[1:]])
+
+
+def blank_line_in_the_data(lines):
+    later_export_lines(lines)
+    lines.insert(FIRST_DATA_LINE + 3, [])
+
+
+def mistyped_month_in_the_data(lines):
+    later_export_lines(lines)
+    lines[FIRST_DATA_LINE + 2][0] = "2026-06"
+
+
+def row_after_the_footer_starts(first_line):
+    def change(lines):
+        later_export_lines(lines)
+        first = next(i for i, row in enumerate(lines) if len(row) == 1 and row[0].strip() == first_line)
+        lines.insert(first + 1, list(lines[FIRST_DATA_LINE + 1]))
+
+    return change
+
+
+DAMAGE = {
+    "a blank line in the data": (blank_line_in_the_data, "a blank line"),
+    "a month that does not read as one in the data": (mistyped_month_in_the_data, "'2026-06'"),
+}
+
+
+@pytest.mark.parametrize("held", [False, True], ids=["a fresh store", "a store holding the earlier months"])
+@pytest.mark.parametrize("damage", DAMAGE)
+def test_a_break_in_the_month_rows_is_refused_instead_of_dropping_every_month_after_it(tmp_path, cfg, source, damage, held):
+    change, found = DAMAGE[damage]
+    if held:
+        supply(cfg, EXPORT)
+    before = [p.read_bytes() for p in supplied.store_paths(cfg, SOURCE) if p.exists()]
+    first_line = source["footer"]["first_line"]
+    with pytest.raises(GuardrailError) as info:
+        supply(cfg, edited(tmp_path, change), taken="2026-10-25")
+    message = str(info.value)
+    assert "should be the footer's first line" in message and first_line in message and found in message, message
+    assert [p.read_bytes() for p in supplied.store_paths(cfg, SOURCE) if p.exists()] == before
+
+
+@pytest.mark.parametrize("held", [False, True], ids=["a fresh store", "a store holding the earlier months"])
+def test_a_row_of_the_table_after_the_footer_starts_is_refused(tmp_path, cfg, source, held):
+    if held:
+        supply(cfg, EXPORT)
+    before = [p.read_bytes() for p in supplied.store_paths(cfg, SOURCE) if p.exists()]
+    path = edited(tmp_path, row_after_the_footer_starts(source["footer"]["first_line"]))
+    aborts("come after the footer starts but look like rows", lambda: supply(cfg, path, taken="2026-10-25"))
+    assert [p.read_bytes() for p in supplied.store_paths(cfg, SOURCE) if p.exists()] == before
+
+
+def test_the_footer_must_start_straight_after_the_last_month_row(tmp_path, cfg):
+    def cut(lines):
+        del lines[FIRST_DATA_LINE + len(MONTHS):]
+
+    aborts("the end of the file", lambda: supply(cfg, edited(tmp_path, cut)))
+
+
+def test_an_export_that_ends_before_the_store_says_so(tmp_path, cfg):
+    supply(cfg, EXPORT)
+    lines = []
+    older = edited(tmp_path, lambda rows: rows.__delitem__(FIRST_DATA_LINE + len(MONTHS) - 1), name="older.csv")
+    result = series.supply(cfg, SOURCE, older, taken=TAKEN, echo=lines.append)
+    assert not result["written"] and not result["added"]
+    assert any(line == f"This export ends at {MONTHS[-2]}, before the store's {MONTHS[-1]}: it has nothing newer than the store." for line in lines)
+
+
+def test_messages_name_the_publisher_from_config_and_do_not_claim_what_is_not_known(tmp_path, workspace, catalogue):
+    cfg = make_cfg(workspace)
+    cfg.pipeline["supplied"][SOURCE]["publisher"] = "Acme Statistics"
+    cfg.pipeline["supplied"][SOURCE]["arithmetic_from"] = "2026-01"
+    total = total_of_most_parts(catalogue)
+    line, column = cell(catalogue, total, 3)
+
+    def off_by_one(lines):
+        lines[line][column] = str(int(lines[line][column]) + 1)
+
+    def retitled(lines):
+        lines[0][0] = "Another table"
+
+    def renamed(lines):
+        lines[1][3] = "A column added by the publisher"
+
+    messages = []
+    for change in (retitled, renamed, off_by_one):
+        with pytest.raises(GuardrailError) as info:
+            supply(cfg, edited(tmp_path, change, name=f"{change.__name__}.csv"))
+        messages.append(str(info.value))
+    assert all("Acme Statistics" in m for m in messages), messages
+    assert not any("Stats NZ" in m for m in messages), messages
+
+    supply(make_cfg({**workspace, "supplied": tmp_path / "held"}), EXPORT)
+    held = make_cfg({**workspace, "supplied": tmp_path / "held"})
+    path, _ = changed_export(tmp_path, catalogue)
+    with pytest.raises(GuardrailError) as info:
+        supply(held, path)
+    assert "The file differs from what was stored for those months" in str(info.value)
+    assert "revises" not in str(info.value) and "Stats NZ" not in str(info.value)

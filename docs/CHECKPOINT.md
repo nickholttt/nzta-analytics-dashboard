@@ -5,17 +5,18 @@ Last updated by claude on 2026-11-15
 ## Where we left off
 
 - 2026-11-14 and 15, eighth session: the first of work order 1 (`docs/brief/WORK_ORDER.md`).
-  - **Merged: #47 to #56.** The reworded rules; the order saved with D-082 to D-085 and the
+  - **Merged: #47 to #57.** The reworded rules; the order saved with D-082 to D-085 and the
     sub-agent definitions; three public pages (D-086); `registrations_flow` defined (D-087);
     the pipeline's and the site's follow-ups (D-088, D-089); the data map (D-090); the query
     service measured and proposed (D-091); true registrations built in the pipeline (D-092)
-    and shown on the site (D-093). `ui/explore` is deleted on GitHub.
+    and shown on the site (D-093); Stats NZ's cars since 1961 built in the pipeline (D-094).
   - **October was forced once**, after the daily run said "Source unchanged": the release
     `cube-2026-10` now holds the fact table. No second forced run is allowed (D-082).
   - **A visitor to a local build can now ask** how many vehicles were registered in any month
     since January 2021 and whether that is up or down on a year ago, by brand and by model.
-  - **Package C was being built** on `claude/statsnz-long-run` when these notes were written:
-    a local branch in a worktree, not pushed. Read `git worktree list` and its log first.
+  - **NZTA's vehicle type was being added as a dimension** on `claude/vehicle-type-dimension`
+    when these notes were written: a local branch in a worktree, not pushed, with two golden
+    changes expected. Read `git worktree list` and its log first.
   - **Two slips, both recorded:** #50 was merged a minute before its last check finished (it
     passed); a first reading that event markers respect a filter was wrong (D-089).
 
@@ -32,16 +33,17 @@ Last updated by claude on 2026-11-15
   heading (H); a second scope for events, so a filtered chart can leave out an event about
   vehicles it does not count (a change to `events.csv`'s schema).
 - **B. True registrations.** Done on a local build. Left:
-  - NZTA's vehicle type as a dimension on both datasets (a golden change), so completeness
-    can be shown by vehicle type as the order asks. Today it is shown in total and by new or
-    used.
+  - `claude/vehicle-type-dimension`: finish, add its decision record, review, merge. Then
+    the site: completeness by vehicle type (today it is shown in total and by new or used).
   - The site's tests (`tests/site/`) and the prototype's tests in `Checks` (a workflow
     change, with E's chart rules).
   - Each month: the user's export, then `python -m pipeline supply`
     (`docs/playbooks/supply-dashboard-month.md`), then a build with `--dry-run`.
-- **C. Stats NZ's long-run series.** `claude/statsnz-long-run`: finish, review, merge. Then
-  the site: the long-run chart for cars back to 1961 with Stats NZ's attribution beside
-  NZTA's, and completeness for cars from July 1975. Then the hand-export playbook to the user.
+- **C. Stats NZ's long-run series.** The pipeline half is done (#57). Left, on the site: the
+  long-run chart for cars back to 1961 with Stats NZ's statement beside NZTA's attribution
+  (it must read the manifest's `exceeds_total` and show "not recorded" months as such), and
+  completeness for cars from July 1975, which needs the vehicle-type dimension. The user's
+  own export replaces the fetched copy (`docs/playbooks/supply-statsnz-series.md`).
 - **D. The rest of Stage 1.** Left: first load. Measured (D-091): 7.4 to 11.6 s to a Build
   answer on the phone profile; about 460 KB of each page is its own code and fonts. Trim
   those, measure again (target: a first answer under 3 seconds). Then the status chunk.
@@ -100,7 +102,9 @@ Last updated by claude on 2026-11-15
    own code; vehicle age does not apply to it (D-092).
 8. On the site: a choice inside Build, a ranking for any month, completeness as its own
    chart, the new group last on the home page (D-093).
-9. Stats NZ's series was fetched once, read-only; the converted dashboard data stays local.
+9. Stats NZ's series as a second kind of supplied source: cars only, two breakdowns, no fact
+   table, months before a breakdown starts shown as not recorded (D-094).
+10. Stats NZ's series was fetched once, read-only; both converted stores stay local.
 
 ## Prompt for the next session
 
