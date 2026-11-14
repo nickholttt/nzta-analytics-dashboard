@@ -183,11 +183,24 @@ const loadFactMonths = (dataset: string) =>
 // changes: the stage's slices, pairs, manifest and events are static files either way.
 const QUERY_SERVICE: string = import.meta.env.PUBLIC_QUERY_SERVICE ?? "";
 
-// A failure of the service, with a sentence a visitor can be shown: the chart says the service is not answering,
-// rather than that the page should be reloaded.
-export class ServiceError extends Error {}
+// A failure of the service, with a sentence a visitor can be shown in place of the advice to reload. down: the service
+// did not answer, so trying again later may help; otherwise it answered and refused, and its sentence says why.
+export class ServiceError extends Error {
+  constructor(
+    message: string,
+    readonly down: boolean,
+  ) {
+    super(message);
+  }
+}
 
-type ServiceAnswer = { months: string[]; denominator: number[]; values?: string[]; cells?: (number | null)[][]; suppression?: { cells_withheld: number } };
+type ServiceAnswer = {
+  months: string[];
+  denominator: (number | null)[];
+  values?: string[];
+  cells?: (number | null)[][];
+  suppression?: { cells_withheld: number; totals_withheld?: number };
+};
 
 function serviceQuestion(dimension: string | null, values: string[] | undefined, where: Record<string, string[]>): string {
   const params = new URLSearchParams();
@@ -205,23 +218,29 @@ const askService = (dataset: string, question: string) =>
     try {
       res = await fetch(`${QUERY_SERVICE}/v1/${encodeURIComponent(dataset)}/answer?${question}`);
     } catch {
-      throw new ServiceError("The question service is not answering, so this chart cannot be drawn just now. Explore's charts do not need it and still work. Try again in a few minutes.");
+      throw new ServiceError(
+        "The question service is not answering, so this chart cannot be drawn just now. Explore's charts do not need it and still work. Try again in a few minutes.",
+        true,
+      );
     }
     if (res.ok) return res.json() as Promise<ServiceAnswer>;
     const reason = await res.json().then((b: { error?: string }) => b.error, () => undefined);
-    if (res.status >= 500 || !reason) throw new ServiceError(`The question service could not answer (HTTP ${res.status}), so this chart cannot be drawn just now. Explore's charts still work.`);
-    throw new ServiceError(`The question service did not answer this question: ${reason}`);
+    if (res.status >= 500 || !reason)
+      throw new ServiceError(`The question service could not answer (HTTP ${res.status}), so this chart cannot be drawn just now. Explore's charts still work.`, true);
+    throw new ServiceError(`The question service did not answer this question: ${reason}`, false);
   });
 
 // The service's answer as the rows factView gives for the same question, in the same order.
 async function serviceView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>) {
   const filters = Object.fromEntries(Object.entries(where).filter(([, kept]) => kept.length > 0));
   const answer = await askService(dataset, serviceQuestion(dimension, values, filters));
-  if (answer.suppression && answer.suppression.cells_withheld > 0)
-    throw new ServiceError("Some figures in this question count too few vehicles to be shown, and drawing a chart around them is not built yet.");
+  if (answer.suppression && (answer.suppression.cells_withheld > 0 || (answer.suppression.totals_withheld ?? 0) > 0))
+    throw new ServiceError("Some figures in this question count too few vehicles to be shown, and drawing a chart around them is not built yet.", false);
+  // With nothing withheld, every total is a number.
+  const totals = answer.denominator as number[];
   const out: SliceRow[] = [];
   if (!dimension) {
-    answer.months.forEach((month, i) => out.push({ month, value: "", n: answer.denominator[i], denominator: answer.denominator[i] }));
+    answer.months.forEach((month, i) => out.push({ month, value: "", n: totals[i], denominator: totals[i] }));
     return out;
   }
   const names = answer.values ?? [];
@@ -232,7 +251,7 @@ async function serviceView(dataset: string, dimension: string | null, values: st
     const shown = values ?? [...cell.keys()];
     for (const value of [...shown].sort()) {
       const n = cell.get(value) ?? 0;
-      if (n > 0 || values) out.push({ month, value, n, denominator: answer.denominator[i] });
+      if (n > 0 || values) out.push({ month, value, n, denominator: totals[i] });
     }
   });
   return out;

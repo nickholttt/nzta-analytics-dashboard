@@ -46,18 +46,24 @@ async function valueOptions(dataset: string, dimension: string, where: Record<st
   return [...byValue.values()].filter((o) => o.total > 0).sort((a, b) => b.recent - a.recent || b.total - a.total || a.value.localeCompare(b.value));
 }
 
+function failureHint(e: unknown): string {
+  if (!(e instanceof ServiceError)) return "The values to choose from did not load. Reload the page to try again.";
+  return e.down ? "The question service is not answering, so the values to choose from did not load. Try again in a few minutes." : e.message;
+}
+
 function useValueOptions(dataset: string, dimension: string, where: Record<string, string[]>) {
   const [options, setOptions] = useState<ValueOption[] | null>(null);
-  // "service" when the query service failed, so the hint names it rather than advising a reload.
-  const [failed, setFailed] = useState<false | "file" | "service">(false);
+  // What the hint says when the list did not load: a file that failed, the query service not answering, or the
+  // service's own sentence when it refused the question (trying again would not help).
+  const [failed, setFailed] = useState<string | null>(null);
   const whereKey = JSON.stringify(where);
   useEffect(() => {
     let current = true;
     setOptions(null);
-    setFailed(false);
+    setFailed(null);
     valueOptions(dataset, dimension, JSON.parse(whereKey)).then(
       (o) => current && setOptions(o),
-      (e) => current && setFailed(e instanceof ServiceError ? "service" : "file"),
+      (e) => current && setFailed(failureHint(e)),
     );
     return () => {
       current = false;
@@ -125,10 +131,8 @@ function ValuePicker({
       ) : emptyHint ? (
         <p className="picker-hint">{emptyHint}</p>
       ) : null}
-      {failed === "service" ? (
-        <p className="picker-hint">The question service is not answering, so the values to choose from did not load. Try again in a few minutes.</p>
-      ) : failed ? (
-        <p className="picker-hint">The values to choose from did not load. Reload the page to try again.</p>
+      {failed ? (
+        <p className="picker-hint">{failed}</p>
       ) : full ? (
         <p className="picker-hint">Up to {max} can be compared at once. Remove one to add another.</p>
       ) : (
