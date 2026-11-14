@@ -3131,3 +3131,91 @@ New entries use this template:
     would be written a second time: the shared cases are there to hold the two to the same answers.
   - Reversing it: delete the two docs, the prototype folder and the seam (one setting and one branch in `data.ts`).
 - Status: what is built, decided by Claude (unreviewed); the hosting choice and any spending, proposed, for the user
+
+## D-092 2026-11-14 — `registrations_flow` is built: a maintainer's `supply` command, a local store, and the dataset run through the register's own code
+- Agent: claude (the build by a sub-agent on sonnet, to the lead's plan; this record by the lead)
+- Basis: the work order §5.B; D-084 (the source) and D-087 (the definition); the code and tests on
+  `claude/registrations-flow`; the whole suite, 178 passed locally; a real run on 2026-11-14: `supply` on the user's two
+  files, then `python -m pipeline build <the saved October pull> --dry-run`, exit 0 in 741 s, publishing nothing; an
+  independent review, whose points are taken below.
+- Context: the dashboard's export is a table of counts on the user's computer. The pipeline builds from one row per
+  vehicle, pulled from NZTA's service, and runs unattended on GitHub. The work order asks for the export to be its
+  own dataset, with guardrails (every month present, totals match, no month replaced silently), checked and converted
+  by a maintainer script, and never fetched by the pipeline.
+- Options considered:
+  1. **Where the check-and-convert step lives.** (a) A stand-alone script in `scripts/`. (b) A command of the pipeline's
+     own program, `python -m pipeline supply <source> <file>`, run by hand. Chosen (b): one tested code path, the same
+     config loader, and no column name of the export in code. It is still a maintainer's step: no workflow runs it
+     and it fetches nothing.
+  2. **How the dataset is built.** (a) New code that sums the export's counts into slices. (b) Turn each counted row
+     back into that many vehicle rows, named as the register's fields, and run the register's own normalise, derive,
+     metrics and output code. Chosen (b): sentinels, scope, brand aliases, the model registry, the hybrid
+     classification, the model cap and every unmapped guard then apply to both datasets identically, and nothing can
+     drift between them. It costs build time (the dry run went from about 11 minutes to about 12 to 15).
+  3. **Where the converted data lives.** (a) Committed to this public repository. (b) The private archive. (c) A local
+     folder, gitignored. Chosen (c) for now, `data/supplied/`: (a) publishes a new kind of data, which the work order
+     keeps for the user; (b) needs a secret in the build. It is the user's question (CHECKPOINT).
+  4. **A build with no store.** (a) Abort. (b) Build everything else and say plainly that the dataset was not built.
+     Chosen (b), because GitHub's runs have no store today and must keep working: the manifest carries
+     `not_built` with the reason, and a warning is printed. A dataset that WAS built in the last good run and whose
+     store has since gone aborts the build, so it can never drop out silently.
+  5. **The dataset's clock.** Its latest month is the last month in its store, not the register's snapshot month. A
+     store older than the register warns and names the missing month; a store newer than the register aborts.
+  6. **Breakdowns the export cannot support** are decided from the source's field list, not from a list of names: a
+     dimension whose derive block reads a field the source lacks is not live, with the reason in the manifest.
+  7. **Age when first registered** applies to this dataset (decided by the lead after the build): the export carries
+     the vehicle year and the month, and every vehicle year in it is one the register holds (D-087). **Vehicle age**
+     (years since the vehicle year, as at the snapshot) does not: an age today for a vehicle no longer on the register
+     is not a sound figure, so that dimension now applies to the survivors datasets only.
+  8. **The owner columns** (`Owner Type`, `Territorial authority`, `Vehicle usage`) must be in the file, so a changed
+     export is noticed, and are dropped before anything is stored. A test asserts the store has none of them.
+- Decision: as chosen above. Also decided in the build, each reversible:
+  - a file's header is checked as a set of columns, not their order;
+  - the export's date must be on or after the last day of its last month;
+  - a month already stored is left alone when a new file gives the same rows; a different month aborts unless it is
+    named with `--replace`, and a replacement is recorded in the store's ledger with both totals, dates and file
+    hashes;
+  - a month whose total in the store moves by more than 2% against the last good build aborts, unless a replacement
+    of that month has been recorded since that build. The comparison is of the store's own totals, kept in the state
+    file, so an edit to a scope file cannot trip it;
+  - the ledger records the store file's hash, and `supply` and the build both refuse a store and a ledger that do
+    not belong together; both files are written under temporary names and the ledger is put in place last. The
+    ledger also records, for each file supplied, the totals it was checked against, or that none were given;
+  - a column listed as private can never be mapped to a stored field: `supply` and the build both refuse such a
+    config;
+  - every dataset's manifest entry gains `latest_month`;
+  - the site treats a dataset the manifest marks as not built as absent (one commit in `src/lib/`): without it the
+    site's own build failed on the manifest GitHub's builds will write, which the independent review found.
+- Golden contract changes, each its own commit with its reason: (1) the dataset appears in the manifest as not built,
+  with one warning, and `latest_month` is added to the survivors dataset's entry (six lines; no slice, pair, fact or
+  events file changes); (2) the definition's wording, one line (D-087's sentence).
+- Measured on the real run:
+  - `supply` on the history file: 3.8 s; all seven of the user's totals matched; the store is 1,929,698 bytes of
+    counts (426,732 rows after the owner columns are summed away, from 991,274 in the file) and a ledger of 17,750
+    bytes. The January 2021 file then reported "unchanged" and wrote nothing.
+  - The dataset: 1,483,403 vehicles over 70 months, January 2021 to October 2026 (the figure D-087 measured
+    independently). Live: powertrain, brand and its three groupings, built in, new or used, age when first
+    registered, model. Not live, each with its reason: vehicle type and class (no gross mass), region (no district),
+    engine size (none), imported from and vehicle age (do not apply).
+  - Unmapped makes: 0.131% of in-scope vehicles after the alias `LANDROVER` was added to `brand_registry.csv`
+    (0.159% before). Powertrain, built in and new or used: none unmapped. No guard warned or aborted.
+  - The 300 named models cover 95.0% of the trailing 12 months and 88.9% of all 70.
+  - The fact table: 129,103 rows over nine dimensions. Files: slices 130,219 bytes, fact table 345,774 bytes. The
+    whole payload is 3,625,451 bytes against a budget of 8,000,000.
+  - One warning: mild hybrids are identified for 62.7% of this dataset's hybrids at high confidence over the
+    trailing 12 months, under the 70% the pipeline warns at (the survivors dataset is above it).
+  - The survivors dataset is unchanged: 4,520,304 vehicles over 1,197 months.
+- Consequences:
+  - GitHub's builds say the dataset is not built until the user decides where the store may live. The site must read
+    `not_built` before treating a dataset as present.
+  - Each month the user's export is added with one command (`docs/playbooks/supply-dashboard-month.md`).
+  - The month-change guard compares with the last good state, which a dry run does not write, so it has run only in
+    tests.
+  - A local build that publishes with the store present writes the dataset into the state file. That file is the
+    Action's to commit (hard rule 3); if a local copy were committed, GitHub's builds would abort for want of the
+    store. The playbook and AGENTS.md say to build with `--dry-run` after supplying a month.
+  - The mild hybrid coverage on this dataset is below the pipeline's warning level; the powertrain label already
+    says "identified" (`docs/METRICS.md`). It is listed in the work queue.
+  - Reversing it: remove the dataset's entry from `config/pipeline.json`; the `supply` command and the store then
+    feed nothing.
+- Status: decided by Claude (unreviewed)
