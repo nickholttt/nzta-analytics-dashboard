@@ -2816,3 +2816,56 @@ New entries use this template:
   - Not checked: why the dashboard holds more re-registered vehicles than the register; the cause of the 2023 step;
     the taxi difference; whether owner type is as first registered.
 - Status: decided by Claude (unreviewed)
+
+## D-088 2026-11-14 — The pipeline's small follow-ups: clearer aborts, three workflow hardenings, and what is left until it can be tried on the runner
+- Agent: claude
+- Basis: the work order §5.A; the follow-ups listed in CHECKPOINT (the reviews of #37 to #41 and the pipeline stack);
+  the code and tests on `claude/pipeline-follow-ups`; the whole suite, 111 passed locally. The review comments on
+  #37, #38 and #39 could not be read back from GitHub, so the items were taken as CHECKPOINT words them.
+- Context: earlier reviews left a list of small faults in the pipeline and its workflows. The daily build must not
+  break, and December's refresh is the next real build, so a workflow was changed only where a test or the pull
+  request's own `Checks` run covers the change.
+- Decision, pipeline (none changes what a build writes for valid input; the golden contract is untouched):
+  1. An abort names its real cause: a fact column named `month`, `n` or `rid` is refused for its name; an events
+     enum row that lists no values is blamed on the table, not on every event; a pair naming a dimension id that
+     contains the file-name separator is refused.
+  2. A test builds a second dataset with no fact table. `FACT_ROW_ORDER` sits with the other contract constants.
+  3. The missed-month alarm day refuses `true`, which Python counts as day 1.
+  4. **A run that builds nothing reports the last built month** as its `snapshot` output, not the source's month
+     capped by today's date. Only the archive job reads that output; an archive started by hand on the 1st of a
+     month then finds the month it must match. A run that builds is unchanged.
+  5. `docs/CUBE_SCHEMA.md` lists the checks on the model registry and the mild hybrid file; `docs/METRICS.md` says
+     both share guards test a pair slice's filtered base.
+- Decision, workflows:
+  6. `checks.yml`: the checkout does not keep the job's token (`persist-credentials: false`).
+  7. `deploy.yml`: dependencies are installed without running their install scripts (`npm ci --ignore-scripts`;
+     tried on a copy of the site on Windows, where the public build then succeeded; not yet run on GitHub's
+     runner until the trial below); a re-run of the whole workflow may replace the `site` artifact
+     (`overwrite: true`); and the check for links to internal pages matches single-quoted, templated and relative
+     paths of the site's own, and not another site's address that holds the same word (an event's source link in
+     `events.json` can).
+- Left, each with its reason and what the change would be:
+  - **The alarm runs only on runs that build nothing.** Deliberate: a build of an older month must still be
+    committed, and the next day's run raises the alarm. Not changed.
+  - **A digest of the rows the archive job pulls.** It would recompute the service's grouped counts from the pulled
+    rows and compare them with the change key. It cannot be checked against the live service from a test, and a
+    mismatch would fail the archive; it is built against a saved pull and tried by hand first.
+  - **Pipeline dependencies pinned by hash.** Needs a compiled requirements file with hashes for Linux and
+    `--require-hashes` in three jobs. A mistake breaks the daily build; it is tried on a pull request's `Checks`
+    run, on its own, after December's build.
+  - **A release left with no file by a failed upload.** A failed upload already fails its step loudly, and
+    `Deploy` skips a release that has no cube file. The fix would create the release as a draft, upload, then
+    publish it. It changes the release step of the daily build and cannot be tried without a real build, so it waits
+    until after December's build.
+  - **Admin bypass on the `production` environment** is a GitHub setting, the user's to change.
+- Consequences:
+  - `Deploy` was run on the branch before the merge (run 43566884149, started by hand): the site built on GitHub's
+    runner with the changed install, and the upload job was skipped, as it is for any branch but `main`.
+  - Merging this starts `Deploy` on `main`, because the workflow file is in its own paths. It builds the site and
+    uploads nothing: the Cloudflare variable is unset.
+  - `docs/CHECKPOINT.md` item 5's pipeline entries are cleared or carry the reasons above. Two it also listed are not
+    code: D-063's and D-064's headings still read "(proposed)" because this file is append-only (D-066 records
+    that both were accepted); and no island reads `INTERNAL_PAGES` in the browser today (checked by the reviewer of
+    the site follow-ups), so that entry is closed.
+  - Reversing any one: each is its own commit.
+- Status: decided by Claude (unreviewed)
