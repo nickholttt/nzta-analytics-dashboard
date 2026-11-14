@@ -2736,3 +2736,197 @@ New entries use this template:
     record sheet. No question has been tested.
   - Reversing it: delete the three pages, the two config files and the footer group.
 - Status: decided by Claude (unreviewed)
+
+## D-087 2026-11-14 — `registrations_flow` is defined: what it counts, what the history adds, what Vehicle Status means, and that the register's usage is today's
+- Agent: claude
+- Basis: a read-only comparison on 2026-11-14 by a sub-agent (sonnet): the user's history export (D-084) against the
+  register as at 31 October 2026, read from the private archive's 35-field file into a scratch folder and deleted
+  after (it holds no `VIN11` or postcode). Counts only, by DuckDB. The work order §5.B and §5.E.
+- Context: D-084 made the dashboard a source. Before a dataset is built its definition has to say what it counts
+  (CLAUDE.md, the goal's point 8), and the work order asks for four things by name: that past months can change, that
+  it includes some re-registrations, what "Vehicle Status" means, and whether usage describes a vehicle at first
+  registration or today.
+- Measured:
+  - The file is clean: no duplicate row, no key repeated with a different count, no month missing, no empty cell;
+    January 2021's own file equals its months in the history row for row.
+  - All vehicle types and statuses, 70 months: dashboard 1,883,786; register 1,801,451; 82,335 (4.4%) more, of which
+    80,852 are marked `INACTIVE` and the rest are vehicles the dashboard counts as still registered and the register
+    does not hold for those months.
+    By import status, dashboard then register: USED 682,892 and 639,331; NEW 1,134,695 and 1,105,432; RE-REG 55,135
+    and 46,898; SCRATCH 11,064 and 9,790. By vehicle type the most are passenger cars and vans (46,682) and trailers
+    and caravans (20,960); the highest rate is mopeds (19.5%).
+  - In-scope types, NEW and USED: dashboard 1,483,403; register 1,434,392. Survivors as a share, by year: 2021 93.3%;
+    2022 95.1%; 2023 96.7%; 2024 97.8%; 2025 98.9%; 2026 99.8%.
+  - `ACTIVE` vehicles against the register: 1,802,934 and 1,801,451, between 8 fewer and 65 more in any month.
+    January 2021: 27,041 and 27,035. The `INACTIVE` share by year of first registration: 8.77%, 6.66%, 4.48%, 2.19%,
+    1.03%, 0.24%.
+  - The register never holds more than the dashboard in a month's total. It holds more in a few small cells (new
+    vehicles in October 2026, 8 more; motor caravans in nine months counted by month and vehicle type, one or two
+    more).
+  - A step between October and November 2023, across every vehicle type and status: survivors as a share rise from
+    95.7% to 97.3%, and the dashboard's inactive share falls from 4.21% to 2.62%. Most of it is trailers (91.1% to
+    98.3%). Within the dataset's scope the two months are 97.0% and 97.4% (the reviewer's measure).
+  - Values: body type, country, import status and vehicle type are the same sets in both; one make is spelled two
+    ways in the dashboard; the dashboard's model names are finer for some nameplates; its usage list is 20 values to
+    the register's 8. Rental share of passenger cars, the dashboard's `ACTIVE` vehicles then the register: October
+    2026 25.1% and 25.3%; January 2025 3.89% and 1.64%; January 2023 7.63% and 2.18%; January 2021 1.45% and 0.21%.
+  - Measured again by the reviewer of the pull request, independently, from the same two files: every figure above
+    matched. Three in the docs were restated to what both measures support: the share of vehicles whose make and
+    model appear in the register (98.2%), the share mapped by the brand registry (over 99.8%), and the goods vehicles
+    whose class depends on mass (about 18%). The reviewer also measured the owner-type figures and the
+    tourism/leisure and rental shares now in `docs/DATA_MAP.md`; the vehicle-trader shares there come from a separate
+    profile of the register made the same day.
+- Options considered:
+  1. Which vehicles the dataset counts. (a) Everything in the export, re-registrations and every vehicle type. It
+     would match the dashboard's own total and nobody else's, and could not be set beside survivors. (b) In-scope
+     types, new and used only: the rule `registrations_surviving` uses. Chosen: completeness then compares like with
+     like, and the scope changes for both in one place when heavy vehicles and motorcycles get their own areas
+     (package I).
+  2. `Vehicle Status`. (a) Take NZTA's page at its word ("cancelled in the same month"). (b) Define it from the data.
+     Chosen (b): the page's wording cannot produce a share that rises to 9.9% over five years. The doc quotes both.
+  3. Whether to drop `INACTIVE` vehicles. No: they are the registrations the register has lost, which is the point of
+     the dataset.
+  4. Completeness by model. Not offered: the two sources name some models differently, so a model's count in one
+     is not always the same vehicles as in the other.
+  5. The November 2023 step. Shown as it is and not explained: its cause is not known, and the site says what the
+     data shows, never why.
+  6. The dataset's name. `registrations_flow` was planned for Stats NZ's series (CLAUDE.md build step 1b,
+     `docs/DATA_SOURCES.md` §C). It now names the dashboard's dataset, which is the one with make and model that
+     starter question 1 needs; the Stats NZ dataset is named when it is built (package C). CLAUDE.md's step 1b and
+     §C are changed to say so. Not chosen: a new name for the dashboard's dataset, leaving `registrations_flow`
+     for a series that has no make or model.
+  7. The moment the export shows. Not "the day of the export": NZTA says the dashboard is a snapshot at the end of
+     each month, updated at the start of the next. The definition says "at its latest monthly update before the
+     export was taken".
+- Decision: `docs/METRICS.md` defines the dataset and completeness as above; `docs/DATA_MAP.md` gets the dashboard's
+  thirteen fields, each with how it lines up with the register and a proposed privacy class, and settles the usage
+  trap for `VEHICLE_USAGE`: the register's is the latest recorded usage (tested for rental only). `INDUSTRY_CLASS`
+  looks current too and `Owner Type` looks as first registered; both rest on weaker evidence and neither is proven.
+- Consequences:
+  - The pipeline build of the dataset is a separate change (`docs/CUBE_SCHEMA.md`); these docs describe what it
+    must produce.
+  - The site's finer vehicle type and class (cars, utes, vans, trucks; light and heavy), engine size and fuel
+    consumption cannot be asked of true registrations; NZTA's own vehicle type and body type can. The export has
+    no gross mass or engine size. The dashboard offers groupings of both (NZTA's page, D-075). Whether the monthly export takes them,
+    and the history is taken again, is a question for the user (CHECKPOINT).
+  - "Who is buying" (starter question 7) is better asked of the dashboard's usage and owner type than of the
+    register's, for any month but the newest. Both are owner fields and are not published before the Stage 2
+    privacy review.
+  - The make spelled two ways needs an alias in `brand_registry.csv`: one commit, with the build.
+  - Not checked: why the dashboard holds more re-registered vehicles than the register; the cause of the 2023 step;
+    the taxi difference; whether owner type is as first registered.
+- Status: decided by Claude (unreviewed)
+
+## D-088 2026-11-14 — The pipeline's small follow-ups: clearer aborts, three workflow hardenings, and what is left until it can be tried on the runner
+- Agent: claude
+- Basis: the work order §5.A; the follow-ups listed in CHECKPOINT (the reviews of #37 to #41 and the pipeline stack);
+  the code and tests on `claude/pipeline-follow-ups`; the whole suite, 111 passed locally. The review comments on
+  #37, #38 and #39 could not be read back from GitHub, so the items were taken as CHECKPOINT words them.
+- Context: earlier reviews left a list of small faults in the pipeline and its workflows. The daily build must not
+  break, and December's refresh is the next real build, so a workflow was changed only where a test or the pull
+  request's own `Checks` run covers the change.
+- Decision, pipeline (none changes what a build writes for valid input; the golden contract is untouched):
+  1. An abort names its real cause: a fact column named `month`, `n` or `rid` is refused for its name; an events
+     enum row that lists no values is blamed on the table, not on every event; a pair naming a dimension id that
+     contains the file-name separator is refused.
+  2. A test builds a second dataset with no fact table. `FACT_ROW_ORDER` sits with the other contract constants.
+  3. The missed-month alarm day refuses `true`, which Python counts as day 1.
+  4. **A run that builds nothing reports the last built month** as its `snapshot` output, not the source's month
+     capped by today's date. Only the archive job reads that output; an archive started by hand on the 1st of a
+     month then finds the month it must match. A run that builds is unchanged.
+  5. `docs/CUBE_SCHEMA.md` lists the checks on the model registry and the mild hybrid file; `docs/METRICS.md` says
+     both share guards test a pair slice's filtered base.
+- Decision, workflows:
+  6. `checks.yml`: the checkout does not keep the job's token (`persist-credentials: false`).
+  7. `deploy.yml`: dependencies are installed without running their install scripts (`npm ci --ignore-scripts`;
+     tried on a copy of the site on Windows, where the public build then succeeded; not yet run on GitHub's
+     runner before the trial run recorded below); a re-run of the whole workflow may replace the `site` artifact
+     (`overwrite: true`); and the check for links to internal pages matches single-quoted, templated and relative
+     paths of the site's own, and not another site's address that holds the same word (an event's source link in
+     `events.json` can).
+- Left, each with its reason and what the change would be:
+  - **The alarm runs only on runs that build nothing.** Deliberate: a build of an older month must still be
+    committed, and the next day's run raises the alarm. Not changed.
+  - **A digest of the rows the archive job pulls.** It would recompute the service's grouped counts from the pulled
+    rows and compare them with the change key. It cannot be checked against the live service from a test, and a
+    mismatch would fail the archive; it is built against a saved pull and tried by hand first.
+  - **Pipeline dependencies pinned by hash.** Needs a compiled requirements file with hashes for Linux and
+    `--require-hashes` in three jobs. A mistake breaks the daily build; it is tried on a pull request's `Checks`
+    run, on its own, after December's build.
+  - **A release left with no file by a failed upload.** A failed upload already fails its step loudly, and
+    `Deploy` skips a release that has no cube file. The fix would create the release as a draft, upload, then
+    publish it. It changes the release step of the daily build and cannot be tried without a real build, so it waits
+    until after December's build.
+  - **Admin bypass on the `production` environment** is a GitHub setting, the user's to change.
+- Consequences:
+  - `Deploy` was run on the branch before the merge (run 43566884149, started by hand): the site built on GitHub's
+    runner with the changed install, and the upload job was skipped, as it is for any branch but `main`.
+  - Merging this starts `Deploy` on `main`, because the workflow file is in its own paths. It builds the site and
+    uploads nothing: the Cloudflare variable is unset.
+  - `docs/CHECKPOINT.md` item 5's pipeline entries are each done here or carry a reason above. The file itself is
+    rewritten with the site follow-ups' pull request (#52), not in this one. Two entries it also listed are not
+    code: D-063's and D-064's headings still read "(proposed)" because this file is append-only (D-066 records
+    that both were accepted); and no island reads `INTERNAL_PAGES` in the browser today (checked by the reviewer of
+    the site follow-ups), so that entry is closed.
+  - Reversing any one: each is its own commit.
+- Status: decided by Claude (unreviewed)
+
+## D-089 2026-11-14 — The site's small follow-ups: visitor wording moves onto the dimensions, a filter narrows event markers only in part, and what is left
+- Agent: claude
+- Basis: the work order §5.A; the follow-ups listed in CHECKPOINT (the reviews of #40, #43, #45 and #46); the code as
+  read and as run headless at 390 and 1280 px on `claude/site-follow-ups`.
+- Context: earlier reviews left a list of small faults on the site. Each was read against the code before anything
+  was changed; one turned out not to be a fault, and one turned out to be half of one.
+- Decision:
+  1. **Visitor wording lives on the dimension.** The `public_copy` block in `config/presets.json` is gone. In
+     `config/dimensions.json` a dimension may carry `public_label` and `public_note`, and a dataset
+     `public_definition`: the words a visitor sees, beside the ones `/status` shows. The wording is unchanged. This
+     is the move D-042 intended. Not chosen: leaving it in the presets file, where a dimension's words sat apart
+     from the dimension.
+  2. **A ranking reads a compound value's separator from config** (`key_separator` on the dimension). The code no
+     longer names one dimension or one separator (invariant 1). The pipeline does not read that key: it joins the
+     parts with the cube contract's constant, and a new test (`pipeline/tests/test_site_config.py`) holds the two
+     equal.
+  3. **A preset's filter narrows event markers only in part.** A chart tests an event's values against the rows it
+     draws, and a filtered preset draws the filtered rows, so an event whose values have no vehicles left is not
+     shown. But an event names one dimension: an event about heavy electric vehicles, scoped to the electric
+     powertrain, is still marked on a chart of light passenger vehicles. `docs/EVENTS_LAYER.md` now says both. The
+     follow-up from #45's review stays open (below); the first reading here, that it was no fault at all, was wrong,
+     and the pull request's reviewer showed why with a row of `events.csv` dated July 2027.
+  4. **Build:** a condition Build cannot apply is named by its label; a condition with no value yet survives a
+     change elsewhere; the address is rewritten to the settled question when a link is read; a failed load of the
+     starting values says so; the empty panel carries the dataset's definition.
+  5. **The ranking table's line** names only the columns that are cut off or off the screen, the share column
+     included on a narrow phone. **The map legend's** first label sits inside the chart box.
+  6. **A chart with very many points draws.** Share or count by model over all time threw "Maximum call stack size
+     exceeded" and drew nothing; the highest value is now found by reducing over the points.
+- Left, each with its reason:
+  - **An event cannot say which vehicles of a value it concerns.** It needs a second scope on an event (for example
+    the vehicle class it applies to), a change to `events.csv`'s schema and to how the pipeline checks it. No chart
+    shows a wrong marker today: the one event known to be affected is dated July 2027. It is on the work queue.
+  - **A model's name shows as its two parts joined by the separator** everywhere in Build but the ranking (chips,
+    suggestions, line labels, the panel's title). It was so before; it is visible now that share by model draws. It
+    is fixed with "labels as data" (package H), where every value gets one display label.
+  - **A heading level is skipped on `/build/`** (axe: `heading-order`, moderate; the same on `main` before this
+    change). It is fixed with the page's redesign (package H).
+  - **The grey band before 1970 on "Is the market getting more crowded?"** is what the data shows: months with too
+    few surviving vehicles for a share, drawn grey on purpose, and the chart's note says so. Quietening it is a
+    design choice for package H, not a fix.
+  - **The status page's script chunk in the public build.** Astro emits it from the import whatever the page does
+    at run time. Removing it needs a route filter in `astro.config.mjs` or a step in `deploy.yml`. It is unlinked
+    and holds no data; it waits for package D's first-load work, which measures what the public build ships.
+  - **A value in a link that is not in the data** shows as a chip and can draw an empty line; and **removing the
+    last chosen value refills the five largest.** Both are choices about how Build behaves, and both are settled
+    with package F's rework of chosen values.
+  - **A share by model draws every named model** (300 lines and a 300-row table). It draws; whether it should is
+    for the chart rule table (package E), which decides what fits a breakdown with many values.
+- Consequences:
+  - `config/dimensions.json` has three new optional keys. The pipeline does not read them (checked by reading
+    `derive.py` and `outputs.py`), so the cube and the golden contract do not change.
+  - The address rewrite also adds the default question to a bare `/build/` address.
+  - What the browser downloads, public build, before and after (the reviewer's measure, gzipped): the Explore
+    panel's script 72 bytes more, the question builder's 205 more, a shared runtime chunk 123 fewer: about 154
+    bytes more in all (about 650 uncompressed).
+  - Checked headless after the review: the brand and model rankings' line at 320, 390, 480 and 640 px.
+  - Reversing any one: each is its own commit.
+- Status: decided by Claude (unreviewed)

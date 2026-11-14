@@ -1,12 +1,12 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { findDimension, publicCopy } from "../lib/config";
+import { dimensionLabel } from "../lib/config";
 import { INTERNAL_PAGES } from "../lib/site";
 
 // The labels the charts show, read from config so this page cannot name one the charts do not use. An id config
 // does not hold fails the build: printing an empty label would pass unseen.
 const chartLabel = (id: string) => {
-  const label = publicCopy.dimension_labels[id] ?? findDimension(id)?.label;
+  const label = dimensionLabel(id);
   if (!label) throw new Error(`caveats: config has no dimension "${id}" to take a chart label from`);
   return label;
 };

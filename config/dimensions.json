@@ -4,6 +4,7 @@
     {
       "id": "registrations_surviving",
       "label": "Registrations still on the road",
+      "public_definition": "Each month counts the vehicles first registered in New Zealand that month that are still registered on the snapshot date.",
       "grain": "survivors",
       "definition": "Vehicles first registered in month M that are still registered as at the snapshot date.",
       "help": "Vehicles first registered in NZ in a given month, NZ-new or used import, that are still registered at the snapshot date. Older months are thinned by scrappage."
@@ -19,6 +20,7 @@
     {
       "id": "nz_new",
       "label": "NZ-new registrations still on the road",
+      "public_definition": "Each month counts the vehicles first registered in New Zealand that month, new when they arrived, that are still registered on the snapshot date.",
       "grain": "survivors",
       "base": "registrations_surviving",
       "filter": { "import_status": ["NZ New"] },
@@ -28,6 +30,7 @@
     {
       "id": "used_imports",
       "label": "Used imports still on the road",
+      "public_definition": "Each month counts the vehicles first registered in New Zealand that month, previously registered overseas, that are still registered on the snapshot date.",
       "grain": "survivors",
       "base": "registrations_surviving",
       "filter": { "import_status": ["Used Import"] },
@@ -51,6 +54,7 @@
     {
       "id": "powertrain",
       "label": "Powertrain",
+      "public_note": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is.",
       "source": "nzta:motive_power + reference:powertrain_map",
       "derive": { "kind": "lookup", "field": "motive_power", "reference": "powertrain_map.csv", "key": "nzta_motive_power", "value": "powertrain" },
       "shape_hint": "mix",
@@ -80,6 +84,7 @@
     {
       "id": "owner_country",
       "label": "Brand owned from",
+      "public_label": "Country of the brand's owner",
       "source": "reference:brand_registry",
       "derive": { "kind": "brand", "value": "owner_country" },
       "shape_hint": "mix",
@@ -98,6 +103,7 @@
     {
       "id": "built_in",
       "label": "Built in",
+      "public_note": "Where a vehicle was built is not recorded for almost every vehicle first registered before late 1985, and is recorded for almost all since. The grey line near the top of the chart until then is that gap in the record, not where vehicles came from.",
       "source": "nzta:original_country",
       "derive": { "kind": "raw", "field": "original_country" },
       "shape_hint": "mix",
@@ -164,6 +170,7 @@
     {
       "id": "region",
       "label": "Region",
+      "public_label": "Owner's region",
       "source": "nzta:tla + reference:tla_region",
       "derive": { "kind": "lookup", "field": "tla", "reference": "tla_region.csv", "key": "tla", "value": "region" },
       "shape_hint": "geo",
@@ -173,6 +180,7 @@
     {
       "id": "vehicle_year_band",
       "label": "Vehicle age",
+      "public_note": "Age on the snapshot date, not when the vehicle was bought. It is counted from the year NZTA records for each vehicle, not from when it was built: for a vehicle sold new here since 2007, the year it was first registered here; for a used import, a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year.",
       "source": "derived:vehicle_year",
       "derive": { "kind": "band", "from": "snapshot_year", "minus": "vehicle_year" },
       "shape_hint": "distribution",
@@ -218,6 +226,7 @@
     {
       "id": "age_at_registration_band",
       "label": "Age when first registered here",
+      "public_note": "Age when first registered in New Zealand, counted from the year NZTA records for each vehicle. A vehicle sold new here since 2007 is 0 years old by definition, because that year is its first registration here; for a used import it is a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year. Counted among vehicles still registered at the snapshot: arrivals from earlier years have had longer to leave the register, and vehicles do not all leave at the same rate, so the longer the span, the more the ages shown may differ from those that arrived at the time.",
       "source": "derived:registration_year - vehicle_year",
       "derive": { "kind": "band", "from": "registration_year", "minus": "vehicle_year" },
       "shape_hint": "distribution",
@@ -261,6 +270,7 @@
       "label": "Model",
       "source": "nzta:make + nzta:model + reference:model_registry",
       "derive": { "kind": "model", "cap": 300 },
+      "key_separator": "|",
       "shape_hint": "league",
       "cardinality": "very_high",
       "help": "The nameplate, as brand and model. Only the models with the most registrations over the trailing 12 months keep their name; the rest are grouped as other. The cap is in this dimension's derive block and every build publishes it. Never use submodel, which is free text.",

@@ -7,9 +7,12 @@ Every figure on the site must trace to a definition here. Each chart's
 
 Three grains, never mixed in one series without an explicit label.
 
-- **Flow** — events in a month. True first registrations
-  (`registrations_flow`, from the Stats NZ TPT series) and ownership
+- **Flow** — events in a month. True first registrations and ownership
   changes. Denominator: all events of the same dataset in the same month.
+  Two sources, never mixed in one series: `registrations_flow`, from
+  NZTA's registrations dashboard, with make and model, from January 2021
+  (below); and Stats NZ's monthly series, totals by vehicle class from
+  1961 (`docs/DATA_SOURCES.md` §C; not yet built).
 - **Survivors** — `registrations_surviving`: *vehicles first registered in
   month M that are still registered as at the snapshot date.* Render that
   sentence on every chart that uses this dataset or its subsets (`nz_new`,
@@ -33,6 +36,81 @@ both must pass: every in-scope row, and in-scope rows first registered in
 the trailing 12 months. Out-of-scope rows stay in the archived snapshot aggregates with their
 scope flag; they never reach the cube.
 
+## True registrations: `registrations_flow`
+
+*Vehicles first registered in New Zealand in month M, as NZTA's
+registrations dashboard held them at its latest monthly update before
+the export was taken, including vehicles since removed from the
+register.* Render that sentence on every chart that uses this dataset.
+Source and method: `docs/DATA_SOURCES.md` §D (D-084). The figures below
+were measured on 2026-11-14, from the export taken that day, against
+the register as at 31 October 2026 (D-087). NZTA says the dashboard is
+"a snapshot of the data at the end of every month", updated at the
+start of each month: the export shows that update, not the day it was
+taken.
+
+- **What it counts.** Every vehicle of an in-scope type (Scope, above)
+  whose import status counts as entry to the fleet: new and used imports.
+  The same rule as `registrations_surviving`, so the two can be set side
+  by side. January 2021 to October 2026: 1,483,403 vehicles, against
+  1,434,392 survivors of the same months in the register.
+- **What the history adds.** Over the 70 months and every vehicle type
+  and status the dashboard holds 1,883,786 vehicles and the register
+  1,801,451: 82,335 more (4.4%). Of those, 80,852 are marked `INACTIVE`
+  (since removed, below); the rest are vehicles the dashboard counts as
+  still registered and the register does not hold for those months,
+  mostly re-registrations. Share no longer in the register, by import
+  status: re-registered 14.9%; scratch-built 11.5%; used imports 6.4%;
+  new 2.6%. Of the two the dataset counts, used imports lose more.
+- **Re-registrations are in the source and not in the dataset.** The
+  dashboard includes "a subset of reregistered vehicles" (NZTA's words):
+  55,135 vehicles with import status `RE-REG`, and 11,064 `SCRATCH`.
+  Neither status counts as entry to the fleet (`import_status_map.csv`),
+  so neither is counted here, as neither is in `registrations_surviving`.
+  The dashboard holds more re-registered vehicles than the register does
+  for the same months (1,918 more among those still registered); where
+  the register files them is not known.
+- **`Vehicle Status`.** `ACTIVE` behaves as "still on the register" and
+  `INACTIVE` as "since removed", as at the dashboard's update. This is
+  read from the counts, not taken from NZTA's page, which describes
+  inactive vehicles as "registered and registration cancelled in the same
+  month". The `ACTIVE` vehicles match the register's survivors in count:
+  1,802,934 against 1,801,451 over the 70 months (0.08% apart), and
+  between 8 fewer and 65 more in any one month (at most 0.23%). The
+  `INACTIVE` share rises with age, from none in the newest month to 9.9%
+  for January 2021. The two sources carry no vehicle key, so this is
+  agreement of counts, not of vehicles one by one. The dataset counts
+  both statuses.
+- **Past months can change.** NZTA says vehicles "may be added to or
+  removed from the dataset" and a registration month "may be updated".
+  Each month here is that month as the export held it. The build must
+  carry each export's date in the manifest, and must let a later export
+  replace a month only by a deliberate, recorded step
+  (`docs/CUBE_SCHEMA.md`, when the dataset is built).
+- **The month** is the dashboard's registration month. NZTA's page calls
+  it the date of first ownership, which "may differ from" the first
+  registration in New Zealand; in count it agrees with the register's
+  month of first NZ registration as the `ACTIVE` figures above show.
+- **What it cannot break down by.** NZTA's own vehicle type and body
+  type are in the export, so passenger vehicles and goods vehicles can
+  be told apart. The site's finer `segment` and `segment_group`
+  dimensions (cars, utes, vans, trucks; light and heavy) cannot be
+  derived: they need gross vehicle mass for the goods vehicles, about
+  18% of the in-scope vehicles, and the export has none. It has no
+  engine size or fuel consumption either. The owner's district, owner
+  type and vehicle usage are in the export and are not published (the
+  work order §3).
+- **Model names differ from the register's for some nameplates.** The
+  dashboard's model is NZTA's cleaned name and splits some nameplates
+  the register does not (the two largest since January 2025 are
+  `COROLLA CROSS` and `LANDCRUISER PRADO`, which the register holds as
+  `COROLLA` and `LANDCRUISER`). Since January 2025, 98.2% of the
+  dashboard's vehicles carry a make and model that appear, spelled the
+  same, in the register. A model's count here and its survivors in the
+  register are therefore not always the same set of vehicles:
+  completeness (below) is not shown by model.
+- **Never on a chart with survivors.**
+
 ## Core measures
 
 | Measure | Definition |
@@ -50,6 +128,17 @@ scope flag; they never reach the cube.
 A share is suppressed when **either** guard trips. They look similar and
 they are not redundant. Anyone tempted to collapse them into one should
 read this section first.
+
+Both guards test the share's own denominator. On a plain slice that is the
+dataset's whole month. A pair slice carries the same whole-month
+denominator on every row (D-047), so a view narrowed through a pair, such as
+the powertrain mix of light passenger vehicles only, takes its denominator
+as the sum of `n` over the kept values of the other dimension, month by
+month, and both guards are tested on that filtered base. The precision floor
+is then the filtered month's vehicles under 200, and the representativeness
+floor is the filtered month against the median of the filtered base over the
+12 months before it. A filtered chart can therefore suppress a month the
+unfiltered chart draws.
 
 **The precision floor — denominator under 200.** Below this the month has
 too few vehicles for a percentage to mean anything, and each further
@@ -173,6 +262,28 @@ told apart from one that stayed. Scrappage in a period is the fall in a
 cohort's survivors between consecutive snapshots. Survival relative to the
 *original* registration count needs `registrations_flow` as the base.
 Every survival figure states its base and its first observed snapshot.
+
+**Completeness** — for a month, the survivors still on the register
+(`registrations_surviving`) ÷ the vehicles registered in that month
+(`registrations_flow`), in total, by import status (new, used) and by
+NZTA's vehicle type for the types in scope, from January 2021. Both
+sides are the datasets as built, so it covers the in-scope types only.
+It says how much of what was registered the register can still show.
+It is a figure and a chart of its own, placed beside a survivors chart
+of older months; it is never drawn on that chart, and it is **never
+used to scale a figure**: a brand or model count scaled up by it would
+be an estimate presented as data (Estimation rules). A cell can pass
+100% where the register holds a few more vehicles than the dashboard
+(four in-scope cells of month, type and status do, the largest by 8
+vehicles); it is shown as it is, not capped. Measured on the 2026-10
+snapshot for in-scope fleet entries, by year of first registration:
+2021 93.3%; 2022 95.1%; 2023 96.7%; 2024 97.8%; 2025 98.9%; 2026 99.8%.
+Across every vehicle type and status, outside the dataset's scope, the
+share steps up between October and November 2023 (95.7% to 97.3%),
+most of it in trailers (91.1% to 98.3%); within the dataset's scope
+those two months are 97.0% and 97.4%. The cause is not known and no
+reason is given on the site. Not shown by model (above), and before
+2021 only for cars, from Stats NZ's series, once that is built.
 
 **Per capita** — registrations per 1,000 residents, using Stats NZ
 subnational population estimates. Population is a separate reference file
