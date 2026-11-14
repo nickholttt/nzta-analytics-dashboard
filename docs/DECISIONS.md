@@ -3274,10 +3274,11 @@ New entries use this template:
     (fillable placeholders, no digit or year, no banned word), and that the datasets and measures the new config
     names exist. This is the first file of the narrative config CLAUDE.md plans.
   - `tests/site/sentences.test.ts`: eleven tests, run with Node's own test runner and no new dependency
-    (`node --test "tests/site/*.test.ts"`). The sentence module takes the dataset's whole rows and decides for
-    itself whether earlier figures exist, so a chart cannot hand it a narrowed view; two of the tests read the two
-    chart components' source to hold them to passing rows through. Each of the three faults the review found,
-    put back in the module or in a component, fails a test. They are not in `Checks` yet: that is a workflow
+    (`node --test "tests/site/*.test.ts"`). The sentence module decides for itself, from the rows it is given, what the
+    year-ago figure is and whether earlier figures exist; the charts pass it the dataset's whole rows, and two of
+    the tests read the two chart components' source to check that. Each of the three faults the review found, put
+    back in the module or in a component as it was, fails a test. A deliberate edit that narrows the rows before
+    they are passed would not be caught: the module trusts the rows it is given. They are not in `Checks` yet: that is a workflow
     change, queued with the chart rules. `tests/` is a new top-level folder.
 - Measured on the local build:
   - March 2021, June 2023 and October 2026: the site shows 26,333, 40,598 and 23,554 vehicles registered, the
