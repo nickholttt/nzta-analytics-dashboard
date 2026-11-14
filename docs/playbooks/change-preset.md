@@ -17,6 +17,8 @@ uncommitted changes owned by claude.
 | `derived` | a derived measure id that `src/lib/derived.ts` registers (instead of `measure`) |
 | `shape_override` | forces one of the shapes that has a renderer (five of the six today) when inference isn't enough |
 | `note_template` / `note` | a note on the chart. Any figure must come from `{dotted.path}` into the manifest, never typed in |
+| `answer` | on a `count` trend: the figure and sentence above the chart for one month (`up`, `down`, `same`, `alone` templates; `{month}`, `{count}`, `{prior_month}`, `{prior_count}`, `{change|pct}`). A template names no month, figure or cause |
+| `derived` of a ratio | a derived measure in `config/measures.json` with `numerator_dataset` and `denominator_dataset` (`completeness`) is drawn by the trend renderer from both datasets' slices for the preset's `dimension`; it needs both built and the dimension live in both |
 
 Shape is inferred from measure plus dimension. Never add a seventh renderer (the sixth, `matrix`, is D-083).
 
@@ -27,12 +29,16 @@ navigation), `title` (the section heading), optional `lead: true` (larger charts
 page shows only the presets that draw against the current build, and drops a group left with none;
 `/status` shows every preset with its diagnostics (D-041).
 
+A group may carry `"defer": true`: its charts draw their data only when scrolled to, so the group adds nothing to what the page downloads before its first chart. A preset's ranking month and a count's chosen month are in the address as `<preset id>.month`.
+
 ## Visitor wording
 
 A dimension in `config/dimensions.json` may carry `public_label` and `public_note`, and a dataset a
 `public_definition`: visitor wording for text that is written for maintainers (D-042). The Explore
 and Build pages use one when there is one and fall back to `label`, `note` and `definition`;
 `/status` always shows the original.
+
+A dataset's `words` block says what its charts count (column headings, captions), `source_note` is said under every chart of it (filled from the manifest, with the export's date), and `not_built_message` is what a chart says where the build did not make it. On the Build page `builder.datasets` lists what a question can count; a text that differs by dataset is an object keyed by dataset id, and the choice is `build.dataset` in the address (absent means the first).
 
 ## Rules
 

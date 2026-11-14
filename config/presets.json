@@ -45,6 +45,8 @@
     "$comment": "The Build page: a question a visitor builds (what to measure, what to compare, which vehicles to keep, D-058), drawn through the same panel and resolver as Explore. Values and filters are summed from the fact table; without them a chart reads the slices. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
     "id": "build",
     "dataset": "registrations_surviving",
+    "datasets": ["registrations_surviving", "registrations_flow"],
+    "$datasets_comment": "What a question counts. The first is the default, and an address with no build.dataset means it. Each is offered only where the build made it, and only the dimensions, values and conditions that dataset carries are offered with it. A text that differs by dataset (note, dimension_notes) is an object keyed by dataset id.",
     "period": "all",
     "period_when_comparing": "10y",
     "$period_when_comparing_comment": "A question that names values (brands, models) opens on the last ten years: most named values have little or no history before that, and all time would spend most of the chart on empty decades. The time row still offers all time.",
@@ -83,7 +85,9 @@
           "built_in": 10
         },
         "$top_n_comment": "The values that keep their own line on a mix chart; the rest become one remainder, All other. Reserved tokens (not recorded, no reference match) keep their own grey line and never join it (D-046). make and parent_group as brand-share uses. built_in is capped at 10 of its 46 values in the 2026-09 cube: its country is not recorded for almost every vehicle first registered before about 1986, and that gap shows as its own Not recorded line.",
-        "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every group shares, but groups leave the register at different rates, so older months lean towards groups whose vehicles stay registered longer."
+        "note": {
+          "registrations_surviving": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every group shares, but groups leave the register at different rates, so older months lean towards groups whose vehicles stay registered longer."
+        }
       },
       {
         "id": "count",
@@ -105,7 +109,9 @@
           "model": "model"
         },
         "$dimensions_comment": "A count by a breakdown draws one line per chosen value, so it needs the fact table; with no breakdown it is the total of the vehicles kept.",
-        "note": "Vehicles still registered today, not sales. Older months are thinned by scrappage, so a line that falls back in time partly measures how many have left the register since, and groups leave it at different rates."
+        "note": {
+          "registrations_surviving": "Vehicles still registered today, not sales. Older months are thinned by scrappage, so a line that falls back in time partly measures how many have left the register since, and groups leave it at different rates."
+        }
       },
       {
         "id": "share_and_count",
@@ -130,13 +136,19 @@
     "dimension_notes": {
       "$comment": "What a canon preset says about a dimension in its own note, which a built chart would otherwise lose. Here rather than in a dimension's public_note so Explore does not show it twice.",
       "segment": "The register records most SUVs as station wagons, so they count as cars here.",
-      "import_status": "These are vehicles still registered at the snapshot, and new and used vehicles leave the register at different rates, so an older month's split may differ from what was bought at the time. In recent cohorts used imports leave faster, which understates their share; in some older cohorts it runs the other way.",
+      "import_status": {
+        "registrations_surviving": "These are vehicles still registered at the snapshot, and new and used vehicles leave the register at different rates, so an older month's split may differ from what was bought at the time. In recent cohorts used imports leave faster, which understates their share; in some older cohorts it runs the other way."
+      },
       "owner_country": "Ownership is as at today, not at registration: every year shown counts each brand under the country that owns it now.",
       "parent_group": "Group ownership is as at today, not at registration: every year shown counts each brand under the group that owns it now.",
       "region": "Where each vehicle's registered owner lives now, from their most recent address: not where the vehicle is driven, and not necessarily where it was first registered. Rental and lease fleets count at the address of the company that owns them. Each owner is placed in a region by their district, and a few districts cross a regional boundary, so their vehicles are counted in one region even where part of the district lies in another."
     },
     "not_offered": [
-      "Every vehicle registered each month, including those since scrapped. These figures count vehicles still registered today; true monthly registrations wait for Stats NZ's series."
+      {
+        "text": "Every vehicle registered each month, including those since removed from the register. This build does not carry true registrations, so these figures count vehicles still registered today.",
+        "when_not_built": "registrations_flow"
+      },
+      "Registrations before the first month of the dashboard's data. Those wait for Stats NZ's series, which has totals but no brand or model."
     ]
   },
   "groups": [

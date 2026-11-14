@@ -2,12 +2,13 @@
 // among which vehicles, and the charts that answer it are drawn by the same panel as Explore (D-058, D-059). The
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { builderSpec, dimensionLabel, findDataset } from "../lib/config";
+import { builderSpec, datasetWords, dimensionLabel, findDataset } from "../lib/config";
 import { MAX_VALUES, builderPresets, questionParams, readQuestion, settle, viewsFor } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
-import { factView, loadManifest, loadSlice } from "../lib/data";
+import { datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
 import type { SliceRow } from "../lib/data";
-import { addMonths } from "../lib/measures";
+import { TRAILING_MONTHS, addMonths } from "../lib/measures";
+import { fillNote } from "../lib/notes";
 import { count } from "../lib/readout";
 import PresetPanel, { reservedLabel } from "./PresetPanel";
 
@@ -34,8 +35,8 @@ async function valueOptions(dataset: string, dimension: string, where: Record<st
     filtered ? factView(dataset, dimension, undefined, where) : loadSlice(dataset, dimension),
     loadManifest(),
   ]);
-  const latest = manifest.latest_snapshot.slice(0, 7);
-  const from = addMonths(latest, -11);
+  const latest = datasetLatestMonth(manifest, dataset);
+  const from = addMonths(latest, -(TRAILING_MONTHS - 1));
   const byValue = new Map<string, ValueOption>();
   for (const r of rows as SliceRow[]) {
     const o = byValue.get(r.value) ?? { value: r.value, recent: 0, total: 0 };
@@ -91,6 +92,7 @@ function ValuePicker({
   const inputId = `find-${dimension}`;
   const full = max !== undefined && chosen.length >= max;
   const filtered = Object.values(where).some((kept) => kept.length > 0);
+  const words = datasetWords(dataset);
   const matches = useMemo(() => {
     if (!options) return [];
     const q = query.trim().toLowerCase();
@@ -160,7 +162,7 @@ function ValuePicker({
                   >
                     <span className="suggestion-name">{valueLabel(o.value)}</span>
                     <span className="suggestion-figure">
-                      {o.recent > 0 ? `${count(o.recent)} still registered, first registered in the last 12 months` : `${count(o.total)} still registered`}
+                      {o.recent > 0 ? `${count(o.recent)} ${say(words?.suggestion_recent)}` : `${count(o.total)} ${say(words?.suggestion_total)}`}
                     </span>
                   </button>
                 </li>
@@ -173,13 +175,18 @@ function ValuePicker({
   );
 }
 
+// A dataset's words, with the trailing window filled in.
+const say = (template?: string) => fillNote(template ?? "", { months: TRAILING_MONTHS }).text;
+
 const without = (where: Record<string, string[]>, dimension: string) => Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
 
-export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary }) {
-  const { dataset } = vocabulary;
+export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocabulary }) {
   const [question, setQuestion] = useState<Question>(() =>
-    settle(vocabulary, typeof window === "undefined" ? {} : readQuestion(window.location.search)),
+    settle(all, typeof window === "undefined" ? {} : readQuestion(window.location.search)),
   );
+  // What the chosen dataset offers: its measures, and the conditions its fact table can apply.
+  const vocabulary = all.datasets.find((v) => v.dataset === question.dataset) ?? all.datasets[0];
+  const { dataset } = vocabulary;
   // The question as it stands now, for work that finishes later (a list of values arriving) and must build on the
   // latest question, not the one it started from.
   const latest = useRef(question);
@@ -215,10 +222,16 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
 
   const ask = (next: Partial<Question>) => {
     const asked = { ...latest.current, ...next };
+    // Another dataset carries other conditions and other values: the ones it does not carry go, and the chosen values start over.
+    if (next.dataset && next.dataset !== latest.current.dataset) {
+      const carried = all.datasets.find((v) => v.dataset === next.dataset)?.filters ?? [];
+      asked.where = Object.fromEntries(Object.entries(asked.where).filter(([d]) => carried.some((f) => f.id === d)));
+      asked.values = [];
+    }
     // A condition with no value yet keeps every vehicle and has no place in the address, so settle drops it. It stays
     // on the page while the visitor changes something else, and goes only when they remove it.
     const held = Object.entries(asked.where ?? {}).filter(([d, kept]) => kept.length === 0 && canApply(d));
-    const settled = settle(vocabulary, asked);
+    const settled = settle(all, asked);
     for (const [d] of held) if (d !== settled.by && !(d in settled.where)) settled.where[d] = [];
     latest.current = settled;
     setQuestion(settled);
@@ -231,7 +244,7 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
   const awaitingValues = Boolean(countsLines && question.by && question.values.length === 0 && breakdown?.values);
   // The question whose starting values were looked for and not found: nothing was first registered in the last 12
   // months among the vehicles its conditions keep.
-  const startKey = `${question.by}|${whereKey}`;
+  const startKey = `${question.dataset}|${question.by}|${whereKey}`;
   const [noStartFor, setNoStartFor] = useState<string | null>(null);
   // The question whose starting values could not be loaded at all.
   const [startFailedFor, setStartFailedFor] = useState<string | null>(null);
@@ -255,6 +268,7 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
     // ask reads the latest question through its ref; these are what decide whether starting values are needed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [awaitingValues, question.by, dataset, whereKey]);
+  const words = datasetWords(dataset);
 
   const datasetInfo = findDataset(dataset);
   const datasetDefinition = datasetInfo?.public_definition ?? datasetInfo?.definition;
@@ -268,9 +282,26 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
     focusSoon(() => document.getElementById(`find-${id}`));
   };
 
+  // A line that applies only where a dataset is missing from the build is shown only there.
+  const notOffered = builderSpec.not_offered.flatMap((line) =>
+    typeof line === "string" ? [line] : all.datasets.some((v) => v.dataset === line.when_not_built) ? [] : [line.text],
+  );
+
   return (
     <>
       <form className="question" aria-label="Build a question" onSubmit={(e) => e.preventDefault()}>
+        {all.datasets.length > 1 ? (
+          <p className="sentence-text">
+            Counting{" "}
+            <select aria-label="What is counted" value={dataset} onChange={(e) => ask({ dataset: e.target.value, view: null })}>
+              {all.datasets.map((v) => (
+                <option key={v.dataset} value={v.dataset}>
+                  {v.label}
+                </option>
+              ))}
+            </select>
+          </p>
+        ) : null}
         <p className="sentence-text">
           {builderSpec.lead}{" "}
           <select aria-label="What to show" value={measure.id} onChange={(e) => ask({ measure: e.target.value, view: null })}>
@@ -406,7 +437,7 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
             ) : noStartFor === startKey ? (
               <div className="callout blocked">
                 <span className="callout-label">Nothing to draw yet</span>
-                Nothing was first registered in the last 12 months
+                {say(words?.none_recent)}
                 {Object.keys(question.where).length ? " among the vehicles the conditions keep" : ""}, so there is no largest to start
                 from. Choose values under Compare to draw a line for each.
               </div>
@@ -419,13 +450,13 @@ export default function QuestionBuilder({ vocabulary }: { vocabulary: Vocabulary
         ),
       )}
 
-      {builderSpec.not_offered.length > 0 ? (
+      {notOffered.length > 0 ? (
         <section className="not-offered" aria-labelledby="not-offered-head">
           <h2 id="not-offered-head" className="eyebrow">
             Not offered yet
           </h2>
           <ul className="notes">
-            {builderSpec.not_offered.map((line) => (
+            {notOffered.map((line) => (
               <li key={line}>{line}</li>
             ))}
           </ul>

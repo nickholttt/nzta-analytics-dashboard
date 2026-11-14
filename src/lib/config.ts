@@ -127,23 +127,34 @@ export type BuilderMeasure = {
   joiner: string;
   dimensions: Record<string, string>;
   top_n?: Record<string, number>;
-  note?: string;
+  // Words that say what the measure counts. One text for every dataset, or one for each dataset that needs its own.
+  note?: PerDataset;
   note_template?: string;
   // A measure drawn as two charts, one per part: each part is another measure's id.
   parts?: string[];
 };
 
+// A text that is the same for every dataset, or one text for each dataset that has its own.
+export type PerDataset = string | Record<string, string>;
+export const forDataset = (text: PerDataset | undefined, dataset: string): string | undefined =>
+  typeof text === "string" ? text : text?.[dataset];
+
+// A line the Build page says it does not offer: shown always, or only where the build lacks a dataset.
+export type NotOffered = string | { text: string; when_not_built: string };
+
 export type BuilderSpec = {
   id: string;
+  // What is counted when the address does not say; datasets lists every one the page can offer, in order, where built.
   dataset: string;
+  datasets: string[];
   period: string;
   period_when_comparing: string;
   period_by_shape: Record<string, string>;
   ranking_period: string;
   lead: string;
   measures: BuilderMeasure[];
-  dimension_notes: Record<string, string>;
-  not_offered: string[];
+  dimension_notes: Record<string, PerDataset>;
+  not_offered: NotOffered[];
 };
 
 type PresetsDoc = {

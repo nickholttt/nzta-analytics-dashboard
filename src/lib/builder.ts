@@ -2,12 +2,16 @@
 // breakdown to compare, which vehicles to keep, and, where more than one shape fits, which to draw (D-058, D-059). Each
 // becomes a preset like any in the canon, two for share and number, so the resolver and the panel treat a built chart
 // exactly as they treat an Explore one.
-import { builderSpec, findDerived, findDimension, findMeasure, dimensionLabel } from "./config";
+import { builderSpec, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
 import type { BuilderMeasure, Preset } from "./config";
+import { isBuilt } from "./data";
 import type { Manifest } from "./data";
+import { monthLabel } from "./measures";
 import { inferShape, resolvePreset } from "./resolve";
 
 export type Question = {
+  // What is counted: a dataset id from builderSpec.datasets.
+  dataset: string;
   measure: string;
   by: string | null;
   values: string[];
@@ -26,7 +30,9 @@ export type BuilderOption = {
   dimensions: { id: string; phrase: string; values: boolean }[];
 };
 export type FilterOption = { id: string; label: string };
-export type Vocabulary = { dataset: string; measures: BuilderOption[]; filters: FilterOption[] };
+// What one dataset offers; label is how the page names what it counts.
+export type DatasetVocabulary = { dataset: string; label: string; measures: BuilderOption[]; filters: FilterOption[] };
+export type Vocabulary = { datasets: DatasetVocabulary[] };
 
 const findBuilderMeasure = (id: string) => builderSpec.measures.find((m) => m.id === id);
 const partsOf = (m: BuilderMeasure) => (m.parts ?? [m.id]).map(findBuilderMeasure).filter((x): x is BuilderMeasure => Boolean(x));
@@ -62,20 +68,20 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
   const m = findBuilderMeasure(measureId);
   const values = !m?.derived && q.by && q.values.length ? q.values : undefined;
   const where = cleanWhere(q.where);
-  const dimensionNote = q.by ? builderSpec.dimension_notes[q.by] : undefined;
+  const dimensionNote = q.by ? forDataset(builderSpec.dimension_notes[q.by], q.dataset) : undefined;
   // Shapes the question can switch among apply to its share; a count by a breakdown is always lines.
   const view = measureId === COUNT && q.by ? TREND : measureId === SHARE ? q.view : null;
   const preset: Preset = {
     id,
-    question: questionText(q, measureId, label),
+    question: questionText(q, measureId, label) + (q.dataset === builderSpec.dataset ? "" : ` (${datasetName(q.dataset)})`),
     status: "live",
-    dataset: builderSpec.dataset,
+    dataset: q.dataset,
     dimension: q.by ?? undefined,
     period: builderSpec.period,
     // A ranking of hand-picked values would read as their place in the market, so chosen values are never ranked.
     ranking_period: values ? undefined : builderSpec.ranking_period,
     events: true,
-    note: joined(m?.note, dimensionNote),
+    note: joined(forDataset(m?.note, q.dataset), dimensionNote),
     note_template: m?.note_template ? joined(m.note_template, dimensionNote) : undefined,
     top_n: values || !q.by ? undefined : m?.top_n?.[q.by],
     ...(m?.derived ? { derived: m.id, shape_override: findDerived(m.id)?.shape } : { measure: m?.id }),
@@ -107,13 +113,29 @@ export function viewsFor(q: Question): string[] {
   return hinted && first.measure === SHARE ? [inferred, "mix"] : [];
 }
 
+// What a dataset is called to a visitor: its public label, and for one that starts later than the register, where it starts.
+export function datasetName(id: string, manifest?: Manifest): string {
+  const dataset = findDataset(id);
+  const first = manifest?.datasets[id]?.supplied?.months.first;
+  const name = dataset?.public_label ?? dataset?.label ?? id;
+  return first ? `${name}, from ${monthLabel(first)}` : name;
+}
+
 const draws = (q: Question, manifest: Manifest) => builderPresets(q).every((p) => resolvePreset(p, manifest).preventsRender.length === 0);
 
 // Only what draws is offered: a breakdown the cube does not carry, or a shape with no renderer, never reaches the page.
 // A breakdown offers chosen values only where the fact table carries it. A measure left with nothing to show is dropped.
 export function builderVocabulary(manifest: Manifest): Vocabulary {
-  const facts = manifest.datasets[builderSpec.dataset]?.facts;
-  const blank: Question = { measure: "", by: null, values: [], where: {}, view: null };
+  const datasets = builderSpec.datasets
+    .filter((id) => isBuilt(manifest, id))
+    .map((id) => datasetVocabulary(manifest, id))
+    .filter((v) => v.measures.length > 0);
+  return { datasets };
+}
+
+function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabulary {
+  const facts = manifest.datasets[dataset]?.facts;
+  const blank: Question = { dataset, measure: "", by: null, values: [], where: {}, view: null };
   const measures = builderSpec.measures
     .map((m): BuilderOption => {
       const probe = (by: string | null, values: string[] = []) => draws({ ...blank, measure: m.id, by, values }, manifest);
@@ -136,7 +158,7 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
   const filters = (facts?.dimensions ?? [])
     .filter((id) => findDimension(id))
     .map((id) => ({ id, label: dimensionLabel(id) ?? id }));
-  return { dataset: builderSpec.dataset, measures, filters };
+  return { dataset, label: datasetName(dataset, manifest), measures, filters };
 }
 
 // As many values as the palette has colours: past that, lines can no longer be told apart (src/lib/theme.ts).
@@ -147,7 +169,8 @@ export const MAX_VALUES = 8;
 // down by what was a condition never quietly widens the question. A condition the page cannot apply (a field the fact
 // table lacks, or one config does not define) is kept for the same reason: the resolver then blocks the chart and the
 // page says which condition to remove, where dropping it would draw a wider question than the link asked.
-export function settle(vocabulary: Vocabulary, q: Partial<Question>): Question {
+export function settle(all: Vocabulary, q: Partial<Question>): Question {
+  const vocabulary = all.datasets.find((v) => v.dataset === q.dataset) ?? all.datasets.find((v) => v.dataset === builderSpec.dataset) ?? all.datasets[0];
   const m = vocabulary.measures.find((o) => o.id === q.measure) ?? vocabulary.measures[0];
   const dimension = m.dimensions.find((d) => d.id === q.by);
   const by = dimension ? dimension.id : m.allowsTotal && (q.by === null || q.by === undefined) ? null : (m.dimensions[0]?.id ?? null);
@@ -156,7 +179,7 @@ export function settle(vocabulary: Vocabulary, q: Partial<Question>): Question {
   const where = Object.fromEntries(Object.entries(q.where ?? {}).filter(([d, kept]) => d !== by && kept.length > 0));
   const asked = q.values?.length ? q.values : onBreakdown;
   const values = takesValues ? [...new Set(asked)].slice(0, MAX_VALUES) : [];
-  const settled: Question = { measure: m.id, by, values, where, view: null };
+  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, where, view: null };
   return { ...settled, view: q.view && viewsFor(settled).includes(q.view) ? q.view : null };
 }
 
@@ -177,6 +200,7 @@ export function readQuestion(search: string): Partial<Question> {
   }
   const by = params.get(key("by"));
   return {
+    dataset: params.get(key("dataset")) ?? undefined,
     measure: params.get(key("measure")) ?? undefined,
     by: by === null ? undefined : by === "" ? null : by,
     values: params.getAll(key("value")),
@@ -187,6 +211,8 @@ export function readQuestion(search: string): Partial<Question> {
 
 export function questionParams(q: Question): URLSearchParams {
   const params = new URLSearchParams({ [key("measure")]: q.measure, [key("by")]: q.by ?? "" });
+  // An address with no dataset means the default one, so an older link keeps its meaning and the default adds nothing.
+  if (q.dataset !== builderSpec.dataset) params.set(key("dataset"), q.dataset);
   for (const v of q.values) params.append(key("value"), v);
   for (const [d, kept] of Object.entries(cleanWhere(q.where))) for (const v of kept) params.append(key(`${WHERE}${d}`), v);
   if (q.view) params.set(key("view"), q.view);
@@ -197,12 +223,12 @@ export function questionParams(q: Question): URLSearchParams {
 // it offers with this breakdown, the same cap on named values, and the view's filters as the question's. Composite
 // presets never qualify ($composite in config/presets.json), and neither does the builder's own chart.
 export function builderQuestionFor(view: Preset): Question | null {
-  if (view.id.startsWith(builderSpec.id) || view.series || view.dataset !== builderSpec.dataset || !view.dimension) return null;
+  if (view.id.startsWith(builderSpec.id) || view.series || !view.dataset || !builderSpec.datasets.includes(view.dataset) || !view.dimension) return null;
   const m = builderSpec.measures.find((x) => !x.parts && (x.derived ? x.id === view.derived : !view.derived && x.id === view.measure));
   if (!m || !(view.dimension in m.dimensions) || m.top_n?.[view.dimension] !== view.top_n) return null;
   const where = noConditions();
   for (const filter of view.filters ?? []) for (const [d, v] of Object.entries(filter)) (where[d] ??= []).push(v);
-  return { measure: m.id, by: view.dimension, values: [], where, view: null };
+  return { dataset: view.dataset, measure: m.id, by: view.dimension, values: [], where, view: null };
 }
 
 // The Build page's address for a question. It carries the time range the chart was showing, where that differs from
