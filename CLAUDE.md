@@ -233,8 +233,10 @@ scripts/               # maintainer scripts run by hand, never by the pipeline
    are still registered at the snapshot), committing a small aggregate of
    every snapshot to `data/snapshots/`. Prove the Action runs unattended
    two months running before building any UI.
-   - 1b. `registrations_flow` from the Stats NZ TPT series: true monthly
-     first registrations. Never on the same chart as
+   - 1b. True monthly first registrations: `registrations_flow` from the
+     user's exports of NZTA's registrations dashboard, with make and model,
+     from January 2021 (D-084, D-087), and the long-run totals from the
+     Stats NZ TPT series (D-065). Never on the same chart as
      `registrations_surviving`.
 2. Cube contract locked (`docs/CUBE_SCHEMA.md`), with a golden-file test.
 3. Explore surface, rendering `mix` and `trend` presets only.

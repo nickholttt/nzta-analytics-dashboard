@@ -2736,3 +2736,83 @@ New entries use this template:
     record sheet. No question has been tested.
   - Reversing it: delete the three pages, the two config files and the footer group.
 - Status: decided by Claude (unreviewed)
+
+## D-087 2026-11-14 — `registrations_flow` is defined: what it counts, what the history adds, what Vehicle Status means, and that the register's usage is today's
+- Agent: claude
+- Basis: a read-only comparison on 2026-11-14 by a sub-agent (sonnet): the user's history export (D-084) against the
+  register as at 31 October 2026, read from the private archive's 35-field file into a scratch folder and deleted
+  after (it holds no `VIN11` or postcode). Counts only, by DuckDB. The work order §5.B and §5.E.
+- Context: D-084 made the dashboard a source. Before a dataset is built its definition has to say what it counts
+  (CLAUDE.md, the goal's point 8), and the work order asks for four things by name: that past months can change, that
+  it includes some re-registrations, what "Vehicle Status" means, and whether usage describes a vehicle at first
+  registration or today.
+- Measured:
+  - The file is clean: no duplicate row, no key repeated with a different count, no month missing, no empty cell;
+    January 2021's own file equals its months in the history row for row.
+  - All vehicle types and statuses, 70 months: dashboard 1,883,786; register 1,801,451; 82,335 (4.4%) more, of which
+    80,852 are marked `INACTIVE` and the rest are vehicles the dashboard counts as still registered and the register
+    does not hold for those months.
+    By import status, dashboard then register: USED 682,892 and 639,331; NEW 1,134,695 and 1,105,432; RE-REG 55,135
+    and 46,898; SCRATCH 11,064 and 9,790. By vehicle type the most are passenger cars and vans (46,682) and trailers
+    and caravans (20,960); the highest rate is mopeds (19.5%).
+  - In-scope types, NEW and USED: dashboard 1,483,403; register 1,434,392. Survivors as a share, by year: 2021 93.3%;
+    2022 95.1%; 2023 96.7%; 2024 97.8%; 2025 98.9%; 2026 99.8%.
+  - `ACTIVE` vehicles against the register: 1,802,934 and 1,801,451, between 8 fewer and 65 more in any month.
+    January 2021: 27,041 and 27,035. The `INACTIVE` share by year of first registration: 8.77%, 6.66%, 4.48%, 2.19%,
+    1.03%, 0.24%.
+  - The register never holds more than the dashboard in a month's total. It holds more in a few small cells (new
+    vehicles in October 2026, 8 more; motor caravans in nine months counted by month and vehicle type, one or two
+    more).
+  - A step between October and November 2023, across every vehicle type and status: survivors as a share rise from
+    95.7% to 97.3%, and the dashboard's inactive share falls from 4.21% to 2.62%. Most of it is trailers (91.1% to
+    98.3%). Within the dataset's scope the two months are 97.0% and 97.4% (the reviewer's measure).
+  - Values: body type, country, import status and vehicle type are the same sets in both; one make is spelled two
+    ways in the dashboard; the dashboard's model names are finer for some nameplates; its usage list is 20 values to
+    the register's 8. Rental share of passenger cars, the dashboard's `ACTIVE` vehicles then the register: October
+    2026 25.1% and 25.3%; January 2025 3.89% and 1.64%; January 2023 7.63% and 2.18%; January 2021 1.45% and 0.21%.
+  - Measured again by the reviewer of the pull request, independently, from the same two files: every figure above
+    matched. Three in the docs were restated to what both measures support: the share of vehicles whose make and
+    model appear in the register (98.2%), the share mapped by the brand registry (over 99.8%), and the goods vehicles
+    whose class depends on mass (about 18%). The reviewer also measured the owner-type figures and the
+    tourism/leisure and rental shares now in `docs/DATA_MAP.md`; the vehicle-trader shares there come from a separate
+    profile of the register made the same day.
+- Options considered:
+  1. Which vehicles the dataset counts. (a) Everything in the export, re-registrations and every vehicle type. It
+     would match the dashboard's own total and nobody else's, and could not be set beside survivors. (b) In-scope
+     types, new and used only: the rule `registrations_surviving` uses. Chosen: completeness then compares like with
+     like, and the scope changes for both in one place when heavy vehicles and motorcycles get their own areas
+     (package I).
+  2. `Vehicle Status`. (a) Take NZTA's page at its word ("cancelled in the same month"). (b) Define it from the data.
+     Chosen (b): the page's wording cannot produce a share that rises to 9.9% over five years. The doc quotes both.
+  3. Whether to drop `INACTIVE` vehicles. No: they are the registrations the register has lost, which is the point of
+     the dataset.
+  4. Completeness by model. Not offered: the two sources name some models differently, so a model's count in one
+     is not always the same vehicles as in the other.
+  5. The November 2023 step. Shown as it is and not explained: its cause is not known, and the site says what the
+     data shows, never why.
+  6. The dataset's name. `registrations_flow` was planned for Stats NZ's series (CLAUDE.md build step 1b,
+     `docs/DATA_SOURCES.md` §C). It now names the dashboard's dataset, which is the one with make and model that
+     starter question 1 needs; the Stats NZ dataset is named when it is built (package C). CLAUDE.md's step 1b and
+     §C are changed to say so. Not chosen: a new name for the dashboard's dataset, leaving `registrations_flow`
+     for a series that has no make or model.
+  7. The moment the export shows. Not "the day of the export": NZTA says the dashboard is a snapshot at the end of
+     each month, updated at the start of the next. The definition says "at its latest monthly update before the
+     export was taken".
+- Decision: `docs/METRICS.md` defines the dataset and completeness as above; `docs/DATA_MAP.md` gets the dashboard's
+  thirteen fields, each with how it lines up with the register and a proposed privacy class, and settles the usage
+  trap for `VEHICLE_USAGE`: the register's is the latest recorded usage (tested for rental only). `INDUSTRY_CLASS`
+  looks current too and `Owner Type` looks as first registered; both rest on weaker evidence and neither is proven.
+- Consequences:
+  - The pipeline build of the dataset is a separate change (`docs/CUBE_SCHEMA.md`); these docs describe what it
+    must produce.
+  - The site's finer vehicle type and class (cars, utes, vans, trucks; light and heavy), engine size and fuel
+    consumption cannot be asked of true registrations; NZTA's own vehicle type and body type can. The export has
+    no gross mass or engine size. The dashboard offers groupings of both (NZTA's page, D-075). Whether the monthly export takes them,
+    and the history is taken again, is a question for the user (CHECKPOINT).
+  - "Who is buying" (starter question 7) is better asked of the dashboard's usage and owner type than of the
+    register's, for any month but the newest. Both are owner fields and are not published before the Stage 2
+    privacy review.
+  - The make spelled two ways needs an alias in `brand_registry.csv`: one commit, with the build.
+  - Not checked: why the dashboard holds more re-registered vehicles than the register; the cause of the 2023 step;
+    the taxi difference; whether owner type is as first registered.
+- Status: decided by Claude (unreviewed)
