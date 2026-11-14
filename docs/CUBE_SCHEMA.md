@@ -90,6 +90,13 @@ rule 2 or 3 aborts the run: dimensions never silently drop out.
 Rows are sorted by `month`, then `dim_value`. A month with no rows in the
 dataset is absent, never a row of zeros.
 
+For each month a slice's `n` sums to its `denominator`, the dataset's total for the month: every vehicle has one value of
+the dimension (`test_golden.py` checks it on the golden build). The one exception is a dataset built from a published
+series (*A source of kind `series`*): where the dimension's values add up to more than the total and the config allows it
+for that month, the values are carried as published and `n` sums to more than `denominator`. The manifest names those
+months under `exceeds_total`. **A reader of the cube must read `exceeds_total` before treating a slice's sum as the
+month's total.**
+
 Derive `share`, `yoy`, `rolling_12m`, mean fuel consumption
 (`fc_sum / fc_n`) and fuel-consumption coverage (`fc_n / fc_eligible_n`)
 in the browser. Do not precompute them — it triples file size and makes the
@@ -99,7 +106,7 @@ suppression thresholds impossible to change without a rebuild.
 
 | token | meaning |
 |---|---|
-| `__UNDEFINED__` | Not recorded: the source value is empty or listed in `sentinels.csv`. |
+| `__UNDEFINED__` | Not recorded: the source value is empty or listed in `sentinels.csv`. For a dataset built from a published series it also means vehicles the published breakdown does not account for: every vehicle of a month before the breakdown starts, or the difference where its values fall short of the total. |
 | `__UNMAPPED__` | Recorded, but no reference row matches it (a make absent from `brand_registry.csv`). |
 | `__OTHER__` | Recorded and mapped, but collapsed by a cardinality cap (a model beyond the cap). |
 
@@ -485,8 +492,11 @@ or sum, a gap, a different hash, only one of its two files); a new month that wo
 or **a figure in a month already in the store that differs from the export**. The last is a revision. The
 command lists every changed figure, with its old and new value, and refuses unless `--accept-revisions`
 is given; then it replaces the month and records the revision in the ledger. Disagreements of a total with its
-parts before `arithmetic_from` are warnings (the export of 2026-11-14 has 2 for the cars total and 5 for the
-commercial total, all before 1998), and are recorded in the ledger. `--month`, `--totals` and `--replace` are
+parts before `arithmetic_from` are warnings, recorded in the ledger (the export of 2026-11-14 has 11 of them in 7
+distinct months, all before 1998: the cars total against its seven bands in 2 months, 1975-07 and 1976-05; the
+commercial total excluding buses against its ten bands in 5, 1977-02, 1978-07, 1981-03, 1996-04 and 1997-08; the
+commercial total including buses against the total excluding buses plus the two bus bands in 4, 1977-02, 1978-07,
+1996-04 and 1997-08). `--month`, `--totals` and `--replace` are
 refused for this kind, and `--accept-revisions` for the dashboard.
 
 **The dataset.** `registrations_cars_long_run` (`datasets` in `config/pipeline.json`, grain flow, source
@@ -518,8 +528,8 @@ that total, so its slice is the breakdown's figures.
   some of a dimension's series have a figure and others do not aborts.
 - The other 21 series of the table (commercial vehicles, buses, motorcycles, power cycles, tractors) stay in the
   store and are not built into a dataset: Stats NZ's classes are not lined up with NZTA's vehicle types (D-065).
-- The dataset's latest month is the store's, usually a month or two behind the register's (Stats NZ publishes
-  later): a warning that names the missing months, and never newer than the register's.
+- The dataset's latest month is the store's. Stats NZ published about two weeks after NZTA's service on the one month observed, so the series' newest month is usually a month behind the register's (an estimate). A warning names the missing
+  months, and the store is never newer than the register's.
 - The state keeps each month's total under `supplied_totals.<dataset>`. A month whose total differs from the last
   good build's at all (`max_month_change` is 0) aborts, unless the ledger records a revision of that month from a
   file taken on or after that build's day.

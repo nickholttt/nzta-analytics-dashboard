@@ -93,7 +93,8 @@ licensed, each monthly, quarterly and annual.
   - It publishes a month about two weeks after NZTA's service has it, on
     the one month observed: September 2026 was in the service by 6 October
     and in the series on 19 October. On 2026-11-13 its latest month was
-    September, while the service held October.
+    September, while the service held October. So the series' newest month is
+    usually a month behind the register's (an estimate from that one month).
 - **"Motor Vehicles Currently Licensed by Type (Monthly)"**: file
   `TPT053001`, January 1988 to September 2026.
 - **Export**: on screen, Excel, CSV, or a saved "Table Query" that the
@@ -140,8 +141,9 @@ still looks for the series in the Explorer (`docs/playbooks/check-monthly-run.md
 .venv/Scripts/python.exe -m pipeline supply statsnz_tpt <export.csv> [--taken YYYY-MM-DD] [--accept-revisions]
 ```
 
-The file is the CSV Infoshare writes for the table (`TPT052601_<date>_<time>_26.csv`), exported by hand
-as below. The command fetches nothing and the Action never runs it. It aborts, writing nothing, unless:
+The file is the CSV Infoshare writes for the table, exported by hand as below. Its name is probably
+`TPT052601_<date>_<time>_26.csv` (inferred - confirm: the saved export on file is named `TPT052601.csv`, and was
+fetched by a script, so the name Infoshare gives a browser download has not been seen). The command fetches nothing and the Action never runs it. It aborts, writing nothing, unless:
 
 - the title and the 26 column headers are exactly the configured ones (`supplied.statsnz_tpt` in
   `config/pipeline.json` and `data/reference/statsnz_series.csv`), in that order;
@@ -152,8 +154,9 @@ as below. The command fetches nothing and the Action never runs it. It aborts, w
 - every figure is a whole number or `..`, and a `..` appears only before a series' first month;
 - the footer says the table reference is `TPT001AA` and has a "Last updated" line;
 - each total equals the sum of its parts in every month from `arithmetic_from` (1998-01 in the config;
-  all seven disagreements in the file of 2026-11-14 are earlier, and earlier ones are only warnings);
-- a month already in the store gives the same figures. If Stats NZ revised a figure, the command lists
+  the file of 2026-11-14 has 11 disagreements in 7 distinct months, all earlier: the cars total in 2 months, the
+  commercial total excluding buses in 5 and the one including buses in 4. Earlier ones are only warnings);
+- a month already in the store gives the same figures. If a figure differs, the command lists
   every changed figure and stops; `--accept-revisions` replaces the month and records the change in the ledger
   (D-065 did not check whether Stats NZ revises: this is how the first revision will be seen);
 - the months added join the stored months without a gap.
@@ -180,7 +183,7 @@ so the steps marked "inferred - confirm" are to be checked the first time):
 7. In the "Time" box, click **Select all**.
 8. At the bottom right, change "Table on screen" to **Comma delimited (.csv)**.
 9. Click **Go** (inferred - confirm the button's caption).
-10. The browser saves `TPT052601_<date>_<time>_26.csv`. Put it in `data/raw/statsnz/<today's date>/` and
+10. The browser saves `TPT052601_<date>_<time>_26.csv` (inferred - confirm the name). Put it in `data/raw/statsnz/<today's date>/` and
     run the command.
 
 ## D. Registrations dashboard — a hand export, never automated
