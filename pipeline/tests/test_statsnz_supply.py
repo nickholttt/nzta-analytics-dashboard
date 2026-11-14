@@ -563,3 +563,36 @@ def test_an_export_that_ends_before_the_store_says_so(tmp_path, cfg):
     result = series.supply(cfg, SOURCE, older, taken=TAKEN, echo=lines.append)
     assert not result["written"] and not result["added"]
     assert any(line == f"This export ends at {MONTHS[-2]}, before the store's {MONTHS[-1]}: it has nothing newer than the store." for line in lines)
+
+
+def test_messages_name_the_publisher_from_config_and_do_not_claim_what_is_not_known(tmp_path, workspace, catalogue):
+    cfg = make_cfg(workspace)
+    cfg.pipeline["supplied"][SOURCE]["publisher"] = "Acme Statistics"
+    cfg.pipeline["supplied"][SOURCE]["arithmetic_from"] = "2026-01"
+    total = total_of_most_parts(catalogue)
+    line, column = cell(catalogue, total, 3)
+
+    def off_by_one(lines):
+        lines[line][column] = str(int(lines[line][column]) + 1)
+
+    def retitled(lines):
+        lines[0][0] = "Another table"
+
+    def renamed(lines):
+        lines[1][3] = "A column added by the publisher"
+
+    messages = []
+    for change in (retitled, renamed, off_by_one):
+        with pytest.raises(GuardrailError) as info:
+            supply(cfg, edited(tmp_path, change, name=f"{change.__name__}.csv"))
+        messages.append(str(info.value))
+    assert all("Acme Statistics" in m for m in messages), messages
+    assert not any("Stats NZ" in m for m in messages), messages
+
+    supply(make_cfg({**workspace, "supplied": tmp_path / "held"}), EXPORT)
+    held = make_cfg({**workspace, "supplied": tmp_path / "held"})
+    path, _ = changed_export(tmp_path, catalogue)
+    with pytest.raises(GuardrailError) as info:
+        supply(held, path)
+    assert "The file differs from what was stored for those months" in str(info.value)
+    assert "revises" not in str(info.value) and "Stats NZ" not in str(info.value)

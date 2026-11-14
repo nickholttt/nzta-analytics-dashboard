@@ -164,6 +164,7 @@
     "statsnz_tpt": {
       "$comment": "Stats NZ's table of new and ex-overseas motor vehicles registered by type, monthly (Infoshare TPT052601), exported by hand as CSV. A source of kind series: pipeline/series.py. Everything about the table is here and in the reference file named under catalogue: the title and footer the export must carry, the months' format, the columns (catalogue: one row per column header, in order) and what each is. The store holds a figure for each month and series; a `..` (figure not available) is never stored.",
       "kind": "series",
+      "publisher": "Stats NZ",
       "store": "data/supplied/statsnz_tpt",
       "series_file": "series.parquet",
       "ledger_file": "ledger.json",

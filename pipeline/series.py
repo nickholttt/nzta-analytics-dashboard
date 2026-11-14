@@ -1,5 +1,5 @@
 """A source supplied as a published table of monthly series: `python -m pipeline supply <id> <csv>` for a source of kind
-`series` (config/pipeline.json, `supplied`). Its first user is Stats NZ's table of motor vehicles registered by type.
+`series` (config/pipeline.json, `supplied`). Its first user is a statistics office's table of motor vehicles registered by type.
 
 The command checks one export of the table and adds its months to a local store: one Parquet file of the figures, one row
 for each month and series that has a figure, and a ledger that says which file each month came from and what was checked
@@ -107,7 +107,7 @@ def read_table(cfg, source: dict, path: Path) -> Table:
     if not lines or not lines[0] or lines[0][0] != title:
         found = lines[0][0] if lines and lines[0] else None
         raise abort(f"the table's title is {found!r}, but config/pipeline.json expects {title!r}. This is a different table, "
-                    f"or Stats NZ renamed it. Export {title!r}, or change `title` if the new name is the same table.")
+                    f"or {source['publisher']} renamed it. Export {title!r}, or change `title` if the new name is the same table.")
     if len(lines) < 2:
         raise abort("the file has a title and no header line")
     headers = [s.header for s in series]
@@ -119,7 +119,7 @@ def read_table(cfg, source: dict, path: Path) -> Table:
         else:
             what = "; ".join(x for x in (f"missing {missing}" if missing else "", f"not expected {extra}" if extra else "") if x) \
                 or "a different number of columns"
-        raise abort(f"the table's header is not the configured columns ({what}). Stats NZ changed the table: export the "
+        raise abort(f"the table's header is not the configured columns ({what}). {source['publisher']} changed the table: export the "
                     f"same {len(headers)} series, or update the header column of the reference file {source['catalogue']['file']}.")
     for number, label in ((1, "title"), (2, "header")):
         if len(lines[number - 1]) != width:
@@ -235,7 +235,7 @@ def differences(found: dict) -> list[str]:
 
 def check_arithmetic(source: dict, series: list[Series], months: list[date], cells: dict) -> tuple[dict, list[str]]:
     """Each total against the sum of its parts, in every month that has all of them. From the configured month a
-    disagreement aborts; before it, it is a warning (Stats NZ's earlier figures disagree by a few vehicles)."""
+    disagreement aborts; before it, it is a warning (the publisher's earlier figures disagree)."""
     from_month = month_from(source["arithmetic_from"], MONTH_KEY)
     if from_month is None:
         raise abort(f"arithmetic_from {source['arithmetic_from']!r} in config/pipeline.json is not YYYY-MM")
@@ -261,9 +261,9 @@ def check_arithmetic(source: dict, series: list[Series], months: list[date], cel
                             f"{month_key(from_month)}: {listed(differences(early))} (the parts minus the total)")
         facts[s.id] = {"months_checked": checked, "differs_before": {month_key(m): d for m, d in sorted(early.items())}}
     if problems:
-        raise abort(f"a total no longer equals its parts from {month_key(from_month)}, where Stats NZ's figures agreed: "
+        raise abort(f"a total no longer equals its parts from {month_key(from_month)}, where {source['publisher']}'s figures agreed: "
                     + "; ".join(problems) + ". Part of the table may have been revised or cut short. Export it again; if "
-                    "Stats NZ now publishes it this way, move arithmetic_from in config/pipeline.json after deciding what it means.")
+                    f"{source['publisher']} now publishes it this way, move arithmetic_from in config/pipeline.json after deciding what it means.")
     return facts, warnings
 
 
@@ -328,7 +328,7 @@ def supply(cfg, source_id: str, csv_path: Path, taken: str | None = None, accept
         cells = [f"{month_key(m)} {labels[c['series_id']]}: {fmt_figure(c['old'])} in the store, {fmt_figure(c['new'])} in the file"
                  for m in revised for c in changed[m]]
         raise abort(f"{len(cells)} figure(s) in {len(revised)} month(s) already in the store differ from this file:\n  - "
-                    + "\n  - ".join(cells) + "\nStats NZ revises past months. If this file is right, run again with "
+                    + "\n  - ".join(cells) + "\nThe file differs from what was stored for those months. If this file is right, run again with "
                     "--accept-revisions; the change is recorded in the ledger. If you did not expect it, keep the old data and ask.")
     wanted = sorted(stored_months | set(added))
     holes = supplied.gaps(wanted)
@@ -411,8 +411,8 @@ class Built(NamedTuple):
 
 
 def manifest_facts(ledger: dict, source: dict) -> dict:
-    """What a dataset's `supplied` block says beyond the dashboard's: each export's vintage, and the attribution Stats NZ
-    asks for with anything that uses its data."""
+    """What a dataset's `supplied` block says beyond the dashboard's: each export's vintage, and the attribution the
+    publisher asks for with anything that uses its data."""
     exports = sorted(({"taken": f["taken"], "last_updated": f["last_updated"], "table_reference": f["table_reference"]}
                       for f in ledger["files"].values()), key=lambda e: (e["taken"], e["last_updated"]))
     return {"exports": exports, "attribution": source["attribution"]}
