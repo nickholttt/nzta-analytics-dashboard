@@ -67,11 +67,31 @@ export type Dimension = {
   public_note?: string;
 };
 
+// How a chart says what its dataset counts. Each is a template; the chart fills in the {names} it knows.
+export type DatasetWords = {
+  count_heading: string;
+  month_unit: string;
+  window_unit: string;
+  recent_figure: string;
+  ranking_basis: string;
+  suggestion_recent: string;
+  suggestion_total: string;
+  none_recent: string;
+};
+
 export type Dataset = {
   id: string;
   label: string;
+  // The name a visitor reads for what is counted (D-042); label is for maintainers.
+  public_label?: string;
+  grain?: string;
   definition?: string;
   public_definition?: string;
+  // Where the figures come from and the export's date, filled from the manifest. Said under every chart of the dataset.
+  source_note?: string;
+  // What a chart says when a build did not make the dataset.
+  not_built_message?: string;
+  words?: DatasetWords;
   base?: string;
   filter?: Record<string, string[]>;
   status?: string;
@@ -162,6 +182,11 @@ export const dimensionLabel = (id: string, internal = false) => {
   return (!internal && d?.public_label) || d?.label;
 };
 export const findDataset = (id?: string) => datasets.find((d) => d.id === id);
+// A dataset's words for what it counts: its own, or its base dataset's where it is another one filtered.
+export function datasetWords(id?: string): DatasetWords | undefined {
+  const dataset = findDataset(id);
+  return dataset?.words ?? (dataset?.base ? findDataset(dataset.base)?.words : undefined);
+}
 export const findMeasure = (id?: string) => measures.find((m) => m.id === id);
 export const findDerived = (id?: string) => derivedMeasures.find((m) => m.id === id);
 export const findPeriod = (id?: string) => periods.find((p) => p.id === id);

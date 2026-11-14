@@ -30,11 +30,24 @@ export type CoverageBasis = {
   coverage_high_confidence_only: number | null;
 };
 
+// A dataset made from a file a maintainer supplies by hand says which file's months and when it was taken
+// (docs/CUBE_SCHEMA.md, Supplied sources).
+export type SuppliedManifest = {
+  source: string;
+  months: { first: string; last: string; count: number };
+  taken: string[];
+  replaced: unknown[];
+};
+
 export type DatasetManifest = {
   definition?: string;
-  // Set instead of every other field where the build did not make the dataset (no supplied store): the reason. Such an
-  // entry is not in the cube; `isBuilt` says so.
+  // Set instead of every other field where the build did not make the dataset (no supplied store): the reason. Read it
+  // before reading anything else; `isBuilt` does.
   not_built?: string;
+  // The dataset's own last month, which a supplied dataset can have earlier than the register's.
+  latest_month?: string;
+  months?: number;
+  supplied?: SuppliedManifest;
   live_dimensions: string[];
   // Absent from a manifest built before pair slices existed.
   live_pairs?: string[];
@@ -55,6 +68,10 @@ export const isBuilt = (manifest: Manifest, dataset?: string): boolean => {
   const entry = dataset ? manifest.datasets[dataset] : undefined;
   return Boolean(entry) && !entry?.not_built;
 };
+
+// The last month a dataset has figures for. A dataset the register does not feed can end before the snapshot.
+export const datasetLatestMonth = (manifest: Manifest, dataset?: string): string =>
+  (dataset ? manifest.datasets[dataset]?.latest_month : undefined) ?? manifest.latest_snapshot.slice(0, 7);
 
 export type Event = {
   id: string;

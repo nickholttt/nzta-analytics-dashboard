@@ -12,6 +12,7 @@ import { findDerived } from "../lib/config";
 import type { Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { derivedSeries } from "../lib/derived";
+import { latestMonthOf } from "../lib/resolve";
 import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
 import { count, greyedReason, monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
@@ -72,7 +73,7 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   const rolling = preset.measure === "rolling_12m";
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
-    const win = periodWindow(preset.period, months[0], manifest.latest_snapshot.slice(0, 7));
+    const win = periodWindow(preset.period, months[0], latestMonthOf(preset, manifest));
     const cell = new Map<string, number>();
     const present = new Set<string>();
     for (const r of rows) {
@@ -92,11 +93,11 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
         points.push({ month: m, date: monthDate(m), series: s, y });
       }
     }
-    const latest = manifest.latest_snapshot.slice(0, 7);
+    const latest = latestMonthOf(preset, manifest);
     const lastYear = monthRange(addMonths(latest, -11), latest);
     const totals = values.map((s) => ({ series: s, n: lastYear.reduce((sum, m) => sum + (at(m, s) ?? 0), 0) }));
     return { win, points, totals };
-  }, [rows, preset.period, manifest.latest_snapshot, values, rolling]);
+  }, [rows, preset, manifest, values, rolling]);
 
   const colour = useCallback(
     (s: string) => seriesColour([...model.totals].sort((a, b) => b.n - a.n).findIndex((t) => t.series === s)),
@@ -190,7 +191,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
 
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
-    const win = periodWindow(preset.period, months[0], manifest.latest_snapshot.slice(0, 7));
+    const win = periodWindow(preset.period, months[0], latestMonthOf(preset, manifest));
     const denominators = new Map<string, number>();
     for (const r of rows) denominators.set(r.month, r.denominator);
     const denominatorFor = (m: string) => denominators.get(m);
@@ -243,7 +244,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
     }
     if (runStart !== null) bands.push({ x1: monthDate(runStart), x2: monthDate(addMonths(win.to, 1)) });
     return { win, points, bands };
-  }, [rows, preset, manifest.latest_snapshot, share, minDenominator, collapseFraction]);
+  }, [rows, preset, manifest, share, minDenominator, collapseFraction]);
 
   const render = useCallback(
     (width: number) => {

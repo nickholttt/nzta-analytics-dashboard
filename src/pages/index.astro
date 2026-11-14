@@ -8,9 +8,16 @@ import type { Manifest } from "../lib/data";
 
 // The Explore page shows what a visitor can read: each group from config/presets.json, holding only
 // the presets whose opening view draws against this build. A chart that cannot be drawn, and a group left with none,
-// is not shown here; /status lists every preset and what it waits on (D-041).
+// is not shown here; /status lists every preset and what it waits on (D-041). The exception is a chart whose dataset
+// this build did not make: it stays, and says so, so true registrations are never just missing.
 const groups = presetGroups
-  .map((g) => ({ ...g, presets: g.presets.filter((p) => resolvePreset(presetView(p), manifest as Manifest).preventsRender.length === 0) }))
+  .map((g) => ({
+    ...g,
+    presets: g.presets.filter((p) => {
+      const resolution = resolvePreset(presetView(p), manifest as Manifest);
+      return resolution.preventsRender.length === 0 || Boolean(resolution.notBuilt);
+    }),
+  }))
   .filter((g) => g.presets.length > 0);
 ---
 

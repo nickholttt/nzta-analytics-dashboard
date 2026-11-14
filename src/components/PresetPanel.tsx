@@ -174,7 +174,8 @@ export default function PresetPanel({
       </section>
     );
 
-  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy, keptBy } = resolution;
+  const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy, keptBy, notBuilt } = resolution;
+  const notBuiltMessage = notBuilt ? findDataset(notBuilt)?.not_built_message : undefined;
   const dataset = findDataset(effectivePreset.dataset);
   const derived = findDerived(effectivePreset.derived);
   const served = servedFrom(effectivePreset.dataset, manifest);
@@ -320,7 +321,7 @@ export default function PresetPanel({
     }
   }
 
-  const definition = (!internal && dataset?.public_definition) || dataset?.definition;
+  const definition = notBuilt ? undefined : (!internal && dataset?.public_definition) || dataset?.definition;
   const eyebrow = dimensionLabel ?? derived?.label ?? measure?.label;
 
   // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube
@@ -459,7 +460,7 @@ export default function PresetPanel({
       {!internal && preventsRender.length > 0 ? (
         <div className="callout blocked">
           <span className="callout-label">Not available</span>
-          This view can't be drawn from the data yet. Choose another option above.
+          {notBuiltMessage ?? "This view can't be drawn from the data yet. Choose another option above."}
         </div>
       ) : null}
       {internal

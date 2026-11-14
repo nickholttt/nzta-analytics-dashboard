@@ -4,6 +4,7 @@ import { useCallback, useMemo } from "react";
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { monthLabel, pct, periodWindow } from "../lib/measures";
+import { latestMonthOf } from "../lib/resolve";
 import { count, readout, spanPeriod } from "../lib/readout";
 import { RULE, RULE_STRONG, SERIES, SUPPRESSED_LINE, chartHeight, plotStyle, tipStyle } from "../lib/theme";
 import { FiguresTable } from "./FiguresTable";
@@ -27,7 +28,7 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
   const heading = dimensionLabel ?? dimension.label;
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
-    const win = periodWindow(preset.period, months[0], manifest.latest_snapshot.slice(0, 7));
+    const win = periodWindow(preset.period, months[0], latestMonthOf(preset, manifest));
     const totals = new Map<string, number>();
     const denominators = new Map<string, number>();
     for (const r of rows) {
@@ -45,7 +46,7 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
       return { value: v, y: share ? n / denominator : n, n };
     });
     return { win, order, bars, share, suppressed, denominator };
-  }, [rows, preset, dimension, manifest.latest_snapshot, minDenominator]);
+  }, [rows, preset, dimension, manifest, minDenominator]);
 
   const render = useCallback(
     (width: number) => {
