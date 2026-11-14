@@ -9,7 +9,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - `main` is the merge of #56, on `720523a` (the merge of #55).
+  - `main` is the merge of #57, on `c3af1a3` (the merge of #56).
   - **The last build is the forced run 43637172195** (14 November 2026, 20:22 UTC; snapshot
     2026-10; 5,926,990 rows; no warning). It was the one forced run the work order allowed, made
     after the daily run 43600595387 reported "Source unchanged". Its cube replaced the file of
@@ -25,7 +25,10 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   registrations from the user's exports of NZTA's dashboard, January 2021 on, through
   `python -m pipeline supply` and the register's own code. The store is on this computer only
   (gitignored `data/supplied/`), so GitHub's builds mark the dataset `not_built`.
-- **The site shows it on a local build** (#56, D-093): a group in Explore (the month's count
+- **`registrations_cars_long_run` is built wherever its store is** (#57, D-094): Stats NZ's
+  count of cars first registered each month, January 1961 on, through
+  `python -m pipeline supply statsnz_tpt`. The site does not show it yet.
+- **The site shows true registrations on a local build** (#56, D-093): a group in Explore (the month's count
   against a year ago, brands and models ranked for any month, completeness, powertrain share)
   and a choice of what Build counts. On a build without the dataset it says so plainly.
 - **The site's code is on `main`**, with `/about` (a draft with six gaps for the user),
@@ -40,24 +43,23 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 ## Current step
 
-**Work order 1.** A, B, G and the first part of E are done; C is being built. D's first-load
-work, the rest of E, F, H and I are not started. One report at the end (D-082).
+**Work order 1.** A, B, G, the first part of E and C's pipeline half are done. C's charts, D's
+first-load work, the rest of E, F, H and I are not started. One report at the end (D-082).
 
 ## In progress (all claude; nothing by gemini)
 
 | Branch | What | State when this was written |
 |---|---|---|
-| `claude/statsnz-long-run` | Package C: `supply statsnz_tpt`, the dataset `registrations_cars_long_run` from Stats NZ's series (plan: `data/staging/work-order/spec-C-statsnz.md`) | A sonnet worker is mid-way, in a git worktree in the session's scratch folder (`git worktree list`); local, not pushed |
+| `claude/vehicle-type-dimension` | NZTA's vehicle type as a dimension on the two datasets built from vehicle rows, a pair with new or used on the survivors, and a column of the true-registrations fact table: what completeness by vehicle type, and for cars back to 1975, needs | A sonnet worker is mid-way, in a git worktree in the session's scratch folder (`git worktree list`); cut from #57's branch; local, not pushed |
 
-- **This folder's `public/data`** (gitignored) is the dry-run build of #55: both datasets.
-  `data/supplied/nzta_dashboard/` (gitignored) is the converted store, with its ledger.
+- **This folder's `public/data`** (gitignored) is the dry-run build of #55: two datasets.
+  `data/supplied/` (gitignored) holds both stores, `nzta_dashboard` and `statsnz_tpt`.
 - Gitignored and local: the field profile behind the data map
   (`data/staging/profiles/2026-10/`) and the packages' plans (`data/staging/work-order/`).
 
 ## Branches and pull requests (checked 2026-11-15)
 
-- Merged in this session: #47 to #56. **No pull request is open.**
-- `ui/explore` is deleted on GitHub; a local branch of that name remains, far behind.
+- Merged in this session: #47 to #57. **No pull request is open.**
 
 ## Raw files on this computer (gitignored)
 
@@ -71,8 +73,8 @@ work, the rest of E, F, H and I are not started. One report at the end (D-082).
   testing (the work order §2); the user's own hand export replaces it (D-065).
 - **No local file holds `VIN11` or `POSTCODE`.**
 - **Copies:** a backup folder on the project's own disk holds both register pulls and both
-  dashboard CSV files (SHA-256 checked). The user's Downloads folder still holds two more
-  copies of the history file; they are the user's to delete.
+  dashboard CSV files (SHA-256 checked). Two more copies of the history file are in the
+  user's Downloads folder (D-084).
 
 ## Known issues
 
@@ -82,16 +84,15 @@ work, the rest of E, F, H and I are not started. One report at the end (D-082).
    chart the mild hybrid coverage note states the whole dataset's coverage.
 3. Mild hybrids are identified for 62.7% of `registrations_flow`'s hybrids at high confidence
    over the trailing 12 months, under the 70% the pipeline warns at (D-092).
-4. Commits before #47 still hold paths from the user's computer (D-081); history stays as is.
-5. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
+4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). Whether a minimum count is wanted is for the Stage 2 privacy review.
-6. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
+5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
-7. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
+6. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
    share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
-8. The public build still ships the status page's script chunk, unlinked, holding no data.
-9. The site's own tests (`tests/site/`, Node's test runner) and the query service
-   prototype's tests are run by hand: `Checks` runs `pipeline/tests` only.
+7. The public build still ships the status page's script chunk, unlinked, holding no data.
+8. The site's tests (`tests/site/`) and the query service prototype's tests are run by hand:
+   `Checks` runs `pipeline/tests` only. Commits before #47 hold local paths (D-081).
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -101,7 +102,8 @@ work, the rest of E, F, H and I are not started. One report at the end (D-082).
   shapes", and keeps the cap of five waiting pull requests. The work order wins (its §5); the
   brief is updated with the final report (its §6).
 - CLAUDE.md's repo layout still marks `docs/DATA_MAP.md` as planned and does not list
-  `config/data_map.json`, `config/narrative/`'s first file, `data/supplied/` or `tests/site/`.
+  `config/data_map.json`, `config/narrative/`'s first file, `data/supplied/`, `tests/site/` or
+  `data/reference/statsnz_series.csv`.
 - An event marker can appear on a chart whose filter excludes the vehicles the event is about
   (`docs/EVENTS_LAYER.md`, D-089). No chart shows a wrong marker today.
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
@@ -121,9 +123,9 @@ Nothing stops the work. Parked for the final report (CHECKPOINT, questions).
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). On
-2026-11-15: the pipeline tests, 254 passed locally in 650 s on what became #55, and they pass
-in `Checks` in about 90 s; a dry-run build with the store, exit 0 in 741 s; on what became
-#56, `tsc --noEmit` exit 0, `astro build` with and without the dataset, the site's 11 tests
+2026-11-15: the pipeline tests, 426 passed locally in 928 s on what became #57, and they pass
+in `Checks` in about two minutes; a dry-run build with both stores, exit 0 in 707 s; on what
+became #56, `tsc --noEmit` exit 0, `astro build` with and without the dataset, the site's 11 tests
 (`node --test "tests/site/*.test.ts"`), and the new pages headless at 320, 390 and 1280 px.
 
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
