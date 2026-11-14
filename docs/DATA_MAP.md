@@ -882,6 +882,20 @@ type were today's owner, a car sold on to a household would show an individual. 
 company too, so this is not proof. The company share of all still-registered passenger cars is 30.9%
 for 2021 and 39.0% for 2026.
 
+## Stats NZ's series
+
+The source of `registrations_cars_long_run` (`docs/METRICS.md`; `docs/DATA_SOURCES.md` §C). It is
+not a field of the register: it is 26 monthly series Stats NZ publishes from NZTA's records, each
+a count, listed in `data/reference/statsnz_series.csv` with its group (cars, motorcycles, power
+cycles, tractors, commercial vehicles, buses) and whether it is a total of others. Measured on
+2026-11-15 from the export of 14 November 2026: 789 months, January 1961 to September 2026; the
+cars total from January 1961; the engine bands, motorcycles, power cycles and ex-overseas cars from
+July 1975; tractors from March 1974; commercial vehicles and buses from January 1974. No series
+has a gap once it starts. Every series is public (Stats NZ, CC BY 4.0) and none describes an
+owner. Two breakdowns are built, for cars: new or ex-overseas, and Stats NZ's seven engine bands.
+The others are stored and not built, because Stats NZ's classes are not lined up with NZTA's
+vehicle types (D-065).
+
 ## As first registered, or today
 
 The work order asks whether `VEHICLE_USAGE` and `INDUSTRY_CLASS` describe the vehicle at first

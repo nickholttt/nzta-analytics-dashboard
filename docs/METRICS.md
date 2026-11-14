@@ -11,8 +11,8 @@ Three grains, never mixed in one series without an explicit label.
   changes. Denominator: all events of the same dataset in the same month.
   Two sources, never mixed in one series: `registrations_flow`, from
   NZTA's registrations dashboard, with make and model, from January 2021
-  (below); and Stats NZ's monthly series, totals by vehicle class from
-  1961 (`docs/DATA_SOURCES.md` §C; not yet built).
+  (below); and `registrations_cars_long_run`, from Stats NZ's monthly
+  series, cars only, from January 1961 (below).
 - **Survivors** — `registrations_surviving`: *vehicles first registered in
   month M that are still registered as at the snapshot date.* Render that
   sentence on every chart that uses this dataset or its subsets (`nz_new`,
@@ -110,6 +110,49 @@ taken.
   register are therefore not always the same set of vehicles:
   completeness (below) is not shown by model.
 - **Never on a chart with survivors.**
+
+## Long-run car registrations: `registrations_cars_long_run`
+
+*Cars and station wagons registered in New Zealand for the first time in
+month M, new and ex-overseas, as Stats NZ publishes them from NZTA's
+records.* Render that sentence on every chart that uses this dataset,
+with Stats NZ's statement beside NZTA's attribution: "This work is based
+on/includes Stats NZ's data which are licensed by Stats NZ for reuse
+under the Creative Commons Attribution 4.0 International licence."
+Source and method: `docs/DATA_SOURCES.md` §C (D-065, D-094). Measured on
+2026-11-15 from the series as exported on 14 November 2026.
+
+- **What it counts.** Stats NZ's count of cars and station wagons first
+  registered each month, vehicles since scrapped included: 9,050,400 over
+  789 months, January 1961 to September 2026. It is Stats NZ's class,
+  "cars and station wagons", not NZTA's "passenger car/van": the two
+  were checked against each other for 2026 only (D-065).
+- **New or ex-overseas, from July 1975.** Stats NZ's cars total includes
+  the cars registered overseas before. New cars are the total less the
+  ex-overseas series. The split starts in July 1975; for the 174 months
+  before it (971,960 cars) the month's cars are "not recorded" on that
+  breakdown, never guessed. The two values carry the names "new or used"
+  uses on the other datasets, so they can be set side by side.
+- **Engine size, in Stats NZ's seven bands, from July 1975.** Not the
+  site's own engine-size bands. In two months the published bands do not
+  add up to the published total: May 1976, one car short, which is shown
+  as "not recorded"; and July 1975, one car over, where the bands are
+  shown as published and the manifest names the month.
+- **It runs behind the register.** On the one month observed, Stats NZ
+  published about two weeks after NZTA's service had it, so the series'
+  newest month is usually a month behind the register's (an estimate).
+  The build says which month is missing and never fills it.
+- **Revisions.** Whether Stats NZ revises past months is not known. A
+  later export that changes a past month is refused unless the change is
+  accepted deliberately, and then it is recorded.
+- **Cars only.** The series also counts commercial vehicles, buses,
+  motorcycles and tractors. They are kept and not built into a dataset:
+  Stats NZ's classes are not lined up with NZTA's vehicle types (D-065).
+- **No fact table.** Origin and engine size are published separately, so
+  no figure exists for the two crossed, and none is invented.
+- **Never on a chart with survivors.** Completeness for cars before 2021
+  (survivors ÷ this count, new and ex-overseas, from July 1975) is its
+  own chart, as for `registrations_flow`; it is not built on the site yet.
 
 ## Core measures
 

@@ -7,18 +7,21 @@ Kinds:
   raw           the source value itself
   band          a number (a field, or `from` minus `minus`) -> labelled bands
   model         MAKE|MODEL after brand overrides, capped by trailing volume
+  series        published monthly counts of a supplied source of kind series (pipeline/series.py builds it, not this file)
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from . import reference
+from . import reference, supplied
 from .contract import MODEL_KEY_SEPARATOR, OTHER, UNDEFINED, UNMAPPED
 from .normalise import SOURCE_SUFFIX, lit
 from .reference import quote
 
 SNAPSHOT_YEAR = "snapshot_year"
+# The derive kind whose values are series of a supplied source of kind series, not fields of the register.
+SERIES_KIND = "series"
 
 
 @dataclass
@@ -49,6 +52,8 @@ def references_for(cfg, spec: dict) -> list[str]:
         return [spec["reference"]]
     if spec["kind"] in ("brand", "model"):
         return [cfg.pipeline["brand"]["registry"], cfg.pipeline["brand"]["model_registry"]]
+    if spec["kind"] == SERIES_KIND:
+        return sorted({v["label"]["from"] for v in spec["values"]})
     return []
 
 
@@ -75,7 +80,31 @@ def carried_fields(cfg, dataset: str) -> set[str] | None:
     if source is None:
         return None
     s = cfg.supplied(source)
+    if "fields" not in s:
+        # A source of published series carries no vehicle's fields.
+        return set()
     return {*s["fields"], s["year_field"], s["month_field"], s["row_id_field"]}
+
+
+def series_dimension_problems(cfg) -> list[str]:
+    """A dimension of the series kind reads no register field, so `applicable` would offer it to every dataset that names
+    no `applies_to`. It has to name the datasets it is for, and each of those that is configured must read a source of
+    kind series."""
+    datasets, problems = cfg.pipeline["datasets"], []
+    for dim in cfg.dimensions["dimensions"]:
+        if dim.get("derive", {}).get("kind") != SERIES_KIND:
+            continue
+        named = dim.get("applies_to")
+        if not named:
+            problems.append(f"dimension {dim['id']} derives from a published series, so it must name the datasets it is for in "
+                            "applies_to (config/dimensions.json); without it every dataset would be offered it")
+            continue
+        wrong = [d for d in named if d in datasets and not (
+            "source" in datasets[d] and cfg.supplied(datasets[d]["source"]).get("kind") == supplied.SERIES)]
+        if wrong:
+            problems.append(f"dimension {dim['id']} derives from a published series but applies_to names {wrong}, which do not "
+                            "read a supplied source of kind series")
+    return problems
 
 
 def applicable(cfg, dataset: str) -> tuple[list[dict], dict[str, str]]:

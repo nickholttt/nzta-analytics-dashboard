@@ -61,6 +61,8 @@
     "by_flag": {
       "no_engine": ["engine.field"]
     },
+    "$other_source_kinds_comment": "Derive kinds that read a published series from another source (a supplied source of kind series, pipeline.json), not a register field. A dimension of such a kind reads no field this map describes, so the check that every dimension reads one skips it.",
+    "other_source_kinds": ["series"],
     "$by_field_comment": "Fields read whenever a dimension reads the field the key points at. The hybrid classification (pipeline.json hybrid_classification, pipeline/normalise.py) replaces the engine field's motive power using the make, the model and the model registry's conditions, so every dimension that reads motive power reads those too.",
     "by_field": {
       "engine.field": ["brand.make_field", "brand.model_field", "brand.model_registry_conditions", "vehicle_year"]

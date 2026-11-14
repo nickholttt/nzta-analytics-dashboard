@@ -63,8 +63,8 @@ of true monthly first registrations (build step 1b), including vehicles
 since scrapped, which the register snapshot cannot give: cars from 1961.
 The name `registrations_flow` now belongs to the dataset built from
 NZTA's dashboard (§D, D-084, D-087); the dataset built from this series
-is named when it is built. Also an independent sanity check on our own
-totals.
+is named `registrations_cars_long_run` and counts cars only. Also an
+independent sanity check on our own totals.
 
 **Read on Infoshare on 2026-11-13** (`infoshare.stats.govt.nz`, Browse >
 Industry sectors > Transport - TPT). Six tables: registrations and vehicles
@@ -93,7 +93,8 @@ licensed, each monthly, quarterly and annual.
   - It publishes a month about two weeks after NZTA's service has it, on
     the one month observed: September 2026 was in the service by 6 October
     and in the series on 19 October. On 2026-11-13 its latest month was
-    September, while the service held October.
+    September, while the service held October. So the series' newest month is
+    usually a month behind the register's (an estimate from that one month).
 - **"Motor Vehicles Currently Licensed by Type (Monthly)"**: file
   `TPT053001`, January 1988 to September 2026.
 - **Export**: on screen, Excel, CSV, or a saved "Table Query" that the
@@ -110,13 +111,80 @@ licensed, each monthly, quarterly and annual.
   held 913 dataflows on 2026-11-13 and none is a transport series. Its data
   queries need a subscription key (`portal.apis.stats.govt.nz`).
 
+**What each column means is data**, in `data/reference/statsnz_series.csv`
+(a supplied source of kind `series`, `docs/CUBE_SCHEMA.md`). One row for each
+of the table's 26 column headers, in the order the table has them: `header`
+(verbatim, as Infoshare writes it, including its spelling), `series_id` (the
+name everything else uses), `label` (the words a visitor sees), `group` (cars,
+motorcycles, power cycles, tractors, commercial, buses), `role`, `total_of`
+and `notes`. `role` is `total` where the column is the sum of other columns
+(`total_of` lists them, separated by `|`), `subset` where it is already
+counted inside another column (the cars previously registered overseas, in the
+cars total), and `part` otherwise, which covers a component of a total and a
+series that stands alone (motorcycles, power cycles, tractors). Three columns
+are totals: the cars total (of the seven engine-size bands), the commercial
+total excluding buses (of the ten gross-mass bands) and the commercial total
+including buses (of the total excluding buses and the two bus bands). The
+headers, the notes and these relations were checked against the 2026-11-14
+export.
+
 The user chose on 2026-10-22 to wait for the Data Explorer, and on
 2026-11-13 to use the Infoshare series now (`docs/brief/MASTER_BRIEF.md`
 §7). D-065 says how, and the user accepted it that day by its option 2
 (D-066): the user exports the series from Infoshare by hand each month.
-Nothing is built yet. The
-monthly check still looks for the series in the Explorer
-(`docs/playbooks/check-monthly-run.md`).
+The monthly check
+still looks for the series in the Explorer (`docs/playbooks/check-monthly-run.md`).
+
+**How an export is supplied.** From the repository root:
+
+```
+.venv/Scripts/python.exe -m pipeline supply statsnz_tpt <export.csv> [--taken YYYY-MM-DD] [--accept-revisions]
+```
+
+The file is the CSV Infoshare writes for the table, exported by hand as below. Its name is probably
+`TPT052601_<date>_<time>_26.csv` (inferred - confirm: the saved export on file is named `TPT052601.csv`, and was
+fetched by a script, so the name Infoshare gives a browser download has not been seen). The command fetches nothing and the Action never runs it. It aborts, writing nothing, unless:
+
+- the title and the 26 column headers are exactly the configured ones (`supplied.statsnz_tpt` in
+  `config/pipeline.json` and `data/reference/statsnz_series.csv`), in that order;
+- the months parse (`1961M01`), run oldest first, have no gap and none is repeated;
+- the month rows run unbroken into the footer: the line after the last month row is the footer's first line
+  (`Table information:`), and no later line has the table's 27 fields or begins like a month. A blank line or a
+  mistyped month in the middle of the file would otherwise end the rows early and drop every month after it;
+- every figure is a whole number or `..`, and a `..` appears only before a series' first month;
+- the footer says the table reference is `TPT001AA` and has a "Last updated" line;
+- each total equals the sum of its parts in every month from `arithmetic_from` (1998-01 in the config;
+  the file of 2026-11-14 has 11 disagreements in 7 distinct months, all earlier: the cars total in 2 months, the
+  commercial total excluding buses in 5 and the one including buses in 4. Earlier ones are only warnings);
+- a month already in the store gives the same figures. If a figure differs, the command lists
+  every changed figure and stops; `--accept-revisions` replaces the month and records the change in the ledger
+  (D-065 did not check whether Stats NZ revises: this is how the first revision will be seen);
+- the months added join the stored months without a gap.
+
+The store is `data/supplied/statsnz_tpt/` (gitignored, like the dashboard's): `series.parquet`, a row for
+each month and series that has a figure, and `ledger.json` (`docs/CUBE_SCHEMA.md`, *A source of kind
+`series`*). It holds all 26 series. Only the cars total, the cars
+previously registered overseas and the seven engine-size bands are built into a dataset,
+`registrations_cars_long_run`; commercial vehicles, buses, motorcycles, power cycles and tractors stay in the
+store, because Stats NZ's classes are not lined up with NZTA's vehicle types (D-065). Anything that shows
+the dataset shows Stats NZ's attribution statement, which the build copies from
+`supplied.statsnz_tpt.attribution` into the dataset's block of `manifest.json`. The step-by-step is `docs/playbooks/supply-statsnz-series.md`.
+
+**The hand export** (read from Infoshare's pages on 2026-11-14; the clicks were not confirmed in a browser,
+so the steps marked "inferred - confirm" are to be checked the first time):
+
+1. Open `https://infoshare.stats.govt.nz/` (the "Browse" tab).
+2. Under "Subject categories", click **Industry sectors** (inferred - confirm).
+3. Click **Transport - TPT**.
+4. Click the table **New and Ex-Oseas Motor Vehicles Registered by Type (Monthly)**, not the
+   "(Annual-Dec)" or "(Qrtly-Mar/Jun/Sep/Dec)" tables beside it.
+5. Click **Select variables** (inferred - confirm).
+6. In the first box ("New Motor Vehicles Registered by Type", Total: 26), click **Select all**.
+7. In the "Time" box, click **Select all**.
+8. At the bottom right, change "Table on screen" to **Comma delimited (.csv)**.
+9. Click **Go** (inferred - confirm the button's caption).
+10. The browser saves `TPT052601_<date>_<time>_26.csv` (inferred - confirm the name). Put it in `data/raw/statsnz/<today's date>/` and
+    run the command.
 
 ## D. Registrations dashboard — a hand export, never automated
 

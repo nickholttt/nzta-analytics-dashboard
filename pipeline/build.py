@@ -9,7 +9,7 @@ from typing import NamedTuple
 
 import duckdb
 
-from . import derive, events, guardrails, metrics, normalise, outputs, schema, supplied
+from . import derive, events, guardrails, metrics, normalise, outputs, schema, series, supplied
 from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
@@ -254,63 +254,57 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
                 aborts.append(f"{dataset}: it was built in the last good run, but {reason}")
         return entries, {}, {}, {}
     if not (registrations.exists() and ledger_path.exists()):
-        aborts.append(f"{source_id}: the supplied store has only one of {s['registrations_file']} and {s['ledger_file']}")
+        aborts.append(f"{source_id}: the supplied store has only one of {s[supplied.layout(s).file_key]} and {s['ledger_file']}")
         return {}, {}, {}, {}
 
-    bad = supplied.check_config(s)
-    if bad:
-        aborts.extend(f"{source_id}: {problem}" for problem in bad)
+    loaded = supplied.load_store(con, cfg, source_id, aborts)
+    if loaded is None or not supplied.check_clock(source_id, loaded[2], register_month, aborts, warnings):
         return {}, {}, {}, {}
-    con.execute(f"CREATE OR REPLACE TABLE supplied_store AS SELECT * FROM read_parquet({normalise.lit(registrations.as_posix())})")
-    found = [c for c, *_ in con.execute("DESCRIBE supplied_store").fetchall()]
-    if found != supplied.store_columns(s):
-        aborts.append(f"{source_id}: the store's columns are {found}, but config/pipeline.json expects {supplied.store_columns(s)}")
-        return {}, {}, {}, {}
-    ledger = supplied.read_ledger(ledger_path)
-    problems = supplied.hash_problems(registrations, ledger) + supplied.store_problems(con, "supplied_store", ledger)
-    if problems:
-        aborts.extend(f"{source_id}: the store disagrees with its ledger: {problem}" for problem in problems)
-        return {}, {}, {}, {}
+    ledger, first, latest = loaded
 
-    first, latest = con.execute(f"SELECT min({supplied.STORE_MONTH}), max({supplied.STORE_MONTH}) FROM supplied_store").fetchone()
-    if latest > register_month:
-        aborts.append(f"{source_id}: the store's latest month {supplied.month_key(latest)} is after the register's "
-                      f"{supplied.month_key(register_month)}; the register is the clock, so the store cannot be ahead of it")
-        return {}, {}, {}, {}
-    if latest < register_month:
-        missing = [supplied.month_key(m) for m in supplied.month_range(metrics.month_add(latest, 1), register_month)]
-        warnings.append(f"{source_id}: the export is missing {', '.join(missing)}: the store ends at "
-                        f"{supplied.month_key(latest)} and the register at {supplied.month_key(register_month)}")
-
-    supplied_raw(con, cfg, source_id, types)
-    normalise.build_src(con, cfg, types, schema_names)
-    con.execute("DROP TABLE raw")
-    normalise.build_rows(con, cfg)
+    lay = supplied.layout(s)
+    extra = {}
+    if s["kind"] == supplied.SERIES:
+        # The datasets are written from the published series, not from vehicle rows; their month total is the store's own.
+        built = series.build(con, cfg, source_id, names, latest, previous_live, staging, aborts, warnings, lambda d: dataset_definition(cfg, d))
+        store_totals = {d: b.counts for d, b in built.items()}
+        extra = series.manifest_facts(ledger, s)
+    else:
+        supplied_raw(con, cfg, source_id, types)
+        normalise.build_src(con, cfg, types, schema_names)
+        con.execute("DROP TABLE raw")
+        normalise.build_rows(con, cfg)
+        built = {d: build_dataset(con, cfg, d, p["datasets"][d], latest, previous_live, staging, aborts, warnings) for d in names}
+        # The store's own total for each month, whatever scope says: the guard compares these, so an edit to a scope file
+        # cannot move them.
+        store_totals = {d: {m: int(e["vehicles"]) for m, e in ledger["months"].items()} for d in names}
 
     taken = sorted({e["taken"] for e in ledger["months"].values()})
-    # The store's own total for each month, whatever scope says: the guard compares these, so an edit to a scope file
-    # cannot move them. A replacement excuses a month only if its file was taken since the last good build.
-    store_totals = {m: int(e["vehicles"]) for m, e in ledger["months"].items()}
+    # A replacement or revision excuses a month only if its file was taken since the last good build.
     since = ((state or {}).get("generated_at") or "")[:10]
-    replaced = {e["month"] for e in ledger["replaced"] if e["new"]["taken"] >= since}
+    replaced = {e["month"] for e in ledger[lay.replaced_key] if e["new"]["taken"] >= since}
     entries, counts, live = {}, {}, {}
-    for dataset in names:
-        built = build_dataset(con, cfg, dataset, p["datasets"][dataset], latest, previous_live, staging, aborts, warnings)
-        entries[dataset] = {**built.entry, "supplied": {
+    for dataset, b in built.items():
+        entries[dataset] = {**b.entry, "supplied": {
             "source": source_id,
             "months": {"first": supplied.month_key(first), "last": supplied.month_key(latest), "count": len(ledger["months"])},
             "taken": taken,
-            "replaced": ledger["replaced"],
+            lay.replaced_key: ledger[lay.replaced_key],
+            **extra,
         }}
-        counts[dataset], live[dataset] = built.counts, built.live
+        counts[dataset], live[dataset] = b.counts, b.live
         aborts += guardrails.supplied_month_changes(
-            dataset, store_totals, ((state or {}).get("supplied_totals") or {}).get(dataset, {}), replaced, s["max_month_change"])
-    return entries, counts, live, {d: store_totals for d in names}
+            dataset, store_totals[dataset], ((state or {}).get("supplied_totals") or {}).get(dataset, {}), replaced, s["max_month_change"])
+    return entries, counts, live, store_totals
 
 
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:
     now = now or datetime.now(timezone.utc)
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
+    # Before anything is read: a series dimension that would be offered to a register dataset cannot be derived there.
+    misconfigured = derive.series_dimension_problems(cfg)
+    if misconfigured:
+        raise GuardrailError("build", "\n  - " + "\n  - ".join(misconfigured))
     aborts: list[str] = []
     warnings: list[str] = list(source.get("warnings", []))
 

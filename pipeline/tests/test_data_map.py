@@ -365,8 +365,9 @@ def test_derive_reads_resolve():
             _resolve(cfg.pipeline, item)
     for key in by_field:
         _resolve(cfg.pipeline, key)
+    other_source = set(reads.get("other_source_kinds", []))
     for dim in cfg.dimensions["dimensions"]:
-        if "derive" in dim:
+        if "derive" in dim and dim["derive"]["kind"] not in other_source:
             assert fields_read(dim, cfg.pipeline, reads), f"dimension {dim['id']} reads no field the map can see"
 
 

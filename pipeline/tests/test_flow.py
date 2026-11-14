@@ -139,7 +139,7 @@ def test_without_a_store_the_build_succeeds_and_says_so(tmp_path, workspace):
     assert set(entry) == {"definition", "not_built"} and "absent" in entry["not_built"]
     assert any(w.startswith(f"{DATASET} was not built") for w in manifest["warnings"])
     assert not (workspace["public"] / "cube" / DATASET).exists() and not (workspace["public"] / "facts" / DATASET).exists()
-    assert list(manifest["datasets"]) == [SURVIVING, DATASET]
+    assert list(manifest["datasets"])[:2] == [SURVIVING, DATASET]
     state = json.loads(workspace["state"].read_text(encoding="utf-8"))
     assert DATASET not in state["month_counts"] and DATASET not in state["live_dimensions"]
 
