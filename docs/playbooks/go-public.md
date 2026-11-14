@@ -7,7 +7,7 @@ screens were not checked**: wording of buttons and menus marked "inferred - conf
 and may have moved. Where the console differs, follow the console and fix this file.
 
 Every step is **PRODUCTION**: there is no staging copy of Cloudflare here. One click or one value per step. Do them
-in order. Step 9 is the one that makes the site public, and it is done last and only when you say so.
+in order. Step 10 is the one that makes the site public, and it is done last and only when you say so.
 
 ## Before you start
 
