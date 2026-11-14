@@ -2,7 +2,7 @@
 // breakdown to compare, which vehicles to keep, and, where more than one shape fits, which to draw (D-058, D-059). Each
 // becomes a preset like any in the canon, two for share and number, so the resolver and the panel treat a built chart
 // exactly as they treat an Explore one.
-import { builderSpec, findDerived, findDimension, findMeasure, publicCopy } from "./config";
+import { builderSpec, findDerived, findDimension, findMeasure, dimensionLabel } from "./config";
 import type { BuilderMeasure, Preset } from "./config";
 import type { Manifest } from "./data";
 import { inferShape, resolvePreset } from "./resolve";
@@ -135,7 +135,7 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
     .filter((m) => m.dimensions.length > 0 || m.allowsTotal);
   const filters = (facts?.dimensions ?? [])
     .filter((id) => findDimension(id))
-    .map((id) => ({ id, label: publicCopy.dimension_labels[id] ?? findDimension(id)?.label ?? id }));
+    .map((id) => ({ id, label: dimensionLabel(id) ?? id }));
   return { dataset: builderSpec.dataset, measures, filters };
 }
 

@@ -110,10 +110,18 @@ These describe the code as it runs (`src/lib/events.ts`,
   (through `scope_dimension_aliases` in `config/pipeline.json`, so
   `brand_group` matches `parent_group`) and it has no `scope_values` or one
   of them has vehicles in the period drawn. A `make=BYD` brand entry does
-  not clutter a powertrain chart. Scoping does not consider a preset's
-  filter, and it must: one live chart now applies one (`powertrain-mix`
-  counts light passenger vehicles only), and its events are chosen as if
-  it counted every vehicle (`src/lib/events.ts`; listed in `docs/STATE.md`).
+  not clutter a powertrain chart. **A preset's filter narrows this only in part.** The categories
+  `scope_values` are checked against are those with vehicles in the rows the chart draws, and a
+  filtered chart draws the narrowed rows (`powertrain-mix` counts light passenger vehicles only),
+  so an event whose values have no vehicles left after the filter is not shown. That is all the
+  filter does. An event names one dimension, so nothing says which vehicles of that value it
+  concerns: an event about heavy electric vehicles, scoped to the electric powertrain, is marked
+  on a chart of light passenger vehicles, because light passenger vehicles include electric ones.
+  The same holds for an unscoped or `market` event. Closing this needs an event to carry a second
+  scope (which vehicles it applies to), a change to `events.csv`'s schema that is not made here;
+  it is on the work queue (`docs/CHECKPOINT.md`). An event scoped to the filtered dimension itself
+  is not shown on a chart broken down by another one: the rule above already requires the event's
+  scope to be the chart's own dimension.
 - Only events inside the period drawn appear: starting no later than the
   latest snapshot, and starting (or, for a windowed event, ending) no
   earlier than the chart's first month.
