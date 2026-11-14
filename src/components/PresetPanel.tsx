@@ -95,7 +95,9 @@ export default function PresetPanel({
   // For a measure that divides one dataset by another: the numerator's rows, beside `rows`, the denominator's.
   const [companion, setCompanion] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [wanted, setWanted] = useState(!defer);
+  // A link to this chart (#id) loads it whether or not it is deferred, and brings it into view once it is drawn.
+  const linked = typeof window !== "undefined" && window.location.hash === `#${presetId}`;
+  const [wanted, setWanted] = useState(!defer || linked);
   const [sentinel, setSentinel] = useState<HTMLElement | null>(null);
   useEffect(() => {
     if (wanted || !sentinel) return;
@@ -190,6 +192,12 @@ export default function PresetPanel({
   }, [resolution, wanted]);
 
   const panelClass = `panel${lead ? " lead" : ""}${wanted ? "" : " loading"}`;
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    if (!linked || scrolled || !rows || !sentinel) return;
+    setScrolled(true);
+    sentinel.scrollIntoView();
+  }, [linked, scrolled, rows, sentinel]);
   if (!preset || !effectivePreset)
     return (
       <section className={panelClass}>
@@ -248,6 +256,11 @@ export default function PresetPanel({
   };
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
   addNote("measure", undefined, derived?.note_template);
+  // A ratio of two datasets says what each one counts, so neither definition is more than a glance away.
+  for (const id of [derived?.denominator_dataset, derived?.numerator_dataset]) {
+    const ds = findDataset(id);
+    if (ds?.public_definition && !notBuilt) notes.push({ key: `definition-${id}`, text: `${ds.public_label ?? ds.label}: ${ds.public_definition}`, unresolved: [] });
+  }
   // Where the figures come from and the date of the export, said under every chart whose dataset is supplied.
   const sourceNote = findDataset(effectivePreset.dataset)?.source_note;
   if (sourceNote && !notBuilt) addNote("source", undefined, sourceNote);
@@ -337,6 +350,17 @@ export default function PresetPanel({
           lead={lead}
           label={label}
           companion={companion}
+          after={
+            preset.answer
+              ? () => (
+                  <>
+                    {definitionBlock}
+                    {actionsBlock}
+                    {controlsBlock}
+                  </>
+                )
+              : undefined
+          }
           month={month}
           onMonth={handleMonthChange}
         />
@@ -391,8 +415,10 @@ export default function PresetPanel({
   // that period as a span of its own, in order of length, so the option it opens on is always in the row.
   const ranking = rankingPeriods(presetView(preset, activeGranularityId));
   const own = findPeriod(defaultPeriod);
+  // A span as long as the data, or longer, draws what All time draws, so it is not offered as a second button.
+  const dataMonths = rows ? new Set(rows.map((r) => r.month)).size : Infinity;
   const spans = [
-    ...TIME_PERIODS.filter((p) => p.id !== "all").map((p) => ({ key: p.id, id: p.id, label: p.label, full: false, months: findPeriod(p.id)?.months ?? 0 })),
+    ...TIME_PERIODS.filter((p) => p.id !== "all" && (findPeriod(p.id)?.months ?? 0) < dataMonths).map((p) => ({ key: p.id, id: p.id, label: p.label, full: false, months: findPeriod(p.id)?.months ?? 0 })),
     ...(own?.months && !TIME_PERIODS.some((p) => p.id === own.id) && !ranking.includes(own.id)
       ? [{ key: own.id, id: own.id, label: spanLabel(own.months), full: false, months: own.months }]
       : []),
@@ -410,6 +436,57 @@ export default function PresetPanel({
     })),
   ];
 
+  // On a count that opens with an answer, the answer comes straight under the question and the rest follows it.
+  const answerFirst = Boolean(preset.answer) && shape === "trend" && preventsRender.length === 0 && Boolean(rows?.length);
+  const definitionBlock = definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null;
+  const actionsBlock = (
+    <div className="panel-actions">
+      <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
+        {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
+      </button>
+      {builderLink ? (
+        <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
+          Change this chart
+        </a>
+      ) : null}
+    </div>
+  );
+  const controlsBlock = (
+    <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
+      {preset.granularity_options && preset.granularity_options.length > 0 && !(notBuilt && !internal) ? (
+        <div className="toggle" role="radiogroup" aria-label="Show by">
+          {preset.granularity_options.map((opt) => (
+            <label key={opt.id}>
+              <input
+                type="radio"
+                name={`granularity-${preset.id}`}
+                checked={activeGranularity?.id === opt.id}
+                onChange={() => handleGranularityChange(opt.id)}
+              />{" "}
+              {opt.label}
+            </label>
+          ))}
+        </div>
+      ) : null}
+
+      {preventsRender.length === 0 ? (
+        <div className="toggle" role="radiogroup" aria-label="Time range">
+          {rangeOptions.map((o) => (
+            <label key={o.key}>
+              <input
+                type="radio"
+                name={`period-${preset.id}`}
+                checked={activePeriod === o.id && (o.id !== "all" || fullHistory === o.full || !start)}
+                onChange={() => handlePeriodChange(o.id, o.full)}
+              />{" "}
+              {o.label}
+            </label>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+
   return (
     <section className={panelClass} id={preset.id} ref={setSentinel}>
       <header className="panel-head">
@@ -423,52 +500,11 @@ export default function PresetPanel({
             </>
           ) : null}
         </h3>
-        {definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null}
-        <div className="panel-actions">
-          <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
-            {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
-          </button>
-          {builderLink ? (
-            <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
-              Change this chart
-            </a>
-          ) : null}
-        </div>
+        {answerFirst ? null : definitionBlock}
+        {answerFirst ? null : actionsBlock}
       </header>
 
-      <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
-        {preset.granularity_options && preset.granularity_options.length > 0 && !(notBuilt && !internal) ? (
-          <div className="toggle" role="radiogroup" aria-label="Show by">
-            {preset.granularity_options.map((opt) => (
-              <label key={opt.id}>
-                <input
-                  type="radio"
-                  name={`granularity-${preset.id}`}
-                  checked={activeGranularity?.id === opt.id}
-                  onChange={() => handleGranularityChange(opt.id)}
-                />{" "}
-                {opt.label}
-              </label>
-            ))}
-          </div>
-        ) : null}
-
-        {preventsRender.length === 0 ? (
-          <div className="toggle" role="radiogroup" aria-label="Time range">
-            {rangeOptions.map((o) => (
-              <label key={o.key}>
-                <input
-                  type="radio"
-                  name={`period-${preset.id}`}
-                  checked={activePeriod === o.id && (o.id !== "all" || fullHistory === o.full || !start)}
-                  onChange={() => handlePeriodChange(o.id, o.full)}
-                />{" "}
-                {o.label}
-              </label>
-            ))}
-          </div>
-        ) : null}
-      </div>
+      {answerFirst ? null : controlsBlock}
 
       {isComposite(preset) ? (
         <div className="callout curated">

@@ -8,7 +8,7 @@
 // per-month selection the count path has no notion of.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { datasetWords, findDataset, findDerived, phrases, yearChangeFloor, yearPhrases } from "../lib/config";
 import type { Preset } from "../lib/config";
 import { fillTemplate, sayAnswer, sayBadMonth, sayYearChange, yearChange } from "../lib/sentences";
@@ -50,6 +50,8 @@ type Props = {
   lead?: boolean;
   // How a value is named for a reader: reserved tokens in words. Needed only where lines are values.
   label?: (value: string) => string;
+  // What the panel puts between the answer and the chart (its definition, links and time range), so the answer comes first.
+  after?: () => ReactNode;
   // For a ratio of two datasets (completeness): the numerator's rows, where `rows` are the denominator's.
   companion?: SliceRow[] | null;
   // The month a figure and sentence are read for (a count with an answer); empty is the latest. The panel keeps it in the address.
@@ -280,7 +282,7 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   );
 }
 
-function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false, month, onMonth }: Props) {
+function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false, month, onMonth, after }: Props) {
   const derived = preset.derived ? findDerived(preset.derived) : undefined;
   const share = derived?.unit === PERCENT;
   // What the line is, for its readout: a derived measure by its definition's own words, otherwise the vehicles counted.
@@ -458,6 +460,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
           </label>
         </div>
       ) : null}
+      {preset.answer && answer && chosen ? after?.() : null}
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
       <p className="chart-unit">{share ? "Share of the month's vehicles" : "Vehicles"}{preset.answer ? `. ${phrases.pick_month}` : ""}</p>
       {/* The click only repeats what the month list does, so the wrapper needs no role of its own. */}
