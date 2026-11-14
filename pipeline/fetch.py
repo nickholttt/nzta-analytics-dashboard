@@ -164,8 +164,11 @@ def run(cfg, force: bool = False, github_output: str | None = None, now: datetim
     source, _ = look(cfg, client, now)
     key = source["change_key"]
     state = load_state(cfg)
-    emit(github_output, {"snapshot": key["snapshot"][:7]})
     building, reason = plan(key, state, force)
+    # A run that builds nothing names the month the last good build was made from, not the month the source's key now
+    # names: the key's snapshot is capped by today's date and can move on while the register has not. The archive job
+    # (a run started by hand with "archive" ticked) archives the month named here.
+    emit(github_output, {"snapshot": key["snapshot"][:7] if building else state["latest_snapshot"][:7]})
     if not building:
         report(github_summary, reason)
         emit(github_output, {"built": "false"})
