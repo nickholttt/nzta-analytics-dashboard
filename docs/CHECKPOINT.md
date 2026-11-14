@@ -4,104 +4,107 @@ Last updated by claude on 2026-11-14
 
 ## Where we left off
 
-- 2026-11-14, seventh session.
-  - **The user's answers** (D-080, D-081): merge #45 and #46; hard rules 7 and 8 reworded as
-    proposed; October forced only if the daily run of 14 November reports the source
-    unchanged; no path from the user's computer in the docs; the dashboard on "ready"; nothing
-    becomes public without asking.
-  - **#46 is in `main`** (`a41c2cf`, the same tree as `ui/explore`). The `Deploy` run of that
-    push built the site from `cube-2026-10` and uploaded nothing. That cube has no fact table,
-    so Build draws its default question and offers no conditions (STATE, issue 4).
-  - **#47 is open into `main`**: the new rules 7 and 8, the paths removed, the lines #46 made
-    stale, D-080, D-081 and these notes. Its reviewer agreed.
-  - **What a forced run of October does was read, not run** (D-080): the release's file is
-    replaced, the state committed again, the archive's file kept, and nothing uploaded.
-  - **A check-in was scheduled in that session** for 20:07 NZDT on 14 November, to read the
-    daily run and force October only if D-081's condition held. It lives only while that
-    session is open. Nothing in the repo says whether it fired: check (prompt below).
+- 2026-11-14, eighth session: the first of work order 1 (`docs/brief/WORK_ORDER.md`, D-082).
+  - **Merged:** #47 (the reworded rules) and #48 (the order saved; D-082 to D-085; six sub-agent
+    definitions and their check). `ui/explore` is deleted on GitHub.
+  - **The user's dashboard files** are in `data/raw/nzta-dashboard/` and the backup folder.
+    They add up to every total the user gave (D-084).
+  - **Compared with the register** (read-only, D-087, on `claude/flow-definition`): the history
+    adds 82,335 vehicles (4.4%) since removed; `ACTIVE` means still on the register; the
+    register's `VEHICLE_USAGE` is today's usage, the dashboard's an earlier one.
+  - **Stats NZ's series** is on disk, fetched read-only (STATE, raw files).
+  - **Workers were mid-way when these notes were written** (STATE, In progress). Their branches
+    are local and unpushed. Read `git worktree list` and each branch's log before anything
+    else: a branch may be finished and waiting only for its push, review and merge.
+  - **October's forced run: not decided.** The first daily run (14 November, 06:17 UTC) had not
+    started. Read it first (prompt below).
 
-## Open pull requests waiting on the user (1)
+## Open pull requests (1)
 
-- **#47** `claude/explore-in-main-notes` into `main`: say "merge 47".
+- **#49** `claude/stage1-pages` into `main`: checks green, review running. claude merges it
+  under D-082 when the reviewer agrees.
 
-## Work queue (in order)
+## Work queue: the work order's packages, in order
 
-1. **The dashboard test export**, when the user says "ready", one step at a time (D-077). Step
-   1: open the dashboard, set Month year to January 2021, and report the total it shows. Then the
-   same twelve dimensions as October, exported into `data/raw/nzta-dashboard/2021-01/`, timed.
-   Then try the whole of 2021 in one export, with "Registration MMM-YYYY" ticked in place of one
-   dimension (choose which once January 2021 shows whether every vehicle is ACTIVE there too).
-   Compare January 2021 with the register's survivors for that month from the archive file; write
-   the comparison as a maintainer script in `scripts/` if the dashboard becomes a source. Report
-   the measured count, time and fit, and ask whether it becomes a source. NZTA's page says the
-   dashboard holds vehicles "with a date of first ownership within the past five years", so
-   January 2021 may already be gone.
-2. **Watch the daily runs** (from 14 November, `docs/playbooks/check-monthly-run.md`): each should
-   skip, green, with "Source unchanged". At NZTA's December refresh: a build with the fact table,
-   its release, the deploy start, an archive of 37 fields.
-3. **The deploy, each step asked for:**
-   - **The forced run of October** (D-081): only if the scheduled run of 14 November 06:17 UTC
-     reported the source unchanged, and only once. If no forced run followed that day (`gh run
-     list --workflow "Monthly build"`), the user's condition was for that run: tell the user
-     what it said and ask again before forcing. If one did run, check: the release's file holds
-     `facts/`; the state commit; the archive job stopped at "already archived"; `Deploy`
-     uploaded nothing; Build's conditions on a build from the new release.
-   - **On "merge 47"**: merge commit, delete the branch. It starts one `Deploy` run (the
-     workflow's comments changed), which builds and uploads nothing.
-   - Numbered console steps, all production: a Cloudflare Pages project for Direct Upload named
-     `nz-vehicle-registrations`; an API token limited to Cloudflare Pages: Edit; the secrets
-     `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in the environment `production`; then the
-     switch, the repository variable `CLOUDFLARE_PAGES_PROJECT` (claude sets it with `gh` on the
-     user's word). Setting the variable is what makes the site public.
-4. **For the Stage 2 privacy review** (the user's): whether `region` returns to the fact table
-   and above what count; whether the table's one-vehicle rows (half of them) and the `region`
-   slice's small cells need a minimum count (the slice's are not measured); postcode totals and
-   their minimum (D-076); whether a model year for the makes whose VINs carry one is wanted (D-079).
-5. **Small corrections and follow-ups, none blocking** (the reviewers' claims):
-   - #46's: `deploy.yml`'s check for links to internal pages misses a single-quoted or templated
-     path and an island reading `INTERNAL_PAGES` in the browser; `LeagueChart.tsx` tests
-     `dimension.id === "model"` and splits on the pipeline's `"|"`. #47's: none left.
-   - #45's: event markers ignore a preset's filter, and `powertrain-mix` has one
-     (`src/lib/events.ts`); D-063's and D-064's headings still read "(proposed)" (D-066 accepted).
-   - The fact table's (#41): a test that builds a second dataset with no `facts`; the abort
-     message for a reserved name (`month`, `n`, `rid`) reads as if the dimension were not
-     derivable, and no test covers it; the Aborts list in `docs/CUBE_SCHEMA.md` does not name the
-     hybrid file's and the model registry's checks; `FACT_ROW_ORDER` belongs in `contract.py`.
-   - The question builder's eight are listed on #43. Also: a link's condition on a field Build
-     cannot apply is named by its id, not its label. Each `public_copy` entry onto
-     `config/dimensions.json` (D-042); STATE issues 8 and 9.
-   - The pipeline stack's: a failed release upload could leave a release with no file;
-     `persist-credentials: false` in `checks.yml`; `pipeline/events.py` blames the CSV when an
-     enum row parses to no values; `docs/METRICS.md` does not say the share guards apply to a
-     pair slice's filtered base; `write_pairs` accepts a dimension id containing `__`.
-   - #37's: the alarm-day check accepts `true` as day 1 and runs only on runs that build nothing.
-     #38's: check the digest of the pulled rows, not only their count; pin the pipeline's
-     dependencies by hash; take the archive job's month from the state file. #39's: turn off
-     admin bypass on `production`; let a full re-run replace the `site` artifact; try `npm ci
-     --ignore-scripts`. #40's: the line under the ranking names three columns whichever are hidden.
-6. **The rest of Stage 1** (the brief §9): About, feedback and "why these figures differ" pages;
-   the Stats NZ series (D-065); visitor tests; first load measured on the deployed site.
-7. **Stages 2 to 5 of the brief**, each on the user's word. Kept from the old queue:
-   `age-distribution-moving-hole`; a visitor name for "Area Outside Region"; a per-capita map.
+- **A. Housekeeping.** Done: #47, `ui/explore`, the start-up checks. Left:
+  - the forced run of October, once, only if the most recent daily run says "Source
+    unchanged" (D-082). Then check: the release's file holds `facts/`; the state commit; the
+    archive job stopped at "already archived"; `Deploy` uploaded nothing.
+  - `claude/site-follow-ups` and `claude/pipeline-follow-ups`: finish, review, merge. Each
+    item not done needs its reason written here.
+- **B. True registrations from the dashboard.**
+  - `claude/flow-definition`: append D-087 (after D-086), push, review, merge.
+  - `claude/registrations-flow` (plan: `data/staging/work-order/spec-B-pipeline.md`): the
+    `supply` command, a local store under gitignored `data/supplied/`, the dataset built
+    through the register's own code, guardrails. Then one commit adding the alias `LANDROVER`
+    to `brand_registry.csv`.
+  - Then the site half: the dataset in Build and Explore; "how many were registered last
+    month, and is that up or down on a year ago", by make and model; completeness (survivors ÷
+    registrations, by vehicle type and import status; needs a `vehicle_type` dimension on both
+    datasets, a golden change). A flow series never shares a chart with survivors.
+- **C. Stats NZ's long-run series** (plan: `data/staging/work-order/spec-C-statsnz.md`), after
+  B's pipeline half: `supply statsnz_tpt`, the dataset `registrations_cars_long_run`, the
+  long-run chart, completeness for cars from July 1975, the hand-export playbook.
+- **D. The rest of Stage 1.** #49 covers the pages and the two playbooks. Left: first load
+  measured at phone width on a production build, the cheapest fix, measured again (target: a
+  first answer under 3 seconds).
+- **E. The data map.** The profile is being written to `data/staging/profiles/2026-10/`. Then
+  an opus editor writes `docs/DATA_MAP.md` in full, the config form with schema tests, and the
+  chart rule table that Build's shape choice reads.
+- **F. The full engine**, **G. the query service** (measure and propose only), **H. labels,
+  words, topic pages**, **I. what the industry expects**: not started. The order has each
+  one's "done when".
+- **For the Stage 2 privacy review** (the user's): `region` in the fact table; a minimum count;
+  postcode totals (D-076); a model year from `VIN11` (D-079); the privacy classes (package E).
 
-## Questions for the user
+## Questions for the user (parked; none stops the work)
 
-1. **May #47 merge?** Docs and two workflow comments. Say "merge 47". Recommend yes. With no
-   answer it stays open, and `main` keeps the old text of hard rules 7 and 8.
-2. **Is `ui/explore` kept?** All of it is in `main`, and new work branches from `main`. (a) Keep
-   it. (b) Delete it on GitHub; it can be recreated from `main`. Recommend (b), to leave one
-   place to look. With no answer it stays.
-3. **The dashboard, step 1**: say "ready" and it starts.
+1. **Where may the converted dashboard data live?** GitHub's runs can build true registrations
+   only if they can read it. (a) Commit a small file of counts to this public repository, with
+   no owner field, as `data/snapshots/` already is. (b) Keep it in the private archive and
+   let the run fetch it. (c) Local only. Recommend (a). With no answer: (c), so a deployed
+   site would not show true registrations.
+2. **The About page** has six gaps in `config/site.json` (search `TO DECIDE`): the site's
+   name, its address, who runs it, how to reach them, any connection to the motor industry,
+   and what it promises about advertising, cookies and tracking. With no answer the page
+   stays a marked draft.
+3. **The site's name.** Five proposals, none checked for availability: Rego Counts; On the
+   Register; First Registered; NZ Vehicle Facts; The Fleet Book. Recommend "Rego Counts":
+   plain, local, and it says what the site holds. With no answer the gap stays.
+4. **Should the monthly dashboard export also take the mass and engine-size groupings**, and
+   the history be taken again with them? Without them, true registrations cannot be split
+   into cars, utes, vans and trucks, or by engine size. Recommend yes, when convenient. With
+   no answer those breakdowns stay on survivors only.
+5. **The Stats NZ hand export.** A read-only copy fetched on 14 November is used for local
+   builds. The steps for exporting it by hand go in a playbook with package C. Recommend
+   doing it once to confirm the steps. With no answer local builds keep the fetched copy and
+   nothing of it is committed.
+6. **Going public:** `docs/playbooks/go-public.md` (#49) has the Cloudflare steps. Not started.
 
-Also the user's: the Cloudflare steps, when the site should be public; and the brief's §12: the
-`matrix` shape; running cost; the About page; name and domain.
+## Decided for the user this session (each is in DECISIONS, unreviewed)
+
+1. Hard rule 7 carries the order's merge rule as a marked, temporary passage; rule 8 says the
+   steps are the order's packages; rule 4's golden diff is shown in the pull request (D-082).
+2. Six sub-agent definitions by kind of work, and a test for them (D-085).
+3. The three pages' wording, their words in config, the corrections log as data, feedback by
+   a link to GitHub issues, links in the footer (D-086).
+4. `registrations_flow` counts the same kinds of vehicle as the survivors dataset (in-scope
+   types, new and used), not everything in the export; `Vehicle Status` is defined from the
+   data, not from NZTA's page; completeness is not shown by model (D-087).
+5. Stats NZ's series was fetched once, read-only, so package C can be built and tested before
+   the user's hand export exists (the order §2). Nothing of it is committed.
+6. The converted dashboard data stays local and gitignored until question 1 is answered.
 
 ## Prompt for the next session
 
-/start. Read `docs/STATE.md`, this file, and D-080 and D-081 in `docs/DECISIONS.md`. Check first:
-whether #47 is merged and what `main` is; the `Monthly build` runs since 14 November: what the
-daily runs said, and whether a forced run followed; whether `cube-2026-10`'s file holds `facts/`;
-that `CLOUDFLARE_PAGES_PROJECT` is still unset. Then the queue. Merge into `main` only with a
-green check, a reviewer that has not seen your reasoning, and the user's word in the session; if
-Claude Code refuses a merge, say so and do not work around it. No forced run without the user's
-yes in the session. No path from the user's computer in a doc, a commit or a pull request.
+/start. Continue `docs/brief/WORK_ORDER.md` from where CHECKPOINT says. Its §2 still stands:
+you may merge this work order's pull requests into `main` in this session when checks are
+green and an independent reviewer agrees, and nothing in its §3 is touched. Do not stop for
+questions; park what needs me and keep going.
+
+Check first: `git worktree list` and the log of every `claude/` branch not on GitHub (work
+from the last session may be finished and unpushed); what #49 is; the `Monthly build` runs
+since 14 November: what the daily runs said and whether a forced run followed (none is allowed
+unless the most recent daily run said "Source unchanged", and only one, ever); that
+`CLOUDFLARE_PAGES_PROJECT` is still unset. No path from the user's computer in a doc, a commit
+or a pull request.
