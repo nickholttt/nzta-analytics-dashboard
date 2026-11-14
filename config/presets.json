@@ -230,20 +230,6 @@
           "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every brand shares, but brands leave the register at different rates, so older months lean towards brands whose vehicles stay registered longer. Volume charts wait for true monthly registrations."
         },
         {
-          "id": "model-leaderboard",
-          "question": "Which vehicle models lead the market?",
-          "status": "blocked",
-          "requires": [
-            "the registrations_flow dataset (build step 1b), so models are ranked on registrations rather than survivors (D-024), and a model breakdown in it"
-          ],
-          "dataset": "registrations_flow",
-          "measure": "share",
-          "dimension": "model",
-          "period": "latest_year",
-          "top_n": 15,
-          "note_template": "Ranked by vehicles first registered over the trailing {dataset.coverage_trailing.window_months} months. Rank movement compares against the 12 months before. Only the {dataset.model_cap.model.cap} models with the most registrations are named; the rest roll into other."
-        },
-        {
           "id": "concentration",
           "question": "Is the market getting more crowded?",
           "status": "live",
@@ -302,6 +288,54 @@
           "dataset": "fleet",
           "period": "all",
           "note": "Of the vehicles first registered in a given year, what share is still registered later. Every figure states its base and the first snapshot in which the cohort was observed."
+        }
+      ]
+    },
+    {
+      "id": "true-registrations",
+      "label": "True registrations",
+      "title": "How many vehicles were registered, which ones, and what powers them",
+      "defer": true,
+      "$defer_comment": "Draws its data only once the section is scrolled to, so it adds nothing to what the page downloads before its first chart.",
+      "presets": [
+        {
+          "id": "registrations-monthly",
+          "question": "How many vehicles were registered last month, and is that up or down on a year ago?",
+          "status": "live",
+          "dataset": "registrations_flow",
+          "measure": "count",
+          "period": "all",
+          "answer": {
+            "$comment": "The sentence above the chart, for the month shown (the latest, until another is chosen). A template names no month, figure or cause; it says what the figures show. {change|pct} is the size of the change on the same month a year earlier, left out (alone) where that month is missing or under the change-on-a-year-ago floor in config/measures.json.",
+            "up": "In {month}, {count} vehicles were registered, up {change|pct} on {prior_month}, when {prior_count} were.",
+            "down": "In {month}, {count} vehicles were registered, down {change|pct} on {prior_month}, when {prior_count} were.",
+            "same": "In {month}, {count} vehicles were registered, the same as in {prior_month}, when {prior_count} were.",
+            "alone": "In {month}, {count} vehicles were registered."
+          }
+        },
+        {
+          "id": "model-leaderboard",
+          "question": "Which brands and models were registered most?",
+          "status": "live",
+          "dataset": "registrations_flow",
+          "measure": "count",
+          "dimension": "make",
+          "period": "latest_year",
+          "top_n": 15,
+          "granularity_options": [
+            { "id": "make", "label": "Brand", "dimension": "make", "top_n": 15 },
+            { "id": "model", "label": "Model", "dimension": "model", "top_n": 15 }
+          ]
+        },
+        {
+          "id": "registrations-powertrain-mix",
+          "question": "What share of registrations does each powertrain take?",
+          "status": "live",
+          "dataset": "registrations_flow",
+          "measure": "share",
+          "dimension": "powertrain",
+          "period": "all",
+          "events": true
         }
       ]
     }

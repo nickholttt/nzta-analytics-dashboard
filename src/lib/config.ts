@@ -15,6 +15,9 @@ export type GranularityOption = {
   note?: string;
 };
 
+// The sentence above a count's chart, for the month shown, by what the figure did against the same month a year earlier.
+export type AnswerTemplates = { up: string; down: string; same: string; alone: string };
+
 export type Preset = {
   id: string;
   question: string;
@@ -36,6 +39,8 @@ export type Preset = {
   // Draw the breakdown frame by frame through time; no renderer does yet, so the resolver blocks it.
   animate_by?: string;
   derived?: string;
+  // A figure and a sentence for one month above the chart (the latest, or the one the visitor chooses).
+  answer?: AnswerTemplates;
   series?: unknown[];
   filter_value?: string;
   // A question built on the Build page: the breakdown values it compares, and the vehicles it keeps, by dimension.
@@ -133,7 +138,8 @@ export type BuilderSpec = {
 
 type PresetsDoc = {
   // label and title head the group's section on the Explore page; lead marks the charts that carry it.
-  groups: { id: string; label: string; title: string; lead?: boolean; presets: Preset[] }[];
+  // defer: the section draws its data only when scrolled to.
+  groups: { id: string; label: string; title: string; lead?: boolean; defer?: boolean; presets: Preset[] }[];
   defaults: {
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];

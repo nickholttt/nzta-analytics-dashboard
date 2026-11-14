@@ -53,10 +53,14 @@ export default function PresetPanel({
   lead = false,
   audience = "public",
   anchored = true,
+  defer = false,
 }: {
   presetId?: string;
   preset?: Preset;
   anchored?: boolean;
+  // Draw nothing from the cube until the panel is scrolled into view, so a section below the first charts adds no
+  // downloads before they draw.
+  defer?: boolean;
   lead?: boolean;
   audience?: "public" | "internal";
 }) {
@@ -89,6 +93,20 @@ export default function PresetPanel({
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [wanted, setWanted] = useState(!defer);
+  const [sentinel, setSentinel] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (wanted || !sentinel) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setWanted(true);
+      return;
+    }
+    const observer = new IntersectionObserver((seen) => {
+      if (seen.some((s) => s.isIntersecting)) setWanted(true);
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [wanted, sentinel]);
 
   const handleGranularityChange = (newId: string) => {
     setActiveGranularityId(newId);
@@ -145,7 +163,7 @@ export default function PresetPanel({
   // changed again before its rows arrive drops them, so a slow earlier load cannot draw under a later view.
   useEffect(() => {
     const source = resolution?.source;
-    if (!source) return;
+    if (!source || !wanted) return;
     let current = true;
     setRows(null);
     loadView(source).then(
@@ -155,9 +173,9 @@ export default function PresetPanel({
     return () => {
       current = false;
     };
-  }, [resolution]);
+  }, [resolution, wanted]);
 
-  const panelClass = `panel${lead ? " lead" : ""}`;
+  const panelClass = `panel${lead ? " lead" : ""}${wanted ? "" : " loading"}`;
   if (!preset || !effectivePreset)
     return (
       <section className={panelClass}>
@@ -178,7 +196,7 @@ export default function PresetPanel({
     );
   if (!manifest || !resolution)
     return (
-      <section className={`${panelClass} loading`}>
+      <section className={`${panelClass} loading`} ref={setSentinel}>
         <p className="meta">Loading…</p>
       </section>
     );
@@ -215,6 +233,9 @@ export default function PresetPanel({
     } else if (plain) notes.push({ key, text: plain, unresolved: [] });
   };
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
+  // Where the figures come from and the date of the export, said under every chart whose dataset is supplied.
+  const sourceNote = findDataset(effectivePreset.dataset)?.source_note;
+  if (sourceNote && !notBuilt) addNote("source", undefined, sourceNote);
   const publicDimensionNote = !internal && dimension ? dimension.public_note : undefined;
   if (publicDimensionNote) addNote("dimension", publicDimensionNote);
   else addNote("dimension", dimension?.note, dimension?.note_template);
@@ -300,6 +321,8 @@ export default function PresetPanel({
           collapseFraction={collapseFraction}
           lead={lead}
           label={label}
+          month={month}
+          onMonth={handleMonthChange}
         />
       );
     } else if (shape === "league" && dimension) {
@@ -372,7 +395,7 @@ export default function PresetPanel({
   ];
 
   return (
-    <section className={panelClass} id={preset.id}>
+    <section className={panelClass} id={preset.id} ref={setSentinel}>
       <header className="panel-head">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
         <h3 className="panel-question">

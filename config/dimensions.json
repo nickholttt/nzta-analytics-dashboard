@@ -30,7 +30,7 @@
       "status": "built only where the supplied store is present",
       "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register.",
       "public_definition": "Each month counts the vehicles first registered in New Zealand that month, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken. It includes vehicles since removed from the register.",
-      "source_note": "Source: NZTA's registrations dashboard, from the export taken on {dataset.supplied.taken_latest}. It holds {dataset.supplied.months.first|month} to {dataset.supplied.months.last|month}. Past months can be restated by a later export.",
+      "source_note": "Source: NZTA's registrations dashboard, from the export taken on {dataset.supplied.taken_latest|date}. It holds {dataset.supplied.months.first|month} to {dataset.supplied.months.last|month}. Past months can be restated by a later export.",
       "not_built_message": "True registrations are not in this build of the site, so this chart cannot be drawn. The other charts are unchanged.",
       "words": {
         "count_heading": "Registered",

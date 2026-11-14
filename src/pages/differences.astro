@@ -22,9 +22,10 @@ import Layout from "../layouts/Layout.astro";
 
     <h2>Survivors are not registrations</h2>
     <p>
-      The charts count vehicles first registered in a month that are still registered at the latest snapshot.
+      Most charts count vehicles first registered in a month that are still registered at the latest snapshot.
       Vehicles that have left the register since are not in the count, so a count for an older month is smaller than the
-      number first registered then. <a href="/method#data-grains">The three ways to count the register</a>.
+      number first registered then. The charts of true registrations count every vehicle first registered, including
+      those since removed, and the two are never drawn together. <a href="/method#data-grains">The ways to count the register</a>.
     </p>
 
     <h2>Scope can differ</h2>
@@ -42,8 +43,10 @@ import Layout from "../layouts/Layout.astro";
 
     <h2>Other sites take a different source</h2>
     <p>
-      Some other sites take first registrations from NZTA's registrations dashboard rather than from the open
-      register this site reads. They count what that dashboard counts. This site does not claim to match them.{" "}
+      Some other sites take first registrations from NZTA's registrations dashboard. This site reads that dashboard
+      too, for the charts of true registrations, and the open register for everything else. A site that counts only
+      the dashboard, or only the register, will give a different figure for the same month.{" "}
+      <a href="/method#true-registrations">What true registrations count</a>.{" "}
       <a href="/caveats">Other limits of the data</a>.
     </p>
 
