@@ -20,7 +20,7 @@ const vocabulary = builderVocabulary(manifest as Manifest);
   </Fragment>
 
   {
-    vocabulary.measures.length > 0 ? (
+    vocabulary.datasets.length > 0 ? (
       <QuestionBuilder client:only="react" vocabulary={vocabulary} />
     ) : (
       <div class="callout blocked">

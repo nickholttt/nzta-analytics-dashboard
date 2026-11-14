@@ -1,4 +1,5 @@
 // Measures computed in the browser from n and denominator (docs/CUBE_SCHEMA.md, docs/METRICS.md).
+import { addMonths } from "./sentences";
 import { chartDefaults, findDerived, findMeasure, findPeriod, shareChangeUnit } from "./config";
 import type { Guards } from "./config";
 
@@ -19,17 +20,10 @@ export function shareChange(delta: number): string {
   return `${sign}${Math.abs(v).toFixed(1)} pp`;
 }
 
-export function addMonths(key: string, k: number): string {
-  const [y, m] = key.split("-").map(Number);
-  const t = y * 12 + (m - 1) + k;
-  return `${Math.floor(t / 12)}-${String((t % 12) + 1).padStart(2, "0")}`;
-}
+export { addMonths, monthLabel } from "./sentences";
 
 export const monthDate = (key: string) => new Date(`${key}-01T00:00:00Z`);
 
-// A month as a reader says it: "Aug 2026", not "2026-08".
-const MONTH_FORMAT = new Intl.DateTimeFormat("en-NZ", { month: "short", year: "numeric", timeZone: "UTC" });
-export const monthLabel = (key: string) => MONTH_FORMAT.format(monthDate(key));
 
 export function monthRange(from: string, to: string): string[] {
   const out: string[] = [];

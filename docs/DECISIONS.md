@@ -3222,3 +3222,88 @@ New entries use this template:
   - Reversing it: remove the dataset's entry from `config/pipeline.json`; the `supply` command and the store then
     feed nothing.
 - Status: decided by Claude (unreviewed)
+
+## D-093 2026-11-15 — True registrations on the site: a group in Explore, a choice of what Build counts, a ranking for any month, and completeness as a chart of its own
+- Agent: claude (the build by a sub-agent on sonnet, to the lead's plan; this record by the lead)
+- Basis: the work order §5.B's "done when"; D-087 (the definition and completeness) and D-092 (the dataset); the code
+  on `claude/flow-site`; a local build on the dry-run cube of D-092, checked headless at 320, 390 and 1280 px; an
+  independent review, which compared five months and four rankings with the cube's files (all matched) and whose
+  points are taken below.
+- Context: `registrations_flow` existed in the cube and nowhere on the site. The work order asks that the site answer
+  "how many vehicles were registered last month, and is that up or down on a year ago" from true registrations, by
+  make and model, for any month since January 2021; that completeness be shown and never used to scale a figure;
+  and that a flow series never share a chart with survivors.
+- Options considered:
+  1. **Where the new charts sit in Explore.** (a) First on the page, since it answers starter question 1. (b) Last,
+     drawn only when scrolled to. Chosen (b) for now: first load is already slow (STATE), and a first group that
+     reads a second dataset would add to it. It moves up when the home page is rebuilt around the latest month
+     (package H). The user may want (a) sooner.
+  2. **How Build offers the dataset.** (a) A second page. (b) A choice inside the question: "Counting: vehicles
+     still registered / true registrations". Chosen (b): one builder, one set of definitions; the fields, values,
+     conditions and periods offered follow the chosen dataset's manifest entry. The address carries
+     `build.dataset` only when it is not the first dataset, so every existing link means what it meant.
+  3. **A chosen month.** (a) Only for the new dataset. (b) For every ranking on the site. Chosen (b): the ranking's
+     window can end on any month (`<preset>.month` in the address), and a one-month ranking sits beside the
+     12-month one wherever a chart already ranks or offers a ranking.
+  4. **Completeness.** (a) Two lines, survivors and registrations, on one chart. Ruled out: a flow series never
+     shares a chart with survivors. (b) A ratio computed in the browser from the two datasets' slices for the same
+     dimension and month, on a chart of its own. Chosen (b), declared in config (numerator dataset, denominator
+     dataset, dimension, its own definition and note). Months under the share guards' floor are left out. A value
+     above 100% is drawn as it is. Its axis starts where the data does, and the chart says so.
+  5. **A build without the dataset** (GitHub's builds today). The group shows one plain message from config and no
+     controls; Build offers no choice; nothing else changes. A link that asks Build to count a dataset the build
+     does not have, or to break down by a field the chosen dataset does not have, is answered with a one-line notice
+     saying what was asked and what is shown instead, never silently.
+  6. **Where the sentences are built.** (a) In the chart components. (b) In one module with no imports
+     (`src/lib/sentences.ts`), from templates in config. Chosen (b) after the review found three faults in (a): a
+     garbled hover line, an answer that changed with the window drawn, and a ranking line describing a comparison
+     that did not exist. The change on a year ago is now read from every month the dataset has, whatever window is
+     drawn, and a sentence that cannot be filled takes its plain form.
+- Decision: as chosen above. New in config: on a dataset, `public_label`, `words` (what its charts count),
+  `source_note`, `not_built_message` and `shows_year_change`; `builder.datasets` and `builder.notices`;
+  `groups[].defer`; `preset.answer` (the sentence above a chart); `defaults.phrases` and
+  `defaults.year_change_measure`; and the derived measure's `numerator_dataset`, `denominator_dataset`,
+  `total_label`, `definition` and `note_template`. The answer line, the hover line, the ranking's lines and the
+  notices are templates. The change on a year ago is withheld when its base is under 50, as `docs/METRICS.md` says,
+  and is rounded by one rule in the sentence and the hover (one decimal under 10%, whole above), stated on
+  `/method`. The answer sits directly under the question. A time window is offered only where it draws something
+  different from the others.
+- Tests, new with this change:
+  - `config/narrative/rules.json` lists the placeholders each kind of template may use and the causal and
+    judgement words none may contain; `pipeline/tests/test_site_config.py` checks every new template against it
+    (fillable placeholders, no digit or year, no banned word), and that the datasets and measures the new config
+    names exist. This is the first file of the narrative config CLAUDE.md plans.
+  - `tests/site/sentences.test.ts`: eleven tests, run with Node's own test runner and no new dependency
+    (`node --test "tests/site/*.test.ts"`). The sentence module decides for itself, from the rows it is given, what the
+    year-ago figure is and whether earlier figures exist; the charts pass it the dataset's whole rows, and two of
+    the tests read the two chart components' source to check that. Each of the three faults the review found, put
+    back in the module or in a component as it was, fails a test. A deliberate edit that narrows the rows before
+    they are passed would not be caught: the module trusts the rows it is given. They are not in `Checks` yet: that is a workflow
+    change, queued with the chart rules. `tests/` is a new top-level folder.
+- Measured on the local build:
+  - March 2021, June 2023 and October 2026: the site shows 26,333, 40,598 and 23,554 vehicles registered, the
+    totals in the cube's file. Completeness shows 92.9%, 97.0% and 100.0%; computed from the two datasets' files:
+    92.92%, 97.03% and 100.03%.
+  - What the browser downloads at phone width, before and after: the home page to its first chart, 18 requests and
+    983,654 bytes, then 17 and 934,603 (the old model chart no longer loads at the start); Build to its first
+    answer, 12 requests and 509,627 bytes, then 12 and 516,704.
+  - axe: the home page is clean at both widths; Build has the one heading-order finding it had before (D-089).
+  - Not covered by a test, checked in the browser only: Build's two notices (the first version of them vanished
+    when Build chose its own starting values, which the review caught; a notice is now cleared only by the
+    visitor's own change), and any route by which a component might bypass the sentence module altogether.
+- Consequences:
+  - Starter question 1 is answered from true registrations on a local build, and starter question 5 (which models
+    lead) is answered for the first time: the model ranking that was blocked since D-029 is live on this dataset.
+  - Completeness is shown in total and by new or used. By NZTA's vehicle type, which the work order also asks for,
+    it waits for that dimension on both datasets, a pipeline change with a golden change of its own (CHECKPOINT).
+    Its chart carries its own definition, with both datasets' definitions in its notes.
+  - A chart that already ranks, or offers a ranking, gains a one-month ranking beside the 12-month one, on every
+    dataset. A chart that had no ranking is unchanged.
+  - A link to a chart far down the page now loads it and scrolls to it, deferred or not.
+  - `/method` has plain sections on true registrations and completeness; `/differences` no longer says the site
+    reads only the open register; the footer's attribution names the dashboard beside the register.
+  - `config/dimensions.json` and `config/measures.json` gained site-only keys. The pipeline does not read them
+    (the golden and data-map tests pass).
+  - Reversing it: remove the Explore group and `builder.datasets` from `config/presets.json`; the code then offers
+    nothing new.
+- Status: decided by Claude (unreviewed)

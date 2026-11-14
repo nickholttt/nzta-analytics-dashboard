@@ -1,0 +1,39 @@
+{
+  "$comment": "What the sentences the site writes about the data may contain (CLAUDE.md invariant 8: a template names no domain value, figure or year, says what the data shows and never why). pipeline/tests/test_site_config.py holds every new template in config to this file. banned_words is the linted list of causal and judgement words. placeholders names what the code fills for each kind of template; an entry ending .* allows any path beneath it.",
+  "banned_words": [
+    "because",
+    "due to",
+    "caused",
+    "causing",
+    "owing",
+    "thanks to",
+    "as a result",
+    "therefore",
+    "surged",
+    "soared",
+    "plunged",
+    "slumped",
+    "boomed",
+    "crashed",
+    "only",
+    "just",
+    "despite",
+    "unfortunately",
+    "fortunately",
+    "dramatic",
+    "sharp",
+    "sharply",
+    "huge",
+    "massive"
+  ],
+  "filters": ["pct", "month", "date"],
+  "placeholders": {
+    "answer": ["month", "count", "prior_month", "prior_count", "change"],
+    "words": ["months", "window"],
+    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month"],
+    "notices": ["asked", "shown", "dataset"],
+    "unit_note": ["base"],
+    "table_label": ["from", "to"],
+    "note": ["manifest.*", "dataset.*", "measure.*", "dimension.*"]
+  }
+}

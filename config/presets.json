@@ -21,6 +21,27 @@
     "members": []
   },
   "defaults": {
+    "year_change_measure": "yoy",
+    "$year_change_measure_comment": "The measure whose floor (guards.min_denominator in config/measures.json) decides when a change on a year ago is withheld.",
+    "phrases": {
+      "$comment": "The words around a figure's change on a year ago, a ranking's window and a month the address names that the chart cannot show. Each is a template: the placeholders it may use are listed in config/narrative/rules.json, and pipeline/tests/test_site_config.py holds every template to them and to the banned words. A template says what the data shows, never why. {change|pct} is a proportion shown by one rule: under 10% with one decimal, otherwise whole.",
+      "year_up": "Up {change|pct} on {prior_month} ({prior_count})",
+      "year_down": "Down {change|pct} on {prior_month} ({prior_count})",
+      "year_same": "Same as {prior_month} ({prior_count})",
+      "no_year_ago": "No figures a year earlier to compare with",
+      "year_too_few": "The same month a year earlier has too few vehicles to compare with",
+      "month_off_chart": "{month} is outside the time range drawn here, so it is not marked on the chart. Choose a longer range to see it.",
+      "window_last": "in the last {span} months",
+      "window_to": "in the {span} months to {end}",
+      "window_month": "in {end}",
+      "prior_month": "the same month a year earlier",
+      "prior_months": "the same {span} months a year earlier",
+      "ranking_dates": "({current})",
+      "ranking_compare": "The move compares each rank with {prior_window} ({prior}).",
+      "ranking_no_prior": "There are no figures a year earlier, so no move or change is shown.",
+      "pick_month": "Click or tap the chart to read another month.",
+      "bad_month": "The address asked for {asked}, which this chart has no figures for, so {shown} is shown."
+    },
     "$comment": "Chart-level defaults that are not per-preset decisions. mix_smoothing: monthly share on survivors data swings too hard to read, so a mix chart defaults to a trailing share and offers monthly as a toggle. top_n_basis: which window ranks the values that keep their own line; the rest become one remainder series.",
     "mix_smoothing": "rolling_12m",
     "mix_smoothing_options": [
@@ -45,6 +66,13 @@
     "$comment": "The Build page: a question a visitor builds (what to measure, what to compare, which vehicles to keep, D-058), drawn through the same panel and resolver as Explore. Values and filters are summed from the fact table; without them a chart reads the slices. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
     "id": "build",
     "dataset": "registrations_surviving",
+    "datasets": ["registrations_surviving", "registrations_flow"],
+    "notices": {
+      "$comment": "What the page says when a link asks for something the page cannot give and shows the nearest question instead. The address is corrected as it is for a condition the page cannot apply; the words say so, so a link never quietly counts something else. Placeholders: config/narrative/rules.json.",
+      "dataset": "This link asked to count {asked}, which this build does not have. It is counting {shown} instead.",
+      "by": "This link asked to break the figures down by {asked}, which is not available for {dataset}. It shows {shown} instead."
+    },
+    "$datasets_comment": "What a question counts. The first is the default, and an address with no build.dataset means it. Each is offered only where the build made it, and only the dimensions, values and conditions that dataset carries are offered with it. A text that differs by dataset (note, dimension_notes) is an object keyed by dataset id.",
     "period": "all",
     "period_when_comparing": "10y",
     "$period_when_comparing_comment": "A question that names values (brands, models) opens on the last ten years: most named values have little or no history before that, and all time would spend most of the chart on empty decades. The time row still offers all time.",
@@ -83,7 +111,9 @@
           "built_in": 10
         },
         "$top_n_comment": "The values that keep their own line on a mix chart; the rest become one remainder, All other. Reserved tokens (not recorded, no reference match) keep their own grey line and never join it (D-046). make and parent_group as brand-share uses. built_in is capped at 10 of its 46 values in the 2026-09 cube: its country is not recorded for almost every vehicle first registered before about 1986, and that gap shows as its own Not recorded line.",
-        "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every group shares, but groups leave the register at different rates, so older months lean towards groups whose vehicles stay registered longer."
+        "note": {
+          "registrations_surviving": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every group shares, but groups leave the register at different rates, so older months lean towards groups whose vehicles stay registered longer."
+        }
       },
       {
         "id": "count",
@@ -105,7 +135,9 @@
           "model": "model"
         },
         "$dimensions_comment": "A count by a breakdown draws one line per chosen value, so it needs the fact table; with no breakdown it is the total of the vehicles kept.",
-        "note": "Vehicles still registered today, not sales. Older months are thinned by scrappage, so a line that falls back in time partly measures how many have left the register since, and groups leave it at different rates."
+        "note": {
+          "registrations_surviving": "Vehicles still registered today, not sales. Older months are thinned by scrappage, so a line that falls back in time partly measures how many have left the register since, and groups leave it at different rates."
+        }
       },
       {
         "id": "share_and_count",
@@ -130,13 +162,19 @@
     "dimension_notes": {
       "$comment": "What a canon preset says about a dimension in its own note, which a built chart would otherwise lose. Here rather than in a dimension's public_note so Explore does not show it twice.",
       "segment": "The register records most SUVs as station wagons, so they count as cars here.",
-      "import_status": "These are vehicles still registered at the snapshot, and new and used vehicles leave the register at different rates, so an older month's split may differ from what was bought at the time. In recent cohorts used imports leave faster, which understates their share; in some older cohorts it runs the other way.",
+      "import_status": {
+        "registrations_surviving": "These are vehicles still registered at the snapshot, and new and used vehicles leave the register at different rates, so an older month's split may differ from what was bought at the time. In recent cohorts used imports leave faster, which understates their share; in some older cohorts it runs the other way."
+      },
       "owner_country": "Ownership is as at today, not at registration: every year shown counts each brand under the country that owns it now.",
       "parent_group": "Group ownership is as at today, not at registration: every year shown counts each brand under the group that owns it now.",
       "region": "Where each vehicle's registered owner lives now, from their most recent address: not where the vehicle is driven, and not necessarily where it was first registered. Rental and lease fleets count at the address of the company that owns them. Each owner is placed in a region by their district, and a few districts cross a regional boundary, so their vehicles are counted in one region even where part of the district lies in another."
     },
     "not_offered": [
-      "Every vehicle registered each month, including those since scrapped. These figures count vehicles still registered today; true monthly registrations wait for Stats NZ's series."
+      {
+        "text": "Every vehicle registered each month, including those since removed from the register. This build does not carry true registrations, so these figures count vehicles still registered today.",
+        "when_not_built": "registrations_flow"
+      },
+      "Registrations before the first month of the dashboard's data. Those wait for Stats NZ's series, which has totals but no brand or model."
     ]
   },
   "groups": [
@@ -230,20 +268,6 @@
           "note": "Share, not volume. These are vehicles still registered at the snapshot, so older months are thinned by scrappage and a count would partly measure it. Share removes the shrinkage every brand shares, but brands leave the register at different rates, so older months lean towards brands whose vehicles stay registered longer. Volume charts wait for true monthly registrations."
         },
         {
-          "id": "model-leaderboard",
-          "question": "Which vehicle models lead the market?",
-          "status": "blocked",
-          "requires": [
-            "the registrations_flow dataset (build step 1b), so models are ranked on registrations rather than survivors (D-024), and a model breakdown in it"
-          ],
-          "dataset": "registrations_flow",
-          "measure": "share",
-          "dimension": "model",
-          "period": "latest_year",
-          "top_n": 15,
-          "note_template": "Ranked by vehicles first registered over the trailing {dataset.coverage_trailing.window_months} months. Rank movement compares against the 12 months before. Only the {dataset.model_cap.model.cap} models with the most registrations are named; the rest roll into other."
-        },
-        {
           "id": "concentration",
           "question": "Is the market getting more crowded?",
           "status": "live",
@@ -302,6 +326,63 @@
           "dataset": "fleet",
           "period": "all",
           "note": "Of the vehicles first registered in a given year, what share is still registered later. Every figure states its base and the first snapshot in which the cohort was observed."
+        }
+      ]
+    },
+    {
+      "id": "true-registrations",
+      "label": "True registrations",
+      "title": "How many vehicles were registered, which ones, and what powers them",
+      "defer": true,
+      "$defer_comment": "Draws its data only once the section is scrolled to, so it adds nothing to what the page downloads before its first chart.",
+      "presets": [
+        {
+          "id": "registrations-monthly",
+          "question": "How many vehicles were registered last month, and is that up or down on a year ago?",
+          "status": "live",
+          "dataset": "registrations_flow",
+          "measure": "count",
+          "period": "all",
+          "answer": {
+            "$comment": "The sentence above the chart, for the month shown (the latest, until another is chosen). A template names no month, figure or cause; it says what the figures show. {change|pct} is the size of the change on the same month a year earlier, left out (alone) where that month is missing or under the change-on-a-year-ago floor in config/measures.json.",
+            "up": "In {month}, {count} vehicles were registered, up {change|pct} on {prior_month}, when {prior_count} were.",
+            "down": "In {month}, {count} vehicles were registered, down {change|pct} on {prior_month}, when {prior_count} were.",
+            "same": "In {month}, {count} vehicles were registered, the same as in {prior_month}, when {prior_count} were.",
+            "alone": "In {month}, {count} vehicles were registered."
+          }
+        },
+        {
+          "id": "model-leaderboard",
+          "question": "Which brands and models were registered most?",
+          "status": "live",
+          "dataset": "registrations_flow",
+          "measure": "count",
+          "dimension": "make",
+          "period": "latest_year",
+          "top_n": 15,
+          "granularity_options": [
+            { "id": "make", "label": "Brand", "dimension": "make", "top_n": 15 },
+            { "id": "model", "label": "Model", "dimension": "model", "top_n": 15 }
+          ]
+        },
+        {
+          "id": "registrations-completeness",
+          "question": "How many of the vehicles registered each month are still on the register?",
+          "status": "live",
+          "derived": "completeness",
+          "dataset": "registrations_flow",
+          "dimension": "import_status",
+          "period": "all"
+        },
+        {
+          "id": "registrations-powertrain-mix",
+          "question": "What share of registrations does each powertrain take?",
+          "status": "live",
+          "dataset": "registrations_flow",
+          "measure": "share",
+          "dimension": "powertrain",
+          "period": "all",
+          "events": true
         }
       ]
     }

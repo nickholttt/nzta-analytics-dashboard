@@ -4,9 +4,9 @@
 // The check also produces a status, and presets.json carries an authored one. They are compared
 // rather than merged: an authored status that no longer matches the build is reported, because a
 // triage table that has quietly gone stale is worse than no triage table.
-import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, presets } from "./config";
+import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, periods, presets } from "./config";
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
-import { PAIR_SEPARATOR, isBuilt } from "./data";
+import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt } from "./data";
 import type { Manifest, ViewSource } from "./data";
 import { RENDERED_DERIVED } from "./derived";
 
@@ -23,6 +23,9 @@ export type Resolution = {
   notApplied: string[];
   status: PresetStatus;
   statusDisagreement?: string;
+  // The dataset the preset needs that this build did not make, where that is why it cannot be drawn. A page says so in
+  // the dataset's own words rather than leaving the chart out or calling it unavailable.
+  notBuilt?: string;
   shape: string;
   dimension?: Dimension;
   measure?: Measure;
@@ -32,6 +35,8 @@ export type Resolution = {
   narrowedBy?: { dimension: string; values: string[] };
   // A built question's filters, each applied through the fact table.
   keptBy?: { dimension: string; values: string[] }[];
+  // For a measure that divides one dataset by another: where the numerator's rows come from. `source` is the denominator's.
+  companion?: ViewSource;
 };
 
 export function inferShape(preset: Preset, dimension?: Dimension, measure?: Measure): string {
@@ -44,15 +49,23 @@ export function inferShape(preset: Preset, dimension?: Dimension, measure?: Meas
   return measure?.shape ?? "trend";
 }
 
-// The periods that rank this view instead of tracing it: its own period and the one it offers for a
-// ranking, kept only where that period makes it a league. The time row adds them to its spans, so a
-// chart that opens as a league, or can become one, can always be brought back to it.
+// The periods that rank this view instead of tracing it: its own period, the one it offers for a ranking, and every
+// period of a year or less, kept only where that period makes it a league. The time row adds them to its spans, so a
+// chart that opens as a league, or can become one, can always be brought back to it, and a ranking can be of the last
+// year or of one month.
 export function rankingPeriods(view: Preset): string[] {
   const dimension = findDimension(view.dimension);
   const measure = findMeasure(view.measure);
-  return [...new Set([view.period, view.ranking_period])].filter(
+  const own = [...new Set([view.period, view.ranking_period])].filter(
     (id): id is string => Boolean(id) && inferShape({ ...view, period: id }, dimension, measure) === "league",
   );
+  // Only a view that is already a ranking, or offers one, gains the other windows: a chart that had no ranking keeps none.
+  if (own.length === 0) return own;
+  const windows = periods
+    .filter((p) => p.months !== undefined && p.months <= chartDefaults.trailing_window_months)
+    .sort((a, b) => (b.months as number) - (a.months as number))
+    .map((p) => p.id);
+  return [...new Set([...own, ...windows])];
 }
 
 export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
@@ -66,6 +79,7 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   };
   const dimension = findDimension(preset.dimension);
   const measure = findMeasure(preset.measure);
+  let notBuilt: string | undefined;
   const inCube = Object.keys(manifest.datasets).filter((id) => isBuilt(manifest, id));
 
   if (isComposite(preset) !== isDeclaredComposite(preset)) {
@@ -92,9 +106,9 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     add("invalid", "the preset names no dataset");
   } else if (preset.dataset && !cubeDataset) {
     const ds = findDataset(preset.dataset);
-    const notBuilt = manifest.datasets[preset.dataset]?.not_built;
+    notBuilt = unbuiltDataset(preset.dataset, manifest);
     const msg = notBuilt
-      ? `dataset "${preset.dataset}" was not built in this build (${notBuilt})`
+      ? `dataset "${notBuilt}" was not built in this build (${manifest.datasets[notBuilt].not_built})`
       : `dataset "${preset.dataset}" is not in the cube: manifest.json lists only ${inCube.join(", ")}`;
     if (!ds) add("invalid", `${msg}, and dimensions.json does not define "${preset.dataset}" either`);
     else add("blocked", ds.status ? `${msg} (${ds.status})` : msg);
@@ -182,6 +196,21 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   // it yet, and drawing the period's total instead would not answer the question.
   if (preset.animate_by) add("blocked", `"animate_by": "${preset.animate_by}" has no renderer in this tool: the ${shape} renderer draws one period at a time`);
 
+  // A measure that divides one dataset by another needs both built, and the breakdown live in both.
+  let companion: ViewSource | undefined;
+  const ratio = preset.derived ? findDerived(preset.derived) : undefined;
+  if (ratio?.numerator_dataset && ratio.denominator_dataset) {
+    for (const id of [ratio.numerator_dataset, ratio.denominator_dataset]) {
+      if (!isBuilt(manifest, id)) {
+        notBuilt ??= manifest.datasets[id]?.not_built ? id : undefined;
+        add("blocked", manifest.datasets[id]?.not_built ? `dataset "${id}" was not built in this build (${manifest.datasets[id].not_built})` : `dataset "${id}" is not in the cube`);
+      } else if (preset.dimension && !manifest.datasets[id].live_dimensions.includes(preset.dimension)) {
+        add("blocked", `dimension "${preset.dimension}" is not live in ${id}`);
+      }
+    }
+    if (preset.dimension) companion = { dataset: ratio.numerator_dataset, dimension: preset.dimension };
+  }
+
   const status: PresetStatus = invalid.length > 0 ? "invalid" : blocked.length > 0 ? "blocked" : "live";
   const statusDisagreement =
     preset.status === status
@@ -196,12 +225,14 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     notApplied,
     status,
     statusDisagreement,
+    notBuilt: preventsRender.length > 0 ? notBuilt : undefined,
     shape,
     dimension,
     measure,
     source: preventsRender.length === 0 ? source : undefined,
     narrowedBy: preventsRender.length === 0 ? narrowedBy : undefined,
     keptBy: preventsRender.length === 0 ? keptBy : undefined,
+    companion: preventsRender.length === 0 ? companion : undefined,
   };
 }
 
@@ -214,6 +245,13 @@ export function servedFrom(datasetId: string | undefined, manifest: Manifest): s
   if (isBuilt(manifest, datasetId)) return datasetId;
   const ds = findDataset(datasetId);
   return ds?.base && ds.filter && isBuilt(manifest, ds.base) ? ds.base : undefined;
+}
+
+// The dataset behind this one that the build says it did not make (manifest `not_built`), if that is what is missing.
+export function unbuiltDataset(datasetId: string, manifest: Manifest): string | undefined {
+  if (manifest.datasets[datasetId]?.not_built) return datasetId;
+  const base = findDataset(datasetId)?.base;
+  return base && manifest.datasets[base]?.not_built ? base : undefined;
 }
 
 // The live pair that splits one dimension by another, in either order, and which side of it the first one is.
@@ -239,3 +277,7 @@ export function presetView(preset: Preset, granularityId?: string | null, period
 export type TriageRow = { preset: Preset; resolution: Resolution };
 
 export const triage = (manifest: Manifest): TriageRow[] => presets.map((preset) => ({ preset, resolution: resolvePreset(preset, manifest) }));
+
+// The last month the preset's data has figures for: its dataset's own, which a supplied dataset can have earlier than the
+// register's snapshot.
+export const latestMonthOf = (preset: Preset, manifest: Manifest): string => datasetLatestMonth(manifest, servedFrom(preset.dataset, manifest));

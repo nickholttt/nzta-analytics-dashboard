@@ -8,11 +8,17 @@
 // per-month selection the count path has no notion of.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
-import { findDerived } from "../lib/config";
+import type { MouseEvent, ReactNode } from "react";
+import { datasetWords, findDataset, findDerived, phrases, yearChangeFloor } from "../lib/config";
 import type { Preset } from "../lib/config";
+import { answerLine, fillTemplate, hoverLine, monthsOf, sayBadMonth, sayOffChart } from "../lib/sentences";
+import { percent } from "../lib/sentences";
 import type { Manifest, SliceRow } from "../lib/data";
-import { derivedSeries } from "../lib/derived";
-import { addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
+import { COMPLETENESS, completenessSeries, derivedSeries } from "../lib/derived";
+import type { RatioPoint, RatioSeries } from "../lib/derived";
+import { latestMonthOf } from "../lib/resolve";
+import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
+import { fillNote } from "../lib/notes";
 import { count, greyedReason, monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
 import {
@@ -44,6 +50,13 @@ type Props = {
   lead?: boolean;
   // How a value is named for a reader: reserved tokens in words. Needed only where lines are values.
   label?: (value: string) => string;
+  // What the panel puts between the answer and the chart (its definition, links and time range), so the answer comes first.
+  after?: () => ReactNode;
+  // For a ratio of two datasets (completeness): the numerator's rows, where `rows` are the denominator's.
+  companion?: SliceRow[] | null;
+  // The month a figure and sentence are read for (a count with an answer); empty is the latest. The panel keeps it in the address.
+  month?: string;
+  onMonth?: (month: string) => void;
 };
 
 type Point = {
@@ -59,8 +72,97 @@ type Point = {
 
 export function TrendChart(props: Props) {
   const { preset } = props;
+  if (preset.derived === COMPLETENESS && props.companion) return <RatioTrend {...props} companion={props.companion} />;
   if (!preset.derived && preset.values?.length) return <ValuesTrend {...props} values={preset.values} />;
   return <OneTrend {...props} />;
+}
+
+// One line per value of the dimension and one for the total, each a share of the denominator dataset's count for the same
+// month. The axis starts where the data does, and says so, since a share that stays near 100% would otherwise draw flat.
+function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (v) => v }: Props & { companion: SliceRow[] }) {
+  const derived = findDerived(preset.derived);
+  const guards = derived?.guards ?? {};
+  const totalLabel = derived?.total_label ?? "All";
+  const series = useMemo(() => {
+    const whole = completenessSeries(companion, rows, guards);
+    const first = whole.reduce((m, s) => (s.points[0] && s.points[0].month < m ? s.points[0].month : m), "9999-12");
+    const win = periodWindow(preset.period, first, latestMonthOf(preset, manifest));
+    return whole
+      .map((s) => ({ ...s, points: s.points.filter((p) => p.month >= win.from && p.month <= win.to) }))
+      .filter((s) => s.points.length > 0);
+  }, [companion, rows, guards, preset, manifest]);
+  const name = (s: RatioSeries) => (s.series === "" ? totalLabel : label(s.series));
+  const model = useMemo(() => {
+    const all = series.flatMap((s) => s.points.map((p) => p.month)).sort();
+    const low = series.reduce((m, s) => s.points.reduce((x, p) => Math.min(x, p.value), m), 1);
+    const high = series.reduce((m, s) => s.points.reduce((x, p) => Math.max(x, p.value), m), 1);
+    return { from: all[0], to: all[all.length - 1], base: Math.max(0, Math.floor(low * 20) / 20 - 0.05), top: Math.max(1, high) * 1.02 };
+  }, [series]);
+  const colour = (i: number) => seriesColour(i);
+  const render = useCallback(
+    (width: number) =>
+      Plot.plot({
+        width,
+        height: chartHeight(width, lead),
+        marginTop: 16,
+        marginLeft: 48,
+        marginRight: 16,
+        marginBottom: 28,
+        style: plotStyle,
+        x: { type: "utc", label: null, domain: [monthDate(model.from), monthDate(addMonths(model.to, 1))] },
+        y: { label: null, domain: [model.base, model.top] },
+        marks: [
+          Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
+          Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => `${Math.round(d * 100)}%` }),
+          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
+          Plot.ruleY([1], { stroke: RULE_STRONG, strokeDasharray: "3,3" }),
+          ...series.flatMap((s, i) => {
+            const data = s.points.map((p) => ({ ...p, date: monthDate(p.month), name: name(s) }));
+            return [
+              Plot.lineY(data, { x: "date", y: "value", stroke: colour(i), strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" }),
+              Plot.tip(
+                data,
+                Plot.pointerX({
+                  x: "date",
+                  y: "value",
+                  ...tipStyle,
+                  title: (p: RatioPoint & { name: string }) => readout({ name: p.name, period: monthPeriod(p.month), share: p.value, n: p.n, base: p.denominator }),
+                }),
+              ),
+            ];
+          }),
+        ],
+      }),
+    [model, series, lead, label, totalLabel],
+  );
+  const lastOf = (s: RatioSeries) => s.points[s.points.length - 1];
+  return (
+    <>
+      <ul className="series-key" aria-label="Lines on this chart, with the latest month's figure">
+        {series.map((s, i) => (
+          <li key={s.series}>
+            <span className="swatch" style={{ background: colour(i) }} aria-hidden="true" />
+            {name(s)} <span className="series-key-figure">{pct(lastOf(s).value)} in {monthLabel(lastOf(s).month)}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="chart-unit">{fillTemplate(derived?.unit_note ?? "", { base: percent(model.base) }).text}</p>
+      <PlotFigure
+        render={render}
+        label={`Line chart, ${monthLabel(model.from)} to ${monthLabel(model.to)}: ${series.map(name).join(", ")}, month by month.`}
+      />
+      <FiguresTable
+        label={fillTemplate(derived?.table_label ?? "", { from: monthLabel(model.from), to: monthLabel(model.to) }).text}
+        columns={[{ name: "Month" }, ...series.map((s) => ({ name: name(s) }))]}
+        rows={() => {
+          const at = series.map((s) => new Map(s.points.map((p) => [p.month, p.value])));
+          return monthRange(model.from, model.to).flatMap((m) =>
+            at.every((x) => !x.has(m)) ? [] : [[monthPeriod(m), ...at.map((x) => (x.has(m) ? pct(x.get(m) as number) : ""))]],
+          );
+        }}
+      />
+    </>
+  );
 }
 
 type ValuePoint = { month: string; date: Date; series: string; y?: number };
@@ -72,7 +174,7 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   const rolling = preset.measure === "rolling_12m";
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
-    const win = periodWindow(preset.period, months[0], manifest.latest_snapshot.slice(0, 7));
+    const win = periodWindow(preset.period, months[0], latestMonthOf(preset, manifest));
     const cell = new Map<string, number>();
     const present = new Set<string>();
     for (const r of rows) {
@@ -92,11 +194,11 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
         points.push({ month: m, date: monthDate(m), series: s, y });
       }
     }
-    const latest = manifest.latest_snapshot.slice(0, 7);
+    const latest = latestMonthOf(preset, manifest);
     const lastYear = monthRange(addMonths(latest, -11), latest);
     const totals = values.map((s) => ({ series: s, n: lastYear.reduce((sum, m) => sum + (at(m, s) ?? 0), 0) }));
     return { win, points, totals };
-  }, [rows, preset.period, manifest.latest_snapshot, values, rolling]);
+  }, [rows, preset, manifest, values, rolling]);
 
   const colour = useCallback(
     (s: string) => seriesColour([...model.totals].sort((a, b) => b.n - a.n).findIndex((t) => t.series === s)),
@@ -145,20 +247,21 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   );
 
   const names = values.map(label).join(", ");
+  const words = datasetWords(preset.dataset);
+  const trailing = { months: TRAILING_MONTHS };
+  const recent = fillNote(words?.recent_figure ?? "in the last {months} months", trailing).text;
   return (
     <>
-      <ul className="series-key" aria-label="Lines on this chart, with vehicles first registered in the last 12 months that are still registered">
+      <ul className="series-key" aria-label={`Lines on this chart, with vehicles ${recent}`}>
         {model.totals.map((t) => (
           <li key={t.series}>
             <span className="swatch" style={{ background: colour(t.series) }} aria-hidden="true" />
-            {label(t.series)} <span className="series-key-figure">{count(t.n)} first registered in the last 12 months, still registered</span>
+            {label(t.series)} <span className="series-key-figure">{count(t.n)} {recent}</span>
           </li>
         ))}
       </ul>
       <p className="chart-unit">
-        {rolling
-          ? "Vehicles first registered in the 12 months to each month, still registered"
-          : "Vehicles first registered each month, still registered"}
+        {fillNote((rolling ? words?.window_unit : words?.month_unit) ?? "Vehicles", trailing).text}
       </p>
       <PlotFigure
         render={render}
@@ -179,7 +282,7 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   );
 }
 
-function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false }: Props) {
+function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false, month, onMonth, after }: Props) {
   const derived = preset.derived ? findDerived(preset.derived) : undefined;
   const share = derived?.unit === PERCENT;
   // What the line is, for its readout: a derived measure by its definition's own words, otherwise the vehicles counted.
@@ -190,7 +293,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
 
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
-    const win = periodWindow(preset.period, months[0], manifest.latest_snapshot.slice(0, 7));
+    const win = periodWindow(preset.period, months[0], latestMonthOf(preset, manifest));
     const denominators = new Map<string, number>();
     for (const r of rows) denominators.set(r.month, r.denominator);
     const denominatorFor = (m: string) => denominators.get(m);
@@ -242,8 +345,20 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
       points.push({ month: m, date: monthDate(m), y, n: counts.get(m), denominator: den, suppressed, greyed, members: detail.get(m) });
     }
     if (runStart !== null) bands.push({ x1: monthDate(runStart), x2: monthDate(addMonths(win.to, 1)) });
-    return { win, points, bands };
-  }, [rows, preset, manifest.latest_snapshot, share, minDenominator, collapseFraction]);
+    return { win, points, bands, byMonth };
+  }, [rows, preset, manifest, share, minDenominator, collapseFraction]);
+
+  // The answer: the count for one month, against the same month a year earlier. Months come from the points that have a
+  // figure, newest first, so the choice offers only months the data has.
+  // The year-ago figure is read from every month the dataset has, so the window a visitor draws never changes the answer.
+  // `rows` is every month the dataset has; the sentences take it whole.
+  const answerMonths = useMemo(() => (preset.answer ? monthsOf(rows) : []), [rows, preset.answer]);
+  const chosen = month && answerMonths.includes(month) ? month : answerMonths[0];
+  const answer = useMemo(() => (preset.answer && chosen ? answerLine(preset.answer, rows, chosen, yearChangeFloor()) : undefined), [preset.answer, rows, chosen]);
+  const monthNotice = preset.answer && chosen ? sayBadMonth(phrases.bad_month, month, chosen) : undefined;
+  const offChart = chosen && preset.answer ? sayOffChart(phrases.month_off_chart, chosen, model.win.from, model.win.to) : undefined;
+  const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
+  const yearLine = (m: string) => [hoverLine(phrases, rows, m, yearChangeFloor())];
 
   const render = useCallback(
     (width: number) => {
@@ -262,6 +377,12 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
         y: { label: null, domain: [0, yMax] },
         marks: [
           Plot.rect(model.bands.map((b) => ({ ...b, y1: 0, y2: yMax })), { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: SUPPRESSED_BAND }),
+          ...(chosen
+            ? [
+                Plot.ruleX([monthDate(chosen)], { stroke: RULE_STRONG, strokeDasharray: "3,3" }),
+                Plot.dot(model.points.filter((p) => p.month === chosen && p.y !== undefined), { x: "date", y: "y", r: 5, fill: SERIES[0], stroke: PAPER, strokeWidth: 2 }),
+              ]
+            : []),
           Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: format }),
           Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
@@ -289,23 +410,65 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
                   ...(share ? { share: p.y, n: p.n, base: p.denominator } : { n: p.y }),
                   greyed: p.greyed,
                   minDenominator,
-                  extra: p.members?.length ? [`The ${p.members.length} largest: ${p.members.join(", ")}`] : undefined,
+                  extra: p.members?.length
+                    ? [`The ${p.members.length} largest: ${p.members.join(", ")}`]
+                    : showYear
+                      ? yearLine(p.month)
+                      : undefined,
                 }),
             }),
           ),
         ],
       });
     },
-    [model, share, lead, name, preset.measure, minDenominator],
+    [model, share, lead, name, preset.measure, minDenominator, chosen, showYear, rows],
   );
+
+  // A click or tap on the chart reads the month nearest to it. The month list is the keyboard's way to the same thing.
+  const pick = (e: MouseEvent<HTMLDivElement>) => {
+    const svg = e.currentTarget.querySelector("svg");
+    if (!svg || !onMonth || model.points.length === 0) return;
+    const box = svg.getBoundingClientRect();
+    const left = share ? 44 : 56;
+    const t = (e.clientX - box.left - left) / (box.width - left - 16);
+    const from = monthDate(model.win.from).getTime();
+    const to = monthDate(addMonths(model.win.to, 1)).getTime();
+    const at = from + Math.min(1, Math.max(0, t)) * (to - from);
+    const near = model.points
+      .filter((p) => p.y !== undefined)
+      .reduce((best, p) => (Math.abs(p.date.getTime() - at) < Math.abs(best.date.getTime() - at) ? p : best));
+    onMonth(near.month);
+  };
 
   return (
     <>
-      <p className="chart-unit">{share ? "Share of the month's vehicles" : "Vehicles"}</p>
-      <PlotFigure
-        render={render}
-        label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: ${derived ? derived.label : name.toLowerCase()}, month by month.`}
-      />
+      {preset.answer && answer && chosen ? (
+        <div className="answer">
+          <p className="answer-figure" aria-hidden="true">{answer.figure}</p>
+          <p className="answer-sentence" aria-live="polite">{answer.sentence}</p>
+          <label className="month-pick">
+            Month
+            <select value={chosen} onChange={(e) => onMonth?.(e.target.value)}>
+              {answerMonths.map((m) => (
+                <option key={m} value={m}>
+                  {monthLabel(m)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      ) : null}
+      {preset.answer && answer && chosen ? after?.() : null}
+      {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
+      {offChart ? <p className="chart-unit" role="status">{offChart}</p> : null}
+      <p className="chart-unit">{share ? "Share of the month's vehicles" : "Vehicles"}{preset.answer ? `. ${phrases.pick_month}` : ""}</p>
+      {/* The click only repeats what the month list does, so the wrapper needs no role of its own. */}
+      <div onClick={preset.answer ? pick : undefined}>
+        <PlotFigure
+          render={render}
+          label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: ${derived ? derived.label : name.toLowerCase()}, month by month.`}
+        />
+      </div>
       <FiguresTable
         label={`${name}: figures, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
         columns={share ? [{ name: "Month" }, { name: "Share" }, { name: "Vehicles" }, { name: "Note", text: true }] : [{ name: "Month" }, { name: "Vehicles" }]}

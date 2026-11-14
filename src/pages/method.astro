@@ -38,7 +38,7 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
     <ul>
       <li>
         <strong>Survivors (<code>registrations_surviving</code>)</strong>: vehicles first registered in month <em>M</em> that
-        are still registered as at the snapshot date. Every chart on this site uses this dataset, and each one
+        are still registered as at the snapshot date. Most charts on this site use this dataset, and each one
         says so. Older months shrink with every snapshot as vehicles are scrapped, so a share for an older month
         describes the vehicles still registered, not everything registered then: if one group is scrapped faster than
         another, its older share reads lower than it was at the time. <em>A survivors series and a flow series never
@@ -46,8 +46,9 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
       </li>
       <li>
         <strong>Flow (<code>registrations_flow</code>)</strong>: every first registration in month <em>M</em>,
-        including vehicles since scrapped, from the Stats NZ Transport (TPT) series. This is the dataset
-        for how many vehicles entered the fleet. No chart on this site uses it.
+        including vehicles since removed from the register, from NZTA's registrations dashboard. This is the dataset
+        for how many vehicles entered the fleet. The charts under “True registrations” use it, and
+        <a href="#true-registrations">the section below</a> says what it counts.
       </li>
       <li>
         <strong>Stock (<code>fleet</code>)</strong>: every vehicle registered at a month end, whenever it was first
@@ -130,8 +131,53 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
       there.
     </p>
     <p>
-      Every chart on the site today shows a share. No live chart uses the count, the running total or the change on a
-      year ago; they are defined here because the configuration allows them.
+      Charts of vehicles still registered show shares. Charts of true registrations show the count and the change on a
+      year ago, as well as shares. The running total is defined here because the configuration allows it.
+    </p>
+
+    <h2 id="true-registrations">True Registrations</h2>
+    <p>
+      A true registration is a vehicle's first registration in New Zealand, counted in the month it happened, including
+      vehicles that have since been removed from the register. These counts come from NZTA's registrations
+      dashboard, in files supplied by hand, and each chart says which export it uses and when it was taken.
+      They begin in the dashboard's first month of data. Earlier months are not shown.
+    </p>
+    <ul>
+      <li>
+        <strong>What is counted</strong>: the same vehicles as the survivors dataset (the vehicle types and the new
+        and used-import statuses under Vehicle Scope), so the two can be compared. Re-registered and scratch-built
+        vehicles are left out of both.
+      </li>
+      <li>
+        <strong>Past months can change</strong>: NZTA says vehicles may be added to or removed from the dashboard and a
+        month may be updated. Each month here is that month as the export held it, and a later export replaces a month
+        only as a recorded step.
+      </li>
+      <li>
+        <strong>Fewer ways to split</strong>: the export this site uses carries no engine size and no gross vehicle
+        mass, so charts of true registrations cannot be split by them. It does carry the owner's district, which this
+        site does not publish, so there is no regional chart of true registrations. Model names can differ from the register's for some
+        nameplates, so a model's count here and its survivors are not always the same vehicles.
+      </li>
+      <li>
+        <strong>Change on a year ago</strong> is shown beside a count where the same month a year earlier had at least{" "}
+        {yoyFloor} vehicles, and left out otherwise. The wording says whether a figure is up or down, never why. In a
+        sentence or a hover, a change on a year ago under 10% has one decimal place and any other is a whole number.
+      </li>
+      <li>
+        <strong>The build page</strong> can count either vehicles still registered or true registrations. They are
+        never drawn on the same chart.
+      </li>
+    </ul>
+
+    <h2 id="completeness">Completeness</h2>
+    <p>
+      Completeness is the vehicles still on the register for a month, as a share of the vehicles first registered that
+      month, for the same month and the same group. It uses the two datasets above and is drawn on a chart of its own.
+      A figure above 100% is drawn as it is: the two sources are counted separately and can differ by a few vehicles.
+      A month with fewer than {floor} registrations behind it, or far fewer than the months before, is left out, not
+      drawn as zero. Completeness is a ratio of two counts, not a match of vehicles one by one, and it is never used to
+      scale or adjust any other figure.
     </p>
 
     <h2>The Two Suppression Guards</h2>
@@ -211,7 +257,7 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
       </li>
       <li>
         <strong>{RESERVED_LABELS.__OTHER__}</strong>: a recognised value folded together because there are too many to
-        show separately. Only models use it, and no live chart shows models.
+        show separately. Only models use it.
       </li>
     </ul>
     <p>

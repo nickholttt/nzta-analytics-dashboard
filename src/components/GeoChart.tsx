@@ -3,10 +3,12 @@
 // (public/geo/nz-regions.json, D-054); a region in the cube with no outline appears in the table only.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { datasetWords } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import { loadRegions } from "../lib/data";
 import type { Manifest, RegionOutlines, SliceRow } from "../lib/data";
 import { pct, periodWindow } from "../lib/measures";
+import { latestMonthOf } from "../lib/resolve";
 import { readout, spanPeriod } from "../lib/readout";
 import { INK_3, PAPER, SERIES, SUPPRESSED_LINE, plotStyle } from "../lib/theme";
 import { PlotFigure } from "./PlotFigure";
@@ -38,7 +40,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
 
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
-    const win = periodWindow(preset.period, months[0], manifest.latest_snapshot.slice(0, 7));
+    const win = periodWindow(preset.period, months[0], latestMonthOf(preset, manifest));
     const totals = new Map<string, number>();
     const denominators = new Map<string, number>();
     for (const r of rows) {
@@ -57,7 +59,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
     const byValue = new Map(regions.map((r) => [r.value, r]));
     const max = Math.max(0.01, ...regions.map((r) => r.share));
     return { win, regions, byValue, known, denominator, max, suppressed: denominator < minDenominator };
-  }, [rows, preset.period, manifest.latest_snapshot, minDenominator]);
+  }, [rows, preset, manifest, minDenominator]);
 
   const render = useCallback(
     (width: number) => {
@@ -152,7 +154,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
                   {heading}
                 </th>
                 <th scope="col">Share</th>
-                <th scope="col">Still registered</th>
+                <th scope="col">{datasetWords(preset.dataset)?.count_heading ?? "Vehicles"}</th>
               </tr>
             </thead>
             <tbody>
