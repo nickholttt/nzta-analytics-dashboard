@@ -5,18 +5,17 @@ Last updated by claude on 2026-11-15
 ## Where we left off
 
 - 2026-11-14 and 15, eighth session: the first of work order 1 (`docs/brief/WORK_ORDER.md`).
-  - **Merged: #47 to #58.** The reworded rules; the order saved with D-082 to D-085 and the
+  - **Merged: #47 to #59.** The reworded rules; the order saved with D-082 to D-085 and the
     sub-agent definitions; three public pages (D-086); `registrations_flow` defined (D-087);
     the pipeline's and the site's follow-ups (D-088, D-089); the data map (D-090); the query
     service measured and proposed (D-091); true registrations built in the pipeline (D-092)
     and shown on the site (D-093); Stats NZ's cars since 1961 built in the pipeline (D-094);
-    NZTA's vehicle type as a dimension (D-095).
+    NZTA's vehicle type as a dimension (D-095); the repository's front page rewritten (#59).
   - **October was forced once**, after the daily run said "Source unchanged": the release
     `cube-2026-10` now holds the fact table. No second forced run is allowed (D-082).
   - **A visitor to a local build can now ask** how many vehicles were registered in any month
     since January 2021 and whether that is up or down on a year ago, by brand and by model.
-  - **One branch is in hand:** `claude/readme`, the repository's front page, written and
-    committed locally. Open it as a pull request, have it reviewed, merge it.
+  - **No branch is in hand.** The next item is the site half of package C (below).
   - **Slips, recorded:** #50 merged a minute before its last check finished (it passed);
     a first reading that event markers respect a filter was wrong (D-089).
 
@@ -24,11 +23,9 @@ Last updated by claude on 2026-11-15
 
 ## Work queue: the work order's packages, in order
 
-- **First: the repository's front page** (the user, 2026-11-15). `README.md` is rewritten on
-  `claude/readme`: what the project is today, what it can answer, the three datasets with
-  their sources and attributions, how it is built and run, what is not there yet. Left: its
-  pull request, review and merge. The "About" line for the repository's sidebar is proposed
-  to the user (question 9) and not set.
+- **The repository's front page** (the user, 2026-11-15): done (#59). Keep `README.md` true
+  as packages land: its "What it can answer today" and "Not there yet" lists go stale first.
+  The "About" line for the repository's sidebar is proposed to the user (question 9).
 - **A. Housekeeping.** Done. Follow-ups left, each with its reason in D-088 or D-089: a
   digest of the rows the archive job pulls; dependencies pinned by hash and a
   draft-then-publish release step (both after December's build); admin bypass on

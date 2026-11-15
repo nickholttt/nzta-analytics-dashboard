@@ -9,7 +9,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - `main` is the merge of #58, on `1a281fb` (the merge of #57).
+  - `main` is the merge of #59, on `fd4320c` (the merge of #58).
   - **The last build is the forced run 43637172195** (14 November 2026, 20:22 UTC; snapshot
     2026-10; 5,926,990 rows; no warning). It was the one forced run the work order allowed, made
     after the daily run 43600595387 reported "Source unchanged". Its cube replaced the file of
@@ -45,15 +45,15 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 ## Current step
 
-**Work order 1.** A, B, G, the first part of E and C's pipeline half are done. Next: the
-front page of the repository; then C's charts and completeness by vehicle type on the site;
-then D's first-load work, the rest of E, F, H and I. One report at the end (D-082).
+**Work order 1.** A, B, G, the first part of E and C's pipeline half are done. Next: C's
+charts and completeness by vehicle type on the site; then D's first-load work, the rest of
+E, F, H and I. One report at the end (D-082).
 
 ## In progress (all claude; nothing by gemini)
 
-No pull request is open (#47 to #58 merged in this session). One branch is in hand:
-`claude/readme`, the repository's front page rewritten as the user asked, committed, local,
-to be opened as a pull request. Other worktrees (`git worktree list`) are of merged branches.
+Nothing: no pull request is open and no branch is in hand (#47 to #59 merged in this
+session; #59 rewrote `README.md`, the repository's front page, as the user asked). Any
+worktree `git worktree list` shows is of a merged branch and can be removed.
 
 - **This folder's `public/data`** (gitignored) is the dry-run build of #58: three datasets.
   `data/supplied/` (gitignored) holds both stores, `nzta_dashboard` and `statsnz_tpt`. Also
