@@ -1,15 +1,15 @@
-vehicle_type,in_scope,scope_group,notes
-PASSENGER CAR/VAN,true,passenger,
-GOODS VAN/TRUCK/UTILITY,true,goods,Includes heavy trucks; segment_map separates them by GVM.
-MOTORCYCLE,false,motorcycle,"Out of default scope; rows kept in snapshots. Most motorcycle makes are outside brand_registry, and bikes are a separate market."
-MOPED,false,moped,
-ATV,false,atv,Not explicitly decided. Out by default.
-TRAILER/CARAVAN,false,trailer,
-TRAILER NOT DESIGNED FOR H/WAY USE,false,trailer,
-MOTOR CARAVAN,false,motorhome,Self-propelled motorhomes. Not explicitly decided. Out by default.
-BUS,false,bus,Not explicitly decided. Out by default.
-TRACTOR,false,machinery,
-HIGH SPEED AGRICULTURAL VEHICLE,false,machinery,
-AGRICULTURAL MACHINE,false,machinery,
-MOBILE MACHINE,false,machinery,
-SPECIAL PURPOSE VEHICLE,false,special_purpose,Not explicitly decided. Out by default.
+vehicle_type,label,in_scope,scope_group,notes
+PASSENGER CAR/VAN,Passenger cars and vans,true,passenger,
+GOODS VAN/TRUCK/UTILITY,"Goods vans, trucks and utes",true,goods,Includes heavy trucks; segment_map separates them by GVM.
+MOTORCYCLE,Motorcycles,false,motorcycle,"Out of default scope; rows kept in snapshots. Most motorcycle makes are outside brand_registry, and bikes are a separate market."
+MOPED,Mopeds,false,moped,
+ATV,All-terrain vehicles,false,atv,Not explicitly decided. Out by default.
+TRAILER/CARAVAN,Trailers and caravans,false,trailer,
+TRAILER NOT DESIGNED FOR H/WAY USE,Trailers not designed for highway use,false,trailer,
+MOTOR CARAVAN,Motor caravans,false,motorhome,Self-propelled motorhomes. Not explicitly decided. Out by default.
+BUS,Buses,false,bus,Not explicitly decided. Out by default.
+TRACTOR,Tractors,false,machinery,
+HIGH SPEED AGRICULTURAL VEHICLE,High-speed agricultural vehicles,false,machinery,
+AGRICULTURAL MACHINE,Agricultural machines,false,machinery,
+MOBILE MACHINE,Mobile machines,false,machinery,
+SPECIAL PURPOSE VEHICLE,Special purpose vehicles,false,special_purpose,Not explicitly decided. Out by default.

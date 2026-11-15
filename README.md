@@ -32,7 +32,7 @@ built and what is in progress is in `docs/STATE.md`.
 | `data/reference/segment_map.csv` | Vehicle type + body + GVM → Car / Ute / Van / Truck / Other. Coarse on purpose: SUVs are not derivable |
 | `data/reference/tla_region.csv` | Territorial authority → region, with districts that straddle regions flagged |
 | `data/reference/import_status_map.csv` | NZTA import status → label, and whether it counts as entry to the fleet |
-| `data/reference/vehicle_scope.csv` | Which NZTA vehicle types are in scope. Guardrail rates are measured on in-scope rows |
+| `data/reference/vehicle_scope.csv` | Which NZTA vehicle types are in scope, and a readable label for every type (the values of the `vehicle_type` dimension; a type brought into scope later needs only its `in_scope` flag changed). Guardrail rates are measured on in-scope rows |
 | `data/reference/sentinels.csv` | Raw values, per field, that mean "undefined" and become `__UNDEFINED__` |
 | `data/reference/model_registry.csv` | Exceptions only (renames, badge twins, match traps) |
 | `data/reference/mild_hybrid_models.csv` | Which hybrid nameplates are mild or full, with basis and confidence |

@@ -92,6 +92,35 @@ def test_the_fact_table_totals_the_datasets_vehicles(built):
     assert entry["facts"]["dimensions"] and not entry["facts"]["not_live"]
 
 
+def test_the_vehicle_type_is_live_in_the_fact_table_and_counts_each_type_under_its_label(built):
+    cfg, entry, public = built["cfg"], built["manifest"]["datasets"][DATASET], built["public"]
+    dim = next(d for d in cfg.dimensions["dimensions"] if d["id"] == "vehicle_type")
+    assert dim["id"] in entry["live_dimensions"] and dim["id"] in entry["facts"]["dimensions"]
+    p, s, spec = cfg.pipeline, cfg.supplied(SOURCE), dim["derive"]
+    status = p["scope"]["status"]
+    types = {r[spec["key"]]: r[spec["value"]] for r in reference.read(cfg.reference(spec["reference"]))
+             if r[p["scope"]["vehicle"]["in_scope"]] == p["boolean_true"]}
+    statuses = {r[status["key"]] for r in reference.read(cfg.reference(status["file"]))
+                if r[status["in_scope"]] == p["boolean_true"] and r[status["fleet_entry"]] == p["boolean_true"]}
+    expected = {}
+    with HISTORY.open(encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh):
+            if r[s["fields"]["vehicle_type"]] in types and r[s["fields"]["import_status"]] in statuses:
+                label = types[r[s["fields"]["vehicle_type"]]]
+                expected[label] = expected.get(label, 0) + int(r[s["count_column"]])
+    assert len(expected) > 1, "the fixture holds one type in scope; the test would prove little"
+    con = duckdb.connect()
+
+    def column(path):
+        return [row[0] for row in con.execute(f"SELECT * FROM read_parquet('{path.as_posix()}')").fetchall()]
+
+    sliced = dict(con.execute(f"SELECT dim_value, sum(n) FROM read_parquet('{(public / 'cube' / DATASET / 'vehicle_type.parquet').as_posix()}') GROUP BY 1").fetchall())
+    fact = {}
+    for label, n in zip(column(public / "facts" / DATASET / "vehicle_type.parquet"), column(public / "facts" / DATASET / "n.parquet")):
+        fact[label] = fact.get(label, 0) + n
+    assert sliced == expected == fact
+
+
 def test_a_dimension_that_needs_a_field_the_source_lacks_is_not_live_and_says_why(built):
     cfg, entry = built["cfg"], built["manifest"]["datasets"][DATASET]
     carried = derive.carried_fields(cfg, DATASET)

@@ -5,36 +5,40 @@ Last updated by claude on 2026-11-15
 ## Where we left off
 
 - 2026-11-14 and 15, eighth session: the first of work order 1 (`docs/brief/WORK_ORDER.md`).
-  - **Merged: #47 to #57.** The reworded rules; the order saved with D-082 to D-085 and the
+  - **Merged: #47 to #58.** The reworded rules; the order saved with D-082 to D-085 and the
     sub-agent definitions; three public pages (D-086); `registrations_flow` defined (D-087);
     the pipeline's and the site's follow-ups (D-088, D-089); the data map (D-090); the query
     service measured and proposed (D-091); true registrations built in the pipeline (D-092)
-    and shown on the site (D-093); Stats NZ's cars since 1961 built in the pipeline (D-094).
+    and shown on the site (D-093); Stats NZ's cars since 1961 built in the pipeline (D-094);
+    NZTA's vehicle type as a dimension (D-095).
   - **October was forced once**, after the daily run said "Source unchanged": the release
     `cube-2026-10` now holds the fact table. No second forced run is allowed (D-082).
   - **A visitor to a local build can now ask** how many vehicles were registered in any month
     since January 2021 and whether that is up or down on a year ago, by brand and by model.
-  - **NZTA's vehicle type was being added as a dimension** on `claude/vehicle-type-dimension`
-    when these notes were written: a local branch in a worktree, not pushed, with two golden
-    changes expected. Read `git worktree list` and its log first.
-  - **Two slips, both recorded:** #50 was merged a minute before its last check finished (it
-    passed); a first reading that event markers respect a filter was wrong (D-089).
+  - **One branch is in hand:** `claude/readme`, the repository's front page, written and
+    committed locally. Open it as a pull request, have it reviewed, merge it.
+  - **Slips, recorded:** #50 merged a minute before its last check finished (it passed);
+    a first reading that event markers respect a filter was wrong (D-089).
 
 ## Open pull requests (none)
 
 ## Work queue: the work order's packages, in order
 
+- **First: the repository's front page** (the user, 2026-11-15). `README.md` is rewritten on
+  `claude/readme`: what the project is today, what it can answer, the three datasets with
+  their sources and attributions, how it is built and run, what is not there yet. Left: its
+  pull request, review and merge. The "About" line for the repository's sidebar is proposed
+  to the user (question 9) and not set.
 - **A. Housekeeping.** Done. Follow-ups left, each with its reason in D-088 or D-089: a
   digest of the rows the archive job pulls; dependencies pinned by hash and a
-  draft-then-publish release step (both after December's build); admin bypass on the
-  `production` environment (the user's); the status page's script chunk (with D); a value in
-  a link that is not in the data, and the refill of the five largest (F); a share by model
-  draws 300 lines (E's chart rules); a model's name shows its separator, and `/build/` skips a
-  heading (H); a second scope for events, so a filtered chart can leave out an event about
-  vehicles it does not count (a change to `events.csv`'s schema).
+  draft-then-publish release step (both after December's build); admin bypass on
+  `production` (the user's); the status page's script chunk (with D); two Build behaviours
+  for chosen values (F); a share by model draws 300 lines (E's chart rules); a model's name
+  shows its separator, and `/build/` skips a heading (H); a second scope for events; a
+  lookup should refuse a blank value at build time, not only in a test (D-095's review).
 - **B. True registrations.** Done on a local build. Left:
-  - `claude/vehicle-type-dimension`: finish, add its decision record, review, merge. Then
-    the site: completeness by vehicle type (today it is shown in total and by new or used).
+  - The site: completeness by vehicle type and new or used, from the pair on the survivors
+    and the true-registrations fact table (D-095; today it shows the total and new or used).
   - The site's tests (`tests/site/`) and the prototype's tests in `Checks` (a workflow
     change, with E's chart rules).
   - Each month: the user's export, then `python -m pipeline supply`
@@ -42,8 +46,9 @@ Last updated by claude on 2026-11-15
 - **C. Stats NZ's long-run series.** The pipeline half is done (#57). Left, on the site: the
   long-run chart for cars back to 1961 with Stats NZ's statement beside NZTA's attribution
   (it must read the manifest's `exceeds_total` and show "not recorded" months as such), and
-  completeness for cars from July 1975, which needs the vehicle-type dimension. The user's
-  own export replaces the fetched copy (`docs/playbooks/supply-statsnz-series.md`).
+  cars still registered against Stats NZ's count from July 1975, under its own name and with
+  its caveat (`docs/METRICS.md`). The user's own export replaces the fetched copy
+  (`docs/playbooks/supply-statsnz-series.md`).
 - **D. The rest of Stage 1.** Left: first load. Measured (D-091): 7.4 to 11.6 s to a Build
   answer on the phone profile; about 460 KB of each page is its own code and fonts. Trim
   those, measure again (target: a first answer under 3 seconds). Then the status chunk.
@@ -63,7 +68,7 @@ Last updated by claude on 2026-11-15
 1. **Where may the converted dashboard data live?** (a) A small file of counts in this public
    repository, with no owner field. (b) The private archive, fetched by the build. (c) Local
    only. Recommend (a). With no answer: (c), so GitHub's builds and any deployed site have no
-   true registrations.
+   true registrations. The same answer serves Stats NZ's series.
 2. **The About page's six gaps** (`config/site.json`, search `TO DECIDE`) **and the site's
    name**, which also names the Cloudflare project. Proposals, none checked for availability:
    Rego Counts; On the Register; First Registered; NZ Vehicle Facts; The Fleet Book. Recommend
@@ -83,28 +88,23 @@ Last updated by claude on 2026-11-15
    paid plan, about US$5 a month, tried first for memory; or no service and lighter files, at
    no cost. Recommend deciding after package D's trim is measured. With no answer Build keeps
    reading static files and nothing is spent.
-7. **Where true registrations sit on the home page.** They are the last group, loaded when
-   scrolled to, so they do not slow the first chart. Recommend moving them first when the home
-   page is rebuilt (package H). With no answer they stay last.
-8. **The Stats NZ hand export** and **going public** (`docs/playbooks/go-public.md`): not
-   started; a fetched copy of the series serves local builds meanwhile.
+7. **Where true registrations sit on the home page:** last, loaded when scrolled to.
+   Recommend moving them first when the home page is rebuilt (package H).
+8. **The Stats NZ hand export** and **going public** (`docs/playbooks/go-public.md`): not started.
+9. **The repository's "About" line on GitHub** is empty. Proposed: "Plain answers about New
+   Zealand's vehicle market, from NZTA and Stats NZ open data. Work in progress; not public yet."
 
-## Decided for the user this session (each is in DECISIONS, unreviewed)
+## Decided for the user this session
 
-1. The order's merge rule in hard rule 7, as a temporary passage; rules 4 and 8 (D-082).
-2. Six sub-agent definitions and their test (D-085). The three pages (D-086).
-3. `registrations_flow` counts what the survivors dataset counts; `Vehicle Status` is read
-   from the counts; the name moves from Stats NZ's series to the dashboard's dataset (D-087).
-4. Three workflow hardenings (D-088); visitor wording on the dimensions (D-089).
-5. The data map's config file, its tests, the roll-ups dropped (D-090).
-6. The query service's question format, checks and prototype (D-091).
-7. How the dataset is built and guarded: a `supply` command, a local store, the register's
-   own code; vehicle age does not apply to it (D-092).
-8. On the site: a choice inside Build, a ranking for any month, completeness as its own
-   chart, the new group last on the home page (D-093).
-9. Stats NZ's series as a second kind of supplied source: cars only, two breakdowns, no fact
-   table, months before a breakdown starts shown as not recorded (D-094).
-10. Stats NZ's series was fetched once, read-only; both converted stores stay local.
+Each is a record in `docs/DECISIONS.md`, marked unreviewed: D-082 (the two readings of hard
+rules 4 and 8), D-085 (sub-agent definitions), D-086 (the three pages), D-087 (what
+`registrations_flow` counts; `Vehicle Status` read from the counts), D-088 and D-089 (the
+follow-ups taken and left), D-090 (the data map's config form), D-091 (the query service's
+format and prototype), D-092 (how true registrations are built and guarded), D-093 (how the
+site shows them), D-094 (Stats NZ's series: cars only, two breakdowns, no fact table), D-095
+(NZTA's vehicle type as a dimension; cars against Stats NZ's count is not called
+completeness). Also: Stats NZ's series was fetched once, read-only, and both converted
+stores stay on this computer until question 1 is answered.
 
 ## Prompt for the next session
 

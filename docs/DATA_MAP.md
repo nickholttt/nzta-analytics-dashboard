@@ -198,13 +198,22 @@ The questions for the user are put with this map's pull request (#53).
 
 ### `VEHICLE_TYPE`
 
-- **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`).
+- **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`, which also
+  gives every type a readable label: the name a visitor reads, with no part in scope).
 - **Kind and values.** Category. 2 values on S (passenger car/van 3,617,900; goods van, truck or
   utility 902,576), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
-- **Uses.** Break down, filter. Count only.
+- **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` (labelled "Registered as",
+  for visitors too, so it cannot be read as the site's "Vehicle type"; Build offers it as a
+  condition as soon as a cube carries it) on `registrations_surviving` and `registrations_flow`, which both carry it, with its pairs and
+  fact-table columns listed in `docs/CUBE_SCHEMA.md`. It holds the types `vehicle_scope.csv` puts in
+  scope, so two values today, under that file's labels. It is not live on
+  `registrations_cars_long_run`, whose source is a published series with no register field.
 - **Coverage.** Every vehicle.
 - **Not recorded.** No form seen.
-- **Traps.** None in the data beyond the body types it shares (below).
+- **Traps.** None in the data beyond the body types it shares (below). It is not the site's
+  `segment` ("Vehicle type" in Build: car, ute, van, truck, other), which reads body type and gross
+  vehicle mass as well: a ute registered as a passenger vehicle is a passenger car or van here and a ute
+  there.
 - **Privacy.** Proposed public.
 - **Relations.** Moves together with: class 1.00 and body type 0.97 (by definition, inferred -
   confirm); road transport code 0.82 on the 57,232 S vehicles that have one; gross vehicle mass
@@ -965,6 +974,7 @@ is derived from, read from its `derive` block:
 | `built_in` | `ORIGINAL_COUNTRY` | none |
 | `imported_from` | `PREVIOUS_COUNTRY` | none |
 | `segment`, `segment_group` | `VEHICLE_TYPE`, `BODY_TYPE`, `GROSS_VEHICLE_MASS` | `segment_map.csv` |
+| `vehicle_type` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `label` column) |
 | `import_status` | `IMPORT_STATUS` | `import_status_map.csv` |
 | `region` | `TLA` | `tla_region.csv` |
 | `vehicle_year_band` | `VEHICLE_YEAR`, against the snapshot year | none |
