@@ -15,25 +15,27 @@ Last updated by claude on 2026-11-15
     `cube-2026-10` now holds the fact table. No second forced run is allowed (D-082).
   - **A visitor to a local build can now ask** how many vehicles were registered in any month
     since January 2021 and whether that is up or down on a year ago, by brand and by model.
-  - **No branch is in hand.** The next item is the repository's front page (below).
-  - **Two slips, both recorded:** #50 was merged a minute before its last check finished (it
-    passed); a first reading that event markers respect a filter was wrong (D-089).
+  - **One branch is in hand:** `claude/readme`, the repository's front page, written and
+    committed locally. Open it as a pull request, have it reviewed, merge it.
+  - **Slips, recorded:** #50 merged a minute before its last check finished (it passed);
+    a first reading that event markers respect a filter was wrong (D-089).
 
 ## Open pull requests (none)
 
 ## Work queue: the work order's packages, in order
 
-- **First: the repository's front page** (the user, 2026-11-15). Rewrite `README.md` so it
-  says what the project is today: what a visitor can ask, the three datasets with their
-  sources and attributions, how it is built and run, what is not public yet. Drop what is
-  stale (the freeze file, "build step 1 only"). Propose a one-line "About" for the
-  repository's sidebar to the user; do not set it.
+- **First: the repository's front page** (the user, 2026-11-15). `README.md` is rewritten on
+  `claude/readme`: what the project is today, what it can answer, the three datasets with
+  their sources and attributions, how it is built and run, what is not there yet. Left: its
+  pull request, review and merge. The "About" line for the repository's sidebar is proposed
+  to the user (question 9) and not set.
 - **A. Housekeeping.** Done. Follow-ups left, each with its reason in D-088 or D-089: a
   digest of the rows the archive job pulls; dependencies pinned by hash and a
   draft-then-publish release step (both after December's build); admin bypass on
   `production` (the user's); the status page's script chunk (with D); two Build behaviours
   for chosen values (F); a share by model draws 300 lines (E's chart rules); a model's name
-  shows its separator, and `/build/` skips a heading (H); a second scope for events.
+  shows its separator, and `/build/` skips a heading (H); a second scope for events; a
+  lookup should refuse a blank value at build time, not only in a test (D-095's review).
 - **B. True registrations.** Done on a local build. Left:
   - The site: completeness by vehicle type and new or used, from the pair on the survivors
     and the true-registrations fact table (D-095; today it shows the total and new or used).
@@ -86,10 +88,11 @@ Last updated by claude on 2026-11-15
    paid plan, about US$5 a month, tried first for memory; or no service and lighter files, at
    no cost. Recommend deciding after package D's trim is measured. With no answer Build keeps
    reading static files and nothing is spent.
-7. **Where true registrations sit on the home page.** They are the last group, loaded when
-   scrolled to. Recommend moving them first when the home page is rebuilt (package H).
-8. **The Stats NZ hand export** and **going public** (`docs/playbooks/go-public.md`): not
-   started; a fetched copy of the series serves local builds meanwhile.
+7. **Where true registrations sit on the home page:** last, loaded when scrolled to.
+   Recommend moving them first when the home page is rebuilt (package H).
+8. **The Stats NZ hand export** and **going public** (`docs/playbooks/go-public.md`): not started.
+9. **The repository's "About" line on GitHub** is empty. Proposed: "Plain answers about New
+   Zealand's vehicle market, from NZTA and Stats NZ open data. Work in progress; not public yet."
 
 ## Decided for the user this session
 

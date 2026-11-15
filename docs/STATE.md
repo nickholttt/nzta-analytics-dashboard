@@ -51,9 +51,9 @@ then D's first-load work, the rest of E, F, H and I. One report at the end (D-08
 
 ## In progress (all claude; nothing by gemini)
 
-Nothing: no branch is in hand and no pull request is open (#47 to #58 merged in this
-session). Worktrees of merged branches may remain in the session's scratch folder
-(`git worktree list`); they can be removed.
+No pull request is open (#47 to #58 merged in this session). One branch is in hand:
+`claude/readme`, the repository's front page rewritten as the user asked, committed, local,
+to be opened as a pull request. Other worktrees (`git worktree list`) are of merged branches.
 
 - **This folder's `public/data`** (gitignored) is the dry-run build of #58: three datasets.
   `data/supplied/` (gitignored) holds both stores, `nzta_dashboard` and `statsnz_tpt`. Also
