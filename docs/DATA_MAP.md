@@ -202,8 +202,9 @@ The questions for the user are put with this map's pull request (#53).
   gives every type a readable label: the name a visitor reads, with no part in scope).
 - **Kind and values.** Category. 2 values on S (passenger car/van 3,617,900; goods van, truck or
   utility 902,576), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
-- **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` ("Registered as" in
-  Build) on `registrations_surviving` and `registrations_flow`, which both carry it, with its pairs and
+- **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` (labelled "Registered as",
+  for visitors too, so it cannot be read as the site's "Vehicle type"; Build offers it as a
+  condition as soon as a cube carries it) on `registrations_surviving` and `registrations_flow`, which both carry it, with its pairs and
   fact-table columns listed in `docs/CUBE_SCHEMA.md`. It holds the types `vehicle_scope.csv` puts in
   scope, so two values today, under that file's labels. It is not live on
   `registrations_cars_long_run`, whose source is a published series with no register field.
