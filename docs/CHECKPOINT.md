@@ -90,6 +90,8 @@ Last updated by claude on 2026-11-15
 8. **The Stats NZ hand export** and **going public** (`docs/playbooks/go-public.md`): not started.
 9. **The repository's "About" line on GitHub** is empty. Proposed: "Plain answers about New
    Zealand's vehicle market, from NZTA and Stats NZ open data. Work in progress; not public yet."
+10. **No licence is chosen for the code** (the README says so). Options: none (all rights
+    reserved); MIT; Apache 2.0. No recommendation: it is the owner's to choose.
 
 ## Decided for the user this session
 
