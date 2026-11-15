@@ -3394,7 +3394,7 @@ New entries use this template:
 - Agent: claude (the build by a sub-agent on sonnet, to the lead's plan; this record by the lead)
 - Basis: the work order §5.B ("completeness ... by vehicle type and import status") and §5.C ("completeness for cars
   from July 1975"); D-087, D-090, D-092, D-094; the code and tests on `claude/vehicle-type-dimension`; the whole suite,
-  421 passed locally; a real dry-run build of the saved October pull with both stores, exit 0 in 12 min 48 s,
+  421 passed locally before `main` was merged in and 434 on the tip (the reviewer's run); a real dry-run build of the saved October pull with both stores, exit 0 in 12 min 48 s,
   publishing nothing.
 - Context: completeness was shown in total and by new or used only (D-093). The cube had no breakdown by NZTA's own
   vehicle type: `segment` is the site's finer split (cars, utes, vans, trucks) and needs gross vehicle mass, which
@@ -3404,10 +3404,11 @@ New entries use this template:
   1. **Where the dimension's values come from.** (a) The register's own capitals. (b) A lookup on
      `vehicle_scope.csv`, the file that already decides scope, with a new `label` column. Chosen (b): one file
      says both whether a type counts and what it is called, so the two cannot drift, and a type brought into scope
-     later needs only its flag changed. A test holds the dimension to the scope lookup's file, key and field.
-  2. **Its name.** `segment` is already labelled "Vehicle type". Chosen: label "Registered as", and for visitors
-     "NZTA's type of vehicle", with a note that it is not the car, ute, van and truck split (a ute can be registered
-     as a passenger vehicle). `segment` is not renamed.
+     later needs no new label. A test holds the dimension to the scope lookup's file, key and field.
+  2. **Its name.** `segment` is already labelled "Vehicle type". Chosen: "Registered as", for maintainers and
+     visitors alike, with a note that it is not the car, ute, van and truck split (a ute can be registered as a
+     passenger vehicle). `segment` is not renamed. A first choice of "NZTA's type of vehicle" for visitors was
+     dropped at review: Build would have listed it beside "Vehicle type".
   3. **The fact tables.** On `registrations_flow` it is added: it is the only way to ask true registrations by kind
      of vehicle together with brand or powertrain. On `registrations_surviving` it was to be added only if it grew
      the table by under 5% in rows: it grew it by none (the type is settled by columns already there), and by 2.4%
@@ -3439,6 +3440,12 @@ New entries use this template:
     "passenger car/van", Stats NZ's "cars and station wagons"), checked against each other for 2026 only (D-065).
     `docs/METRICS.md` says so, and the site must say so beside the chart.
   - The next build on GitHub publishes the new slice, pair and fact column for the survivors dataset in the cube
-    release. They hold nothing the release does not already show in a finer form (`segment`).
+    release. They hold almost nothing the release does not already show: each value of `segment_group` belongs to
+    one of the two types, so the new slice follows from that one, but for 88 goods vehicles whose segment is
+    undefined, which this dimension now places. (`segment` itself does not settle the type: utes, vans and "other"
+    each hold both.) On that ground it was not put to the user as a new kind of data; it is listed for them in
+    the final report.
+  - Build offers the new field as a condition on both datasets as soon as a cube carries the column, because
+    Build's conditions follow the fact table.
   - Reversing it: remove the dimension from `config/dimensions.json` and the two config lists; two golden changes back.
 - Status: decided by Claude (unreviewed)
