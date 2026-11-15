@@ -21,8 +21,8 @@ From the data GitHub builds, which anyone can download (see "Run it"):
 - **Your own question**, on the Build page: choose what to count, break it
   down, pick the brands or values to compare, add conditions, share the link.
 
-These count vehicles that are still registered, so older months look smaller
-than they were.
+These count vehicles that are still registered, so older months are missing
+the vehicles since scrapped.
 
 With two more sets of figures that the maintainer downloads by hand each month
 (for now they exist only on the maintainer's computer):
@@ -102,14 +102,15 @@ python -m venv .venv
 
 On Linux or macOS use `.venv/bin/pip` and `.venv/bin/python`.
 
-The site, with the data GitHub last built (this needs the GitHub CLI, `gh`;
-the commands are written for Git Bash):
+The site, with the data GitHub last built (the commands are written for Git
+Bash; the download needs no account):
 
 ```
 npm install
-gh release download cube-2026-10 --repo nickholttt/nzta-analytics-dashboard --pattern public-data.tar.gz
+curl -L -o public-data.tar.gz https://github.com/nickholttt/nzta-analytics-dashboard/releases/download/cube-2026-10/public-data.tar.gz
 mkdir -p public/data
 tar -xzf public-data.tar.gz -C public/data
+rm public-data.tar.gz
 npm run dev                             # the site at http://127.0.0.1:4321/
 node --test "tests/site/*.test.ts"      # the site's tests
 ```
@@ -157,8 +158,9 @@ a reference value.
 - The long-run car series has no chart yet.
 - SUVs cannot be told apart from cars: the register records most as station
   wagons. A model-level classification is planned.
-- A question on the Build page takes several seconds to answer on a phone:
-  the browser downloads the table of counts and adds it up itself.
+- A question on the Build page takes several seconds to answer on a phone.
+  Most of the wait is the page's own code and fonts; the rest is the table of
+  counts the browser downloads and adds up itself.
 - The privacy classes for the register's fields are proposals.
 - The method and caveats pages are written by hand and fall behind when a new
   month arrives.
