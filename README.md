@@ -5,24 +5,36 @@ data. A visitor asks one question, such as "how many vehicles were registered
 last month, and is that up or down on a year ago?", and gets one clear answer,
 the evidence for it, and the freedom to dig further.
 
-**Status (15 November 2026): work in progress, not yet public.** The data
-pipeline runs on GitHub every day. The site runs on a developer's computer
-only; nothing is deployed.
+**Status (15 November 2026): work in progress. The website is not online
+yet.** The data pipeline runs on GitHub every day. The site itself runs only
+on a computer that has the code and a copy of the data.
 
 ## What it can answer today
 
-On a local build:
+From the data GitHub builds, which anyone can download (see "Run it"):
+
+- **How the mix has changed**: powertrains (petrol, diesel, hybrid, electric),
+  new against used imports, who owns the brands, where vehicles are built, how
+  old used imports are when they arrive, cars against utes, vans and trucks.
+- **Which brands lead** over the latest twelve months, and who is gaining or
+  losing ground.
+- **Your own question**, on the Build page: choose what to count, break it
+  down, pick the brands or values to compare, add conditions, share the link.
+
+These count vehicles that are still registered, so older months look smaller
+than they were.
+
+With two more sets of figures that the maintainer downloads by hand each month
+(for now they exist only on the maintainer's computer):
 
 - **How many vehicles were registered in any month since January 2021**, and
   whether that is up or down on a year ago, by brand and by model.
-- **Which brands and models lead**, for any month or the latest twelve.
-- **How the mix has changed**: powertrains (petrol, diesel, hybrid, electric),
-  new against used imports, who owns the brands, where vehicles are built, how
-  old used imports are when they arrive.
+- **Which brands and models lead** in any single month.
 - **How complete the picture is**: for each month, how many of the vehicles
   registered are still on the register.
-- **Your own question**, on the Build page: choose what to count, break it
-  down, pick the brands or values to compare, add conditions, share the link.
+
+Without those files the site says plainly that these charts are not in the
+build.
 
 Every figure is one step from its definition, its source and the date of the
 data. The site says what the data shows, never why. There are no forecasts and
@@ -33,22 +45,27 @@ no commentary.
 | Dataset | What it counts | Source | Covers |
 |---|---|---|---|
 | Vehicles still registered | Vehicles first registered in a month that are still on the register | NZTA's open Motor Vehicle Register, pulled by the pipeline | All history; older months thin out as vehicles are scrapped |
-| True registrations | Every vehicle first registered in a month, including those since removed | NZTA's registrations dashboard, exported by hand | January 2021 on |
-| Cars registered since 1961 | Cars and station wagons first registered each month, new and ex-overseas | Stats NZ's monthly series, exported by hand | January 1961 on (the new and ex-overseas split from July 1975) |
+| True registrations | Vehicles first registered in a month, including those since removed | NZTA's registrations dashboard, exported by hand | January 2021 on |
+| Cars registered since 1961 | Cars and station wagons first registered each month, new and ex-overseas | Stats NZ's monthly series, from its Infoshare tool | January 1961 on (the new and ex-overseas split from July 1975) |
 
-The three are never mixed on one chart. Registrations are not sales, and these
-figures will not match the motor industry's own; the site's "Why these figures
-differ from others" page explains each difference.
+The first two count cars, vans, utes and trucks only, new or used when they
+arrived. Motorcycles, buses and trailers are not counted yet.
 
-The pipeline on GitHub builds the first dataset unattended. The other two are
-built wherever their hand-exported files have been supplied, which today is on
-the maintainer's computer only; a build without them says so plainly.
+The three are never drawn as separate lines on one chart. The completeness
+chart is the one place two of them meet: it divides one by the other.
+Registrations are not sales, and these figures will not match the motor
+industry's own; the site's "Why these figures differ from others" page
+explains each difference.
+
+Only the first dataset is built on GitHub. The other two need the files the
+maintainer downloads by hand.
 
 **Licence and attribution.** NZTA's data is released under CC BY 4.0. Stats
 NZ's series: "This work is based on/includes Stats NZ's data which are licensed
 by Stats NZ for reuse under the Creative Commons Attribution 4.0 International
-licence." This project is not affiliated with NZTA, Stats NZ, the Motor
-Industry Association or the Motor Trade Association.
+licence." The region outlines on the map are also from Stats NZ (CC BY 4.0).
+This project is not affiliated with NZTA, the Motor Industry Association or
+the Motor Trade Association. No licence has been chosen for the code yet.
 
 ## How it is built
 
@@ -64,41 +81,55 @@ Industry Association or the Motor Trade Association.
   A new powertrain is a one-row edit.
 - **Charts are data.** Each chart on the Explore page is an entry in
   `config/presets.json`, drawn by one of a fixed set of renderers.
-- **Every field is defined before it can be asked about.** `docs/DATA_MAP.md`
-  gives each of the register's 40 fields its meaning, its coverage, its traps
-  and a proposed privacy class. Fields that describe a vehicle's owner are not
-  published.
+- **Every field is written up.** `docs/DATA_MAP.md` gives each of the
+  register's 40 fields its meaning, its coverage, its traps and a proposed
+  privacy class. The classes are proposals, not yet approved by the owner.
+  Fields that describe a vehicle's owner are not published, with one
+  exception: the share of vehicles by the owner's region, which predates that
+  rule and waits on the owner's decision.
 - **The site** (Astro, React and Observable Plot, `src/`) reads the cube as
   static files.
 
 ## Run it
 
+The pipeline's tests:
+
 ```
 python -m venv .venv
-.venv/Scripts/pip install -r pipeline/requirements.txt     # .venv/bin/pip on Linux or macOS
-.venv/Scripts/python.exe -m pytest pipeline/tests -q       # the pipeline's tests
+.venv/Scripts/pip install -r pipeline/requirements.txt
+.venv/Scripts/python.exe -m pytest pipeline/tests -q
+```
 
+On Linux or macOS use `.venv/bin/pip` and `.venv/bin/python`.
+
+The site, with the data GitHub last built (this needs the GitHub CLI, `gh`;
+the commands are written for Git Bash):
+
+```
 npm install
-npm run dev                             # the site at http://127.0.0.1:4321/, reading public/data
+gh release download cube-2026-10 --repo nickholttt/nzta-analytics-dashboard --pattern public-data.tar.gz
+mkdir -p public/data
+tar -xzf public-data.tar.gz -C public/data
+npm run dev                             # the site at http://127.0.0.1:4321/
 node --test "tests/site/*.test.ts"      # the site's tests
 ```
 
-The site needs a built cube in `public/data` (not in the repository). The
-playbooks say how to get one: `docs/playbooks/refresh-public-data.md` and
-`docs/playbooks/local-ui-dev.md`. `AGENTS.md` lists every command with the
-result last observed, and the few that must not be run by hand. Last run with
-Python 3.13 and Node 22.19 on Windows 11; GitHub's runs use Python 3.13 on
-Linux.
+`npm run dev` keeps running in the background; stop it with
+`npx astro dev stop`. A newer month's data is a release named `cube-YYYY-MM`.
+
+`AGENTS.md` lists every command with the result last observed, and the few
+that must not be run by hand. Last run with Python 3.13 and Node 22.19 on
+Windows 11; GitHub's runs use Python 3.13 on Linux.
 
 ## Keeping the reference data right
 
 Brand ownership is what goes stale first, and every "who owns the brands"
 chart inherits it. In `data/reference/brand_registry.csv`, `as_at` is the date
-a row's ownership was last checked; blank means not checked since the project
-began. Recheck the oldest and blank rows when a brand changes hands. Ownership
-is not versioned over time on purpose: the charts answer who owns these brands
-now, and say so. The playbooks cover adding an event, a chart or a reference
-value.
+a row's ownership was last checked; blank means never checked since the
+project began. Recheck the oldest and blank rows when a brand changes hands.
+Ownership is not versioned over time on purpose: the charts answer who owns
+these brands now, and say so. The playbooks cover adding an event, a chart or
+a reference value.
 
 ## Find your way around
 
@@ -111,21 +142,26 @@ value.
 | `AGENTS.md` | For anyone (or any coding agent) working on the repository: commands and hard rules |
 | `docs/METRICS.md` | The exact definition of every figure |
 | `docs/DATA_SOURCES.md` | Each source: where it comes from, how often, its licence, its traps |
-| `docs/DATA_MAP.md` | Every field of the register, defined and checked against the data |
+| `docs/DATA_MAP.md` | Every field of the register, written up and checked against the data |
 | `docs/CUBE_SCHEMA.md` | The contract between the pipeline and the site |
-| `docs/EVENTS_LAYER.md` | The dated policy and market events placed beside the charts (54 on file, 50 verified) |
+| `docs/EVENTS_LAYER.md`, `data/reference/events.csv` | The dated policy and market events placed beside the charts: how they work, and the 54 on file (50 verified) |
 | `docs/playbooks/` | Step-by-step guides: checks, the local site, adding an event or a chart, supplying a month's export, going public |
 | `docs/brief/` | The direction of the work: the master brief and the current work order |
+| `POST_GATE.md` | Work queued while the pipeline was frozen (the freeze ended on 13 November 2026); kept for the record |
 
 ## Not there yet
 
-- The site is not public. The About page is a marked draft.
-- True registrations and the long-run car series are not built on GitHub, only
-  where their files have been supplied.
-- The long-run car series is in the cube but not yet on a chart.
+- The website is not online. Its About page is a marked draft.
+- True registrations and the long-run car series are built only where their
+  hand-downloaded files are, not on GitHub.
+- The long-run car series has no chart yet.
 - SUVs cannot be told apart from cars: the register records most as station
   wagons. A model-level classification is planned.
-- The first chart is slow to appear on a phone.
+- A question on the Build page takes several seconds to answer on a phone:
+  the browser downloads the table of counts and adds it up itself.
+- The privacy classes for the register's fields are proposals.
+- The method and caveats pages are written by hand and fall behind when a new
+  month arrives.
 - Four of the 54 events are unverified and left out of the build.
 
 `docs/STATE.md` has the full list.
