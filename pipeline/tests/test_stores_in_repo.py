@@ -14,6 +14,7 @@ import copy
 import csv
 import json
 import re
+import shutil
 from datetime import date, datetime
 from pathlib import Path
 
@@ -536,10 +537,109 @@ def test_the_committed_store_keeps_no_model_outside_the_scope_it_names(source_id
     if not registrations.exists():
         pytest.skip("this store is not committed yet")
     ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
-    assert supplied.scope_problems(REAL, REAL.supplied(source_id), ledger) == []
-    rows, scope = store_rows(REAL, source_id), supplied.outside_scope(REAL, REAL.supplied(source_id))
+    # The store must not be wrong against the scope files today: no model it blanked is read now. A pair the dataset no
+    # longer counts, or a value the scope files gained, only warns, and fails nothing here.
+    assert supplied.scope_problems(REAL, REAL.supplied(source_id), ledger).refusals == []
+    # What the store was trimmed to is what its ledger records, whatever the scope files say today.
+    rows, scope = store_rows(REAL, source_id), ledger["outside_scope"]
     assert any(outside(REAL, r, scope) for r in rows) and any(not outside(REAL, r, scope) for r in rows)
     assert [r for r in rows if outside(REAL, r, scope) and r["model"] is not None] == []
+
+
+# --- a change of scope that leaves the store correct warns; one that makes it wrong refuses --------------------------
+
+
+def with_scope_file(tmp_path, workspace, name: str, edit):
+    """A configuration whose vehicle scope file is the real one after `edit(rows)`; the stores are the workspace's."""
+    vehicle = REAL.pipeline["scope"]["vehicle"]
+    reference_dir = tmp_path / name
+    shutil.copytree(REAL.reference("x").parent, reference_dir)
+    path = reference_dir / vehicle["file"]
+    with path.open(encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh)
+        header, rows = list(reader.fieldnames), list(reader)
+    edit(rows, vehicle)
+    with path.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=header, lineterminator=chr(10))
+        writer.writeheader()
+        writer.writerows(rows)
+    return make_cfg(workspace, reference_dir=reference_dir)
+
+
+def not_counted_type(cfg) -> str:
+    """A vehicle type the history holds that the dataset does not count and the trade's total does not either."""
+    vehicle, true = cfg.pipeline["scope"]["vehicle"], cfg.pipeline["boolean_true"]
+    column = cfg.supplied(COUNTED)["outside_scope"]["also_kept_column"]
+    held = {r[cfg.supplied(COUNTED)["fields"]["vehicle_type"]] for r in raw_rows()}
+    from pipeline import reference
+    return next(r[vehicle["key"]] for r in reference.read(cfg.reference(vehicle["file"]))
+                if r[vehicle["key"]] in held and r[vehicle["in_scope"]] != true and r[column] != true)
+
+
+def test_a_new_value_in_the_scope_files_only_warns_and_the_store_is_still_read(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    supply_counted(cfg, HISTORY)
+    before = supplied.store_paths(cfg, COUNTED)[0].read_bytes()
+
+    def add_type(rows, vehicle):
+        rows.append({**{k: "" for k in rows[0]}, vehicle["key"]: "A NEW TYPE", vehicle["in_scope"]: "true"})
+    wider = with_scope_file(tmp_path, workspace, "new_value", add_type)
+    manifest = run(tmp_path, wider)
+    assert any("scope files now know" in w and "A NEW TYPE" in w and w.startswith(f"{COUNTED}: ") for w in manifest["warnings"]), manifest["warnings"]
+    assert (wider.path("public") / "cube" / DATASETS[COUNTED]).is_dir()
+    done = supply_counted(wider, HISTORY)
+    assert not done["written"] and any("scope files now know" in w for w in done["warnings"])
+    assert supplied.store_paths(cfg, COUNTED)[0].read_bytes() == before
+
+
+def test_a_pair_the_dataset_stops_counting_only_warns_and_new_months_are_trimmed_as_the_ledger_records(tmp_path, workspace):
+    kept_type = not_counted_type(make_cfg(workspace))
+
+    def trade_counts(rows, vehicle):
+        column = REAL.supplied(COUNTED)["outside_scope"]["also_kept_column"]
+        next(r for r in rows if r[vehicle["key"]] == kept_type)[column] = REAL.pipeline["boolean_true"]
+    wide = with_scope_file(tmp_path, workspace, "wide", trade_counts)
+    narrow = make_cfg(workspace)
+    # The store is written under the wider scope for its first months, and the later month under the narrower one.
+    supply_counted(wide, counted_history(wide, tmp_path, lag=1, name="early.csv"))
+    early = {r["month"] for r in store_rows(wide)}
+    assert any(r["model"] is not None for r in store_rows(wide) if r["vehicle_type"] == kept_type)
+    manifest = run(tmp_path, narrow)
+    assert any("no longer counts" in w for w in manifest["warnings"]), manifest["warnings"]
+    done = supply_counted(narrow, HISTORY)
+    assert done["written"] and any("no longer counts" in w for w in done["warnings"])
+    rows = store_rows(narrow)
+    assert {r["month"] for r in rows} > early
+    assert all(r["model"] is not None for r in rows if r["vehicle_type"] == kept_type), "a month was trimmed under another scope"
+    # The same store as the whole history supplied under the wider scope in one go.
+    whole = with_scope_file(tmp_path, {**workspace, "supplied": tmp_path / "whole_supplied"}, "wide_again", trade_counts)
+    supply_counted(whole, HISTORY)
+    key = lambda r: tuple(str(v) for v in r.values())  # noqa: E731
+    assert sorted(map(key, store_rows(whole))) == sorted(map(key, rows))
+
+
+def test_a_pair_the_store_blanked_that_the_dataset_counts_now_is_refused_by_the_build_and_by_supply(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    supply_counted(cfg, HISTORY)
+    kept_type = not_counted_type(cfg)
+
+    def now_counted(rows, vehicle):
+        next(r for r in rows if r[vehicle["key"]] == kept_type)[vehicle["in_scope"]] = REAL.pipeline["boolean_true"]
+    widened = with_scope_file(tmp_path, workspace, "widened", now_counted)
+    expect_abort(lambda: run(tmp_path, widened), "did not keep the model")
+    expect_abort(lambda: supply_counted(widened, HISTORY), kept_type)
+    expect_abort(lambda: supply_counted(widened, HISTORY), "Supply the whole history again from the raw exports")
+
+
+def test_a_field_the_ledger_says_was_blanked_that_config_no_longer_trims_is_refused(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    supply_counted(cfg, HISTORY)
+    untrimmed = make_cfg(workspace)
+    untrimmed.pipeline["supplied"][COUNTED]["outside_scope"]["fields"] = ["body_type"]
+    expect_abort(lambda: run(tmp_path, untrimmed), "no longer trims")
+    check = supplied.scope_problems(untrimmed, untrimmed.supplied(COUNTED),
+                                    json.loads(supplied.store_paths(cfg, COUNTED)[1].read_text(encoding="utf-8")))
+    assert check.refusals and any("body_type" in w for w in check.warnings)
 
 
 # --- a replacement the last good build has not seen -------------------------------------------------------------------------

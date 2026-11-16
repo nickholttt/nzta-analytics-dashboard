@@ -50,7 +50,6 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/audit-pipeline-fixes` (D-108; the main folder): the audit's pipeline-side fixes.
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
 - `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): one reference
   file. Nothing in it goes live before the user approves.
@@ -75,8 +74,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
    data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
 2. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
-3. Mild hybrids are identified for 62.7% of `registrations_flow`'s hybrids at high confidence
-   over the trailing 12 months, under the 70% the pipeline warns at (D-092).
+3. Mild hybrids are identified for about 79% of each dataset's hybrids at high confidence over
+   the trailing 12 months (#68, D-108). Under 70% a dataset now shows its hybrids undivided.
 4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). It holds no owner field; the user's minimum of 10 is for owner fields (D-096).
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and

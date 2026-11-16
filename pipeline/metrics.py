@@ -123,11 +123,17 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> d
     """).fetchone()[0]
     figures = [b["coverage_stated_confidence"] for b in (whole, recent) if b["coverage_stated_confidence"] is not None]
     complete = bool(figures) and min(figures) >= h["complete_at_coverage"]
+    # The split is judged on the trailing figure at high confidence, the stricter of the two trailing figures. A window
+    # with no mild or unknown hybrid has nothing to divide wrongly, so it is not withheld.
+    trailing_high = recent["coverage_high_confidence_only"]
+    publish_at = h["publish_split_at_trailing_high_confidence_coverage"]
     return {
         "all_time": whole,
         "trailing": {"window_months": window, **recent},
         "complete_at_coverage": h["complete_at_coverage"],
         "warn_below_trailing_high_confidence_coverage": h["warn_below_trailing_high_confidence_coverage"],
+        "publish_split_at_trailing_high_confidence_coverage": publish_at,
+        "mild_split_published": trailing_high is None or trailing_high >= publish_at,
         "label": h["labels"]["complete" if complete else "partial"],
         "classification_disagrees_with_powertrain": disagreeing,
     }

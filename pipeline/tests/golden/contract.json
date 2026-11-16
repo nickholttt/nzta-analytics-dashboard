@@ -163,6 +163,8 @@
      },
      "complete_at_coverage": 0.95,
      "warn_below_trailing_high_confidence_coverage": 0.7,
+     "publish_split_at_trailing_high_confidence_coverage": 0.7,
+     "mild_split_published": false,
      "label": "Mild hybrid (identified)",
      "classification_disagrees_with_powertrain": 0
     },
@@ -283,12 +285,12 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 41521,
+  "payload_bytes": 41473,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
    "registrations_surviving: 1 rows are dated after the snapshot month and were excluded",
-   "registrations_surviving: mild hybrid identification coverage over the trailing 12 months is 33.3% counting high-confidence classifications only, below 70%",
+   "registrations_surviving: mild hybrid identification coverage over the trailing 12 months is 33.3% counting high-confidence classifications only, below 70%, so the mild hybrid split is not published: its mild hybrids are counted as Hybrid",
    "registrations_flow was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
    "registrations_cars_long_run was not built: the supplied store for statsnz_tpt is absent (data/supplied/statsnz_tpt); add a file with `python -m pipeline supply statsnz_tpt <csv>`",
    "no last good state: first run, so previous-run comparisons were skipped"
@@ -4074,20 +4076,11 @@
     [
      "2026-05-01",
      "Hybrid",
-     2,
+     3,
      6,
-     12.0,
-     2,
-     2
-    ],
-    [
-     "2026-05-01",
-     "Mild hybrid",
-     1,
-     6,
-     7.9,
-     1,
-     1
+     19.9,
+     3,
+     3
     ],
     [
      "2026-05-01",
@@ -4182,20 +4175,11 @@
     [
      "2026-08-01",
      "Hybrid",
-     4,
+     5,
      11,
-     18.2,
-     4,
-     4
-    ],
-    [
-     "2026-08-01",
-     "Mild hybrid",
-     1,
-     11,
-     4.0,
-     1,
-     1
+     22.2,
+     5,
+     5
     ],
     [
      "2026-08-01",
@@ -6646,22 +6630,22 @@
     [
      "2026-05-01",
      "Hybrid",
-     "Light passenger",
-     2,
-     6,
-     12.0,
-     2,
-     2
-    ],
-    [
-     "2026-05-01",
-     "Mild hybrid",
      "Light commercial",
      1,
      6,
      7.9,
      1,
      1
+    ],
+    [
+     "2026-05-01",
+     "Hybrid",
+     "Light passenger",
+     2,
+     6,
+     12.0,
+     2,
+     2
     ],
     [
      "2026-05-01",
@@ -6767,21 +6751,11 @@
      "2026-08-01",
      "Hybrid",
      "Light passenger",
-     4,
+     5,
      11,
-     18.2,
-     4,
-     4
-    ],
-    [
-     "2026-08-01",
-     "Mild hybrid",
-     "Light passenger",
-     1,
-     11,
-     4.0,
-     1,
-     1
+     22.2,
+     5,
+     5
     ],
     [
      "2026-08-01",
@@ -6953,13 +6927,13 @@
      "0"
     ],
     [
+     "14"
+    ],
+    [
      "0"
     ],
     [
      "13"
-    ],
-    [
-     "14"
     ],
     [
      "0"
@@ -7303,10 +7277,10 @@
      "1.5-1.9 L"
     ],
     [
-     "2.0-2.4 L"
+     "1.0-1.4 L"
     ],
     [
-     "1.0-1.4 L"
+     "2.0-2.4 L"
     ],
     [
      "1.0-1.4 L"
@@ -7653,10 +7627,10 @@
      "NZ New"
     ],
     [
-     "NZ New"
+     "Used Import"
     ],
     [
-     "Used Import"
+     "NZ New"
     ],
     [
      "Used Import"
@@ -7828,13 +7802,13 @@
      "HAVAL"
     ],
     [
-     "TOYOTA"
-    ],
-    [
-     "TOYOTA"
-    ],
-    [
      "HONDA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
     ],
     [
      "KIA"
@@ -8003,13 +7977,13 @@
      "HAVAL|H6"
     ],
     [
+     "HONDA|FIT"
+    ],
+    [
      "TOYOTA|RAV4"
     ],
     [
      "TOYOTA|AQUA"
-    ],
-    [
-     "HONDA|FIT"
     ],
     [
      "KIA|SPORTAGE"
@@ -8353,10 +8327,10 @@
      1
     ],
     [
-     2
+     1
     ],
     [
-     1
+     2
     ],
     [
      1
@@ -8703,13 +8677,13 @@
      "Great Wall Motor"
     ],
     [
-     "Toyota Group"
-    ],
-    [
-     "Toyota Group"
-    ],
-    [
      "Honda Motor"
+    ],
+    [
+     "Toyota Group"
+    ],
+    [
+     "Toyota Group"
     ],
     [
      "Hyundai Motor Group"
@@ -8821,7 +8795,7 @@
      "Hybrid"
     ],
     [
-     "Mild hybrid"
+     "Hybrid"
     ],
     [
      "Petrol"
@@ -8884,7 +8858,7 @@
      "Hybrid"
     ],
     [
-     "Mild hybrid"
+     "Hybrid"
     ],
     [
      "Petrol"
