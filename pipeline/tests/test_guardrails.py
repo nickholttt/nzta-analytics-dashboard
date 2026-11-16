@@ -723,21 +723,34 @@ def test_a_window_with_no_hybrid_to_divide_is_not_withheld():
     con.close()
 
 
-def coverage_from_counts(cfg, identified_high: int, unknown: int) -> dict:
+def coverage_from_counts(cfg, identified_high: int, unknown: int, full_medium: int = 0) -> dict:
     """hybrid_coverage over a table of exactly these counts: vehicles recorded under a hybrid code, `identified_high` of them
-    classified mild at high confidence and `unknown` of them not classified at all, all in the trailing window."""
+    classified mild at high confidence, `full_medium` classified full at medium confidence and `unknown` not classified at
+    all, all in the trailing window."""
     h, engine = cfg.pipeline["hybrid_classification"], cfg.pipeline["engine"]
     keys = reference.hybrid_keys(cfg)
     code = sorted(keys["source_hybrid"] - keys["mild"])[0]
     con = duckdb.connect()
     con.execute(f"CREATE TABLE rows (in_scope BOOLEAN, fleet_entry BOOLEAN, reg_month DATE, {engine['field']} VARCHAR, "
                 f"{engine['field']}__source VARCHAR, hybrid_class VARCHAR, hybrid_confidence VARCHAR)")
-    for kind, level, n in ((h["types"]["mild"], h["high_confidence_level"], identified_high), (None, None, unknown)):
+    medium = next(level for level in h["confidence_levels"] if level != h["high_confidence_level"])
+    for kind, level, n in ((h["types"]["mild"], h["high_confidence_level"], identified_high), (None, None, unknown),
+                           (h["types"]["full"], medium, full_medium)):
         con.execute(f"INSERT INTO rows SELECT TRUE, TRUE, DATE '2026-08-01', ?, ?, ?, ? FROM range({n})", [code, code, kind, level])
     out = metrics.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
     con.close()
     assert out["trailing"]["identified_mild"] == identified_high and out["trailing"]["unknown"] == unknown
     return out
+
+
+def test_a_nameplate_called_full_at_medium_confidence_leaves_the_denominator_at_both_levels():
+    """What docs/METRICS.md says of the figure at high confidence only: it demotes mild rows, not full ones."""
+    cfg = make_cfg({})
+    without = coverage_from_counts(cfg, 60, 20)["trailing"]
+    with_full = coverage_from_counts(cfg, 60, 20, full_medium=500)["trailing"]
+    assert with_full["identified_full"] == 500 and with_full["source_hybrids"] == 580
+    assert with_full["coverage_stated_confidence"] == without["coverage_stated_confidence"] == 0.75
+    assert with_full["coverage_high_confidence_only"] == without["coverage_high_confidence_only"] == 0.75
 
 
 def threshold_counts(cfg) -> tuple[int, int, int]:

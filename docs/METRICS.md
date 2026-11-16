@@ -442,7 +442,17 @@ coverage.
 Coverage is published twice, so its dependence on judgement calls is
 visible: at stated confidence (every classification row counts) and at high
 confidence only (medium- and low-confidence `mild` rows count as unknown;
-vehicles identified by the code mapping alone count at both levels). At the
+vehicles identified by the code mapping alone count at both levels). Only
+`mild` rows are demoted: a `full` row leaves the denominator at both levels
+whatever its confidence, so a nameplate called full at medium confidence is not
+counted as unknown at high confidence only. No medium- or low-confidence `full`
+row carries an override today, so none moves a vehicle between powertrain values
+(the three `full` rows that do carry one are high confidence). Counting them as
+unknown instead was measured on the 2026-10 snapshot and not adopted (D-110): it
+would take the trailing figure at high confidence from 79.3% to 74.0% on the
+register (1,272 of its hybrids) and from 79.2% to 74.0% on true registrations
+(1,275), and the all-time figure from 63.6% to 60.1% and from 68.5% to 64.5%;
+neither dataset would fall under 70%. At the
 2026-08 snapshot, all-time coverage is 83.0% at stated confidence but 62.8%
 at high confidence only, because 13,808 Honda IMA hybrids are classified
 at medium confidence. Over the trailing 12 months it is 84.1% and 79.5%.

@@ -118,7 +118,9 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> d
             "identified_mild_by_confidence": {**by_confidence, "code_default": code},
         }
         # High confidence only: medium- and low-confidence mild rows count as unknown. Vehicles identified by the code
-        # mapping alone rest on no nameplate call, so they count at both levels.
+        # mapping alone rest on no nameplate call, so they count at both levels. A full row leaves the denominator at
+        # both levels, whatever its confidence; counting a medium-confidence one as unknown was measured and not
+        # adopted (docs/METRICS.md, D-110).
         high, denominator = high_confidence_counts(doc, h["high_confidence_level"])
         if denominator:
             doc["coverage_stated_confidence"] = round(identified / denominator, 4)
