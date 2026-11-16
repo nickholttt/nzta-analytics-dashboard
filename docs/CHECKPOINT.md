@@ -10,7 +10,8 @@ Last updated by claude on 2026-11-16
   - **Merged:** #60, the user's answers (D-096). #61, package C's charts and completeness
     by vehicle type (D-098). #62, the chart rules and the site's tests in `Checks` (D-100,
     D-101). #64, the first-load trim (D-099). #65, the comparison with published figures
-    and three more answers (D-105, D-106). #66, the supplied counts as files (D-097).
+    and three more answers (D-105, D-106). #66, the supplied counts as files (D-097). #67,
+    the audit's site-side fixes (D-107).
   - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
     the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
     sit about 1% lower, cause not established. Range-extended electric vehicles sit with
@@ -30,33 +31,33 @@ Claude's reading, unreviewed (D-104): the work order's order stands, with the en
 the public-facing packages and no proposal to launch early; each measure is recomputed
 independently of the site's code; figures are compared with published New Zealand sources.
 
-## Open pull requests
-
-- #67 `claude/audit-fixes` (D-107): the audit's site-side fixes. In review. It and #64 both
-  changed `PresetPanel.tsx`, `MixChart.tsx` and `config.ts`: merge `main` into it first.
+## Open pull requests (none)
 
 ## Work in hand, in the order to pick it up
 
-1. **Review and merge #67.**
-2. **What the engine's audit found** (D-104, D-107). A checker recomputed 34,693 of the
+1. **What the engine's audit found** (D-104, D-107). A checker recomputed 34,693 of the
    site's figures from the register's rows and the dashboard export: 34,618 agree, 74 are
    withheld on both sides, 1 differs (a tie in a ranking). No count is wrong.
-   - On the site's side, #67: a rule for ties, what the guards do, the coverage note on a
-     narrowed chart, stale lines on `/caveats`, the limit on conditions.
-   - On the pipeline's side, in hand on `claude/audit-pipeline-fixes` (D-108): a hybrid nameplate the dashboard spells differently is
-     missing from `mild_hybrid_models.csv` (true registrations' coverage reads 66.0%), and
-     the mild split is drawn below the 70% METRICS asks for; ties at the 300-model cap.
+   - On the site's side, done (#67): equal counts share a rank; a ranking's comparison with
+     a year earlier is decided by the dataset's own months, and a month with no vehicles
+     under a condition is zero; METRICS says what each guard does; the coverage note;
+     `/caveats`; models read as words; a lint against naming a value in a template.
+   - Next on the site: the same zero-month rule for a 12-month share under a condition
+     (it leaves a gap today); whether a ranking should apply the share guards.
+   - On the pipeline's side, in hand on `claude/audit-pipeline-fixes` (D-108): hybrid
+     nameplates the dashboard spells differently are missing from `mild_hybrid_models.csv`
+     (coverage reads 66.0%); the mild split is drawn below METRICS' 70%; ties at the model cap.
      Also: any change to the scope files refuses the committed counts until the history is
      supplied again, even a row for a new NZTA value; refuse only what the trim depends on.
-3. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
-4. **Package F**, each field checked against the data and published sources before Build
+2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
+3. **Package F**, each field checked against the data and published sources before Build
    offers it. First: a total of new vehicles on the trade's basis beside the default scope
    (the user, D-106; `trade_scope` in `vehicle_scope.csv`). Then: colour, seats, where
    assembled, class; power and transmission; owner
    fields last, unpublished until the pipeline hides small cells (D-096). Then ranked chosen
    values, the `matrix` renderer, any number of conditions, "My questions", the
    related-fields note, CSV of what is on screen, the acceptance question both ways.
-5. **Paused, half written, uncommitted:** package H's narrative spec (D-102; worktree
+4. **Paused, half written, uncommitted:** package H's narrative spec (D-102; worktree
    `nzta-screens`, `claude/narrative-spec`: `config/narrative/` files and a lint test, no
    `docs/NARRATIVE.md` yet) and package I's proposed segment scheme (D-103; worktree
    `nzta-segments`, `claude/model-segments`: one reference file so far). Both are behind `main`.
