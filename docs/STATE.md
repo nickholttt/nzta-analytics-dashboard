@@ -56,7 +56,7 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
 - `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): a proposal only.
-- `claude/warnings-seen` (D-112; worktree `nzta-audit`): a build's warnings where they are read.
+- `claude/matrix` (D-114; worktree `nzta-notes`): the sixth shape and a second breakdown in Build.
 - `claude/trade-basis` (D-113; the main folder): true registrations on the wider scope.
 
 ## Raw files on this computer (gitignored)

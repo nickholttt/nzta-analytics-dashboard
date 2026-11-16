@@ -7,7 +7,7 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session.
-  - **Merged, #60 to #71** (#63 was closed unmerged): the user's answers (D-096, D-106);
+  - **Merged, #60 to #72** (#63 was closed unmerged): the user's answers (D-096, D-106);
     package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
     D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
     supplied counts as files (D-097); the audit's fixes (D-107 to D-110, with #70).
