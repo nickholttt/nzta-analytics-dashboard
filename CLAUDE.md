@@ -193,7 +193,7 @@ data/reference/
   segment_map.csv     # vehicle type + body + GVM -> segment  (coarse: SUV is not derivable from register fields)
   tla_region.csv      # territorial authority -> region (straddling districts flagged)
   import_status_map.csv  # NZTA import status -> label, fleet-entry and scope flags
-  vehicle_scope.csv   # which NZTA vehicle types count (in_scope), and each type's readable label
+  vehicle_scope.csv   # which NZTA vehicle types count (in_scope; trade_scope for the trade's wider total), and each type's readable label
   sentinels.csv       # raw values that mean "undefined", per field
   model_registry.csv  # EXCEPTIONS ONLY - renames, badge twins, match traps
   mild_hybrid_models.csv  # which hybrid nameplates are mild or full, with basis and confidence

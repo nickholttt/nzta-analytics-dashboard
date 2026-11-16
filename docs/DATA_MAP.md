@@ -203,7 +203,11 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 ### `VEHICLE_TYPE`
 
 - **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`, which also
-  gives every type a readable label: the name a visitor reads, with no part in scope).
+  gives every type a readable label: the name a visitor reads, with no part in scope). The file's
+  `trade_scope` column marks the types the trade's total of new vehicles counts: the two in scope and
+  buses, motor caravans and special purpose vehicles, which the trade counts as commercial vehicles
+  (D-105, D-106). It decides nothing the datasets count today; it is the set of types whose model names the
+  committed store of the dashboard keeps (DATA_SOURCES §D).
 - **Kind and values.** Category. 2 values on S (passenger car/van 3,617,900; goods van, truck or
   utility 902,576), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
 - **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` (labelled "Registered as",
