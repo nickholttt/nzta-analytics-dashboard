@@ -1,7 +1,7 @@
 // The rows of a ranking: each value's rank, its rank in the same months a year earlier, the move between them, its share and its
 // change. Pure, so tests/site/ runs it with Node's own test runner; LeagueChart draws what this returns. The one ranking rule
 // (shared ranks, alphabetical within a tie) is in ranking.ts; docs/METRICS.md, "Ranking and ties".
-import { rankByCount } from "./ranking";
+import { nameOrder, rankByCount } from "./ranking";
 import { changeOnYear, fillTemplate, vehiclesText } from "./sentences";
 import type { RankingThinPhrases } from "./sentences";
 
@@ -96,6 +96,19 @@ export function leagueRows(input: LeagueInput) {
   const lastRank = items.length ? items[items.length - 1].rank : undefined;
   const tiedBeyond = lastRank === undefined ? 0 : current.slice(topN).filter((e) => e.rank === lastRank).length;
   return { items, currentDenom, priorDenom, tiedBeyond };
+}
+
+// What a ranking of chosen values says about the choice: who stands first (all who share first place), and which chosen values take no
+// place, by the name a reader sees. A value takes a place only when it has vehicles in the window and is not a reserved one
+// (leagueRows), so the others are named rather than quietly missing.
+export function pickedSummary(picked: readonly string[], items: readonly LeagueRow[], nameOf: (value: string) => string) {
+  const placed = new Set(items.map((i) => i.value));
+  const leaders = items.filter((i) => i.rank === 1);
+  return {
+    leaders: leaders.map((i) => i.name),
+    leaderCount: leaders[0]?.n ?? 0,
+    unranked: picked.filter((v) => !placed.has(v)).map(nameOf).sort(nameOrder),
+  };
 }
 
 // Whether a ranking's base is too small to read a share from, and the one sentence that says how small (docs/METRICS.md, "A ranking

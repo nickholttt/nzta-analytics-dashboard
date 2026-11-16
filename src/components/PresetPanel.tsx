@@ -11,7 +11,7 @@ import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { datasetCovers, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
+import { datasetCovers, fitsPin, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
@@ -54,7 +54,7 @@ const TIME_PERIODS = [
 
 // A period the time row offers: one of its spans, the preset's own period, or a period that ranks the view.
 const offers = (preset: Preset, granularityId: string | null, id: string) =>
-  TIME_PERIODS.some((p) => p.id === id) || id === (preset.period ?? "all") || rankingPeriods(presetView(preset, granularityId)).includes(id);
+  fitsPin(preset, id) && (TIME_PERIODS.some((p) => p.id === id) || id === (preset.period ?? "all") || rankingPeriods(presetView(preset, granularityId)).includes(id));
 
 const spanLabel = (months: number) => (months >= 24 && months % 12 === 0 ? `${months / 12} years` : `${months} months`);
 
@@ -533,7 +533,7 @@ export default function PresetPanel({
       label: `${findPeriod(id)?.months ?? TRAILING_MONTHS}-month ranking`,
       full: false,
     })),
-  ];
+  ].filter((o) => fitsPin(effectivePreset, o.id));
 
   // On a count that opens with an answer, the answer comes straight under the question and the rest follows it.
   const answerFirst = Boolean(preset.answer) && shape === "trend" && preventsRender.length === 0 && Boolean(rows?.length);

@@ -206,6 +206,67 @@ export function rankingText(p: RankingPhrases, f: RankingFacts): { text: string;
   return { text: `${opening} ${fillTemplate(p.ranking_compare, { prior_window: prior, prior: priorDates }).text}`, hasPrior };
 }
 
+// ---- A ranking of the values a visitor chose ----
+
+// The words around a ranking of chosen values (D-111). Its ranks are places among the values chosen, and each share stays a share of
+// everything counted under the conditions, so the page says both, in sentences a template fills.
+export type PickedRankingPhrases = {
+  ranking_picked: string;
+  ranking_picked_leader: string;
+  ranking_picked_leaders: string;
+  ranking_picked_none: string;
+  ranking_picked_unranked: string;
+  ranking_picked_share: string;
+  ranking_picked_share_where: string;
+  ranking_picked_share_head: string;
+  ranking_picked_rank_head: string;
+  ranking_picked_prior_head: string;
+};
+
+// Names as a reader says them in a sentence: "A", "A and B", "A, B and C".
+export const sayList = (names: readonly string[]): string =>
+  names.length < 2 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+
+export type PickedRankingFacts = {
+  // How many values the visitor chose, and the field they are values of, as a noun that reads after "every".
+  picked: number;
+  field: string;
+  // "in the last 12 months", "in Oct 2026" (rankingWords).
+  window: string;
+  // The values in first place, by the name a reader sees, with the count each has; empty where none has a vehicle in the window.
+  leaders: readonly string[];
+  leaderCount: number;
+  // The chosen values that take no place, by name.
+  unranked: readonly string[];
+  // Every vehicle counted in the window under the conditions, which each share is a share of, and whether there are conditions.
+  total: number;
+  conditions: boolean;
+};
+
+// The sentences above and below a ranking of chosen values. A sentence that cannot be said is left out, not softened: with nothing to
+// rank there is no leader and no share to say.
+export function pickedRankingSentences(p: PickedRankingPhrases, f: PickedRankingFacts) {
+  const context = { picked: f.picked, field: f.field, window: f.window, vehicles: vehiclesText(f.leaderCount) };
+  const leader =
+    f.leaders.length === 0
+      ? fillTemplate(p.ranking_picked_none, context).text
+      : f.leaders.length === 1
+        ? fillTemplate(p.ranking_picked_leader, { ...context, leader: f.leaders[0] }).text
+        : fillTemplate(p.ranking_picked_leaders, { ...context, leaders: sayList(f.leaders) }).text;
+  return {
+    label: fillTemplate(p.ranking_picked, context).text,
+    leader,
+    unranked: f.unranked.length ? fillTemplate(p.ranking_picked_unranked, { ...context, names: sayList(f.unranked) }).text : undefined,
+    share:
+      f.total > 0 && f.leaders.length > 0
+        ? fillTemplate(f.conditions ? p.ranking_picked_share_where : p.ranking_picked_share, { ...context, vehicles: vehiclesText(f.total) }).text
+        : undefined,
+    shareHead: p.ranking_picked_share_head,
+    rankHead: fillTemplate(p.ranking_picked_rank_head, context).text,
+    priorHead: fillTemplate(p.ranking_picked_prior_head, context).text,
+  };
+}
+
 // ---- A month the address names ----
 
 // A sentence for a month that is asked about and is not inside the months the chart draws; undefined when it is inside.

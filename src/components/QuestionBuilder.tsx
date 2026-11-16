@@ -4,13 +4,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { builderSpec, datasetWords, dimensionLabel, findDataset, valueWords } from "../lib/config";
 import { isChoosable } from "../lib/reserved";
-import { MAX_VALUES, builderPresets, questionParams, readQuestion, readingNotes, settle, viewsFor, withValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, builderPresets, questionParams, readQuestion, readingNotes, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
 import type { SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count } from "../lib/readout";
+import { sayList } from "../lib/sentences";
 import PresetPanel, { reservedLabel } from "./PresetPanel";
 
 // The chart's own settings in the address bar. A new question clears them, so its charts open on their defaults.
@@ -242,8 +243,12 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
 
   // fromVisitor: false for the page settling a question itself (starting values arriving), which must not clear what the
   // link was told.
-  const ask = (next: Partial<Question>, fromVisitor = true) => {
+  // keepChart: the chart's own settings stay in the address (the window a ranking is of), as when a ranking of the values chosen
+  // becomes the ranking of every value and back.
+  const ask = (next: Partial<Question>, fromVisitor = true, keepChart = false) => {
     const asked = { ...latest.current, ...next };
+    // Ranking every value is a state of the ranking view only.
+    if (next.view !== undefined && next.view !== RANKING) asked.rankAll = false;
     // Another dataset carries other conditions and other values: the ones it does not carry go, and the chosen values start over.
     if (next.dataset && next.dataset !== latest.current.dataset) {
       const carried = all.datasets.find((v) => v.dataset === next.dataset)?.filters ?? [];
@@ -258,7 +263,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     latest.current = settled;
     if (fromVisitor) setNotices([]);
     setQuestion(settled);
-    writeAddress(settled, false);
+    writeAddress(settled, keepChart);
   };
 
   // A count broken down draws one line per chosen value, so with none chosen it starts on the largest few among the
@@ -362,16 +367,51 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
         {breakdown?.values ? (
           <fieldset className="question-part">
             <legend>Compare</legend>
-            <ValuePicker
-              dataset={dataset}
-              dimension={breakdown.id}
-              noun={filterLabel(breakdown.id).toLowerCase()}
-              chosen={question.values}
-              where={applicable(question.where)}
-              max={MAX_VALUES}
-              onChange={(values) => ask({ values })}
-              emptyHint={countsLines ? undefined : "Showing the largest, with the rest as All other. Choose values to compare only those."}
-            />
+            {question.rankAll ? (
+              <>
+                <p className="picker-hint">
+                  Ranking every {filterLabel(breakdown.id).toLowerCase()}, not only the {question.values.length} you picked:{" "}
+                  {sayList(question.values.map((v) => valueLabel(v, breakdown.id)))}. Your picks are kept.
+                </p>
+                <button
+                  type="button"
+                  id="rank-picked"
+                  className="button-quiet"
+                  onClick={() => {
+                    ask({ rankAll: false }, true, true);
+                    focusSoon(() => document.getElementById("rank-all"));
+                  }}
+                >
+                  Rank only the {question.values.length} you picked
+                </button>
+              </>
+            ) : (
+              <>
+                <ValuePicker
+                  dataset={dataset}
+                  dimension={breakdown.id}
+                  noun={filterLabel(breakdown.id).toLowerCase()}
+                  chosen={question.values}
+                  where={applicable(question.where)}
+                  max={MAX_VALUES}
+                  onChange={(values) => ask({ values })}
+                  emptyHint={countsLines ? undefined : "Showing the largest, with the rest as All other. Choose values to compare only those."}
+                />
+                {question.view === RANKING ? (
+                  <button
+                    type="button"
+                    id="rank-all"
+                    className="button-quiet"
+                    onClick={() => {
+                      ask({ rankAll: true }, true, true);
+                      focusSoon(() => document.getElementById("rank-picked"));
+                    }}
+                  >
+                    Rank every {filterLabel(breakdown.id).toLowerCase()} instead
+                  </button>
+                ) : null}
+              </>
+            )}
           </fieldset>
         ) : null}
 

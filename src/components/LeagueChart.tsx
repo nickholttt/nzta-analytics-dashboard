@@ -6,7 +6,7 @@ import type { Dimension, Preset } from "../lib/config";
 import { datasetFirstMonth } from "../lib/built";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, monthRange, pct, shareChange } from "../lib/measures";
-import { fillTemplate, rankingText, rankingWindows, rankingWords, sayBadMonth } from "../lib/sentences";
+import { fillTemplate, pickedRankingSentences, rankingText, rankingWindows, rankingWords, sayBadMonth } from "../lib/sentences";
 import { count, greyedReason, readout, spanPeriod } from "../lib/readout";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
 import {
@@ -24,7 +24,7 @@ import {
   seriesColour,
   tipStyle,
 } from "../lib/theme";
-import { leagueRows, rankingGuard } from "../lib/league";
+import { leagueRows, pickedSummary, rankingGuard } from "../lib/league";
 import type { LeagueRow } from "../lib/league";
 import { PlotFigure } from "./PlotFigure";
 
@@ -69,6 +69,8 @@ const signed = (x: number) => `${x > 0.0005 ? "+" : x < -0.0005 ? "−" : "±"}$
 // share: on a share preset the dataset may be one whose counts read as sales (D-044).
 export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, minDenominator, label, valueHeading, lead = false, month, onMonth }: Props) {
   const [topN, setTopN] = useState<number>(preset.top_n ?? 15);
+  // A ranking of the values a visitor chose (D-111): it lists all of them, and says it is a ranking among them.
+  const picked = preset.values && preset.values.length > 0 ? preset.values : undefined;
   const offersCount = preset.measure !== "share";
   const [displayMode, setDisplayMode] = useState<"share" | "count">(offersCount ? "count" : "share");
 
@@ -97,7 +99,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   // (docs/METRICS.md, "A ranking and the precision floor").
   const floor = floorOf("share");
   const model = useMemo(() => {
-    const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior, topN, nameOf: label, yearFloor });
+    const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior, topN: picked ? picked.length : topN, nameOf: label, yearFloor });
     const items: LeagueItem[] = result.items.map((item, idx) => ({ ...item, colour: seriesColour(idx), isRemainder: false }));
     const guard = rankingGuard({
       floor,
@@ -109,7 +111,21 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       phrases,
     });
     return { items, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior, tiedBeyond: result.tiedBeyond, guard: items.length > 0 ? guard : { shares: false, changes: false, sentence: undefined } };
-  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor]);
+  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor, picked]);
+
+  // What the page says about the choice: how it is ranked, who leads, who is not ranked and what a share is a share of.
+  const about = useMemo(() => {
+    if (!picked) return undefined;
+    const summary = pickedSummary(picked, model.items, label);
+    return pickedRankingSentences(phrases, {
+      picked: picked.length,
+      field: valueHeading.charAt(0).toLowerCase() + valueHeading.slice(1),
+      window: rankingWords(phrases, { span, end, latest }).window,
+      ...summary,
+      total: model.currentDenom,
+      conditions: Object.values(preset.where ?? {}).some((kept) => kept.length > 0),
+    });
+  }, [picked, model, label, valueHeading, span, end, latest, preset.where]);
 
   const basis = ranking.text;
   const monthNotice = sayBadMonth(phrases.bad_month, month, end);
@@ -246,6 +262,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   return (
     <>
       <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
+        {picked ? null : (
         <div className="toggle" role="radiogroup" aria-label="How many to show">
           {[10, 15, 25].map((n) => (
             <label key={n}>
@@ -259,6 +276,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
             </label>
           ))}
         </div>
+        )}
 
         {offersCount ? (
         <div className="toggle" role="radiogroup" aria-label="Show as">
@@ -297,8 +315,17 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         ) : null}
       </div>
 
+      {about ? (
+        <div className="answer">
+          {model.items.length > 0 ? <p className="answer-figure" aria-hidden="true">{count(model.items[0].n)}</p> : null}
+          <p className="answer-sentence">{about.leader}</p>
+          <p className="chart-unit">{about.label}</p>
+          {about.unranked ? <p className="chart-unit">{about.unranked}</p> : null}
+        </div>
+      ) : null}
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
       <p className="chart-unit">{basis}</p>
+      {about?.share ? <p className="chart-unit">{about.share}</p> : null}
       {model.guard.sentence ? <p className="chart-unit">{model.guard.sentence}</p> : null}
 
       <PlotFigure
@@ -314,16 +341,16 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         <table className="key" style={{ width: "100%", fontSize: "13px" }}>
           <thead>
             <tr>
-              <th scope="col" style={{ width: "45px" }}>Rank</th>
+              <th scope="col" style={about ? { whiteSpace: "nowrap" } : { width: "45px" }}>{about ? about.rankHead : "Rank"}</th>
               <th scope="col" style={{ width: "56px" }}>Move</th>
               <th scope="col">{valueHeading}</th>
               {showYear ? countHead : null}
               {showYear ? yearHead : null}
-              <th scope="col" data-hint="the share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Share</th>
+              <th scope="col" data-hint="the share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{about ? about.shareHead : "Share"}</th>
               <th scope="col" data-hint="the change in share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>
               {showYear ? null : countHead}
               <th scope="col" data-hint="the rank a year earlier" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                Rank <span className="visually-hidden">a year </span>before
+                {about ? about.priorHead : <>Rank <span className="visually-hidden">a year </span>before</>}
               </th>
             </tr>
           </thead>

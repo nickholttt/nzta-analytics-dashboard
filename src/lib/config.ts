@@ -2,7 +2,7 @@
 // category and event-scope bindings. No domain value is written in this code.
 import presetsDoc from "../../config/presets.json";
 import type { AnswerTemplates as Answer } from "./sentences";
-import type { RankingPhrases, RankingThinPhrases, YearPhrases } from "./sentences";
+import type { PickedRankingPhrases, RankingPhrases, RankingThinPhrases, YearPhrases } from "./sentences";
 import measuresDoc from "../../config/measures.json";
 import dimensionsDoc from "../../config/dimensions.json";
 import pipelineDoc from "../../config/pipeline.json";
@@ -194,6 +194,7 @@ type PresetsDoc = {
     year_change_measure: string;
     phrases: RankingPhrases &
       RankingThinPhrases &
+      PickedRankingPhrases &
       YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; grey_beyond_scale: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];

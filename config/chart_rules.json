@@ -55,7 +55,31 @@
         "picked": "none"
       },
       "shapes": ["league"],
-      "note": "One window, a long list, and no values chosen: a ranking. Values the visitor chose are never ranked, since a ranking of a few picked values would read as their place in the market (D-061)."
+      "note": "One window, a long list, and no values chosen: a ranking of every value."
+    },
+    {
+      "id": "ranking_picked_count",
+      "when": {
+        "measure": "count",
+        "by": "category",
+        "values": "many",
+        "span": "one_period",
+        "picked": "several"
+      },
+      "shapes": ["league", "trend"],
+      "note": "The same window and the same long list, with two or more values chosen: the ranking of the values chosen, which the page labels as a ranking among those and not among every value (D-062, D-111). Offered where the ranking of every value is, so the full ranking is always one step away. One value chosen has nothing to rank, so it falls through to the lines."
+    },
+    {
+      "id": "ranking_picked_share",
+      "when": {
+        "measure": "share",
+        "by": "category",
+        "values": "many",
+        "span": "one_period",
+        "picked": "several"
+      },
+      "shapes": ["league", "mix"],
+      "note": "As above, for a share: each share stays a share of everything counted under the conditions, not of the values chosen (docs/METRICS.md, \"Ranking and ties\")."
     },
     {
       "id": "share_by_category",

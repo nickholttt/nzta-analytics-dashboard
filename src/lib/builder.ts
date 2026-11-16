@@ -19,6 +19,9 @@ export type Question = {
   values: string[];
   where: Record<string, string[]>;
   view: string | null;
+  // With the ranking view and values chosen: rank every value under the same conditions instead of the ones chosen. The choice is
+  // kept, so one step takes the visitor back to it (D-111).
+  rankAll?: boolean;
 };
 
 // What the page offers, worked out at build time against the cube as built and handed to the island as plain data.
@@ -73,23 +76,29 @@ export function questionText(q: Question, measureId: string, label: (value: stri
 // A count compares values as lines over time whatever the breakdown: the map and the distribution draw shares only.
 const COUNT = "count";
 const TREND = "trend";
+// The view that ranks. A ranking of the values a visitor chose is a view of the question, since it is what the question looks like in
+// one window: the rule table says where it fits (config/chart_rules.json, D-111).
+export const RANKING = "league";
 
 function presetFor(q: Question, measureId: string, id: string, label?: (value: string) => string): Preset {
   const m = findBuilderMeasure(measureId);
-  const values = !m?.derived && q.by && q.values.length ? q.values : undefined;
+  // Ranking every value sets the choice aside: the chart, its title and its figures are those of the question without it.
+  const asked = q.view === RANKING && q.rankAll ? { ...q, values: [] } : q;
+  const values = !m?.derived && asked.by && asked.values.length ? asked.values : undefined;
   const where = cleanWhere(q.where);
   const dimensionNote = q.by ? forDataset(builderSpec.dimension_notes[q.by], q.dataset) : undefined;
-  // A count by a breakdown is always lines; a view the visitor chose among the shapes that fit applies to the rest. The
-  // resolver reports a view that does not fit the question.
-  const view = measureId === COUNT && q.by ? TREND : q.view;
+  // A count by a breakdown is lines unless the visitor asked for the ranking; a view the visitor chose among the shapes that fit
+  // applies to the rest. The resolver reports a view that does not fit the question.
+  const view = measureId === COUNT && q.by ? (q.view === RANKING ? RANKING : TREND) : q.view;
   const preset: Preset = {
     id,
-    question: questionText(q, measureId, label) + (q.dataset === builderSpec.dataset ? "" : ` (${datasetName(q.dataset)})`),
+    question: questionText(asked, measureId, label) + (q.dataset === builderSpec.dataset ? "" : ` (${datasetName(q.dataset)})`),
     status: "live",
     dataset: q.dataset,
     dimension: q.by ?? undefined,
     period: builderSpec.period,
-    // A ranking of hand-picked values would read as their place in the market, so chosen values are never ranked.
+    // Chosen values reach their ranking through the view, not through the time row: the time row of a lines chart offers no ranking
+    // window, so there is one way in and the page says which view is on (D-111).
     ranking_period: values ? undefined : builderSpec.ranking_period,
     events: true,
     note: joined(forDataset(m?.note, q.dataset), dimensionNote),
@@ -110,17 +119,23 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
 export function builderPresets(q: Question, label?: (value: string) => string): Preset[] {
   const m = findBuilderMeasure(q.measure);
   if (!m) return [];
-  return partsOf(m).map((part, i) => presetFor(q, part.id, i === 0 ? builderSpec.id : `${builderSpec.id}-${part.id}`, label));
+  // A ranking has the share and the number of vehicles in one table, so a measure of two parts is one chart in this view.
+  const parts = q.view === RANKING ? partsOf(m).slice(0, 1) : partsOf(m);
+  return parts.map((part, i) => presetFor(q, part.id, i === 0 ? builderSpec.id : `${builderSpec.id}-${part.id}`, label));
 }
 
 // The shapes a question may be drawn as: those the chart rules say fit it and that have a renderer, best first, so the
 // first is the one drawn. A visitor switches only among shapes that fit (D-059), and there is nothing to switch where
 // one fits, so the list is empty then.
 export function viewsFor(q: Question): string[] {
-  const [first] = builderPresets({ ...q, view: null });
+  const [first] = builderPresets({ ...q, view: null, rankAll: false });
   if (!first || first.derived) return [];
-  const shapes = drawnShapes(questionFacts(first, findDimension(q.by), findMeasure(first.measure)));
-  return shapes.length > 1 ? shapes : [];
+  const facts = (preset: Preset) => questionFacts(preset, findDimension(q.by), findMeasure(first.measure));
+  const shapes = drawnShapes(facts(first));
+  // Two or more values chosen can also be ranked, in the window a ranking opens on, where the rule table says that window ranks them.
+  const ranksChosen = Boolean(first.values && first.values.length > 1) && drawnShapes(facts({ ...first, period: builderSpec.period_by_shape[RANKING] ?? builderSpec.ranking_period })).includes(RANKING);
+  const all = ranksChosen && !shapes.includes(RANKING) ? [...shapes, RANKING] : shapes;
+  return all.length > 1 ? all : [];
 }
 
 // What a dataset is called to a visitor: its public label, and for one that starts later than the register, where it starts.
@@ -204,7 +219,8 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   const asked = (q.values?.length ? q.values : onBreakdown).filter(isChoosable);
   const values = takesValues ? [...new Set(asked)].slice(0, MAX_VALUES) : [];
   const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, where, view: null };
-  return { ...settled, view: q.view && viewsFor(settled).includes(q.view) ? q.view : null };
+  const view = q.view && viewsFor(settled).includes(q.view) ? q.view : null;
+  return { ...settled, view, ...(view === RANKING && q.rankAll ? { rankAll: true } : {}) };
 }
 
 // What a link asked for that the page did not give, so it can say so: the dataset it named and the breakdown it named, each
@@ -268,6 +284,7 @@ export function readQuestion(search: string): Partial<Question> {
     values: params.getAll(key("value")),
     where,
     view: params.get(key("view")),
+    rankAll: params.get(key("rank")) === "all",
   };
 }
 
@@ -278,6 +295,7 @@ export function questionParams(q: Question): URLSearchParams {
   for (const v of q.values) params.append(key("value"), v);
   for (const [d, kept] of Object.entries(cleanWhere(q.where))) for (const v of kept) params.append(key(`${WHERE}${d}`), v);
   if (q.view) params.set(key("view"), q.view);
+  if (q.view === RANKING && q.rankAll) params.set(key("rank"), "all");
   return params;
 }
 
