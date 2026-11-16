@@ -10,7 +10,10 @@ import type { Manifest, RegionOutlines, SliceRow } from "../lib/data";
 import { pct, periodWindow } from "../lib/measures";
 import { byCountThenName } from "../lib/ranking";
 import { latestMonthOf } from "../lib/resolve";
-import { readout, spanPeriod } from "../lib/readout";
+import { readout, spanPeriod, withheldThin } from "../lib/readout";
+import { cellText } from "../lib/figures";
+import type { Cell, Column } from "../lib/figures";
+import { useFigures } from "./FiguresContext";
 import { INK_3, PAPER, SERIES, SUPPRESSED_LINE, plotStyle } from "../lib/theme";
 import { PlotFigure } from "./PlotFigure";
 
@@ -117,6 +120,19 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
     [outlines, model, label, minDenominator],
   );
 
+  // The table beside the map, as the page shows it and as the file of figures writes it.
+  const countHeading = datasetWords(preset.dataset)?.count_heading ?? "Vehicles";
+  const columns: Column[] = [{ name: heading, text: true }, { name: "Share", unit: "percent" }, { name: countHeading, unit: "count" }];
+  const tableRows = (): Cell[][] =>
+    model.regions.map((r) => [label(r.value), model.suppressed ? withheldThin(minDenominator) : pct(r.share), r.n.toLocaleString("en-NZ")]);
+  const getter = useCallback(
+    () => ({ period: spanPeriod(model.win.from, model.win.to), columns, rows: tableRows() }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [model, label, minDenominator, heading, countHeading],
+  );
+  useFigures(getter);
+  const shown = tableRows();
+
   const mapped = new Set(outlines?.features.map((f) => f.properties.region) ?? []);
   const unmapped = model.regions.filter((r) => !mapped.has(r.value)).map((r) => label(r.value));
   const unshaded = [...mapped].filter((region) => !model.known.has(region)).map(label);
@@ -155,17 +171,20 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
                   {heading}
                 </th>
                 <th scope="col">Share</th>
-                <th scope="col">{datasetWords(preset.dataset)?.count_heading ?? "Vehicles"}</th>
+                <th scope="col">{countHeading}</th>
               </tr>
             </thead>
             <tbody>
-              {model.regions.map((r) => (
-                <tr key={r.value}>
-                  <td className="text">{label(r.value)}</td>
-                  <td className={model.suppressed ? "suppressed" : "figure"}>{model.suppressed ? "suppressed" : pct(r.share)}</td>
-                  <td className="figure">{r.n.toLocaleString("en-NZ")}</td>
-                </tr>
-              ))}
+              {model.regions.map((r, i) => {
+                const [name, share, vehicles] = shown[i];
+                return (
+                  <tr key={r.value}>
+                    <td className="text">{cellText(name)}</td>
+                    <td className={model.suppressed ? "suppressed" : "figure"}>{cellText(share)}</td>
+                    <td className="figure">{cellText(vehicles)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

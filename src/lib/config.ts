@@ -2,7 +2,8 @@
 // category and event-scope bindings. No domain value is written in this code.
 import presetsDoc from "../../config/presets.json";
 import type { AnswerTemplates as Answer } from "./sentences";
-import type { RankingPhrases, RankingThinPhrases, YearPhrases } from "./sentences";
+import type { FiguresPhrases } from "./figures";
+import type { PickedRankingPhrases, RankingPhrases, RankingThinPhrases, YearPhrases } from "./sentences";
 import measuresDoc from "../../config/measures.json";
 import dimensionsDoc from "../../config/dimensions.json";
 import pipelineDoc from "../../config/pipeline.json";
@@ -51,6 +52,11 @@ export type Preset = {
   // A question built on the Build page: the breakdown values it compares, and the vehicles it keeps, by dimension.
   // Either one draws from the fact table (D-058).
   values?: string[];
+  // The values above are ones the page chose (the largest under the conditions), not ones the visitor chose: what the page says of them
+  // is worded for that (D-111).
+  page_values?: boolean;
+  // The ranking of every value, asked for from a ranking of some (D-111): the page opens with who is first.
+  ranks_all?: boolean;
   where?: Record<string, string[]>;
   smoothing?: string;
   granularity_options?: GranularityOption[];
@@ -92,6 +98,8 @@ export type DatasetWords = {
   window_unit: string;
   recent_figure: string;
   ranking_basis: string;
+  // What the figure of the leading value counts, with {vehicles} and {window}; a dataset that has none says the vehicles and the window.
+  leader_count?: string;
   suggestion_recent: string;
   suggestion_total: string;
   none_recent: string;
@@ -109,6 +117,9 @@ export type Dataset = {
   public_definition?: string;
   // Where the figures come from and the export's date, filled from the manifest. Said under every chart of the dataset.
   source_note?: string;
+  // The statement of where this dataset's figures come from and the licence, for a file of figures: said of this dataset and no other. A
+  // template over the dataset's manifest entry, as source_note is.
+  attribution?: string;
   // What a chart says when a build did not make the dataset.
   not_built_message?: string;
   words?: DatasetWords;
@@ -194,6 +205,8 @@ type PresetsDoc = {
     year_change_measure: string;
     phrases: RankingPhrases &
       RankingThinPhrases &
+      PickedRankingPhrases &
+      FiguresPhrases & { figures_not_recorded_cell: string; figures_withheld_thin: string; share_change_no_prior: string; not_ranked_before: string; year_too_few_window: string; period_replaced: string } &
       YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; grey_beyond_scale: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];

@@ -19,6 +19,12 @@ export type Question = {
   values: string[];
   where: Record<string, string[]>;
   view: string | null;
+  // With the ranking view and values chosen: rank every value under the same conditions instead of the ones chosen. The choice is
+  // kept, so one step takes the visitor back to it (D-111).
+  rankAll?: boolean;
+  // The values are the page's own starting values (the largest under the conditions), not the visitor's. They are not in the address, so
+  // they follow the conditions and the dataset, and a shared link reproduces the page: no build.value means the page's own (D-111).
+  pageValues?: boolean;
 };
 
 // What the page offers, worked out at build time against the cube as built and handed to the island as plain data.
@@ -49,7 +55,16 @@ function dimensionsOf(m: BuilderMeasure): Record<string, string> {
   return Object.fromEntries(Object.entries(parts[0]?.dimensions ?? {}).filter(([id]) => parts.every((p) => id in p.dimensions)));
 }
 
-const cleanWhere = (where: Record<string, string[]>) => Object.fromEntries(Object.entries(where).filter(([, kept]) => kept.length > 0));
+// The conditions that keep something, in one order whatever order they were added in (fields by id, each field's values by
+// text), so one question has one address and one sentence. The page lists a visitor's conditions in the order they were added.
+const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+const cleanWhere = (where: Record<string, string[]>) =>
+  Object.fromEntries(
+    Object.entries(where)
+      .filter(([, kept]) => kept.length > 0)
+      .sort(([a], [b]) => byText(a, b))
+      .map(([d, kept]): [string, string[]] => [d, [...new Set(kept)].sort(byText)]),
+  );
 const joined = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(" ") || undefined;
 
 export function questionText(q: Question, measureId: string, label: (value: string) => string = (v) => v): string {
@@ -64,23 +79,29 @@ export function questionText(q: Question, measureId: string, label: (value: stri
 // A count compares values as lines over time whatever the breakdown: the map and the distribution draw shares only.
 const COUNT = "count";
 const TREND = "trend";
+// The view that ranks. A ranking of the values a visitor chose is a view of the question, since it is what the question looks like in
+// one window: the rule table says where it fits (config/chart_rules.json, D-111).
+export const RANKING = "league";
 
 function presetFor(q: Question, measureId: string, id: string, label?: (value: string) => string): Preset {
   const m = findBuilderMeasure(measureId);
-  const values = !m?.derived && q.by && q.values.length ? q.values : undefined;
+  // Ranking every value sets the choice aside: the chart, its title and its figures are those of the question without it.
+  const asked = q.view === RANKING && q.rankAll ? { ...q, values: [] } : q;
+  const values = !m?.derived && asked.by && asked.values.length ? asked.values : undefined;
   const where = cleanWhere(q.where);
   const dimensionNote = q.by ? forDataset(builderSpec.dimension_notes[q.by], q.dataset) : undefined;
-  // A count by a breakdown is always lines; a view the visitor chose among the shapes that fit applies to the rest. The
-  // resolver reports a view that does not fit the question.
-  const view = measureId === COUNT && q.by ? TREND : q.view;
+  // A count by a breakdown is lines unless the visitor asked for the ranking; a view the visitor chose among the shapes that fit
+  // applies to the rest. The resolver reports a view that does not fit the question.
+  const view = measureId === COUNT && q.by ? (q.view === RANKING ? RANKING : TREND) : q.view;
   const preset: Preset = {
     id,
-    question: questionText(q, measureId, label) + (q.dataset === builderSpec.dataset ? "" : ` (${datasetName(q.dataset)})`),
+    question: questionText(asked, measureId, label) + (q.dataset === builderSpec.dataset ? "" : ` (${datasetName(q.dataset)})`),
     status: "live",
     dataset: q.dataset,
     dimension: q.by ?? undefined,
     period: builderSpec.period,
-    // A ranking of hand-picked values would read as their place in the market, so chosen values are never ranked.
+    // Chosen values reach their ranking through the view, not through the time row: the time row of a lines chart offers no ranking
+    // window, so there is one way in and the page says which view is on (D-111).
     ranking_period: values ? undefined : builderSpec.ranking_period,
     events: true,
     note: joined(forDataset(m?.note, q.dataset), dimensionNote),
@@ -88,6 +109,8 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
     top_n: values || !q.by ? undefined : m?.top_n?.[q.by],
     ...(m?.derived ? { derived: m.id } : { measure: m?.id }),
     ...(values ? { values } : {}),
+    ...(values && q.pageValues ? { page_values: true } : {}),
+    ...(q.view === RANKING && q.rankAll ? { ranks_all: true } : {}),
     ...(Object.keys(where).length ? { where } : {}),
     ...(view ? { shape_override: view } : {}),
   };
@@ -101,17 +124,23 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
 export function builderPresets(q: Question, label?: (value: string) => string): Preset[] {
   const m = findBuilderMeasure(q.measure);
   if (!m) return [];
-  return partsOf(m).map((part, i) => presetFor(q, part.id, i === 0 ? builderSpec.id : `${builderSpec.id}-${part.id}`, label));
+  // A ranking has the share and the number of vehicles in one table, so a measure of two parts is one chart in this view.
+  const parts = q.view === RANKING ? partsOf(m).slice(0, 1) : partsOf(m);
+  return parts.map((part, i) => presetFor(q, part.id, i === 0 ? builderSpec.id : `${builderSpec.id}-${part.id}`, label));
 }
 
 // The shapes a question may be drawn as: those the chart rules say fit it and that have a renderer, best first, so the
 // first is the one drawn. A visitor switches only among shapes that fit (D-059), and there is nothing to switch where
 // one fits, so the list is empty then.
 export function viewsFor(q: Question): string[] {
-  const [first] = builderPresets({ ...q, view: null });
+  const [first] = builderPresets({ ...q, view: null, rankAll: false });
   if (!first || first.derived) return [];
-  const shapes = drawnShapes(questionFacts(first, findDimension(q.by), findMeasure(first.measure)));
-  return shapes.length > 1 ? shapes : [];
+  const facts = (preset: Preset) => questionFacts(preset, findDimension(q.by), findMeasure(first.measure));
+  const shapes = drawnShapes(facts(first));
+  // Two or more values chosen can also be ranked, in the window a ranking opens on, where the rule table says that window ranks them.
+  const ranksChosen = Boolean(first.values && first.values.length > 1) && drawnShapes(facts({ ...first, period: builderSpec.period_by_shape[RANKING] ?? builderSpec.ranking_period })).includes(RANKING);
+  const all = ranksChosen && !shapes.includes(RANKING) ? [...shapes, RANKING] : shapes;
+  return all.length > 1 ? all : [];
 }
 
 // What a dataset is called to a visitor: its public label, and for one that starts later than the register, where it starts.
@@ -162,6 +191,19 @@ function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabula
   return { dataset, label: datasetName(dataset, manifest), measures, filters };
 }
 
+// The conditions after a visitor changes the values of one: a condition left with no value is gone, since a condition with none keeps
+// every vehicle and a line that says nothing is only clutter. (A condition just added is the one empty line the page holds, until it has
+// its first value; that is the page adding it, not this.)
+export function withValues(where: Record<string, string[]>, dimension: string, values: string[]): Record<string, string[]> {
+  if (values.length > 0) return { ...where, [dimension]: values };
+  return Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
+}
+
+// The words on a condition's remove button, and the name a screen reader or a voice user gets for it: the same words, then the field, so
+// the visible label is part of the name (WCAG 2.5.3).
+export const REMOVE_CONDITION = "Remove this condition";
+export const removeConditionLabel = (field: string): string => `${REMOVE_CONDITION}: ${field.toLowerCase()}`;
+
 // As many values as the palette has colours: past that, lines can no longer be told apart (src/lib/theme.ts).
 export const MAX_VALUES = 8;
 
@@ -186,8 +228,15 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   );
   const asked = (q.values?.length ? q.values : onBreakdown).filter(isChoosable);
   const values = takesValues ? [...new Set(asked)].slice(0, MAX_VALUES) : [];
-  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, where, view: null };
-  return { ...settled, view: q.view && viewsFor(settled).includes(q.view) ? q.view : null };
+  // Values the page chose: any question that names none, and one the page has filled in and the visitor has not touched.
+  const pageValues = takesValues && (values.length === 0 || q.pageValues === true);
+  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, where, view: null, ...(pageValues ? { pageValues } : {}) };
+  // A count with no values yet is waiting for the page's own, which come after the page has looked at the data; a view that needs
+  // two or more is judged as if they were there, so a link to the ranking of the page's values is kept.
+  const waiting = pageValues && values.length === 0 && partsOf(findBuilderMeasure(m.id) as BuilderMeasure).some((p) => p.id === COUNT);
+  const judged = waiting ? { ...settled, values: ["?", "?"] } : settled;
+  const view = q.view && viewsFor(judged).includes(q.view) ? q.view : null;
+  return { ...settled, view, ...(view === RANKING && q.rankAll ? { rankAll: true } : {}) };
 }
 
 // What a link asked for that the page did not give, so it can say so: the dataset it named and the breakdown it named, each
@@ -251,6 +300,7 @@ export function readQuestion(search: string): Partial<Question> {
     values: params.getAll(key("value")),
     where,
     view: params.get(key("view")),
+    rankAll: params.get(key("rank")) === "all",
   };
 }
 
@@ -258,9 +308,11 @@ export function questionParams(q: Question): URLSearchParams {
   const params = new URLSearchParams({ [key("measure")]: q.measure, [key("by")]: q.by ?? "" });
   // An address with no dataset means the default one, so an older link keeps its meaning and the default adds nothing.
   if (q.dataset !== builderSpec.dataset) params.set(key("dataset"), q.dataset);
-  for (const v of q.values) params.append(key("value"), v);
+  // The page's own values are not in the address: a link without values means them.
+  if (!q.pageValues) for (const v of q.values) params.append(key("value"), v);
   for (const [d, kept] of Object.entries(cleanWhere(q.where))) for (const v of kept) params.append(key(`${WHERE}${d}`), v);
   if (q.view) params.set(key("view"), q.view);
+  if (q.view === RANKING && q.rankAll) params.set(key("rank"), "all");
   return params;
 }
 
