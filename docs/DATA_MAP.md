@@ -7,7 +7,7 @@ the user on 2026-11-16 (D-096):**
 - an owner field (district, region, usage, industry class, road transport code, owner type) may be
   published only in a table of one or two fields, with any cell counting fewer than 10 vehicles
   hidden. **None is published yet:** the pipeline does not hide small cells, so until it does
-  (package F) owner fields stay out of every published file;
+  (package F) owner fields stay out of every published file, other than the `region` slice below;
 - the `region` slice (share of vehicles by the owner's region, by month), published since before
   the work order under D-078, stays as it is, with no minimum count;
 - postcode totals are not published for now, and nothing derived from `VIN11` is covered.
@@ -128,7 +128,10 @@ them, plus make and model wherever motive power is read (the hybrid classificati
 power from them). It does not see a published file the pipeline writes by any other route, or a
 field read by code that `config/data_map.json`'s `derive_reads` does not describe. It also fails if a
 field derivable only from `VIN11` is marked published, if an owner field is marked published while
-the owner rule is not enforced, or if an exception on an owner field reaches the fact table.
+the owner rule is not enforced, or if an exception on an owner field reaches the fact table. An
+owner field is refused in any output the owner rule does not name (the fact table, the snapshot
+aggregate), and `POSTCODE` in every output (`owner_rule.not_published`), whatever its class or
+exceptions say.
 
 **Context from NZTA.** NZTA's notes say owner location is given by territorial authority "to make
 sure it isn't possible to identify a person", and its field list leaves the postcode out, though the
@@ -141,7 +144,7 @@ vehicles (D-078). Binding another field into the table can only split rows, so t
 alone in a row can only stay the same or rise. The table holds no owner field, so following a
 one-vehicle row from month to month shows only whether that vehicle is still registered.
 
-The questions for the user are put with this map's pull request (#53).
+The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 ## Identity and time
 
@@ -1207,9 +1210,9 @@ segment, package I, each needing its forms of nothing first); `SUBMODEL` (never 
 8. **The first pass** gave whole-register coverage only, counted `UNKNOWN` as filled for where
    assembled and industry class, and read some numbers (999 seats, 99,999 cc) as the guards' main
    problem; on S the zeros and ones matter more.
-9. **The `region` slice and the work order's §3.** The slice is published today on D-078's
-   unreviewed point 3, while §3 names region among the fields not published without asking (status
-   line at the top). The user decides.
+9. **The `region` slice and the work order's §3.** Settled: the slice was published on D-078's
+   point 3 while §3 named region among the fields not published without asking; the user
+   confirmed on 2026-11-16 that it stays (D-096).
 10. **The profile's own report** gives 107 used imports with a transmission and with an MVMA code;
     its `coverage.csv` gives 116 and 131. 107 is the count with all three NZ-new fields. This map
     uses `coverage.csv`.

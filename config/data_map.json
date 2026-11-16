@@ -13,7 +13,8 @@
     "outputs": ["slice", "pair"],
     "minimum_count": 10,
     "enforced": false,
-    "$comment": "The user's rule for owner fields (2026-11-16, D-096): only in tables of one or two fields (a slice or a pair, never the fact table), with any cell counting fewer than minimum_count vehicles hidden. enforced is false until the pipeline hides small cells in a published slice or pair; while it is false no owner field is in a published class, and the only owner-derived output is the recorded exception on TLA. Postcode totals are not published for now (the same answer). Nothing derived from VIN11 is covered by this rule."
+    "not_published": ["POSTCODE"],
+    "$comment": "The user's rule for owner fields (2026-11-16, D-096): only in tables of one or two fields (a slice or a pair, never the fact table or the committed snapshot aggregate), with any cell counting fewer than minimum_count vehicles hidden. The map's test holds an owner field to those outputs whatever its class or exceptions say. enforced is false until the pipeline hides small cells in a published slice or pair; while it is false no owner field is in a published class, and the only owner-derived output is the recorded exception on TLA. not_published lists owner fields the user holds back altogether for now: postcode totals (the same answer). A field leaves the list only on the user's word, in a new decision record. Nothing derived from VIN11 is covered by this rule."
   },
   "cardinality": {
     "few_max_values": 8,

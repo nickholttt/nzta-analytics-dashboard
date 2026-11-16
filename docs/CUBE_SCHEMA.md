@@ -225,12 +225,13 @@ in the manifest's `facts.not_live`; if none is live, the table holds the month
 totals alone.
 
 The table carries nothing about a vehicle's owner. `region` is where the
-owner lives, and it is left out of `facts` (D-078; under the user's rule for
-owner fields no owner field ever joins the table, D-096): with it, two in three of the table's rows counted a single vehicle
+owner lives, and it is left out of `facts` (D-078; the user's rule for owner
+fields allows them in a slice or a pair only, D-096): with it, two in three of the table's rows counted a single vehicle
 (64.8% on the 2026-10 pull), each with the owner's region beside the model
 and the month. The `region` slice is not affected, and a question that only
-breaks down by region is still answered from it. Putting `region` back is a
-one-word change to `facts`, and a contract change shown to the user.
+breaks down by region is still answered from it. Putting `region` back would
+need the user to change that rule first; it is then a one-word change to
+`facts`, and a contract change shown to the user.
 
 The table's total is checked against the vehicles themselves: the counts are
 read back from the written `n.parquet` and must equal the dataset's vehicles

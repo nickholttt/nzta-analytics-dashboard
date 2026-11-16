@@ -121,10 +121,15 @@ def privacy_breaches(dmap: dict, pipeline: dict, dimensions: dict) -> list[str]:
     fields = by_name(dmap, REGISTER)
     published = published_classes(dmap)
     dims = {d["id"]: d for d in dimensions["dimensions"] if "derive" in d}
+    owner_groups, rule = set(dmap["owner_groups"]), dmap["owner_rule"]
     problems: list[str] = []
 
     def cleared(name: str, output: str, dim_id: str | None) -> bool:
         entry = fields[name]
+        # The user's rule binds whatever a class or an exception says: an owner field reaches only the outputs
+        # the rule names, and a field the rule holds back reaches none (D-096).
+        if entry["group"] in owner_groups and (output not in rule["outputs"] or name in rule["not_published"]):
+            return False
         if entry["privacy"] in published:
             return True
         return any(
@@ -417,6 +422,37 @@ def test_the_owner_rule_is_the_users_and_never_reaches_the_fact_table():
     assert "facts" not in rule["outputs"], "the fact table crosses many fields; the rule allows one or two"
     assert isinstance(rule["minimum_count"], int) and rule["minimum_count"] > 1
     assert isinstance(rule["enforced"], bool)
+    fields, published = {e["name"]: e for e in dmap["fields"]}, published_classes(dmap)
+    owner_groups = set(dmap["owner_groups"])
+    for name in rule["not_published"]:
+        assert fields[name]["group"] in owner_groups, f"{name}: the rule holds back owner fields only"
+        assert fields[name]["privacy"] not in published, f"{name}: held back by the user, but marked published"
+
+
+def test_the_owner_rule_binds_even_a_field_marked_published():
+    """Once the rule is enforced and an owner field is public, it still reaches only a slice or a pair."""
+    cfg, dmap = config.load(), load_map()
+    owner_groups = set(dmap["owner_groups"])
+    bound = [e for e in entries(dmap, REGISTER) if e["bound"] and e["group"] in owner_groups]
+    if not bound:
+        pytest.skip("no owner field is bound, so there is nothing to probe")
+    opened = copy.deepcopy(dmap)
+    opened["owner_rule"]["enforced"] = True
+    public = next(name for name, spec in opened["privacy_classes"].items() if spec["published"])
+    for entry in opened["fields"]:
+        if entry["group"] in owner_groups:
+            entry["privacy"] = public
+            entry.pop("published_exceptions", None)
+    assert privacy_breaches(opened, cfg.pipeline, cfg.dimensions) == [], "a slice of a public owner field is allowed"
+
+    pipeline, dimensions = copy.deepcopy(cfg.pipeline), copy.deepcopy(cfg.dimensions)
+    dimensions["dimensions"].append({"id": "probe", "derive": {"kind": "raw", "field": bound[0]["bound"]}})
+    dataset = next(name for name, spec in pipeline["datasets"].items() if "facts" in spec)
+    pipeline["datasets"][dataset]["facts"].append("probe")
+    pipeline[SNAPSHOT_ARCHIVE]["group_by"].append(bound[0]["bound"])
+    found = privacy_breaches(opened, pipeline, dimensions)
+    assert any(p.startswith("facts 'probe'") for p in found), found
+    assert any(p.startswith(SNAPSHOT_ARCHIVE) for p in found), found
 
 
 def test_owner_fields_and_vin_derivatives_stay_unpublished_until_the_rule_is_enforced():

@@ -3460,10 +3460,10 @@ New entries use this template:
   (D-086); both supplied stores sat on the user's computer only (D-092, D-094).
 - Decision (user), by the question's number:
   1. **Where the converted counts live:** option (a), a small file of counts in this public repository, with no
-     owner field. The same for Stats NZ's series. How it is done is D-097.
+     owner field. The same for Stats NZ's series. How it is done is D-097, in its own pull request.
   2. **The About page.** The site's name is parked: the user has no name they like yet. Contact: through
-     nickholt.co.nz. Connection to the motor industry: the user works at the Colonial Motor Company as a Systems
-     Analyst, "for the meantime". Privacy: no tracking "or anything" right now, to be looked at again closer to
+     nickholt.co.nz. Connection to the motor industry, to be added "for the meantime": the user works at the
+     Colonial Motor Company as a Systems Analyst. Privacy: no tracking "or anything" right now, to be looked at again closer to
      going live. The web address stays a gap.
   3. **Privacy classes.** (a) The 31 register fields and 10 dashboard columns that say nothing of an owner are
      public. (b) Owner fields: only in tables of one or two fields, with small cells hidden, at a minimum of 10
@@ -3475,7 +3475,8 @@ New entries use this template:
   6. **The query service** is decided after package D's trim is measured.
   7. **True registrations move first on the home page**, when the home page is rebuilt (package H).
   8. **The Stats NZ hand export and going public:** later.
-  9. **The repository's "About" line on GitHub:** as proposed.
+  9. **The repository's "About" line on GitHub:** as proposed: "Plain answers about New Zealand's vehicle market,
+     from NZTA and Stats NZ open data. Work in progress; not public yet." Set on 2026-11-16.
   10. **The code's licence:** not answered. The message left the three options standing, so the question stays open.
 - How each was recorded, and claude's readings (unreviewed):
   1. **The classes are marked approved** (`approval` in `config/data_map.json` names this record). The class ids
@@ -3494,8 +3495,12 @@ New entries use this template:
      it takes the minimum of 10 once the pipeline can hide cells is a question for the user then; applying it would
      change a published slice.
   5. **A table of one or two fields is read as a slice or a pair** (claude's reading): a slice is one field by
-     month, a pair is two. The month is not counted as a field. The fact table crosses every field, so no owner
-     field joins it; a test now holds that for good, not only while the classes were proposed.
+     month, a pair is two. The month is not counted as a field. The fact table and the committed snapshot aggregate
+     cross many fields, so no owner field joins either: the map's test refuses an owner field in any output the
+     rule does not name, whatever the field's class or exceptions say (the reviewer of #60 showed that the first
+     version of the test did not).
+  5a. **"Not now" for postcode totals is data too**: `owner_rule.not_published` names `POSTCODE`, and the test
+     refuses it in every output. It leaves the list only on the user's word, in a new record.
   6. **Nothing derived from `VIN11` is covered** by the answers, so D-076 stands: only after a check against the
      data and the user's approval.
   7. **The About page's privacy sentence states what is true today**, not a promise: "Today it carries no

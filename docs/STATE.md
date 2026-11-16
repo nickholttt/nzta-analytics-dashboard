@@ -67,9 +67,8 @@ Four branches, each in its own worktree (`git worktree list`), started 2026-11-1
 - `data/raw/nzta-dashboard/`: the user's exports of NZTA's registrations dashboard (D-084).
   - `history/`: January 2021 to October 2026, 991,274 rows, 1,883,786 vehicles; `2021-01/`:
     January 2021 alone; `2026-10/`: the first hand export, NZTA's page, screenshots (D-075).
-- `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's monthly series, January 1961 to
-  September 2026, 26 series, fetched read-only from Infoshare; the user's own hand export
-  replaces it later (D-065).
+- `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's monthly series, 1961-01 to 2026-09,
+  fetched read-only from Infoshare; the user's own hand export replaces it later (D-065).
 - **No local file holds `VIN11` or `POSTCODE`.**
 - **Copies:** a backup folder on the project's own disk holds both register pulls and both
   dashboard CSV files (SHA-256 checked); two more of the history file are in Downloads.
