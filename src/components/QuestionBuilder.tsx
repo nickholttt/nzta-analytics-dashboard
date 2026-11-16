@@ -383,7 +383,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                   <button
                     type="button"
                     className="button-quiet"
-                    aria-label={`Remove the condition on ${filterLabel(d).toLowerCase()}`}
+                    aria-label={`Remove this condition: ${filterLabel(d).toLowerCase()}`}
                     onClick={() => {
                       ask({ where: without(question.where, d) });
                       focusSoon(() => addSelect.current);
