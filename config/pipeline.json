@@ -228,6 +228,10 @@
     "never_pulled": ["CHASSIS7", "ENGINE_NUMBER"],
     "attribution": "Motor Vehicle Register open data, NZ Transport Agency Waka Kotahi, licensed CC BY 4.0. One row per vehicle on the register at the snapshot date."
   },
+  "site_reader": {
+    "$comment": "What the site's Parquet reader can decode (src/lib/data.ts: its own pages for snappy and uncompressed, the zstd decoder it is given). Every Parquet file a build writes to public/data must be in one of these, which pipeline/tests/test_parquet_codecs.py checks; a codec added here needs its decoder in data.ts first, and tests/site/ checks the two agree.",
+    "codecs": ["ZSTD", "SNAPPY", "UNCOMPRESSED"]
+  },
   "paths": {
     "raw": "data/raw",
     "staging": "data/staging",
