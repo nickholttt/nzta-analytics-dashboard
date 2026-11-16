@@ -705,6 +705,25 @@ def test_a_flip_names_both_figures_and_a_window_with_no_hybrid():
     assert f"against {h['publish_split_at_trailing_high_confidence_coverage']:.0%}" in found["a"]
 
 
+@pytest.mark.parametrize("kept", [["a"], "published", 1, True, [{"published": True}], 0.5])
+def test_a_state_whose_split_record_is_not_a_mapping_is_ignored_not_a_crash(kept):
+    # Only a hand-edited state could hold one, which the rules forbid; a guard that raised on it would hide the real problem.
+    cfg = make_cfg({})
+    current = {"a": {"published": True, "trailing_high_confidence_coverage": 0.8}}
+    assert guardrails.split_flips(cfg, current, {"mild_split": kept}) == []
+    assert guardrails.split_flips(cfg, current, {"mild_split": {"a": kept}}) == []
+    assert guardrails.split_flips(cfg, current, kept) == []
+
+
+def test_a_split_record_with_a_figure_that_is_not_a_number_still_flips_and_says_so():
+    cfg = make_cfg({})
+    current = {"a": {"published": False, "trailing_high_confidence_coverage": 0.5}}
+    for figure in ("0.8", True, [0.8]):
+        previous = {"mild_split": {"a": {"published": True, "trailing_high_confidence_coverage": figure}}}
+        (warning,) = guardrails.split_flips(cfg, current, previous)
+        assert "was an unreadable figure in the last good build and is 50.00% now" in warning, figure
+
+
 def test_only_datasets_with_a_hybrid_coverage_block_have_a_split_to_remember():
     block = {"mild_split_published": True, "trailing": {"coverage_high_confidence_only": 0.8}}
     datasets = {"built": {"mild_hybrid_identification_coverage": block}, "waiting": {"not_built": "no store"}, "series": {"rows": 3}}

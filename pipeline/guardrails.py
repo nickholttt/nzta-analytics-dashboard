@@ -20,17 +20,23 @@ def split_flips(cfg, current: dict[str, dict], previous: dict | None) -> list[st
     """A warning for each dataset whose mild hybrid split is published now and was withheld in the last good build, or the
     reverse. Either way the dataset's whole history of the two powertrain values is rewritten by one build, and nothing
     else in the manifest says so. A state written before the record existed, or without this dataset, has nothing to
-    compare, and a record that is not in the shape written here is ignored the same way."""
+    compare, and a record that is not in the shape written here, whether the whole `mild_split` or one dataset's, is ignored
+    the same way (a guard that raised on a bad state would hide what is wrong with it)."""
     h = cfg.pipeline["hybrid_classification"]
     mild, undivided, threshold = h["mild_powertrain"], h["undivided_powertrain"], h["publish_split_at_trailing_high_confidence_coverage"]
 
     def figure(record: dict) -> str:
         coverage = record.get("trailing_high_confidence_coverage")
-        return "no hybrid in the window" if coverage is None else f"{coverage:.2%}"
+        if coverage is None:
+            return "no hybrid in the window"
+        # A flag written by hand with a figure that is not a number still flips; only the figure is unreadable.
+        return f"{coverage:.2%}" if isinstance(coverage, (int, float)) and not isinstance(coverage, bool) else "an unreadable figure"
 
+    kept = previous.get("mild_split") if isinstance(previous, dict) else None
+    kept = kept if isinstance(kept, dict) else {}
     warnings = []
     for dataset, now in current.items():
-        before = ((previous or {}).get("mild_split") or {}).get(dataset)
+        before = kept.get(dataset)
         if not isinstance(before, dict) or not isinstance(before.get("published"), bool) or before["published"] == now["published"]:
             continue
         move = (f"trailing coverage at high confidence was {figure(before)} in the last good build and is {figure(now)} now, "
