@@ -26,7 +26,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **The site shows the long run on a local build** (#61, D-098): cars first registered each
   month from 1961, new and ex-overseas, and cars still registered set against Stats NZ's
   count (not a survival rate). A build without a dataset says so in place of its charts.
-- **The site's code is on `main`**, with `/about` (a draft; three gaps left for the user, D-096),
+- **The site's code is on `main`**, with `/about` (a draft; two gaps left for the user, D-106),
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
   site from the newest cube release and uploads nothing. **Nothing is deployed**: the
   variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-16).
@@ -89,8 +89,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 7. The public build still ships the status page's script chunk, unlinked, holding no data.
 8. Commits before #47 hold local paths (D-081).
 9. True registrations of new vehicles read 1.4% to 3.9% under the MIA's total: the default
-   scope leaves out three vehicle types the trade counts. Older months sit about 1% under
-   published figures, cause not established (D-105).
+   scope leaves out three vehicle types the trade counts; a total on the trade's basis is
+   to be built beside it (D-106). Older months sit about 1% under published figures (D-105).
 
 ## Where docs and code disagree (noted, not changed)
 

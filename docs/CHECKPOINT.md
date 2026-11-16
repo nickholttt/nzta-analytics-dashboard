@@ -13,6 +13,8 @@ Last updated by claude on 2026-11-16
   - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
     the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
     sit about 1% lower, cause not established. Three figures are unexplained.
+  - **The user answered three more questions** (D-106): a total on the trade's basis beside
+    the default scope; the MIT licence for the code; the site is run by "an individual".
   - **The sub-agents stopped twice at the account's usage limit**; "Work in hand" says where.
 
 ## The user's direction of 16 November (D-104)
@@ -45,7 +47,9 @@ independently of the site's code; figures are compared with published New Zealan
    compared with what the built site shows. Stopped in its first phase, reading definitions.
    The built site for it is the worktree `nzta-audit`.
 4. **Package F**, each field checked against the data and published sources before Build
-   offers it. Order: colour, seats, where assembled, class; power and transmission; owner
+   offers it. First: a total of new vehicles on the trade's basis beside the default scope
+   (the user, D-106; `trade_scope` in `vehicle_scope.csv`). Then: colour, seats, where
+   assembled, class; power and transmission; owner
    fields last, unpublished until the pipeline hides small cells (D-096). Then ranked chosen
    values, the `matrix` renderer, any number of conditions, "My questions", the
    related-fields note, CSV of what is on screen, the acceptance question both ways.
@@ -72,29 +76,22 @@ independently of the site's code; figures are compared with published New Zealan
 
 ## Questions for the user (parked; none stops the work)
 
-1. **The code's licence:** none (all rights reserved), MIT or Apache 2.0. The owner's to
-   choose. With no answer the README keeps saying no licence is chosen.
-2. **The About page's three gaps** (`config/site.json`, search `TO DECIDE`): the site's name,
-   its web address, and who runs it. With no answer the page stays a marked draft.
-3. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`), now that the trim is
+1. **The site's name and web address** (`config/site.json`, search `TO DECIDE`): parked by
+   the user. The About page stays a marked draft until both are filled.
+2. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`), now that the trim is
    measured (D-099): a Build answer still takes 6.6 to 10.3 s on a phone, nearly all of it
    the data download. A paid function (about US$5 a month), or lighter files at no cost.
    Recommend deciding after the engine's audit. With no answer nothing is spent.
-4. **Should the site count new vehicles as the trade does?** (D-105.) The default scope leaves
-   out buses, motor caravans and special purpose vehicles, which the MIA counts as
-   commercial, so the site's total reads 1.4% to 3.9% under the MIA's. (a) Bring the three
-   into scope. (b) Keep the scope and offer a total on the trade's basis beside it. (c) Leave
-   it, with the page saying why. Recommend (b). With no answer: (c).
-5. **The first owner-field table** (package F; D-096): see it before a build publishes it?
+3. **The first owner-field table** (package F; D-096): see it before a build publishes it?
    Recommend yes. And should the `region` slice then take the minimum of 10? Recommend yes.
    With no answer: built locally only, shown in the final report; the slice stays as it is.
-6. **Two readings of CLAUDE.md's chart rule** (D-100): a list is ranked by the field's own
+4. **Two readings of CLAUDE.md's chart rule** (D-100): a list is ranked by the field's own
    recorded judgement, not a count of its values; a count by a region draws lines, not a
    map. Recommend keeping both. With no answer both stay.
-7. **A month supplied after the register's build is not published until the next month's
+5. **A month supplied after the register's build is not published until the next month's
    build.** May a change to the committed counts rebuild the current month? It is a forced
    run, asked for each time today. Recommend yes, for that case only. With no answer: no.
-8. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
+6. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
    sentence, read again before going live; the retaken dashboard history, due in Downloads.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
@@ -102,7 +99,8 @@ independently of the site's code; figures are compared with published New Zealan
 D-082, D-085 to D-095 (the eighth session). This session: D-096's readings of the answers;
 D-097 (how the committed counts are laid out, guarded and trimmed); D-098 (the long-run
 charts); D-099 (the trim); D-100 and D-101 (the chart rules; CI); D-104's reading of the
-direction; D-105 (the comparison, and three statements about the MIA corrected).
+direction; D-105 (the comparison, and three statements about the MIA corrected); D-106's
+choice of the MIT licence and of the copyright line.
 
 ## Prompt for the next session
 
