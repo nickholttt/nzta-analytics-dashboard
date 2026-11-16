@@ -2,10 +2,17 @@
 // fact table.
 import { parquetRead, parquetReadObjects } from "hyparquet";
 import type { ColumnData } from "hyparquet";
-import { compressors } from "hyparquet-compressors";
+import { decompressZstd } from "hyparquet-compressors";
 import { builderSpec } from "./config";
 
 const DATA = "/data";
+
+// The cube is written with zstd (docs/CUBE_SCHEMA.md); hyparquet reads snappy and uncompressed pages itself. The package
+// of every codec ships a brotli decoder, a gzip one and a lz4 one this site never uses, so only the one the files need is
+// taken from it. A file in any other codec fails to load with hyparquet's own "unsupported compression codec" message.
+// Its types say a second argument, an output length; fzstd takes an optional output buffer there, so it is left out, as the
+// package's own table does.
+const compressors = { ZSTD: (input: Uint8Array) => (decompressZstd as (input: Uint8Array) => Uint8Array)(input) };
 
 // A pair's file is pairs/{dataset}/{dim_a}__{dim_b}.parquet (docs/CUBE_SCHEMA.md, Pair slices).
 export const PAIR_SEPARATOR = "__";
