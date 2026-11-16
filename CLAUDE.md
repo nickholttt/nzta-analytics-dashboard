@@ -134,7 +134,7 @@ The only six renderers. Every preset and every builder output maps to one.
 Shape is **inferred** from measure + dimension. Where more than one shape
 fits the question, the visitor may switch among those that fit; they never
 get a shape that does not fit, and there is no seventh. The sixth, `matrix`,
-was approved by the user on 2026-11-14 (D-083); its renderer is planned.
+was approved by the user on 2026-11-14 (D-083); its renderer is built (D-114).
 
 | Shape | Renderer | Triggered by |
 |---|---|---|

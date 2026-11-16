@@ -114,8 +114,8 @@ Setup, **not re-run this session** (the environment already existed):
   `main` since 2026-11-13 (#26 to #29, #35, #37 to #39), and the first release, `cube-2026-10`, exists.
 - `src/pages/index.astro` hosts React islands; only its first chart fetches on load, the others wait on `src/lib/loadGate.ts` (D-099). `src/lib/config.ts` loads `config/*.json`, `data.ts`
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
-  `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo}Chart.tsx`
-  are the renderers of five of the six allowed shapes (`matrix`, approved in D-083, has none yet), and `PresetTriage.tsx` lists every preset with what blocks it, and (as `BuildWarnings`, D-112) the cube's own warnings, on the internal status page only.
+  `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo,Matrix}Chart.tsx`
+  are the renderers of the six allowed shapes (`matrix`, approved in D-083, is a table drawn from the design tokens, D-114), and `PresetTriage.tsx` lists every preset with what blocks it, and (as `BuildWarnings`, D-112) the cube's own warnings, on the internal status page only.
 - `scripts/unmatched_hybrids.py` lists, for one dataset, the hybrids that count against its mild hybrid coverage at high
   confidence, by make and model. Run by hand when a build warns that the split flipped (`docs/playbooks/check-monthly-run.md`,
   D-112); it reads the repository and a saved pull and writes nothing.

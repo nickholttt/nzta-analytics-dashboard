@@ -4,14 +4,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, phrases, valueWords } from "../lib/config";
-import { isChoosable } from "../lib/reserved";
+import { REST_NAME, isChoosable } from "../lib/reserved";
 import { MAX_VALUES, RANKING, REMOVE_CONDITION, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
 import type { SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
-import { REST_NAME } from "../lib/matrix";
 import { count } from "../lib/readout";
 import { fillTemplate, pickedBuilderSentences } from "../lib/sentences";
 import PresetPanel, { reservedLabel } from "./PresetPanel";

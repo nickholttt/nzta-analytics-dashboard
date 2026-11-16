@@ -392,6 +392,58 @@ spreadsheet does not read it as a formula (a program that reads the file shows t
 from the rows the chart already holds. The table of a mix chart is its last-12-months summary; the monthly figures behind a line chart are the
 table behind the line chart.
 
+### A grid of two fields (D-114)
+
+Two fields crossed, neither of them time, looked at in one window (the last 12 months, or one month): one field down the side, one across the top,
+a figure in each cell. Build asks it as a second breakdown (`build.by2`); two Explore questions are drawn as one. It is the `matrix` shape.
+The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.test.ts`.
+
+- **What is counted.** Every vehicle the conditions keep, in the window's months, is in exactly one cell. The cells add up to the
+  grid's total, and the last row and column are that total's parts: they are **always whole numbers of vehicles**, whatever the cells hold
+  ("All" where the cells are vehicles, "Vehicles" where they are shares). The total of a grid is the total of the same question without
+  its second breakdown.
+- **What a cell holds** is the visitor's choice, in a row of four buttons headed "Each cell shows". It is **vehicles** where the question counts
+  vehicles and **a share of all** where it asks for a share. The default is the least misleadable: a count has no base, and a share of all uses
+  the site's one rule for a share's denominator (everything counted under the conditions in the window), so a grid of shares adds up to 100%.
+  The other two extend that rule on purpose, and say so on the page and in the file:
+  - **a share of its row** is a cell over the vehicles in its row, which is the share of a set the row's value narrows to (as a condition does,
+    "Share", above); it answers "which segment does each brand sell most in?";
+  - **a share of its column** is a cell over the vehicles in its column; it answers "which brand leads each segment?".
+  The base of a share (the grid, a row or a column) is always in the table: the last column or row holds the vehicles each share is a share of.
+  A preset may open on a row or column share (`cell_basis`, as the two Explore grids do); a visitor can change it, and it is in the address
+  (`<id>.cells`).
+- **Which values stand on a side.** The visitor's picks (up to the number of lines the side shows), or, with none, the values with the most
+  vehicles in the window, ordered by their count with ties alphabetical by the name shown (the one rule, "Ranking and ties"). A side shows 10
+  rows and 8 columns (`defaults.matrix` in `config/presets.json`). Every value not shown stands together in one line, **All other**, so the
+  totals are the conditions' totals and nothing is left out; the page says how many values it holds. A tie at the cut shows the alphabetically
+  first, and a sentence says how many more share the last count shown. An ordered band (an age, an engine size) is never cut or ranked: it is
+  shown whole, in its own order. A value picked that has no vehicles in the window is a line of zeros.
+- **Reserved values** are as in a ranking ("Ranking and ties"), with one difference of place. *Not recorded* and *no reference match* describe
+  real vehicles, so each is a line of its own (italic, after the named values, in that order) when it has vehicles in the window or is picked;
+  it takes no place and is never the largest combination. *Beyond the cap* is where a cap puts values, not a fact about any vehicle: it is never
+  its own line and is always in All other, which says so. The reserved values that are not shown (not picked) are in All other too.
+- **Guards.** A count has no floor. A share is read against the share measure's floor (200 vehicles, "A ranking and the precision floor")
+  on **its own base**: the whole grid's total for a share of all, the row's for a share of its row, the column's for a share of its column. A
+  share whose base is under the floor is **greyed**, not hidden: drawn on a flat grey, printed, with its reason in the file, and left out of
+  the scale. A share whose base holds no vehicles (a picked row with none) **has no value**: a dash on the page, a blank cell with its reason
+  in the file, never 0%. A cell of no vehicles inside a base that holds some is **zero**, printed as 0 or 0.0%. (A share that rounds to 0.0%
+  but is not zero is still shaded, so it is told from a zero.)
+- **Shade.** Six steps, from the design system's tokens (`--scale-N` in `src/styles/site.css`, each with the ink printed on it, held to 4.5 to 1
+  by `tests/site/matrix-colour.test.ts`; the lowest is 5.25 to 1). A step is a fraction of the largest figure among the cells the grid shades
+  (config `step_fractions`: 2%, 6%, 15%, 35%, 65% and 100%), so **one shade means one figure everywhere in the grid**, in a row or column share
+  too: it is not set row by row. A cell of no vehicles, a greyed or valueless share, All other and the totals are not shaded. The legend gives
+  each step's range in the cell's own unit; a figure is stepped as it is printed, so the legend and the grid agree. Every cell prints its
+  figure, so colour is never the only way to read it.
+- **The answer.** One sentence: the combination of two named values with the most vehicles in the window, with that count in the dataset's own
+  words for what it counts; every combination level with it where there are several. It is the same fact whatever the cells show, so it is
+  never a share of a thin row. It names no value or figure in the template, and says nothing about why.
+- **The table of figures and the file** are the grid itself, with its last row and column, cell for cell (a wide grid is rows by columns as
+  on the page). A column of shares is headed (%); the notes above the table say what a cell holds, how each side was chosen, what All other
+  holds, what is greyed, and that the last row and column are vehicles.
+- **The fact table answers it** (`docs/CUBE_SCHEMA.md`, Fact table): two fields it carries, under any conditions it carries. A field it does not
+  carry (the owner's region, the vehicle's age) cannot be crossed. Build offers no pair where each value of one sits under a single value of the
+  other (a model under its brand, a brand under its group; `builder.cannot_cross`), since its empty cells would be empty by construction.
+
 ### Two suppression guards
 
 A share is greyed or suppressed (below) when **either** guard trips. They

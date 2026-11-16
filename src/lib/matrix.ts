@@ -14,7 +14,7 @@
 //     is under the precision floor and has no value when its base is nothing; a cell of no vehicles is zero;
 //   - a shade means the same figure everywhere in the grid: the steps are fractions of the largest figure among the cells it shades.
 import { byCountThenName, nameOrder, rankByCount } from "./ranking";
-import { BEYOND_CAP } from "./reserved";
+import { BEYOND_CAP, REST_NAME } from "./reserved";
 import { NOT_RECORDED_TOKEN, NO_MATCH_TOKEN } from "./sentences";
 import type { Cell as FigureCell, Column, Figures } from "./figures";
 
@@ -23,8 +23,7 @@ export type Basis = "count" | "all" | "row" | "column";
 export const BASES: readonly Basis[] = ["count", "all", "row", "column"];
 export const isBasis = (v: unknown): v is Basis => typeof v === "string" && (BASES as readonly string[]).includes(v);
 
-// The name of the one line that holds every value not shown. The mix chart's remainder has the same words.
-export const REST_NAME = "All other";
+export { REST_NAME };
 
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 
