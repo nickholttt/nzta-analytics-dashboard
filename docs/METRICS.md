@@ -479,6 +479,53 @@ grey more (a floor of 12 times 200) is not taken.
 - The floor is the share measure's whichever measure the chart counts, because the shares in a ranking's table are shares of a
   window whatever the bars show.
 
+### A ranking of some values (D-111)
+
+Two or more values on a long list (the same breakdowns the ranking of every value is offered for) can be ranked over one window, the
+last 12 months or one month. It is the ranking above over fewer values, not a second one: the same function ranks them, with the same
+ties, the same year before, the same zero for a month in which a condition keeps nothing, the same precision floor and the same reserved
+values. The values are the visitor's own ("you picked") or the page's own starting values ("shown"): where a count is broken down and the
+visitor has chosen no value, the page fills in the five that have the most vehicles in the last 12 months under the conditions, the dataset
+and the breakdown, and looks again when any of those changes, until the visitor adds or removes one. The page's own values are not in the
+address (a link with no `build.value` means them); the visitor's are. The page never says "you picked" of values it chose.
+
+- **A rank is a place among those values**, not a place among every value. The page says so in a sentence above the chart ("Ranked among
+  the N you picked" or "Ranked among the N shown, which the page chose as the largest in the last 12 months"), and the column is headed
+  "Rank of N" (and "Rank of N a year before").
+- **A share is a share of everything counted** under the conditions in the window, as everywhere else on the site (a share's denominator
+  is the whole the conditions keep), not of the values ranked. So their shares add up to less than the whole, and the column is headed
+  "Share of all counted" with a sentence that says what the total is and that the shares do not add up to the whole.
+- **A value takes no place** where it has no vehicles in the window, or is a reserved value. Each is named under the leader, in the words
+  that are true of it: no vehicles in the window; not recorded (the source records no value of the field for those vehicles); no match in
+  the reference (the value is recorded but matches no entry). N still counts them.
+- **The leader** is the value, or every value level at first place, with the most vehicles in the window; the sentence says the figure in the
+  dataset's own words for what it counts (for example "first registered in the last 12 months that are still registered"). Where none of
+  the values has a vehicle, one sentence says there is nothing to rank, in place of the chart and the table.
+- **The full ranking is one step away**: one button ranks every value under the same conditions and window, and one takes the visitor back to
+  the values. Both states are addresses (`build.view=league`, and `build.rank=all` as well). A ranking link that names a range a ranking
+  cannot have (a span of years) is corrected to the window drawn, in the address, and a sentence says so.
+- With one value there is nothing to rank, so the question stays lines (or the share mix).
+
+### The file of figures (D-111)
+
+Each chart's table of figures can be downloaded. The file is that table and no other: the same rows, columns and order, the same rounding
+(a share to one decimal place, a change in share in percentage points to one, a change on a year ago as the page rounds it), written as
+plain numbers (no thousands separator, a full stop for the decimal point, a minus sign), months as year-month. A figure the page greys is
+written, with its reason in a last column; a figure the page withholds is a blank cell with its reason there, never a zero. Where the page
+shows a dash for a reason it does not say elsewhere (not ranked a year earlier, no vehicles earlier to take a share from, too few vehicles to
+compare), it says it in a line under the table, and the file says the same.
+
+Above the table are lines that each start with "# " and are never quoted: the question as the page states it, what is counted, the period,
+the dataset or datasets, the snapshot, the source note of each dataset that has one, the attribution of each dataset the figures are drawn
+from (and no other: a file of a Stats NZ series carries Stats NZ's statement and nothing of NZTA's, and a chart that divides one dataset by
+another carries both), the address that redraws the chart, how the figures are written, and one line that says which figures are greyed or
+withheld and why, naming each column as the file does. A program that reads CSV skips these lines by setting its comment character to
+"#"; a spreadsheet shows each in its first cell, and a line that holds a comma carries on into the cells to its right. The file has a byte
+order mark and CRLF line endings. A text in the table that starts with `=`, `+`, `-` or `@` is written with an apostrophe in front so a
+spreadsheet does not read it as a formula (a program that reads the file shows the apostrophe as part of the text). It is made in the browser
+from the rows the chart already holds. The table of a mix chart is its last-12-months summary; the monthly figures behind a line chart are the
+table behind the line chart.
+
 ### Two suppression guards
 
 A share is greyed or suppressed (below) when **either** guard trips. They
@@ -664,7 +711,12 @@ behind the figure, not on the figure rounded to four decimals that the manifest
 shows: 139,999 of 200,000 reads 0.7 and is under 70%, so it withholds. Under
 it the dataset shows its mild hybrids as Hybrid, undivided, in every slice, pair and fact table, the manifest
 says `mild_split_published: false` beside the figure, and the build adds a
-warning; the other dataset is judged on its own figure. On the 2026-10
+warning; the other dataset is judged on its own figure. A window with no hybrid
+at all, or only `full` calls at the high level, has nothing to divide and
+publishes (both figures read null). A window with no identified mild and no
+unknown hybrid, only `full` calls below the high level, has those calls as its
+whole denominator at high confidence only: that figure reads 0% while the stated
+figure reads null, and the split is withheld (D-110). On the 2026-10
 snapshot both are above it (74.0% and 74.0%, after the rows below), so both
 publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
 same today) is a build warning for a dataset that still publishes. A dataset

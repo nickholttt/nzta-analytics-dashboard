@@ -347,6 +347,33 @@ section[id] {
   color: var(--ink-2);
 }
 
+/* The label of the search box and, on its right, the controls that are about the values chosen (rank them, back to the lines), so they
+   take no row of their own. They wrap under the label where the width is short. */
+.picker-find-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 var(--space-4);
+}
+
+.picker-aside {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+}
+
+/* Text links on the label's row: the row keeps the label's height, and the touch target is made taller than the text without taking room. */
+.question .picker-aside .button-quiet {
+  min-width: 0;
+  min-height: 0;
+  margin-top: 0;
+  padding: 6px 0;
+  margin-block: -6px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .picker input[type="search"] {
   font: inherit;
   font-size: var(--text-md);

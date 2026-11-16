@@ -2,7 +2,9 @@
 // its figure with the vehicles behind it, why it is greyed if it is, then anything only that chart has. Each renderer
 // passes what it knows; the order and the wording are decided here.
 import { TRAILING_MONTHS, monthLabel, pct } from "./measures";
-import { count, vehiclesText } from "./sentences";
+import { phrases } from "./config";
+import type { Cell } from "./figures";
+import { count, fillTemplate, markReason, vehiclesText } from "./sentences";
 
 export type Greyed = "thin" | "collapsed";
 
@@ -18,16 +20,20 @@ export type Readout = {
   extra?: string[];
 };
 
-export { count };
+export { count, markReason };
 const vehicles = vehiclesText;
 
 // Why a figure is greyed, in the same words in a readout and in a chart's table of figures.
-export const greyedReason = (greyed: Greyed | undefined, minDenominator?: number) =>
-  greyed === "thin"
-    ? `Greyed: fewer than ${minDenominator ?? ""} vehicles behind this figure`
-    : greyed === "collapsed"
-      ? "Greyed: far fewer vehicles than the months before, so it may not describe a normal month"
-      : "";
+export const greyedReason = (greyed: Greyed | undefined, minDenominator?: number) => (greyed ? `Greyed: ${markReason(greyed, minDenominator)}` : "");
+
+// A share or a change the table gives as a word because its base is under the floor, as the file of figures writes it: a blank cell and the
+// reason. text is what the page shows in the cell.
+export const withheldThin = (floor: number, text = "suppressed"): Cell => ({
+  text,
+  csv: null,
+  mark: "withheld",
+  reason: fillTemplate(phrases.figures_withheld_thin, { floor }).text,
+});
 
 export const monthPeriod = (month: string, rolling = false) =>
   rolling ? `${TRAILING_MONTHS} months to ${monthLabel(month)}` : monthLabel(month);

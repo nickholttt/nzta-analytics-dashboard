@@ -118,6 +118,13 @@ def test_unchanged_snapshot_and_count_with_different_key_aborts(tmp_path, worksp
     expect_abort(lambda: run(tmp_path, cfg, rows, state=state, name="second"), "without advancing")
 
 
+def groups_of(cfg, warnings: list[str]) -> list[int]:
+    """The index of the run summary's group (config run_summary.warning_order) each of these warnings falls in, the number of
+    groups for one that falls in none."""
+    labels = [g["label"] for g in cfg.pipeline["run_summary"]["warning_order"]]
+    return [labels.index(label) if label else len(labels) for label, _ in fetch.order_warnings(cfg, warnings)]
+
+
 def test_unmapped_make_over_threshold_aborts(tmp_path, workspace):
     rows = load_rows()
     template = next(r for r in rows if r["OBJECTID"] == 62)
@@ -148,6 +155,9 @@ def test_trailing_unmapped_warning_and_published_headroom(tmp_path, workspace):
     g.update(max_unmapped_rate=0.5, max_unmapped_rate_trailing=0.5, warn_unmapped_rate_trailing=0.0)
     manifest = run(tmp_path, cfg, rows + unknown_makes_in_snapshot_month(rows, 1, 5000), publish=False)
     assert any("warning level" in w for w in manifest["warnings"]), manifest["warnings"]
+    # The run's summary page lists it as close to stopping a later build (config run_summary, D-112): the group looks for
+    # the words this warning is written with, so a rewording that stops matching fails here.
+    assert set(groups_of(cfg, [w for w in manifest["warnings"] if "warning level" in w])) == {1}
     guard = manifest["datasets"]["registrations_surviving"]["unmapped_guard"]
     assert sorted(guard) == sorted(g["abort_on_unmapped"])
     for figures in guard.values():
@@ -637,6 +647,8 @@ def test_a_build_that_withholds_a_split_the_last_good_state_published_says_so_an
 
     _, manifest, new_state = built_with_threshold(tmp_path, workspace, 1.0, state, "withheld")
     (warning,) = split_flips(manifest)
+    # The run's summary page lists it first (config run_summary, D-112), ahead of the standing warning of the same build.
+    assert fetch.order_warnings(cfg, manifest["warnings"])[0] == (cfg.pipeline["run_summary"]["warning_order"][0]["label"], warning)
     # It names the dataset, the direction, both figures and what changes for a reader; the standing warning is still there.
     assert "was published in the last good build and is withheld now" in warning
     assert warning.count(f"{before:.2%}") == 2, "both coverage figures are named (the same here: only the threshold moved)"
@@ -655,6 +667,7 @@ def test_a_build_that_publishes_a_split_the_last_good_state_withheld_says_so(tmp
 
     _, manifest, new_state = built_with_threshold(tmp_path, workspace, 0.0, state, "published")
     (warning,) = split_flips(manifest)
+    assert groups_of(make_cfg(workspace), [warning]) == [0]
     assert "was withheld in the last good build and is published now" in warning
     assert f"{h['mild_powertrain']} reappears" in warning and f"{h['undivided_powertrain']} falls" in warning
     assert h["mild_powertrain"] in split_values(workspace)["slice"]
@@ -700,9 +713,28 @@ def test_a_flip_names_both_figures_and_a_window_with_no_hybrid():
     found = {w.split(":")[0]: w for w in guardrails.split_flips(cfg, current, previous)}
     assert sorted(found) == ["a", "b"], "c did not change and d is new"
     assert "73.12%" in found["a"] and "69.01%" in found["a"] and "disappears" in found["a"]
-    assert "no hybrid in the window" in found["b"] and "70.00%" in found["b"] and "reappears" in found["b"]
+    assert "no hybrid in the window that could be mild" in found["b"] and "70.00%" in found["b"] and "reappears" in found["b"]
     assert guardrails.split_flips(cfg, current, None) == []
     assert f"against {h['publish_split_at_trailing_high_confidence_coverage']:.0%}" in found["a"]
+
+
+@pytest.mark.parametrize("kept", [["a"], "published", 1, True, [{"published": True}], 0.5])
+def test_a_state_whose_split_record_is_not_a_mapping_is_ignored_not_a_crash(kept):
+    # Only a hand-edited state could hold one, which the rules forbid; a guard that raised on it would hide the real problem.
+    cfg = make_cfg({})
+    current = {"a": {"published": True, "trailing_high_confidence_coverage": 0.8}}
+    assert guardrails.split_flips(cfg, current, {"mild_split": kept}) == []
+    assert guardrails.split_flips(cfg, current, {"mild_split": {"a": kept}}) == []
+    assert guardrails.split_flips(cfg, current, kept) == []
+
+
+def test_a_split_record_with_a_figure_that_is_not_a_number_still_flips_and_says_so():
+    cfg = make_cfg({})
+    current = {"a": {"published": False, "trailing_high_confidence_coverage": 0.5}}
+    for figure in ("0.8", True, [0.8]):
+        previous = {"mild_split": {"a": {"published": True, "trailing_high_confidence_coverage": figure}}}
+        (warning,) = guardrails.split_flips(cfg, current, previous)
+        assert "was an unreadable figure in the last good build and is 50.00% now" in warning, figure
 
 
 def test_only_datasets_with_a_hybrid_coverage_block_have_a_split_to_remember():

@@ -62,6 +62,13 @@ export function questionFacts(preset: Preset, dimension?: Dimension, measure?: M
   };
 }
 
+// Whether a view that pins its shape still fits it over this period (a ranking of chosen values is one window, so a span of years does
+// not fit). A view that pins none fits every period. The time row offers only the periods that fit, so a chart never offers one it then
+// cannot draw.
+export const fitsPin = (preset: Preset, period: string): boolean =>
+  !preset.shape_override ||
+  shapesFor(questionFacts({ ...preset, period }, findDimension(preset.dimension), findMeasure(preset.measure))).includes(preset.shape_override);
+
 // The shapes that fit the question and have a renderer, best first. A visitor is offered these and no others.
 export const drawnShapes = (facts: Facts): string[] => shapesFor(facts).filter((s) => RENDERED_SHAPES.has(s));
 

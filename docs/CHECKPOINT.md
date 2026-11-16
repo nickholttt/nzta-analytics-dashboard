@@ -7,7 +7,7 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session.
-  - **Merged, #60 to #70** (#63 was closed unmerged): the user's answers (D-096, D-106);
+  - **Merged, #60 to #72** (#63 was closed unmerged): the user's answers (D-096, D-106);
     package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
     D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
     supplied counts as files (D-097); the audit's fixes (D-107 to D-110, with #70).
@@ -46,16 +46,16 @@ independently of the site's code; figures are compared with published New Zealan
    - On the pipeline's side, done (#68, D-108): eight hybrid nameplates added, each from a
      published source (true registrations' coverage 66.0% to 83.5%); a dataset under 70%
      shows its hybrids undivided; the tie at the model cap has a rule; a new NZTA value no
-     longer refuses the committed counts. Its review's follow-ups are done too (#70, D-110):
-     a build warns when a split flips; the "high confidence" figure counts only such calls.
+     longer refuses the committed counts. Its review's follow-ups too (#70, #72): a flip warns
+     on the build's summary page and `/status`; a stricter coverage count (D-110, D-112).
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. First: a total of new vehicles on the trade's basis beside the default scope
    (the user, D-106; `trade_scope` in `vehicle_scope.csv`). Then: colour, seats, where
    assembled, class; power and transmission; owner
-   fields last, unpublished until the pipeline hides small cells (D-096). Then ranked chosen
-   values, the `matrix` renderer, any number of conditions, "My questions", the
-   related-fields note, CSV of what is on screen, the acceptance question both ways.
+   fields last, unpublished until the pipeline hides small cells (D-096). Done (#71): ranked
+   chosen values, conditions, CSV, the acceptance question on today's fields. Left: the
+   `matrix` renderer, "My questions", the related-fields note, the question with a new field.
 4. **Paused, half written, uncommitted:** package H's narrative spec (D-102; worktree
    `nzta-screens`, `claude/narrative-spec`: `config/narrative/` files and a lint test, no
    `docs/NARRATIVE.md` yet) and package I's proposed segment scheme (D-103; worktree
@@ -65,7 +65,7 @@ independently of the site's code; figures are compared with published New Zealan
 
 - **A.** Follow-ups (D-088, D-089): a digest of the rows the archive job pulls; dependencies
   pinned by hash and a draft-then-publish release step (after December's build); admin
-  bypass on `production` (the user's); two Build behaviours for chosen values (F); `/build/`
+  bypass on `production` (the user's); `/build/`
   skips a heading (H); a second scope for events; a lookup refusing a blank value at build.
 - **B.** Each month, as soon as the dashboard has it: the user's export, `python -m pipeline
   supply`, a `--dry-run` build, a pull request with the store's two files (D-097). A store

@@ -5,6 +5,7 @@
       "id": "registrations_surviving",
       "label": "Registrations still on the road",
       "public_label": "Vehicles still registered",
+      "attribution": "Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe registrations recorded by NZTA, not sales.",
       "public_definition": "Each month counts the vehicles first registered in New Zealand that month that are still registered on the snapshot date.",
       "words": {
         "$comment": "How a chart says what its dataset counts, in the words a visitor reads (D-042). A {name} is filled in by the chart: {months} is the trailing window and {window} the months a ranking covers. nz_new and used_imports take their base dataset's words. The placeholders each text may use are listed in config/narrative/rules.json, which pipeline/tests/test_site_config.py holds them to.",
@@ -13,6 +14,7 @@
         "window_unit": "Vehicles first registered in the {months} months to each month, still registered",
         "recent_figure": "first registered in the last {months} months, still registered",
         "ranking_basis": "Ranked by vehicles first registered {window} that are still registered",
+        "leader_count": "{vehicles} first registered {window} that are still registered",
         "suggestion_recent": "still registered, first registered in the last {months} months",
         "suggestion_total": "still registered",
         "none_recent": "Nothing was first registered in the last {months} months",
@@ -26,6 +28,7 @@
       "id": "registrations_flow",
       "label": "New registrations",
       "public_label": "True registrations",
+      "attribution": "Data source: NZTA's registrations dashboard, released under CC BY 4.0. Figures describe registrations recorded by NZTA, not sales.",
       "grain": "flow",
       "shows_year_change": true,
       "$shows_year_change_comment": "Its counts are every vehicle registered in a month, so the change on the same month a year earlier is a change in registrations and a ranking shows it. A dataset of survivors does not set this: older months are thinned by scrappage.",
@@ -41,6 +44,7 @@
         "window_unit": "Vehicles first registered in the {months} months to each month",
         "recent_figure": "first registered in the last {months} months",
         "ranking_basis": "Ranked by vehicles first registered {window}",
+        "leader_count": "{vehicles} first registered {window}",
         "suggestion_recent": "registered in the last {months} months",
         "suggestion_total": "registered",
         "none_recent": "Nothing was registered in the last {months} months",
@@ -78,6 +82,7 @@
       "id": "registrations_cars_long_run",
       "label": "Cars registered since 1961",
       "public_label": "Cars registered for the first time, long run",
+      "attribution": "Data source: Stats NZ, table of new and ex-overseas motor vehicles registered. {dataset.supplied.attribution}",
       "grain": "flow",
       "shows_year_change": true,
       "source": "Stats NZ, new and ex-overseas motor vehicles registered by type (monthly), supplied by hand (supplied.statsnz_tpt in config/pipeline.json)",
@@ -128,6 +133,7 @@
     {
       "id": "fleet",
       "label": "Vehicles on the road",
+      "attribution": "Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe registrations recorded by NZTA, not sales.",
       "grain": "stock",
       "help": "All vehicles registered in NZ at month end."
     }

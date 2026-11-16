@@ -21,7 +21,10 @@ import {
 } from "../lib/measures";
 import type { Covers } from "../lib/rolling";
 import { axisTop, countIn, figureAt, greyedAt, keyWindow, shareLine } from "../lib/shareline";
-import { monthPeriod, readout } from "../lib/readout";
+import { monthPeriod, readout, withheldThin } from "../lib/readout";
+import { cellText } from "../lib/figures";
+import type { Cell, Column } from "../lib/figures";
+import { useFigures } from "./FiguresContext";
 import type { Greyed } from "../lib/readout";
 import {
   EVENT_WINDOW,
@@ -436,6 +439,27 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
     [model, markersAt, endLabels, label, lead, domain, rolling, minDenominator],
   );
 
+  // The table under the chart, as the page shows it and as the file of figures writes it.
+  const summaryColumns: Column[] = [
+    { name: "Series", text: true },
+    { name: `Last ${TRAILING_MONTHS} months`, unit: "percent" },
+    { name: `Change on the ${TRAILING_MONTHS} months before`, unit: "points" },
+  ];
+  const outside = (): Cell => ({ text: phrases.window_outside_data, csv: null, mark: "withheld", reason: phrases.window_outside_data });
+  const summaryRows = model.summary.map(({ series, before, shown, nowOutside }) => {
+    const beforeOk = before.missing === 0 && before.denominator >= minDenominator;
+    const changeShown = shown !== undefined && beforeOk;
+    const share: Cell = shown === undefined ? (nowOutside ? outside() : withheldThin(minDenominator)) : pct(shown);
+    const change: Cell = changeShown ? shareChange(shown - before.n / before.denominator) : nowOutside || before.missing > 0 ? outside() : withheldThin(minDenominator);
+    return { cells: [label(series), share, change] as Cell[], changeShown, shownFigure: shown !== undefined };
+  });
+  const figuresGetter = useCallback(
+    () => ({ period: `Last ${TRAILING_MONTHS} months to ${monthLabel(latest)}, and the ${TRAILING_MONTHS} months before`, columns: summaryColumns, rows: summaryRows.map((r) => r.cells) }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [model, label, latest, minDenominator],
+  );
+  useFigures(figuresGetter);
+
   return (
     <>
       <div className="controls">
@@ -470,19 +494,16 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
           </tr>
         </thead>
         <tbody>
-          {model.summary.map(({ series, before, shown, nowOutside, colour, remainder }) => {
-            const beforeOk = before.missing === 0 && before.denominator >= minDenominator;
-            const changeShown = shown !== undefined && beforeOk;
+          {model.summary.map(({ series, colour, remainder }, i) => {
+            const { cells, changeShown, shownFigure } = summaryRows[i];
             return (
               <tr key={series} className={remainder ? "remainder" : undefined}>
                 <td>
                   <span className="swatch" style={{ background: colour }} aria-hidden="true" />
-                  <span>{label(series)}</span>
+                  <span>{cellText(cells[0])}</span>
                 </td>
-                <td className={shown === undefined ? "suppressed" : "figure"}>{shown === undefined ? (nowOutside ? phrases.window_outside_data : "suppressed") : pct(shown)}</td>
-                <td className={changeShown ? "change" : "suppressed"}>
-                  {changeShown ? shareChange(shown - before.n / before.denominator) : nowOutside || before.missing > 0 ? phrases.window_outside_data : "suppressed"}
-                </td>
+                <td className={shownFigure ? "figure" : "suppressed"}>{cellText(cells[1])}</td>
+                <td className={changeShown ? "change" : "suppressed"}>{cellText(cells[2])}</td>
               </tr>
             );
           })}

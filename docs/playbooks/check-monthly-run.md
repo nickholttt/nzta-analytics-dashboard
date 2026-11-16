@@ -31,6 +31,10 @@ Report all of these to the user:
    already built; it is not rebuilt without a forced run, which is the user's to start. A build shows
    the "Upload public data", "Show manifest" and "Commit snapshot aggregate and state" steps as run,
    and adds a `Snapshot YYYY-MM [skip ci]` commit on `main`.
+   **A build's warnings are on the same summary page** (D-112): a heading "Warnings in the YYYY-MM
+   build (N)" and a list, worst first, or the line "No warnings in the YYYY-MM build." Report the
+   count and every warning in the first two groups (below) to the user; read the rest. See "A
+   warning in the build" below.
 3. The step summary line `Peak memory used: N MiB of M MiB` (from the "Resource report" step).
 4. If it failed in "Check source; pull and build if it changed": which exit code. 2 = guardrail
    abort, 3 = source failure, 4 = DuckDB failure. In every case the last good build is unchanged.
@@ -56,6 +60,95 @@ previous cube. With the user's go-ahead, a forced run on `main` (`& $gh workflow
 --repo $repo --ref main -f force=true`) rebuilds the snapshot (the same one, unless NZTA has refreshed
 the register since), commits its state again (for the same snapshot only `generated_at` changes, as in
 the forced run of 11 September 2026) and publishes the release.
+
+## A warning in the build
+
+A warning does not stop a build. The ones a person must act on are the first two groups, in the order
+`config/pipeline.json` `run_summary.warning_order` gives them (the code and the tests are in
+`pipeline/fetch.py` and `pipeline/tests/test_run_summary.py`):
+
+1. **Rewrites published history**: a dataset's mild hybrid split flipped between published and
+   withheld since the last good build (D-110). One build changes every month of that dataset's history
+   of two powertrain values, in every slice, pair and fact table; no total moves.
+2. **Close to stopping a later build**: an unmapped-value guard is above its warning level. It aborts
+   above its abort level, and the warning says how many rows away that is.
+3. Everything else, in the order the build raised it (a month that deviates from the median, a
+   supplied source that lags the register, a dimension that is not live, the size budget).
+
+Where the warnings are:
+
+- **The run's summary page** on GitHub (Actions, `Monthly build`, the run): the list above. Written by
+  the pipeline step itself, so it is there for a build and not for a run that skips. Not yet seen on a
+  real run: the first monthly build after D-112 merges is the check, and the first thing to report if
+  the page is empty is that it is.
+- **The log** of the step "Check source; pull and build if it changed": every warning as
+  `  WARNING: ...`, in the order raised. From the command line this is the way in, since the summary
+  page is read in the browser: `gh run view <run-id> --log | grep "WARNING:"` (PowerShell:
+  `... --log | Select-String "WARNING:"`). Checked on 2026-11-17: `gh run view <run-id>` lists the jobs,
+  annotations and artifacts and does not show the summary page; `--log` prints the step's output with
+  the job and step names in front of each line, and, in the "Show manifest" step, the manifest, whose
+  `warnings` were `[]` on the build of 2026-11-14. No run so far has had a warning, so the
+  `WARNING:` lines themselves are not yet seen in a real log.
+- **`manifest.json`**, `warnings`: in the log's "Show manifest" step, in the cube release
+  `cube-YYYY-MM`, and in `public/data/manifest.json` of a local build.
+- **`/status`**, the internal status page, at its top: the manifest's warnings as written, with the
+  snapshot and the time the cube was generated. Local only; the public build leaves it out.
+
+An aborted build shows none of its warnings: the abort messages are the failure, and the manifest is
+only staged. Fix the abort, and the next build shows them.
+
+### A split flip
+
+The warning names the dataset, the direction, the trailing coverage at high confidence in the last
+good build and in this one, and the threshold (`publish_split_at_trailing_high_confidence_coverage`
+in `config/pipeline.json`, 70%). The Monthly build still publishes. Tell the user at once, because
+any figure they quoted from the earlier build no longer matches.
+
+1. **Say what happened, from the warning and the state.** A flip to withheld: the figure fell under
+   the threshold, so every vehicle that was Mild hybrid is Hybrid in that dataset. A flip to
+   published: it reached the threshold. `data/state/last_good.json`, `mild_split`, holds what the last
+   good build recorded for each dataset (committed by the bot; read it, never edit it). The
+   committed state has no `mild_split` until the first build after D-110 has been committed (checked
+   2026-11-17), and that build compares nothing: a flip in it is not announced.
+2. **List what counts against the figure.** The file that decides it is
+   `data/reference/mild_hybrid_models.csv`: one row per make and model, its type (`mild`, `full` or
+   `unresolved`), its confidence and its basis. At high confidence only, a vehicle counts against the
+   figure unless it is a `mild` call at high confidence, a `full` call at high confidence, or a hybrid
+   code that maps to mild by itself (`docs/METRICS.md`). The script lists the rest by make and model
+   for a dataset's trailing 12 months, from the repository root (it writes nothing):
+
+   ```bash
+   # true registrations: reads the committed store, no pull needed
+   .venv/Scripts/python.exe -I scripts/unmatched_hybrids.py registrations_flow --top 25
+   # the register: needs the saved pull of that snapshot (the pull is made only by the Action, or by the user's go-ahead)
+   .venv/Scripts/python.exe -I scripts/unmatched_hybrids.py registrations_surviving data/raw/YYYY-MM/<timestamp> --top 25
+   ```
+
+   Its first lines are the figure the build computes (the same function) and how much room is left;
+   each line below is a make and model with its count and its call: `[no row]` is a nameplate the file
+   does not list, `[unresolved at low]`, `[full at medium]` and `[mild at medium]` are rows that exist
+   but are not at high confidence. The register takes about 12 minutes (it reads the whole pull);
+   a supplied dataset about 10 seconds.
+3. **Decide what is yours to decide.** A nameplate with `no row` is a gap: a new model appeared, or
+   the register and the dashboard spell it differently (the file is keyed on each dataset's own
+   spelling, D-108). Adding it is a change to this one reference file, with a public source that
+   settles its type, following `docs/playbooks/change-reference-data.md` (one file per commit, the
+   docs in the same commit, a dry run on the saved pull, a golden change only if the cube changes).
+   D-108 added a nameplate when it had 10 or more hybrids in the last 12 months on either dataset or
+   100 or more all time, and a source settled its type. **Never classify a contested nameplate to
+   raise coverage** (`docs/METRICS.md`): a row marked `unresolved` stays unresolved while sources
+   disagree. Raising or lowering the threshold to make a flip go away is the user's decision, not a
+   fix.
+4. **Check the result** with `python -m pipeline build <saved pull> --dry-run` (publishes nothing,
+   about 13 minutes) and read the coverage figures and warnings it prints.
+
+What the script printed on the 2026-10 snapshot (2026-11-17, built from the saved pull and the
+committed store, matching the manifest's figures): the register had 14,241 of 19,233 hybrids at high
+confidence only (74.04%), room for 1,111 more unidentified hybrids before the split falls under
+70%; true registrations 14,271 of 19,286 (74.00%), room for 1,101. Of the 5,015 vehicles counting
+against true registrations' figure, 2,905 were `unresolved` at low confidence, 1,275 `full` at medium,
+760 `mild` at medium and 75 had no row: today the margin is mostly in rows that exist and are not at
+high confidence, not in missing nameplates.
 
 ## Also each month: has step 1b's source appeared?
 

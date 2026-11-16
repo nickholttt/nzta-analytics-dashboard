@@ -1,20 +1,32 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PresetPanel from "../components/PresetPanel";
-import PresetTriage from "../components/PresetTriage";
+import PresetTriage, { BuildWarnings } from "../components/PresetTriage";
 import { presetGroups } from "../lib/config";
 
-// Internal (D-041): every preset, drawn or not, with the diagnostics the Explore page leaves out.
+// Internal (D-041): every preset, drawn or not, with the diagnostics the Explore page leaves out, and (D-112) what the
+// build that made the cube warned about.
 ---
 
 <Layout title="Chart status" noindex>
   <Fragment slot="masthead">
     <h1>Chart status</h1>
     <p class="standfirst">
-      Internal. Every preset in <code>config/presets.json</code>, its authored status, what each blocked chart is waiting on, and
-      every chart with its build diagnostics. The Explore page shows only the charts that draw.
+      Internal. What the build warned about, every preset in <code>config/presets.json</code>, its authored status, what each
+      blocked chart is waiting on, and every chart with its build diagnostics. The Explore page shows only the charts that draw.
     </p>
   </Fragment>
+
+  <section id="warnings" aria-labelledby="warnings-title">
+    <div class="section-head">
+      <p class="eyebrow">Build</p>
+      <h2 class="section-title" id="warnings-title">What the build that made this cube warned about</h2>
+    </div>
+    <p class="panel-definition">
+      The warnings in the cube's <code>manifest.json</code>, as the pipeline wrote them. A warning does not stop a build.
+    </p>
+    <BuildWarnings client:only="react" />
+  </section>
 
   <section id="triage">
     <div class="section-head">
