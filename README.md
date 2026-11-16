@@ -161,7 +161,9 @@ a reference value.
 - A question on the Build page takes several seconds to answer on a phone.
   Most of the wait is the page's own code and fonts; the rest is the table of
   counts the browser downloads and adds up itself.
-- The privacy classes for the register's fields are proposals.
+- Fields that describe a vehicle's owner (district, usage, industry class,
+  owner type) cannot be asked about yet. They will appear only in simple
+  tables, with small counts hidden.
 - The method and caveats pages are written by hand and fall behind when a new
   month arrives.
 - Four of the 54 events are unverified and left out of the build.

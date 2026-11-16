@@ -370,8 +370,8 @@ register again and keeps it as one Parquet file, one row per vehicle:
   build's own pull does not take them, so neither reaches the cube, the
   committed aggregate or any published file. `VIN11` itself is never
   published; what is derived from it may be, once it has been checked
-  against the data. Postcode figures wait for the privacy review, and
-  then only as area totals above a minimum count. NZTA records the
+  against the data. Postcode figures are not published for now (the user,
+  2026-11-16, D-096); if ever, only as area totals above a minimum count. NZTA records the
   postcode as a number, so one that starts with zero arrives without it:
   in the 2026-10 file 152 postcodes, holding 885,064 vehicles, are below
   1000.

@@ -225,8 +225,8 @@ in the manifest's `facts.not_live`; if none is live, the table holds the month
 totals alone.
 
 The table carries nothing about a vehicle's owner. `region` is where the
-owner lives, and it is left out of `facts` until the Stage 2 privacy review
-(D-078): with it, two in three of the table's rows counted a single vehicle
+owner lives, and it is left out of `facts` (D-078; under the user's rule for
+owner fields no owner field ever joins the table, D-096): with it, two in three of the table's rows counted a single vehicle
 (64.8% on the 2026-10 pull), each with the owner's region beside the model
 and the month. The `region` slice is not affected, and a question that only
 breaks down by region is still answered from it. Putting `region` back is a

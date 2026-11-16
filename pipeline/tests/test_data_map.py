@@ -214,8 +214,8 @@ def test_entry_has_required_keys_and_enum_values(index: int):
     assert entry["privacy_reason"].strip(), f"{label}: privacy_reason is empty"
     if entry["after_review"] is not None:
         assert entry["after_review"] in enums["after_review"], f"{label}: after_review outside {enums['after_review']}"
-    if dmap["privacy_classes"][entry["privacy"]]["pending_review"]:
-        assert entry["after_review"] is not None, f"{label}: a field held for the review must say what follows it"
+    if dmap["privacy_classes"][entry["privacy"]]["restricted"]:
+        assert entry["after_review"] is not None, f"{label}: a restricted field must say which form its rule takes"
     assert entry["bound"] is None or (isinstance(entry["bound"], str) and entry["bound"]), f"{label}: bound"
     assert isinstance(entry["not_recorded"], list), f"{label}: not_recorded is a list"
     relations = entry["relations"]
@@ -407,19 +407,31 @@ def test_approval_names_its_decision():
         assert approval["decision"] in recorded, "approved classes must name the decision record that approved them"
 
 
-def test_while_proposed_owner_fields_and_vin_derivatives_stay_unpublished():
-    """The work order's section 3, until the user approves the review: owner fields, postcode and VIN11 stay out."""
+def test_the_owner_rule_is_the_users_and_never_reaches_the_fact_table():
+    """D-096: owner fields only in tables of one or two fields, with small cells hidden."""
     dmap = load_map()
-    if dmap["approval"]["privacy_classes"] != dmap["enums"]["approval"][0]:
-        pytest.skip("the classes are approved; the decision record governs")
+    rule = dmap["owner_rule"]
+    recorded = set(re.findall(r"^## (D-\d{3})\b", DECISIONS.read_text(encoding="utf-8"), flags=re.MULTILINE))
+    assert rule["decision"] in recorded, "the owner rule must name the decision record that holds the user's word"
+    assert rule["outputs"] and set(rule["outputs"]) <= set(dmap["enums"]["output"])
+    assert "facts" not in rule["outputs"], "the fact table crosses many fields; the rule allows one or two"
+    assert isinstance(rule["minimum_count"], int) and rule["minimum_count"] > 1
+    assert isinstance(rule["enforced"], bool)
+
+
+def test_owner_fields_and_vin_derivatives_stay_unpublished_until_the_rule_is_enforced():
+    """Approval alone publishes nothing: until the pipeline hides small cells, owner fields stay out; VIN11 always."""
+    dmap = load_map()
     published = published_classes(dmap)
     owner_groups = set(dmap["owner_groups"])
     assert owner_groups <= set(dmap["enums"]["group"])
     derived_only = {v for v in dmap["enums"]["after_review"] if v.startswith("derived")}
     assert derived_only, "no after_review value means 'derived fields only'"
     for entry in dmap["fields"]:
-        if entry["group"] in owner_groups or entry["after_review"] in derived_only:
-            assert entry["privacy"] not in published, f"{entry['name']}: held by the work order, but marked published"
+        if entry["after_review"] in derived_only:
+            assert entry["privacy"] not in published, f"{entry['name']}: only a field derived from it may be published"
+        if entry["group"] in owner_groups and not dmap["owner_rule"]["enforced"]:
+            assert entry["privacy"] not in published, f"{entry['name']}: an owner field, and the rule is not enforced yet"
 
 
 def test_free_text_is_never_a_breakdown_or_a_filter():
@@ -430,13 +442,13 @@ def test_free_text_is_never_a_breakdown_or_a_filter():
 
 def test_an_exception_stays_inside_what_its_decision_covers():
     dmap = load_map()
-    proposed = dmap["approval"]["privacy_classes"] == dmap["enums"]["approval"][0]
+    owner_groups = set(dmap["owner_groups"])
     for entry in dmap["fields"]:
         for exception in entry.get("published_exceptions", []):
             covers = set(exception["decision_covers"])
             assert set(exception["outputs"]) <= covers, f"{entry['name']}: outputs reach past {exception['decision']}"
-            if proposed:
-                assert "facts" not in covers, f"{entry['name']}: no held field reaches the fact table before the review"
+            if entry["group"] in owner_groups:
+                assert "facts" not in covers, f"{entry['name']}: no owner field reaches the fact table (D-096)"
 
 
 # --- relations ----------------------------------------------------------------------------------------------------
