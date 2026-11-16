@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
-import { ServiceError, loadEvents, loadManifest, loadView } from "../lib/data";
+import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
@@ -106,6 +106,8 @@ export default function PresetPanel({
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
+  // The first month the dataset has vehicles in, loaded with the rows: a ranking needs it to know whether a year before exists.
+  const [firstMonth, setFirstMonth] = useState<string | undefined>(undefined);
   // For a measure that divides one dataset by another: the numerator's rows, beside `rows`, the denominator's.
   const [companion, setCompanion] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -195,10 +197,14 @@ export default function PresetPanel({
     setRows(null);
     setCompanion(null);
     const other = resolution?.companion;
-    Promise.all([loadView(source), other ? loadView(other) : Promise.resolve(null)]).then(
-      ([loaded, second]) => {
+    Promise.all([
+      loadView(source).then(async (loaded) => [loaded, await loadFirstMonth(source, loaded)] as const),
+      other ? loadView(other) : Promise.resolve(null),
+    ]).then(
+      ([[loaded, first], second]) => {
         if (!current) return;
         setCompanion(second);
+        setFirstMonth(first);
         setRows(loaded);
       },
       (e) => {
@@ -418,6 +424,7 @@ export default function PresetPanel({
           preset={effectivePreset}
           dimension={dimension}
           rows={rows}
+          firstMonth={firstMonth}
           manifest={manifest}
           minDenominator={guard}
           label={label}

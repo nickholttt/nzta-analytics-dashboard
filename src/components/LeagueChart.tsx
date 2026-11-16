@@ -47,6 +47,8 @@ type Props = {
   preset: Preset;
   dimension: Dimension;
   rows: SliceRow[];
+  // The first month the dataset has vehicles in (data.ts, loadFirstMonth): where a year-before comparison can begin.
+  firstMonth?: string;
   manifest: Manifest;
   minDenominator: number;
   label: (value: string) => string;
@@ -64,7 +66,7 @@ const signed = (x: number) => `${x > 0.0005 ? "+" : x < -0.0005 ? "−" : "±"}$
 
 // Bars follow the preset's measure. A count is offered beside the share only when the measure is not
 // share: on a share preset the dataset may be one whose counts read as sales (D-044).
-export function LeagueChart({ preset, dimension, rows, manifest, minDenominator, label, valueHeading, lead = false, month, onMonth }: Props) {
+export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, minDenominator, label, valueHeading, lead = false, month, onMonth }: Props) {
   const [topN, setTopN] = useState<number>(preset.top_n ?? 15);
   const offersCount = preset.measure !== "share";
   const [displayMode, setDisplayMode] = useState<"share" | "count">(offersCount ? "count" : "share");
@@ -84,8 +86,8 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
   const words = datasetWords(preset.dataset);
   // What the ranking covers and whether there are figures a year earlier: decided from the rows, in one place.
   const ranking = useMemo(
-    () => rankingText(phrases, { basis: words?.ranking_basis ?? "Ranked by vehicles {window}", span, end, latest, covers: { first: datasetFirstMonth(manifest.datasets[servedFrom(preset.dataset, manifest) ?? ""], latest), last: latest } }),
-    [words, span, end, latest, manifest, preset.dataset],
+    () => rankingText(phrases, { basis: words?.ranking_basis ?? "Ranked by vehicles {window}", span, end, latest, covers: { first: datasetFirstMonth(manifest.datasets[servedFrom(preset.dataset, manifest) ?? ""], firstMonth), last: latest } }),
+    [words, span, end, latest, manifest, preset.dataset, firstMonth],
   );
   const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
   const yearFloor = yearChangeFloor();

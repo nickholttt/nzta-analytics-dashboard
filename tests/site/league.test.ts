@@ -69,19 +69,43 @@ test("a window that starts before the dataset does has no comparison: no rank, m
   for (const i of items) assert.deepEqual([i.priorRank, i.rankDelta, i.shareDelta, i.yearChange], [null, null, undefined, undefined]);
 });
 
-test("the dataset's first month is its supplied start, or its count of months back from its last", () => {
-  const manifest = {
-    latest_snapshot: "2026-10-31",
-    datasets: {
-      supplied: { latest_month: "2026-10", months: 70, supplied: { months: { first: "2021-01", last: "2026-10", count: 70 } } },
-      register: { latest_month: "2026-10", months: 1197 },
-      bare: {},
-    },
-  };
-  const first = (id: keyof typeof manifest.datasets) => datasetFirstMonth(manifest.datasets[id], "2026-10");
-  assert.equal(first("supplied"), "2021-01");
-  assert.equal(first("register"), "1927-02");
-  assert.ok(first("bare") > "2026-10", "a dataset the manifest does not describe is never said to cover a window");
+test("the dataset's first month is its supplied start, else the earliest month it has rows in, never a count of months", () => {
+  const supplied = { months: { first: "2021-01", last: "2026-10", count: 70 } };
+  assert.equal(datasetFirstMonth({ supplied }, "2021-03"), "2021-01");
+  assert.equal(datasetFirstMonth({}, "1912-01"), "1912-01");
+  assert.equal(datasetFirstMonth(undefined, "1912-01"), "1912-01");
+  assert.ok(datasetFirstMonth(undefined, undefined) > "2026-10", "a dataset with no known first month is never said to cover a window");
+});
+
+test("a register ranking of 1926, whose year before has rows in six of its twelve months: the comparison exists and the empty months are zero", async () => {
+  // Real counts: vehicles still registered by brand, 1925 and 1926 (the build of the 2026-10 snapshot). 1925 has 22 vehicles in six
+  // months (12 of them with no reference match, which take no place); the dataset's first month with rows is 1912-01. The address
+  // build.measure=share, build.by=make, build.period=latest_year, build.month=1926-12 ranks 1926 against 1925. Counted by hand
+  // from the same file: 1925 AUSTIN 4, DODGE 2, FIAT 2, CHRYSLER 1, MORRIS 1; 1926 FORD 6, DODGE 3, AUSTIN 2, CHEVROLET 2, MORRIS 2, FIAT 1.
+  const fixture = JSON.parse(read("tests/site/fixtures/league-1926.json"));
+  const first = datasetFirstMonth(undefined, fixture.first_month_with_rows);
+  assert.equal(first, "1912-01");
+  const { currentFrom, priorFrom, priorTo } = rankingWindows("1926-12", 12);
+  assert.deepEqual([currentFrom, priorFrom, priorTo], ["1926-01", "1925-01", "1925-12"]);
+  const months = new Set(fixture.rows.filter((r: { month: string }) => r.month < "1926-01").map((r: { month: string }) => r.month));
+  assert.equal(months.size, 6, "only six of the twelve months of 1925 have rows");
+  const text = rankingText(phrases, { basis: BASIS, span: 12, end: "1926-12", latest: "2026-10", covers: { first, last: "2026-10" } });
+  assert.equal(text.hasPrior, true);
+  assert.doesNotMatch(text.text, /no figures a year earlier/);
+  // What the count of months gave: 1927-02, which put the window before the dataset and said there was nothing to compare with.
+  assert.equal(rankingText(phrases, { basis: BASIS, span: 12, end: "1926-12", latest: "2026-10", covers: { first: "1927-02", last: "2026-10" } }).hasPrior, false);
+  const { items } = leagueRows({ rows: fixture.rows, currentFrom, end: "1926-12", priorFrom, priorTo, hasPrior: text.hasPrior, topN: 15, nameOf: (v) => v, yearFloor: FLOOR });
+  const row = (name: string) => items.find((i) => i.name === name);
+  assert.deepEqual(items.map((i) => [i.name, i.rank, i.priorRank, i.rankDelta]), [
+    ["FORD", 1, null, null],
+    ["DODGE", 2, 2, 0],
+    ["AUSTIN", 3, 1, -2],
+    ["CHEVROLET", 3, null, null],
+    ["MORRIS", 3, 4, 1],
+    ["FIAT", 6, 2, -4],
+  ]);
+  assert.equal(row("DODGE")?.priorN, 2);
+  assert.equal(row("DODGE")?.yearChange, undefined, "an earlier count of 2 is under the floor of 50");
 });
 
 test("a tie across the cut is counted: the entries beyond the list that share its last rank", async () => {
