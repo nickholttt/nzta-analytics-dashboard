@@ -3608,3 +3608,49 @@ New entries use this template:
   - Reversing it: restore `shape_hint` and `shape` in the two config files and the old `inferShape` and `viewsFor` from
     git; delete `config/chart_rules.json` and `src/lib/shapes.ts`. The cube, the golden file and the pipeline do not change.
 - Status: decided by Claude (unreviewed)
+
+## D-101 2026-11-16 — Pull requests also run the site's tests, its typecheck and the query service prototype's tests
+- Agent: claude
+- Basis: the work order §5.E's last item (the site's tests in CI); D-048 (the pipeline's checks), D-056, D-057 (the deploy
+  workflow's Node setup and cube download), D-091 (the query service prototype), D-100 (the site tests this runs);
+  `.github/workflows/checks.yml`; local runs of each step in a clean copy of the branch with no `.astro` and no
+  `public/data`, on 2026-11-16. Nothing was run on GitHub: the workflow's syntax was checked with js-yaml and the
+  workflow test, `pipeline/tests/test_workflow.py`, passes.
+- Context: `checks.yml` ran only `pipeline/tests`. The site's tests (`tests/site/`), the typecheck and the query service
+  prototype's tests were run by hand, so a change to the site reached `main` untested on Linux.
+- Options considered:
+  1. **Where the site's steps run.** (a) A second job in `checks.yml` that needs only Node: chosen. It runs beside the
+     pipeline job, so a pull request waits for the longer of the two, not their sum. (b) Steps in the pipeline job: no
+     second runner to start, but the job would wait for the pipeline's tests, which run for several minutes, before it
+     said anything about the site.
+  2. **The order for the typecheck.** The check needs the types Astro writes. (a) `astro build` first: also needs a
+     cube, and is the slowest step. (b) A hand-written `env.d.ts` for `import.meta.env`: a file to keep true. (c) `astro
+     sync`, which writes `.astro/types.d.ts` and nothing else, with no cube: chosen. Without it the check fails on
+     `import.meta.env` in two files (measured: two errors); with it, none.
+  3. **TypeScript.** It is not a dependency of the site (AGENTS.md). (a) `npx -y -p typescript` as the docs run it: it
+     would fetch whichever version is newest on the day, so a new release could fail a pull request that changed
+     nothing. (b) Add it as a dev dependency: a new dependency, so a decision for the user, and a lockfile change. (c)
+     The same `npx` pinned to the version this was written against, 7.0.2: chosen. Moving it is one line.
+  4. **The query service prototype's tests.** They answer from a built cube and skip all 59 tests without one, which
+     would pass a run that tested nothing. (a) Skip them in CI. (b) Build the fixture cube the golden test builds: heavy.
+     (c) Download the newest published cube release, as `deploy.yml` does (3,110,970 bytes), and fail if there is none:
+     chosen. Against that cube, with only `pipeline/requirements.txt` installed, all 59 pass. They are a step of the
+     pipeline job, not of the new one, because that job already has Python and DuckDB, so the site job needs neither.
+  5. **When they run.** On every pull request, as the pipeline's do. Path filters would keep a docs-only pull request
+     from running them but would also hide the checks from a branch protection rule that requires them. Not chosen.
+  6. **Actions.** `actions/checkout@v7`, `actions/setup-node@v7`, Node 22, npm cached, `npm ci --ignore-scripts`, each as
+     `deploy.yml` has them; no new action. The new job has no write permission and keeps no token in the checkout.
+- Decision: as chosen above.
+- Cost, from local runs of each step in a clean copy (this computer, not a runner; the runner's start, checkout, and
+  cache restore are not measured): `npm ci` 11.9 s, `astro sync` 8.9 s, the typecheck 3.3 s, the site's 30 tests 1.0 s:
+  about 25 s of work in the new job. The prototype's step adds 1.4 s to download the cube and 19 to 20 s to test:
+  about 22 s on the pipeline job. A repository that is public runs on GitHub's standard runners at no charge
+  (D-048; inferred, confirm); otherwise a push is about one billed minute for the new job and up to one more on the pipeline job, since each job rounds up to
+  whole minutes. A new push cancels the earlier run (`concurrency`).
+- Consequences:
+  - A change to the site that breaks the typecheck, a site test or the shape defaults (D-100) fails the pull request.
+  - The prototype's tests run against the newest cube release, not the cube the branch would build. A change to the
+    cube's contract and to the service in one pull request can fail them until the next release carries the change.
+  - If branch protection lists required checks, `site-tests` is a new name to add. (Not known from here.)
+  - Reversing it: delete the `site-tests` job and the prototype step from `checks.yml`.
+- Status: decided by Claude (unreviewed)
