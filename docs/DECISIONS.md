@@ -3580,9 +3580,11 @@ New entries use this template:
      Chosen (b). A dimension says what it is (a category, an ordered band, a place), never which chart it gets.
   4. **Few or many.** (a) The data map's two classes (at most 8 values, or more). (b) The manifest's actual count of
      values, where the build has it. (c) The dimension's own `cardinality`, already in config, with the table's
-     `value_classes` mapping it to few, some or many. Chosen (c). The ranking is not a count: D-050 ranks manufacturer
-     group (43 values) and not the country a vehicle was built in (46), so (a) would turn that country into a ranking
-     and (b) would need the manifest in the browser before any shape can be chosen. `some` is the class for what is
+     `value_classes` mapping it to few, some or many. Chosen (c). It is the dimension's own recorded judgement of whether
+     its list is ranked, not a count and not checked against one: six dimensions marked low have more than the data map's 8
+     values (measured at review: 23, 15, 12, 10, 10 and 9), and D-050 ranks manufacturer group (44) and not the country a
+     vehicle was built in (46), so (a) would turn that country into a ranking and (b) would need the manifest in the
+     browser before any shape can be chosen. `some` is the class for what is
      more than a palette's worth and is not ranked. Nothing is renamed: `composition.ts` reads the same key.
   5. **Measure kinds.** The measure states a `kind` (`count`, `share`, `average` or `ratio`), as the dimension does. A
      change on a year ago, a combined share and the share still registered are ratios; the running total is a count.
@@ -3620,7 +3622,10 @@ New entries use this template:
     and a question with picked values could. Only a ratio (the combined share) was affected, and its preset pins a line.
   - A share with no breakdown is a line, not lines of shares. It is not offered (`needs_breakdown`) and no preset asks it.
   - A preset or a view that pins a shape the table does not list is now `invalid`. None does today: a test walks the
-    canon and every Build question and finds each pin in the table.
+    canon and every Build question and finds each pin in the table at every period the time row can offer (3 years, 5
+    years, 10 years, all time, the chart's own period and the periods that rank it). It does not hold at the 12-month and
+    1-month periods for a count pinned to lines with nothing picked: there the table gives a ranking, and the pin would be
+    reported invalid. The time row never offers those periods to such a count, so it cannot be reached.
 - Measured, at 390 and 1280 px against a preview of the 2026-10 dry-run cube, before and after: the Build page for a
   share by a place (map and lines both drawn), a share by an ordered band (bars and lines both drawn), a share by brand
   (and its 12-month ranking), the same for true registrations, a count of two brands, and the share of the five largest,
@@ -3628,11 +3633,48 @@ New entries use this template:
   no sideways scroll, no axe violation (WCAG 2.1 A and AA), on both builds. JavaScript the Build page loads: 817,868 to
   821,655 bytes (+3,787); all of the site's JavaScript, 820,573 to 824,360 bytes raw (+0.46%) and 302,732 to 304,213
   gzipped (+1,481), because the table ships to the browser. Nothing else a visitor downloads changed.
+- Amended after the independent review of #62, which found five things true and the rest to say plainly:
+  1. **A live preset crosses two fields** (`registrations-completeness-by-type`: vehicle type crossed with new or used,
+     a line for each combination over time), and the facts had always said nothing was crossed. `crossed_with` is now the
+     kind of the preset's `cross`; the `crossed` rule fires only for one window, so a crossing over time stays a line
+     (a test holds that preset to `trend`, live). Two figures change as a result: that preset at 12 months and at 1 month
+     now fits only a grid, has no renderer, and resolves `blocked`, where it had resolved a line. The time row does not
+     offer those periods to it.
+  2. **What "few" means.** The first text said a few is at most the data map's threshold. That is false for six
+     dimensions (option 4). The classes are the dimension's judgement of whether its list is ranked; the comments in
+     `config/chart_rules.json` and the playbook say so. No `cardinality` was changed: other code reads `low`.
+  3. **Vocabulary.** A share is one part of a whole with a figure for each value of the breakdown; a ratio is one figure set
+     against another that is not part of such a whole (a change on a year ago, the share still registered, the combined
+     share of the largest few, which is one figure for the group, not a share of each value). A breakdown of kind `free_text`
+     or `identifier` currently falls to a line; the data map forbids such a field as a breakdown, and a test holds that no
+     dimension Build offers or a preset uses is either.
+  4. **Kinds.** A test ties the table's `by` and `crossed_with` words to the data map's kinds, and checks each dimension's
+     kind against how it is derived (a brand, a model or a range lookup is a category; a band is an ordered band; a place is
+     a lookup). The nine kinds no field-by-field check reaches were read by hand: `make`, `parent_group`, `owner_country`,
+     `heritage_country`, `model` and `car_origin` (a category: unordered names, two values for the last), `segment` (a
+     category: car, ute, van, truck and the like), `car_engine_band` (ordered: seven engine-size bands) and `segment_group`
+     (a category, with some doubt: light passenger, light commercial, heavy commercial and other run from light to heavy in
+     part, but passenger against commercial is not an order).
+  5. **The fixture** now records the resolver's verdict (live, blocked or invalid) beside each shape, and covers every
+     dataset Build offers, not only the default. It was regenerated: 296 existing figures gained only their verdict, 2
+     changed (item 1), 142 were unchanged (the ranking periods and the switches), and 288 were added (Build on the other two
+     datasets). The verdicts are given by a build in which every dimension is live, so they show the resolver's own
+     judgement, not a build's coverage: 16 are blocked, for the two presets that were already (a distribution drawn year
+     by year, which nothing draws, and cohort survival, whose dataset is not built) and for item 1's two.
+- Items for the owner's ruling, deviations from what CLAUDE.md says:
+  - (a) CLAUDE.md says the table reads "how many values it has". It reads the dimension's own `cardinality` judgement
+    instead. For the ranking decision that is still a field deciding its chart under another key. It was kept so that
+    nothing a visitor sees changes (D-050 ranks one long list and not another of about the same length).
+  - (b) CLAUDE.md's Shapes table triggers `geo` on a region and `distribution` on an ordered band whatever the measure.
+    The table gives a count by a place, and an average by an ordered band, a line only, because the map and the
+    distribution draw shares only (D-061): a renderer limit written as a fit rule. When they learn to draw counts, the rule
+    is one row.
 - Consequences:
   - A new shape fit, or a new kind of field, is a row in `config/chart_rules.json` and a `kind` on a dimension. A new
     dimension needs its `kind` and `cardinality`, and a test fails without them.
-  - `matrix` is offered the day it has a renderer: add it to `RENDERED_SHAPES` and give a question a second breakdown
-    (`crossed_with` is always "none" until then).
+  - `matrix` is offered the day it has a renderer: add it to `RENDERED_SHAPES`. The `crossed` rule fires for a crossing
+    looked at in one window; a crossing over time (the preset that crosses vehicle type with new or used) is a line for each
+    combination and stays a line. Build has no second breakdown, so its questions never fire it until it does.
   - The tests run the site's real modules under Node through a loader in `tests/site/support/` that adds extensions, JSON
     import attributes and `import.meta.env`, and strips TypeScript with `module.stripTypeScriptTypes`, which Node marks
     experimental (Node 22.19 here). A Node that drops it needs the loader changed, nothing else.
