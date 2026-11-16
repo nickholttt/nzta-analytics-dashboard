@@ -29,6 +29,9 @@ test("the panel adds that sentence whenever the view is narrowed by a filter of 
   const panel = read("src/components/PresetPanel.tsx");
   assert.match(panel, /narrowed \|\| keptBy\?\.length \? \[phrases\.identification_coverage_whole\]/);
   assert.doesNotMatch(panel, /of mild hybrids/);
+  // ... and only where the value the note speaks of has a line: it must be in the rows the chart draws.
+  assert.match(panel, /relabels && coverage && coverageDrawn/);
+  assert.match(panel, /rows\?\.some\(\(r\) => r\.value === hybrid\.mild_powertrain && r\.n > 0\)/);
 });
 
 test("the note on a capped dimension names the count its dataset ranks by, from the dataset's own words", () => {

@@ -291,8 +291,11 @@ export default function PresetPanel({
   );
   // The identification coverage is the dataset's, as the build publishes it. A chart narrowed to part of the dataset
   // (its own filter, or a built question's conditions) says so, since the figure is not for the vehicles drawn.
+  // It speaks of one line, so it appears only where that value is among those drawn: a view that chose other values, or whose
+  // condition leaves it none, has no such line.
+  const coverageDrawn = Boolean(rows?.some((r) => r.value === hybrid.mild_powertrain && r.n > 0));
   const coverageNote =
-    relabels && coverage
+    relabels && coverage && coverageDrawn
       ? [
           fillNote(internal ? phrases.identification_coverage_internal : phrases.identification_coverage, {
             label: coverage.label,
