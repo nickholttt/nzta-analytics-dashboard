@@ -5,15 +5,22 @@
 
 // ---- Months ----
 
+// Called per month inside loops over every month of a series, so it parses without splitting and pads from a table.
+const MONTH_PART = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
 export function addMonths(key: string, k: number): string {
-  const [y, m] = key.split("-").map(Number);
-  const t = y * 12 + (m - 1) + k;
-  return `${Math.floor(t / 12)}-${String((t % 12) + 1).padStart(2, "0")}`;
+  const dash = key.indexOf("-");
+  const t = Number(key.slice(0, dash)) * 12 + (Number(key.slice(dash + 1)) - 1) + k;
+  return `${Math.floor(t / 12)}-${MONTH_PART[t % 12]}`;
 }
 
 // A month as a reader says it: "Aug 2026", not "2026-08".
 const MONTH_FORMAT = new Intl.DateTimeFormat("en-NZ", { month: "short", year: "numeric", timeZone: "UTC" });
-export const monthLabel = (key: string) => MONTH_FORMAT.format(new Date(`${key}-01T00:00:00Z`));
+const LABELS = new Map<string, string>();
+export const monthLabel = (key: string) => {
+  let label = LABELS.get(key);
+  if (label === undefined) LABELS.set(key, (label = MONTH_FORMAT.format(new Date(`${key}-01T00:00:00Z`))));
+  return label;
+};
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
