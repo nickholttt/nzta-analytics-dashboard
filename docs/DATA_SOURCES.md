@@ -250,7 +250,7 @@ first registrations and buyer type from the same dashboard.
   (its SHA-256 is the key of the ledger's `files` entry, and the seven totals it
   was checked against are recorded there). The committed store and ledger
   were written from it by `supply` on 16 November 2026, with the model kept
-  only where a dataset or the trade's total counts the vehicle (below): 306,771 rows,
+  only where a dataset or the wider scope counts the vehicle (below): 306,771 rows,
   843,345 bytes of Parquet and a 20,199-byte ledger. The user means to retake the
   history with the vehicle's mass and engine-size groupings and replace the
   file; the steps for that are in the playbook, *Replacing the whole history*.
@@ -258,8 +258,8 @@ first registrations and buyer type from the same dashboard.
   text for some vehicle types (the model of a trailer or caravan is typed
   at registration and sometimes reads like a name). The store keeps a model
   where the vehicle type is in the default scope or marked `trade_scope` in
-  `vehicle_scope.csv` (the types the trade's total of new vehicles counts, D-105
-  and D-106) and the import status is one `registrations_flow` counts. For every
+  `vehicle_scope.csv` (the types of the wider scope, with which our counts of new vehicles meet the
+  published totals compared, D-105 and D-106) and the import status is one `registrations_flow` counts. For every
   other row the model is stored as not recorded, and the rows that become
   identical are summed; every other field stays, so every vehicle type's counts
   remain askable. The rule is `supplied.nzta_dashboard.outside_scope` in

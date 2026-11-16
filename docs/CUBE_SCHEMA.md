@@ -545,7 +545,7 @@ rows of its table `dims`, its hybrid coverage and its guards (a `require` naming
 and `trade_group`, the dimension that sorts each counted type into the groups `vehicle_scope.csv`'s `trade_group`
 column gives (a lookup, as `vehicle_type` is; it applies to this dataset only, so no file of another dataset
 changes). No pairs, as for `registrations_flow`. Adding it changes no byte of any other dataset's files and no
-figure of its manifest entry (tested). The store keeps the model for the types the trade scope counts
+figure of its manifest entry (tested). The store keeps the model for the types the wider scope counts
 (`supplied.nzta_dashboard.outside_scope.also_kept_column`), and the build refuses a store whose ledger trimmed the
 model of a (type, status) pair any dataset reading it counts, not only the dataset the trim names.
 
