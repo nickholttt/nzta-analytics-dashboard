@@ -9,7 +9,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - `main` is the merge of #59 (`0c1be27`).
+  - `main` is the merge of #60.
   - **The last build is the forced run 43637172195** (14 November 2026; snapshot 2026-10;
     5,926,990 rows; no warning): the one forced run the work order allowed. The release
     `cube-2026-10` holds its cube, with the fact table. `Deploy` uploaded nothing.
@@ -45,10 +45,9 @@ charts, D's first load. Then the rest of E, F, H and I. One report at the end (D
 
 ## In progress (all claude; nothing by gemini)
 
-Four branches, each in its own worktree (`git worktree list`), started 2026-11-16:
+Three branches, each in its own worktree (`git worktree list`), started 2026-11-16; none
+has a pull request yet. (#60, the user's answers of 16 November, D-096, is merged.)
 
-- `claude/user-answers` (#60, with its reviewer; D-096): `config/data_map.json`,
-  `docs/DATA_MAP.md`, `pipeline/tests/test_data_map.py`, `config/site.json`, these notes.
 - `claude/stores-in-repo` (D-097): both supplied sources' counts as files in the repository.
   `pipeline/supplied.py`, `pipeline/series.py`, their tests, `data/supplied/`, AGENTS.md,
   `docs/CUBE_SCHEMA.md`, `docs/DATA_SOURCES.md`, two playbooks.

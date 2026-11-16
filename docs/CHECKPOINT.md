@@ -16,7 +16,7 @@ Last updated by claude on 2026-11-16
   - **A visitor to a local build can now ask** how many vehicles were registered in any month
     since January 2021 and whether that is up or down on a year ago, by brand and by model.
 - 2026-11-16, ninth session (in progress).
-  - **The user answered the parked questions** (D-096, #60): the privacy classes are approved,
+  - **The user answered the parked questions** (D-096, #60, merged): the privacy classes are approved,
     three of the About page's gaps are filled, and the repository's "About" line is set.
   - **Three pieces run in parallel**, one branch each: the supplied counts as files in the
     repository (D-097), package C's charts with completeness by vehicle type (D-098), and
@@ -24,9 +24,7 @@ Last updated by claude on 2026-11-16
   - **Slips, recorded:** #50 merged a minute before its last check finished (it passed);
     a first reading that event markers respect a filter was wrong (D-089).
 
-## Open pull requests
-
-- #60 `claude/user-answers`: the user's answers (D-096). Checks pass; with its reviewer.
+## Open pull requests (none)
 
 ## Work queue: the work order's packages, in order
 

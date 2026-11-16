@@ -135,7 +135,7 @@ In this order, and it answers nothing until every check passes:
    field has a rule yet**; the user's minimum for an owner field is 10 vehicles (D-096), to be set here when an owner field is
    first served (`docs/DATA_MAP.md`). Whether a
    withheld figure could be worked back from the figures beside it, or from two questions asked
-   one after the other, is for that review to settle before any rule is set. Build does not yet
+   one after the other, is for the user to settle before any rule is set. Build does not yet
    draw a chart around withheld figures: it says that some figures count too few vehicles to be
    shown.
 
