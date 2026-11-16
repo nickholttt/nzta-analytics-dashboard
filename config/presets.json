@@ -205,7 +205,7 @@
       ["model", "heritage_country"],
       ["segment_group", "vehicle_type"]
     ],
-    "$cannot_cross_comment": "Pairs of fields where each value of one sits under a single value of the other (a model under its brand, a brand under its group), so a grid of the two would be empty except along one line and its empty cells would be empty by construction, not by what people bought. Measured on the 2026-10 fact tables of both datasets (each value of the first had one value of the second); the data map's rolls_up_to gives make to parent_group and owner_country and model to make. Build offers no second breakdown that makes one of these pairs.",
+    "$cannot_cross_comment": "Pairs of fields where each value of one sits under a single value of the other (a model under its brand, a brand under its group), so a grid of the two would be empty except along one line and its empty cells would be empty by construction, not by what people bought. Measured on the 2026-10 fact tables of both datasets: each value of the first sat under one value of the second, except that two models of the survivors and one of true registrations sat under two brands (and so two groups and countries). The data map's rolls_up_to gives make to parent_group and owner_country and model to make. Build offers no second breakdown that makes one of these pairs.",
     "period": "all",
     "period_when_comparing": "10y",
     "$period_when_comparing_comment": "A question that names values (brands, models) opens on the last ten years: most named values have little or no history before that, and all time would spend most of the chart on empty decades. The time row still offers all time.",
