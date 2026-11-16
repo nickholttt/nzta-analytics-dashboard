@@ -3449,3 +3449,92 @@ New entries use this template:
     Build's conditions follow the fact table.
   - Reversing it: remove the dimension from `config/dimensions.json` and the two config lists; two golden changes back.
 - Status: decided by Claude (unreviewed)
+
+## D-097 2026-11-16 — The two supplied stores are committed to the repository, so GitHub's builds make `registrations_flow` and `registrations_cars_long_run`
+- Agent: claude (the build by a sub-agent, to the lead's brief; the home of the data is the owner's decision, the design inside it is Claude's)
+- Basis: the owner's answer of 2026-11-16 to CHECKPOINT question 1, option (a): the converted counts of the two
+  hand-supplied sources may live in this public repository, as a small file of counts with no owner field, and the same
+  answer covers Stats NZ's series; D-092 (option 3, the store's home, and option 4, a build with no store), D-094, D-065;
+  the code and tests on `claude/stores-in-repo`; the whole suite, 456 passed in 19 min 13 s at the commit before this record; a dry-run build of the saved October pull
+  from a clean checkout of the branch (nothing but what is committed), 2026-11-16.
+- Context: until now both stores sat only in the gitignored `data/supplied/` on the owner's computer, so GitHub's
+  builds marked both datasets `not_built`, and D-092 and AGENTS.md said a state file built with them must never be
+  committed, because GitHub's builds had no store and would abort. The owner has now allowed the files in the
+  repository.
+- Options considered:
+  1. **Where the files live.** (a) Where the config already says, `data/supplied/<id>/`, by lifting the ignore. (b) A
+     new folder, with config and code moved. (c) A release asset or the private archive, fetched by the build.
+     Chosen (a): nothing moves, `supply` already writes there, and a local build and a GitHub build read the very same
+     paths. (b) is a rename that buys nothing; (c) adds a download and a secret to a build whose point is to need
+     neither.
+  2. **Format.** (a) The Parquet file and JSON ledger the stores already are. (b) CSV. Chosen (a): the dashboard store
+     is 426,732 rows; as CSV it is 38,801,866 bytes (3,125,391 gzipped) against 1,929,698 as Parquet, and DuckDB reads
+     Parquet as the build does. Readable diffs come from the ledger, which is text with one block per month: a month
+     added is a few new lines. The Parquet file is sorted by month, so a month added extends it at the end; measured:
+     two versions of the store (with and without October 2026) packed by git together take 1.94 MiB, about one
+     version, so a month adds little history.
+  3. **One store or two.** (a) The committed file is the store, and `supply` is what writes it. (b) A fuller private
+     store beside it, tied to the committed one by a check. Chosen (a): no fuller store exists. `supply` sums the three
+     owner columns away before it writes anything, and nothing in the pipeline reads them afterwards (they are used to
+     check the header and the uniqueness of the export's rows, then dropped), so nothing built privately from them is
+     lost. The full export stays in gitignored `data/raw/` on the owner's computer. If a private store of the owner
+     columns is ever built (the Stage 2 review), it should record the committed store's `store_sha256` and monthly
+     totals and be checked against the ledger, which already holds both.
+  4. **What a store lagging the register does.** Read from the code (`supplied.check_clock`, `build.build_supplied`)
+     and proved by tests for a lag of one and of two months: a store whose last month is before the register's
+     snapshot month adds a warning that names the missing months, and everything else is built and published (the
+     survivors dataset's files byte-identical to a build with no store). Nothing else in the build looks at the lag.
+     Not changed. A store AHEAD of the register aborts, by D-092 option 5; also not changed, because the register is
+     the clock and that is D-092's decision. The playbooks now say to commit a month only once the register has reached
+     it.
+  5. **The first GitHub build with the stores.** `last_good.json` holds neither dataset (and has no `supplied_totals`
+     key at all: it was written before D-092). Every guard reads those through `.get` with an empty default, so a
+     dataset appearing for the first time is accepted and then sits in the state; the next build guards it (a month
+     total that moved, a store that vanished). Proved by a test, not changed.
+  6. **Keeping owner fields out.** (a) Rely on `supply` dropping them. (b) Also test the committed files. Chosen (b): a
+     test reads the held columns from `config/data_map.json` (the dashboard fields whose privacy class is not a
+     published one, or whose group is an owner group), adds the register field each mirrors, its logical name and what
+     it rolls up to, and fails if any appears as a column, as a key or text of the ledger, or in the bytes of either
+     file. A second test fails if the data map holds back a column that `private_columns` does not drop. The list is
+     data, not code.
+  7. **Terms.** (a) Docs only. (b) Also in the file. Chosen (b): `supply` writes a `source` block (publisher, licence,
+     attribution, origin, from `config/pipeline.json`) at the head of each ledger, so the licence travels with the
+     file. The dashboard's attribution statement is new wording written here, not NZTA's; Stats NZ's is the one D-094
+     already carried.
+  8. **Replacing a whole store.** (a) Let `supply` rewrite a store whose columns changed. (b) Refuse, say so, and
+     document removing both files and supplying the whole new history in one commit. Chosen (b): it is the existing
+     "no month is replaced silently" rule applied to a change of grain, and a refused file writes nothing. Tests prove
+     that a refused file changes no byte and that a rebuilt store is held to the month-total guard of the last good
+     build. Gap: a rebuilt store has an empty `replaced` list, so a month the new export restates by more than 2%
+     cannot be excused.
+- Decision: as chosen above. New: the `source` block in each ledger; `supply` refuses a store whose columns are not the
+  configured ones with a plain message; `.gitignore` no longer ignores the stores and ignores their `.new` names;
+  `pipeline/tests/test_stores_in_repo.py`. Two commits add the two stores, each with the docs that describe it.
+- Golden contract: no change. The golden tests build with an empty store, and the manifest does not read the new
+  ledger block.
+- Measured:
+  - Committed: dashboard store 1,929,698 bytes (426,732 rows, 70 months, 1,883,786 vehicles) and ledger 18,725 bytes;
+    Stats NZ store 36,897 bytes (16,432 figures, 789 months, 26 series) and ledger 168,500 bytes; 2,153,820 bytes in
+    all. Both were rewritten by `supply` into an empty folder from the saved exports: the Parquet files have the same
+    SHA-256 as the stores they replace, and each ledger differs only by the new `source` block.
+  - 291,975 of the dashboard store's 426,732 rows (68.4%) count a single vehicle. No published file crosses the
+    fields this finely (the fact table has one column at a time). The owner allowed "a small file of counts with no
+    owner field"; this is the measured reading of "small" and of "no owner field".
+  - A dry-run build of the saved October pull from a clean checkout of the branch: exit 0 in 795 s (13 min 15 s);
+    59 staged files, 58 byte-identical to the `public/data` of the build before this branch (the same pull), and the
+    manifest differing only in `generated_at`; the staged archive is byte-identical to `data/snapshots/2026-10.parquet`.
+    Peak working set of the build process 3.03 GB, sampled every 5 s on the owner's computer; GitHub's peak is not
+    measured (the Monthly build's summary reports it).
+- Consequences:
+  - The next daily run that finds the register changed builds both datasets on GitHub, publishes them in the cube
+    release and the next deploy, and writes them into `last_good.json`. A run that finds the source unchanged builds
+    nothing, so until NZTA's next refresh (or a forced run, asked for each time) the published cube does not change.
+  - Each month the owner supplies a file, runs the tests and commits the two store files together; the Checks
+    workflow fails a pull request that changes one without the other.
+  - A store ahead of the register still aborts the Monthly build. The build is safe from a lagging store, not from
+    an early one.
+  - The Monthly build's time and memory grow by what the two datasets cost (a dry run took 11 min 3 s without them on
+    2026-11-13 and 12 min 21 s to 13 min 15 s with them). The workflow allows 45 minutes.
+  - Reversing it: `git rm` the two folders and restore the ignore line; builds then say `not_built` again, but a
+    `last_good.json` that already holds the datasets would abort them, as D-092 says.
+- Status: decided by Claude (unreviewed), inside the owner's decision of 2026-11-16
