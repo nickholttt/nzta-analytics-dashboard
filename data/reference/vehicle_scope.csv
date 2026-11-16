@@ -1,15 +1,15 @@
-vehicle_type,label,in_scope,trade_scope,scope_group,notes
-PASSENGER CAR/VAN,Passenger cars and vans,true,true,passenger,
-GOODS VAN/TRUCK/UTILITY,"Goods vans, trucks and utes",true,true,goods,Includes heavy trucks; segment_map separates them by GVM.
-MOTORCYCLE,Motorcycles,false,false,motorcycle,"Out of default scope; rows kept in snapshots. Most motorcycle makes are outside brand_registry, and bikes are a separate market."
-MOPED,Mopeds,false,false,moped,
-ATV,All-terrain vehicles,false,false,atv,Not explicitly decided. Out by default.
-TRAILER/CARAVAN,Trailers and caravans,false,false,trailer,
-TRAILER NOT DESIGNED FOR H/WAY USE,Trailers not designed for highway use,false,false,trailer,
-MOTOR CARAVAN,Motor caravans,false,true,motorhome,"Self-propelled motorhomes. Not explicitly decided. Out by default. Counted in trade_scope: the trade's total of new vehicles counts it as a commercial vehicle (D-105, D-106)."
-BUS,Buses,false,true,bus,"Not explicitly decided. Out by default. Counted in trade_scope: the trade's total of new vehicles counts it as a commercial vehicle (D-105, D-106)."
-TRACTOR,Tractors,false,false,machinery,
-HIGH SPEED AGRICULTURAL VEHICLE,High-speed agricultural vehicles,false,false,machinery,
-AGRICULTURAL MACHINE,Agricultural machines,false,false,machinery,
-MOBILE MACHINE,Mobile machines,false,false,machinery,
-SPECIAL PURPOSE VEHICLE,Special purpose vehicles,false,true,special_purpose,"Not explicitly decided. Out by default. Counted in trade_scope: the trade's total of new vehicles counts it as a commercial vehicle (D-105, D-106)."
+vehicle_type,label,in_scope,trade_scope,trade_group,scope_group,notes
+PASSENGER CAR/VAN,Passenger cars and vans,true,true,Passenger,passenger,
+GOODS VAN/TRUCK/UTILITY,"Goods vans, trucks and utes",true,true,Commercial,goods,Includes heavy trucks; segment_map separates them by GVM.
+MOTORCYCLE,Motorcycles,false,false,,motorcycle,"Out of default scope; rows kept in snapshots. Most motorcycle makes are outside brand_registry, and bikes are a separate market."
+MOPED,Mopeds,false,false,,moped,
+ATV,All-terrain vehicles,false,false,,atv,Not explicitly decided. Out by default.
+TRAILER/CARAVAN,Trailers and caravans,false,false,,trailer,
+TRAILER NOT DESIGNED FOR H/WAY USE,Trailers not designed for highway use,false,false,,trailer,
+MOTOR CARAVAN,Motor caravans,false,true,Commercial,motorhome,"Self-propelled motorhomes. Not explicitly decided. Out by default. Counted in trade_scope: the trade's total of new vehicles counts it as a commercial vehicle (D-105, D-106)."
+BUS,Buses,false,true,Commercial,bus,"Not explicitly decided. Out by default. Counted in trade_scope: the trade's total of new vehicles counts it as a commercial vehicle (D-105, D-106)."
+TRACTOR,Tractors,false,false,,machinery,
+HIGH SPEED AGRICULTURAL VEHICLE,High-speed agricultural vehicles,false,false,,machinery,
+AGRICULTURAL MACHINE,Agricultural machines,false,false,,machinery,
+MOBILE MACHINE,Mobile machines,false,false,,machinery,
+SPECIAL PURPOSE VEHICLE,Special purpose vehicles,false,true,Commercial,special_purpose,"Not explicitly decided. Out by default. Counted in trade_scope: the trade's total of new vehicles counts it as a commercial vehicle (D-105, D-106)."
