@@ -271,9 +271,15 @@ The step-by-step is `docs/playbooks/supply-dashboard-month.md`.
 
 ## E. Motor Industry Association — reference only
 
-Not open data. Do not scrape. Our numbers will not match theirs; MIA counts
-vehicles delivered to buyers. Say so on the Method page rather than trying
-to reconcile.
+Not open data. Do not scrape. The MIA's own page shows the latest month only,
+as images: "New vehicle registrations", in total and for light passenger
+(including SUVs), light commercial and heavy commercial (read 2026-11-16;
+its statistics pages are for members). An earlier line here said the MIA
+"counts vehicles delivered to buyers"; nothing read supports that, and its
+page calls the figures registrations. Our numbers do not match theirs
+exactly and are never adjusted to; how far apart they are, and why, was
+measured on 2026-11-16 and is in `docs/METRICS.md`, "Set beside published
+figures" (D-105).
 
 ---
 

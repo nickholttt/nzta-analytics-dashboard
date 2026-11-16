@@ -3766,3 +3766,56 @@ New entries use this template:
 - Consequences: package F is next after the pieces in review; H's and I's first pieces, already begun (D-102,
   D-103), are finished as specifications and proposals, and their building follows F. The offer to swap is withdrawn.
 - Status: accepted (the user's direction); the reading of how to carry it out is decided by Claude (unreviewed)
+
+## D-105 2026-11-16 — The site's figures set beside published ones: what was measured, and three statements corrected
+- Agent: claude (the comparison by a research sub-agent on sonnet; our figures recomputed by the lead; this record
+  by the lead)
+- Basis: the user's question of 2026-11-16, whether the figures match published articles and sites, and D-104. Our
+  figures: the dashboard counts of the export of 14 November 2026, recomputed by the lead with DuckDB on 2026-11-16
+  (every figure of ours in `docs/METRICS.md`, "Set beside published figures"). Published figures: the MIA's own
+  page, whose four images for October 2026 the lead read; AutoTalk's reports (autotalk.co.nz), read by the
+  sub-agent on 2026-11-16 and **not re-read by the lead**: 78 figures with their addresses are in the sub-agent's
+  working files, outside the repository.
+- Context: nobody had laid the site's figures beside published ones. `docs/DATA_SOURCES.md` §E said the MIA "counts
+  vehicles delivered to buyers" and that the numbers "will not match", and `/differences` and `/caveats` repeated
+  it, adding that the MIA's figures could not be lined up with the site's.
+- What was found:
+  1. **October 2026 agrees.** True registrations of new vehicles are 15,109 once buses, motor caravans and special
+     purpose vehicles are counted, against the MIA's 15,118 (-0.06%). Passenger: 11,824 against 11,833. Commercial:
+     3,285 against 3,285 (2,805 light plus 480 heavy). AutoTalk's tables for the month, made from NZTA's data, equal
+     ours in every count the sub-agent compared: the total, the year to date, the top ten brands and models,
+     passenger and commercial, and used imports (8,285).
+  2. **The default scope is 1.4% to 3.9% under the MIA's total**, because the trade counts those three vehicle
+     types as commercial and `vehicle_scope.csv` leaves them out ("Not explicitly decided. Out by default.").
+  3. **Older months sit lower**, by under 0.3% for recent months and about 1% for 2021 and 2022, against the MIA,
+     AutoTalk and Stats NZ alike. The gap against Stats NZ moves with the share of a month's vehicles marked
+     `INACTIVE` (0.95 over 69 months, recomputed by the lead). The cause is not established.
+  4. **Three things are unexplained**: AutoTalk's 2025 totals of battery electric vehicles and plug-in hybrids
+     (ours 2.9% under and 2.4% over), and one used-import figure for October 2025.
+  5. **The "delivered to buyers" statement has no support** in anything read. The MIA's page calls its figures
+     "New vehicle registrations".
+- Options considered:
+  1. **What to do with the scope gap.** (a) Bring the three types into scope now. (b) Leave the scope as it is,
+     say plainly on `/differences` what it leaves out, and put the choice to the user. Chosen (b): changing
+     `vehicle_scope.csv` changes every figure on the site and the golden contract, and whether the site should
+     count as the trade does is the user's to say. The engine's next package makes each vehicle type askable, which
+     is what a total on the trade's basis needs.
+  2. **What the pages say.** (a) Keep "counts differently" with no measurement. (b) State figures on the page. (c)
+     State what was measured in words, with no figure, year or month. Chosen (c): `/differences` is hand-written
+     until the narrative engine (D-086), and a figure written there goes stale each month. The figures are in
+     `docs/METRICS.md`, dated.
+  3. **Whether to keep the sub-agent's 78-row table in the repository.** Not kept: the lead did not re-read its
+     sources, and one column paraphrases what each source counts. The rows that matter are in `docs/METRICS.md`
+     with our side recomputed.
+- Decision: `docs/METRICS.md` gains "Set beside published figures". `/differences`, `/caveats` and
+  `docs/DATA_SOURCES.md` §E drop the "delivered to buyers" statement and say what was measured. No figure, scope
+  or definition changes.
+- Consequences:
+  - Matching the MIA stays a non-goal (CLAUDE.md): a gap is measured and explained, never closed by adjusting.
+  - Open for the user (CHECKPOINT): whether buses, motor caravans and special purpose vehicles join the default
+    scope, or a total on the trade's basis is offered beside it.
+  - Open for the engine's audit and package F: the three unexplained figures; what the vehicles missing from older
+    months are; a split of light from heavy commercial, which needs the export's mass grouping (D-096, item 5).
+  - Not compared: the Ministry of Transport's statistics and the MIA's brand and model lists (not readable by an
+    automated reader, and for members, in that order).
+- Status: decided by Claude (unreviewed)
