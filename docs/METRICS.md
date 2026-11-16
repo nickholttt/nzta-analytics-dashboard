@@ -31,7 +31,8 @@ vehicle type is `in_scope` in `vehicle_scope.csv` (today: passenger cars
 and vans, and goods vans, utes and trucks) and its import status is
 `in_scope` in `import_status_map.csv`. (`vehicle_scope.csv` also has a `trade_scope` column: the types of a
 wider scope, which adds buses, motor caravans and special purpose vehicles to the two in scope (with them
-added, our counts of new vehicles meet the published totals compared, D-105 and D-106). `registrations_flow_wider` counts exactly the types it marks, below.) Datasets that measure entry to the
+added, our counts of new vehicles come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared:
+the table under "Set beside published figures", D-105 and D-106). `registrations_flow_wider` counts exactly the types it marks, below.) Datasets that measure entry to the
 fleet also require `counts_as_fleet_entry`. Every guardrail rate (unmapped
 makes, unmapped powertrains, row-count movement) is measured on in-scope
 rows. The unmapped make and powertrain rates are measured on two bases, and

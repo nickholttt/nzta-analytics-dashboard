@@ -258,8 +258,9 @@ first registrations and buyer type from the same dashboard.
   text for some vehicle types (the model of a trailer or caravan is typed
   at registration and sometimes reads like a name). The store keeps a model
   where the vehicle type is in the default scope or marked `trade_scope` in
-  `vehicle_scope.csv` (the types of the wider scope, with which our counts of new vehicles meet the
-  published totals compared, D-105 and D-106) and the import status is one `registrations_flow` counts. For every
+  `vehicle_scope.csv` (the types of the wider scope, with which our counts of new vehicles
+  come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared,
+  `docs/METRICS.md`, D-105 and D-106) and the import status is one `registrations_flow` counts. For every
   other row the model is stored as not recorded, and the rows that become
   identical are summed; every other field stays, so every vehicle type's counts
   remain askable. The rule is `supplied.nzta_dashboard.outside_scope` in
