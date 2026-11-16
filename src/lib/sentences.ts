@@ -7,13 +7,24 @@
 
 // Called per month inside loops over every month of a series, so it parses without splitting and pads from a table.
 const MONTH_PART = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
-// A month as a count of months since year 0, and back: the form to step through a range in.
+// A month as a count of months since year 0, and back: the form to step through a range in. Something that is not a
+// "YYYY-MM" key (a missing month, text) has no index: NaN, which compares false with everything, so a range over it is
+// empty (as before), and monthAt turns it into "" rather than a "NaN-undefined" that could pass for a month.
 export function monthIndex(key: string): number {
+  if (typeof key !== "string") return Number.NaN;
   const dash = key.indexOf("-");
-  return Number(key.slice(0, dash)) * 12 + (Number(key.slice(dash + 1)) - 1);
+  const month = Number(key.slice(dash + 1));
+  return dash > 0 && month >= 1 && month <= 12 ? Number(key.slice(0, dash)) * 12 + (month - 1) : Number.NaN;
 }
-export const monthAt = (index: number): string => `${Math.floor(index / 12)}-${MONTH_PART[index % 12]}`;
+export const monthAt = (index: number): string => (Number.isInteger(index) ? `${Math.floor(index / 12)}-${MONTH_PART[((index % 12) + 12) % 12]}` : "");
 export const addMonths = (key: string, k: number): string => monthAt(monthIndex(key) + k);
+
+// Every month from one key to another, both included; empty when either is not a month or the first is after the second.
+export function monthRange(from: string, to: string): string[] {
+  const out: string[] = [];
+  for (let t = monthIndex(from), last = monthIndex(to); t <= last; t++) out.push(monthAt(t));
+  return out;
+}
 
 // A month as a reader says it: "Aug 2026", not "2026-08".
 const MONTH_FORMAT = new Intl.DateTimeFormat("en-NZ", { month: "short", year: "numeric", timeZone: "UTC" });
