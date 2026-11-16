@@ -20,7 +20,8 @@ export type LeagueRow = {
   share: number;
   priorN: number;
   priorShare: number;
-  // Undefined where there is no earlier window to compare with.
+  // Undefined where there is no earlier window to compare with, or the earlier window holds no vehicles at all in what is
+  // counted: a share of no vehicles has no value, so there is nothing to take a change from.
   shareDelta: number | undefined;
   // The change in the count on the same months a year earlier, as a proportion; undefined where there is no comparison or the
   // earlier count is under the change-on-a-year-ago floor, which is the measure's own guard.
@@ -86,7 +87,7 @@ export function leagueRows(input: LeagueInput) {
       share,
       priorN,
       priorShare,
-      shareDelta: hasPrior ? share - priorShare : undefined,
+      shareDelta: hasPrior && priorDenom > 0 ? share - priorShare : undefined,
       yearChange: hasPrior ? changeOnYear(n, priorN, yearFloor)?.change : undefined,
     };
   });

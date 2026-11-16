@@ -165,8 +165,9 @@ export type RankingFacts = {
   span: number;
   end: string;
   latest: string;
-  // The first and last month of the dataset the ranking is of, from the manifest, never from the rows: under a condition a month
-  // with no vehicles has no rows, and that is a month of zero, not a month the dataset lacks.
+  // The first and last month of the dataset the ranking is of (its supplied start or its earliest month with vehicles, and its
+  // newest), never the months a narrowed view has rows for: under a condition a month with no vehicles has no rows, and that is
+  // a month of zero, not a month the dataset lacks.
   covers: { first: string; last: string };
 };
 

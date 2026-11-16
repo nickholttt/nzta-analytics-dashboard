@@ -283,7 +283,9 @@ match, beyond the cap, and any other the cube reserves). A value with no vehicle
   ranking has no rank a year before, no move, no change in share and no change on a year ago, and says so; none of the four
   is shown. If it does, all four are shown, and a month in which a condition keeps no vehicles, which has no rows, counts as a
   month of zero vehicles. An entry with no vehicles in the earlier window has no rank then and reads as new; its change on a
-  year ago is withheld where the earlier count is under the measure's floor, as for any entry.
+  year ago is withheld where the earlier count is under the measure's floor, as for any entry. Where the earlier window
+  holds no vehicles at all in what is counted, no entry has a share then (a share of no vehicles has no value), so no change
+  in share is shown for any entry; where it holds some, an entry absent then had a share of zero.
 - **A list cut at a number of places** (the top 10, 15 or 25, or a chart that names its largest values) is cut after the
   sorting above, so a tie that straddles the cut shows the alphabetically first of the tied entries. A sentence under the
   table says how many more entries share the last rank shown, when there are any.

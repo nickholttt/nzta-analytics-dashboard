@@ -108,6 +108,22 @@ test("a register ranking of 1926, whose year before has rows in six of its twelv
   assert.equal(row("DODGE")?.yearChange, undefined, "an earlier count of 2 is under the floor of 50");
 });
 
+test("an earlier window with no vehicles at all has no share, so an entry's change in share is not shown; it still reads as new", () => {
+  const base = { currentFrom: "2026-08", end: "2026-08", priorFrom: "2025-08", priorTo: "2025-08", hasPrior: true, topN: 15, nameOf: (v: string) => v, yearFloor: FLOOR };
+  // The condition keeps three vehicles of one value in the month, and none of any value in the same month a year earlier.
+  const empty = leagueRows({ ...base, rows: [{ month: "2026-08", value: "A", n: 3, denominator: 3 }] });
+  assert.equal(empty.priorDenom, 0);
+  assert.equal(empty.items[0].share, 1);
+  assert.equal(empty.items[0].priorRank, null, "no vehicles then, so no rank then");
+  assert.equal(empty.items[0].shareDelta, undefined, "0 of 0 vehicles is not a share of 0%");
+  assert.equal(empty.items[0].yearChange, undefined);
+  // The earlier month has vehicles, none of them this value's: its share then was 0%, and the change is its whole share.
+  const others = leagueRows({ ...base, rows: [{ month: "2026-08", value: "A", n: 3, denominator: 3 }, { month: "2025-08", value: "B", n: 4, denominator: 4 }] });
+  assert.equal(others.priorDenom, 4);
+  assert.equal(others.items[0].priorRank, null);
+  assert.equal(others.items[0].shareDelta, 1);
+});
+
 test("a tie across the cut is counted: the entries beyond the list that share its last rank", async () => {
   const rows = ["A", "B", "C", "D", "E"].map((v, i) => ({ month: "2026-10", value: v, n: [9, 5, 5, 5, 1][i], denominator: 25 }));
   const base = { rows, currentFrom: "2026-10", end: "2026-10", priorFrom: "2025-10", priorTo: "2025-10", hasPrior: false, nameOf: (v: string) => v, yearFloor: FLOOR };
