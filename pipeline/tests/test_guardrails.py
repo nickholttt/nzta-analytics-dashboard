@@ -631,6 +631,24 @@ def test_model_cap_collapses_to_other(tmp_path, workspace):
     assert cap["cap"] == 2 and cap["basis"] == "trailing_12_months" and 0 < cap["coverage_trailing"] < 1
 
 
+@pytest.mark.parametrize("reverse", [False, True])
+def test_the_model_cap_keeps_the_key_that_sorts_first_when_models_tie_at_the_boundary(reverse):
+    """The cap keeps the `cap` models with the most vehicles in the trailing window. Where several tie at the last place,
+    the one whose key sorts first in byte order is kept, whatever order the rows arrive in (docs/CUBE_SCHEMA.md)."""
+    counts = {"K|BIG": 5, "K|2": 2, "K|1": 2, "K|3": 2, "K|0": 1}
+    rows = [key for key, n in counts.items() for _ in range(n)]
+    con = duckdb.connect()
+    con.execute('CREATE TABLE dims ("d__model" VARCHAR, reg_month DATE)')
+    for key in reversed(rows) if reverse else rows:
+        con.execute("INSERT INTO dims VALUES (?, DATE '2026-08-01')", [key])
+    dim = derive.Derived("model", "model", "", "", [], None, cap=2)
+    cap = derive.apply_model_cap(con, dim, "TRUE", date(2025, 9, 1), date(2026, 8, 1))
+    kept = {k for (k,) in con.execute('SELECT DISTINCT "d__model" FROM dims').fetchall()}
+    assert kept == {"K|BIG", "K|1", "__OTHER__"}
+    assert cap["cap"] == 2 and cap["coverage_trailing"] == round(7 / 12, 4)
+    con.close()
+
+
 def test_moving_cutoff_detection():
     cfg = make_cfg({})
     by_year = Counter({2014: 50, 2013: 120, 2012: 110, 2011: 1, 2006: 4})

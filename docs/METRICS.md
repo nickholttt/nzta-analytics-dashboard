@@ -396,6 +396,15 @@ The nameplates still matching no row number six or fewer each over the last
 12 months; the rows the file marks unresolved hold another 2,894 hybrids on
 the register and 2,905 on true registrations over the same months.
 
+**Named models** — the model dimension names the 300 models with the most
+vehicles in the trailing 12 months and groups every other model as
+`__OTHER__`, in every month (`CUBE_SCHEMA.md`, Model dimension). Where models
+tie at the last place, the one whose `MAKE|MODEL` key sorts first in byte
+order is named. On the 2026-10 snapshot that decided one place on
+`registrations_flow` (two models with 75 vehicles) and none on
+`registrations_surviving`. A model outside the 300 is not missing: its
+vehicles are in `__OTHER__` and in every total.
+
 **Mean fleet age** — (snapshot year − vehicle year), volume-weighted, across
 the fleet. Report median alongside the mean; the distribution has a long
 tail and the mean alone misleads.
