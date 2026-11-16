@@ -108,7 +108,7 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     const ds = findDataset(preset.dataset);
     notBuilt = unbuiltDataset(preset.dataset, manifest);
     const msg = notBuilt
-      ? `dataset "${notBuilt}" was not built in this build (${manifest.datasets[notBuilt].not_built})`
+      ? `dataset "${notBuilt}" was not built in this build (${manifest.datasets[notBuilt]?.not_built ?? "the cube has no entry for it"})`
       : `dataset "${preset.dataset}" is not in the cube: manifest.json lists only ${inCube.join(", ")}`;
     if (!ds) add("invalid", `${msg}, and dimensions.json does not define "${preset.dataset}" either`);
     else add("blocked", ds.status ? `${msg} (${ds.status})` : msg);
@@ -202,7 +202,7 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   if (ratio?.numerator_dataset && ratio.denominator_dataset) {
     for (const id of [ratio.numerator_dataset, ratio.denominator_dataset]) {
       if (!isBuilt(manifest, id)) {
-        notBuilt ??= manifest.datasets[id]?.not_built ? id : undefined;
+        notBuilt ??= unbuiltDataset(id, manifest);
         add("blocked", manifest.datasets[id]?.not_built ? `dataset "${id}" was not built in this build (${manifest.datasets[id].not_built})` : `dataset "${id}" is not in the cube`);
       } else if (preset.dimension && !manifest.datasets[id].live_dimensions.includes(preset.dimension)) {
         add("blocked", `dimension "${preset.dimension}" is not live in ${id}`);
@@ -247,11 +247,14 @@ export function servedFrom(datasetId: string | undefined, manifest: Manifest): s
   return ds?.base && ds.filter && isBuilt(manifest, ds.base) ? ds.base : undefined;
 }
 
-// The dataset behind this one that the build says it did not make (manifest `not_built`), if that is what is missing.
+// The dataset behind this one that the build did not make, if that is what is missing: the manifest says so (`not_built`),
+// or a cube built before the dataset existed has no entry for it and config has words for a build without it. A dataset
+// config has no such words for, and the cube does not list, is not "not built": it is not in the cube at all.
 export function unbuiltDataset(datasetId: string, manifest: Manifest): string | undefined {
-  if (manifest.datasets[datasetId]?.not_built) return datasetId;
+  const missing = (id: string) => (manifest.datasets[id] ? Boolean(manifest.datasets[id].not_built) : Boolean(findDataset(id)?.not_built_message));
+  if (missing(datasetId)) return datasetId;
   const base = findDataset(datasetId)?.base;
-  return base && manifest.datasets[base]?.not_built ? base : undefined;
+  return base && missing(base) ? base : undefined;
 }
 
 // The live pair that splits one dimension by another, in either order, and which side of it the first one is.
