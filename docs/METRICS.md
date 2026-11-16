@@ -11,8 +11,9 @@ Three grains, never mixed in one series without an explicit label.
   changes. Denominator: all events of the same dataset in the same month.
   Two sources, never mixed in one series: `registrations_flow`, from
   NZTA's registrations dashboard, with make and model, from January 2021
-  (below); and `registrations_cars_long_run`, from Stats NZ's monthly
-  series, cars only, from January 1961 (below).
+  (below), which has a second form on a wider scope of vehicle types,
+  `registrations_flow_wider`; and `registrations_cars_long_run`, from Stats NZ's
+  monthly series, cars only, from January 1961 (below).
 - **Survivors** — `registrations_surviving`: *vehicles first registered in
   month M that are still registered as at the snapshot date.* Render that
   sentence on every chart that uses this dataset or its subsets (`nz_new`,
@@ -28,9 +29,10 @@ Three grains, never mixed in one series without an explicit label.
 Every dataset counts **in-scope rows only**. A row is in scope when its
 vehicle type is `in_scope` in `vehicle_scope.csv` (today: passenger cars
 and vans, and goods vans, utes and trucks) and its import status is
-`in_scope` in `import_status_map.csv`. (`vehicle_scope.csv` also has a `trade_scope` column: the types the
-trade's total of new vehicles counts, which adds buses, motor caravans and special purpose vehicles to the two
-in scope, D-105 and D-106. No dataset is built on it yet.) Datasets that measure entry to the
+`in_scope` in `import_status_map.csv`. (`vehicle_scope.csv` also has a `trade_scope` column: the types of a
+wider scope, which adds buses, motor caravans and special purpose vehicles to the two in scope (with them
+added, our counts of new vehicles come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared:
+the table under "Set beside published figures", D-105 and D-106). `registrations_flow_wider` counts exactly the types it marks, below.) Datasets that measure entry to the
 fleet also require `counts_as_fleet_entry`. Every guardrail rate (unmapped
 makes, unmapped powertrains, row-count movement) is measured on in-scope
 rows. The unmapped make and powertrain rates are measured on two bases, and
@@ -113,6 +115,118 @@ taken.
   completeness (below) is not shown by model.
 - **Never on a chart with survivors.**
 
+## True registrations on a wider scope: `registrations_flow_wider`
+
+*Vehicles first registered in New Zealand in month M, as NZTA's registrations
+dashboard held them at its latest monthly update before the export was taken,
+including vehicles since removed from the register, counting buses, motor
+caravans and special purpose vehicles as well as the types
+`registrations_flow` counts.* Render that sentence, or the visitor's wording
+in `config/dimensions.json`, on every chart that uses this dataset (D-106,
+D-113).
+
+- **What it is.** The same dataset as `registrations_flow` in every respect
+  but one: which vehicle types it counts. It is read from the same committed
+  store through the same code, with the same rule for which import statuses
+  count (new and used imports, not re-registrations or scratch-built
+  vehicles). It counts the vehicle types `vehicle_scope.csv` marks in its
+  `trade_scope` column: passenger cars and vans, goods vans, trucks and
+  utes, buses, motor caravans and special purpose vehicles. The name says
+  what it counts and claims nothing about any organisation's definition.
+  D-105 found that, counted this way, new vehicles come within 0.06% of the
+  Motor Industry Association's published total for October 2026 and within
+  1.3% for the other periods compared (below); that is a measured comparison
+  of counts, not a definition of the MIA's, which was not read.
+- **New and used alike.** The dataset holds both statuses. A count of new
+  vehicles is this dataset with `import_status` kept to `NZ New`; the
+  dataset itself is not a count of new vehicles.
+- **Neither scope is the right one.** `registrations_flow` answers "how many
+  passenger and goods vehicles were registered", and this dataset "how many
+  vehicles of the types of the wider scope", which also counts buses, motor caravans and special
+  purpose vehicles. They answer different questions;
+  the site's default stays `registrations_flow` (D-106) and this dataset is
+  offered beside it. Its figures are never added to `registrations_flow`'s
+  (they count the same vehicles twice), and the two are not drawn as one
+  series. **Never on a chart with survivors.**
+- **Passenger or commercial.** Its extra dimension, `trade_group`, sorts the
+  vehicles by NZTA's registered type: passenger cars and vans are
+  `Passenger`; every other type it counts is `Commercial` (goods vehicles,
+  buses, motor caravans, special purpose vehicles). It follows
+  `vehicle_scope.csv`'s `trade_group` column. A ute registered as a
+  passenger vehicle is a passenger vehicle here; light and heavy commercial
+  cannot be told apart (the export has no gross vehicle mass).
+- **Dimensions.** The same as `registrations_flow`'s wherever the field
+  exists for the added types, plus `trade_group`. `segment`, `segment_group`,
+  `engine_size_band`, `region` and the vehicle-age band need fields the
+  dashboard lacks and are not live, as for `registrations_flow`.
+- **Guards.** Every guard applies as it does to `registrations_flow`: the
+  store's months, rows and totals against its ledger, a month whose store
+  total moved by more than 2% without a recorded replacement, an emptied
+  month, the unmapped make and powertrain rates (on this dataset's own
+  rows), the mild hybrid split judged on this dataset's own hybrids, and the
+  model cap with its tie rule. A guard of another dataset reads its own rows
+  and does not change when this one is added. The first build that has the
+  dataset accepts it (the last good state has nothing about it); later builds
+  compare with it.
+
+### Coverage of the lookups on the added types (measured 2026-11-17, D-113)
+
+Buses, motor caravans and special purpose vehicles bring makes the brand registry was not built for. Measured on the
+committed dashboard counts as built for the 2026-10 snapshot, by the pipeline's own code, over the trailing 12 months
+(2025-11 to 2026-10) and all time, new and used apart. "No reference match" is the reserved value for a recorded make
+with no row in `brand_registry.csv`; it carries to the manufacturer group, the brand owner's country and the brand's
+original country with it.
+
+| Vehicles | Trailing 12 months, new | Trailing, used | All time, new | All time, used |
+|---|---|---|---|---|
+| Added types, before | 309 of 2,982 (10.36%) | 6 of 774 (0.78%) | 1,078 of 16,767 (6.43%) | 59 of 6,297 (0.94%) |
+| Added types, after seven rows | 76 (2.55%) | 5 (0.65%) | 371 (2.21%) | 49 (0.78%) |
+| The wider dataset, before | 504 of 150,122 (0.34%) | 96 of 95,066 (0.10%) | 2,052 of 868,898 (0.24%) | 838 of 637,569 (0.13%) |
+| The wider dataset, after | 271 (0.18%) | 95 (0.10%) | 1,345 (0.15%) | 828 (0.13%) |
+| The default scope (unchanged) | 195 of 147,140 (0.13%) | 90 of 94,292 (0.10%) | 974 of 852,131 (0.11%) | 779 of 631,272 (0.12%) |
+
+The build's own guard counts every in-scope row the dataset holds, including re-registrations (the table `dims`, as for
+`registrations_flow`): over the trailing 12 months 631 unmapped makes of 245,435 (0.26%) before the rows and 397
+(0.16%) after, against `registrations_flow`'s 316 of 241,678 (0.13%); over all rows 3,094 of 1,515,274 (0.20%) before
+and 2,376 (0.16%) after. The warning level is 0.5% and the abort level 2%, as for every dataset.
+
+The makes with no row, on the added types alone, all time, before the rows, with their vehicles (31 makes, all
+listed): CRRC 487, FACTORY BUILT 306, YUTONG 79, ZHONGTONG 58, LIEBHERR 52, BCI 27, ALEXANDER DENNIS 21, ELDDIS 15,
+GROVE 14, TEREX 13, YANGTSE MOTOR GROUP 12, TADANO 8, KING LONG 6, MARCOPOLO 5, SANY 4, SHACMAN 4, TIDD 4, OSHKOSH 3,
+CAMPERVAN 2, DAIMLER 2, GLOBAL BUS VENTURES 2, HIGER 2, KATO 2, WRIGHTBUS 2, DEMAG 1, PETERBUILT 1, SINOTRUK 1,
+SUNLONG 1, VAUXHALL 1, WESTERN STAR 1, ZEMTEC 1.
+
+- **What was added.** One row each for the seven makes that carry 10 or more vehicles of the added types all time, or
+  4 or more in the trailing 12 months, and whose parent group and owner's country a public source settles: CRRC,
+  YUTONG, ZHONGTONG, LIEBHERR, ALEXANDER DENNIS, ELDDIS and MARCOPOLO, each with its sources and the date read in its own row
+  (`as_at`, `notes`). Four makes met the volume rule and were **left unmatched** because the sources read did not settle
+  the parent group or the owner's country: BCI (27; no page names an owner), GROVE (14) and TEREX (13; the owner is
+  settled but not where the brand began), YANGTSE MOTOR GROUP (12; no owner named). FACTORY BUILT (306) is a description,
+  not a brand. The seven rows match 717 of the 1,137 unmatched vehicles of the added types, and no vehicle of
+  `registrations_flow`: its files and manifest entry are unchanged by them. They do move two vehicles of
+  `registrations_surviving`, which holds passenger and goods vehicles of two of the makes: one first registered in
+  December 2017 moves from no reference match to ELDDIS (Thor Industries, United States, United Kingdom), and one
+  first registered in February 2013 to ALEXANDER DENNIS (NFI Group, Canada, United Kingdom). Its brand, manufacturer
+  group, brand owner's country and brand's original country slices change in those two months and no other cell
+  does; its guard's unmapped makes fall from 33,016 to 33,014 of the same 4,634,954 rows.
+- **Powertrain.** Every motive power of the added types has a row in `powertrain_map.csv`; none is unmapped.
+- **Hybrids.** The added types hold 33 vehicles recorded under a hybrid code all time and 1 in the trailing window. All
+  but one have a row in `mild_hybrid_models.csv` (a Hino, model 500, has none). The wider dataset's trailing figures are
+  the default scope's to the vehicle but one: 91,615 source hybrids against 91,614, identified at stated confidence
+  83.45%, and at high confidence 14,271 of 19,286 (74.0%) under D-110's count, so its mild split is published (the
+  level is 70%). 1,101 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
+  time the high-confidence figure is 46,102 of 71,434 (64.5%).
+- **Anything else.** Vehicle age at registration (the band's unknown), model (not recorded) and powertrain show no rate on
+  the added types unlike the default scope's; the country built in is not recorded for 7 of the 16,767 new vehicles
+  of the added types all time, as for 7 of 852,131 in the default scope.
+- **Which dimensions are live.** All eleven the dashboard can carry: powertrain, brand, manufacturer group, brand
+  owner's country, brand's original country, country built in, registered as, passenger or commercial, new or used,
+  age when first registered and model. A dimension is live when its unmapped rate over the dataset's rows is at most 2%
+  (`max_unmapped_rate`); the largest is 0.16% (the brand's, and what rolls up from it). The eight that are not live:
+  the car, ute, van and truck split (`segment`), vehicle class, region and engine size need fields the dashboard lacks (gross vehicle mass, district,
+  engine size), as for `registrations_flow`; vehicle age on the snapshot date, imported from and the two Stats NZ
+  dimensions apply to other datasets.
+
 ## Set beside published figures (measured 2026-11-16, D-105)
 
 No figure is adjusted to match another source. This section records how far
@@ -148,6 +262,29 @@ with 71 buses, 129 motor caravans and 5 special purpose vehicles, 3,285. We
 cannot split light from heavy commercial on this dataset (the export has no
 gross vehicle mass), nor SUVs from cars.
 
+**The same figures from the built dataset (D-113).** The "plus three types" column above was computed from the
+dashboard counts. The table below is read from the built `registrations_flow_wider` (its fact table, `import_status`
+kept to `NZ New`, summed by month), on the 2026-10 snapshot's build. Every figure equals the column above to the vehicle.
+
+| Period | Published | The built dataset, new vehicles | Difference |
+|---|---|---|---|
+| March 2021 | 15,498 | 15,301 | -197 (-1.3%) |
+| August 2022 | 14,690 | 14,568 | -122 (-0.8%) |
+| June 2023 | 23,560 | 23,399 | -161 (-0.7%) |
+| June 2024 | 9,423 | 9,379 | -44 (-0.5%) |
+| October 2024 | 12,568 | 12,515 | -53 (-0.4%) |
+| October 2025 | 14,218 | 14,191 | -27 (-0.2%) |
+| March 2026 | 14,908 | 14,872 | -36 (-0.2%) |
+| October 2026 | 15,118 | 15,109 | -9 (-0.06%) |
+| 2021 | 165,287 | 163,796 | -1,491 (-0.9%) |
+| 2024 | 128,776 | 128,392 | -384 (-0.3%) |
+| 2025 | 137,853 | 137,604 | -249 (-0.2%) |
+
+October 2026, new vehicles by `trade_group`: Passenger 11,824 against the MIA's light passenger 11,833 (-9);
+Commercial 3,285 against its light and heavy commercial 3,285 (2,805 plus 480). The dataset cannot split light
+from heavy commercial. Its used imports in October 2026 are 8,726 of every counted type, 8,285 of them
+passenger and 441 commercial; the 8,285 is the figure AutoTalk published for passenger cars and vans.
+
 **Used imports** (passenger cars and vans; published by AutoTalk from NZTA's
 data): 2021, 121,884 against our 119,996 (-1.5%); 2022, 110,757 against
 109,606 (-1.0%); October 2026, 8,285 against 8,285.
@@ -162,8 +299,8 @@ What is established, and what is not:
 - **Scope.** The three extra types account for most of the gap against the
   MIA's total in every month compared, and in October 2026 for all of the
   commercial gap. No definition of the MIA's was read: what is established
-  is that the counts meet once the three types are added. Motorcycles are in
-  neither total.
+  is how close the counts come once the three types are added (the table
+  above). Motorcycles are in neither total.
 - **Older months sit lower.** Against the MIA, AutoTalk and Stats NZ alike,
   the gap that scope does not explain is 0.4% or less for 2025 and 2026,
   up to 0.5% for 2024, and about 1% for 2021 and 2022. Published figures

@@ -13,7 +13,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
     5,926,990 rows; no warning): the one forced run the work order allowed. The release
     `cube-2026-10` holds its cube, with the fact table. `Deploy` uploaded nothing.
   - **The build is tried every day** at 06:17 UTC (D-064, D-070). The newest run seen on
-    16 November is the 15th's ("Source unchanged").
+    17 November is the 16th's ("Source unchanged").
   - **The archive**: the private repository `nickholttt/nzta-register-archive` holds one
     release, `snapshot-2026-10`, two files (the second holds `VIN11` and `POSTCODE`).
 - **`registrations_flow`** (#55, D-092): true first registrations from the user's exports of
@@ -21,6 +21,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   D-097): no owner field, and a model name only for vehicle types a total counts. GitHub's
   next build of a new month builds it; the release `cube-2026-10` does not hold it.
 - **`registrations_cars_long_run`** (#57, D-094; Stats NZ's cars, 1961 on): the same.
+- **`registrations_flow_wider`** (#73, D-113): true registrations with buses, motor caravans
+  and special purpose vehicles too, and a passenger or commercial group. Not on the site yet.
 - **NZTA's vehicle type is a dimension** (#58, D-095); GitHub's next build writes it.
 - **The site shows true registrations on a local build** (#56, D-093): a group in Explore
   and a choice of what Build counts; completeness by vehicle type and new or used (#61).
@@ -49,15 +51,14 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Current step
 
 **Work order 1**, engine first (the user, D-104). A, B, C and G are done on a local build, and
-E but for two pipeline items. Next, in order: the supplied counts, the two open pull
-requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
+E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
 - `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): a proposal only.
 - `claude/matrix` (D-114; worktree `nzta-notes`): the sixth shape and a second breakdown in Build.
-- `claude/trade-basis` (D-113; the main folder): true registrations on the wider scope.
+- `claude/hybrid-confidence` (D-115; worktree `nzta-audit`): `mild_hybrid_models.csv`'s rows.
 
 ## Raw files on this computer (gitignored)
 
@@ -87,9 +88,9 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
    Notes in config that no lint reads name a value or say why (D-107, D-109; for H).
 7. Printing or searching a page before scrolling reaches only the charts that have loaded (D-099).
-8. True registrations of new vehicles read 1.4% to 3.9% under published totals (three vehicle
-   types the default scope leaves out; a total on the trade's basis is next, D-106), and older
-   months about 1% lower, cause not established (D-105).
+8. New vehicles read 1.4% to 3.9% under published totals on the default scope, and 0.06% to
+   1.3% under on the wider one; the older the month the wider the gap, cause not established
+   (D-105, D-113). This folder's `public/data` predates #68.
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -115,9 +116,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 ## Blocked or waiting on the user
 
 Nothing stops the work (CHECKPOINT, questions). Waiting on the user: the site's name and
-address (the About page's gaps); the retaken dashboard history, due in the user's Downloads
-folder. Waiting on a date: matching vehicles between two months' archive files needs
-November's file (December).
+address; the retaken dashboard history, due in the user's Downloads folder. Waiting on a
+date: matching vehicles between two months' archive files needs November's file (December).
 
 ## How to run
 

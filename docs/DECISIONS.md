@@ -4662,6 +4662,118 @@ New entries use this template:
   names where the warnings are and what to do about a flip.
 - Status: decided by Claude (unreviewed)
 
+## D-113 2026-11-17 — True registrations on the wider scope: a second dataset, a passenger-or-commercial dimension, seven brand rows, and what was checked
+- Agent: claude (a sub-agent, to the lead's brief)
+- Basis: D-106 (the owner decided that the default scope stays and a total of new vehicles on the trade's basis is offered
+  beside it; every choice of how is the author's), D-105 (the measured agreement of counts), D-104 (the engine right
+  before anything is public, checked against published sources), D-087, D-092, D-095, D-097, D-108 and D-110; the committed
+  dashboard counts and the saved 2026-10 pull; public pages read on 2026-11-17, named below.
+- Context: `vehicle_scope.csv` already marked, in `trade_scope`, the five types the trade's total counts, and the committed
+  store already keeps a model for them. Nothing counted them. This piece builds the pipeline half; the site's half (charts,
+  Build's choice of what is counted, wording on pages) is another piece.
+- Decision, by item:
+  1. **A second dataset, `registrations_flow_wider`.** Same source, same code, same import-status rule as
+     `registrations_flow`; only the vehicle types differ (`trade_scope` in place of `in_scope`). New and used alike; a count of
+     new vehicles is a condition on `import_status`, which is the site's work. Words (config): label "New registrations, wider
+     scope", public label "True registrations, wider scope", and a definition that says it "counts the same vehicles as true
+     registrations and also buses, motor caravans and special purpose vehicles". It names no organisation and claims nothing
+     about anyone's definition. The mechanism is data: `scope.vehicle.also` in `config/pipeline.json` lists each wider scope as
+     a flag of `rows` and the column it reads, and a dataset's `require` names exactly one scope flag, which now decides the
+     rows of its `dims` table and its hybrid coverage (both read the default scope only before). A `require` naming none or two
+     aborts the build.
+  2. **Passenger or commercial, `trade_group`.** A new column of `vehicle_scope.csv` (own commit) and a lookup dimension, as
+     D-095 did NZTA's vehicle type. `scope_group` could not serve: it holds ten per-type groups (bus, goods, motorhome, machinery
+     ...), not two. Values `Passenger` (passenger cars and vans) and `Commercial` (every other type of the wider scope); a type
+     outside it has none and never reaches the dataset. The dimension applies to the new dataset only.
+  3. **Dimensions, slices, pairs, fact table.** Flow's dimensions wherever the field exists for the added types, plus
+     `trade_group`: eleven live, eight not (four need fields the dashboard lacks, four apply to other datasets), as for flow. No
+     pairs, as flow has none. The fact table is carried: the dataset's payload is 527,573 bytes with it (slices 140,695 and the
+     table 386,878, 136,452 rows) and 140,695 without; the whole cube goes from 3,753,258 to 4,281,132 bytes (+14.1%) against an
+     8,000,000 byte budget. Build can only ask a dataset that has a fact table.
+  4. **Coverage of the lookups on the added types** (tables in `docs/METRICS.md`). Powertrain: no motive power of the added types
+     lacks a row. Hybrids: 33 vehicles all time (1 in the trailing window), 1 without a row (a Hino 500); the dataset's trailing
+     high-confidence coverage under D-110's count is 14,271 of 19,286 (74.0%), the default scope's to the vehicle but one
+     hybrid, so its split is published, with the same 1,101-vehicle margin. Brands: the added types' vehicles with no brand
+     match were 1,078 of 16,767 new vehicles all time (6.43%) and 309 of 2,982 in the trailing window (10.36%), against 0.11% and
+     0.13% for the default scope. Seven rows were added (CRRC, YUTONG, ZHONGTONG, LIEBHERR, ALEXANDER DENNIS, ELDDIS, MARCOPOLO),
+     bringing those to 371 (2.21%) and 76 (2.55%); the wider dataset's trailing guard rate went from 0.26% to 0.16%
+     (0.5% warns, 2% aborts). Nothing else about the added types derives to no match or not recorded at a rate unlike the
+     default scope's. **Rule used for which makes:** 10 or more vehicles of the added types all time or 4 or more in the trailing
+     window, and a public source that settles the parent group and the owner's country. Four met the volume and stay unmatched
+     (BCI 27, GROVE 14, TEREX 13, YANGTSE MOTOR GROUP 12); FACTORY BUILT (306) is not a brand.
+  5. **The existing datasets.** `registrations_flow` and `registrations_cars_long_run`: every slice, pair and fact file is
+     byte-identical to a build of `origin/main` (tested by building with and without the dataset in the fixture, and by the
+     dry run). `registrations_surviving` differs where the seven rows move **two vehicles**: one first registered in 2017-12 from
+     no reference match to ELDDIS (Thor Industries, United States, United Kingdom), one in 2013-02 to ALEXANDER DENNIS (NFI
+     Group, Canada, United Kingdom). Its make, manufacturer group, owner's country and original country slices change in those
+     two months and in no other cell; its fact table's rows reorder, and the guard's unmapped makes fall from 33,016 to 33,014 of
+     4,634,954. No guard of an existing dataset reads another dataset's rows (`dims` is rebuilt for each dataset from its own
+     scope flag); a test holds the manifest entries equal with and without the new dataset. The manifests of the existing
+     datasets gain one line each: `trade_group` "does not apply to this dataset" in `not_live`.
+  6. **Guards and state.** The store checks (months, rows, totals, no gap, no month replaced silently, 2% month change), the
+     emptied-month check, the unmapped guards (on the dataset's own rows), the split's rule and its flip record, and the model cap
+     with its tie rule all apply, through the same code. The committed state has never seen the dataset: the first build that
+     has it is accepted (tested, by a state with every trace of it removed), and the next compares (tested: a month total that
+     moved, an emptied month, a flipped split, a dataset that vanishes). `last_good.json` was not touched. New: the build refuses a
+     store whose ledger trimmed the model of a (type, status) pair that any dataset reading it counts, not only the dataset the
+     trim names (a second dataset could count what the first never did and its model dimension would read "not recorded").
+  7. **Checked against what is published.** The wider dataset's new vehicles by month, read from its built fact table, equal the
+     "plus three types" column of D-105's table in all eleven periods to the vehicle (March 2021 15,301 ... October 2026 15,109;
+     2021 163,796; 2024 128,392; 2025 137,604), and October 2026 is Passenger 11,824 and Commercial 3,285, as D-105 found. A test
+     sums the committed store over the types and statuses the dataset counts, from the Parquet file with the scope files read
+     in Python, and compares every month with the built dataset's, so it cannot drift from its source silently.
+- Sources read for item 4 (public pages, read 2026-11-17; nothing about this project was sent to any site; read by sub-agents and
+  by the author for two, then recorded in each row's `notes`):
+  - CRRC: Wikipedia (CRRC: the parent is CRRC Group, state-owned; Zhuzhou CRRC Times Electric), crrcgc.cc/en. The pages do not
+    say which subsidiary builds the buses sold under the name; the row rests on the make being the group's own name.
+  - YUTONG: Wikipedia (Yutong), en.yutong.com. No shareholder above it is named; taken as its own group.
+  - ZHONGTONG: Wikipedia (Zhongtong Bus; Shandong Heavy Industry), zhongtongbuses.com. The ownership statement is the August 2018
+    acquisition; the maker's site names no owner.
+  - LIEBHERR: Wikipedia and liebherr.com (shareholders, history). The Swiss seat rests on Wikipedia.
+  - ALEXANDER DENNIS: Wikipedia (Alexander Dennis; NFI Group), alexander-dennis.com. NFI's own site refused the reader.
+  - ELDDIS: Wikipedia (Elddis, Hymer, Thor Industries) and thorindustries.com (lists elddis among Erwin Hymer Group's brands).
+    No one page states the whole chain; the Elddis article is flagged out of date and does not mention Thor.
+  - MARCOPOLO: Wikipedia (en, pt). No controlling shareholder named; its own site refused the reader.
+  - Not settled, so left unmatched: BCI (no owner named), GROVE (founding place), TEREX (founding place), YANGTSE MOTOR GROUP
+    (no owner named). The reports were the sub-agents' claims: the author re-read the Thor page and the Liebherr article.
+- Options considered:
+  - *The shape.* (a) A second dataset. (b) A flag on `registrations_flow` that widens its scope. (c) Slices only, on the existing
+    dataset. Chosen (a). A dataset has its own manifest entry, guards, fact table and state, so every check that protects a
+    dataset protects this one, and each count is the definition of one thing (D-106: the default stays and a total is offered
+    beside it). (b) would make one dataset's meaning depend on a switch, change every figure of the default when set, and mix
+    the two in one set of guards; (c) could not hold a vehicle type the default dataset does not count without changing it.
+    Cost of (a): a dataset that counts the default's vehicles again, so the two must never be added (METRICS says so), and 14.1%
+    more payload.
+  - *The name.* `registrations_flow_wider` (id) and "True registrations, wider scope" (public). Rejected: anything with "MIA",
+    "trade" or "industry" in the public words (a claim about someone's definition), and "total" (it is not a count of new vehicles
+    alone). The id and a column say "trade" in config only, where D-106 already put it.
+  - *The group.* (a) A new column `trade_group`. (b) Roll `scope_group` up. (c) A dimension with a literal group map in config.
+    Chosen (a): a reference file, one column, one commit; (b) cannot be honest (ten values); (c) puts domain values in config
+    outside the reference files.
+  - *The fact table.* Carried (item 3), because the cost is 3.7% of the payload for the slices and 10.3% for the table, and
+    without it Build could not ask the dataset at all.
+  - *Where `trade_group` applies.* This dataset only. Offering it on `registrations_flow` would add files to a dataset the brief
+    leaves as it was; for flow it would hold two values already told apart by `vehicle_type`.
+  - *Which makes.* (a) Only the added types' makes by the rule in item 4. (b) Also the whole wider dataset's largest unmatched
+    makes (CAN-AM 246, YAMAHA 214, SINOTRUK 195, PONTIAC 106, PLYMOUTH 99 ...). Chosen (a): (b) is the default scope's coverage, which
+    passes its guard and would move more cells of the existing datasets.
+- Choices a reviewer could want reversed:
+  1. The dataset id and the public wording (item 1); `Passenger` and `Commercial` as the two values.
+  2. `trade_group` on this dataset only (item 2); the effect is that the existing datasets cannot be asked passenger or commercial.
+  3. The brand rule's thresholds (10 all time or 4 trailing) and the choice to restrict it to the added types.
+  4. YUTONG, MARCOPOLO and CRRC are matched with no shareholder above them named (each its own group), ZHONGTONG on a 2018
+     statement, ELDDIS through a chain no one page states. A row can be deleted to restore "no reference match".
+  5. The two vehicles of `registrations_surviving` that move are accepted, not avoided.
+  6. The new refusal for a store trimmed narrower than a second dataset counts (item 6).
+  7. The new `not_live` line in the manifest of every other dataset.
+  8. LIEBHERR's owner country is Switzerland (the group's seat) and heritage Germany; ALEXANDER DENNIS's heritage is the United
+     Kingdom; MARCOPOLO's region is "Other".
+- Consequences: the golden contract gains the dataset's `not_built` entry and its warning (the fixture has no store). A mild
+  split flip is announced for the new dataset as for the others. The site piece needs: the dataset id and wording above, the
+  dimension `trade_group` (live there only), the condition `import_status` = the new-vehicle label to make "new vehicles on the
+  wider scope", and the guard that the two true-registrations datasets are never on one chart.
+- Status: decided by Claude (unreviewed)
+
 ## D-115 2026-11-17 — Rows of the mild hybrid file raised to high confidence only where a maker's or its New Zealand distributor's own page states the system, and what was looked at and left
 - Agent: claude (a sub-agent, to the lead's brief)
 - Basis: D-104 (the engine must be right, checked against published sources), D-108, D-110 and D-112; `data/reference/mild_hybrid_models.csv`,

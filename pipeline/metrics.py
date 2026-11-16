@@ -78,9 +78,10 @@ def unmapped_guard(con, derived, g: dict, start: date, end: date, window: int) -
 
 
 def hybrid_base(ds: str, conditions: dict[str, str]) -> str:
-    """The vehicles of a dataset that are recorded under a hybrid code, as a condition on `rows`: its in-scope rows, in the
-    dataset's own row set `ds` (dataset_filter), with a hybrid code. A window is a further condition on `reg_month`."""
-    return f"in_scope AND {ds} AND {conditions['source_hybrid']}"
+    """The vehicles of a dataset that are recorded under a hybrid code, as a condition on `rows`: the dataset's own row set
+    `ds` (dataset_filter), with a hybrid code. `ds` holds the dataset's own scope flag (it is in its `require`), so a wider
+    scope is counted as it counts. A window is a further condition on `reg_month`."""
+    return f"{ds} AND {conditions['source_hybrid']}"
 
 
 def hybrid_conditions(cfg) -> dict[str, str]:
