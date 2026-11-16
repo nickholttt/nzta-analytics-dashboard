@@ -48,8 +48,9 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/audit-fixes` (D-107; worktree `nzta-notes`): what the engine's audit found on the
-  site's side: a rule for ties in rankings, definitions, stale wording.
+- `claude/audit-pipeline-fixes` (D-108; the main folder): what the audit found on the
+  pipeline's side. `data/reference/mild_hybrid_models.csv`, `pipeline/build.py`,
+  `pipeline/supplied.py`, their tests, `docs/CUBE_SCHEMA.md`.
 - `claude/first-load` (#64, D-099; worktree `nzta-firstload`): `astro.config.mjs`,
   `src/lib/loadGate.ts`, `src/lib/data.ts`, `PresetPanel.tsx`, `deploy.yml`, `scripts/`.
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
@@ -74,16 +75,16 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 1. First load at phone width is slow: a Build question's first answer takes 7.4 to 11.6 s
    (local, throttled, 2026-11-14, D-091). About 460 KB of each page is its own code and fonts.
-2. "Area Outside Region" (the Chatham Islands) reaches visitors as is. On a filtered powertrain
-   chart the mild hybrid coverage note states the whole dataset's coverage.
+2. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
 3. Mild hybrids are identified for 62.7% of `registrations_flow`'s hybrids at high confidence
    over the trailing 12 months, under the 70% the pipeline warns at (D-092).
 4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). It holds no owner field; the user's minimum of 10 is for owner fields (D-096).
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
-6. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
-   share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
+6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
+   A ranking applies neither share guard, and three tables print "suppressed" where the
+   charts grey a guarded month (D-107 lists both; not changed).
 7. The public build still ships the status page's script chunk, unlinked, holding no data.
 8. Commits before #47 hold local paths (D-081).
 9. True registrations of new vehicles read 1.4% to 3.9% under published totals: the MIA's
@@ -120,7 +121,7 @@ November's file (December).
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about two and a half minutes) and the site's 65 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 80 tests (under half a minute).
 
 - A scratch script run from the session's shared scratch folder can pick up a stray file
   there in place of a Python module: run it with `python -I`, or from a folder of its own.

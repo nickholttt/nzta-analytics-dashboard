@@ -44,7 +44,7 @@ Run from the repo root.
 |---|---|---|
 | Pipeline tests (as CI) | `.venv/Scripts/python.exe -m pytest pipeline/tests -q -p no:cacheprovider` | 100 passed, 520 s with a site build going (2026-11-13) |
 | Typecheck site | `npx -y -p typescript tsc --noEmit` | exit 0. TypeScript isn't a dependency, so plain `npx tsc` fails |
-| Site tests | `node --test "tests/site/*.test.ts"` | 65 passed in about 2 s (2026-11-16); also run on every pull request (D-101) |
+| Site tests | `node --test "tests/site/*.test.ts"` | 80 passed in about 2 s (2026-11-16); also run on every pull request (D-101) |
 | Build site | `npx astro build` | 7 pages built to `dist/`, `404.html` among them (2026-10-22). No npm `build` script exists |
 | Build the public site, as the deploy does (D-056) | Git Bash: `INTERNAL_PAGES=false npx astro build && rm -rf dist/status dist/sense-check` | 2026-10-22, against the 2026-08 cube: 5 pages left, none linking to `/status` or `/sense-check`; in a preview those two and any unknown address return 404 |
 | Dev server | `npm run dev`, then `npx astro dev status` / `npx astro dev stop` | 200 on `http://127.0.0.1:4321/`. Runs in the background |

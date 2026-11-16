@@ -40,10 +40,10 @@ independently of the site's code; figures are compared with published New Zealan
 2. **What the engine's audit found** (D-104, D-107). A checker recomputed 34,693 of the
    site's figures from the register's rows and the dashboard export: 34,618 agree, 74 are
    withheld on both sides, 1 differs (a tie in a ranking). No count is wrong.
-   - On the site's side, in hand on `claude/audit-fixes`: a rule for ties, what the guards
-     do, the coverage note on a narrowed chart, stale lines on `/caveats`, the limit on
-     conditions.
-   - On the pipeline's side, next: a hybrid nameplate the dashboard spells differently is
+   - On the site's side, done (#67, D-107): equal counts share a rank; METRICS says what
+     each guard does where; the coverage note on a narrowed chart; `/caveats`; a model reads
+     as words everywhere. Left: whether a ranking should apply the share guards.
+   - On the pipeline's side, in hand on `claude/audit-pipeline-fixes` (D-108): a hybrid nameplate the dashboard spells differently is
      missing from `mild_hybrid_models.csv` (true registrations' coverage reads 66.0%), and
      the mild split is drawn below the 70% METRICS asks for; ties at the 300-model cap.
      Also: any change to the scope files refuses the committed counts until the history is
