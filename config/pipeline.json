@@ -134,9 +134,13 @@
     }
   },
   "supplied": {
-    "$comment": "Sources a maintainer supplies by hand as a CSV, checked and kept in a local store by `python -m pipeline supply <id> <csv>` (pipeline/supplied.py). The Action never runs that command and nothing here is fetched. `fields` maps a logical field name of the top-level `fields` block to the CSV column that carries it; `extra_fields` are public columns the register does not have, kept in the store under the name given; `private_columns` must be in the header and are dropped, so no owner field reaches the store or any output. The store is kept out of git for now (.gitignore): whether it may live in the public repository is the user's decision.",
+    "$comment": "Sources a maintainer supplies by hand as a CSV, checked and kept in a store by `python -m pipeline supply <id> <csv>` (pipeline/supplied.py). The Action never runs that command and nothing here is fetched. The store (a Parquet file of counts and a ledger) is committed to the repository (D-097), so a build on GitHub reads the same files as a local build. `fields` maps a logical field name of the top-level `fields` block to the CSV column that carries it; `extra_fields` are public columns the register does not have, kept in the store under the name given; `private_columns` must be in the header and are dropped, so no owner field reaches the store or any output. `publisher`, `licence`, `attribution` and `origin` are copied into the store's ledger each time `supply` writes it, so the committed file carries its own terms.",
     "nzta_dashboard": {
       "kind": "counted_rows",
+      "publisher": "NZ Transport Agency Waka Kotahi",
+      "licence": "CC BY 4.0",
+      "attribution": "Motor vehicle registrations dashboard open data, NZ Transport Agency Waka Kotahi, licensed CC BY 4.0. Counts of vehicles first registered in each month; the owner columns of the export are not kept.",
+      "origin": "NZTA's registrations dashboard (the First registration report), exported by hand by the repository's owner and checked by `python -m pipeline supply`.",
       "store": "data/supplied/nzta_dashboard",
       "registrations_file": "registrations.parquet",
       "ledger_file": "ledger.json",
@@ -154,6 +158,8 @@
       },
       "extra_fields": { "vehicle_status": "Vehicle Status" },
       "private_columns": ["Owner Type", "Territorial authority", "Vehicle usage"],
+      "$outside_scope_comment": "For a row whose vehicle type and import status the named dataset does not count (its `require` flags, read from the scope files the build reads, with the vehicle types marked true in the vehicle scope file's `also_kept_column` judged as if they were in scope), `supply` stores the listed fields as not recorded and sums the rows that become identical. The model of a trailer or a caravan is free text typed at registration, and the dataset never reads it. Everything else about those rows is kept, so their counts stay askable. The scope is written into the ledger; a store written under another scope is refused until the history is supplied again.",
+      "outside_scope": { "dataset": "registrations_flow", "fields": ["model"], "also_kept_column": "trade_scope" },
       "year_field": "registration_year",
       "month_field": "registration_month",
       "row_id_field": "object_id",
@@ -165,6 +171,8 @@
       "$comment": "Stats NZ's table of new and ex-overseas motor vehicles registered by type, monthly (Infoshare TPT052601), exported by hand as CSV. A source of kind series: pipeline/series.py. Everything about the table is here and in the reference file named under catalogue: the title and footer the export must carry, the months' format, the columns (catalogue: one row per column header, in order) and what each is. The store holds a figure for each month and series; a `..` (figure not available) is never stored.",
       "kind": "series",
       "publisher": "Stats NZ",
+      "licence": "CC BY 4.0",
+      "origin": "Stats NZ's Infoshare, table TPT052601 (Transport - TPT), exported as CSV and checked by `python -m pipeline supply`.",
       "store": "data/supplied/statsnz_tpt",
       "series_file": "series.parquet",
       "ledger_file": "ledger.json",

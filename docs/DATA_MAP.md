@@ -203,7 +203,11 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 ### `VEHICLE_TYPE`
 
 - **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`, which also
-  gives every type a readable label: the name a visitor reads, with no part in scope).
+  gives every type a readable label: the name a visitor reads, with no part in scope). The file's
+  `trade_scope` column marks the types the trade's total of new vehicles counts: the two in scope and
+  buses, motor caravans and special purpose vehicles, which the trade counts as commercial vehicles
+  (D-105, D-106). It decides nothing the datasets count today; it is the set of types whose model names the
+  committed store of the dashboard keeps (DATA_SOURCES §D).
 - **Kind and values.** Category. 2 values on S (passenger car/van 3,617,900; goods van, truck or
   utility 902,576), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
 - **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` (labelled "Registered as",
@@ -864,7 +868,8 @@ only and published in no form (D-076, D-084).
 - **Make.** Three values the whole register lacks, the largest `LANDROVER` beside `LAND ROVER`
   (424 vehicles, 165 of them in 2021). 30 makes of the register's same 70 months are absent, most
   with one to four vehicles. Over 99.8% of in-scope vehicles map through `brand_registry.csv`.
-- **Model.** NZTA's cleaned name. 2,854 values (18,946 vehicles) are nowhere in the register, because
+- **Model.** (The committed store keeps it only where a dataset or the trade's total counts the vehicle:
+  DATA_SOURCES §D.) NZTA's cleaned name. 2,854 values (18,946 vehicles) are nowhere in the register, because
   some nameplates are split finer; since January 2025 the largest are `COROLLA CROSS` and
   `LANDCRUISER PRADO`. Since January 2025, 98.2% of vehicles carry a make and model spelled the same
   in the register. Some values are placeholders for a class of vehicle.

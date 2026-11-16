@@ -1,0 +1,599 @@
+{
+  "source": {
+    "publisher": "NZ Transport Agency Waka Kotahi",
+    "licence": "CC BY 4.0",
+    "attribution": "Motor vehicle registrations dashboard open data, NZ Transport Agency Waka Kotahi, licensed CC BY 4.0. Counts of vehicles first registered in each month; the owner columns of the export are not kept.",
+    "origin": "NZTA's registrations dashboard (the First registration report), exported by hand by the repository's owner and checked by `python -m pipeline supply`."
+  },
+  "outside_scope": {
+    "dataset": "registrations_flow",
+    "fields": [
+      "model"
+    ],
+    "also_kept": {
+      "column": "trade_scope",
+      "types": [
+        "BUS",
+        "GOODS VAN/TRUCK/UTILITY",
+        "MOTOR CARAVAN",
+        "PASSENGER CAR/VAN",
+        "SPECIAL PURPOSE VEHICLE"
+      ]
+    },
+    "known": {
+      "vehicle_type": [
+        "AGRICULTURAL MACHINE",
+        "ATV",
+        "BUS",
+        "GOODS VAN/TRUCK/UTILITY",
+        "HIGH SPEED AGRICULTURAL VEHICLE",
+        "MOBILE MACHINE",
+        "MOPED",
+        "MOTOR CARAVAN",
+        "MOTORCYCLE",
+        "PASSENGER CAR/VAN",
+        "SPECIAL PURPOSE VEHICLE",
+        "TRACTOR",
+        "TRAILER NOT DESIGNED FOR H/WAY USE",
+        "TRAILER/CARAVAN"
+      ],
+      "import_status": [
+        "NEW",
+        "RE-REG",
+        "SCRATCH",
+        "USED"
+      ]
+    },
+    "counted": [
+      [
+        "BUS",
+        "NEW"
+      ],
+      [
+        "BUS",
+        "USED"
+      ],
+      [
+        "GOODS VAN/TRUCK/UTILITY",
+        "NEW"
+      ],
+      [
+        "GOODS VAN/TRUCK/UTILITY",
+        "USED"
+      ],
+      [
+        "MOTOR CARAVAN",
+        "NEW"
+      ],
+      [
+        "MOTOR CARAVAN",
+        "USED"
+      ],
+      [
+        "PASSENGER CAR/VAN",
+        "NEW"
+      ],
+      [
+        "PASSENGER CAR/VAN",
+        "USED"
+      ],
+      [
+        "SPECIAL PURPOSE VEHICLE",
+        "NEW"
+      ],
+      [
+        "SPECIAL PURPOSE VEHICLE",
+        "USED"
+      ]
+    ]
+  },
+  "store_sha256": "79f380a8971ad3022ff29f903e62ba1d10301fff843d345a0f506c52b22b7157",
+  "files": {
+    "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "taken": "2026-11-14",
+      "totals_checked": {
+        "2021": 370014,
+        "2021-01": 30011,
+        "2022": 355210,
+        "2023": 332105,
+        "2024": 290504,
+        "2025": 282525,
+        "2026": 253428
+      }
+    }
+  },
+  "months": {
+    "2021-01": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 5636,
+      "vehicles": 30011
+    },
+    "2021-02": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 5438,
+      "vehicles": 27980
+    },
+    "2021-03": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 6140,
+      "vehicles": 34055
+    },
+    "2021-04": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 5616,
+      "vehicles": 29178
+    },
+    "2021-05": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 5811,
+      "vehicles": 32076
+    },
+    "2021-06": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 5744,
+      "vehicles": 32574
+    },
+    "2021-07": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 6101,
+      "vehicles": 34771
+    },
+    "2021-08": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4151,
+      "vehicles": 17678
+    },
+    "2021-09": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 5033,
+      "vehicles": 30911
+    },
+    "2021-10": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 6001,
+      "vehicles": 32540
+    },
+    "2021-11": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 6304,
+      "vehicles": 37001
+    },
+    "2021-12": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 6053,
+      "vehicles": 31239
+    },
+    "2022-01": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 5490,
+      "vehicles": 30640
+    },
+    "2022-02": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 5859,
+      "vehicles": 30169
+    },
+    "2022-03": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 8559,
+      "vehicles": 54413
+    },
+    "2022-04": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3676,
+      "vehicles": 21845
+    },
+    "2022-05": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4223,
+      "vehicles": 26486
+    },
+    "2022-06": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4018,
+      "vehicles": 24668
+    },
+    "2022-07": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4211,
+      "vehicles": 24698
+    },
+    "2022-08": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4451,
+      "vehicles": 28998
+    },
+    "2022-09": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4441,
+      "vehicles": 28942
+    },
+    "2022-10": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4439,
+      "vehicles": 28670
+    },
+    "2022-11": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4497,
+      "vehicles": 29997
+    },
+    "2022-12": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4425,
+      "vehicles": 25684
+    },
+    "2023-01": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4103,
+      "vehicles": 25338
+    },
+    "2023-02": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4053,
+      "vehicles": 22482
+    },
+    "2023-03": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4508,
+      "vehicles": 31863
+    },
+    "2023-04": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3820,
+      "vehicles": 22783
+    },
+    "2023-05": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4511,
+      "vehicles": 28663
+    },
+    "2023-06": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 5430,
+      "vehicles": 45865
+    },
+    "2023-07": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3335,
+      "vehicles": 17343
+    },
+    "2023-08": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4019,
+      "vehicles": 24183
+    },
+    "2023-09": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4060,
+      "vehicles": 25674
+    },
+    "2023-10": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4152,
+      "vehicles": 28762
+    },
+    "2023-11": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4151,
+      "vehicles": 30621
+    },
+    "2023-12": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3969,
+      "vehicles": 28528
+    },
+    "2024-01": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4395,
+      "vehicles": 27497
+    },
+    "2024-02": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4348,
+      "vehicles": 24289
+    },
+    "2024-03": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4223,
+      "vehicles": 25740
+    },
+    "2024-04": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4103,
+      "vehicles": 22718
+    },
+    "2024-05": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4259,
+      "vehicles": 24188
+    },
+    "2024-06": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3834,
+      "vehicles": 21283
+    },
+    "2024-07": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4156,
+      "vehicles": 23196
+    },
+    "2024-08": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4015,
+      "vehicles": 23204
+    },
+    "2024-09": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4015,
+      "vehicles": 24034
+    },
+    "2024-10": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4057,
+      "vehicles": 25743
+    },
+    "2024-11": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4002,
+      "vehicles": 25176
+    },
+    "2024-12": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4047,
+      "vehicles": 23436
+    },
+    "2025-01": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 4000,
+      "vehicles": 23830
+    },
+    "2025-02": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3734,
+      "vehicles": 21506
+    },
+    "2025-03": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3825,
+      "vehicles": 24159
+    },
+    "2025-04": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3404,
+      "vehicles": 19371
+    },
+    "2025-05": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3585,
+      "vehicles": 21938
+    },
+    "2025-06": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3302,
+      "vehicles": 22566
+    },
+    "2025-07": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3670,
+      "vehicles": 24313
+    },
+    "2025-08": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3626,
+      "vehicles": 23954
+    },
+    "2025-09": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3655,
+      "vehicles": 26179
+    },
+    "2025-10": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3728,
+      "vehicles": 26817
+    },
+    "2025-11": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3694,
+      "vehicles": 26135
+    },
+    "2025-12": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3660,
+      "vehicles": 21757
+    },
+    "2026-01": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3912,
+      "vehicles": 24644
+    },
+    "2026-02": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3682,
+      "vehicles": 22030
+    },
+    "2026-03": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3938,
+      "vehicles": 28612
+    },
+    "2026-04": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3484,
+      "vehicles": 20908
+    },
+    "2026-05": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3606,
+      "vehicles": 23066
+    },
+    "2026-06": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3637,
+      "vehicles": 25708
+    },
+    "2026-07": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3719,
+      "vehicles": 24369
+    },
+    "2026-08": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3611,
+      "vehicles": 24943
+    },
+    "2026-09": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3690,
+      "vehicles": 30252
+    },
+    "2026-10": {
+      "source_file": "nzta-first-registrations-2021-01_to_2026-10.csv",
+      "sha256": "ee371ed643cd82d8e7ce5d7fd8a56c2cae34104f2a3057c626e17e4a773f4d54",
+      "taken": "2026-11-14",
+      "rows": 3727,
+      "vehicles": 28896
+    }
+  },
+  "replaced": []
+}

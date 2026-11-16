@@ -234,10 +234,25 @@ def supplied_raw(con, cfg, source_id: str, types: dict[str, str]) -> None:
     """)
 
 
+def excused_months(ledger: dict, replaced_key: str, since: str, files_before: dict[str, str]) -> set[str]:
+    """The months whose store total may differ from the last good build's because a recorded replacement (or revision)
+    explains it. A replacement counts if its file was taken on or after the last good build's day, or if it describes
+    the file the ledger now cites for that month and the last good build did not see that file: the owner can take an
+    export before a build lands and commit it after, and the build that follows must not mistake the restatement for a
+    silent one. A replacement the ledger does not record never excuses anything."""
+    out = set()
+    for entry in ledger[replaced_key]:
+        month, new = entry["month"], entry["new"]
+        current = ledger["months"].get(month, {}).get("sha256")
+        if new["taken"] >= since or (new.get("sha256") is not None and new["sha256"] == current and files_before.get(month) != current):
+            out.add(month)
+    return out
+
+
 def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names: set[str], register_month: date,
-                   state: dict | None, staging, aborts: list[str], warnings: list[str]) -> tuple[dict, dict, dict, dict]:
+                   state: dict | None, staging, aborts: list[str], warnings: list[str]) -> tuple[dict, dict, dict, dict, dict]:
     """Every dataset that reads the supplied source: (manifest entries, month counts, live dimensions,
-    the store's own vehicles per month). The store is checked
+    the store's own vehicles per month, the file each month came from). The store is checked
     against its ledger first. The source's own latest month is the dataset's snapshot month: older than the register's is a
     warning, newer aborts (the register is the clock). With no store the datasets are not built, and say so."""
     p, s = cfg.pipeline, cfg.supplied(source_id)
@@ -252,14 +267,14 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
             warnings.append(f"{dataset} was not built: {reason}")
             if dataset in previous_live:
                 aborts.append(f"{dataset}: it was built in the last good run, but {reason}")
-        return entries, {}, {}, {}
+        return entries, {}, {}, {}, {}
     if not (registrations.exists() and ledger_path.exists()):
         aborts.append(f"{source_id}: the supplied store has only one of {s[supplied.layout(s).file_key]} and {s['ledger_file']}")
-        return {}, {}, {}, {}
+        return {}, {}, {}, {}, {}
 
     loaded = supplied.load_store(con, cfg, source_id, aborts)
     if loaded is None or not supplied.check_clock(source_id, loaded[2], register_month, aborts, warnings):
-        return {}, {}, {}, {}
+        return {}, {}, {}, {}, {}
     ledger, first, latest = loaded
 
     lay = supplied.layout(s)
@@ -280,9 +295,8 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
         store_totals = {d: {m: int(e["vehicles"]) for m, e in ledger["months"].items()} for d in names}
 
     taken = sorted({e["taken"] for e in ledger["months"].values()})
-    # A replacement or revision excuses a month only if its file was taken since the last good build.
     since = ((state or {}).get("generated_at") or "")[:10]
-    replaced = {e["month"] for e in ledger[lay.replaced_key] if e["new"]["taken"] >= since}
+    sources = {d: {m: e["sha256"] for m, e in ledger["months"].items()} for d in built}
     entries, counts, live = {}, {}, {}
     for dataset, b in built.items():
         entries[dataset] = {**b.entry, "supplied": {
@@ -293,9 +307,10 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
             **extra,
         }}
         counts[dataset], live[dataset] = b.counts, b.live
+        replaced = excused_months(ledger, lay.replaced_key, since, ((state or {}).get("supplied_files") or {}).get(dataset, {}))
         aborts += guardrails.supplied_month_changes(
             dataset, store_totals[dataset], ((state or {}).get("supplied_totals") or {}).get(dataset, {}), replaced, s["max_month_change"])
-    return entries, counts, live, store_totals
+    return entries, counts, live, store_totals, sources
 
 
 def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime | None = None, publish: bool = True) -> dict:
@@ -365,15 +380,17 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     outputs.write_archive(con, cfg, staged_archive)
 
     supplied_totals: dict[str, dict[str, int]] = {}
+    supplied_files: dict[str, dict[str, str]] = {}
     # After this point `src`, `rows` and `dims` hold a supplied source, not the register.
     schema_names = {f["name"] for f in expected["fields"]}
     for source_id in supplied_sources(p):
-        entries, counts, live, totals = build_supplied(con, cfg, source_id, types, schema_names, snapshot_month, state, staging,
+        entries, counts, live, totals, files = build_supplied(con, cfg, source_id, types, schema_names, snapshot_month, state, staging,
                                                aborts, warnings)
         datasets.update(entries)
         month_counts.update(counts)
         live_dimensions.update(live)
         supplied_totals.update(totals)
+        supplied_files.update(files)
 
     current = {
         "row_count": source["row_count"],
@@ -448,5 +465,6 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "moving_cutoff": moving,
             "month_counts": month_counts,
             "supplied_totals": supplied_totals,
+            "supplied_files": supplied_files,
         })
     return manifest

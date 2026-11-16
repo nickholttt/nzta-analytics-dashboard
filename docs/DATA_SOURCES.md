@@ -161,7 +161,8 @@ fetched by a script, so the name Infoshare gives a browser download has not been
   (D-065 did not check whether Stats NZ revises: this is how the first revision will be seen);
 - the months added join the stored months without a gap.
 
-The store is `data/supplied/statsnz_tpt/` (gitignored, like the dashboard's): `series.parquet`, a row for
+The store is `data/supplied/statsnz_tpt/`, committed to this repository like the dashboard's (the user, 2026-11-16,
+D-097): `series.parquet`, a row for
 each month and series that has a figure, and `ledger.json` (`docs/CUBE_SCHEMA.md`, *A source of kind
 `series`*). It holds all 26 series. Only the cars total, the cars
 previously registered overseas and the seven engine-size bands are built into a dataset,
@@ -169,6 +170,19 @@ previously registered overseas and the seven engine-size bands are built into a 
 store, because Stats NZ's classes are not lined up with NZTA's vehicle types (D-065). Anything that shows
 the dataset shows Stats NZ's attribution statement, which the build copies from
 `supplied.statsnz_tpt.attribution` into the dataset's block of `manifest.json`. The step-by-step is `docs/playbooks/supply-statsnz-series.md`.
+
+**Where the committed store came from, and its terms.** The one file supplied so far is `TPT052601.csv`: the whole
+table, fetched read-only from Infoshare by a script on 14 November 2026 (789 months, 1961-01 to 2026-09, "last
+updated 19 October 2026 10:45am"); it was not a browser export. The user will replace it with their own export
+later: run `supply` on it as for any month (the store is the whole table every time; unchanged months stay,
+a revised figure is refused without `--accept-revisions` and recorded in the ledger when accepted). The ledger's
+`files` entry has the file's SHA-256, name, the day it was taken and the "last updated" text. The committed
+store and ledger were written from it by `supply` on 16 November 2026: the Parquet file has the same SHA-256 as the
+store of 14 November, the ledger differs only by its `source` block. The licence is CC BY 4.0 (the statement in
+`supplied.statsnz_tpt.attribution`, which the ledger's `source` block and the dataset's manifest block both carry).
+Not checked: whether Stats NZ's terms say anything about scripted access to Infoshare (D-094), or whether the
+committed copy of the whole table, including the 21 series no dataset uses, is within what the licence allows
+beyond the attribution it asks for (read as CC BY 4.0, which allows reuse; not confirmed with Stats NZ).
 
 **The hand export** (read from Infoshare's pages on 2026-11-14; the clicks were not confirmed in a browser,
 so the steps marked "inferred - confirm" are to be checked the first time):
@@ -223,11 +237,43 @@ first registrations and buyer type from the same dashboard.
   `Vehicle usage` describe the owner. Under the user's rule (2026-11-16,
   D-096) they may be published only in a table of one or two fields with
   cells under 10 vehicles hidden, and not before the pipeline hides them.
-- **How it reaches the cube.** A maintainer adds each file to a local
-  store with one command, below; the build reads the store and writes the
+- **How it reaches the cube.** A maintainer adds each file to the store
+  with one command, below; the build reads the store and writes the
   dataset `registrations_flow` (`docs/CUBE_SCHEMA.md`, *Supplied
-  sources*). The store is gitignored: GitHub's runs build without it and
-  say so in the manifest, until the user decides where it may live.
+  sources*). The store is committed to this repository (the user,
+  2026-11-16, D-097), so GitHub's runs build the dataset from the same
+  files a local build reads. The raw exports, which carry the owner
+  columns, stay in gitignored `data/raw/nzta-dashboard/`.
+- **Where the committed store came from.** The one file supplied so far
+  is the history export of 2021-01 to 2026-10, taken by the user on
+  14 November 2026 and named `nzta-first-registrations-2021-01_to_2026-10.csv`
+  (its SHA-256 is the key of the ledger's `files` entry, and the seven totals it
+  was checked against are recorded there). The committed store and ledger
+  were written from it by `supply` on 16 November 2026, with the model kept
+  only where a dataset or the trade's total counts the vehicle (below): 306,771 rows,
+  843,345 bytes of Parquet and a 20,199-byte ledger. The user means to retake the
+  history with the vehicle's mass and engine-size groupings and replace the
+  file; the steps for that are in the playbook, *Replacing the whole history*.
+- **What the committed store keeps of the model.** The model is free
+  text for some vehicle types (the model of a trailer or caravan is typed
+  at registration and sometimes reads like a name). The store keeps a model
+  where the vehicle type is in the default scope or marked `trade_scope` in
+  `vehicle_scope.csv` (the types the trade's total of new vehicles counts, D-105
+  and D-106) and the import status is one `registrations_flow` counts. For every
+  other row the model is stored as not recorded, and the rows that become
+  identical are summed; every other field stays, so every vehicle type's counts
+  remain askable. The rule is `supplied.nzta_dashboard.outside_scope` in
+  `config/pipeline.json` (the dataset it follows, the fields it blanks and the
+  scope-file column that widens it); the scope is read from the scope files the
+  build reads, and the ledger's `outside_scope` block records the scope the store
+  was written under. A scope that widens later needs the whole history supplied
+  again from the raw exports. In the committed store 2,758 distinct models
+  remain, from 58,164 in the export.
+- **Terms.** NZTA's page gives CC BY 4.0 (above). The ledger's `source`
+  block carries the licence and the attribution statement
+  (`supplied.nzta_dashboard` in `config/pipeline.json`), so the file states its
+  terms wherever it is copied. The statement is this repository's wording
+  of the licence's requirement, not NZTA's own text: not checked with NZTA.
 
 Its address, from NZTA's open data listing:
 `https://www.nzta.govt.nz/vehicles/how-the-motor-vehicle-register-affects-you/motor-vehicle-registrations-dashboard-and-open-data/`
@@ -262,12 +308,18 @@ month). The command aborts, writing nothing, unless:
 
 The three owner columns (`Owner Type`, `Territorial authority`,
 `Vehicle usage`) are checked and dropped: no owner field is in the store or in
-anything built from it. The store is `data/supplied/nzta_dashboard/`
-(gitignored until the user decides whether it may be committed to this public
-repository): `registrations.parquet`, counts by month and the public fields
-with `vehicle_status`, and `ledger.json`, which records for each month the
-file's name, its SHA-256, the day it was taken, and its rows and vehicles.
-The step-by-step is `docs/playbooks/supply-dashboard-month.md`.
+anything built from it. Nothing is built privately from them either: they are
+used for one thing, to check that the export is the one expected (the header
+and the uniqueness of its rows), and the counts are summed over them before
+anything is written. A private build over the owner columns would need the
+export itself, which stays on the maintainer's computer. The store is
+`data/supplied/nzta_dashboard/`, committed (D-097): `registrations.parquet`,
+counts by month and the public fields with `vehicle_status`, and `ledger.json`,
+which records the source's terms and, for each month, the file's name, its
+SHA-256, the day it was taken, and its rows and vehicles. A test
+(`pipeline/tests/test_stores_in_repo.py`) fails if the data map's held columns
+(read from `config/data_map.json`) appear in either file in any form. The
+step-by-step is `docs/playbooks/supply-dashboard-month.md`.
 
 ## E. Motor Industry Association — reference only
 

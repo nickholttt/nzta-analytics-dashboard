@@ -5,8 +5,10 @@ __pycache__/
 .DS_Store
 .pytest_cache/
 data/raw/
-# Supplied sources' stores (pipeline/supplied.py). Ignored until the user decides whether they may be committed to this public repository.
-data/supplied/
+# Supplied sources' stores (pipeline/supplied.py) are committed (D-097): a small Parquet file of counts with no owner field,
+# and its ledger.
+# The names `supply` writes under before it renames: half a store is never committed.
+data/supplied/**/*.new
 data/staging/
 public/data/
 public/data.previous/

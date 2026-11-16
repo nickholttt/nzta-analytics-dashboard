@@ -16,9 +16,10 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
     16 November is the 15th's ("Source unchanged").
   - **The archive**: the private repository `nickholttt/nzta-register-archive` holds one
     release, `snapshot-2026-10`, two files (the second holds `VIN11` and `POSTCODE`).
-- **`registrations_flow` is built wherever its store is** (#55, D-092): true first
-  registrations from the user's exports of NZTA's dashboard, January 2021 on. The store is on
-  this computer only (gitignored), so GitHub's builds mark the dataset `not_built` (D-097).
+- **`registrations_flow`** (#55, D-092): true first registrations from the user's exports of
+  NZTA's dashboard, January 2021 on. **Its counts are committed** in `data/supplied/` (#66,
+  D-097): no owner field, and a model name only for vehicle types a total counts. GitHub's
+  next build of a new month builds it; the release `cube-2026-10` does not hold it.
 - **`registrations_cars_long_run`** (#57, D-094; Stats NZ's cars, 1961 on): the same.
 - **NZTA's vehicle type is a dimension** (#58, D-095); GitHub's next build writes it.
 - **The site shows true registrations on a local build** (#56, D-093): a group in Explore
@@ -47,10 +48,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/stores-in-repo`, the main folder, **uncommitted edits** (D-097): the committed
-  counts, trimmed. `config/pipeline.json`, `pipeline/build.py`, `pipeline/normalise.py`,
-  `pipeline/supplied.py`, `data/supplied/`, two playbooks. To be rebuilt as
-  `claude/supplied-counts`.
+- `claude/audit-fixes` (D-107; worktree `nzta-notes`): what the engine's audit found on the
+  site's side: a rule for ties in rankings, definitions, stale wording.
 - `claude/first-load` (#64, D-099; worktree `nzta-firstload`): `astro.config.mjs`,
   `src/lib/loadGate.ts`, `src/lib/data.ts`, `PresetPanel.tsx`, `deploy.yml`, `scripts/`.
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.

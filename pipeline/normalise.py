@@ -75,6 +75,18 @@ def build_src(con, cfg, types: dict[str, str], schema_fields: set[str]) -> None:
     con.execute(f"CREATE OR REPLACE TABLE src AS SELECT {', '.join(columns)} FROM raw")
 
 
+def scope_flags(cfg) -> dict:
+    """The flags of `rows` that come from the two scope files, each as a function of a vehicle-type row and an
+    import-status row of those files. `build_rows` sets the same flags in SQL; a test holds the two together."""
+    p = cfg.pipeline
+    true = p["boolean_true"]
+    vehicle, status = p["scope"]["vehicle"], p["scope"]["status"]
+    return {
+        "in_scope": lambda v, s: v[vehicle["in_scope"]] == true and s[status["in_scope"]] == true,
+        "fleet_entry": lambda v, s: s[status["fleet_entry"]] == true,
+    }
+
+
 def build_rows(con, cfg) -> None:
     p = cfg.pipeline
     true = lit(p["boolean_true"])
