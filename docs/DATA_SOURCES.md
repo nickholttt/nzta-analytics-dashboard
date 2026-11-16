@@ -222,11 +222,28 @@ first registrations and buyer type from the same dashboard.
 - **Not published:** `Owner Type`, `Territorial authority` and
   `Vehicle usage` describe the owner, and wait for the Stage 2 privacy
   review (the work order §3).
-- **How it reaches the cube.** A maintainer adds each file to a local
-  store with one command, below; the build reads the store and writes the
+- **How it reaches the cube.** A maintainer adds each file to the store
+  with one command, below; the build reads the store and writes the
   dataset `registrations_flow` (`docs/CUBE_SCHEMA.md`, *Supplied
-  sources*). The store is gitignored: GitHub's runs build without it and
-  say so in the manifest, until the user decides where it may live.
+  sources*). The store is committed to this repository (the user,
+  2026-11-16, D-097), so GitHub's runs build the dataset from the same
+  files a local build reads. The raw exports, which carry the owner
+  columns, stay in gitignored `data/raw/nzta-dashboard/`.
+- **Where the committed store came from.** The one file supplied so far
+  is the history export of 2021-01 to 2026-10, taken by the user on
+  14 November 2026 and named `nzta-first-registrations-2021-01_to_2026-10.csv`
+  (its SHA-256 is the key of the ledger's `files` entry, and the seven totals it
+  was checked against are recorded there). The committed store and ledger
+  were written from it by `supply` on 16 November 2026: the same bytes the
+  store of 14 November had (SHA-256 of the Parquet file unchanged), the
+  ledger the same but for its new `source` block. The user means to retake the
+  history with the vehicle's mass and engine-size groupings and replace the
+  file; the steps for that are in the playbook, *Replacing the whole history*.
+- **Terms.** NZTA's page gives CC BY 4.0 (above). The ledger's `source`
+  block carries the licence and the attribution statement
+  (`supplied.nzta_dashboard` in `config/pipeline.json`), so the file states its
+  terms wherever it is copied. The statement is this repository's wording
+  of the licence's requirement, not NZTA's own text: not checked with NZTA.
 
 Its address, from NZTA's open data listing:
 `https://www.nzta.govt.nz/vehicles/how-the-motor-vehicle-register-affects-you/motor-vehicle-registrations-dashboard-and-open-data/`
@@ -261,12 +278,18 @@ month). The command aborts, writing nothing, unless:
 
 The three owner columns (`Owner Type`, `Territorial authority`,
 `Vehicle usage`) are checked and dropped: no owner field is in the store or in
-anything built from it. The store is `data/supplied/nzta_dashboard/`
-(gitignored until the user decides whether it may be committed to this public
-repository): `registrations.parquet`, counts by month and the public fields
-with `vehicle_status`, and `ledger.json`, which records for each month the
-file's name, its SHA-256, the day it was taken, and its rows and vehicles.
-The step-by-step is `docs/playbooks/supply-dashboard-month.md`.
+anything built from it. Nothing is built privately from them either: they are
+used for one thing, to check that the export is the one expected (the header
+and the uniqueness of its rows), and the counts are summed over them before
+anything is written. A private build over the owner columns would need the
+export itself, which stays on the maintainer's computer. The store is
+`data/supplied/nzta_dashboard/`, committed (D-097): `registrations.parquet`,
+counts by month and the public fields with `vehicle_status`, and `ledger.json`,
+which records the source's terms and, for each month, the file's name, its
+SHA-256, the day it was taken, and its rows and vehicles. A test
+(`pipeline/tests/test_stores_in_repo.py`) fails if the data map's held columns
+(read from `config/data_map.json`) appear in either file in any form. The
+step-by-step is `docs/playbooks/supply-dashboard-month.md`.
 
 ## E. Motor Industry Association — reference only
 

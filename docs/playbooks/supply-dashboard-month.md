@@ -1,8 +1,14 @@
 # Playbook: supply a month from NZTA's registrations dashboard
 
 Once a month, after NZTA has updated the dashboard (at the start of the month), the user exports the
-new month and a maintainer adds it to the local store. This is a hand step: the Action never runs it
-and nothing here fetches anything. Why the data is kept this way is D-084.
+new month and a maintainer adds it to the store, which is committed to the repository (D-097): GitHub's
+builds read it. This is a hand step: the Action never runs it and nothing here fetches anything. Why the
+data is kept this way is D-084; why the store is committed is D-097.
+
+**When to do it.** Commit a month only after the register has reached it. The register is the clock: a build
+whose store is newer than the register's snapshot aborts (D-092), and the build runs when the register
+changes. A store that is a month or two behind is not a problem: the build warns, names the missing months
+and publishes everything else.
 
 ## Steps (Git Bash, repository root)
 
@@ -30,11 +36,34 @@ and nothing here fetches anything. Why the data is kept this way is D-084.
 Nothing outside `data/supplied/nzta_dashboard/` is written, and nothing is written at all unless every
 check passes.
 
-**Build with `--dry-run` afterwards.** A local `python -m pipeline build <pull>` without `--dry-run`, with the
-store present, writes `registrations_flow` into `data/state/last_good.json`. Never commit that file (only the
-Action does; hard rule 3): if it were committed, every GitHub build, which has no store, would abort with "built
-in the last good run". After supplying a month, build with `--dry-run`, or expect that file to change locally and
-leave it uncommitted.
+5. Run the tests that cover the store (`.venv/Scripts/python.exe -m pytest pipeline/tests/test_stores_in_repo.py -q -p no:cacheprovider`),
+   then commit `data/supplied/nzta_dashboard/registrations.parquet` and `ledger.json` **together, in one commit**
+   (stage them by name). The two files belong to each other by a hash: one without the other makes every build
+   abort, and the same test fails on the pull request. The raw export, with its owner columns, is never
+   committed: it stays in `data/raw/`.
+
+**Build with `--dry-run` afterwards.** A local `python -m pipeline build <pull>` without `--dry-run` writes
+`registrations_flow` into `data/state/last_good.json` and the register's archive into `data/snapshots/`. Never
+commit those (only the Action does; hard rule 3): the guardrails of the next GitHub build compare with the
+Action's own last build, not with a local one. After supplying a month, build with `--dry-run`.
+
+## Replacing the whole history
+
+When the export changes (for example the history is retaken with more groupings, or NZTA restates a great many
+months), the new file replaces the old one. Do it in one commit:
+
+1. Change `supplied.nzta_dashboard` in `config/pipeline.json` to the new columns (`extra_fields`, or `fields`
+   with the dimension that reads them), and the data map if a column is new.
+2. Remove both store files (`git rm data/supplied/nzta_dashboard/registrations.parquet data/supplied/nzta_dashboard/ledger.json`).
+   `supply` refuses a file with other columns over the old store and says so, writing nothing.
+3. Supply the whole new history in one go, with `--totals` for every year and `--taken` for the day it was exported.
+4. Run the tests above and a `--dry-run` build. Commit the config, the two new store files and the docs together.
+
+The build compares each month's total with the last good build's and aborts if any moved by more than
+`max_month_change` (2%). The dry run in step 4 shows it, once `data/state/last_good.json` holds the dataset (after
+the first GitHub build that has the store). A fresh ledger has no `replaced` entries, so a month the new export
+restates by more than that stops the build and cannot be excused on a rebuilt store. That case has no route today:
+stop and tell the lead (read from the code, not tried on real data).
 
 ## When it stops
 
