@@ -30,9 +30,11 @@ One table decides it for every question: `config/chart_rules.json`, read by `src
 
 - **The facts.** A question is judged on six: the `kind` of the measure (count, share, average, ratio; `config/measures.json`),
   the `kind` of the field it breaks down by (category, ordered_band, number, time, place; `config/dimensions.json`, in the
-  words of the data map), how many values that field has (few, some, many, from the dimension's `cardinality` through the
-  table's `value_classes`), whether it looks at one window of at most `trailing_window_months` or over time, how many values
-  the visitor picked, and the kind of a second field crossed with it. `questionFacts` in `src/lib/resolve.ts` builds them.
+  words of the data map), whether its list of values is few, some or many (the dimension's own judgement, its `cardinality`, through the
+  table's `value_classes`; not a count), whether it looks at one window of at most `trailing_window_months` or over time, how
+  many values the visitor picked, and the kind of a second field crossed with it (a preset's `cross`). `questionFacts` in
+  `src/lib/resolve.ts` builds them. A share is one part of a whole with a figure for each value; a ratio is one figure set
+  against another, such as the combined share of the largest few.
 - **The rules.** `rules` are read from the top and the first whose `when` matches gives the answer: the shapes that fit,
   best first. The last rule matches everything, so every question fits at least one shape. The first is drawn; where more
   than one fits and has a renderer, Build lets the visitor switch among them (`viewsFor` in `src/lib/builder.ts`). A
@@ -41,8 +43,9 @@ One table decides it for every question: `config/chart_rules.json`, read by `src
 - **A table of the figures** is available for every shape that is drawn: the trend and distribution renderers give a
   disclosure, the lines and the map a key table, the ranking is a table.
 - **A dimension states what it is, never which chart it gets.** Give a new dimension a `kind` and a `cardinality`
-  (`low` is at most `cardinality.few_max_values` of `config/data_map.json`; `medium` is more and not ranked; `high` and
-  `very_high` are long enough to rank). A new measure states its `kind`. A test checks a dimension that is a plain binding of one
+  (its own judgement of whether its list is ranked, not a count and not checked against one: `low` is a short list, `medium`
+  is a list that is not ranked, `high` and `very_high` are long enough to rank. Several `low` dimensions have more values than the
+  data map's `cardinality.few_max_values`, and only the ranking rule reads the class). A new measure states its `kind`. A test checks a dimension that is a plain binding of one
   register field against the data map (`tests/site/shapes.test.ts`).
 - **To add a rule,** put an object in `rules` above the one it should win over, with an `id`, a `when` made of the facts it
   cares about (a word or a list of words each; leave out what does not matter), `shapes` (best first, only the six) and a

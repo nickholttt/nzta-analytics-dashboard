@@ -44,8 +44,9 @@ export type Resolution = {
 };
 
 // What the chart rules judge a question on (src/lib/shapes.ts): the kind of measure, the kind of the field it breaks
-// down by and how many values that has, whether it looks at one window or over time, and how many values were chosen.
-// The site has no second breakdown yet, so nothing is crossed. A ranking is of one window, not a series over time.
+// down by and how many values that has, whether it looks at one window or over time, how many values were chosen, and
+// the kind of a second field it crosses the first with (a preset's `cross`; Build has none yet). A ranking is of one
+// window, not a series over time.
 export function questionFacts(preset: Preset, dimension?: Dimension, measure?: Measure): Facts {
   const period = findPeriod(preset.period);
   const onePeriod = period?.months !== undefined && period.months <= chartDefaults.trailing_window_months;
@@ -56,7 +57,7 @@ export function questionFacts(preset: Preset, dimension?: Dimension, measure?: M
     values: dimension ? valuesClass(dimension.cardinality) : "none",
     span: onePeriod ? "one_period" : "over_time",
     picked: picked === 0 ? "none" : picked === 1 ? "one" : "several",
-    crossed_with: "none",
+    crossed_with: findDimension(preset.cross)?.kind ?? "none",
   };
 }
 

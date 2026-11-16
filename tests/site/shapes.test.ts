@@ -7,7 +7,7 @@ import "./support/register.mjs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { buildQuestions } from "./support/observe.ts";
+import { buildQuestions, everythingBuilt } from "./support/observe.ts";
 
 const config = await import("../../src/lib/config.ts");
 const resolve = await import("../../src/lib/resolve.ts");
@@ -69,13 +69,37 @@ test("every rule is reached by some question, so each has a case", () => {
   for (const rule of ruleTable.rules) assert.ok(reached.has(rule.id), `no question is decided by ${rule.id}`);
 });
 
-test("two fields crossed fit a matrix, which has no renderer and is never offered", () => {
-  const crossed = { measure: "count", by: "category", values: "many", span: "over_time", picked: "none", crossed_with: "category" };
+test("two fields crossed in one window fit a matrix, which has no renderer and is never offered", () => {
+  const crossed = { measure: "count", by: "category", values: "many", span: "one_period", picked: "none", crossed_with: "category" };
   assert.deepEqual(shapesFor(crossed), ["matrix"]);
   assert.ok(!resolve.RENDERED_SHAPES.has("matrix"));
   assert.deepEqual(resolve.drawnShapes(crossed), [], "a shape with no renderer is not offered");
-  // Crossed with time is not a matrix: time is the axis of a line.
+  // Crossed with time is not a matrix: time is the axis of a line. Crossed over time is a line for each combination.
   assert.ok(!shapesFor({ ...crossed, crossed_with: "time" }).includes("matrix"));
+  assert.ok(!shapesFor({ ...crossed, span: "over_time" }).includes("matrix"));
+});
+
+test("a preset that crosses two fields over time states the crossing, and still draws as lines", () => {
+  const crossing = config.presets.filter((p) => p.cross);
+  assert.ok(crossing.length >= 1, "the canon has a crossed preset");
+  const manifest = everythingBuilt();
+  for (const p of crossing) {
+    const dimension = config.findDimension(p.dimension);
+    const other = config.findDimension(p.cross);
+    assert.ok(dimension && other, `${p.id} crosses two dimensions config defines`);
+    const view = resolve.presetView(p);
+    const facts = resolve.questionFacts(view, dimension, config.findMeasure(view.measure));
+    assert.equal(facts.crossed_with, other.kind, `${p.id}: the facts say what it is crossed with`);
+    assert.equal(facts.span, "over_time");
+    assert.deepEqual(shapesFor(facts).slice(0, 1), ["trend"], `${p.id}: crossed over time fits a line`);
+    const resolution = resolve.resolvePreset(view, manifest);
+    assert.equal(resolution.shape, "trend");
+    assert.equal(resolution.status, "live");
+    // In one window the same crossing fits only a grid, which has no renderer, and the resolver says so.
+    const window = resolve.resolvePreset({ ...view, period: "latest_year" }, manifest);
+    assert.equal(window.shape, "matrix");
+    assert.ok(window.blocked.some((m) => /no renderer/.test(m)), `${p.id}: ${window.blocked}`);
+  }
 });
 
 test("only shapes with a renderer are ever offered, and the first offered is the one drawn", () => {
@@ -143,6 +167,38 @@ test("a dimension's kind agrees with the data map where it is a plain binding of
   assert.ok(checked >= 8, "the plain bindings are checked");
 });
 
+test("the table's kinds are the data map's kinds, and a dimension's kind follows from how it is derived", () => {
+  const kinds: string[] = json("config/data_map.json").enums.kind;
+  assert.deepEqual([...facts.by].sort(), ["none", ...kinds].sort(), "facts.by is the data map's kinds and none");
+  assert.deepEqual([...facts.crossed_with].sort(), ["none", ...kinds].sort(), "facts.crossed_with is the data map's kinds and none");
+  for (const d of config.dimensions) {
+    const derive = d.derive as { kind: string };
+    // What a dimension is follows from how the pipeline derives it: a lookup of a brand or a model, or of a range of
+    // weights, is a category; a band is cut from numbers into an ordered band; a published series of bands is one too.
+    if (["brand", "model", "range_lookup"].includes(derive.kind)) assert.equal(d.kind, "category", `${d.id} is derived by ${derive.kind}`);
+    if (derive.kind === "band") assert.equal(d.kind, "ordered_band", `${d.id} is a band`);
+    if (d.kind === "ordered_band") assert.ok(["band", "series"].includes(derive.kind), `${d.id} is an ordered band but is derived by ${derive.kind}`);
+    if (d.kind === "place") assert.equal(derive.kind, "lookup", `${d.id} is a place, found by a lookup`);
+  }
+});
+
+test("no dimension Build offers or a preset uses is an identifier or free text, which are never a breakdown", () => {
+  const never = ["identifier", "free_text"];
+  const used = new Set<string>();
+  for (const m of config.builderSpec.measures) for (const id of Object.keys(m.dimensions)) used.add(id);
+  for (const p of config.presets) {
+    if (p.dimension) used.add(p.dimension);
+    if (p.cross) used.add(p.cross);
+    for (const g of p.granularity_options ?? []) used.add(g.dimension);
+  }
+  assert.ok(used.size >= 10);
+  for (const id of used) {
+    const d = config.findDimension(id);
+    assert.ok(d, `${id} is a dimension config defines`);
+    assert.ok(!never.includes(d.kind), `${id} is ${d.kind}`);
+  }
+});
+
 test("a dimension's cardinality is what the ranking rule reads, and a count of values never decides it", () => {
   assert.equal(valuesClass("low"), "few");
   assert.equal(valuesClass("very_high"), "many");
@@ -194,13 +250,22 @@ test("the table holds no domain value: no field, measure, dataset or reference v
   assert.ok(looked > 200, "the reference values are read");
 });
 
-test("a preset that pins its shape pins one the table says fits", () => {
+// The periods the time row can offer a chart (PresetPanel's TIME_PERIODS, the chart's own period, and the periods that
+// rank it): the only ones a visitor can reach. A pin is held to its question at each of them.
+const TIME_ROW = ["3y", "5y", "10y", "all"];
+const reachable = (p: { period?: string }, ranking: string[]) => [...new Set([...TIME_ROW, p.period ?? "all", ...ranking])];
+const fitsAt = (p: Parameters<typeof resolve.questionFacts>[0], period: string) =>
+  shapesFor(resolve.questionFacts({ ...p, period }, config.findDimension(p.dimension), config.findMeasure(p.measure)));
+
+test("a preset that pins its shape pins one the table says fits, at every period the time row offers", () => {
   let pinned = 0;
   for (const p of config.presets) {
     if (!p.shape_override) continue;
     const view = resolve.presetView(p);
-    const fitting = shapesFor(resolve.questionFacts(view, config.findDimension(view.dimension), config.findMeasure(view.measure)));
-    assert.ok(fitting.includes(p.shape_override), `${p.id} pins ${p.shape_override}; the table gives ${fitting}`);
+    for (const period of reachable(view, resolve.rankingPeriods(view))) {
+      const fitting = fitsAt(view, period);
+      assert.ok(fitting.includes(p.shape_override), `${p.id} pins ${p.shape_override} at ${period}; the table gives ${fitting}`);
+    }
     pinned++;
   }
   assert.ok(pinned >= 2);
@@ -224,18 +289,21 @@ test("the resolver reports a preset pinned to a shape that does not fit as inval
   assert.ok(invalid.preventsRender.length > 0, "a shape that does not fit is not drawn");
 });
 
-test("every question Build can form is pinned only to shapes that fit, and offers only shapes that are drawn", () => {
+test("every question Build can form is pinned only to shapes that fit at every period the time row offers, and offers only shapes that are drawn", () => {
   const questions = buildQuestions();
-  assert.ok(questions.length > 60);
+  assert.ok(questions.length > 150);
   for (const { key, question } of questions) {
     const views = builder.viewsFor(question);
     assert.ok(views.length === 0 || views.length >= 2, `${key}: a switch is offered only between two or more`);
     for (const v of views) assert.ok(resolve.RENDERED_SHAPES.has(v), `${key}: ${v} has no renderer`);
     for (const view of [null, ...views]) {
       for (const p of builder.builderPresets({ ...question, view })) {
-        const facts = resolve.questionFacts(p, config.findDimension(p.dimension), config.findMeasure(p.measure));
-        const fitting = shapesFor(facts);
-        if (p.shape_override) assert.ok(fitting.includes(p.shape_override), `${key} view=${view}: pinned ${p.shape_override}, the table gives ${fitting}`);
+        if (p.shape_override) {
+          for (const period of reachable(p, resolve.rankingPeriods(p))) {
+            const fitting = fitsAt(p, period);
+            assert.ok(fitting.includes(p.shape_override), `${key} view=${view}: pinned ${p.shape_override} at ${period}, the table gives ${fitting}`);
+          }
+        }
         assert.ok(resolve.RENDERED_SHAPES.has(resolve.inferShape(p, config.findDimension(p.dimension), config.findMeasure(p.measure))), `${key}: the shape drawn has a renderer`);
       }
     }
