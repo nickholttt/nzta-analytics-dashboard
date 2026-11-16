@@ -135,12 +135,19 @@ trailing and all-time volume the kept values cover.
 
 **Ties at the cap.** The values are ranked by their trailing vehicles, largest
 first, and where several have the same count the one whose `MAKE|MODEL` key
-sorts first in byte order (DuckDB's string order: digits before upper case
-before lower case) ranks first. The first `cap` keep their value, so a cap of
-300 always names exactly 300 values when at least that many occur, and which of
-a tied pair is named never depends on the order the rows arrive in. The rule is
-the code's `ORDER BY count DESC, key`, now written down and held by a test
-(`test_the_model_cap_keeps_the_key_that_sorts_first_when_models_tie_at_the_boundary`).
+sorts first in byte order ranks first. Byte order is DuckDB's default string
+order, which compares the UTF-8 bytes and not a locale's alphabet: a space and
+most punctuation, then digits, upper case, lower case, and the separator `|`
+after them, so `K1|X` ranks before `K|X` and `KB|X` before `Ka|X` (a locale's
+collation would reverse both).
+The first `cap` keep their value, so a cap of 300 always names exactly 300
+values when at least that many occur, and which of a tied pair is named never
+depends on the order the rows arrive in. The rule is the code's
+`ORDER BY count DESC, key`, written down and held by two tests
+(`test_the_model_cap_keeps_the_key_that_sorts_first_when_models_tie_at_the_boundary`,
+and `test_the_model_cap_breaks_a_tie_in_byte_order_not_in_a_locales_order`, whose
+keys a locale orders differently and which fails if the default collation is
+anything but binary).
 Measured on the 2026-10 snapshot: `registrations_surviving` has no tie at rank
 300 (75 vehicles, then 72 at rank 301). `registrations_flow` has one: two models
 with 75 vehicles at ranks 300 and 301, of which the one that sorts first is

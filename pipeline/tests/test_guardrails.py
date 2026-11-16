@@ -763,6 +763,39 @@ def test_the_model_cap_keeps_the_key_that_sorts_first_when_models_tie_at_the_bou
     con.close()
 
 
+# Tied keys that a locale's collation puts in another order than their bytes: upper before lower case, a digit before the
+# separator, either case of the same letter, and all of them with a space. The first group of the cap's ranking is the
+# byte order of the keys, whatever DuckDB's default collation is configured to be (docs/CUBE_SCHEMA.md).
+COLLATION_CASES = {
+    "case": (["Ka|X", "KB|X"], 1),
+    "digit_before_separator": (["K1|X", "K|X"], 1),
+    "upper_before_lower_of_one_letter": (["k|X", "K|X"], 1),
+    "all_together": (["KA|X", "Ka|X", "K1|X", "K|X", "K a|X", "k|X"], 3),
+}
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("name", COLLATION_CASES)
+def test_the_model_cap_breaks_a_tie_in_byte_order_not_in_a_locales_order(name, reverse):
+    tied, room = COLLATION_CASES[name]
+    expected = set(sorted(tied, key=lambda key: key.encode("utf-8"))[:room])
+    con = duckdb.connect()
+    # The keys must tell the two orders apart, or the test proves nothing: DuckDB's own en_US collation picks others.
+    in_locale_order = [k for (k,) in con.execute("SELECT k FROM (SELECT unnest(?) AS k) ORDER BY k COLLATE en_US", [tied]).fetchall()]
+    assert set(in_locale_order[:room]) != expected, f"{name}: byte order and a locale's order agree"
+    # One vehicle more than every tied key, so the leader is always kept and `room` places remain for the tied keys.
+    rows = ["K|LEAD"] * (len(tied) + 1) + [key for key in tied for _ in range(2)]
+    con.execute('CREATE TABLE dims ("d__model" VARCHAR, reg_month DATE)')
+    for key in reversed(rows) if reverse else rows:
+        con.execute("INSERT INTO dims VALUES (?, DATE '2026-08-01')", [key])
+    assert con.execute("SELECT current_setting('default_collation')").fetchone()[0] == "", "the default is not binary"
+    dim = derive.Derived("model", "model", "", "", [], None, cap=1 + room)
+    derive.apply_model_cap(con, dim, "TRUE", date(2025, 9, 1), date(2026, 8, 1))
+    kept = {k for (k,) in con.execute('SELECT DISTINCT "d__model" FROM dims').fetchall()} - {"K|LEAD", "__OTHER__"}
+    assert kept == expected
+    con.close()
+
+
 def test_moving_cutoff_detection():
     cfg = make_cfg({})
     by_year = Counter({2014: 50, 2013: 120, 2012: 110, 2011: 1, 2006: 4})
