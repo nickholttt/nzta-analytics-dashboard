@@ -3787,7 +3787,7 @@ New entries use this template:
      passenger and commercial, and used imports (8,285).
   2. **The default scope is 1.4% to 3.9% under the published totals compared** (the months in `docs/METRICS.md`).
      The MIA's commercial count meets ours once those three vehicle types are added, to the vehicle in October
-     2026 and within 0.8% in the other months compared; `vehicle_scope.csv` leaves them out ("Not explicitly
+     2026 and within 1.7% in the other months compared, the older the wider; `vehicle_scope.csv` leaves them out ("Not explicitly
      decided. Out by default."). No definition of the MIA's was read.
   3. **Older months sit lower**, by 0.3% or less for 2025 and 2026, up to 0.5% for 2024 and about 1% for 2021 and
      2022, against the MIA, AutoTalk and Stats NZ alike. The gap against Stats NZ moves with the share of a
