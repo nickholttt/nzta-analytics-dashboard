@@ -101,11 +101,8 @@ independently of the site's code; figures are compared with published New Zealan
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
-D-082, D-085 to D-095 (the eighth session). This session: D-096's readings of the answers;
-D-097 (how the committed counts are laid out, guarded and trimmed); D-098 (the long-run
-charts); D-099 (the trim); D-100 and D-101 (the chart rules; CI); D-104's reading of the
-direction; D-105 (the comparison, and three statements about the MIA corrected); D-106's
-choice of the MIT licence and of the copyright line.
+D-082, D-085 to D-095 (the eighth session). This session: the readings in D-096, D-104 and
+D-106 (with the MIT licence), and D-097, D-098, D-099, D-100, D-101, D-105 and D-107.
 
 ## Prompt for the next session
 
@@ -115,8 +112,8 @@ session when checks are green and an independent reviewer agrees, and nothing in
 touched. Do not stop for questions; park what needs me and keep going. D-104 stands: the
 engine first and right; check figures against published sources.
 
-Check first: `git worktree list`, and `git status` in each worktree (three hold uncommitted
+Check first: `git worktree list`, and `git status` in each worktree (two hold uncommitted
 work); the open pull requests; the `Monthly build` runs since 15 November (no forced run is
-left); that `CLOUDFLARE_PAGES_PROJECT` is still unset. Run few sub-agents at once: the
-account's usage limit stopped six on 16 November. No path from the user's computer in a doc,
-a commit or a pull request.
+left); that `CLOUDFLARE_PAGES_PROJECT` is still unset. Run three or four sub-agents at once,
+no more: the account's usage limit stopped six on 16 November. No path from the user's
+computer in a doc, a commit or a pull request.
