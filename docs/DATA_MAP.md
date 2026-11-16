@@ -204,11 +204,11 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 - **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`, which also
   gives every type a readable label: the name a visitor reads, with no part in scope). The file's
-  `trade_scope` column marks the types the trade's total of new vehicles counts: the two in scope and
-  buses, motor caravans and special purpose vehicles, which the trade counts as commercial vehicles
-  (D-105, D-106). It decides which types `registrations_flow_wider` counts (D-113), and it is the set of types
+  `trade_scope` column marks the types of a wider scope: the two in scope and
+  buses, motor caravans and special purpose vehicles, which our counts of new vehicles need to meet the
+  published totals compared (D-105, D-106). It decides which types `registrations_flow_wider` counts (D-113), and it is the set of types
   whose model names the committed store of the dashboard keeps (DATA_SOURCES §D). Its `trade_group` column sorts each of those types
-  into the trade's two groups: passenger cars and vans are `Passenger`; every other type in `trade_scope`
+  into two groups: passenger cars and vans are `Passenger`; every other type in `trade_scope`
   (goods vehicles, buses, motor caravans, special purpose vehicles) is `Commercial`; a type outside it has no
   group (D-113).
 - **Kind and values.** Category. 2 values on S (passenger car/van 3,617,900; goods van, truck or
@@ -874,7 +874,7 @@ only and published in no form (D-076, D-084).
   only `registrations_flow_wider` counts (buses, motor caravans, special purpose vehicles), 97.8% of new
   vehicles of all time map once seven bus, crane and motorhome makes were added (93.6% before; D-113,
   `docs/METRICS.md`).
-- **Model.** (The committed store keeps it only where a dataset or the trade's total counts the vehicle:
+- **Model.** (The committed store keeps it only where a dataset or the wider scope counts the vehicle:
   DATA_SOURCES §D.) NZTA's cleaned name. 2,854 values (18,946 vehicles) are nowhere in the register, because
   some nameplates are split finer; since January 2025 the largest are `COROLLA CROSS` and
   `LANDCRUISER PRADO`. Since January 2025, 98.2% of vehicles carry a make and model spelled the same
