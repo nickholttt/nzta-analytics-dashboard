@@ -123,6 +123,16 @@ def test_the_checks_workflow_never_leaves_its_token_in_the_checkout():
     assert "contents: read" in [line.strip() for line in lines]
 
 
+def test_the_deploy_checks_the_public_build_output_before_anything_is_handed_on():
+    """D-099: an internal page left in dist/, or a script no page reaches, fails the build job. The check runs after the
+    build and before the site is handed to the upload job, and the workflow reruns when the check itself changes."""
+    lines = [line.strip() for line in (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()]
+    assert "node scripts/check-public-build.mjs" in lines
+    assert lines.index("npx astro build") < lines.index("node scripts/check-public-build.mjs")
+    assert lines.index("node scripts/check-public-build.mjs") < lines.index("- name: Hand the built site to the upload job")
+    assert '- "scripts/check-public-build.mjs"' in lines
+
+
 def test_the_public_build_refuses_a_link_to_an_internal_page_however_it_is_quoted(tmp_path):
     lines = (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()
     check = next(line.strip() for line in lines if line.strip().startswith("if grep -rlE '"))

@@ -9,8 +9,8 @@ Last updated by claude on 2026-11-16
 - 2026-11-16, ninth session.
   - **Merged:** #60, the user's answers (D-096). #61, package C's charts and completeness
     by vehicle type (D-098). #62, the chart rules and the site's tests in `Checks` (D-100,
-    D-101). #65, the comparison with published figures and three more answers (D-105,
-    D-106). #66, the supplied counts as files in the repository, trimmed (D-097).
+    D-101). #64, the first-load trim (D-099). #65, the comparison with published figures
+    and three more answers (D-105, D-106). #66, the supplied counts as files (D-097).
   - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
     the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
     sit about 1% lower, cause not established. Range-extended electric vehicles sit with
@@ -32,24 +32,23 @@ independently of the site's code; figures are compared with published New Zealan
 
 ## Open pull requests
 
-- #64 `claude/first-load` (D-099): the first-load trim. Reviewed; its follow-ups are in hand.
+- #67 `claude/audit-fixes` (D-107): the audit's site-side fixes. In review. It and #64 both
+  changed `PresetPanel.tsx`, `MixChart.tsx` and `config.ts`: merge `main` into it first.
 
 ## Work in hand, in the order to pick it up
 
-1. **Review and merge #64.**
+1. **Review and merge #67.**
 2. **What the engine's audit found** (D-104, D-107). A checker recomputed 34,693 of the
    site's figures from the register's rows and the dashboard export: 34,618 agree, 74 are
    withheld on both sides, 1 differs (a tie in a ranking). No count is wrong.
-   - On the site's side, in hand on `claude/audit-fixes`: a rule for ties, what the guards
-     do, the coverage note on a narrowed chart, stale lines on `/caveats`, the limit on
-     conditions.
-   - On the pipeline's side, next: a hybrid nameplate the dashboard spells differently is
+   - On the site's side, #67: a rule for ties, what the guards do, the coverage note on a
+     narrowed chart, stale lines on `/caveats`, the limit on conditions.
+   - On the pipeline's side, in hand on `claude/audit-pipeline-fixes` (D-108): a hybrid nameplate the dashboard spells differently is
      missing from `mild_hybrid_models.csv` (true registrations' coverage reads 66.0%), and
      the mild split is drawn below the 70% METRICS asks for; ties at the 300-model cap.
      Also: any change to the scope files refuses the committed counts until the history is
      supplied again, even a row for a new NZTA value; refuse only what the trim depends on.
-3. **A local-only branch to delete:** `claude/stores-in-repo` (it holds the untrimmed counts;
-   never push it). The first pushed version stays reachable on GitHub through the closed #63.
+3. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 4. **Package F**, each field checked against the data and published sources before Build
    offers it. First: a total of new vehicles on the trade's basis beside the default scope
    (the user, D-106; `trade_scope` in `vehicle_scope.csv`). Then: colour, seats, where
@@ -72,8 +71,9 @@ independently of the site's code; figures are compared with published New Zealan
   supply`, a `--dry-run` build, a pull request with the store's two files (D-097). A store
   rebuilt whole cannot yet excuse a month it restates by more than 2% (`supply` needs an
   option). **C.** The user's own Stats NZ export replaces the fetched copy.
-- **D.** First load is in #64: Explore's first chart 7.98 s to 4.61 s, a Build answer 7.59 s
-  to 6.58 s, on the phone profile. The 3-second target is not met; Build waits on its data.
+- **D.** First load is trimmed (#64): Explore's first chart 7.98 s to 4.61 s, a Build answer
+  7.59 s to 6.58 s, on the phone profile. The 3-second target is not met; Build waits on its
+  data (question 2). Left: the linked chart's own time; a far chart is sometimes fetched on load.
 - **E.** The pipeline writing the "moves together" figures each build; `sentinels.csv`
   gaining the map's forms as each field is bound; the rule table checking `uses.break_down`.
 - **The final report** (the order §6), with `docs/brief/MASTER_BRIEF.md` §4 and §12 updated.
