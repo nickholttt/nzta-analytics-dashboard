@@ -11,7 +11,8 @@
 // everywhere. Thresholds live in config/presets.json; nothing here is domain-specific.
 import { chartDefaults } from "./config";
 import type { Dimension } from "./config";
-import { TRAILING_MONTHS, addMonths, monthRange } from "./measures";
+import { TRAILING_MONTHS } from "./measures";
+import { monthAt, monthIndex } from "./sentences";
 import type { SliceRow } from "./data";
 
 const rules = chartDefaults.mix_default_start;
@@ -25,25 +26,48 @@ const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 // the line does not flicker with monthly noise. Windows thinner than the precision floor, or missing
 // a month, produce nothing — the same rule the rolling share uses.
 function rollingMix(rows: SliceRow[], minDenominator: number) {
-  const cell = new Map<string, number>();
-  const denominators = new Map<string, number>();
+  const denominators = new Map<number, number>();
+  const counts = new Map<string, Map<number, number>>();
   for (const r of rows) {
     if (isReserved(r.value)) continue;
-    cell.set(`${r.month}|${r.value}`, r.n);
-    denominators.set(r.month, r.denominator);
+    const at = monthIndex(r.month);
+    denominators.set(at, r.denominator);
+    let byMonth = counts.get(r.value);
+    if (!byMonth) counts.set(r.value, (byMonth = new Map()));
+    byMonth.set(at, r.n);
   }
-  const months = [...denominators.keys()].sort();
-  const values = [...new Set(rows.filter((r) => !isReserved(r.value)).map((r) => r.value))];
+  // Counts laid out by calendar month, so a window is a run of cells and not a lookup of twelve strings per value.
+  const months = [...denominators.keys()].sort((x, y) => x - y);
+  const origin = months[0];
+  const span = months.length ? months[months.length - 1] - origin + 1 : 0;
+  const dense = [...counts.values()].map((byMonth) => {
+    const cells = new Float64Array(span);
+    for (const [at, n] of byMonth) cells[at - origin] = n;
+    return cells;
+  });
   const out: { month: string; shares: number[] }[] = [];
-  for (const month of months) {
-    const from = addMonths(month, -(TRAILING_MONTHS - 1));
-    if (from < months[0]) continue;
-    const window = monthRange(from, month);
-    if (window.some((m) => denominators.get(m) === undefined)) continue;
+  for (const at of months) {
+    const from = at - (TRAILING_MONTHS - 1);
+    if (from < origin) continue;
     let total = 0;
-    for (const m of window) total += denominators.get(m) as number;
-    if (total < minDenominator) continue;
-    out.push({ month, shares: values.map((v) => window.reduce((s, m) => s + (cell.get(`${m}|${v}`) ?? 0), 0) / total) });
+    let missing = false;
+    for (let m = from; m <= at; m++) {
+      const d = denominators.get(m);
+      if (d === undefined) {
+        missing = true;
+        break;
+      }
+      total += d;
+    }
+    if (missing || total < minDenominator) continue;
+    out.push({
+      month: monthAt(at),
+      shares: dense.map((cells) => {
+        let n = 0;
+        for (let m = from; m <= at; m++) n += cells[m - origin];
+        return n / total;
+      }),
+    });
   }
   return out;
 }
