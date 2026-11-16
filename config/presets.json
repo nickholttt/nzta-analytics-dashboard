@@ -116,6 +116,8 @@
       "matrix_legend_count": "Shade, vehicles in a cell",
       "matrix_legend_share": "Shade, share in a cell",
       "matrix_legend_unshaded": "Not shaded: no vehicles, the totals and {rest}.",
+      "matrix_legend_unshaded_plain": "Not shaded: no vehicles and the totals.",
+      "matrix_legend_up_to": "Up to {value}",
       "matrix_legend_grey": "Grey: fewer than {floor} vehicles behind the share.",
       "matrix_window_pick": "Window ends in",
       "matrix_month_pick": "Month",

@@ -9,7 +9,7 @@ import { chartDefaults, datasetWords, findDataset, findPeriod, phrases } from ".
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, monthRange, pct } from "../lib/measures";
-import { BASES, REST_NAME, gridOf, gridTable, isBasis, tableFigures } from "../lib/matrix";
+import { BASES, gridOf, gridTable, isBasis, tableFigures } from "../lib/matrix";
 import type { Basis, CellSource, Grid, SideSpec } from "../lib/matrix";
 import { count, spanPeriod } from "../lib/readout";
 import { latestMonthOf } from "../lib/resolve";
@@ -197,7 +197,10 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
   }
 
   const legendFormat = (n: number) => (shares ? `${(n / 10).toFixed(1)}%` : count(n));
-  const stepLabel = (from: number, to: number) => (from === to ? legendFormat(from) : `${legendFormat(from)} to ${legendFormat(to)}`);
+  // The first step runs from the least there can be above nothing, which a share prints as 0.0%, so it is said as "up to".
+  const stepLabel = (from: number, to: number) =>
+    from === 1 ? fillTemplate(phrases.matrix_legend_up_to, { value: legendFormat(to) }).text : from === to ? legendFormat(from) : `${legendFormat(from)} to ${legendFormat(to)}`;
+  const restName = table.rows.find((r) => r.kind === "rest")?.head ?? table.columns.find((c) => c.kind === "rest")?.name;
   const anyGreyed = grid.wholeGreyed || grid.greyedRows.length > 0 || grid.greyedColumns.length > 0;
 
   return (
@@ -230,7 +233,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
             </li>
           ) : null}
         </ul>
-        <p className="chart-unit">{fillTemplate(phrases.matrix_legend_unshaded, { rest: table.rows.find((r) => r.kind === "rest")?.head ?? table.columns.find((c) => c.kind === "rest")?.name ?? REST_NAME }).text}</p>
+        <p className="chart-unit">{restName ? fillTemplate(phrases.matrix_legend_unshaded, { rest: restName }).text : phrases.matrix_legend_unshaded_plain}</p>
       </div>
 
       <div ref={box} className="table-scroll matrix-scroll" role="region" aria-label={`${rowHeading} by ${columnHeading}: the grid`} tabIndex={0}>

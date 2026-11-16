@@ -3,7 +3,7 @@
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { builderSpec, datasetWords, dimensionLabel, findDataset, phrases, valueWords } from "../lib/config";
+import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, phrases, valueWords } from "../lib/config";
 import { isChoosable } from "../lib/reserved";
 import { MAX_VALUES, RANKING, REMOVE_CONDITION, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
@@ -11,12 +11,13 @@ import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } f
 import type { SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
+import { REST_NAME } from "../lib/matrix";
 import { count } from "../lib/readout";
-import { pickedBuilderSentences } from "../lib/sentences";
+import { fillTemplate, pickedBuilderSentences } from "../lib/sentences";
 import PresetPanel, { reservedLabel } from "./PresetPanel";
 
 // The chart's own settings in the address bar. A new question clears them, so its charts open on their defaults.
-const CHART_PARAMS = ["period", "range", "smoothing", "month"];
+const CHART_PARAMS = ["period", "range", "smoothing", "month", "cells"];
 // Values filled in when a count is broken down and none are chosen yet: a count draws one line per value.
 const STARTING_VALUES = 5;
 const SUGGESTIONS = 8;
@@ -279,6 +280,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     if (next.view !== undefined && next.view !== RANKING) asked.rankAll = false;
     // Values the page chose follow the question: a new condition or measure sets them aside, and the page looks again.
     if (latest.current.pageValues && next.values === undefined && (next.where !== undefined || next.measure !== undefined)) asked.values = [];
+    // A grid chooses its own lines, so the values the page filled in for the lines of a chart are set aside when the second breakdown is added.
+    if (latest.current.pageValues && next.by2 && next.values === undefined) asked.values = [];
     // Another dataset carries other conditions and other values: the ones it does not carry go, and the chosen values start over.
     if (next.dataset && next.dataset !== latest.current.dataset) {
       const carried = all.datasets.find((v) => v.dataset === next.dataset)?.filters ?? [];
@@ -299,7 +302,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   // A count broken down draws one line per chosen value, so with none chosen it starts on the largest few among the
   // vehicles the conditions keep. Applied only if the question is still waiting for them when the list arrives.
   const whereKey = JSON.stringify(applicable(question.where));
-  const awaitingValues = Boolean(countsLines && question.by && question.values.length === 0 && breakdown?.values);
+  const awaitingValues = Boolean(countsLines && question.by && !question.by2 && question.values.length === 0 && breakdown?.values);
   // The question whose starting values were looked for and not found: nothing was first registered in the last 12
   // months among the vehicles its conditions keep.
   const startKey = `${question.dataset}|${question.by}|${whereKey}`;
@@ -330,7 +333,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
 
   const datasetInfo = findDataset(dataset);
   const datasetDefinition = datasetInfo?.public_definition ?? datasetInfo?.definition;
-  const unusedFilters = vocabulary.filters.filter((f) => f.id !== question.by && !(f.id in question.where));
+  const unusedFilters = vocabulary.filters.filter((f) => f.id !== question.by && f.id !== question.by2 && !(f.id in question.where));
   const addCondition = () => {
     const id = adding;
     if (!id) return;
@@ -390,11 +393,78 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                   </option>
                 ))}
               </select>
+              {breakdown && breakdown.with.length > 0 ? (
+                <>
+                  {" "}
+                  {phrases.build_second_and}{" "}
+                  <select
+                    id="second-breakdown"
+                    aria-label="And broken down by"
+                    value={question.by2 ?? ""}
+                    onChange={(e) => ask({ by2: e.target.value === "" ? null : e.target.value, values2: [], view: null })}
+                  >
+                    <option value="">{phrases.build_second_none}</option>
+                    {breakdown.with.map((id) => (
+                      <option key={id} value={id}>
+                        {measure.dimensions.find((d) => d.id === id)?.phrase ?? id}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              ) : null}
             </>
           ) : null}
         </p>
 
-        {breakdown?.values ? (
+        {question.by && question.by2 ? (
+          <div className="picker-aside second-actions">
+            <button
+              type="button"
+              id="swap-breakdowns"
+              className="button-quiet"
+              onClick={() => ask({ by: question.by2 as string, by2: question.by, values: question.values2 ?? [], values2: question.values, view: null })}
+            >
+              {phrases.build_second_swap}
+            </button>
+            <button
+              type="button"
+              className="button-quiet"
+              onClick={() => {
+                ask({ by2: null, values2: [], view: null });
+                focusSoon(() => document.getElementById("second-breakdown"));
+              }}
+            >
+              {phrases.build_second_remove}
+            </button>
+          </div>
+        ) : null}
+
+        {question.by && question.by2 ? (
+          <>
+            {[
+              { id: question.by, legend: phrases.build_second_rows, chosen: question.values, max: chartDefaults.matrix.rows, set: (values: string[]) => ask({ values }) },
+              { id: question.by2, legend: phrases.build_second_columns, chosen: question.values2 ?? [], max: chartDefaults.matrix.columns, set: (values: string[]) => ask({ values2: values }) },
+            ].map((side) => (
+              <fieldset className="question-part" key={side.legend}>
+                <legend>
+                  {side.legend}: {filterLabel(side.id).toLowerCase()}
+                </legend>
+                <ValuePicker
+                  dataset={dataset}
+                  dimension={side.id}
+                  noun={filterLabel(side.id).toLowerCase()}
+                  chosen={side.chosen}
+                  where={applicable(question.where)}
+                  max={side.max}
+                  onChange={side.set}
+                  emptyHint={fillTemplate(phrases.build_second_hint, { rest: REST_NAME }).text}
+                />
+              </fieldset>
+            ))}
+          </>
+        ) : null}
+
+        {breakdown?.values && !question.by2 ? (
           <fieldset className="question-part">
             <legend>Compare{own || question.values.length === 0 ? "" : `, ${ranking.pickerNote}`}</legend>
             {question.rankAll ? (
