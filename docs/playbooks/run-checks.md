@@ -28,7 +28,7 @@ node --test "tests/site/*.test.ts"
   `tests/site/support/` (extensions, JSON imports, `import.meta.env`, and `module.stripTypeScriptTypes`, which Node marks
   experimental).
 - Quote the glob: Node 22's `--test` treats an unquoted directory as a file.
-- Expect `# pass 69`, `# fail 0` (2026-11-16), in about two seconds. The config rules for the same templates are in
+- Expect `# pass 81`, `# fail 0` (2026-11-16), in about two seconds. The config rules for the same templates are in
   `pipeline/tests/test_site_config.py`, part of the pytest run above.
 - `tests/site/shape-defaults.test.ts` fails when a preset or a Build question draws differently from
   `tests/site/fixtures/shape-defaults.json`. If the difference is meant, read each line, regenerate with

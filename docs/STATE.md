@@ -31,6 +31,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
   site from the newest cube release and uploads nothing. **Nothing is deployed**: the
   variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-16).
+- **First load is trimmed** (#64, D-099): Explore fetches only its first chart on load; the
+  public build drops what no page reaches, and the deploy checks that before uploading.
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
   read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
@@ -48,10 +50,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/audit-fixes` (D-107; worktree `nzta-notes`): what the engine's audit found on the
-  site's side: a rule for ties in rankings, definitions, stale wording.
-- `claude/first-load` (#64, D-099; worktree `nzta-firstload`): `astro.config.mjs`,
-  `src/lib/loadGate.ts`, `src/lib/data.ts`, `PresetPanel.tsx`, `deploy.yml`, `scripts/`.
+- `claude/audit-fixes` (#67, D-107; worktree `nzta-notes`): the audit's site-side fixes.
+- `claude/audit-pipeline-fixes` (D-108; the main folder): the audit's pipeline-side fixes.
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
 - `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): one reference
   file. Nothing in it goes live before the user approves.
@@ -72,8 +72,9 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 ## Known issues
 
-1. First load at phone width is slow: a Build question's first answer takes 7.4 to 11.6 s
-   (local, throttled, 2026-11-14, D-091). About 460 KB of each page is its own code and fonts.
+1. First load at phone width is slow (local, throttled, 2026-11-16, D-099): Explore's first
+   chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
+   data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
 2. "Area Outside Region" (the Chatham Islands) reaches visitors as is. On a filtered powertrain
    chart the mild hybrid coverage note states the whole dataset's coverage.
 3. Mild hybrids are identified for 62.7% of `registrations_flow`'s hybrids at high confidence
@@ -84,7 +85,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
    fall a month behind at each refresh until the narrative engine (package H; D-086).
 6. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
    share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
-7. The public build still ships the status page's script chunk, unlinked, holding no data.
+7. A chart below the first loads as it nears the screen; printing or searching the page
+   before scrolling reaches only what has loaded (D-099).
 8. Commits before #47 hold local paths (D-081).
 9. True registrations of new vehicles read 1.4% to 3.9% under published totals: the MIA's
    count meets ours once three vehicle types the default scope leaves out are added; a total
@@ -120,7 +122,7 @@ November's file (December).
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about two and a half minutes) and the site's 65 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 81 tests (under half a minute).
 
 - A scratch script run from the session's shared scratch folder can pick up a stray file
   there in place of a Python module: run it with `python -I`, or from a folder of its own.

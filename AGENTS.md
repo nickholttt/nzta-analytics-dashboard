@@ -44,7 +44,7 @@ Run from the repo root.
 |---|---|---|
 | Pipeline tests (as CI) | `.venv/Scripts/python.exe -m pytest pipeline/tests -q -p no:cacheprovider` | 100 passed, 520 s with a site build going (2026-11-13) |
 | Typecheck site | `npx -y -p typescript tsc --noEmit` | exit 0. TypeScript isn't a dependency, so plain `npx tsc` fails |
-| Site tests | `node --test "tests/site/*.test.ts"` | 69 passed in about 2 s (2026-11-16); also run on every pull request (D-101) |
+| Site tests | `node --test "tests/site/*.test.ts"` | 81 passed in about 2 s (2026-11-16); also run on every pull request (D-101) |
 | Build site | `npx astro build` | 7 pages built to `dist/`, `404.html` among them (2026-10-22). No npm `build` script exists |
 | Build the public site, as the deploy does (D-056) | Git Bash: `INTERNAL_PAGES=false npx astro build && rm -rf dist/status dist/sense-check` | 2026-10-22, against the 2026-08 cube: 5 pages left, none linking to `/status` or `/sense-check`; in a preview those two and any unknown address return 404. Since D-099 the build itself drops those two folders and every script no remaining page reaches (`astro.config.mjs`), so the `rm` is a no-op kept for safety; the next row checks it |
 | Check the public build's output | `node scripts/check-public-build.mjs` (after the public build) | exit 0 and "6 scripts" on 2026-11-16; on the build as it was before D-099 it exits 1 naming `_astro/PresetTriage.*.js` (known issue 7), and on a build with the internal pages it names both folders |
