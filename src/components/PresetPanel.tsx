@@ -572,6 +572,11 @@ export default function PresetPanel({
       {chart}
 
       <ul className="notes">
+        {derived?.caveat && !notBuilt && preventsRender.length === 0 ? (
+          <li className="caveat">
+            {derived.caveat.text} <a href={derived.caveat.href}>{derived.caveat.link_label}</a>
+          </li>
+        ) : null}
         {notes.filter((n) => (internal || n.unresolved.length === 0) && (internal || !notBuilt)).map((n) => (
           <li key={n.key}>
             {n.text}

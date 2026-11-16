@@ -114,6 +114,12 @@ export type DerivedMeasure = Measure & {
   top_n?: number;
   numerator_dataset?: string;
   denominator_dataset?: string;
+  // Where the numerator's breakdown is not the preset's dimension: its own id, and the one value-set of another dimension the
+  // numerator is narrowed to (through a pair slice). The two datasets then divide on the values both name alike.
+  numerator_dimension?: string;
+  numerator_narrowed_to?: { dimension: string; values: string[] };
+  // One line, with a link, under the chart: what a reader must know before trusting the ratio.
+  caveat?: { text: string; link_label: string; href: string };
   total_label?: string;
   definition?: string;
   // The line under a ratio chart ({base}: where its axis starts) and the name of its table of figures ({from}, {to}).
@@ -172,7 +178,7 @@ type PresetsDoc = {
   defaults: {
     year_change_measure: string;
     phrases: RankingPhrases &
-      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; exceeds_total: string };
+      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;

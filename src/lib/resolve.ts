@@ -8,7 +8,7 @@ import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, fin
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
 import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt } from "./data";
 import type { Manifest, ViewSource } from "./data";
-import { RENDERED_DERIVED } from "./derived";
+import { RENDERED_DERIVED, isRatioMeasure } from "./derived";
 
 // The shapes this local reference tool draws: all five (CLAUDE.md §Shapes).
 const RENDERED_SHAPES = new Set(["mix", "trend", "distribution", "league", "geo"]);
@@ -118,7 +118,7 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
 
   if (preset.derived) {
     if (!findDerived(preset.derived)) add("invalid", `derived measure "${preset.derived}" is not defined in config/measures.json`);
-    else if (!RENDERED_DERIVED.has(preset.derived)) add("blocked", `derived measure "${preset.derived}" has no renderer in this tool`);
+    else if (!RENDERED_DERIVED.has(preset.derived) && !isRatioMeasure(findDerived(preset.derived))) add("blocked", `derived measure "${preset.derived}" has no renderer in this tool`);
   } else if (!preset.series && !measure) {
     add("invalid", `measure "${preset.measure}" is not defined in config/measures.json`);
   }
@@ -196,19 +196,31 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   // it yet, and drawing the period's total instead would not answer the question.
   if (preset.animate_by) add("blocked", `"animate_by": "${preset.animate_by}" has no renderer in this tool: the ${shape} renderer draws one period at a time`);
 
-  // A measure that divides one dataset by another needs both built, and the breakdown live in both.
+  // A measure that divides one dataset by another needs both built, and the breakdown live in both. The numerator's own
+  // breakdown, where the measure names one, is the one it divides on, narrowed through a pair slice where the measure says so.
   let companion: ViewSource | undefined;
   const ratio = preset.derived ? findDerived(preset.derived) : undefined;
   if (ratio?.numerator_dataset && ratio.denominator_dataset) {
+    const numeratorDimension = ratio.numerator_dimension ?? preset.dimension;
     for (const id of [ratio.numerator_dataset, ratio.denominator_dataset]) {
+      const breakdownHere = id === ratio.numerator_dataset ? numeratorDimension : preset.dimension;
       if (!isBuilt(manifest, id)) {
         notBuilt ??= unbuiltDataset(id, manifest);
         add("blocked", manifest.datasets[id]?.not_built ? `dataset "${id}" was not built in this build (${manifest.datasets[id].not_built})` : `dataset "${id}" is not in the cube`);
-      } else if (preset.dimension && !manifest.datasets[id].live_dimensions.includes(preset.dimension)) {
-        add("blocked", `dimension "${preset.dimension}" is not live in ${id}`);
+      } else if (breakdownHere && !manifest.datasets[id].live_dimensions.includes(breakdownHere)) {
+        add("blocked", `dimension "${breakdownHere}" is not live in ${id}`);
       }
     }
-    if (preset.dimension) companion = { dataset: ratio.numerator_dataset, dimension: preset.dimension };
+    if (numeratorDimension && isBuilt(manifest, ratio.numerator_dataset)) {
+      const narrow = ratio.numerator_narrowed_to;
+      const pair = narrow ? findPair(manifest.datasets[ratio.numerator_dataset].live_pairs ?? [], numeratorDimension, narrow.dimension) : undefined;
+      if (narrow && !pair) {
+        add("blocked", `dataset "${ratio.numerator_dataset}" is narrowed to ${narrow.dimension} = ${narrow.values.join(" or ")}: it needs the ${numeratorDimension} x ${narrow.dimension} pair slice, which this build does not carry`);
+      } else {
+        const filter = narrow && pair ? { filter: { ...pair, dimension: narrow.dimension, values: narrow.values } } : {};
+        companion = { dataset: ratio.numerator_dataset, dimension: numeratorDimension, ...filter };
+      }
+    }
   }
 
   const status: PresetStatus = invalid.length > 0 ? "invalid" : blocked.length > 0 ? "blocked" : "live";

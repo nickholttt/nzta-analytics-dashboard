@@ -88,6 +88,33 @@
       }
     },
     {
+      "$comment": "Cars still registered, set against the published count of cars first registered, from the month that count is split by new and ex-overseas. A ratio of two sources that name their classes differently, so it is shown under its own name and is not completeness (docs/METRICS.md, D-095). The numerator is the register's passenger type, split by new or used; the denominator's two values carry the same names (D-094), so the two divide on them.",
+      "id": "cars_still_registered",
+      "label": "the share of cars first registered that are still registered",
+      "formula": "n(numerator_dataset narrowed to numerator_narrowed_to) / n(denominator_dataset), for the same month and value",
+      "unit": "percent",
+      "shape": "trend",
+      "numerator_dataset": "registrations_surviving",
+      "numerator_dimension": "import_status",
+      "numerator_narrowed_to": { "dimension": "vehicle_type", "values": ["Passenger cars and vans"] },
+      "denominator_dataset": "registrations_cars_long_run",
+      "total_label": "All cars",
+      "definition": "For each month, the passenger cars and vans first registered that month and still on the register at the snapshot, as a share of the cars Stats NZ counts as registered for the first time that month, new and ex-overseas.",
+      "unit_note": "Share of the cars counted as registered for the first time each month that are still registered. The axis starts at {base}.",
+      "table_label": "Cars still registered: figures, {from} to {to}",
+      "note_template": "Each line divides the cars still registered by the cars counted as registered for the first time, for the same month. A figure above the full count is drawn as it is. Months with fewer than {measure.guards.min_denominator} cars behind the figure, or far fewer than the months before, are left out, not drawn as zero. It is not used to scale any figure on this site.",
+      "caveat": {
+        "text": "The two sources name their classes of vehicle differently, so this sets one count of cars against another, not car against car.",
+        "link_label": "How this ratio is made",
+        "href": "/method#cars-still-registered"
+      },
+      "guards": {
+        "$comment": "The share guards, applied to the denominator dataset's counts. See docs/METRICS.md, Two suppression guards.",
+        "min_denominator": 200,
+        "min_share_of_trailing_median": 0.33
+      }
+    },
+    {
       "id": "cohort_survival",
       "label": "the share still on the road",
       "formula": "survivors(C, t) / survivors(C, t0)",

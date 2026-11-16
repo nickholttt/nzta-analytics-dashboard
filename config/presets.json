@@ -42,6 +42,7 @@
       "pick_month": "Click or tap the chart to read another month.",
       "bad_month": "The address asked for {asked}, which this chart has no figures for, so {shown} is shown.",
       "not_recorded": "The source does not record this breakdown from {from} to {to}. The grey band marks those months: they are left blank, not drawn as zero.",
+      "breakdown_starts": "This breakdown is recorded from {from} on, so no earlier month is drawn.",
       "exceeds_total": "In {month} the published figures for this breakdown add up to more than the month's total. They are shown as published, and the total is not adjusted."
     },
     "$comment": "Chart-level defaults that are not per-preset decisions. mix_smoothing: monthly share on survivors data swings too hard to read, so a mix chart defaults to a trailing share and offers monthly as a toggle. top_n_basis: which window ranks the values that keep their own line; the rest become one remainder series.",
@@ -416,6 +417,15 @@
           "status": "live",
           "dataset": "registrations_cars_long_run",
           "measure": "count",
+          "dimension": "car_origin",
+          "period": "all"
+        },
+        {
+          "id": "cars-still-registered",
+          "question": "How many of the cars counted as registered each month are still registered?",
+          "status": "live",
+          "derived": "cars_still_registered",
+          "dataset": "registrations_cars_long_run",
           "dimension": "car_origin",
           "period": "all"
         }

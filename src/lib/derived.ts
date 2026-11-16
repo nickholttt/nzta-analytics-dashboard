@@ -4,8 +4,9 @@
 // are still waiting for one. Everything a series needs beyond the slice — how many values to take,
 // the suppression guards — comes from that measure's definition in config/measures.json.
 import { findDerived } from "./config";
-import type { Guards } from "./config";
+import type { DerivedMeasure, Guards } from "./config";
 import { collapsedAgainstTrailingMedian } from "./measures";
+import { unrecordedMonths } from "./sentences";
 import type { SliceRow } from "./data";
 
 export const TOP_N_SHARE = "top_5_share";
@@ -50,18 +51,19 @@ export function derivedSeries(derivedId: string, rows: SliceRow[]): DerivedPoint
   return topNShare(rows, topN);
 }
 
-// Completeness, docs/METRICS.md: the vehicles of one dataset as a share of another's for the same month and value of a
-// dimension. The two datasets, the dimension and the guards come from the measure's definition in config/measures.json.
-// A month whose denominator is missing, under the precision floor, or collapsed against its own recent history is left
-// out, never drawn as zero; a ratio above 1 is kept as it is. The total is the datasets' own month totals.
-export const COMPLETENESS = "completeness";
-RENDERED_DERIVED.add(COMPLETENESS);
+// A ratio of two datasets, docs/METRICS.md (completeness; cars still registered against a published count): one dataset's
+// vehicles as a share of another's for the same month and value of a dimension. The two datasets, the dimension and the guards
+// come from the measure's definition in config/measures.json, so a measure that names both datasets is drawn by this, whatever
+// it is called. A month whose denominator is missing, under the precision floor, or collapsed against its own recent history is
+// left out, never drawn as zero; so is a month in which the denominator's source records nothing of the breakdown, since there
+// is no value to divide by. A ratio above 1 is kept as it is. The total is the datasets' own month totals.
+export const isRatioMeasure = (measure?: DerivedMeasure): boolean => Boolean(measure?.numerator_dataset && measure.denominator_dataset);
 
 export type RatioPoint = { month: string; value: number; n: number; denominator: number };
 // series "" is the total over every value of the dimension.
 export type RatioSeries = { series: string; points: RatioPoint[] };
 
-export function completenessSeries(numerator: SliceRow[], denominator: SliceRow[], guards: Guards): RatioSeries[] {
+export function ratioSeries(numerator: SliceRow[], denominator: SliceRow[], guards: Guards): RatioSeries[] {
   const floor = guards.min_denominator ?? 0;
   const fraction = guards.min_share_of_trailing_median ?? 0;
   const have = new Set(numerator.map((r) => r.month));
@@ -71,7 +73,8 @@ export function completenessSeries(numerator: SliceRow[], denominator: SliceRow[
   const months = [...denTotal.keys()].sort();
   // The month's population: a month far below its own recent history is left out for every line.
   const collapsed = new Set(months.filter((m) => collapsedAgainstTrailingMedian(m, (k) => denTotal.get(k), fraction)));
-  const usable = (m: string, base: number) => have.has(m) && !collapsed.has(m) && base >= floor && base > 0;
+  const unrecorded = new Set(unrecordedMonths(denominator));
+  const usable = (m: string, base: number) => have.has(m) && !collapsed.has(m) && !unrecorded.has(m) && base >= floor && base > 0;
   const values = [...new Set(denominator.filter((r) => !isReserved(r.value)).map((r) => r.value))].sort();
   const total: RatioSeries = { series: "", points: [] };
   for (const m of months) {

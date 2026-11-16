@@ -180,6 +180,54 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
       scale or adjust any other figure.
     </p>
 
+    <h2 id="long-run-cars">Long-Run Car Registrations</h2>
+    <p>
+      Stats NZ publishes a monthly count of the cars and station wagons registered in New Zealand for the first time,
+      from NZTA's records, back much further than the registrations dashboard goes. Each chart that uses it carries
+      Stats NZ's own statement of its licence beside NZTA's basis note, and says which export it uses and when it was
+      taken. A car counts in the month it was first registered, including cars since removed from the register.
+    </p>
+    <ul>
+      <li>
+        <strong>Cars, not every vehicle</strong>: this is Stats NZ's class of cars and station wagons. It is not the same
+        name as NZTA's passenger cars and vans, and the two were checked against each other for one recent year only.
+        Stats NZ also counts commercial vehicles, buses and motorcycles; this site does not use them, because its classes
+        are not lined up with NZTA's vehicle types.
+      </li>
+      <li>
+        <strong>New, or registered overseas first</strong>: Stats NZ separates the two from a later month than its
+        totals begin. Months before that have a total and no split. A chart of the split leaves those months blank, marks
+        them with a grey band and says so in words. They are never drawn as zero, and nothing is guessed.
+      </li>
+      <li>
+        <strong>When the parts do not add up</strong>: where the parts of a split come to more than the month's total,
+        the parts are drawn as Stats NZ published them, the total is not adjusted, and the chart names the month.
+      </li>
+      <li>
+        <strong>It runs behind the register</strong>: Stats NZ publishes after NZTA's own figures are available, so its
+        newest month is usually earlier than the register's.
+      </li>
+    </ul>
+
+    <h2 id="cars-still-registered">Cars Still Registered Against the Long-Run Count</h2>
+    <p>
+      Before the registrations dashboard begins there is no count of true registrations by vehicle. For cars, the
+      register's passenger cars and vans still registered are set against Stats NZ's count of cars registered for the
+      first time that month, new and registered overseas first, from the first month Stats NZ splits them. It shows how
+      much of each month's count the register still holds today.
+    </p>
+    <ul>
+      <li>
+        <strong>It is not completeness</strong>: the two sides come from different sources that name their classes
+        differently, so it is a ratio of one count to another, not of the same cars. Read its shape over years rather than
+        one month.
+      </li>
+      <li>
+        <strong>The same rules</strong>: a figure above 100% is drawn as it is, a month with too few cars behind it or far
+        fewer than the months before is left out, and the ratio is never used to scale or adjust any other figure.
+      </li>
+    </ul>
+
     <h2>The Two Suppression Guards</h2>
     <p>
       On any share chart, a figure is greyed out when <strong>either</strong> of two guards trips. Greyed figures are

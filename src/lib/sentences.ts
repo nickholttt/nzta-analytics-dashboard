@@ -225,6 +225,14 @@ export function monthRuns(months: readonly string[]): MonthRun[] {
 export const sayNotRecorded = (template: string, runs: readonly MonthRun[]): string[] =>
   runs.map((r) => fillTemplate(template, { from: monthLabel(r.from), to: monthLabel(r.to) }).text);
 
+// Where the breakdown begins, when the data opens with months that are not recorded: the month after the first stretch. Undefined
+// when the first month of the data is recorded.
+export function sayStarts(template: string, runs: readonly MonthRun[], firstMonth: string): string | undefined {
+  const first = runs[0];
+  if (!first || first.from !== firstMonth) return undefined;
+  return fillTemplate(template, { from: monthLabel(addMonths(first.to, 1)) }).text;
+}
+
 // A dataset built from a published series lists the months where a breakdown's values add up to more than the month's total
 // (docs/CUBE_SCHEMA.md, Slice schema): the values are the source's own, so they are drawn as published and the month is said.
 export const sayExceedsTotal = (template: string, months: readonly string[] | undefined): string[] =>

@@ -11,10 +11,10 @@ import { useCallback, useMemo } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { datasetWords, findDataset, findDerived, findDimension, phrases, yearChangeFloor } from "../lib/config";
 import type { Preset } from "../lib/config";
-import { answerLine, fillTemplate, hoverLine, monthRuns, monthsOf, sayBadMonth, sayExceedsTotal, sayNotRecorded, sayOffChart, unrecordedMonths } from "../lib/sentences";
+import { answerLine, fillTemplate, hoverLine, monthRuns, monthsOf, sayBadMonth, sayExceedsTotal, sayNotRecorded, sayOffChart, sayStarts, unrecordedMonths } from "../lib/sentences";
 import { NOT_RECORDED_TOKEN, percent } from "../lib/sentences";
 import type { Manifest, SliceRow } from "../lib/data";
-import { COMPLETENESS, completenessSeries, derivedSeries } from "../lib/derived";
+import { derivedSeries, isRatioMeasure, ratioSeries } from "../lib/derived";
 import type { RatioPoint, RatioSeries } from "../lib/derived";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
 import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
@@ -82,7 +82,7 @@ function lineValues(preset: Preset, rows: SliceRow[]): string[] | undefined {
 
 export function TrendChart(props: Props) {
   const { preset } = props;
-  if (preset.derived === COMPLETENESS && props.companion) return <RatioTrend {...props} companion={props.companion} />;
+  if (isRatioMeasure(findDerived(preset.derived)) && props.companion) return <RatioTrend {...props} companion={props.companion} />;
   const values = lineValues(preset, props.rows);
   if (values) return <ValuesTrend {...props} values={values} />;
   return <OneTrend {...props} />;
@@ -95,7 +95,7 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (
   const guards = derived?.guards ?? {};
   const totalLabel = derived?.total_label ?? "All";
   const series = useMemo(() => {
-    const whole = completenessSeries(companion, rows, guards);
+    const whole = ratioSeries(companion, rows, guards);
     const first = whole.reduce((m, s) => (s.points[0] && s.points[0].month < m ? s.points[0].month : m), "9999-12");
     const win = periodWindow(preset.period, first, latestMonthOf(preset, manifest));
     return whole
@@ -103,6 +103,8 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (
       .filter((s) => s.points.length > 0);
   }, [companion, rows, guards, preset, manifest]);
   const name = (s: RatioSeries) => (s.series === "" ? totalLabel : label(s.series));
+  // Where the breakdown begins, when the denominator's data opens with months the source does not record: nothing is drawn before.
+  const starts = useMemo(() => sayStarts(phrases.breakdown_starts, monthRuns(unrecordedMonths(rows)), rows.reduce((m, r) => (r.month < m ? r.month : m), "9999-12")), [rows]);
   const model = useMemo(() => {
     const all = series.flatMap((s) => s.points.map((p) => p.month)).sort();
     const low = series.reduce((m, s) => s.points.reduce((x, p) => Math.min(x, p.value), m), 1);
@@ -158,6 +160,7 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (
         ))}
       </ul>
       <p className="chart-unit">{fillTemplate(derived?.unit_note ?? "", { base: percent(model.base) }).text}</p>
+      {starts ? <p className="chart-unit">{starts}</p> : null}
       <PlotFigure
         render={render}
         label={`Line chart, ${monthLabel(model.from)} to ${monthLabel(model.to)}: ${series.map(name).join(", ")}, month by month.`}
