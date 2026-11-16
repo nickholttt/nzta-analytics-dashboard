@@ -7,7 +7,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const root = resolve(process.argv[2] ?? "dist");
-const INTERNAL_PAGE_FOLDERS = ["status", "sense-check"];
+const INTERNAL_PAGE_FOLDERS = JSON.parse(readFileSync(new URL("./internal-pages.json", import.meta.url), "utf8")).folders;
 const problems = [];
 
 if (!existsSync(join(root, "_astro"))) {

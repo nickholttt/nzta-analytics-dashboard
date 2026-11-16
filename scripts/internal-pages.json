@@ -1,0 +1,4 @@
+{
+  "$comment": "The internal pages, which the public build leaves out (D-056): their folder names in the build's output. astro.config.mjs removes them from the public build and scripts/check-public-build.mjs fails if one is left. The public build's link check in .github/workflows/deploy.yml keeps its own pattern, which test_workflow.py exercises against sample text, and names them too; keep the three in step.",
+  "folders": ["status", "sense-check"]
+}

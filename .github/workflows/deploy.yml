@@ -17,6 +17,7 @@ on:
       - "public/geo/**"
       - "astro.config.mjs"
       - "scripts/check-public-build.mjs"
+      - "scripts/internal-pages.json"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"

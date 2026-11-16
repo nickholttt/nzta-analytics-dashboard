@@ -42,7 +42,7 @@ function preloadIslands() {
 // not enough: the scripts only they used stay in _astro, unlinked, and are still downloaded by anyone who asks for them
 // and counted in what the deploy uploads. So the pages go here, and then every script no remaining page reaches goes with
 // them. A script is reached when a page names it, or a script that is reached imports it, statically or dynamically.
-const INTERNAL_PAGE_FOLDERS = ["status", "sense-check"];
+const INTERNAL_PAGE_FOLDERS = JSON.parse(readFileSync(new URL("./scripts/internal-pages.json", import.meta.url), "utf8")).folders;
 function prunePublicBuild() {
   return {
     name: "prune-public-build",
