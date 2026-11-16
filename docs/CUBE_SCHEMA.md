@@ -376,6 +376,20 @@ check with its thresholds, and `headroom_rows`: how many more rows could go
 unmapped before the run aborts. How close a run came is visible, not just
 whether it passed.
 
+**Which rows the rates count.** `unmapped_rates` and both bases of
+`unmapped_guard` are measured on every in-scope row the build holds (the table
+`dims`), not on the dataset's own rows: vehicles that are not fleet entries
+(re-registrations; 114,478 on the register) and rows with no registration month
+(172) are in them too, and the `trailing` basis drops only the rows outside the
+window. The dataset's own
+rate, the one the site states, counts the vehicles in the cube. On the 2026-10
+snapshot `registrations_surviving` has 4,634,954 in-scope rows with 33,016
+unmapped makes (0.7123%, `unmapped_rates.make` 0.007123) against 4,520,304
+vehicles in the cube with 26,433 (0.58%); `registrations_flow` has 1,492,122
+with 1,954 (0.1310%) against 1,483,403 in the cube with 1,753 (0.12%). The guard's rate is the
+higher here and is the one that aborts; the cube's is the one the site states.
+Neither is wrong, and the guard was left as it is (D-108).
+
 `mild_hybrid_identification_coverage` says how much of the Mild hybrid
 category is identified (definition in `METRICS.md`), with the label the
 site must use for the category: *Mild hybrid (identified)* until the lower
