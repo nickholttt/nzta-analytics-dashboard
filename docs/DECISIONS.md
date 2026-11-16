@@ -4573,7 +4573,11 @@ New entries use this template:
      not to the variable.
   6. Warning text is shown with a newline collapsed to a space and `&`, `<` and `>` escaped, so one warning cannot break the list.
   7. The list says "Worst first: ..." under it when there is more than one warning.
-  8. `BuildWarnings` shares `PresetTriage.tsx` to keep the public build's scripts as they were, at the price of a file that
+  8. The playbook's way to find the hybrids that count against the figure is a committed maintainer script
+     (`scripts/unmatched_hybrids.py`, tested on the fixture register), not a block of code in the playbook. It calls the
+     pipeline's own functions, so it can break when they change; the test is what says so. It reproduced D-110's figures on
+     the saved 2026-10 pull and the committed store (14,241 of 19,233 and 14,271 of 19,286).
+  9. `BuildWarnings` shares `PresetTriage.tsx` to keep the public build's scripts as they were, at the price of a file that
      holds two components.
 - Not done: a build that aborts writes none of its warnings anywhere (its aborts are the failure, and the manifest is staged, not
   published); a run that builds nothing does not show the source's own warnings (a discovery fallback, a column gained; some are

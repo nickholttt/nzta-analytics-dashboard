@@ -116,6 +116,9 @@ Setup, **not re-run this session** (the environment already existed):
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
   `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo}Chart.tsx`
   are the renderers of five of the six allowed shapes (`matrix`, approved in D-083, has none yet), and `PresetTriage.tsx` lists every preset with what blocks it, and (as `BuildWarnings`, D-112) the cube's own warnings, on the internal status page only.
+- `scripts/unmatched_hybrids.py` lists, for one dataset, the hybrids that count against its mild hybrid coverage at high
+  confidence, by make and model. Run by hand when a build warns that the split flipped (`docs/playbooks/check-monthly-run.md`,
+  D-112); it reads the repository and a saved pull and writes nothing.
 - `scripts/region-boundaries.mjs` writes `public/geo/nz-regions.json`, the region outlines the map draws,
   from Stats NZ's coastline-clipped regional council boundaries (CC BY 4.0, D-054). Run by hand from the
   repository root when the boundaries change; it fails without writing if a region's code or name
