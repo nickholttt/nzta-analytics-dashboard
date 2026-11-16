@@ -345,6 +345,40 @@ grey more (a floor of 12 times 200) is not taken.
 - The floor is the share measure's whichever measure the chart counts, because the shares in a ranking's table are shares of a
   window whatever the bars show.
 
+### A ranking of the values a visitor chose (D-111)
+
+Two or more chosen values on a long list (the same breakdowns the ranking of every value is offered for) can be ranked over one window,
+the last 12 months or one month. It is the ranking above over fewer values, not a second one: the same function ranks them, with the
+same ties, the same year before, the same zero for a month in which a condition keeps nothing, the same precision floor and the same
+reserved values.
+
+- **A rank is a place among the values chosen**, not a place among every value. The page says so in a sentence above the chart, and the
+  column is headed "Rank of N" (and "Rank of N a year before"), N being the number chosen.
+- **A share is a share of everything counted** under the conditions in the window, as everywhere else on the site (a share's
+  denominator is the whole the conditions keep), not of the values chosen. So the shares of the values chosen add up to less than the
+  whole, and the column is headed "Share of all counted" with a sentence that says what the total is and that the shares need not
+  add up to the whole. No share here sums to the whole of the values chosen.
+- **A chosen value takes no place** where it has no vehicles in the window or is a reserved value (not recorded, no reference match). It
+  is listed by name under the leader, not dropped without a word, and N still counts it.
+- **The leader** is the value, or every value level at first place, with the most vehicles in the window. The sentence is dropped, and
+  another says there is nothing to rank, where none of the values has a vehicle.
+- **The full ranking is one step away**: one button ranks every value under the same conditions and window, and one takes the visitor
+  back to the values chosen. Both states are addresses (`build.view=league`, and `build.rank=all` as well).
+- With one value chosen there is nothing to rank, so the question stays lines (or the share mix).
+
+### The file of figures (D-111)
+
+Each chart's table of figures can be downloaded. The file is that table and no other: the same rows, columns and order, the same
+rounding (a share to one decimal place, a change in share in percentage points to one, a change on a year ago as the page rounds it),
+written as plain numbers (no thousands separator, a full stop for the decimal point, a minus sign), months as year-month. A figure the
+page greys is written, with its reason in a last column; a figure the page withholds is a blank cell with its reason there, never a zero.
+Above the table are lines that start with "# ": the question as the page states it, what is counted, the period, the dataset, the
+snapshot, the source note where the dataset has one, the site's attribution, the address that redraws the chart, how the figures are
+written, and one line that says which figures are greyed or withheld and why. It has a byte order mark and CRLF line endings, and a
+text that starts with `=`, `+`, `-` or `@` is written with an apostrophe in front so a spreadsheet does not read it as a formula.
+It is made in the browser from the rows the chart already holds. The table of a mix chart is its last-12-months summary; the monthly
+figures behind a line chart are the table behind the line chart.
+
 ### Two suppression guards
 
 A share is greyed or suppressed (below) when **either** guard trips. They
