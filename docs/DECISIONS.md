@@ -3766,3 +3766,100 @@ New entries use this template:
 - Consequences: package F is next after the pieces in review; H's and I's first pieces, already begun (D-102,
   D-103), are finished as specifications and proposals, and their building follows F. The offer to swap is withdrawn.
 - Status: accepted (the user's direction); the reading of how to carry it out is decided by Claude (unreviewed)
+
+## D-105 2026-11-16 — The site's figures set beside published ones: what was measured, and three statements corrected
+- Agent: claude (the comparison by a research sub-agent on sonnet; our figures recomputed by the lead; this record
+  by the lead)
+- Basis: the user's question of 2026-11-16, whether the figures match published articles and sites, and D-104. Our
+  figures: the dashboard counts of the export of 14 November 2026, recomputed by the lead with DuckDB on 2026-11-16
+  (every figure of ours in `docs/METRICS.md`, "Set beside published figures"). Published figures: the MIA's own
+  page, whose four images for October 2026 the lead read; AutoTalk's reports (autotalk.co.nz), read by the
+  sub-agent on 2026-11-16 and **not re-read by the lead**: 78 figures with their addresses are in the sub-agent's
+  working files, outside the repository.
+- Context: nobody had laid the site's figures beside published ones. `docs/DATA_SOURCES.md` §E said the MIA "counts
+  vehicles delivered to buyers" and that the numbers "will not match", and `/differences` and `/caveats` repeated
+  it, adding that the MIA's figures could not be lined up with the site's.
+- What was found:
+  1. **October 2026 agrees.** True registrations of new vehicles are 15,109 once buses, motor caravans and special
+     purpose vehicles are counted, against the MIA's 15,118 (-0.06%). Passenger: 11,824 against 11,833. Commercial:
+     3,285 against 3,285 (2,805 light plus 480 heavy). AutoTalk's tables for the month, made from NZTA's data, equal
+     ours in every count the sub-agent compared: the total, the year to date, the top ten brands and models,
+     passenger and commercial, and used imports (8,285).
+  2. **The default scope is 1.4% to 3.9% under the published totals compared** (the months in `docs/METRICS.md`).
+     The MIA's commercial count meets ours once those three vehicle types are added, to the vehicle in October
+     2026 and within 1.7% in the other months compared, wider on the whole in older months; `vehicle_scope.csv` leaves them out ("Not explicitly
+     decided. Out by default."). No definition of the MIA's was read.
+  3. **Older months sit lower**, by 0.4% or less for 2025 and 2026, up to 0.5% for 2024 and about 1% for 2021 and
+     2022, against the MIA, AutoTalk and Stats NZ alike. The gap against Stats NZ moves with the share of a
+     month's vehicles marked `INACTIVE` (0.95 over 69 months, recomputed by the lead); both grow with a month's
+     age. The cause is not established.
+  4. **Two figures have a likely account, and one has none.** AutoTalk's 2025 battery electric total is ours with
+     the three extra types to 0.3% (203 electric buses); its plug-in hybrid total is ours without 190
+     range-extended electric vehicles to 0.3% (found by the reviewer of #65, recomputed by the lead). One
+     used-import figure for October 2025 is unexplained.
+  5. **The "delivered to buyers" statement has no support** in anything read. It came with the starter kit's
+     first commit and was carried by D-030 to `/caveats` and by the record of the three pages to `/differences`;
+     this record supersedes those parts. The MIA's page calls its figures "New vehicle registrations", in a
+     table whose columns are headed "Sales".
+- Options considered:
+  1. **What to do with the scope gap.** (a) Bring the three types into scope now. (b) Leave the scope as it is,
+     say plainly on `/differences` what it leaves out, and put the choice to the user. Chosen (b): changing
+     `vehicle_scope.csv` changes every figure on the site and the golden contract, and whether the site should
+     count as the trade does is the user's to say. The engine's next package makes each vehicle type askable, which
+     is what a total on the trade's basis needs.
+  2. **What the pages say.** (a) Keep "counts differently" with no measurement. (b) State figures on the page. (c)
+     State what was measured in words, with no figure, year or month. Chosen (c): `/differences` is hand-written
+     until the narrative engine (D-086), and a figure written there goes stale each month. The figures are in
+     `docs/METRICS.md`, dated.
+  3. **Whether to keep the sub-agent's 78-row table in the repository.** Not kept: the lead did not re-read its
+     sources, and one column paraphrases what each source counts. The rows that matter are in `docs/METRICS.md`
+     with our side recomputed.
+- Decision: `docs/METRICS.md` gains "Set beside published figures". `/differences`, `/caveats` and
+  `docs/DATA_SOURCES.md` §E drop the "delivered to buyers" statement and say what was measured. No figure, scope
+  or definition changes.
+- Consequences:
+  - Matching the MIA stays a non-goal (CLAUDE.md): a gap is measured and explained, never closed by adjusting.
+  - Open for the user (CHECKPOINT): whether buses, motor caravans and special purpose vehicles join the default
+    scope, or a total on the trade's basis is offered beside it.
+  - Open for the engine's audit and package F: the three unexplained figures; what the vehicles missing from older
+    months are; a split of light from heavy commercial, which needs the export's mass grouping (D-096, item 5).
+  - Not compared: the Ministry of Transport's statistics and the MIA's brand and model lists (not readable by an
+    automated reader, and for members, in that order).
+- Status: decided by Claude (unreviewed)
+
+## D-106 2026-11-16 — The user's answers of the evening of 16 November: a total on the trade's basis, the code's licence, who runs the site
+- Agent: user (the answers), claude (the record, the licence chosen on the user's word, and the readings marked)
+- Basis: the user's message of 2026-11-16, answering three questions put that evening, in the user's words: "1, b.
+  2, do what you reccomend. 3, individual". The questions as put: (1) should the site count new vehicles as the
+  trade does: (a) bring buses, motor caravans and special purpose vehicles into the default scope, (b) keep the
+  scope and offer a total on the trade's basis beside it, (c) leave it with the page saying why; (2) the licence
+  for the code: MIT, Apache 2.0 or none; (3) who runs the site, for the About page: a name, or "an individual".
+- Context: D-105 measured the site's true registrations of new vehicles at 1.4% to 3.9% under the published
+  totals compared; the MIA's commercial count meets the site's once three vehicle types the default scope leaves
+  out are added. The README said no
+  licence was chosen (D-096, item 10, left open). The About page had three gaps.
+- Decision (user):
+  1. **The default scope stays, and a total of new vehicles on the trade's basis is offered beside it.**
+  2. **The licence is claude's recommendation.**
+  3. **The About page says the site is run by "an individual".**
+- What claude chose on the user's word (unreviewed):
+  1. **The MIT licence.** Options: none (all rights reserved; nobody may reuse the code, which sits badly with a
+     public repository built on open data); Apache 2.0 (permissive, with a patent grant and more conditions on
+     notices); MIT (permissive, one short page, the commonest for a project of this kind). Chosen MIT: the simplest
+     to read and to comply with, and nothing here has a patent question that Apache's grant would settle. A
+     licence already granted cannot be withdrawn for copies taken under it; a later version of the code can carry
+     another.
+  2. **The copyright line** reads "the nzta-analytics-dashboard authors", not a person's name, in keeping with
+     the user's answer that the site is run by an individual. The repository's history already shows who wrote it.
+  3. **What the licence covers:** the project's own code and reference files. Not the data: what comes from NZTA
+     or Stats NZ, as committed aggregates, outlines or build output, stays under CC BY 4.0 with its attribution.
+     The README says so.
+  4. **How the trade's basis is expressed** (claude's reading): as data, a column `trade_scope` in
+     `data/reference/vehicle_scope.csv` naming the types the trade's total counts: the two in the default scope
+     and `BUS`, `MOTOR CARAVAN` and `SPECIAL PURPOSE VEHICLE`. The evidence is D-105: with those three added to new
+     goods vehicles, October 2026's commercial count is the MIA's to the vehicle (3,080 + 71 + 129 + 5 = 3,285).
+     Building the total is the first piece of package F. The column is added in its own commit on the branch of
+     the committed counts (D-097), which needs it to know which vehicle types' model names to keep.
+- Consequences: the About page has two gaps left (the site's name and its address). The total on the trade's basis
+  never replaces a default figure and is never used to scale one; it is named for what it counts.
+- Status: accepted (the user's answers); the choices above are decided by Claude (unreviewed)

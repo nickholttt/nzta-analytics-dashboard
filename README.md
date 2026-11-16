@@ -68,7 +68,13 @@ NZ's series: "This work is based on/includes Stats NZ's data which are licensed
 by Stats NZ for reuse under the Creative Commons Attribution 4.0 International
 licence." The region outlines on the map are also from Stats NZ (CC BY 4.0).
 This project is not affiliated with NZTA, the Motor Industry Association or
-the Motor Trade Association. No licence has been chosen for the code yet.
+the Motor Trade Association.
+
+The project's own code and reference files are under the MIT licence
+(`LICENSE`). That licence does not cover the data: figures and outlines that
+come from NZTA or Stats NZ (for example `data/snapshots/`, `public/geo/`, and
+the data a build writes) stay under CC BY 4.0 with the attribution above.
+Third-party packages and fonts keep their own licences.
 
 ## How it is built
 
