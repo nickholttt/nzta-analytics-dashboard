@@ -15,12 +15,37 @@ uncommitted changes owned by claude.
 | `requires` | every outstanding deliverable, as prose; omit when `live` |
 | `dataset`, `measure`, `dimension`, `period` | what to read; must exist in `config/dimensions.json` / `config/measures.json` |
 | `derived` | a derived measure id that `src/lib/derived.ts` registers (instead of `measure`) |
-| `shape_override` | forces one of the shapes that has a renderer (five of the six today) when inference isn't enough |
+| `shape_override` | pins the shape. Only a shape the chart rules say fits the question is allowed (below); the resolver marks a preset that pins another `invalid` |
 | `note_template` / `note` | a note on the chart. Any figure must come from `{dotted.path}` into the manifest, never typed in |
 | `answer` | on a `count` trend: the figure and sentence above the chart for one month (`up`, `down`, `same`, `alone` templates; `{month}`, `{count}`, `{prior_month}`, `{prior_count}`, `{change|pct}`). A template names no month, figure or cause |
 | `derived` of a ratio | a derived measure in `config/measures.json` with `numerator_dataset` and `denominator_dataset` (`completeness`) is drawn by the trend renderer from both datasets' slices for the preset's `dimension`; it needs both built and the dimension live in both |
 
-Shape is inferred from measure plus dimension. Never add a seventh renderer (the sixth, `matrix`, is D-083).
+## Which shape a question gets
+
+Shape is inferred, never chosen per field, and there is no seventh (the sixth, `matrix`, is D-083 and has no renderer yet).
+One table decides it for every question: `config/chart_rules.json`, read by `src/lib/shapes.ts` (D-100).
+
+- **The facts.** A question is judged on six: the `kind` of the measure (count, share, average, ratio; `config/measures.json`),
+  the `kind` of the field it breaks down by (category, ordered_band, number, time, place; `config/dimensions.json`, in the
+  words of the data map), how many values that field has (few, some, many, from the dimension's `cardinality` through the
+  table's `value_classes`), whether it looks at one window of at most `trailing_window_months` or over time, how many values
+  the visitor picked, and the kind of a second field crossed with it. `questionFacts` in `src/lib/resolve.ts` builds them.
+- **The rules.** `rules` are read from the top and the first whose `when` matches gives the answer: the shapes that fit,
+  best first. The last rule matches everything, so every question fits at least one shape. The first is drawn; where more
+  than one fits and has a renderer, Build lets the visitor switch among them (`viewsFor` in `src/lib/builder.ts`). A
+  shape with no renderer is dropped from what is offered; `RENDERED_SHAPES` in `src/lib/resolve.ts` is the one place that knows
+  which have one.
+- **A table of the figures** is available for every shape that is drawn: the trend and distribution renderers give a
+  disclosure, the lines and the map a key table, the ranking is a table.
+- **A dimension states what it is, never which chart it gets.** Give a new dimension a `kind` and a `cardinality`
+  (`low` is at most `cardinality.few_max_values` of `config/data_map.json`; `medium` is more and not ranked; `high` and
+  `very_high` are long enough to rank). A new measure states its `kind`. A test checks a dimension that is a plain binding of one
+  register field against the data map (`tests/site/shapes.test.ts`).
+- **To add a rule,** put an object in `rules` above the one it should win over, with an `id`, a `when` made of the facts it
+  cares about (a word or a list of words each; leave out what does not matter), `shapes` (best first, only the six) and a
+  `note`. Name no field, measure or value: a test fails if a rule does. Then run `node --test "tests/site/*.test.ts"`. Every
+  rule must be reached by some question, and `tests/site/shape-defaults.test.ts` lists any preset or Build question whose shape
+  or switches changed; read each difference, regenerate with `UPDATE_SHAPE_DEFAULTS=1`, and list it in the decision record.
 
 ## Groups
 

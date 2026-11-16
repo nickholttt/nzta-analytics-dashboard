@@ -184,6 +184,7 @@ config/
   dimensions.json     # what users can break down by, with each dimension's derive rule
   measures.json       # what users can measure
   presets.json        # the Explore canon, as data
+  chart_rules.json    # which shapes fit a question: the one rule table (D-100)
   pipeline.json       # source field bindings, thresholds, detection rules
   narrative/          # planned (D-062): phrase templates, verb bands, banned words
 data/reference/

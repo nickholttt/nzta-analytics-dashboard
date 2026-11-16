@@ -115,6 +115,10 @@ Setup, **not re-run this session** (the environment already existed):
   disagrees with `data/reference/tla_region.csv`.
 - Charts are data: each preset is an object in `config/presets.json` (`groups[].presets[]`) with
   `status` (live/blocked/invalid) and `requires`.
+- Shapes are inferred, not chosen per field: `config/chart_rules.json` is the one table that says which of the six
+  fit a question, best first, from the kind of the measure and of the field, how many values it has and whether the
+  question looks at one window or over time (`src/lib/shapes.ts`, `inferShape` and `viewsFor`; D-100). A preset may pin
+  a shape only to one the table says fits. Dimensions and measures state their `kind`, never a chart.
 
 ## Hard rules: changing any of these needs the user's explicit approval
 

@@ -3520,3 +3520,91 @@ New entries use this template:
   - Package F binds the owner fields privately, builds the hiding of small cells, and only then sets `enforced`.
   - Reversing the renames: three ids in `config/data_map.json` and one line in its test.
 - Status: accepted (the user's answers); the readings above are decided by Claude (unreviewed)
+
+## D-100 2026-11-16 — The chart rules: one table in config says which shapes fit a question, and Build and the resolver read it
+- Agent: claude
+- Basis: the work order §5.E ("one rule table in config that returns the shapes that fit a question, best first"; "Build's
+  shape choice reads the rule table"); CLAUDE.md, Shapes; D-059, D-061, D-050, D-083, D-090; the code on
+  `claude/chart-rules`; the site tests, 30 passed; the pipeline tests that read `config/dimensions.json` and
+  `config/measures.json`, 239 passed, and `test_golden.py`, 5 passed; headless checks of the Build, Explore and status pages on 2026-11-16.
+- Context: the choice of shape was scattered. `inferShape` read a `shape_hint` on each dimension, a `shape` on each
+  measure, a preset's `shape_override` and the dimension's cardinality; `viewsFor` hardcoded which alternatives a
+  visitor may switch to; `allowsTotal` read the measure's `shape` a third time. A dimension or a measure listing its own
+  chart is what CLAUDE.md forbids.
+- Options considered:
+  1. **The table's form.** (a) First matching rule wins, and returns the whole ordered answer. (b) Every matching rule
+     adds its shapes, in rule order. Chosen (a): the order of the rules is the whole logic, a reader gets the answer
+     from one row, and a catch-all as the last row cannot add a shape to a question that has a better one. With (b) the
+     catch-all would have offered a line chart beside a map.
+  2. **Its facts.** Six, all generic: the kind of measure (count, share, average, ratio), the kind of the field the
+     question breaks down by (the data map's words) and how many values it has (few, some, many), one window or over
+     time, how many values the visitor picked (none, one, several), and the kind of a second field crossed with the first.
+     A rule names no field, measure, dataset, reference value or period; a test fails if one does.
+  3. **Where a dimension's kind comes from.** (a) Read the data map by field. Not possible alone: a dimension is often a
+     lookup or a band over one or more fields (a powertrain is a lookup over motive power, a vehicle age a band over a
+     year), the map describes register fields, and several dimensions read none (Stats NZ's series). (b) A `kind` the
+     dimension states about itself in `config/dimensions.json`, in the map's words, with a test against the map where
+     the dimension is a plain binding of one field (a raw field or a lookup on one: its kind must match; a field the map
+     calls few must be `low`; a raw field the map calls many must not be; a band must be cut from a number or a year).
+     Chosen (b). A dimension says what it is (a category, an ordered band, a place), never which chart it gets.
+  4. **Few or many.** (a) The data map's two classes (at most 8 values, or more). (b) The manifest's actual count of
+     values, where the build has it. (c) The dimension's own `cardinality`, already in config, with the table's
+     `value_classes` mapping it to few, some or many. Chosen (c). The ranking is not a count: D-050 ranks manufacturer
+     group (43 values) and not the country a vehicle was built in (46), so (a) would turn that country into a ranking
+     and (b) would need the manifest in the browser before any shape can be chosen. `some` is the class for what is
+     more than a palette's worth and is not ranked. Nothing is renamed: `composition.ts` reads the same key.
+  5. **Measure kinds.** The measure states a `kind` (`count`, `share`, `average` or `ratio`), as the dimension does. A
+     change on a year ago, a combined share and the share still registered are ratios; the running total is a count.
+  6. **A pin.** `shape_override` stays, and the resolver now reports a preset that pins a shape the table does not
+     list for its question as `invalid`, which stops it drawing. Build still pins a count by a breakdown to lines
+     (D-061), which fits.
+  7. **Whether a count by a breakdown should follow the table too.** It would rank, for one window with no values chosen,
+     as the Explore preset for models does, and Build would offer a 12-month ranking of a count by brand for the moments
+     before its five starting values arrive. Not chosen: D-060 and D-061 say a count by a breakdown is lines. Reversing
+     it is deleting the pin in `presetFor`.
+  8. **`shape_hint` and the measure's `shape`.** Removed. The pipeline never reads either: no `.py` file names them, no
+     test does, and `pipeline/tests/golden/contract.json` has neither, so the cube's output contract is untouched.
+- Decision: as chosen above. `config/chart_rules.json` holds the six shapes, the facts and their words, `value_classes`,
+  `needs_breakdown` (the kinds of measure that mean nothing for all vehicles together, which is how Build decides
+  whether to offer "no breakdown") and six rules, in order: two fields crossed (a matrix); a share by a place (a map,
+  then lines); a share by an ordered band (a distribution, then lines); one window of a long list with nothing picked,
+  asked as a count or a share (a ranking); a share by a category (lines of shares); anything else (a line).
+  `src/lib/shapes.ts` reads it. `inferShape` takes the first shape that fits and has a renderer; `viewsFor` is the
+  shapes that fit and have a renderer, or none when there is one. `RENDERED_SHAPES` stays in `src/lib/resolve.ts`,
+  exported, as the one place that knows which shapes have a renderer; the table may name `matrix` and it is never
+  offered. A table of the figures is not a rule: every renderer already gives one (a disclosure on the trend and the
+  distribution, a key table by the lines and the map, the ranking as a table), and a test reads each renderer's source
+  for it.
+- Compared before and after (`tests/site/fixtures/shape-defaults.json`, run by `tests/site/shape-defaults.test.ts`
+  against the site's real modules): all 13 presets in the canon, 15 views counting the choice of brand or group and of
+  brand or model, each at its own period and at all six periods, with the periods that turn it into a ranking (120
+  figures); and every question the Build page can form, 123 (each measure, each breakdown it offers, and no breakdown
+  for a count, with no values chosen, one and two), each with the shapes it may be switched between (21 offer a switch)
+  and what each is drawn as (288 figures). **No difference.** The fixture was written from the code before the change.
+- Differences that no visitor can reach, listed because the table is not the old code line for line:
+  - A count or an average by a place or an ordered band is a line, not a map or a distribution (the table lists the map
+    and the distribution for a share only, because they draw shares only, D-061). No preset and no Build question
+    asked it: Build pinned counts to lines.
+  - A ranking is for a count or a share, with nothing picked. Before, any measure by a long list over one window ranked,
+    and a question with picked values could. Only a ratio (the combined share) was affected, and its preset pins a line.
+  - A share with no breakdown is a line, not lines of shares. It is not offered (`needs_breakdown`) and no preset asks it.
+  - A preset or a view that pins a shape the table does not list is now `invalid`. None does today: a test walks the
+    canon and every Build question and finds each pin in the table.
+- Measured, at 390 and 1280 px against a preview of the 2026-10 dry-run cube, before and after: the Build page for a
+  share by a place (map and lines both drawn), a share by an ordered band (bars and lines both drawn), a share by brand
+  (and its 12-month ranking), the same for true registrations, a count of two brands, and the share of the five largest,
+  and the Explore and status pages: the same radio buttons, the same time options, every chart drawn, no console error,
+  no sideways scroll, no axe violation (WCAG 2.1 A and AA), on both builds. JavaScript the Build page loads: 817,868 to
+  821,655 bytes (+3,787); all of the site's JavaScript, 820,573 to 824,360 bytes raw (+0.46%) and 302,732 to 304,213
+  gzipped (+1,481), because the table ships to the browser. Nothing else a visitor downloads changed.
+- Consequences:
+  - A new shape fit, or a new kind of field, is a row in `config/chart_rules.json` and a `kind` on a dimension. A new
+    dimension needs its `kind` and `cardinality`, and a test fails without them.
+  - `matrix` is offered the day it has a renderer: add it to `RENDERED_SHAPES` and give a question a second breakdown
+    (`crossed_with` is always "none" until then).
+  - The tests run the site's real modules under Node through a loader in `tests/site/support/` that adds extensions, JSON
+    import attributes and `import.meta.env`, and strips TypeScript with `module.stripTypeScriptTypes`, which Node marks
+    experimental (Node 22.19 here). A Node that drops it needs the loader changed, nothing else.
+  - Reversing it: restore `shape_hint` and `shape` in the two config files and the old `inferShape` and `viewsFor` from
+    git; delete `config/chart_rules.json` and `src/lib/shapes.ts`. The cube, the golden file and the pipeline do not change.
+- Status: decided by Claude (unreviewed)
