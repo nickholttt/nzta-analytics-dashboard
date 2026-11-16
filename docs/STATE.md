@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-15
+Last updated by claude on 2026-11-16
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is in
 `docs/CHECKPOINT.md`. The direction is the user's standing work order,
@@ -9,55 +9,56 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - `main` is the merge of #59, on `fd4320c` (the merge of #58).
-  - **The last build is the forced run 43637172195** (14 November 2026, 20:22 UTC; snapshot
-    2026-10; 5,926,990 rows; no warning). It was the one forced run the work order allowed, made
-    after the daily run 43600595387 reported "Source unchanged". Its cube replaced the file of
-    the release `cube-2026-10`, which now holds the fact table. Its state commit is `c418ab1`;
-    the archive job did nothing (October was already archived); `Deploy` uploaded nothing.
-  - **The build is tried every day** at 06:17 UTC (D-064, D-070). GitHub started the first
-    daily run seven hours late.
+  - **The last build is the forced run 43637172195** (14 November 2026; snapshot 2026-10;
+    5,926,990 rows; no warning): the one forced run the work order allowed. The release
+    `cube-2026-10` holds its cube, with the fact table. `Deploy` uploaded nothing.
+  - **The build is tried every day** at 06:17 UTC (D-064, D-070); the run of 15 November
+    said "Source unchanged".
   - **The archive**: the private repository `nickholttt/nzta-register-archive` holds one
-    release, `snapshot-2026-10`, two files, unchanged (39,298,142 and 55,125,916 bytes; the
-    second holds `VIN11` and `POSTCODE`).
+    release, `snapshot-2026-10`, two files (the second holds `VIN11` and `POSTCODE`).
 - **`registrations_flow` is built wherever its store is** (#55, D-092): true first
   registrations from the user's exports of NZTA's dashboard, January 2021 on, through
   `python -m pipeline supply` and the register's own code. The store is on this computer only
   (gitignored `data/supplied/`), so GitHub's builds mark the dataset `not_built`.
-- **`registrations_cars_long_run` is built wherever its store is** (#57, D-094): Stats NZ's
-  count of cars first registered each month, January 1961 on, through
-  `python -m pipeline supply statsnz_tpt`. The site does not show it yet.
+- **`registrations_cars_long_run`** (#57, D-094; Stats NZ's cars, 1961 on): the same.
 - **NZTA's vehicle type is a dimension** on the two datasets built from vehicle rows (#58,
-  D-095), with a pair on the survivors: what completeness by vehicle type needs. The next
-  build on GitHub writes it for the survivors.
-- **The site shows true registrations on a local build** (#56, D-093): a group in Explore (the month's count
-  against a year ago, brands and models ranked for any month, completeness, powertrain share)
-  and a choice of what Build counts. On a build without the dataset it says so plainly.
-- **The site's code is on `main`**, with `/about` (a draft with six gaps for the user),
+  D-095), with a pair on the survivors. The next build on GitHub writes it for the survivors.
+- **The site shows true registrations on a local build** (#56, D-093): a group in Explore
+  and a choice of what Build counts; completeness by vehicle type and new or used (#61).
+- **The site shows the long run on a local build** (#61, D-098): cars first registered each
+  month from 1961, new and ex-overseas, and cars still registered set against Stats NZ's
+  count (not a survival rate). A build without a dataset says so in place of its charts.
+- **The site's code is on `main`**, with `/about` (a draft; three gaps left for the user, D-096),
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
   site from the newest cube release and uploads nothing. **Nothing is deployed**: the
-  variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-15).
-- **The data map is finished** (#53, D-090): `docs/DATA_MAP.md`, `config/data_map.json`, tests.
-  Its privacy classes are proposed, not approved; nothing is bound by it.
-- **The query service is specified, prototyped and proposed** (#54, D-091): a local prototype
-  behind a switch that is off. Nothing is provisioned.
+  variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-16).
+- **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
+  user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
+  or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
+  them (package F); the `region` slice stays; postcode totals are not published for now.
+- **The query service** is specified, prototyped and proposed (#54, D-091); none is provisioned.
 - **Events**: 54 rows, 50 verified; four are unverified on purpose. Don't guess dates.
 
 ## Current step
 
-**Work order 1.** A, B, G, the first part of E and C's pipeline half are done. Next: C's
-charts and completeness by vehicle type on the site; then D's first-load work, the rest of
-E, F, H and I. One report at the end (D-082).
+**Work order 1.** A, B, C and G are done on a local build. In hand: D's first load, E's chart
+rules, the supplied counts as files. Then F, H and I. One report at the end (D-082).
 
 ## In progress (all claude; nothing by gemini)
 
-Nothing: no pull request is open and no branch is in hand (#47 to #59 merged in this
-session; #59 rewrote `README.md`, the repository's front page, as the user asked). Any
-worktree `git worktree list` shows is of a merged branch and can be removed.
+Three branches, each in its own worktree (`git worktree list`), started 2026-11-16; none
+has a pull request yet. (#60, the user's answers, and #61, the long-run charts, are merged.)
+
+- `claude/stores-in-repo` (D-097): both supplied sources' counts as files in the repository.
+  `pipeline/supplied.py`, `pipeline/series.py`, their tests, `data/supplied/`, AGENTS.md,
+  `docs/CUBE_SCHEMA.md`, `docs/DATA_SOURCES.md`, two playbooks.
+- `claude/chart-rules` (D-100, D-101): package E's rule table for which shapes fit a question,
+  and the site's tests in `Checks`. `src/lib/resolve.ts`, `src/lib/builder.ts`, a new config file.
+- `claude/first-load` (D-099): package D's first-load trim and the status page's chunk.
+  `astro.config.mjs`, the layout, fonts, `src/lib/data.ts`.
 
 - **This folder's `public/data`** (gitignored) is the dry-run build of #58: three datasets.
-  `data/supplied/` (gitignored) holds both stores, `nzta_dashboard` and `statsnz_tpt`. Also
-  local: the data map's field profile and the packages' plans, under `data/staging/`.
+  Also local: both stores in `data/supplied/`; the data map's field profile in `data/staging/`.
 
 ## Raw files on this computer (gitignored)
 
@@ -66,13 +67,11 @@ worktree `git worktree list` shows is of a merged branch and can be removed.
 - `data/raw/nzta-dashboard/`: the user's exports of NZTA's registrations dashboard (D-084).
   - `history/`: January 2021 to October 2026, 991,274 rows, 1,883,786 vehicles; `2021-01/`:
     January 2021 alone; `2026-10/`: the first hand export, NZTA's page, screenshots (D-075).
-- `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's monthly series, January 1961 to
-  September 2026, 26 series, 95,024 bytes. Fetched read-only from Infoshare for building and
-  testing (the work order §2); the user's own hand export replaces it (D-065).
+- `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's monthly series, 1961-01 to 2026-09,
+  fetched read-only from Infoshare; the user's own hand export replaces it later (D-065).
 - **No local file holds `VIN11` or `POSTCODE`.**
 - **Copies:** a backup folder on the project's own disk holds both register pulls and both
-  dashboard CSV files (SHA-256 checked). Two more copies of the history file are in the
-  user's Downloads folder (D-084).
+  dashboard CSV files (SHA-256 checked); two more of the history file are in Downloads.
 
 ## Known issues
 
@@ -83,7 +82,7 @@ worktree `git worktree list` shows is of a merged branch and can be removed.
 3. Mild hybrids are identified for 62.7% of `registrations_flow`'s hybrids at high confidence
    over the trailing 12 months, under the 70% the pipeline warns at (D-092).
 4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
-   2026-10 dry run). Whether a minimum count is wanted is for the Stage 2 privacy review.
+   2026-10 dry run). It holds no owner field; the user's minimum of 10 is for owner fields (D-096).
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
 6. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
@@ -111,20 +110,21 @@ worktree `git worktree list` shows is of a merged branch and can be removed.
 - `docs/DATA_MAP.md` lists ten places where it disagrees with other files (an engine band
   with no upper limit; a fuel guard looser than the profile supports; stale counts in
   `sentinels.csv`'s notes). Each is fixed when its field is next touched (package F).
-- A `region` slice is published, and the work order §3 names region among the fields not
-  published without asking. It predates the order (D-078); keeping it is the user's question.
+- CLAUDE.md's non-goals say postcode figures "wait for the Stage 2 privacy review". The user's
+  answer is "not now" (D-096); CLAUDE.md is not edited (the order's §3).
 
 ## Blocked or waiting on the user
 
-Nothing stops the work. Parked for the final report (CHECKPOINT, questions).
+Nothing stops the work (CHECKPOINT, questions). Waiting on the user: the code's licence;
+who runs the site, its name and address (the About page's gaps); the retaken dashboard
+history, due in the user's Downloads folder. Waiting on a date: matching vehicles between
+two months' archive files needs November's file (December).
 
 ## How to run
 
-`AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). On
-2026-11-15: the pipeline tests, 421 passed locally on what became #58 before `main` was merged
-in, and they pass in `Checks` in about two minutes; a dry-run build with both stores, exit 0
-in 12 min 48 s; on what became #56, `tsc --noEmit` exit 0, `astro build` with and without the dataset, the site's 11 tests
-(`node --test "tests/site/*.test.ts"`), and the new pages headless at 320, 390 and 1280 px.
+`AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
+the pipeline tests in about two minutes (#60). In a fresh worktree on 2026-11-16: `astro build`
+10 pages, then `tsc --noEmit` exit 0 (the build writes the types it needs), the site's 11 tests.
 
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and

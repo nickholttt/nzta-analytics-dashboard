@@ -31,7 +31,10 @@ With two more sets of figures that the maintainer downloads by hand each month
   whether that is up or down on a year ago, by brand and by model.
 - **Which brands and models lead** in any single month.
 - **How complete the picture is**: for each month, how many of the vehicles
-  registered are still on the register.
+  registered are still on the register, by kind of vehicle and new or used.
+- **How many cars were registered each month back to 1961**, new and
+  ex-overseas, from Stats NZ's series, and how the cars still registered
+  compare with that count.
 
 Without those files the site says plainly that these charts are not in the
 build.
@@ -82,11 +85,11 @@ the Motor Trade Association. No licence has been chosen for the code yet.
 - **Charts are data.** Each chart on the Explore page is an entry in
   `config/presets.json`, drawn by one of a fixed set of renderers.
 - **Every field is written up.** `docs/DATA_MAP.md` gives each of the
-  register's 40 fields its meaning, its coverage, its traps and a proposed
-  privacy class. The classes are proposals, not yet approved by the owner.
-  Fields that describe a vehicle's owner are not published, with one
-  exception: the share of vehicles by the owner's region, which predates that
-  rule and waits on the owner's decision.
+  register's 40 fields its meaning, its coverage, its traps and a privacy
+  class, approved by the owner. Fields that describe a vehicle's owner are
+  not published, with one exception: the share of vehicles by the owner's
+  region. The rest may appear later, only in simple tables with small counts
+  hidden.
 - **The site** (Astro, React and Observable Plot, `src/`) reads the cube as
   static files.
 
@@ -155,13 +158,14 @@ a reference value.
 - The website is not online. Its About page is a marked draft.
 - True registrations and the long-run car series are built only where their
   hand-downloaded files are, not on GitHub.
-- The long-run car series has no chart yet.
 - SUVs cannot be told apart from cars: the register records most as station
   wagons. A model-level classification is planned.
 - A question on the Build page takes several seconds to answer on a phone.
   Most of the wait is the page's own code and fonts; the rest is the table of
   counts the browser downloads and adds up itself.
-- The privacy classes for the register's fields are proposals.
+- Apart from the owner's region, fields that describe a vehicle's owner
+  (district, usage, industry class, owner type) cannot be asked about yet.
+  They will appear only in simple tables, with small counts hidden.
 - The method and caveats pages are written by hand and fall behind when a new
   month arrives.
 - Four of the 54 events are unverified and left out of the build.
