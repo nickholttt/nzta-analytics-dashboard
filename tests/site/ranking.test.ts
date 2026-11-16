@@ -55,15 +55,17 @@ test("an entry with no figure a year before has no rank then", () => {
   assert.equal(before.get("C"), undefined);
 });
 
-test("the audit's case: four brands on 3 vehicles behind 41 others all stand at 42, and the next stands at 46", () => {
-  const above = Array.from({ length: 41 }, (_, i) => entry(`BRAND ${String(i).padStart(2, "0")}`, 100 - i));
+test("the audit's case: four brands on 3 vehicles behind 40 others all stand at 41, and the next stands at 45", () => {
+  const above = Array.from({ length: 40 }, (_, i) => entry(`BRAND ${String(i).padStart(2, "0")}`, 100 - i));
   const tied = [entry("MAZDA", 3), entry("LOTUS", 3), entry("DONGFENG", 3), entry("CITROEN", 3)];
   const ranks = rankOf([...above, ...tied, entry("OTHER", 2)]);
-  for (const name of ["CITROEN", "DONGFENG", "LOTUS", "MAZDA"]) assert.equal(ranks.get(name), 42, name);
-  assert.equal(ranks.get("OTHER"), 46);
-  // The old rule ranked by count only and left a tie in arrival order: with this arrival DONGFENG came third of the four.
-  const old = [...above, ...tied].map((e, i) => [e.value, i + 1] as const);
-  assert.equal(new Map(old).get("DONGFENG"), 44);
+  for (const name of ["CITROEN", "DONGFENG", "LOTUS", "MAZDA"]) assert.equal(ranks.get(name), 41, name);
+  assert.equal(ranks.get("OTHER"), 45);
+  // The old rule ranked by count only and left a tie in the order it arrived, so the place a brand took depended on that
+  // order: arriving fourth of the four it read #44, as the audit's build showed DONGFENG. By position in the alphabet it would
+  // read #42; the rule gives all four the rank of the first, #41.
+  const arrivedFourth = [...above, entry("CITROEN", 3), entry("LOTUS", 3), entry("MAZDA", 3), entry("DONGFENG", 3)].map((e, i) => [e.value, i + 1] as const);
+  assert.equal(new Map(arrivedFourth).get("DONGFENG"), 44);
 });
 
 test("the league and the other charts that order by size use the rule, not a bare sort on the count", () => {

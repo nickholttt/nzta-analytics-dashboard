@@ -335,7 +335,7 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   );
 }
 
-function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false, month, onMonth, after }: Props) {
+function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false, label = (v) => v, month, onMonth, after }: Props) {
   const derived = preset.derived ? findDerived(preset.derived) : undefined;
   const share = derived?.unit === PERCENT;
   const words = datasetWords(preset.dataset);
@@ -475,7 +475,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
         ],
       });
     },
-    [model, share, lead, name, preset.measure, minDenominator, chosen, showYear, rows],
+    [model, share, lead, name, preset.measure, minDenominator, chosen, showYear, rows, label],
   );
 
   // A click or tap on the chart reads the month nearest to it. The month list is the keyboard's way to the same thing.
