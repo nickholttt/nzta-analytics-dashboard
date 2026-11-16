@@ -246,9 +246,9 @@ def test_the_first_build_that_has_the_dataset_is_accepted_and_the_later_ones_gua
     expect_abort(lambda: run(tmp_path, bare, state=copy.deepcopy(full), name="gone", publish=False), f"{WIDER}: it was built in the last good run")
 
 
-def test_a_store_trimmed_narrower_than_the_wider_scope_is_refused(built):
-    """The model of a (type, status) pair the dataset counts must be in the store. A ledger whose trim leaves one out would
-    otherwise give the dataset a model dimension that is silently not recorded for those vehicles."""
+def test_a_ledger_that_lacks_a_counted_pair_is_refused_and_the_committed_trim_is_the_wider_scopes_pairs(built):
+    """The older refusal: a ledger whose trim differs from today's rule by a pair that is counted now. (The case of a
+    second dataset counting beyond a trim that matches the rule is the next test; this one does not reach it.)"""
     cfg = built["cfg"]
     source = cfg.supplied(SOURCE)
     ledger = json.loads(supplied.store_paths(cfg, SOURCE)[1].read_text(encoding="utf-8"))
@@ -262,6 +262,27 @@ def test_a_store_trimmed_narrower_than_the_wider_scope_is_refused(built):
     assert refusals and any(dropped[0] in r or WIDER in r for r in refusals), refusals
     assert supplied.counted_pairs(cfg, WIDER) >= supplied.counted_pairs(cfg, FLOW)
     assert {tuple(p) for p in ledger["outside_scope"]["counted"]} == supplied.counted_pairs(cfg, WIDER)
+
+
+def test_a_store_whose_trim_matches_its_rule_but_not_a_second_dataset_is_refused_by_name(tmp_path, workspace):
+    """The case the guard exists for. Config drops the column that widens the trim, and the history is supplied again under
+    it, so the ledger equals what that config wants and nothing is stale. registrations_flow_wider still counts types whose
+    model that store blanked, and would publish 'not recorded' for every one of them. The store must be refused, naming the
+    dataset and its pairs, by scope_problems and by the build."""
+    cfg = make_cfg(workspace)
+    rule = cfg.pipeline["supplied"][SOURCE]["outside_scope"]
+    assert rule.pop("also_kept_column")
+    path, _ = history_with_added_types(cfg, tmp_path)
+    supplied.supply(cfg, SOURCE, path, taken="2026-09-05", echo=lambda *_: None)
+    source = cfg.supplied(SOURCE)
+    ledger = json.loads(supplied.store_paths(cfg, SOURCE)[1].read_text(encoding="utf-8"))
+    assert ledger["outside_scope"] == supplied.outside_scope(cfg, source), "the ledger must match the rule, or the older check would refuse"
+    only_wider = supplied.counted_pairs(cfg, WIDER) - supplied.counted_pairs(cfg, FLOW)
+    assert only_wider and not only_wider & {tuple(p) for p in ledger["outside_scope"]["counted"]}
+    refusals = supplied.scope_problems(cfg, source, ledger).refusals
+    assert len(refusals) == 1 and WIDER in refusals[0] and f"{len(only_wider)} (vehicle type, import status) pairs" in refusals[0], refusals
+    assert all(vehicle in refusals[0] for vehicle, _ in list(sorted(only_wider))[:6])
+    expect_abort(lambda: run(tmp_path, cfg), f"{WIDER} counts")
 
 
 def test_a_dataset_must_name_exactly_one_scope_flag(workspace):
