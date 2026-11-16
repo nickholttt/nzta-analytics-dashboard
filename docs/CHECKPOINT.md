@@ -20,9 +20,10 @@ Last updated by claude on 2026-11-16
     three of the About page's gaps are filled, and the repository's "About" line is set.
   - **Merged: #61**, package C's charts with completeness by vehicle type (D-098). Its
     review found the ratio chart joining a line across months it left out; fixed.
-  - **Three pieces run in parallel**, one branch each: the supplied counts as files in the
-    repository (D-097), package D's first-load trim (D-099), and package E's chart rules
-    with the site's tests in `Checks` (D-100, D-101). STATE lists their files.
+  - **Merged: #62**, package E's chart rules, with the site's tests in `Checks` (D-100, D-101).
+  - **Four pieces run in parallel**, one branch each: the supplied counts as files in the
+    repository (D-097), package D's first-load trim (D-099), package H's narrative spec
+    (D-102) and package I's proposed segment scheme (D-103). STATE lists their files.
   - **Slips, recorded:** #50 merged a minute before its last check finished (it passed);
     a first reading that event markers respect a filter was wrong (D-089).
 
@@ -41,8 +42,6 @@ Last updated by claude on 2026-11-16
   shows its separator, and `/build/` skips a heading (H); a second scope for events; a
   lookup should refuse a blank value at build time, not only in a test (D-095's review).
 - **B. True registrations.** Done on a local build. Left:
-  - The site's tests (`tests/site/`) and the prototype's tests in `Checks` (a workflow
-    change, with E's chart rules).
   - Each month: the user's export, then `python -m pipeline supply`
     (`docs/playbooks/supply-dashboard-month.md`), then a build with `--dry-run`.
 - **C. Stats NZ's long-run series.** Done on a local build (#57, #61, D-098). Left: the
@@ -52,9 +51,10 @@ Last updated by claude on 2026-11-16
 - **D. The rest of Stage 1.** Left: first load. Measured (D-091): 7.4 to 11.6 s to a Build
   answer on the phone profile; about 460 KB of each page is its own code and fonts. Trim
   those, measure again (target: a first answer under 3 seconds). Then the status chunk.
-- **E. The data map.** Done (#53). Left: the chart rule table in config with Build's shape
-  choice reading it; the pipeline writing the "moves together" figures each build;
-  `sentinels.csv` gaining the forms the map lists, as each field is bound.
+- **E. The data map.** Done (#53), and the chart rules (#62, D-100). Left: the pipeline
+  writing the "moves together" figures each build; `sentinels.csv` gaining the forms the
+  map lists, as each field is bound; the rule table does not yet check that a field may be
+  broken down (`uses.break_down`, with F).
 - **F. The full engine.** Not started. The map's binding order: colour, seats, where
   assembled, class; then power and transmission; owner fields last and unpublished. Then
   ranked chosen values, the `matrix` shape, any number of conditions, "My questions", the
