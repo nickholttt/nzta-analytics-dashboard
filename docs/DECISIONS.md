@@ -239,29 +239,6 @@ New entries use this template:
   "Next up" moved to CHECKPOINT.md.
 - Consequences: Gemini should read CHECKPOINT.md for the queue. Moving to `docs/decisions/` later
   is a mechanical split.
-- At review (#64, 2026-11-16): an independent comparison of this branch with main found no figure, string, table cell or chart
-  geometry changed apart from the button's new name, and asked for the following, each its own commit.
-  - **Wording**: the deploy-check sentence and the linked-chart row, corrected above. The script takes a `target` panel id
-    (the pages file sets it for the linked chart) for the next measurement.
-  - **Waiting and arrival**: only a chart that is being fetched has a live region, named by `aria-labelledby` its question; the
-    same element becomes "The chart has loaded." (hidden from the eye) when its rows arrive, so a polite status reads it once.
-    A chart not yet asked for says "loads as you scroll" in plain, non-live text, and the internal page has no live regions,
-    so a page never speaks for every chart at once. Read in the accessibility tree: two regions on the home page on load,
-    each named by its question, each announcing once. Chosen over putting the answer sentence in a live region (it would
-    read a long sentence at each draw, and the Build page redraws on every setting).
-  - **Unreadable data**: a file in a codec the reader has no decoder for says so without advice to reload and without naming
-    a codec (`src/lib/unreadable.ts`).
-  - **Edges of the month functions**: a malformed or missing month has no index (NaN, so a range is empty, as before) and
-    `monthAt` gives an empty string, not "NaN-undefined". `monthRange` moved to `sentences.ts`; the rolling mix and `monthKey`
-    moved, unchanged, to `rolling.ts` and `monthkey.ts` so tests reach them. Tests are seeded and fast: 3,000 ranges, 2,500
-    series against a plain version, 2,000 months. The remainder cache in `MixChart` is inside a hook and has no test of its own.
-  - **Codecs**: `config/pipeline.json` `site_reader.codecs` lists what the site's reader can decode (zstd, snappy, uncompressed);
-    `pipeline/tests/test_parquet_codecs.py` checks every published file against it, and `tests/site/reader-codecs.test.ts` checks
-    `data.ts` agrees. The writers for the archive and the supplied stores are not read by the site and are not checked.
-  - **One source for the internal folder names**: `scripts/internal-pages.json`, read by `astro.config.mjs` and the check.
-    `deploy.yml` keeps its own link-check pattern, which its test exercises against sample text, so it still names them.
-  - After these, the home page (scrolled so every chart loads) and four Build questions render the same text, tables, links,
-    labels and chart markup as before them, with the status regions set aside.
 - Status: decided by Claude (unreviewed)
 
 ## D-027 2026-10-19 — UI work on ui/explore returns to Claude; agents may push their own branches
@@ -3917,6 +3894,29 @@ New entries use this template:
 - Amended at the second review of #62: the step that runs the prototype's tests pipes their output to `tee`, and a
   workflow step's default shell has no `pipefail`, so a failing test passed the step. The step now names
   `shell: bash` and sets `pipefail`.
+- At review (#64, 2026-11-16): an independent comparison of this branch with main found no figure, string, table cell or chart
+  geometry changed apart from the button's new name, and asked for the following, each its own commit.
+  - **Wording**: the deploy-check sentence and the linked-chart row, corrected above. The script takes a `target` panel id
+    (the pages file sets it for the linked chart) for the next measurement.
+  - **Waiting and arrival**: only a chart that is being fetched has a live region, named by `aria-labelledby` its question; the
+    same element becomes "The chart has loaded." (hidden from the eye) when its rows arrive, so a polite status reads it once.
+    A chart not yet asked for says "loads as you scroll" in plain, non-live text, and the internal page has no live regions,
+    so a page never speaks for every chart at once. Read in the accessibility tree: two regions on the home page on load,
+    each named by its question, each announcing once. Chosen over putting the answer sentence in a live region (it would
+    read a long sentence at each draw, and the Build page redraws on every setting).
+  - **Unreadable data**: a file in a codec the reader has no decoder for says so without advice to reload and without naming
+    a codec (`src/lib/unreadable.ts`).
+  - **Edges of the month functions**: a malformed or missing month has no index (NaN, so a range is empty, as before) and
+    `monthAt` gives an empty string, not "NaN-undefined". `monthRange` moved to `sentences.ts`; the rolling mix and `monthKey`
+    moved, unchanged, to `rolling.ts` and `monthkey.ts` so tests reach them. Tests are seeded and fast: 3,000 ranges, 2,500
+    series against a plain version, 2,000 months. The remainder cache in `MixChart` is inside a hook and has no test of its own.
+  - **Codecs**: `config/pipeline.json` `site_reader.codecs` lists what the site's reader can decode (zstd, snappy, uncompressed);
+    `pipeline/tests/test_parquet_codecs.py` checks every published file against it, and `tests/site/reader-codecs.test.ts` checks
+    `data.ts` agrees. The writers for the archive and the supplied stores are not read by the site and are not checked.
+  - **One source for the internal folder names**: `scripts/internal-pages.json`, read by `astro.config.mjs` and the check.
+    `deploy.yml` keeps its own link-check pattern, which its test exercises against sample text, so it still names them.
+  - After these, the home page (scrolled so every chart loads) and four Build questions render the same text, tables, links,
+    labels and chart markup as before them, with the status regions set aside.
 - Status: decided by Claude (unreviewed)
 
 ## D-104 2026-11-16 — The user's direction: the engine comes first and must be right; the public site waits; figures are checked against outside sources
