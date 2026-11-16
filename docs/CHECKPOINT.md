@@ -11,7 +11,7 @@ Last updated by claude on 2026-11-16
     by vehicle type (D-098). #62, the chart rules and the site's tests in `Checks` (D-100,
     D-101). #64, the first-load trim (D-099). #65, the comparison with published figures
     and three more answers (D-105, D-106). #66, the supplied counts as files (D-097). #67,
-    the audit's site-side fixes (D-107).
+    the audit's site-side fixes (D-107). #68, its pipeline-side fixes (D-108).
   - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
     the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
     sit about 1% lower, cause not established. Range-extended electric vehicles sit with
@@ -43,11 +43,11 @@ independently of the site's code; figures are compared with published New Zealan
      under a condition is zero; METRICS says what each guard does; the coverage note;
      `/caveats`; models read as words; a lint against naming a value in a template.
    - Next on the site: a 12-month share under a condition (a gap today); guards in a ranking.
-   - On the pipeline's side, in hand on `claude/audit-pipeline-fixes` (D-108): hybrid
-     nameplates the dashboard spells differently are missing from `mild_hybrid_models.csv`
-     (coverage reads 66.0%); the mild split is drawn below METRICS' 70%; ties at the model cap.
-     Also: any change to the scope files refuses the committed counts until the history is
-     supplied again, even a row for a new NZTA value; refuse only what the trim depends on.
+   - On the pipeline's side, done (#68, D-108): eight hybrid nameplates added, each from a
+     published source (true registrations' coverage 66.0% to 83.5%); a dataset under 70%
+     shows its hybrids undivided; the tie at the model cap has a rule; a new NZTA value no
+     longer refuses the committed counts. Left (D-108's review): a build does not say when a
+     dataset's split flips to withheld or back; a test exactly at 70%; the cap's tie test.
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. First: a total of new vehicles on the trade's basis beside the default scope

@@ -141,9 +141,10 @@ def store_problems(con, table: str, ledger: dict, count: str = STORE_COUNT, tota
     return problems
 
 
-def load_store(con, cfg, source_id: str, aborts: list[str]) -> tuple[dict, date, date] | None:
+def load_store(con, cfg, source_id: str, aborts: list[str], warnings: list[str] | None = None) -> tuple[dict, date, date] | None:
     """The build's view of a store that has both its files: it becomes the table `supplied_store`, after it is checked
-    against its ledger. Returns the ledger and the store's first and last month, or None after adding to `aborts`."""
+    against its ledger. Returns the ledger and the store's first and last month, or None after adding to `aborts`. What
+    the scope check finds that leaves the store correct is added to `warnings`."""
     source = cfg.supplied(source_id)
     registrations, ledger_path = store_paths(cfg, source_id)
     bad = check_config(source)
@@ -157,11 +158,14 @@ def load_store(con, cfg, source_id: str, aborts: list[str]) -> tuple[dict, date,
         aborts.append(f"{source_id}: the store's columns are {found}, but config/pipeline.json expects {lay.columns}")
         return None
     ledger = read_ledger(ledger_path)
+    scope = scope_problems(cfg, source, ledger)
     problems = (hash_problems(registrations, ledger) + store_problems(con, "supplied_store", ledger, lay.count, lay.total_key)
-                + scope_problems(cfg, source, ledger))
+                + scope.refusals)
     if problems:
         aborts.extend(f"{source_id}: the store disagrees with its ledger: {problem}" for problem in problems)
         return None
+    if warnings is not None:
+        warnings.extend(f"{source_id}: {w}" for w in scope.warnings)
     first, latest = con.execute(f"SELECT min({STORE_MONTH}), max({STORE_MONTH}) FROM supplied_store").fetchone()
     return ledger, first, latest
 
@@ -213,21 +217,64 @@ def outside_scope(cfg, source: dict) -> dict | None:
             "known": {vehicle["field"]: sorted(vehicles), status["field"]: sorted(statuses)}, "counted": counted}
 
 
-def scope_problems(cfg, source: dict, ledger: dict) -> list[str]:
-    """The store must have been written under the scope config states today, or its months were trimmed differently."""
+class ScopeCheck(NamedTuple):
+    """What differs between the scope a store was trimmed to and the scope config and the scope files give today.
+    `refusals` make the store wrong (a model it blanked would now be read); `warnings` leave it correct but larger than
+    it needs to be."""
+    refusals: list[str]
+    warnings: list[str]
+
+
+def blanked_pairs(scope: dict) -> set[tuple[str, str]]:
+    """The (vehicle type, import status) pairs a scope trims: both values known, and the pair not counted."""
+    (_, known_v), (_, known_s) = scope["known"].items()
+    return {(v, s) for v in known_v for s in known_s} - {(v, s) for v, s in scope["counted"]}
+
+
+def pairs_text(pairs, most: int = 6) -> str:
+    shown = [f"{v} / {s}" for v, s in sorted(pairs)]
+    return "; ".join(shown[:most]) + (f"; and {len(shown) - most} more" if len(shown) > most else "")
+
+
+def scope_problems(cfg, source: dict, ledger: dict) -> ScopeCheck:
+    """The store against the scope today. The trim blanks a field for the pairs the dataset does not count, so the store
+    is wrong only if a model it blanked would now be read: a blanked pair that is counted now, or a field the ledger says
+    was blanked that config no longer lists. A pair that stops being counted, a value the scope files did not know when
+    the store was written, or a field added to the rule leaves the store holding more than it needs: a warning. A ledger
+    that does not say what the store was trimmed to, or a rule config no longer has, cannot be judged: a refusal."""
     wanted, recorded = outside_scope(cfg, source), ledger.get("outside_scope")
     if wanted == recorded:
-        return []
+        return ScopeCheck([], [])
+    again = ("Supply the whole history again from the raw exports: remove both store files and run `supply` "
+             "(docs/playbooks/supply-dashboard-month.md, Replacing the whole history)")
     if wanted is None:
-        return ["the ledger records a scope the store was trimmed to, but config/pipeline.json has no outside_scope rule now"]
+        return ScopeCheck(["the ledger records a scope the store was trimmed to, but config/pipeline.json has no outside_scope rule now"], [])
     if recorded is None:
-        return ["the ledger does not say what the store was trimmed to, but config/pipeline.json has an outside_scope rule"]
-    return [f"the store was written when {recorded['dataset']} counted {len(recorded['counted'])} (vehicle type, import status) "
-            f"pairs and the scope files knew {sum(len(v) for v in recorded['known'].values())} values; config and the scope "
-            f"files now give {len(wanted['counted'])} pairs and {sum(len(v) for v in wanted['known'].values())} values, "
-            f"for {wanted['dataset']} (fields kept only inside it: {wanted['fields']}). Months written under one scope "
-            "cannot sit beside months written under another. Supply the whole history again from the raw exports: remove both "
-            "store files and run `supply` (docs/playbooks/supply-dashboard-month.md, Replacing the whole history)"]
+        return ScopeCheck(["the ledger does not say what the store was trimmed to, but config/pipeline.json has an outside_scope rule"], [])
+    refusals, warnings = [], []
+    blanked_then = blanked_pairs(recorded)
+    now_read = sorted(blanked_then & {(v, s) for v, s in wanted["counted"]})
+    if now_read:
+        refusals.append(f"the store did not keep the model of {len(now_read)} (vehicle type, import status) pairs that "
+                        f"{wanted['dataset']} counts now ({pairs_text(now_read)}). {again}")
+    dropped = sorted(set(recorded["fields"]) - set(wanted["fields"]))
+    if dropped and blanked_then:
+        refusals.append(f"the store has no value of {dropped} for {len(blanked_then)} pairs, but config no longer trims "
+                        f"{'it' if len(dropped) == 1 else 'them'}. {again}")
+    no_longer = sorted({(v, s) for v, s in recorded["counted"]} - {(v, s) for v, s in wanted["counted"]})
+    if no_longer:
+        warnings.append(f"the store keeps the model of {len(no_longer)} (vehicle type, import status) pairs that "
+                        f"{wanted['dataset']} no longer counts ({pairs_text(no_longer)}); it holds more than it needs, and "
+                        "nothing published changes. New months are trimmed as the ledger records")
+    for field, then in recorded["known"].items():
+        new = sorted(set(wanted["known"][field]) - set(then))
+        if new:
+            warnings.append(f"the scope files now know {field} values the store was written without ({', '.join(new)}); "
+                            "their rows keep their model, which the dataset may not need")
+    added = sorted(set(wanted["fields"]) - set(recorded["fields"]))
+    if added:
+        warnings.append(f"config now also trims {added}; the store keeps it for every row, which is more than it needs")
+    return ScopeCheck(refusals, warnings)
 
 
 def blanked(source: dict, scope: dict | None, column: str) -> str:
@@ -469,23 +516,29 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
     else:
         warnings.append("the totals were not checked against the dashboard: give --totals with the figures it showed")
 
-    scope = outside_scope(cfg, source)
+    registrations, ledger_path = store_paths(cfg, source_id)
+    have = bool(registrations.exists() or ledger_path.exists())
+    if have and not (registrations.exists() and ledger_path.exists()):
+        raise abort("the store has one of its two files; restore the other or remove both and supply again")
+    if have:
+        ledger = read_ledger(ledger_path)
+        check = scope_problems(cfg, source, ledger)
+        if check.refusals:
+            raise abort("; ".join(check.refusals))
+        warnings.extend(check.warnings)
+        # New months are trimmed to the scope the store was written under, not today's, so every month in the store
+        # is trimmed alike and a month supplied again compares equal to the one held.
+        scope = ledger.get("outside_scope")
+    else:
+        scope = outside_scope(cfg, source)
+        ledger = {"store_sha256": None, "files": {}, "months": {}, "replaced": []}
+        if scope:
+            ledger["outside_scope"] = scope
     columns = ", ".join(blanked(source, scope, c) for c in store_columns(source)[:-1])
     # Rows that differ only in a field not kept outside the scope become one row; the vehicles are summed.
     con.execute(f"CREATE TABLE incoming_rows AS SELECT {columns}, CAST(sum({STORE_COUNT}) AS INTEGER) AS {STORE_COUNT} "
                 "FROM typed GROUP BY ALL")
-    registrations, ledger_path = store_paths(cfg, source_id)
-    ledger = {"store_sha256": None, "files": {}, "months": {}, "replaced": []}
-    if scope:
-        ledger["outside_scope"] = scope
-    have = bool(registrations.exists() or ledger_path.exists())
     if have:
-        if not (registrations.exists() and ledger_path.exists()):
-            raise abort("the store has one of its two files; restore the other or remove both and supply again")
-        ledger = read_ledger(ledger_path)
-        problems = scope_problems(cfg, source, ledger)
-        if problems:
-            raise abort("; ".join(problems))
         held = [c for c, *_ in con.execute(f"DESCRIBE SELECT * FROM read_parquet({lit(registrations.as_posix())})").fetchall()]
         if held != store_columns(source):
             raise abort(f"the store's columns are {held}, but config/pipeline.json expects {store_columns(source)}. A file "

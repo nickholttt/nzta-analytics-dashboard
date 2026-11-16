@@ -56,11 +56,17 @@ caravans). `supply` keeps a model where the vehicle type is in the default scope
 `vehicle_scope.csv` and the import status is one `registrations_flow` counts; for every other row it stores the
 model as not recorded and sums the rows that become identical. Every other field of the row, and so every
 vehicle type's counts, stays. Which rows those are comes from `supplied.nzta_dashboard.outside_scope` and the
-scope files the build reads, and the ledger records the scope the store was written under. If that scope
-later changes in any way (a vehicle type or import status becomes counted or stops being, gains or loses
-`trade_scope`, or a row is added for a value NZTA has not used before), the build and `supply` refuse the store
-and say so, and `Checks` fails the pull request that made the change: supply the whole history again from the
-raw exports, as below, in that same pull request.
+scope files the build reads, and the ledger records the scope the store was written under. The store is wrong
+only if the dataset would now read a model it blanked: a (vehicle type, import status) pair that was not counted
+when the store was written and is now (a vehicle type or import status becomes counted, or gains `trade_scope`),
+or a field the rule no longer lists. Then the build and `supply` refuse the store and say which pairs, and `Checks`
+fails the pull request that made the change: supply the whole history again from the raw exports, as below, in that
+same pull request. Anything else only warns, and nothing published changes: a pair that stops being counted or
+loses `trade_scope`, a vehicle type or import status the scope files gain (so a row added to
+`vehicle_scope.csv` or `import_status_map.csv` for a value NZTA has not used before is safe to add), and a field
+added to the rule. The store then holds models it need not. A month supplied afterwards is trimmed to the scope the
+ledger records, not today's, so every month in the store is trimmed alike; supply the whole history again only if
+you want the smaller store.
 
 ## Replacing the whole history
 
@@ -70,7 +76,7 @@ months), the new file replaces the old one. Do it in one commit:
 1. Change `supplied.nzta_dashboard` in `config/pipeline.json` to the new columns (`extra_fields`, or `fields`
    with the dimension that reads them), and the data map if a column is new.
 2. Remove both store files (`git rm data/supplied/nzta_dashboard/registrations.parquet data/supplied/nzta_dashboard/ledger.json`).
-   `supply` refuses a file with other columns, or a store written under another scope, over the old store and says
+   `supply` refuses a file with other columns, or a store whose blanked models the dataset would now read, over the old store and says
    so, writing nothing. Keep the raw exports (in `data/raw/`): a widened scope needs them again.
 3. Supply the whole new history in one go, with `--totals` for every year and `--taken` for the day it was exported.
 4. Run the tests above and a `--dry-run` build. Commit the config, the two new store files and the docs together.
@@ -98,7 +104,8 @@ Each message names the cause. What to do:
 | N month(s) already in the store differ from this file | The dashboard restated a past month. The message shows the old and new totals. | If the new file is right, run again with `--replace YYYY-MM` for each month. The change goes into the ledger. If you did not expect it, keep the old data and ask. |
 | adding these months would leave the store with no rows for YYYY-MM | The new month is not the one after the store's last month. | Supply the missing month first. |
 | the store disagrees with its ledger, or is not the file this ledger was written with | A store file was edited, or a run was interrupted between writing the two files. | Restore both files together from git (`git restore --source=HEAD -- data/supplied/nzta_dashboard`, which discards any uncommitted change to the two files): it keeps the ledger's record of replaced months. Supplying the history again from the raw exports is the last resort, because it starts a new ledger with no `replaced` history. |
-| the store was written when ... counted ... pairs / the ledger does not say what the store was trimmed to | The scope files or the dataset's requirements changed since the store was written, so its months were trimmed under another scope. | Supply the whole history again from the raw exports (Replacing the whole history). Do not edit the ledger. |
+| the store did not keep the model of N (vehicle type, import status) pairs that ... counts now / the store has no value of ... but config no longer trims it / the ledger does not say what the store was trimmed to | The scope files or the dataset's requirements changed so that the dataset would read a model the store blanked, or the ledger or the rule is missing, so the store cannot be judged. | Supply the whole history again from the raw exports (Replacing the whole history). Do not edit the ledger. |
+| (a warning) the store keeps the model of N pairs that ... no longer counts / the scope files now know ... values the store was written without | The scope narrowed or gained a value. The store is still right and holds more than it needs. | Nothing. Supply the whole history again only to drop the extra models. |
 
 The warning "the totals were not checked against the dashboard" means `--totals` was left out. The month
 is still added; add the figure next time.

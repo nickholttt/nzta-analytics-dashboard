@@ -133,6 +133,21 @@ over the **trailing 12 months** keep their value; everything else becomes
 `__OTHER__`. The manifest records the cap, its basis, and the share of
 trailing and all-time volume the kept values cover.
 
+**Ties at the cap.** The values are ranked by their trailing vehicles, largest
+first, and where several have the same count the one whose `MAKE|MODEL` key
+sorts first in byte order (DuckDB's string order: digits before upper case
+before lower case) ranks first. The first `cap` keep their value, so a cap of
+300 always names exactly 300 values when at least that many occur, and which of
+a tied pair is named never depends on the order the rows arrive in. The rule is
+the code's `ORDER BY count DESC, key`, now written down and held by a test
+(`test_the_model_cap_keeps_the_key_that_sorts_first_when_models_tie_at_the_boundary`).
+Measured on the 2026-10 snapshot: `registrations_surviving` has no tie at rank
+300 (75 vehicles, then 72 at rank 301). `registrations_flow` has one: two models
+with 75 vehicles at ranks 300 and 301, of which the one that sorts first is
+named and the other is in `__OTHER__`. Extending the cap to include every tied
+model was weighed and not chosen: it would make the number of values depend on
+the data, and the cap is a published number (D-108).
+
 ## Pair slices
 
 Only generate `{dim_a}__{dim_b}` pairs that a preset or a plausible filter
@@ -291,6 +306,8 @@ two rows that match the same vehicle (Aborts, below).
                       "...": "same shape" },
         "complete_at_coverage": 0.95,
         "warn_below_trailing_high_confidence_coverage": 0.7,
+        "publish_split_at_trailing_high_confidence_coverage": 0.7,
+        "mild_split_published": true,
         "label": "Mild hybrid (identified)",
         "classification_disagrees_with_powertrain": 0
       },
@@ -361,10 +378,33 @@ check with its thresholds, and `headroom_rows`: how many more rows could go
 unmapped before the run aborts. How close a run came is visible, not just
 whether it passed.
 
+**Which rows the rates count.** `unmapped_rates` and both bases of
+`unmapped_guard` are measured on every in-scope row the build holds (the table
+`dims`), not on the dataset's own rows: vehicles that are not fleet entries
+(re-registrations; 114,478 on the register) and rows with no registration month
+(172) are in them too, and the `trailing` basis drops only the rows outside the
+window. The dataset's own
+rate, the one the site states, counts the vehicles in the cube. On the 2026-10
+snapshot `registrations_surviving` has 4,634,954 in-scope rows with 33,016
+unmapped makes (0.7123%, `unmapped_rates.make` 0.007123) against 4,520,304
+vehicles in the cube with 26,433 (0.58%); `registrations_flow` has 1,492,122
+with 1,954 (0.1310%) against 1,483,403 in the cube with 1,753 (0.12%). The guard's rate is the
+higher here and is the one that aborts; the cube's is the one the site states.
+Neither is wrong, and the guard was left as it is (D-108).
+
 `mild_hybrid_identification_coverage` says how much of the Mild hybrid
 category is identified (definition in `METRICS.md`), with the label the
 site must use for the category: *Mild hybrid (identified)* until the lower
 of the two coverage figures reaches `complete_at_coverage`.
+`mild_split_published` says whether the dataset divides its hybrids into Mild
+hybrid and Hybrid at all: true when the trailing coverage at high confidence is
+at or above `publish_split_at_trailing_high_confidence_coverage` (or the window
+holds no hybrid to divide), false otherwise. When false, every vehicle that
+would be Mild hybrid is counted as the value `undivided_powertrain` names in
+`config/pipeline.json` (`Hybrid`) in that dataset's slice, pairs and fact table,
+no other count moves, and the build adds a warning. The site must say so
+instead of drawing a Mild hybrid line. It is judged for each dataset on its own
+figure; the label rule above is unchanged.
 `classification_disagrees_with_powertrain` counts vehicles whose final
 powertrain contradicts their `mild_hybrid_models.csv` classification (a
 full hybrid shown as Mild hybrid, or the reverse). Coverage is given at
@@ -437,7 +477,7 @@ builds read the same two files as a local build, and nothing else is kept there:
 - `ledger.json`: `source`, the source's terms as `supplied.<id>` in `config/pipeline.json` states them when the ledger is
   written (`publisher`, `licence`, `attribution`, `origin`), so the file carries its own; `outside_scope`, when the
   rule above applies, the dataset, the fields blanked, the widening column and its types, every value the scope files
-  knew and the (vehicle type, import status) pairs whose fields are kept, so the build can tell a store written under another scope and refuses it; `store_sha256`, the SHA-256 of `registrations.parquet` as written with it; `files`, for
+  knew and the (vehicle type, import status) pairs whose fields are kept, so the build can tell which models the store blanked and refuse it only if one of them is read now (below); `store_sha256`, the SHA-256 of `registrations.parquet` as written with it; `files`, for
   each file supplied (keyed by its SHA-256) the file's name (name only), the day it was taken, and
   `totals_checked`, the dashboard totals it was checked against (period to vehicles), or null when
   `--totals` was not given; `months`, for each month the hash of the file it came from, the day it was
@@ -646,9 +686,15 @@ Supplied sources:
 - The store's latest month is after the register's.
 - The store file is not the one the ledger was written with (`store_sha256` differs), or a column named in
   `private_columns` is also mapped to a public field.
-- The store was written under another scope than config states now (`outside_scope` in the ledger differs from the
-  one computed from `config/pipeline.json` and the scope files), so months trimmed differently would sit together.
-  `supply` refuses the same store. The message says to supply the history again from the raw exports.
+- The store blanked the model of a (vehicle type, import status) pair that the dataset counts now (the ledger's
+  `outside_scope` against the one computed from `config/pipeline.json` and the scope files), or config no longer
+  trims a field the ledger says was blanked, so the dataset would read a model the store does not hold. The message
+  names the pairs and says to supply the history again from the raw exports. `supply` refuses the same store. A ledger
+  that does not say what the store was trimmed to, or a config with no rule where the ledger records one, is refused too,
+  because it cannot be judged. A pair the dataset stops counting, a vehicle type or import status the scope files gain
+  (including one NZTA has not used before), and a field added to the rule leave the store correct but holding more than
+  it needs: the build adds a warning to the manifest, and `supply` trims new months to the scope the ledger records, so
+  every month in the store is trimmed alike. Nothing published changes.
 - A month's own total in the store (every vehicle the ledger records for it, before any scope applies) differs
   from the last good build's by more than `supplied.<id>.max_month_change` (2%), and the ledger has no
   replacement of that month that the last good build explains (see the state's `supplied_files`, above). The totals are kept in
@@ -699,7 +745,9 @@ is worse than one that is visibly stale.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
 - Mild hybrid identification coverage over the trailing 12 months,
-  counting high-confidence classifications only, is below 70%.
+  counting high-confidence classifications only, is below 70%. A dataset below
+  `publish_split_at_trailing_high_confidence_coverage` also withholds the mild
+  hybrid split (`mild_split_published: false`); its warning says so.
 - The latest month's count deviates more than 50% from the median of the
   12 months before it.
 - Source discovery fell back to the pinned item id, or found more than one

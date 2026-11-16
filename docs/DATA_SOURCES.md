@@ -266,8 +266,9 @@ first registrations and buyer type from the same dashboard.
   `config/pipeline.json` (the dataset it follows, the fields it blanks and the
   scope-file column that widens it); the scope is read from the scope files the
   build reads, and the ledger's `outside_scope` block records the scope the store
-  was written under. A scope that widens later needs the whole history supplied
-  again from the raw exports. In the committed store 2,758 distinct models
+  was written under. A scope that later counts a pair whose model the store
+  blanked needs the whole history supplied again from the raw exports; one that
+  narrows, or gains a value NZTA has not used before, only warns (D-108). In the committed store 2,758 distinct models
   remain, from 58,164 in the export.
 - **Terms.** NZTA's page gives CC BY 4.0 (above). The ledger's `source`
   block carries the licence and the attribution statement

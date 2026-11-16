@@ -4228,3 +4228,126 @@ New entries use this template:
   as new. Where the earlier window has vehicles, an entry absent then had a share of zero and its change is its whole share.
   The lint also does not read `events.csv`, so a template naming an event or a policy would pass; no template does.
 - Status: decided by Claude (unreviewed)
+
+## D-108 2026-11-16 — The audit's pipeline findings: hybrid nameplates the dashboard spells differently, the mild split withheld under its threshold, the model cap's tie rule, a narrower scope refusal, and which unmapped rate is which
+- Agent: claude (a sub-agent, to the lead's brief)
+- Basis: D-104 (the owner's direction that the engine be right and that published sources be consulted), the independent
+  audit that recomputed 34,693 of the site's figures from the raw rows (34,618 agree, 74 withheld on both sides, 1 differs
+  and is fixed elsewhere) and its notes on the pipeline's side; D-092, D-095, D-097 and D-010; the saved October pull and
+  the committed dashboard counts; the code and tests on `claude/audit-pipeline-fixes`; public pages read on 2026-11-16,
+  named below.
+- Context: the audit found no wrong count. On the pipeline's side it found five things, each fixed or settled here.
+- Decision, by item:
+  1. **Hybrid nameplates.** Measured on the 2026-10 snapshot, the hybrids that matched no row of
+     `mild_hybrid_models.csv` (a code that maps to Hybrid, and no row) were 177 of the register's 91,264 in the last 12
+     months (2,803 all time) and 4,832 of true registrations' 91,614 (10,351 all time); the rows marked unresolved hold
+     2,894 and 2,905 more. In true registrations 4,650 of the 4,832 were Toyota's Corolla Cross (4,582 new, 68 used): the
+     dashboard names it, the register records it as COROLLA, which already has a row (METRICS.md already says the
+     dashboard splits it). Seven rows for full hybrids and one for mild were added, in one commit with the file.
+     Trailing coverage, stated and at high confidence: register 83.0% and 78.9% to 83.5% and 79.3%; true registrations
+     66.0% and 62.7% to 83.5% and 79.2%. All time: register 80.4% and 61.6% to 83.1% and 63.6%; true registrations 72.2%
+     and 59.7% to 83.0% and 68.5%. Hybrids reclassified: register 2,393 all time (107 in the last 12 months), true
+     registrations 10,035 (4,757). Full hybrids stay under Hybrid, so no powertrain line moves for them. The
+     Mercedes-Benz C 200 (37 used imports on each dataset, 13 in the last 12 months, vehicle years 2018 to 2022) moves
+     from Hybrid to Mild hybrid: the one published change.
+  2. **The mild split.** Read from the code, the 70% figure only raised a build warning (the label rule uses the 95%
+     `complete_at_coverage`); nothing withheld a split. Now each dataset is judged on its own trailing coverage at high
+     confidence against `publish_split_at_trailing_high_confidence_coverage` (0.70). Under it the dataset counts its mild
+     hybrids as Hybrid (`undivided_powertrain`) in every slice, pair and fact table, the manifest says
+     `mild_split_published: false` and the build warns once. Both datasets are above it after item 1, so both publish.
+  3. **Ties at the model cap.** The code already ranked by count, then by key. The rule is now written (the key that
+     sorts first in byte order is named) and tested. Survivors: no tie at the boundary (75, then 72). True
+     registrations: two models with 75 vehicles at ranks 300 and 301, and the cube already names the one that sorts
+     first. No published file changes.
+  4. **The scope refusal.** `scope_problems` now refuses only when a pair the ledger records as blanked is counted now,
+     or a field the ledger says was blanked is no longer trimmed (or the ledger or the rule is missing, which cannot be
+     judged). Anything else warns. `supply` trims new months to the ledger's recorded scope. This replaces D-097's
+     consequence that any change to the scope refuses the store and needs the history again; D-097 itself is unchanged.
+  5. **Unmapped rates.** Documented in CUBE_SCHEMA.md: the guard and `unmapped_rates` count every in-scope row in `dims`
+     (0.7123% on 4,634,954), the cube and the site count the dataset's vehicles (0.58% of 4,520,304). The guard is
+     unchanged.
+- Sources read for item 1 (public pages, read 2026-11-16; nothing about this project was sent to any site):
+  - Toyota Corolla Cross: Toyota NZ (https://www.toyota.co.nz/showroom/corolla-cross/: 2.0 litre hybrid, 146 kW system);
+    CarExpert NZ (https://www.carexpert.co.nz/toyota/corolla-cross/gxl/features-and-specs: an 83 kW transmission-integrated
+    motor generator, an e-CVT, a lithium-ion battery, a rear motor on 4x4); Wikipedia
+    (https://en.wikipedia.org/wiki/Toyota_Corolla_Cross: Japan's 1.8 litre 2ZR-FXE and the 2.0 litre M20A-FXS hybrids are
+    power-split). Full, high. No mild version is listed in any of them; Japanese used imports are the same family.
+  - Toyota Prius c and Prius v: https://en.wikipedia.org/wiki/Toyota_Prius_C (power-split full hybrid, the Aqua) and
+    https://en.wikipedia.org/wiki/Toyota_Prius_v (Hybrid Synergy Drive, 60 kW traction motor). Full, high.
+  - Kia Niro Plus: Motoring NZ (https://motoringnz.com/news/2022/8/4/niro-plus-to-join-kia-choices: 1.6 litre, 32 kW
+    motor, six-speed dual-clutch, 104 kW combined) and CarExpert NZ for the Niro
+    (https://www.carexpert.co.nz/kia/niro/powertrain-and-performance: HEV charge sustaining, 1.3 kWh battery). Full, high.
+  - Hyundai Staria and Staria Load: Hyundai Europe (https://www.hyundai.com/eu/en/models/new-staria-hybrid.html:
+    full-parallel hybrid, 54 kW motor), heise (https://heise.de/-11121348), Hyundai NZ
+    (https://www.hyundai.co.nz/-refreshed-hyundai-staria-range-introduces-new-hybrid-option-and-flagship-lounge: a 1.6 T-GDi
+    hybrid, type not named). Full, medium: the type comes from the European pages.
+  - BAIC X55: Driven Car Guide (https://www.drivencarguide.co.nz/news/baic-new-zealands-entry-level-x55-suv-goes-hybrid/:
+    1.5 litre engine, 160 kW motor, 1.82 kWh battery, "full hybrid"). Full, medium: one trade-press source.
+  - GWM H7: Driven Car Guide (https://www.drivencarguide.co.nz/reviews/gwm-haval-h7-first-drive-apex-predator-hybrid/:
+    a dedicated hybrid transmission, a 1.53 kWh battery, the plug-in a separate variant). Full, medium: it does not use
+    the words full hybrid.
+  - Lexus ES: Autotrader NZ (https://autotrader.co.nz/news/lexus-es-hybrid-and-ev-arrives-this-year-how-much: the ES 300h,
+    "latest hybrid drivetrain"). Full, medium: it names no type; every earlier ES hybrid is Lexus Hybrid Drive.
+  - Mercedes-Benz C 200: vision-mobility
+    (https://vision-mobility.de/en/news/clean-diesels-48-volt-gasoline-engines-this-is-how-the-facelifted-c-class-drives-2290.html:
+    a belt-driven starter-generator, "EQ Boost", on the 1.5 litre, up to 10 kW added and 12 kW recovered; it does not call
+    it a mild hybrid, and a 2.0 litre C 200 also exists). Mild, medium.
+  - Tried and not usable: Toyota Japan's Corolla Cross page (404), Kia's global Niro Plus page (404), CarExpert's and
+    WhichCar's EQ Boost pages (403), Kia NZ's Niro Plus brochure (a PDF the reader could not extract).
+- Options considered:
+  - *Item 1, where the fix goes.* (a) Rows in `mild_hybrid_models.csv` for the dashboard's spellings. (b) An alias in
+    `model_registry.csv` that renames COROLLA CROSS to COROLLA in the dashboard. Chosen (a): the registry makes one
+    nameplate one name, and here the register cannot be split (it records the Cross as COROLLA), so (b) would merge two
+    models in the dashboard's published model figures and change them; (a) changes none. The hybrid file is keyed on the
+    dataset's own spelling already (D-010).
+  - *Which nameplates to add.* Every one with 10 or more hybrids in the last 12 months on either dataset, or 100 or more
+    over all months, whose type a public source settled: ten nameplates in eight rows. Not added: Mercedes-Benz E-Class
+    (6 new in the window, a mix of mild and plug-in, which a source could not separate), CLS, AMG, Audi A3 and A8, BMW 120,
+    Volvo V60 and the rest, at six or fewer each in the window. They are not marked unresolved either: a row says a call
+    was looked at.
+  - *Item 2, the figure.* (a) Trailing coverage at stated confidence. (b) Trailing at high confidence. (c) Both and the
+    all-time figure. Chosen (b): it is never above (a) and is what the existing warning used. The all-time figure is below
+    70% on the register because of the Honda IMA call (63.6% after this work), which METRICS.md already says to read with
+    care; it is not a reason to withhold the recent split.
+  - *Item 2, one threshold or two.* Reusing `warn_below_...` would make its name false; a second key at the same value lets
+    the warning level rise above the withholding one. Chosen a second key.
+  - *Item 3.* (a) Keep the key that sorts first, as the code did. (b) Extend the cap to every tied model. Chosen (a): the
+    cap is a published number and (b) makes it depend on the data (301 values here).
+  - *Item 4, what `supply` does under a changed scope.* (a) Trim new months to today's scope. (b) To the ledger's. Chosen
+    (b): under (a) a month supplied again would differ from the stored one, and a pair that narrowed and later widened
+    would hide blanked months behind a ledger that says they were kept.
+- Choices a reviewer could want reversed:
+  1. The C 200 is classified mild at medium confidence on a source that does not itself say mild hybrid; it moves 37
+     vehicles per dataset. Removing its row restores them to Hybrid.
+  2. Five of the eight rows are medium confidence (Staria, X55, H7, ES, C 200). Full hybrids are not counted in coverage
+     by confidence, so this affects only the C 200 row.
+  3. The split is judged on trailing coverage at high confidence at 70%, the figure METRICS.md already named; a window with
+     no hybrid is not withheld.
+  4. A withheld dataset folds every Mild hybrid vehicle into Hybrid, including the Hilux and Land Cruiser diesels that the
+     code mapping calls mild. It does not occur today; if it did, the ute hybrid share would jump, which is why the mapping
+     exists.
+  5. The golden fixture's register is under the threshold, so the golden now shows the withheld case and the published
+     case is held by a test.
+  6. The manifest keeps `label` unchanged when the split is withheld; the site has to read `mild_split_published`.
+  7. A ledger with no record of its trim, or a config with no rule where the ledger has one, still refuses.
+  8. The guard's unmapped rate was documented, not changed, and the cube's was not made the guard's.
+  9. METRICS.md had no model-cap paragraph; a short one ("Named models") was added.
+- Consequences: true registrations' mild split is published on a trailing 79.2% at high confidence; the dashboard history
+  never needs supplying again for a new vehicle type or import status; the site, on another branch, must show that a
+  dataset's split can be withheld.
+- Added by the lead before review: the Mercedes-Benz C 200 row moves 37 vehicles a dataset from Hybrid to Mild hybrid, and its
+  first source did not use the words. A second reading on 2026-11-16 (Wikipedia's articles on the W205 and the W206, by a
+  sub-agent that read the pages) found the C 200's M264 engine with EQ Boost listed as a mild hybrid (MHEV), no C 200 as a
+  full or plug-in hybrid (the plug-ins were badged C 300 e and C 350 e), and a 2.0 litre C 200 without the 48 V system before
+  the 2018 facelift, which would not be recorded as a hybrid. The maker's own press kit was not reached; the row stays at
+  medium confidence and now cites both sources.
+- Left for the site (not in this change): a dataset whose split is withheld (`mild_split_published: false`) shows its hybrids
+  undivided, and the site should say so beside the chart. No dataset is in that state today.
+- At review (#68): agreed, with nothing to fix first. Left open, in order: (1) a dataset can flip between published and
+  withheld from one build to the next, which rewrites its whole history of the two values, and nothing announces the flip
+  itself (the state does not hold the flag); on true registrations the margin is 14,271 of 18,011 at high confidence, so
+  about 2,400 more unknown hybrids in the window would do it. (2) The comparison uses the figure rounded to four decimals,
+  so 69.995% publishes; no test sits exactly at the threshold. (3) A full call leaves the denominator whatever its
+  confidence, so the four medium-confidence full rows count in the "high confidence" figure (about 0.4 points). (4) The
+  cap's tie test uses keys that sort the same under any collation.
+- Status: decided by Claude (unreviewed)

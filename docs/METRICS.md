@@ -446,13 +446,45 @@ vehicles identified by the code mapping alone count at both levels). At the
 2026-08 snapshot, all-time coverage is 83.0% at stated confidence but 62.8%
 at high confidence only, because 13,808 Honda IMA hybrids are classified
 at medium confidence. Over the trailing 12 months it is 84.1% and 79.5%.
-The headline charts use the trailing figures, and both hold above 70%:
-that is what makes the mild hybrid split publishable. All-time mild hybrid
-history rests on the Honda IMA call and should be read that way. A trailing
-high-confidence figure below `warn_below_trailing_high_confidence_coverage`
-(70%) is a build warning. Subaru e-Boxer and XV Hybrid (about 5,700
+The headline charts use the trailing figures. A dataset publishes the
+mild hybrid split only while its own trailing coverage at high confidence
+is at or above `publish_split_at_trailing_high_confidence_coverage` in
+`config/pipeline.json` (70%). Under it the dataset shows its mild hybrids
+as Hybrid, undivided, in every slice, pair and fact table, the manifest
+says `mild_split_published: false` beside the figure, and the build adds a
+warning; the other dataset is judged on its own figure. On the 2026-10
+snapshot both are above it (79.3% and 79.2%, after the rows below), so both
+publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
+same today) is a build warning for a dataset that still publishes. All-time mild hybrid
+history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
 vehicles) stay unresolved because sources disagree on them: never classify
 a contested nameplate to raise coverage.
+
+The file is keyed on the make and model as the dataset spells them, so a
+nameplate the register and the dashboard spell differently needs a row for
+each spelling. Measured on the 2026-10 snapshot, the hybrids that matched no
+row were 177 of the register's 91,264 in the last 12 months and 4,832 of
+true registrations' 91,614; 4,650 of those were Toyota's Corolla Cross,
+which the dashboard names and the register records as COROLLA.
+Seven rows were added for full hybrids (nine nameplates: Corolla Cross, Prius c
+and v, Niro Plus, Staria and Staria Load, ES, H7 and X55), which moves no
+powertrain line, and one for the Mercedes-Benz C 200 as mild, at medium
+confidence. Trailing coverage, stated and at high confidence, went
+from 83.0% and 78.9% to 83.5% and 79.3% on the register, and from 66.0%
+and 62.7% to 83.5% and 79.2% on true registrations. All-time, from 80.4%
+and 61.6% to 83.1% and 63.6%, and from 72.2% and 59.7% to 83.0% and 68.5%.
+The nameplates still matching no row number six or fewer each over the last
+12 months; the rows the file marks unresolved hold another 2,894 hybrids on
+the register and 2,905 on true registrations over the same months.
+
+**Named models** — the model dimension names the 300 models with the most
+vehicles in the trailing 12 months and groups every other model as
+`__OTHER__`, in every month (`CUBE_SCHEMA.md`, Model dimension). Where models
+tie at the last place, the one whose `MAKE|MODEL` key sorts first in byte
+order is named. On the 2026-10 snapshot that decided one place on
+`registrations_flow` (two models with 75 vehicles) and none on
+`registrations_surviving`. A model outside the 300 is not missing: its
+vehicles are in `__OTHER__` and in every total.
 
 **Mean fleet age** — (snapshot year − vehicle year), volume-weighted, across
 the fleet. Report median alongside the mean; the distribution has a long
