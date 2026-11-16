@@ -9,14 +9,15 @@
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
 import type { MouseEvent, ReactNode } from "react";
-import { datasetWords, findDataset, findDerived, phrases, yearChangeFloor } from "../lib/config";
+import { datasetWords, findDataset, findDerived, findDimension, phrases, yearChangeFloor } from "../lib/config";
 import type { Preset } from "../lib/config";
-import { answerLine, fillTemplate, hoverLine, monthsOf, sayBadMonth, sayOffChart } from "../lib/sentences";
-import { percent } from "../lib/sentences";
+import { answerLine, fillTemplate, hoverLine, monthRuns, monthsOf, sayBadMonth, sayExceedsTotal, sayNotRecorded, sayOffChart, sayStarts, unrecordedMonths } from "../lib/sentences";
+import { NOT_RECORDED_TOKEN, percent } from "../lib/sentences";
 import type { Manifest, SliceRow } from "../lib/data";
-import { COMPLETENESS, completenessSeries, derivedSeries } from "../lib/derived";
+import { derivedSeries, isRatioMeasure, ratioSeries } from "../lib/derived";
+import { isolatedMonths, lineMonths } from "../lib/ratio";
 import type { RatioPoint, RatioSeries } from "../lib/derived";
-import { latestMonthOf } from "../lib/resolve";
+import { latestMonthOf, servedFrom } from "../lib/resolve";
 import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count, greyedReason, monthPeriod, readout } from "../lib/readout";
@@ -40,6 +41,7 @@ import { FiguresTable } from "./FiguresTable";
 import { PlotFigure } from "./PlotFigure";
 
 const PERCENT = "percent";
+const COUNT = "count";
 
 type Props = {
   preset: Preset;
@@ -70,10 +72,20 @@ type Point = {
   members?: string[];
 };
 
+// The values a count draws a line for: the ones a question names, or, for a count by a low-cardinality breakdown that
+// names none, every value the slice records (not the token for what the source does not record).
+function lineValues(preset: Preset, rows: SliceRow[]): string[] | undefined {
+  if (preset.derived) return undefined;
+  if (preset.values?.length) return preset.values;
+  if (preset.values !== undefined || preset.measure !== COUNT || findDimension(preset.dimension)?.cardinality !== "low") return undefined;
+  return [...new Set(rows.filter((r) => r.value !== NOT_RECORDED_TOKEN && r.n > 0).map((r) => r.value))].sort();
+}
+
 export function TrendChart(props: Props) {
   const { preset } = props;
-  if (preset.derived === COMPLETENESS && props.companion) return <RatioTrend {...props} companion={props.companion} />;
-  if (!preset.derived && preset.values?.length) return <ValuesTrend {...props} values={preset.values} />;
+  if (isRatioMeasure(findDerived(preset.derived)) && props.companion) return <RatioTrend {...props} companion={props.companion} />;
+  const values = lineValues(preset, props.rows);
+  if (values) return <ValuesTrend {...props} values={values} />;
   return <OneTrend {...props} />;
 }
 
@@ -83,21 +95,28 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (
   const derived = findDerived(preset.derived);
   const guards = derived?.guards ?? {};
   const totalLabel = derived?.total_label ?? "All";
+  const whole = useMemo(() => ratioSeries(companion, rows, guards), [companion, rows, guards]);
+  const firstMonth = whole.reduce((m, s) => (s.points[0] && s.points[0].month < m ? s.points[0].month : m), "9999-12");
   const series = useMemo(() => {
-    const whole = completenessSeries(companion, rows, guards);
-    const first = whole.reduce((m, s) => (s.points[0] && s.points[0].month < m ? s.points[0].month : m), "9999-12");
-    const win = periodWindow(preset.period, first, latestMonthOf(preset, manifest));
+    const win = periodWindow(preset.period, firstMonth, latestMonthOf(preset, manifest));
     return whole
       .map((s) => ({ ...s, points: s.points.filter((p) => p.month >= win.from && p.month <= win.to) }))
       .filter((s) => s.points.length > 0);
-  }, [companion, rows, guards, preset, manifest]);
+  }, [whole, firstMonth, preset, manifest]);
   const name = (s: RatioSeries) => (s.series === "" ? totalLabel : label(s.series));
+  // Where the breakdown begins, when the denominator's data opens with months the source does not record. It bears on the
+  // view only when the view reaches that first month: a window that starts later never shows what is not drawn before it.
+  const startsSentence = useMemo(
+    () => sayStarts(phrases.breakdown_starts, monthRuns(unrecordedMonths(rows)), rows.reduce((m, r) => (r.month < m ? r.month : m), "9999-12")),
+    [rows],
+  );
   const model = useMemo(() => {
     const all = series.flatMap((s) => s.points.map((p) => p.month)).sort();
     const low = series.reduce((m, s) => s.points.reduce((x, p) => Math.min(x, p.value), m), 1);
     const high = series.reduce((m, s) => s.points.reduce((x, p) => Math.max(x, p.value), m), 1);
     return { from: all[0], to: all[all.length - 1], base: Math.max(0, Math.floor(low * 20) / 20 - 0.05), top: Math.max(1, high) * 1.02 };
   }, [series]);
+  const starts = model.from === firstMonth ? startsSentence : undefined;
   const colour = (i: number) => seriesColour(i);
   const render = useCallback(
     (width: number) =>
@@ -118,8 +137,13 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (
           Plot.ruleY([1], { stroke: RULE_STRONG, strokeDasharray: "3,3" }),
           ...series.flatMap((s, i) => {
             const data = s.points.map((p) => ({ ...p, date: monthDate(p.month), name: name(s) }));
+            // Every month in the window, with no value where a month is left out, so the line breaks there instead of joining
+            // the months either side. A month standing alone between gaps would draw no stroke, so it is also a dot.
+            const line = lineMonths(s.points, model.from, model.to).map((p) => ({ ...p, date: monthDate(p.month) }));
+            const alone = new Set(isolatedMonths(line));
             return [
-              Plot.lineY(data, { x: "date", y: "value", stroke: colour(i), strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" }),
+              Plot.lineY(line, { x: "date", y: "value", stroke: colour(i), strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" }),
+              Plot.dot(line.filter((p) => alone.has(p.month)), { x: "date", y: "value", r: 2.5, fill: colour(i), stroke: colour(i) }),
               Plot.tip(
                 data,
                 Plot.pointerX({
@@ -147,6 +171,7 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (
         ))}
       </ul>
       <p className="chart-unit">{fillTemplate(derived?.unit_note ?? "", { base: percent(model.base) }).text}</p>
+      {starts ? <p className="chart-unit">{starts}</p> : null}
       <PlotFigure
         render={render}
         label={`Line chart, ${monthLabel(model.from)} to ${monthLabel(model.to)}: ${series.map(name).join(", ")}, month by month.`}
@@ -181,8 +206,11 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
       cell.set(`${r.month}|${r.value}`, r.n);
       present.add(r.month);
     }
+    // A month the source records nothing of for this breakdown is a gap too: its vehicles sit under the not-recorded token,
+    // so a value would read zero there when the truth is that nobody knows.
+    const unrecorded = new Set(unrecordedMonths(rows));
     // A month absent from the data is a gap, never a zero: METRICS.md, never interpolate a missing month.
-    const at = (m: string, s: string) => (present.has(m) ? (cell.get(`${m}|${s}`) ?? 0) : undefined);
+    const at = (m: string, s: string) => (present.has(m) && !unrecorded.has(m) ? (cell.get(`${m}|${s}`) ?? 0) : undefined);
     const points: ValuePoint[] = [];
     for (const s of values) {
       for (const m of monthRange(win.from, win.to)) {
@@ -196,12 +224,23 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
     }
     const latest = latestMonthOf(preset, manifest);
     const lastYear = monthRange(addMonths(latest, -11), latest);
-    const totals = values.map((s) => ({ series: s, n: lastYear.reduce((sum, m) => sum + (at(m, s) ?? 0), 0) }));
-    return { win, points, totals };
+    // The last year's figure is a whole year's or none: a month the source does not record, or the data lacks, is not a zero.
+    const totals = values.map((s) => {
+      const months = lastYear.map((m) => at(m, s));
+      return { series: s, n: months.every((v) => v !== undefined) ? months.reduce((sum, v) => (sum as number) + (v as number), 0) : undefined } as { series: string; n?: number };
+    });
+    // The stretches of the drawn window that are left blank because the source does not record them, and the months in which
+    // the published parts add up to more than the month's total (read from the manifest, not from the sums).
+    const runs = monthRuns([...unrecorded].filter((m) => m >= win.from && m <= win.to));
+    const served = servedFrom(preset.dataset, manifest);
+    const exceeding = (preset.dimension ? manifest.datasets[served ?? ""]?.exceeds_total?.[preset.dimension] : undefined)?.filter(
+      (m) => m >= win.from && m <= win.to,
+    );
+    return { win, points, totals, unrecorded, runs, exceeding };
   }, [rows, preset, manifest, values, rolling]);
 
   const colour = useCallback(
-    (s: string) => seriesColour([...model.totals].sort((a, b) => b.n - a.n).findIndex((t) => t.series === s)),
+    (s: string) => seriesColour([...model.totals].sort((a, b) => (b.n ?? -1) - (a.n ?? -1)).findIndex((t) => t.series === s)),
     [model.totals],
   );
 
@@ -224,6 +263,10 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
         y: { label: null, domain: [0, yMax] },
         color: { domain: values, range: values.map(colour) },
         marks: [
+          Plot.rect(
+            model.runs.map((r) => ({ x1: monthDate(r.from), x2: monthDate(addMonths(r.to, 1)), y1: 0, y2: yMax })),
+            { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: SUPPRESSED_BAND },
+          ),
           Plot.gridY({ ticks, stroke: RULE, strokeOpacity: 1 }),
           Plot.axisY({ ticks, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => d.toLocaleString() }),
           Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
@@ -256,16 +299,24 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
         {model.totals.map((t) => (
           <li key={t.series}>
             <span className="swatch" style={{ background: colour(t.series) }} aria-hidden="true" />
-            {label(t.series)} <span className="series-key-figure">{count(t.n)} {recent}</span>
+            {label(t.series)}
+            {t.n === undefined ? null : <span className="series-key-figure"> {count(t.n)} {recent}</span>}
           </li>
         ))}
       </ul>
       <p className="chart-unit">
         {fillNote((rolling ? words?.window_unit : words?.month_unit) ?? "Vehicles", trailing).text}
       </p>
+      {[...sayNotRecorded(phrases.not_recorded, model.runs), ...sayExceedsTotal(phrases.exceeds_total, model.exceeding)].map((sentence) => (
+        <p key={sentence} className="chart-unit">
+          {sentence}
+        </p>
+      ))}
       <PlotFigure
         render={render}
-        label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: vehicles for ${names}, month by month.`}
+        label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: vehicles for ${names}, month by month.${
+          model.runs.length ? ` ${sayNotRecorded(phrases.not_recorded, model.runs).join(" ")}` : ""
+        }`}
       />
       <FiguresTable
         label={`Vehicles for ${names}: figures, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
@@ -274,6 +325,8 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
           const y = new Map(model.points.map((p) => [`${p.month}|${p.series}`, p.y]));
           return monthRange(model.win.from, model.win.to).flatMap((m) => {
             const cells = values.map((s) => y.get(`${m}|${s}`));
+            // A month the source does not record is a row that says so, not a row of blanks that could be read as zero.
+            if (model.unrecorded.has(m)) return [[monthPeriod(m, rolling), ...values.map(() => label(NOT_RECORDED_TOKEN))]];
             return cells.every((v) => v === undefined) ? [] : [[monthPeriod(m, rolling), ...cells.map((v) => (v === undefined ? "" : count(v)))]];
           });
         }}
@@ -285,6 +338,7 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
 function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false, month, onMonth, after }: Props) {
   const derived = preset.derived ? findDerived(preset.derived) : undefined;
   const share = derived?.unit === PERCENT;
+  const words = datasetWords(preset.dataset);
   // What the line is, for its readout: a derived measure by its definition's own words, otherwise the vehicles counted.
   const filtered = Object.values(preset.where ?? {}).some((kept) => kept.length > 0);
   const name = derived
@@ -461,7 +515,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
       {preset.answer && answer && chosen ? after?.() : null}
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
       {offChart ? <p className="chart-unit" role="status">{offChart}</p> : null}
-      <p className="chart-unit">{share ? "Share of the month's vehicles" : "Vehicles"}{preset.answer ? `. ${phrases.pick_month}` : ""}</p>
+      <p className="chart-unit">{share ? "Share of the month's vehicles" : fillNote((preset.measure === "rolling_12m" ? words?.window_unit : words?.month_unit) ?? "Vehicles", { months: TRAILING_MONTHS }).text}{preset.answer ? `. ${phrases.pick_month}` : ""}</p>
       {/* The click only repeats what the month list does, so the wrapper needs no role of its own. */}
       <div onClick={preset.answer ? pick : undefined}>
         <PlotFigure

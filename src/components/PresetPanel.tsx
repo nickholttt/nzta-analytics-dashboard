@@ -257,7 +257,7 @@ export default function PresetPanel({
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
   addNote("measure", undefined, derived?.note_template);
   // A ratio of two datasets says what each one counts, so neither definition is more than a glance away.
-  for (const id of [derived?.denominator_dataset, derived?.numerator_dataset]) {
+  for (const id of derived?.show_dataset_definitions === false ? [] : [derived?.denominator_dataset, derived?.numerator_dataset]) {
     const ds = findDataset(id);
     if (ds?.public_definition && !notBuilt) notes.push({ key: `definition-${id}`, text: `${ds.public_label ?? ds.label}: ${ds.public_definition}`, unresolved: [] });
   }
@@ -572,6 +572,11 @@ export default function PresetPanel({
       {chart}
 
       <ul className="notes">
+        {derived?.caveat && !notBuilt && preventsRender.length === 0 ? (
+          <li className="caveat">
+            {derived.caveat.text} <a href={derived.caveat.href}>{derived.caveat.link_label}</a>
+          </li>
+        ) : null}
         {notes.filter((n) => (internal || n.unresolved.length === 0) && (internal || !notBuilt)).map((n) => (
           <li key={n.key}>
             {n.text}

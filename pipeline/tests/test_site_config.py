@@ -75,6 +75,8 @@ def _templates() -> list[tuple[str, str, str]]:
         for key in ("note_template", "unit_note", "table_label"):
             if key in derived:
                 found.append(("note" if key == "note_template" else key, f"derived {derived['id']} {key}", derived[key]))
+        if "caveat" in derived:
+            found.append(("caveat", f"derived {derived['id']} caveat.text", derived["caveat"]["text"]))
     return found
 
 
@@ -129,6 +131,20 @@ def test_a_ratio_measure_divides_one_defined_dataset_by_another():
     for m in ratios:
         assert m["numerator_dataset"] in ids and m["denominator_dataset"] in ids, f"{m['id']}: a dataset it names is not defined"
         assert m["numerator_dataset"] != m["denominator_dataset"], f"{m['id']}: it divides a dataset by itself"
+
+
+def test_a_ratio_measure_names_only_dimensions_config_defines():
+    dimensions = {d["id"] for d in _json("config/dimensions.json")["dimensions"]}
+    ratios = [m for m in _json("config/measures.json")["derived_measures"] if "numerator_dataset" in m]
+    named = [m for m in ratios if "numerator_dimension" in m or "numerator_narrowed_to" in m]
+    assert named, "no ratio measure names its numerator's own breakdown: this test would pass without checking anything"
+    for m in named:
+        used = [m.get("numerator_dimension"), (m.get("numerator_narrowed_to") or {}).get("dimension")]
+        for d in filter(None, used):
+            assert d in dimensions, f"{m['id']}: {d} is not a dimension in config/dimensions.json"
+        if "numerator_narrowed_to" in m:
+            assert m["numerator_narrowed_to"].get("values"), f"{m['id']}: numerator_narrowed_to names no values"
+            assert "numerator_dimension" in m, f"{m['id']}: a narrowed numerator needs the breakdown it is divided on"
 
 
 def test_a_preset_with_an_answer_names_a_dataset_and_a_measure_that_exist():

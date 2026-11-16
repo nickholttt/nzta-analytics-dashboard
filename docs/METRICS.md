@@ -152,7 +152,17 @@ Source and method: `docs/DATA_SOURCES.md` §C (D-065, D-094). Measured on
   no figure exists for the two crossed, and none is invented.
 - **Never on a chart with survivors.** Cars still registered as a share
   of this count, new and ex-overseas, from July 1975, is a chart of its
-  own (Derived measures, below); it is not built on the site yet.
+  own (Derived measures, below).
+- **On the site (D-098).** Explore draws the monthly count of cars as a
+  line from the first month, with Stats NZ's statement beside NZTA's
+  basis note, and the split into new and ex-overseas as one line each.
+  Months before the split starts are left blank, marked by a grey band
+  and named in a sentence, never drawn as zero. The site reads each
+  dimension's `exceeds_total` from the manifest and says each month it
+  lists (none for new or ex-overseas; July 1975 for the engine bands),
+  with the parts as published and the total unadjusted. Where a cube
+  has no entry for the dataset, the group says so in place of the
+  charts.
 
 ## Core measures
 
@@ -330,7 +340,12 @@ Across every vehicle type and status, outside the dataset's scope, the
 share steps up between October and November 2023 (95.7% to 97.3%),
 most of it in trailers (91.1% to 98.3%); within the dataset's scope
 those two months are 97.0% and 97.4%. The cause is not known and no
-reason is given on the site. Not shown by model (above).
+reason is given on the site. Not shown by model (above). On the site (D-098) there are two
+charts: the total with new and used, and the four lines of vehicle type
+crossed with new or used, with the total for orientation. The second
+divides the survivors' pair slice by the true-registrations fact table;
+a line's month is left out where fewer than the precision floor's
+registrations are behind it.
 
 **Cars still registered against Stats NZ's count** — before 2021 there
 are no true registrations by vehicle, so for cars the survivors of
@@ -344,8 +359,21 @@ passenger type are 99.88% of Stats NZ's cars. So it is shown under its
 own name, with that caveat in one line, and not called completeness.
 Measured on the 2026-10 snapshot, survivors as a share of Stats NZ's
 count, new then ex-overseas: March 1976, 3.9% and 0.3%; March 1990,
-5.7% and 2.3%; March 2005, 49.8% and 16.0%; March 2015, 90.5% and
+5.7% and 2.3%; March 2005, 49.8% and 15.9%; March 2015, 90.5% and
 61.6%; August 2026, 99.8% and 99.6%. Never used to scale a figure.
+(March 2005's used-import figure is 2,107 survivors over 13,211 cars,
+15.949%; an earlier version of this section gave 16.0%, a rounding slip.)
+On the site (D-098) it is drawn from July 1975, the first month the
+denominator is split by new or ex-overseas, with a one-line caveat and a
+link to `/method`; its total line is the survivors of the passenger type
+over Stats NZ's whole count of cars. A month left out (under the
+precision floor, collapsed against its own recent history, or not split)
+breaks the line; a month standing alone between gaps is drawn as a dot.
+The ex-overseas line reaches 27.8% in April 1986 (77 survivors over 277
+cars counted by Stats NZ), well above its neighbours, and is high
+through 1986 and 1987 and low again by 1989: it is drawn as it is. It is
+not a survival rate: that feature does not look like cars surviving, and
+a line can move with how each source classes a car.
 
 **Per capita** — registrations per 1,000 residents, using Stats NZ
 subnational population estimates. Population is a separate reference file

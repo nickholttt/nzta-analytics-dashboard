@@ -19,6 +19,9 @@ uncommitted changes owned by claude.
 | `note_template` / `note` | a note on the chart. Any figure must come from `{dotted.path}` into the manifest, never typed in |
 | `answer` | on a `count` trend: the figure and sentence above the chart for one month (`up`, `down`, `same`, `alone` templates; `{month}`, `{count}`, `{prior_month}`, `{prior_count}`, `{change|pct}`). A template names no month, figure or cause |
 | `derived` of a ratio | a derived measure in `config/measures.json` with `numerator_dataset` and `denominator_dataset` (`completeness`) is drawn by the trend renderer from both datasets' slices for the preset's `dimension`; it needs both built and the dimension live in both |
+| `cross` | on a ratio preset: a second dimension; each value of `dimension` is crossed with each of its values (completeness by vehicle type and new or used). The numerator needs the pair slice of the two, the denominator a fact table carrying both |
+| a ratio measure's `numerator_dimension`, `numerator_narrowed_to`, `caveat` | in `config/measures.json`: divide on the numerator's own breakdown, narrowed to values of another dimension through a pair slice; and one line with a link under the chart. Any measure naming both datasets is drawn by the ratio chart, whatever its id. A caveat's link must reach a section of `/method`; a test checks it. `show_dataset_definitions: false` keeps the notes from repeating both datasets' definitions where the measure's own definition says what each side counts |
+| a count by a low-cardinality `dimension`, no `values` | draws one line per value. A month in which the source records nothing of the breakdown (every vehicle under the not-recorded token) is a gap with a grey band and a sentence (`defaults.phrases.not_recorded`), never a zero; months the manifest lists under `exceeds_total` are said (`phrases.exceeds_total`), with the parts as published. A ratio chart's line breaks at a month it leaves out, and a month standing alone between gaps is a dot |
 
 ## Which shape a question gets
 
@@ -62,6 +65,8 @@ A dimension in `config/dimensions.json` may carry `public_label` and `public_not
 `public_definition`: visitor wording for text that is written for maintainers (D-042). The Explore
 and Build pages use one when there is one and fall back to `label`, `note` and `definition`;
 `/status` always shows the original.
+
+A dataset the cube has no entry for (a cube built before it existed), or marks `not_built`, makes a group of charts that need it show the dataset's `not_built_message` in place of them, so a dataset that has `not_built_message` in `config/dimensions.json` is covered both ways. A dataset whose figures are Stats NZ's carries its statement in `source_note` as `{dataset.supplied.attribution}`, which the manifest supplies.
 
 A dataset's `words` block says what its charts count (column headings, captions), `source_note` is said under every chart of it (filled from the manifest, with the export's date), and `not_built_message` is what a chart says where the build did not make it. On the Build page `builder.datasets` lists what a question can count; a text that differs by dataset is an object keyed by dataset id, and the choice is `build.dataset` in the address (absent means the first).
 
