@@ -563,9 +563,10 @@ powertrain values; the figure and what rests on it (the publish threshold and
 the warning level) are all it changes (D-110). Before D-110 every `full` row
 left the denominator at both levels; the figures below that predate it are
 marked. On the 2026-10 snapshot the trailing figure at high confidence is
-74.0% on the register and 74.0% on true registrations (79.3% and 79.2% under
-the earlier count; 1,272 and 1,275 vehicles are the difference) and the
-all-time figure 60.1% and 64.5% (63.6% and 68.5%). At the 2026-08 snapshot,
+80.3% on the register and 80.2% on true registrations (74.0% and 74.0% before
+D-115's rows, and 79.3% and 79.2% under the count before D-110) and the
+all-time figure 63.0% and 68.0% (60.1% and 64.5% before D-115's rows; 63.6%
+and 68.5% under the count before D-110). At the 2026-08 snapshot,
 under the earlier count, all-time coverage is 83.0% at stated confidence but
 62.8% at high confidence only, because 13,808 Honda IMA hybrids are classified
 at medium confidence. Over the trailing 12 months it is 84.1% and 79.5%.
@@ -583,14 +584,15 @@ publishes (both figures read null). A window with no identified mild and no
 unknown hybrid, only `full` calls below the high level, has those calls as its
 whole denominator at high confidence only: that figure reads 0% while the stated
 figure reads null, and the split is withheld (D-110). On the 2026-10
-snapshot both are above it (74.0% and 74.0%, after the rows below), so both
+snapshot both are above it (80.3% and 80.2%, after the rows below), so both
 publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
 same today) is a build warning for a dataset that still publishes. A dataset
 that crosses the threshold between one build and the next changes its whole
 history of the two values at once, so that build adds a warning naming the
 direction and both figures (`CUBE_SCHEMA.md`, Warnings; the margin on true
-registrations is 14,271 of 19,286 hybrids at high confidence on 2026-10: 1,101
-more unidentified hybrids in the window would cross 70%, so keeping
+registrations is 14,327 of 17,854 hybrids at high confidence on 2026-10: 2,613
+more unidentified hybrids in the window would cross 70%, and 2,619 on the
+register, 14,297 of 17,805; it was 1,101 and 1,111 before D-115, so keeping
 `mild_hybrid_models.csv` current matters). All-time mild hybrid
 history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
 vehicles) stay unresolved because sources disagree on them: never classify
@@ -613,6 +615,19 @@ and 61.6% to 83.1% and 63.6%, and from 72.2% and 59.7% to 83.0% and 68.5%.
 The nameplates still matching no row number six or fewer each over the last
 12 months; the rows the file marks unresolved hold another 2,894 hybrids on
 the register and 2,905 on true registrations over the same months.
+
+D-115 raised four rows to high confidence on a maker's or its New Zealand
+distributor's own page, and split one: the Chery Tiggo 4 Pro and the BAIC B30
+(full hybrids, the B30 from unresolved), the Nissan X-Trail's petrol hybrid
+from vehicle year 2015 (full), and the Foton Tunland (mild). 1,488 vehicles
+on true registrations in the window were counting against the high-confidence
+figure and no longer do (1,432 left the denominator as full calls, 56 joined
+the numerator as mild calls); on the register 1,484 (1,428 and 56). Nothing was
+raised for the Honda IMA hybrids, which the makers' own pages call neither mild
+nor full, nor for Subaru's e-Boxer, whose maker says the car runs on its
+electric motor up to 40 km/h and assists the engine otherwise; both stay as
+they were. The rows left at medium or low confidence still hold 3,527 vehicles
+in the window on true registrations and 3,508 on the register.
 
 **Named models** — the model dimension names the 300 models with the most
 vehicles in the trailing 12 months and groups every other model as
