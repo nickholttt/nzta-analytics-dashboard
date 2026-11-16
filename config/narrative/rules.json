@@ -31,8 +31,8 @@
   "filters": ["pct", "month", "date"],
   "placeholders": {
     "answer": ["month", "count", "prior_month", "prior_count", "change"],
-    "words": ["months", "window"],
-    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to", "count", "label", "value", "months", "window", "trailing", "all_time", "trailing_high", "all_time_high", "vehicles", "floor", "threshold"],
+    "words": ["months", "window", "vehicles"],
+    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to", "count", "label", "value", "months", "window", "trailing", "all_time", "trailing_high", "all_time_high", "vehicles", "floor", "threshold", "picked", "field", "leader", "leaders", "names", "list", "column", "mark", "reason", "counted"],
     "notices": ["asked", "shown", "dataset", "field"],
     "unit_note": ["base"],
     "caveat": [],

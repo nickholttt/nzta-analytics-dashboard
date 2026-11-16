@@ -16,7 +16,7 @@
     "high": "many",
     "very_high": "many"
   },
-  "$value_classes_comment": "A dimension's own judgement of its list of values, recorded as its cardinality in config/dimensions.json: few is a short list, many is a list long enough to rank, some is in between and is not ranked. It is not a count of values and is not checked against one: a dimension marked low can have more than cardinality.few_max_values (config/data_map.json) values (one ordered band has 23), and D-050 ranks one list of about 44 values and not another of 46. Only the rule named ranking reads it.",
+  "$value_classes_comment": "A dimension's own judgement of its list of values, recorded as its cardinality in config/dimensions.json: few is a short list, many is a list long enough to rank, some is in between and is not ranked. It is not a count of values and is not checked against one: a dimension marked low can have more than cardinality.few_max_values (config/data_map.json) values (one ordered band has 23), and D-050 ranks one list of about 44 values and not another of 46. Only the rules that rank read it: ranking, and the two that rank a few values chosen from the same long list (ranking_picked_count, ranking_picked_share).",
   "needs_breakdown": ["share"],
   "$needs_breakdown_comment": "Kinds of measure that mean nothing for all vehicles together: a share of the whole is always the whole.",
   "rules": [
@@ -55,7 +55,31 @@
         "picked": "none"
       },
       "shapes": ["league"],
-      "note": "One window, a long list, and no values chosen: a ranking. Values the visitor chose are never ranked, since a ranking of a few picked values would read as their place in the market (D-061)."
+      "note": "One window, a long list, and no values chosen: a ranking of every value."
+    },
+    {
+      "id": "ranking_picked_count",
+      "when": {
+        "measure": "count",
+        "by": "category",
+        "values": "many",
+        "span": "one_period",
+        "picked": "several"
+      },
+      "shapes": ["league", "trend"],
+      "note": "The same window and the same long list, with two or more values chosen: the ranking of the values chosen, which the page labels as a ranking among those and not among every value (D-062, D-111). Offered where the ranking of every value is, so the full ranking is always one step away. One value chosen has nothing to rank, so it falls through to the lines."
+    },
+    {
+      "id": "ranking_picked_share",
+      "when": {
+        "measure": "share",
+        "by": "category",
+        "values": "many",
+        "span": "one_period",
+        "picked": "several"
+      },
+      "shapes": ["league", "mix"],
+      "note": "As above, for a share: each share stays a share of everything counted under the conditions, not of the values chosen (docs/METRICS.md, \"Ranking and ties\")."
     },
     {
       "id": "share_by_category",

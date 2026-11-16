@@ -1,20 +1,25 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
+import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
+import { figuresHeader } from "../lib/figuresHeader";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { dimensionNote } from "../lib/dimensionNote";
+import { conditionsSentence } from "../lib/scope";
 import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { datasetCovers, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
+import { datasetCovers, fitsPin, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
+import { FiguresContext } from "./FiguresContext";
+import type { FiguresGetter } from "./FiguresContext";
 import { LeagueChart } from "./LeagueChart";
 import { MixChart } from "./MixChart";
 import { TrendChart } from "./TrendChart";
@@ -53,7 +58,7 @@ const TIME_PERIODS = [
 
 // A period the time row offers: one of its spans, the preset's own period, or a period that ranks the view.
 const offers = (preset: Preset, granularityId: string | null, id: string) =>
-  TIME_PERIODS.some((p) => p.id === id) || id === (preset.period ?? "all") || rankingPeriods(presetView(preset, granularityId)).includes(id);
+  fitsPin(preset, id) && (TIME_PERIODS.some((p) => p.id === id) || id === (preset.period ?? "all") || rankingPeriods(presetView(preset, granularityId)).includes(id));
 
 const spanLabel = (months: number) => (months >= 24 && months % 12 === 0 ? `${months / 12} years` : `${months} months`);
 
@@ -101,10 +106,29 @@ export default function PresetPanel({
     if (typeof window === "undefined") return false;
     return getParam(presetId, "range", "default") === "all";
   });
+  // A link that names a range the view cannot have (a ranking is of one window): the range it drew instead, said once, and the address corrected.
+  const [periodReplaced] = useState<{ asked: string; shown: string } | null>(() => {
+    if (typeof window === "undefined" || !preset?.shape_override) return null;
+    const asked = getParam(presetId, "period", defaultPeriod);
+    if (asked === defaultPeriod || offers(preset, activeGranularityId, asked)) return null;
+    return { asked: findPeriod(asked)?.label ?? asked, shown: findPeriod(defaultPeriod)?.label ?? defaultPeriod };
+  });
+  useEffect(() => {
+    if (periodReplaced) setParam(presetId, "period", defaultPeriod, defaultPeriod);
+    // Once, where the link is read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // The month a ranking ends on, or the month a monthly figure is read for; empty is the dataset's latest. Kept in the
   // address as `<preset>.month`.
   const [month, setMonth] = useState<string>(() => (typeof window === "undefined" ? "" : getParam(presetId, "month", "")));
   const [copied, setCopied] = useState<"" | "copied" | "address">("");
+  // The table of figures the chart on show draws, which it registers; the download writes it (src/lib/figures.ts).
+  const figuresGetter = useRef<FiguresGetter | null>(null);
+  const [hasFigures, setHasFigures] = useState(false);
+  const registerFigures = useCallback((getter: FiguresGetter | null) => {
+    figuresGetter.current = getter;
+    setHasFigures(getter !== null);
+  }, []);
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
@@ -353,7 +377,7 @@ export default function PresetPanel({
     return words.charAt(0).toLowerCase() + words.slice(1);
   };
   const scope = keptBy?.length
-    ? `Only vehicles where ${keptBy.map((k) => `${nameOf(k.dimension)} is ${quoted(k.values, k.dimension)}`).join(", and ")} are counted.`
+    ? conditionsSentence(keptBy, nameOf, (d, v) => valueWords(d, reservedLabel(v)))
     : narrowedBy
       ? `Only ${quoted(narrowedBy.values, narrowedBy.dimension)} vehicles are counted.`
       : undefined;
@@ -388,6 +412,14 @@ export default function PresetPanel({
 
   // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
   const dimensionLabel = dimension ? dimensionWords(dimension.id, internal) : undefined;
+
+  // The answer comes straight under the question: a count's figure and sentence for a month, or who is first in a ranking.
+  const answerFirst = preventsRender.length === 0 && Boolean(rows?.length) && ((Boolean(preset.answer) && shape === "trend") || (shape === "league" && Boolean(effectivePreset.values?.length || effectivePreset.ranks_all)));
+  const replacedNotice = periodReplaced ? (
+    <p className="chart-unit" role="status">
+      {fillNote(phrases.period_replaced, periodReplaced).text}
+    </p>
+  ) : null;
 
   let chart = null;
   if (preventsRender.length === 0 && rows) {
@@ -476,6 +508,18 @@ export default function PresetPanel({
           lead={lead}
           month={month}
           onMonth={handleMonthChange}
+          after={
+            answerFirst
+              ? () => (
+                  <>
+                    {definitionBlock}
+                    {actionsBlock}
+                    {controlsBlock}
+                    {replacedNotice}
+                  </>
+                )
+              : undefined
+          }
         />
       );
     } else if (shape === "geo" && dimension) {
@@ -532,11 +576,31 @@ export default function PresetPanel({
       label: `${findPeriod(id)?.months ?? TRAILING_MONTHS}-month ranking`,
       full: false,
     })),
-  ];
+  ].filter((o) => fitsPin(effectivePreset, o.id));
 
   // On a count that opens with an answer, the answer comes straight under the question and the rest follows it.
-  const answerFirst = Boolean(preset.answer) && shape === "trend" && preventsRender.length === 0 && Boolean(rows?.length);
   const definitionBlock = definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null;
+  // The file of figures: the table the chart shows, the question in the words the page states it, and where the figures come from. Made here,
+  // in the browser, from the rows already loaded; nothing is requested and nothing is sent.
+  const handleDownload = () => {
+    const figures = figuresGetter.current?.();
+    if (!figures) return;
+    const header = figuresHeader({
+      preset,
+      manifest,
+      counted: [definition, scope].filter(Boolean).join(" "),
+      address: anchored ? getShareableUrl(presetId) : window.location.href,
+    });
+    const blob = new Blob(withByteOrderMark(figuresCsv(header, figures, phrases)), { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = figuresFileName(preset.question, manifest.latest_snapshot);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   const actionsBlock = (
     <div className="panel-actions">
       <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
@@ -546,6 +610,11 @@ export default function PresetPanel({
         <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
           Change this chart
         </a>
+      ) : null}
+      {hasFigures && preventsRender.length === 0 ? (
+        <button type="button" className="button-quiet" onClick={handleDownload}>
+          Download the figures (CSV)
+        </button>
       ) : null}
     </div>
   );
@@ -586,6 +655,7 @@ export default function PresetPanel({
   );
 
   return (
+    <FiguresContext.Provider value={registerFigures}>
     <section className={panelClass} id={preset.id} ref={setSentinel}>
       <header className="panel-head">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
@@ -681,6 +751,7 @@ export default function PresetPanel({
           {rows ? (rows.length > 0 ? "The chart has loaded." : "") : "Loading the chart…"}
         </p>
       ) : null}
+      {answerFirst && shape === "league" ? null : replacedNotice}
       {chart}
 
       <ul className="notes">
@@ -728,5 +799,6 @@ export default function PresetPanel({
         </p>
       ) : null}
     </section>
+    </FiguresContext.Provider>
   );
 }

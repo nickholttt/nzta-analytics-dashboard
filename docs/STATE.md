@@ -35,14 +35,16 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   screen; the public build drops what no page reaches, and the deploy checks that first.
 - **The engine was audited against the register's rows** (2026-11-16): of 34,693 figures one
   differed, a tie in a ranking. Fixed since (#67 to #69): ties, and a month with nothing counted.
+- **Build ranks the values a visitor picks**, labelled as among those picked, and every chart
+  downloads its figures as CSV (#71, D-111). The owner's acceptance question passes.
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
   read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
   them (package F); the `region` slice stays; postcode totals are not published for now.
-- **The query service** is specified, prototyped and proposed (#54, D-091); none is provisioned.
-- **Events**: 54 rows, 50 verified; four are unverified on purpose. Don't guess dates.
+- **The query service** is proposed, not provisioned (#54, D-091). **Events**: 54 rows, 50
+  verified; four are unverified on purpose. Don't guess dates.
 
 ## Current step
 
@@ -54,9 +56,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
 - `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): a proposal only.
-- `claude/build-ranked-csv` (D-111; worktree `nzta-notes`): Build ranks the values picked,
-  and downloads what is on screen as CSV. `src/lib/`, `QuestionBuilder.tsx`, `tests/site/`.
-- **This folder's `public/data`** (gitignored) is the dry-run build of #58: three datasets.
+- `claude/warnings-seen` (D-112; worktree `nzta-audit`): a build's warnings where they are read.
+- `claude/trade-basis` (D-113; the main folder): true registrations on the wider scope.
 
 ## Raw files on this computer (gitignored)
 
@@ -84,10 +85,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
 6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
-   Some notes in config that no lint reads name a value or say why, and three speak as if
-   the mild hybrid split is always published (D-107, D-109; for the narrative work).
-7. A chart below the first loads as it nears the screen; printing or searching the page
-   before scrolling reaches only what has loaded (D-099).
+   Notes in config that no lint reads name a value or say why (D-107, D-109; for H).
+7. Printing or searching a page before scrolling reaches only the charts that have loaded (D-099).
 8. True registrations of new vehicles read 1.4% to 3.9% under published totals (three vehicle
    types the default scope leaves out; a total on the trade's basis is next, D-106), and older
    months about 1% lower, cause not established (D-105).
@@ -103,7 +102,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 - An event marker can appear on a chart whose filter excludes the vehicles the event is about
   (`docs/EVENTS_LAYER.md`, D-089). No chart shows a wrong marker today.
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
-- D-061 stopped chosen values being ranked; D-062 allows it. The code follows D-061 until F.
+- `docs/brief/MASTER_BRIEF.md` still says D-061 stops chosen values being ranked; Build ranks
+  them as a labelled view since #71 (D-111). The brief is updated with the final report.
 - NZTA's page says an inactive vehicle is one "registered and registration cancelled in the
   same month". The counts say `INACTIVE` behaves as since removed (`docs/METRICS.md`, D-087).
 - `docs/DATA_MAP.md` lists ten places where it disagrees with other files (an engine band
@@ -122,7 +122,7 @@ November's file (December).
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about three minutes) and the site's 152 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 191 tests (under half a minute).
 
 - A scratch script run from the session's shared scratch folder can pick up a stray file
   there in place of a Python module: run it with `python -I`, or from a folder of its own.

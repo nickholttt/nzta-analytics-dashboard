@@ -299,7 +299,10 @@ test("every question Build can form is pinned only to shapes that fit at every p
     for (const view of [null, ...views]) {
       for (const p of builder.builderPresets({ ...question, view })) {
         if (p.shape_override) {
-          for (const period of reachable(p, resolve.rankingPeriods(p))) {
+          // The time row offers the periods the pin fits (fitsPin, which the panel uses); a pinned view always has one to open on.
+          const offered = reachable(p, resolve.rankingPeriods(p)).filter((period) => resolve.fitsPin(p, period));
+          assert.ok(offered.length > 0 && resolve.fitsPin(p, p.period ?? "all"), `${key} view=${view}: the period it opens on fits the shape it pins`);
+          for (const period of offered) {
             const fitting = fitsAt(p, period);
             assert.ok(fitting.includes(p.shape_override), `${key} view=${view}: pinned ${p.shape_override} at ${period}, the table gives ${fitting}`);
           }

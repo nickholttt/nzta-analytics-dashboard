@@ -1,8 +1,9 @@
 // The rows of a ranking: each value's rank, its rank in the same months a year earlier, the move between them, its share and its
 // change. Pure, so tests/site/ runs it with Node's own test runner; LeagueChart draws what this returns. The one ranking rule
 // (shared ranks, alphabetical within a tie) is in ranking.ts; docs/METRICS.md, "Ranking and ties".
-import { rankByCount } from "./ranking";
-import { changeOnYear, fillTemplate, vehiclesText } from "./sentences";
+import type { Cell, Column } from "./figures";
+import { nameOrder, rankByCount } from "./ranking";
+import { NOT_RECORDED_TOKEN, NO_MATCH_TOKEN, changeOnYear, fillTemplate, markReason, vehiclesText } from "./sentences";
 import type { RankingThinPhrases } from "./sentences";
 
 // The rows of a slice: one per month and value. Under a condition a month in which the condition keeps nothing has no rows, so
@@ -96,6 +97,99 @@ export function leagueRows(input: LeagueInput) {
   const lastRank = items.length ? items[items.length - 1].rank : undefined;
   const tiedBeyond = lastRank === undefined ? 0 : current.slice(topN).filter((e) => e.rank === lastRank).length;
   return { items, currentDenom, priorDenom, tiedBeyond };
+}
+
+// The table of a ranking: its columns and rows as the page shows them, which the file of figures writes (src/lib/figures.ts). One place builds
+// it, so the table on the page and the file are the same rows. The words and formatters come from the caller, which has the config.
+export type LeagueTable = {
+  hasPrior: boolean;
+  showYear: boolean;
+  guard: { shares: boolean; changes: boolean };
+  floor: number;
+  valueHeading: string;
+  countHeading: string;
+  // Headings that say the rank is among values chosen and what the share is a share of; absent for the ranking of every value.
+  headings?: { rank: string; share: string; prior: string };
+  words: { noYearAgo: string; yearTooFew: string; shareChangeNoPrior: string; notRankedBefore: string };
+  format: { count: (n: number) => string; pct: (x: number) => string; shareChange: (x: number) => string; yearChange: (x: number) => string };
+};
+
+export const moveText = (rankDelta: number | null, hasPrior: boolean): string =>
+  !hasPrior ? "—" : rankDelta === null ? "New" : rankDelta > 0 ? `▲ +${rankDelta}` : rankDelta < 0 ? `▼ ${rankDelta}` : "—";
+
+export function leagueTable(items: readonly LeagueRow[], t: LeagueTable): { columns: Column[]; rows: Cell[][]; notes: { column: string; reason: string }[] } {
+  const { hasPrior, floor, words, format } = t;
+  const withheld = (reason: string): Cell => ({ text: "—", csv: null, mark: "withheld", reason });
+  const count: Column = { key: "count", name: t.countHeading, unit: "count" };
+  const year: Column = { key: "year", name: "Change on a year ago", unit: "percent" };
+  const columns: Column[] = [
+    { key: "rank", name: "Rank", csvName: t.headings?.rank, unit: "count" },
+    { key: "move", name: "Move", text: true },
+    { key: "name", name: t.valueHeading, text: true },
+    ...(t.showYear ? [count, year] : []),
+    { key: "share", name: "Share", csvName: t.headings ? `${t.headings.share} (%)` : undefined, unit: "percent" },
+    { key: "change", name: "Change in share", unit: "points" },
+    ...(t.showYear ? [] : [count]),
+    { key: "before", name: "Rank a year before", csvName: t.headings?.prior, unit: "count" },
+  ];
+  const rows = items.map((item): Cell[] => {
+    const move: Cell = !hasPrior
+      ? withheld(words.noYearAgo)
+      : item.rankDelta === null
+        ? { text: "New", csv: "New" }
+        : { text: moveText(item.rankDelta, hasPrior), csv: item.rankDelta };
+    const yearChange: Cell = item.yearChange === undefined ? withheld(hasPrior ? words.yearTooFew : words.noYearAgo) : format.yearChange(item.yearChange);
+    const share: Cell = t.guard.shares ? { text: format.pct(item.share), mark: "greyed", reason: markReason("thin", floor) } : format.pct(item.share);
+    const shareChange: Cell =
+      item.shareDelta === undefined
+        ? withheld(hasPrior ? words.shareChangeNoPrior : words.noYearAgo)
+        : t.guard.changes
+          ? { text: format.shareChange(item.shareDelta), mark: "greyed", reason: markReason("thin", floor) }
+          : format.shareChange(item.shareDelta);
+    const before: Cell = hasPrior && item.priorRank !== null ? { text: `#${item.priorRank}`, csv: item.priorRank } : withheld(hasPrior ? words.notRankedBefore : words.noYearAgo);
+    const n = format.count(item.n);
+    return [
+      { text: `#${item.rank}`, csv: item.rank },
+      move,
+      item.name,
+      ...(t.showYear ? [n, yearChange] : []),
+      share,
+      shareChange,
+      ...(t.showYear ? [] : [n]),
+      before,
+    ];
+  });
+  // Why a dash stands where a figure would, for the reasons the page does not say elsewhere (a ranking with no year before says so once, in its
+  // own sentence): the page gives each under the table and the file in its line on withheld figures.
+  const seen = new Map<string, { column: string; reason: string }>();
+  rows.forEach((row) =>
+    row.forEach((cell, i) => {
+      if (typeof cell === "string" || cell.mark !== "withheld" || !cell.reason || cell.reason === words.noYearAgo) return;
+      const column = columns[i].csvName ?? columns[i].name;
+      seen.set(`${column}|${cell.reason}`, { column, reason: cell.reason });
+    }),
+  );
+  return { columns, rows, notes: [...seen.values()] };
+}
+
+// What a ranking of some values says about them: who stands first (all who share first place) and how many vehicles each has, and which of the
+// values take no place, by the name a reader sees and by why: a value takes a place only when it has vehicles in the window and is not a
+// reserved one (leagueRows), so the others are named, in groups a sentence can say truthfully (not recorded and no match in the reference
+// are different facts about the vehicles, and "no vehicles" is a third).
+export function pickedSummary(picked: readonly string[], items: readonly LeagueRow[], nameOf: (value: string) => string) {
+  const placed = new Set(items.map((i) => i.value));
+  const leaders = items.filter((i) => i.rank === 1);
+  const unplaced = picked.filter((v) => !placed.has(v));
+  const named = (keep: (v: string) => boolean) => unplaced.filter(keep).map(nameOf).sort(nameOrder);
+  return {
+    leaders: leaders.map((i) => i.name),
+    leaderCount: leaders[0]?.n ?? 0,
+    unranked: {
+      notRecorded: named((v) => v === NOT_RECORDED_TOKEN),
+      unmatched: named((v) => v === NO_MATCH_TOKEN),
+      empty: named((v) => v !== NOT_RECORDED_TOKEN && v !== NO_MATCH_TOKEN),
+    },
+  };
 }
 
 // Whether a ranking's base is too small to read a share from, and the one sentence that says how small (docs/METRICS.md, "A ranking
