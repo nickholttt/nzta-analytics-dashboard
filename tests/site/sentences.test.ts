@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { addMonths, answerLine, count, fillTemplate, hoverLine, monthLabel, monthsOf, percent, rankingText, sayBadMonth, sayOffChart } from "../../src/lib/sentences.ts";
+import { addMonths, answerLine, count, fillTemplate, hoverLine, monthAt, monthIndex, monthLabel, monthsOf, percent, rankingText, sayBadMonth, sayOffChart } from "../../src/lib/sentences.ts";
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const json = (path: string) => JSON.parse(read(path));
@@ -132,4 +132,16 @@ test("addMonths moves a month key across year ends in either direction, and mont
   assert.equal(addMonths("1961-01", 789), "2026-10");
   assert.equal(monthLabel("2026-08"), "Aug 2026");
   assert.equal(monthLabel("2026-08"), "Aug 2026");
+});
+
+test("monthIndex and monthAt are inverses over the register's years, and step one month at a time", () => {
+  let key = "1961-01";
+  for (let i = 0; i < 800; i++) {
+    assert.equal(monthAt(monthIndex(key)), key);
+    const next = addMonths(key, 1);
+    assert.equal(monthIndex(next), monthIndex(key) + 1);
+    assert.ok(next > key);
+    key = next;
+  }
+  assert.equal(key, "2027-09");
 });

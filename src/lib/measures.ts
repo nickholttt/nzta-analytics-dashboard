@@ -1,5 +1,5 @@
 // Measures computed in the browser from n and denominator (docs/CUBE_SCHEMA.md, docs/METRICS.md).
-import { addMonths } from "./sentences";
+import { addMonths, monthAt, monthIndex } from "./sentences";
 import { chartDefaults, findDerived, findMeasure, findPeriod, shareChangeUnit } from "./config";
 import type { Guards } from "./config";
 
@@ -27,7 +27,7 @@ export const monthDate = (key: string) => new Date(`${key}-01T00:00:00Z`);
 
 export function monthRange(from: string, to: string): string[] {
   const out: string[] = [];
-  for (let k = from; k <= to; k = addMonths(k, 1)) out.push(k);
+  for (let t = monthIndex(from), last = monthIndex(to); t <= last; t++) out.push(monthAt(t));
   return out;
 }
 

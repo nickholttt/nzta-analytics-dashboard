@@ -7,11 +7,13 @@
 
 // Called per month inside loops over every month of a series, so it parses without splitting and pads from a table.
 const MONTH_PART = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
-export function addMonths(key: string, k: number): string {
+// A month as a count of months since year 0, and back: the form to step through a range in.
+export function monthIndex(key: string): number {
   const dash = key.indexOf("-");
-  const t = Number(key.slice(0, dash)) * 12 + (Number(key.slice(dash + 1)) - 1) + k;
-  return `${Math.floor(t / 12)}-${MONTH_PART[t % 12]}`;
+  return Number(key.slice(0, dash)) * 12 + (Number(key.slice(dash + 1)) - 1);
 }
+export const monthAt = (index: number): string => `${Math.floor(index / 12)}-${MONTH_PART[index % 12]}`;
+export const addMonths = (key: string, k: number): string => monthAt(monthIndex(key) + k);
 
 // A month as a reader says it: "Aug 2026", not "2026-08".
 const MONTH_FORMAT = new Intl.DateTimeFormat("en-NZ", { month: "short", year: "numeric", timeZone: "UTC" });
