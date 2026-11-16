@@ -304,7 +304,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         )}
 
         {offersCount ? (
-        <div className="toggle" role="radiogroup" aria-label="Show as">
+        <div className="toggle" role="radiogroup" aria-label="Show bars as">
           <label>
             <input
               type="radio"
