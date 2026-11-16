@@ -31,7 +31,10 @@ With two more sets of figures that the maintainer downloads by hand each month
   whether that is up or down on a year ago, by brand and by model.
 - **Which brands and models lead** in any single month.
 - **How complete the picture is**: for each month, how many of the vehicles
-  registered are still on the register.
+  registered are still on the register, by kind of vehicle and new or used.
+- **How many cars were registered each month back to 1961**, new and
+  ex-overseas, from Stats NZ's series, and how the cars still registered
+  compare with that count.
 
 Without those files the site says plainly that these charts are not in the
 build.
@@ -155,7 +158,6 @@ a reference value.
 - The website is not online. Its About page is a marked draft.
 - True registrations and the long-run car series are built only where their
   hand-downloaded files are, not on GitHub.
-- The long-run car series has no chart yet.
 - SUVs cannot be told apart from cars: the register records most as station
   wagons. A model-level classification is planned.
 - A question on the Build page takes several seconds to answer on a phone.

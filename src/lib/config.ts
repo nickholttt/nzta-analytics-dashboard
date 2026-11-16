@@ -41,6 +41,9 @@ export type Preset = {
   // Draw the breakdown frame by frame through time; no renderer does yet, so the resolver blocks it.
   animate_by?: string;
   derived?: string;
+  // A ratio of two datasets drawn for each value of `dimension` crossed with each value of this other dimension. Both datasets
+  // must carry the pair of the two dimensions (the numerator as a pair slice, the denominator in its fact table).
+  cross?: string;
   // A figure and a sentence for one month above the chart (the latest, or the one the visitor chooses).
   answer?: AnswerTemplates;
   series?: unknown[];
@@ -114,6 +117,15 @@ export type DerivedMeasure = Measure & {
   top_n?: number;
   numerator_dataset?: string;
   denominator_dataset?: string;
+  // Where the numerator's breakdown is not the preset's dimension: its own id, and the one value-set of another dimension the
+  // numerator is narrowed to (through a pair slice). The two datasets then divide on the values both name alike.
+  numerator_dimension?: string;
+  numerator_narrowed_to?: { dimension: string; values: string[] };
+  // One line, with a link, under the chart: what a reader must know before trusting the ratio.
+  caveat?: { text: string; link_label: string; href: string };
+  // False where the measure's own definition already says what both datasets count, so their definitions are not repeated in the
+  // notes. Absent means shown.
+  show_dataset_definitions?: boolean;
   total_label?: string;
   definition?: string;
   // The line under a ratio chart ({base}: where its axis starts) and the name of its table of figures ({from}, {to}).
@@ -171,7 +183,8 @@ type PresetsDoc = {
   groups: { id: string; label: string; title: string; lead?: boolean; defer?: boolean; presets: Preset[] }[];
   defaults: {
     year_change_measure: string;
-    phrases: RankingPhrases & YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string };
+    phrases: RankingPhrases &
+      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
