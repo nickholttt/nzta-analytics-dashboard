@@ -870,7 +870,10 @@ only and published in no form (D-076, D-084).
   months and within 65 vehicles (0.23%) in any one month.
 - **Make.** Three values the whole register lacks, the largest `LANDROVER` beside `LAND ROVER`
   (424 vehicles, 165 of them in 2021). 30 makes of the register's same 70 months are absent, most
-  with one to four vehicles. Over 99.8% of in-scope vehicles map through `brand_registry.csv`.
+  with one to four vehicles. Over 99.8% of in-scope vehicles map through `brand_registry.csv`. On the types
+  only `registrations_flow_wider` counts (buses, motor caravans, special purpose vehicles), 97.8% of new
+  vehicles of all time map once seven bus, crane and motorhome makes were added (93.6% before; D-113,
+  `docs/METRICS.md`).
 - **Model.** (The committed store keeps it only where a dataset or the trade's total counts the vehicle:
   DATA_SOURCES §D.) NZTA's cleaned name. 2,854 values (18,946 vehicles) are nowhere in the register, because
   some nameplates are split finer; since January 2025 the largest are `COROLLA CROSS` and

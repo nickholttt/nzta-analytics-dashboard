@@ -166,6 +166,64 @@ D-113).
   dataset accepts it (the last good state has nothing about it); later builds
   compare with it.
 
+### Coverage of the lookups on the added types (measured 2026-11-17, D-113)
+
+Buses, motor caravans and special purpose vehicles bring makes the brand registry was not built for. Measured on the
+committed dashboard counts as built for the 2026-10 snapshot, by the pipeline's own code, over the trailing 12 months
+(2025-11 to 2026-10) and all time, new and used apart. "No reference match" is the reserved value for a recorded make
+with no row in `brand_registry.csv`; it carries to the manufacturer group, the brand owner's country and the brand's
+original country with it.
+
+| Vehicles | Trailing 12 months, new | Trailing, used | All time, new | All time, used |
+|---|---|---|---|---|
+| Added types, before | 309 of 2,982 (10.36%) | 6 of 774 (0.78%) | 1,078 of 16,767 (6.43%) | 59 of 6,297 (0.94%) |
+| Added types, after seven rows | 76 (2.55%) | 5 (0.65%) | 371 (2.21%) | 49 (0.78%) |
+| The wider dataset, before | 504 of 150,122 (0.34%) | 96 of 95,066 (0.10%) | 2,052 of 868,898 (0.24%) | 838 of 637,569 (0.13%) |
+| The wider dataset, after | 271 (0.18%) | 95 (0.10%) | 1,345 (0.15%) | 828 (0.13%) |
+| The default scope (unchanged) | 195 of 147,140 (0.13%) | 90 of 94,292 (0.10%) | 974 of 852,131 (0.11%) | 779 of 631,272 (0.12%) |
+
+The build's own guard counts every in-scope row the dataset holds, including re-registrations (the table `dims`, as for
+`registrations_flow`): over the trailing 12 months 631 unmapped makes of 245,435 (0.26%) before the rows and 397
+(0.16%) after, against `registrations_flow`'s 316 of 241,678 (0.13%); over all rows 3,094 of 1,515,274 (0.20%) before
+and 2,376 (0.16%) after. The warning level is 0.5% and the abort level 2%, as for every dataset.
+
+The makes with no row, on the added types alone, all time, before the rows, with their vehicles (31 makes, all
+listed): CRRC 487, FACTORY BUILT 306, YUTONG 79, ZHONGTONG 58, LIEBHERR 52, BCI 27, ALEXANDER DENNIS 21, ELDDIS 15,
+GROVE 14, TEREX 13, YANGTSE MOTOR GROUP 12, TADANO 8, KING LONG 6, MARCOPOLO 5, SANY 4, SHACMAN 4, TIDD 4, OSHKOSH 3,
+CAMPERVAN 2, DAIMLER 2, GLOBAL BUS VENTURES 2, HIGER 2, KATO 2, WRIGHTBUS 2, DEMAG 1, PETERBUILT 1, SINOTRUK 1,
+SUNLONG 1, VAUXHALL 1, WESTERN STAR 1, ZEMTEC 1.
+
+- **What was added.** One row each for the seven makes that carry 10 or more vehicles of the added types all time, or
+  4 or more in the trailing 12 months, and whose parent group and owner's country a public source settles: CRRC,
+  YUTONG, ZHONGTONG, LIEBHERR, ALEXANDER DENNIS, ELDDIS and MARCOPOLO, each with its sources and the date read in its own row
+  (`as_at`, `notes`). Four makes met the volume rule and were **left unmatched** because the sources read did not settle
+  the parent group or the owner's country: BCI (27; no page names an owner), GROVE (14) and TEREX (13; the owner is
+  settled but not where the brand began), YANGTSE MOTOR GROUP (12; no owner named). FACTORY BUILT (306) is a description,
+  not a brand. The seven rows match 717 of the 1,137 unmatched vehicles of the added types, and no vehicle of
+  `registrations_flow`: its files and manifest entry are unchanged by them. They do move two vehicles of
+  `registrations_surviving`, which holds passenger and goods vehicles of two of the makes: one first registered in
+  December 2017 moves from no reference match to ELDDIS (Thor Industries, United States, United Kingdom), and one
+  first registered in February 2013 to ALEXANDER DENNIS (NFI Group, Canada, United Kingdom). Its brand, manufacturer
+  group, brand owner's country and brand's original country slices change in those two months and no other cell
+  does; its guard's unmapped makes fall from 33,016 to 33,014 of the same 4,634,954 rows.
+- **Powertrain.** Every motive power of the added types has a row in `powertrain_map.csv`; none is unmapped.
+- **Hybrids.** The added types hold 33 vehicles recorded under a hybrid code all time and 1 in the trailing window. All
+  but one have a row in `mild_hybrid_models.csv` (a Hino, model 500, has none). The wider dataset's trailing figures are
+  the default scope's to the vehicle but one: 91,615 source hybrids against 91,614, identified at stated confidence
+  83.45%, and at high confidence 14,271 of 19,286 (74.0%) under D-110's count, so its mild split is published (the
+  level is 70%). 1,101 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
+  time the high-confidence figure is 46,102 of 71,434 (64.5%).
+- **Anything else.** Vehicle age at registration (the band's unknown), model (not recorded) and powertrain show no rate on
+  the added types unlike the default scope's; the country built in is not recorded for 7 of the 16,767 new vehicles
+  of the added types all time, as for 7 of 852,131 in the default scope.
+- **Which dimensions are live.** All eleven the dashboard can carry: powertrain, brand, manufacturer group, brand
+  owner's country, brand's original country, country built in, registered as, passenger or commercial, new or used,
+  age when first registered and model. A dimension is live when its unmapped rate over the dataset's rows is at most 2%
+  (`max_unmapped_rate`); the largest is 0.16% (the brand's, and what rolls up from it). The eight that are not live:
+  the car, ute, van and truck split (`segment`), vehicle class, region and engine size need fields the dashboard lacks (gross vehicle mass, district,
+  engine size), as for `registrations_flow`; vehicle age on the snapshot date, imported from and the two Stats NZ
+  dimensions apply to other datasets.
+
 ## Set beside published figures (measured 2026-11-16, D-105)
 
 No figure is adjusted to match another source. This section records how far
