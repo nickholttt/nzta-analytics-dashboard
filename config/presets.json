@@ -177,7 +177,7 @@
         "text": "Every vehicle registered each month, including those since removed from the register. This build does not carry true registrations, so these figures count vehicles still registered today.",
         "when_not_built": "registrations_flow"
       },
-      "Registrations before the first month of the dashboard's data. Those wait for Stats NZ's series, which has totals but no brand or model."
+      "Registrations before the first month of the dashboard's data, by brand or model. Stats NZ's long-run series has totals and a split into new and ex-overseas, no brand or model; the Explore page draws it."
     ]
   },
   "groups": [
