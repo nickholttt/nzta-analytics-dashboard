@@ -427,8 +427,7 @@
     }
   ],
   "rules": {
-    "max_filters": 2,
     "chart_type_is_user_selectable": false,
-    "$comment": "Shape is inferred from measure + dimension. See CLAUDE.md Shapes."
+    "$comment": "Shape is inferred from measure + dimension. See CLAUDE.md Shapes. There is no limit on the number of conditions a question carries (D-062, D-107): a key that said two was read by nothing and was removed."
   }
 }
