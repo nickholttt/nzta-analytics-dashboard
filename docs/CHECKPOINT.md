@@ -9,7 +9,8 @@ Last updated by claude on 2026-11-16
 - 2026-11-16, ninth session.
   - **Merged:** #60, the user's answers (D-096). #61, package C's charts and completeness
     by vehicle type (D-098). #62, the chart rules and the site's tests in `Checks` (D-100,
-    D-101). #65, the comparison with published figures and three more answers (D-105, D-106).
+    D-101). #65, the comparison with published figures and three more answers (D-105,
+    D-106). #66, the supplied counts as files in the repository, trimmed (D-097).
   - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
     the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
     sit about 1% lower, cause not established. Range-extended electric vehicles sit with
@@ -31,9 +32,7 @@ independently of the site's code; figures are compared with published New Zealan
 
 ## Open pull requests
 
-- #64 `claude/first-load` (D-099): the first-load trim, with `main` up to #62 merged in.
-  Its review is under way.
-- #66 `claude/supplied-counts` (D-097): the supplied counts as files, trimmed. In review.
+- #64 `claude/first-load` (D-099): the first-load trim. Reviewed; its follow-ups are in hand.
 
 ## Work in hand, in the order to pick it up
 
@@ -47,9 +46,10 @@ independently of the site's code; figures are compared with published New Zealan
    - On the pipeline's side, next: a hybrid nameplate the dashboard spells differently is
      missing from `mild_hybrid_models.csv` (true registrations' coverage reads 66.0%), and
      the mild split is drawn below the 70% METRICS asks for; ties at the 300-model cap.
-3. **A local-only branch to delete once #66 is merged:** `claude/stores-in-repo` (its
-   history holds the untrimmed counts; never push or merge it). The first pushed version
-   stays reachable on GitHub through the closed #63.
+     Also: any change to the scope files refuses the committed counts until the history is
+     supplied again, even a row for a new NZTA value; refuse only what the trim depends on.
+3. **A local-only branch to delete:** `claude/stores-in-repo` (it holds the untrimmed counts;
+   never push it). The first pushed version stays reachable on GitHub through the closed #63.
 4. **Package F**, each field checked against the data and published sources before Build
    offers it. First: a total of new vehicles on the trade's basis beside the default scope
    (the user, D-106; `trade_scope` in `vehicle_scope.csv`). Then: colour, seats, where

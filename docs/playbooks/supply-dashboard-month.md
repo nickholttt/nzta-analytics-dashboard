@@ -57,8 +57,10 @@ caravans). `supply` keeps a model where the vehicle type is in the default scope
 model as not recorded and sums the rows that become identical. Every other field of the row, and so every
 vehicle type's counts, stays. Which rows those are comes from `supplied.nzta_dashboard.outside_scope` and the
 scope files the build reads, and the ledger records the scope the store was written under. If that scope
-later widens (a vehicle type or import status that was blanked becomes counted, or gains `trade_scope`), the build
-and `supply` refuse the store and say so: supply the whole history again from the raw exports, as below.
+later changes in any way (a vehicle type or import status becomes counted or stops being, gains or loses
+`trade_scope`, or a row is added for a value NZTA has not used before), the build and `supply` refuse the store
+and say so, and `Checks` fails the pull request that made the change: supply the whole history again from the
+raw exports, as below, in that same pull request.
 
 ## Replacing the whole history
 

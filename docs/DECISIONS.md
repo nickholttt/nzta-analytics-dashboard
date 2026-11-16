@@ -3589,7 +3589,8 @@ New entries use this template:
      free text typed at registration and sometimes reads like a name. (a) Keep it all. (b) Drop the rows the dataset
      never counts. (c) Keep the rows and store the model as not recorded where the dataset does not read it, summing
      the rows that become identical. Chosen (c): every vehicle type's counts by month, status, body, power, make,
-     country and year stay askable later, and nothing the build reads changes. The rule is data: the dataset it follows
+     country and year stay askable later, and nothing the build publishes changes (it reads the model of in-scope
+     re-registered vehicles, now blank, only on rows it then leaves out). The rule is data: the dataset it follows
      (`registrations_flow`), the field (`model`) and a column of `vehicle_scope.csv` that widens the vehicle types
      (`trade_scope`, the types the trade's total of new vehicles counts: the two in scope and buses, motor caravans and
      special purpose vehicles, D-105 and D-106). A model is kept where the vehicle type is in the default scope or
@@ -3646,7 +3647,8 @@ New entries use this template:
     ideally before NZTA's register refresh.
   - Each month the owner supplies a file, runs the tests and commits the two store files together; the Checks
     workflow fails a pull request that changes one without the other.
-  - If the vehicle scope widens (a type or status the store blanked becomes counted, or gains `trade_scope`), the build
+  - If the vehicle scope changes in any way (not only when it widens: a narrowing, or a row added for a value NZTA
+    has not used before, counts too; the reviewer of #66 found the first wording too narrow), the build
     stops with the instruction to supply the history again; the raw exports in `data/raw/` must be kept for that.
   - The Monthly build's time and memory grow by what the two datasets cost (a dry run took 11 min 3 s without them on
     2026-11-13 and 12 min 21 s to 13 min 15 s with them). The workflow allows 45 minutes.
