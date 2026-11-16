@@ -421,16 +421,23 @@ runs `python -m pipeline supply`. Each source names its `kind` in `config/pipeli
 is laid out and how its datasets are built: `counted_rows` (the dashboard) or `series` (a published table of monthly
 series, below).
 
-**The store**, `data/supplied/<id>/` (gitignored for now: whether it may live in the public repository
-is the user's decision):
+**The store**, `data/supplied/<id>/`, committed to the repository (the user, 2026-11-16, D-097) so that GitHub's
+builds read the same two files as a local build, and nothing else is kept there:
 
 - `registrations.parquet`: one row per month and combination of the public fields. Columns, in order:
   `month` (DATE, the first day), the fields named in `supplied.<id>.fields` under their logical names,
   the fields in `extra_fields` (`vehicle_status`), and `vehicles` (INTEGER). Rows are summed over the
   columns in `private_columns` (for the dashboard, the three owner columns), which are asserted present
-  in the file and then dropped, so no owner field is in the store or in any output. Sorted, and written
+  in the file and then dropped, so no owner field is in the store or in any output. When the source names an
+  `outside_scope` rule (`supplied.<id>.outside_scope`: a dataset, the fields to blank and a vehicle-scope column
+  that widens it), a row whose (vehicle type, import status) is known to the scope files and counted neither by
+  that dataset nor by a vehicle type the column marks has those fields
+  stored as NULL (not recorded), and the rows that become identical are summed. Sorted, and written
   with the Parquet options of the cube (ZSTD), so the same input gives the same bytes.
-- `ledger.json`: `store_sha256`, the SHA-256 of `registrations.parquet` as written with it; `files`, for
+- `ledger.json`: `source`, the source's terms as `supplied.<id>` in `config/pipeline.json` states them when the ledger is
+  written (`publisher`, `licence`, `attribution`, `origin`), so the file carries its own; `outside_scope`, when the
+  rule above applies, the dataset, the fields blanked, the widening column and its types, every value the scope files
+  knew and the (vehicle type, import status) pairs whose fields are kept, so the build can tell a store written under another scope and refuses it; `store_sha256`, the SHA-256 of `registrations.parquet` as written with it; `files`, for
   each file supplied (keyed by its SHA-256) the file's name (name only), the day it was taken, and
   `totals_checked`, the dashboard totals it was checked against (period to vehicles), or null when
   `--totals` was not given; `months`, for each month the hash of the file it came from, the day it was
@@ -479,11 +486,11 @@ of the table and fetches nothing. The table's title, footer, month format and he
 `supplied.statsnz_tpt` in `config/pipeline.json`, the meaning of each of its 26 columns in
 `data/reference/statsnz_series.csv`; no `.py` file names one.
 
-- `data/supplied/statsnz_tpt/series.parquet` (gitignored): one row for each month and series that has a
+- `data/supplied/statsnz_tpt/series.parquet` (committed, D-097): one row for each month and series that has a
   figure. Columns, in order: `month` (DATE, the first day), `series_id` (the reference file's id),
   `value` (INTEGER). A figure that Stats NZ marks `..` (not available) has no row. Sorted by month, then
   series, in the cube's Parquet options, so the same input gives the same bytes.
-- `ledger.json`, beside it: `store_sha256`, the SHA-256 of `series.parquet` as written with it; `files`, for
+- `ledger.json`, beside it: `source`, as for the first kind; `store_sha256`, the SHA-256 of `series.parquet` as written with it; `files`, for
   each export supplied (keyed by its SHA-256) the file's name, the day it was taken, the export's "Last
   updated" text, its table reference, its first and last month and count of months, and what the arithmetic
   check found (for each total: the months checked, and the months before the check applies where it
@@ -546,11 +553,15 @@ that total, so its slice is the breakdown's figures.
   store and are not built into a dataset: Stats NZ's classes are not lined up with NZTA's vehicle types (D-065).
 - The dataset's latest month is the store's. Stats NZ published about two weeks after NZTA's service on the one month observed, so the series' newest month is usually a month behind the register's (an estimate). A warning names the missing
   months, and the store is never newer than the register's.
+- The state keeps, for each month of a supplied dataset, the SHA-256 of the file the month came from
+  (`supplied_files.<dataset>`). A recorded replacement or revision excuses a changed month total if its file
+  was taken on or after the last good build's day, or if it is the file the ledger now cites for that month and
+  the state's `supplied_files` entry is a different file (an export taken before a build and committed after it).
 - The state keeps each month's total under `supplied_totals.<dataset>`. A month whose total differs from the last
   good build's at all (`max_month_change` is 0) aborts, unless the ledger records a revision of that month from a
   file taken on or after that build's day.
 
-**Without the store** (GitHub's runs, until the user decides whether it may be committed) the build
+**Without the store** (a checkout that lacks it: a store is committed, so GitHub's runs have both, D-097) the build
 succeeds, writes nothing for the dataset, adds a warning, and gives the manifest
 `datasets.<id> = {"definition": ..., "not_built": "<reason>"}`. Anything that reads `datasets` must
 check for `not_built` before reading the other keys.
@@ -635,9 +646,12 @@ Supplied sources:
 - The store's latest month is after the register's.
 - The store file is not the one the ledger was written with (`store_sha256` differs), or a column named in
   `private_columns` is also mapped to a public field.
+- The store was written under another scope than config states now (`outside_scope` in the ledger differs from the
+  one computed from `config/pipeline.json` and the scope files), so months trimmed differently would sit together.
+  `supply` refuses the same store. The message says to supply the history again from the raw exports.
 - A month's own total in the store (every vehicle the ledger records for it, before any scope applies) differs
   from the last good build's by more than `supplied.<id>.max_month_change` (2%), and the ledger has no
-  replacement of that month whose file was taken on or after the last good build's day. The totals are kept in
+  replacement of that month that the last good build explains (see the state's `supplied_files`, above). The totals are kept in
   the state as `supplied_totals.<dataset>`, so an edit to a scope file cannot trip this check.
 - A supplied dataset was built in the last good run and its store is now absent.
 - A dimension of the `series` derive kind names no datasets in `applies_to`, or names one that does not read a source of

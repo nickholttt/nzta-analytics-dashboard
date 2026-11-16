@@ -28,7 +28,9 @@ Three grains, never mixed in one series without an explicit label.
 Every dataset counts **in-scope rows only**. A row is in scope when its
 vehicle type is `in_scope` in `vehicle_scope.csv` (today: passenger cars
 and vans, and goods vans, utes and trucks) and its import status is
-`in_scope` in `import_status_map.csv`. Datasets that measure entry to the
+`in_scope` in `import_status_map.csv`. (`vehicle_scope.csv` also has a `trade_scope` column: the types the
+trade's total of new vehicles counts, which adds buses, motor caravans and special purpose vehicles to the two
+in scope, D-105 and D-106. No dataset is built on it yet.) Datasets that measure entry to the
 fleet also require `counts_as_fleet_entry`. Every guardrail rate (unmapped
 makes, unmapped powertrains, row-count movement) is measured on in-scope
 rows. The unmapped make and powertrain rates are measured on two bases, and
@@ -110,6 +112,82 @@ taken.
   register are therefore not always the same set of vehicles:
   completeness (below) is not shown by model.
 - **Never on a chart with survivors.**
+
+## Set beside published figures (measured 2026-11-16, D-105)
+
+No figure is adjusted to match another source. This section records how far
+true registrations (`registrations_flow`) sit from figures published
+elsewhere, and what is known about why. Our figures were recomputed on
+2026-11-16 from the dashboard counts (the export of 14 November 2026). The
+MIA's October 2026 figures were read from its own page that day. Its earlier
+figures are as quoted in AutoTalk's reports of MIA releases (autotalk.co.nz,
+read that day): an indirect source, and the MIA restates months.
+
+**New vehicles, by month and year.** "Default scope" is passenger cars and
+vans plus goods vans, utes and trucks. "Plus three types" adds buses, motor
+caravans and special purpose vehicles.
+
+| Period | Published | Ours, default scope | Ours, plus three types |
+|---|---|---|---|
+| March 2021 | 15,498 | 15,042 (-2.9%) | 15,301 (-1.3%) |
+| August 2022 | 14,690 | 14,353 (-2.3%) | 14,568 (-0.8%) |
+| June 2023 | 23,560 | 23,182 (-1.6%) | 23,399 (-0.7%) |
+| June 2024 | 9,423 | 9,171 (-2.7%) | 9,379 (-0.5%) |
+| October 2024 | 12,568 (the sum of AutoTalk's passenger and commercial figures; its page was not re-read) | 12,082 (-3.9%) | 12,515 (-0.4%) |
+| October 2025 | 14,218 (as restated) | 13,777 (-3.1%) | 14,191 (-0.2%) |
+| March 2026 | 14,908 | 14,617 (-2.0%) | 14,872 (-0.2%) |
+| October 2026 | 15,118 | 14,904 (-1.4%) | 15,109 (-0.06%) |
+| 2021 | 165,287 | 161,198 (-2.5%) | 163,796 (-0.9%) |
+| 2024 | 128,776 | 124,887 (-3.0%) | 128,392 (-0.3%) |
+| 2025 | 137,853 | 134,435 (-2.5%) | 137,604 (-0.2%) |
+
+**October 2026 by the MIA's segments.** Light passenger including SUVs:
+11,833 against our 11,824 new passenger cars and vans. Light commercial 2,805
+plus heavy commercial 480 is 3,285; our new goods vehicles are 3,080, and
+with 71 buses, 129 motor caravans and 5 special purpose vehicles, 3,285. We
+cannot split light from heavy commercial on this dataset (the export has no
+gross vehicle mass), nor SUVs from cars.
+
+**Used imports** (passenger cars and vans; published by AutoTalk from NZTA's
+data): 2021, 121,884 against our 119,996 (-1.5%); 2022, 110,757 against
+109,606 (-1.0%); October 2026, 8,285 against 8,285.
+
+**Against Stats NZ's cars** (`registrations_cars_long_run`): our passenger
+cars and vans, new and used, are 98.75% of Stats NZ's count for 2021, 98.98%
+for 2022, 99.25% for 2023, 99.50% for 2024, 99.72% for 2025 and 99.79% for
+January to September 2026.
+
+What is established, and what is not:
+
+- **Scope.** The three extra types account for most of the gap against the
+  MIA's total in every month compared, and in October 2026 for all of the
+  commercial gap. No definition of the MIA's was read: what is established
+  is that the counts meet once the three types are added. Motorcycles are in
+  neither total.
+- **Older months sit lower.** Against the MIA, AutoTalk and Stats NZ alike,
+  the gap that scope does not explain is 0.4% or less for 2025 and 2026,
+  up to 0.5% for 2024, and about 1% for 2021 and 2022. Published figures
+  are as first reported or as restated; ours are as the dashboard holds them
+  at the latest export, and NZTA says past months can change (above). Month
+  by month from 2021, the gap against Stats NZ moves with the share of a
+  month's vehicles marked `INACTIVE` (correlation 0.95 over the 69 months to
+  September 2026; both also grow with a month's age, so this shows no
+  cause). What the missing vehicles are is **not established**.
+- **Re-registrations are not the whole of it.** Adding every
+  re-registration would overshoot the MIA's 2021 total by about 1,800
+  vehicles (3,275 on the wider scope). Whether some of them are counted by
+  the MIA or Stats NZ is not established. Dropping `INACTIVE` vehicles would
+  widen the gap.
+- **Likely, not established:** AutoTalk's 2025 total of battery electric
+  vehicles is 7,706 against our 7,483; with the three extra types ours is
+  7,686, 203 of them buses. Its plug-in hybrids are 6,885 against our 7,052;
+  ours without 190 range-extended electric vehicles is 6,862.
+- **Not explained:** one used-import figure for October 2025 published on
+  the month's last day (7,381 against our 6,999).
+- **Not compared:** the Ministry of Transport's fleet statistics and the
+  MIA's brand and model lists could not be read (the first refuses automated
+  readers, the second is for members). AutoTalk's top ten brands and models
+  for October 2026 equal ours in rank and count.
 
 ## Long-run car registrations: `registrations_cars_long_run`
 

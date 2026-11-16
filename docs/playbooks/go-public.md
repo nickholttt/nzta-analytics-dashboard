@@ -18,7 +18,7 @@ nothing in this list should cost money.
 ## Before you start
 
 - Fill in the About page's gaps: search the repository for `TO DECIDE` (they are all in `config/site.json`).
-  Three are left since 2026-11-16: the site's name, its address and who runs it. Read the privacy sentence
+  Two are left since 2026-11-16: the site's name and its address. Read the privacy sentence
   again too: it says what is true today (no advertising, no cookies, no tracking), and you meant to look at
   it again before going live (D-096).
   The site is public once step 11's run has uploaded it, and the About page says it is a draft while any gap is

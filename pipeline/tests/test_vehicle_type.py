@@ -145,3 +145,15 @@ def test_a_dimension_cannot_be_live_where_the_source_carries_no_vehicle_type(wor
     field = dimension(cfg)["derive"]["field"]
     assert derive.needed_fields(cfg, dimension(cfg)["derive"]) == {field}
     assert "applies_to" not in dimension(cfg), "the series rule must decide this, not a list"
+
+
+def test_trade_scope_is_a_true_or_false_for_every_type_and_never_narrower_than_the_default_scope():
+    # The set of types the trade's total of new vehicles counts (D-105, D-106). The committed store keeps a model
+    # name for these types as well as for the default scope, so a type in scope must be in it.
+    cfg = make_cfg({})
+    vehicle, true = cfg.pipeline["scope"]["vehicle"], cfg.pipeline["boolean_true"]
+    rows = scope_rows(cfg)
+    assert rows and all("trade_scope" in r for r in rows)
+    assert {r["trade_scope"] for r in rows} <= {true, "false"}
+    assert all(r["trade_scope"] == true for r in rows if r[vehicle["in_scope"]] == true)
+    assert any(r["trade_scope"] == true and r[vehicle["in_scope"]] != true for r in rows), "trade_scope adds nothing to the default scope"

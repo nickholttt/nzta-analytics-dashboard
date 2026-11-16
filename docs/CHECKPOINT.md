@@ -5,19 +5,20 @@ Last updated by claude on 2026-11-16
 ## Where we left off
 
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
-  D-095). October was forced once; no second forced run is allowed (D-082). A local build
-  answers how many vehicles were registered in any month since January 2021, by brand and model.
-- 2026-11-16, ninth session (in progress).
-  - **The user answered the parked questions** (D-096, #60, merged): the privacy classes are approved,
-    three of the About page's gaps are filled, and the repository's "About" line is set.
-  - **Merged: #61**, package C's charts with completeness by vehicle type (D-098). Its
-    review found the ratio chart joining a line across months it left out; fixed.
-  - **Merged: #62**, package E's chart rules, with the site's tests in `Checks` (D-100, D-101).
-  - **Four pieces run in parallel**, one branch each: the supplied counts as files in the
-    repository (D-097), package D's first-load trim (D-099), package H's narrative spec
-    (D-102) and package I's proposed segment scheme (D-103). STATE lists their files.
-  - **Running beside them** (D-104): a comparison of the site's figures with published ones,
-    and, next, an audit of every measure against the register's rows.
+  D-095). October was forced once; no second forced run is allowed (D-082).
+- 2026-11-16, ninth session.
+  - **Merged:** #60, the user's answers (D-096). #61, package C's charts and completeness
+    by vehicle type (D-098). #62, the chart rules and the site's tests in `Checks` (D-100,
+    D-101). #65, the comparison with published figures and three more answers (D-105,
+    D-106). #66, the supplied counts as files in the repository, trimmed (D-097).
+  - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
+    the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
+    sit about 1% lower, cause not established. Range-extended electric vehicles sit with
+    plug-in hybrids here and apparently not in AutoTalk's count.
+  - **The user answered three more questions** (D-106): a total on the trade's basis beside
+    the default scope; the MIT licence for the code; the site is run by "an individual".
+  - **The engine was audited** against the register's rows: of 34,693 figures, one differs,
+    a tie in a ranking ("Work in hand", 2).
 
 ## The user's direction of 16 November (D-104)
 
@@ -29,91 +30,90 @@ Claude's reading, unreviewed (D-104): the work order's order stands, with the en
 the public-facing packages and no proposal to launch early; each measure is recomputed
 independently of the site's code; figures are compared with published New Zealand sources.
 
-## Open pull requests (none)
+## Open pull requests
 
-## Work queue: the work order's packages, in order
+- #64 `claude/first-load` (D-099): the first-load trim. Reviewed; its follow-ups are in hand.
 
-- **The repository's front page** (the user, 2026-11-15): done (#59). Keep `README.md` true
-  as packages land: its "What it can answer today" and "Not there yet" lists go stale first.
-  The "About" line for the repository's sidebar is proposed to the user (question 9).
-- **A. Housekeeping.** Done. Follow-ups left, each with its reason in D-088 or D-089: a
-  digest of the rows the archive job pulls; dependencies pinned by hash and a
-  draft-then-publish release step (both after December's build); admin bypass on
-  `production` (the user's); the status page's script chunk (with D); two Build behaviours
-  for chosen values (F); a share by model draws 300 lines (E's chart rules); a model's name
-  shows its separator, and `/build/` skips a heading (H); a second scope for events; a
-  lookup should refuse a blank value at build time, not only in a test (D-095's review).
-- **B. True registrations.** Done on a local build. Left:
-  - Each month: the user's export, then `python -m pipeline supply`
-    (`docs/playbooks/supply-dashboard-month.md`), then a build with `--dry-run`.
-- **C. Stats NZ's long-run series.** Done on a local build (#57, #61, D-098). Left: the
-  user's own export replaces the fetched copy (`docs/playbooks/supply-statsnz-series.md`).
-  Not done at review: #61's docs landed in its last commit, and one commit does not pass
-  the site's tests alone (history was not rewritten).
-- **D. The rest of Stage 1.** Left: first load. Measured (D-091): 7.4 to 11.6 s to a Build
-  answer on the phone profile; about 460 KB of each page is its own code and fonts. Trim
-  those, measure again (target: a first answer under 3 seconds). Then the status chunk.
-- **E. The data map.** Done (#53), and the chart rules (#62, D-100). Left: the pipeline
-  writing the "moves together" figures each build; `sentinels.csv` gaining the forms the
-  map lists, as each field is bound; the rule table does not yet check that a field may be
-  broken down (`uses.break_down`, with F).
-- **F. The full engine.** Not started. The map's binding order: colour, seats, where
-  assembled, class; then power and transmission; owner fields last and unpublished. Then
-  ranked chosen values, the `matrix` shape, any number of conditions, "My questions", the
-  related-fields note, CSV of what is on screen, and the acceptance question both ways.
-- **G. The query service.** Done as asked: measured and proposed. Nothing is provisioned.
-- **H. Labels, words, topic pages** and **I. what the industry expects**: not started.
+## Work in hand, in the order to pick it up
+
+1. **Review and merge #64.**
+2. **What the engine's audit found** (D-104, D-107). A checker recomputed 34,693 of the
+   site's figures from the register's rows and the dashboard export: 34,618 agree, 74 are
+   withheld on both sides, 1 differs (a tie in a ranking). No count is wrong.
+   - On the site's side, in hand on `claude/audit-fixes`: a rule for ties, what the guards
+     do, the coverage note on a narrowed chart, stale lines on `/caveats`, the limit on
+     conditions.
+   - On the pipeline's side, next: a hybrid nameplate the dashboard spells differently is
+     missing from `mild_hybrid_models.csv` (true registrations' coverage reads 66.0%), and
+     the mild split is drawn below the 70% METRICS asks for; ties at the 300-model cap.
+     Also: any change to the scope files refuses the committed counts until the history is
+     supplied again, even a row for a new NZTA value; refuse only what the trim depends on.
+3. **A local-only branch to delete:** `claude/stores-in-repo` (it holds the untrimmed counts;
+   never push it). The first pushed version stays reachable on GitHub through the closed #63.
+4. **Package F**, each field checked against the data and published sources before Build
+   offers it. First: a total of new vehicles on the trade's basis beside the default scope
+   (the user, D-106; `trade_scope` in `vehicle_scope.csv`). Then: colour, seats, where
+   assembled, class; power and transmission; owner
+   fields last, unpublished until the pipeline hides small cells (D-096). Then ranked chosen
+   values, the `matrix` renderer, any number of conditions, "My questions", the
+   related-fields note, CSV of what is on screen, the acceptance question both ways.
+5. **Paused, half written, uncommitted:** package H's narrative spec (D-102; worktree
+   `nzta-screens`, `claude/narrative-spec`: `config/narrative/` files and a lint test, no
+   `docs/NARRATIVE.md` yet) and package I's proposed segment scheme (D-103; worktree
+   `nzta-segments`, `claude/model-segments`: one reference file so far). Both are behind `main`.
+
+## Left in the packages
+
+- **A.** Follow-ups (D-088, D-089): a digest of the rows the archive job pulls; dependencies
+  pinned by hash and a draft-then-publish release step (after December's build); admin
+  bypass on `production` (the user's); two Build behaviours for chosen values (F); `/build/`
+  skips a heading (H); a second scope for events; a lookup refusing a blank value at build.
+- **B.** Each month, as soon as the dashboard has it: the user's export, `python -m pipeline
+  supply`, a `--dry-run` build, a pull request with the store's two files (D-097). A store
+  rebuilt whole cannot yet excuse a month it restates by more than 2% (`supply` needs an
+  option). **C.** The user's own Stats NZ export replaces the fetched copy.
+- **D.** First load is in #64: Explore's first chart 7.98 s to 4.61 s, a Build answer 7.59 s
+  to 6.58 s, on the phone profile. The 3-second target is not met; Build waits on its data.
+- **E.** The pipeline writing the "moves together" figures each build; `sentinels.csv`
+  gaining the map's forms as each field is bound; the rule table checking `uses.break_down`.
 - **The final report** (the order §6), with `docs/brief/MASTER_BRIEF.md` §4 and §12 updated.
+  Keep `README.md`'s "What it can answer today" and "Not there yet" lists true as work lands.
 
 ## Questions for the user (parked; none stops the work)
 
-Questions 1 to 9 of 15 November were answered on 16 November (D-096). Left:
+1. **The site's name and web address** (`config/site.json`, search `TO DECIDE`): parked by
+   the user. The About page stays a marked draft until both are filled.
+2. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`), now that the trim is
+   measured (D-099): a Build answer still takes 6.6 to 10.3 s on a phone, nearly all of it
+   the data download. A paid function (about US$5 a month), or lighter files at no cost.
+   Recommend deciding after the engine's audit. With no answer nothing is spent.
+3. **The first owner-field table** (package F; D-096): see it before a build publishes it?
+   Recommend yes. And should the `region` slice then take the minimum of 10? Recommend yes.
+   With no answer: built locally only, shown in the final report; the slice stays as it is.
+4. **Two readings of CLAUDE.md's chart rule** (D-100): a list is ranked by the field's own
+   recorded judgement, not a count of its values; a count by a region draws lines, not a
+   map. Recommend keeping both. With no answer both stay.
+5. **A month supplied after the register's build is not published until the next month's
+   build.** May a change to the committed counts rebuild the current month? It is a forced
+   run, asked for each time today. Recommend yes, for that case only. With no answer: no.
+6. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
+   sentence, read again before going live; the retaken dashboard history, due in Downloads.
 
-1. **The code's licence.** The answer left the options standing: none (all rights reserved);
-   MIT; Apache 2.0. No recommendation: it is the owner's to choose. With no answer the
-   README keeps saying no licence is chosen.
-2. **The About page's three gaps** (`config/site.json`, search `TO DECIDE`): the site's name
-   (parked by the user), its web address (left as a gap by the user), and who runs it (a
-   name, or "an individual": not answered). With no answer the page stays a marked draft.
-3. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`): the user decides once
-   package D's trim is measured (D-099 will hold the figures). Nothing is spent meanwhile.
-4. **The first owner-field table.** The user's rule (one or two fields, cells under 10
-   hidden) is built in package F. Does the user want to see the first such table before a
-   build publishes it? Recommend yes. With no answer: it is built on a local build only and
-   shown in the final report. And should the `region` slice then take the minimum of 10 too?
-   Recommend yes. With no answer it stays as it is.
-4a. **Two readings of CLAUDE.md's chart rule, for the user's ruling** (D-100). (a) The rule
-   table ranks a list by the field's own recorded judgement, not by a count of its values,
-   so that nothing a visitor sees changed. Recommend keeping it. (b) A count by a region
-   draws lines, not a map, and an average by a band draws lines, because those two charts
-   draw shares only. Recommend keeping it until a visitor's question needs otherwise. With
-   no answer both stay.
-5. **Later, by the user's word:** the Stats NZ hand export; going public
-   (`docs/playbooks/go-public.md`); the privacy sentence, read again before going live.
-6. **The retaken dashboard history** (with the mass and engine-size groupings) arrives in
-   the user's Downloads folder; the export's playbook and config change when it does.
+## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
-## Decided for the user this session
-
-Each is a record in `docs/DECISIONS.md`, marked unreviewed: D-082 (the two readings of hard
-rules 4 and 8), D-085 (sub-agent definitions), D-086 (the three pages), D-087 (what
-`registrations_flow` counts; `Vehicle Status` read from the counts), D-088 and D-089 (the
-follow-ups taken and left), D-090 (the data map's config form), D-091 (the query service's
-format and prototype), D-092 (how true registrations are built and guarded), D-093 (how the
-site shows them), D-094 (Stats NZ's series: cars only, two breakdowns, no fact table), D-095
-(NZTA's vehicle type as a dimension; cars against Stats NZ's count is not called
-completeness), D-096 (the readings of the user's answers: approval alone publishes nothing;
-a "table of one or two fields" is a slice or a pair; the `region` slice keeps no minimum). Also: Stats NZ's series was fetched once, read-only, and both converted
-stores stay on this computer until question 1 is answered.
+D-082, D-085 to D-095 (the eighth session). This session: the readings in D-096, D-104 and
+D-106 (with the MIT licence), and D-097, D-098, D-099, D-100, D-101, D-105 and D-107.
 
 ## Prompt for the next session
 
-/start. Continue `docs/brief/WORK_ORDER.md` from where CHECKPOINT says. Its §2 still stands:
-you may merge this work order's pull requests into `main` in this session when checks are
-green and an independent reviewer agrees, and nothing in its §3 is touched. Do not stop for
-questions; park what needs me and keep going.
+/start. Continue `docs/brief/WORK_ORDER.md` from where CHECKPOINT says ("Work in hand", in its
+order). Its §2 still stands: you may merge this work order's pull requests into `main` in this
+session when checks are green and an independent reviewer agrees, and nothing in its §3 is
+touched. Do not stop for questions; park what needs me and keep going. D-104 stands: the
+engine first and right; check figures against published sources.
 
-Check first: `git worktree list` and the log of every `claude/` branch not on GitHub; the open
-pull requests; the `Monthly build` runs since 15 November (no forced run is left: one was
-used on 14 November); that `CLOUDFLARE_PAGES_PROJECT` is still unset. No path from the user's
+Check first: `git worktree list`, and `git status` in each worktree (two hold uncommitted
+work); the open pull requests; the `Monthly build` runs since 15 November (no forced run is
+left); that `CLOUDFLARE_PAGES_PROJECT` is still unset. Run three or four sub-agents at once,
+no more: the account's usage limit stopped six on 16 November. No path from the user's
 computer in a doc, a commit or a pull request.
