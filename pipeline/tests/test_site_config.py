@@ -200,7 +200,8 @@ def _domain_names() -> set[str]:
 
 def test_there_are_domain_names_to_check_templates_against():
     names = _domain_names()
-    assert len(names) > 100 and "Mild hybrid" in names, "the reference names did not load: this test would pass without checking anything"
+    mild = _json("config/pipeline.json")["hybrid_classification"]["mild_powertrain"]
+    assert len(names) > 100 and mild in names, "the reference names did not load: this test would pass without checking anything"
 
 
 @pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)
