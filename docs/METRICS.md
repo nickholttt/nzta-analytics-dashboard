@@ -324,6 +324,27 @@ match, beyond the cap, and any other the cube reserves). A value with no vehicle
   alphabetically by the name shown, with the raw key last. These are orders, not ranks: no rank is shown and a tie is not
   marked. On a chart that keeps only its largest values, a tie at the cut takes the alphabetically first value.
 
+### A ranking and the precision floor (D-109)
+
+A ranking prints shares and changes in share, so it reads the precision floor like any other share, and greys what it prints
+where its base is too small. The floor is the share measure's own (`min_denominator` in `config/measures.json`, 200 vehicles), read
+against the **total of the window the ranking ranks**, the same way as everywhere else a window is tested: a single month against
+that month's vehicles, and the 12 months ending in a month against the 12 months' total. It is not multiplied by 12 for a
+window of 12: the key under a share chart, a bar chart over a period and the map already test one window's total against the one
+floor, and `/method` says the floor applies to the 12 months' total. The definitions settle this, so the reading that would
+grey more (a floor of 12 times 200) is not taken.
+
+- **The window ranked is under the floor.** Every share is greyed, and so is every change in share, since a change reads this
+  window's share. The bars are grey where they show shares. One sentence says how many vehicles the ranking rests on and the
+  floor.
+- **Only the earlier window is under the floor** (it holds some vehicles, fewer than the floor). The shares stand; the changes in
+  share are greyed, with a sentence of their own. An earlier window with no vehicles gives no change in share at all (a share of
+  no vehicles has no value), so nothing is greyed there.
+- **Nothing is hidden.** Ranks, moves, counts, shares and changes are printed as before; greying changes how they look and what
+  the hover says, not whether they are there. A change on a year ago has its own guard (the measure's floor) and is unchanged.
+- The floor is the share measure's whichever measure the chart counts, because the shares in a ranking's table are shares of a
+  window whatever the bars show.
+
 ### Two suppression guards
 
 A share is greyed or suppressed (below) when **either** guard trips. They
@@ -361,7 +382,7 @@ listed in the decision record D-107.
 | The table of figures under the top-5 share line | Every month with a figure is listed with its share and its vehicles, and a Note column carries the grey reason. The figure is **printed**. | The same. |
 | The key under a chart of shares over time (the last 12 months, and the change on the 12 months before) | The 12-month share is **suppressed** if that window's vehicles are under the floor. The change is suppressed if either window is. | Not tested: a window is not a month. |
 | A bar chart by band, and the map (a share over one period) | Tested on the whole period's vehicles. If under the floor, every bar or region is **greyed**, the hover reading carries the reason, the line above the chart says "greyed: under N", and the table of figures prints the share as **suppressed** (the count is printed). | Not tested. |
-| A ranking | **Neither guard is applied.** A ranking's shares, its change in share and its moves are always printed, whatever the base. | Not applied. |
+| A ranking | The ranking's window holds fewer vehicles than the floor: every share and every change in share is **greyed** (printed, in grey, the bars grey when they show shares, the hover reading carrying the reason), with one sentence under the chart saying how few vehicles it rests on. Where only the earlier window it is compared with is under the floor, the changes in share alone are greyed. No rank, move or figure is withheld. See "A ranking and the precision floor", below. | Not applied: a window is not a month. |
 | An answer sentence, or the reading on a count | These are counts, not shares, and carry neither guard. The change on a year ago is the only withheld figure: under 50 vehicles in the earlier month it is not given and the sentence says there are too few vehicles to compare with. | None. |
 | A count, or a 12-month running total | A count carries no share guard. | None. |
 

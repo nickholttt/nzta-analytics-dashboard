@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const { leagueRows } = await import("../../src/lib/league.ts");
-const { rankingText, rankingWindows } = await import("../../src/lib/sentences.ts");
+const { rankingText, rankingWindows, rankingWords } = await import("../../src/lib/sentences.ts");
 const { datasetFirstMonth } = await import("../../src/lib/built.ts");
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
@@ -141,4 +141,64 @@ test("LeagueChart draws what leagueRows returns, takes the comparison from ranki
   assert.match(league, /leagueRows\(\{ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking\.hasPrior,/);
   assert.match(league, /covers: \{ first: datasetFirstMonth\(manifest\.datasets\[/);
   assert.doesNotMatch(league, /monthsPresent|rankByCount|hasPrior\s*[:=]\s*true/);
+});
+
+// A ranking and the precision floor (docs/METRICS.md): the floor is the share's own, on the window's total, and nothing is hidden.
+const { rankingGuard } = await import("../../src/lib/league.ts");
+const { minDenominator } = await import("../../src/lib/measures.ts");
+const SHARE_FLOOR = minDenominator("share");
+
+function guardOf(rows: { month: string; value: string; n: number; denominator: number }[], end: string, span: number, latest = "2026-10") {
+  const { currentFrom, priorFrom, priorTo } = rankingWindows(end, span);
+  const text = rankingText(phrases, { basis: BASIS, span, end, latest, covers: { first: "1912-01", last: latest } });
+  const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: text.hasPrior, topN: 15, nameOf: (v) => v, yearFloor: FLOOR });
+  const guard = rankingGuard({ floor: SHARE_FLOOR, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: text.hasPrior, ...rankingWords(phrases, { span, end, latest }), phrases });
+  return { result, guard };
+}
+
+test("the hydrogen ranking rests on 3 vehicles: its shares and changes in share are greyed, with one sentence, and every row is still there", () => {
+  assert.equal(SHARE_FLOOR, 200);
+  const rows = cases.hydrogen.map((r: { month: string; make: string; n: number }) => ({ month: r.month, value: r.make, n: r.n, denominator: r.n }));
+  const { result, guard } = guardOf(rows, "2026-10", 12);
+  assert.equal(result.currentDenom, 3);
+  assert.deepEqual([guard.shares, guard.changes], [true, true]);
+  assert.equal(guard.sentence, "This ranking rests on 3 vehicles in the last 12 months, fewer than the 200 needed to read a share reliably, so its shares and changes in share are greyed.");
+  // Nothing that was shown is hidden: the entry, its share, its rank a year before and its change in share are all still computed.
+  assert.equal(result.items.length, 1);
+  assert.deepEqual([result.items[0].name, result.items[0].share, result.items[0].priorRank], ["DAF", 1, 2]);
+  assert.equal(result.items[0].shareDelta, 1 - 3 / 21);
+});
+
+test("a ranking of one month reads the floor on that month's vehicles, and says so for a month of one vehicle", () => {
+  const rows = cases.hydrogen.map((r: { month: string; make: string; n: number }) => ({ month: r.month, value: r.make, n: r.n, denominator: r.n }));
+  const { result, guard } = guardOf(rows, "2026-10", 1);
+  assert.equal(result.currentDenom, 1);
+  assert.equal(guard.sentence, "This ranking rests on 1 vehicle in Oct 2026, fewer than the 200 needed to read a share reliably, so its shares and changes in share are greyed.");
+});
+
+test("the floor is the same number for a month and for twelve months: the window's total is read against it, never 12 times it", () => {
+  const phrasesOf = { ranking_thin: phrases.ranking_thin, ranking_thin_prior: phrases.ranking_thin_prior };
+  const guard = (currentDenom: number, priorDenom: number, hasPrior = true, floor = SHARE_FLOOR) =>
+    rankingGuard({ floor, currentDenom, priorDenom, hasPrior, window: "in the last 12 months", priorDates: "Nov 2024 to Oct 2025", phrases: phrasesOf });
+  assert.equal(guard(199, 5000).shares, true);
+  assert.equal(guard(200, 5000).shares, false, "exactly the floor is not under it");
+  assert.equal(guard(2399, 5000).shares, false, "a twelve-month window of 2,399 vehicles is not greyed: twelve times the floor is not asked");
+  // Only the earlier window is thin: the shares stand, the changes in share are greyed, with a sentence of their own.
+  const earlier = guard(450, 120);
+  assert.deepEqual([earlier.shares, earlier.changes], [false, true]);
+  assert.equal(earlier.sentence, "The earlier months this ranking is compared with (Nov 2024 to Oct 2025) hold 120 vehicles, fewer than the 200 needed to read a share reliably, so its changes in share are greyed.");
+  // An earlier window of no vehicles gives no change at all, so there is nothing to grey; no comparison, none either.
+  assert.deepEqual(guard(450, 0), { shares: false, changes: false, sentence: undefined });
+  assert.deepEqual(guard(450, 120, false), { shares: false, changes: false, sentence: undefined });
+  // A ranking of a window that is thin in both says one thing, not two.
+  assert.match(guard(3, 21).sentence ?? "", /^This ranking rests on 3 vehicles/);
+  // A measure with no floor greys nothing.
+  assert.deepEqual(guard(3, 21, true, 0), { shares: false, changes: false, sentence: undefined });
+});
+
+test("a ranking with a large base is not greyed: the battery-electric case rests on thousands of vehicles", () => {
+  const rows = [...rowsOf(cases.bev.prior), ...rowsOf(cases.bev.current)];
+  const { result, guard } = guardOf(rows, "2026-10", 12);
+  assert.ok(result.currentDenom > 1000);
+  assert.deepEqual(guard, { shares: false, changes: false, sentence: undefined });
 });

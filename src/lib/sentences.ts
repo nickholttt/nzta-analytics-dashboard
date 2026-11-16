@@ -92,6 +92,8 @@ export function changeOnYear(now: number | undefined, prior: number | undefined,
 // point.
 const COUNT_FORMAT = new Intl.NumberFormat("en-NZ");
 export const count = (n: number) => COUNT_FORMAT.format(Math.round(n));
+// A number of vehicles as words: "1 vehicle", "3 vehicles".
+export const vehiclesText = (n: number) => `${count(n)} ${Math.round(n) === 1 ? "vehicle" : "vehicles"}`;
 
 // The rows of one dataset's slice: every month the dataset has, each row carrying that month's total. The functions below
 // take these rows whole, never a window of them, so the months a chart draws cannot change a sentence.
@@ -159,6 +161,9 @@ export type RankingPhrases = {
   ranking_no_prior: string;
 };
 
+// What a ranking says where its base is under the precision floor (docs/METRICS.md, "A ranking and the precision floor").
+export type RankingThinPhrases = { ranking_thin: string; ranking_thin_prior: string };
+
 export type RankingFacts = {
   // The dataset's own opening sentence, with {window}.
   basis: string;
@@ -181,17 +186,24 @@ export function rankingWindows(end: string, span: number) {
 
 // What a ranking covers, and what it is compared with, and whether there is a comparison at all: it is only described when
 // the earlier window lies wholly inside the months the dataset covers. A ranking with none says so instead of describing one.
+// The words for the window a ranking ranks ("in the last 12 months") and the months it is compared with ("Nov 2024 to Oct 2025").
+export function rankingWords(p: RankingPhrases, f: Pick<RankingFacts, "span" | "end" | "latest">): { window: string; priorDates: string } {
+  const { priorFrom, priorTo } = rankingWindows(f.end, f.span);
+  const span = { span: f.span, end: monthLabel(f.end) };
+  return { window: fillTemplate(f.span === 1 ? p.window_month : f.end === f.latest ? p.window_last : p.window_to, span).text, priorDates: dates(priorFrom, priorTo) };
+}
+
 export function rankingText(p: RankingPhrases, f: RankingFacts): { text: string; hasPrior: boolean } {
   const { currentFrom, priorFrom, priorTo } = rankingWindows(f.end, f.span);
   const hasPrior = priorFrom >= f.covers.first && priorTo <= f.covers.last;
   const span = { span: f.span, end: monthLabel(f.end) };
-  const window = fillTemplate(f.span === 1 ? p.window_month : f.end === f.latest ? p.window_last : p.window_to, span).text;
+  const { window, priorDates } = rankingWords(p, f);
   const parts = [fillTemplate(f.basis, { window }).text];
   if (f.span > 1) parts.push(fillTemplate(p.ranking_dates, { current: dates(currentFrom, f.end) }).text);
   const opening = `${parts.join(" ")}.`;
   if (!hasPrior) return { text: `${opening} ${p.ranking_no_prior}`, hasPrior };
   const prior = fillTemplate(f.span === 1 ? p.prior_month : p.prior_months, span).text;
-  return { text: `${opening} ${fillTemplate(p.ranking_compare, { prior_window: prior, prior: dates(priorFrom, priorTo) }).text}`, hasPrior };
+  return { text: `${opening} ${fillTemplate(p.ranking_compare, { prior_window: prior, prior: priorDates }).text}`, hasPrior };
 }
 
 // ---- A month the address names ----

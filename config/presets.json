@@ -42,6 +42,8 @@
       "rolling_share_note": "Each point is the share over the {months} months up to that month, which smooths out month-to-month swings. A month in which no vehicles are counted adds nothing to the share. A point is left blank when its {months} months hold no vehicles in what is counted, or start before the data does.",
       "rolling_share_note_internal": "Each point is the trailing {months} months' vehicles of this value over the trailing {months} months' total, computed in the browser from the monthly counts. A month inside the dataset's months with no rows holds no vehicles and counts as zero in a window; a window with no vehicles at all, or one that reaches before the dataset's first month, is left blank, never filled in.",
       "window_outside_data": "No figure: the window starts before the data does",
+      "ranking_thin": "This ranking rests on {vehicles} {window}, fewer than the {floor} needed to read a share reliably, so its shares and changes in share are greyed.",
+      "ranking_thin_prior": "The earlier months this ranking is compared with ({prior}) hold {vehicles}, fewer than the {floor} needed to read a share reliably, so its changes in share are greyed.",
       "tie_beyond_cut": "Not listed, with the same count and rank as the last entry shown: {count}.",
       "pick_month": "Click or tap the chart to read another month.",
       "bad_month": "The address asked for {asked}, which this chart has no figures for, so {shown} is shown.",
