@@ -272,7 +272,7 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
         aborts.append(f"{source_id}: the supplied store has only one of {s[supplied.layout(s).file_key]} and {s['ledger_file']}")
         return {}, {}, {}, {}, {}
 
-    loaded = supplied.load_store(con, cfg, source_id, aborts)
+    loaded = supplied.load_store(con, cfg, source_id, aborts, warnings)
     if loaded is None or not supplied.check_clock(source_id, loaded[2], register_month, aborts, warnings):
         return {}, {}, {}, {}, {}
     ledger, first, latest = loaded

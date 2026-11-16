@@ -437,7 +437,7 @@ builds read the same two files as a local build, and nothing else is kept there:
 - `ledger.json`: `source`, the source's terms as `supplied.<id>` in `config/pipeline.json` states them when the ledger is
   written (`publisher`, `licence`, `attribution`, `origin`), so the file carries its own; `outside_scope`, when the
   rule above applies, the dataset, the fields blanked, the widening column and its types, every value the scope files
-  knew and the (vehicle type, import status) pairs whose fields are kept, so the build can tell a store written under another scope and refuses it; `store_sha256`, the SHA-256 of `registrations.parquet` as written with it; `files`, for
+  knew and the (vehicle type, import status) pairs whose fields are kept, so the build can tell which models the store blanked and refuse it only if one of them is read now (below); `store_sha256`, the SHA-256 of `registrations.parquet` as written with it; `files`, for
   each file supplied (keyed by its SHA-256) the file's name (name only), the day it was taken, and
   `totals_checked`, the dashboard totals it was checked against (period to vehicles), or null when
   `--totals` was not given; `months`, for each month the hash of the file it came from, the day it was
@@ -646,9 +646,15 @@ Supplied sources:
 - The store's latest month is after the register's.
 - The store file is not the one the ledger was written with (`store_sha256` differs), or a column named in
   `private_columns` is also mapped to a public field.
-- The store was written under another scope than config states now (`outside_scope` in the ledger differs from the
-  one computed from `config/pipeline.json` and the scope files), so months trimmed differently would sit together.
-  `supply` refuses the same store. The message says to supply the history again from the raw exports.
+- The store blanked the model of a (vehicle type, import status) pair that the dataset counts now (the ledger's
+  `outside_scope` against the one computed from `config/pipeline.json` and the scope files), or config no longer
+  trims a field the ledger says was blanked, so the dataset would read a model the store does not hold. The message
+  names the pairs and says to supply the history again from the raw exports. `supply` refuses the same store. A ledger
+  that does not say what the store was trimmed to, or a config with no rule where the ledger records one, is refused too,
+  because it cannot be judged. A pair the dataset stops counting, a vehicle type or import status the scope files gain
+  (including one NZTA has not used before), and a field added to the rule leave the store correct but holding more than
+  it needs: the build adds a warning to the manifest, and `supply` trims new months to the scope the ledger records, so
+  every month in the store is trimmed alike. Nothing published changes.
 - A month's own total in the store (every vehicle the ledger records for it, before any scope applies) differs
   from the last good build's by more than `supplied.<id>.max_month_change` (2%), and the ledger has no
   replacement of that month that the last good build explains (see the state's `supplied_files`, above). The totals are kept in
