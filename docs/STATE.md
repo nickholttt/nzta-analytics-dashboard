@@ -21,16 +21,14 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   registrations from the user's exports of NZTA's dashboard, January 2021 on, through
   `python -m pipeline supply` and the register's own code. The store is on this computer only
   (gitignored `data/supplied/`), so GitHub's builds mark the dataset `not_built`.
-- **`registrations_cars_long_run` is built wherever its store is** (#57, D-094): Stats NZ's
-  count of cars first registered each month, January 1961 on.
+- **`registrations_cars_long_run`** (#57, D-094; Stats NZ's cars, 1961 on): the same.
 - **NZTA's vehicle type is a dimension** on the two datasets built from vehicle rows (#58,
   D-095), with a pair on the survivors. The next build on GitHub writes it for the survivors.
 - **The site shows true registrations on a local build** (#56, D-093): a group in Explore
   and a choice of what Build counts; completeness by vehicle type and new or used (#61).
 - **The site shows the long run on a local build** (#61, D-098): cars first registered each
-  month from 1961, new and ex-overseas with unrecorded months left blank, and cars still
-  registered set against Stats NZ's count (not a survival rate, and not called completeness).
-  On a build without a dataset each group says so plainly.
+  month from 1961, new and ex-overseas, and cars still registered set against Stats NZ's
+  count (not a survival rate). A build without a dataset says so in place of its charts.
 - **The site's code is on `main`**, with `/about` (a draft; three gaps left for the user, D-096),
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
   site from the newest cube release and uploads nothing. **Nothing is deployed**: the
@@ -39,7 +37,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
   them (package F); the `region` slice stays; postcode totals are not published for now.
-- **The query service is specified, prototyped and proposed** (#54, D-091); nothing is provisioned.
+- **The query service** is specified, prototyped and proposed (#54, D-091); none is provisioned.
 - **Events**: 54 rows, 50 verified; four are unverified on purpose. Don't guess dates.
 
 ## Current step
