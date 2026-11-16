@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { defineConfig } from "astro/config";
@@ -38,9 +38,38 @@ function preloadIslands() {
   };
 }
 
+// The public build (INTERNAL_PAGES=false, D-056) leaves out the internal pages. Dropping their folders from the output is
+// not enough: the scripts only they used stay in _astro, unlinked, and are still downloaded by anyone who asks for them
+// and counted in what the deploy uploads. So the pages go here, and then every script no remaining page reaches goes with
+// them. A script is reached when a page names it, or a script that is reached imports it, statically or dynamically.
+const INTERNAL_PAGE_FOLDERS = ["status", "sense-check"];
+function prunePublicBuild() {
+  return {
+    name: "prune-public-build",
+    hooks: {
+      "astro:build:done": ({ dir }) => {
+        if (process.env.INTERNAL_PAGES !== "false") return;
+        const root = fileURLToPath(dir);
+        for (const folder of INTERNAL_PAGE_FOLDERS) rmSync(join(root, folder), { recursive: true, force: true });
+        const reached = new Set();
+        const reach = (url) => {
+          if (reached.has(url)) return;
+          reached.add(url);
+          const source = readFileSync(join(root, url), "utf8");
+          for (const [, relative] of source.matchAll(/(?:from|import)\s*\(?\s*"(\.\/[^"]+\.js)"/g)) reach(`/_astro/${relative.slice(2)}`);
+        };
+        for (const file of readdirSync(root, { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith(".html")))
+          for (const [, url] of readFileSync(join(root, file), "utf8").matchAll(/"(\/_astro\/[^"]+\.js)"/g)) reach(url);
+        for (const file of readdirSync(join(root, "_astro")).filter((f) => f.endsWith(".js")))
+          if (!reached.has(`/_astro/${file}`)) rmSync(join(root, "_astro", file));
+      },
+    },
+  };
+}
+
 // Local reference tool only: the dev server serves public/data as the pipeline built it.
 export default defineConfig({
-  integrations: [react(), preloadIslands()],
+  integrations: [react(), preloadIslands(), prunePublicBuild()],
   server: { host: "127.0.0.1", port: 4321 },
   // The dev toolbar overlays the page and lands in every screenshot.
   devToolbar: { enabled: false },
