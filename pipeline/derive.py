@@ -257,6 +257,23 @@ def build_dims(con, cfg, derived: list[Derived]) -> None:
     con.execute(f"CREATE OR REPLACE TABLE dims AS SELECT {', '.join(columns)} FROM rows r {' '.join(joins)} WHERE r.in_scope")
 
 
+def undivide_hybrids(con, cfg, derived: list[Derived]) -> list[str]:
+    """Count a dataset's mild hybrids under the undivided powertrain, for a dataset that does not publish the split
+    (config/pipeline.json, hybrid_classification). The dimensions it changes are those that look up the motive power in
+    the powertrain reference and return its powertrain column, found from config, not named here. Returns their ids."""
+    h, engine = cfg.pipeline["hybrid_classification"], cfg.pipeline["engine"]
+    specs = {d["id"]: d["derive"] for d in cfg.dimensions["dimensions"] if "derive" in d}
+    changed = []
+    for d in derived:
+        spec = specs[d.dim_id]
+        if (spec["kind"] == "lookup" and spec["field"] == engine["field"] and spec["reference"] == engine["reference"]
+                and spec["value"] == h["powertrain_column"]):
+            con.execute(f"UPDATE dims SET {d.column} = {lit(h['undivided_powertrain'])} "
+                        f"WHERE {d.column} = {lit(h['mild_powertrain'])}")
+            changed.append(d.dim_id)
+    return changed
+
+
 def apply_model_cap(con, d: Derived, dataset_filter: str, window_start, snapshot_month) -> dict:
     col = d.column
     undefined = lit(UNDEFINED)

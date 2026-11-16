@@ -306,6 +306,8 @@ two rows that match the same vehicle (Aborts, below).
                       "...": "same shape" },
         "complete_at_coverage": 0.95,
         "warn_below_trailing_high_confidence_coverage": 0.7,
+        "publish_split_at_trailing_high_confidence_coverage": 0.7,
+        "mild_split_published": true,
         "label": "Mild hybrid (identified)",
         "classification_disagrees_with_powertrain": 0
       },
@@ -394,6 +396,15 @@ Neither is wrong, and the guard was left as it is (D-108).
 category is identified (definition in `METRICS.md`), with the label the
 site must use for the category: *Mild hybrid (identified)* until the lower
 of the two coverage figures reaches `complete_at_coverage`.
+`mild_split_published` says whether the dataset divides its hybrids into Mild
+hybrid and Hybrid at all: true when the trailing coverage at high confidence is
+at or above `publish_split_at_trailing_high_confidence_coverage` (or the window
+holds no hybrid to divide), false otherwise. When false, every vehicle that
+would be Mild hybrid is counted as the value `undivided_powertrain` names in
+`config/pipeline.json` (`Hybrid`) in that dataset's slice, pairs and fact table,
+no other count moves, and the build adds a warning. The site must say so
+instead of drawing a Mild hybrid line. It is judged for each dataset on its own
+figure; the label rule above is unchanged.
 `classification_disagrees_with_powertrain` counts vehicles whose final
 powertrain contradicts their `mild_hybrid_models.csv` classification (a
 full hybrid shown as Mild hybrid, or the reverse). Coverage is given at
@@ -734,7 +745,9 @@ is worse than one that is visibly stale.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
 - Mild hybrid identification coverage over the trailing 12 months,
-  counting high-confidence classifications only, is below 70%.
+  counting high-confidence classifications only, is below 70%. A dataset below
+  `publish_split_at_trailing_high_confidence_coverage` also withholds the mild
+  hybrid split (`mild_split_published: false`); its warning says so.
 - The latest month's count deviates more than 50% from the median of the
   12 months before it.
 - Source discovery fell back to the pinned item id, or found more than one

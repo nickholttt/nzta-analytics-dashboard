@@ -475,6 +475,8 @@ def reference_with_hybrids(directory, cfg, rows):
 def test_mild_hybrid_classification_moves_only_matching_vehicles(tmp_path, workspace):
     cfg = make_cfg(workspace)
     p = cfg.pipeline
+    # The invented register identifies too few of its mild hybrids to publish the split; this test is about the rows.
+    p["hybrid_classification"]["publish_split_at_trailing_high_confidence_coverage"] = 0.0
     h, status = p["hybrid_classification"], p["scope"]["status"]
     conditions = p["brand"]["model_registry_conditions"]
     rule = next(r for r in hybrid_rows(cfg)
@@ -550,12 +552,75 @@ def test_mild_hybrid_coverage_is_published_and_adds_up(tmp_path, workspace):
 def test_low_trailing_high_confidence_coverage_warns(tmp_path, workspace):
     cfg = make_cfg(workspace)
     h = cfg.pipeline["hybrid_classification"]
+    # The split is published here, so that only the warning level is under test; withholding has its own warning.
+    h["publish_split_at_trailing_high_confidence_coverage"] = 0.0
     h["warn_below_trailing_high_confidence_coverage"] = 0.0
     quiet = run(tmp_path, cfg, load_rows(), name="quiet", publish=False)
     assert not any("high-confidence" in w for w in quiet["warnings"])
     h["warn_below_trailing_high_confidence_coverage"] = 1.0
     loud = run(tmp_path, cfg, load_rows(), name="loud", publish=False)
     assert any("high-confidence" in w for w in loud["warnings"]), loud["warnings"]
+
+
+def split_values(workspace, dataset: str = "registrations_surviving") -> dict[str, set]:
+    """Every powertrain value in the dimension's slice, its fact-table column and its pair with another dimension."""
+    con = duckdb.connect()
+    public = (workspace["public"]).as_posix()
+    out = {
+        "slice": con.execute(f"SELECT DISTINCT dim_value FROM read_parquet('{public}/cube/{dataset}/powertrain.parquet')").fetchall(),
+        "facts": con.execute(f"SELECT DISTINCT powertrain FROM read_parquet('{public}/facts/{dataset}/powertrain.parquet')").fetchall(),
+        "pair": con.execute(f"SELECT DISTINCT a_value FROM read_parquet('{public}/pairs/{dataset}/powertrain__segment_group.parquet')").fetchall(),
+    }
+    con.close()
+    return {k: {v for (v,) in rows} for k, rows in out.items()}
+
+
+def test_a_dataset_under_the_threshold_does_not_publish_the_mild_split_and_one_above_it_does(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    h = cfg.pipeline["hybrid_classification"]
+    mild, undivided = h["mild_powertrain"], h["undivided_powertrain"]
+    dataset = "registrations_surviving"
+
+    h["publish_split_at_trailing_high_confidence_coverage"] = 0.0
+    above = run(tmp_path, cfg, load_rows(), name="above")
+    coverage = above["datasets"][dataset]["mild_hybrid_identification_coverage"]
+    assert coverage["mild_split_published"] is True
+    assert coverage["trailing"]["coverage_high_confidence_only"] is not None
+    assert all(mild in values for values in split_values(workspace).values())
+    published = slice_totals(workspace, "powertrain")
+    assert not any("not published" in w for w in above["warnings"])
+
+    # The same register against a threshold its trailing coverage does not reach.
+    h["publish_split_at_trailing_high_confidence_coverage"] = 1.0
+    below = run(tmp_path, cfg, load_rows(), name="below")
+    coverage = below["datasets"][dataset]["mild_hybrid_identification_coverage"]
+    assert coverage["mild_split_published"] is False
+    assert coverage["publish_split_at_trailing_high_confidence_coverage"] == 1.0
+    assert coverage["trailing"]["identified_mild"] > 0, "nothing was mild, so nothing is proved"
+    for name, values in split_values(workspace).items():
+        assert mild not in values and undivided in values, name
+    withheld = slice_totals(workspace, "powertrain")
+    # Every mild hybrid is counted as the undivided value, and no other count moves.
+    assert withheld[undivided] == published[undivided] + published[mild]
+    assert {k: v for k, v in withheld.items() if k != undivided} == {k: v for k, v in published.items() if k not in (undivided, mild)}
+    assert sum(withheld.values()) == sum(published.values())
+    assert any(w.startswith(f"{dataset}: ") and "the mild hybrid split is not published" in w for w in below["warnings"]), below["warnings"]
+    # It says it once: the warning level does not add a second line for the same dataset.
+    assert sum("mild hybrid identification coverage" in w and w.startswith(f"{dataset}: ") for w in below["warnings"]) == 1
+
+
+def test_a_window_with_no_hybrid_to_divide_is_not_withheld():
+    from pipeline import metrics as m
+    cfg = make_cfg({})
+    con = duckdb.connect()
+    h = cfg.pipeline["hybrid_classification"]
+    con.execute("CREATE TABLE rows AS SELECT TRUE AS in_scope, TRUE AS fleet_entry, DATE '2026-08-01' AS reg_month, "
+                f"'X' AS {cfg.pipeline['engine']['field']}, 'X' AS {cfg.pipeline['engine']['field']}__source, "
+                "CAST(NULL AS VARCHAR) AS hybrid_class, CAST(NULL AS VARCHAR) AS hybrid_confidence")
+    out = m.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
+    assert out["trailing"]["source_hybrids"] == 0 and out["trailing"]["coverage_high_confidence_only"] is None
+    assert out["mild_split_published"] is True
+    con.close()
 
 
 def test_brand_registry_as_at_must_be_an_iso_date(tmp_path, workspace):

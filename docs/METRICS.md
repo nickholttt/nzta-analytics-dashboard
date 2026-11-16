@@ -371,11 +371,17 @@ vehicles identified by the code mapping alone count at both levels). At the
 2026-08 snapshot, all-time coverage is 83.0% at stated confidence but 62.8%
 at high confidence only, because 13,808 Honda IMA hybrids are classified
 at medium confidence. Over the trailing 12 months it is 84.1% and 79.5%.
-The headline charts use the trailing figures, and both hold above 70%:
-that is what makes the mild hybrid split publishable. All-time mild hybrid
-history rests on the Honda IMA call and should be read that way. A trailing
-high-confidence figure below `warn_below_trailing_high_confidence_coverage`
-(70%) is a build warning. Subaru e-Boxer and XV Hybrid (about 5,700
+The headline charts use the trailing figures. A dataset publishes the
+mild hybrid split only while its own trailing coverage at high confidence
+is at or above `publish_split_at_trailing_high_confidence_coverage` in
+`config/pipeline.json` (70%). Under it the dataset shows its mild hybrids
+as Hybrid, undivided, in every slice, pair and fact table, the manifest
+says `mild_split_published: false` beside the figure, and the build adds a
+warning; the other dataset is judged on its own figure. On the 2026-10
+snapshot both are above it (79.3% and 79.2%, after the rows below), so both
+publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
+same today) is a build warning for a dataset that still publishes. All-time mild hybrid
+history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
 vehicles) stay unresolved because sources disagree on them: never classify
 a contested nameplate to raise coverage.
 

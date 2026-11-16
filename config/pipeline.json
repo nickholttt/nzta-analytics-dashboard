@@ -109,6 +109,9 @@
     "complete_at_coverage": 0.95,
     "high_confidence_level": "high",
     "warn_below_trailing_high_confidence_coverage": 0.70,
+    "$split_comment": "A dataset whose trailing high-confidence coverage is under publish_split_at_trailing_high_confidence_coverage does not publish the mild split: its mild hybrids are counted under undivided_powertrain (a value of the powertrain column), and its manifest says so (mild_split_published). Judged for each dataset by its own figure. Equal to the warning level today, so a dataset warns exactly when it withholds; the two may differ.",
+    "publish_split_at_trailing_high_confidence_coverage": 0.70,
+    "undivided_powertrain": "Hybrid",
     "labels": { "partial": "Mild hybrid (identified)", "complete": "Mild hybrid" }
   },
   "engine": { "reference": "powertrain_map.csv", "field": "motive_power", "key": "nzta_motive_power", "flag": "has_combustion_engine" },
