@@ -9,7 +9,6 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - `main` is the merge of #61.
   - **The last build is the forced run 43637172195** (14 November 2026; snapshot 2026-10;
     5,926,990 rows; no warning): the one forced run the work order allowed. The release
     `cube-2026-10` holds its cube, with the fact table. `Deploy` uploaded nothing.
