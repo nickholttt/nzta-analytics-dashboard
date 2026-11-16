@@ -340,6 +340,22 @@ export async function factView(dataset: string, dimension: string | null, values
   return out;
 }
 
+// The first month the view's dataset has vehicles in, from data the view has already loaded: the fact table's month column for a
+// question that reads it, the pair slice a narrowed view was cut from, else the rows themselves (a slice holds every month with
+// vehicles). Not derived from the manifest, whose count of months is a count of months with rows, not a span. With the query
+// service answering a question the table is not read, so the rows' own first month stands: later than the dataset's true first
+// where a condition empties the early months, which blocks a comparison that exists and never admits one that does not.
+export async function loadFirstMonth(source: ViewSource, rows: readonly SliceRow[]): Promise<string | undefined> {
+  const earliest = (months: Iterable<string>) => {
+    let first: string | undefined;
+    for (const m of months) if (first === undefined || m < first) first = m;
+    return first;
+  };
+  if (source.facts && !QUERY_SERVICE) return earliest(await loadFactMonths(source.dataset));
+  if (source.filter) return earliest((await loadPair(source.dataset, source.filter.pair)).map((r) => r.month));
+  return earliest(rows.map((r) => r.month));
+}
+
 export const loadView = async (source: ViewSource): Promise<SliceRow[]> => {
   const { dataset, dimension, filter, facts, cross } = source;
   if (cross?.pair) return crossPair(await loadPair(dataset, cross.pair.pair), cross.pair.side);

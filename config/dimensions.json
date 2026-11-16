@@ -15,7 +15,8 @@
         "ranking_basis": "Ranked by vehicles first registered {window} that are still registered",
         "suggestion_recent": "still registered, first registered in the last {months} months",
         "suggestion_total": "still registered",
-        "none_recent": "Nothing was first registered in the last {months} months"
+        "none_recent": "Nothing was first registered in the last {months} months",
+        "cap_count": "vehicles first registered and still registered"
       },
       "grain": "survivors",
       "definition": "Vehicles first registered in month M that are still registered as at the snapshot date.",
@@ -42,7 +43,8 @@
         "ranking_basis": "Ranked by vehicles first registered {window}",
         "suggestion_recent": "registered in the last {months} months",
         "suggestion_total": "registered",
-        "none_recent": "Nothing was registered in the last {months} months"
+        "none_recent": "Nothing was registered in the last {months} months",
+        "cap_count": "registrations"
       },
       "help": "Every vehicle registered in NZ for the first time in a month, including those since scrapped. Never shown on the same chart as registrations still on the road."
     },
@@ -66,7 +68,8 @@
         "ranking_basis": "Ranked by cars registered for the first time {window}",
         "suggestion_recent": "registered in the last {months} months",
         "suggestion_total": "registered",
-        "none_recent": "No car was registered in the last {months} months"
+        "none_recent": "No car was registered in the last {months} months",
+        "cap_count": "cars registered for the first time"
       },
       "help": "Every car and station wagon registered in NZ for the first time in a month, from January 1961, including those since scrapped. Stats NZ counts them from NZTA's records. Never shown on the same chart as registrations still on the road."
     },
@@ -387,8 +390,8 @@
       "key_separator": "|",
       "kind": "category",
       "cardinality": "very_high",
-      "help": "The nameplate, as brand and model. Only the models with the most registrations over the trailing 12 months keep their name; the rest are grouped as other. The cap is in this dimension's derive block and every build publishes it. Never use submodel, which is free text.",
-      "note_template": "Only the {dataset.model_cap.model.cap} models with the most registrations in the trailing {dataset.coverage_trailing.window_months} months are named, so older months are mostly grouped as other and historical coverage is partial. Named models cover {dataset.model_cap.model.coverage_trailing|pct} of trailing volume and {dataset.model_cap.model.coverage_all_time|pct} of all-time volume."
+      "help": "The nameplate, as brand and model. Only the models with the most vehicles over the trailing 12 months, counted as the dataset counts them, keep their name; the rest are grouped as other. The cap is in this dimension's derive block and every build publishes it. Never use submodel, which is free text.",
+      "note_template": "Only the {dataset.model_cap.model.cap} models with the most {words.cap_count} in the trailing {dataset.coverage_trailing.window_months} months are named, so older months are mostly grouped as other and historical coverage is partial. Named models cover {dataset.model_cap.model.coverage_trailing|pct} of trailing volume and {dataset.model_cap.model.coverage_all_time|pct} of all-time volume."
     }
   ],
   "periods": [
@@ -424,8 +427,7 @@
     }
   ],
   "rules": {
-    "max_filters": 2,
     "chart_type_is_user_selectable": false,
-    "$comment": "Shape is inferred from measure + dimension. See CLAUDE.md Shapes."
+    "$comment": "Shape is inferred from measure + dimension. See CLAUDE.md Shapes. There is no limit on the number of conditions a question carries (D-062, D-107): a key that said two was read by nothing and was removed."
   }
 }

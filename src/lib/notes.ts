@@ -2,7 +2,7 @@
 // note_template resolves {dotted.path} against the manifest, the preset's dataset entry in it, and
 // the preset's measure and dimension definitions. A plain note may carry no figure at all; the panel
 // renders a warning where one does, so the rule is enforced in front of the reader.
-import { findDerived, findDimension, findMeasure } from "./config";
+import { datasetWords, findDerived, findDimension, findMeasure } from "./config";
 import type { Preset } from "./config";
 import type { DatasetManifest, Manifest } from "./data";
 import { servedFrom } from "./resolve";
@@ -20,6 +20,8 @@ export function noteContext(preset: Preset, manifest: Manifest): NoteContext {
     dataset: served ? withLatestExport(manifest.datasets[served]) : undefined,
     measure: findMeasure(preset.measure) ?? findDerived(preset.derived),
     dimension: findDimension(preset.dimension),
+    // What the dataset counts, in its own words, so a note names the count the dataset has (config/dimensions.json, words).
+    words: datasetWords(preset.dataset),
   };
 }
 

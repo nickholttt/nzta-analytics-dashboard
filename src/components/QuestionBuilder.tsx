@@ -2,7 +2,7 @@
 // among which vehicles, and the charts that answer it are drawn by the same panel as Explore (D-058, D-059). The
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { builderSpec, datasetWords, dimensionLabel, findDataset } from "../lib/config";
+import { builderSpec, datasetWords, dimensionLabel, findDataset, valueWords } from "../lib/config";
 import { MAX_VALUES, builderPresets, questionParams, readQuestion, readingNotes, settle, viewsFor } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
@@ -19,7 +19,8 @@ const STARTING_VALUES = 5;
 const SUGGESTIONS = 8;
 const VIEW_LABELS: Record<string, string> = { mix: "Lines over time", geo: "Map", distribution: "Bars by band", league: "Ranking", trend: "Line" };
 
-const valueLabel = reservedLabel;
+// A value as the page reads it: a reserved value in its own words, a compound value (a model) as words.
+const valueLabel = (v: string, dimension?: string) => valueWords(dimension, reservedLabel(v));
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 // Focus moves after React has drawn the change, so the element it moves to exists.
 const focusSoon = (find: () => HTMLElement | null | undefined) => requestAnimationFrame(() => find()?.focus());
@@ -103,8 +104,8 @@ function ValuePicker({
   const matches = useMemo(() => {
     if (!options) return [];
     const q = query.trim().toLowerCase();
-    return options.filter((o) => !chosen.includes(o.value) && (!q || valueLabel(o.value).toLowerCase().includes(q))).slice(0, SUGGESTIONS);
-  }, [options, query, chosen]);
+    return options.filter((o) => !chosen.includes(o.value) && (!q || valueLabel(o.value, dimension).toLowerCase().includes(q))).slice(0, SUGGESTIONS);
+  }, [options, query, chosen, dimension]);
   // The search box, or the picker itself once it is full and the box has gone, so focus is never dropped to the page.
   const refocus = () => focusSoon(() => input.current ?? box.current);
 
@@ -114,10 +115,10 @@ function ValuePicker({
         <ul className="chips" aria-label={`Chosen ${noun} values`}>
           {chosen.map((v) => (
             <li key={v}>
-              {valueLabel(v)}
+              {valueLabel(v, dimension)}
               <button
                 type="button"
-                aria-label={`Remove ${valueLabel(v)}`}
+                aria-label={`Remove ${valueLabel(v, dimension)}`}
                 onClick={() => {
                   onChange(chosen.filter((x) => x !== v));
                   refocus();
@@ -167,7 +168,7 @@ function ValuePicker({
                       refocus();
                     }}
                   >
-                    <span className="suggestion-name">{valueLabel(o.value)}</span>
+                    <span className="suggestion-name">{valueLabel(o.value, dimension)}</span>
                     <span className="suggestion-figure">
                       {o.recent > 0 ? `${count(o.recent)} ${say(words?.suggestion_recent)}` : `${count(o.total)} ${say(words?.suggestion_total)}`}
                     </span>
@@ -213,7 +214,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const measure = vocabulary.measures.find((m) => m.id === question.measure) ?? vocabulary.measures[0];
   const breakdown = measure.dimensions.find((d) => d.id === question.by);
   const countsLines = measure.id === "count" || builderSpec.measures.find((m) => m.id === measure.id)?.parts?.includes("count");
-  const presets = useMemo(() => builderPresets(question, valueLabel), [question]);
+  const presets = useMemo(() => builderPresets(question, (v) => valueLabel(v, question.by ?? undefined)), [question]);
   const views = useMemo(() => viewsFor(question), [question]);
   const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
   // A link can name a condition this data cannot apply. It stays in the question, where it blocks the chart, but the

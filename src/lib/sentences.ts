@@ -165,8 +165,10 @@ export type RankingFacts = {
   span: number;
   end: string;
   latest: string;
-  // Every month the ranking's rows have. Whether there are figures a year earlier is decided from these, here.
-  monthsPresent: Iterable<string>;
+  // The first and last month of the dataset the ranking is of (its supplied start or its earliest month with vehicles, and its
+  // newest), never the months a narrowed view has rows for: under a condition a month with no vehicles has no rows, and that is
+  // a month of zero, not a month the dataset lacks.
+  covers: { first: string; last: string };
 };
 
 const dates = (from: string, to: string) => (from === to ? monthLabel(from) : `${monthLabel(from)} to ${monthLabel(to)}`);
@@ -178,12 +180,10 @@ export function rankingWindows(end: string, span: number) {
 }
 
 // What a ranking covers, and what it is compared with, and whether there is a comparison at all: it is only described when
-// every month of the earlier window is in the rows. A ranking with none says so instead of describing one.
+// the earlier window lies wholly inside the months the dataset covers. A ranking with none says so instead of describing one.
 export function rankingText(p: RankingPhrases, f: RankingFacts): { text: string; hasPrior: boolean } {
   const { currentFrom, priorFrom, priorTo } = rankingWindows(f.end, f.span);
-  const present = new Set(f.monthsPresent);
-  let hasPrior = true;
-  for (let m = priorFrom; m <= priorTo; m = addMonths(m, 1)) if (!present.has(m)) hasPrior = false;
+  const hasPrior = priorFrom >= f.covers.first && priorTo <= f.covers.last;
   const span = { span: f.span, end: monthLabel(f.end) };
   const window = fillTemplate(f.span === 1 ? p.window_month : f.end === f.latest ? p.window_last : p.window_to, span).text;
   const parts = [fillTemplate(f.basis, { window }).text];

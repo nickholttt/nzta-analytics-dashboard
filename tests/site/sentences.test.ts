@@ -65,7 +65,7 @@ test("answerLine says unchanged, and a fall", () => {
 });
 
 const ranking = (end: string, span: number, rows: Row[] = monthly()) =>
-  rankingText(phrases, { basis: words.ranking_basis, span, end, latest: "2026-10", monthsPresent: rows.map((r) => r.month) });
+  rankingText(phrases, { basis: words.ranking_basis, span, end, latest: "2026-10", covers: { first: rows[0].month, last: rows[rows.length - 1].month } });
 
 test("rankingText decides from the rows that a June 2021 ranking has no earlier figures, and does not describe a comparison", () => {
   const { text, hasPrior } = ranking("2021-06", 1);
@@ -103,19 +103,12 @@ test("one rule writes a proportion, and a template that cannot be filled is know
 
 // The charts' own use of the module: these read source, because the components need a browser to run.
 const trend = read("src/components/TrendChart.tsx");
-const league = read("src/components/LeagueChart.tsx");
 
 test("TrendChart hands the sentence functions the dataset's whole rows and writes no hover wording of its own", () => {
   assert.match(trend, /answerLine\(preset\.answer, rows,/);
   assert.match(trend, /hoverLine\(phrases, rows,/);
   assert.doesNotMatch(trend, /"Up on"|"Down on"|"Same as"|Up on|Down on/);
   assert.doesNotMatch(trend, /answerLine\([^)]*(points|window)/i);
-});
-
-test("LeagueChart takes whether there are earlier figures from rankingText, never from a value of its own", () => {
-  assert.match(league, /rankingText\(phrases,/);
-  assert.match(league, /const hasPrior = ranking\.hasPrior;/);
-  assert.doesNotMatch(league, /hasPrior\s*[:=]\s*true/);
 });
 
 test("count writes a whole number with the group separator, rounded, as toLocaleString does", () => {

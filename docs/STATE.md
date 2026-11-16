@@ -50,7 +50,6 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/audit-fixes` (#67, D-107; worktree `nzta-notes`): the audit's site-side fixes.
 - `claude/audit-pipeline-fixes` (D-108; the main folder): the audit's pipeline-side fixes.
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
 - `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): one reference
@@ -75,16 +74,17 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 1. First load at phone width is slow (local, throttled, 2026-11-16, D-099): Explore's first
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
    data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
-2. "Area Outside Region" (the Chatham Islands) reaches visitors as is. On a filtered powertrain
-   chart the mild hybrid coverage note states the whole dataset's coverage.
+2. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
 3. Mild hybrids are identified for 62.7% of `registrations_flow`'s hybrids at high confidence
    over the trailing 12 months, under the 70% the pipeline warns at (D-092).
 4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). It holds no owner field; the user's minimum of 10 is for owner fields (D-096).
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
-6. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
-   share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
+6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
+   Under a condition a 12-month share leaves a gap where a month in its window has no
+   vehicles: it should read zero (D-107). Some notes in config that no lint reads name a
+   value or say why (D-107 lists them; for the narrative work).
 7. A chart below the first loads as it nears the screen; printing or searching the page
    before scrolling reaches only what has loaded (D-099).
 8. Commits before #47 hold local paths (D-081).
@@ -122,7 +122,7 @@ November's file (December).
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about three minutes) and the site's 81 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 106 tests (under half a minute).
 
 - A scratch script run from the session's shared scratch folder can pick up a stray file
   there in place of a Python module: run it with `python -I`, or from a folder of its own.
