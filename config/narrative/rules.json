@@ -26,8 +26,8 @@
     "huge",
     "massive"
   ],
-  "ordinary_words": [],
-  "$ordinary_words_comment": "Names from the reference files that are also plain words in a sentence and so may appear in a template. pipeline/tests/test_site_config.py fails a template that names any other value or label. Empty today.",
+  "ordinary_words": ["Car"],
+  "$ordinary_words_comment": "Names from the reference files that are also plain words in a sentence and so may appear in a template; matched whole, ignoring case, with a plural. pipeline/tests/test_site_config.py fails a template that names any other value or label, however short. Car: the segment value is also the plain word the long-run dataset (Stats NZ's cars and station wagons, its own class) and the cars-still-registered chart use for what they count, in their answer, unit and caveat sentences.",
   "filters": ["pct", "month", "date"],
   "placeholders": {
     "answer": ["month", "count", "prior_month", "prior_count", "change"],

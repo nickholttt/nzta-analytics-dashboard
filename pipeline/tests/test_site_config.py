@@ -195,7 +195,7 @@ def _domain_names() -> set[str]:
     for dimension in _json("config/dimensions.json")["dimensions"]:
         names.update(band["label"] for band in dimension.get("bands", []))
     ordinary = {w.lower() for w in _json("config/narrative/rules.json").get("ordinary_words", [])}
-    return {n for n in names if len(n) >= 4 and n.lower() not in ordinary}
+    return {n for n in names if n and n.lower() not in ordinary}
 
 
 def test_there_are_domain_names_to_check_templates_against():
@@ -204,10 +204,22 @@ def test_there_are_domain_names_to_check_templates_against():
     assert len(names) > 100 and mild in names, "the reference names did not load: this test would pass without checking anything"
 
 
+def _names_in(text: str) -> list[str]:
+    """Every domain name a template text holds: whole words, ignoring case, with a simple plural."""
+    bare = PLACEHOLDER.sub(" ", text)
+    return sorted(n for n in _domain_names() if re.search(rf"(?<![\w-]){re.escape(n)}(?:s|es)?(?![\w-])", bare, re.IGNORECASE))
+
+
+def test_the_lint_catches_a_short_name_a_plural_and_a_different_case():
+    short = sorted((n for n in _domain_names() if len(n) <= 3), key=len)
+    assert len(short) >= 3, "no short names loaded: this test would pass without checking anything"
+    for name in short[:3]:
+        for text in (f"The share of {name}s rose", f"{name} and others", f"sold by {name.lower()}."):
+            assert name in _names_in(text), f"{text} was not caught for the name {name}"
+    assert _names_in("The share of vehicles registered in the month") == []
+
+
 @pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)
 def test_a_template_names_no_dimension_value_and_no_reference_label(kind, where, text):
-    bare = PLACEHOLDER.sub(" ", text)
-    for name in _domain_names():
-        assert not re.search(rf"(?<![\w-]){re.escape(name)}(?:s|es)?(?![\w-])", bare, re.IGNORECASE), (
-            f"{where}: names '{name}', a value or label that lives in config and the reference files; fill it in as a placeholder"
-        )
+    found = _names_in(text)
+    assert not found, f"{where}: names {found}, values or labels that live in config and the reference files; fill them in as placeholders"
