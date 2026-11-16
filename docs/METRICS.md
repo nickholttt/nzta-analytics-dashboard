@@ -133,9 +133,10 @@ D-113).
   `trade_scope` column: passenger cars and vans, goods vans, trucks and
   utes, buses, motor caravans and special purpose vehicles. The name says
   what it counts and claims nothing about any organisation's definition.
-  D-105 found that the Motor Industry Association's published total of new
-  vehicles meets this count (below); that is a measured agreement of counts,
-  not a definition of the MIA's, which was not read.
+  D-105 found that, counted this way, new vehicles come within 0.06% of the
+  Motor Industry Association's published total for October 2026 and within
+  1.3% for the other periods compared (below); that is a measured comparison
+  of counts, not a definition of the MIA's, which was not read.
 - **New and used alike.** The dataset holds both statuses. A count of new
   vehicles is this dataset with `import_status` kept to `NZ New`; the
   dataset itself is not a count of new vehicles.
@@ -298,8 +299,8 @@ What is established, and what is not:
 - **Scope.** The three extra types account for most of the gap against the
   MIA's total in every month compared, and in October 2026 for all of the
   commercial gap. No definition of the MIA's was read: what is established
-  is that the counts meet once the three types are added. Motorcycles are in
-  neither total.
+  is how close the counts come once the three types are added (the table
+  above). Motorcycles are in neither total.
 - **Older months sit lower.** Against the MIA, AutoTalk and Stats NZ alike,
   the gap that scope does not explain is 0.4% or less for 2025 and 2026,
   up to 0.5% for 2024, and about 1% for 2021 and 2022. Published figures
