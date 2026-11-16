@@ -44,7 +44,11 @@ Last updated by claude on 2026-11-16
   - The site's tests (`tests/site/`) and the prototype's tests in `Checks` (a workflow
     change, with E's chart rules).
   - Each month: the user's export, then `python -m pipeline supply`
-    (`docs/playbooks/supply-dashboard-month.md`), then a build with `--dry-run`.
+    (`docs/playbooks/supply-dashboard-month.md`), a build with `--dry-run`, and a pull
+    request with the store's two files (D-097). Commit a month only once the register has
+    reached it: a store ahead of the register stops the build (D-092).
+  - A store rebuilt whole (the retaken history) cannot excuse a month it restates by more
+    than 2%: the build would stop. `supply` needs an option for that first (D-097).
 - **C. Stats NZ's long-run series.** Done on a local build (#57, #61, D-098). Left: the
   user's own export replaces the fetched copy (`docs/playbooks/supply-statsnz-series.md`).
   Not done at review: #61's docs landed in its last commit, and one commit does not pass
@@ -95,8 +99,9 @@ format and prototype), D-092 (how true registrations are built and guarded), D-0
 site shows them), D-094 (Stats NZ's series: cars only, two breakdowns, no fact table), D-095
 (NZTA's vehicle type as a dimension; cars against Stats NZ's count is not called
 completeness), D-096 (the readings of the user's answers: approval alone publishes nothing;
-a "table of one or two fields" is a slice or a pair; the `region` slice keeps no minimum). Also: Stats NZ's series was fetched once, read-only, and both converted
-stores stay on this computer until question 1 is answered.
+a "table of one or two fields" is a slice or a pair; the `region` slice keeps no minimum).
+Also D-097 (how the committed counts are laid out and guarded). Stats NZ's series was
+fetched once, read-only; its committed counts come from that copy until the user's own export.
 
 ## Prompt for the next session
 

@@ -16,10 +16,10 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
     said "Source unchanged".
   - **The archive**: the private repository `nickholttt/nzta-register-archive` holds one
     release, `snapshot-2026-10`, two files (the second holds `VIN11` and `POSTCODE`).
-- **`registrations_flow` is built wherever its store is** (#55, D-092): true first
-  registrations from the user's exports of NZTA's dashboard, January 2021 on, through
-  `python -m pipeline supply` and the register's own code. The store is on this computer only
-  (gitignored `data/supplied/`), so GitHub's builds mark the dataset `not_built`.
+- **`registrations_flow`** (#55, D-092): true first registrations from the user's exports of
+  NZTA's dashboard, January 2021 on, through `python -m pipeline supply`. **Its counts are
+  committed** in `data/supplied/` with no owner field (the user, D-097, #63), so GitHub's next
+  build of a new month builds it too. The cube release `cube-2026-10` does not hold it.
 - **`registrations_cars_long_run`** (#57, D-094; Stats NZ's cars, 1961 on): the same.
 - **NZTA's vehicle type is a dimension** on the two datasets built from vehicle rows (#58,
   D-095), with a pair on the survivors. The next build on GitHub writes it for the survivors.
@@ -58,7 +58,7 @@ has a pull request yet. (#60, the user's answers, and #61, the long-run charts, 
   `astro.config.mjs`, the layout, fonts, `src/lib/data.ts`.
 
 - **This folder's `public/data`** (gitignored) is the dry-run build of #58: three datasets.
-  Also local: both stores in `data/supplied/`; the data map's field profile in `data/staging/`.
+  Also local: the data map's field profile in `data/staging/`.
 
 ## Raw files on this computer (gitignored)
 
