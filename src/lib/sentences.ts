@@ -405,3 +405,112 @@ export function sayStarts(template: string, runs: readonly MonthRun[], firstMont
 // (docs/CUBE_SCHEMA.md, Slice schema): the values are the source's own, so they are drawn as published and the month is said.
 export const sayExceedsTotal = (template: string, months: readonly string[] | undefined): string[] =>
   [...(months ?? [])].sort().map((m) => fillTemplate(template, { month: monthLabel(m) }).text);
+
+// ---- A grid of two fields (D-114) ----
+
+// The words around a grid. Each is a template in config (defaults.phrases, matrix_*); the sentences below are filled from facts the grid's
+// code computes, and a sentence that cannot be said is left out, not softened.
+export type MatrixPhrases = {
+  matrix_leader: string;
+  matrix_leaders: string;
+  matrix_pair: string;
+  matrix_cells_count: string;
+  matrix_cells_all: string;
+  matrix_cells_all_where: string;
+  matrix_cells_row: string;
+  matrix_cells_column: string;
+  matrix_thin_all: string;
+  matrix_thin_rows_one: string;
+  matrix_thin_rows: string;
+  matrix_thin_columns_one: string;
+  matrix_thin_columns: string;
+  matrix_rows_largest: string;
+  matrix_columns_largest: string;
+  matrix_rows_picked: string;
+  matrix_columns_picked: string;
+  matrix_rows_all: string;
+  matrix_columns_all: string;
+  matrix_rows_tie: string;
+  matrix_columns_tie: string;
+  matrix_rows_rest: string;
+  matrix_columns_rest: string;
+  matrix_rest_further: string;
+  matrix_rest_unrecorded: string;
+  matrix_rest_unmatched: string;
+  matrix_rest_beyond: string;
+};
+
+export type MatrixSideFacts = {
+  // The field this side is, as a noun that reads before "values".
+  field: string;
+  mode: "picked" | "largest" | "all";
+  // How many named values stand on this side.
+  shown: number;
+  tiedBeyond: number;
+  rest?: { values: number; notRecorded: boolean; unmatched: boolean; beyondCap: boolean };
+};
+
+export type MatrixFacts = {
+  basis: "count" | "all" | "row" | "column";
+  rowField: string;
+  columnField: string;
+  // "in the last 12 months", "in Oct 2026" (rankingWords).
+  window: string;
+  total: number;
+  conditions: boolean;
+  floor: number;
+  // The name of the line that holds every value not shown.
+  rest: string;
+  leaders: readonly { row: string; column: string; n: number }[];
+  // The figure of a combination in the dataset's own words for what it counts (countedText).
+  counted: (n: number) => string;
+  rows: MatrixSideFacts;
+  columns: MatrixSideFacts;
+  thin: { whole: boolean; rows: number; columns: number };
+};
+
+// The sentences of a grid: who leads, what a cell holds, how each side was chosen, what the rest line holds, and what is greyed. With no
+// vehicles in the window there is nothing to say but that.
+export function matrixSentences(p: MatrixPhrases, f: MatrixFacts) {
+  const base = { window: f.window, floor: f.floor, rest: f.rest, vehicles: vehiclesText(f.total) };
+  const side = (which: "rows" | "columns", s: MatrixSideFacts): string[] => {
+    const context = { ...base, shown: s.shown, field: s.field, count: s.tiedBeyond };
+    const key = (kind: string) => `matrix_${which}_${kind}` as keyof MatrixPhrases;
+    const list = s.rest
+      ? sayList(
+          [
+            s.rest.values > 0 ? fillTemplate(p.matrix_rest_further, { ...context, count: s.rest.values }).text : "",
+            s.rest.notRecorded ? fillTemplate(p.matrix_rest_unrecorded, context).text : "",
+            s.rest.unmatched ? fillTemplate(p.matrix_rest_unmatched, context).text : "",
+            s.rest.beyondCap ? fillTemplate(p.matrix_rest_beyond, context).text : "",
+          ].filter(Boolean),
+        )
+      : "";
+    return [
+      fillTemplate(p[key(s.mode)], context).text,
+      s.tiedBeyond > 0 && s.mode === "largest" ? fillTemplate(p[key("tie")], context).text : "",
+      s.rest ? fillTemplate(p[key("rest")], { ...context, list }).text : "",
+    ].filter(Boolean);
+  };
+  const leader =
+    f.leaders.length === 0
+      ? undefined
+      : f.leaders.length === 1
+        ? fillTemplate(p.matrix_leader, { row_field: f.rowField, row: f.leaders[0].row, column_field: f.columnField, column: f.leaders[0].column, counted: f.counted(f.leaders[0].n) }).text
+        : fillTemplate(p.matrix_leaders, {
+            count: f.leaders.length,
+            counted: f.counted(f.leaders[0].n),
+            list: f.leaders.map((l) => fillTemplate(p.matrix_pair, { row_field: f.rowField, row: l.row, column_field: f.columnField, column: l.column }).text).join("; "),
+          }).text;
+  const cells = fillTemplate(
+    f.basis === "count" ? p.matrix_cells_count : f.basis === "all" ? (f.conditions ? p.matrix_cells_all_where : p.matrix_cells_all) : f.basis === "row" ? p.matrix_cells_row : p.matrix_cells_column,
+    base,
+  ).text;
+  const thin = f.thin.whole
+    ? [fillTemplate(p.matrix_thin_all, base).text]
+    : [
+        f.thin.rows > 0 ? fillTemplate(f.thin.rows === 1 ? p.matrix_thin_rows_one : p.matrix_thin_rows, { ...base, count: f.thin.rows }).text : "",
+        f.thin.columns > 0 ? fillTemplate(f.thin.columns === 1 ? p.matrix_thin_columns_one : p.matrix_thin_columns, { ...base, count: f.thin.columns }).text : "",
+      ].filter(Boolean);
+  return { leader, cells, rows: side("rows", f.rows), columns: side("columns", f.columns), thin };
+}
