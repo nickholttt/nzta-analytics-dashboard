@@ -44,3 +44,16 @@ test("the note on a capped dimension names the count its dataset ranks by, from 
   assert.ok(counts.every(Boolean), "every dataset that has words names the count its cap ranks by");
   assert.equal(new Set(counts).size, counts.length, "no two datasets share one: each says its own");
 });
+
+test("the note under a 12-month share says a point is blank for a month with no vehicles in what is counted, as well as for a missing month", () => {
+  for (const key of ["rolling_share_note", "rolling_share_note_internal"]) {
+    const filled = fillTemplate(phrases[key], { months: 12 });
+    assert.deepEqual(filled.unresolved, [], key);
+    assert.match(filled.text, /no vehicles in what is counted/, key);
+    assert.match(filled.text, /missing/, key);
+    assert.doesNotMatch(phrases[key], /\d/, "the number of months comes in as a placeholder");
+  }
+  const mix = read("src/components/MixChart.tsx");
+  assert.match(mix, /fillTemplate\(phrases\.rolling_share_note, \{ months: TRAILING_MONTHS \}\)/);
+  assert.doesNotMatch(mix, /is missing from the data/);
+});

@@ -1,7 +1,8 @@
 // mix: share of each value over time, as lines. Months under the share guard are greyed, not hidden.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo, useState } from "react";
-import { chartDefaults } from "../lib/config";
+import { chartDefaults, phrases } from "../lib/config";
+import { fillTemplate } from "../lib/sentences";
 import type { Dimension, Preset } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import type { Event, Manifest, SliceRow } from "../lib/data";
@@ -527,7 +528,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
               }% of vehicles over the previous ${TRAILING_MONTHS} months, for ${chartDefaults.mix_default_start.sustain_months} months running. Records start in ${monthLabel(model.full.from)}: choose All records to see them. `
             : ""}
           {!internal && rolling
-            ? `Each point is the share over the ${TRAILING_MONTHS} months up to that month, which smooths out month-to-month swings. A point is left blank when any of its ${TRAILING_MONTHS} months is missing from the data.`
+            ? fillTemplate(phrases.rolling_share_note, { months: TRAILING_MONTHS }).text
             : ""}
           {internal && model.defaultStart
             ? `The default start is the first month with at least ${chartDefaults.mix_default_start.min_categories} categories above ${
@@ -537,7 +538,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
               )}. `
             : ""}
           {internal && rolling
-            ? `Each point is the trailing ${TRAILING_MONTHS} months' vehicles of this value over the trailing ${TRAILING_MONTHS} months' total, computed in the browser from the monthly counts. A window missing a month is left blank, never filled in.`
+            ? fillTemplate(phrases.rolling_share_note_internal, { months: TRAILING_MONTHS }).text
             : ""}
         </p>
       ) : null}

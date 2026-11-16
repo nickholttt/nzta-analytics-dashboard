@@ -32,7 +32,7 @@
   "placeholders": {
     "answer": ["month", "count", "prior_month", "prior_count", "change"],
     "words": ["months", "window"],
-    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to", "count", "label", "value", "window", "trailing", "all_time", "trailing_high", "all_time_high"],
+    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to", "count", "label", "value", "months", "window", "trailing", "all_time", "trailing_high", "all_time_high"],
     "notices": ["asked", "shown", "dataset"],
     "unit_note": ["base"],
     "caveat": [],
