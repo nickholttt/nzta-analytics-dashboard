@@ -73,7 +73,7 @@ independently of the site's code; figures are compared with published New Zealan
   option). **C.** The user's own Stats NZ export replaces the fetched copy.
 - **D.** First load is trimmed (#64): Explore's first chart 7.98 s to 4.61 s, a Build answer
   7.59 s to 6.58 s, on the phone profile. The 3-second target is not met; Build waits on its
-  data (question 2). Not re-measured: the linked chart's own time (the script can now).
+  data (question 2). Left: the linked chart's own time; a far chart is sometimes fetched on load.
 - **E.** The pipeline writing the "moves together" figures each build; `sentinels.csv`
   gaining the map's forms as each field is bound; the rule table checking `uses.break_down`.
 - **The final report** (the order §6), with `docs/brief/MASTER_BRIEF.md` §4 and §12 updated.

@@ -31,8 +31,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
   site from the newest cube release and uploads nothing. **Nothing is deployed**: the
   variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-16).
-- **First load is trimmed** (#64, D-099): Explore fetches only its first chart on load; the
-  public build drops what no page reaches, and the deploy checks that before uploading.
+- **First load is trimmed** (#64, D-099): Explore fetches its first chart, then those near the
+  screen; the public build drops what no page reaches, and the deploy checks that first.
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
   read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the

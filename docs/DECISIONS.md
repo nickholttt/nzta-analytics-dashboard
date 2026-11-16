@@ -3804,7 +3804,8 @@ New entries use this template:
   3. The gate opens when the first chart has its rows; a deferred panel then starts when it is within one viewport height
      (`rootMargin` 100%) of the visible page. A first chart that fails, or has nothing to draw, opens it at once.
   4. Only the zstd decoder is taken from `hyparquet-compressors`. A cube written in a codec other than zstd, snappy or
-     uncompressed fails with hyparquet's "unsupported compression codec", and the chart says its data did not load. The
+     uncompressed fails with hyparquet's "unsupported compression codec", and the chart says that its data is in a form the page cannot read and that
+     reloading will not help (changed at review, below; at first it said only that its data did not load). The
      pipeline writes zstd (`docs/CUBE_SCHEMA.md`).
   5. `astro.config.mjs` now holds two build steps, `preloadIslands` and `prunePublicBuild`, and names `/data/manifest.json`
      and the two internal folders. They read the built output and add no dependency.
@@ -3831,7 +3832,8 @@ New entries use this template:
 - At the merge of main (2026-11-16): the branch took in #60 and #61 (a merge commit). The only conflict was this file: D-096
   and D-098 from main are kept, in number order, before this record; STATE, CHECKPOINT and README are main's, unedited here.
   No code conflicted. #61's new group "The long run" is deferred under the gate like every chart but the first, and was
-  checked in a browser at 390 and 1280 px: on load it fetches nothing from the group, and when scrolled to all three of its
+  checked in a browser at 390 and 1280 px: on load, in those runs, it fetched nothing from the group (the second review saw a far chart fetched on load in
+  3 of 7 loads, below), and when scrolled to all three of its
   charts, the ratio chart with its lone-month dots among them, draw. That check found a fault of the gate's own: a panel
   counted as near the screen if it had ever been, and while the page's islands mount every panel is briefly near the
   top, so at 390 px the group's first chart was fetched on load. A panel now counts by its latest position (a commit of its
@@ -3848,6 +3850,35 @@ New entries use this template:
     handed to the upload job, so a leaked internal page or an unreached script fails the deploy; the workflow also reruns when
     the check changes (`paths`). `pipeline/tests/test_workflow.py` holds the order. Nothing new is pinned.
   - 320 px: no horizontal scroll on the home page or a Build question (the page is as wide as the screen at every scroll position tried); the one table the check flagged, a chart's key, is 296 px wide there.
+- At review (#64, 2026-11-16): an independent comparison of this branch with main found no figure, string, table cell or chart
+  geometry changed apart from the button's new name, and asked for the following, each its own commit.
+  - **Wording**: the deploy-check sentence and the linked-chart row, corrected above. The script takes a `target` panel id
+    (the pages file sets it for the linked chart) for the next measurement.
+  - **Waiting and arrival**: only a chart that is being fetched has a live region, named by `aria-labelledby` its question; the
+    same element becomes "The chart has loaded." (hidden from the eye) when its rows arrive, so a polite status reads it once.
+    A chart not yet asked for says "loads as you scroll" in plain, non-live text, and the internal page has no live regions,
+    so a page never speaks for every chart at once. Read in the accessibility tree: two regions on the home page on load in that reading (a far chart is sometimes fetched on load
+    too, and then has its own),
+    each named by its question, each announcing once. Chosen over putting the answer sentence in a live region (it would
+    read a long sentence at each draw, and the Build page redraws on every setting).
+  - **Unreadable data**: a file in a codec the reader has no decoder for says so without advice to reload and without naming
+    a codec (`src/lib/unreadable.ts`).
+  - **Edges of the month functions**: a malformed or missing month has no index (NaN, so a range is empty, as before) and
+    `monthAt` gives an empty string, not "NaN-undefined". `monthRange` moved to `sentences.ts`; the rolling mix and `monthKey`
+    moved, unchanged, to `rolling.ts` and `monthkey.ts` so tests reach them. Tests are seeded and fast: 3,000 ranges, 2,500
+    series against a plain version, 2,000 months. The remainder cache in `MixChart` is inside a hook and has no test of its own.
+  - **Codecs**: `config/pipeline.json` `site_reader.codecs` lists what the site's reader can decode (zstd, snappy, uncompressed);
+    `pipeline/tests/test_parquet_codecs.py` checks every published file against it, and `tests/site/reader-codecs.test.ts` checks
+    `data.ts` agrees. The writers for the archive and the supplied stores are not read by the site and are not checked.
+  - **One source for the internal folder names**: `scripts/internal-pages.json`, read by `astro.config.mjs` and the check.
+    `deploy.yml` keeps its own link-check pattern, which its test exercises against sample text, so it still names them.
+  - After these, the home page (scrolled so every chart loads) and four Build questions render the same text, tables, links,
+    labels and chart markup as before them, with the status regions set aside.
+- At the second review (#64): a chart far down the page is sometimes fetched on load (3 of 7 loads without
+  scrolling: one chart of the long-run group at 390 px, two other charts' files at 1280 px). Before the charts
+  draw, every panel is a short placeholder, so the whole page can sit within the near-screen margin when the gate
+  opens. Every chart still loads when scrolled to; none was found stuck. Not fixed here: the gate should look at
+  a panel's position again after the first chart has drawn. It costs a first visit some bytes, not correctness.
 - Status: decided by Claude (unreviewed)
 
 ## D-100 2026-11-16 — The chart rules: one table in config says which shapes fit a question, and Build and the resolver read it
@@ -4030,29 +4061,6 @@ New entries use this template:
 - Amended at the second review of #62: the step that runs the prototype's tests pipes their output to `tee`, and a
   workflow step's default shell has no `pipefail`, so a failing test passed the step. The step now names
   `shell: bash` and sets `pipefail`.
-- At review (#64, 2026-11-16): an independent comparison of this branch with main found no figure, string, table cell or chart
-  geometry changed apart from the button's new name, and asked for the following, each its own commit.
-  - **Wording**: the deploy-check sentence and the linked-chart row, corrected above. The script takes a `target` panel id
-    (the pages file sets it for the linked chart) for the next measurement.
-  - **Waiting and arrival**: only a chart that is being fetched has a live region, named by `aria-labelledby` its question; the
-    same element becomes "The chart has loaded." (hidden from the eye) when its rows arrive, so a polite status reads it once.
-    A chart not yet asked for says "loads as you scroll" in plain, non-live text, and the internal page has no live regions,
-    so a page never speaks for every chart at once. Read in the accessibility tree: two regions on the home page on load,
-    each named by its question, each announcing once. Chosen over putting the answer sentence in a live region (it would
-    read a long sentence at each draw, and the Build page redraws on every setting).
-  - **Unreadable data**: a file in a codec the reader has no decoder for says so without advice to reload and without naming
-    a codec (`src/lib/unreadable.ts`).
-  - **Edges of the month functions**: a malformed or missing month has no index (NaN, so a range is empty, as before) and
-    `monthAt` gives an empty string, not "NaN-undefined". `monthRange` moved to `sentences.ts`; the rolling mix and `monthKey`
-    moved, unchanged, to `rolling.ts` and `monthkey.ts` so tests reach them. Tests are seeded and fast: 3,000 ranges, 2,500
-    series against a plain version, 2,000 months. The remainder cache in `MixChart` is inside a hook and has no test of its own.
-  - **Codecs**: `config/pipeline.json` `site_reader.codecs` lists what the site's reader can decode (zstd, snappy, uncompressed);
-    `pipeline/tests/test_parquet_codecs.py` checks every published file against it, and `tests/site/reader-codecs.test.ts` checks
-    `data.ts` agrees. The writers for the archive and the supplied stores are not read by the site and are not checked.
-  - **One source for the internal folder names**: `scripts/internal-pages.json`, read by `astro.config.mjs` and the check.
-    `deploy.yml` keeps its own link-check pattern, which its test exercises against sample text, so it still names them.
-  - After these, the home page (scrolled so every chart loads) and four Build questions render the same text, tables, links,
-    labels and chart markup as before them, with the status regions set aside.
 - Status: decided by Claude (unreviewed)
 
 ## D-104 2026-11-16 — The user's direction: the engine comes first and must be right; the public site waits; figures are checked against outside sources
