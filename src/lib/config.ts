@@ -171,7 +171,8 @@ type PresetsDoc = {
   groups: { id: string; label: string; title: string; lead?: boolean; defer?: boolean; presets: Preset[] }[];
   defaults: {
     year_change_measure: string;
-    phrases: RankingPhrases & YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string };
+    phrases: RankingPhrases &
+      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; exceeds_total: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;

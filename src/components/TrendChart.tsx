@@ -9,14 +9,14 @@
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
 import type { MouseEvent, ReactNode } from "react";
-import { datasetWords, findDataset, findDerived, phrases, yearChangeFloor } from "../lib/config";
+import { datasetWords, findDataset, findDerived, findDimension, phrases, yearChangeFloor } from "../lib/config";
 import type { Preset } from "../lib/config";
-import { answerLine, fillTemplate, hoverLine, monthsOf, sayBadMonth, sayOffChart } from "../lib/sentences";
-import { percent } from "../lib/sentences";
+import { answerLine, fillTemplate, hoverLine, monthRuns, monthsOf, sayBadMonth, sayExceedsTotal, sayNotRecorded, sayOffChart, unrecordedMonths } from "../lib/sentences";
+import { NOT_RECORDED_TOKEN, percent } from "../lib/sentences";
 import type { Manifest, SliceRow } from "../lib/data";
 import { COMPLETENESS, completenessSeries, derivedSeries } from "../lib/derived";
 import type { RatioPoint, RatioSeries } from "../lib/derived";
-import { latestMonthOf } from "../lib/resolve";
+import { latestMonthOf, servedFrom } from "../lib/resolve";
 import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count, greyedReason, monthPeriod, readout } from "../lib/readout";
@@ -40,6 +40,7 @@ import { FiguresTable } from "./FiguresTable";
 import { PlotFigure } from "./PlotFigure";
 
 const PERCENT = "percent";
+const COUNT = "count";
 
 type Props = {
   preset: Preset;
@@ -70,10 +71,20 @@ type Point = {
   members?: string[];
 };
 
+// The values a count draws a line for: the ones a question names, or, for a count by a low-cardinality breakdown that
+// names none, every value the slice records (not the token for what the source does not record).
+function lineValues(preset: Preset, rows: SliceRow[]): string[] | undefined {
+  if (preset.derived) return undefined;
+  if (preset.values?.length) return preset.values;
+  if (preset.values !== undefined || preset.measure !== COUNT || findDimension(preset.dimension)?.cardinality !== "low") return undefined;
+  return [...new Set(rows.filter((r) => r.value !== NOT_RECORDED_TOKEN && r.n > 0).map((r) => r.value))].sort();
+}
+
 export function TrendChart(props: Props) {
   const { preset } = props;
   if (preset.derived === COMPLETENESS && props.companion) return <RatioTrend {...props} companion={props.companion} />;
-  if (!preset.derived && preset.values?.length) return <ValuesTrend {...props} values={preset.values} />;
+  const values = lineValues(preset, props.rows);
+  if (values) return <ValuesTrend {...props} values={values} />;
   return <OneTrend {...props} />;
 }
 
@@ -181,8 +192,11 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
       cell.set(`${r.month}|${r.value}`, r.n);
       present.add(r.month);
     }
+    // A month the source records nothing of for this breakdown is a gap too: its vehicles sit under the not-recorded token,
+    // so a value would read zero there when the truth is that nobody knows.
+    const unrecorded = new Set(unrecordedMonths(rows));
     // A month absent from the data is a gap, never a zero: METRICS.md, never interpolate a missing month.
-    const at = (m: string, s: string) => (present.has(m) ? (cell.get(`${m}|${s}`) ?? 0) : undefined);
+    const at = (m: string, s: string) => (present.has(m) && !unrecorded.has(m) ? (cell.get(`${m}|${s}`) ?? 0) : undefined);
     const points: ValuePoint[] = [];
     for (const s of values) {
       for (const m of monthRange(win.from, win.to)) {
@@ -197,7 +211,14 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
     const latest = latestMonthOf(preset, manifest);
     const lastYear = monthRange(addMonths(latest, -11), latest);
     const totals = values.map((s) => ({ series: s, n: lastYear.reduce((sum, m) => sum + (at(m, s) ?? 0), 0) }));
-    return { win, points, totals };
+    // The stretches of the drawn window that are left blank because the source does not record them, and the months in which
+    // the published parts add up to more than the month's total (read from the manifest, not from the sums).
+    const runs = monthRuns([...unrecorded].filter((m) => m >= win.from && m <= win.to));
+    const served = servedFrom(preset.dataset, manifest);
+    const exceeding = (preset.dimension ? manifest.datasets[served ?? ""]?.exceeds_total?.[preset.dimension] : undefined)?.filter(
+      (m) => m >= win.from && m <= win.to,
+    );
+    return { win, points, totals, unrecorded, runs, exceeding };
   }, [rows, preset, manifest, values, rolling]);
 
   const colour = useCallback(
@@ -224,6 +245,10 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
         y: { label: null, domain: [0, yMax] },
         color: { domain: values, range: values.map(colour) },
         marks: [
+          Plot.rect(
+            model.runs.map((r) => ({ x1: monthDate(r.from), x2: monthDate(addMonths(r.to, 1)), y1: 0, y2: yMax })),
+            { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: SUPPRESSED_BAND },
+          ),
           Plot.gridY({ ticks, stroke: RULE, strokeOpacity: 1 }),
           Plot.axisY({ ticks, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => d.toLocaleString() }),
           Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
@@ -263,9 +288,16 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
       <p className="chart-unit">
         {fillNote((rolling ? words?.window_unit : words?.month_unit) ?? "Vehicles", trailing).text}
       </p>
+      {[...sayNotRecorded(phrases.not_recorded, model.runs), ...sayExceedsTotal(phrases.exceeds_total, model.exceeding)].map((sentence) => (
+        <p key={sentence} className="chart-unit">
+          {sentence}
+        </p>
+      ))}
       <PlotFigure
         render={render}
-        label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: vehicles for ${names}, month by month.`}
+        label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: vehicles for ${names}, month by month.${
+          model.runs.length ? ` ${sayNotRecorded(phrases.not_recorded, model.runs).join(" ")}` : ""
+        }`}
       />
       <FiguresTable
         label={`Vehicles for ${names}: figures, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
@@ -274,6 +306,8 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
           const y = new Map(model.points.map((p) => [`${p.month}|${p.series}`, p.y]));
           return monthRange(model.win.from, model.win.to).flatMap((m) => {
             const cells = values.map((s) => y.get(`${m}|${s}`));
+            // A month the source does not record is a row that says so, not a row of blanks that could be read as zero.
+            if (model.unrecorded.has(m)) return [[monthPeriod(m, rolling), ...values.map(() => label(NOT_RECORDED_TOKEN))]];
             return cells.every((v) => v === undefined) ? [] : [[monthPeriod(m, rolling), ...cells.map((v) => (v === undefined ? "" : count(v)))]];
           });
         }}

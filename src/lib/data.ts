@@ -50,6 +50,9 @@ export type DatasetManifest = {
   months?: number;
   supplied?: SuppliedManifest;
   live_dimensions: string[];
+  // A dataset built from a published series: for each live dimension, the months in which its values add up to more than the
+  // month's total (docs/CUBE_SCHEMA.md, Slice schema). A reader of a slice's sum must read this first.
+  exceeds_total?: Record<string, string[]>;
   // Absent from a manifest built before pair slices existed.
   live_pairs?: string[];
   facts?: FactsManifest | null;

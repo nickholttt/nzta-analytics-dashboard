@@ -40,7 +40,9 @@
       "ranking_compare": "The move compares each rank with {prior_window} ({prior}).",
       "ranking_no_prior": "There are no figures a year earlier, so no move or change is shown.",
       "pick_month": "Click or tap the chart to read another month.",
-      "bad_month": "The address asked for {asked}, which this chart has no figures for, so {shown} is shown."
+      "bad_month": "The address asked for {asked}, which this chart has no figures for, so {shown} is shown.",
+      "not_recorded": "The source does not record this breakdown from {from} to {to}. The grey band marks those months: they are left blank, not drawn as zero.",
+      "exceeds_total": "In {month} the published figures for this breakdown add up to more than the month's total. They are shown as published, and the total is not adjusted."
     },
     "$comment": "Chart-level defaults that are not per-preset decisions. mix_smoothing: monthly share on survivors data swings too hard to read, so a mix chart defaults to a trailing share and offers monthly as a toggle. top_n_basis: which window ranks the values that keep their own line; the rest become one remainder series.",
     "mix_smoothing": "rolling_12m",
@@ -383,6 +385,39 @@
           "dimension": "powertrain",
           "period": "all",
           "events": true
+        }
+      ]
+    },
+    {
+      "id": "long-run",
+      "label": "The long run",
+      "title": "Cars registered for the first time, over the longest record there is",
+      "defer": true,
+      "$defer_comment": "Draws its data only once the section is scrolled to, as the group above does. Both groups read datasets a build may not have, and each says so in its dataset's own words.",
+      "presets": [
+        {
+          "id": "cars-registered-monthly",
+          "question": "How many cars were registered for the first time each month, as far back as the records go?",
+          "status": "live",
+          "dataset": "registrations_cars_long_run",
+          "measure": "count",
+          "period": "all",
+          "answer": {
+            "$comment": "As the true-registrations answer above, in this dataset's words. A template names no month, figure or cause.",
+            "up": "In {month}, {count} cars were registered for the first time, up {change|pct} on {prior_month}, when {prior_count} were.",
+            "down": "In {month}, {count} cars were registered for the first time, down {change|pct} on {prior_month}, when {prior_count} were.",
+            "same": "In {month}, {count} cars were registered for the first time, the same as in {prior_month}, when {prior_count} were.",
+            "alone": "In {month}, {count} cars were registered for the first time."
+          }
+        },
+        {
+          "id": "cars-new-or-ex-overseas",
+          "question": "Were the cars registered each month new, or already registered overseas?",
+          "status": "live",
+          "dataset": "registrations_cars_long_run",
+          "measure": "count",
+          "dimension": "car_origin",
+          "period": "all"
         }
       ]
     }

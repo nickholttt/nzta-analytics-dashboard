@@ -184,3 +184,48 @@ export function sayBadMonth(template: string, asked: string | undefined, shown: 
   if (!asked || asked === shown) return undefined;
   return fillTemplate(template, { asked, shown: monthLabel(shown) }).text;
 }
+
+// ---- Months a breakdown was not recorded ----
+
+// The cube's token for vehicles whose value the source does not record (docs/CUBE_SCHEMA.md, Reserved tokens).
+export const NOT_RECORDED_TOKEN = "__UNDEFINED__";
+
+export type CountRow = { month: string; value: string; n: number };
+export type MonthRun = { from: string; to: string };
+
+// The months in which the source records nothing of this breakdown: every vehicle of the month sits under the token. Such a
+// month is not a month of zeros, so a chart that draws a line for each value leaves it blank. A month with some vehicles
+// recorded is drawn, whatever share is not.
+export function unrecordedMonths(rows: readonly CountRow[]): string[] {
+  const seen = new Map<string, { recorded: number; unrecorded: number }>();
+  for (const r of rows) {
+    const month = seen.get(r.month) ?? { recorded: 0, unrecorded: 0 };
+    if (r.value === NOT_RECORDED_TOKEN) month.unrecorded += r.n;
+    else month.recorded += r.n;
+    seen.set(r.month, month);
+  }
+  return [...seen.entries()]
+    .filter(([, m]) => m.unrecorded > 0 && m.recorded === 0)
+    .map(([month]) => month)
+    .sort();
+}
+
+// Months in order, grouped into stretches of consecutive months.
+export function monthRuns(months: readonly string[]): MonthRun[] {
+  const runs: MonthRun[] = [];
+  for (const month of [...months].sort()) {
+    const last = runs[runs.length - 1];
+    if (last && addMonths(last.to, 1) === month) last.to = month;
+    else runs.push({ from: month, to: month });
+  }
+  return runs;
+}
+
+// One sentence for each stretch of months that is left blank.
+export const sayNotRecorded = (template: string, runs: readonly MonthRun[]): string[] =>
+  runs.map((r) => fillTemplate(template, { from: monthLabel(r.from), to: monthLabel(r.to) }).text);
+
+// A dataset built from a published series lists the months where a breakdown's values add up to more than the month's total
+// (docs/CUBE_SCHEMA.md, Slice schema): the values are the source's own, so they are drawn as published and the month is said.
+export const sayExceedsTotal = (template: string, months: readonly string[] | undefined): string[] =>
+  [...(months ?? [])].sort().map((m) => fillTemplate(template, { month: monthLabel(m) }).text);
