@@ -194,15 +194,16 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
     if disagreeing:
         warnings.append(f"{dataset}: {disagreeing:,} vehicles show a powertrain that contradicts their classification in "
                         f"{p['hybrid_classification']['file']}")
-    trailing_high = hybrid["trailing"]["coverage_high_confidence_only"]
+    # Judged on whole counts, as the split is (metrics.hybrid_coverage): the figure shown is rounded, the comparison is not.
+    high, denominator = metrics.high_confidence_counts(hybrid["trailing"], p["hybrid_classification"]["high_confidence_level"])
     warn_floor = hybrid["warn_below_trailing_high_confidence_coverage"]
-    detail = (f"mild hybrid identification coverage over the trailing {window} months is {trailing_high or 0:.1%} "
-              "counting high-confidence classifications only")
+    detail = (f"mild hybrid identification coverage over the trailing {window} months is "
+              f"{hybrid['trailing']['coverage_high_confidence_only'] or 0:.1%} counting high-confidence classifications only")
     if not hybrid["mild_split_published"]:
         publish_floor = hybrid["publish_split_at_trailing_high_confidence_coverage"]
         warnings.append(f"{dataset}: {detail}, below {publish_floor:.0%}, so the mild hybrid split is not published: "
                         f"its mild hybrids are counted as {p['hybrid_classification']['undivided_powertrain']}")
-    elif trailing_high is not None and trailing_high < warn_floor:
+    elif denominator and high / denominator < warn_floor:
         warnings.append(f"{dataset}: {detail}, below {warn_floor:.0%}")
     return Built(entry, counts, [d.dim_id for d in live], ds)
 

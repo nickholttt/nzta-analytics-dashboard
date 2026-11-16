@@ -399,8 +399,10 @@ of the two coverage figures reaches `complete_at_coverage`.
 `mild_split_published` says whether the dataset divides its hybrids into Mild
 hybrid and Hybrid at all: true when the trailing coverage at high confidence is
 at or above `publish_split_at_trailing_high_confidence_coverage` (or the window
-holds no hybrid to divide), false otherwise. When false, every vehicle that
-would be Mild hybrid is counted as the value `undivided_powertrain` names in
+holds no hybrid to divide), false otherwise. The comparison is made on the whole
+counts behind `coverage_high_confidence_only`, not on that figure rounded to four
+decimals, so a figure that reads exactly the threshold can still be under it.
+When false, every vehicle that would be Mild hybrid is counted as the value `undivided_powertrain` names in
 `config/pipeline.json` (`Hybrid`) in that dataset's slice, pairs and fact table,
 no other count moves, and the build adds a warning. The site must say so
 instead of drawing a Mild hybrid line. It is judged for each dataset on its own

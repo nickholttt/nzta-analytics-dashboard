@@ -449,8 +449,10 @@ at medium confidence. Over the trailing 12 months it is 84.1% and 79.5%.
 The headline charts use the trailing figures. A dataset publishes the
 mild hybrid split only while its own trailing coverage at high confidence
 is at or above `publish_split_at_trailing_high_confidence_coverage` in
-`config/pipeline.json` (70%). Under it the dataset shows its mild hybrids
-as Hybrid, undivided, in every slice, pair and fact table, the manifest
+`config/pipeline.json` (70%). The comparison is made on the whole counts
+behind the figure, not on the figure rounded to four decimals that the manifest
+shows: 139,999 of 200,000 reads 0.7 and is under 70%, so it withholds. Under
+it the dataset shows its mild hybrids as Hybrid, undivided, in every slice, pair and fact table, the manifest
 says `mild_split_published: false` beside the figure, and the build adds a
 warning; the other dataset is judged on its own figure. On the 2026-10
 snapshot both are above it (79.3% and 79.2%, after the rows below), so both

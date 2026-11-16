@@ -77,6 +77,13 @@ def unmapped_guard(con, derived, g: dict, start: date, end: date, window: int) -
     return out
 
 
+def high_confidence_counts(basis: dict, high_level: str) -> tuple[int, int]:
+    """The numerator and denominator of coverage at high confidence for one basis of the manifest's coverage block, from
+    its whole counts: mild identified at the high level or by the code mapping alone, over identified mild plus unknown."""
+    by_confidence = basis["identified_mild_by_confidence"]
+    return by_confidence[high_level] + by_confidence["code_default"], basis["identified_mild"] + basis["unknown"]
+
+
 def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> dict:
     """mild_hybrid_identification_coverage for one dataset (docs/METRICS.md): of the vehicles recorded under a hybrid
     code, how many are identified mild, identified full, or unknown, and the label the category must carry."""
@@ -100,20 +107,23 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> d
     def basis(where: str) -> dict:
         n, identified, full_n, unknown, code, *levels = con.execute(f"SELECT {', '.join(measures)} FROM rows WHERE {where}").fetchone()
         by_confidence = dict(zip(h["confidence_levels"], levels))
-        denominator = identified + unknown
-        # High confidence only: medium- and low-confidence mild rows count as unknown. Vehicles identified by the code
-        # mapping alone rest on no nameplate call, so they count at both levels.
-        high = by_confidence[h["high_confidence_level"]] + code
-        return {
+        doc = {
             "source_hybrids": n,
             "identified_mild": identified,
             "identified_full": full_n,
             "unknown": unknown,
-            "coverage_stated_confidence": round(identified / denominator, 4) if denominator else None,
-            "coverage_high_confidence_only": round(high / denominator, 4) if denominator else None,
+            "coverage_stated_confidence": None,
+            "coverage_high_confidence_only": None,
             "mild_share_of_source_hybrids": round(identified / n, 4) if n else None,
             "identified_mild_by_confidence": {**by_confidence, "code_default": code},
         }
+        # High confidence only: medium- and low-confidence mild rows count as unknown. Vehicles identified by the code
+        # mapping alone rest on no nameplate call, so they count at both levels.
+        high, denominator = high_confidence_counts(doc, h["high_confidence_level"])
+        if denominator:
+            doc["coverage_stated_confidence"] = round(identified / denominator, 4)
+            doc["coverage_high_confidence_only"] = round(high / denominator, 4)
+        return doc
 
     whole = basis(base)
     recent = basis(f"{base} AND reg_month BETWEEN {date_sql(start)} AND {date_sql(end)}")
@@ -123,9 +133,11 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> d
     """).fetchone()[0]
     figures = [b["coverage_stated_confidence"] for b in (whole, recent) if b["coverage_stated_confidence"] is not None]
     complete = bool(figures) and min(figures) >= h["complete_at_coverage"]
-    # The split is judged on the trailing figure at high confidence, the stricter of the two trailing figures. A window
-    # with no mild or unknown hybrid has nothing to divide wrongly, so it is not withheld.
-    trailing_high = recent["coverage_high_confidence_only"]
+    # The split is judged on the trailing figure at high confidence, the stricter of the two trailing figures, from the
+    # whole counts and not the figure rounded for the manifest: "at or above the threshold publishes" holds to the last
+    # vehicle. A division of whole counts is correctly rounded, so a ratio equal to the threshold compares equal to it.
+    # A window with no mild or unknown hybrid has nothing to divide wrongly, so it is not withheld.
+    high, denominator = high_confidence_counts(recent, h["high_confidence_level"])
     publish_at = h["publish_split_at_trailing_high_confidence_coverage"]
     return {
         "all_time": whole,
@@ -133,7 +145,7 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> d
         "complete_at_coverage": h["complete_at_coverage"],
         "warn_below_trailing_high_confidence_coverage": h["warn_below_trailing_high_confidence_coverage"],
         "publish_split_at_trailing_high_confidence_coverage": publish_at,
-        "mild_split_published": trailing_high is None or trailing_high >= publish_at,
+        "mild_split_published": not denominator or high / denominator >= publish_at,
         "label": h["labels"]["complete" if complete else "partial"],
         "classification_disagrees_with_powertrain": disagreeing,
     }

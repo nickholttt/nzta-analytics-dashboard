@@ -8,6 +8,7 @@ import json
 import shutil
 from collections import Counter
 from datetime import date
+from fractions import Fraction
 
 import duckdb
 import pytest
@@ -621,6 +622,54 @@ def test_a_window_with_no_hybrid_to_divide_is_not_withheld():
     assert out["trailing"]["source_hybrids"] == 0 and out["trailing"]["coverage_high_confidence_only"] is None
     assert out["mild_split_published"] is True
     con.close()
+
+
+def coverage_from_counts(cfg, identified_high: int, unknown: int) -> dict:
+    """hybrid_coverage over a table of exactly these counts: vehicles recorded under a hybrid code, `identified_high` of them
+    classified mild at high confidence and `unknown` of them not classified at all, all in the trailing window."""
+    h, engine = cfg.pipeline["hybrid_classification"], cfg.pipeline["engine"]
+    keys = reference.hybrid_keys(cfg)
+    code = sorted(keys["source_hybrid"] - keys["mild"])[0]
+    con = duckdb.connect()
+    con.execute(f"CREATE TABLE rows (in_scope BOOLEAN, fleet_entry BOOLEAN, reg_month DATE, {engine['field']} VARCHAR, "
+                f"{engine['field']}__source VARCHAR, hybrid_class VARCHAR, hybrid_confidence VARCHAR)")
+    for kind, level, n in ((h["types"]["mild"], h["high_confidence_level"], identified_high), (None, None, unknown)):
+        con.execute(f"INSERT INTO rows SELECT TRUE, TRUE, DATE '2026-08-01', ?, ?, ?, ? FROM range({n})", [code, code, kind, level])
+    out = metrics.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
+    con.close()
+    assert out["trailing"]["identified_mild"] == identified_high and out["trailing"]["unknown"] == unknown
+    return out
+
+
+def threshold_counts(cfg) -> tuple[int, int, int]:
+    """Whole counts (numerator, denominator, scale) whose ratio is exactly the configured threshold, so the test follows the
+    config: the numerator and denominator of the threshold as a fraction, times a scale that leaves room to step by one."""
+    threshold = cfg.pipeline["hybrid_classification"]["publish_split_at_trailing_high_confidence_coverage"]
+    fraction = Fraction(str(threshold))
+    scale = 200_000 // fraction.denominator
+    return fraction.numerator * scale, fraction.denominator * scale, scale
+
+
+def test_a_dataset_exactly_at_the_threshold_publishes_and_one_vehicle_under_it_does_not():
+    cfg = make_cfg({})
+    at, total, _ = threshold_counts(cfg)
+    exactly = coverage_from_counts(cfg, at, total - at)
+    assert exactly["trailing"]["coverage_high_confidence_only"] == exactly["publish_split_at_trailing_high_confidence_coverage"]
+    assert exactly["mild_split_published"] is True
+    assert coverage_from_counts(cfg, at - 1, total - at + 1)["mild_split_published"] is False
+    assert coverage_from_counts(cfg, at + 1, total - at - 1)["mild_split_published"] is True
+
+
+def test_a_figure_that_rounds_up_to_the_threshold_but_is_under_it_does_not_publish():
+    """The manifest's figure has four decimals. Judged on that figure, a ratio of 69.9995% would read 70% and publish;
+    judged on the counts it is under the threshold, and the manifest still shows the rounded figure."""
+    cfg = make_cfg({})
+    at, total, _ = threshold_counts(cfg)
+    out = coverage_from_counts(cfg, at - 1, total - at + 1)
+    assert (at - 1) / total < out["publish_split_at_trailing_high_confidence_coverage"]
+    assert out["trailing"]["coverage_high_confidence_only"] == out["publish_split_at_trailing_high_confidence_coverage"], (
+        "the case proves nothing unless the rounded figure reaches the threshold")
+    assert out["mild_split_published"] is False
 
 
 def test_brand_registry_as_at_must_be_an_iso_date(tmp_path, workspace):
