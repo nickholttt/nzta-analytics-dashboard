@@ -1,0 +1,5576 @@
+{
+  "source": {
+    "publisher": "Stats NZ",
+    "licence": "CC BY 4.0",
+    "attribution": "This work is based on/includes Stats NZ's data which are licensed by Stats NZ for reuse under the Creative Commons Attribution 4.0 International licence.",
+    "origin": "Stats NZ's Infoshare, table TPT052601 (Transport - TPT), exported as CSV and checked by `python -m pipeline supply`."
+  },
+  "store_sha256": "e66a5223c5e8a0089067d9a68c4cc2004d9d2cef3c7ecb04930c92496526d641",
+  "files": {
+    "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359": {
+      "source_file": "TPT052601.csv",
+      "taken": "2026-11-14",
+      "last_updated": "19 October 2026 10:45am",
+      "table_reference": "TPT001AA",
+      "months": {
+        "first": "1961-01",
+        "last": "2026-09",
+        "count": 789
+      },
+      "arithmetic": {
+        "cars_total": {
+          "months_checked": 615,
+          "differs_before": {
+            "1975-07": 1,
+            "1976-05": -1
+          }
+        },
+        "commercial_excl_buses_total": {
+          "months_checked": 633,
+          "differs_before": {
+            "1977-02": -755,
+            "1978-07": 53,
+            "1981-03": 20,
+            "1996-04": 70,
+            "1997-08": -74
+          }
+        },
+        "commercial_total": {
+          "months_checked": 633,
+          "differs_before": {
+            "1977-02": 755,
+            "1978-07": -53,
+            "1996-04": -70,
+            "1997-08": 74
+          }
+        }
+      }
+    }
+  },
+  "months": {
+    "1961-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 1391
+    },
+    "1961-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 2574
+    },
+    "1961-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3300
+    },
+    "1961-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 2523
+    },
+    "1961-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3131
+    },
+    "1961-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 2721
+    },
+    "1961-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3547
+    },
+    "1961-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3717
+    },
+    "1961-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3566
+    },
+    "1961-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3921
+    },
+    "1961-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3885
+    },
+    "1961-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3387
+    },
+    "1962-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 1973
+    },
+    "1962-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3074
+    },
+    "1962-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3605
+    },
+    "1962-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 2955
+    },
+    "1962-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3734
+    },
+    "1962-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3370
+    },
+    "1962-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4102
+    },
+    "1962-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3741
+    },
+    "1962-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3602
+    },
+    "1962-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3780
+    },
+    "1962-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4443
+    },
+    "1962-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4301
+    },
+    "1963-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 2126
+    },
+    "1963-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3514
+    },
+    "1963-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3692
+    },
+    "1963-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3645
+    },
+    "1963-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4233
+    },
+    "1963-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3075
+    },
+    "1963-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4857
+    },
+    "1963-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5486
+    },
+    "1963-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5369
+    },
+    "1963-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6793
+    },
+    "1963-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7051
+    },
+    "1963-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 8506
+    },
+    "1964-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 2055
+    },
+    "1964-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4421
+    },
+    "1964-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5421
+    },
+    "1964-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5597
+    },
+    "1964-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5303
+    },
+    "1964-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5286
+    },
+    "1964-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6515
+    },
+    "1964-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6242
+    },
+    "1964-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6352
+    },
+    "1964-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5734
+    },
+    "1964-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6365
+    },
+    "1964-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6451
+    },
+    "1965-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3009
+    },
+    "1965-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4681
+    },
+    "1965-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5891
+    },
+    "1965-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5404
+    },
+    "1965-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5509
+    },
+    "1965-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6033
+    },
+    "1965-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6643
+    },
+    "1965-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5563
+    },
+    "1965-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6143
+    },
+    "1965-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6026
+    },
+    "1965-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5974
+    },
+    "1965-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6313
+    },
+    "1966-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3170
+    },
+    "1966-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5105
+    },
+    "1966-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6647
+    },
+    "1966-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4805
+    },
+    "1966-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5494
+    },
+    "1966-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4955
+    },
+    "1966-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5346
+    },
+    "1966-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5810
+    },
+    "1966-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6073
+    },
+    "1966-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5282
+    },
+    "1966-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5684
+    },
+    "1966-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5297
+    },
+    "1967-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3087
+    },
+    "1967-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4959
+    },
+    "1967-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6090
+    },
+    "1967-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4815
+    },
+    "1967-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5267
+    },
+    "1967-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5710
+    },
+    "1967-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3774
+    },
+    "1967-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4798
+    },
+    "1967-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4853
+    },
+    "1967-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4498
+    },
+    "1967-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4590
+    },
+    "1967-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4043
+    },
+    "1968-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 2866
+    },
+    "1968-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3984
+    },
+    "1968-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4310
+    },
+    "1968-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3233
+    },
+    "1968-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4256
+    },
+    "1968-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3582
+    },
+    "1968-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4636
+    },
+    "1968-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4432
+    },
+    "1968-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4459
+    },
+    "1968-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4635
+    },
+    "1968-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4468
+    },
+    "1968-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3947
+    },
+    "1969-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3293
+    },
+    "1969-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4267
+    },
+    "1969-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4609
+    },
+    "1969-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4230
+    },
+    "1969-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4697
+    },
+    "1969-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4151
+    },
+    "1969-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5532
+    },
+    "1969-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5062
+    },
+    "1969-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5216
+    },
+    "1969-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5585
+    },
+    "1969-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4850
+    },
+    "1969-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4946
+    },
+    "1970-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3372
+    },
+    "1970-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4455
+    },
+    "1970-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4923
+    },
+    "1970-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5804
+    },
+    "1970-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6016
+    },
+    "1970-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5686
+    },
+    "1970-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6617
+    },
+    "1970-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6517
+    },
+    "1970-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7105
+    },
+    "1970-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6932
+    },
+    "1970-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6344
+    },
+    "1970-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6655
+    },
+    "1971-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 3891
+    },
+    "1971-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 4663
+    },
+    "1971-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6276
+    },
+    "1971-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5800
+    },
+    "1971-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5731
+    },
+    "1971-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6021
+    },
+    "1971-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6820
+    },
+    "1971-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6475
+    },
+    "1971-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6403
+    },
+    "1971-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7263
+    },
+    "1971-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7691
+    },
+    "1971-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7612
+    },
+    "1972-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5275
+    },
+    "1972-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 6961
+    },
+    "1972-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 8017
+    },
+    "1972-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 5845
+    },
+    "1972-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7507
+    },
+    "1972-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7139
+    },
+    "1972-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7834
+    },
+    "1972-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7746
+    },
+    "1972-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7947
+    },
+    "1972-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 8647
+    },
+    "1972-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 9398
+    },
+    "1972-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7986
+    },
+    "1973-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 8023
+    },
+    "1973-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 8731
+    },
+    "1973-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 8779
+    },
+    "1973-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7374
+    },
+    "1973-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 8739
+    },
+    "1973-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7792
+    },
+    "1973-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 8818
+    },
+    "1973-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 9096
+    },
+    "1973-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 7444
+    },
+    "1973-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 9430
+    },
+    "1973-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 9734
+    },
+    "1973-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 1,
+      "sum": 8676
+    },
+    "1974-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 15,
+      "sum": 9385
+    },
+    "1974-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 15,
+      "sum": 11124
+    },
+    "1974-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 13240
+    },
+    "1974-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 12463
+    },
+    "1974-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 14908
+    },
+    "1974-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 15014
+    },
+    "1974-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 15244
+    },
+    "1974-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 14838
+    },
+    "1974-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 12344
+    },
+    "1974-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 11889
+    },
+    "1974-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 11608
+    },
+    "1974-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 10326
+    },
+    "1975-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 9298
+    },
+    "1975-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 9931
+    },
+    "1975-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 11263
+    },
+    "1975-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 11137
+    },
+    "1975-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 11263
+    },
+    "1975-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 16,
+      "sum": 10618
+    },
+    "1975-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22484
+    },
+    "1975-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30812
+    },
+    "1975-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24787
+    },
+    "1975-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23192
+    },
+    "1975-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19533
+    },
+    "1975-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17492
+    },
+    "1976-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 14834
+    },
+    "1976-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 16002
+    },
+    "1976-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21183
+    },
+    "1976-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17415
+    },
+    "1976-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17145
+    },
+    "1976-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17096
+    },
+    "1976-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18880
+    },
+    "1976-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17630
+    },
+    "1976-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17619
+    },
+    "1976-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18515
+    },
+    "1976-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23783
+    },
+    "1976-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26031
+    },
+    "1977-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18780
+    },
+    "1977-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 15182
+    },
+    "1977-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18333
+    },
+    "1977-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 14276
+    },
+    "1977-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17115
+    },
+    "1977-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19041
+    },
+    "1977-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 14635
+    },
+    "1977-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17871
+    },
+    "1977-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18831
+    },
+    "1977-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 16689
+    },
+    "1977-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17121
+    },
+    "1977-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 12997
+    },
+    "1978-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 12502
+    },
+    "1978-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 13797
+    },
+    "1978-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 15133
+    },
+    "1978-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17864
+    },
+    "1978-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19696
+    },
+    "1978-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19426
+    },
+    "1978-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19658
+    },
+    "1978-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22021
+    },
+    "1978-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19358
+    },
+    "1978-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18691
+    },
+    "1978-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20345
+    },
+    "1978-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 14076
+    },
+    "1979-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 16497
+    },
+    "1979-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 15554
+    },
+    "1979-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20814
+    },
+    "1979-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 16587
+    },
+    "1979-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20059
+    },
+    "1979-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21547
+    },
+    "1979-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18285
+    },
+    "1979-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21017
+    },
+    "1979-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18898
+    },
+    "1979-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21673
+    },
+    "1979-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22696
+    },
+    "1979-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 16569
+    },
+    "1980-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19755
+    },
+    "1980-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19731
+    },
+    "1980-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22436
+    },
+    "1980-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19427
+    },
+    "1980-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23547
+    },
+    "1980-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20950
+    },
+    "1980-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25742
+    },
+    "1980-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21554
+    },
+    "1980-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22346
+    },
+    "1980-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23551
+    },
+    "1980-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21878
+    },
+    "1980-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18673
+    },
+    "1981-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20181
+    },
+    "1981-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21888
+    },
+    "1981-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25970
+    },
+    "1981-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23730
+    },
+    "1981-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23578
+    },
+    "1981-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25050
+    },
+    "1981-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27792
+    },
+    "1981-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24859
+    },
+    "1981-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26916
+    },
+    "1981-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26699
+    },
+    "1981-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25840
+    },
+    "1981-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20967
+    },
+    "1982-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23470
+    },
+    "1982-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23698
+    },
+    "1982-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 34473
+    },
+    "1982-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26576
+    },
+    "1982-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27990
+    },
+    "1982-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30549
+    },
+    "1982-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25848
+    },
+    "1982-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23018
+    },
+    "1982-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20651
+    },
+    "1982-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19489
+    },
+    "1982-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21278
+    },
+    "1982-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 16783
+    },
+    "1983-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18932
+    },
+    "1983-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20255
+    },
+    "1983-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 34377
+    },
+    "1983-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18796
+    },
+    "1983-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19448
+    },
+    "1983-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17546
+    },
+    "1983-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18643
+    },
+    "1983-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19646
+    },
+    "1983-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22261
+    },
+    "1983-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20151
+    },
+    "1983-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23166
+    },
+    "1983-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 16799
+    },
+    "1984-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21804
+    },
+    "1984-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24553
+    },
+    "1984-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30518
+    },
+    "1984-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19131
+    },
+    "1984-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23998
+    },
+    "1984-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22475
+    },
+    "1984-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 33738
+    },
+    "1984-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 32424
+    },
+    "1984-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26312
+    },
+    "1984-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25928
+    },
+    "1984-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24660
+    },
+    "1984-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 15141
+    },
+    "1985-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18800
+    },
+    "1985-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18927
+    },
+    "1985-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27911
+    },
+    "1985-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19035
+    },
+    "1985-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23944
+    },
+    "1985-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19875
+    },
+    "1985-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27235
+    },
+    "1985-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24186
+    },
+    "1985-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22137
+    },
+    "1985-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21223
+    },
+    "1985-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21055
+    },
+    "1985-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 15583
+    },
+    "1986-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20145
+    },
+    "1986-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19340
+    },
+    "1986-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23159
+    },
+    "1986-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19208
+    },
+    "1986-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18594
+    },
+    "1986-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 16146
+    },
+    "1986-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23624
+    },
+    "1986-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22790
+    },
+    "1986-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25580
+    },
+    "1986-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17758
+    },
+    "1986-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17206
+    },
+    "1986-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 13388
+    },
+    "1987-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17876
+    },
+    "1987-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17303
+    },
+    "1987-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22582
+    },
+    "1987-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 19383
+    },
+    "1987-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20392
+    },
+    "1987-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22577
+    },
+    "1987-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23734
+    },
+    "1987-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25767
+    },
+    "1987-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27345
+    },
+    "1987-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21528
+    },
+    "1987-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20905
+    },
+    "1987-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 16421
+    },
+    "1988-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18664
+    },
+    "1988-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 18084
+    },
+    "1988-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 22283
+    },
+    "1988-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 15974
+    },
+    "1988-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 17868
+    },
+    "1988-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20108
+    },
+    "1988-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 20677
+    },
+    "1988-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24029
+    },
+    "1988-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23638
+    },
+    "1988-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24680
+    },
+    "1988-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25749
+    },
+    "1988-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24343
+    },
+    "1989-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26892
+    },
+    "1989-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 28800
+    },
+    "1989-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36573
+    },
+    "1989-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 32983
+    },
+    "1989-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 39298
+    },
+    "1989-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 39562
+    },
+    "1989-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30396
+    },
+    "1989-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 32764
+    },
+    "1989-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 32900
+    },
+    "1989-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 29306
+    },
+    "1989-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 34749
+    },
+    "1989-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 33860
+    },
+    "1990-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35003
+    },
+    "1990-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 32778
+    },
+    "1990-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41651
+    },
+    "1990-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35389
+    },
+    "1990-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 44140
+    },
+    "1990-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40758
+    },
+    "1990-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43486
+    },
+    "1990-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43002
+    },
+    "1990-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 37887
+    },
+    "1990-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 58801
+    },
+    "1990-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36687
+    },
+    "1990-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50157
+    },
+    "1991-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21599
+    },
+    "1991-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21494
+    },
+    "1991-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30306
+    },
+    "1991-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25321
+    },
+    "1991-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 31089
+    },
+    "1991-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27969
+    },
+    "1991-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 31825
+    },
+    "1991-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30855
+    },
+    "1991-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 29555
+    },
+    "1991-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27631
+    },
+    "1991-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26376
+    },
+    "1991-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 29146
+    },
+    "1992-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23600
+    },
+    "1992-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23629
+    },
+    "1992-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24280
+    },
+    "1992-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 21578
+    },
+    "1992-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24604
+    },
+    "1992-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25435
+    },
+    "1992-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27977
+    },
+    "1992-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23883
+    },
+    "1992-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25779
+    },
+    "1992-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25894
+    },
+    "1992-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26860
+    },
+    "1992-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24333
+    },
+    "1993-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 23398
+    },
+    "1993-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25135
+    },
+    "1993-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30239
+    },
+    "1993-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24124
+    },
+    "1993-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 25542
+    },
+    "1993-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27420
+    },
+    "1993-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27786
+    },
+    "1993-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26865
+    },
+    "1993-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 28575
+    },
+    "1993-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27805
+    },
+    "1993-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30259
+    },
+    "1993-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27669
+    },
+    "1994-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 31333
+    },
+    "1994-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 28583
+    },
+    "1994-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42776
+    },
+    "1994-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 24344
+    },
+    "1994-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 33830
+    },
+    "1994-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 33162
+    },
+    "1994-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 33187
+    },
+    "1994-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36719
+    },
+    "1994-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36724
+    },
+    "1994-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 34847
+    },
+    "1994-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 37012
+    },
+    "1994-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 33512
+    },
+    "1995-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 34904
+    },
+    "1995-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 34703
+    },
+    "1995-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41420
+    },
+    "1995-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30915
+    },
+    "1995-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42723
+    },
+    "1995-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38456
+    },
+    "1995-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 37614
+    },
+    "1995-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41857
+    },
+    "1995-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 39363
+    },
+    "1995-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41636
+    },
+    "1995-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42343
+    },
+    "1995-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41609
+    },
+    "1996-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40538
+    },
+    "1996-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43329
+    },
+    "1996-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 47154
+    },
+    "1996-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42846
+    },
+    "1996-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53987
+    },
+    "1996-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43620
+    },
+    "1996-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52229
+    },
+    "1996-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49901
+    },
+    "1996-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46293
+    },
+    "1996-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49690
+    },
+    "1996-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49928
+    },
+    "1996-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42904
+    },
+    "1997-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 44455
+    },
+    "1997-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42392
+    },
+    "1997-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43324
+    },
+    "1997-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 45343
+    },
+    "1997-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 47638
+    },
+    "1997-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38022
+    },
+    "1997-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 44043
+    },
+    "1997-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36499
+    },
+    "1997-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38140
+    },
+    "1997-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 37105
+    },
+    "1997-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 34205
+    },
+    "1997-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36063
+    },
+    "1998-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 33943
+    },
+    "1998-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30709
+    },
+    "1998-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35978
+    },
+    "1998-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 30605
+    },
+    "1998-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 33262
+    },
+    "1998-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38792
+    },
+    "1998-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43536
+    },
+    "1998-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42969
+    },
+    "1998-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 45056
+    },
+    "1998-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 45462
+    },
+    "1998-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46216
+    },
+    "1998-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 48431
+    },
+    "1999-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41924
+    },
+    "1999-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42818
+    },
+    "1999-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51580
+    },
+    "1999-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 45032
+    },
+    "1999-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50210
+    },
+    "1999-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49294
+    },
+    "1999-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51788
+    },
+    "1999-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50384
+    },
+    "1999-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51515
+    },
+    "1999-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 47831
+    },
+    "1999-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50617
+    },
+    "1999-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 48800
+    },
+    "2000-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43104
+    },
+    "2000-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46551
+    },
+    "2000-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52794
+    },
+    "2000-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 39341
+    },
+    "2000-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49912
+    },
+    "2000-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46234
+    },
+    "2000-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43680
+    },
+    "2000-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46278
+    },
+    "2000-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 44303
+    },
+    "2000-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43185
+    },
+    "2000-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42419
+    },
+    "2000-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40944
+    },
+    "2001-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40667
+    },
+    "2001-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 39615
+    },
+    "2001-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 47425
+    },
+    "2001-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42200
+    },
+    "2001-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51235
+    },
+    "2001-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50311
+    },
+    "2001-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51217
+    },
+    "2001-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53033
+    },
+    "2001-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46906
+    },
+    "2001-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51619
+    },
+    "2001-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53383
+    },
+    "2001-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51327
+    },
+    "2002-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49776
+    },
+    "2002-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49933
+    },
+    "2002-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 56587
+    },
+    "2002-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49820
+    },
+    "2002-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53635
+    },
+    "2002-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51007
+    },
+    "2002-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 55329
+    },
+    "2002-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53180
+    },
+    "2002-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53570
+    },
+    "2002-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 55144
+    },
+    "2002-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53475
+    },
+    "2002-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53666
+    },
+    "2003-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 55210
+    },
+    "2003-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52836
+    },
+    "2003-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60047
+    },
+    "2003-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52959
+    },
+    "2003-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62763
+    },
+    "2003-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63919
+    },
+    "2003-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 66354
+    },
+    "2003-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59551
+    },
+    "2003-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 65260
+    },
+    "2003-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 65571
+    },
+    "2003-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 58186
+    },
+    "2003-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60526
+    },
+    "2004-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 56538
+    },
+    "2004-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 58502
+    },
+    "2004-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 69873
+    },
+    "2004-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59340
+    },
+    "2004-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62877
+    },
+    "2004-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 65980
+    },
+    "2004-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63730
+    },
+    "2004-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60503
+    },
+    "2004-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63442
+    },
+    "2004-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59003
+    },
+    "2004-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 61075
+    },
+    "2004-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59048
+    },
+    "2005-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52443
+    },
+    "2005-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 61449
+    },
+    "2005-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 65202
+    },
+    "2005-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60074
+    },
+    "2005-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63811
+    },
+    "2005-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 66288
+    },
+    "2005-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 64376
+    },
+    "2005-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 67842
+    },
+    "2005-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 64110
+    },
+    "2005-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60448
+    },
+    "2005-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62089
+    },
+    "2005-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 58186
+    },
+    "2006-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 55179
+    },
+    "2006-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 55042
+    },
+    "2006-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 64038
+    },
+    "2006-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 48095
+    },
+    "2006-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 58806
+    },
+    "2006-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 55302
+    },
+    "2006-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52937
+    },
+    "2006-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52433
+    },
+    "2006-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51824
+    },
+    "2006-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51796
+    },
+    "2006-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52426
+    },
+    "2006-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 48343
+    },
+    "2007-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52216
+    },
+    "2007-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 48419
+    },
+    "2007-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 57093
+    },
+    "2007-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46692
+    },
+    "2007-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 56307
+    },
+    "2007-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 54199
+    },
+    "2007-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 57978
+    },
+    "2007-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59044
+    },
+    "2007-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53028
+    },
+    "2007-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 56474
+    },
+    "2007-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 54802
+    },
+    "2007-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50026
+    },
+    "2008-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53143
+    },
+    "2008-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49908
+    },
+    "2008-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50071
+    },
+    "2008-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46618
+    },
+    "2008-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46025
+    },
+    "2008-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51228
+    },
+    "2008-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41811
+    },
+    "2008-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 39785
+    },
+    "2008-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43310
+    },
+    "2008-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43543
+    },
+    "2008-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35198
+    },
+    "2008-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36968
+    },
+    "2009-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 32540
+    },
+    "2009-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 27184
+    },
+    "2009-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 31730
+    },
+    "2009-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 26706
+    },
+    "2009-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 28945
+    },
+    "2009-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 31551
+    },
+    "2009-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 32630
+    },
+    "2009-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 31203
+    },
+    "2009-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35268
+    },
+    "2009-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35051
+    },
+    "2009-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 34430
+    },
+    "2009-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36069
+    },
+    "2010-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36769
+    },
+    "2010-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 34677
+    },
+    "2010-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40737
+    },
+    "2010-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35075
+    },
+    "2010-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38070
+    },
+    "2010-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41676
+    },
+    "2010-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38454
+    },
+    "2010-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38432
+    },
+    "2010-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41237
+    },
+    "2010-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38317
+    },
+    "2010-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41410
+    },
+    "2010-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38369
+    },
+    "2011-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38952
+    },
+    "2011-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35432
+    },
+    "2011-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41509
+    },
+    "2011-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 32494
+    },
+    "2011-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 37615
+    },
+    "2011-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38988
+    },
+    "2011-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 36516
+    },
+    "2011-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38319
+    },
+    "2011-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38098
+    },
+    "2011-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35952
+    },
+    "2011-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38985
+    },
+    "2011-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38700
+    },
+    "2012-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 39294
+    },
+    "2012-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35570
+    },
+    "2012-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40087
+    },
+    "2012-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 33931
+    },
+    "2012-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40927
+    },
+    "2012-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42993
+    },
+    "2012-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40166
+    },
+    "2012-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40132
+    },
+    "2012-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 39820
+    },
+    "2012-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 43330
+    },
+    "2012-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42771
+    },
+    "2012-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40261
+    },
+    "2013-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 44752
+    },
+    "2013-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 40741
+    },
+    "2013-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46789
+    },
+    "2013-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42763
+    },
+    "2013-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 48360
+    },
+    "2013-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50187
+    },
+    "2013-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52660
+    },
+    "2013-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49807
+    },
+    "2013-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 48263
+    },
+    "2013-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52719
+    },
+    "2013-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 54715
+    },
+    "2013-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51285
+    },
+    "2014-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 54667
+    },
+    "2014-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51040
+    },
+    "2014-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59225
+    },
+    "2014-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50921
+    },
+    "2014-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60044
+    },
+    "2014-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63764
+    },
+    "2014-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62757
+    },
+    "2014-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60083
+    },
+    "2014-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 64172
+    },
+    "2014-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63802
+    },
+    "2014-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63280
+    },
+    "2014-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62557
+    },
+    "2015-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 64470
+    },
+    "2015-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 57410
+    },
+    "2015-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 67718
+    },
+    "2015-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 57633
+    },
+    "2015-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63674
+    },
+    "2015-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 70141
+    },
+    "2015-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 66401
+    },
+    "2015-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 64985
+    },
+    "2015-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 66984
+    },
+    "2015-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 65282
+    },
+    "2015-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 65383
+    },
+    "2015-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 64762
+    },
+    "2016-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 64843
+    },
+    "2016-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62213
+    },
+    "2016-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 68393
+    },
+    "2016-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62846
+    },
+    "2016-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 67214
+    },
+    "2016-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 71216
+    },
+    "2016-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 69753
+    },
+    "2016-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 71930
+    },
+    "2016-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 73548
+    },
+    "2016-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 75400
+    },
+    "2016-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 74419
+    },
+    "2016-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 69498
+    },
+    "2017-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 73960
+    },
+    "2017-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 68070
+    },
+    "2017-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 80591
+    },
+    "2017-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 65809
+    },
+    "2017-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 78735
+    },
+    "2017-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 81963
+    },
+    "2017-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 74599
+    },
+    "2017-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 78395
+    },
+    "2017-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 79039
+    },
+    "2017-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 82453
+    },
+    "2017-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 83049
+    },
+    "2017-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 73286
+    },
+    "2018-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 79109
+    },
+    "2018-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 67241
+    },
+    "2018-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 72691
+    },
+    "2018-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60425
+    },
+    "2018-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 77713
+    },
+    "2018-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 77434
+    },
+    "2018-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 74572
+    },
+    "2018-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 75763
+    },
+    "2018-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 71011
+    },
+    "2018-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 79136
+    },
+    "2018-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 71403
+    },
+    "2018-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62571
+    },
+    "2019-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 70727
+    },
+    "2019-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 65074
+    },
+    "2019-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 71098
+    },
+    "2019-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 61210
+    },
+    "2019-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 69601
+    },
+    "2019-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 69973
+    },
+    "2019-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 69866
+    },
+    "2019-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 70061
+    },
+    "2019-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 71948
+    },
+    "2019-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 73378
+    },
+    "2019-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 70978
+    },
+    "2019-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63872
+    },
+    "2020-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 69132
+    },
+    "2020-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62308
+    },
+    "2020-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 48127
+    },
+    "2020-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 4657
+    },
+    "2020-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51703
+    },
+    "2020-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 66913
+    },
+    "2020-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 68440
+    },
+    "2020-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 55188
+    },
+    "2020-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60107
+    },
+    "2020-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60224
+    },
+    "2020-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59457
+    },
+    "2020-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50035
+    },
+    "2021-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62517
+    },
+    "2021-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 58473
+    },
+    "2021-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 72125
+    },
+    "2021-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63375
+    },
+    "2021-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 68298
+    },
+    "2021-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 71539
+    },
+    "2021-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 77425
+    },
+    "2021-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 38701
+    },
+    "2021-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62774
+    },
+    "2021-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 68083
+    },
+    "2021-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 75179
+    },
+    "2021-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 61990
+    },
+    "2022-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 64589
+    },
+    "2022-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 65419
+    },
+    "2022-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 132021
+    },
+    "2022-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42158
+    },
+    "2022-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52284
+    },
+    "2022-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50660
+    },
+    "2022-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52011
+    },
+    "2022-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59273
+    },
+    "2022-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 58878
+    },
+    "2022-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 57644
+    },
+    "2022-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59663
+    },
+    "2022-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50139
+    },
+    "2023-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51768
+    },
+    "2023-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 47961
+    },
+    "2023-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 68139
+    },
+    "2023-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49461
+    },
+    "2023-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 61942
+    },
+    "2023-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 107241
+    },
+    "2023-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 35225
+    },
+    "2023-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50461
+    },
+    "2023-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53246
+    },
+    "2023-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 59850
+    },
+    "2023-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 62632
+    },
+    "2023-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 60417
+    },
+    "2024-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 58955
+    },
+    "2024-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 54196
+    },
+    "2024-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 56482
+    },
+    "2024-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49944
+    },
+    "2024-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53044
+    },
+    "2024-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 47487
+    },
+    "2024-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50990
+    },
+    "2024-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49741
+    },
+    "2024-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50303
+    },
+    "2024-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51621
+    },
+    "2024-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49330
+    },
+    "2024-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 46595
+    },
+    "2025-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 48554
+    },
+    "2025-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 44600
+    },
+    "2025-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51160
+    },
+    "2025-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 41125
+    },
+    "2025-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 47270
+    },
+    "2025-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49118
+    },
+    "2025-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53118
+    },
+    "2025-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 50959
+    },
+    "2025-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 54458
+    },
+    "2025-10": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 54400
+    },
+    "2025-11": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52200
+    },
+    "2025-12": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 42829
+    },
+    "2026-01": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 51214
+    },
+    "2026-02": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 45851
+    },
+    "2026-03": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 61861
+    },
+    "2026-04": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 44596
+    },
+    "2026-05": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 49138
+    },
+    "2026-06": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 55218
+    },
+    "2026-07": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 52435
+    },
+    "2026-08": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 53995
+    },
+    "2026-09": {
+      "source_file": "TPT052601.csv",
+      "sha256": "3fab20312616b07de70c1c76ecfb4f9804cb44f886aeff4e95b8133ae3292359",
+      "taken": "2026-11-14",
+      "rows": 26,
+      "sum": 63067
+    }
+  },
+  "revisions": []
+}

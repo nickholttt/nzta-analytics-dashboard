@@ -2,9 +2,15 @@
 
 Stats NZ published about two weeks after NZTA's service on the one month observed, so the series' newest month is usually a month behind the register's (an estimate) (the latest month in the 2026-11-14 export was September 2026, last
 updated 19 October). Once a month, or when the user wants the newest month, the user exports the
-table from Infoshare and a maintainer adds it to the local store. This is a hand step: the Action never
-runs it and nothing here fetches anything. Why the data is kept this way is D-065; what the table is, and
-what each of its columns means, is `docs/DATA_SOURCES.md` section C.
+table from Infoshare and a maintainer adds it to the store, which is committed to the repository (D-097) and read by
+GitHub's builds. This is a hand step: the Action never runs it and nothing here fetches anything. Why the data
+is kept this way is D-065; what the table is, and what each of its columns means, is `docs/DATA_SOURCES.md`
+section C. The copy in the store now was fetched read-only by a script on 2026-11-14; the user's own export
+replaces it the same way as any later one.
+
+A store that ends before the register's month is normal here and is not a problem: the build warns, names the missing
+months and publishes everything else. A store that ends after the register's month aborts the build; it cannot
+happen with a table that is published after the register.
 
 Infoshare is being replaced by Stats NZ's Aotearoa Data Explorer in 2027. When the table reaches it only
 the export step changes.
@@ -32,10 +38,14 @@ the export step changes.
 Nothing outside `data/supplied/statsnz_tpt/` is written, and nothing is written at all unless every check
 passes.
 
+5. Run `.venv/Scripts/python.exe -m pytest pipeline/tests/test_stores_in_repo.py -q -p no:cacheprovider`, then commit
+   `data/supplied/statsnz_tpt/series.parquet` and `ledger.json` together in one commit, staged by name. The two
+   belong to each other by a hash: one without the other makes every build abort. The raw export stays in `data/raw/`.
+
 **Build with `--dry-run` afterwards**, as for the dashboard (`docs/playbooks/supply-dashboard-month.md`): a
-local `python -m pipeline build <pull>` without `--dry-run`, with the store present, writes the dataset into
-`data/state/last_good.json`, which only the Action may commit; GitHub's builds have no store and would abort for
-want of it. The dry run writes only the gitignored `data/staging/`.
+local `python -m pipeline build <pull>` without `--dry-run` writes the dataset into `data/state/last_good.json`
+and the register's archive into `data/snapshots/`, which only the Action may commit (hard rule 3). The dry run
+writes only the gitignored `data/staging/`.
 
 ## Attribution
 

@@ -383,3 +383,17 @@ def test_git_keeps_a_stores_bytes_as_they_are():
     # The ledger names the SHA-256 of the Parquet file; a checkout that rewrote it would break every build.
     lines = [l.strip() for l in (ROOT / ".gitattributes").read_text(encoding="utf-8").splitlines()]
     assert "*.parquet binary" in lines
+
+
+def test_every_configured_store_is_committed_so_a_github_build_makes_every_supplied_dataset():
+    for source_id in SOURCES:
+        registrations, ledger_path = supplied.store_paths(REAL, source_id)
+        assert registrations.is_file() and ledger_path.is_file(), f"{source_id}: its store is not in the repository"
+
+
+def test_the_gitignore_lets_every_configured_store_in_and_keeps_out_the_temporary_names():
+    ignore = [l.strip() for l in (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("#")]
+    for source_id in SOURCES:
+        store = REAL.supplied(source_id)["store"].rstrip("/")
+        assert not any(l.rstrip("/") in (store, "data/supplied") for l in ignore), f"{store} is ignored by .gitignore"
+    assert any(l.endswith(".new") for l in ignore), "a half-written store (the .new names) must never be committed"
