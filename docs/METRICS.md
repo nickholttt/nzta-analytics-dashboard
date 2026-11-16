@@ -386,6 +386,15 @@ listed in the decision record D-107.
 | An answer sentence, or the reading on a count | These are counts, not shares, and carry neither guard. The change on a year ago is the only withheld figure: under 50 vehicles in the earlier month it is not given and the sentence says there are too few vehicles to compare with. | None. |
 | A count, or a 12-month running total | A count carries no share guard. | None. |
 
+**A greyed figure and the vertical axis (D-109, review of #69).** The vertical axis of a share-over-time chart (the lines of a
+share, the top-5 share line) is set by the points drawn in colour, the ones the guards do not grey. A greyed point can be far
+higher than any of them (a month of a few vehicles in the register's early years, or a window with one vehicle of a small
+group), and would otherwise stretch the axis until the lines that carry the chart are squeezed. Greyed points are drawn within
+that frame and cut off at its edge; the hover and the table of figures still give a greyed figure in full, and the grey note says
+a greyed figure above the scale is cut off. Where no point is drawn in colour (everything is greyed), the axis is set by what there
+is. A count line carries no share guard, so nothing on it is greyed; the bar chart, the map and a ranking grey all their bars or
+none, and so set their scale by all of them or, when greyed, by what there is.
+
 A condition (a chart's own filter, or a Build condition) changes what the
 denominator is, not what the guards do: both are tested on the narrowed set, as
 the first paragraph of this section says. A filtered chart can therefore grey a

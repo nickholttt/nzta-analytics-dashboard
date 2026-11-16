@@ -105,6 +105,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       priorDenom: result.priorDenom,
       hasPrior: ranking.hasPrior,
       ...rankingWords(phrases, { span, end, latest }),
+      single: span === 1,
       phrases,
     });
     return { items, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior, tiedBeyond: result.tiedBeyond, guard: items.length > 0 ? guard : { shares: false, changes: false, sentence: undefined } };

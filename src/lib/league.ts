@@ -114,16 +114,18 @@ export function rankingGuard(input: {
   hasPrior: boolean;
   window: string;
   priorDates: string;
+  // The ranking is of one month, so its earlier window is one month and the sentence says "month", not "months".
+  single: boolean;
   phrases: RankingThinPhrases;
 }): { shares: boolean; changes: boolean; sentence: string | undefined } {
-  const { floor, currentDenom, priorDenom, hasPrior, window, priorDates, phrases } = input;
+  const { floor, currentDenom, priorDenom, hasPrior, window, priorDates, single, phrases } = input;
   const shares = floor > 0 && currentDenom < floor;
   const earlier = floor > 0 && hasPrior && priorDenom > 0 && priorDenom < floor;
   const changes = shares || earlier;
   const sentence = shares
     ? fillTemplate(phrases.ranking_thin, { vehicles: vehiclesText(currentDenom), window, floor }).text
     : earlier
-      ? fillTemplate(phrases.ranking_thin_prior, { vehicles: vehiclesText(priorDenom), prior: priorDates, floor }).text
+      ? fillTemplate(single ? phrases.ranking_thin_prior_month : phrases.ranking_thin_prior, { vehicles: vehiclesText(priorDenom), prior: priorDates, floor }).text
       : undefined;
   return { shares, changes, sentence };
 }

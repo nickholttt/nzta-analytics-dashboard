@@ -174,3 +174,46 @@ test("the rolling mix that finds a chart's default start reads the same rule: a 
   // The months a window of the dataset can start from: monthRange agrees with the fixture's first and last month.
   assert.equal(monthRange(cases.surviving.first, cases.surviving.last).length, 1378);
 });
+
+const { axisTop } = await import("../../src/lib/shareline.ts");
+
+// The points a share chart draws for one value, as MixChart makes them: the figure, and whether a guard greys it.
+function pointsOf(rows: ReturnType<typeof slice>, covers: { first: string; last: string }, value: string, from: string) {
+  const line = lineOf(rows, covers, true);
+  return monthRange(from, covers.last).map((month) => ({ month, value: at(line, rows, value, month)?.share, grey: greyedAt(line, month) !== undefined }));
+}
+
+test("the vertical axis is set by the points drawn in colour: a greyed point above them does not stretch it", () => {
+  // One used import among a model's registrations. Its 12-month share is 1 in 139 for the 12 months to Jul 2026 and 1 in 185 to Aug 2026
+  // (under the floor, greyed), then 1 in 276 to Sep 2026 and 1 in 388 to Oct 2026 (over it, in colour).
+  const points = pointsOf(ora, flowMonths, "Used Import", "2026-05");
+  const greyed = points.filter((p) => p.grey && p.value);
+  const coloured = points.filter((p) => !p.grey && p.value);
+  assert.deepEqual(greyed.map((p) => [p.month, p.value]), [["2026-07", 1 / 139], ["2026-08", 1 / 185]]);
+  assert.deepEqual(coloured.map((p) => [p.month, p.value]), [["2026-09", 1 / 276], ["2026-10", 1 / 388]]);
+  assert.equal(axisTop(points, 0), 1 / 276, "the axis follows the coloured points, not the 1 in 139");
+  // Greyed points count again once there is nothing in colour to set the axis by.
+  assert.equal(axisTop(greyed, 0), 1 / 139);
+  // The least the axis takes still holds, and a month with no figure sets nothing.
+  assert.equal(axisTop(points, 0.05), 0.05);
+  assert.equal(axisTop([{ value: undefined, grey: false }], 0.05), 0.05);
+});
+
+test("a chart in which every point is greyed sets its axis by what there is, as before", () => {
+  const rows = slice(cases.hydrogen_by_make_surviving as Entry[]);
+  const points = pointsOf(rows, cases.surviving, "TOYOTA", "2021-01");
+  assert.ok(points.some((p) => p.value !== undefined && p.value > 0));
+  assert.ok(points.every((p) => p.grey), "a few to 47 vehicles in a window: all under the floor");
+  assert.equal(axisTop(points, 0.05), Math.max(0.05, ...points.map((p) => p.value ?? 0)));
+});
+
+test("the charts that draw a greyed line set the axis with axisTop, clip the grey line to the frame, and keep the hover at the frame's edge", () => {
+  for (const file of ["src/components/MixChart.tsx", "src/components/TrendChart.tsx"]) {
+    const source = readFileSync(new URL(`../../${file}`, import.meta.url), "utf8");
+    assert.ok(source.includes("axisTop(model.points.map((p) => ({ value: "), file);
+    assert.ok(source.includes("stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH, clip: true"), file);
+    assert.ok(source.includes("const inFrame = (p: Point) => Math.min("), file);
+  }
+  const panel = readFileSync(new URL("../../src/components/PresetPanel.tsx", import.meta.url), "utf8");
+  assert.equal(panel.split("{phrases.grey_beyond_scale}").length - 1, 2, "the public and the internal grey note both say it");
+});

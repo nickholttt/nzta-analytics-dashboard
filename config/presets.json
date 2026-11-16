@@ -44,6 +44,8 @@
       "window_outside_data": "No figure: the window starts before the data does",
       "ranking_thin": "This ranking rests on {vehicles} {window}, fewer than the {floor} needed to read a share reliably, so its shares and changes in share are greyed.",
       "ranking_thin_prior": "The earlier months this ranking is compared with ({prior}) hold {vehicles}, fewer than the {floor} needed to read a share reliably, so its changes in share are greyed.",
+      "ranking_thin_prior_month": "The earlier month this ranking is compared with ({prior}) holds {vehicles}, fewer than the {floor} needed to read a share reliably, so its changes in share are greyed.",
+      "grey_beyond_scale": "A greyed figure above the chart's scale is cut off at its edge; reading it gives the figure in full.",
       "tie_beyond_cut": "Not listed, with the same count and rank as the last entry shown: {count}.",
       "pick_month": "Click or tap the chart to read another month.",
       "bad_month": "The address asked for {asked}, which this chart has no figures for, so {shown} is shown.",

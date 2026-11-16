@@ -17,6 +17,7 @@ import type { Manifest, SliceRow } from "../lib/data";
 import { nameOrder } from "../lib/ranking";
 import { derivedSeries, isRatioMeasure, ratioSeries } from "../lib/derived";
 import { isolatedMonths, lineMonths } from "../lib/ratio";
+import { axisTop } from "../lib/shareline";
 import { zeroInside } from "../lib/rolling";
 import type { Covers } from "../lib/rolling";
 import type { RatioPoint, RatioSeries } from "../lib/derived";
@@ -417,8 +418,10 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
 
   const render = useCallback(
     (width: number) => {
-      const top = model.points.reduce((most, p) => Math.max(most, p.y ?? 0), 0.01);
+      // The axis is set by the points drawn in colour; greyed points are drawn within it and cut off at its edge (shareline.ts, axisTop).
+      const top = axisTop(model.points.map((p) => ({ value: p.y, grey: p.suppressed })), 0.01);
       const yMax = share ? Math.min(1, top * 1.05) : top * 1.05;
+      const inFrame = (p: Point) => Math.min(p.y as number, yMax);
       const format = share ? (d: number) => `${Math.round(d * 100)}%` : (d: number) => d.toLocaleString();
       return Plot.plot({
         width,
@@ -442,7 +445,7 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: format }),
           Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
           Plot.ruleY([0], { stroke: RULE_STRONG }),
-          Plot.lineY(model.points, { x: "date", y: "y", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH }),
+          Plot.lineY(model.points, { x: "date", y: "y", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH, clip: true }),
           Plot.lineY(
             model.points.map((p) => (p.suppressed ? { ...p, y: undefined } : p)),
             { x: "date", y: "y", stroke: SERIES[0], strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" },
@@ -450,13 +453,13 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
           Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: RULE_STRONG })),
           Plot.dot(
             model.points.filter((p) => p.y !== undefined),
-            Plot.pointerX({ x: "date", y: "y", r: 4, fill: SERIES[0], stroke: PAPER, strokeWidth: 1.5 }),
+            Plot.pointerX({ x: "date", y: inFrame, r: 4, fill: SERIES[0], stroke: PAPER, strokeWidth: 1.5 }),
           ),
           Plot.tip(
             model.points.filter((p) => p.y !== undefined),
             Plot.pointerX({
               x: "date",
-              y: "y",
+              y: inFrame,
               ...tipStyle,
               title: (p: Point) =>
                 readout({

@@ -2,15 +2,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
-import { datasetFirstMonth } from "../lib/built";
 import { compositionStart } from "../lib/composition";
+import { dimensionNote } from "../lib/dimensionNote";
 import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
+import { datasetCovers, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
@@ -212,6 +212,10 @@ export default function PresetPanel({
   }, []);
 
   const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
+  // The months the dataset covers, for every figure that sums a window: a month inside them in which a condition keeps nothing has no
+  // rows and holds no vehicles (docs/METRICS.md, "Months in which nothing is counted"). One object until the preset, the build or the
+  // first month changes, so the charts that read it do not recompute on every render of the panel.
+  const covers = useMemo(() => (effectivePreset && manifest ? datasetCovers(effectivePreset, manifest, firstMonth) : undefined), [effectivePreset, manifest, firstMonth]);
 
   // The resolver says where the rows come from: a 1-D slice, or a pair slice narrowed to the view's filter. A view
   // changed again before its rows arrive drops them, so a slow earlier load cannot draw under a later view.
@@ -300,9 +304,6 @@ export default function PresetPanel({
   const derived = findDerived(effectivePreset.derived);
   const served = servedFrom(effectivePreset.dataset, manifest);
   const dsManifest = served ? manifest.datasets[served] : undefined;
-  // The months the dataset covers, for every figure that sums a window: a month inside them in which a condition keeps nothing has
-  // no rows and holds no vehicles (docs/METRICS.md, "Months in which nothing is counted").
-  const covers = { first: datasetFirstMonth(dsManifest, firstMonth), last: latestMonthOf(effectivePreset, manifest) };
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const onPowertrain = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
   // A dataset that does not divide its hybrids has no mild line to relabel (docs/CUBE_SCHEMA.md, mild_split_published).
@@ -340,9 +341,9 @@ export default function PresetPanel({
   // Where the figures come from and the date of the export, said under every chart whose dataset is supplied.
   const sourceNote = findDataset(effectivePreset.dataset)?.source_note;
   if (sourceNote && !notBuilt) addNote("source", undefined, sourceNote);
-  const publicDimensionNote = !internal && dimension ? dimension.public_note : undefined;
-  if (publicDimensionNote) addNote("dimension", publicDimensionNote);
-  else addNote("dimension", dimension?.note, dimension?.note_template);
+  // The dimension's note may depend on the state of the dataset (a mild line only where the split is published): src/lib/dimensionNote.ts.
+  const dimensionText = dimensionNote(dimension, internal, { splitPublished: splitPublished(coverage) });
+  addNote("dimension", dimensionText.plain, dimensionText.template);
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
   // terms, is internal.
@@ -704,7 +705,7 @@ export default function PresetPanel({
           <li>
             Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably
             {collapseFraction > 0 ? ", and months with far fewer vehicles than the months before them, which may not describe a normal month" : ""}.
-            They are drawn in grey, not dropped. <a href="/method">How the figures are made</a>.
+            They are drawn in grey, not dropped. {phrases.grey_beyond_scale} <a href="/method">How the figures are made</a>.
           </li>
         ) : null}
         {greyNote && internal ? (
@@ -713,7 +714,7 @@ export default function PresetPanel({
             {collapseFraction > 0
               ? `, and months whose total collapsed below ${Math.round(collapseFraction * 100)}% of the median of the ${TRAILING_MONTHS} months before them. The second guard is not the first: a month can be precisely measured and still describe a different population, which is what a nationwide shutdown does to a month of registrations`
               : ""}
-            . Their shares are drawn in grey, not dropped and not zeroed.
+            . Their shares are drawn in grey, not dropped and not zeroed. {phrases.grey_beyond_scale}
           </li>
         ) : null}
         {notBuilt && !internal ? null : <li className="basis">{BASIS_NOTE}</li>}

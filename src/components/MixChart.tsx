@@ -20,7 +20,7 @@ import {
   trailingWindow,
 } from "../lib/measures";
 import type { Covers } from "../lib/rolling";
-import { countIn, figureAt, greyedAt, keyWindow, shareLine } from "../lib/shareline";
+import { axisTop, countIn, figureAt, greyedAt, keyWindow, shareLine } from "../lib/shareline";
 import { monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
 import {
@@ -299,8 +299,10 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
       const marginTop = 24 + (laneCount - 1) * LANE_HEIGHT;
       // Reduced, not spread into Math.max: a breakdown with many values over a long period has more points than a
       // call can take as arguments, and the chart would fail to draw.
-      const highest = model.points.reduce((top, p) => Math.max(top, p.share ?? 0), 0.05);
+      // The axis is set by the points drawn in colour; greyed points are drawn within it and cut off at its edge (axisTop).
+      const highest = axisTop(model.points.map((p) => ({ value: p.share, grey: p.suppressed })), 0.05);
       const yMax = Math.min(1, highest * 1.05);
+      const inFrame = (p: Point) => Math.min(p.share as number, yMax);
       const bands = model.bands.map((b) => ({ ...b, y2: yMax }));
       const { ownColour } = model;
 
@@ -385,7 +387,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
               fontSize: 11,
             }),
           ),
-          Plot.lineY(model.points, { x: "date", y: "share", z: "series", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH }),
+          Plot.lineY(model.points, { x: "date", y: "share", z: "series", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH, clip: true }),
           Plot.lineY(contextPoints, {
             x: "date",
             y: "share",
@@ -408,13 +410,13 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
           Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: RULE_STRONG })),
           Plot.dot(
             model.points.filter((p) => p.share !== undefined),
-            Plot.pointer({ x: "date", y: "share", r: 4, fill: "series", stroke: PAPER, strokeWidth: 1.5 }),
+            Plot.pointer({ x: "date", y: inFrame, r: 4, fill: "series", stroke: PAPER, strokeWidth: 1.5 }),
           ),
           Plot.tip(
             model.points.filter((p) => p.share !== undefined),
             Plot.pointer({
               x: "date",
-              y: "share",
+              y: inFrame,
               ...tipStyle,
               title: (p: Point) =>
                 readout({

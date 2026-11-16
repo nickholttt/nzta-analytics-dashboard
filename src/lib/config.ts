@@ -77,6 +77,10 @@ export type Dimension = {
   // its counterpart on the public pages; /status keeps the original.
   public_label?: string;
   public_note?: string;
+  // A note that holds only in some states of a build names a condition (src/lib/dimensionNote.ts) and gives what to say when it does not.
+  note_condition?: string;
+  note_otherwise?: string;
+  public_note_otherwise?: string;
 };
 
 // How a chart says what its dataset counts. Each is a template; the chart fills in the {names} it knows.
@@ -190,7 +194,7 @@ type PresetsDoc = {
     year_change_measure: string;
     phrases: RankingPhrases &
       RankingThinPhrases &
-      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string };
+      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; grey_beyond_scale: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;

@@ -88,3 +88,23 @@ export function greyedAt(line: ShareLine, month: string): Greyed | undefined {
 export function keyWindow(line: ShareLine, from: string, to: string, nFor: (month: string) => number | undefined) {
   return windowShare(from, to, nFor, line.windowed);
 }
+
+// The top of a chart's vertical axis, from the figures drawn in colour: the points not greyed. A greyed point rests on fewer vehicles
+// than the floor (or on a month far below its recent history), so it can be far higher than any figure that is not, and would
+// otherwise stretch the axis until the lines that mean something are squeezed. Greyed points are drawn within that frame and cut off
+// at its edge (the chart clips them, and the hover and the table of figures give them in full). Where no point is drawn in colour,
+// everything is greyed, and the axis is set by what there is. `least` is the smallest top the axis takes.
+export function axisTop(points: readonly { value?: number; grey: boolean }[], least: number): number {
+  let coloured = least;
+  let any = least;
+  let haveColoured = false;
+  for (const p of points) {
+    if (p.value === undefined) continue;
+    if (p.value > any) any = p.value;
+    if (!p.grey) {
+      haveColoured = true;
+      if (p.value > coloured) coloured = p.value;
+    }
+  }
+  return haveColoured ? coloured : any;
+}

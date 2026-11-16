@@ -152,7 +152,7 @@ function guardOf(rows: { month: string; value: string; n: number; denominator: n
   const { currentFrom, priorFrom, priorTo } = rankingWindows(end, span);
   const text = rankingText(phrases, { basis: BASIS, span, end, latest, covers: { first: "1912-01", last: latest } });
   const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: text.hasPrior, topN: 15, nameOf: (v) => v, yearFloor: FLOOR });
-  const guard = rankingGuard({ floor: SHARE_FLOOR, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: text.hasPrior, ...rankingWords(phrases, { span, end, latest }), phrases });
+  const guard = rankingGuard({ floor: SHARE_FLOOR, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: text.hasPrior, ...rankingWords(phrases, { span, end, latest }), single: span === 1, phrases });
   return { result, guard };
 }
 
@@ -177,9 +177,9 @@ test("a ranking of one month reads the floor on that month's vehicles, and says 
 });
 
 test("the floor is the same number for a month and for twelve months: the window's total is read against it, never 12 times it", () => {
-  const phrasesOf = { ranking_thin: phrases.ranking_thin, ranking_thin_prior: phrases.ranking_thin_prior };
-  const guard = (currentDenom: number, priorDenom: number, hasPrior = true, floor = SHARE_FLOOR) =>
-    rankingGuard({ floor, currentDenom, priorDenom, hasPrior, window: "in the last 12 months", priorDates: "Nov 2024 to Oct 2025", phrases: phrasesOf });
+  const phrasesOf = { ranking_thin: phrases.ranking_thin, ranking_thin_prior: phrases.ranking_thin_prior, ranking_thin_prior_month: phrases.ranking_thin_prior_month };
+  const guard = (currentDenom: number, priorDenom: number, hasPrior = true, floor = SHARE_FLOOR, single = false) =>
+    rankingGuard({ floor, currentDenom, priorDenom, hasPrior, window: single ? "in Oct 2026" : "in the last 12 months", priorDates: single ? "Oct 2025" : "Nov 2024 to Oct 2025", single, phrases: phrasesOf });
   assert.equal(guard(199, 5000).shares, true);
   assert.equal(guard(200, 5000).shares, false, "exactly the floor is not under it");
   assert.equal(guard(2399, 5000).shares, false, "a twelve-month window of 2,399 vehicles is not greyed: twelve times the floor is not asked");
@@ -187,6 +187,10 @@ test("the floor is the same number for a month and for twelve months: the window
   const earlier = guard(450, 120);
   assert.deepEqual([earlier.shares, earlier.changes], [false, true]);
   assert.equal(earlier.sentence, "The earlier months this ranking is compared with (Nov 2024 to Oct 2025) hold 120 vehicles, fewer than the 200 needed to read a share reliably, so its changes in share are greyed.");
+  // A ranking of one month compares it with one month, and the sentence says "month" and "holds", for 30 vehicles and for one.
+  assert.equal(guard(450, 30, true, SHARE_FLOOR, true).sentence, "The earlier month this ranking is compared with (Oct 2025) holds 30 vehicles, fewer than the 200 needed to read a share reliably, so its changes in share are greyed.");
+  assert.match(guard(450, 1, true, SHARE_FLOOR, true).sentence ?? "", /holds 1 vehicle,/);
+  for (const key of ["ranking_thin", "ranking_thin_prior", "ranking_thin_prior_month"]) assert.doesNotMatch(phrases[key], /[0-9]/, "no figure in the template");
   // An earlier window of no vehicles gives no change at all, so there is nothing to grey; no comparison, none either.
   assert.deepEqual(guard(450, 0), { shares: false, changes: false, sentence: undefined });
   assert.deepEqual(guard(450, 120, false), { shares: false, changes: false, sentence: undefined });

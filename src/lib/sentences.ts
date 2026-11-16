@@ -162,7 +162,7 @@ export type RankingPhrases = {
 };
 
 // What a ranking says where its base is under the precision floor (docs/METRICS.md, "A ranking and the precision floor").
-export type RankingThinPhrases = { ranking_thin: string; ranking_thin_prior: string };
+export type RankingThinPhrases = { ranking_thin: string; ranking_thin_prior: string; ranking_thin_prior_month: string };
 
 export type RankingFacts = {
   // The dataset's own opening sentence, with {window}.
