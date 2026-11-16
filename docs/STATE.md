@@ -12,17 +12,15 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   - **The last build is the forced run 43637172195** (14 November 2026; snapshot 2026-10;
     5,926,990 rows; no warning): the one forced run the work order allowed. The release
     `cube-2026-10` holds its cube, with the fact table. `Deploy` uploaded nothing.
-  - **The build is tried every day** at 06:17 UTC (D-064, D-070); the run of 15 November
-    said "Source unchanged".
+  - **The build is tried every day** at 06:17 UTC (D-064, D-070). The newest run seen on
+    16 November is the 15th's ("Source unchanged").
   - **The archive**: the private repository `nickholttt/nzta-register-archive` holds one
     release, `snapshot-2026-10`, two files (the second holds `VIN11` and `POSTCODE`).
 - **`registrations_flow` is built wherever its store is** (#55, D-092): true first
-  registrations from the user's exports of NZTA's dashboard, January 2021 on, through
-  `python -m pipeline supply` and the register's own code. The store is on this computer only
-  (gitignored `data/supplied/`), so GitHub's builds mark the dataset `not_built`.
+  registrations from the user's exports of NZTA's dashboard, January 2021 on. The store is on
+  this computer only (gitignored), so GitHub's builds mark the dataset `not_built` (D-097).
 - **`registrations_cars_long_run`** (#57, D-094; Stats NZ's cars, 1961 on): the same.
-- **NZTA's vehicle type is a dimension** on the two datasets built from vehicle rows (#58,
-  D-095), with a pair on the survivors. The next build on GitHub writes it for the survivors.
+- **NZTA's vehicle type is a dimension** (#58, D-095); GitHub's next build writes it.
 - **The site shows true registrations on a local build** (#56, D-093): a group in Explore
   and a choice of what Build counts; completeness by vehicle type and new or used (#61).
 - **The site shows the long run on a local build** (#61, D-098): cars first registered each
@@ -33,8 +31,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   site from the newest cube release and uploads nothing. **Nothing is deployed**: the
   variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-16).
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
-  read by Explore and Build; no field or measure names its own chart. `Checks` now also runs
-  the site's tests and typecheck and the query service prototype's tests (D-101).
+  read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
@@ -44,37 +41,36 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 ## Current step
 
-**Work order 1.** A, B, C and G are done on a local build, and E but for two pipeline items.
-In hand: D's first load, the supplied counts as files, H's spec, I's segment scheme. Then F.
+**Work order 1**, engine first (the user, D-104). A, B, C and G are done on a local build, and
+E but for two pipeline items. Next, in order: the supplied counts, the two open pull
+requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
-Four branches, each in its own worktree (`git worktree list`), started 2026-11-16; none
-has a pull request yet. (#60, #61 and #62 are merged.)
-
-- `claude/stores-in-repo` (D-097): both supplied sources' counts as files in the repository.
-  `pipeline/supplied.py`, their tests, `data/supplied/`, AGENTS.md, three docs, two playbooks.
-- `claude/narrative-spec` (D-102): package H's `docs/NARRATIVE.md` and `config/narrative/`.
-- `claude/model-segments` (D-103): package I's proposed segment scheme, `docs/SEGMENTS.md`,
-  `data/reference/model_segment.csv`. Nothing in it goes live before the user approves.
-- `claude/first-load` (D-099): package D's first-load trim and the status page's chunk.
-  `astro.config.mjs`, the layout, fonts, `src/lib/data.ts`.
-
+- `claude/stores-in-repo`, the main folder, **uncommitted edits** (D-097): the committed
+  counts, trimmed. `config/pipeline.json`, `pipeline/build.py`, `pipeline/normalise.py`,
+  `pipeline/supplied.py`, `data/supplied/`, two playbooks. To be rebuilt as
+  `claude/supplied-counts`.
+- `claude/first-load` (#64, D-099; worktree `nzta-firstload`): `astro.config.mjs`,
+  `src/lib/loadGate.ts`, `src/lib/data.ts`, `PresetPanel.tsx`, `deploy.yml`, `scripts/`.
+- `claude/published-comparison` (#65, D-105; worktree `nzta-notes`): two pages, three docs.
+- `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
+- `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): one reference
+  file. Nothing in it goes live before the user approves.
+- Worktree `nzta-audit`: a build of `main` for the engine's audit; no branch.
 - **This folder's `public/data`** (gitignored) is the dry-run build of #58: three datasets.
-  Also local: both stores in `data/supplied/`; the data map's field profile in `data/staging/`.
 
 ## Raw files on this computer (gitignored)
 
 - `data/raw/2026-08/20260911T093818Z`: 5,905,376 rows, the 17 bound fields.
 - `data/raw/2026-10/20261113T045017Z`: 5,926,990 rows, 36 fields. Pulled by hand (D-066).
-- `data/raw/nzta-dashboard/`: the user's exports of NZTA's registrations dashboard (D-084).
-  - `history/`: January 2021 to October 2026, 991,274 rows, 1,883,786 vehicles; `2021-01/`:
-    January 2021 alone; `2026-10/`: the first hand export, NZTA's page, screenshots (D-075).
+- `data/raw/nzta-dashboard/`: the user's exports of NZTA's registrations dashboard (D-084):
+  `history/` (January 2021 to October 2026, 1,883,786 vehicles), `2021-01/`, `2026-10/`.
 - `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's monthly series, 1961-01 to 2026-09,
   fetched read-only from Infoshare; the user's own hand export replaces it later (D-065).
 - **No local file holds `VIN11` or `POSTCODE`.**
 - **Copies:** a backup folder on the project's own disk holds both register pulls and both
-  dashboard CSV files (SHA-256 checked); two more of the history file are in Downloads.
+  dashboard CSV files; two more of the history file are in Downloads.
 
 ## Known issues
 
@@ -92,6 +88,9 @@ has a pull request yet. (#60, #61 and #62 are merged.)
    share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
 7. The public build still ships the status page's script chunk, unlinked, holding no data.
 8. Commits before #47 hold local paths (D-081).
+9. True registrations of new vehicles read 1.4% to 3.9% under the MIA's total: the default
+   scope leaves out three vehicle types the trade counts. Older months sit about 1% under
+   published figures, cause not established (D-105).
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -123,12 +122,13 @@ two months' archive files needs November's file (December).
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests in about two minutes (#60). In a fresh worktree on 2026-11-16: `astro build`
-10 pages, then `tsc --noEmit` exit 0 (the build writes the types it needs), the site's 11 tests.
+the pipeline tests (about two and a half minutes) and the site's 65 tests (under half a minute).
 
+- A scratch script run from the session's shared scratch folder can pick up a stray file
+  there in place of a Python module: run it with `python -I`, or from a folder of its own.
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and
-  Stats NZ's Infoshare both answer.
+  Stats NZ's Infoshare answer; the Ministry of Transport's site refuses automated readers.
 - After supplying a month, build with `--dry-run`: a publishing local build writes the
   dataset into `data/state/last_good.json`, which only the Action commits (hard rule 3).
 - Headless screenshots: `playwright-core` 1.64.1 in a scratch folder, `executablePath` set to
