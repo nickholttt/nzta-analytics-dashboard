@@ -610,6 +610,12 @@ section[id] {
   font-style: italic;
 }
 
+/* A figure under a guard that is still printed: grey, not italic (italic is for a figure that is withheld). */
+.key td.greyed {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
 .key tr.remainder td:first-child {
   color: var(--ink-2);
 }

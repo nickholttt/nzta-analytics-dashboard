@@ -2,6 +2,8 @@
 import { addMonths, monthRange } from "./sentences";
 import { chartDefaults, findDerived, findMeasure, findPeriod, shareChangeUnit } from "./config";
 import type { Guards } from "./config";
+import { isInside } from "./rolling";
+import type { Covers } from "./rolling";
 
 // A preset names either a measure or a derived one, and both carry guards.
 export const guardsFor = (measureId?: string, derivedId?: string): Guards =>
@@ -66,7 +68,9 @@ export function periodWindow(periodId: string | undefined, first: string, latest
   return { from: from < first ? first : from, to: latest };
 }
 
-// Sum of n and of denominator over a month range, for trailing-window shares.
+// Sum of n and of denominator over a month range, for trailing-window shares. `missing` counts the months the denominator has no
+// figure for: with the dataset's months known (rolling.ts, zeroInside) those lie outside them, and a window that has any is not
+// a window of the dataset's months, so it has no figure. A month inside them with nothing kept is a zero and is not missing.
 export function windowShare(
   from: string,
   to: string,
@@ -75,13 +79,17 @@ export function windowShare(
 ) {
   let n = 0;
   let d = 0;
+  let missing = 0;
   for (const m of monthRange(from, to)) {
     const den = denominatorFor(m);
-    if (den === undefined) continue;
+    if (den === undefined) {
+      missing++;
+      continue;
+    }
     d += den;
     n += nFor(m) ?? 0;
   }
-  return { n, denominator: d };
+  return { n, denominator: d, missing };
 }
 
 // The trailing window ending at `to`, clamped so it never reaches before the data starts. Used to
@@ -95,7 +103,9 @@ export const trailingWindow = (to: string, first: string) => {
 // A month's rolling share: the window's n over the window's denominator, never a mean of monthly
 // shares, which would weight a thin month the same as a full one. A window missing any of its months
 // yields undefined and the line breaks, the same rule the running total uses — METRICS.md: never
-// interpolate a missing month.
+// interpolate a missing month. A month is missing when `denominatorFor` has no figure for it, and `first` is the dataset's own
+// first month: the caller hands a denominator that reads a month inside the dataset's months with no rows as zero (rolling.ts,
+// zeroInside), so a month in which a condition keeps nothing is not missing. A window that holds no vehicles at all has no share.
 export function rollingShare(
   month: string,
   first: string,
@@ -114,4 +124,26 @@ export function rollingShare(
   }
   if (denominator === 0) return undefined;
   return { share: n / denominator, n, denominator };
+}
+
+// A count line's value for a month, or undefined where the month is a gap: the view has rows for it (`present`), or it lies inside
+// the dataset's months, where a month with no rows holds no vehicles and reads zero. A month the source does not record (`blank`)
+// is a gap whatever else is true of it, and so is a month outside the dataset's months. `n` is the count where there is one.
+export const counted = (
+  present: (month: string) => boolean,
+  covers: Covers | undefined,
+  blank: (month: string) => boolean,
+  n: (month: string) => number | undefined,
+) => (month: string): number | undefined => (!blank(month) && (present(month) || isInside(covers, month)) ? (n(month) ?? 0) : undefined);
+
+// The 12-month running total at `to`: the sum of the window's months, or undefined (the line breaks) if any month is a gap. A month
+// in which nothing is counted but which lies inside the dataset reads zero, so it is not a gap (counted, above).
+export function windowTotal(to: string, at: (month: string) => number | undefined, months = TRAILING_MONTHS): number | undefined {
+  let sum = 0;
+  for (const m of monthRange(addMonths(to, -(months - 1)), to)) {
+    const v = at(m);
+    if (v === undefined) return undefined;
+    sum += v;
+  }
+  return sum;
 }

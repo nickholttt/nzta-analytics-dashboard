@@ -1,17 +1,16 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-16
+Last updated by claude on 2026-11-17
 
 ## Where we left off
 
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
-- 2026-11-16, ninth session.
-  - **Merged:** #60, the user's answers (D-096). #61, package C's charts and completeness
-    by vehicle type (D-098). #62, the chart rules and the site's tests in `Checks` (D-100,
-    D-101). #64, the first-load trim (D-099). #65, the comparison with published figures
-    and three more answers (D-105, D-106). #66, the supplied counts as files (D-097). #67,
-    the audit's site-side fixes (D-107). #68, its pipeline-side fixes (D-108).
+- 2026-11-16 and 17, ninth session.
+  - **Merged, #60 to #69** (#63 was closed unmerged): the user's answers (D-096, D-106);
+    package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
+    D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
+    supplied counts as files (D-097); the audit's fixes (D-107, D-108, D-109).
   - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
     the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
     sit about 1% lower, cause not established. Range-extended electric vehicles sit with
@@ -42,7 +41,8 @@ independently of the site's code; figures are compared with published New Zealan
      a year earlier is decided by the dataset's own months, and a month with no vehicles
      under a condition is zero; METRICS says what each guard does; the coverage note;
      `/caveats`; models read as words; a lint against naming a value in a template.
-   - Next on the site: a 12-month share under a condition (a gap today); guards in a ranking.
+   - Also done on the site (#69, D-109): the zero-month rule in every windowed figure; a thin
+     ranking greys and says so; Build no longer offers "beyond the cap"; the load gate.
    - On the pipeline's side, done (#68, D-108): eight hybrid nameplates added, each from a
      published source (true registrations' coverage 66.0% to 83.5%); a dataset under 70%
      shows its hybrids undivided; the tie at the model cap has a rule; a new NZTA value no

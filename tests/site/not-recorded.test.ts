@@ -58,7 +58,7 @@ const trend = read("src/components/TrendChart.tsx");
 
 test("the trend chart leaves a not-recorded month blank, says it, and reads the manifest's exceeds_total rather than summing", () => {
   assert.match(trend, /unrecordedMonths\(rows\)/);
-  assert.match(trend, /present\.has\(m\) && !unrecorded\.has\(m\)/);
+  assert.match(trend, /counted\(\(m\) => present\.has\(m\), covers, \(m\) => unrecorded\.has\(m\),/);
   assert.match(trend, /sayNotRecorded\(phrases\.not_recorded,/);
   assert.match(trend, /\.exceeds_total\?\.\[preset\.dimension\]/);
   assert.match(trend, /sayExceedsTotal\(phrases\.exceeds_total,/);

@@ -8,7 +8,8 @@ import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, fin
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
 import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt } from "./data";
 import type { Manifest, ViewSource } from "./data";
-import { isUnbuilt } from "./built";
+import { datasetFirstMonth, isUnbuilt } from "./built";
+import type { Covers } from "./rolling";
 import { RENDERED_DERIVED, isRatioMeasure } from "./derived";
 import { shapesFor, valuesClass } from "./shapes";
 import type { Facts } from "./shapes";
@@ -338,3 +339,12 @@ export const triage = (manifest: Manifest): TriageRow[] => presets.map((preset) 
 // The last month the preset's data has figures for: its dataset's own, which a supplied dataset can have earlier than the
 // register's snapshot.
 export const latestMonthOf = (preset: Preset, manifest: Manifest): string => datasetLatestMonth(manifest, servedFrom(preset.dataset, manifest));
+
+// The months the dataset behind this preset covers, for every figure that sums a window (docs/METRICS.md, "Months in which nothing is
+// counted"): its own first month (the start of its supplied file, else the earliest month the page has seen it hold vehicles, which
+// the panel reads from the data it loaded) and its own newest. The dataset is the one that serves it, so a dataset defined as another
+// one filtered reads that one's manifest entry. Never the months a narrowed view has rows for.
+export function datasetCovers(preset: Preset, manifest: Manifest, earliestWithRows: string | undefined): Covers {
+  const served = servedFrom(preset.dataset, manifest);
+  return { first: datasetFirstMonth(served ? manifest.datasets[served] : undefined, earliestWithRows), last: latestMonthOf(preset, manifest) };
+}
