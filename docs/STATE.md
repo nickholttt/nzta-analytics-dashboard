@@ -53,9 +53,9 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 ## In progress (all claude; nothing by gemini)
 
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
-- `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): one reference
-  file. Nothing in it goes live before the user approves.
-- Worktree `nzta-audit`: a build of `main` for the engine's audit; no branch.
+- `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): a proposal only.
+- `claude/build-ranked-csv` (D-111; worktree `nzta-notes`): Build ranks the values picked,
+  and downloads what is on screen as CSV. `src/lib/`, `QuestionBuilder.tsx`, `tests/site/`.
 - **This folder's `public/data`** (gitignored) is the dry-run build of #58: three datasets.
 
 ## Raw files on this computer (gitignored)
@@ -76,8 +76,9 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
    data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
 2. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
-3. Mild hybrids are identified for about 79% of each dataset's hybrids at high confidence over
-   the trailing 12 months (#68, D-108). Under 70% a dataset now shows its hybrids undivided.
+3. Mild hybrids are identified for about 74% of each dataset's hybrids at high confidence over
+   12 months (D-110's stricter count). Under 70% a dataset shows its hybrids undivided and the
+   build warns: about 1,100 more unidentified hybrids on true registrations would do it.
 4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). It holds no owner field; the user's minimum of 10 is for owner fields (D-096).
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
@@ -87,10 +88,9 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
    the mild hybrid split is always published (D-107, D-109; for the narrative work).
 7. A chart below the first loads as it nears the screen; printing or searching the page
    before scrolling reaches only what has loaded (D-099).
-8. Commits before #47 hold local paths (D-081).
-9. True registrations of new vehicles read 1.4% to 3.9% under published totals: the MIA's
-   count meets ours once three vehicle types the default scope leaves out are added; a total
-   on the trade's basis is to be built (D-106). Older months sit about 1% lower (D-105).
+8. True registrations of new vehicles read 1.4% to 3.9% under published totals (three vehicle
+   types the default scope leaves out; a total on the trade's basis is next, D-106), and older
+   months about 1% lower, cause not established (D-105).
 
 ## Where docs and code disagree (noted, not changed)
 
