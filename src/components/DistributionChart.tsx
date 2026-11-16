@@ -6,7 +6,8 @@ import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { monthLabel, pct, periodWindow } from "../lib/measures";
 import { latestMonthOf } from "../lib/resolve";
-import { count, readout, spanPeriod } from "../lib/readout";
+import { count, readout, spanPeriod, withheldThin } from "../lib/readout";
+import type { Cell } from "../lib/figures";
 import { RULE, RULE_STRONG, SERIES, SUPPRESSED_LINE, chartHeight, plotStyle, tipStyle } from "../lib/theme";
 import { FiguresTable } from "./FiguresTable";
 import { PlotFigure } from "./PlotFigure";
@@ -111,9 +112,18 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
       />
       <FiguresTable
         label={`${heading}: figures, ${spanPeriod(model.win.from, model.win.to)}`}
-        columns={[{ name: heading }, ...(model.share ? [{ name: "Share" }] : []), { name: datasetWords(preset.dataset)?.count_heading ?? "Vehicles" }]}
+        period={spanPeriod(model.win.from, model.win.to)}
+        columns={[
+          { name: heading },
+          ...(model.share ? [{ name: "Share", unit: "percent" as const }] : []),
+          { name: datasetWords(preset.dataset)?.count_heading ?? "Vehicles", unit: "count" as const },
+        ]}
         rows={() =>
-          model.bars.map((b) => [label(b.value), ...(model.share ? [model.suppressed ? "suppressed" : pct(b.y)] : []), count(b.n)])
+          model.bars.map((b): Cell[] => [
+            label(b.value),
+            ...(model.share ? [model.suppressed ? withheldThin(minDenominator) : pct(b.y)] : []),
+            count(b.n),
+          ])
         }
       />
     </>

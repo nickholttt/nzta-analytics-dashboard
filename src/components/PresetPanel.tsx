@@ -1,6 +1,8 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
-import { useEffect, useMemo, useState } from "react";
-import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { builderHref, builderPresets, builderQuestionFor, datasetName } from "../lib/builder";
+import { figuresCsv, figuresFileName } from "../lib/figures";
+import { attribution } from "../lib/siteCopy";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { dimensionNote } from "../lib/dimensionNote";
@@ -16,6 +18,8 @@ import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
+import { FiguresContext } from "./FiguresContext";
+import type { FiguresGetter } from "./FiguresContext";
 import { LeagueChart } from "./LeagueChart";
 import { MixChart } from "./MixChart";
 import { TrendChart } from "./TrendChart";
@@ -106,6 +110,13 @@ export default function PresetPanel({
   // address as `<preset>.month`.
   const [month, setMonth] = useState<string>(() => (typeof window === "undefined" ? "" : getParam(presetId, "month", "")));
   const [copied, setCopied] = useState<"" | "copied" | "address">("");
+  // The table of figures the chart on show draws, which it registers; the download writes it (src/lib/figures.ts).
+  const figuresGetter = useRef<FiguresGetter | null>(null);
+  const [hasFigures, setHasFigures] = useState(false);
+  const registerFigures = useCallback((getter: FiguresGetter | null) => {
+    figuresGetter.current = getter;
+    setHasFigures(getter !== null);
+  }, []);
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
@@ -538,6 +549,30 @@ export default function PresetPanel({
   // On a count that opens with an answer, the answer comes straight under the question and the rest follows it.
   const answerFirst = Boolean(preset.answer) && shape === "trend" && preventsRender.length === 0 && Boolean(rows?.length);
   const definitionBlock = definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null;
+  // The file of figures: the table the chart shows, the question in the words the page states it, and where the figures come from. Made here,
+  // in the browser, from the rows already loaded; nothing is requested and nothing is sent.
+  const handleDownload = () => {
+    const figures = figuresGetter.current?.();
+    if (!figures) return;
+    const header = {
+      question: preset.question,
+      counted: [definition, scope].filter(Boolean).join(" "),
+      dataset: datasetName(effectivePreset.dataset ?? "", manifest),
+      snapshot: manifest.latest_snapshot,
+      source: notes.find((n) => n.key === "source")?.text,
+      attribution,
+      address: anchored ? getShareableUrl(presetId) : window.location.href,
+    };
+    const blob = new Blob(["\uFEFF", figuresCsv(header, figures, phrases)], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = figuresFileName(preset.question, manifest.latest_snapshot);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   const actionsBlock = (
     <div className="panel-actions">
       <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
@@ -547,6 +582,11 @@ export default function PresetPanel({
         <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
           Change this chart
         </a>
+      ) : null}
+      {hasFigures && preventsRender.length === 0 ? (
+        <button type="button" className="button-quiet" onClick={handleDownload}>
+          Download the figures (CSV)
+        </button>
       ) : null}
     </div>
   );
@@ -587,6 +627,7 @@ export default function PresetPanel({
   );
 
   return (
+    <FiguresContext.Provider value={registerFigures}>
     <section className={panelClass} id={preset.id} ref={setSentinel}>
       <header className="panel-head">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
@@ -729,5 +770,6 @@ export default function PresetPanel({
         </p>
       ) : null}
     </section>
+    </FiguresContext.Provider>
   );
 }

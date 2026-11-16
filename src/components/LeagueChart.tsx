@@ -24,7 +24,9 @@ import {
   seriesColour,
   tipStyle,
 } from "../lib/theme";
-import { leagueRows, pickedSummary, rankingGuard } from "../lib/league";
+import { cellText } from "../lib/figures";
+import { leagueRows, leagueTable, pickedSummary, rankingGuard } from "../lib/league";
+import { useFigures } from "./FiguresContext";
 import type { LeagueRow } from "../lib/league";
 import { PlotFigure } from "./PlotFigure";
 
@@ -128,6 +130,29 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   }, [picked, model, label, valueHeading, span, end, latest, preset.where]);
 
   const basis = ranking.text;
+  // The table of the ranking, built once: the page draws it and the file of figures writes it (src/lib/figures.ts).
+  const table = useMemo(
+    () =>
+      leagueTable(model.items, {
+        hasPrior: model.hasPrior,
+        showYear,
+        guard: model.guard,
+        floor,
+        valueHeading,
+        countHeading: words?.count_heading ?? "Vehicles",
+        headings: about ? { rank: about.rankHead, share: about.shareHead, prior: about.priorHead } : undefined,
+        words: {
+          noYearAgo: phrases.no_year_ago,
+          yearTooFew: phrases.year_too_few,
+          shareChangeNoPrior: phrases.share_change_no_prior,
+          notRankedBefore: phrases.not_ranked_before,
+        },
+        format: { count: (n) => n.toLocaleString(), pct, shareChange, yearChange: signed },
+      }),
+    [model, showYear, floor, valueHeading, words, about],
+  );
+  const figures = useCallback(() => ({ period: spanPeriod(currentFrom, end), columns: table.columns, rows: table.rows }), [table, currentFrom, end]);
+  useFigures(figures);
   const monthNotice = sayBadMonth(phrases.bad_month, month, end);
   const noYearAgo = fillTemplate(phrases.no_year_ago, {}).text;
   const yearLine = (d: LeagueItem) => {
@@ -355,7 +380,8 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
             </tr>
           </thead>
           <tbody>
-            {model.items.map((item) => {
+            {model.items.map((item, at) => {
+              const cells = table.rows[at];
               const hasMovement = item.rankDelta !== null;
               const isUp = hasMovement && (item.rankDelta as number) > 0;
               const isDown = hasMovement && (item.rankDelta as number) < 0;
@@ -394,29 +420,29 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
                     <span className="swatch" style={{ background: item.colour }} aria-hidden="true" />
                     <strong>{item.name}</strong>
                   </td>
-                  {showYear ? <td className="figure">{item.n.toLocaleString()}</td> : null}
+                  {showYear ? <td className="figure">{cellText(cells[3])}</td> : null}
                   {showYear ? (
                     <td className="change" style={{ textAlign: "right" }}>
-                      {item.yearChange === undefined ? "—" : signed(item.yearChange)}
+                      {cellText(cells[4])}
                     </td>
                   ) : null}
                   <td className={model.guard.shares ? "figure greyed" : "figure"}>
                     {model.guard.shares ? <span className="visually-hidden">Greyed: </span> : null}
-                    {pct(item.share)}
+                    {cellText(cells[showYear ? 5 : 3])}
                   </td>
                   <td className={model.guard.changes && item.shareDelta !== undefined ? "change greyed" : "change"} style={{ textAlign: "right" }}>
                     {item.shareDelta === undefined ? (
-                      "—"
+                      cellText(cells[showYear ? 6 : 4])
                     ) : (
                       <>
                         {model.guard.changes ? <span className="visually-hidden">Greyed: </span> : null}
-                        {shareChange(item.shareDelta)}
+                        {cellText(cells[showYear ? 6 : 4])}
                       </>
                     )}
                   </td>
-                  {showYear ? null : <td className="figure">{item.n.toLocaleString()}</td>}
+                  {showYear ? null : <td className="figure">{cellText(cells[5])}</td>}
                   <td style={{ textAlign: "right", color: "var(--ink-3)" }}>
-                    {model.hasPrior && item.priorRank !== null ? `#${item.priorRank}` : "—"}
+                    {cellText(cells[cells.length - 1])}
                   </td>
                 </tr>
               );

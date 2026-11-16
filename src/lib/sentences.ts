@@ -74,6 +74,14 @@ export function fillTemplate(template: string, context: NoteContext): { text: st
   return { text, unresolved };
 }
 
+// Why a figure is greyed, without the word "greyed": the readout puts it after the word, the file of figures beside the mark.
+export const markReason = (greyed: "thin" | "collapsed" | undefined, minDenominator?: number): string =>
+  greyed === "thin"
+    ? `fewer than ${minDenominator ?? ""} vehicles behind this figure`
+    : greyed === "collapsed"
+      ? "far fewer vehicles than the months before, so it may not describe a normal month"
+      : "";
+
 // ---- The change on a year ago ----
 
 // Smaller than this, as a proportion, is the same: it would show as 0.0%.

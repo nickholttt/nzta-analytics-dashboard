@@ -24,7 +24,7 @@ import type { RatioPoint, RatioSeries } from "../lib/derived";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
 import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, counted, monthDate, monthLabel, monthRange, pct, periodWindow, windowTotal } from "../lib/measures";
 import { fillNote } from "../lib/notes";
-import { count, greyedReason, monthPeriod, readout } from "../lib/readout";
+import { count, greyedReason, markReason, monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
 import {
   LINE_WIDTH,
@@ -42,6 +42,7 @@ import {
   xTicks,
 } from "../lib/theme";
 import { FiguresTable } from "./FiguresTable";
+import type { Cell } from "../lib/figures";
 import { PlotFigure } from "./PlotFigure";
 
 const PERCENT = "percent";
@@ -188,11 +189,12 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = a
       />
       <FiguresTable
         label={fillTemplate(derived?.table_label ?? "", { from: monthLabel(model.from), to: monthLabel(model.to) }).text}
-        columns={[{ name: "Month" }, ...series.map((s) => ({ name: name(s) }))]}
+        period={`${monthLabel(model.from)} to ${monthLabel(model.to)}`}
+        columns={[{ name: "Month", unit: "month" }, ...series.map((s) => ({ name: name(s), unit: "percent" as const }))]}
         rows={() => {
           const at = series.map((s) => new Map(s.points.map((p) => [p.month, p.value])));
           return monthRange(model.from, model.to).flatMap((m) =>
-            at.every((x) => !x.has(m)) ? [] : [[monthPeriod(m), ...at.map((x) => (x.has(m) ? pct(x.get(m) as number) : ""))]],
+            at.every((x) => !x.has(m)) ? [] : [[{ text: monthPeriod(m), csv: m }, ...at.map((x) => (x.has(m) ? pct(x.get(m) as number) : ""))]],
           );
         }}
       />
@@ -321,14 +323,19 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
       />
       <FiguresTable
         label={`Vehicles for ${names}: figures, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
-        columns={[{ name: "Month" }, ...values.map((s) => ({ name: label(s) }))]}
+        period={`${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
+        columns={[
+          { name: "Month", unit: "month", csvName: rolling ? `Month (last month of the ${TRAILING_MONTHS})` : undefined },
+          ...values.map((s) => ({ name: label(s), unit: "count" as const })),
+        ]}
         rows={() => {
           const y = new Map(model.points.map((p) => [`${p.month}|${p.series}`, p.y]));
-          return monthRange(model.win.from, model.win.to).flatMap((m) => {
+          return monthRange(model.win.from, model.win.to).flatMap((m): Cell[][] => {
             const cells = values.map((s) => y.get(`${m}|${s}`));
+            const month = { text: monthPeriod(m, rolling), csv: m };
             // A month the source does not record is a row that says so, not a row of blanks that could be read as zero.
-            if (model.unrecorded.has(m)) return [[monthPeriod(m, rolling), ...values.map(() => label(NOT_RECORDED_TOKEN))]];
-            return cells.every((v) => v === undefined) ? [] : [[monthPeriod(m, rolling), ...cells.map((v) => (v === undefined ? "" : count(v)))]];
+            if (model.unrecorded.has(m)) return [[month, ...values.map(() => ({ text: label(NOT_RECORDED_TOKEN), csv: null, mark: "withheld" as const, reason: phrases.figures_not_recorded_cell }))]];
+            return cells.every((v) => v === undefined) ? [] : [[month, ...cells.map((v) => (v === undefined ? "" : count(v)))]];
           });
         }}
       />
@@ -529,15 +536,24 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
       </div>
       <FiguresTable
         label={`${name}: figures, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
-        columns={share ? [{ name: "Month" }, { name: "Share" }, { name: "Vehicles" }, { name: "Note", text: true }] : [{ name: "Month" }, { name: "Vehicles" }]}
+        period={`${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
+        columns={
+          share
+            ? [{ name: "Month", unit: "month" }, { name: "Share", unit: "percent" }, { name: "Vehicles", text: true }, { name: "Note", text: true, carriesMarks: true }]
+            : [{ name: "Month", unit: "month" }, { name: "Vehicles", unit: "count" }]
+        }
         rows={() =>
           model.points
             .filter((p) => p.y !== undefined)
             .map((p) => {
-              const month = monthPeriod(p.month, preset.measure === "rolling_12m");
+              const rollingWindow = preset.measure === "rolling_12m";
+              const month = { text: monthPeriod(p.month, rollingWindow), csv: p.month };
               if (!share) return [month, count(p.y as number)];
               const vehicles = p.n !== undefined && p.denominator !== undefined ? `${count(p.n)} of ${count(p.denominator)}` : "";
-              return [month, pct(p.y as number), vehicles, greyedReason(p.greyed, minDenominator)];
+              const figure = p.greyed ? { text: pct(p.y as number), mark: "greyed" as const, reason: markReason(p.greyed, minDenominator) } : pct(p.y as number);
+              // The vehicles behind a share, as digits a spreadsheet does not take for a number with a thousands separator.
+              const behind = { text: vehicles, csv: p.n !== undefined && p.denominator !== undefined ? `${p.n} of ${p.denominator}` : null };
+              return [month, figure, behind, greyedReason(p.greyed, minDenominator)];
             })
         }
       />
