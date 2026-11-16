@@ -7,7 +7,7 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session.
-  - **Merged, #60 to #72** (#63 was closed unmerged): the user's answers (D-096, D-106);
+  - **Merged, #60 to #73** (#63 was closed unmerged): the user's answers (D-096, D-106);
     package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
     D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
     supplied counts as files (D-097); the audit's fixes (D-107 to D-110, with #70).
@@ -17,8 +17,7 @@ Last updated by claude on 2026-11-17
     plug-in hybrids here and apparently not in AutoTalk's count.
   - **The user answered three more questions** (D-106): a total on the trade's basis beside
     the default scope; the MIT licence for the code; the site is run by "an individual".
-  - **The engine was audited** against the register's rows: of 34,693 figures, one differs,
-    a tie in a ranking ("Work in hand", 2).
+  - **The engine was audited** against the register's rows ("Work in hand", 1).
 
 ## The user's direction of 16 November (D-104)
 
@@ -50,12 +49,13 @@ independently of the site's code; figures are compared with published New Zealan
      on the build's summary page and `/status`; a stricter coverage count (D-110, D-112).
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
-   offers it. First: a total of new vehicles on the trade's basis beside the default scope
-   (the user, D-106; `trade_scope` in `vehicle_scope.csv`). Then: colour, seats, where
-   assembled, class; power and transmission; owner
-   fields last, unpublished until the pipeline hides small cells (D-096). Done (#71): ranked
-   chosen values, conditions, CSV, the acceptance question on today's fields. Left: the
-   `matrix` renderer, "My questions", the related-fields note, the question with a new field.
+   offers it. Done: ranked chosen values, conditions, CSV, the acceptance question on today's
+   fields (#71); true registrations on the wider scope as a dataset (#73, D-113; the user,
+   D-106). Next: the site showing `registrations_flow_wider` (charts, Build's choice, never on
+   one chart with another dataset; "new vehicles" is its `import_status` condition). Then:
+   colour, seats, where assembled, class; power and transmission; owner fields last, unpublished
+   until the pipeline hides small cells (D-096). Left: the `matrix` renderer (in hand), "My
+   questions", the related-fields note, the question with a new field.
 4. **Paused, half written, uncommitted:** package H's narrative spec (D-102; worktree
    `nzta-screens`, `claude/narrative-spec`: `config/narrative/` files and a lint test, no
    `docs/NARRATIVE.md` yet) and package I's proposed segment scheme (D-103; worktree
@@ -102,7 +102,7 @@ independently of the site's code; figures are compared with published New Zealan
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
 D-082, D-085 to D-095 (the eighth session). This session: the readings in D-096, D-104 and
-D-106 (with the MIT licence), and D-097, D-098, D-099, D-100, D-101, D-105 and D-107.
+D-106 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-113.
 
 ## Prompt for the next session
 
