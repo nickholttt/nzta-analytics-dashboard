@@ -39,6 +39,7 @@
       "ranking_dates": "({current})",
       "ranking_compare": "The move compares each rank with {prior_window} ({prior}).",
       "ranking_no_prior": "There are no figures a year earlier, so no move or change is shown.",
+      "tie_beyond_cut": "Not listed, with the same count and rank as the last entry shown: {count}.",
       "pick_month": "Click or tap the chart to read another month.",
       "bad_month": "The address asked for {asked}, which this chart has no figures for, so {shown} is shown.",
       "not_recorded": "The source does not record this breakdown from {from} to {to}. The grey band marks those months: they are left blank, not drawn as zero.",

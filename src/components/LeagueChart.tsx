@@ -3,11 +3,12 @@ import * as Plot from "@observablehq/plot";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { datasetWords, findDataset, findPeriod, phrases, yearChangeFloor } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
+import { datasetFirstMonth } from "../lib/built";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, monthLabel, monthRange, pct, shareChange } from "../lib/measures";
-import { changeOnYear, fillTemplate, rankingText, rankingWindows, sayBadMonth } from "../lib/sentences";
+import { fillTemplate, rankingText, rankingWindows, sayBadMonth } from "../lib/sentences";
 import { count, readout, spanPeriod } from "../lib/readout";
-import { latestMonthOf } from "../lib/resolve";
+import { latestMonthOf, servedFrom } from "../lib/resolve";
 import {
   FONT_TEXT,
   INK,
@@ -22,7 +23,8 @@ import {
   seriesColour,
   tipStyle,
 } from "../lib/theme";
-import { rankByCount } from "../lib/ranking";
+import { leagueRows } from "../lib/league";
+import type { LeagueRow } from "../lib/league";
 import { PlotFigure } from "./PlotFigure";
 
 // A function that cuts a name with an ellipsis to the room a label has, measured in the chart's own font, so capitals and
@@ -39,26 +41,7 @@ function fitter(room: number) {
   };
 }
 
-const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
-
-export type LeagueItem = {
-  rank: number;
-  priorRank: number | null;
-  rankDelta: number | null;
-  value: string;
-  name: string;
-  n: number;
-  share: number;
-  priorN: number;
-  priorShare: number;
-  // Undefined where there is no earlier window to compare with.
-  shareDelta: number | undefined;
-  // The change in the count on the same months a year earlier, as a proportion; undefined where the earlier count is under
-  // the change-on-a-year-ago floor, which is the measure's own guard.
-  yearChange: number | undefined;
-  colour: string;
-  isRemainder: boolean;
-};
+export type LeagueItem = LeagueRow & { colour: string; isRemainder: boolean };
 
 type Props = {
   preset: Preset;
@@ -101,74 +84,17 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
   const words = datasetWords(preset.dataset);
   // What the ranking covers and whether there are figures a year earlier: decided from the rows, in one place.
   const ranking = useMemo(
-    () => rankingText(phrases, { basis: words?.ranking_basis ?? "Ranked by vehicles {window}", span, end, latest, monthsPresent: new Set(rows.map((r) => r.month)) }),
-    [rows, words, span, end, latest],
+    () => rankingText(phrases, { basis: words?.ranking_basis ?? "Ranked by vehicles {window}", span, end, latest, covers: { first: datasetFirstMonth(manifest.datasets[servedFrom(preset.dataset, manifest) ?? ""], latest), last: latest } }),
+    [words, span, end, latest, manifest, preset.dataset],
   );
   const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
   const yearFloor = yearChangeFloor();
 
   const model = useMemo(() => {
-    const currentCounts = new Map<string, number>();
-    const priorCounts = new Map<string, number>();
-    const monthDenoms = new Map<string, number>();
-
-    for (const r of rows) {
-      if (!monthDenoms.has(r.month)) {
-        monthDenoms.set(r.month, r.denominator);
-      }
-      if (r.month >= currentFrom && r.month <= end) {
-        currentCounts.set(r.value, (currentCounts.get(r.value) ?? 0) + r.n);
-      } else if (r.month >= priorFrom && r.month <= priorTo) {
-        priorCounts.set(r.value, (priorCounts.get(r.value) ?? 0) + r.n);
-      }
-    }
-
-    let currentDenom = 0;
-    for (const m of monthRange(currentFrom, end)) {
-      currentDenom += monthDenoms.get(m) ?? 0;
-    }
-    const hasPrior = ranking.hasPrior;
-    let priorDenom = 0;
-    for (const m of monthRange(priorFrom, priorTo)) {
-      priorDenom += monthDenoms.get(m) ?? 0;
-    }
-
-    // A compound value reads as words: `label` already turns the dimension's separator into a space.
-    const nameOf = label;
-    // Ranked by the one rule in lib/ranking.ts: equal counts share a rank and are listed alphabetically by the name shown.
-    const rankedOf = (counts: Map<string, number>) =>
-      rankByCount([...counts.entries()].filter(([val, n]) => !isReserved(val) && n > 0).map(([value, n]) => ({ value, name: nameOf(value), n })));
-    const currentRanked = rankedOf(currentCounts);
-    const priorRankMap = new Map(rankedOf(priorCounts).map((e) => [e.value, e.rank]));
-
-    const topItems: LeagueItem[] = currentRanked.slice(0, topN).map(({ value: val, name, n, rank }, idx) => {
-      const priorRank = priorRankMap.get(val) ?? null;
-      const rankDelta = priorRank !== null ? priorRank - rank : null;
-      const priorN = priorCounts.get(val) ?? 0;
-      const share = currentDenom > 0 ? n / currentDenom : 0;
-      const priorShare = priorDenom > 0 ? priorN / priorDenom : 0;
-      const shareDelta = hasPrior ? share - priorShare : undefined;
-      const yearChange = hasPrior ? changeOnYear(n, priorN, yearFloor)?.change : undefined;
-
-      return {
-        rank,
-        priorRank,
-        rankDelta,
-        value: val,
-        name,
-        n,
-        share,
-        priorN,
-        priorShare,
-        shareDelta,
-        yearChange,
-        colour: seriesColour(idx),
-        isRemainder: false,
-      };
-    });
-
-    return { items: topItems, currentDenom, priorDenom, hasPrior };
-  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, dimension, label, ranking]);
+    const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior, topN, nameOf: label, yearFloor });
+    const items: LeagueItem[] = result.items.map((item, idx) => ({ ...item, colour: seriesColour(idx), isRemainder: false }));
+    return { items, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior, tiedBeyond: result.tiedBeyond };
+  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking]);
 
   const basis = ranking.text;
   const monthNotice = sayBadMonth(phrases.bad_month, month, end);
@@ -435,7 +361,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
                   </td>
                   {showYear ? null : <td className="figure">{item.n.toLocaleString()}</td>}
                   <td style={{ textAlign: "right", color: "var(--ink-3)" }}>
-                    {item.priorRank !== null ? `#${item.priorRank}` : "—"}
+                    {model.hasPrior && item.priorRank !== null ? `#${item.priorRank}` : "—"}
                   </td>
                 </tr>
               );
@@ -443,6 +369,7 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
           </tbody>
         </table>
       </div>
+      {model.tiedBeyond > 0 ? <p className="chart-unit">{fillTemplate(phrases.tie_beyond_cut, { count: model.tiedBeyond }).text}</p> : null}
       {hiddenColumns.length > 0 ? (
         <p className="scroll-hint">
           The table scrolls sideways: {hiddenColumns.length > 1 ? `${hiddenColumns.slice(0, -1).join(", ")} and ${hiddenColumns[hiddenColumns.length - 1]}` : hiddenColumns[0]}{" "}

@@ -69,7 +69,8 @@ test("the audit's case: four brands on 3 vehicles behind 40 others all stand at 
 });
 
 test("the league and the other charts that order by size use the rule, not a bare sort on the count", () => {
-  assert.match(read("src/components/LeagueChart.tsx"), /rankByCount\(/);
+  assert.match(read("src/lib/league.ts"), /rankByCount\(/);
+  assert.match(read("src/components/LeagueChart.tsx"), /leagueRows\(/);
   assert.doesNotMatch(read("src/components/LeagueChart.tsx"), /\.sort\(\(a, b\) => b\[1\] - a\[1\]\)/);
   assert.match(read("src/components/MixChart.tsx"), /rankByCount\(/);
   assert.match(read("src/components/GeoChart.tsx"), /byCountThenName/);

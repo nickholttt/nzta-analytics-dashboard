@@ -266,8 +266,8 @@ same months a year earlier.
 ### Ranking and ties (D-107)
 
 A ranking orders the values of one dimension by their count in one window: a single month, or the 12 months ending in a
-month. Values the dimension reserves for "not recorded" or "no reference match" take no place, and a value with no vehicles
-in the window is not ranked.
+month. Reserved values take no place: every value the cube writes between double underscores (not recorded, no reference
+match, beyond the cap, and any other the cube reserves). A value with no vehicles in the window is not ranked.
 
 - **Equal counts share a rank**, the rank of the first of them: 1, 2, 2, 4 (the usual competition ranking). The next rank
   after a tie skips the places the tie used.
@@ -275,11 +275,17 @@ in the window is not ranked.
   Two values that show the same name are ordered by their raw key. The order never depends on the order the data arrives in.
 - **A move** is the rank a year before minus the rank now, both shared ranks. Entries tied now move together unless they were
   not tied then.
-- **The rank a year before** is the rank in the same months a year earlier, ranked by the same rule. An entry with no vehicles
-  then has no rank then, and reads as new. A ranking has no year-before comparison at all unless every month of the
-  earlier window is in the data.
+- **The rank a year before** is the rank in the same months a year earlier, ranked by the same rule.
+- **Whether there is a year-before comparison** is decided by the dataset's own months, not by which months a narrowed view
+  has rows for. The earlier window must lie wholly inside the months the dataset covers: from its first month (the start of
+  its supplied file, or, for the register, its count of months back from its newest) to its newest. If it does not, the
+  ranking has no rank a year before, no move, no change in share and no change on a year ago, and says so; none of the four
+  is shown. If it does, all four are shown, and a month in which a condition keeps no vehicles, which has no rows, counts as a
+  month of zero vehicles. An entry with no vehicles in the earlier window has no rank then and reads as new; its change on a
+  year ago is withheld where the earlier count is under the measure's floor, as for any entry.
 - **A list cut at a number of places** (the top 10, 15 or 25, or a chart that names its largest values) is cut after the
-  sorting above, so a tie that straddles the cut shows the alphabetically first of the tied entries.
+  sorting above, so a tie that straddles the cut shows the alphabetically first of the tied entries. A sentence under the
+  table says how many more entries share the last rank shown, when there are any.
 - **Top-5 share** is the combined count of the five largest values over the month's denominator (the narrowed set's, under a condition). Which of several tied
   values is the fifth cannot change that sum; it can change which names the readout lists, and those follow the same order.
 - Where the site orders a chart's lines or its map's table by size, equal counts are ordered alphabetically by the value's
