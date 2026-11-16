@@ -4533,8 +4533,10 @@ New entries use this template:
      silently stays empty is the thing this change is for.
   4. **The internal status page** (`/status`, not in the public build) lists the manifest's warnings at its top, each as the pipeline
      wrote it and in the manifest's order, with the snapshot and the time the cube was generated; with none it says so. It reads
-     the manifest in the browser as the page already does (`loadManifest`, shared with the triage table, one fetch). No public
-     page shows a warning. The page already shows pipeline text as it is: a dataset's `not_built` reason, in the list of what blocks
+     the manifest in the browser as the page already does (`loadManifest`, shared with the triage table, one fetch). The component
+     is a named export of `PresetTriage.tsx`, not a file of its own: a third island on the page made the public build split the
+     preset panel's script into a 121-byte re-export and the real one (7 scripts where it had 6, measured by building both ways),
+     a request more for the Explore page. No public page shows a warning (a test lists every file in `src` that names them). The page already shows pipeline text as it is: a dataset's `not_built` reason, in the list of what blocks
      a chart (`resolve.ts`, shown by `PresetPanel` when internal), and what each preset requires; so invariant 8's rule, which is
      about sentences a visitor reads, is not engaged.
 - Options considered:
@@ -4571,6 +4573,8 @@ New entries use this template:
      not to the variable.
   6. Warning text is shown with a newline collapsed to a space and `&`, `<` and `>` escaped, so one warning cannot break the list.
   7. The list says "Worst first: ..." under it when there is more than one warning.
+  8. `BuildWarnings` shares `PresetTriage.tsx` to keep the public build's scripts as they were, at the price of a file that
+     holds two components.
 - Not done: a build that aborts writes none of its warnings anywhere (its aborts are the failure, and the manifest is staged, not
   published); a run that builds nothing does not show the source's own warnings (a discovery fallback, a column gained; some are
   printed on standard error as they arise); no public page says that a month's split has just changed (D-110's "left for the site").

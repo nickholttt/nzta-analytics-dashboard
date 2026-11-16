@@ -814,6 +814,8 @@ that end, not out of the list (the tests build each of these warnings and
 check its group). Standard error prints every warning, in the order raised. A
 build by hand writes the page only where `GITHUB_STEP_SUMMARY` is set, and a
 page that cannot be written is a line on standard error, never a failed run.
+The internal status page (`/status`) lists the same warnings, as the manifest
+has them, with the snapshot and the time the cube was generated.
 
 ## Size budget
 
