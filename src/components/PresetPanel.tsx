@@ -10,7 +10,7 @@ import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
-import { openGate, whenGateOpens } from "../lib/loadGate";
+import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
@@ -117,6 +117,8 @@ export default function PresetPanel({
   const [wanted, setWanted] = useState(!defer || linked);
   const [sentinel, setSentinel] = useState<HTMLElement | null>(null);
   const [near, setNear] = useState(false);
+  // Bumped when a panel that was taken for near is found not to be, so its observer starts afresh and reports where it is now.
+  const [looked, setLooked] = useState(0);
   useEffect(() => {
     if (wanted || !sentinel) return;
     if (typeof IntersectionObserver === "undefined") {
@@ -133,8 +135,29 @@ export default function PresetPanel({
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [wanted, sentinel]);
-  useEffect(() => (near && !wanted ? whenGateOpens(() => setWanted(true)) : undefined), [near, wanted]);
+  }, [wanted, sentinel, looked]);
+  // Once the gate is open, where the panel is is read again after the page has settled: while the page's islands mount and
+  // before the first chart has drawn, every panel is a short placeholder and the whole page can sit inside the margin, so a panel
+  // taken for near then may be a screen or many away now. Only one that is near still loads.
+  useEffect(() => {
+    if (!near || wanted || !sentinel) return;
+    let frame = 0;
+    const cancelGate = whenGateOpens(() => {
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => {
+          if (typeof IntersectionObserver === "undefined" || isNearScreen(sentinel.getBoundingClientRect(), window.innerHeight)) setWanted(true);
+          else {
+            setNear(false);
+            setLooked((n) => n + 1);
+          }
+        });
+      });
+    });
+    return () => {
+      cancelGate();
+      cancelAnimationFrame(frame);
+    };
+  }, [near, wanted, sentinel]);
   // What a visitor is told when the query service fails: its own sentence, not the reload advice for a file.
   const [serviceError, setServiceError] = useState<string | null>(null);
 
@@ -219,10 +242,24 @@ export default function PresetPanel({
     };
   }, [resolution, wanted]);
 
-  // The page's first chart, once it has what it needs or cannot have it, lets the deferred ones begin.
+  // The page's first chart, once it is drawn or cannot be (an error, nothing to draw, a view the cube cannot give), lets the deferred
+  // ones begin. A chart that has its rows is drawn a moment later, and its height is what moves the panels below it, so the gate
+  // waits for the figure itself; where none appears within a few seconds it opens anyway, so a chart that never draws cannot hold
+  // the rest of the page back.
   useEffect(() => {
-    if (!defer && (rows || error || (resolution && resolution.preventsRender.length > 0))) openGate();
-  }, [defer, rows, error, resolution]);
+    if (defer) return;
+    if (error || (resolution && resolution.preventsRender.length > 0) || (rows && rows.length === 0)) return openGate();
+    if (!rows || !sentinel) return;
+    const drawn = () => Boolean(sentinel.querySelector("[role=img]"));
+    if (drawn()) return openGate();
+    const watch = new MutationObserver(() => drawn() && openGate());
+    watch.observe(sentinel, { childList: true, subtree: true });
+    const fallback = setTimeout(openGate, 4000);
+    return () => {
+      watch.disconnect();
+      clearTimeout(fallback);
+    };
+  }, [defer, rows, error, resolution, sentinel]);
 
   const panelClass = `panel${lead ? " lead" : ""}${wanted ? "" : " loading"}`;
   const [scrolled, setScrolled] = useState(false);
