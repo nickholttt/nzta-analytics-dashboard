@@ -465,7 +465,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
                   greyed: p.greyed,
                   minDenominator,
                   extra: p.members?.length
-                    ? [`The ${p.members.length} largest: ${p.members.join(", ")}`]
+                    ? [`The ${p.members.length} largest: ${p.members.map(label).join(", ")}`]
                     : showYear
                       ? yearLine(p.month)
                       : undefined,
