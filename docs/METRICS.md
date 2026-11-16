@@ -596,6 +596,14 @@ with its own vintage; label the estimate year on the chart.
   recorded, while the brand dimension shows "No reference match" for the same
   vehicle. A vehicle with no make or no model has the model "Not recorded".
 
+- **Reserved values in Build (D-109).** Build offers the two reserved values that say something true of the vehicles they hold, and
+  not the third. *Not recorded* (the source gave no value) and *no reference match* (a value the reference has no row for) are
+  offered like any value: as a value to compare, and as a condition. *Beyond the cap* is where a cardinality cap puts the values
+  below it, which are not a group of vehicles and move with the cap's basis; it is not offered to compare or as a condition, and a
+  ranking gives it no place. A link that names it for either is not refused: the value is left out, the address is corrected, and the
+  page says so in a sentence from config (`builder.notices.left_out`). A condition left with no value keeps every vehicle and is
+  held empty on the page, as a condition with no value yet is.
+
 ## Estimation rules
 
 - Never interpolate a missing month. Render a gap. A month inside the dataset in which nothing is counted is not missing: it is zero

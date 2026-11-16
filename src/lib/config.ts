@@ -178,7 +178,7 @@ export type BuilderSpec = {
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
-  notices: { dataset: string; by: string };
+  notices: { dataset: string; by: string; left_out: string };
   not_offered: NotOffered[];
 };
 

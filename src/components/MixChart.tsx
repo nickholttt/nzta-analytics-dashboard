@@ -44,6 +44,7 @@ import {
 } from "../lib/theme";
 import { latestMonthOf } from "../lib/resolve";
 import { nameOrder, rankByCount } from "../lib/ranking";
+import { BEYOND_CAP } from "../lib/reserved";
 import { getParam, setParam } from "../lib/url";
 import { EventList } from "./EventList";
 import { PlotFigure } from "./PlotFigure";
@@ -58,7 +59,6 @@ const MARGIN_BOTTOM = 28;
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 // The pipeline's token for values beyond its own cap (docs/CUBE_SCHEMA.md): a group too small to name, so
 // on a capped chart it belongs in the remainder, unlike the tokens for what the record could not place.
-const BEYOND_CAP = "__OTHER__";
 const ownLine = (v: string) => isReserved(v) && v !== BEYOND_CAP;
 const ROLLING = "rolling_12m";
 
