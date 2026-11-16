@@ -3819,3 +3819,38 @@ New entries use this template:
   - Not compared: the Ministry of Transport's statistics and the MIA's brand and model lists (not readable by an
     automated reader, and for members, in that order).
 - Status: decided by Claude (unreviewed)
+
+## D-106 2026-11-16 — The user's answers of the evening of 16 November: a total on the trade's basis, the code's licence, who runs the site
+- Agent: user (the answers), claude (the record, the licence chosen on the user's word, and the readings marked)
+- Basis: the user's message of 2026-11-16, answering three questions put that evening, in the user's words: "1, b.
+  2, do what you reccomend. 3, individual". The questions as put: (1) should the site count new vehicles as the
+  trade does: (a) bring buses, motor caravans and special purpose vehicles into the default scope, (b) keep the
+  scope and offer a total on the trade's basis beside it, (c) leave it with the page saying why; (2) the licence
+  for the code: MIT, Apache 2.0 or none; (3) who runs the site, for the About page: a name, or "an individual".
+- Context: D-105 measured the site's true registrations of new vehicles at 1.4% to 3.9% under the MIA's total,
+  because the default scope leaves out three vehicle types the trade counts as commercial. The README said no
+  licence was chosen (D-096, item 10, left open). The About page had three gaps.
+- Decision (user):
+  1. **The default scope stays, and a total of new vehicles on the trade's basis is offered beside it.**
+  2. **The licence is claude's recommendation.**
+  3. **The About page says the site is run by "an individual".**
+- What claude chose on the user's word (unreviewed):
+  1. **The MIT licence.** Options: none (all rights reserved; nobody may reuse the code, which sits badly with a
+     public repository built on open data); Apache 2.0 (permissive, with a patent grant and more conditions on
+     notices); MIT (permissive, one short page, the commonest for a project of this kind). Chosen MIT: the simplest
+     to read and to comply with, and nothing here has a patent question that Apache's grant would settle. A
+     licence already granted cannot be withdrawn for copies taken under it; a later version of the code can carry
+     another.
+  2. **The copyright line** reads "the nzta-analytics-dashboard authors", not a person's name, in keeping with
+     the user's answer that the site is run by an individual. The repository's history already shows who wrote it.
+  3. **What the licence covers:** the project's own code and reference files. Not the data: what comes from NZTA
+     or Stats NZ, as committed aggregates, outlines or build output, stays under CC BY 4.0 with its attribution.
+     The README says so.
+  4. **How the trade's basis is expressed** (claude's reading): as data, a column `trade_scope` in
+     `data/reference/vehicle_scope.csv` naming the types the trade's total counts: the two in the default scope
+     and `BUS`, `MOTOR CARAVAN` and `SPECIAL PURPOSE VEHICLE`. The evidence is D-105: with those three added to new
+     goods vehicles, October 2026's commercial count is the MIA's to the vehicle (3,080 + 71 + 129 + 5 = 3,285).
+     Building the total is the first piece of package F; the column arrives with the committed counts (D-097).
+- Consequences: the About page has two gaps left (the site's name and its address). The total on the trade's basis
+  never replaces a default figure and is never used to scale one; it is named for what it counts.
+- Status: accepted (the user's answers); the choices above are decided by Claude (unreviewed)
