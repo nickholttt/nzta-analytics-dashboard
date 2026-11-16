@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-16
+Last updated by claude on 2026-11-17
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is in
 `docs/CHECKPOINT.md`. The direction is the user's standing work order,
@@ -33,6 +33,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-16).
 - **First load is trimmed** (#64, D-099): Explore fetches its first chart, then those near the
   screen; the public build drops what no page reaches, and the deploy checks that first.
+- **The engine was audited against the register's rows** (2026-11-16): of 34,693 figures one
+  differed, a tie in a ranking. Fixed since (#67 to #69): ties, and a month with nothing counted.
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
   read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
@@ -81,9 +83,8 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
 6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
-   Under a condition a 12-month share leaves a gap where a month in its window has no
-   vehicles: it should read zero (D-107). Some notes in config that no lint reads name a
-   value or say why (D-107 lists them; for the narrative work).
+   Some notes in config that no lint reads name a value or say why, and three speak as if
+   the mild hybrid split is always published (D-107, D-109; for the narrative work).
 7. A chart below the first loads as it nears the screen; printing or searching the page
    before scrolling reaches only what has loaded (D-099).
 8. Commits before #47 hold local paths (D-081).
@@ -121,7 +122,7 @@ November's file (December).
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about three minutes) and the site's 106 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 133 tests (under half a minute).
 
 - A scratch script run from the session's shared scratch folder can pick up a stray file
   there in place of a Python module: run it with `python -I`, or from a folder of its own.
