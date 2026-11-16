@@ -42,8 +42,7 @@ independently of the site's code; figures are compared with published New Zealan
      a year earlier is decided by the dataset's own months, and a month with no vehicles
      under a condition is zero; METRICS says what each guard does; the coverage note;
      `/caveats`; models read as words; a lint against naming a value in a template.
-   - Next on the site: the same zero-month rule for a 12-month share under a condition
-     (it leaves a gap today); whether a ranking should apply the share guards.
+   - Next on the site: a 12-month share under a condition (a gap today); guards in a ranking.
    - On the pipeline's side, in hand on `claude/audit-pipeline-fixes` (D-108): hybrid
      nameplates the dashboard spells differently are missing from `mild_hybrid_models.csv`
      (coverage reads 66.0%); the mild split is drawn below METRICS' 70%; ties at the model cap.
