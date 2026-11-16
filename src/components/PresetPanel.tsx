@@ -579,7 +579,7 @@ export default function PresetPanel({
   const builderQuestion = builderQuestionFor(effectivePreset);
   const builderLink =
     builderQuestion && builderPresets(builderQuestion).every((p) => resolvePreset(p, manifest).preventsRender.length === 0)
-      ? builderHref(builderQuestion, activePeriod, fullHistory, shape === "matrix" ? getParam(presetId, "cells", "") || undefined : undefined)
+      ? builderHref(builderQuestion, activePeriod, fullHistory, shape === "matrix" ? getParam(presetId, "cells", "") || effectivePreset.cell_basis || undefined : undefined)
       : undefined;
   const questionId = `${preset.id}-question`;
 
