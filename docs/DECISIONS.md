@@ -4343,4 +4343,11 @@ New entries use this template:
   medium confidence and now cites both sources.
 - Left for the site (not in this change): a dataset whose split is withheld (`mild_split_published: false`) shows its hybrids
   undivided, and the site should say so beside the chart. No dataset is in that state today.
+- At review (#68): agreed, with nothing to fix first. Left open, in order: (1) a dataset can flip between published and
+  withheld from one build to the next, which rewrites its whole history of the two values, and nothing announces the flip
+  itself (the state does not hold the flag); on true registrations the margin is 14,271 of 18,011 at high confidence, so
+  about 2,400 more unknown hybrids in the window would do it. (2) The comparison uses the figure rounded to four decimals,
+  so 69.995% publishes; no test sits exactly at the threshold. (3) A full call leaves the denominator whatever its
+  confidence, so the four medium-confidence full rows count in the "high confidence" figure (about 0.4 points). (4) The
+  cap's tie test uses keys that sort the same under any collation.
 - Status: decided by Claude (unreviewed)
