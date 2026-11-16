@@ -22,6 +22,7 @@ import {
   seriesColour,
   tipStyle,
 } from "../lib/theme";
+import { rankByCount } from "../lib/ranking";
 import { PlotFigure } from "./PlotFigure";
 
 // A function that cuts a name with an ellipsis to the room a label has, measured in the chart's own font, so capitals and
@@ -132,24 +133,16 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
       priorDenom += monthDenoms.get(m) ?? 0;
     }
 
-    // Rank all non-reserved entities in current window
-    const currentRanked = [...currentCounts.entries()]
-      .filter(([val, n]) => !isReserved(val) && n > 0)
-      .sort((a, b) => b[1] - a[1]);
+    // A compound value reads as words: the dimension's separator becomes a space.
+    const separator = dimension.key_separator;
+    const nameOf = (val: string) => (separator && val.includes(separator) ? val.split(separator).join(" ") : label(val));
+    // Ranked by the one rule in lib/ranking.ts: equal counts share a rank and are listed alphabetically by the name shown.
+    const rankedOf = (counts: Map<string, number>) =>
+      rankByCount([...counts.entries()].filter(([val, n]) => !isReserved(val) && n > 0).map(([value, n]) => ({ value, name: nameOf(value), n })));
+    const currentRanked = rankedOf(currentCounts);
+    const priorRankMap = new Map(rankedOf(priorCounts).map((e) => [e.value, e.rank]));
 
-    // Rank all non-reserved entities in prior window
-    const priorRanked = [...priorCounts.entries()]
-      .filter(([val, n]) => !isReserved(val) && n > 0)
-      .sort((a, b) => b[1] - a[1]);
-
-    const priorRankMap = new Map<string, number>();
-    priorRanked.forEach(([val], idx) => {
-      priorRankMap.set(val, idx + 1);
-    });
-
-    // Extract Top N
-    const topItems: LeagueItem[] = currentRanked.slice(0, topN).map(([val, n], idx) => {
-      const rank = idx + 1;
+    const topItems: LeagueItem[] = currentRanked.slice(0, topN).map(({ value: val, name, n, rank }, idx) => {
       const priorRank = priorRankMap.get(val) ?? null;
       const rankDelta = priorRank !== null ? priorRank - rank : null;
       const priorN = priorCounts.get(val) ?? 0;
@@ -158,16 +151,12 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
       const shareDelta = hasPrior ? share - priorShare : undefined;
       const yearChange = hasPrior ? changeOnYear(n, priorN, yearFloor)?.change : undefined;
 
-      // A compound value reads as words: the dimension's separator becomes a space.
-      const separator = dimension.key_separator;
-      const formattedName = separator && val.includes(separator) ? val.split(separator).join(" ") : label(val);
-
       return {
         rank,
         priorRank,
         rankDelta,
         value: val,
-        name: formattedName,
+        name,
         n,
         share,
         priorN,

@@ -6,6 +6,7 @@
 import { findDerived } from "./config";
 import type { DerivedMeasure, Guards } from "./config";
 import { collapsedAgainstTrailingMedian } from "./measures";
+import { byCountThenName } from "./ranking";
 import { isReserved, ratioCore } from "./ratio";
 import type { RatioSeries } from "./ratio";
 import { unrecordedMonths } from "./sentences";
@@ -32,7 +33,9 @@ export function topNShare(rows: SliceRow[], topN: number): DerivedPoint[] {
   return [...byMonth.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, { denominator, values }]) => {
-      const top = [...values].sort((a, b) => b.n - a.n).slice(0, topN);
+      // Equal counts are ordered by the value (lib/ranking.ts), so the five named never depend on the order of the rows. The
+      // five's combined count is the same whichever of several tied values is named.
+      const top = [...values].sort((a, b) => byCountThenName({ ...a, name: a.value }, { ...b, name: b.value })).slice(0, topN);
       const n = top.reduce((sum, v) => sum + v.n, 0);
       return {
         month,

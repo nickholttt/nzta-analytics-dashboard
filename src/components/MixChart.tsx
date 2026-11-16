@@ -42,6 +42,7 @@ import {
   xTicks,
 } from "../lib/theme";
 import { latestMonthOf } from "../lib/resolve";
+import { rankByCount } from "../lib/ranking";
 import { getParam, setParam } from "../lib/url";
 import { EventList } from "./EventList";
 import { PlotFigure } from "./PlotFigure";
@@ -129,7 +130,9 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     const rankWin = trailingWindow(win.to, first);
     const totals = new Map<string, number>();
     for (const r of rows) if (r.month >= rankWin.from && r.month <= rankWin.to) totals.set(r.value, (totals.get(r.value) ?? 0) + r.n);
-    const ranked = [...totals.entries()].filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).map(([v]) => v);
+    // Equal totals are ordered alphabetically by value (lib/ranking.ts), so which value takes a place at the cut never
+    // depends on the order the rows arrive in.
+    const ranked = rankByCount([...totals.entries()].filter(([, n]) => n > 0).map(([value, n]) => ({ value, name: value, n }))).map((e) => e.value);
     const kept = preset.top_n ? ranked.filter((v) => !isReserved(v)).slice(0, preset.top_n) : ranked;
 
     // Event scoping asks which categories the chart actually shows over its period. That is not the

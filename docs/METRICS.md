@@ -252,6 +252,28 @@ Source and method: `docs/DATA_SOURCES.md` §C (D-065, D-094). Measured on
 **Share changes are always expressed in percentage points.** 10% to 15% is
 +5pp. Enforce in the formatter, not per chart.
 
+### Ranking and ties (D-107)
+
+A ranking orders the values of one dimension by their count in one window: a single month, or the 12 months ending in a
+month. Values the dimension reserves for "not recorded" or "no reference match" take no place, and a value with no vehicles
+in the window is not ranked.
+
+- **Equal counts share a rank**, the rank of the first of them: 1, 2, 2, 4 (the usual competition ranking). The next rank
+  after a tie skips the places the tie used.
+- **Equal counts are listed in alphabetical order of the name a reader sees** (for a model, the make and model as words).
+  Two values that show the same name are ordered by their raw key. The order never depends on the order the data arrives in.
+- **A move** is the rank a year before minus the rank now, both shared ranks. Entries tied now move together unless they were
+  not tied then.
+- **The rank a year before** is the rank in the same months a year earlier, ranked by the same rule. An entry with no vehicles
+  then has no rank then, and reads as new. A ranking has no year-before comparison at all unless every month of the
+  earlier window is in the data.
+- **A list cut at a number of places** (the top 10, 15 or 25, or a chart that names its largest values) is cut after the
+  sorting above, so a tie that straddles the cut shows the alphabetically first of the tied entries.
+- **Top-5 share** is the combined count of the five largest values over the month's whole denominator. Which of several tied
+  values is the fifth cannot change that sum; it can change which names the readout lists, and those follow the same order.
+- Where the site orders a chart's lines or its map's table by size, equal counts are ordered alphabetically by the value's
+  key, with no rank shown.
+
 ### Two suppression guards
 
 A share is suppressed when **either** guard trips. They look similar and
