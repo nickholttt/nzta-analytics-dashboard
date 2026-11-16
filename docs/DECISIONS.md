@@ -3577,13 +3577,17 @@ New entries use this template:
   | Page | First answer before | after | Bytes before | after | Code / fonts / data before | after | Requests before | after |
   |---|---|---|---|---|---|---|---|---|
   | Explore, first chart (home) | 7.98 s [7.00 to 9.26] | 4.61 s [4.46 to 4.68] | 916 KB | 538 KB | 300 / 165 / 452 KB | 240 / 165 / 133 KB | 17 | 13 |
-  | Explore, a linked chart (`/#...`) | 6.94 s [6.80 to 7.11] | 4.70 s [4.48 to 5.21] | 916 KB | 538 KB | 300 / 165 / 452 KB | 240 / 165 / 133 KB | 17 | 13 |
+  | Explore, first chart drawn on a page opened at a chart's link (`/#...`) | 6.94 s [6.80 to 7.11] | 4.70 s [4.48 to 5.21] | 916 KB | 538 KB | 300 / 165 / 452 KB | 240 / 165 / 133 KB | 17 | 13 |
   | Build, 3 fields | 7.59 s [7.43 to 7.74] | 6.58 s [6.29 to 6.84] | 1,035 KB | 975 KB | 304 / 165 / 566 KB | 244 / 165 / 566 KB | 16 | 16 |
   | Build, 8 fields | 11.12 s [10.86 to 11.15] | 10.32 s [10.29 to 10.54] | 1,681 KB | 1,621 KB | 304 / 165 / 1,212 KB | 244 / 165 / 1,212 KB | 21 | 21 |
 
   - The home page's "before" is one build measured two ways. Ended at its first chart (above): 7.98 s. Ended when all
     seven charts it drew on load were drawn, as the first run did: 18.07 s [16.52 to 19.36], with its first chart at
     9.53 s [7.27 to 10.64]. The spread before is wide because seven charts shared one connection and one processor.
+  - The linked-chart row measures the first chart drawn on a page opened at a chart's link, not that chart's own figure: the
+    script counted any chart, and on that page the first chart and the linked one load together, so the figure may be the
+    page's first chart. The script now takes a `target` (a panel's id) in `scripts/first-load-pages.json` and, when present,
+    waits for that panel's own figure; this row was taken before that change and has not been re-measured.
   - "Code" is the page, its styles and its scripts. The fonts are the same two files either side (168,584 bytes).
   - Build's data is the same bytes before and after: the fact-table columns the question names, 379,113 bytes of them
     the count column.
@@ -3633,7 +3637,7 @@ New entries use this template:
   statically or dynamically). `node scripts/check-public-build.mjs` checks the output: exit 0 and "6 scripts" on this
   build; on the public build as it was before this work it exits 1 naming `_astro/PresetTriage.Dd44jqz5.js`; on a build
   with the internal pages it names both folders. The deploy's `rm -rf dist/status dist/sense-check` is now a no-op and
-  stays. `deploy.yml` is not changed and does not run the check; one added line would. In a preview of the public build
+  stays. The deploy runs the check (see "At the merge" below); the first version of this work did not. In a preview of the public build
   `/status/`, `/sense-check/`, an unknown address and the removed script return 404; the internal build's `/status` still
   draws (axe clean at 390 and 1280 px).
 - Where the time goes now (after, phone profile, medians):
@@ -3645,7 +3649,7 @@ New entries use this template:
     this link's 200 KB/s the data alone is 2.8 s for the 3-field question and 6.1 s for the 8-field one, before any code
     or font. So no change to the page's own code can bring a Build question under 3 s here: with no script and no font at
     all, the 3-field question's data would still take most of the 3 s.
-- **The target of 3 s is not met** on any page measured: Explore's first chart 4.61 s, a linked chart 4.70 s, Build 6.58 s
+- **The target of 3 s is not met** on any page measured: Explore's first chart 4.61 s, the first chart on a page opened at a chart's link 4.70 s, Build 6.58 s
   and 10.32 s. Explore is within reach by trimming bytes (fonts about 0.7 s; the serif file 0.2 to 0.35 s; the React
   runtime, 66 KB compressed of the 240 KB of code, would need a dependency decision; not measured). Build needs less
   data: a hosted service answers in 41 to 62 KB where the static columns take 566 to 1,212 KB (D-091), or the files get

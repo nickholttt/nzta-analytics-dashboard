@@ -16,7 +16,9 @@
 // must-revalidate`. `astro preview` sends nothing compressed, so it is not used for the figure.
 //
 // "First answer" is the time from the start of navigation until the page has drawn every chart it draws on its own
-// (the count is found by a first, unthrottled visit), and "first chart" the time until the first of them is drawn.
+// (the count is found by a first, unthrottled visit; a page's "expected" in the pages file overrides it), and "first
+// chart" the time until the first of them is drawn. A page with a "target" (the id of a chart's panel) is judged on that
+// panel's own figure instead: a page opened at a chart's link draws its first chart too, and the two are not the same.
 // Bytes are what crossed the network (headers included) as Chrome reports them, split by what the file is.
 
 import { createReadStream, existsSync, readFileSync, statSync, mkdirSync, writeFileSync } from "node:fs";
@@ -82,10 +84,16 @@ const kindOf = (url) => {
 };
 
 // Installed before the page's own scripts: records when each count of drawn charts was first reached. A drawn chart is
-// the figure Plot returns, which PlotFigure marks role="img".
-const initScript = () => {
+// the figure Plot returns, which PlotFigure marks role="img". With a target (the id of a panel), also when that panel's own
+// figure is first drawn, whichever other charts are drawn before it.
+const initScript = (target) => {
   window.__drawn = [];
+  window.__targetAt = null;
   const check = () => {
+    if (target && window.__targetAt === null) {
+      const panel = document.getElementById(target);
+      if (panel && panel.querySelector("figure[role=img], svg[role=img]")) window.__targetAt = performance.now();
+    }
     const n = document.querySelectorAll("figure[role=img], svg[role=img]").length;
     if (n > window.__drawn.length) for (let i = window.__drawn.length; i < n; i++) window.__drawn.push(performance.now());
   };
@@ -98,7 +106,7 @@ async function visit(page, { throttle, settleMs, shot }) {
   const context = await browser.newContext({ viewport: prof.viewport });
   if (args["without-fonts"]) await context.route("**/*.woff2", (route) => route.abort());
   const tab = await context.newPage();
-  await tab.addInitScript(initScript);
+  await tab.addInitScript(initScript, page.target ?? null);
   const cdp = await context.newCDPSession(tab);
   await cdp.send("Network.enable");
   if (throttle) {
@@ -122,11 +130,13 @@ async function visit(page, { throttle, settleMs, shot }) {
   const expected = page.expected ?? 1;
   let timedOut = false;
   try {
-    await tab.waitForFunction((n) => window.__drawn.length >= n, expected, { timeout: throttle ? 90_000 : 30_000, polling: 50 });
+    const wait = page.target ? () => window.__targetAt !== null : (n) => window.__drawn.length >= n;
+    await tab.waitForFunction(wait, expected, { timeout: throttle ? 90_000 : 30_000, polling: 50 });
   } catch {
     timedOut = true;
   }
   const drawn = await tab.evaluate(() => window.__drawn.slice());
+  const targetAt = page.target ? await tab.evaluate(() => window.__targetAt) : null;
   if (settleMs) await tab.waitForTimeout(settleMs);
   const settled = settleMs ? await tab.evaluate(() => window.__drawn.length) : drawn.length;
   if (shot) await tab.screenshot({ path: shot, fullPage: false });
@@ -141,7 +151,7 @@ async function visit(page, { throttle, settleMs, shot }) {
   const result = {
     timedOut,
     firstChartMs: drawn[0] ?? null,
-    firstAnswerMs: drawn[expected - 1] ?? null,
+    firstAnswerMs: page.target ? targetAt : (drawn[expected - 1] ?? null),
     chartsDrawn: settled,
     codeLastByteMs: Math.round(lastCode),
     dataLastByteMs: Math.round(Math.max(0, ...done.filter((r) => kindOf(r.url) === "data").map((r) => (r.end - t0) * 1000))),

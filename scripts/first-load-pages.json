@@ -1,5 +1,5 @@
 {
-  "$comment": "The pages scripts/measure-first-load.mjs visits. The Build links are the work order's acceptance question (3 fields) and the 8-field question of docs/QUERY_SERVICE.md; the values are data, kept here and not in code. 'expected' is how many charts must be drawn for the answer to count as drawn; left out, it is the number an unthrottled first visit draws on its own. The Explore page is judged on its first chart, since the charts below it load later.",
+  "$comment": "The pages scripts/measure-first-load.mjs visits. The Build links are the work order's acceptance question (3 fields) and the 8-field question of docs/QUERY_SERVICE.md; the values are data, kept here and not in code. 'expected' is how many charts must be drawn for the answer to count as drawn; left out, it is the number an unthrottled first visit draws on its own. The Explore page is judged on its first chart, since the charts below it load later. 'target' is the id of a chart's panel: the page is then judged on when that panel's own figure is drawn.",
   "pages": [
     {
       "id": "home",
@@ -9,7 +9,7 @@
     {
       "id": "explore-chart",
       "path": "/#powertrain-mix",
-      "expected": 1
+      "target": "powertrain-mix"
     },
     {
       "id": "q3",
