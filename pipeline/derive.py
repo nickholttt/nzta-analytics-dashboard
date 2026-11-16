@@ -275,6 +275,8 @@ def undivide_hybrids(con, cfg, derived: list[Derived]) -> list[str]:
 
 
 def apply_model_cap(con, d: Derived, dataset_filter: str, window_start, snapshot_month) -> dict:
+    # `key` in the ORDER BY breaks a tie at the cap, and sorts as bytes: DuckDB's default collation, which no code here
+    # changes and a test holds (docs/CUBE_SCHEMA.md, Ties at the cap).
     col = d.column
     undefined = lit(UNDEFINED)
     con.execute(f"""

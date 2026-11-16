@@ -54,6 +54,12 @@ Pipeline state lives outside `/public/data` and is committed to the repo:
 - `data/state/last_good.json`: the last successful run's change key, row
   counts, per-month counts, live dimensions and moving cutoff. Every
   guardrail that compares against "the previous run" reads this file.
+  `mild_split` keeps, for each built dataset that has a mild hybrid coverage
+  block, `published` (whether the split was published) and
+  `trailing_high_confidence_coverage` (the figure it was judged on, or null
+  when the window held no hybrid). A state written before it existed has no
+  `mild_split`, and so does a dataset first built since: the build compares
+  nothing and records it.
 
 The whole snapshot, one row per vehicle, is kept as well, but not here and
 not as part of this contract: it goes to a private store
@@ -135,12 +141,19 @@ trailing and all-time volume the kept values cover.
 
 **Ties at the cap.** The values are ranked by their trailing vehicles, largest
 first, and where several have the same count the one whose `MAKE|MODEL` key
-sorts first in byte order (DuckDB's string order: digits before upper case
-before lower case) ranks first. The first `cap` keep their value, so a cap of
-300 always names exactly 300 values when at least that many occur, and which of
-a tied pair is named never depends on the order the rows arrive in. The rule is
-the code's `ORDER BY count DESC, key`, now written down and held by a test
-(`test_the_model_cap_keeps_the_key_that_sorts_first_when_models_tie_at_the_boundary`).
+sorts first in byte order ranks first. Byte order is DuckDB's default string
+order, which compares the UTF-8 bytes and not a locale's alphabet: a space and
+most punctuation, then digits, upper case, lower case, and the separator `|`
+after them, so `K1|X` ranks before `K|X` and `KB|X` before `Ka|X` (a locale's
+collation would reverse both).
+The first `cap` keep their value, so a cap of 300 always names exactly 300
+values when at least that many occur, and which of a tied pair is named never
+depends on the order the rows arrive in. The rule is the code's
+`ORDER BY count DESC, key`, written down and held by two tests
+(`test_the_model_cap_keeps_the_key_that_sorts_first_when_models_tie_at_the_boundary`,
+and `test_the_model_cap_breaks_a_tie_in_byte_order_not_in_a_locales_order`, whose
+keys a locale orders differently and which fails if the default collation is
+anything but binary).
 Measured on the 2026-10 snapshot: `registrations_surviving` has no tie at rank
 300 (75 vehicles, then 72 at rank 301). `registrations_flow` has one: two models
 with 75 vehicles at ranks 300 and 301, of which the one that sorts first is
@@ -399,8 +412,10 @@ of the two coverage figures reaches `complete_at_coverage`.
 `mild_split_published` says whether the dataset divides its hybrids into Mild
 hybrid and Hybrid at all: true when the trailing coverage at high confidence is
 at or above `publish_split_at_trailing_high_confidence_coverage` (or the window
-holds no hybrid to divide), false otherwise. When false, every vehicle that
-would be Mild hybrid is counted as the value `undivided_powertrain` names in
+holds no hybrid to divide), false otherwise. The comparison is made on the whole
+counts behind `coverage_high_confidence_only`, not on that figure rounded to four
+decimals, so a figure that reads exactly the threshold can still be under it.
+When false, every vehicle that would be Mild hybrid is counted as the value `undivided_powertrain` names in
 `config/pipeline.json` (`Hybrid`) in that dataset's slice, pairs and fact table,
 no other count moves, and the build adds a warning. The site must say so
 instead of drawing a Mild hybrid line. It is judged for each dataset on its own
@@ -409,7 +424,9 @@ figure; the label rule above is unchanged.
 powertrain contradicts their `mild_hybrid_models.csv` classification (a
 full hybrid shown as Mild hybrid, or the reverse). Coverage is given at
 stated confidence and at high confidence only, so how much it rests on
-medium- and low-confidence classifications is visible, not buried.
+medium- and low-confidence classifications is visible, not buried. At high
+confidence only a classification below the high level counts as none, `mild` or
+`full` alike: both stay in the denominator as unidentified (`METRICS.md`, D-110).
 
 ## Source discovery, snapshot date and change key
 
@@ -744,6 +761,15 @@ is worse than one that is visibly stale.
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
+- A dataset's mild hybrid split is published now and was withheld in the last
+  good build, or the reverse (`mild_split` in the state). One build then
+  rewrites the dataset's whole history of the two values, in every slice, pair
+  and fact table, and no count moves; the warning names the dataset, the
+  direction, the trailing coverage at high confidence in both builds and what
+  changes. It is a warning and not an abort in both directions (D-110): a
+  withheld split is the safe direction, and stopping the run would keep last
+  month's split published while the build judges it unreliable, and would hold
+  back the new month with it.
 - Mild hybrid identification coverage over the trailing 12 months,
   counting high-confidence classifications only, is below 70%. A dataset below
   `publish_split_at_trailing_high_confidence_coverage` also withholds the mild

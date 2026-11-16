@@ -533,21 +533,47 @@ coverage.
 
 Coverage is published twice, so its dependence on judgement calls is
 visible: at stated confidence (every classification row counts) and at high
-confidence only (medium- and low-confidence `mild` rows count as unknown;
-vehicles identified by the code mapping alone count at both levels). At the
-2026-08 snapshot, all-time coverage is 83.0% at stated confidence but 62.8%
-at high confidence only, because 13,808 Honda IMA hybrids are classified
+confidence only. At high confidence only, a classification below the high
+level counts as none, whichever way it points: a `mild` row below it counts
+as unknown, and so does a `full` row below it, because if that call is wrong a
+mild hybrid has been missed. A `full` row at the high level leaves the
+denominator, as at stated confidence, and vehicles identified by the code
+mapping alone count at both levels. So the figure at high confidence only is
+(mild at the high level + identified by the code mapping alone) ÷ (identified
+mild + unknown + `full` below the high level); the stated figure's
+denominator leaves out every `full` row. The two denominators differ by exactly the
+vehicles called `full` below the high level (the manifest's `identified_full`
+does not split them by confidence, so the figure at high confidence only
+cannot be rebuilt from the manifest alone). No `full` row below high
+confidence carries an override today, so none moves a vehicle between
+powertrain values; the figure and what rests on it (the publish threshold and
+the warning level) are all it changes (D-110). Before D-110 every `full` row
+left the denominator at both levels; the figures below that predate it are
+marked. On the 2026-10 snapshot the trailing figure at high confidence is
+74.0% on the register and 74.0% on true registrations (79.3% and 79.2% under
+the earlier count; 1,272 and 1,275 vehicles are the difference) and the
+all-time figure 60.1% and 64.5% (63.6% and 68.5%). At the 2026-08 snapshot,
+under the earlier count, all-time coverage is 83.0% at stated confidence but
+62.8% at high confidence only, because 13,808 Honda IMA hybrids are classified
 at medium confidence. Over the trailing 12 months it is 84.1% and 79.5%.
 The headline charts use the trailing figures. A dataset publishes the
 mild hybrid split only while its own trailing coverage at high confidence
 is at or above `publish_split_at_trailing_high_confidence_coverage` in
-`config/pipeline.json` (70%). Under it the dataset shows its mild hybrids
-as Hybrid, undivided, in every slice, pair and fact table, the manifest
+`config/pipeline.json` (70%). The comparison is made on the whole counts
+behind the figure, not on the figure rounded to four decimals that the manifest
+shows: 139,999 of 200,000 reads 0.7 and is under 70%, so it withholds. Under
+it the dataset shows its mild hybrids as Hybrid, undivided, in every slice, pair and fact table, the manifest
 says `mild_split_published: false` beside the figure, and the build adds a
 warning; the other dataset is judged on its own figure. On the 2026-10
-snapshot both are above it (79.3% and 79.2%, after the rows below), so both
+snapshot both are above it (74.0% and 74.0%, after the rows below), so both
 publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
-same today) is a build warning for a dataset that still publishes. All-time mild hybrid
+same today) is a build warning for a dataset that still publishes. A dataset
+that crosses the threshold between one build and the next changes its whole
+history of the two values at once, so that build adds a warning naming the
+direction and both figures (`CUBE_SCHEMA.md`, Warnings; the margin on true
+registrations is 14,271 of 19,286 hybrids at high confidence on 2026-10: 1,101
+more unidentified hybrids in the window would cross 70%, so keeping
+`mild_hybrid_models.csv` current matters). All-time mild hybrid
 history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
 vehicles) stay unresolved because sources disagree on them: never classify
 a contested nameplate to raise coverage.
@@ -561,7 +587,8 @@ which the dashboard names and the register records as COROLLA.
 Seven rows were added for full hybrids (nine nameplates: Corolla Cross, Prius c
 and v, Niro Plus, Staria and Staria Load, ES, H7 and X55), which moves no
 powertrain line, and one for the Mercedes-Benz C 200 as mild, at medium
-confidence. Trailing coverage, stated and at high confidence, went
+confidence. Trailing coverage, stated and at high confidence (counted as before D-110, with every
+full row out of the denominator), went
 from 83.0% and 78.9% to 83.5% and 79.3% on the register, and from 66.0%
 and 62.7% to 83.5% and 79.2% on true registrations. All-time, from 80.4%
 and 61.6% to 83.1% and 63.6%, and from 72.2% and 59.7% to 83.0% and 68.5%.
