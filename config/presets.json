@@ -424,6 +424,19 @@
           "period": "all",
           "events": true,
           "note": "The register records most SUVs as station wagons, so they count as cars here."
+        },
+        {
+          "id": "powertrain-by-vehicle-type",
+          "question": "How does the mix of powertrains differ from one kind of vehicle to the next?",
+          "status": "live",
+          "dataset": "registrations_surviving",
+          "measure": "share",
+          "dimension": "powertrain",
+          "dimension2": "segment",
+          "period": "latest_year",
+          "shape_override": "matrix",
+          "cell_basis": "column",
+          "note": "The register records most SUVs as station wagons, so they count as cars here."
         }
       ]
     },
@@ -529,6 +542,18 @@
           "dimension": "powertrain",
           "period": "all",
           "events": true
+        },
+        {
+          "id": "registrations-powertrain-by-new-or-used",
+          "question": "How does the mix of powertrains differ between new and used registrations?",
+          "status": "live",
+          "dataset": "registrations_flow",
+          "measure": "share",
+          "dimension": "powertrain",
+          "dimension2": "import_status",
+          "period": "latest_year",
+          "shape_override": "matrix",
+          "cell_basis": "column"
         }
       ]
     },

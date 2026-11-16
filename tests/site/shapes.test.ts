@@ -273,7 +273,10 @@ test("a preset that pins its shape pins one the table says fits, at every period
   for (const p of config.presets) {
     if (!p.shape_override) continue;
     const view = resolve.presetView(p);
-    for (const period of reachable(view, resolve.rankingPeriods(view))) {
+    // The time row offers the periods the pin fits (fitsPin, which the panel uses), so a pin is held to those; the one it opens on is among them.
+    const offered = reachable(view, resolve.rankingPeriods(view)).filter((period) => resolve.fitsPin(view, period));
+    assert.ok(offered.includes(view.period ?? "all"), `${p.id} opens on a period its pin fits`);
+    for (const period of offered) {
       const fitting = fitsAt(view, period);
       assert.ok(fitting.includes(p.shape_override), `${p.id} pins ${p.shape_override} at ${period}; the table gives ${fitting}`);
     }
