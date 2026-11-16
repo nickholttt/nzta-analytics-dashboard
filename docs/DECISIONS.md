@@ -3730,3 +3730,36 @@ New entries use this template:
   - If branch protection lists required checks, `site-tests` is a new name to add. (Not known from here.)
   - Reversing it: delete the `site-tests` job and the prototype step from `checks.yml`.
 - Status: decided by Claude (unreviewed)
+
+## D-104 2026-11-16 — The user's direction: the engine comes first and must be right; the public site waits; figures are checked against outside sources
+- Agent: user (the direction), claude (the record, and the reading marked as claude's)
+- Basis: two messages from the user on 2026-11-16, during the ninth session. The first asked for a plain status:
+  what is built, how ready the public site is, whether the figures match published articles and sites, and whether
+  vehicles are segmented as the trade's published classifications do. The second, in the user's words: "keep working
+  on the engine, it needs to be flawless, the public can wait. We have one shot to be trusted and used by the
+  masses so dont skim out on making it right. Make sure you refernce things online about the nz market if things
+  arent looking right or you havent probed a specific metric as the nz market is complex and a tangled behavioural
+  change mess".
+- Context: claude had offered to swap the work order's packages F (the full engine) and H (the home page, the words,
+  the topic pages) to reach a public site sooner. No comparison of the site's figures with figures published
+  elsewhere had been made: CLAUDE.md lists matching the MIA's figures as a non-goal ("different basis — say so,
+  don't chase it"), and that had been read as a reason not to look.
+- Decision (user):
+  1. The order of the work order stands: the engine before the public-facing packages. Going public can wait.
+  2. Correctness is not traded for speed. The engine is to be right before it is seen.
+  3. Where a figure looks wrong, or a measure has not been probed, published sources about the New Zealand market
+     are consulted.
+- How it is carried out (claude's reading, unreviewed):
+  1. **An audit of the engine**: every measure Build can answer is recomputed from the register's rows by a checker
+     that has not seen the site's code, and compared with what the site shows. What differs is a bug until shown
+     otherwise.
+  2. **A comparison with published figures** (the MIA's monthly figures, the Ministry of Transport's, the used
+     import trade's, published counts of electric vehicles): ours, theirs, the gap, and whether its cause is
+     established, likely or unexplained. This is not chasing a match, which stays a non-goal: a gap is measured and
+     explained, never closed by adjusting a figure. What it finds goes to `/differences` and `docs/METRICS.md`.
+  3. **Each field bound in package F** is checked against the data and against what is published about how it is
+     recorded before Build offers it.
+  4. NZTA's own website still blocks automated readers and is not worked around (the order's §3).
+- Consequences: package F is next after the pieces in review; H's and I's first pieces, already begun (D-102,
+  D-103), are finished as specifications and proposals, and their building follows F. The offer to swap is withdrawn.
+- Status: accepted (the user's direction); the reading of how to carry it out is decided by Claude (unreviewed)

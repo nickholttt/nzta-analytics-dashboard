@@ -4,17 +4,9 @@ Last updated by claude on 2026-11-16
 
 ## Where we left off
 
-- 2026-11-14 and 15, eighth session: the first of work order 1 (`docs/brief/WORK_ORDER.md`).
-  - **Merged: #47 to #59.** The reworded rules; the order saved with D-082 to D-085 and the
-    sub-agent definitions; three public pages (D-086); `registrations_flow` defined (D-087);
-    the pipeline's and the site's follow-ups (D-088, D-089); the data map (D-090); the query
-    service measured and proposed (D-091); true registrations built in the pipeline (D-092)
-    and shown on the site (D-093); Stats NZ's cars since 1961 built in the pipeline (D-094);
-    NZTA's vehicle type as a dimension (D-095); the repository's front page rewritten (#59).
-  - **October was forced once**, after the daily run said "Source unchanged": the release
-    `cube-2026-10` now holds the fact table. No second forced run is allowed (D-082).
-  - **A visitor to a local build can now ask** how many vehicles were registered in any month
-    since January 2021 and whether that is up or down on a year ago, by brand and by model.
+- 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
+  D-095). October was forced once; no second forced run is allowed (D-082). A local build
+  answers how many vehicles were registered in any month since January 2021, by brand and model.
 - 2026-11-16, ninth session (in progress).
   - **The user answered the parked questions** (D-096, #60, merged): the privacy classes are approved,
     three of the About page's gaps are filled, and the repository's "About" line is set.
@@ -24,8 +16,14 @@ Last updated by claude on 2026-11-16
   - **Four pieces run in parallel**, one branch each: the supplied counts as files in the
     repository (D-097), package D's first-load trim (D-099), package H's narrative spec
     (D-102) and package I's proposed segment scheme (D-103). STATE lists their files.
-  - **Slips, recorded:** #50 merged a minute before its last check finished (it passed);
-    a first reading that event markers respect a filter was wrong (D-089).
+  - **Running beside them** (D-104): a comparison of the site's figures with published ones,
+    and, next, an audit of every measure against the register's rows.
+
+## The user's direction of 16 November (D-104)
+
+The engine comes first and must be right; the public site waits. Do not trade checking for
+speed, and do not propose launching early. Recompute each measure independently, and compare
+figures with published New Zealand sources where a measure is unprobed or looks wrong.
 
 ## Open pull requests (none)
 
@@ -80,6 +78,12 @@ Questions 1 to 9 of 15 November were answered on 16 November (D-096). Left:
    build publishes it? Recommend yes. With no answer: it is built on a local build only and
    shown in the final report. And should the `region` slice then take the minimum of 10 too?
    Recommend yes. With no answer it stays as it is.
+4a. **Two readings of CLAUDE.md's chart rule, for the user's ruling** (D-100). (a) The rule
+   table ranks a list by the field's own recorded judgement, not by a count of its values,
+   so that nothing a visitor sees changed. Recommend keeping it. (b) A count by a region
+   draws lines, not a map, and an average by a band draws lines, because those two charts
+   draw shares only. Recommend keeping it until a visitor's question needs otherwise. With
+   no answer both stay.
 5. **Later, by the user's word:** the Stats NZ hand export; going public
    (`docs/playbooks/go-public.md`); the privacy sentence, read again before going live.
 6. **The retaken dashboard history** (with the mass and engine-size groupings) arrives in
