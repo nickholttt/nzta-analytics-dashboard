@@ -4507,3 +4507,74 @@ New entries use this template:
   is withheld, where it was not before. The fixture register of the golden file has one such `full` call, so its figure went
   from 0.3333 to 0.25 (the only golden change).
 - Status: decided by Claude (unreviewed)
+
+## D-112 2026-11-17 — A build's warnings reach someone who is not already looking: the Monthly build's summary page lists them, worst first, and the internal status page shows the manifest's
+- Agent: claude (a sub-agent, to the lead's brief)
+- Basis: D-104 (the engine must be right before anything is public), D-108, D-110 and the review of #70, which found that a flip of the
+  mild hybrid split is in the manifest's `warnings` and the Action's log and nowhere a person looks; `pipeline/fetch.py`,
+  `.github/workflows/monthly-build.yml` and `src/pages/status.astro` as they stood on `main` at #70.
+- Context: before this, `print_summary` sent every warning to standard error, and only a run that builds nothing wrote to the run's
+  summary page (`report`). No page of the site read `manifest.warnings`. On true registrations the margin of the split is about
+  1,100 unidentified hybrids (D-110), so a flip is near, and a flip rewrites a dataset's whole history of two values.
+- Decision, by item:
+  1. **The summary page.** A build that ran (`run`, and a build by hand with `GITHUB_STEP_SUMMARY` set) appends to the page a heading
+     with the snapshot month and the count, then a list of the warnings, or one line, "No warnings in the YYYY-MM build.", when
+     there are none. The code writes it (`fetch.print_summary` through the `--github-summary` the workflow already passes), so
+     the workflow and `test_workflow.py` are unchanged. Standard error keeps every warning, in the order raised. The text ends with
+     a blank line, because the next step writes a line to the same page and would otherwise be read as part of the last item.
+  2. **The order.** From a small explicit list in `config/pipeline.json` (`run_summary.warning_order`): each group is a label and a
+     phrase the warnings of that kind contain. First, what rewrites published history (a split flip: "Every month of the
+     dataset's history changes"); second, what stops a later build if it grows (an unmapped guard above its warning level: "the
+     run aborts above"); then every warning no group claims, in the order the build raised them. Within a group, the order
+     raised. Each listed warning of a group carries the group's label; the rest carry none. The code knows no domain value; the
+     phrases are in config, as the thresholds are.
+  3. **A page that cannot be written** is one line on standard error and never fails the run: the build has published and its
+     state is waiting for the steps after it to commit, and a failed run would stop them. It does warn, because a page that
+     silently stays empty is the thing this change is for.
+  4. **The internal status page** (`/status`, not in the public build) lists the manifest's warnings at its top, each as the pipeline
+     wrote it and in the manifest's order, with the snapshot and the time the cube was generated; with none it says so. It reads
+     the manifest in the browser as the page already does (`loadManifest`, shared with the triage table, one fetch). No public
+     page shows a warning. The page already shows pipeline text as it is: a dataset's `not_built` reason, in the list of what blocks
+     a chart (`resolve.ts`, shown by `PresetPanel` when internal), and what each preset requires; so invariant 8's rule, which is
+     about sentences a visitor reads, is not engaged.
+- Options considered:
+  - *Where the summary is written.* (a) By the code, to the path the workflow already passes. (b) By a new workflow step that reads
+    `public/data/manifest.json` and appends its warnings (a few lines of shell or Node). (c) By both. Chosen (a): no workflow
+    change, the ordering is tested in Python with the other warnings, and a build by hand shows the same page where a runner
+    sets the variable. (b) would put the order in shell, or in a second implementation, and needs a test of a workflow step; it
+    also reads a manifest that exists only when the step before it succeeded.
+  - *How the order is decided.* (a) A phrase list in config, matched against the warning's text (chosen). (b) Make each warning
+    structured (a kind and a text) in the manifest: a contract change, a golden change and a change for every reader of
+    `warnings`, for an order. (c) Tag each warning in memory where it is raised (a string that carries a rank): invisible, lost
+    by any copy or concatenation of the string. (d) Order by
+    something measured, such as how close a figure is to its limit: the warnings carry no common figure. (a)'s cost is that the
+    groups depend on the wording of two warnings. That is contained: a warning whose wording stops matching moves to the end of
+    the list, never out of it, and the tests build each of these warnings (a flip in both directions and the guard, from real
+    builds) and fail if one stops being claimed by its group.
+  - *What to put first.* The brief names a split flip first, then a guard above its warning level, then the rest. Not done: ranking
+    the rest (a dimension that stopped being live, a count that deviates, a source that lags); they are one group, in the order
+    raised.
+  - *The status page.* (a) A section at the top, from the manifest the page already loads in the browser (chosen). (b) Read the
+    manifest at build time in the page's frontmatter: the page's other panels read it in the browser, and a build-time read would
+    freeze the page at the cube of the build, where the browser reads the cube the page is served with. (c) The same ordering as the
+    summary page, read from config in the browser: a second implementation of the order for a list that is short. Chosen manifest
+    order, as written.
+  - *Failing on a page that cannot be written.* (a) Never fail, warn on standard error (chosen). (b) Fail: it would turn a published,
+    good build into a red run with its state uncommitted. (c) Fail quietly: no.
+- Choices a reviewer could want reversed:
+  1. The order comes from two phrases in config that match the text of the warnings, not from a field of the warning.
+  2. A page that cannot be written warns on standard error and does not fail the run.
+  3. The summary page repeats warnings that the manifest and standard error already have; the manifest and standard error are
+     unchanged.
+  4. The status page lists the warnings in the manifest's order, not the summary page's.
+  5. A build by hand writes to the page only where `GITHUB_STEP_SUMMARY` is set; `run` writes to the path of `--github-summary`,
+     not to the variable.
+  6. Warning text is shown with a newline collapsed to a space and `&`, `<` and `>` escaped, so one warning cannot break the list.
+  7. The list says "Worst first: ..." under it when there is more than one warning.
+- Not done: a build that aborts writes none of its warnings anywhere (its aborts are the failure, and the manifest is staged, not
+  published); a run that builds nothing does not show the source's own warnings (a discovery fallback, a column gained; some are
+  printed on standard error as they arise); no public page says that a month's split has just changed (D-110's "left for the site").
+- Consequences: a green Monthly build whose split flipped shows it on its summary page, first in the list. `config/pipeline.json` gains
+  `run_summary`. `manifest.warnings`, the golden contract and the workflow are unchanged. `/status` gains a section. The playbook
+  names where the warnings are and what to do about a flip.
+- Status: decided by Claude (unreviewed)

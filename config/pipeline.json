@@ -46,6 +46,13 @@
     "$comment": "From this day of the month (UTC) a run that builds nothing fails if the previous month's snapshot is still not built (docs/DATA_SOURCES.md, Refresh timing).",
     "missed_month_alarm_day": 15
   },
+  "run_summary": {
+    "$comment": "The order of a build's warnings on the Monthly build's summary page (pipeline/fetch.py order_warnings), worst first; any warning no group claims follows, in the order the build raised it. A group claims a warning whose text holds `contains`: the text is what the build already says, so the tests build each of these warnings and check which group claims it. The first is a flip of a dataset's mild hybrid split, which rewrites the dataset's whole history of two values; the second is an unmapped-value guard above its warning level, which stops a later build if it grows.",
+    "warning_order": [
+      {"label": "Rewrites published history", "contains": "Every month of the dataset's history changes"},
+      {"label": "Close to stopping a later build", "contains": "the run aborts above"}
+    ]
+  },
   "reference_dir": "data/reference",
   "boolean_true": "true",
   "sentinels": {

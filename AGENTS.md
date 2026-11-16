@@ -102,7 +102,8 @@ Setup, **not re-run this session** (the environment already existed):
   `docs/CUBE_SCHEMA.md`, locked by `pipeline/tests/test_golden.py`.
 - `.github/workflows/monthly-build.yml`: cron 06:17 UTC **every day** → tests → `pipeline run`,
   which builds each snapshot month once and, from the 15th, fails while the month before is still
-  not built (D-064, D-070) → on a build, the bot commits `data/snapshots/` and `data/state/` with
+  not built (D-064, D-070), and lists a build's warnings on the run's summary page, worst first
+  (D-112) → on a build, the bot commits `data/snapshots/` and `data/state/` with
   `[skip ci]`, then, on `main` only, keeps the cube as a release `cube-<snapshot>` (D-056, D-057),
   starts `deploy.yml`, and a job `archive` keeps the whole register for the month as one Parquet
   file in the private repository `nzta-register-archive` (D-063, D-071). `checks.yml` runs the

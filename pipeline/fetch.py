@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import calendar
 import hashlib
+import html
 import json
 import statistics
 import sys
@@ -188,11 +189,60 @@ def run(cfg, force: bool = False, github_output: str | None = None, now: datetim
     pages = pull(cfg, client, source, list(cfg.pipeline["fields"].values()), pull_dir)
     manifest = build_step.build(cfg, source, pages, state, now)
     emit(github_output, {"built": "true"})
-    print_summary(manifest)
+    print_summary(cfg, manifest, github_summary)
     return 0
 
 
-def print_summary(manifest: dict) -> None:
+def order_warnings(cfg, warnings: list[str]) -> list[tuple[str | None, str]]:
+    """Each warning with the label of the group it falls in, worst first: the order of `run_summary.warning_order` in
+    config/pipeline.json, then every warning no group claims, unlabelled. A group claims a warning whose text holds its
+    `contains`. Warnings are plain text in the manifest and stay so; the groups are what the build already says in them (a
+    flip of a split says every month of history changes, a guard says where the run aborts), so a wording change that
+    stops matching moves a warning to the end, never out of the list: the tests build each of these warnings and check
+    where it falls. Within a group the order is the order the build raised them."""
+    groups = cfg.pipeline["run_summary"]["warning_order"]
+
+    def group(warning: str) -> int:
+        return next((i for i, g in enumerate(groups) if g["contains"] in warning), len(groups))
+
+    ranked = sorted(((group(w), w) for w in warnings), key=lambda pair: pair[0])
+    return [(groups[i]["label"] if i < len(groups) else None, w) for i, w in ranked]
+
+
+def warnings_markdown(cfg, manifest: dict) -> str:
+    """The build's warnings as the run's summary page shows them: a heading with the count and a list, worst first, or one
+    line when there are none. Ends with a blank line, or the next line written to the page would read as part of the last
+    item."""
+    month = manifest["latest_snapshot"][:7]
+    warnings = manifest["warnings"]
+    if not warnings:
+        return f"No warnings in the {month} build.\n\n"
+    ordered = order_warnings(cfg, warnings)
+    lines = [f"### Warnings in the {month} build ({len(warnings)})", ""]
+    for label, warning in ordered:
+        # One line each, and the text safe to show: a warning can hold a "<" or a newline.
+        text = html.escape(" ".join(warning.split()), quote=False)
+        lines.append(f"- **{label}.** {text}" if label else f"- {text}")
+    labels = [g["label"] for g in cfg.pipeline["run_summary"]["warning_order"]]
+    if len(warnings) > 1:
+        lines += ["", f"Worst first: {', '.join(l.lower() for l in labels)}, then the rest; each in the order the build raised them."]
+    return "\n".join(lines) + "\n\n"
+
+
+def write_summary(github_summary: str | None, text: str) -> None:
+    """Append to the run's summary page when there is one. The build has already published and its state is waiting to be
+    committed by the steps after this one, so a page that cannot be written is said once on stderr and never fails the run."""
+    if not github_summary:
+        return
+    try:
+        with open(github_summary, "a", encoding="utf-8", newline="\n") as fh:
+            fh.write(text)
+    except OSError as exc:
+        print(f"WARNING: the warnings could not be written to the run's summary page ({exc}); they are above and in the manifest",
+              file=sys.stderr)
+
+
+def print_summary(cfg, manifest: dict, github_summary: str | None = None) -> None:
     print(f"Built snapshot {manifest['latest_snapshot']} from {manifest['source']['rows_pulled']:,} rows.")
     for dataset, d in manifest["datasets"].items():
         if "not_built" in d:
@@ -208,3 +258,4 @@ def print_summary(manifest: dict) -> None:
               f"{report['share_cluster']:.1%} aged {report['cluster'][0]}-{report['cluster'][1]}")
     for warning in manifest["warnings"]:
         print(f"  WARNING: {warning}", file=sys.stderr)
+    write_summary(github_summary, warnings_markdown(cfg, manifest))

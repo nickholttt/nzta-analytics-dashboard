@@ -118,6 +118,13 @@ def test_unchanged_snapshot_and_count_with_different_key_aborts(tmp_path, worksp
     expect_abort(lambda: run(tmp_path, cfg, rows, state=state, name="second"), "without advancing")
 
 
+def groups_of(cfg, warnings: list[str]) -> list[int]:
+    """The index of the run summary's group (config run_summary.warning_order) each of these warnings falls in, the number of
+    groups for one that falls in none."""
+    labels = [g["label"] for g in cfg.pipeline["run_summary"]["warning_order"]]
+    return [labels.index(label) if label else len(labels) for label, _ in fetch.order_warnings(cfg, warnings)]
+
+
 def test_unmapped_make_over_threshold_aborts(tmp_path, workspace):
     rows = load_rows()
     template = next(r for r in rows if r["OBJECTID"] == 62)
@@ -148,6 +155,9 @@ def test_trailing_unmapped_warning_and_published_headroom(tmp_path, workspace):
     g.update(max_unmapped_rate=0.5, max_unmapped_rate_trailing=0.5, warn_unmapped_rate_trailing=0.0)
     manifest = run(tmp_path, cfg, rows + unknown_makes_in_snapshot_month(rows, 1, 5000), publish=False)
     assert any("warning level" in w for w in manifest["warnings"]), manifest["warnings"]
+    # The run's summary page lists it as close to stopping a later build (config run_summary, D-112): the group looks for
+    # the words this warning is written with, so a rewording that stops matching fails here.
+    assert set(groups_of(cfg, [w for w in manifest["warnings"] if "warning level" in w])) == {1}
     guard = manifest["datasets"]["registrations_surviving"]["unmapped_guard"]
     assert sorted(guard) == sorted(g["abort_on_unmapped"])
     for figures in guard.values():
@@ -637,6 +647,8 @@ def test_a_build_that_withholds_a_split_the_last_good_state_published_says_so_an
 
     _, manifest, new_state = built_with_threshold(tmp_path, workspace, 1.0, state, "withheld")
     (warning,) = split_flips(manifest)
+    # The run's summary page lists it first (config run_summary, D-112), ahead of the standing warning of the same build.
+    assert fetch.order_warnings(cfg, manifest["warnings"])[0] == (cfg.pipeline["run_summary"]["warning_order"][0]["label"], warning)
     # It names the dataset, the direction, both figures and what changes for a reader; the standing warning is still there.
     assert "was published in the last good build and is withheld now" in warning
     assert warning.count(f"{before:.2%}") == 2, "both coverage figures are named (the same here: only the threshold moved)"
@@ -655,6 +667,7 @@ def test_a_build_that_publishes_a_split_the_last_good_state_withheld_says_so(tmp
 
     _, manifest, new_state = built_with_threshold(tmp_path, workspace, 0.0, state, "published")
     (warning,) = split_flips(manifest)
+    assert groups_of(make_cfg(workspace), [warning]) == [0]
     assert "was withheld in the last good build and is published now" in warning
     assert f"{h['mild_powertrain']} reappears" in warning and f"{h['undivided_powertrain']} falls" in warning
     assert h["mild_powertrain"] in split_values(workspace)["slice"]
