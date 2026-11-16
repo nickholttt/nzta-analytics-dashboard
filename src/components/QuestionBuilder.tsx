@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { builderSpec, datasetWords, dimensionLabel, findDataset, valueWords } from "../lib/config";
 import { isChoosable } from "../lib/reserved";
-import { MAX_VALUES, builderPresets, questionParams, readQuestion, readingNotes, settle, viewsFor } from "../lib/builder";
+import { MAX_VALUES, builderPresets, questionParams, readQuestion, readingNotes, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
 import type { SliceRow } from "../lib/data";
@@ -402,7 +402,11 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                     noun={filterLabel(d).toLowerCase()}
                     chosen={kept}
                     where={applicable(without(question.where, d))}
-                    onChange={(values) => ask({ where: { ...question.where, [d]: values } })}
+                    onChange={(values) => {
+                      ask({ where: withValues(question.where, d, values) });
+                      // The last value taken away takes the line with it, so focus goes to where a condition is added.
+                      if (values.length === 0) focusSoon(() => addSelect.current);
+                    }}
                   />
                 ) : (
                   <p className="picker-hint">

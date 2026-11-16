@@ -4,6 +4,7 @@ import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder"
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { dimensionNote } from "../lib/dimensionNote";
+import { conditionsSentence } from "../lib/scope";
 import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
@@ -353,7 +354,7 @@ export default function PresetPanel({
     return words.charAt(0).toLowerCase() + words.slice(1);
   };
   const scope = keptBy?.length
-    ? `Only vehicles where ${keptBy.map((k) => `${nameOf(k.dimension)} is ${quoted(k.values, k.dimension)}`).join(", and ")} are counted.`
+    ? conditionsSentence(keptBy, nameOf, (d, v) => valueWords(d, reservedLabel(v)))
     : narrowedBy
       ? `Only ${quoted(narrowedBy.values, narrowedBy.dimension)} vehicles are counted.`
       : undefined;

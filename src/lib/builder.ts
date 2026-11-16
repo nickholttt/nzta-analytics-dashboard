@@ -49,7 +49,16 @@ function dimensionsOf(m: BuilderMeasure): Record<string, string> {
   return Object.fromEntries(Object.entries(parts[0]?.dimensions ?? {}).filter(([id]) => parts.every((p) => id in p.dimensions)));
 }
 
-const cleanWhere = (where: Record<string, string[]>) => Object.fromEntries(Object.entries(where).filter(([, kept]) => kept.length > 0));
+// The conditions that keep something, in one order whatever order they were added in (fields by id, each field's values by
+// text), so one question has one address and one sentence. The page lists a visitor's conditions in the order they were added.
+const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+const cleanWhere = (where: Record<string, string[]>) =>
+  Object.fromEntries(
+    Object.entries(where)
+      .filter(([, kept]) => kept.length > 0)
+      .sort(([a], [b]) => byText(a, b))
+      .map(([d, kept]): [string, string[]] => [d, [...new Set(kept)].sort(byText)]),
+  );
 const joined = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(" ") || undefined;
 
 export function questionText(q: Question, measureId: string, label: (value: string) => string = (v) => v): string {
@@ -160,6 +169,14 @@ function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabula
     .filter((id) => findDimension(id))
     .map((id) => ({ id, label: dimensionLabel(id) ?? id }));
   return { dataset, label: datasetName(dataset, manifest), measures, filters };
+}
+
+// The conditions after a visitor changes the values of one: a condition left with no value is gone, since a condition with none keeps
+// every vehicle and a line that says nothing is only clutter. (A condition just added is the one empty line the page holds, until it has
+// its first value; that is the page adding it, not this.)
+export function withValues(where: Record<string, string[]>, dimension: string, values: string[]): Record<string, string[]> {
+  if (values.length > 0) return { ...where, [dimension]: values };
+  return Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
 }
 
 // As many values as the palette has colours: past that, lines can no longer be told apart (src/lib/theme.ts).
