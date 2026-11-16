@@ -4351,3 +4351,89 @@ New entries use this template:
   confidence, so the four medium-confidence full rows count in the "high confidence" figure (about 0.4 points). (4) The
   cap's tie test uses keys that sort the same under any collation.
 - Status: decided by Claude (unreviewed)
+
+## D-110 2026-11-17 — The four things D-108's review left open: a flip of the mild split is announced, the split is judged on the whole counts, the stricter coverage figure says what it counts, and the tie test tells byte order from a locale's
+- Agent: claude (a sub-agent, to the lead's brief)
+- Basis: D-104 (the engine must be right before anything is public), D-108 and its "At review (#68)" note; the code and tests on
+  `claude/split-flip-guard`; the saved October pull and the committed dashboard counts, read with a scratch script that calls the
+  pipeline's own functions and writes nothing in the repository.
+- Context: #68 withholds a dataset's mild hybrid split when its trailing coverage at high confidence is under
+  `publish_split_at_trailing_high_confidence_coverage` (0.70). Its review agreed and left four things open.
+- Decision, by item:
+  1. **A flip is announced.** `data/state/last_good.json` gains `mild_split`: for each built dataset that has a coverage block,
+     `published` and `trailing_high_confidence_coverage` (the figure it was judged on, null when the window held no hybrid). A
+     build whose answer differs from the state's adds one warning: the dataset, the direction, the figure in the last good build
+     and in this one, the threshold, and what changes for a reader (Mild hybrid disappears from, or reappears in, every slice,
+     pair and fact table, Hybrid moves by the same amount, no total moves, and a figure quoted from the earlier build no longer
+     matches). **A flip warns in both directions and does not stop the run.** A state with no `mild_split` (every state written
+     before this), a dataset first built, and a record that is not in the written shape are not compared; the build records it.
+     The golden file is unchanged: it is built with no state and the manifest gains nothing.
+  2. **The exact edge.** The split is judged on the whole counts (identified at high confidence or by the code mapping, over
+     identified mild plus unknown), not on the figure rounded to four decimals. A division of whole counts is correctly rounded,
+     so a ratio exactly at the threshold compares equal to it: at the threshold publishes, one vehicle under does not. The
+     manifest's figure stays rounded; the warning level (`warn_below_...`) uses the counts too. Tests build the counts from the
+     configured threshold: exactly at it, one under, one over, and 139,999 of 200,000, whose rounded figure reads 0.7 while its
+     counts are under it (it published before).
+  3. **What "high confidence only" counts.** Read from the code and METRICS.md: the numerator is `mild` rows at the high level plus
+     vehicles identified by the code mapping alone; the denominator is identified mild plus unknown, at both levels; the stated
+     figure's numerator is every identified mild vehicle. METRICS.md named only `mild` rows as demoted and said nothing of `full`
+     rows, which the code leaves out of the denominator whatever their confidence. The definition is silent, so METRICS.md now
+     states what the code computes and a test holds it; no computation and no published figure changes. The effect is **not
+     the 0.4 points the review estimated**: measured on the 2026-10 snapshot, counting the medium-confidence full rows as unknown
+     takes the trailing figure at high confidence from 79.3% to 74.0% on the register (1,272 vehicles; 14,241 of 17,961 becomes
+     14,241 of 19,233) and from 79.2% to 74.0% on true registrations (1,275; 14,271 of 18,011 becomes 14,271 of 19,286), and the
+     all-time figure from 63.6% to 60.1% and from 68.5% to 64.5%. Neither dataset would fall under 70%, so neither would flip.
+     On true registrations 2,376 more unidentified hybrids in the window would cross 70% today (14,271 of 18,011); under the
+     stricter count it would be 1,101.
+  4. **The cap's tie test.** DuckDB's default collation is binary (`current_setting('default_collation')` is empty, nothing in the
+     pipeline sets one), so `ORDER BY count(*) DESC, key` already breaks a tie in byte order. No code behaviour and no published
+     file changes. The test now uses keys that DuckDB's own en_US collation orders differently (an upper and a lower case letter,
+     a digit and the separator, the two cases of one letter, and all of them with a space), asserts that before it asserts the
+     answer, and asserts the default collation is binary; with the ORDER BY changed to a locale collation all eight cases fail.
+     CUBE_SCHEMA.md now states the order exactly: it had said digits before upper before lower, which left out that `|` sorts
+     after letters and that a space and most punctuation come before digits.
+- Options considered:
+  - *Item 1, warn or stop.* (a) Warn on every flip. (b) Stop the run on a flip to withheld, warn on a flip back. (c) Stop on
+    either. (d) Warn, and require a margin to flip back (hysteresis). Chosen (a). A flip to withheld is the safe direction: the
+    build has judged its own split unreliable, and stopping would keep last month's split published (the very split judged
+    unreliable) and hold the new month back with it; the run is tried every day (D-064), so it would stop every day until a
+    maintainer changed a reference file or the threshold. The unmapped-make guard's pattern, "warns, then aborts", protects against
+    publishing a wrong figure; here the wrong figure is the one a stop would leave in place. A flip to published means the figure
+    reached the threshold, through new data or a deliberate edit, and the warning is enough to make the rewrite of history seen.
+    The cost of (a) is that the warning is read only by someone looking at the Action's log or the manifest. (b) was the closest:
+    it would stop a build that wrongly collapsed the identification, which the warning also reports, at the price above. (d)
+    changes the meaning of "at or above the threshold publishes" and was not asked for. A dataset hovering at 70% will flip, and
+    warn, each month it crosses.
+  - *Item 1, what the state keeps.* (a) The flag only. (b) The flag and the figure. (c) Also the threshold. Chosen (b), so the
+    warning can name both figures; (c) would let the warning say a threshold change caused the flip, and a threshold edit is a
+    reviewed commit, so it was left out.
+  - *Item 1, where the flag lives.* In the state, not the manifest: the manifest already says the current answer, and the golden
+    contract and the site read it, so a second field there would be a contract change for no reader.
+  - *Item 2.* (a) Compare the unrounded ratio. (b) Keep the rounded comparison and document it. Chosen (a): it makes the rule as
+    written ("at or above") true, and (b) would document a behaviour with no reason behind it.
+  - *Item 3.* (a) Document what the code computes. (b) Count a full row at medium or low confidence as unknown at high confidence
+    only. Chosen (a), by the rule in the brief: the definition is specific about `mild` rows and silent about `full`, so the code
+    does not depart from it, and (b) would change two published figures by five points. Weighed for (b): the manifest says the
+    stricter figure shows "how much it rests on medium- and low-confidence classifications", and a medium full call is one; a wrong
+    one hides a mild vehicle under Hybrid. Weighed against: no medium or low full row carries an override today (the three full
+    rows that do are high confidence), so none moves a vehicle between powertrain values. Also not done: publishing the full rows
+    by confidence in the manifest, which would show the five points to a reader and is an additive contract change.
+  - *Item 4.* (a) Leave the code and strengthen the test. (b) Add `COLLATE BINARY` to the ORDER BY. Chosen (a): the order is
+    already byte order, a test asserts the default, and an explicit collation would change nothing today.
+- Choices a reviewer could want reversed:
+  1. A flip warns in both directions and never stops the run.
+  2. The first build after this merges compares nothing: the committed state has no `mild_split`, so a flip in that very build is
+     not announced. The build after it is.
+  3. The state keeps the figure rounded to four decimals, as the manifest has it, not the counts.
+  4. The standing "not published" warning keeps its wording and its rounded figure, so at the edge it can read "70.0% ... below
+     70%". Putting the counts in it would change the golden manifest, whose fixture register is withheld.
+  5. The medium-confidence full rows stay out of the denominator at high confidence only (item 3, option b not taken). This is
+     the one that moves published figures by five points if reversed.
+  6. The tie test needs DuckDB's en_US collation (the bundled ICU) to prove its keys discriminate.
+- Consequences: a monthly build that flips a dataset's split prints one warning in the Action's log and the manifest;
+  `mild_split` is a new key in the state the Action commits; a dataset exactly at the threshold publishes; METRICS.md and
+  CUBE_SCHEMA.md say what the code does. No published file changes: the only change on the data's path is at the exact edge,
+  which no dataset sits at, and the order of the cap is unchanged.
+- Left for the site (not in this change): when `mild_split_published` is false, or has just changed, a flip rewrites the figures
+  the site shows for every month at once.
+- Status: decided by Claude (unreviewed)
