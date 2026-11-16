@@ -278,7 +278,8 @@ match, beyond the cap, and any other the cube reserves). A value with no vehicle
 - **The rank a year before** is the rank in the same months a year earlier, ranked by the same rule.
 - **Whether there is a year-before comparison** is decided by the dataset's own months, not by which months a narrowed view
   has rows for. The earlier window must lie wholly inside the months the dataset covers: from its first month (the start of
-  its supplied file, or, for the register, its count of months back from its newest) to its newest. If it does not, the
+  its supplied file, or otherwise the earliest month in which it has vehicles, read from the data the view loads) to its
+  newest. Every month after the first, with or without rows, is inside the dataset. If it does not, the
   ranking has no rank a year before, no move, no change in share and no change on a year ago, and says so; none of the four
   is shown. If it does, all four are shown, and a month in which a condition keeps no vehicles, which has no rows, counts as a
   month of zero vehicles. An entry with no vehicles in the earlier window has no rank then and reads as new; its change on a
