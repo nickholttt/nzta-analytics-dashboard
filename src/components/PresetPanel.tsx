@@ -1,5 +1,6 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { figuresHeader } from "../lib/figuresHeader";
@@ -26,6 +27,24 @@ import { TrendChart } from "./TrendChart";
 
 // The grid is loaded when a grid is drawn, so a page that draws none does not download it.
 const MatrixChart = lazy(() => import("./MatrixChart").then((m) => ({ default: m.MatrixChart })));
+
+// A chunk that cannot be fetched (the visitor went offline, or a deploy replaced it) throws where it is drawn. Without this the panel would vanish.
+class ChunkBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? (
+      <div className="callout blocked">
+        <span className="callout-label">Could not load</span>
+        This chart did not load. Reload the page to try again.
+      </div>
+    ) : (
+      this.props.children
+    );
+  }
+}
 
 const BASIS_NOTE = "Registrations recorded by NZTA. Not the same as vehicle sales.";
 
@@ -532,6 +551,7 @@ export default function PresetPanel({
       );
     } else if (shape === "matrix" && dimension && dimension2) {
       chart = (
+        <ChunkBoundary>
         <Suspense fallback={<p className="meta">Loading the chart…</p>}>
           <MatrixChart
             preset={effectivePreset}
@@ -555,6 +575,7 @@ export default function PresetPanel({
             )}
           />
         </Suspense>
+        </ChunkBoundary>
       );
     } else if (shape === "geo" && dimension) {
       chart = (

@@ -56,7 +56,7 @@ function prunePublicBuild() {
           if (reached.has(url)) return;
           reached.add(url);
           const source = readFileSync(join(root, url), "utf8");
-          for (const [, relative] of source.matchAll(/(?:from|import)\s*\(?\s*"(\.\/[^"]+\.js)"/g)) reach(`/_astro/${relative.slice(2)}`);
+          for (const [, relative] of source.matchAll(/(?:from|import)\s*\(?\s*["`'](\.\/[^"`']+\.js)["`']/g)) reach(`/_astro/${relative.slice(2)}`);
         };
         for (const file of readdirSync(root, { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith(".html")))
           for (const [, url] of readFileSync(join(root, file), "utf8").matchAll(/"(\/_astro\/[^"]+\.js)"/g)) reach(url);

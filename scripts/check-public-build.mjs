@@ -22,7 +22,7 @@ const reach = (url, from) => {
   if (!existsSync(join(root, url))) return void problems.push(`${from} names ${url}, which is not in the output`);
   reached.add(url);
   const source = readFileSync(join(root, url), "utf8");
-  for (const [, relative] of source.matchAll(/(?:from|import)\s*\(?\s*"(\.\/[^"]+\.js)"/g)) reach(`/_astro/${relative.slice(2)}`, url);
+  for (const [, relative] of source.matchAll(/(?:from|import)\s*\(?\s*["`'](\.\/[^"`']+\.js)["`']/g)) reach(`/_astro/${relative.slice(2)}`, url);
 };
 for (const file of readdirSync(root, { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith(".html")))
   for (const [, url] of readFileSync(join(root, file), "utf8").matchAll(/"(\/_astro\/[^"]+\.js)"/g)) reach(url, file);
