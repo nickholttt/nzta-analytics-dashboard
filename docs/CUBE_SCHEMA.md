@@ -54,6 +54,12 @@ Pipeline state lives outside `/public/data` and is committed to the repo:
 - `data/state/last_good.json`: the last successful run's change key, row
   counts, per-month counts, live dimensions and moving cutoff. Every
   guardrail that compares against "the previous run" reads this file.
+  `mild_split` keeps, for each built dataset that has a mild hybrid coverage
+  block, `published` (whether the split was published) and
+  `trailing_high_confidence_coverage` (the figure it was judged on, or null
+  when the window held no hybrid). A state written before it existed has no
+  `mild_split`, and so does a dataset first built since: the build compares
+  nothing and records it.
 
 The whole snapshot, one row per vehicle, is kept as well, but not here and
 not as part of this contract: it goes to a private store
@@ -753,6 +759,15 @@ is worse than one that is visibly stale.
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
+- A dataset's mild hybrid split is published now and was withheld in the last
+  good build, or the reverse (`mild_split` in the state). One build then
+  rewrites the dataset's whole history of the two values, in every slice, pair
+  and fact table, and no count moves; the warning names the dataset, the
+  direction, the trailing coverage at high confidence in both builds and what
+  changes. It is a warning and not an abort in both directions (D-110): a
+  withheld split is the safe direction, and stopping the run would keep last
+  month's split published while the build judges it unreliable, and would hold
+  back the new month with it.
 - Mild hybrid identification coverage over the trailing 12 months,
   counting high-confidence classifications only, is below 70%. A dataset below
   `publish_split_at_trailing_high_confidence_coverage` also withholds the mild

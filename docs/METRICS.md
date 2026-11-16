@@ -457,7 +457,11 @@ says `mild_split_published: false` beside the figure, and the build adds a
 warning; the other dataset is judged on its own figure. On the 2026-10
 snapshot both are above it (79.3% and 79.2%, after the rows below), so both
 publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
-same today) is a build warning for a dataset that still publishes. All-time mild hybrid
+same today) is a build warning for a dataset that still publishes. A dataset
+that crosses the threshold between one build and the next changes its whole
+history of the two values at once, so that build adds a warning naming the
+direction and both figures (`CUBE_SCHEMA.md`, Warnings; the margin on true
+registrations is 14,271 of 18,011 hybrids at high confidence on 2026-10). All-time mild hybrid
 history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
 vehicles) stay unresolved because sources disagree on them: never classify
 a contested nameplate to raise coverage.

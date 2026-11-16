@@ -3,6 +3,53 @@
 from __future__ import annotations
 
 
+def split_record(datasets: dict) -> dict[str, dict]:
+    """What the last good state keeps of each built dataset's mild hybrid split: whether it was published and the
+    trailing coverage at high confidence it was judged on. Datasets with no hybrid coverage block (a series, or one not
+    built) have no split to keep."""
+    out = {}
+    for dataset, entry in datasets.items():
+        block = entry.get("mild_hybrid_identification_coverage")
+        if block:
+            out[dataset] = {"published": block["mild_split_published"],
+                            "trailing_high_confidence_coverage": block["trailing"]["coverage_high_confidence_only"]}
+    return out
+
+
+def split_flips(cfg, current: dict[str, dict], previous: dict | None) -> list[str]:
+    """A warning for each dataset whose mild hybrid split is published now and was withheld in the last good build, or the
+    reverse. Either way the dataset's whole history of the two powertrain values is rewritten by one build, and nothing
+    else in the manifest says so. A state written before the record existed, or without this dataset, has nothing to
+    compare, and a record that is not in the shape written here is ignored the same way."""
+    h = cfg.pipeline["hybrid_classification"]
+    mild, undivided, threshold = h["mild_powertrain"], h["undivided_powertrain"], h["publish_split_at_trailing_high_confidence_coverage"]
+
+    def figure(record: dict) -> str:
+        coverage = record.get("trailing_high_confidence_coverage")
+        return "no hybrid in the window" if coverage is None else f"{coverage:.2%}"
+
+    warnings = []
+    for dataset, now in current.items():
+        before = ((previous or {}).get("mild_split") or {}).get(dataset)
+        if not isinstance(before, dict) or not isinstance(before.get("published"), bool) or before["published"] == now["published"]:
+            continue
+        move = (f"trailing coverage at high confidence was {figure(before)} in the last good build and is {figure(now)} now, "
+                f"against {threshold:.0%}")
+        if now["published"]:
+            warnings.append(
+                f"{dataset}: the mild hybrid split was withheld in the last good build and is published now ({move}). "
+                f"Every month of the dataset's history changes: {mild} reappears in every slice, pair and fact table and "
+                f"{undivided} falls by the same amount; no total moves, and any figure quoted from the earlier build "
+                "no longer matches")
+        else:
+            warnings.append(
+                f"{dataset}: the mild hybrid split was published in the last good build and is withheld now ({move}). "
+                f"Every month of the dataset's history changes: {mild} disappears from every slice, pair and fact table "
+                f"and {undivided} rises by the same amount; no total moves, and any figure quoted from the earlier build "
+                "no longer matches")
+    return warnings
+
+
 def compare(cfg, current: dict, previous: dict | None) -> tuple[list[str], list[str]]:
     g = cfg.pipeline["guardrails"]
     aborts: list[str] = []
@@ -42,6 +89,7 @@ def compare(cfg, current: dict, previous: dict | None) -> tuple[list[str], list[
             f"moving cutoff vehicle year changed from {before_cut['vehicle_year']} to {cut['vehicle_year']}: "
             "an import rule or the data changed"
         )
+    warnings += split_flips(cfg, current.get("mild_split", {}), previous)
     return aborts, warnings
 
 

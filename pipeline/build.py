@@ -409,6 +409,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
         "change_key": source["change_key"],
         "month_counts": month_counts,
         "moving_cutoff": moving,
+        "mild_split": guardrails.split_record(datasets),
     }
     compare_aborts, compare_warnings = guardrails.compare(cfg, current, state)
     aborts += compare_aborts
@@ -474,6 +475,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "live_dimensions": live_dimensions,
             "moving_cutoff": moving,
             "month_counts": month_counts,
+            "mild_split": current["mild_split"],
             "supplied_totals": supplied_totals,
             "supplied_files": supplied_files,
         })

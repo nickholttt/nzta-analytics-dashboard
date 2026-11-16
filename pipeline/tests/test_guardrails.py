@@ -13,7 +13,7 @@ from fractions import Fraction
 import duckdb
 import pytest
 
-from pipeline import build, derive, fetch, metrics, reference, schema
+from pipeline import build, derive, fetch, guardrails, metrics, reference, schema
 from pipeline.errors import GuardrailError
 
 from .conftest import NOW, load_rows, make_cfg, source_for, with_dimension_change, write_pages
@@ -608,6 +608,105 @@ def test_a_dataset_under_the_threshold_does_not_publish_the_mild_split_and_one_a
     assert any(w.startswith(f"{dataset}: ") and "the mild hybrid split is not published" in w for w in below["warnings"]), below["warnings"]
     # It says it once: the warning level does not add a second line for the same dataset.
     assert sum("mild hybrid identification coverage" in w and w.startswith(f"{dataset}: ") for w in below["warnings"]) == 1
+
+
+SPLIT_DATASET = "registrations_surviving"
+
+
+def split_flips(manifest: dict) -> list[str]:
+    return [w for w in manifest["warnings"] if w.startswith(f"{SPLIT_DATASET}: the mild hybrid split was ")]
+
+
+def built_with_threshold(tmp_path, workspace, threshold: float, state, name: str):
+    """One build of the fixture register with the split's threshold at `threshold`: 0 publishes it, 1 withholds it."""
+    cfg = make_cfg(workspace)
+    cfg.pipeline["hybrid_classification"]["publish_split_at_trailing_high_confidence_coverage"] = threshold
+    manifest = run(tmp_path, cfg, load_rows(), state=state, name=name)
+    return cfg, manifest, json.loads(workspace["state"].read_text(encoding="utf-8"))
+
+
+def test_a_build_that_withholds_a_split_the_last_good_state_published_says_so_and_still_publishes(tmp_path, workspace):
+    cfg, _, state = built_with_threshold(tmp_path, workspace, 0.0, None, "published")
+    h = cfg.pipeline["hybrid_classification"]
+    assert state["mild_split"][SPLIT_DATASET]["published"] is True
+    before = state["mild_split"][SPLIT_DATASET]["trailing_high_confidence_coverage"]
+    assert before is not None
+    assert h["mild_powertrain"] in split_values(workspace)["slice"]
+
+    _, manifest, new_state = built_with_threshold(tmp_path, workspace, 1.0, state, "withheld")
+    (warning,) = split_flips(manifest)
+    # It names the dataset, the direction, both figures and what changes for a reader; the standing warning is still there.
+    assert "was published in the last good build and is withheld now" in warning
+    assert warning.count(f"{before:.2%}") == 2, "both coverage figures are named (the same here: only the threshold moved)"
+    assert f"against {1.0:.0%}" in warning
+    assert f"{h['mild_powertrain']} disappears" in warning and f"{h['undivided_powertrain']} rises" in warning
+    assert any("the mild hybrid split is not published" in w for w in manifest["warnings"])
+    # Withholding is the safe direction, so the run publishes: the cube and the state both move to the withheld split.
+    assert h["mild_powertrain"] not in split_values(workspace)["slice"]
+    assert new_state["mild_split"][SPLIT_DATASET]["published"] is False
+
+
+def test_a_build_that_publishes_a_split_the_last_good_state_withheld_says_so(tmp_path, workspace):
+    cfg, _, state = built_with_threshold(tmp_path, workspace, 1.0, None, "withheld")
+    h = cfg.pipeline["hybrid_classification"]
+    assert state["mild_split"][SPLIT_DATASET]["published"] is False
+
+    _, manifest, new_state = built_with_threshold(tmp_path, workspace, 0.0, state, "published")
+    (warning,) = split_flips(manifest)
+    assert "was withheld in the last good build and is published now" in warning
+    assert f"{h['mild_powertrain']} reappears" in warning and f"{h['undivided_powertrain']} falls" in warning
+    assert h["mild_powertrain"] in split_values(workspace)["slice"]
+    assert new_state["mild_split"][SPLIT_DATASET]["published"] is True
+
+
+@pytest.mark.parametrize("threshold", [0.0, 1.0])
+def test_a_build_that_keeps_the_split_as_it_was_adds_no_flip_warning(tmp_path, workspace, threshold):
+    _, _, state = built_with_threshold(tmp_path, workspace, threshold, None, "first")
+    _, manifest, _ = built_with_threshold(tmp_path, workspace, threshold, state, "second")
+    assert split_flips(manifest) == []
+
+
+def test_the_first_build_has_nothing_to_compare_and_records_the_split(tmp_path, workspace):
+    _, manifest, state = built_with_threshold(tmp_path, workspace, 1.0, None, "first")
+    assert split_flips(manifest) == []
+    assert state["mild_split"] == {SPLIT_DATASET: {
+        "published": False,
+        "trailing_high_confidence_coverage": manifest["datasets"][SPLIT_DATASET]["mild_hybrid_identification_coverage"]
+        ["trailing"]["coverage_high_confidence_only"]}}
+
+
+@pytest.mark.parametrize("old", ["absent", "not_a_record", "no_flag"])
+def test_a_state_written_before_the_record_is_read_safely_and_the_next_one_has_it(tmp_path, workspace, old):
+    _, _, state = built_with_threshold(tmp_path, workspace, 0.0, None, "first")
+    if old == "absent":
+        del state["mild_split"]
+    elif old == "not_a_record":
+        state["mild_split"] = {SPLIT_DATASET: "published"}
+    else:
+        state["mild_split"] = {SPLIT_DATASET: {"trailing_high_confidence_coverage": 0.5}}
+    _, manifest, new_state = built_with_threshold(tmp_path, workspace, 1.0, state, "second")
+    assert split_flips(manifest) == []
+    assert new_state["mild_split"][SPLIT_DATASET]["published"] is False
+
+
+def test_a_flip_names_both_figures_and_a_window_with_no_hybrid():
+    cfg = make_cfg({})
+    h = cfg.pipeline["hybrid_classification"]
+    record = lambda published, coverage: {"published": published, "trailing_high_confidence_coverage": coverage}
+    previous = {"mild_split": {"a": record(True, 0.7312), "b": record(False, None), "c": record(True, 0.8)}}
+    current = {"a": record(False, 0.6901), "b": record(True, 0.7), "c": record(True, 0.8), "d": record(False, 0.1)}
+    found = {w.split(":")[0]: w for w in guardrails.split_flips(cfg, current, previous)}
+    assert sorted(found) == ["a", "b"], "c did not change and d is new"
+    assert "73.12%" in found["a"] and "69.01%" in found["a"] and "disappears" in found["a"]
+    assert "no hybrid in the window" in found["b"] and "70.00%" in found["b"] and "reappears" in found["b"]
+    assert guardrails.split_flips(cfg, current, None) == []
+    assert f"against {h['publish_split_at_trailing_high_confidence_coverage']:.0%}" in found["a"]
+
+
+def test_only_datasets_with_a_hybrid_coverage_block_have_a_split_to_remember():
+    block = {"mild_split_published": True, "trailing": {"coverage_high_confidence_only": 0.8}}
+    datasets = {"built": {"mild_hybrid_identification_coverage": block}, "waiting": {"not_built": "no store"}, "series": {"rows": 3}}
+    assert guardrails.split_record(datasets) == {"built": {"published": True, "trailing_high_confidence_coverage": 0.8}}
 
 
 def test_a_window_with_no_hybrid_to_divide_is_not_withheld():
