@@ -1221,11 +1221,13 @@ segment, package I, each needing its forms of nothing first); `SUBMODEL` (never 
 
 Notes for the work that follows. None of it is done here.
 
-- **The chart rule table** (package E). Read each field's `kind` and `cardinality` from
-  `config/data_map.json`, and `cardinality.few_max_values` for the threshold; never a per-field list
-  of charts. A number becomes an ordered band through its dimension's `bands`. Two fields crossed,
-  neither of them time, fit `matrix` (D-083). A table of figures always fits. A field whose
-  `uses.break_down` is false is never offered as a breakdown.
+- **The chart rule table** (package E; built, D-100: `config/chart_rules.json`). It speaks of the data map's
+  kinds and never of a field. A dimension in `config/dimensions.json` states its own `kind` and
+  `cardinality`, and a test holds each to this map where the dimension is a plain binding of one
+  field; a number becomes an ordered band through its dimension's `bands`. Two fields crossed,
+  neither of them time, fit `matrix` (D-083), which has no renderer yet. A table of figures always
+  fits. Still to do: a field whose `uses.break_down` is false is never offered as a breakdown (Build
+  offers only what `config/dimensions.json` defines today).
 - **Build reading the map.** Offer a field only if it is bound, its dimension is live, its privacy
   class is published (`privacy_classes.<class>.published`), and its `uses` allow it. Narrow a
   question to `recorded_for` and say so. The method page's definition line is `definition`.

@@ -1,0 +1,76 @@
+{
+  "$comment": "Which of the six shapes fit a question, best first (D-100). Rules are read from the top and the first whose `when` matches gives the answer; a fact a rule leaves out can be anything; the last rule matches every question. The first shape is drawn and the visitor may switch to the others. A shape with no renderer is never offered (RENDERED_SHAPES, src/lib/resolve.ts). A rule names kinds and counts only, never a field, measure or value (tests/site/shapes.test.ts). How to add one: docs/playbooks/change-preset.md.",
+  "shapes": ["mix", "trend", "league", "distribution", "geo", "matrix"],
+  "facts": {
+    "measure": ["count", "share", "average", "ratio"],
+    "by": ["none", "category", "ordered_band", "number", "time", "place", "identifier", "free_text"],
+    "values": ["none", "few", "some", "many"],
+    "span": ["over_time", "one_period"],
+    "picked": ["none", "one", "several"],
+    "crossed_with": ["none", "category", "ordered_band", "number", "time", "place", "identifier", "free_text"]
+  },
+  "$facts_comment": "measure: from the kind of the measure (config/measures.json): a count is a number of vehicles; a share is one part of a whole, with one figure for each value of the breakdown and the figures together making the whole; an average is a typical value of a field; a ratio is one figure set against another that is not part of such a whole (a change on a year ago, the share still registered, the combined share of the largest few, which is one figure for the group and not a share of each value). by: from the kind of the dimension (config/dimensions.json), in the data map's words; none when there is no breakdown. values: from the dimension's cardinality through value_classes. span: one_period is a window of at most defaults.trailing_window_months (config/presets.json). picked: how many values the visitor chose. crossed_with: the kind of a second field crossed with the first (a preset's cross), none when it crosses nothing.",
+  "value_classes": {
+    "low": "few",
+    "medium": "some",
+    "high": "many",
+    "very_high": "many"
+  },
+  "$value_classes_comment": "A dimension's own judgement of its list of values, recorded as its cardinality in config/dimensions.json: few is a short list, many is a list long enough to rank, some is in between and is not ranked. It is not a count of values and is not checked against one: a dimension marked low can have more than cardinality.few_max_values (config/data_map.json) values (one ordered band has 23), and D-050 ranks one list of about 44 values and not another of 46. Only the rule named ranking reads it.",
+  "needs_breakdown": ["share"],
+  "$needs_breakdown_comment": "Kinds of measure that mean nothing for all vehicles together: a share of the whole is always the whole.",
+  "rules": [
+    {
+      "id": "crossed",
+      "when": {
+        "by": ["category", "ordered_band", "number", "place"],
+        "crossed_with": ["category", "ordered_band", "number", "place"],
+        "span": "one_period"
+      },
+      "shapes": ["matrix"],
+      "note": "Two fields crossed, neither of them time, and looked at in one window: a grid with a shaded figure in each cell (D-083). Crossed over time the figures are a line for each combination, so the question falls through to the rules below."
+    },
+    {
+      "id": "share_by_place",
+      "when": { "measure": "share", "by": "place" },
+      "shapes": ["geo", "mix"],
+      "note": "A share by a place is a map; the same share over time is lines."
+    },
+    {
+      "id": "share_by_band",
+      "when": {
+        "measure": "share",
+        "by": ["ordered_band", "number"]
+      },
+      "shapes": ["distribution", "mix"],
+      "note": "A share by an ordered band is a distribution; the same share over time is lines."
+    },
+    {
+      "id": "ranking",
+      "when": {
+        "measure": ["count", "share"],
+        "by": "category",
+        "values": "many",
+        "span": "one_period",
+        "picked": "none"
+      },
+      "shapes": ["league"],
+      "note": "One window, a long list, and no values chosen: a ranking. Values the visitor chose are never ranked, since a ranking of a few picked values would read as their place in the market (D-061)."
+    },
+    {
+      "id": "share_by_category",
+      "when": {
+        "measure": "share",
+        "by": "category"
+      },
+      "shapes": ["mix"],
+      "note": "Parts of a whole, over time."
+    },
+    {
+      "id": "anything",
+      "when": {},
+      "shapes": ["trend"],
+      "note": "Every remaining question is a line over time: a count, an average or a ratio, in total or for each value."
+    }
+  ]
+}

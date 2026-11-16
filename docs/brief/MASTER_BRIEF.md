@@ -241,8 +241,8 @@ No field lists its own charts. A list per field would be 40 lists to keep right,
 say what fits when two fields meet. One rule table in config decides it for every field at once,
 now and for fields not yet added.
 
-**What the map records per field** (it already has a seed: `shape_hint` and `cardinality` in
-`config/dimensions.json`):
+**What the map records per field** (since D-100 each dimension in
+`config/dimensions.json` states its `kind` and `cardinality`; the table is `config/chart_rules.json`):
 
 | Property | Values | Example |
 |---|---|---|

@@ -3551,3 +3551,218 @@ New entries use this template:
   - `/method` gained two sections, written by hand like the rest of the page (the narrative engine will take them over).
   - Reversing it: remove the `long-run` group, the preset `registrations-completeness-by-type` and the derived measure from config; the code then draws nothing new. The resolver's treatment of a missing entry is independent and can stay.
 - Status: decided by Claude (unreviewed)
+
+## D-100 2026-11-16 — The chart rules: one table in config says which shapes fit a question, and Build and the resolver read it
+- Agent: claude
+- Basis: the work order §5.E ("one rule table in config that returns the shapes that fit a question, best first"; "Build's
+  shape choice reads the rule table"); CLAUDE.md, Shapes; D-059, D-061, D-050, D-083, D-090; the code on
+  `claude/chart-rules`; the site tests, 30 passed; the pipeline tests that read `config/dimensions.json` and
+  `config/measures.json`, 239 passed, and `test_golden.py`, 5 passed; headless checks of the Build, Explore and status pages on 2026-11-16.
+- Context: the choice of shape was scattered. `inferShape` read a `shape_hint` on each dimension, a `shape` on each
+  measure, a preset's `shape_override` and the dimension's cardinality; `viewsFor` hardcoded which alternatives a
+  visitor may switch to; `allowsTotal` read the measure's `shape` a third time. A dimension or a measure listing its own
+  chart is what CLAUDE.md forbids.
+- Options considered:
+  1. **The table's form.** (a) First matching rule wins, and returns the whole ordered answer. (b) Every matching rule
+     adds its shapes, in rule order. Chosen (a): the order of the rules is the whole logic, a reader gets the answer
+     from one row, and a catch-all as the last row cannot add a shape to a question that has a better one. With (b) the
+     catch-all would have offered a line chart beside a map.
+  2. **Its facts.** Six, all generic: the kind of measure (count, share, average, ratio), the kind of the field the
+     question breaks down by (the data map's words) and how many values it has (few, some, many), one window or over
+     time, how many values the visitor picked (none, one, several), and the kind of a second field crossed with the first.
+     A rule names no field, measure, dataset, reference value or period; a test fails if one does.
+  3. **Where a dimension's kind comes from.** (a) Read the data map by field. Not possible alone: a dimension is often a
+     lookup or a band over one or more fields (a powertrain is a lookup over motive power, a vehicle age a band over a
+     year), the map describes register fields, and several dimensions read none (Stats NZ's series). (b) A `kind` the
+     dimension states about itself in `config/dimensions.json`, in the map's words, with a test against the map where
+     the dimension is a plain binding of one field (a raw field or a lookup on one: its kind must match; a field the map
+     calls few must be `low`; a raw field the map calls many must not be; a band must be cut from a number or a year).
+     Chosen (b). A dimension says what it is (a category, an ordered band, a place), never which chart it gets.
+  4. **Few or many.** (a) The data map's two classes (at most 8 values, or more). (b) The manifest's actual count of
+     values, where the build has it. (c) The dimension's own `cardinality`, already in config, with the table's
+     `value_classes` mapping it to few, some or many. Chosen (c). It is the dimension's own recorded judgement of whether
+     its list is ranked, not a count and not checked against one: six dimensions marked low have more than the data map's 8
+     values (measured at review: 23, 15, 12, 10, 10 and 9), and D-050 ranks manufacturer group (44) and not the country a
+     vehicle was built in (46), so (a) would turn that country into a ranking and (b) would need the manifest in the
+     browser before any shape can be chosen. `some` is the class for what is
+     more than a palette's worth and is not ranked. Nothing is renamed: `composition.ts` reads the same key.
+  5. **Measure kinds.** The measure states a `kind` (`count`, `share`, `average` or `ratio`), as the dimension does. A
+     change on a year ago, a combined share and the share still registered are ratios; the running total is a count.
+  6. **A pin.** `shape_override` stays, and the resolver now reports a preset that pins a shape the table does not
+     list for its question as `invalid`, which stops it drawing. Build still pins a count by a breakdown to lines
+     (D-061), which fits.
+  7. **Whether a count by a breakdown should follow the table too.** It would rank, for one window with no values chosen,
+     as the Explore preset for models does, and Build would offer a 12-month ranking of a count by brand for the moments
+     before its five starting values arrive. Not chosen: D-060 and D-061 say a count by a breakdown is lines. Reversing
+     it is deleting the pin in `presetFor`.
+  8. **`shape_hint` and the measure's `shape`.** Removed. The pipeline never reads either: no `.py` file names them, no
+     test does, and `pipeline/tests/golden/contract.json` has neither, so the cube's output contract is untouched.
+- Decision: as chosen above. `config/chart_rules.json` holds the six shapes, the facts and their words, `value_classes`,
+  `needs_breakdown` (the kinds of measure that mean nothing for all vehicles together, which is how Build decides
+  whether to offer "no breakdown") and six rules, in order: two fields crossed (a matrix); a share by a place (a map,
+  then lines); a share by an ordered band (a distribution, then lines); one window of a long list with nothing picked,
+  asked as a count or a share (a ranking); a share by a category (lines of shares); anything else (a line).
+  `src/lib/shapes.ts` reads it. `inferShape` takes the first shape that fits and has a renderer; `viewsFor` is the
+  shapes that fit and have a renderer, or none when there is one. `RENDERED_SHAPES` stays in `src/lib/resolve.ts`,
+  exported, as the one place that knows which shapes have a renderer; the table may name `matrix` and it is never
+  offered. A table of the figures is not a rule: every renderer already gives one (a disclosure on the trend and the
+  distribution, a key table by the lines and the map, the ranking as a table), and a test reads each renderer's source
+  for it.
+- Compared before and after (`tests/site/fixtures/shape-defaults.json`, run by `tests/site/shape-defaults.test.ts`
+  against the site's real modules): all 13 presets in the canon, 15 views counting the choice of brand or group and of
+  brand or model, each at its own period and at all six periods, with the periods that turn it into a ranking (120
+  figures); and every question the Build page can form, 123 (each measure, each breakdown it offers, and no breakdown
+  for a count, with no values chosen, one and two), each with the shapes it may be switched between (21 offer a switch)
+  and what each is drawn as (288 figures). **No difference.** The fixture was written from the code before the change.
+- Differences that no visitor can reach, listed because the table is not the old code line for line:
+  - A count or an average by a place or an ordered band is a line, not a map or a distribution (the table lists the map
+    and the distribution for a share only, because they draw shares only, D-061). No preset and no Build question
+    asked it: Build pinned counts to lines.
+  - A ranking is for a count or a share, with nothing picked. Before, any measure by a long list over one window ranked,
+    and a question with picked values could. Only a ratio (the combined share) was affected, and its preset pins a line.
+  - A share with no breakdown is a line, not lines of shares. It is not offered (`needs_breakdown`) and no preset asks it.
+  - A preset or a view that pins a shape the table does not list is now `invalid`. None does today: a test walks the
+    canon and every Build question and finds each pin in the table at every period the time row can offer (3 years, 5
+    years, 10 years, all time, the chart's own period and the periods that rank it). It does not hold at the 12-month and
+    1-month periods for a count pinned to lines with nothing picked: there the table gives a ranking, and the pin would be
+    reported invalid. The time row never offers those periods to such a count, so it cannot be reached.
+- Measured, at 390 and 1280 px against a preview of the 2026-10 dry-run cube, before and after: the Build page for a
+  share by a place (map and lines both drawn), a share by an ordered band (bars and lines both drawn), a share by brand
+  (and its 12-month ranking), the same for true registrations, a count of two brands, and the share of the five largest,
+  and the Explore and status pages: the same radio buttons, the same time options, every chart drawn, no console error,
+  no sideways scroll, no axe violation (WCAG 2.1 A and AA), on both builds. JavaScript the Build page loads: 817,868 to
+  821,655 bytes (+3,787); all of the site's JavaScript, 820,573 to 824,360 bytes raw (+0.46%) and 302,732 to 304,213
+  gzipped (+1,481), because the table ships to the browser. Nothing else a visitor downloads changed.
+- Amended after the independent review of #62, which found five things true and the rest to say plainly:
+  1. **A live preset crosses two fields** (`registrations-completeness-by-type`: vehicle type crossed with new or used,
+     a line for each combination over time), and the facts had always said nothing was crossed. `crossed_with` is now the
+     kind of the preset's `cross`; the `crossed` rule fires only for one window, so a crossing over time stays a line
+     (a test holds that preset to `trend`, live). Two figures change as a result: that preset at 12 months and at 1 month
+     now fits only a grid, has no renderer, and resolves `blocked`, where it had resolved a line. The time row does not
+     offer those periods to it.
+  2. **What "few" means.** The first text said a few is at most the data map's threshold. That is false for six
+     dimensions (option 4). The classes are the dimension's judgement of whether its list is ranked; the comments in
+     `config/chart_rules.json` and the playbook say so. No `cardinality` was changed: other code reads `low`.
+  3. **Vocabulary.** A share is one part of a whole with a figure for each value of the breakdown; a ratio is one figure set
+     against another that is not part of such a whole (a change on a year ago, the share still registered, the combined
+     share of the largest few, which is one figure for the group, not a share of each value). A breakdown of kind `free_text`
+     or `identifier` currently falls to a line; the data map forbids such a field as a breakdown, and a test holds that no
+     dimension Build offers or a preset uses is either.
+  4. **Kinds.** A test ties the table's `by` and `crossed_with` words to the data map's kinds, and checks each dimension's
+     kind against how it is derived (a brand, a model or a range lookup is a category; a band is an ordered band; a place is
+     a lookup). The nine kinds no field-by-field check reaches were read by hand: `make`, `parent_group`, `owner_country`,
+     `heritage_country`, `model` and `car_origin` (a category: unordered names, two values for the last), `segment` (a
+     category: car, ute, van, truck and the like), `car_engine_band` (ordered: seven engine-size bands) and `segment_group`
+     (a category, with some doubt: light passenger, light commercial, heavy commercial and other run from light to heavy in
+     part, but passenger against commercial is not an order).
+  5. **The fixture** now records the resolver's verdict (live, blocked or invalid) beside each shape, and covers every
+     dataset Build offers, not only the default. It was regenerated: 296 existing figures gained only their verdict, 2
+     changed (item 1), 142 were unchanged (the ranking periods and the switches), and 288 were added (Build on the other two
+     datasets). The verdicts are given by a build in which every dimension is live, so they show the resolver's own
+     judgement, not a build's coverage: 16 are blocked, for the two presets that were already (a distribution drawn year
+     by year, which nothing draws, and cohort survival, whose dataset is not built) and for item 1's two.
+- Items for the owner's ruling, deviations from what CLAUDE.md says:
+  - (a) CLAUDE.md says the table reads "how many values it has". It reads the dimension's own `cardinality` judgement
+    instead. For the ranking decision that is still a field deciding its chart under another key. It was kept so that
+    nothing a visitor sees changes (D-050 ranks one long list and not another of about the same length).
+  - (b) CLAUDE.md's Shapes table triggers `geo` on a region and `distribution` on an ordered band whatever the measure.
+    The table gives a count by a place, and an average by an ordered band, a line only, because the map and the
+    distribution draw shares only (D-061): a renderer limit written as a fit rule. When they learn to draw counts, the rule
+    is one row.
+- Consequences:
+  - A new shape fit, or a new kind of field, is a row in `config/chart_rules.json` and a `kind` on a dimension. A new
+    dimension needs its `kind` and `cardinality`, and a test fails without them.
+  - `matrix` is offered the day it has a renderer: add it to `RENDERED_SHAPES`. The `crossed` rule fires for a crossing
+    looked at in one window; a crossing over time (the preset that crosses vehicle type with new or used) is a line for each
+    combination and stays a line. Build has no second breakdown, so its questions never fire it until it does.
+  - The tests run the site's real modules under Node through a loader in `tests/site/support/` that adds extensions, JSON
+    import attributes and `import.meta.env`, and strips TypeScript with `module.stripTypeScriptTypes`, which Node marks
+    experimental (Node 22.19 here). A Node that drops it needs the loader changed, nothing else.
+  - Reversing it: restore `shape_hint` and `shape` in the two config files and the old `inferShape` and `viewsFor` from
+    git; delete `config/chart_rules.json` and `src/lib/shapes.ts`. The cube, the golden file and the pipeline do not change.
+- Status: decided by Claude (unreviewed)
+
+## D-101 2026-11-16 — Pull requests also run the site's tests, its typecheck and the query service prototype's tests
+- Agent: claude
+- Basis: the work order §5.E's last item (the site's tests in CI); D-048 (the pipeline's checks), D-056, D-057 (the deploy
+  workflow's Node setup and cube download), D-091 (the query service prototype), D-100 (the site tests this runs);
+  `.github/workflows/checks.yml`; local runs of each step in a clean copy of the branch with no `.astro` and no
+  `public/data`, on 2026-11-16. Nothing was run on GitHub: the workflow's syntax was checked with js-yaml and the
+  workflow test, `pipeline/tests/test_workflow.py`, passes.
+- Context: `checks.yml` ran only `pipeline/tests`. The site's tests (`tests/site/`), the typecheck and the query service
+  prototype's tests were run by hand, so a change to the site reached `main` untested on Linux.
+- Options considered:
+  1. **Where the site's steps run.** (a) A second job in `checks.yml` that needs only Node: chosen. It runs beside the
+     pipeline job, so a pull request waits for the longer of the two, not their sum. (b) Steps in the pipeline job: no
+     second runner to start, but the job would wait for the pipeline's tests, which run for several minutes, before it
+     said anything about the site.
+  2. **The order for the typecheck.** The check needs the types Astro writes. (a) `astro build` first: also needs a
+     cube, and is the slowest step. (b) A hand-written `env.d.ts` for `import.meta.env`: a file to keep true. (c) `astro
+     sync`, which writes `.astro/types.d.ts` and nothing else, with no cube: chosen. Without it the check fails on
+     `import.meta.env` in two files (measured: two errors); with it, none.
+  3. **TypeScript.** It is not a dependency of the site (AGENTS.md). (a) `npx -y -p typescript` as the docs run it: it
+     would fetch whichever version is newest on the day, so a new release could fail a pull request that changed
+     nothing. (b) Add it as a dev dependency: a new dependency, so a decision for the user, and a lockfile change. (c)
+     The same `npx` pinned to the version this was written against, 7.0.2: chosen. Moving it is one line.
+  4. **The query service prototype's tests.** They answer from a built cube and skip all 59 tests without one, which
+     would pass a run that tested nothing. (a) Skip them in CI. (b) Build the fixture cube the golden test builds: heavy.
+     (c) Download the newest published cube release, as `deploy.yml` does (3,110,970 bytes), and fail if there is none:
+     chosen. The step also fails if the release has no fact table (`public/data/facts`), which the tests skip without, and if
+     the summary of the run says any test skipped (found on review: a release without `facts/` would have passed with all 59
+     skipped). Each failure was run locally: with the fact table, 59 passed; with it moved away, exit 1; with one test marked
+     skipped, "58 passed, 1 skipped" and exit 1. Against that cube, with only `pipeline/requirements.txt` installed, all 59 pass. They are a step of the
+     pipeline job, not of the new one, because that job already has Python and DuckDB, so the site job needs neither.
+  5. **When they run.** On every pull request, as the pipeline's do. Path filters would keep a docs-only pull request
+     from running them but would also hide the checks from a branch protection rule that requires them. Not chosen.
+  6. **Actions.** `actions/checkout@v7`, `actions/setup-node@v7`, Node 22, npm cached, `npm ci --ignore-scripts`, each as
+     `deploy.yml` has them; no new action. The new job has no write permission and keeps no token in the checkout.
+- Decision: as chosen above.
+- Cost, from local runs of each step in a clean copy (this computer, not a runner; the runner's start, checkout, and
+  cache restore are not measured): `npm ci` 11.9 s, `astro sync` 8.9 s, the typecheck 3.3 s, the site's 30 tests 1.0 s:
+  about 25 s of work in the new job. The prototype's step adds 1.4 s to download the cube and 19 to 20 s to test:
+  about 22 s on the pipeline job. A repository that is public runs on GitHub's standard runners at no charge
+  (D-048; inferred, confirm); otherwise a push is about one billed minute for the new job and up to one more on the pipeline job, since each job rounds up to
+  whole minutes. A new push cancels the earlier run (`concurrency`).
+- Consequences:
+  - A change to the site that breaks the typecheck, a site test or the shape defaults (D-100) fails the pull request.
+  - The prototype's tests run against the newest cube release, not the cube the branch would build. A change to the
+    cube's contract and to the service in one pull request can fail them until the next release carries the change.
+  - If branch protection lists required checks, `site-tests` is a new name to add. (Not known from here.)
+  - Reversing it: delete the `site-tests` job and the prototype step from `checks.yml`.
+- Amended at the second review of #62: the step that runs the prototype's tests pipes their output to `tee`, and a
+  workflow step's default shell has no `pipefail`, so a failing test passed the step. The step now names
+  `shell: bash` and sets `pipefail`.
+- Status: decided by Claude (unreviewed)
+
+## D-104 2026-11-16 — The user's direction: the engine comes first and must be right; the public site waits; figures are checked against outside sources
+- Agent: user (the direction), claude (the record, and the reading marked as claude's)
+- Basis: two messages from the user on 2026-11-16, during the ninth session. The first asked for a plain status:
+  what is built, how ready the public site is, whether the figures match published articles and sites, and whether
+  vehicles are segmented as the trade's published classifications do. The second, in the user's words: "keep working
+  on the engine, it needs to be flawless, the public can wait. We have one shot to be trusted and used by the
+  masses so dont skim out on making it right. Make sure you refernce things online about the nz market if things
+  arent looking right or you havent probed a specific metric as the nz market is complex and a tangled behavioural
+  change mess".
+- Context: claude had offered to swap the work order's packages F (the full engine) and H (the home page, the words,
+  the topic pages) to reach a public site sooner. No comparison of the site's figures with figures published
+  elsewhere had been made: CLAUDE.md lists matching the MIA's figures as a non-goal ("different basis — say so,
+  don't chase it"), and that had been read as a reason not to look.
+- Decision (user):
+  1. The order of the work order stands: the engine before the public-facing packages. Going public can wait.
+  2. Correctness is not traded for speed. The engine is to be right before it is seen.
+  3. Where a figure looks wrong, or a measure has not been probed, published sources about the New Zealand market
+     are consulted.
+- How it is carried out (claude's reading, unreviewed):
+  1. **An audit of the engine**: every measure Build can answer is recomputed from the register's rows by a checker
+     that has not seen the site's code, and compared with what the site shows. What differs is a bug until shown
+     otherwise.
+  2. **A comparison with published figures** (the MIA's monthly figures, the Ministry of Transport's, the used
+     import trade's, published counts of electric vehicles): ours, theirs, the gap, and whether its cause is
+     established, likely or unexplained. This is not chasing a match, which stays a non-goal: a gap is measured and
+     explained, never closed by adjusting a figure. What it finds goes to `/differences` and `docs/METRICS.md`.
+  3. **Each field bound in package F** is checked against the data and against what is published about how it is
+     recorded before Build offers it.
+  4. NZTA's own website still blocks automated readers and is not worked around (the order's §3).
+- Consequences: package F is next after the pieces in review; H's and I's first pieces, already begun (D-102,
+  D-103), are finished as specifications and proposals, and their building follows F. The offer to swap is withdrawn.
+- Status: accepted (the user's direction); the reading of how to carry it out is decided by Claude (unreviewed)

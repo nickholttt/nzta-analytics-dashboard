@@ -1,20 +1,20 @@
 {
-  "$comment": "Four measures. Resist adding a fifth. Full definitions in docs/METRICS.md.",
+  "$comment": "Four measures. Resist adding a fifth. Full definitions in docs/METRICS.md. Every measure states its kind (count, share, average or ratio); the chart rules read it (config/chart_rules.json).",
   "measures": [
     {
       "id": "count",
       "label": "the number",
       "unit": "vehicles",
+      "kind": "count",
       "formula": "SUM(n)",
-      "shape": "trend",
       "help": "A straight count of vehicles."
     },
     {
       "id": "share",
       "label": "the share",
       "unit": "percent",
+      "kind": "share",
       "formula": "SUM(n) / SUM(n) OVER (PARTITION BY month)",
-      "shape": "mix",
       "help": "This group as a percentage of the total for the same month.",
       "guards": {
         "$comment": "Two guards, against two different failures. They are not redundant: see docs/METRICS.md, Two suppression guards.",
@@ -28,8 +28,8 @@
       "id": "yoy",
       "label": "the change on a year ago",
       "unit": "percent",
+      "kind": "ratio",
       "formula": "(SUM(n) - LAG(SUM(n), 12)) / LAG(SUM(n), 12)",
-      "shape": "trend",
       "help": "Compared with the same month last year. Avoids seasonal distortion.",
       "guards": {
         "min_denominator": 50
@@ -39,8 +39,8 @@
       "id": "rolling_12m",
       "label": "the 12-month running total",
       "unit": "vehicles",
+      "kind": "count",
       "formula": "SUM(n) OVER (ORDER BY month ROWS BETWEEN 11 PRECEDING AND CURRENT ROW)",
-      "shape": "trend",
       "help": "Smooths out the March financial-year peak and rental fleet buying.",
       "default_for": [
         "volume_presets"
@@ -58,7 +58,7 @@
       "label": "the combined share of the largest few",
       "formula": "SUM(n) OVER (top top_n dim_value by n in the month) / SUM(n) OVER (PARTITION BY month)",
       "unit": "percent",
-      "shape": "trend",
+      "kind": "ratio",
       "top_n": 5,
       "$top_n_comment": "How many values make up the line. The renderer reads it from here; the id keeps the 5 because changing the count changes the measure.",
       "note": "Membership is recomputed every month, so the line measures concentration rather than the fortunes of a fixed five. Reserved tokens never take a place: no reference match is not a brand.",
@@ -73,7 +73,7 @@
       "label": "the share of registrations still on the register",
       "formula": "n(numerator_dataset) / n(denominator_dataset), for the same month and value",
       "unit": "percent",
-      "shape": "trend",
+      "kind": "ratio",
       "numerator_dataset": "registrations_surviving",
       "denominator_dataset": "registrations_flow",
       "total_label": "All vehicles",
@@ -93,7 +93,7 @@
       "label": "the share of cars first registered that are still registered",
       "formula": "n(numerator_dataset narrowed to numerator_narrowed_to) / n(denominator_dataset), for the same month and value",
       "unit": "percent",
-      "shape": "trend",
+      "kind": "ratio",
       "numerator_dataset": "registrations_surviving",
       "numerator_dimension": "import_status",
       "numerator_narrowed_to": { "dimension": "vehicle_type", "values": ["Passenger cars and vans"] },
@@ -120,7 +120,7 @@
       "label": "the share still on the road",
       "formula": "survivors(C, t) / survivors(C, t0)",
       "unit": "percent",
-      "shape": "trend",
+      "kind": "ratio",
       "applies_to": [
         "fleet"
       ],
@@ -132,6 +132,7 @@
       "label": "the average age of the fleet",
       "formula": "MEAN(snapshot_year - vehicle_year), volume-weighted",
       "unit": "years",
+      "kind": "average",
       "applies_to": [
         "fleet"
       ],
@@ -142,6 +143,7 @@
       "label": "registrations per 1,000 residents",
       "formula": "SUM(n) / (population / 1000)",
       "unit": "vehicles per 1,000 residents",
+      "kind": "ratio",
       "requires_reference": "population.csv",
       "note": "Stats NZ subnational population estimates, a separate reference file with its own vintage. Label the estimate year on the chart."
     },
@@ -153,6 +155,7 @@
         "used_imports"
       ],
       "unit": "years",
+      "kind": "average",
       "rolling": "12m",
       "note": "Used imports only. NZ-new age at registration is 0 by construction from 2007, so including NZ-new vehicles would restate the new/used mix, not measure age. vehicle_year is a year not a date, so this carries up to +/-1 year of granularity error. Never report to a decimal."
     },
@@ -161,6 +164,7 @@
       "label": "the used-import lag",
       "formula": "used_first_seen(make,model) - nz_new_launch(make,model)",
       "unit": "years",
+      "kind": "average",
       "note": "Years between a model going on sale new in NZ and first appearing as a used import."
     },
     {
@@ -168,6 +172,7 @@
       "label": "the average fuel consumption",
       "formula": "SUM(fc_sum) / SUM(fc_n)",
       "unit": "L/100km",
+      "kind": "average",
       "guards": {
         "min_coverage": 0.7,
         "coverage_formula": "SUM(fc_n) / SUM(fc_eligible_n)"

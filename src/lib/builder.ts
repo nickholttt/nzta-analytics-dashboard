@@ -7,7 +7,8 @@ import type { BuilderMeasure, Preset } from "./config";
 import { isBuilt } from "./data";
 import type { Manifest } from "./data";
 import { monthLabel } from "./measures";
-import { inferShape, resolvePreset } from "./resolve";
+import { drawnShapes, inferShape, questionFacts, resolvePreset } from "./resolve";
+import { needsBreakdown } from "./shapes";
 
 export type Question = {
   // What is counted: a dataset id from builderSpec.datasets.
@@ -62,15 +63,15 @@ export function questionText(q: Question, measureId: string, label: (value: stri
 // A count compares values as lines over time whatever the breakdown: the map and the distribution draw shares only.
 const COUNT = "count";
 const TREND = "trend";
-const SHARE = "share";
 
 function presetFor(q: Question, measureId: string, id: string, label?: (value: string) => string): Preset {
   const m = findBuilderMeasure(measureId);
   const values = !m?.derived && q.by && q.values.length ? q.values : undefined;
   const where = cleanWhere(q.where);
   const dimensionNote = q.by ? forDataset(builderSpec.dimension_notes[q.by], q.dataset) : undefined;
-  // Shapes the question can switch among apply to its share; a count by a breakdown is always lines.
-  const view = measureId === COUNT && q.by ? TREND : measureId === SHARE ? q.view : null;
+  // A count by a breakdown is always lines; a view the visitor chose among the shapes that fit applies to the rest. The
+  // resolver reports a view that does not fit the question.
+  const view = measureId === COUNT && q.by ? TREND : q.view;
   const preset: Preset = {
     id,
     question: questionText(q, measureId, label) + (q.dataset === builderSpec.dataset ? "" : ` (${datasetName(q.dataset)})`),
@@ -84,7 +85,7 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
     note: joined(forDataset(m?.note, q.dataset), dimensionNote),
     note_template: m?.note_template ? joined(m.note_template, dimensionNote) : undefined,
     top_n: values || !q.by ? undefined : m?.top_n?.[q.by],
-    ...(m?.derived ? { derived: m.id, shape_override: findDerived(m.id)?.shape } : { measure: m?.id }),
+    ...(m?.derived ? { derived: m.id } : { measure: m?.id }),
     ...(values ? { values } : {}),
     ...(Object.keys(where).length ? { where } : {}),
     ...(view ? { shape_override: view } : {}),
@@ -102,15 +103,14 @@ export function builderPresets(q: Question, label?: (value: string) => string): 
   return partsOf(m).map((part, i) => presetFor(q, part.id, i === 0 ? builderSpec.id : `${builderSpec.id}-${part.id}`, label));
 }
 
-// The shapes a question may be drawn as: the one inferred, and lines over time where a dimension's own shape (a map, a
-// distribution) shows one period at a time. A visitor switches only among shapes that fit (D-059).
+// The shapes a question may be drawn as: those the chart rules say fit it and that have a renderer, best first, so the
+// first is the one drawn. A visitor switches only among shapes that fit (D-059), and there is nothing to switch where
+// one fits, so the list is empty then.
 export function viewsFor(q: Question): string[] {
   const [first] = builderPresets({ ...q, view: null });
   if (!first || first.derived) return [];
-  const dimension = findDimension(q.by);
-  const inferred = inferShape(first, dimension, findMeasure(first.measure));
-  const hinted = dimension?.shape_hint === "geo" || dimension?.shape_hint === "distribution";
-  return hinted && first.measure === SHARE ? [inferred, "mix"] : [];
+  const shapes = drawnShapes(questionFacts(first, findDimension(q.by), findMeasure(first.measure)));
+  return shapes.length > 1 ? shapes : [];
 }
 
 // What a dataset is called to a visitor: its public label, and for one that starts later than the register, where it starts.
@@ -150,7 +150,7 @@ function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabula
         phrase: measurePhrase(m),
         joiner: m.joiner,
         derived: Boolean(m.derived),
-        allowsTotal: !m.parts && !m.derived && findMeasure(m.id)?.shape === "trend" && probe(null),
+        allowsTotal: !m.parts && !m.derived && !needsBreakdown(findMeasure(m.id)?.kind) && probe(null),
         dimensions,
       };
     })

@@ -63,7 +63,9 @@ export type Dimension = {
   label: string;
   note?: string;
   note_template?: string;
-  shape_hint?: string;
+  // What the field is (category, ordered band, place ...), in the data map's words, and how long its list of values is.
+  // The chart rules read both (config/chart_rules.json); a dimension never names a chart.
+  kind: string;
   cardinality?: string;
   applies_to?: string[];
   bands?: Band[];
@@ -110,7 +112,8 @@ export type Dataset = {
 };
 
 export type Guards = { min_denominator?: number; min_share_of_trailing_median?: number; min_coverage?: number };
-export type Measure = { id: string; label: string; unit: string; shape?: string; guards?: Guards };
+// kind: count, share, average or ratio, which the chart rules read (config/chart_rules.json).
+export type Measure = { id: string; label: string; unit: string; kind: string; guards?: Guards };
 // A derived measure that divides one dataset's slice by another's names both, and the dimensions it can be split by.
 export type DerivedMeasure = Measure & {
   snapshots_needed?: number;

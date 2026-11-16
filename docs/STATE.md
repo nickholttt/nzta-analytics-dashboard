@@ -32,6 +32,9 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
   site from the newest cube release and uploads nothing. **Nothing is deployed**: the
   variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-16).
+- **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
+  read by Explore and Build; no field or measure names its own chart. `Checks` now also runs
+  the site's tests and typecheck and the query service prototype's tests (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
@@ -41,19 +44,19 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 ## Current step
 
-**Work order 1.** A, B, C and G are done on a local build. In hand: D's first load, E's chart
-rules, the supplied counts as files. Then F, H and I. One report at the end (D-082).
+**Work order 1.** A, B, C and G are done on a local build, and E but for two pipeline items.
+In hand: D's first load, the supplied counts as files, H's spec, I's segment scheme. Then F.
 
 ## In progress (all claude; nothing by gemini)
 
-Three branches, each in its own worktree (`git worktree list`), started 2026-11-16; none
-has a pull request yet. (#60, the user's answers, and #61, the long-run charts, are merged.)
+Four branches, each in its own worktree (`git worktree list`), started 2026-11-16; none
+has a pull request yet. (#60, #61 and #62 are merged.)
 
 - `claude/stores-in-repo` (D-097): both supplied sources' counts as files in the repository.
-  `pipeline/supplied.py`, `pipeline/series.py`, their tests, `data/supplied/`, AGENTS.md,
-  `docs/CUBE_SCHEMA.md`, `docs/DATA_SOURCES.md`, two playbooks.
-- `claude/chart-rules` (D-100, D-101): package E's rule table for which shapes fit a question,
-  and the site's tests in `Checks`. `src/lib/resolve.ts`, `src/lib/builder.ts`, a new config file.
+  `pipeline/supplied.py`, their tests, `data/supplied/`, AGENTS.md, three docs, two playbooks.
+- `claude/narrative-spec` (D-102): package H's `docs/NARRATIVE.md` and `config/narrative/`.
+- `claude/model-segments` (D-103): package I's proposed segment scheme, `docs/SEGMENTS.md`,
+  `data/reference/model_segment.csv`. Nothing in it goes live before the user approves.
 - `claude/first-load` (D-099): package D's first-load trim and the status page's chunk.
   `astro.config.mjs`, the layout, fonts, `src/lib/data.ts`.
 
@@ -88,19 +91,16 @@ has a pull request yet. (#60, the user's answers, and #61, the long-run charts, 
 6. In Build a model's name shows as its two parts joined by `|` everywhere but the ranking; a
    share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
 7. The public build still ships the status page's script chunk, unlinked, holding no data.
-8. The site's tests (`tests/site/`) and the query service prototype's tests are run by hand:
-   `Checks` runs `pipeline/tests` only. Commits before #47 hold local paths (D-081).
+8. Commits before #47 hold local paths (D-081).
 
 ## Where docs and code disagree (noted, not changed)
 
-- CLAUDE.md and AGENTS.md say six shapes; five have renderers, and `src/lib/resolve.ts` still
-  says "all five". The `matrix` renderer is package F.
+- CLAUDE.md and AGENTS.md say six shapes; five have renderers. `matrix`'s is package F.
 - `docs/brief/MASTER_BRIEF.md` still calls `matrix` proposed, says Plot draws "all five
   shapes", and keeps the cap of five waiting pull requests. The work order wins (its §5); the
   brief is updated with the final report (its §6).
 - CLAUDE.md's repo layout still marks `docs/DATA_MAP.md` as planned and does not list
-  `config/data_map.json`, `config/narrative/`'s first file, `data/supplied/`, `tests/site/` or
-  `data/reference/statsnz_series.csv`.
+  `config/data_map.json`, `data/supplied/`, `tests/site/` or `data/reference/statsnz_series.csv`.
 - An event marker can appear on a chart whose filter excludes the vehicles the event is about
   (`docs/EVENTS_LAYER.md`, D-089). No chart shows a wrong marker today.
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
