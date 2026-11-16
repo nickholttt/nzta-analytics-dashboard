@@ -4335,4 +4335,12 @@ New entries use this template:
 - Consequences: true registrations' mild split is published on a trailing 79.2% at high confidence; the dashboard history
   never needs supplying again for a new vehicle type or import status; the site, on another branch, must show that a
   dataset's split can be withheld.
+- Added by the lead before review: the Mercedes-Benz C 200 row moves 37 vehicles a dataset from Hybrid to Mild hybrid, and its
+  first source did not use the words. A second reading on 2026-11-16 (Wikipedia's articles on the W205 and the W206, by a
+  sub-agent that read the pages) found the C 200's M264 engine with EQ Boost listed as a mild hybrid (MHEV), no C 200 as a
+  full or plug-in hybrid (the plug-ins were badged C 300 e and C 350 e), and a 2.0 litre C 200 without the 48 V system before
+  the 2018 facelift, which would not be recorded as a hybrid. The maker's own press kit was not reached; the row stays at
+  medium confidence and now cites both sources.
+- Left for the site (not in this change): a dataset whose split is withheld (`mild_split_published: false`) shows its hybrids
+  undivided, and the site should say so beside the chart. No dataset is in that state today.
 - Status: decided by Claude (unreviewed)
