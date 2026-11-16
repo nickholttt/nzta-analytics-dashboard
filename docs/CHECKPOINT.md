@@ -7,10 +7,10 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session.
-  - **Merged, #60 to #69** (#63 was closed unmerged): the user's answers (D-096, D-106);
+  - **Merged, #60 to #70** (#63 was closed unmerged): the user's answers (D-096, D-106);
     package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
     D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
-    supplied counts as files (D-097); the audit's fixes (D-107, D-108, D-109).
+    supplied counts as files (D-097); the audit's fixes (D-107 to D-110, with #70).
   - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
     the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
     sit about 1% lower, cause not established. Range-extended electric vehicles sit with
@@ -46,8 +46,8 @@ independently of the site's code; figures are compared with published New Zealan
    - On the pipeline's side, done (#68, D-108): eight hybrid nameplates added, each from a
      published source (true registrations' coverage 66.0% to 83.5%); a dataset under 70%
      shows its hybrids undivided; the tie at the model cap has a rule; a new NZTA value no
-     longer refuses the committed counts. Left (D-108's review): a build does not say when a
-     dataset's split flips to withheld or back; a test exactly at 70%; the cap's tie test.
+     longer refuses the committed counts. Its review's follow-ups are done too (#70, D-110):
+     a build warns when a split flips; the "high confidence" figure counts only such calls.
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. First: a total of new vehicles on the trade's basis beside the default scope

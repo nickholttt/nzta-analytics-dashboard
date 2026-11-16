@@ -8,11 +8,12 @@ import json
 import shutil
 from collections import Counter
 from datetime import date
+from fractions import Fraction
 
 import duckdb
 import pytest
 
-from pipeline import build, derive, fetch, metrics, reference, schema
+from pipeline import build, derive, fetch, guardrails, metrics, reference, schema
 from pipeline.errors import GuardrailError
 
 from .conftest import NOW, load_rows, make_cfg, source_for, with_dimension_change, write_pages
@@ -545,7 +546,9 @@ def test_mild_hybrid_coverage_is_published_and_adds_up(tmp_path, workspace):
         denominator = basis["identified_mild"] + basis["unknown"]
         assert basis["coverage_stated_confidence"] == round(basis["identified_mild"] / denominator, 4)
         high = by_confidence[h["high_confidence_level"]] + by_confidence["code_default"]
-        assert basis["coverage_high_confidence_only"] == round(high / denominator, 4)
+        # Full rows below the high level stay in the denominator at high confidence, so it lies between the figure over
+        # the stated denominator and the one over every hybrid; the exact counts are held in the tests built from counts.
+        assert round(high / (denominator + basis["identified_full"]), 4) <= basis["coverage_high_confidence_only"] <= round(high / denominator, 4)
         assert basis["coverage_high_confidence_only"] <= basis["coverage_stated_confidence"]
 
 
@@ -609,6 +612,105 @@ def test_a_dataset_under_the_threshold_does_not_publish_the_mild_split_and_one_a
     assert sum("mild hybrid identification coverage" in w and w.startswith(f"{dataset}: ") for w in below["warnings"]) == 1
 
 
+SPLIT_DATASET = "registrations_surviving"
+
+
+def split_flips(manifest: dict) -> list[str]:
+    return [w for w in manifest["warnings"] if w.startswith(f"{SPLIT_DATASET}: the mild hybrid split was ")]
+
+
+def built_with_threshold(tmp_path, workspace, threshold: float, state, name: str):
+    """One build of the fixture register with the split's threshold at `threshold`: 0 publishes it, 1 withholds it."""
+    cfg = make_cfg(workspace)
+    cfg.pipeline["hybrid_classification"]["publish_split_at_trailing_high_confidence_coverage"] = threshold
+    manifest = run(tmp_path, cfg, load_rows(), state=state, name=name)
+    return cfg, manifest, json.loads(workspace["state"].read_text(encoding="utf-8"))
+
+
+def test_a_build_that_withholds_a_split_the_last_good_state_published_says_so_and_still_publishes(tmp_path, workspace):
+    cfg, _, state = built_with_threshold(tmp_path, workspace, 0.0, None, "published")
+    h = cfg.pipeline["hybrid_classification"]
+    assert state["mild_split"][SPLIT_DATASET]["published"] is True
+    before = state["mild_split"][SPLIT_DATASET]["trailing_high_confidence_coverage"]
+    assert before is not None
+    assert h["mild_powertrain"] in split_values(workspace)["slice"]
+
+    _, manifest, new_state = built_with_threshold(tmp_path, workspace, 1.0, state, "withheld")
+    (warning,) = split_flips(manifest)
+    # It names the dataset, the direction, both figures and what changes for a reader; the standing warning is still there.
+    assert "was published in the last good build and is withheld now" in warning
+    assert warning.count(f"{before:.2%}") == 2, "both coverage figures are named (the same here: only the threshold moved)"
+    assert f"against {1.0:.0%}" in warning
+    assert f"{h['mild_powertrain']} disappears" in warning and f"{h['undivided_powertrain']} rises" in warning
+    assert any("the mild hybrid split is not published" in w for w in manifest["warnings"])
+    # Withholding is the safe direction, so the run publishes: the cube and the state both move to the withheld split.
+    assert h["mild_powertrain"] not in split_values(workspace)["slice"]
+    assert new_state["mild_split"][SPLIT_DATASET]["published"] is False
+
+
+def test_a_build_that_publishes_a_split_the_last_good_state_withheld_says_so(tmp_path, workspace):
+    cfg, _, state = built_with_threshold(tmp_path, workspace, 1.0, None, "withheld")
+    h = cfg.pipeline["hybrid_classification"]
+    assert state["mild_split"][SPLIT_DATASET]["published"] is False
+
+    _, manifest, new_state = built_with_threshold(tmp_path, workspace, 0.0, state, "published")
+    (warning,) = split_flips(manifest)
+    assert "was withheld in the last good build and is published now" in warning
+    assert f"{h['mild_powertrain']} reappears" in warning and f"{h['undivided_powertrain']} falls" in warning
+    assert h["mild_powertrain"] in split_values(workspace)["slice"]
+    assert new_state["mild_split"][SPLIT_DATASET]["published"] is True
+
+
+@pytest.mark.parametrize("threshold", [0.0, 1.0])
+def test_a_build_that_keeps_the_split_as_it_was_adds_no_flip_warning(tmp_path, workspace, threshold):
+    _, _, state = built_with_threshold(tmp_path, workspace, threshold, None, "first")
+    _, manifest, _ = built_with_threshold(tmp_path, workspace, threshold, state, "second")
+    assert split_flips(manifest) == []
+
+
+def test_the_first_build_has_nothing_to_compare_and_records_the_split(tmp_path, workspace):
+    _, manifest, state = built_with_threshold(tmp_path, workspace, 1.0, None, "first")
+    assert split_flips(manifest) == []
+    assert state["mild_split"] == {SPLIT_DATASET: {
+        "published": False,
+        "trailing_high_confidence_coverage": manifest["datasets"][SPLIT_DATASET]["mild_hybrid_identification_coverage"]
+        ["trailing"]["coverage_high_confidence_only"]}}
+
+
+@pytest.mark.parametrize("old", ["absent", "not_a_record", "no_flag"])
+def test_a_state_written_before_the_record_is_read_safely_and_the_next_one_has_it(tmp_path, workspace, old):
+    _, _, state = built_with_threshold(tmp_path, workspace, 0.0, None, "first")
+    if old == "absent":
+        del state["mild_split"]
+    elif old == "not_a_record":
+        state["mild_split"] = {SPLIT_DATASET: "published"}
+    else:
+        state["mild_split"] = {SPLIT_DATASET: {"trailing_high_confidence_coverage": 0.5}}
+    _, manifest, new_state = built_with_threshold(tmp_path, workspace, 1.0, state, "second")
+    assert split_flips(manifest) == []
+    assert new_state["mild_split"][SPLIT_DATASET]["published"] is False
+
+
+def test_a_flip_names_both_figures_and_a_window_with_no_hybrid():
+    cfg = make_cfg({})
+    h = cfg.pipeline["hybrid_classification"]
+    record = lambda published, coverage: {"published": published, "trailing_high_confidence_coverage": coverage}
+    previous = {"mild_split": {"a": record(True, 0.7312), "b": record(False, None), "c": record(True, 0.8)}}
+    current = {"a": record(False, 0.6901), "b": record(True, 0.7), "c": record(True, 0.8), "d": record(False, 0.1)}
+    found = {w.split(":")[0]: w for w in guardrails.split_flips(cfg, current, previous)}
+    assert sorted(found) == ["a", "b"], "c did not change and d is new"
+    assert "73.12%" in found["a"] and "69.01%" in found["a"] and "disappears" in found["a"]
+    assert "no hybrid in the window" in found["b"] and "70.00%" in found["b"] and "reappears" in found["b"]
+    assert guardrails.split_flips(cfg, current, None) == []
+    assert f"against {h['publish_split_at_trailing_high_confidence_coverage']:.0%}" in found["a"]
+
+
+def test_only_datasets_with_a_hybrid_coverage_block_have_a_split_to_remember():
+    block = {"mild_split_published": True, "trailing": {"coverage_high_confidence_only": 0.8}}
+    datasets = {"built": {"mild_hybrid_identification_coverage": block}, "waiting": {"not_built": "no store"}, "series": {"rows": 3}}
+    assert guardrails.split_record(datasets) == {"built": {"published": True, "trailing_high_confidence_coverage": 0.8}}
+
+
 def test_a_window_with_no_hybrid_to_divide_is_not_withheld():
     from pipeline import metrics as m
     cfg = make_cfg({})
@@ -617,10 +719,95 @@ def test_a_window_with_no_hybrid_to_divide_is_not_withheld():
     con.execute("CREATE TABLE rows AS SELECT TRUE AS in_scope, TRUE AS fleet_entry, DATE '2026-08-01' AS reg_month, "
                 f"'X' AS {cfg.pipeline['engine']['field']}, 'X' AS {cfg.pipeline['engine']['field']}__source, "
                 "CAST(NULL AS VARCHAR) AS hybrid_class, CAST(NULL AS VARCHAR) AS hybrid_confidence")
-    out = m.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
+    out, _ = m.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
     assert out["trailing"]["source_hybrids"] == 0 and out["trailing"]["coverage_high_confidence_only"] is None
     assert out["mild_split_published"] is True
     con.close()
+
+
+def coverage_from_counts(cfg, identified_high: int, unknown: int, full_below_high: int = 0, full_high: int = 0,
+                         below_high: str | None = None) -> dict:
+    """hybrid_coverage over a table of exactly these counts: vehicles recorded under a hybrid code, `identified_high` of them
+    classified mild at high confidence, `full_high` classified full at high confidence, `full_below_high` classified full at
+    the level `below_high` (the first level under the high one by default) and `unknown` not classified at all, all in the
+    trailing window."""
+    h, engine = cfg.pipeline["hybrid_classification"], cfg.pipeline["engine"]
+    keys = reference.hybrid_keys(cfg)
+    code = sorted(keys["source_hybrid"] - keys["mild"])[0]
+    con = duckdb.connect()
+    con.execute(f"CREATE TABLE rows (in_scope BOOLEAN, fleet_entry BOOLEAN, reg_month DATE, {engine['field']} VARCHAR, "
+                f"{engine['field']}__source VARCHAR, hybrid_class VARCHAR, hybrid_confidence VARCHAR)")
+    high = h["high_confidence_level"]
+    below = below_high or next(level for level in h["confidence_levels"] if level != high)
+    for kind, level, n in ((h["types"]["mild"], high, identified_high), (None, None, unknown),
+                           (h["types"]["full"], high, full_high), (h["types"]["full"], below, full_below_high)):
+        con.execute(f"INSERT INTO rows SELECT TRUE, TRUE, DATE '2026-08-01', ?, ?, ?, ? FROM range({n})", [code, code, kind, level])
+    out, counts = metrics.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
+    con.close()
+    assert out["trailing"]["identified_mild"] == identified_high and out["trailing"]["unknown"] == unknown
+    assert out["trailing"]["identified_full"] == full_high + full_below_high
+    assert counts["trailing"] == (identified_high, identified_high + unknown + full_below_high)
+    return out
+
+
+@pytest.mark.parametrize("level", [None, "low"])
+def test_a_nameplate_called_full_below_high_confidence_stays_in_the_denominator_at_high_confidence_only(level):
+    """docs/METRICS.md: at high confidence only, a classification below the high level counts as none, whichever way it
+    points. The two figures differ by exactly those vehicles; a full call at the high level leaves both denominators."""
+    cfg = make_cfg({})
+    without = coverage_from_counts(cfg, 60, 20)["trailing"]
+    below = coverage_from_counts(cfg, 60, 20, full_below_high=500, below_high=level)["trailing"]
+    assert below["identified_full"] == 500 and below["source_hybrids"] == 580
+    assert without["coverage_stated_confidence"] == without["coverage_high_confidence_only"] == 0.75
+    assert below["coverage_stated_confidence"] == 0.75, "the stated figure is unchanged by a full call at any confidence"
+    assert below["coverage_high_confidence_only"] == round(60 / (80 + 500), 4)
+    at_high = coverage_from_counts(cfg, 60, 20, full_high=500)["trailing"]
+    assert at_high["coverage_stated_confidence"] == at_high["coverage_high_confidence_only"] == 0.75
+
+
+def threshold_counts(cfg) -> tuple[int, int, int]:
+    """Whole counts (numerator, denominator, scale) whose ratio is exactly the configured threshold, so the test follows the
+    config: the numerator and denominator of the threshold as a fraction, times a scale that leaves room to step by one."""
+    threshold = cfg.pipeline["hybrid_classification"]["publish_split_at_trailing_high_confidence_coverage"]
+    fraction = Fraction(str(threshold))
+    scale = 200_000 // fraction.denominator
+    return fraction.numerator * scale, fraction.denominator * scale, scale
+
+
+def test_a_dataset_exactly_at_the_threshold_publishes_and_one_vehicle_under_it_does_not():
+    cfg = make_cfg({})
+    at, total, _ = threshold_counts(cfg)
+    exactly = coverage_from_counts(cfg, at, total - at)
+    assert exactly["trailing"]["coverage_high_confidence_only"] == exactly["publish_split_at_trailing_high_confidence_coverage"]
+    assert exactly["mild_split_published"] is True
+    assert coverage_from_counts(cfg, at - 1, total - at + 1)["mild_split_published"] is False
+    assert coverage_from_counts(cfg, at + 1, total - at - 1)["mild_split_published"] is True
+
+
+def test_a_dataset_that_publishes_on_its_mild_calls_alone_is_withheld_once_full_calls_below_high_confidence_count_as_unknown():
+    cfg = make_cfg({})
+    at, total, _ = threshold_counts(cfg)
+    assert coverage_from_counts(cfg, at, total - at)["mild_split_published"] is True
+    # The same vehicles and one more, called full at a level under high: the stated figure is untouched, the split is not.
+    out = coverage_from_counts(cfg, at, total - at, full_below_high=1)
+    assert out["trailing"]["coverage_stated_confidence"] == coverage_from_counts(cfg, at, total - at)["trailing"]["coverage_stated_confidence"]
+    assert out["mild_split_published"] is False
+    # And exactly at the threshold with the full calls counted: the denominator is the unknown and the full vehicles together.
+    full = total // 10
+    assert coverage_from_counts(cfg, at, total - at - full, full_below_high=full)["mild_split_published"] is True
+    assert coverage_from_counts(cfg, at, total - at - full + 1, full_below_high=full)["mild_split_published"] is False
+
+
+def test_a_figure_that_rounds_up_to_the_threshold_but_is_under_it_does_not_publish():
+    """The manifest's figure has four decimals. Judged on that figure, a ratio of 69.9995% would read 70% and publish;
+    judged on the counts it is under the threshold, and the manifest still shows the rounded figure."""
+    cfg = make_cfg({})
+    at, total, _ = threshold_counts(cfg)
+    out = coverage_from_counts(cfg, at - 1, total - at + 1)
+    assert (at - 1) / total < out["publish_split_at_trailing_high_confidence_coverage"]
+    assert out["trailing"]["coverage_high_confidence_only"] == out["publish_split_at_trailing_high_confidence_coverage"], (
+        "the case proves nothing unless the rounded figure reaches the threshold")
+    assert out["mild_split_published"] is False
 
 
 def test_brand_registry_as_at_must_be_an_iso_date(tmp_path, workspace):
@@ -711,6 +898,39 @@ def test_the_model_cap_keeps_the_key_that_sorts_first_when_models_tie_at_the_bou
     kept = {k for (k,) in con.execute('SELECT DISTINCT "d__model" FROM dims').fetchall()}
     assert kept == {"K|BIG", "K|1", "__OTHER__"}
     assert cap["cap"] == 2 and cap["coverage_trailing"] == round(7 / 12, 4)
+    con.close()
+
+
+# Tied keys that a locale's collation puts in another order than their bytes: upper before lower case, a digit before the
+# separator, either case of the same letter, and all of them with a space. The first group of the cap's ranking is the
+# byte order of the keys, whatever DuckDB's default collation is configured to be (docs/CUBE_SCHEMA.md).
+COLLATION_CASES = {
+    "case": (["Ka|X", "KB|X"], 1),
+    "digit_before_separator": (["K1|X", "K|X"], 1),
+    "upper_before_lower_of_one_letter": (["k|X", "K|X"], 1),
+    "all_together": (["KA|X", "Ka|X", "K1|X", "K|X", "K a|X", "k|X"], 3),
+}
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("name", COLLATION_CASES)
+def test_the_model_cap_breaks_a_tie_in_byte_order_not_in_a_locales_order(name, reverse):
+    tied, room = COLLATION_CASES[name]
+    expected = set(sorted(tied, key=lambda key: key.encode("utf-8"))[:room])
+    con = duckdb.connect()
+    # The keys must tell the two orders apart, or the test proves nothing: DuckDB's own en_US collation picks others.
+    in_locale_order = [k for (k,) in con.execute("SELECT k FROM (SELECT unnest(?) AS k) ORDER BY k COLLATE en_US", [tied]).fetchall()]
+    assert set(in_locale_order[:room]) != expected, f"{name}: byte order and a locale's order agree"
+    # One vehicle more than every tied key, so the leader is always kept and `room` places remain for the tied keys.
+    rows = ["K|LEAD"] * (len(tied) + 1) + [key for key in tied for _ in range(2)]
+    con.execute('CREATE TABLE dims ("d__model" VARCHAR, reg_month DATE)')
+    for key in reversed(rows) if reverse else rows:
+        con.execute("INSERT INTO dims VALUES (?, DATE '2026-08-01')", [key])
+    assert con.execute("SELECT current_setting('default_collation')").fetchone()[0] == "", "the default is not binary"
+    dim = derive.Derived("model", "model", "", "", [], None, cap=1 + room)
+    derive.apply_model_cap(con, dim, "TRUE", date(2025, 9, 1), date(2026, 8, 1))
+    kept = {k for (k,) in con.execute('SELECT DISTINCT "d__model" FROM dims').fetchall()} - {"K|LEAD", "__OTHER__"}
+    assert kept == expected
     con.close()
 
 
