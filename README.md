@@ -25,7 +25,9 @@ These count vehicles that are still registered, so older months are missing
 the vehicles since scrapped.
 
 With two more sets of figures that the maintainer downloads by hand each month
-(for now they exist only on the maintainer's computer):
+(their counts are kept in this repository, in `data/supplied/`; the data
+GitHub has released so far was built before they were, so it does not hold
+them until the next month is built):
 
 - **How many vehicles were registered in any month since January 2021**, and
   whether that is up or down on a year ago, by brand and by model.
@@ -60,8 +62,8 @@ Registrations are not sales, and these figures will not match the motor
 industry's own; the site's "Why these figures differ from others" page
 explains each difference.
 
-Only the first dataset is built on GitHub. The other two need the files the
-maintainer downloads by hand.
+GitHub builds all three from the next new month on. The other two rest on
+files the maintainer downloads by hand and adds to `data/supplied/`.
 
 **Licence and attribution.** NZTA's data is released under CC BY 4.0. Stats
 NZ's series: "This work is based on/includes Stats NZ's data which are licensed

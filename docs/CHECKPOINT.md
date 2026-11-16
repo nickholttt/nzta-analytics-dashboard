@@ -7,16 +7,17 @@ Last updated by claude on 2026-11-16
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16, ninth session.
-  - **Merged:** #60, the user's answers (D-096): privacy classes approved, three About gaps
-    filled. #61, package C's charts and completeness by vehicle type (D-098). #62, package
-    E's chart rules, with the site's tests in `Checks` (D-100, D-101).
+  - **Merged:** #60, the user's answers (D-096). #61, package C's charts and completeness
+    by vehicle type (D-098). #62, the chart rules and the site's tests in `Checks` (D-100,
+    D-101). #65, the comparison with published figures and three more answers (D-105, D-106).
   - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
     the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
-    sit about 1% lower, cause not established. For the audit: range-extended electric
-    vehicles sit with plug-in hybrids here and apparently not in AutoTalk's count.
+    sit about 1% lower, cause not established. Range-extended electric vehicles sit with
+    plug-in hybrids here and apparently not in AutoTalk's count.
   - **The user answered three more questions** (D-106): a total on the trade's basis beside
     the default scope; the MIT licence for the code; the site is run by "an individual".
-  - **The sub-agents stopped twice at the account's usage limit**; "Work in hand" says where.
+  - **The engine was audited** against the register's rows: of 34,693 figures, one differs,
+    a tie in a ranking ("Work in hand", 2).
 
 ## The user's direction of 16 November (D-104)
 
@@ -32,20 +33,23 @@ independently of the site's code; figures are compared with published New Zealan
 
 - #64 `claude/first-load` (D-099): the first-load trim, with `main` up to #62 merged in.
   Its review is under way.
+- #66 `claude/supplied-counts` (D-097): the supplied counts as files, trimmed. In review.
 
 ## Work in hand, in the order to pick it up
 
-1. **The supplied counts as files** (D-097; #63 was closed unmerged). In the main folder, on
-   `claude/stores-in-repo`, with uncommitted edits (`config/pipeline.json`,
-   `pipeline/build.py`, `pipeline/normalise.py`, `pipeline/supplied.py`): the store keeps a
-   model name only for vehicle types the dataset counts; a replaced month the last good
-   state does not yet reflect is excused; playbooks. Then a clean branch
-   `claude/supplied-counts` from `main`, so no commit that reaches `main` ever held the
-   untrimmed file. The first pushed version stays reachable on GitHub through #63.
-2. **Review and merge #64.** (#65, the comparison and the user's three answers, is merged.)
-3. **The engine's audit** (D-104): every measure recomputed from the register's rows, then
-   compared with what the built site shows. Stopped in its first phase, reading definitions.
-   The built site for it is the worktree `nzta-audit`.
+1. **Review and merge #64.**
+2. **What the engine's audit found** (D-104, D-107). A checker recomputed 34,693 of the
+   site's figures from the register's rows and the dashboard export: 34,618 agree, 74 are
+   withheld on both sides, 1 differs (a tie in a ranking). No count is wrong.
+   - On the site's side, in hand on `claude/audit-fixes`: a rule for ties, what the guards
+     do, the coverage note on a narrowed chart, stale lines on `/caveats`, the limit on
+     conditions.
+   - On the pipeline's side, next: a hybrid nameplate the dashboard spells differently is
+     missing from `mild_hybrid_models.csv` (true registrations' coverage reads 66.0%), and
+     the mild split is drawn below the 70% METRICS asks for; ties at the 300-model cap.
+3. **A local-only branch to delete once #66 is merged:** `claude/stores-in-repo` (its
+   history holds the untrimmed counts; never push or merge it). The first pushed version
+   stays reachable on GitHub through the closed #63.
 4. **Package F**, each field checked against the data and published sources before Build
    offers it. First: a total of new vehicles on the trade's basis beside the default scope
    (the user, D-106; `trade_scope` in `vehicle_scope.csv`). Then: colour, seats, where
@@ -60,13 +64,14 @@ independently of the site's code; figures are compared with published New Zealan
 
 ## Left in the packages
 
-- **A.** Follow-ups, each with its reason in D-088 or D-089: a digest of the rows the archive
-  job pulls; dependencies pinned by hash and a draft-then-publish release step (after
-  December's build); admin bypass on `production` (the user's); two Build behaviours for
-  chosen values (F); a model's name shows its separator, `/build/` skips a heading (H); a
-  second scope for events; a lookup should refuse a blank value at build time.
-- **B.** Each month: the user's export, `python -m pipeline supply`, a `--dry-run` build.
-- **C.** The user's own Stats NZ export replaces the fetched copy.
+- **A.** Follow-ups (D-088, D-089): a digest of the rows the archive job pulls; dependencies
+  pinned by hash and a draft-then-publish release step (after December's build); admin
+  bypass on `production` (the user's); two Build behaviours for chosen values (F); `/build/`
+  skips a heading (H); a second scope for events; a lookup refusing a blank value at build.
+- **B.** Each month, as soon as the dashboard has it: the user's export, `python -m pipeline
+  supply`, a `--dry-run` build, a pull request with the store's two files (D-097). A store
+  rebuilt whole cannot yet excuse a month it restates by more than 2% (`supply` needs an
+  option). **C.** The user's own Stats NZ export replaces the fetched copy.
 - **D.** First load is in #64: Explore's first chart 7.98 s to 4.61 s, a Build answer 7.59 s
   to 6.58 s, on the phone profile. The 3-second target is not met; Build waits on its data.
 - **E.** The pipeline writing the "moves together" figures each build; `sentinels.csv`
