@@ -713,7 +713,7 @@ def test_a_flip_names_both_figures_and_a_window_with_no_hybrid():
     found = {w.split(":")[0]: w for w in guardrails.split_flips(cfg, current, previous)}
     assert sorted(found) == ["a", "b"], "c did not change and d is new"
     assert "73.12%" in found["a"] and "69.01%" in found["a"] and "disappears" in found["a"]
-    assert "no hybrid in the window" in found["b"] and "70.00%" in found["b"] and "reappears" in found["b"]
+    assert "no hybrid in the window that could be mild" in found["b"] and "70.00%" in found["b"] and "reappears" in found["b"]
     assert guardrails.split_flips(cfg, current, None) == []
     assert f"against {h['publish_split_at_trailing_high_confidence_coverage']:.0%}" in found["a"]
 

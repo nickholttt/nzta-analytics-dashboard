@@ -27,8 +27,10 @@ def split_flips(cfg, current: dict[str, dict], previous: dict | None) -> list[st
 
     def figure(record: dict) -> str:
         coverage = record.get("trailing_high_confidence_coverage")
+        # Null is a window with no hybrid at all and also one with only `full` calls at the high level (docs/METRICS.md): neither
+        # has a figure to divide, so the wording must hold for both.
         if coverage is None:
-            return "no hybrid in the window"
+            return "no hybrid in the window that could be mild"
         # A flag written by hand with a figure that is not a number still flips; only the figure is unreadable.
         return f"{coverage:.2%}" if isinstance(coverage, (int, float)) and not isinstance(coverage, bool) else "an unreadable figure"
 
