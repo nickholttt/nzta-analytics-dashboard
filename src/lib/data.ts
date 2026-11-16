@@ -4,6 +4,7 @@ import { parquetRead, parquetReadObjects } from "hyparquet";
 import type { ColumnData } from "hyparquet";
 import { decompressZstd } from "hyparquet-compressors";
 import { builderSpec } from "./config";
+import { UNREADABLE_DATA, isUnreadableForm } from "./unreadable";
 import { crossPair, crossValue, narrowPair } from "./cross";
 
 const DATA = "/data";
@@ -154,11 +155,21 @@ export function monthKey(value: unknown): string {
   throw new Error(`unreadable month value: ${String(value)}`);
 }
 
+// A file in a form the reader has no decoder for says so in a sentence of its own, not the advice to reload.
+async function decoded<T>(read: () => Promise<T>): Promise<T> {
+  try {
+    return await read();
+  } catch (e) {
+    if (isUnreadableForm(e)) throw new ServiceError(UNREADABLE_DATA, false);
+    throw e;
+  }
+}
+
 export const loadSlice = (dataset: string, dimension: string) =>
   once(`slice:${dataset}/${dimension}`, async () => {
     const path = `cube/${dataset}/${dimension}.parquet`;
     const file = await (await fetchOk(path)).arrayBuffer();
-    const rows = await parquetReadObjects({ file, compressors, columns: ["month", "dim_value", "n", "denominator"] });
+    const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "dim_value", "n", "denominator"] }));
     return rows.map(
       (r): SliceRow => ({ month: monthKey(r.month), value: String(r.dim_value), n: Number(r.n), denominator: Number(r.denominator) }),
     );
@@ -169,7 +180,7 @@ type PairRow = { month: string; a: string; b: string; n: number };
 const loadPair = (dataset: string, pair: string) =>
   once(`pair:${dataset}/${pair}`, async () => {
     const file = await (await fetchOk(`pairs/${dataset}/${pair}.parquet`)).arrayBuffer();
-    const rows = await parquetReadObjects({ file, compressors, columns: ["month", "a_value", "b_value", "n"] });
+    const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "a_value", "b_value", "n"] }));
     return rows.map((r): PairRow => ({ month: monthKey(r.month), a: String(r.a_value), b: String(r.b_value), n: Number(r.n) }));
   });
 
@@ -181,7 +192,7 @@ const loadFactColumn = (dataset: string, column: string) =>
   once(`facts:${dataset}/${column}`, async (): Promise<FactColumn> => {
     const file = await (await fetchOk(`facts/${dataset}/${column}.parquet`)).arrayBuffer();
     const chunks: ColumnData[] = [];
-    await parquetRead({ file, compressors, columns: [column], onChunk: (chunk) => chunks.push(chunk) });
+    await decoded(() => parquetRead({ file, compressors, columns: [column], onChunk: (chunk) => chunks.push(chunk) }));
     chunks.sort((a, b) => a.rowStart - b.rowStart);
     const out: unknown[] = [];
     for (const chunk of chunks) for (let i = 0; i < chunk.columnData.length; i++) out[chunk.rowStart + i] = chunk.columnData[i];
