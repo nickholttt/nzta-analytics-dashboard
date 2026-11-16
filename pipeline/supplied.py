@@ -1,9 +1,10 @@
 """Sources a maintainer supplies by hand as a CSV: `python -m pipeline supply <id> <csv>`.
 
-The command checks one file and adds its months to a local store (config/pipeline.json, `supplied`). It never fetches
+The command checks one file and adds its months to a store (config/pipeline.json, `supplied`). It never fetches
 anything and the Action never runs it. The store is one Parquet file of counts, one row per combination of the public
-fields, and a ledger that says which file each month came from. The build reads the store (build.py) and checks it
-against the ledger before it trusts it.
+fields, and a ledger that says which file each month came from and under what terms the source is used. Both are
+committed to the repository (D-097), so a build on GitHub and a build here read the same files. The build reads the
+store (build.py) and checks it against the ledger before it trusts it.
 """
 
 from __future__ import annotations
@@ -19,7 +20,7 @@ from typing import NamedTuple
 
 import duckdb
 
-from . import metrics, outputs, schema
+from . import metrics, normalise, outputs, reference, schema
 from .errors import GuardrailError
 from .normalise import lit
 from .reference import quote
@@ -75,6 +76,14 @@ def store_paths(cfg, source_id: str) -> tuple[Path, Path]:
 
 def read_ledger(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+# What a committed ledger says about the source's terms, copied from config/pipeline.json so the file carries them.
+SOURCE_BLOCK_KEYS = ("publisher", "licence", "attribution", "origin")
+
+
+def source_block(source: dict) -> dict:
+    return {k: source[k] for k in SOURCE_BLOCK_KEYS if k in source}
 
 
 def month_key(value: date) -> str:
@@ -148,7 +157,8 @@ def load_store(con, cfg, source_id: str, aborts: list[str]) -> tuple[dict, date,
         aborts.append(f"{source_id}: the store's columns are {found}, but config/pipeline.json expects {lay.columns}")
         return None
     ledger = read_ledger(ledger_path)
-    problems = hash_problems(registrations, ledger) + store_problems(con, "supplied_store", ledger, lay.count, lay.total_key)
+    problems = (hash_problems(registrations, ledger) + store_problems(con, "supplied_store", ledger, lay.count, lay.total_key)
+                + scope_problems(cfg, source, ledger))
     if problems:
         aborts.extend(f"{source_id}: the store disagrees with its ledger: {problem}" for problem in problems)
         return None
@@ -169,12 +179,76 @@ def check_clock(source_id: str, latest: date, register_month: date, aborts: list
     return True
 
 
-def commit_store(con, table: str, registrations: Path, ledger_path: Path, ledger: dict, lay: Layout) -> None:
+def outside_scope(cfg, source: dict) -> dict | None:
+    """What a store is trimmed to, from config and the reference files the build itself reads: for the dataset that
+    reads the source, the (vehicle type, import status) pairs it counts, and every value of each field the scope files
+    know. A row whose pair is known and not counted never reaches that dataset, so the fields named in the rule
+    (`supplied.<id>.outside_scope.fields`) are not kept for it. None when the source has no such rule."""
+    rule = source.get("outside_scope")
+    if not rule:
+        return None
+    p = cfg.pipeline
+    vehicle, status = p["scope"]["vehicle"], p["scope"]["status"]
+    vehicles = {r[vehicle["key"]]: r for r in reference.read(cfg.reference(vehicle["file"]))}
+    statuses = {r[status["key"]]: r for r in reference.read(cfg.reference(status["file"]))}
+    flags = normalise.scope_flags(cfg)
+    # A vehicle type the dataset does not count can still keep its fields: those the vehicle scope file marks in this
+    # column (the types a wider total counts). Its rows are then judged as if the type were in scope.
+    column, true = rule.get("also_kept_column"), p["boolean_true"]
+    if column and any(column not in r for r in vehicles.values()):
+        raise abort(f"outside_scope names the column {column!r}, which {vehicle['file']} does not have")
+    also = sorted(k for k, r in vehicles.items() if column and r[column] == true)
+    require = p["datasets"][rule["dataset"]]["require"]
+    unknown = [f for f in require if f not in flags]
+    if unknown:
+        raise abort(f"dataset {rule['dataset']} requires {unknown}, which do not come from the scope files, so the rows "
+                    "it counts cannot be told from the source's values alone")
+    missing = [f for f in rule["fields"] if f not in source["fields"]]
+    if missing:
+        raise abort(f"outside_scope names {missing}, which are not fields of the source")
+    counted = sorted([vk, sk] for vk, vr in vehicles.items() for sk, sr in statuses.items()
+                     if all(flags[f]({**vr, vehicle["in_scope"]: true} if vk in also else vr, sr) for f in require))
+    return {"dataset": rule["dataset"], "fields": list(rule["fields"]),
+            "also_kept": {"column": column, "types": also} if column else None,
+            "known": {vehicle["field"]: sorted(vehicles), status["field"]: sorted(statuses)}, "counted": counted}
+
+
+def scope_problems(cfg, source: dict, ledger: dict) -> list[str]:
+    """The store must have been written under the scope config states today, or its months were trimmed differently."""
+    wanted, recorded = outside_scope(cfg, source), ledger.get("outside_scope")
+    if wanted == recorded:
+        return []
+    if wanted is None:
+        return ["the ledger records a scope the store was trimmed to, but config/pipeline.json has no outside_scope rule now"]
+    if recorded is None:
+        return ["the ledger does not say what the store was trimmed to, but config/pipeline.json has an outside_scope rule"]
+    return [f"the store was written when {recorded['dataset']} counted {len(recorded['counted'])} (vehicle type, import status) "
+            f"pairs and the scope files knew {sum(len(v) for v in recorded['known'].values())} values; config and the scope "
+            f"files now give {len(wanted['counted'])} pairs and {sum(len(v) for v in wanted['known'].values())} values, "
+            f"for {wanted['dataset']} (fields kept only inside it: {wanted['fields']}). Months written under one scope "
+            "cannot sit beside months written under another. Supply the whole history again from the raw exports: remove both "
+            "store files and run `supply` (docs/playbooks/supply-dashboard-month.md, Replacing the whole history)"]
+
+
+def blanked(source: dict, scope: dict | None, column: str) -> str:
+    """The select item for one store column: the column itself, or NULL (not recorded) for a row outside the scope."""
+    name = quote(column)
+    if not scope or column not in scope["fields"]:
+        return name
+    (vf, known_v), (sf, known_s) = scope["known"].items()
+    counted = " OR ".join(f"({quote(vf)} = {lit(v)} AND {quote(sf)} = {lit(s)})" for v, s in scope["counted"]) or "FALSE"
+    known = f"{quote(vf)} IN ({', '.join(lit(v) for v in known_v)}) AND {quote(sf)} IN ({', '.join(lit(s) for s in known_s)})"
+    return f"CASE WHEN {known} AND NOT ({counted}) THEN NULL ELSE {name} END AS {name}"
+
+
+def commit_store(con, table: str, registrations: Path, ledger_path: Path, ledger: dict, lay: Layout, source: dict) -> None:
     """Write the merged store and its ledger. The table is checked against the ledger first, and nothing is written if
-    they disagree."""
+    they disagree. The ledger leads with the source's terms (`source`), as config/pipeline.json states them today."""
     problems = store_problems(con, table, ledger, lay.count, lay.total_key)
     if problems:
         raise abort("internal check failed, nothing was written: " + "; ".join(problems))
+    head = {k: ledger[k] for k in ("outside_scope",) if k in ledger}
+    ledger = {"source": source_block(source), **head, **{k: v for k, v in ledger.items() if k not in ("source", *head)}}
     registrations.parent.mkdir(parents=True, exist_ok=True)
     staged = registrations.with_name(registrations.name + ".new")
     con.execute(f"COPY {table} TO {lit(staged.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)")
@@ -395,16 +469,28 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
     else:
         warnings.append("the totals were not checked against the dashboard: give --totals with the figures it showed")
 
-    columns = ", ".join(quote(c) for c in store_columns(source)[:-1])
+    scope = outside_scope(cfg, source)
+    columns = ", ".join(blanked(source, scope, c) for c in store_columns(source)[:-1])
+    # Rows that differ only in a field not kept outside the scope become one row; the vehicles are summed.
     con.execute(f"CREATE TABLE incoming_rows AS SELECT {columns}, CAST(sum({STORE_COUNT}) AS INTEGER) AS {STORE_COUNT} "
                 "FROM typed GROUP BY ALL")
     registrations, ledger_path = store_paths(cfg, source_id)
     ledger = {"store_sha256": None, "files": {}, "months": {}, "replaced": []}
+    if scope:
+        ledger["outside_scope"] = scope
     have = bool(registrations.exists() or ledger_path.exists())
     if have:
         if not (registrations.exists() and ledger_path.exists()):
             raise abort("the store has one of its two files; restore the other or remove both and supply again")
         ledger = read_ledger(ledger_path)
+        problems = scope_problems(cfg, source, ledger)
+        if problems:
+            raise abort("; ".join(problems))
+        held = [c for c, *_ in con.execute(f"DESCRIBE SELECT * FROM read_parquet({lit(registrations.as_posix())})").fetchall()]
+        if held != store_columns(source):
+            raise abort(f"the store's columns are {held}, but config/pipeline.json expects {store_columns(source)}. A file "
+                        "with other columns replaces the whole history: remove both store files and supply the new history "
+                        "in the same commit as the config change (docs/playbooks/supply-dashboard-month.md, Replacing the whole history).")
         con.execute(f"CREATE TABLE stored AS SELECT {', '.join(quote(c) for c in store_columns(source))} "
                     f"FROM read_parquet({lit(registrations.as_posix())})")
         problems = hash_problems(registrations, ledger) + store_problems(con, "stored", ledger)
@@ -473,7 +559,7 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
                 UNION ALL
                 SELECT {columns_all} FROM incoming_rows WHERE {STORE_MONTH} IN ({', '.join(incoming_months)})
             ) ORDER BY ALL""")
-        commit_store(con, "merged", registrations, ledger_path, ledger, layout(source))
+        commit_store(con, "merged", registrations, ledger_path, ledger, layout(source), source)
     final = per_year(con, "merged") if result["written"] else per_year(con, "stored")
     result["per_year"] = final
 

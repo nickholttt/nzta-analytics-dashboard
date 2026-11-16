@@ -28,7 +28,9 @@ Three grains, never mixed in one series without an explicit label.
 Every dataset counts **in-scope rows only**. A row is in scope when its
 vehicle type is `in_scope` in `vehicle_scope.csv` (today: passenger cars
 and vans, and goods vans, utes and trucks) and its import status is
-`in_scope` in `import_status_map.csv`. Datasets that measure entry to the
+`in_scope` in `import_status_map.csv`. (`vehicle_scope.csv` also has a `trade_scope` column: the types the
+trade's total of new vehicles counts, which adds buses, motor caravans and special purpose vehicles to the two
+in scope, D-105 and D-106. No dataset is built on it yet.) Datasets that measure entry to the
 fleet also require `counts_as_fleet_entry`. Every guardrail rate (unmapped
 makes, unmapped powertrains, row-count movement) is measured on in-scope
 rows. The unmapped make and powertrain rates are measured on two bases, and
