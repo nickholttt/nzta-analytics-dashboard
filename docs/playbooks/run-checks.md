@@ -50,6 +50,20 @@ npx astro build
 - There is no `build` script in `package.json`; call Astro directly.
 - Output goes to `dist/` (gitignored). Expect `1 page(s) built` and `Complete!`.
 
+## 4. The public build, and first load (when the site's code or what a page downloads changed)
+
+```bash
+INTERNAL_PAGES=false npx astro build
+node scripts/check-public-build.mjs
+node scripts/measure-first-load.mjs --playwright <folder holding node_modules/playwright-core> --chrome <chrome-headless-shell executable>
+```
+
+- The check fails, naming the file, on an internal page or a script no page reaches (D-099).
+- The measurement is the phone profile of D-091: 390 px wide, 150 ms added latency, 1.6 Mbps down, processor slowed
+  four times, a new visitor each run. It needs `playwright-core` and a headless Chromium installed outside the
+  repository (`docs/STATE.md`, How to run). Its header says every flag. Compare figures only between runs of the same
+  script on the same computer: each is a median of runs on that machine.
+
 ## Real example: 2026-09-13, ui/explore with uncommitted design work in the tree
 
 | Check | Result |

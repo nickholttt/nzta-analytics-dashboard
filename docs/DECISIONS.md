@@ -3449,3 +3449,140 @@ New entries use this template:
     Build's conditions follow the fact table.
   - Reversing it: remove the dimension from `config/dimensions.json` and the two config lists; two golden changes back.
 - Status: decided by Claude (unreviewed)
+
+## D-099 2026-11-16 — First load: the page's own code and processor work trimmed, Explore fetches only its first chart on load, the public build drops the internal pages' scripts; the 3 second target is not met and what is left is mostly the data files
+- Agent: claude
+- Basis: the work order §5.D; STATE known issues 1 and 7; D-091 (the phone profile and what "first answer" means) and
+  `docs/QUERY_SERVICE.md`; measurements made on 2026-11-16 on this computer against the 2026-10 dry-run cube with all three
+  datasets, by `scripts/measure-first-load.mjs`; the commits of `claude/first-load`. This file has no separate index, so
+  the heading is the record's index line.
+- Context: a Build question's first answer took 7.4 to 11.6 s on the phone profile, about 460 KB of each page was its own
+  code and fonts, and the public build still shipped the status page's script. The target is a first answer under 3 s.
+- Method (D-091's, recorded so the figures compare): headless Chromium (headless shell 1248, `playwright-core` 1.64.1, outside
+  the repository); a new visitor each run (empty cache); 390 x 844 px, 150 ms added latency, 1.6 Mbps down, 750 kbps up
+  (not recorded in D-091; the value `docs/QUERY_SERVICE.md` set), processor slowed four times. The built site is served by
+  the script's own static server, which stands in for Cloudflare Pages as D-091's did: page, script, style and JSON gzipped,
+  Parquet and fonts as they are, an ETag and `Cache-Control: public, max-age=0, must-revalidate`. `astro preview` is not
+  used for the figures: it sends nothing compressed. A KB is 1,024 bytes; bytes are what Chrome reports crossing the
+  network, headers included. "First answer" is the time from the start of navigation until the page has drawn the charts it
+  draws on its own: both charts of a Build question and, for Explore, its first chart (the others no longer load at once).
+  Five runs each, the median and the range. The Build links are the 3-field and 8-field questions of
+  `docs/QUERY_SERVICE.md` (`scripts/first-load-pages.json`). The method reproduced D-091: its 3-field question took
+  7.4 s [7.2 to 8.4], here 7.59 s [7.43 to 7.74]; its 8-field question 11.6 s, here 11.12 s.
+- Measured, before and after (production build, phone profile, five runs each):
+
+  | Page | First answer before | after | Bytes before | after | Code / fonts / data before | after | Requests before | after |
+  |---|---|---|---|---|---|---|---|---|
+  | Explore, first chart (home) | 7.98 s [7.00 to 9.26] | 4.15 s [4.07 to 4.33] | 916 KB | 496 KB | 300 / 165 / 452 KB | 238 / 165 / 94 KB | 17 | 13 |
+  | Explore, a linked chart (`/#...`) | 6.94 s [6.80 to 7.11] | 4.73 s [4.53 to 4.95] | 916 KB | 536 KB | 300 / 165 / 452 KB | 238 / 165 / 133 KB | 17 | 13 |
+  | Build, 3 fields | 7.59 s [7.43 to 7.74] | 6.75 s [6.66 to 6.90] | 1,035 KB | 972 KB | 304 / 165 / 566 KB | 242 / 165 / 566 KB | 16 | 16 |
+  | Build, 8 fields | 11.12 s [10.86 to 11.15] | 10.29 s [10.20 to 10.73] | 1,681 KB | 1,619 KB | 304 / 165 / 1,212 KB | 242 / 165 / 1,212 KB | 21 | 21 |
+
+  - The home page's "before" is one build measured two ways. Ended at its first chart (above): 7.98 s. Ended when all
+    seven charts it drew on load were drawn, as the first run did: 18.07 s [16.52 to 19.36], with its first chart at
+    9.53 s [7.27 to 10.64]. The spread before is wide because seven charts shared one connection and one processor.
+  - "Code" is the page, its styles and its scripts. The fonts are the same two files either side (168,584 bytes).
+  - Build's data is the same bytes before and after: the fact-table columns the question names, 379,113 bytes of them
+    the count column.
+  - The pages look the same: screenshots at 390 and 1280 px before and after (home, a linked chart, both Build
+    questions); and the markup of every chart on the home page and the linked page, after all the page's charts were
+    scrolled into view and with Plot's random ids removed, is identical for ten charts of eleven. The eleventh (the last
+    true-registrations chart) did not load when scrolled to in the old build and does now. Both Build questions' charts
+    and text are identical.
+- What each change saved. These are medians of three runs on the phone profile made as each change landed, so they are
+  indicative, not the five-run figures above; the order is the order they were made in.
+  1. **Only the zstd decoder** (`src/lib/data.ts`): every column chunk of the cube is zstd (327 chunks, all files checked),
+     hyparquet reads snappy and uncompressed pages itself, and `hyparquet-compressors` shipped brotli, gzip and lz4
+     decoders too. 64.4 KB less compressed script on every page that reads data (home 307,237 to 242,815 bytes of code,
+     a Build page 311,522 to 247,097; read on a desktop run, where bytes do not vary). The time of this change alone was
+     not measured on the phone.
+  2. **Explore fetches only its first chart on load** (`src/lib/loadGate.ts`, `PresetPanel`, `index.astro`): a deferred
+     panel starts once the first has its rows and it is within one screen of the visible page. Data fetched before the
+     first chart is drawn: 462 KB to 171 KB on the home page. Time on its own: none (10.2 s against 9.5 s, within the
+     spread): the processor, not the connection, was the limit (next).
+  3. **Processor work on a chart's first draw** (six commits: a number formatter made once; month keys parsed without
+     splitting, labelled once and converted once per distinct month; month ranges stepped by number; the rolling mix's
+     windows summed over cells laid out by month; the mix chart's counts looked up by value then month). A profile of the
+     home page's first draw, processor slowed four times, network not throttled, development build, showed
+     `toLocaleString` building a formatter on every call as the largest single cost, then month arithmetic, then
+     string-keyed lookups. Time to the first chart on that profile: 10.7 s, then 7.8, 5.2 and 4.1 s after the successive
+     commits. On the phone profile with the network, home went from 10.2 s to 5.4 s with all six. The strings and shares
+     are unchanged (tests; the rolling mix compared with its previous version on 200 random series with gaps, repeated
+     rows and reserved values).
+  4. **Telling the browser what the island needs** (`astro.config.mjs`, a build step; no dependency): every script an
+     island imports listed as `modulepreload` in the page's head, and the manifest preloaded. Hand-patched first: Build
+     7.23 to 6.56 s. Implemented: home 5.43 to 4.59 s, Build 7.39 to 6.78 s.
+  5. **The public build's scripts** (`astro.config.mjs`, `scripts/check-public-build.mjs`): see below. No time effect.
+- Tried and not kept (each measured):
+  - **One chunk per renderer shape**, loaded when a view of that shape is resolved: Plot's core (84 KB compressed) is
+    needed by every shape and the shape-specific code is small. Code went up by 1 to 6 KB and requests from 17 to 26;
+    nothing was saved.
+  - **Opening the Explore gate when the first chart's figure is drawn** rather than when its rows are in: 4.59 to 4.64 s.
+  - **The serif's file without its optical-size axis** (`source-serif-4/wght.css`, 50.8 KB against 122.4 KB): home 4.59 to
+    4.24 s [3.7 to 4.5], Build 6.78 to 6.62 s. It draws every heading in a different cut, heavier and wider, which a
+    visitor would see (screenshots made), so it was reverted. It is one import line if the owner wants the saving.
+- What the fonts cost: with the font files refused, home 3.94 s against 4.59 and Build 6.04 s against 6.78 (three runs
+  each; the page draws in its fallback fonts). About 0.65 to 0.75 s on every first visit. Not changed: delaying the fonts
+  until the first chart draws would show the fallback until then, on every visit unless a flag remembers they are cached,
+  and the swap would land while the visitor reads. That is a visible choice, so it is the owner's.
+- Known issue 7, the status page's script: `INTERNAL_PAGES=false npx astro build` now removes `status/` and `sense-check/`
+  itself, and every script in `_astro` that no remaining page reaches (a page names it, or a reached script imports it,
+  statically or dynamically). `node scripts/check-public-build.mjs` checks the output: exit 0 and "6 scripts" on this
+  build; on the public build as it was before this work it exits 1 naming `_astro/PresetTriage.Dd44jqz5.js`; on a build
+  with the internal pages it names both folders. The deploy's `rm -rf dist/status dist/sense-check` is now a no-op and
+  stays. `deploy.yml` is not changed and does not run the check; one added line would. In a preview of the public build
+  `/status/`, `/sense-check/`, an unknown address and the removed script return 404; the internal build's `/status` still
+  draws (axe clean at 390 and 1280 px).
+- Where the time goes now (after, phone profile, medians):
+  - **Explore's first chart, 4.15 s.** The last byte of the page's scripts and styles is at 2.28 s and of the fonts at
+    2.45 s (402 KB through a 200 KB/s link is 2.0 s); the island then starts, asks for one 67 KB file and draws, which is
+    the 1.7 s to the answer. Fonts refused, 3.94 s. Data is 94 KB of 496 KB.
+  - **Build, 3 fields, 6.75 s.** Code and fonts are done at 2.3 to 2.5 s; the last data byte is at 5.65 s; the sums and
+    the draw take the 1.1 s after it. **Data is 566 KB of 972 KB (58%); with 8 fields, 1,212 KB of 1,619 KB (75%).** At
+    this link's 200 KB/s the data alone is 2.8 s for the 3-field question and 6.1 s for the 8-field one, before any code
+    or font. So no change to the page's own code can bring a Build question under 3 s here: with no script and no font at
+    all, the 3-field question's data would still take most of the 3 s.
+- **The target of 3 s is not met** on any page measured: Explore's first chart 4.15 s, a linked chart 4.73 s, Build 6.75 s
+  and 10.29 s. Explore is within reach by trimming bytes (fonts about 0.7 s; the serif file 0.2 to 0.35 s; the React
+  runtime, 66 KB compressed of the 238 KB of code, would need a dependency decision; not measured). Build needs less
+  data: a hosted service answers in 41 to 62 KB where the static columns take 566 to 1,212 KB (D-091), or the files get
+  lighter (a pipeline change, not made here: no file or format was touched). For the owner's parked question, arithmetic
+  and not a measurement: D-091's service-side figure for the 3-field question (4.2 s, with about 62 KB, or 0.3 s, more
+  code and fonts than now) would be about 3.9 s today, so a service alone would not reach 3 s either, without the fonts or
+  a smaller runtime as well.
+- Decisions a reviewer could want reversed (each is one commit or a few lines):
+  1. The figures come from the script's own gzip server, not `astro preview` and not Cloudflare. Cloudflare Pages is
+     assumed to compress text (gzip or brotli) and to apply `_headers`; neither is verified (nothing is deployed). A
+     brotli figure was not measured.
+  2. The Explore page is judged on its first chart, not on all the charts it draws, because it no longer draws them all
+     at once. Every chart but the page's first is now deferred, so a group's own `defer` in `config/presets.json` is
+     redundant and left (its comment in `config.ts` says so). A deferred chart says it loads as you scroll, then that it is
+     loading; before, a chart waiting for its rows said nothing.
+  3. The gate opens when the first chart has its rows; a deferred panel then starts when it is within one viewport height
+     (`rootMargin` 100%) of the visible page. A first chart that fails, or has nothing to draw, opens it at once.
+  4. Only the zstd decoder is taken from `hyparquet-compressors`. A cube written in a codec other than zstd, snappy or
+     uncompressed fails with hyparquet's "unsupported compression codec", and the chart says its data did not load. The
+     pipeline writes zstd (`docs/CUBE_SCHEMA.md`).
+  5. `astro.config.mjs` now holds two build steps, `preloadIslands` and `prunePublicBuild`, and names `/data/manifest.json`
+     and the two internal folders. They read the built output and add no dependency.
+  6. `public/_headers` lets a browser keep `/_astro/*` (content-hashed names) for a year. It affects repeat visits only,
+     has not been seen working, and is in no figure above.
+  7. Edits in code another branch may be changing: `PresetPanel.tsx` (the gate and a loading line, about 20 lines),
+     `MixChart.tsx` (the counts' lookup, about 10 lines), `composition.ts` (one function), `sentences.ts`, `measures.ts`,
+     `data.ts`, `readout.ts`, `index.astro`. They change no output.
+  8. `scripts/` gains `measure-first-load.mjs` (its browser library stays outside `package.json`), `first-load-pages.json`
+     and `check-public-build.mjs`; `AGENTS.md` and `docs/playbooks/run-checks.md` say how to run them.
+- Not done or not verified: no run on Cloudflare; no brotli figure; the first draw's processor cost was profiled in a
+  development build, so its split is indicative; no repeat-visit figures (D-091 had some; `_headers` would change them);
+  320 px was not screenshotted (390 and 1280 were, with axe, and no page scrolls sideways at either); on a phone the Build
+  page's chart sits below the question picker, so its first answer is drawn below the fold.
+- Found on the way, not fixed (axe; identical before and after this work): on the Build page `label-content-name-mismatch`
+  (serious) on the "Remove this condition" buttons, whose accessible name, "Remove the condition on ...", does not contain
+  their visible words (2 nodes with the 3-field question, 7 with the 8-field); and `heading-order` (moderate), STATE known
+  issue 6. Explore (the home page and a linked chart) and the internal status page have no violations.
+- Consequences: STATE known issues 1 and 7 and the first-load line of CHECKPOINT package D change (the lead updates them);
+  the brief's "Fast" row cites 6.1 s, now 4.15 s (Explore) and 6.75 s (Build). The monthly build and the cube are
+  untouched.
+- Reversing it: each commit of `claude/first-load` stands alone; the gate and the loading line are one commit, the preload
+  step and the pruning step are two.
+- Status: decided by Claude (unreviewed)
