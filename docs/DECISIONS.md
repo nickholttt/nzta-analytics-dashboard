@@ -3665,7 +3665,10 @@ New entries use this template:
   4. **The query service prototype's tests.** They answer from a built cube and skip all 59 tests without one, which
      would pass a run that tested nothing. (a) Skip them in CI. (b) Build the fixture cube the golden test builds: heavy.
      (c) Download the newest published cube release, as `deploy.yml` does (3,110,970 bytes), and fail if there is none:
-     chosen. Against that cube, with only `pipeline/requirements.txt` installed, all 59 pass. They are a step of the
+     chosen. The step also fails if the release has no fact table (`public/data/facts`), which the tests skip without, and if
+     the summary of the run says any test skipped (found on review: a release without `facts/` would have passed with all 59
+     skipped). Each failure was run locally: with the fact table, 59 passed; with it moved away, exit 1; with one test marked
+     skipped, "58 passed, 1 skipped" and exit 1. Against that cube, with only `pipeline/requirements.txt` installed, all 59 pass. They are a step of the
      pipeline job, not of the new one, because that job already has Python and DuckDB, so the site job needs neither.
   5. **When they run.** On every pull request, as the pipeline's do. Path filters would keep a docs-only pull request
      from running them but would also hide the checks from a branch protection rule that requires them. Not chosen.

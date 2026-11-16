@@ -41,8 +41,9 @@ jobs:
 
       # The query service prototype (docs/QUERY_SERVICE.md) answers from a built cube, and its tests are skipped without
       # one, so a run with no cube would report them as passing. The newest published cube release is taken the way
-      # deploy.yml takes it, about 3 MB; no release is a failure, not a skip. They run here because this job already has
-      # Python and DuckDB. They need nothing from the pipeline's own tests, which run first.
+      # deploy.yml takes it, about 3 MB; no release is a failure, not a skip. So is a release without the fact table
+      # (the tests skip without it), and so is any test that reports as skipped. They run here because this job already
+      # has Python and DuckDB. They need nothing from the pipeline's own tests, which run first.
       - name: Query service prototype tests
         env:
           GH_TOKEN: ${{ github.token }}
@@ -57,7 +58,15 @@ jobs:
           gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern public-data.tar.gz --dir "$RUNNER_TEMP"
           tar -xzf "$RUNNER_TEMP/public-data.tar.gz" -C public/data
           echo "Cube: release $tag" | tee -a "$GITHUB_STEP_SUMMARY"
-          python -m pytest scripts/query_service_prototype -q -p no:cacheprovider
+          if [ ! -d public/data/facts ]; then
+            echo "The cube release $tag has no fact table (facts/), so the query service's tests would all be skipped." >&2
+            exit 1
+          fi
+          python -m pytest scripts/query_service_prototype -q -rs -p no:cacheprovider | tee "$RUNNER_TEMP/query-service-tests.txt"
+          if grep -Eq "[0-9]+ skipped" "$RUNNER_TEMP/query-service-tests.txt"; then
+            echo "A query service test was skipped; a skipped test tested nothing." >&2
+            exit 1
+          fi
 
   site-tests:
     runs-on: ubuntu-latest
