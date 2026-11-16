@@ -800,6 +800,23 @@ is worse than one that is visibly stale.
 - There is no last good state (first run), so previous-run comparisons were
   skipped.
 
+Where a maintainer sees them (D-112). The warnings stay plain text in the
+manifest, in the order the build raised them. A build that ran also writes
+them to the Monthly build's summary page (`GITHUB_STEP_SUMMARY`, through the
+`--github-summary` the workflow already passes): a heading with the count and
+a list, or one line when there are none, ordered by `run_summary.warning_order`
+in `config/pipeline.json`. Each group there is a label and a phrase the
+warnings of that kind contain: the first is the flip of a dataset's mild hybrid
+split, which rewrites its whole history of two values, the second an unmapped
+guard above its warning level, which stops a later build if it grows. A warning
+no group claims follows, and a wording that stops matching moves a warning to
+that end, not out of the list (the tests build each of these warnings and
+check its group). Standard error prints every warning, in the order raised. A
+build by hand writes the page only where `GITHUB_STEP_SUMMARY` is set, and a
+page that cannot be written is a line on standard error, never a failed run.
+The internal status page (`/status`) lists the same warnings, as the manifest
+has them, with the snapshot and the time the cube was generated.
+
 ## Size budget
 
 Whole `/public/data` payload target: **under 8 MB**. Preset JSON under

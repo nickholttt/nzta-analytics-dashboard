@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -37,7 +38,7 @@ def main(argv: list[str] | None = None) -> int:
     run = sub.add_parser("run", help="check the source, and pull and build if it changed")
     run.add_argument("--force", action="store_true", help="build even if the change key matches the last good run")
     run.add_argument("--github-output", help="append step outputs (built, snapshot) to this file")
-    run.add_argument("--github-summary", help="append the reason nothing was built to this file")
+    run.add_argument("--github-summary", help="append the reason nothing was built, or the warnings of a build, to this file")
     rebuild = sub.add_parser("build", help="rebuild from a saved pull directory (data/raw/YYYY-MM/<timestamp>)")
     rebuild.add_argument("pull_dir", type=Path)
     rebuild.add_argument("--dry-run", action="store_true", help="run every check but publish nothing")
@@ -76,7 +77,8 @@ def main(argv: list[str] | None = None) -> int:
         source = json.loads((args.pull_dir / "source.json").read_text(encoding="utf-8"))
         manifest = build_step.build(cfg, source, (args.pull_dir / "pages" / "*.json.gz").as_posix(),
                                     fetch.load_state(cfg), publish=not args.dry_run)
-        fetch.print_summary(manifest)
+        # A build by hand writes to the summary page only where there is one: a runner sets this, a maintainer's shell does not.
+        fetch.print_summary(cfg, manifest, os.environ.get("GITHUB_STEP_SUMMARY"))
         return 0
     except GuardrailError as exc:
         unchanged = "the store is unchanged" if args.command == "supply" else "the last good build is unchanged"

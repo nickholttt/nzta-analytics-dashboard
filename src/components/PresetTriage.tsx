@@ -1,13 +1,55 @@
 // Every preset in the canon against what this build can serve. The point is that the gap is in front
 // of you: a preset that cannot render is listed with what it is waiting on, not quietly left out.
+//
+// `BuildWarnings` (D-112) is here, not in a file of its own, so the status page adds no island. A separate island made the
+// public build gain a seventh script: a `resolve` chunk of about 21 KB split out of the shared runtime chunk, which both
+// Explore and Build load, a request more for each.
 import { useEffect, useState } from "react";
 import { presetGroups } from "../lib/config";
 import type { PresetStatus } from "../lib/config";
+import { warningsMeta, warningsView } from "../lib/buildWarnings";
+import type { WarningsView } from "../lib/buildWarnings";
 import { loadManifest } from "../lib/data";
 import type { Manifest } from "../lib/data";
 import { resolvePreset } from "../lib/resolve";
 
 const ORDER: PresetStatus[] = ["invalid", "blocked", "live"];
+
+// The warnings the build that made this cube recorded, at the top of the status page: the pipeline's own text, as written and
+// in the order it raised them. The manifest is read as the triage table reads it (one fetch, shared).
+export function BuildWarnings() {
+  const [view, setView] = useState<WarningsView | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    loadManifest().then((m) => setView(warningsView(m)), (e) => setError(String(e)));
+  }, []);
+
+  if (error) return <div className="callout blocked">{error}</div>;
+  if (!view) return <p>Loading…</p>;
+
+  return (
+    <>
+      <p className="meta">{warningsMeta(view)}</p>
+      {view.warnings === null ? (
+        <div className="callout warning">
+          <span className="callout-label">Not recorded</span>
+          This manifest has no list of warnings, so whether the build raised any is not known.
+        </div>
+      ) : view.warnings.length === 0 ? (
+        <p>The build raised no warnings.</p>
+      ) : (
+        <div className="callout warning">
+          <span className="callout-label">Raised by the build</span>
+          <ul>
+            {view.warnings.map((w, i) => (
+              <li key={i}>{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function PresetTriage() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
