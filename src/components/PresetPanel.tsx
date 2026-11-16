@@ -1,7 +1,7 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
-import { compositeRules, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
+import { compositeRules, phrases, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { ServiceError, loadEvents, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
@@ -289,6 +289,22 @@ export default function PresetPanel({
       ? `This chart is not narrowed to “${v}”: the data can't be narrowed that way yet.`
       : `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`,
   );
+  // The identification coverage is the dataset's, as the build publishes it. A chart narrowed to part of the dataset
+  // (its own filter, or a built question's conditions) says so, since the figure is not for the vehicles drawn.
+  const coverageNote =
+    relabels && coverage
+      ? [
+          fillNote(internal ? phrases.identification_coverage_internal : phrases.identification_coverage, {
+            label: coverage.label,
+            window: coverage.trailing.window_months,
+            trailing: pct(coverage.trailing.coverage_stated_confidence ?? 0),
+            all_time: pct(coverage.all_time.coverage_stated_confidence ?? 0),
+            trailing_high: pct(coverage.trailing.coverage_high_confidence_only ?? 0),
+            all_time_high: pct(coverage.all_time.coverage_high_confidence_only ?? 0),
+          }).text,
+          ...(narrowed || keptBy?.length ? [phrases.identification_coverage_whole] : []),
+        ].join(" ")
+      : undefined;
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
@@ -583,21 +599,7 @@ export default function PresetPanel({
             {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
           </li>
         ))}
-        {relabels && coverage && !internal ? (
-          <li>
-            {coverage.label}: at least {pct(coverage.trailing.coverage_stated_confidence ?? 0)} of mild hybrids registered in the last{" "}
-            {coverage.trailing.window_months} months are identified (at least {pct(coverage.all_time.coverage_stated_confidence ?? 0)} over
-            all time), so this line may undercount them.
-          </li>
-        ) : null}
-        {relabels && coverage && internal ? (
-          <li>
-            {coverage.label}: over the trailing {coverage.trailing.window_months} months,{" "}
-            {pct(coverage.trailing.coverage_stated_confidence ?? 0)} of mild hybrids are identified at stated confidence and{" "}
-            {pct(coverage.trailing.coverage_high_confidence_only ?? 0)} counting high-confidence classifications only (all time{" "}
-            {pct(coverage.all_time.coverage_stated_confidence ?? 0)} and {pct(coverage.all_time.coverage_high_confidence_only ?? 0)}). A lower bound: every unresolved hybrid counts as a missed mild hybrid.
-          </li>
-        ) : null}
+        {coverageNote ? <li>{coverageNote}</li> : null}
         {greyNote && !internal ? (
           <li>
             Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably

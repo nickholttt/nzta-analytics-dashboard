@@ -187,7 +187,7 @@ type PresetsDoc = {
   defaults: {
     year_change_measure: string;
     phrases: RankingPhrases &
-      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string };
+      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
