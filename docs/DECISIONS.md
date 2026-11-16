@@ -4374,7 +4374,8 @@ New entries use this template:
      manifest's figure stays rounded; the warning level (`warn_below_...`) uses the counts too. Tests build the counts from the
      configured threshold: exactly at it, one under, one over, and 139,999 of 200,000, whose rounded figure reads 0.7 while its
      counts are under it (it published before).
-  3. **What "high confidence only" counts.** Read from the code and METRICS.md: the numerator is `mild` rows at the high level plus
+  3. **What "high confidence only" counts. Superseded by the lead's choice, in "After the report" below; this is what the
+     author first did and measured.** Read from the code and METRICS.md: the numerator is `mild` rows at the high level plus
      vehicles identified by the code mapping alone; the denominator is identified mild plus unknown, at both levels; the stated
      figure's numerator is every identified mild vehicle. METRICS.md named only `mild` rows as demoted and said nothing of `full`
      rows, which the code leaves out of the denominator whatever their confidence. The definition is silent, so METRICS.md now
@@ -4412,7 +4413,7 @@ New entries use this template:
   - *Item 2.* (a) Compare the unrounded ratio. (b) Keep the rounded comparison and document it. Chosen (a): it makes the rule as
     written ("at or above") true, and (b) would document a behaviour with no reason behind it.
   - *Item 3.* (a) Document what the code computes. (b) Count a full row at medium or low confidence as unknown at high confidence
-    only. Chosen (a), by the rule in the brief: the definition is specific about `mild` rows and silent about `full`, so the code
+    only. Chosen (a), by the rule in the brief (reversed by the lead after the report; see below): the definition is specific about `mild` rows and silent about `full`, so the code
     does not depart from it, and (b) would change two published figures by five points. Weighed for (b): the manifest says the
     stricter figure shows "how much it rests on medium- and low-confidence classifications", and a medium full call is one; a wrong
     one hides a mild vehicle under Hybrid. Weighed against: no medium or low full row carries an override today (the three full
@@ -4427,13 +4428,31 @@ New entries use this template:
   3. The state keeps the figure rounded to four decimals, as the manifest has it, not the counts.
   4. The standing "not published" warning keeps its wording and its rounded figure, so at the edge it can read "70.0% ... below
      70%". Putting the counts in it would change the golden manifest, whose fixture register is withheld.
-  5. The medium-confidence full rows stay out of the denominator at high confidence only (item 3, option b not taken). This is
-     the one that moves published figures by five points if reversed.
+  5. At high confidence only, a full row below the high level stays in the denominator as unidentified (the lead's choice,
+     below; the author had left it out). Reversing it moves the published high-confidence figures by five points, and the
+     margin on true registrations from 1,101 back to 2,376 unidentified hybrids.
   6. The tie test needs DuckDB's en_US collation (the bundled ICU) to prove its keys discriminate.
 - Consequences: a monthly build that flips a dataset's split prints one warning in the Action's log and the manifest;
   `mild_split` is a new key in the state the Action commits; a dataset exactly at the threshold publishes; METRICS.md and
-  CUBE_SCHEMA.md say what the code does. No published file changes: the only change on the data's path is at the exact edge,
-  which no dataset sits at, and the order of the cap is unchanged.
+  CUBE_SCHEMA.md say what the code does. The only published figures that move are the manifest's high-confidence coverage
+  figures (item 3, as adopted below); the order of the cap and the exact edge move nothing.
 - Left for the site (not in this change): when `mild_split_published` is false, or has just changed, a flip rewrites the figures
   the site shows for every month at once.
+- After the report (the lead, 2026-11-17): the lead adopted the stricter count in item 3, in a later commit. The reason: a
+  figure described as "counting high-confidence classifications only" that treats 1,272 medium-confidence full calls as certain
+  is not what its name says, and the threshold rests on it. METRICS.md already demotes a `mild` row below high confidence to
+  unknown; a `full` row below it is treated the same way for the same reason, since if such a call is wrong a mild hybrid has
+  been missed. So at high confidence only, a vehicle matched by a `full` row below the high level stays in the denominator as
+  not identified; a `full` row at the high level leaves it as before; the stated figure and every assignment of a powertrain
+  value are unchanged, and the confidence levels come from config. Measured with the pipeline's own code on the 2026-10 pull
+  and the committed dashboard counts, and then in a dry-run build of the saved pull (the manifest agrees to the figure): the
+  trailing figure at high confidence went from 79.3% to 74.0% on the register (14,241 of 17,961 to 14,241 of 19,233) and from
+  79.2% to 74.0% on true registrations (14,271 of 18,011 to 14,271 of 19,286); all time from 63.6% to 60.1% and from 68.5% to
+  64.5%; the stated figures (83.5%, 83.5%, 83.1%, 83.0%) did not move. Neither dataset flips: both still publish. The margin on
+  true registrations falls from 2,376 to 1,101 more unidentified hybrids in the window, so keeping `mild_hybrid_models.csv`
+  current matters more. Two limits: the manifest's `identified_full` is not split by confidence, so the figure at high
+  confidence only cannot be rebuilt from the manifest alone (adding that split would be an additive contract change, not done);
+  and a window with no mild or unknown hybrid but some `full` rows below the high level reads 0% at high confidence only and
+  is withheld, where it was not before. The fixture register of the golden file has one such `full` call, so its figure went
+  from 0.3333 to 0.25 (the only golden change).
 - Status: decided by Claude (unreviewed)
