@@ -7,14 +7,13 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session.
-  - **Merged, #60 to #73** (#63 was closed unmerged): the user's answers (D-096, D-106);
+  - **Merged, #60 to #74** (#63 was closed unmerged): the user's answers (D-096, D-106);
     package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
     D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
     supplied counts as files (D-097); the audit's fixes (D-107 to D-110, with #70).
-  - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
-    the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
-    sit about 1% lower, cause not established. Range-extended electric vehicles sit with
-    plug-in hybrids here and apparently not in AutoTalk's count.
+  - **The site's figures were set beside published ones** (D-105): October 2026 is within
+    0.06% of the MIA's once three more vehicle types are counted; older months sit about 1%
+    lower, cause not established. AutoTalk seems to count range-extended cars differently.
   - **The user answered three more questions** (D-106): a total on the trade's basis beside
     the default scope; the MIT licence for the code; the site is run by "an individual".
   - **The engine was audited** against the register's rows ("Work in hand", 1).
@@ -25,28 +24,25 @@ The user's words: "keep working on the engine, it needs to be flawless, the publ
 "dont skim out on making it right"; and to consult what is published online about the New
 Zealand market where things do not look right or a measure has not been probed.
 
-Claude's reading, unreviewed (D-104): the work order's order stands, with the engine before
-the public-facing packages and no proposal to launch early; each measure is recomputed
-independently of the site's code; figures are compared with published New Zealand sources.
+Claude's reading, unreviewed (D-104): the work order's order stands, engine first, with no
+proposal to launch early; each measure is recomputed independently and set beside published
+New Zealand sources.
 
 ## Open pull requests (none)
 
 ## Work in hand, in the order to pick it up
 
-1. **What the engine's audit found** (D-104, D-107). A checker recomputed 34,693 of the
-   site's figures from the register's rows and the dashboard export: 34,618 agree, 74 are
-   withheld on both sides, 1 differs (a tie in a ranking). No count is wrong.
-   - On the site's side, done (#67): equal counts share a rank; a ranking's comparison with
-     a year earlier is decided by the dataset's own months, and a month with no vehicles
-     under a condition is zero; METRICS says what each guard does; the coverage note;
-     `/caveats`; models read as words; a lint against naming a value in a template.
-   - Also done on the site (#69, D-109): the zero-month rule in every windowed figure; a thin
-     ranking greys and says so; Build no longer offers "beyond the cap"; the load gate.
-   - On the pipeline's side, done (#68, D-108): eight hybrid nameplates added, each from a
-     published source (true registrations' coverage 66.0% to 83.5%); a dataset under 70%
-     shows its hybrids undivided; the tie at the model cap has a rule; a new NZTA value no
-     longer refuses the committed counts. Its review's follow-ups too (#70, #72): a flip warns
-     on the build's summary page and `/status`; a stricter coverage count (D-110, D-112).
+1. **What the engine's audit found** (D-104, D-107): of 34,693 figures recomputed from the
+   register's rows and the dashboard export, 34,618 agree, 74 are withheld on both sides and
+   1 differed (a tie in a ranking). No count was wrong. All of it is fixed:
+   - On the site (#67, #69; D-107, D-109): equal counts share a rank; a month with nothing
+     counted is zero in every windowed figure; a thin ranking greys and says so; the
+     coverage note; `/caveats`; a lint against naming a value in a template; the load gate.
+   - In the pipeline (#68, #70, #72; D-108, D-110, D-112): eight hybrid nameplates from
+     published sources; a dataset under 70% shows its hybrids undivided, and a flip warns on
+     the build's summary page and `/status`; a rule for the tie at the model cap.
+   - Four more nameplates at high confidence, each on the maker's or its distributor's own
+     page (#74, D-115): about 74% to 80%. Left: the rows D-115 lists as looked at and kept.
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. Done: ranked chosen values, conditions, CSV, the acceptance question on today's
@@ -96,13 +92,17 @@ independently of the site's code; figures are compared with published New Zealan
 5. **A month supplied after the register's build is not published until the next month's
    build.** May a change to the committed counts rebuild the current month? It is a forced
    run, asked for each time today. Recommend yes, for that case only. With no answer: no.
-6. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
+6. **What "mild hybrid" means for a car that can creep on its motor** (D-115): Subaru's
+   e-Boxer (about 1,460 vehicles a year) and Honda's older IMA cars (about 640). Their makers
+   say neither mild nor full. Mild if the motor is not the main drive (recommended, Claude's
+   view), or full if it can move the car at all. With no answer: Subaru stays unresolved.
+7. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
    sentence, read again before going live; the retaken dashboard history, due in Downloads.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
 D-082, D-085 to D-095 (the eighth session). This session: the readings in D-096, D-104 and
-D-106 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-113.
+D-106 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-115.
 
 ## Prompt for the next session
 

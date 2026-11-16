@@ -58,7 +58,6 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
 - `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): a proposal only.
 - `claude/matrix` (D-114; worktree `nzta-notes`): the sixth shape and a second breakdown in Build.
-- `claude/hybrid-confidence` (D-115; worktree `nzta-audit`): `mild_hybrid_models.csv`'s rows.
 
 ## Raw files on this computer (gitignored)
 
@@ -78,9 +77,9 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
    data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
 2. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
-3. Mild hybrids are identified for about 74% of each dataset's hybrids at high confidence over
-   12 months (D-110's stricter count). Under 70% a dataset shows its hybrids undivided and the
-   build warns, on its summary page and `/status` (#72): about 1,100 more would do it.
+3. Mild hybrids are identified for about 80% of each dataset's hybrids at high confidence over
+   12 months (D-110's count; 74% before #74, D-115). Under 70% a dataset shows its hybrids
+   undivided and the build warns (#72): about 2,600 more unidentified hybrids would do it.
 4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). It holds no owner field; the user's minimum of 10 is for owner fields (D-096).
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
