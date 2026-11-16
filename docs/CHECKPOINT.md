@@ -48,8 +48,7 @@ independently of the site's code; figures are compared with published New Zealan
      the mild split is drawn below the 70% METRICS asks for; ties at the 300-model cap.
      Also: any change to the scope files refuses the committed counts until the history is
      supplied again, even a row for a new NZTA value; refuse only what the trim depends on.
-3. The first pushed version of the counts, untrimmed, stays reachable on GitHub through the
-   closed #63; the local branch that held it is deleted.
+3. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 4. **Package F**, each field checked against the data and published sources before Build
    offers it. First: a total of new vehicles on the trade's basis beside the default scope
    (the user, D-106; `trade_scope` in `vehicle_scope.csv`). Then: colour, seats, where
