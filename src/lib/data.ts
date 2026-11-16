@@ -2,11 +2,22 @@
 // fact table.
 import { parquetRead, parquetReadObjects } from "hyparquet";
 import type { ColumnData } from "hyparquet";
-import { compressors } from "hyparquet-compressors";
+import { decompressZstd } from "hyparquet-compressors";
 import { builderSpec } from "./config";
+import { monthKey } from "./monthkey";
+import { UNREADABLE_DATA, isUnreadableForm } from "./unreadable";
 import { crossPair, crossValue, narrowPair } from "./cross";
 
+export { monthKey };
+
 const DATA = "/data";
+
+// The cube is written with zstd (docs/CUBE_SCHEMA.md); hyparquet reads snappy and uncompressed pages itself. The package
+// of every codec ships a brotli decoder, a gzip one and a lz4 one this site never uses, so only the one the files need is
+// taken from it. A file in any other codec fails to load with hyparquet's own "unsupported compression codec" message.
+// Its types say a second argument, an output length; fzstd takes an optional output buffer there, so it is left out, as the
+// package's own table does.
+const compressors = { ZSTD: (input: Uint8Array) => (decompressZstd as (input: Uint8Array) => Uint8Array)(input) };
 
 // A pair's file is pairs/{dataset}/{dim_a}__{dim_b}.parquet (docs/CUBE_SCHEMA.md, Pair slices).
 export const PAIR_SEPARATOR = "__";
@@ -133,18 +144,21 @@ export const loadRegions = () =>
     return res.json() as Promise<RegionOutlines>;
   });
 
-export function monthKey(value: unknown): string {
-  if (value instanceof Date) return value.toISOString().slice(0, 7);
-  if (typeof value === "string") return value.slice(0, 7);
-  if (typeof value === "number" || typeof value === "bigint") return new Date(Number(value) * 86_400_000).toISOString().slice(0, 7);
-  throw new Error(`unreadable month value: ${String(value)}`);
+// A file in a form the reader has no decoder for says so in a sentence of its own, not the advice to reload.
+async function decoded<T>(read: () => Promise<T>): Promise<T> {
+  try {
+    return await read();
+  } catch (e) {
+    if (isUnreadableForm(e)) throw new ServiceError(UNREADABLE_DATA, false);
+    throw e;
+  }
 }
 
 export const loadSlice = (dataset: string, dimension: string) =>
   once(`slice:${dataset}/${dimension}`, async () => {
     const path = `cube/${dataset}/${dimension}.parquet`;
     const file = await (await fetchOk(path)).arrayBuffer();
-    const rows = await parquetReadObjects({ file, compressors, columns: ["month", "dim_value", "n", "denominator"] });
+    const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "dim_value", "n", "denominator"] }));
     return rows.map(
       (r): SliceRow => ({ month: monthKey(r.month), value: String(r.dim_value), n: Number(r.n), denominator: Number(r.denominator) }),
     );
@@ -155,7 +169,7 @@ type PairRow = { month: string; a: string; b: string; n: number };
 const loadPair = (dataset: string, pair: string) =>
   once(`pair:${dataset}/${pair}`, async () => {
     const file = await (await fetchOk(`pairs/${dataset}/${pair}.parquet`)).arrayBuffer();
-    const rows = await parquetReadObjects({ file, compressors, columns: ["month", "a_value", "b_value", "n"] });
+    const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "a_value", "b_value", "n"] }));
     return rows.map((r): PairRow => ({ month: monthKey(r.month), a: String(r.a_value), b: String(r.b_value), n: Number(r.n) }));
   });
 
@@ -167,7 +181,7 @@ const loadFactColumn = (dataset: string, column: string) =>
   once(`facts:${dataset}/${column}`, async (): Promise<FactColumn> => {
     const file = await (await fetchOk(`facts/${dataset}/${column}.parquet`)).arrayBuffer();
     const chunks: ColumnData[] = [];
-    await parquetRead({ file, compressors, columns: [column], onChunk: (chunk) => chunks.push(chunk) });
+    await decoded(() => parquetRead({ file, compressors, columns: [column], onChunk: (chunk) => chunks.push(chunk) }));
     chunks.sort((a, b) => a.rowStart - b.rowStart);
     const out: unknown[] = [];
     for (const chunk of chunks) for (let i = 0; i < chunk.columnData.length; i++) out[chunk.rowStart + i] = chunk.columnData[i];

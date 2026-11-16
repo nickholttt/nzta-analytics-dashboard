@@ -9,6 +9,7 @@ import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
+import { openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
@@ -71,8 +72,8 @@ export default function PresetPanel({
   presetId?: string;
   preset?: Preset;
   anchored?: boolean;
-  // Draw nothing from the cube until the panel is scrolled into view, so a section below the first charts adds no
-  // downloads before they draw.
+  // Draw nothing from the cube until the page's first chart is drawn and this panel is within a screen of the visible
+  // part of the page, so the charts below the first add no downloads before it draws (src/lib/loadGate.ts).
   defer?: boolean;
   lead?: boolean;
   audience?: "public" | "internal";
@@ -112,18 +113,25 @@ export default function PresetPanel({
   const linked = typeof window !== "undefined" && window.location.hash === `#${presetId}`;
   const [wanted, setWanted] = useState(!defer || linked);
   const [sentinel, setSentinel] = useState<HTMLElement | null>(null);
+  const [near, setNear] = useState(false);
   useEffect(() => {
     if (wanted || !sentinel) return;
     if (typeof IntersectionObserver === "undefined") {
-      setWanted(true);
+      setNear(true);
       return;
     }
-    const observer = new IntersectionObserver((seen) => {
-      if (seen.some((s) => s.isIntersecting)) setWanted(true);
-    });
+    const observer = new IntersectionObserver(
+      (seen) => {
+        // The latest state, not the first sight: while the page's islands are still mounting every panel is briefly
+        // near the top, and that must not count once the layout has settled.
+        setNear(seen[seen.length - 1].isIntersecting);
+      },
+      { rootMargin: "100% 0px" },
+    );
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [wanted, sentinel]);
+  useEffect(() => (near && !wanted ? whenGateOpens(() => setWanted(true)) : undefined), [near, wanted]);
   // What a visitor is told when the query service fails: its own sentence, not the reload advice for a file.
   const [serviceError, setServiceError] = useState<string | null>(null);
 
@@ -203,6 +211,11 @@ export default function PresetPanel({
       current = false;
     };
   }, [resolution, wanted]);
+
+  // The page's first chart, once it has what it needs or cannot have it, lets the deferred ones begin.
+  useEffect(() => {
+    if (!defer && (rows || error || (resolution && resolution.preventsRender.length > 0))) openGate();
+  }, [defer, rows, error, resolution]);
 
   const panelClass = `panel${lead ? " lead" : ""}${wanted ? "" : " loading"}`;
   const [scrolled, setScrolled] = useState(false);
@@ -603,6 +616,20 @@ export default function PresetPanel({
         </div>
       ))}
 
+      {/* One polite status per chart that is being fetched, named by the chart's question, and the same element says when it
+          has arrived (then hidden from the eye, which sees the chart). A chart not yet asked for says so in plain text that is
+          not live, so a page of charts never speaks for all of them at once; the internal page draws everything at once and
+          has no live regions. */}
+      {preventsRender.length === 0 && !wanted ? <p className="meta">This chart loads as you scroll to it.</p> : null}
+      {preventsRender.length === 0 && wanted ? (
+        <p
+          className={rows ? "visually-hidden" : "meta"}
+          role={internal ? undefined : "status"}
+          aria-labelledby={internal ? undefined : questionId}
+        >
+          {rows ? (rows.length > 0 ? "The chart has loaded." : "") : "Loading the chart…"}
+        </p>
+      ) : null}
       {chart}
 
       <ul className="notes">

@@ -108,10 +108,14 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
   const smoothingOption = chartDefaults.mix_smoothing_options.find((o) => o.id === smoothing);
 
   const model = useMemo(() => {
-    const cell = new Map<string, number>();
+    // By value, then month: a figure is looked up many thousands of times per draw, and one key built from both would be
+    // a new string each time.
+    const cell = new Map<string, Map<string, number>>();
     const denominators = new Map<string, number>();
     for (const r of rows) {
-      cell.set(`${r.month}|${r.value}`, r.n);
+      let byMonth = cell.get(r.value);
+      if (!byMonth) cell.set(r.value, (byMonth = new Map()));
+      byMonth.set(r.month, r.n);
       denominators.set(r.month, r.denominator);
     }
     const monthsPresent = [...denominators.keys()].sort();
@@ -163,11 +167,14 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     const named = [...kept, ...new Set(rows.map((r) => r.value).filter(ownLine))];
 
     const denominatorFor = (month: string) => denominators.get(month);
+    const namedIn = new Map<string, number>();
     const nFor = (month: string, s: string) => {
       const den = denominators.get(month);
       if (den === undefined) return undefined;
-      if (s !== ALL_OTHER) return cell.get(`${month}|${s}`) ?? 0;
-      return den - named.reduce((sum, k) => sum + (cell.get(`${month}|${k}`) ?? 0), 0);
+      if (s !== ALL_OTHER) return cell.get(s)?.get(month) ?? 0;
+      let inNamed = namedIn.get(month);
+      if (inNamed === undefined) namedIn.set(month, (inNamed = named.reduce((sum, k) => sum + (cell.get(k)?.get(month) ?? 0), 0)));
+      return den - inNamed;
     };
 
     // Which series take one of the palette's colours. A mix chart tells two stories, what matters now and

@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { answerLine, fillTemplate, hoverLine, monthsOf, percent, rankingText, sayBadMonth, sayOffChart } from "../../src/lib/sentences.ts";
+import { addMonths, answerLine, count, fillTemplate, hoverLine, monthAt, monthIndex, monthLabel, monthsOf, percent, rankingText, sayBadMonth, sayOffChart } from "../../src/lib/sentences.ts";
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const json = (path: string) => JSON.parse(read(path));
@@ -103,11 +103,38 @@ test("one rule writes a proportion, and a template that cannot be filled is know
 
 // The charts' own use of the module: these read source, because the components need a browser to run.
 const trend = read("src/components/TrendChart.tsx");
-const league = read("src/components/LeagueChart.tsx");
 
 test("TrendChart hands the sentence functions the dataset's whole rows and writes no hover wording of its own", () => {
   assert.match(trend, /answerLine\(preset\.answer, rows,/);
   assert.match(trend, /hoverLine\(phrases, rows,/);
   assert.doesNotMatch(trend, /"Up on"|"Down on"|"Same as"|Up on|Down on/);
   assert.doesNotMatch(trend, /answerLine\([^)]*(points|window)/i);
+});
+
+test("count writes a whole number with the group separator, rounded, as toLocaleString does", () => {
+  for (const n of [0, 1, 999, 1000, 21091, 1234567.4, 1234567.5, -2500, 0.4]) assert.equal(count(n), Math.round(n).toLocaleString("en-NZ"));
+  assert.equal(count(21091), "21,091");
+});
+
+test("addMonths moves a month key across year ends in either direction, and monthLabel reads it as a reader would", () => {
+  assert.equal(addMonths("2026-10", 1), "2026-11");
+  assert.equal(addMonths("2026-12", 1), "2027-01");
+  assert.equal(addMonths("2026-01", -1), "2025-12");
+  assert.equal(addMonths("2026-10", -11), "2025-11");
+  assert.equal(addMonths("2026-10", 0), "2026-10");
+  assert.equal(addMonths("1961-01", 789), "2026-10");
+  assert.equal(monthLabel("2026-08"), "Aug 2026");
+  assert.equal(monthLabel("2026-08"), "Aug 2026");
+});
+
+test("monthIndex and monthAt are inverses over the register's years, and step one month at a time", () => {
+  let key = "1961-01";
+  for (let i = 0; i < 800; i++) {
+    assert.equal(monthAt(monthIndex(key)), key);
+    const next = addMonths(key, 1);
+    assert.equal(monthIndex(next), monthIndex(key) + 1);
+    assert.ok(next > key);
+    key = next;
+  }
+  assert.equal(key, "2027-09");
 });

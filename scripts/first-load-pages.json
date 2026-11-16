@@ -1,0 +1,23 @@
+{
+  "$comment": "The pages scripts/measure-first-load.mjs visits. The Build links are the work order's acceptance question (3 fields) and the 8-field question of docs/QUERY_SERVICE.md; the values are data, kept here and not in code. 'expected' is how many charts must be drawn for the answer to count as drawn; left out, it is the number an unthrottled first visit draws on its own. The Explore page is judged on its first chart, since the charts below it load later. 'target' is the id of a chart's panel: the page is then judged on when that panel's own figure is drawn.",
+  "pages": [
+    {
+      "id": "home",
+      "path": "/",
+      "expected": 1
+    },
+    {
+      "id": "explore-chart",
+      "path": "/#powertrain-mix",
+      "target": "powertrain-mix"
+    },
+    {
+      "id": "q3",
+      "path": "/build/?build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger"
+    },
+    {
+      "id": "q8",
+      "path": "/build/?build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger&build.where.import_status=NZ%20New&build.where.engine_size_band=1.5-1.9%20L&build.where.engine_size_band=2.0-2.4%20L&build.where.built_in=JAPAN&build.where.built_in=THAILAND&build.where.built_in=CHINA&build.where.age_at_registration_band=0&build.where.heritage_country=Japan&build.where.heritage_country=United%20States&build.where.heritage_country=China"
+    }
+  ]
+}

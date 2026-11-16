@@ -184,7 +184,7 @@ export type BuilderSpec = {
 
 type PresetsDoc = {
   // label and title head the group's section on the Explore page; lead marks the charts that carry it.
-  // defer: the section draws its data only when scrolled to.
+  // defer: the section draws its data only when scrolled to. Explore defers every chart but the page's first anyway.
   groups: { id: string; label: string; title: string; lead?: boolean; defer?: boolean; presets: Preset[] }[];
   defaults: {
     year_change_measure: string;
