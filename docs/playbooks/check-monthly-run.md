@@ -82,7 +82,13 @@ Where the warnings are:
   real run: the first monthly build after D-112 merges is the check, and the first thing to report if
   the page is empty is that it is.
 - **The log** of the step "Check source; pull and build if it changed": every warning as
-  `  WARNING: ...`, in the order raised.
+  `  WARNING: ...`, in the order raised. From the command line this is the way in, since the summary
+  page is read in the browser: `gh run view <run-id> --log | grep "WARNING:"` (PowerShell:
+  `... --log | Select-String "WARNING:"`). Checked on 2026-11-17: `gh run view <run-id>` lists the jobs,
+  annotations and artifacts and does not show the summary page; `--log` prints the step's output with
+  the job and step names in front of each line, and, in the "Show manifest" step, the manifest, whose
+  `warnings` were `[]` on the build of 2026-11-14. No run so far has had a warning, so the
+  `WARNING:` lines themselves are not yet seen in a real log.
 - **`manifest.json`**, `warnings`: in the log's "Show manifest" step, in the cube release
   `cube-YYYY-MM`, and in `public/data/manifest.json` of a local build.
 - **`/status`**, the internal status page, at its top: the manifest's warnings as written, with the

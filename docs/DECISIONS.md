@@ -4577,13 +4577,23 @@ New entries use this template:
   7. The list says "Worst first: ..." under it when there is more than one warning.
   8. The playbook's way to find the hybrids that count against the figure is a committed maintainer script
      (`scripts/unmatched_hybrids.py`, tested on the fixture register), not a block of code in the playbook. It calls the
-     pipeline's own functions, so it can break when they change; the test is what says so. It reproduced D-110's figures on
+     pipeline's own functions, so it can break when they change; the test is what says so. After the review of #72 it no longer
+     writes its own filter or its own high-confidence rule: the dataset's row set and the conditions come from
+     `metrics.hybrid_conditions` and `metrics.hybrid_base`, which `hybrid_coverage` also uses (no figure changes: the golden test
+     passes), and the script exits with a message when its list differs from the figure's denominator less its numerator. A window
+     with nothing to divide prints that and exits 0; an unreadable store, a folder that is not a pull and a pull with no pages are
+     a message and a non-zero exit. It reproduced D-110's figures on
      the saved 2026-10 pull and the committed store (14,241 of 19,233 and 14,271 of 19,286).
   9. `BuildWarnings` shares `PresetTriage.tsx` to keep the public build's scripts as they were, at the price of a file that
      holds two components.
 - Not done: a build that aborts writes none of its warnings anywhere (its aborts are the failure, and the manifest is staged, not
   published); a run that builds nothing does not show the source's own warnings (a discovery fallback, a column gained; some are
   printed on standard error as they arise); no public page says that a month's split has just changed (D-110's "left for the site").
+  Next steps the review of #72 suggested, not done: a run that aborts on a guardrail writes its reason to the summary page (today
+  the reason is in the log and the red run only); the source-discovery fallback warning as a group of its own in
+  `run_summary.warning_order`, so it is not buried among the rest. The escaping covers `<`, `>` and `&` only: other Markdown
+  characters in a warning can change its formatting but cannot inject HTML, and no warning carries a make or model name today (a
+  future one that does should be checked).
 - Consequences: a green Monthly build whose split flipped shows it on its summary page, first in the list. `config/pipeline.json` gains
   `run_summary`. `manifest.warnings`, the golden contract and the workflow are unchanged. `/status` gains a section. The playbook
   names where the warnings are and what to do about a flip.
