@@ -9,7 +9,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - `main` is the merge of #60.
+  - `main` is the merge of #61.
   - **The last build is the forced run 43637172195** (14 November 2026; snapshot 2026-10;
     5,926,990 rows; no warning): the one forced run the work order allowed. The release
     `cube-2026-10` holds its cube, with the fact table. `Deploy` uploaded nothing.
@@ -22,11 +22,15 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   `python -m pipeline supply` and the register's own code. The store is on this computer only
   (gitignored `data/supplied/`), so GitHub's builds mark the dataset `not_built`.
 - **`registrations_cars_long_run` is built wherever its store is** (#57, D-094): Stats NZ's
-  count of cars first registered each month, January 1961 on. The site does not show it yet.
+  count of cars first registered each month, January 1961 on.
 - **NZTA's vehicle type is a dimension** on the two datasets built from vehicle rows (#58,
   D-095), with a pair on the survivors. The next build on GitHub writes it for the survivors.
 - **The site shows true registrations on a local build** (#56, D-093): a group in Explore
-  and a choice of what Build counts. On a build without the dataset it says so plainly.
+  and a choice of what Build counts; completeness by vehicle type and new or used (#61).
+- **The site shows the long run on a local build** (#61, D-098): cars first registered each
+  month from 1961, new and ex-overseas with unrecorded months left blank, and cars still
+  registered set against Stats NZ's count (not a survival rate, and not called completeness).
+  On a build without a dataset each group says so plainly.
 - **The site's code is on `main`**, with `/about` (a draft; three gaps left for the user, D-096),
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
   site from the newest cube release and uploads nothing. **Nothing is deployed**: the
@@ -40,19 +44,19 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 ## Current step
 
-**Work order 1.** A, B, G, the first part of E and C's pipeline half are done. In hand: C's
-charts, D's first load. Then the rest of E, F, H and I. One report at the end (D-082).
+**Work order 1.** A, B, C and G are done on a local build. In hand: D's first load, E's chart
+rules, the supplied counts as files. Then F, H and I. One report at the end (D-082).
 
 ## In progress (all claude; nothing by gemini)
 
 Three branches, each in its own worktree (`git worktree list`), started 2026-11-16; none
-has a pull request yet. (#60, the user's answers of 16 November, D-096, is merged.)
+has a pull request yet. (#60, the user's answers, and #61, the long-run charts, are merged.)
 
 - `claude/stores-in-repo` (D-097): both supplied sources' counts as files in the repository.
   `pipeline/supplied.py`, `pipeline/series.py`, their tests, `data/supplied/`, AGENTS.md,
   `docs/CUBE_SCHEMA.md`, `docs/DATA_SOURCES.md`, two playbooks.
-- `claude/long-run-charts` (D-098): package C's charts, completeness by vehicle type.
-  `config/presets.json`, `src/lib/derived.ts`, `src/lib/resolve.ts`, renderers, `tests/site/`.
+- `claude/chart-rules` (D-100, D-101): package E's rule table for which shapes fit a question,
+  and the site's tests in `Checks`. `src/lib/resolve.ts`, `src/lib/builder.ts`, a new config file.
 - `claude/first-load` (D-099): package D's first-load trim and the status page's chunk.
   `astro.config.mjs`, the layout, fonts, `src/lib/data.ts`.
 

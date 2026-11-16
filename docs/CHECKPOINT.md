@@ -18,9 +18,11 @@ Last updated by claude on 2026-11-16
 - 2026-11-16, ninth session (in progress).
   - **The user answered the parked questions** (D-096, #60, merged): the privacy classes are approved,
     three of the About page's gaps are filled, and the repository's "About" line is set.
+  - **Merged: #61**, package C's charts with completeness by vehicle type (D-098). Its
+    review found the ratio chart joining a line across months it left out; fixed.
   - **Three pieces run in parallel**, one branch each: the supplied counts as files in the
-    repository (D-097), package C's charts with completeness by vehicle type (D-098), and
-    package D's first-load trim (D-099). STATE lists their files.
+    repository (D-097), package D's first-load trim (D-099), and package E's chart rules
+    with the site's tests in `Checks` (D-100, D-101). STATE lists their files.
   - **Slips, recorded:** #50 merged a minute before its last check finished (it passed);
     a first reading that event markers respect a filter was wrong (D-089).
 
@@ -39,18 +41,14 @@ Last updated by claude on 2026-11-16
   shows its separator, and `/build/` skips a heading (H); a second scope for events; a
   lookup should refuse a blank value at build time, not only in a test (D-095's review).
 - **B. True registrations.** Done on a local build. Left:
-  - The site: completeness by vehicle type and new or used, from the pair on the survivors
-    and the true-registrations fact table (D-095; today it shows the total and new or used).
   - The site's tests (`tests/site/`) and the prototype's tests in `Checks` (a workflow
     change, with E's chart rules).
   - Each month: the user's export, then `python -m pipeline supply`
     (`docs/playbooks/supply-dashboard-month.md`), then a build with `--dry-run`.
-- **C. Stats NZ's long-run series.** The pipeline half is done (#57). Left, on the site: the
-  long-run chart for cars back to 1961 with Stats NZ's statement beside NZTA's attribution
-  (it must read the manifest's `exceeds_total` and show "not recorded" months as such), and
-  cars still registered against Stats NZ's count from July 1975, under its own name and with
-  its caveat (`docs/METRICS.md`). The user's own export replaces the fetched copy
-  (`docs/playbooks/supply-statsnz-series.md`).
+- **C. Stats NZ's long-run series.** Done on a local build (#57, #61, D-098). Left: the
+  user's own export replaces the fetched copy (`docs/playbooks/supply-statsnz-series.md`).
+  Not done at review: #61's docs landed in its last commit, and one commit does not pass
+  the site's tests alone (history was not rewritten).
 - **D. The rest of Stage 1.** Left: first load. Measured (D-091): 7.4 to 11.6 s to a Build
   answer on the phone profile; about 460 KB of each page is its own code and fonts. Trim
   those, measure again (target: a first answer under 3 seconds). Then the status chunk.
