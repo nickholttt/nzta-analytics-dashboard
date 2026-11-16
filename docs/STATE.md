@@ -24,11 +24,10 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **`registrations_flow_wider`** (#73, D-113): true registrations with buses, motor caravans
   and special purpose vehicles too, and a passenger or commercial group. Not on the site yet.
 - **NZTA's vehicle type is a dimension** (#58, D-095); GitHub's next build writes it.
-- **The site shows true registrations on a local build** (#56, D-093): a group in Explore
-  and a choice of what Build counts; completeness by vehicle type and new or used (#61).
-- **The site shows the long run on a local build** (#61, D-098): cars first registered each
-  month from 1961, new and ex-overseas, and cars still registered set against Stats NZ's
-  count (not a survival rate). A build without a dataset says so in place of its charts.
+- **The site shows true registrations and the long run on a local build** (#56, #61; D-093,
+  D-098): a group in Explore and a choice of what Build counts; cars first registered each
+  month from 1961, and cars still registered set against Stats NZ's count (not a survival
+  rate). A build without a dataset says so in place of its charts.
 - **The site's code is on `main`**, with `/about` (a draft; two gaps left for the user, D-106),
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
   site from the newest cube release and uploads nothing. **Nothing is deployed**: the
@@ -39,6 +38,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   differed, a tie in a ranking. Fixed since (#67 to #69): ties, and a month with nothing counted.
 - **Build ranks the values a visitor picks**, labelled as among those picked, and every chart
   downloads its figures as CSV (#71, D-111). The owner's acceptance question passes.
+- **Build crosses two fields**, drawn as the sixth shape, `matrix`: a shaded grid with totals,
+  as vehicles or a share of all, of the row or of the column (#75, D-114). Two Explore grids.
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
   read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
@@ -57,7 +58,6 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
 - `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): a proposal only.
-- `claude/matrix` (D-114; worktree `nzta-notes`): the sixth shape and a second breakdown in Build.
 - `claude/hybrid-confidence` (D-115; worktree `nzta-audit`): `mild_hybrid_models.csv`'s rows.
 
 ## Raw files on this computer (gitignored)
@@ -94,7 +94,9 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 
 ## Where docs and code disagree (noted, not changed)
 
-- CLAUDE.md and AGENTS.md say six shapes; five have renderers. `matrix`'s is package F.
+- CLAUDE.md says `matrix`'s renderer "is planned" and that Plot draws all six shapes. It is
+  built (#75, D-114) as an HTML table, not a Plot figure. CLAUDE.md's shapes are the user's
+  to change (the order's §3; CHECKPOINT, questions).
 - `docs/brief/MASTER_BRIEF.md` still calls `matrix` proposed, says Plot draws "all five
   shapes", and keeps the cap of five waiting pull requests. The work order wins (its §5); the
   brief is updated with the final report (its §6).
@@ -122,10 +124,8 @@ date: matching vehicles between two months' archive files needs November's file 
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about three minutes) and the site's 191 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 225 tests (under half a minute).
 
-- A scratch script run from the session's shared scratch folder can pick up a stray file
-  there in place of a Python module: run it with `python -I`, or from a folder of its own.
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and
   Stats NZ's Infoshare answer; the Ministry of Transport's site refuses automated readers.
@@ -137,9 +137,9 @@ the pipeline tests (about three minutes) and the site's 191 tests (under half a 
   stop it with `npx astro preview stop`. The Build page's question is in the address bar:
   `/build/?build.measure=share&build.by=make`; a condition is
   `&build.where.<dimension>=<value>`; what is counted is `&build.dataset=<id>`.
-- In Git Bash, prefix commands whose arguments start with `/` with `MSYS_NO_PATHCONV=1`.
-  Write any script that holds quotes or backslashes to a file; never feed `python -` from a
-  heredoc (it can hang and leave a process behind).
+- In Git Bash, prefix commands whose arguments start with `/` with `MSYS_NO_PATHCONV=1`. Write
+  any script that holds quotes or backslashes to a file and run it with `python -I` (a stray
+  file in the scratch folder can shadow a module); never feed `python -` from a heredoc.
 - A sub-agent that needs its own copy of the repository gets a worktree made by hand
   (`git worktree add`). A worktree has no `.venv` or `node_modules`: give it this folder's
   Python by its full path; a second checkout beside this folder has `node_modules`.
