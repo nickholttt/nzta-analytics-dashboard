@@ -72,8 +72,9 @@ the Motor Trade Association.
 
 The project's own code and reference files are under the MIT licence
 (`LICENSE`). That licence does not cover the data: figures and outlines that
-come from NZTA or Stats NZ (`data/snapshots/`, `public/geo/`, and what a build
-writes) stay under CC BY 4.0 with the attribution above.
+come from NZTA or Stats NZ (for example `data/snapshots/`, `public/geo/`, and
+the data a build writes) stay under CC BY 4.0 with the attribution above.
+Third-party packages and fonts keep their own licences.
 
 ## How it is built
 

@@ -131,6 +131,7 @@ caravans and special purpose vehicles.
 | August 2022 | 14,690 | 14,353 (-2.3%) | 14,568 (-0.8%) |
 | June 2023 | 23,560 | 23,182 (-1.6%) | 23,399 (-0.7%) |
 | June 2024 | 9,423 | 9,171 (-2.7%) | 9,379 (-0.5%) |
+| October 2024 | 12,568 (the sum of AutoTalk's passenger and commercial figures; its page was not re-read) | 12,082 (-3.9%) | 12,515 (-0.4%) |
 | October 2025 | 14,218 (as restated) | 13,777 (-3.1%) | 14,191 (-0.2%) |
 | March 2026 | 14,908 | 14,617 (-2.0%) | 14,872 (-0.2%) |
 | October 2026 | 15,118 | 14,904 (-1.4%) | 15,109 (-0.06%) |
@@ -158,22 +159,29 @@ What is established, and what is not:
 
 - **Scope.** The three extra types account for most of the gap against the
   MIA's total in every month compared, and in October 2026 for all of the
-  commercial gap. Motorcycles are in neither total.
+  commercial gap. No definition of the MIA's was read: what is established
+  is that the counts meet once the three types are added. Motorcycles are in
+  neither total.
 - **Older months sit lower.** Against the MIA, AutoTalk and Stats NZ alike,
-  the gap that scope does not explain is under 0.3% for recent months and
-  about 1% for 2021 and 2022. Published figures are as first reported or as
-  restated; ours are as the dashboard holds them at the latest export, and
-  NZTA says past months can change (above). Month by month from 2021, the
-  gap against Stats NZ moves with the share of a month's vehicles marked
-  `INACTIVE` (correlation 0.95 over the 69 months to September 2026; both
-  also shrink with a month's age, so this shows no cause). What the
-  missing vehicles are is **not established**.
-- **Not the cause.** Adding re-registrations would overshoot 2021 by about
-  1,800 vehicles; dropping `INACTIVE` vehicles would widen the gap.
-- **Not explained:** AutoTalk's 2025 totals of battery electric vehicles
-  (7,706 against our 7,483) and plug-in hybrids (6,885 against our 7,052);
-  and one used-import figure for October 2025 published on the month's last
-  day (7,381 against our 6,999).
+  the gap that scope does not explain is 0.3% or less for 2025 and 2026,
+  up to 0.5% for 2024, and about 1% for 2021 and 2022. Published figures
+  are as first reported or as restated; ours are as the dashboard holds them
+  at the latest export, and NZTA says past months can change (above). Month
+  by month from 2021, the gap against Stats NZ moves with the share of a
+  month's vehicles marked `INACTIVE` (correlation 0.95 over the 69 months to
+  September 2026; both also grow with a month's age, so this shows no
+  cause). What the missing vehicles are is **not established**.
+- **Re-registrations are not the whole of it.** Adding every
+  re-registration would overshoot the MIA's 2021 total by about 1,800
+  vehicles (3,275 on the wider scope). Whether some of them are counted by
+  the MIA or Stats NZ is not established. Dropping `INACTIVE` vehicles would
+  widen the gap.
+- **Likely, not established:** AutoTalk's 2025 total of battery electric
+  vehicles is 7,706 against our 7,483; with the three extra types ours is
+  7,686, 203 of them buses. Its plug-in hybrids are 6,885 against our 7,052;
+  ours without 190 range-extended electric vehicles is 6,862.
+- **Not explained:** one used-import figure for October 2025 published on
+  the month's last day (7,381 against our 6,999).
 - **Not compared:** the Ministry of Transport's fleet statistics and the
   MIA's brand and model lists could not be read (the first refuses automated
   readers, the second is for members). AutoTalk's top ten brands and models

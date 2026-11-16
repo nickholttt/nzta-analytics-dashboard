@@ -3785,15 +3785,22 @@ New entries use this template:
      3,285 against 3,285 (2,805 light plus 480 heavy). AutoTalk's tables for the month, made from NZTA's data, equal
      ours in every count the sub-agent compared: the total, the year to date, the top ten brands and models,
      passenger and commercial, and used imports (8,285).
-  2. **The default scope is 1.4% to 3.9% under the MIA's total**, because the trade counts those three vehicle
-     types as commercial and `vehicle_scope.csv` leaves them out ("Not explicitly decided. Out by default.").
-  3. **Older months sit lower**, by under 0.3% for recent months and about 1% for 2021 and 2022, against the MIA,
-     AutoTalk and Stats NZ alike. The gap against Stats NZ moves with the share of a month's vehicles marked
-     `INACTIVE` (0.95 over 69 months, recomputed by the lead). The cause is not established.
-  4. **Three things are unexplained**: AutoTalk's 2025 totals of battery electric vehicles and plug-in hybrids
-     (ours 2.9% under and 2.4% over), and one used-import figure for October 2025.
-  5. **The "delivered to buyers" statement has no support** in anything read. The MIA's page calls its figures
-     "New vehicle registrations".
+  2. **The default scope is 1.4% to 3.9% under the published totals compared** (the months in `docs/METRICS.md`).
+     The MIA's commercial count meets ours once those three vehicle types are added, to the vehicle in October
+     2026 and within 0.8% in the other months compared; `vehicle_scope.csv` leaves them out ("Not explicitly
+     decided. Out by default."). No definition of the MIA's was read.
+  3. **Older months sit lower**, by 0.3% or less for 2025 and 2026, up to 0.5% for 2024 and about 1% for 2021 and
+     2022, against the MIA, AutoTalk and Stats NZ alike. The gap against Stats NZ moves with the share of a
+     month's vehicles marked `INACTIVE` (0.95 over 69 months, recomputed by the lead); both grow with a month's
+     age. The cause is not established.
+  4. **Two figures have a likely account, and one has none.** AutoTalk's 2025 battery electric total is ours with
+     the three extra types to 0.3% (203 electric buses); its plug-in hybrid total is ours without 190
+     range-extended electric vehicles to 0.3% (found by the reviewer of #65, recomputed by the lead). One
+     used-import figure for October 2025 is unexplained.
+  5. **The "delivered to buyers" statement has no support** in anything read. It came with the starter kit's
+     first commit and was carried by D-030 to `/caveats` and by the record of the three pages to `/differences`;
+     this record supersedes those parts. The MIA's page calls its figures "New vehicle registrations", in a
+     table whose columns are headed "Sales".
 - Options considered:
   1. **What to do with the scope gap.** (a) Bring the three types into scope now. (b) Leave the scope as it is,
      say plainly on `/differences` what it leaves out, and put the choice to the user. Chosen (b): changing
@@ -3827,8 +3834,9 @@ New entries use this template:
   trade does: (a) bring buses, motor caravans and special purpose vehicles into the default scope, (b) keep the
   scope and offer a total on the trade's basis beside it, (c) leave it with the page saying why; (2) the licence
   for the code: MIT, Apache 2.0 or none; (3) who runs the site, for the About page: a name, or "an individual".
-- Context: D-105 measured the site's true registrations of new vehicles at 1.4% to 3.9% under the MIA's total,
-  because the default scope leaves out three vehicle types the trade counts as commercial. The README said no
+- Context: D-105 measured the site's true registrations of new vehicles at 1.4% to 3.9% under the published
+  totals compared; the MIA's commercial count meets the site's once three vehicle types the default scope leaves
+  out are added. The README said no
   licence was chosen (D-096, item 10, left open). The About page had three gaps.
 - Decision (user):
   1. **The default scope stays, and a total of new vehicles on the trade's basis is offered beside it.**
@@ -3850,7 +3858,8 @@ New entries use this template:
      `data/reference/vehicle_scope.csv` naming the types the trade's total counts: the two in the default scope
      and `BUS`, `MOTOR CARAVAN` and `SPECIAL PURPOSE VEHICLE`. The evidence is D-105: with those three added to new
      goods vehicles, October 2026's commercial count is the MIA's to the vehicle (3,080 + 71 + 129 + 5 = 3,285).
-     Building the total is the first piece of package F; the column arrives with the committed counts (D-097).
+     Building the total is the first piece of package F. The column is added in its own commit on the branch of
+     the committed counts (D-097), which needs it to know which vehicle types' model names to keep.
 - Consequences: the About page has two gaps left (the site's name and its address). The total on the trade's basis
   never replaces a default figure and is never used to scale one; it is named for what it counts.
 - Status: accepted (the user's answers); the choices above are decided by Claude (unreviewed)

@@ -276,8 +276,9 @@ as images: "New vehicle registrations", in total and for light passenger
 (including SUVs), light commercial and heavy commercial (read 2026-11-16;
 its statistics pages are for members). An earlier line here said the MIA
 "counts vehicles delivered to buyers"; nothing read supports that, and its
-page calls the figures registrations. Our numbers do not match theirs
-exactly and are never adjusted to; how far apart they are, and why, was
+page calls the figures registrations, in a table whose columns are headed
+"Sales". Our numbers do not match theirs exactly and are never adjusted
+to; how far apart they are, and what is known about why, was
 measured on 2026-11-16 and is in `docs/METRICS.md`, "Set beside published
 figures" (D-105).
 

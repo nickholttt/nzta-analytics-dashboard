@@ -88,9 +88,9 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
    share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
 7. The public build still ships the status page's script chunk, unlinked, holding no data.
 8. Commits before #47 hold local paths (D-081).
-9. True registrations of new vehicles read 1.4% to 3.9% under the MIA's total: the default
-   scope leaves out three vehicle types the trade counts; a total on the trade's basis is
-   to be built beside it (D-106). Older months sit about 1% under published figures (D-105).
+9. True registrations of new vehicles read 1.4% to 3.9% under published totals: the MIA's
+   count meets ours once three vehicle types the default scope leaves out are added; a total
+   on the trade's basis is to be built (D-106). Older months sit about 1% lower (D-105).
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -114,10 +114,10 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 
 ## Blocked or waiting on the user
 
-Nothing stops the work (CHECKPOINT, questions). Waiting on the user: the code's licence;
-who runs the site, its name and address (the About page's gaps); the retaken dashboard
-history, due in the user's Downloads folder. Waiting on a date: matching vehicles between
-two months' archive files needs November's file (December).
+Nothing stops the work (CHECKPOINT, questions). Waiting on the user: the site's name and
+address (the About page's gaps); the retaken dashboard history, due in the user's Downloads
+folder. Waiting on a date: matching vehicles between two months' archive files needs
+November's file (December).
 
 ## How to run
 
