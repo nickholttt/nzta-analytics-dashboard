@@ -3570,14 +3570,16 @@ New entries use this template:
   Five runs each, the median and the range. The Build links are the 3-field and 8-field questions of
   `docs/QUERY_SERVICE.md` (`scripts/first-load-pages.json`). The method reproduced D-091: its 3-field question took
   7.4 s [7.2 to 8.4], here 7.59 s [7.43 to 7.74]; its 8-field question 11.6 s, here 11.12 s.
-- Measured, before and after (production build, phone profile, five runs each):
+- Measured, before and after (production build, phone profile, five runs each). The "before" is the build of `main` at the start of
+  this work. The "after" is on the merged code (`main` with #60 and #61 taken in), measured on 2026-11-16 after the merge; the
+  figures of the branch before the merge are under "At the merge" below:
 
   | Page | First answer before | after | Bytes before | after | Code / fonts / data before | after | Requests before | after |
   |---|---|---|---|---|---|---|---|---|
-  | Explore, first chart (home) | 7.98 s [7.00 to 9.26] | 4.15 s [4.07 to 4.33] | 916 KB | 496 KB | 300 / 165 / 452 KB | 238 / 165 / 94 KB | 17 | 13 |
-  | Explore, a linked chart (`/#...`) | 6.94 s [6.80 to 7.11] | 4.73 s [4.53 to 4.95] | 916 KB | 536 KB | 300 / 165 / 452 KB | 238 / 165 / 133 KB | 17 | 13 |
-  | Build, 3 fields | 7.59 s [7.43 to 7.74] | 6.75 s [6.66 to 6.90] | 1,035 KB | 972 KB | 304 / 165 / 566 KB | 242 / 165 / 566 KB | 16 | 16 |
-  | Build, 8 fields | 11.12 s [10.86 to 11.15] | 10.29 s [10.20 to 10.73] | 1,681 KB | 1,619 KB | 304 / 165 / 1,212 KB | 242 / 165 / 1,212 KB | 21 | 21 |
+  | Explore, first chart (home) | 7.98 s [7.00 to 9.26] | 4.61 s [4.46 to 4.68] | 916 KB | 538 KB | 300 / 165 / 452 KB | 240 / 165 / 133 KB | 17 | 13 |
+  | Explore, a linked chart (`/#...`) | 6.94 s [6.80 to 7.11] | 4.70 s [4.48 to 5.21] | 916 KB | 538 KB | 300 / 165 / 452 KB | 240 / 165 / 133 KB | 17 | 13 |
+  | Build, 3 fields | 7.59 s [7.43 to 7.74] | 6.58 s [6.29 to 6.84] | 1,035 KB | 975 KB | 304 / 165 / 566 KB | 244 / 165 / 566 KB | 16 | 16 |
+  | Build, 8 fields | 11.12 s [10.86 to 11.15] | 10.32 s [10.29 to 10.54] | 1,681 KB | 1,621 KB | 304 / 165 / 1,212 KB | 244 / 165 / 1,212 KB | 21 | 21 |
 
   - The home page's "before" is one build measured two ways. Ended at its first chart (above): 7.98 s. Ended when all
     seven charts it drew on load were drawn, as the first run did: 18.07 s [16.52 to 19.36], with its first chart at
@@ -3635,17 +3637,17 @@ New entries use this template:
   `/status/`, `/sense-check/`, an unknown address and the removed script return 404; the internal build's `/status` still
   draws (axe clean at 390 and 1280 px).
 - Where the time goes now (after, phone profile, medians):
-  - **Explore's first chart, 4.15 s.** The last byte of the page's scripts and styles is at 2.28 s and of the fonts at
+  - **Explore's first chart, 4.61 s** (the split below was measured before the merge, at 4.15 s). The last byte of the page's scripts and styles is at 2.28 s and of the fonts at
     2.45 s (402 KB through a 200 KB/s link is 2.0 s); the island then starts, asks for one 67 KB file and draws, which is
-    the 1.7 s to the answer. Fonts refused, 3.94 s. Data is 94 KB of 496 KB.
-  - **Build, 3 fields, 6.75 s.** Code and fonts are done at 2.3 to 2.5 s; the last data byte is at 5.65 s; the sums and
-    the draw take the 1.1 s after it. **Data is 566 KB of 972 KB (58%); with 8 fields, 1,212 KB of 1,619 KB (75%).** At
+    the 1.7 s to the answer. Fonts refused, 3.94 s. Data is 94 KB of 496 KB before the merge, 133 KB of 538 KB after.
+  - **Build, 3 fields, 6.58 s** (split measured before the merge, at 6.75 s). Code and fonts are done at 2.3 to 2.5 s; the last data byte is at 5.65 s; the sums and
+    the draw take the 1.1 s after it. **Data is 566 KB of 975 KB (58%); with 8 fields, 1,212 KB of 1,621 KB (75%).** At
     this link's 200 KB/s the data alone is 2.8 s for the 3-field question and 6.1 s for the 8-field one, before any code
     or font. So no change to the page's own code can bring a Build question under 3 s here: with no script and no font at
     all, the 3-field question's data would still take most of the 3 s.
-- **The target of 3 s is not met** on any page measured: Explore's first chart 4.15 s, a linked chart 4.73 s, Build 6.75 s
-  and 10.29 s. Explore is within reach by trimming bytes (fonts about 0.7 s; the serif file 0.2 to 0.35 s; the React
-  runtime, 66 KB compressed of the 238 KB of code, would need a dependency decision; not measured). Build needs less
+- **The target of 3 s is not met** on any page measured: Explore's first chart 4.61 s, a linked chart 4.70 s, Build 6.58 s
+  and 10.32 s. Explore is within reach by trimming bytes (fonts about 0.7 s; the serif file 0.2 to 0.35 s; the React
+  runtime, 66 KB compressed of the 240 KB of code, would need a dependency decision; not measured). Build needs less
   data: a hosted service answers in 41 to 62 KB where the static columns take 566 to 1,212 KB (D-091), or the files get
   lighter (a pipeline change, not made here: no file or format was touched). For the owner's parked question, arithmetic
   and not a measurement: D-091's service-side figure for the 3-field question (4.2 s, with about 62 KB, or 0.3 s, more
@@ -3677,13 +3679,33 @@ New entries use this template:
   development build, so its split is indicative; no repeat-visit figures (D-091 had some; `_headers` would change them);
   320 px was not screenshotted (390 and 1280 were, with axe, and no page scrolls sideways at either); on a phone the Build
   page's chart sits below the question picker, so its first answer is drawn below the fold.
-- Found on the way, not fixed (axe; identical before and after this work): on the Build page `label-content-name-mismatch`
+- Found on the way (axe; identical before and after the speed work): on the Build page `label-content-name-mismatch`
   (serious) on the "Remove this condition" buttons, whose accessible name, "Remove the condition on ...", does not contain
   their visible words (2 nodes with the 3-field question, 7 with the 8-field); and `heading-order` (moderate), STATE known
   issue 6. Explore (the home page and a linked chart) and the internal status page have no violations.
 - Consequences: STATE known issues 1 and 7 and the first-load line of CHECKPOINT package D change (the lead updates them);
-  the brief's "Fast" row cites 6.1 s, now 4.15 s (Explore) and 6.75 s (Build). The monthly build and the cube are
+  the brief's "Fast" row cites 6.1 s, now 4.61 s (Explore) and 6.58 s (Build). The monthly build and the cube are
   untouched.
 - Reversing it: each commit of `claude/first-load` stands alone; the gate and the loading line are one commit, the preload
   step and the pruning step are two.
+- At the merge of main (2026-11-16): the branch took in #60 and #61 (a merge commit). The only conflict was this file: D-096
+  and D-098 from main are kept, in number order, before this record; STATE, CHECKPOINT and README are main's, unedited here.
+  No code conflicted. #61's new group "The long run" is deferred under the gate like every chart but the first, and was
+  checked in a browser at 390 and 1280 px: on load it fetches nothing from the group, and when scrolled to all three of its
+  charts, the ratio chart with its lone-month dots among them, draw. That check found a fault of the gate's own: a panel
+  counted as near the screen if it had ever been, and while the page's islands mount every panel is briefly near the
+  top, so at 390 px the group's first chart was fetched on load. A panel now counts by its latest position (a commit of its
+  own). #61's code added no cost on the first chart's path that was worth an optimisation, so none was made.
+  - Re-measured after the merge (above): home first chart 4.61 s against 4.15 s before it. The same-session comparison says
+    that is the computer, not the code: the pre-merge build of this branch measured 4.58 s and 4.59 s and the merged one 4.62 s
+    and 4.52 s, in alternating runs of four. The merged page carries 2.6 KB more script (245,925 bytes of code against
+    243,341), and its data before the first chart is drawn varies from 97 to 137 KB between runs, by whether the second
+    chart's 57 KB file lands first; it is not something #61 added.
+  - The Build question's accessible-name finding is fixed (`label-content-name-mismatch`: the button's name is now "Remove this
+    condition: <field>", containing the words it shows; `tests/site/accessible-names.test.ts` holds it and fails on the old
+    wording). Build's axe result is now `heading-order` only (STATE known issue 6).
+  - The deploy now runs `node scripts/check-public-build.mjs` in the build job, after the public build and before the site is
+    handed to the upload job, so a leaked internal page or an unreached script fails the deploy; the workflow also reruns when
+    the check changes (`paths`). `pipeline/tests/test_workflow.py` holds the order. Nothing new is pinned.
+  - 320 px: no horizontal scroll on the home page or a Build question (the page is as wide as the screen at every scroll position tried); the one table the check flagged, a chart's key, is 296 px wide there.
 - Status: decided by Claude (unreviewed)
