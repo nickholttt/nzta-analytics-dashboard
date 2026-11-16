@@ -45,7 +45,7 @@ def main(argv: list[str] | None = None) -> int:
     keep.add_argument("--out", type=Path, required=True, help="the Parquet file to write")
     keep.add_argument("--snapshot", help="fail unless the last good build is this month (YYYY-MM)")
     keep.add_argument("--from-pull", type=Path, help="write from a saved pull directory, not from the live register")
-    supply = sub.add_parser("supply", help="check one supplied CSV and add its months to a local store (by hand, never in the Action)")
+    supply = sub.add_parser("supply", help="check one supplied CSV and add its months to the committed store (by hand, never in the Action)")
     supply.add_argument("source", help="the supplied source's id in config/pipeline.json")
     supply.add_argument("csv", type=Path, help="the file to check and add")
     supply.add_argument("--month", help="YYYY-MM: the month of a one-month file that has no month column")

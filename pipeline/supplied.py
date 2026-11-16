@@ -1,9 +1,10 @@
 """Sources a maintainer supplies by hand as a CSV: `python -m pipeline supply <id> <csv>`.
 
-The command checks one file and adds its months to a local store (config/pipeline.json, `supplied`). It never fetches
+The command checks one file and adds its months to a store (config/pipeline.json, `supplied`). It never fetches
 anything and the Action never runs it. The store is one Parquet file of counts, one row per combination of the public
-fields, and a ledger that says which file each month came from. The build reads the store (build.py) and checks it
-against the ledger before it trusts it.
+fields, and a ledger that says which file each month came from and under what terms the source is used. Both are
+committed to the repository (D-097), so a build on GitHub and a build here read the same files. The build reads the
+store (build.py) and checks it against the ledger before it trusts it.
 """
 
 from __future__ import annotations
@@ -75,6 +76,14 @@ def store_paths(cfg, source_id: str) -> tuple[Path, Path]:
 
 def read_ledger(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+# What a committed ledger says about the source's terms, copied from config/pipeline.json so the file carries them.
+SOURCE_BLOCK_KEYS = ("publisher", "licence", "attribution", "origin")
+
+
+def source_block(source: dict) -> dict:
+    return {k: source[k] for k in SOURCE_BLOCK_KEYS if k in source}
 
 
 def month_key(value: date) -> str:
@@ -169,12 +178,13 @@ def check_clock(source_id: str, latest: date, register_month: date, aborts: list
     return True
 
 
-def commit_store(con, table: str, registrations: Path, ledger_path: Path, ledger: dict, lay: Layout) -> None:
+def commit_store(con, table: str, registrations: Path, ledger_path: Path, ledger: dict, lay: Layout, source: dict) -> None:
     """Write the merged store and its ledger. The table is checked against the ledger first, and nothing is written if
-    they disagree."""
+    they disagree. The ledger leads with the source's terms (`source`), as config/pipeline.json states them today."""
     problems = store_problems(con, table, ledger, lay.count, lay.total_key)
     if problems:
         raise abort("internal check failed, nothing was written: " + "; ".join(problems))
+    ledger = {"source": source_block(source), **{k: v for k, v in ledger.items() if k != "source"}}
     registrations.parent.mkdir(parents=True, exist_ok=True)
     staged = registrations.with_name(registrations.name + ".new")
     con.execute(f"COPY {table} TO {lit(staged.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)")
@@ -405,6 +415,11 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
         if not (registrations.exists() and ledger_path.exists()):
             raise abort("the store has one of its two files; restore the other or remove both and supply again")
         ledger = read_ledger(ledger_path)
+        held = [c for c, *_ in con.execute(f"DESCRIBE SELECT * FROM read_parquet({lit(registrations.as_posix())})").fetchall()]
+        if held != store_columns(source):
+            raise abort(f"the store's columns are {held}, but config/pipeline.json expects {store_columns(source)}. A file "
+                        "with other columns replaces the whole history: remove both store files and supply the new history "
+                        "in the same commit as the config change (docs/playbooks/supply-dashboard-month.md, Replacing the whole history).")
         con.execute(f"CREATE TABLE stored AS SELECT {', '.join(quote(c) for c in store_columns(source))} "
                     f"FROM read_parquet({lit(registrations.as_posix())})")
         problems = hash_problems(registrations, ledger) + store_problems(con, "stored", ledger)
@@ -473,7 +488,7 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
                 UNION ALL
                 SELECT {columns_all} FROM incoming_rows WHERE {STORE_MONTH} IN ({', '.join(incoming_months)})
             ) ORDER BY ALL""")
-        commit_store(con, "merged", registrations, ledger_path, ledger, layout(source))
+        commit_store(con, "merged", registrations, ledger_path, ledger, layout(source), source)
     final = per_year(con, "merged") if result["written"] else per_year(con, "stored")
     result["per_year"] = final
 

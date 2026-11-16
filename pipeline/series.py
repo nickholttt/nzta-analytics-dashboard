@@ -1,7 +1,7 @@
 """A source supplied as a published table of monthly series: `python -m pipeline supply <id> <csv>` for a source of kind
 `series` (config/pipeline.json, `supplied`). Its first user is a statistics office's table of motor vehicles registered by type.
 
-The command checks one export of the table and adds its months to a local store: one Parquet file of the figures, one row
+The command checks one export of the table and adds its months to a store: one Parquet file of the figures, one row
 for each month and series that has a figure, and a ledger that says which file each month came from and what was checked
 about it. It never fetches anything and the Action never runs it. The build reads the store (build.py) and checks it
 against the ledger before it trusts it. Nothing in this file names a series, a column or a value: the table's title, its
@@ -377,7 +377,7 @@ def supply(cfg, source_id: str, csv_path: Path, taken: str | None = None, accept
                 UNION ALL
                 SELECT * FROM incoming_rows WHERE {STORE_MONTH} IN ({take})
             ) ORDER BY {STORE_MONTH}, {STORE_SERIES}""")
-        supplied.commit_store(con, "merged", registrations, ledger_path, ledger, lay)
+        supplied.commit_store(con, "merged", registrations, ledger_path, ledger, lay, source)
     table_name = "merged" if result["written"] else "stored"
     held_months, held_figures = con.execute(f"SELECT count(DISTINCT {STORE_MONTH}), count(*) FROM {table_name}").fetchone()
     first, last = con.execute(f"SELECT min({STORE_MONTH}), max({STORE_MONTH}) FROM {table_name}").fetchone()
