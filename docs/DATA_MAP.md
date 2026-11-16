@@ -206,8 +206,8 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   gives every type a readable label: the name a visitor reads, with no part in scope). The file's
   `trade_scope` column marks the types the trade's total of new vehicles counts: the two in scope and
   buses, motor caravans and special purpose vehicles, which the trade counts as commercial vehicles
-  (D-105, D-106). It decides nothing the datasets count today; it is the set of types whose model names the
-  committed store of the dashboard keeps (DATA_SOURCES §D). Its `trade_group` column sorts each of those types
+  (D-105, D-106). It decides which types `registrations_flow_wider` counts (D-113), and it is the set of types
+  whose model names the committed store of the dashboard keeps (DATA_SOURCES §D). Its `trade_group` column sorts each of those types
   into the trade's two groups: passenger cars and vans are `Passenger`; every other type in `trade_scope`
   (goods vehicles, buses, motor caravans, special purpose vehicles) is `Commercial`; a type outside it has no
   group (D-113).
@@ -215,7 +215,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   utility 902,576), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
 - **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` (labelled "Registered as",
   for visitors too, so it cannot be read as the site's "Vehicle type"; Build offers it as a
-  condition as soon as a cube carries it) on `registrations_surviving` and `registrations_flow`, which both carry it, with its pairs and
+  condition as soon as a cube carries it) on `registrations_surviving`, `registrations_flow` and `registrations_flow_wider`, which all carry it, with its pairs and
   fact-table columns listed in `docs/CUBE_SCHEMA.md`. It holds the types `vehicle_scope.csv` puts in
   scope, so two values today, under that file's labels. It is not live on
   `registrations_cars_long_run`, whose source is a published series with no register field.
@@ -988,6 +988,7 @@ is derived from, read from its `derive` block:
 | `imported_from` | `PREVIOUS_COUNTRY` | none |
 | `segment`, `segment_group` | `VEHICLE_TYPE`, `BODY_TYPE`, `GROSS_VEHICLE_MASS` | `segment_map.csv` |
 | `vehicle_type` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `label` column) |
+| `trade_group` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `trade_group` column; `registrations_flow_wider` only) |
 | `import_status` | `IMPORT_STATUS` | `import_status_map.csv` |
 | `region` | `TLA` | `tla_region.csv` |
 | `vehicle_year_band` | `VEHICLE_YEAR`, against the snapshot year | none |

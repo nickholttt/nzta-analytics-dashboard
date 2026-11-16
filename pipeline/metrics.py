@@ -98,7 +98,8 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> t
         f"count(*) FILTER (WHERE NOT {mild} AND NOT {full})", f"count(*) FILTER (WHERE {code_default})",
         f"count(*) FILTER (WHERE {full} AND hybrid_confidence = {lit(h['high_confidence_level'])})",
     ] + [f"count(*) FILTER (WHERE {classified_mild} AND hybrid_confidence = {lit(level)})" for level in h["confidence_levels"]]
-    base = f"in_scope AND {ds} AND {among(recorded, keys['source_hybrid'])}"
+    # `ds` holds the dataset's own scope flag (it is in its `require`), so a wider scope is counted as it counts.
+    base = f"{ds} AND {among(recorded, keys['source_hybrid'])}"
 
     def basis(where: str) -> tuple[dict, tuple[int, int]]:
         n, identified, full_n, unknown, code, full_high, *levels = con.execute(f"SELECT {', '.join(measures)} FROM rows WHERE {where}").fetchone()

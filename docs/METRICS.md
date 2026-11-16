@@ -11,8 +11,9 @@ Three grains, never mixed in one series without an explicit label.
   changes. Denominator: all events of the same dataset in the same month.
   Two sources, never mixed in one series: `registrations_flow`, from
   NZTA's registrations dashboard, with make and model, from January 2021
-  (below); and `registrations_cars_long_run`, from Stats NZ's monthly
-  series, cars only, from January 1961 (below).
+  (below), which has a second form on a wider scope of vehicle types,
+  `registrations_flow_wider`; and `registrations_cars_long_run`, from Stats NZ's
+  monthly series, cars only, from January 1961 (below).
 - **Survivors** — `registrations_surviving`: *vehicles first registered in
   month M that are still registered as at the snapshot date.* Render that
   sentence on every chart that uses this dataset or its subsets (`nz_new`,
@@ -30,7 +31,7 @@ vehicle type is `in_scope` in `vehicle_scope.csv` (today: passenger cars
 and vans, and goods vans, utes and trucks) and its import status is
 `in_scope` in `import_status_map.csv`. (`vehicle_scope.csv` also has a `trade_scope` column: the types the
 trade's total of new vehicles counts, which adds buses, motor caravans and special purpose vehicles to the two
-in scope, D-105 and D-106. No dataset is built on it yet.) Datasets that measure entry to the
+in scope, D-105 and D-106. `registrations_flow_wider` counts exactly the types it marks, below.) Datasets that measure entry to the
 fleet also require `counts_as_fleet_entry`. Every guardrail rate (unmapped
 makes, unmapped powertrains, row-count movement) is measured on in-scope
 rows. The unmapped make and powertrain rates are measured on two bases, and
@@ -112,6 +113,58 @@ taken.
   register are therefore not always the same set of vehicles:
   completeness (below) is not shown by model.
 - **Never on a chart with survivors.**
+
+## True registrations on a wider scope: `registrations_flow_wider`
+
+*Vehicles first registered in New Zealand in month M, as NZTA's registrations
+dashboard held them at its latest monthly update before the export was taken,
+including vehicles since removed from the register, counting buses, motor
+caravans and special purpose vehicles as well as the types
+`registrations_flow` counts.* Render that sentence, or the visitor's wording
+in `config/dimensions.json`, on every chart that uses this dataset (D-106,
+D-113).
+
+- **What it is.** The same dataset as `registrations_flow` in every respect
+  but one: which vehicle types it counts. It is read from the same committed
+  store through the same code, with the same rule for which import statuses
+  count (new and used imports, not re-registrations or scratch-built
+  vehicles). It counts the vehicle types `vehicle_scope.csv` marks in its
+  `trade_scope` column: passenger cars and vans, goods vans, trucks and
+  utes, buses, motor caravans and special purpose vehicles. The name says
+  what it counts and claims nothing about any organisation's definition.
+  D-105 found that the Motor Industry Association's published total of new
+  vehicles meets this count (below); that is a measured agreement of counts,
+  not a definition of the MIA's, which was not read.
+- **New and used alike.** The dataset holds both statuses. A count of new
+  vehicles is this dataset with `import_status` kept to `NZ New`; the
+  dataset itself is not a count of new vehicles.
+- **Neither scope is the right one.** `registrations_flow` answers "how many
+  passenger and goods vehicles were registered", and this dataset "how many
+  vehicles of the types the trade counts". They answer different questions;
+  the site's default stays `registrations_flow` (D-106) and this dataset is
+  offered beside it. Its figures are never added to `registrations_flow`'s
+  (they count the same vehicles twice), and the two are not drawn as one
+  series. **Never on a chart with survivors.**
+- **Passenger or commercial.** Its extra dimension, `trade_group`, sorts the
+  vehicles by NZTA's registered type: passenger cars and vans are
+  `Passenger`; every other type it counts is `Commercial` (goods vehicles,
+  buses, motor caravans, special purpose vehicles). It follows
+  `vehicle_scope.csv`'s `trade_group` column. A ute registered as a
+  passenger vehicle is a passenger vehicle here; light and heavy commercial
+  cannot be told apart (the export has no gross vehicle mass).
+- **Dimensions.** The same as `registrations_flow`'s wherever the field
+  exists for the added types, plus `trade_group`. `segment`, `segment_group`,
+  `engine_size_band`, `region` and the vehicle-age band need fields the
+  dashboard lacks and are not live, as for `registrations_flow`.
+- **Guards.** Every guard applies as it does to `registrations_flow`: the
+  store's months, rows and totals against its ledger, a month whose store
+  total moved by more than 2% without a recorded replacement, an emptied
+  month, the unmapped make and powertrain rates (on this dataset's own
+  rows), the mild hybrid split judged on this dataset's own hybrids, and the
+  model cap with its tie rule. A guard of another dataset reads its own rows
+  and does not change when this one is added. The first build that has the
+  dataset accepts it (the last good state has nothing about it); later builds
+  compare with it.
 
 ## Set beside published figures (measured 2026-11-16, D-105)
 
