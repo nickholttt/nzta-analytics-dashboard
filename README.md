@@ -82,11 +82,11 @@ the Motor Trade Association. No licence has been chosen for the code yet.
 - **Charts are data.** Each chart on the Explore page is an entry in
   `config/presets.json`, drawn by one of a fixed set of renderers.
 - **Every field is written up.** `docs/DATA_MAP.md` gives each of the
-  register's 40 fields its meaning, its coverage, its traps and a proposed
-  privacy class. The classes are proposals, not yet approved by the owner.
-  Fields that describe a vehicle's owner are not published, with one
-  exception: the share of vehicles by the owner's region, which predates that
-  rule and waits on the owner's decision.
+  register's 40 fields its meaning, its coverage, its traps and a privacy
+  class, approved by the owner. Fields that describe a vehicle's owner are
+  not published, with one exception: the share of vehicles by the owner's
+  region. The rest may appear later, only in simple tables with small counts
+  hidden.
 - **The site** (Astro, React and Observable Plot, `src/`) reads the cube as
   static files.
 
@@ -161,7 +161,9 @@ a reference value.
 - A question on the Build page takes several seconds to answer on a phone.
   Most of the wait is the page's own code and fonts; the rest is the table of
   counts the browser downloads and adds up itself.
-- The privacy classes for the register's fields are proposals.
+- Apart from the owner's region, fields that describe a vehicle's owner
+  (district, usage, industry class, owner type) cannot be asked about yet.
+  They will appear only in simple tables, with small counts hidden.
 - The method and caveats pages are written by hand and fall behind when a new
   month arrives.
 - Four of the 54 events are unverified and left out of the build.
