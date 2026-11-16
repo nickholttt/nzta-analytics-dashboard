@@ -161,7 +161,8 @@ fetched by a script, so the name Infoshare gives a browser download has not been
   (D-065 did not check whether Stats NZ revises: this is how the first revision will be seen);
 - the months added join the stored months without a gap.
 
-The store is `data/supplied/statsnz_tpt/` (gitignored until its own commit; the dashboard's store is committed): `series.parquet`, a row for
+The store is `data/supplied/statsnz_tpt/`, committed to this repository like the dashboard's (the user, 2026-11-16,
+D-097): `series.parquet`, a row for
 each month and series that has a figure, and `ledger.json` (`docs/CUBE_SCHEMA.md`, *A source of kind
 `series`*). It holds all 26 series. Only the cars total, the cars
 previously registered overseas and the seven engine-size bands are built into a dataset,
@@ -169,6 +170,19 @@ previously registered overseas and the seven engine-size bands are built into a 
 store, because Stats NZ's classes are not lined up with NZTA's vehicle types (D-065). Anything that shows
 the dataset shows Stats NZ's attribution statement, which the build copies from
 `supplied.statsnz_tpt.attribution` into the dataset's block of `manifest.json`. The step-by-step is `docs/playbooks/supply-statsnz-series.md`.
+
+**Where the committed store came from, and its terms.** The one file supplied so far is `TPT052601.csv`: the whole
+table, fetched read-only from Infoshare by a script on 14 November 2026 (789 months, 1961-01 to 2026-09, "last
+updated 19 October 2026 10:45am"); it was not a browser export. The user will replace it with their own export
+later: run `supply` on it as for any month (the store is the whole table every time; unchanged months stay,
+a revised figure is refused without `--accept-revisions` and recorded in the ledger when accepted). The ledger's
+`files` entry has the file's SHA-256, name, the day it was taken and the "last updated" text. The committed
+store and ledger were written from it by `supply` on 16 November 2026: the Parquet file has the same SHA-256 as the
+store of 14 November, the ledger differs only by its `source` block. The licence is CC BY 4.0 (the statement in
+`supplied.statsnz_tpt.attribution`, which the ledger's `source` block and the dataset's manifest block both carry).
+Not checked: whether Stats NZ's terms say anything about scripted access to Infoshare (D-094), or whether the
+committed copy of the whole table, including the 21 series no dataset uses, is within what the licence allows
+beyond the attribution it asks for (read as CC BY 4.0, which allows reuse; not confirmed with Stats NZ).
 
 **The hand export** (read from Infoshare's pages on 2026-11-14; the clicks were not confirmed in a browser,
 so the steps marked "inferred - confirm" are to be checked the first time):

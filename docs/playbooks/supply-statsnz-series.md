@@ -2,9 +2,15 @@
 
 Stats NZ published about two weeks after NZTA's service on the one month observed, so the series' newest month is usually a month behind the register's (an estimate) (the latest month in the 2026-11-14 export was September 2026, last
 updated 19 October). Once a month, or when the user wants the newest month, the user exports the
-table from Infoshare and a maintainer adds it to the local store. This is a hand step: the Action never
-runs it and nothing here fetches anything. Why the data is kept this way is D-065; what the table is, and
-what each of its columns means, is `docs/DATA_SOURCES.md` section C.
+table from Infoshare and a maintainer adds it to the store, which is committed to the repository (D-097) and read by
+GitHub's builds. This is a hand step: the Action never runs it and nothing here fetches anything. Why the data
+is kept this way is D-065; what the table is, and what each of its columns means, is `docs/DATA_SOURCES.md`
+section C. The copy in the store now was fetched read-only by a script on 2026-11-14; the user's own export
+replaces it the same way as any later one.
+
+A store that ends before the register's month is normal here and is not a problem: the build warns, names the missing
+months and publishes everything else. A store that ends after the register's month aborts the build; it cannot
+happen with a table that is published after the register.
 
 Infoshare is being replaced by Stats NZ's Aotearoa Data Explorer in 2027. When the table reaches it only
 the export step changes.
@@ -32,10 +38,14 @@ the export step changes.
 Nothing outside `data/supplied/statsnz_tpt/` is written, and nothing is written at all unless every check
 passes.
 
+5. Run `.venv/Scripts/python.exe -m pytest pipeline/tests/test_stores_in_repo.py -q -p no:cacheprovider`, then commit
+   `data/supplied/statsnz_tpt/series.parquet` and `ledger.json` together in one commit, staged by name. The two
+   belong to each other by a hash: one without the other makes every build abort. The raw export stays in `data/raw/`.
+
 **Build with `--dry-run` afterwards**, as for the dashboard (`docs/playbooks/supply-dashboard-month.md`): a
-local `python -m pipeline build <pull>` without `--dry-run`, with the store present, writes the dataset into
-`data/state/last_good.json`, which only the Action may commit; GitHub's builds have no store and would abort for
-want of it. The dry run writes only the gitignored `data/staging/`.
+local `python -m pipeline build <pull>` without `--dry-run` writes the dataset into `data/state/last_good.json`
+and the register's archive into `data/snapshots/`, which only the Action may commit (hard rule 3). The dry run
+writes only the gitignored `data/staging/`.
 
 ## Attribution
 
@@ -62,7 +72,7 @@ Each message names the cause. What to do:
 | a total no longer equals its parts from YYYY-MM | A total differs from the sum of its parts in a month from `arithmetic_from` (1998-01). | Export again. If it persists, Stats NZ has changed the table: tell the lead before moving `arithmetic_from`. |
 | N figure(s) in M month(s) already in the store differ from this file | The file differs from what was stored for those months (whether the publisher revises is not known). The message lists every changed figure with its old and new value. | Read the list. If the new file is right, run again with `--accept-revisions`; the change goes into the ledger. If you did not expect it, keep the old data and ask. |
 | adding these months would leave the store with no rows for YYYY-MM | The file does not join the stored months. | Export the whole table (it always starts at 1961M01). |
-| the store disagrees with its ledger, or is not the file this ledger was written with | A store file was edited, or a run was interrupted between writing the two files. | Restore both files together, or remove `data/supplied/statsnz_tpt/` and supply the whole table again. |
+| the store disagrees with its ledger, or is not the file this ledger was written with | A store file was edited, or a run was interrupted between writing the two files. | Restore both files together from git (`git restore --source=HEAD -- data/supplied/statsnz_tpt`, which discards any uncommitted change to the two files): it keeps the ledger's record of accepted revisions. Supplying the whole table again is the last resort, because it starts a new ledger with no `revisions` history. |
 | the store has one of its two files | One of `series.parquet` and `ledger.json` is missing. | Restore it, or remove the other and supply again. |
 
 A revision that you accept changes the dataset's figures for those months. The next build compares each

@@ -486,7 +486,7 @@ of the table and fetches nothing. The table's title, footer, month format and he
 `supplied.statsnz_tpt` in `config/pipeline.json`, the meaning of each of its 26 columns in
 `data/reference/statsnz_series.csv`; no `.py` file names one.
 
-- `data/supplied/statsnz_tpt/series.parquet` (gitignored): one row for each month and series that has a
+- `data/supplied/statsnz_tpt/series.parquet` (committed, D-097): one row for each month and series that has a
   figure. Columns, in order: `month` (DATE, the first day), `series_id` (the reference file's id),
   `value` (INTEGER). A figure that Stats NZ marks `..` (not available) has no row. Sorted by month, then
   series, in the cube's Parquet options, so the same input gives the same bytes.
@@ -561,7 +561,7 @@ that total, so its slice is the breakdown's figures.
   good build's at all (`max_month_change` is 0) aborts, unless the ledger records a revision of that month from a
   file taken on or after that build's day.
 
-**Without the store** (GitHub's runs, until the user decides whether it may be committed) the build
+**Without the store** (a checkout that lacks it: a store is committed, so GitHub's runs have both, D-097) the build
 succeeds, writes nothing for the dataset, adds a warning, and gives the manifest
 `datasets.<id> = {"definition": ..., "not_built": "<reason>"}`. Anything that reads `datasets` must
 check for `not_built` before reading the other keys.
