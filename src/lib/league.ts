@@ -3,7 +3,7 @@
 // (shared ranks, alphabetical within a tie) is in ranking.ts; docs/METRICS.md, "Ranking and ties".
 import type { Cell, Column } from "./figures";
 import { nameOrder, rankByCount } from "./ranking";
-import { changeOnYear, fillTemplate, markReason, vehiclesText } from "./sentences";
+import { NOT_RECORDED_TOKEN, NO_MATCH_TOKEN, changeOnYear, fillTemplate, markReason, vehiclesText } from "./sentences";
 import type { RankingThinPhrases } from "./sentences";
 
 // The rows of a slice: one per month and value. Under a condition a month in which the condition keeps nothing has no rows, so
@@ -117,20 +117,20 @@ export type LeagueTable = {
 export const moveText = (rankDelta: number | null, hasPrior: boolean): string =>
   !hasPrior ? "—" : rankDelta === null ? "New" : rankDelta > 0 ? `▲ +${rankDelta}` : rankDelta < 0 ? `▼ ${rankDelta}` : "—";
 
-export function leagueTable(items: readonly LeagueRow[], t: LeagueTable): { columns: Column[]; rows: Cell[][] } {
+export function leagueTable(items: readonly LeagueRow[], t: LeagueTable): { columns: Column[]; rows: Cell[][]; notes: { column: string; reason: string }[] } {
   const { hasPrior, floor, words, format } = t;
   const withheld = (reason: string): Cell => ({ text: "—", csv: null, mark: "withheld", reason });
-  const count: Column = { name: t.countHeading, unit: "count" };
-  const year: Column = { name: "Change on a year ago", unit: "percent" };
+  const count: Column = { key: "count", name: t.countHeading, unit: "count" };
+  const year: Column = { key: "year", name: "Change on a year ago", unit: "percent" };
   const columns: Column[] = [
-    { name: "Rank", csvName: t.headings?.rank, unit: "count" },
-    { name: "Move", text: true },
-    { name: t.valueHeading, text: true },
+    { key: "rank", name: "Rank", csvName: t.headings?.rank, unit: "count" },
+    { key: "move", name: "Move", text: true },
+    { key: "name", name: t.valueHeading, text: true },
     ...(t.showYear ? [count, year] : []),
-    { name: "Share", csvName: t.headings ? `${t.headings.share} (%)` : undefined, unit: "percent" },
-    { name: "Change in share", unit: "points" },
+    { key: "share", name: "Share", csvName: t.headings ? `${t.headings.share} (%)` : undefined, unit: "percent" },
+    { key: "change", name: "Change in share", unit: "points" },
     ...(t.showYear ? [] : [count]),
-    { name: "Rank a year before", csvName: t.headings?.prior, unit: "count" },
+    { key: "before", name: "Rank a year before", csvName: t.headings?.prior, unit: "count" },
   ];
   const rows = items.map((item): Cell[] => {
     const move: Cell = !hasPrior
@@ -159,19 +159,36 @@ export function leagueTable(items: readonly LeagueRow[], t: LeagueTable): { colu
       before,
     ];
   });
-  return { columns, rows };
+  // Why a dash stands where a figure would, for the reasons the page does not say elsewhere (a ranking with no year before says so once, in its
+  // own sentence): the page gives each under the table and the file in its line on withheld figures.
+  const seen = new Map<string, { column: string; reason: string }>();
+  rows.forEach((row) =>
+    row.forEach((cell, i) => {
+      if (typeof cell === "string" || cell.mark !== "withheld" || !cell.reason || cell.reason === words.noYearAgo) return;
+      const column = columns[i].csvName ?? columns[i].name;
+      seen.set(`${column}|${cell.reason}`, { column, reason: cell.reason });
+    }),
+  );
+  return { columns, rows, notes: [...seen.values()] };
 }
 
-// What a ranking of chosen values says about the choice: who stands first (all who share first place), and which chosen values take no
-// place, by the name a reader sees. A value takes a place only when it has vehicles in the window and is not a reserved one
-// (leagueRows), so the others are named rather than quietly missing.
+// What a ranking of some values says about them: who stands first (all who share first place) and how many vehicles each has, and which of the
+// values take no place, by the name a reader sees and by why: a value takes a place only when it has vehicles in the window and is not a
+// reserved one (leagueRows), so the others are named, in groups a sentence can say truthfully (not recorded and no match in the reference
+// are different facts about the vehicles, and "no vehicles" is a third).
 export function pickedSummary(picked: readonly string[], items: readonly LeagueRow[], nameOf: (value: string) => string) {
   const placed = new Set(items.map((i) => i.value));
   const leaders = items.filter((i) => i.rank === 1);
+  const unplaced = picked.filter((v) => !placed.has(v));
+  const named = (keep: (v: string) => boolean) => unplaced.filter(keep).map(nameOf).sort(nameOrder);
   return {
     leaders: leaders.map((i) => i.name),
     leaderCount: leaders[0]?.n ?? 0,
-    unranked: picked.filter((v) => !placed.has(v)).map(nameOf).sort(nameOrder),
+    unranked: {
+      notRecorded: named((v) => v === NOT_RECORDED_TOKEN),
+      unmatched: named((v) => v === NO_MATCH_TOKEN),
+      empty: named((v) => v !== NOT_RECORDED_TOKEN && v !== NO_MATCH_TOKEN),
+    },
   };
 }
 

@@ -22,6 +22,9 @@ export type Question = {
   // With the ranking view and values chosen: rank every value under the same conditions instead of the ones chosen. The choice is
   // kept, so one step takes the visitor back to it (D-111).
   rankAll?: boolean;
+  // The values are the page's own starting values (the largest under the conditions), not the visitor's. They are not in the address, so
+  // they follow the conditions and the dataset, and a shared link reproduces the page: no build.value means the page's own (D-111).
+  pageValues?: boolean;
 };
 
 // What the page offers, worked out at build time against the cube as built and handed to the island as plain data.
@@ -106,6 +109,8 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
     top_n: values || !q.by ? undefined : m?.top_n?.[q.by],
     ...(m?.derived ? { derived: m.id } : { measure: m?.id }),
     ...(values ? { values } : {}),
+    ...(values && q.pageValues ? { page_values: true } : {}),
+    ...(q.view === RANKING && q.rankAll ? { ranks_all: true } : {}),
     ...(Object.keys(where).length ? { where } : {}),
     ...(view ? { shape_override: view } : {}),
   };
@@ -194,6 +199,11 @@ export function withValues(where: Record<string, string[]>, dimension: string, v
   return Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
 }
 
+// The words on a condition's remove button, and the name a screen reader or a voice user gets for it: the same words, then the field, so
+// the visible label is part of the name (WCAG 2.5.3).
+export const REMOVE_CONDITION = "Remove this condition";
+export const removeConditionLabel = (field: string): string => `${REMOVE_CONDITION}: ${field.toLowerCase()}`;
+
 // As many values as the palette has colours: past that, lines can no longer be told apart (src/lib/theme.ts).
 export const MAX_VALUES = 8;
 
@@ -218,8 +228,14 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   );
   const asked = (q.values?.length ? q.values : onBreakdown).filter(isChoosable);
   const values = takesValues ? [...new Set(asked)].slice(0, MAX_VALUES) : [];
-  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, where, view: null };
-  const view = q.view && viewsFor(settled).includes(q.view) ? q.view : null;
+  // Values the page chose: any question that names none, and one the page has filled in and the visitor has not touched.
+  const pageValues = takesValues && (values.length === 0 || q.pageValues === true);
+  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, where, view: null, ...(pageValues ? { pageValues } : {}) };
+  // A count with no values yet is waiting for the page's own, which come after the page has looked at the data; a view that needs
+  // two or more is judged as if they were there, so a link to the ranking of the page's values is kept.
+  const waiting = pageValues && values.length === 0 && partsOf(findBuilderMeasure(m.id) as BuilderMeasure).some((p) => p.id === COUNT);
+  const judged = waiting ? { ...settled, values: ["?", "?"] } : settled;
+  const view = q.view && viewsFor(judged).includes(q.view) ? q.view : null;
   return { ...settled, view, ...(view === RANKING && q.rankAll ? { rankAll: true } : {}) };
 }
 
@@ -292,7 +308,8 @@ export function questionParams(q: Question): URLSearchParams {
   const params = new URLSearchParams({ [key("measure")]: q.measure, [key("by")]: q.by ?? "" });
   // An address with no dataset means the default one, so an older link keeps its meaning and the default adds nothing.
   if (q.dataset !== builderSpec.dataset) params.set(key("dataset"), q.dataset);
-  for (const v of q.values) params.append(key("value"), v);
+  // The page's own values are not in the address: a link without values means them.
+  if (!q.pageValues) for (const v of q.values) params.append(key("value"), v);
   for (const [d, kept] of Object.entries(cleanWhere(q.where))) for (const v of kept) params.append(key(`${WHERE}${d}`), v);
   if (q.view) params.set(key("view"), q.view);
   if (q.view === RANKING && q.rankAll) params.set(key("rank"), "all");

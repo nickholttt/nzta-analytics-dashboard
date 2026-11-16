@@ -4,10 +4,11 @@
 // differ. Nothing here reads a vehicle: the rows are the aggregates the chart already holds (invariant 6).
 //
 // The file: UTF-8 with a byte order mark and CRLF line endings, which is what a spreadsheet needs to open it correctly. It opens with
-// lines that start with "# " (the question, the dataset, the snapshot, the attribution, the address that redraws it, how figures are
-// written, which are greyed or withheld) and then the table itself, its header row first. A spreadsheet shows the lines above the table as
-// text in its first column; a program that reads CSV skips them by setting its comment character to "#". A line that holds a comma
-// is quoted as any field is, so such a line starts with a quotation mark in the file, and its text is as written.
+// lines that start with "# " (the question, the dataset, the snapshot, the attribution of each dataset it draws on, the address that redraws
+// it, how figures are written, which are greyed or withheld) and then the table itself, its header row first. A program that reads CSV skips
+// the lines above the table by setting its comment character to "#". Each of those lines is written as it is, never quoted, so that it
+// starts with "# " whatever it holds; a spreadsheet shows such a line in its first cell and, at a comma in it, carries on into the cells to the
+// right. That is accepted over a quoted line, which no comment-skipping reader would recognise. A line never holds a line break.
 import { fillTemplate } from "./sentences";
 
 export type Mark = "greyed" | "withheld";
@@ -17,6 +18,8 @@ export type Unit = "text" | "count" | "percent" | "points" | "month";
 
 export type Column = {
   name: string;
+  // A name for the column that a renderer reads its cells by, so a change to the columns cannot shift what another reads silently.
+  key?: string;
   // The column is text on the page (set left); it is a figure otherwise, except the first, which names the row.
   text?: boolean;
   unit?: Unit;
@@ -37,15 +40,24 @@ export type Figures = {
   rows: Cell[][];
 };
 
+// The cell of a row in the column with this key.
+export function cellAt(figures: { columns: readonly Column[]; rows: readonly (readonly Cell[])[] }, row: number, key: string): Cell {
+  const i = figures.columns.findIndex((c) => c.key === key);
+  if (i < 0) throw new Error(`no column keyed ${key}`);
+  return figures.rows[row][i];
+}
+
 export const cellText = (cell: Cell): string => (typeof cell === "string" ? cell : cell.text);
 
 export type FiguresHeader = {
   question: string;
   counted?: string;
-  dataset: string;
+  // The datasets the figures are drawn from, each with the statement of where its figures come from (a chart that divides one dataset by
+  // another draws on two and carries both), and the notes on how the dataset's export was taken.
+  datasets: string[];
   snapshot: string;
-  source?: string;
-  attribution: string;
+  sources: string[];
+  attributions: string[];
   address: string;
 };
 
@@ -71,7 +83,8 @@ export function plainNumber(text: string): number | undefined {
 }
 
 // A text that starts with a character a spreadsheet reads as the start of a formula is written with a single quotation mark in front,
-// which a spreadsheet takes as "this is text" and does not show. Model names come from the data, so any value may do it.
+// which a spreadsheet takes as "this is text" and does not show; a program that reads the file shows the quotation mark as part of the text.
+// Model names come from the data, so any value may do it.
 const FORMULA_START = /^[=+\-@\t\r]/;
 export const safeText = (text: string): string => (FORMULA_START.test(text) ? `'${text}` : text);
 
@@ -79,6 +92,10 @@ export const safeText = (text: string): string => (FORMULA_START.test(text) ? `'
 export const csvField = (text: string): string => (/[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text);
 
 const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+// A reason as a clause in the file's line on marks: no capital, no full stop of its own (the line's sentence adds its own).
+const clause = (reason: string | undefined) => lowerFirst(reason ?? "").replace(/\.+$/, "");
+// A line of notes above the table, as written: one line, starting "# ".
+const noteLine = (text: string) => `# ${text.replace(/[\r\n]+/g, " ")}`;
 const csvLine = (fields: string[]) => fields.map(csvField).join(",");
 
 // What a cell is in the file: a number as a plain number, text made safe, nothing for a figure that is not given.
@@ -104,10 +121,11 @@ function marksLine(figures: Figures, phrases: FiguresPhrases): string {
     row.forEach((cell, i) => {
       if (typeof cell === "string" || !cell.mark) return;
       const column = figures.columns[i];
-      const key = `${column?.name}|${cell.mark}|${cell.reason ?? ""}`;
+      const name = column ? heading(column) : "";
+      const key = `${name}|${cell.mark}|${cell.reason ?? ""}`;
       if (!seen.has(key)) {
         const mark = cell.mark === "greyed" ? phrases.figures_greyed : phrases.figures_withheld;
-        seen.set(key, fillTemplate(phrases.figures_mark_item, { column: column?.name ?? "", mark, reason: lowerFirst(cell.reason ?? "") }).text);
+        seen.set(key, fillTemplate(phrases.figures_mark_item, { column: name, mark, reason: clause(cell.reason) }).text);
       }
     });
   }
@@ -120,29 +138,32 @@ export function figuresCsv(header: FiguresHeader, figures: Figures, phrases: Fig
   // A column of the reasons, only where some figure is marked and no column of the table already says why.
   const extra = marked && !figures.columns.some((c) => c.carriesMarks);
   const lines: string[] = [];
-  const note = (label: string, text?: string) => text && lines.push(csvLine([`# ${label}: ${text}`]));
+  const note = (label: string, text?: string) => text && lines.push(noteLine(`${label}: ${text}`));
   note("Question", header.question);
   note("What is counted", header.counted);
   note("Period", figures.period);
-  note("Dataset", header.dataset);
+  note(header.datasets.length > 1 ? "Datasets" : "Dataset", header.datasets.join(" and "));
   note("Snapshot", header.snapshot);
-  // The source note is a sentence that names itself ("Source: ..."), so it takes no label.
-  if (header.source) lines.push(csvLine([`# ${header.source}`]));
-  note("Attribution", header.attribution);
+  // A source note is a sentence that names itself ("Source: ..."), so it takes no label.
+  for (const source of header.sources) lines.push(noteLine(source));
+  for (const attribution of header.attributions) note("Attribution", attribution);
   note("Address", header.address);
-  lines.push(csvLine([`# ${phrases.figures_units}`]));
-  lines.push(csvLine([`# ${marksLine(figures, phrases)}`]));
+  lines.push(noteLine(phrases.figures_units));
+  lines.push(noteLine(marksLine(figures, phrases)));
   lines.push(csvLine([...figures.columns.map(heading), ...(extra ? [phrases.figures_marked_column] : [])]));
   for (const row of figures.rows) {
     const fields = row.map((cell, i) => value(cell, figures.columns[i]?.unit));
     if (extra) {
-      const why = row.flatMap((cell, i) => (typeof cell === "string" || !cell.mark ? [] : [`${figures.columns[i]?.name}: ${cell.mark === "greyed" ? phrases.figures_greyed : phrases.figures_withheld}, ${lowerFirst(cell.reason ?? "")}`]));
+      const why = row.flatMap((cell, i) => (typeof cell === "string" || !cell.mark ? [] : [`${figures.columns[i] ? heading(figures.columns[i]) : ""}: ${cell.mark === "greyed" ? phrases.figures_greyed : phrases.figures_withheld}, ${clause(cell.reason)}`]));
       fields.push(safeText(why.join("; ")));
     }
     lines.push(csvLine(fields));
   }
   return lines.join("\r\n") + "\r\n";
 }
+
+// The pieces of the downloaded file: the byte order mark a spreadsheet reads the encoding from, then the text.
+export const withByteOrderMark = (text: string): string[] => ["\uFEFF", text];
 
 // A name for the file from the question, safe on any system: lower-case letters and digits in words joined by hyphens, cut to a length
 // that fits a path, then the snapshot's date so two snapshots of one question do not share a name.

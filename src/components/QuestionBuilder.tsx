@@ -2,16 +2,17 @@
 // among which vehicles, and the charts that answer it are drawn by the same panel as Explore (D-058, D-059). The
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { builderSpec, datasetWords, dimensionLabel, findDataset, valueWords } from "../lib/config";
+import type { ReactNode } from "react";
+import { builderSpec, datasetWords, dimensionLabel, findDataset, phrases, valueWords } from "../lib/config";
 import { isChoosable } from "../lib/reserved";
-import { MAX_VALUES, RANKING, builderPresets, questionParams, readQuestion, readingNotes, settle, viewsFor, withValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
 import type { SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count } from "../lib/readout";
-import { sayList } from "../lib/sentences";
+import { pickedBuilderSentences } from "../lib/sentences";
 import PresetPanel, { reservedLabel } from "./PresetPanel";
 
 // The chart's own settings in the address bar. A new question clears them, so its charts open on their defaults.
@@ -85,6 +86,9 @@ function ValuePicker({
   onChange,
   max,
   emptyHint,
+  note,
+  aside,
+  chosenLabel,
 }: {
   dataset: string;
   dimension: string;
@@ -94,6 +98,12 @@ function ValuePicker({
   onChange: (values: string[]) => void;
   max?: number;
   emptyHint?: string;
+  // A sentence under the chosen values (where they are the page's own), and controls beside the search box's label, which take no row of
+  // their own.
+  note?: string;
+  aside?: ReactNode;
+  // The name of the list of chosen values, where "chosen" would not be true of them.
+  chosenLabel?: string;
 }) {
   const { options, failed } = useValueOptions(dataset, dimension, where);
   const [query, setQuery] = useState("");
@@ -114,7 +124,7 @@ function ValuePicker({
   return (
     <div className="picker" ref={box} tabIndex={-1}>
       {chosen.length > 0 ? (
-        <ul className="chips" aria-label={`Chosen ${noun} values`}>
+        <ul className="chips" aria-label={chosenLabel ?? `Chosen ${noun} values`}>
           {chosen.map((v) => (
             <li key={v}>
               {valueLabel(v, dimension)}
@@ -136,15 +146,22 @@ function ValuePicker({
       ) : emptyHint ? (
         <p className="picker-hint">{emptyHint}</p>
       ) : null}
+      {note ? <p className="picker-hint">{note}</p> : null}
       {failed ? (
         <p className="picker-hint">{failed}</p>
       ) : full ? (
-        <p className="picker-hint">Up to {max} can be compared at once. Remove one to add another.</p>
+        <>
+          <p className="picker-hint">Up to {max} can be compared at once. Remove one to add another.</p>
+          {aside ? <div className="picker-aside">{aside}</div> : null}
+        </>
       ) : (
         <>
-          <label className="picker-find" htmlFor={inputId}>
-            Search {noun}
-          </label>
+          <div className="picker-find-row">
+            <label className="picker-find" htmlFor={inputId}>
+              Search {noun}
+            </label>
+            {aside ? <div className="picker-aside">{aside}</div> : null}
+          </div>
           <input id={inputId} ref={input} type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
           {options === null ? (
             <p className="picker-hint">Loading…</p>
@@ -220,6 +237,17 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const presets = useMemo(() => builderPresets(question, (v) => valueLabel(v, question.by ?? undefined)), [question]);
   const views = useMemo(() => viewsFor(question), [question]);
   const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
+  // The other shapes a question may be drawn as are a choice of their own; the ranking is reached from the values, where it is about them.
+  const otherViews = views.filter((v) => v !== RANKING);
+  const noun = breakdown ? filterLabel(breakdown.id).toLowerCase() : "";
+  const own = !question.pageValues;
+  const ranking = pickedBuilderSentences(phrases, {
+    own,
+    picked: question.values.length,
+    field: noun,
+    months: TRAILING_MONTHS,
+    names: question.values.map((v) => valueLabel(v, question.by ?? undefined)),
+  });
   // A link can name a condition this data cannot apply. It stays in the question, where it blocks the chart, but the
   // lists of values are counted among the conditions that can be applied.
   const canApply = (id: string) => vocabulary.filters.some((f) => f.id === id);
@@ -249,6 +277,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     const asked = { ...latest.current, ...next };
     // Ranking every value is a state of the ranking view only.
     if (next.view !== undefined && next.view !== RANKING) asked.rankAll = false;
+    // Values the page chose follow the question: a new condition or measure sets them aside, and the page looks again.
+    if (latest.current.pageValues && next.values === undefined && (next.where !== undefined || next.measure !== undefined)) asked.values = [];
     // Another dataset carries other conditions and other values: the ones it does not carry go, and the chosen values start over.
     if (next.dataset && next.dataset !== latest.current.dataset) {
       const carried = all.datasets.find((v) => v.dataset === next.dataset)?.filters ?? [];
@@ -285,7 +315,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
         const now = latest.current;
         if (!current || now.by !== by || now.values.length > 0) return;
         const top = options.filter((o) => !isReserved(o.value) && o.recent > 0).slice(0, STARTING_VALUES).map((o) => o.value);
-        if (top.length) ask({ values: top }, false);
+        if (top.length) ask({ values: top, pageValues: true }, false, true);
         else setNoStartFor(startKey);
       },
       () => current && setStartFailedFor(startKey),
@@ -366,51 +396,87 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
 
         {breakdown?.values ? (
           <fieldset className="question-part">
-            <legend>Compare</legend>
+            <legend>Compare{own || question.values.length === 0 ? "" : `, ${ranking.pickerNote}`}</legend>
             {question.rankAll ? (
               <>
-                <p className="picker-hint">
-                  Ranking every {filterLabel(breakdown.id).toLowerCase()}, not only the {question.values.length} you picked:{" "}
-                  {sayList(question.values.map((v) => valueLabel(v, breakdown.id)))}. Your picks are kept.
-                </p>
-                <button
-                  type="button"
-                  id="rank-picked"
-                  className="button-quiet"
-                  onClick={() => {
-                    ask({ rankAll: false }, true, true);
-                    focusSoon(() => document.getElementById("rank-all"));
-                  }}
-                >
-                  Rank only the {question.values.length} you picked
-                </button>
-              </>
-            ) : (
-              <>
-                <ValuePicker
-                  dataset={dataset}
-                  dimension={breakdown.id}
-                  noun={filterLabel(breakdown.id).toLowerCase()}
-                  chosen={question.values}
-                  where={applicable(question.where)}
-                  max={MAX_VALUES}
-                  onChange={(values) => ask({ values })}
-                  emptyHint={countsLines ? undefined : "Showing the largest, with the rest as All other. Choose values to compare only those."}
-                />
-                {question.view === RANKING ? (
+                <p className="picker-hint">{ranking.allNote}</p>
+                <div className="picker-aside">
                   <button
                     type="button"
-                    id="rank-all"
+                    id="rank-picked"
                     className="button-quiet"
                     onClick={() => {
-                      ask({ rankAll: true }, true, true);
-                      focusSoon(() => document.getElementById("rank-picked"));
+                      ask({ rankAll: false }, true, true);
+                      focusSoon(() => document.getElementById("rank-all"));
                     }}
                   >
-                    Rank every {filterLabel(breakdown.id).toLowerCase()} instead
+                    {ranking.back}
                   </button>
-                ) : null}
+                  <button
+                    type="button"
+                    className="button-quiet"
+                    onClick={() => {
+                      ask({ view: null });
+                      focusSoon(() => document.getElementById("rank-view"));
+                    }}
+                  >
+                    {ranking.toLines}
+                  </button>
+                </div>
               </>
+            ) : (
+              <ValuePicker
+                dataset={dataset}
+                dimension={breakdown.id}
+                noun={noun}
+                chosen={question.values}
+                where={applicable(question.where)}
+                max={MAX_VALUES}
+                onChange={(values) => ask({ values, pageValues: false })}
+                emptyHint={countsLines ? undefined : "Showing the largest, with the rest as All other. Choose values to compare only those."}
+                chosenLabel={own ? undefined : `${filterLabel(breakdown.id)} values shown`}
+                aside={
+                  views.includes(RANKING) ? (
+                    question.view === RANKING ? (
+                      <>
+                        <button
+                          type="button"
+                          id="rank-all"
+                          className="button-quiet"
+                          onClick={() => {
+                            ask({ rankAll: true }, true, true);
+                            focusSoon(() => document.getElementById("rank-picked"));
+                          }}
+                        >
+                          Rank every {noun} instead
+                        </button>
+                        <button
+                          type="button"
+                          className="button-quiet"
+                          onClick={() => {
+                            ask({ view: null });
+                            focusSoon(() => document.getElementById("rank-view"));
+                          }}
+                        >
+                          {ranking.toLines}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        id="rank-view"
+                        className="button-quiet"
+                        onClick={() => {
+                          ask({ view: RANKING });
+                          focusSoon(() => document.getElementById("rank-all"));
+                        }}
+                      >
+                        {ranking.toRanking}
+                      </button>
+                    )
+                  ) : undefined
+                }
+              />
             )}
           </fieldset>
         ) : null}
@@ -426,13 +492,13 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                   <button
                     type="button"
                     className="button-quiet"
-                    aria-label={`Remove this condition: ${filterLabel(d).toLowerCase()}`}
+                    aria-label={removeConditionLabel(filterLabel(d))}
                     onClick={() => {
                       ask({ where: without(question.where, d) });
                       focusSoon(() => addSelect.current);
                     }}
                   >
-                    Remove this condition
+                    {REMOVE_CONDITION}
                   </button>
                 </div>
                 {canApply(d) ? (
@@ -475,14 +541,14 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
           </fieldset>
         ) : null}
 
-        {views.length > 1 ? (
+        {otherViews.length > 1 ? (
           <div className="toggle" role="radiogroup" aria-label="Show as">
-            {views.map((v, i) => (
+            {otherViews.map((v, i) => (
               <label key={v}>
                 <input
                   type="radio"
                   name="question-view"
-                  checked={(question.view ?? views[0]) === v}
+                  checked={(question.view ?? otherViews[0]) === v}
                   onChange={() => ask({ view: i === 0 ? null : v })}
                 />{" "}
                 {VIEW_LABELS[v] ?? v}
@@ -519,7 +585,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
             )}
           </section>
         ) : (
-          <PresetPanel key={`${p.id}:${String(questionParams(question))}`} preset={p} audience="public" anchored={false} />
+          <PresetPanel key={`${p.id}:${String(questionParams(question))}:${question.values.join("|")}`} preset={p} audience="public" anchored={false} />
         ),
       )}
 

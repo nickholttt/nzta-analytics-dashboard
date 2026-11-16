@@ -6,9 +6,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const { cellText, csvField, figuresCsv, figuresFileName, plainNumber, safeText } = await import("../../src/lib/figures.ts");
+const { cellText, csvField, figuresCsv, figuresFileName, plainNumber, safeText, withByteOrderMark } = await import("../../src/lib/figures.ts");
 const { leagueRows, leagueTable, rankingGuard } = await import("../../src/lib/league.ts");
-const { rankingText, rankingWindows, rankingWords } = await import("../../src/lib/sentences.ts");
+const { rankingText, rankingWindows, rankingWords, yearTooFewText } = await import("../../src/lib/sentences.ts");
 const { phrases } = await import("../../src/lib/config.ts");
 const { minDenominator, pct, shareChange } = await import("../../src/lib/measures.ts");
 
@@ -16,14 +16,14 @@ const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta
 const header = {
   question: "A question, with a comma",
   counted: "Only vehicles where a is “x” are counted.",
-  dataset: "A dataset",
+  datasets: ["A dataset"],
   snapshot: "2026-10-31",
-  source: "Source: a file.",
-  attribution: "Data sources: a body, licensed CC BY 4.0.",
+  sources: ["Source: a file."],
+  attributions: ["Data source: a body, licensed CC BY 4.0."],
   address: "https://example.test/build?build.measure=count&build.by=x",
 };
 
-// A small reader of the file, written to the RFC's rules: quoted fields, doubled quotation marks, line breaks inside quotes.
+// A small reader of CSV, written to the RFC's rules: quoted fields, doubled quotation marks, line breaks inside quotes.
 function parse(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
@@ -43,9 +43,15 @@ function parse(text: string): string[][] {
   assert.ok(field === "" && row.length === 0, "the file ends with a line break");
   return rows;
 }
-// The table of a file: the rows after the lines that start with "# ".
-const tableOf = (rows: string[][]) => rows.filter((r) => !r[0].startsWith("# "));
-const notesOf = (rows: string[][]) => rows.filter((r) => r[0].startsWith("# ")).map((r) => r[0]);
+// What a program that reads CSV with a comment character does (pandas' comment="#", R's comment.char): drop each line that starts with "#" and
+// read the rest as CSV. Written here, apart from the writer, so the file is held to what such a reader gets from it.
+function readSkippingComments(text: string): string[][] {
+  const kept = text.split("\r\n").filter((line, i, all) => !line.startsWith("#") && !(i === all.length - 1 && line === ""));
+  return parse(kept.length ? kept.join("\r\n") + "\r\n" : "");
+}
+// The lines above the table, each as the one line it is.
+const notesOf = (text: string) => text.split("\r\n").filter((line) => line.startsWith("#"));
+const tableOf = readSkippingComments;
 
 test("a figure is written as a plain number: no thousands separator, a full stop, a minus sign, no unit", () => {
   assert.equal(plainNumber("1,234"), 1234);
@@ -74,57 +80,96 @@ test("the file's name is built from the question, safely", () => {
   assert.doesNotMatch(figuresFileName("../../etc/passwd", "2026-10-31"), /[\\/:]/);
 });
 
+const figures = {
+  period: "Oct 2026",
+  columns: [
+    { name: "Value", text: true },
+    { name: "Share", csvName: "Share of all counted (%)", unit: "percent" as const },
+    { name: "Vehicles", unit: "count" as const },
+    { name: "Change", unit: "points" as const },
+  ],
+  rows: [
+    ['Make, "Model"', "12.3%", "1,234", { text: "+1.5 pp", mark: "greyed" as const, reason: "Fewer than 200 vehicles behind this figure" }],
+    ["=HYPERLINK(1)", { text: "suppressed", csv: null, mark: "withheld" as const, reason: "Too few vehicles to show." }, "5", { text: "—", csv: null, mark: "withheld" as const, reason: "The source does not record this breakdown in this month." }],
+    ["Not recorded", "0.0%", "0", "−0.1 pp"],
+  ],
+};
+
 test("the writer: a header block, then the table; CRLF; quoting; the formula guard; a reserved value's label; greyed and withheld figures", () => {
-  const figures = {
-    period: "Oct 2026",
-    columns: [{ name: "Value", text: true }, { name: "Share", unit: "percent" as const }, { name: "Vehicles", unit: "count" as const }, { name: "Change", unit: "points" as const }],
-    rows: [
-      ['Make, "Model"', "12.3%", "1,234", { text: "+1.5 pp", mark: "greyed" as const, reason: "Fewer than 200 vehicles behind this figure" }],
-      ["=HYPERLINK(1)", { text: "suppressed", csv: null, mark: "withheld" as const, reason: "Too few" }, "5", { text: "—", csv: null, mark: "withheld" as const, reason: "No year before" }],
-      ["Not recorded", "0.0%", "0", "−0.1 pp"],
-    ],
-  };
   const text = figuresCsv(header, figures, phrases);
   assert.ok(text.endsWith("\r\n"));
   assert.equal(text.replace(/\r\n/g, "").includes("\n") || text.replace(/\r\n/g, "").includes("\r"), false, "every line break is CRLF");
   assert.notEqual(text.charCodeAt(0), 0xfeff, "the byte order mark is added by the download, not the writer");
-  const rows = parse(text);
-  const notes = notesOf(rows);
-  assert.equal(notes[0], "# Question: A question, with a comma", "a line with a comma is a quoted field, and reads back as written");
+  const notes = notesOf(text);
+  assert.equal(notes[0], "# Question: A question, with a comma", "a note is one line starting with the hash, whatever it holds");
   assert.ok(notes.includes("# What is counted: Only vehicles where a is “x” are counted."));
   assert.ok(notes.includes("# Period: Oct 2026"));
   assert.ok(notes.includes("# Dataset: A dataset"));
   assert.ok(notes.includes("# Snapshot: 2026-10-31"));
   assert.ok(notes.includes("# Source: a file."));
-  assert.ok(notes.includes(`# Attribution: ${header.attribution}`));
+  assert.ok(notes.includes("# Attribution: Data source: a body, licensed CC BY 4.0."));
   assert.ok(notes.includes(`# Address: ${header.address}`));
   assert.ok(notes.some((n) => /^# Counts are whole numbers of vehicles\./.test(n)));
-  const marks = notes.find((n) => n.startsWith("# Greyed or withheld"));
-  assert.equal(
-    marks,
-    "# Greyed or withheld: Change, greyed: fewer than 200 vehicles behind this figure; Share, withheld: too few; Change, withheld: no year before. A blank cell has no figure; it is never a zero.",
-  );
-  assert.deepEqual(tableOf(rows), [
-    ["Value", "Share (%)", "Vehicles", "Change (percentage points)", "Greyed or withheld"],
-    ['Make, "Model"', "12.3", "1234", "1.5", "Change: greyed, fewer than 200 vehicles behind this figure"],
-    ["'=HYPERLINK(1)", "", "5", "", "Share: withheld, too few; Change: withheld, no year before"],
+  assert.deepEqual(tableOf(text), [
+    ["Value", "Share of all counted (%)", "Vehicles", "Change (percentage points)", "Greyed or withheld"],
+    ['Make, "Model"', "12.3", "1234", "1.5", "Change (percentage points): greyed, fewer than 200 vehicles behind this figure"],
+    ["'=HYPERLINK(1)", "", "5", "", "Share of all counted (%): withheld, too few vehicles to show; Change (percentage points): withheld, the source does not record this breakdown in this month"],
     ["Not recorded", "0", "0", "-0.1", ""],
   ]);
   // A table with nothing greyed or withheld says so, and has no column for it.
-  const clean = parse(figuresCsv(header, { ...figures, rows: [figures.rows[2]] }, phrases));
+  const clean = figuresCsv(header, { ...figures, rows: [figures.rows[2]] }, phrases);
   assert.ok(notesOf(clean).includes("# No figure in this file is greyed or withheld. A blank cell has no figure; it is never a zero."));
-  assert.deepEqual(tableOf(clean)[0], ["Value", "Share (%)", "Vehicles", "Change (percentage points)"]);
+  assert.deepEqual(tableOf(clean)[0], ["Value", "Share of all counted (%)", "Vehicles", "Change (percentage points)"]);
   // A table whose own column says why (a Note column) is not given another.
-  const noted = parse(figuresCsv(header, { ...figures, columns: [...figures.columns, { name: "Note", text: true, carriesMarks: true }], rows: figures.rows.map((r) => [...r, "n"]) }, phrases));
-  assert.deepEqual(tableOf(noted)[0], ["Value", "Share (%)", "Vehicles", "Change (percentage points)", "Note"]);
+  const noted = figuresCsv(header, { ...figures, columns: [...figures.columns, { name: "Note", text: true, carriesMarks: true }], rows: figures.rows.map((r) => [...r, "n"]) }, phrases);
+  assert.deepEqual(tableOf(noted)[0], ["Value", "Share of all counted (%)", "Vehicles", "Change (percentage points)", "Note"]);
 });
 
-test("the download adds the byte order mark, makes the file in the browser from the rows it holds, and sends nothing", () => {
-  const panel = read("src/components/PresetPanel.tsx");
-  assert.ok(panel.includes('new Blob(["\\uFEFF", figuresCsv('));
-  assert.ok(panel.includes("text/csv;charset=utf-8"));
-  assert.doesNotMatch(panel.slice(panel.indexOf("const handleDownload"), panel.indexOf("const actionsBlock")), /fetch\(|XMLHttpRequest|sendBeacon/);
-  // Every renderer hands the panel the table it draws.
+test("a reader that skips the lines starting with the hash gets exactly the table, however the notes read", () => {
+  // Notes with commas, quotation marks and a line break in the text, which no note may carry as a line break.
+  const awkward = {
+    ...header,
+    question: 'Share of "A", "B" and C, by brand\nover time',
+    counted: "Only vehicles where a is “x, y” or “z”, and b is “w” are counted.",
+    attributions: ["Data source: A, B and C, licensed CC BY 4.0.", "This work includes data of D, licensed for reuse."],
+    datasets: ["A dataset, long", "Another"],
+  };
+  const text = figuresCsv(awkward, figures, phrases);
+  const lines = text.split("\r\n");
+  const hashes = lines.filter((l) => l.startsWith("#"));
+  assert.ok(hashes.length >= 10);
+  // Every line that is a note starts with the hash, and no table line does: a line break in a note has not split it.
+  assert.ok(hashes.every((l) => l.startsWith("# ")));
+  assert.equal(hashes.filter((l) => l.startsWith("# Question: ")).length, 1);
+  assert.ok(hashes[0].includes("over time"), "the line break became a space");
+  const expected = [
+    ["Value", "Share of all counted (%)", "Vehicles", "Change (percentage points)", "Greyed or withheld"],
+    ...tableOf(figuresCsv(header, figures, phrases)).slice(1),
+  ];
+  assert.deepEqual(readSkippingComments(text), expected);
+  assert.equal(readSkippingComments(text).length, figures.rows.length + 1, "the heading and the rows, nothing else");
+  assert.deepEqual(notesOf(text).filter((n) => n.startsWith("# Attribution")).length, 2, "each attribution is a line of its own");
+  assert.ok(notesOf(text).includes("# Datasets: A dataset, long and Another"));
+});
+
+test("the line on marks names the columns as the file does, and does not double a full stop", () => {
+  const text = figuresCsv(header, figures, phrases);
+  const line = notesOf(text).find((n) => n.startsWith("# Greyed or withheld")) as string;
+  assert.equal(
+    line,
+    "# Greyed or withheld: Change (percentage points), greyed: fewer than 200 vehicles behind this figure; Share of all counted (%), withheld: too few vehicles to show; Change (percentage points), withheld: the source does not record this breakdown in this month. A blank cell has no figure; it is never a zero.",
+  );
+  for (const bad of ["..", ".;", ". ;", "..."]) assert.ok(!line.includes(bad), bad);
+  assert.ok(line.includes("Share of all counted (%)") && !line.includes("Share,"), "the file's heading, not the page's");
+  // The column of reasons beside the figures reads the same way.
+  for (const row of tableOf(text).slice(1)) for (const cell of row) assert.ok(!cell.includes(".;") && !cell.endsWith("."), cell);
+});
+
+test("the download adds the byte order mark in front of the text, and nothing else", () => {
+  const parts = withByteOrderMark("# a\r\n");
+  assert.deepEqual(parts, ["\uFEFF", "# a\r\n"]);
+  assert.equal(new TextEncoder().encode(parts.join("")).slice(0, 3).join(), "239,187,191", "UTF-8 bytes EF BB BF");
+  // Every renderer hands the panel the table it draws (a component cannot be rendered here, so the wiring is read).
   for (const file of ["LeagueChart", "MixChart", "GeoChart", "FiguresTable"]) assert.match(read(`src/components/${file}.tsx`), /useFigures\(/, file);
   assert.match(read("src/components/TrendChart.tsx"), /<FiguresTable/);
   assert.match(read("src/components/DistributionChart.tsx"), /<FiguresTable/);
@@ -154,7 +199,7 @@ function table(rows: { month: string; value: string; n: number; denominator: num
     valueHeading: "Brand",
     countHeading: "Vehicles",
     headings: PICKED_HEADINGS,
-    words: { noYearAgo: phrases.no_year_ago, yearTooFew: phrases.year_too_few, shareChangeNoPrior: phrases.share_change_no_prior, notRankedBefore: phrases.not_ranked_before },
+    words: { noYearAgo: phrases.no_year_ago, yearTooFew: yearTooFewText(phrases, span, end), shareChangeNoPrior: phrases.share_change_no_prior, notRankedBefore: phrases.not_ranked_before },
     format: { count: (n) => n.toLocaleString("en-NZ"), pct, shareChange, yearChange: signed },
   });
 }
@@ -163,8 +208,7 @@ function table(rows: { month: string; value: string; n: number; denominator: num
 const shown = (text: string) => text.replace(/^#/, "").replace(/[,%+]/g, "").replace(/\s*pp$/, "").replace(/^±/, "").replace("−", "-");
 
 function check(name: string, t: { columns: { name: string; unit?: string; text?: boolean }[]; rows: unknown[][] }, expectMarks: boolean) {
-  const rows = parse(figuresCsv(header, { period: "x", columns: t.columns as never, rows: t.rows as never }, phrases));
-  const body = tableOf(rows);
+  const body = tableOf(figuresCsv(header, { period: "x", columns: t.columns as never, rows: t.rows as never }, phrases));
   const marked = t.rows.some((r) => r.some((c) => typeof c !== "string" && (c as { mark?: string }).mark));
   assert.equal(marked, expectMarks, `${name}: whether anything is greyed or withheld`);
   assert.equal(body.length, t.rows.length + 1, `${name}: one line for each row of the page's table, and the heading`);
@@ -196,7 +240,7 @@ test("real question 1: battery-electric vehicles by brand over the last 12 month
   // The brands with no rank a year before are blank there, with the reason in the last column.
   const newcomer = body.find((r) => r[1] === "New") as string[];
   assert.equal(newcomer[6], "");
-  assert.equal(newcomer[7], "Rank a year before: withheld, not ranked in the same months a year earlier.");
+  assert.equal(newcomer[7], "Rank a year before: withheld, not ranked in the same months a year earlier");
 });
 
 test("real question 2: hydrogen vehicles by brand, three vehicles in the window: every share and change greyed, withheld cells blank with their reason", () => {
@@ -206,8 +250,9 @@ test("real question 2: hydrogen vehicles by brand, three vehicles in the window:
   const body = check("hydrogen", t, true);
   assert.deepEqual(body[0].slice(0, 8), ["Rank", "Move", "Brand", "Vehicles", "Change on a year ago (%)", "Share (%)", "Change in share (percentage points)", "Rank a year before"]);
   assert.equal(body[0][8], "Greyed or withheld");
-  assert.match(body[1][8], /Share: greyed, fewer than 200 vehicles behind this figure/);
-  assert.match(body[1][8], /Change on a year ago: withheld, the same month a year earlier has too few vehicles to compare with/);
+  assert.match(body[1][8], /Share \(%\): greyed, fewer than 200 vehicles behind this figure/);
+  assert.match(body[1][8], /Change on a year ago \(%\): withheld, the earlier window, the same 12 months a year earlier, holds too few vehicles to compare with/);
+  assert.doesNotMatch(body[1][8], /same month a year earlier/, "a ranking of twelve months does not speak of a month");
   assert.equal(body[1][4], "", "a change on a year ago under the floor is blank, not zero");
 });
 

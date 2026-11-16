@@ -1,8 +1,8 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { builderHref, builderPresets, builderQuestionFor, datasetName } from "../lib/builder";
-import { figuresCsv, figuresFileName } from "../lib/figures";
-import { attribution } from "../lib/siteCopy";
+import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
+import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
+import { figuresHeader } from "../lib/figuresHeader";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { dimensionNote } from "../lib/dimensionNote";
@@ -106,6 +106,18 @@ export default function PresetPanel({
     if (typeof window === "undefined") return false;
     return getParam(presetId, "range", "default") === "all";
   });
+  // A link that names a range the view cannot have (a ranking is of one window): the range it drew instead, said once, and the address corrected.
+  const [periodReplaced] = useState<{ asked: string; shown: string } | null>(() => {
+    if (typeof window === "undefined" || !preset?.shape_override) return null;
+    const asked = getParam(presetId, "period", defaultPeriod);
+    if (asked === defaultPeriod || offers(preset, activeGranularityId, asked)) return null;
+    return { asked: findPeriod(asked)?.label ?? asked, shown: findPeriod(defaultPeriod)?.label ?? defaultPeriod };
+  });
+  useEffect(() => {
+    if (periodReplaced) setParam(presetId, "period", defaultPeriod, defaultPeriod);
+    // Once, where the link is read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // The month a ranking ends on, or the month a monthly figure is read for; empty is the dataset's latest. Kept in the
   // address as `<preset>.month`.
   const [month, setMonth] = useState<string>(() => (typeof window === "undefined" ? "" : getParam(presetId, "month", "")));
@@ -401,6 +413,14 @@ export default function PresetPanel({
   // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
   const dimensionLabel = dimension ? dimensionWords(dimension.id, internal) : undefined;
 
+  // The answer comes straight under the question: a count's figure and sentence for a month, or who is first in a ranking.
+  const answerFirst = preventsRender.length === 0 && Boolean(rows?.length) && ((Boolean(preset.answer) && shape === "trend") || (shape === "league" && Boolean(effectivePreset.values?.length || effectivePreset.ranks_all)));
+  const replacedNotice = periodReplaced ? (
+    <p className="chart-unit" role="status">
+      {fillNote(phrases.period_replaced, periodReplaced).text}
+    </p>
+  ) : null;
+
   let chart = null;
   if (preventsRender.length === 0 && rows) {
     // A view that loads no rows is said, not drawn: every renderer needs at least one month. A filter value that matches
@@ -488,6 +508,18 @@ export default function PresetPanel({
           lead={lead}
           month={month}
           onMonth={handleMonthChange}
+          after={
+            answerFirst
+              ? () => (
+                  <>
+                    {definitionBlock}
+                    {actionsBlock}
+                    {controlsBlock}
+                    {replacedNotice}
+                  </>
+                )
+              : undefined
+          }
         />
       );
     } else if (shape === "geo" && dimension) {
@@ -547,23 +579,19 @@ export default function PresetPanel({
   ].filter((o) => fitsPin(effectivePreset, o.id));
 
   // On a count that opens with an answer, the answer comes straight under the question and the rest follows it.
-  const answerFirst = Boolean(preset.answer) && shape === "trend" && preventsRender.length === 0 && Boolean(rows?.length);
   const definitionBlock = definition || scope ? <p className="panel-definition">{[definition, scope].filter(Boolean).join(" ")}</p> : null;
   // The file of figures: the table the chart shows, the question in the words the page states it, and where the figures come from. Made here,
   // in the browser, from the rows already loaded; nothing is requested and nothing is sent.
   const handleDownload = () => {
     const figures = figuresGetter.current?.();
     if (!figures) return;
-    const header = {
-      question: preset.question,
+    const header = figuresHeader({
+      preset,
+      manifest,
       counted: [definition, scope].filter(Boolean).join(" "),
-      dataset: datasetName(effectivePreset.dataset ?? "", manifest),
-      snapshot: manifest.latest_snapshot,
-      source: notes.find((n) => n.key === "source")?.text,
-      attribution,
       address: anchored ? getShareableUrl(presetId) : window.location.href,
-    };
-    const blob = new Blob(["\uFEFF", figuresCsv(header, figures, phrases)], { type: "text/csv;charset=utf-8" });
+    });
+    const blob = new Blob(withByteOrderMark(figuresCsv(header, figures, phrases)), { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -723,6 +751,7 @@ export default function PresetPanel({
           {rows ? (rows.length > 0 ? "The chart has loaded." : "") : "Loading the chart…"}
         </p>
       ) : null}
+      {answerFirst && shape === "league" ? null : replacedNotice}
       {chart}
 
       <ul className="notes">

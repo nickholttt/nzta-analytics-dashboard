@@ -539,7 +539,13 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
         period={`${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
         columns={
           share
-            ? [{ name: "Month", unit: "month" }, { name: "Share", unit: "percent" }, { name: "Vehicles", text: true }, { name: "Note", text: true, carriesMarks: true }]
+            ? [
+                { name: "Month", unit: "month" },
+                { name: "Share", unit: "percent" },
+                { name: "Vehicles", unit: "count" },
+                { name: "Of all vehicles", unit: "count" },
+                { name: "Note", text: true, carriesMarks: true },
+              ]
             : [{ name: "Month", unit: "month" }, { name: "Vehicles", unit: "count" }]
         }
         rows={() =>
@@ -549,11 +555,9 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
               const rollingWindow = preset.measure === "rolling_12m";
               const month = { text: monthPeriod(p.month, rollingWindow), csv: p.month };
               if (!share) return [month, count(p.y as number)];
-              const vehicles = p.n !== undefined && p.denominator !== undefined ? `${count(p.n)} of ${count(p.denominator)}` : "";
               const figure = p.greyed ? { text: pct(p.y as number), mark: "greyed" as const, reason: markReason(p.greyed, minDenominator) } : pct(p.y as number);
-              // The vehicles behind a share, as digits a spreadsheet does not take for a number with a thousands separator.
-              const behind = { text: vehicles, csv: p.n !== undefined && p.denominator !== undefined ? `${p.n} of ${p.denominator}` : null };
-              return [month, figure, behind, greyedReason(p.greyed, minDenominator)];
+              // The vehicles behind a share and the vehicles it is a share of, each a number of its own.
+              return [month, figure, p.n !== undefined ? count(p.n) : "", p.denominator !== undefined ? count(p.denominator) : "", greyedReason(p.greyed, minDenominator)];
             })
         }
       />

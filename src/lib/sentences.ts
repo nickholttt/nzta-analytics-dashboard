@@ -192,6 +192,12 @@ export function rankingWindows(end: string, span: number) {
   return { currentFrom, priorFrom: addMonths(currentFrom, -12), priorTo: addMonths(end, -12) };
 }
 
+// Why a change on a year ago is withheld, in the words of the window ranked: a ranking of twelve months does not speak of a month.
+export function yearTooFewText(p: { year_too_few: string; year_too_few_window: string; prior_months: string }, span: number, end: string): string {
+  if (span === 1) return p.year_too_few;
+  return fillTemplate(p.year_too_few_window, { prior_window: fillTemplate(p.prior_months, { span, end: monthLabel(end) }).text }).text;
+}
+
 // What a ranking covers, and what it is compared with, and whether there is a comparison at all: it is only described when
 // the earlier window lies wholly inside the months the dataset covers. A ranking with none says so instead of describing one.
 // The words for the window a ranking ranks ("in the last 12 months") and the months it is compared with ("Nov 2024 to Oct 2025").
@@ -214,64 +220,122 @@ export function rankingText(p: RankingPhrases, f: RankingFacts): { text: string;
   return { text: `${opening} ${fillTemplate(p.ranking_compare, { prior_window: prior, prior: priorDates }).text}`, hasPrior };
 }
 
-// ---- A ranking of the values a visitor chose ----
+// ---- A ranking of the values a visitor chose, or that the page chose ----
 
-// The words around a ranking of chosen values (D-111). Its ranks are places among the values chosen, and each share stays a share of
-// everything counted under the conditions, so the page says both, in sentences a template fills.
+// The words around a ranking of some values (D-111). Its ranks are places among those values, and each share stays a share of everything
+// counted under the conditions, so the page says both, in sentences a template fills. The values are the visitor's ("you picked") or the
+// page's own starting values ("shown"): the page never says a visitor picked what the page chose, so each sentence has both forms.
 export type PickedRankingPhrases = {
   ranking_picked: string;
+  ranking_shown: string;
   ranking_picked_leader: string;
+  ranking_shown_leader: string;
   ranking_picked_leaders: string;
+  ranking_shown_leaders: string;
   ranking_picked_none: string;
-  ranking_picked_unranked: string;
+  ranking_shown_none: string;
+  ranking_all_leader: string;
+  ranking_all_leaders: string;
+  ranking_unranked_empty: string;
+  ranking_unranked_not_recorded: string;
+  ranking_unranked_unmatched: string;
   ranking_picked_share: string;
   ranking_picked_share_where: string;
+  ranking_shown_share: string;
+  ranking_shown_share_where: string;
   ranking_picked_share_head: string;
   ranking_picked_rank_head: string;
   ranking_picked_prior_head: string;
+  ranking_switch_picked: string;
+  ranking_switch_shown: string;
+  ranking_back_to_lines: string;
+  ranking_all_note_picked: string;
+  ranking_all_note_shown: string;
+  ranking_back_picked: string;
+  ranking_back_shown: string;
+  picker_page_values: string;
 };
 
 // Names as a reader says them in a sentence: "A", "A and B", "A, B and C".
 export const sayList = (names: readonly string[]): string =>
   names.length < 2 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 
+// The cube's token for vehicles whose value the reference has no entry for (docs/CUBE_SCHEMA.md, Reserved tokens).
+export const NO_MATCH_TOKEN = "__UNMAPPED__";
+
+// The figure of the value in first place, said in the dataset's own words for what it counts: "3,513 vehicles first registered in the last 12
+// months that are still registered". template has {vehicles} and {window}; a dataset with none says the vehicles and the window.
+export const countedText = (template: string | undefined, n: number, window: string): string =>
+  fillTemplate(template ?? "{vehicles} {window}", { vehicles: vehiclesText(n), window }).text;
+
 export type PickedRankingFacts = {
-  // How many values the visitor chose, and the field they are values of, as a noun that reads after "every".
+  // Whether the values are the visitor's own choice (false: the page's starting values).
+  own: boolean;
+  // How many values are ranked among, the field they are values of as a noun that reads after "every", and the months of the window the
+  // page chooses its starting values from.
   picked: number;
   field: string;
+  months: number;
   // "in the last 12 months", "in Oct 2026" (rankingWords).
   window: string;
-  // The values in first place, by the name a reader sees, with the count each has; empty where none has a vehicle in the window.
+  // The values in first place by the name a reader sees, with their count said in the dataset's words (countedText); none where no value has
+  // a vehicle in the window.
   leaders: readonly string[];
-  leaderCount: number;
-  // The chosen values that take no place, by name.
-  unranked: readonly string[];
+  counted: string;
+  // The values that take no place, by name, by why: no vehicles in the window, or a value that stands for vehicles whose field is not recorded
+  // or has no match in the reference.
+  unranked: { empty: readonly string[]; notRecorded: readonly string[]; unmatched: readonly string[] };
   // Every vehicle counted in the window under the conditions, which each share is a share of, and whether there are conditions.
   total: number;
   conditions: boolean;
 };
 
-// The sentences above and below a ranking of chosen values. A sentence that cannot be said is left out, not softened: with nothing to
-// rank there is no leader and no share to say.
+// The sentences above and below a ranking of some values. A sentence that cannot be said is left out, not softened: with nothing to rank
+// there is no leader and no share to say.
 export function pickedRankingSentences(p: PickedRankingPhrases, f: PickedRankingFacts) {
-  const context = { picked: f.picked, field: f.field, window: f.window, vehicles: vehiclesText(f.leaderCount) };
+  const form = f.own ? "picked" : "shown";
+  const context = { picked: f.picked, field: f.field, window: f.window, months: f.months, counted: f.counted };
+  const one = f.leaders.length === 1;
   const leader =
     f.leaders.length === 0
-      ? fillTemplate(p.ranking_picked_none, context).text
-      : f.leaders.length === 1
-        ? fillTemplate(p.ranking_picked_leader, { ...context, leader: f.leaders[0] }).text
-        : fillTemplate(p.ranking_picked_leaders, { ...context, leaders: sayList(f.leaders) }).text;
+      ? fillTemplate(p[`ranking_${form}_none` as keyof PickedRankingPhrases], context).text
+      : fillTemplate(p[(one ? `ranking_${form}_leader` : `ranking_${form}_leaders`) as keyof PickedRankingPhrases], { ...context, leader: f.leaders[0], leaders: sayList(f.leaders) }).text;
+  const unranked = [
+    f.unranked.empty.length ? fillTemplate(p.ranking_unranked_empty, { ...context, names: sayList(f.unranked.empty) }).text : undefined,
+    f.unranked.notRecorded.length ? fillTemplate(p.ranking_unranked_not_recorded, { ...context, names: sayList(f.unranked.notRecorded) }).text : undefined,
+    f.unranked.unmatched.length ? fillTemplate(p.ranking_unranked_unmatched, { ...context, names: sayList(f.unranked.unmatched) }).text : undefined,
+  ].filter((s): s is string => s !== undefined);
   return {
-    label: fillTemplate(p.ranking_picked, context).text,
+    label: fillTemplate(p[f.own ? "ranking_picked" : "ranking_shown"], context).text,
     leader,
-    unranked: f.unranked.length ? fillTemplate(p.ranking_picked_unranked, { ...context, names: sayList(f.unranked) }).text : undefined,
+    unranked,
     share:
       f.total > 0 && f.leaders.length > 0
-        ? fillTemplate(f.conditions ? p.ranking_picked_share_where : p.ranking_picked_share, { ...context, vehicles: vehiclesText(f.total) }).text
+        ? fillTemplate(p[`ranking_${form}_share${f.conditions ? "_where" : ""}` as keyof PickedRankingPhrases], { ...context, vehicles: vehiclesText(f.total) }).text
         : undefined,
     shareHead: p.ranking_picked_share_head,
     rankHead: fillTemplate(p.ranking_picked_rank_head, context).text,
     priorHead: fillTemplate(p.ranking_picked_prior_head, context).text,
+  };
+}
+
+// The first sentence under the question of a ranking of every value: who is first, and with how many.
+export function rankingLeaderSentence(p: PickedRankingPhrases, leaders: readonly string[], counted: string): string | undefined {
+  if (leaders.length === 0) return undefined;
+  return fillTemplate(leaders.length === 1 ? p.ranking_all_leader : p.ranking_all_leaders, { leader: leaders[0], leaders: sayList(leaders), counted }).text;
+}
+
+// What the question builder says around a ranking of some values: the switch to the ranking, the way back to the values, the note while every
+// value is ranked, and the note under the picker where the values are the page's own.
+export function pickedBuilderSentences(p: PickedRankingPhrases, f: { own: boolean; picked: number; field: string; months: number; names: readonly string[] }) {
+  const form = f.own ? "picked" : "shown";
+  const context = { picked: f.picked, field: f.field, months: f.months, names: sayList(f.names) };
+  return {
+    toRanking: fillTemplate(p[`ranking_switch_${form}` as keyof PickedRankingPhrases], context).text,
+    toLines: p.ranking_back_to_lines,
+    allNote: fillTemplate(p[`ranking_all_note_${form}` as keyof PickedRankingPhrases], context).text,
+    back: fillTemplate(p[`ranking_back_${form}` as keyof PickedRankingPhrases], context).text,
+    pickerNote: f.own ? undefined : fillTemplate(p.picker_page_values, context).text,
   };
 }
 

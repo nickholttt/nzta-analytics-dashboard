@@ -16,7 +16,7 @@
     "high": "many",
     "very_high": "many"
   },
-  "$value_classes_comment": "A dimension's own judgement of its list of values, recorded as its cardinality in config/dimensions.json: few is a short list, many is a list long enough to rank, some is in between and is not ranked. It is not a count of values and is not checked against one: a dimension marked low can have more than cardinality.few_max_values (config/data_map.json) values (one ordered band has 23), and D-050 ranks one list of about 44 values and not another of 46. Only the rule named ranking reads it.",
+  "$value_classes_comment": "A dimension's own judgement of its list of values, recorded as its cardinality in config/dimensions.json: few is a short list, many is a list long enough to rank, some is in between and is not ranked. It is not a count of values and is not checked against one: a dimension marked low can have more than cardinality.few_max_values (config/data_map.json) values (one ordered band has 23), and D-050 ranks one list of about 44 values and not another of 46. Only the rules that rank read it: ranking, and the two that rank a few values chosen from the same long list (ranking_picked_count, ranking_picked_share).",
   "needs_breakdown": ["share"],
   "$needs_breakdown_comment": "Kinds of measure that mean nothing for all vehicles together: a share of the whole is always the whole.",
   "rules": [

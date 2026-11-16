@@ -12,8 +12,8 @@ const { builderVocabulary, builderPresets, questionParams, readQuestion, settle,
 const { shapesFor } = await import("../../src/lib/shapes.ts");
 const { fitsPin, inferShape, resolvePreset, rankingPeriods } = await import("../../src/lib/resolve.ts");
 const { leagueRows, pickedSummary, rankingGuard } = await import("../../src/lib/league.ts");
-const { pickedRankingSentences, rankingText, rankingWindows, rankingWords, sayList } = await import("../../src/lib/sentences.ts");
-const { builderSpec, dimensions, phrases, findDimension, findMeasure } = await import("../../src/lib/config.ts");
+const { countedText, pickedBuilderSentences, pickedRankingSentences, rankingLeaderSentence, rankingText, rankingWindows, rankingWords, sayList } = await import("../../src/lib/sentences.ts");
+const { builderSpec, datasetWords, dimensions, phrases, findDimension, findMeasure } = await import("../../src/lib/config.ts");
 
 const manifest = everythingBuilt();
 const vocabulary = builderVocabulary(manifest);
@@ -109,26 +109,72 @@ test("the way back restores the picks, and a question that leaves the ranking vi
 });
 
 const WINDOW = "in the last 12 months";
-const facts = (over: object = {}) => ({ picked: 3, field: "brand", window: WINDOW, leaders: ["A"], leaderCount: 120, unranked: [] as string[], total: 4000, conditions: false, ...over });
+const COUNTED = "120 vehicles first registered in the last 12 months that are still registered";
+const none = { empty: [] as string[], notRecorded: [] as string[], unmatched: [] as string[] };
+const facts = (over: object = {}) => ({ own: true, picked: 3, field: "brand", months: 12, window: WINDOW, leaders: ["A"], counted: COUNTED, unranked: none, total: 4000, conditions: false, ...over });
 
 test("the sentences say how the ranking is labelled, who leads, who has no place and what a share is a share of", () => {
   const s = pickedRankingSentences(phrases, facts());
   assert.equal(s.label, "Ranked among the 3 you picked: each rank is a place among those 3, not among every brand.");
-  assert.equal(s.leader, "A has the most of the 3 you picked, with 120 vehicles in the last 12 months.");
+  assert.equal(s.leader, `A has the most of the 3 you picked: ${COUNTED}.`);
   assert.equal(s.share, "Each share is of all 4,000 vehicles counted in the last 12 months, not of the 3 you picked, so those shares do not add up to the whole.");
-  assert.equal(s.unranked, undefined);
+  assert.deepEqual(s.unranked, []);
   assert.equal(s.shareHead, "Share of all counted");
   assert.equal(s.rankHead, "Rank of 3");
   assert.equal(s.priorHead, "Rank of 3 a year before");
   assert.match(pickedRankingSentences(phrases, facts({ conditions: true })).share as string, /^Each share is of all 4,000 vehicles that meet the conditions in the last 12 months, /);
-  assert.equal(pickedRankingSentences(phrases, facts({ leaders: ["A", "B"] })).leader, "A and B are level at the top of the 3 you picked, with 120 vehicles each in the last 12 months.");
-  assert.equal(pickedRankingSentences(phrases, facts({ leaders: ["A", "B", "C"] })).leader, "A, B and C are level at the top of the 3 you picked, with 120 vehicles each in the last 12 months.");
-  assert.equal(pickedRankingSentences(phrases, facts({ unranked: ["C", "D"] })).unranked, "Not ranked: C and D. A value takes a place when it has vehicles in the last 12 months and names a recorded value.");
-  const none = pickedRankingSentences(phrases, facts({ leaders: [], leaderCount: 0, total: 0 }));
-  assert.equal(none.leader, "No vehicles were counted in the last 12 months for any of the 3 you picked, so there is nothing to rank.");
-  assert.equal(none.share, undefined, "with nothing counted there is no share to describe");
+  assert.equal(pickedRankingSentences(phrases, facts({ leaders: ["A", "B"] })).leader, `A and B are level at the top of the 3 you picked: each has ${COUNTED}.`);
+  assert.equal(pickedRankingSentences(phrases, facts({ leaders: ["A", "B", "C"] })).leader, `A, B and C are level at the top of the 3 you picked: each has ${COUNTED}.`);
+  const noneCounted = pickedRankingSentences(phrases, facts({ leaders: [], total: 0 }));
+  assert.equal(noneCounted.leader, "No vehicles were counted in the last 12 months for any of the 3 you picked, so there is nothing to rank.");
+  assert.equal(noneCounted.share, undefined, "with nothing counted there is no share to describe");
   assert.equal(sayList(["x"]), "x");
   assert.equal(sayList([]), "");
+});
+
+test("each kind of value that takes no place is said as what is true of it", () => {
+  const s = pickedRankingSentences(phrases, facts({ unranked: { empty: ["C", "D"], notRecorded: ["Not recorded"], unmatched: ["No reference match"] } }));
+  assert.deepEqual(s.unranked, [
+    "No vehicles were counted in the last 12 months for C and D, so they take no place in the ranking.",
+    "Not recorded: the source records no value of this field for these vehicles, so they take no place in the ranking.",
+    "No reference match: the brand of these vehicles is recorded but matches no entry in the reference, so they take no place in the ranking.",
+  ]);
+  assert.ok(!s.unranked.join(" ").includes("names a recorded value"));
+});
+
+test("values the page chose are called shown and never picked, in every sentence and every control that speaks of them", () => {
+  const s = pickedRankingSentences(phrases, facts({ own: false }));
+  assert.equal(s.label, "Ranked among the 3 shown, which the page chose as the largest in the last 12 months: each rank is a place among those 3, not among every brand.");
+  assert.equal(s.leader, `A has the most of the 3 shown: ${COUNTED}.`);
+  assert.equal(pickedRankingSentences(phrases, facts({ own: false, leaders: ["A", "B"] })).leader, `A and B are level at the top of the 3 shown: each has ${COUNTED}.`);
+  assert.equal(pickedRankingSentences(phrases, facts({ own: false, leaders: [], total: 0 })).leader, "No vehicles were counted in the last 12 months for any of the 3 shown, so there is nothing to rank.");
+  for (const conditions of [false, true]) assert.match(pickedRankingSentences(phrases, facts({ own: false, conditions })).share as string, /not of the 3 shown, so those shares/);
+  const texts = [s.label, s.leader, s.share ?? "", pickedRankingSentences(phrases, facts({ own: false, conditions: true })).share ?? ""];
+  for (const text of texts) assert.doesNotMatch(text, /picked|your/i, text);
+  const names = ["A", "B", "C"];
+  const page = pickedBuilderSentences(phrases, { own: false, picked: 3, field: "brand", months: 12, names });
+  const own = pickedBuilderSentences(phrases, { own: true, picked: 3, field: "brand", months: 12, names });
+  assert.equal(page.toRanking, "Rank the 3 shown");
+  assert.equal(page.back, "Back to the 3 shown");
+  assert.equal(page.allNote, "Ranking every brand, not the 3 shown: A, B and C.");
+  assert.equal(page.pickerNote, "the page's choice");
+  for (const text of [page.toRanking, page.back, page.allNote]) assert.doesNotMatch(text, /picked|your/i, text);
+  assert.equal(own.toRanking, "Rank the 3 you picked");
+  assert.equal(own.back, "Back to the 3 you picked");
+  assert.equal(own.allNote, "Ranking every brand, not the 3 you picked: A, B and C. Your picks are kept.");
+  assert.equal(own.pickerNote, undefined, "the visitor's own choice needs no note");
+  assert.equal(own.toLines, page.toLines);
+});
+
+test("the leader is said in the dataset's own words for what it counts", () => {
+  const surviving = datasetWords("registrations_surviving");
+  const flow = datasetWords("registrations_flow");
+  assert.equal(countedText(surviving?.leader_count, 3513, WINDOW), "3,513 vehicles first registered in the last 12 months that are still registered");
+  assert.equal(countedText(flow?.leader_count, 3517, WINDOW), "3,517 vehicles first registered in the last 12 months");
+  assert.equal(countedText(undefined, 1, WINDOW), "1 vehicle in the last 12 months");
+  assert.equal(rankingLeaderSentence(phrases, ["A"], COUNTED), `A has the most: ${COUNTED}.`);
+  assert.equal(rankingLeaderSentence(phrases, ["A", "B"], COUNTED), `A and B are level at the top: each has ${COUNTED}.`);
+  assert.equal(rankingLeaderSentence(phrases, [], COUNTED), undefined);
 });
 
 // A ranking of chosen values over one window: A and B tie at the top, C has none, and the window's total is far more than the chosen
@@ -145,20 +191,11 @@ test("the ranking of chosen values is the full ranking's own rule over fewer val
   assert.equal(currentDenom, 1000);
   assert.deepEqual(items.map((i) => i.share), [0.05, 0.05], "a share of everything counted, so the two together are 10%, not 100%");
   const summary = pickedSummary(picked, items, (v) => (v === "__UNDEFINED__" ? "Not recorded" : v));
-  assert.deepEqual(summary, { leaders: ["A", "B"], leaderCount: 50, unranked: ["C", "Not recorded"] });
+  assert.deepEqual(summary, { leaders: ["A", "B"], leaderCount: 50, unranked: { empty: ["C"], notRecorded: ["Not recorded"], unmatched: [] } });
   const guard = (floor: number) => rankingGuard({ floor, currentDenom, priorDenom: 800, hasPrior: true, window: WINDOW, priorDates: "Oct 2025", single: true, phrases });
   assert.equal(guard(200).shares, false);
   // Over a base under the floor the ranking greys, as the full ranking does.
   assert.equal(guard(5000).shares, true);
   assert.match(guard(5000).sentence as string, /so its shares and changes in share are greyed\.$/);
   assert.equal(rankingWords(phrases, { span: 12, end: "2026-10", latest: "2026-10" }).window, WINDOW);
-});
-
-test("the chart and the builder say the labels from config, and the builder offers the step to the full ranking and the way back", () => {
-  const league = read("src/components/LeagueChart.tsx");
-  assert.match(league, /pickedRankingSentences\(phrases/);
-  for (const part of ["about.leader", "about.label", "about.share", "about.shareHead", "about.rankHead", "about.priorHead"]) assert.ok(league.includes(part), part);
-  const builder = read("src/components/QuestionBuilder.tsx");
-  assert.ok(builder.includes("Rank every {filterLabel(breakdown.id).toLowerCase()} instead"));
-  assert.ok(builder.includes("Rank only the {question.values.length} you picked"));
 });
