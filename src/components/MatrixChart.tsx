@@ -13,7 +13,7 @@ import { BASES, gridOf, gridTable, isBasis, tableFigures } from "../lib/matrix";
 import type { Basis, CellSource, Grid, SideSpec } from "../lib/matrix";
 import { count, spanPeriod } from "../lib/readout";
 import { latestMonthOf } from "../lib/resolve";
-import { countedText, fillTemplate, markReason, matrixSentences, rankingWindows, rankingWords, sayBadMonth } from "../lib/sentences";
+import { countedText, fillTemplate, markReason, matrixSentences, vehiclesText, rankingWindows, rankingWords, sayBadMonth } from "../lib/sentences";
 import { getParam, setParam } from "../lib/url";
 import { useFigures } from "./FiguresContext";
 
@@ -91,25 +91,6 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
   const windowWords = rankingWords(phrases, { span, end, latest }).window;
   const rowField = lower(rowHeading);
   const columnField = lower(columnHeading);
-  const sentences = useMemo(() => {
-    const side = (s: Grid["rows"], field: string) => ({ field, mode: s.mode, shown: s.lines.filter((l) => l.kind === "value").length, tiedBeyond: s.tiedBeyond, rest: s.rest });
-    return matrixSentences(phrases, {
-      basis,
-      rowField,
-      columnField,
-      window: windowWords,
-      total: grid.total,
-      conditions,
-      floor,
-      rest: grid.rows.lines.find((l) => l.kind === "rest")?.name ?? grid.columns.lines.find((l) => l.kind === "rest")?.name ?? "",
-      leaders: grid.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n })),
-      counted: (n) => countedText(words?.leader_count, n, windowWords),
-      rows: side(grid.rows, rowField),
-      columns: side(grid.columns, columnField),
-      thin: { whole: grid.wholeGreyed, rows: grid.greyedRows.length, columns: grid.greyedColumns.length },
-    });
-  }, [grid, basis, rowField, columnField, windowWords, conditions, floor, words]);
-
   const table = useMemo(
     () =>
       gridTable(grid, {
@@ -122,9 +103,30 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
       }),
     [grid, rowHeading, floor],
   );
+  const sentences = useMemo(() => {
+    const side = (s: Grid["rows"], field: string) => ({ field, mode: s.mode, shown: s.lines.filter((l) => l.kind === "value").length, tiedBeyond: s.tiedBeyond, kept: s.kept, rest: s.rest });
+    return matrixSentences(phrases, {
+      basis,
+      rowField,
+      columnField,
+      window: windowWords,
+      total: grid.total,
+      conditions,
+      floor,
+      rest: grid.rows.lines.find((l) => l.kind === "rest")?.name ?? grid.columns.lines.find((l) => l.kind === "rest")?.name ?? "",
+      leaders: grid.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n })),
+      among: grid.leadersAmong,
+      tiny: table.hasTiny,
+      counted: (n) => countedText(words?.leader_count, n, windowWords),
+      rows: side(grid.rows, rowField),
+      columns: side(grid.columns, columnField),
+      thin: { whole: grid.wholeGreyed, rows: grid.greyedRows.length, columns: grid.greyedColumns.length },
+    });
+  }, [grid, table, basis, rowField, columnField, windowWords, conditions, floor, words]);
+
   // The notes the file carries above the table are the sentences under the grid on the page, so the file says what the page does.
   const notes = useMemo(
-    () => [sentences.cells, ...(basis === "count" ? [] : [phrases.matrix_units]), ...sentences.rows, ...sentences.columns, ...sentences.thin],
+    () => [...(sentences.cells ? [sentences.cells] : []), ...(basis === "count" ? [] : [phrases.matrix_units]), ...(sentences.tiny ? [sentences.tiny] : []), ...sentences.rows, ...sentences.columns, ...sentences.thin],
     [sentences, basis],
   );
   const figures = useCallback(() => tableFigures(table, basis, spanPeriod(currentFrom, end), notes), [table, basis, currentFrom, end, notes]);
@@ -199,7 +201,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
   const legendFormat = (n: number) => (shares ? `${(n / 10).toFixed(1)}%` : count(n));
   // The first step runs from the least there can be above nothing, which a share prints as 0.0%, so it is said as "up to".
   const stepLabel = (from: number, to: number) =>
-    from === 1 ? fillTemplate(phrases.matrix_legend_up_to, { value: legendFormat(to) }).text : from === to ? legendFormat(from) : `${legendFormat(from)} to ${legendFormat(to)}`;
+    from === 1 ? fillTemplate(phrases.matrix_legend_up_to, { value: legendFormat(to) }).text : from === to ? legendFormat(from) : fillTemplate(phrases.matrix_legend_range, { from: legendFormat(from), to: legendFormat(to) }).text;
   const restName = table.rows.find((r) => r.kind === "rest")?.head ?? table.columns.find((c) => c.kind === "rest")?.name;
   const anyGreyed = grid.wholeGreyed || grid.greyedRows.length > 0 || grid.greyedColumns.length > 0;
 
@@ -209,7 +211,8 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
       {after?.()}
       {controls}
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
-      <p className="chart-unit">{sentences.cells}</p>
+      {sentences.cells ? <p className="chart-unit">{sentences.cells}</p> : null}
+      {sentences.tiny ? <p className="chart-unit">{sentences.tiny}</p> : null}
       {[...sentences.rows, ...sentences.columns].map((sentence) => (
         <p key={sentence} className="chart-unit">{sentence}</p>
       ))}
@@ -236,9 +239,9 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
         <p className="chart-unit">{restName ? fillTemplate(phrases.matrix_legend_unshaded, { rest: restName }).text : phrases.matrix_legend_unshaded_plain}</p>
       </div>
 
-      <div ref={box} className="table-scroll matrix-scroll" role="region" aria-label={`${rowHeading} by ${columnHeading}: the grid`} tabIndex={0}>
+      <div ref={box} className="table-scroll matrix-scroll" role="region" aria-label={fillTemplate(phrases.matrix_region, { row_field: rowHeading, column_field: columnHeading }).text} tabIndex={0}>
         <table className="matrix">
-          <caption className="visually-hidden">{`${preset.question} ${sentences.cells}`}</caption>
+          <caption className="visually-hidden">{[preset.question, sentences.cells].filter(Boolean).join(" ")}</caption>
           <thead>
             <tr>
               <th scope="col" className="matrix-corner">
@@ -261,8 +264,8 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
                     {c.mark === "greyed" ? <span className="visually-hidden">Greyed: </span> : null}
                     {c.text}
                     {c.mark === "withheld" ? <span className="visually-hidden"> {c.reason}</span> : null}
-                    {shares && !c.mark && j < r.cells.length - 1 ? <span className="visually-hidden">, {grid.cells[i][j].n.toLocaleString("en-NZ")} vehicles</span> : null}
-                    {c.mark === "greyed" && j < r.cells.length - 1 ? <span className="visually-hidden">, {grid.cells[i][j].n.toLocaleString("en-NZ")} vehicles</span> : null}
+                    {shares && !c.mark && j < r.cells.length - 1 ? <span className="visually-hidden">, {vehiclesText(grid.cells[i][j].n)}</span> : null}
+                    {c.mark === "greyed" && j < r.cells.length - 1 ? <span className="visually-hidden">, {vehiclesText(grid.cells[i][j].n)}</span> : null}
                   </td>
                 ))}
               </tr>

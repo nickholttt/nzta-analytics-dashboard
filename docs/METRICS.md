@@ -553,30 +553,43 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
   vehicles in the window, ordered by their count with ties alphabetical by the name shown (the one rule, "Ranking and ties"). A side shows 10
   rows and 8 columns (`defaults.matrix` in `config/presets.json`). Every value not shown stands together in one line, **All other**, so the
   totals are the conditions' totals and nothing is left out; the page says how many values it holds. A tie at the cut shows the alphabetically
-  first, and a sentence says how many more share the last count shown. An ordered band (an age, an engine size) is never cut or ranked: it is
-  shown whole, in its own order. A value picked that has no vehicles in the window is a line of zeros.
+  first, and a sentence says how many more share the last count shown. An ordered band (an age, an engine size) is never cut or ranked, picked
+  or not: **every band the data has under the conditions, in any month, is a line, in its own order**, so a band with no vehicles in the window
+  is a line of zeros and not a gap (a gap in an ordered scale reads as a finding); a band the data never has under the conditions is not a line.
+  Values picked on an ordered band are shown in the band's order, not by size. A value picked that has no vehicles in the window is a line of
+  zeros. Where the largest combination (below) has a row or column the cut would put in All other, that value is shown as well, out of its
+  place, and a sentence says so, so the answer can always be found on the grid.
 - **Reserved values** are as in a ranking ("Ranking and ties"), with one difference of place. *Not recorded* and *no reference match* describe
   real vehicles, so each is a line of its own (italic, after the named values, in that order) when it has vehicles in the window or is picked;
   it takes no place and is never the largest combination. *Beyond the cap* is where a cap puts values, not a fact about any vehicle: it is never
   its own line and is always in All other, which says so. The reserved values that are not shown (not picked) are in All other too.
 - **Guards.** A count has no floor. A share is read against the share measure's floor (200 vehicles, "A ranking and the precision floor")
   on **its own base**: the whole grid's total for a share of all, the row's for a share of its row, the column's for a share of its column. A
-  share whose base is under the floor is **greyed**, not hidden: drawn on a flat grey, printed, with its reason in the file, and left out of
-  the scale. A share whose base holds no vehicles (a picked row with none) **has no value**: a dash on the page, a blank cell with its reason
-  in the file, never 0%. A cell of no vehicles inside a base that holds some is **zero**, printed as 0 or 0.0%. (A share that rounds to 0.0%
-  but is not zero is still shaded, so it is told from a zero.)
+  share whose base is under the floor is **greyed**, not hidden: printed in slanted type on a hatched grey that is not on the scale
+  (told apart by its type and its hatch, not by colour alone, and said in the legend), with its reason in the file and a screen reader's "Greyed". A share whose base holds no vehicles (a picked row with none) **has no value**: a dash on the page, a blank cell with its reason
+  in the file, never 0%. A cell of no vehicles inside a base that holds some is **zero**, printed as 0 or 0.0%. A share that is more than
+  nothing but prints as 0.0% is told from it in the figure itself: it is printed **<0.1%** (and written `<0.1` in the file, with a note), and
+  is shaded in the lowest step. The reason for a less-than sign over a bare 0.0%: a zero and a tiny share are different facts, and the sign is
+  how any table says so; the file cannot hold a number that is both, so it holds the sign.
+- **One printed figure.** A share is printed once, to one decimal place (`pct`). The file's figure and the shade step are read from that
+  printed figure, never from the unrounded share, so a cell cannot print 0.1%, be written 0.2 and be stepped as 0.2 (3 of 2,000, and 23 of 80,
+  which prints 28.7%, were the cases that did).
 - **Shade.** Six steps, from the design system's tokens (`--scale-N` in `src/styles/site.css`, each with the ink printed on it, held to 4.5 to 1
   by `tests/site/matrix-colour.test.ts`; the lowest is 5.25 to 1). A step is a fraction of the largest figure among the cells the grid shades
   (config `step_fractions`: 2%, 6%, 15%, 35%, 65% and 100%), so **one shade means one figure everywhere in the grid**, in a row or column share
   too: it is not set row by row. A cell of no vehicles, a greyed or valueless share, All other and the totals are not shaded. The legend gives
-  each step's range in the cell's own unit; a figure is stepped as it is printed, so the legend and the grid agree. Every cell prints its
+  each step a cell is drawn in, with its range in the cell's own unit (a grid greyed throughout has none); a figure is stepped as it is printed,
+  so the legend and the grid agree. Every cell prints its
   figure, so colour is never the only way to read it.
 - **The answer.** One sentence: the combination of two named values with the most vehicles in the window, with that count in the dataset's own
-  words for what it counts; every combination level with it where there are several. It is the same fact whatever the cells show, so it is
-  never a share of a thin row. It names no value or figure in the template, and says nothing about why.
+  words for what it counts; every combination level with it where there are several. It is worked out over **every named pair in the window**,
+  whatever the cut, so it is true of the question and not of the lines shown. Where the visitor picked values on a side, it is the largest
+  **among the values picked** and the sentence says so ("Among the brand values you picked, ..."), since the leader of the whole window may be a
+  value they left out. It is the same fact whatever the cells show, so it is never a share of a thin row. It names no value or figure in the template, and says nothing about why.
 - **The table of figures and the file** are the grid itself, with its last row and column, cell for cell (a wide grid is rows by columns as
   on the page). A column of shares is headed (%); the notes above the table say what a cell holds, how each side was chosen, what All other
-  holds, what is greyed, and that the last row and column are vehicles.
+  holds, what is greyed, what a less-than sign means, and that the last row and column are vehicles. A sentence that cannot be filled is
+  dropped, not shown with a gap.
 - **The fact table answers it** (`docs/CUBE_SCHEMA.md`, Fact table): two fields it carries, under any conditions it carries. A field it does not
   carry (the owner's region, the vehicle's age) cannot be crossed. Build offers no pair where each value of one sits under a single value of the
   other (a model under its brand, a brand under its group; `builder.cannot_cross`), since its empty cells would be empty by construction.

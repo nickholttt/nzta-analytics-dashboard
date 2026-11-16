@@ -3,7 +3,7 @@
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, phrases, valueWords } from "../lib/config";
+import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, phrases, valueWords } from "../lib/config";
 import { REST_NAME, isChoosable } from "../lib/reserved";
 import { MAX_VALUES, RANKING, REMOVE_CONDITION, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
@@ -219,6 +219,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     return [
       ...(note.dataset ? [fillNote(builderSpec.notices.dataset, note.dataset).text] : []),
       ...(note.by ? [fillNote(builderSpec.notices.by, note.by).text] : []),
+      ...(note.by2 ? [fillNote(builderSpec.notices.by2, note.by2).text] : []),
+      ...(note.value2 ? [builderSpec.notices.value2] : []),
       ...(note.left_out ?? []).map((left) => fillNote(builderSpec.notices.left_out, left).text),
     ];
   });
@@ -398,7 +400,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                   {phrases.build_second_and}{" "}
                   <select
                     id="second-breakdown"
-                    aria-label="And broken down by"
+                    aria-label={phrases.build_second_label}
                     value={question.by2 ?? ""}
                     onChange={(e) => ask({ by2: e.target.value === "" ? null : e.target.value, values2: [], view: null })}
                   >
@@ -456,7 +458,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                   where={applicable(question.where)}
                   max={side.max}
                   onChange={side.set}
-                  emptyHint={fillTemplate(phrases.build_second_hint, { rest: REST_NAME }).text}
+                  emptyHint={fillTemplate(findDimension(side.id)?.kind === "ordered_band" ? phrases.build_second_hint_ordered : phrases.build_second_hint, { rest: REST_NAME }).text}
                 />
               </fieldset>
             ))}

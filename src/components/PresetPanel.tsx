@@ -29,16 +29,19 @@ import { TrendChart } from "./TrendChart";
 const MatrixChart = lazy(() => import("./MatrixChart").then((m) => ({ default: m.MatrixChart })));
 
 // A chunk that cannot be fetched (the visitor went offline, or a deploy replaced it) throws where it is drawn. Without this the panel would vanish.
-class ChunkBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
+// A failed fetch is told from any other error: reloading helps the first, and says nothing useful for the second.
+const FETCH_FAILURE = /dynamically imported module|importing a module script failed|loading chunk|failed to fetch/i;
+class ChunkBoundary extends Component<{ children: ReactNode }, { failed: "load" | "draw" | null }> {
+  state: { failed: "load" | "draw" | null } = { failed: null };
+  static getDerivedStateFromError(error: unknown) {
+    return { failed: FETCH_FAILURE.test(String((error as { message?: string } | undefined)?.message ?? error)) ? "load" : "draw" };
   }
   render() {
-    return this.state.failed ? (
+    const { failed } = this.state;
+    return failed ? (
       <div className="callout blocked">
-        <span className="callout-label">Could not load</span>
-        This chart did not load. Reload the page to try again.
+        <span className="callout-label">{failed === "load" ? phrases.chart_load_failed_label : phrases.chart_draw_failed_label}</span>
+        {failed === "load" ? phrases.chart_load_failed : phrases.chart_draw_failed}
       </div>
     ) : (
       this.props.children
@@ -593,7 +596,10 @@ export default function PresetPanel({
   }
 
   const definition = notBuilt ? undefined : (derived?.definition ?? ((!internal && dataset?.public_definition) || dataset?.definition));
-  const eyebrow = dimensionLabel && dimensionLabel2 ? `${dimensionLabel} by ${dimensionLabel2}` : (dimensionLabel ?? derived?.label ?? measure?.label);
+  const eyebrow =
+    dimensionLabel && dimensionLabel2
+      ? fillNote(phrases.matrix_eyebrow, { row_field: dimensionLabel, column_field: dimensionLabel2 }).text
+      : (dimensionLabel ?? derived?.label ?? measure?.label);
 
   // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube
   // draws what it says, and opened on the time range shown here.

@@ -12,7 +12,7 @@ import { buildQuestions, everythingBuilt } from "./support/observe.ts";
 const config = await import("../../src/lib/config.ts");
 const resolve = await import("../../src/lib/resolve.ts");
 const builder = await import("../../src/lib/builder.ts");
-const { ruleTable, shapesFor, valuesClass, needsBreakdown } = await import("../../src/lib/shapes.ts");
+const { ruleTable, shapesFor, valuesClass, needsBreakdown, isWindowShape } = await import("../../src/lib/shapes.ts");
 
 const SIX = ["mix", "trend", "league", "distribution", "geo", "matrix"];
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
@@ -268,23 +268,32 @@ const reachable = (p: { period?: string }, ranking: string[]) => [...new Set([..
 const fitsAt = (p: Parameters<typeof resolve.questionFacts>[0], period: string) =>
   shapesFor(resolve.questionFacts({ ...p, period }, config.findDimension(p.dimension), config.findMeasure(p.measure)));
 
-test("a preset that pins its shape pins one the table says fits, at every period the time row offers", () => {
+test("a preset that pins its shape pins one the table says fits: a shape of any period at every period the time row can name, a window shape at the windows it offers", () => {
   let pinned = 0;
+  let windowed = 0;
   for (const p of config.presets) {
     if (!p.shape_override) continue;
     const view = resolve.presetView(p);
-    // The time row offers the periods the pin fits (fitsPin, which the panel uses), so a pin is held to those; the one it opens on is among them.
-    const offered = reachable(view, resolve.rankingPeriods(view)).filter((period) => resolve.fitsPin(view, period));
-    assert.ok(offered.includes(view.period ?? "all"), `${p.id} opens on a period its pin fits`);
-    for (const period of offered) {
-      const fitting = fitsAt(view, period);
-      assert.ok(fitting.includes(p.shape_override), `${p.id} pins ${p.shape_override} at ${period}; the table gives ${fitting}`);
+    if (!isWindowShape(p.shape_override)) {
+      // A line or a distribution fits whatever the period, so it is held to every period the time row can offer.
+      for (const period of reachable(view, resolve.rankingPeriods(view))) {
+        const fitting = fitsAt(view, period);
+        assert.ok(fitting.includes(p.shape_override), `${p.id} pins ${p.shape_override} at ${period}; the table gives ${fitting}`);
+      }
+    } else {
+      // A window shape (a ranking, a grid) fits one window only: it opens on a period it fits, the time row offers it a window, and every window the
+      // panel adds for it is one the table gives the shape at (the time row never offers it a span of years, which fitsPin enforces).
+      assert.ok(fitsAt(view, view.period ?? "all").includes(p.shape_override), `${p.id} opens on a period its pin does not fit`);
+      const windows = resolve.rankingPeriods(view);
+      assert.ok(windows.length > 0, `${p.id}: the time row offers no window`);
+      for (const period of windows) assert.ok(fitsAt(view, period).includes(p.shape_override), `${p.id}: ${period} is offered and the table does not give ${p.shape_override} there`);
+      windowed++;
     }
     pinned++;
   }
   assert.ok(pinned >= 2);
+  assert.ok(windowed >= 2, "the two grids of the canon are window shapes");
 });
-
 test("the resolver reports a preset pinned to a shape that does not fit as invalid, and one that fits as sound", () => {
   const dataset = config.builderSpec.dataset;
   const share = config.measures.find((m) => m.kind === "share");

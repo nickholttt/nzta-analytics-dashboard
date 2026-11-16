@@ -277,6 +277,8 @@ export type Reading = {
   by?: { asked: string; dataset: string; shown: string };
   // The second breakdown the link named and the question cannot have.
   by2?: { asked: string };
+  // Values for a second breakdown the link names no second breakdown for.
+  value2?: true;
   // Values the link named that the page does not offer to choose, each with the field it was named for.
   left_out?: { asked: string; field: string }[];
 };
@@ -305,6 +307,7 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
     note.by = { asked: lowerFirst(dimensionLabel(asked.by) ?? asked.by), dataset: lowerFirst(datasetName(settled.dataset)), shown: shown ?? "all of them together" };
   }
   if (typeof asked.by2 === "string" && asked.by2 !== "" && asked.by2 !== settled.by2) note.by2 = { asked: lowerFirst(dimensionLabel(asked.by2) ?? asked.by2) };
+  if (!asked.by2 && (asked.values2 ?? []).length > 0) note.value2 = true;
   return note;
 }
 

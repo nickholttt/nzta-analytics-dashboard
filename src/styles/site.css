@@ -1294,10 +1294,12 @@ section[id] {
 .step-5 { background: var(--scale-5); color: var(--scale-ink-5); }
 .step-6 { background: var(--scale-6); color: var(--scale-ink-6); }
 
-/* A share under the precision floor is drawn on a flat grey, not on the scale, and printed all the same. */
+/* A share under the precision floor is printed all the same, in slanted type on a hatched grey that is not on the scale: told apart by its
+   shape and its type, not by its colour (the grey is 1.03 to 1 against the lightest step). The hatch lines and the type both reach 4.5 to 1. */
 .matrix-cell.greyed {
-  background: var(--thin-wash);
+  background: repeating-linear-gradient(135deg, var(--thin-wash) 0 5px, var(--rule-strong) 5px 6px);
   color: var(--ink-2);
+  font-style: italic;
 }
 
 .matrix-legend {
@@ -1331,5 +1333,5 @@ section[id] {
 }
 
 .matrix-swatch.greyed {
-  background: var(--thin-wash);
+  background: repeating-linear-gradient(135deg, var(--thin-wash) 0 4px, var(--rule-strong) 4px 5px);
 }

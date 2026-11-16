@@ -40,3 +40,8 @@ test("the greyed cell's ink and the page's ink reach 4.5 to 1 on their grounds, 
   assert.ok(ratio(token("paper"), token("ink-2")) >= 4.5);
   assert.notEqual(token("scale-1"), token("paper"));
 });
+
+test("a share of nothing, printed as a dash in the ink of a note, and the hatch of a greyed cell behind its type, reach 4.5 to 1", () => {
+  assert.ok(ratio(token("paper"), token("ink-3")) >= 4.5, "the dash on paper");
+  assert.ok(ratio(token("rule-strong"), token("ink-2")) >= 4.5, "the type of a greyed cell over the lines of its hatch");
+});

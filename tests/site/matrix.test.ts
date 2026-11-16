@@ -80,8 +80,26 @@ test("an ordered band is shown whole in its own order, not cut and not ranked", 
   const rows = [src("3", "x", 900), src("1", "x", 5), src("0", "x", 70), src("2", "x", 1)];
   const g = grid(rows, { rowSide: side({ order, limit: 2 }) });
   assert.deepEqual(g.rows.lines.map((l) => l.key), ["0", "1", "2", "3"]);
-  assert.equal(g.rows.mode, "all");
+  assert.equal(g.rows.mode, "ordered");
   assert.equal(g.rows.lines.some((l) => l.kind === "rest"), false);
+});
+
+test("a band with no vehicles in the window is a line of zeros where the data has it in any month, and is not a gap; a band the data never has is not a line", () => {
+  const order = ["0", "1", "2", "3", "4"];
+  const rows = [src("3", "x", 900), src("0", "x", 70), src("2", "x", 40, "2020-01"), src("4", "x", 5, "2019-05")];
+  const g = grid(rows, { rowSide: side({ order }) });
+  assert.deepEqual(g.rows.lines.map((l) => l.key), ["0", "2", "3", "4"], "1 is never in the data, so it is not a line; 2 and 4 are, in other months");
+  assert.deepEqual(g.rows.lines.map((l) => l.total), [70, 0, 900, 0]);
+  assert.deepEqual(g.cells[1].map((c) => c.n), [0]);
+  assert.equal(g.total, 970, "the vehicles of other months are not counted");
+});
+
+test("values picked on an ordered band keep the band's order, whatever their size", () => {
+  const order = ["0", "1", "2", "3"];
+  const rows = [src("3", "x", 900), src("1", "x", 5), src("0", "x", 70), src("2", "x", 1)];
+  const g = grid(rows, { rowSide: side({ order, picked: ["3", "0", "2"] }) });
+  assert.deepEqual(g.rows.lines.map((l) => l.key), ["0", "2", "3", ""], "in band order, then the rest");
+  assert.equal(g.rows.mode, "picked");
 });
 
 test("a cell of no vehicles is zero, and is not shaded", () => {
@@ -132,10 +150,16 @@ test("one shade means one figure everywhere: the steps are fractions of the larg
   assert.equal(steps.get("By"), 1, "a hundredth");
   assert.equal(steps.get("Cx"), 1, "one vehicle is never no shade");
   assert.equal(steps.get("Cy"), 0, "no vehicles");
-  // The legend lists each step, with the range it covers, and the ranges follow on from each other.
+  // The legend lists each step a cell is drawn in, with the range it covers, and the ranges do not overlap.
   const legend = g.legend;
+  assert.deepEqual(legend.map((s) => s.step), [1, 3, 5, 6], "only the steps in use");
   assert.equal(legend[legend.length - 1].to, 1000);
-  for (let k = 1; k < legend.length; k++) assert.equal(legend[k].from, legend[k - 1].to + 1);
+  for (let k = 1; k < legend.length; k++) assert.ok(legend[k].from > legend[k - 1].to);
+});
+
+test("a grid that is greyed throughout has no shade and so no legend", () => {
+  const g = grid(SMALL, { basis: "all", floor: 5000 });
+  assert.deepEqual(g.legend, []);
 });
 
 test("the rest line and the totals are not shaded, and do not set the scale", () => {
@@ -195,7 +219,7 @@ test("a greyed share is written with its reason and a share with no value is bla
   const lines = csv.split("\r\n");
   assert.ok(lines.includes("# note"), "the notes are written above the table");
   const qLine = lines.find((l) => l.startsWith("Q,"));
-  assert.ok(qLine?.startsWith("Q,,,0,") || qLine?.startsWith("Q,,,"), `blank, not zero: ${qLine}`);
+  assert.ok(qLine?.startsWith("Q,,,"), `blank, not zero: ${qLine}`);
   assert.ok(qLine?.includes("withheld"));
 });
 
@@ -209,6 +233,119 @@ test("each cell of the file is the cell of the table, in the same order", () => 
     assert.equal(row[0], t.rows[i].head);
     row.slice(1).forEach((cell, j) => assert.equal(typeof cell === "string" ? cell : cell.text, t.rows[i].cells[j].text));
   });
+});
+
+// The file's figure and the shade step are made from the figure the page prints, so they cannot disagree with it (the review of #75, item 2).
+const sweep: [number, number][] = [[3, 2000], [23, 80], [1, 8], [5, 8], [1, 16], [3, 16], [7, 16], [1, 40], [1, 80], [3, 80], [1, 2000], [999, 2000], [1999, 2000], [1, 3]];
+for (const base of [8, 16, 40, 80, 160, 1000, 2000]) for (let n = 0; n <= base; n++) sweep.push([n, base]);
+
+test("the file writes the figure the page prints, and the shade is stepped from it, over a sweep that includes exact half-tenths", async () => {
+  const { pct } = await import("../../src/lib/measures.ts");
+  const { printedPercent, printedTenths } = await import("../../src/lib/matrix.ts");
+  let compared = 0;
+  for (const [n, base] of sweep) {
+    // One row whose cells are n and the rest of base, as a share of its row; no floor, so nothing is greyed.
+    const g = grid([src("R", "x", n), src("R", "y", base - n)], { basis: "row", floor: 0, rowSide: side({ picked: ["R"] }) });
+    const t = gridTable(g, { ...words, format: { ...words.format, pct } });
+    const j = g.columns.lines.findIndex((l) => l.key === "x");
+    if (j < 0) continue;
+    const cell = t.rows[0].cells[j];
+    const figure = g.cells[0][j].figure as number;
+    assert.equal(cell.text === pct(figure) || cell.text === "<" + pct(0.001), true, `${n}/${base}: the page prints ${cell.text}`);
+    if (cell.tiny) {
+      assert.equal(cell.csv, "<" + pct(0.001).replace("%", ""), `${n}/${base}`);
+      assert.ok(n > 0);
+    } else {
+      assert.equal(cell.csv, Number(cell.text.replace("%", "")), `${n}/${base}: the file says ${cell.csv}, the page ${cell.text}`);
+      assert.equal(printedTenths(figure), Math.round(Number(cell.text.replace("%", "")) * 10), `${n}/${base}: the step is of the printed figure`);
+    }
+    assert.equal(printedPercent(figure), (figure * 100).toFixed(1));
+    compared++;
+  }
+  assert.ok(compared > 400, "the sweep ran");
+  // The named cases: 3/2000 prints 0.1% (the file said 0.2) and 23/80 prints 28.7% (it was stepped as 28.8%).
+  const at = (n: number, base: number) => {
+    const g = grid([src("R", "x", n), src("R", "y", base - n)], { basis: "row", floor: 0, rowSide: side({ picked: ["R"] }) });
+    return { g, cell: gridTable(g, { ...words, format: { ...words.format, pct } }).rows[0].cells[g.columns.lines.findIndex((l) => l.key === "x")] };
+  };
+  assert.deepEqual([at(3, 2000).cell.text, at(3, 2000).cell.csv], ["0.1%", 0.1]);
+  assert.deepEqual([at(23, 80).cell.text, at(23, 80).cell.csv], ["28.7%", 28.7]);
+  assert.equal(printedTenths(23 / 80), 287);
+});
+
+test("a share that is more than nothing but prints as 0.0% is written with a less-than sign, here and in the file, and a true zero as zero", () => {
+  const g = grid([src("R", "x", 1), src("R", "y", 9999), src("R", "z", 0)], { basis: "row", floor: 0, rowSide: side({ picked: ["R"] }) });
+  const t = gridTable(g, words);
+  const x = t.rows[0].cells[g.columns.lines.findIndex((l) => l.key === "x")];
+  assert.deepEqual([x.text, x.csv, x.tiny], ["<0.1%", "<0.1", true]);
+  assert.equal(x.step, 1, "a share of something is shaded, as before");
+  assert.equal(t.hasTiny, true);
+  const zero = grid([src("R", "y", 9999)], { basis: "row", floor: 0, rowSide: side({ picked: ["R"] }), columnSide: side({ picked: ["x", "y"] }) });
+  const zeroCell = gridTable(zero, words).rows[0].cells;
+  assert.ok(zeroCell.some((c) => c.text === "0.0%" && c.csv === 0 && !c.tiny), "a zero is 0.0% and 0");
+});
+
+test("a greyed share is marked, and keeps its figure", () => {
+  const g = grid(SMALL, { basis: "row", floor: 200 });
+  const t = gridTable(g, words);
+  const b = t.rows.find((r) => r.head === "B");
+  assert.ok(b && b.cells.slice(0, 2).every((c) => c.mark === "greyed" && c.step === 0 && /^\d/.test(c.text)));
+});
+
+// The answer is true of the question, not of the cut (the review of #75, item 1).
+test("the largest combination is worked out over every named pair in the window, and its row is kept on the grid when the cut would lose it", () => {
+  // A and B hold 100 each, 25 in each of four columns; K holds 99, all in one column, and is the smallest row.
+  const rows = ["w", "x", "y", "z"].flatMap((c) => [src("A", c, 25), src("B", c, 25)]).concat([src("K", "x", 99)]);
+  const g = grid(rows, { rowSide: side({ limit: 2 }) });
+  assert.deepEqual(g.leaders.map((l) => [l.row.key, l.column.key, l.n]), [["K", "x", 99]], "K by x, though K is cut by the limit");
+  assert.equal(g.rows.kept, "K");
+  assert.deepEqual(g.rows.lines.map((l) => l.key), ["A", "B", "K"], "K is on the grid, so the sentence can be found (and with nothing left over there is no rest line)");
+  assert.deepEqual(g.leadersAmong, { rows: false, columns: false });
+  // Nothing is lost: the cells still add up.
+  assert.equal(g.cells.flat().reduce((s, c) => s + c.n, 0), g.total);
+  assert.equal(g.total, 299, "100 in A, 100 in B and 99 in K");
+});
+
+test("where the visitor picked values the leader is the largest among those, and the sentence says so", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  // The picks are B and C; A by x holds 1000 and is left out of the question.
+  const rows = [src("A", "x", 1000), src("B", "x", 3), src("B", "y", 2), src("C", "y", 7)];
+  const g = grid(rows, { rowSide: side({ picked: ["B", "C"] }) });
+  assert.deepEqual(g.leaders.map((l) => [l.row.key, l.column.key, l.n]), [["C", "y", 7]]);
+  assert.deepEqual(g.leadersAmong, { rows: true, columns: false });
+  const facts = (gr: typeof g) => ({
+    basis: "count" as const, rowField: "thing", columnField: "kind", window: "in the window", total: gr.total, conditions: false, floor: 200, rest: "All other",
+    leaders: gr.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n })), among: gr.leadersAmong, counted: (n: number) => `${n} vehicles`,
+    rows: { field: "thing", mode: gr.rows.mode, shown: 2, tiedBeyond: 0, rest: gr.rows.rest }, columns: { field: "kind", mode: gr.columns.mode, shown: 2, tiedBeyond: 0, rest: gr.columns.rest },
+    thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  });
+  const picked = matrixSentences(phrases, facts(g)).leader as string;
+  assert.match(picked, /Among the thing values you picked, the largest combination is thing C and kind y: 7 vehicles/);
+  const whole = grid(rows);
+  assert.deepEqual(whole.leaders.map((l) => l.row.key), ["A"], "with nothing picked the leader is A by x");
+  const plain = matrixSentences(phrases, facts(whole)).leader as string;
+  assert.match(plain, /^The largest combination is thing A and kind x: 1000 vehicles/);
+  assert.ok(!/you picked/.test(plain));
+});
+
+test("a sentence that cannot be filled is dropped, not shown with a gap", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  const g = grid(SMALL);
+  const facts = {
+    basis: "count" as const, rowField: "thing", columnField: "kind", window: "in the window", total: g.total, conditions: false, floor: 200, rest: "All other",
+    leaders: g.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n })), among: g.leadersAmong, counted: (n: number) => String(n),
+    rows: { field: "thing", mode: g.rows.mode, shown: 3, tiedBeyond: 0, rest: g.rows.rest }, columns: { field: "kind", mode: g.columns.mode, shown: 2, tiedBeyond: 0, rest: g.columns.rest },
+    thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  };
+  assert.ok(matrixSentences(phrases, facts).leader, "filled from the real template");
+  const broken = { ...phrases, matrix_leader: "The largest is {nothing_supplies_this}.", matrix_cells_count: "Each cell is {gap}.", matrix_rows_all: "Rows: {gap}." };
+  const said = matrixSentences(broken, facts);
+  assert.equal(said.leader, undefined);
+  assert.equal(said.cells, undefined);
+  assert.ok(said.rows.every((s) => !s.includes("{") && !s.includes("?")));
+  assert.ok(!said.rows.includes("Rows: ?."));
 });
 
 test("chooseSide reads the same totals in any order", () => {

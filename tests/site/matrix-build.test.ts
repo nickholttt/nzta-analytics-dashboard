@@ -142,3 +142,29 @@ test("every preset with a second breakdown pins its shape, and the Explore view 
     assert.ok(q && q.by2 === p.dimension2, `${p.id} has a Build question`);
   }
 });
+
+test("values for a second breakdown the link names none for are said, and nothing is said where there is one", () => {
+  const asked = { ...base, values2: ["Car"] };
+  const note = builder.readingNotes({ datasets: [vocabulary] }, asked, builder.settle({ datasets: [vocabulary] }, asked));
+  assert.equal(note.value2, true);
+  assert.ok(config.builderSpec.notices.value2.length > 0);
+  const fine = { ...base, by2: "segment", values2: ["Car"] };
+  assert.equal(builder.readingNotes({ datasets: [vocabulary] }, fine, builder.settle({ datasets: [vocabulary] }, fine)).value2, undefined);
+  // A link that names a second breakdown the question cannot have is said once, as that, not twice.
+  const refused = { ...base, by: "make", by2: "parent_group", values2: ["x"] };
+  assert.equal(builder.readingNotes({ datasets: [vocabulary] }, refused, builder.settle({ datasets: [vocabulary] }, refused)).value2, undefined);
+});
+
+test("every phrase the grid's code reads from config exists there", async () => {
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const source = ["src/components/MatrixChart.tsx", "src/components/QuestionBuilder.tsx", "src/components/PresetPanel.tsx", "src/lib/sentences.ts"]
+    .map((f) => readFileSync(new URL(`../../${f}`, import.meta.url), "utf8"))
+    .join("\n");
+  const used = new Set([...source.matchAll(/\bphrases\.((?:matrix|build_second|chart)_[a-z_0-9]+)/g)].map((m) => m[1]));
+  const keyed = [...source.matchAll(/\bp\.(matrix_[a-z_0-9]+)/g)].map((m) => m[1]);
+  for (const k of [...used, ...keyed]) assert.equal(typeof (config.phrases as Record<string, unknown>)[k], "string", `phrases.${k}`);
+  // The templates the sentences build by name (matrix_rows_largest, matrix_columns_kept ...) exist for both sides.
+  for (const side of ["rows", "columns"]) for (const kind of ["largest", "picked", "all", "ordered", "kept", "tie", "rest"]) assert.equal(typeof (config.phrases as Record<string, unknown>)[`matrix_${side}_${kind}`], "string", `matrix_${side}_${kind}`);
+  assert.ok(used.size > 20);
+  assert.ok(readdirSync(new URL("../../src/components/", import.meta.url)).includes("MatrixChart.tsx"));
+});

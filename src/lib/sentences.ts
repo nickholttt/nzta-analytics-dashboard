@@ -406,13 +406,16 @@ export function sayStarts(template: string, runs: readonly MonthRun[], firstMont
 export const sayExceedsTotal = (template: string, months: readonly string[] | undefined): string[] =>
   [...(months ?? [])].sort().map((m) => fillTemplate(template, { month: monthLabel(m) }).text);
 
+
 // ---- A grid of two fields (D-114) ----
 
 // The words around a grid. Each is a template in config (defaults.phrases, matrix_*); the sentences below are filled from facts the grid's
-// code computes, and a sentence that cannot be said is left out, not softened.
+// code computes, and a sentence that cannot be filled is dropped, not softened (invariant 8).
 export type MatrixPhrases = {
   matrix_leader: string;
   matrix_leaders: string;
+  matrix_leader_picked: string;
+  matrix_leaders_picked: string;
   matrix_pair: string;
   matrix_cells_count: string;
   matrix_cells_all: string;
@@ -430,6 +433,10 @@ export type MatrixPhrases = {
   matrix_columns_picked: string;
   matrix_rows_all: string;
   matrix_columns_all: string;
+  matrix_rows_ordered: string;
+  matrix_columns_ordered: string;
+  matrix_rows_kept: string;
+  matrix_columns_kept: string;
   matrix_rows_tie: string;
   matrix_columns_tie: string;
   matrix_rows_rest: string;
@@ -438,15 +445,18 @@ export type MatrixPhrases = {
   matrix_rest_unrecorded: string;
   matrix_rest_unmatched: string;
   matrix_rest_beyond: string;
+  matrix_tiny: string;
 };
 
 export type MatrixSideFacts = {
   // The field this side is, as a noun that reads before "values".
   field: string;
-  mode: "picked" | "largest" | "all";
+  mode: "picked" | "largest" | "all" | "ordered";
   // How many named values stand on this side.
   shown: number;
   tiedBeyond: number;
+  // A value shown out of its rank because it is in the largest combination.
+  kept?: string;
   rest?: { values: number; notRecorded: boolean; unmatched: boolean; beyondCap: boolean };
 };
 
@@ -462,55 +472,75 @@ export type MatrixFacts = {
   // The name of the line that holds every value not shown.
   rest: string;
   leaders: readonly { row: string; column: string; n: number }[];
+  // Which sides the largest combination is among the picked values of; neither is the largest of the whole window.
+  among: { rows: boolean; columns: boolean };
   // The figure of a combination in the dataset's own words for what it counts (countedText).
   counted: (n: number) => string;
   rows: MatrixSideFacts;
   columns: MatrixSideFacts;
   thin: { whole: boolean; rows: number; columns: number };
+  // Some share is above zero and prints as nothing.
+  tiny: boolean;
 };
 
-// The sentences of a grid: who leads, what a cell holds, how each side was chosen, what the rest line holds, and what is greyed. With no
-// vehicles in the window there is nothing to say but that.
+// A template filled, or nothing where it cannot be: a sentence with a gap is dropped.
+const said = (template: string, context: NoteContext): string | undefined => {
+  const filled = fillTemplate(template, context);
+  return filled.unresolved.length === 0 ? filled.text : undefined;
+};
+const present = (list: (string | undefined)[]): string[] => list.filter((s): s is string => s !== undefined && s !== "");
+
+// The sentences of a grid: who leads, what a cell holds, how each side was chosen, what the rest line holds, and what is greyed.
 export function matrixSentences(p: MatrixPhrases, f: MatrixFacts) {
   const base = { window: f.window, floor: f.floor, rest: f.rest, vehicles: vehiclesText(f.total) };
   const side = (which: "rows" | "columns", s: MatrixSideFacts): string[] => {
-    const context = { ...base, shown: s.shown, field: s.field, count: s.tiedBeyond };
+    const context = { ...base, shown: s.shown, field: s.field, count: s.tiedBeyond, names: s.kept };
     const key = (kind: string) => `matrix_${which}_${kind}` as keyof MatrixPhrases;
-    const list = s.rest
-      ? sayList(
-          [
-            s.rest.values > 0 ? fillTemplate(p.matrix_rest_further, { ...context, count: s.rest.values }).text : "",
-            s.rest.notRecorded ? fillTemplate(p.matrix_rest_unrecorded, context).text : "",
-            s.rest.unmatched ? fillTemplate(p.matrix_rest_unmatched, context).text : "",
-            s.rest.beyondCap ? fillTemplate(p.matrix_rest_beyond, context).text : "",
-          ].filter(Boolean),
-        )
-      : "";
-    return [
-      fillTemplate(p[key(s.mode)], context).text,
-      s.tiedBeyond > 0 && s.mode === "largest" ? fillTemplate(p[key("tie")], context).text : "",
-      s.rest ? fillTemplate(p[key("rest")], { ...context, list }).text : "",
-    ].filter(Boolean);
+    const parts = s.rest
+      ? present([
+          s.rest.values > 0 ? said(p.matrix_rest_further, { ...context, count: s.rest.values }) : undefined,
+          s.rest.notRecorded ? said(p.matrix_rest_unrecorded, context) : undefined,
+          s.rest.unmatched ? said(p.matrix_rest_unmatched, context) : undefined,
+          s.rest.beyondCap ? said(p.matrix_rest_beyond, context) : undefined,
+        ])
+      : [];
+    return present([
+      said(p[key(s.mode)], context),
+      s.tiedBeyond > 0 && s.mode === "largest" ? said(p[key("tie")], context) : undefined,
+      s.kept ? said(p[key("kept")], context) : undefined,
+      s.rest && parts.length ? said(p[key("rest")], { ...context, list: sayList(parts) }) : undefined,
+    ]);
   };
+  const pair = (l: { row: string; column: string }) => said(p.matrix_pair, { row_field: f.rowField, row: l.row, column_field: f.columnField, column: l.column });
+  const picked = f.among.rows || f.among.columns;
+  const among = sayList([...(f.among.rows ? [f.rowField] : []), ...(f.among.columns ? [f.columnField] : [])]);
   const leader =
     f.leaders.length === 0
       ? undefined
       : f.leaders.length === 1
-        ? fillTemplate(p.matrix_leader, { row_field: f.rowField, row: f.leaders[0].row, column_field: f.columnField, column: f.leaders[0].column, counted: f.counted(f.leaders[0].n) }).text
-        : fillTemplate(p.matrix_leaders, {
+        ? said(picked ? p.matrix_leader_picked : p.matrix_leader, {
+            field: among,
+            row_field: f.rowField,
+            row: f.leaders[0].row,
+            column_field: f.columnField,
+            column: f.leaders[0].column,
+            counted: f.counted(f.leaders[0].n),
+          })
+        : said(picked ? p.matrix_leaders_picked : p.matrix_leaders, {
+            field: among,
             count: f.leaders.length,
             counted: f.counted(f.leaders[0].n),
-            list: f.leaders.map((l) => fillTemplate(p.matrix_pair, { row_field: f.rowField, row: l.row, column_field: f.columnField, column: l.column }).text).join("; "),
-          }).text;
-  const cells = fillTemplate(
+            list: f.leaders.map(pair).filter(Boolean).join("; "),
+          });
+  const cells = said(
     f.basis === "count" ? p.matrix_cells_count : f.basis === "all" ? (f.conditions ? p.matrix_cells_all_where : p.matrix_cells_all) : f.basis === "row" ? p.matrix_cells_row : p.matrix_cells_column,
     base,
-  ).text;
+  );
   const thin = f.thin.whole
-    ? [fillTemplate(p.matrix_thin_all, base).text]
-    : [
-        f.thin.rows > 0 ? fillTemplate(f.thin.rows === 1 ? p.matrix_thin_rows_one : p.matrix_thin_rows, { ...base, count: f.thin.rows }).text : "",
-        f.thin.columns > 0 ? fillTemplate(f.thin.columns === 1 ? p.matrix_thin_columns_one : p.matrix_thin_columns, { ...base, count: f.thin.columns }).text : "",
-      ].filter(Boolean);
-  return { leader, cells, rows: side("rows", f.rows), columns: side("columns", f.columns), thin };
+    ? present([said(p.matrix_thin_all, base)])
+    : present([
+        f.thin.rows > 0 ? said(f.thin.rows === 1 ? p.matrix_thin_rows_one : p.matrix_thin_rows, { ...base, count: f.thin.rows }) : undefined,
+        f.thin.columns > 0 ? said(f.thin.columns === 1 ? p.matrix_thin_columns_one : p.matrix_thin_columns, { ...base, count: f.thin.columns }) : undefined,
+      ]);
+  return { leader, cells, rows: side("rows", f.rows), columns: side("columns", f.columns), thin, tiny: f.tiny ? said(p.matrix_tiny, base) : undefined };
 }
