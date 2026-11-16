@@ -6,6 +6,8 @@
 import { findDerived } from "./config";
 import type { DerivedMeasure, Guards } from "./config";
 import { collapsedAgainstTrailingMedian } from "./measures";
+import { isReserved, ratioCore } from "./ratio";
+import type { RatioSeries } from "./ratio";
 import { unrecordedMonths } from "./sentences";
 import type { SliceRow } from "./data";
 
@@ -15,8 +17,6 @@ export const RENDERED_DERIVED = new Set([TOP_N_SHARE]);
 
 // n: the vehicles the members hold, the figure the value is a share of the denominator for.
 export type DerivedPoint = { month: string; value?: number; n: number; denominator?: number; members: string[] };
-
-const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 
 // Top-N share, docs/METRICS.md: the combined share of the N largest values of the dimension in that
 // month. Membership is recomputed every month, which is the whole point — a fixed five would track
@@ -59,37 +59,12 @@ export function derivedSeries(derivedId: string, rows: SliceRow[]): DerivedPoint
 // is no value to divide by. A ratio above 1 is kept as it is. The total is the datasets' own month totals.
 export const isRatioMeasure = (measure?: DerivedMeasure): boolean => Boolean(measure?.numerator_dataset && measure.denominator_dataset);
 
-export type RatioPoint = { month: string; value: number; n: number; denominator: number };
-// series "" is the total over every value of the dimension.
-export type RatioSeries = { series: string; points: RatioPoint[] };
+export type { RatioPoint, RatioSeries } from "./ratio";
 
 export function ratioSeries(numerator: SliceRow[], denominator: SliceRow[], guards: Guards): RatioSeries[] {
-  const floor = guards.min_denominator ?? 0;
   const fraction = guards.min_share_of_trailing_median ?? 0;
-  const have = new Set(numerator.map((r) => r.month));
-  const numCell = new Map(numerator.map((r) => [`${r.month}|${r.value}`, r.n]));
-  const numTotal = new Map(numerator.map((r) => [r.month, r.denominator]));
   const denTotal = new Map(denominator.map((r) => [r.month, r.denominator]));
-  const months = [...denTotal.keys()].sort();
   // The month's population: a month far below its own recent history is left out for every line.
-  const collapsed = new Set(months.filter((m) => collapsedAgainstTrailingMedian(m, (k) => denTotal.get(k), fraction)));
-  const unrecorded = new Set(unrecordedMonths(denominator));
-  const usable = (m: string, base: number) => have.has(m) && !collapsed.has(m) && !unrecorded.has(m) && base >= floor && base > 0;
-  const values = [...new Set(denominator.filter((r) => !isReserved(r.value)).map((r) => r.value))].sort();
-  const total: RatioSeries = { series: "", points: [] };
-  for (const m of months) {
-    const base = denTotal.get(m) as number;
-    const n = numTotal.get(m) ?? 0;
-    if (usable(m, base)) total.points.push({ month: m, value: n / base, n, denominator: base });
-  }
-  const byValue = values.map((v): RatioSeries => {
-    const points: RatioPoint[] = [];
-    for (const r of denominator) {
-      if (r.value !== v || !usable(r.month, r.n)) continue;
-      const n = numCell.get(`${r.month}|${v}`) ?? 0;
-      points.push({ month: r.month, value: n / r.n, n, denominator: r.n });
-    }
-    return { series: v, points: points.sort((a, b) => a.month.localeCompare(b.month)) };
-  });
-  return [total, ...byValue].filter((s) => s.points.length > 0);
+  const collapsed = new Set([...denTotal.keys()].filter((m) => collapsedAgainstTrailingMedian(m, (k) => denTotal.get(k), fraction)));
+  return ratioCore(numerator, denominator, { floor: guards.min_denominator ?? 0, collapsed, unrecorded: new Set(unrecordedMonths(denominator)) });
 }

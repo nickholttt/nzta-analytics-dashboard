@@ -8,6 +8,7 @@ import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, fin
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
 import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt } from "./data";
 import type { Manifest, ViewSource } from "./data";
+import { isUnbuilt } from "./built";
 import { RENDERED_DERIVED, isRatioMeasure } from "./derived";
 
 // The shapes this local reference tool draws: all five (CLAUDE.md §Shapes).
@@ -276,7 +277,7 @@ export function servedFrom(datasetId: string | undefined, manifest: Manifest): s
 // or a cube built before the dataset existed has no entry for it and config has words for a build without it. A dataset
 // config has no such words for, and the cube does not list, is not "not built": it is not in the cube at all.
 export function unbuiltDataset(datasetId: string, manifest: Manifest): string | undefined {
-  const missing = (id: string) => (manifest.datasets[id] ? Boolean(manifest.datasets[id].not_built) : Boolean(findDataset(id)?.not_built_message));
+  const missing = (id: string) => isUnbuilt(manifest.datasets[id], Boolean(findDataset(id)?.not_built_message));
   if (missing(datasetId)) return datasetId;
   const base = findDataset(datasetId)?.base;
   return base && missing(base) ? base : undefined;

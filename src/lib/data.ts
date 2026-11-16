@@ -4,7 +4,7 @@ import { parquetRead, parquetReadObjects } from "hyparquet";
 import type { ColumnData } from "hyparquet";
 import { compressors } from "hyparquet-compressors";
 import { builderSpec } from "./config";
-import { crossPair, crossValue } from "./cross";
+import { crossPair, crossValue, narrowPair } from "./cross";
 
 const DATA = "/data";
 
@@ -158,27 +158,6 @@ const loadPair = (dataset: string, pair: string) =>
     const rows = await parquetReadObjects({ file, compressors, columns: ["month", "a_value", "b_value", "n"] });
     return rows.map((r): PairRow => ({ month: monthKey(r.month), a: String(r.a_value), b: String(r.b_value), n: Number(r.n) }));
   });
-
-// A pair narrowed to some values of its other dimension, as the rows of a 1-D slice. The pair's denominator is the
-// whole dataset's month, so a narrowed month's denominator is the sum of what is kept: a share of the subset, not of
-// everything. A month with nothing kept is absent, as in any slice.
-export function narrowPair(rows: PairRow[], side: "a" | "b", values: string[]): SliceRow[] {
-  const keep = new Set(values);
-  const cells = new Map<string, SliceRow>();
-  const totals = new Map<string, number>();
-  for (const r of rows) {
-    const [value, other] = side === "a" ? [r.a, r.b] : [r.b, r.a];
-    if (!keep.has(other)) continue;
-    const key = `${r.month}|${value}`;
-    const cell = cells.get(key) ?? { month: r.month, value, n: 0, denominator: 0 };
-    cell.n += r.n;
-    cells.set(key, cell);
-    totals.set(r.month, (totals.get(r.month) ?? 0) + r.n);
-  }
-  return [...cells.values()]
-    .map((c) => ({ ...c, denominator: totals.get(c.month) as number }))
-    .sort((x, y) => x.month.localeCompare(y.month) || x.value.localeCompare(y.value));
-}
 
 // One column of the fact table, as an array in the table's row order. Every column file holds the same rows in the same
 // order, so a question downloads only the columns it names and lines them up by position.

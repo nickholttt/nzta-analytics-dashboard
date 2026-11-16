@@ -65,3 +65,26 @@ test("a ratio chart says where its breakdown begins when the data opens with mon
   assert.equal(sayStarts(phrases.breakdown_starts, later, "1975-05"), undefined);
   assert.equal(sayStarts(phrases.breakdown_starts, [], "1975-05"), undefined);
 });
+
+test("the ratio chart draws every month of its window through lineMonths, never the points alone, so a line cannot bridge a gap", () => {
+  const trend = read("src/components/TrendChart.tsx");
+  const ratio = trend.slice(trend.indexOf("function RatioTrend"), trend.indexOf("function ValuesTrend"));
+  assert.match(ratio, /lineMonths\(s\.points, model\.from, model\.to\)/);
+  assert.match(ratio, /Plot\.lineY\(line,/);
+  assert.doesNotMatch(ratio, /Plot\.lineY\(data,/);
+  assert.match(ratio, /Plot\.dot\(line\.filter\(\(p\) => alone\.has\(p\.month\)\)/);
+});
+
+test("where the breakdown begins is said only when the window reaches the first month; a count's last year is whole or absent", () => {
+  const trend = read("src/components/TrendChart.tsx");
+  assert.match(trend, /model\.from === firstMonth \? startsSentence : undefined/);
+  assert.match(trend, /months\.every\(\(v\) => v !== undefined\)/);
+});
+
+test("the cars-still-registered notes carry only what bears on the view: no repeat of the definitions, no site-wide promise", () => {
+  const m = measure(preset("cars-still-registered").derived);
+  assert.equal(m.show_dataset_definitions, false);
+  assert.doesNotMatch(m.note_template, /scale|above the full count/);
+  assert.match(m.caveat.text, /not a survival rate/);
+  assert.doesNotMatch(m.caveat.text, /\d/);
+});
