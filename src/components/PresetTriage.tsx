@@ -1,8 +1,9 @@
 // Every preset in the canon against what this build can serve. The point is that the gap is in front
 // of you: a preset that cannot render is listed with what it is waiting on, not quietly left out.
 //
-// `BuildWarnings` (D-112) is here, not in a file of its own, so the status page adds no island: a third island entry made the
-// public build split the preset panel's script into a 121-byte re-export and the real one, a request more for the Explore page.
+// `BuildWarnings` (D-112) is here, not in a file of its own, so the status page adds no island. A separate island made the
+// public build gain a seventh script: a `resolve` chunk of about 21 KB split out of the shared runtime chunk, which both
+// Explore and Build load, a request more for each.
 import { useEffect, useState } from "react";
 import { presetGroups } from "../lib/config";
 import type { PresetStatus } from "../lib/config";

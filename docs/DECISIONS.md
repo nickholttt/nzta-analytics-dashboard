@@ -4534,9 +4534,11 @@ New entries use this template:
   4. **The internal status page** (`/status`, not in the public build) lists the manifest's warnings at its top, each as the pipeline
      wrote it and in the manifest's order, with the snapshot and the time the cube was generated; with none it says so. It reads
      the manifest in the browser as the page already does (`loadManifest`, shared with the triage table, one fetch). The component
-     is a named export of `PresetTriage.tsx`, not a file of its own: a third island on the page made the public build split the
-     preset panel's script into a 121-byte re-export and the real one (7 scripts where it had 6, measured by building both ways),
-     a request more for the Explore page. No public page shows a warning (a test lists every file in `src` that names them). The page already shows pipeline text as it is: a dataset's `not_built` reason, in the list of what blocks
+     is a named export of `PresetTriage.tsx`, not a file of its own. (The first version of this record gave the wrong reason: the
+     121-byte `PresetPanel.*.js` re-export is already in `main`'s public build.) What a separate island really costs, measured by
+     building both ways: the public build gains a seventh script, a new `resolve.*.js` chunk of about 21 KB split out of the shared
+     runtime chunk (`jsx-runtime.*.js`, 182,345 bytes without it, 161,191 with), and both Explore and Build load it, a request more
+     for each. No public page shows a warning (a test lists every file in `src` that names them). The page already shows pipeline text as it is: a dataset's `not_built` reason, in the list of what blocks
      a chart (`resolve.ts`, shown by `PresetPanel` when internal), and what each preset requires; so invariant 8's rule, which is
      about sentences a visitor reads, is not engaged.
 - Options considered:
