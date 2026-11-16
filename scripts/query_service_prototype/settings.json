@@ -10,7 +10,7 @@
   },
   "$limits_comment": "Set at or above what Build can ask today, so the service answers every question the page answers from the static table: max_fields counts every field a question names (its breakdowns and conditions; Build offers all 12 fact-table fields), max_values is Build's own cap on values compared (MAX_VALUES in src/lib/builder.ts, the palette's eight colours), and a condition may keep every value of a field (the largest, model, has about 300). max_cells caps the cells of one answer (month by value by value); an answer above it is refused rather than cut. When Build gains more fields, it and these limits are raised together. max_answers_in_memory caps the answers kept in memory, the least recently used dropped first.",
   "min_count": {},
-  "$min_count_comment": "A field listed here with a number N is answered only above that count: a cell counting fewer than N vehicles (and more than none) is withheld, reported as null, and counted in the answer's suppression block. No field has a rule yet; the Stage 2 privacy review sets them (docs/DATA_MAP.md, privacy classes).",
+  "$min_count_comment": "A field listed here with a number N is answered only above that count: a cell counting fewer than N vehicles (and more than none) is withheld, reported as null, and counted in the answer's suppression block. No field has a rule yet; the user's minimum for an owner field is 10 vehicles (D-096), to be set here when an owner field is first served (docs/DATA_MAP.md, privacy classes).",
   "withheld": [],
   "$withheld_comment": "Fields the fact table carries that the service must still not serve. Empty: today every fact-table column is on the public list.",
   "presentation_keys": ["measure", "view", "period", "range", "smoothing", "granularity"],

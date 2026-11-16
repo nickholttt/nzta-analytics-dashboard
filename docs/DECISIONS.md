@@ -3450,6 +3450,77 @@ New entries use this template:
   - Reversing it: remove the dimension from `config/dimensions.json` and the two config lists; two golden changes back.
 - Status: decided by Claude (unreviewed)
 
+## D-096 2026-11-16 — The user's answers to the parked questions: where supplied counts live, the About page, the privacy classes and the owner rule
+- Agent: user (the answers), claude (the record, and the readings marked as claude's)
+- Basis: the user's message of 2026-11-16, answering the ten questions in `docs/CHECKPOINT.md` as it stood on
+  2026-11-15; `config/data_map.json`, `docs/DATA_MAP.md` and `pipeline/tests/test_data_map.py` as changed with this
+  record; `config/site.json`. A search of `src/` on 2026-11-16 found no cookie, browser storage or analytics code.
+- Context: work order 1 parked ten questions rather than stop (D-082). The privacy classes of the data map were a
+  proposal (D-090), so the order's §3 kept every owner field unpublished; the About page was a draft with six gaps
+  (D-086); both supplied stores sat on the user's computer only (D-092, D-094).
+- Decision (user), by the question's number:
+  1. **Where the converted counts live:** option (a), a small file of counts in this public repository, with no
+     owner field. The same for Stats NZ's series. How it is done is D-097, in its own pull request.
+  2. **The About page.** The site's name is parked: the user has no name they like yet. Contact: through
+     nickholt.co.nz. Connection to the motor industry, to be added "for the meantime": the user works at the
+     Colonial Motor Company as a Systems Analyst. Privacy: no tracking "or anything" right now, to be looked at again closer to
+     going live. The web address stays a gap.
+  3. **Privacy classes.** (a) The 31 register fields and 10 dashboard columns that say nothing of an owner are
+     public. (b) Owner fields: only in tables of one or two fields, with small cells hidden, at a minimum of 10
+     vehicles. (c) The `region` slice already published stays. (d) Postcode totals: not now.
+  4. **Vehicles may be matched privately between two months' archive files**, to settle whether usage and industry
+     class are as first registered or as now.
+  5. **The monthly dashboard export also takes the mass and engine-size groupings**, and the history is taken again.
+     The retaken history will arrive in the user's Downloads folder; that part waits until it does.
+  6. **The query service** is decided after package D's trim is measured.
+  7. **True registrations move first on the home page**, when the home page is rebuilt (package H).
+  8. **The Stats NZ hand export and going public:** later.
+  9. **The repository's "About" line on GitHub:** as proposed: "Plain answers about New Zealand's vehicle market,
+     from NZTA and Stats NZ open data. Work in progress; not public yet." Set on 2026-11-16.
+  10. **The code's licence:** not answered. The message left the three options standing, so the question stays open.
+- How each was recorded, and claude's readings (unreviewed):
+  1. **The classes are marked approved** (`approval` in `config/data_map.json` names this record). The class ids
+     change with it: `proposed_public` becomes `public`, `not_published_before_review` becomes `owner_restricted`,
+     and the flag `pending_review` becomes `restricted`. Options: keep the old ids (no churn, but an approved class
+     would still be called proposed); rename (chosen: a name that is false is worse than a one-off rename, and only
+     the map's own test read them).
+  2. **The owner rule is data**: `owner_rule` in `config/data_map.json` holds the outputs it allows (a slice or a
+     pair, never the fact table), the minimum count of 10, and `enforced: false`.
+  3. **Approval alone publishes nothing** (claude's reading). The pipeline does not hide small cells today, so
+     until it does (package F) every owner field stays out of every published file, and a test holds that while
+     `enforced` is false. The other reading, that the answer lets owner fields be published at once, was not taken:
+     the rule the user chose cannot be kept by a pipeline that cannot hide a cell. Whether the user wants to see
+     the first owner-field table before it is published is asked in the final report.
+  4. **The `region` slice stays exactly as it is**, with no minimum count (claude's reading of "it stays"). Whether
+     it takes the minimum of 10 once the pipeline can hide cells is a question for the user then; applying it would
+     change a published slice.
+  5. **A table of one or two fields is read as a slice or a pair** (claude's reading): a slice is one field by
+     month, a pair is two. The month is not counted as a field. The fact table and the committed snapshot aggregate
+     cross many fields, so no owner field joins either: the map's test refuses an owner field in any output the
+     rule does not name, whatever the field's class or exceptions say (the reviewer of #60 showed that the first
+     version of the test did not).
+  5a. **"Not now" for postcode totals is data too**: `owner_rule.not_published` names `POSTCODE`, and the test
+     refuses it in every output. It leaves the list only on the user's word, in a new record.
+  6. **Nothing derived from `VIN11` is covered** by the answers, so D-076 stands: only after a check against the
+     data and the user's approval.
+  7. **The About page's privacy sentence states what is true today**, not a promise: "Today it carries no
+     advertising, sets no cookies and does not track its visitors." The user's words were about now, with the
+     question to be looked at again before going live; the go-public playbook says so. Three gaps are left (the
+     site's name, its address, and who runs it, which the message did not answer), so the page still says it is a
+     draft.
+  8. **The match between archive files waits for a second month**: the archive holds October only. It is done when
+     November's file is stored (December).
+  9. **The export's new groupings wait for the retaken file.** `python -m pipeline supply` refuses a file whose
+     header is not the configured one, so the playbook and `config/pipeline.json` change together, when the file
+     shows what the columns are called.
+- Consequences:
+  - Nothing new is published by this record. What a build writes is unchanged; the golden contract is unchanged.
+  - CLAUDE.md's non-goals still say postcode figures "wait for the Stage 2 privacy review". The user's answer is
+     "not now", which that wording still covers; CLAUDE.md is not edited (the order's §3).
+  - Package F binds the owner fields privately, builds the hiding of small cells, and only then sets `enforced`.
+  - Reversing the renames: three ids in `config/data_map.json` and one line in its test.
+- Status: accepted (the user's answers); the readings above are decided by Claude (unreviewed)
+
 ## D-097 2026-11-16 — The two supplied stores are committed to the repository, so GitHub's builds make `registrations_flow` and `registrations_cars_long_run`
 - Agent: claude (the build by a sub-agent, to the lead's brief; the home of the data is the owner's decision, the design inside it is Claude's)
 - Basis: the owner's answer of 2026-11-16 to CHECKPOINT question 1, option (a): the converted counts of the two
@@ -3538,3 +3609,34 @@ New entries use this template:
   - Reversing it: `git rm` the two folders and restore the ignore line; builds then say `not_built` again, but a
     `last_good.json` that already holds the datasets would abort them, as D-092 says.
 - Status: decided by Claude (unreviewed), inside the owner's decision of 2026-11-16
+
+## D-098 2026-11-16 — The long-run cars and completeness by vehicle type are on the site: a group of three charts, one more completeness chart, and a missing dataset said in words
+- Agent: claude (the build by a sub-agent, to the lead's brief; this record by that sub-agent for the lead to check)
+- Basis: the work order §5.C and §5.B's leftover; D-065, D-087, D-093, D-094, D-095; `docs/METRICS.md`; `docs/CUBE_SCHEMA.md` (Supplied sources, `exceeds_total`); the code and tests on `claude/long-run-charts`; a local build on the cube of D-095 (all three datasets), checked headless at 320, 390 and 1280 px, axe (WCAG 2.1 A and AA) on `/`, `/method/`, `/status/` and `/build/`, and a build with the long-run dataset's manifest entry removed.
+- Context: the site drew neither of Stats NZ's two series (the monthly count of cars from 1961, and its split into new and ex-overseas from July 1975) nor completeness by NZTA's vehicle type. A cube built before the dataset existed (GitHub's, until December) has no manifest entry for it, which the page treated as "not in the cube": it drew nothing, with no word.
+- Options considered:
+  1. **Where the long-run charts sit.** (a) Beside the true-registrations group. (b) A group of their own, after it, deferred like it. Chosen (b): the datasets differ, so a build with one and not the other says so for each; nothing moves on the home page (the owner wants true registrations first only when it is rebuilt). The completeness-by-type chart sits in the true-registrations group.
+  2. **Three long-run charts or one with options.** Chosen three presets: the total with a month's answer; the split into new and ex-overseas; cars still registered against the count. One question each. The group is called "The long run"; no question carries a year (the file's own evergreen test).
+  3. **The split's shape.** (a) A mix (shares), whose "Not recorded" line would sit at 100% before the split. (b) A trend with one count line per value, the months before the split left blank. Chosen (b): the counts show the used-import years, and a gap says "not recorded" more plainly than a share. A count by a low-cardinality dimension with no chosen values now draws one line per value (the same trend renderer; no seventh shape). The blank months get a grey band, the sentence `defaults.phrases.not_recorded`, a row reading "Not recorded" in the table of figures, and the same sentence in the chart's text label.
+  4. **`exceeds_total`.** The site reads each dimension's list from the manifest, never by summing, and says each month under the chart with the parts as published and the total unadjusted. It is empty for new or ex-overseas, so nothing shows today; the engine bands (July 1975) have no chart. The sentence is drawn on the count-by-value chart only, since that is where parts are read against a total.
+  5. **Cars still registered against Stats NZ's count.** Its own derived measure (`cars_still_registered` in `config/measures.json`), not a variant of `completeness`, and no word of its text says completeness (a test holds it, D-095). The numerator is the register's survivors of the passenger type, new or used, got by narrowing through the pair slice; the denominator is the long-run count by new or ex-overseas, whose two values carry the same names. Its total line is the passenger-type survivors over all of Stats NZ's cars. A line is drawn over every month of its window and breaks at a month a guard or the not-recorded rule leaves out, never joining the months either side; a month standing alone between gaps is drawn as a dot (radius 2.5, the line's colour). It is drawn from July 1975: a month in which the denominator's source records nothing of the breakdown is not drawn on any ratio chart, and the chart says where the breakdown begins (`phrases.breakdown_starts`). Not chosen: drawing the total back to 1961, which the doc does not claim. The caveat is one line with a link to a new `/method` section, from a `caveat` object on the measure; the notes under the chart keep only the guards, and `show_dataset_definitions: false` stops them repeating the two datasets' definitions. "Recorded from ... on" shows only when the window reaches the first month.
+  6. **A ratio chart is chosen by what a measure names, not by its id.** Any derived measure with `numerator_dataset` and `denominator_dataset` is drawn by the ratio chart; `completenessSeries` is renamed `ratioSeries`. The measure may give `numerator_dimension` and `numerator_narrowed_to` (through a pair slice).
+  7. **Completeness by vehicle type and new or used.** One new chart of five lines (all, and each of the two types crossed with new or used), not a chart by type alone and a second by status. The numerator is the survivors' pair slice, the denominator the true-registrations fact table, each value named "type · status" by one shared function (`src/lib/cross.ts`); a preset's `cross` field names the second dimension. The existing chart by new or used stays. Not chosen: a chart by type alone, which the crossed chart's lines make redundant.
+  8. **Stats NZ's statement.** Beside NZTA's basis note on every chart of the dataset, from the manifest's `supplied.attribution` through the dataset's `source_note`; not in the site's footer, which names NZTA only (`config/site.json`). The footer is a choice for the owner.
+  9. **A dataset the cube has no entry for.** Treated as not built, in the dataset's own words, wherever config has a `not_built_message` for it (long-run, and true registrations too).
+  10. **Two notes of the pipeline half's were shortened.** The `public_note`s of `car_origin` and `car_engine_band` no longer say "from July 1975 only; before that the month is not recorded": the chart now says it from the data (a hand-written year is not a generated sentence). Both keys are site-only. Build's "not offered yet" line about Stats NZ's series was reworded: the Explore page draws it "where this build carries it", since GitHub's builds will not until December.
+  11. **After review.** A count line's legend shows a last-12-months figure only when all twelve months are recorded (a partial sum is not shown). A count chart's unit line now reads the dataset's `words` ("Cars registered for the first time each month"), which also changes the unit line on a count drawn for the other datasets, Build's included. A reserved token on either side of a crossed value keeps the whole value reserved.
+- Decision: as chosen above. New in config: `defaults.phrases.not_recorded`, `breakdown_starts`, `exceeds_total`; the long-run dataset's `public_label`, `public_definition`, `source_note`, `not_built_message`, `words` and `shows_year_change`; the derived measure; the group `long-run` (deferred) and three presets; the preset `registrations-completeness-by-type`; the `caveat` kind in `config/narrative/rules.json` and `pipeline/tests/test_site_config.py`, which also checks a ratio's numerator dimensions exist. No pipeline code, no golden file and no cube file changes.
+- Tests, new: `tests/site/not-recorded.test.ts`, `ratio-charts.test.ts` and `cross.test.ts` (19 tests at first; 43 in the folder after the review); the site-config tests, 135 in all. Not covered by a test, checked in the browser: the drawn grey band and the figures table.
+- Measured on the local build:
+  - What the browser downloads on first load at 390 px, before and after: `/` 17 requests, 937,071 bytes, then 17 and 939,404 (+2,333: the config and code in the shared chunks, no new request); `/build/` 12 and 519,187, then 12 and 521,369 (+2,182). Both deferred groups add no data file.
+  - The long-run total for September 2026 reads 21,257, up 22% on 17,435 a year earlier. The cars-still-registered chart's table reads the files' own cells: 3.9% and 0.3% (March 1976), 5.7% and 2.3% (March 1990), 49.8% and 15.9% (March 2005), 90.5% and 61.6% (March 2015), 99.8% and 99.6% (August 2026). D-095 and an earlier METRICS gave 16.0% for March 2005; that was a rounding slip: 2,107 survivors over Stats NZ's 13,211 cars is 15.949%, so 15.9% is right (D-095 itself is append-only and stays).
+  - Completeness by type and status: January 2021 97.6%, 94.7%, 97.8%, 85.5% (goods new, goods used, passenger new, passenger used); June 2023 98.7%, 97.6%, 98.7%, 94.7%; October 2026 100.0%, 100.0%, 100.1%, 100.0%. All equal D-095's.
+  - The register's used passenger cars reach 27.8% of Stats NZ's ex-overseas count in April 1986 (77 of 277), against 0.3% in 1976, and the line is high through 1986 and 1987. It does not look like cars surviving, so the chart's caveat and `/method` say it is not a survival rate and can move with how each source classes a car. Drawn as it is: a later start or a higher floor to hide it has no principled basis.
+  - axe: no violations on the four pages at 390 and 1280 px, with and without the dataset in the manifest. Nothing scrolls sideways at 320, 390 or 1280 px.
+- Consequences:
+  - GitHub's builds show the long-run group as one plain message until a cube carries the dataset (December, with the stores question). The by-type completeness chart waits for the same fact table the true-registrations group does.
+  - Build does not offer the long-run dataset: it has no fact table, so a question on it could not take chosen values or conditions.
+  - `/method` gained two sections, written by hand like the rest of the page (the narrative engine will take them over).
+  - Reversing it: remove the `long-run` group, the preset `registrations-completeness-by-type` and the derived measure from config; the code then draws nothing new. The resolver's treatment of a missing entry is independent and can stay.
+- Status: decided by Claude (unreviewed)

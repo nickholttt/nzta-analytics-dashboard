@@ -234,8 +234,9 @@ first registrations and buyer type from the same dashboard.
 - **The engine cuts an export off at 5,000,000 cells**, so the history
   was taken a year at a time and joined (the user's account).
 - **Not published:** `Owner Type`, `Territorial authority` and
-  `Vehicle usage` describe the owner, and wait for the Stage 2 privacy
-  review (the work order §3).
+  `Vehicle usage` describe the owner. Under the user's rule (2026-11-16,
+  D-096) they may be published only in a table of one or two fields with
+  cells under 10 vehicles hidden, and not before the pipeline hides them.
 - **How it reaches the cube.** A maintainer adds each file to the store
   with one command, below; the build reads the store and writes the
   dataset `registrations_flow` (`docs/CUBE_SCHEMA.md`, *Supplied
@@ -407,8 +408,8 @@ register again and keeps it as one Parquet file, one row per vehicle:
   build's own pull does not take them, so neither reaches the cube, the
   committed aggregate or any published file. `VIN11` itself is never
   published; what is derived from it may be, once it has been checked
-  against the data. Postcode figures wait for the privacy review, and
-  then only as area totals above a minimum count. NZTA records the
+  against the data. Postcode figures are not published for now (the user,
+  2026-11-16, D-096); if ever, only as area totals above a minimum count. NZTA records the
   postcode as a number, so one that starts with zero arrives without it:
   in the 2026-10 file 152 postcodes, holding 885,064 vehicles, are below
   1000.

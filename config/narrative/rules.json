@@ -30,9 +30,10 @@
   "placeholders": {
     "answer": ["month", "count", "prior_month", "prior_count", "change"],
     "words": ["months", "window"],
-    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month"],
+    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to"],
     "notices": ["asked", "shown", "dataset"],
     "unit_note": ["base"],
+    "caveat": [],
     "table_label": ["from", "to"],
     "note": ["manifest.*", "dataset.*", "measure.*", "dimension.*"]
   }

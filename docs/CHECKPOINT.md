@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-15
+Last updated by claude on 2026-11-16
 
 ## Where we left off
 
@@ -15,7 +15,14 @@ Last updated by claude on 2026-11-15
     `cube-2026-10` now holds the fact table. No second forced run is allowed (D-082).
   - **A visitor to a local build can now ask** how many vehicles were registered in any month
     since January 2021 and whether that is up or down on a year ago, by brand and by model.
-  - **No branch is in hand.** The next item is the site half of package C (below).
+- 2026-11-16, ninth session (in progress).
+  - **The user answered the parked questions** (D-096, #60, merged): the privacy classes are approved,
+    three of the About page's gaps are filled, and the repository's "About" line is set.
+  - **Merged: #61**, package C's charts with completeness by vehicle type (D-098). Its
+    review found the ratio chart joining a line across months it left out; fixed.
+  - **Three pieces run in parallel**, one branch each: the supplied counts as files in the
+    repository (D-097), package D's first-load trim (D-099), and package E's chart rules
+    with the site's tests in `Checks` (D-100, D-101). STATE lists their files.
   - **Slips, recorded:** #50 merged a minute before its last check finished (it passed);
     a first reading that event markers respect a filter was wrong (D-089).
 
@@ -34,18 +41,14 @@ Last updated by claude on 2026-11-15
   shows its separator, and `/build/` skips a heading (H); a second scope for events; a
   lookup should refuse a blank value at build time, not only in a test (D-095's review).
 - **B. True registrations.** Done on a local build. Left:
-  - The site: completeness by vehicle type and new or used, from the pair on the survivors
-    and the true-registrations fact table (D-095; today it shows the total and new or used).
   - The site's tests (`tests/site/`) and the prototype's tests in `Checks` (a workflow
     change, with E's chart rules).
   - Each month: the user's export, then `python -m pipeline supply`
     (`docs/playbooks/supply-dashboard-month.md`), then a build with `--dry-run`.
-- **C. Stats NZ's long-run series.** The pipeline half is done (#57). Left, on the site: the
-  long-run chart for cars back to 1961 with Stats NZ's statement beside NZTA's attribution
-  (it must read the manifest's `exceeds_total` and show "not recorded" months as such), and
-  cars still registered against Stats NZ's count from July 1975, under its own name and with
-  its caveat (`docs/METRICS.md`). The user's own export replaces the fetched copy
-  (`docs/playbooks/supply-statsnz-series.md`).
+- **C. Stats NZ's long-run series.** Done on a local build (#57, #61, D-098). Left: the
+  user's own export replaces the fetched copy (`docs/playbooks/supply-statsnz-series.md`).
+  Not done at review: #61's docs landed in its last commit, and one commit does not pass
+  the site's tests alone (history was not rewritten).
 - **D. The rest of Stage 1.** Left: first load. Measured (D-091): 7.4 to 11.6 s to a Build
   answer on the phone profile; about 460 KB of each page is its own code and fonts. Trim
   those, measure again (target: a first answer under 3 seconds). Then the status chunk.
@@ -62,36 +65,25 @@ Last updated by claude on 2026-11-15
 
 ## Questions for the user (parked; none stops the work)
 
-1. **Where may the converted dashboard data live?** (a) A small file of counts in this public
-   repository, with no owner field. (b) The private archive, fetched by the build. (c) Local
-   only. Recommend (a). With no answer: (c), so GitHub's builds and any deployed site have no
-   true registrations. The same answer serves Stats NZ's series.
-2. **The About page's six gaps** (`config/site.json`, search `TO DECIDE`) **and the site's
-   name**, which also names the Cloudflare project. Proposals, none checked for availability:
-   Rego Counts; On the Register; First Registered; NZ Vehicle Facts; The Fleet Book. Recommend
-   "Rego Counts". With no answer the page stays a marked draft.
-3. **Privacy classes** (`docs/DATA_MAP.md`, proposed). (a) May the 31 vehicle fields and 10
-   dashboard columns that say nothing of an owner be public? Recommend yes. (b) Owner fields
-   after the review: never; only in one- and two-field tables with small cells hidden; or
-   public. Recommend the middle one, with a minimum of 10 vehicles. (c) Does the `region`
-   slice already published stay? Recommend yes. (d) Postcode totals: recommend not now. With
-   no answer: owner fields stay unpublished and the region slice stays.
-4. **May vehicles be matched privately between two months' archive files**, to settle whether
-   usage and industry class are as first registered or as now? Recommend yes.
-5. **Should the monthly dashboard export also take the mass and engine-size groupings**, and
-   the history be taken again? Recommend yes. Without them true registrations cannot be split
-   into cars, utes, vans and trucks.
-6. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`): a function on Cloudflare's
-   paid plan, about US$5 a month, tried first for memory; or no service and lighter files, at
-   no cost. Recommend deciding after package D's trim is measured. With no answer Build keeps
-   reading static files and nothing is spent.
-7. **Where true registrations sit on the home page:** last, loaded when scrolled to.
-   Recommend moving them first when the home page is rebuilt (package H).
-8. **The Stats NZ hand export** and **going public** (`docs/playbooks/go-public.md`): not started.
-9. **The repository's "About" line on GitHub** is empty. Proposed: "Plain answers about New
-   Zealand's vehicle market, from NZTA and Stats NZ open data. Work in progress; not public yet."
-10. **No licence is chosen for the code** (the README says so). Options: none (all rights
-    reserved); MIT; Apache 2.0. No recommendation: it is the owner's to choose.
+Questions 1 to 9 of 15 November were answered on 16 November (D-096). Left:
+
+1. **The code's licence.** The answer left the options standing: none (all rights reserved);
+   MIT; Apache 2.0. No recommendation: it is the owner's to choose. With no answer the
+   README keeps saying no licence is chosen.
+2. **The About page's three gaps** (`config/site.json`, search `TO DECIDE`): the site's name
+   (parked by the user), its web address (left as a gap by the user), and who runs it (a
+   name, or "an individual": not answered). With no answer the page stays a marked draft.
+3. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`): the user decides once
+   package D's trim is measured (D-099 will hold the figures). Nothing is spent meanwhile.
+4. **The first owner-field table.** The user's rule (one or two fields, cells under 10
+   hidden) is built in package F. Does the user want to see the first such table before a
+   build publishes it? Recommend yes. With no answer: it is built on a local build only and
+   shown in the final report. And should the `region` slice then take the minimum of 10 too?
+   Recommend yes. With no answer it stays as it is.
+5. **Later, by the user's word:** the Stats NZ hand export; going public
+   (`docs/playbooks/go-public.md`); the privacy sentence, read again before going live.
+6. **The retaken dashboard history** (with the mass and engine-size groupings) arrives in
+   the user's Downloads folder; the export's playbook and config change when it does.
 
 ## Decided for the user this session
 
@@ -102,7 +94,8 @@ follow-ups taken and left), D-090 (the data map's config form), D-091 (the query
 format and prototype), D-092 (how true registrations are built and guarded), D-093 (how the
 site shows them), D-094 (Stats NZ's series: cars only, two breakdowns, no fact table), D-095
 (NZTA's vehicle type as a dimension; cars against Stats NZ's count is not called
-completeness). Also: Stats NZ's series was fetched once, read-only, and both converted
+completeness), D-096 (the readings of the user's answers: approval alone publishes nothing;
+a "table of one or two fields" is a slice or a pair; the `region` slice keeps no minimum). Also: Stats NZ's series was fetched once, read-only, and both converted
 stores stay on this computer until question 1 is answered.
 
 ## Prompt for the next session
