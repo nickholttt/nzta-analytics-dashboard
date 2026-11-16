@@ -35,6 +35,6 @@
     "unit_note": ["base"],
     "caveat": [],
     "table_label": ["from", "to"],
-    "note": ["manifest.*", "dataset.*", "measure.*", "dimension.*"]
+    "note": ["manifest.*", "dataset.*", "measure.*", "dimension.*", "words.*"]
   }
 }

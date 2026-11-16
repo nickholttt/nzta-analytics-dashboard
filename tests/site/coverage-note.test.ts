@@ -30,3 +30,14 @@ test("the panel adds that sentence whenever the view is narrowed by a filter of 
   assert.match(panel, /narrowed \|\| keptBy\?\.length \? \[phrases\.identification_coverage_whole\]/);
   assert.doesNotMatch(panel, /of mild hybrids/);
 });
+
+test("the note on a capped dimension names the count its dataset ranks by, from the dataset's own words", () => {
+  const dimensions = JSON.parse(read("config/dimensions.json"));
+  const capped = dimensions.dimensions.filter((d: { derive?: { cap?: number } }) => d.derive?.cap);
+  assert.ok(capped.length > 0, "a capped dimension: this test would pass without checking anything");
+  for (const d of capped) assert.match(d.note_template, /\{words\.cap_count\}/, d.id);
+  const own = dimensions.datasets.filter((ds: { words?: { cap_count?: string } }) => ds.words);
+  const counts = own.map((ds: { words: { cap_count?: string } }) => ds.words.cap_count);
+  assert.ok(counts.every(Boolean), "every dataset that has words names the count its cap ranks by");
+  assert.equal(new Set(counts).size, counts.length, "no two datasets share one: each says its own");
+});

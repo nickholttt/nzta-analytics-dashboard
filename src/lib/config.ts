@@ -81,6 +81,8 @@ export type Dimension = {
 
 // How a chart says what its dataset counts. Each is a template; the chart fills in the {names} it knows.
 export type DatasetWords = {
+  // The count a cap on the number of named values ranks by, as a noun phrase ("the models with the most ...").
+  cap_count: string;
   count_heading: string;
   month_unit: string;
   window_unit: string;
@@ -237,6 +239,12 @@ export const dimensionLabel = (id: string, internal = false) => {
   const d = findDimension(id);
   return (!internal && d?.public_label) || d?.label;
 };
+// A value as a visitor reads it: a compound value (brand and model) has its dimension's separator replaced by a space. The
+// value itself, in addresses and in the data, is unchanged.
+export function valueWords(dimensionId: string | undefined, value: string): string {
+  const separator = findDimension(dimensionId)?.key_separator;
+  return separator && value.includes(separator) ? value.split(separator).join(" ") : value;
+}
 export const findDataset = (id?: string) => datasets.find((d) => d.id === id);
 // A dataset's words for what it counts: its own, or its base dataset's where it is another one filtered.
 export function datasetWords(id?: string): DatasetWords | undefined {

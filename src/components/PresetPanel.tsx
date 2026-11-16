@@ -1,7 +1,7 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
-import { compositeRules, phrases, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
+import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { ServiceError, loadEvents, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
@@ -231,7 +231,7 @@ export default function PresetPanel({
   const dsManifest = served ? manifest.datasets[served] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
-  const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : reservedLabel(v));
+  const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : valueWords(dimension?.id, reservedLabel(v)));
   const guards = guardsFor(effectivePreset.measure, effectivePreset.derived);
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
@@ -270,15 +270,15 @@ export default function PresetPanel({
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
   // terms, is internal.
-  const quoted = (values: string[]) => values.map((v) => `“${reservedLabel(v)}”`).join(" or ");
+  const quoted = (values: string[], dimensionId?: string) => values.map((v) => `“${valueWords(dimensionId, reservedLabel(v))}”`).join(" or ");
   const nameOf = (id: string) => {
     const words = dimensionWords(id, internal) || id;
     return words.charAt(0).toLowerCase() + words.slice(1);
   };
   const scope = keptBy?.length
-    ? `Only vehicles where ${keptBy.map((k) => `${nameOf(k.dimension)} is ${quoted(k.values)}`).join(", and ")} are counted.`
+    ? `Only vehicles where ${keptBy.map((k) => `${nameOf(k.dimension)} is ${quoted(k.values, k.dimension)}`).join(", and ")} are counted.`
     : narrowedBy
-      ? `Only ${quoted(narrowedBy.values)} vehicles are counted.`
+      ? `Only ${quoted(narrowedBy.values, narrowedBy.dimension)} vehicles are counted.`
       : undefined;
   const unapplied = notApplied.length
     ? (effectivePreset.filters ?? []).flatMap((f) => Object.entries(f)).filter(([key]) => key !== narrowedBy?.dimension)

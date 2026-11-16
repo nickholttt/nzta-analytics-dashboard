@@ -133,9 +133,8 @@ export function LeagueChart({ preset, dimension, rows, manifest, minDenominator,
       priorDenom += monthDenoms.get(m) ?? 0;
     }
 
-    // A compound value reads as words: the dimension's separator becomes a space.
-    const separator = dimension.key_separator;
-    const nameOf = (val: string) => (separator && val.includes(separator) ? val.split(separator).join(" ") : label(val));
+    // A compound value reads as words: `label` already turns the dimension's separator into a space.
+    const nameOf = label;
     // Ranked by the one rule in lib/ranking.ts: equal counts share a rank and are listed alphabetically by the name shown.
     const rankedOf = (counts: Map<string, number>) =>
       rankByCount([...counts.entries()].filter(([val, n]) => !isReserved(val) && n > 0).map(([value, n]) => ({ value, name: nameOf(value), n })));
