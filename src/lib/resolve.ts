@@ -10,9 +10,12 @@ import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt } from "./data";
 import type { Manifest, ViewSource } from "./data";
 import { isUnbuilt } from "./built";
 import { RENDERED_DERIVED, isRatioMeasure } from "./derived";
+import { shapesFor, valuesClass } from "./shapes";
+import type { Facts } from "./shapes";
 
-// The shapes this local reference tool draws: all five (CLAUDE.md §Shapes).
-const RENDERED_SHAPES = new Set(["mix", "trend", "distribution", "league", "geo"]);
+// The shapes this local reference tool draws: all five that have a renderer (CLAUDE.md §Shapes). The one place that
+// knows it. The chart rules (config/chart_rules.json) may name a shape with no renderer; it is never offered.
+export const RENDERED_SHAPES = new Set(["mix", "trend", "distribution", "league", "geo"]);
 
 export type Resolution = {
   invalid: string[];
@@ -40,14 +43,34 @@ export type Resolution = {
   companion?: ViewSource;
 };
 
+// What the chart rules judge a question on (src/lib/shapes.ts): the kind of measure, the kind of the field it breaks
+// down by and how many values that has, whether it looks at one window or over time, how many values were chosen, and
+// the kind of a second field it crosses the first with (a preset's `cross`; Build has none yet). A ranking is of one
+// window, not a series over time.
+export function questionFacts(preset: Preset, dimension?: Dimension, measure?: Measure): Facts {
+  const period = findPeriod(preset.period);
+  const onePeriod = period?.months !== undefined && period.months <= chartDefaults.trailing_window_months;
+  const picked = preset.values?.length ?? 0;
+  return {
+    measure: (measure ?? findDerived(preset.derived))?.kind,
+    by: dimension?.kind ?? "none",
+    values: dimension ? valuesClass(dimension.cardinality) : "none",
+    span: onePeriod ? "one_period" : "over_time",
+    picked: picked === 0 ? "none" : picked === 1 ? "one" : "several",
+    crossed_with: findDimension(preset.cross)?.kind ?? "none",
+  };
+}
+
+// The shapes that fit the question and have a renderer, best first. A visitor is offered these and no others.
+export const drawnShapes = (facts: Facts): string[] => shapesFor(facts).filter((s) => RENDERED_SHAPES.has(s));
+
+// The shape a question is drawn as: the one its preset pins, if any (resolvePreset reports a pin that does not fit),
+// otherwise the best that fits and can be drawn. If nothing that fits can be drawn, the best that fits, so the resolver
+// can say it has no renderer.
 export function inferShape(preset: Preset, dimension?: Dimension, measure?: Measure): string {
   if (preset.shape_override) return preset.shape_override;
-  if (dimension?.shape_hint === "geo" || dimension?.shape_hint === "distribution") return dimension.shape_hint;
-  const period = findPeriod(preset.period);
-  // A league table is a ranking of one window, not a series over time.
-  const singlePeriod = period?.months !== undefined && period.months <= chartDefaults.trailing_window_months;
-  if (singlePeriod && (dimension?.cardinality === "high" || dimension?.cardinality === "very_high")) return "league";
-  return measure?.shape ?? "trend";
+  const facts = questionFacts(preset, dimension, measure);
+  return drawnShapes(facts)[0] ?? shapesFor(facts)[0] ?? "";
 }
 
 // The periods that rank this view instead of tracing it: its own period, the one it offers for a ranking, and every
@@ -192,6 +215,11 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   }
 
   const shape = inferShape(preset, dimension, measure);
+  // A preset may pin its shape, but only to one the chart rules say fits: a visitor never gets a shape that does not.
+  const fitting = shapesFor(questionFacts(preset, dimension, measure));
+  if (preset.shape_override && !fitting.includes(preset.shape_override)) {
+    add("invalid", `shape_override "${preset.shape_override}" does not fit this question: config/chart_rules.json gives ${fitting.join(", ") || "nothing"}`);
+  }
   if (!RENDERED_SHAPES.has(shape)) add("blocked", `shape "${shape}" has no renderer in this tool`);
   // A breakdown drawn frame by frame through time is a different picture from one period's distribution: nothing draws
   // it yet, and drawing the period's total instead would not answer the question.

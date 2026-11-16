@@ -1,5 +1,6 @@
 # Pull request checks: the pipeline's tests on the runner the monthly build uses, so a change to the pipeline is tested
-# on Linux before it merges. Tests only: this workflow never pulls from the source and holds no write permission.
+# on Linux before it merges, and the site's own tests, so a change to the site is too (D-101). Tests only: this workflow
+# never pulls from NZTA or Stats NZ and holds no write permission.
 name: Checks
 
 on:
@@ -37,3 +38,67 @@ jobs:
 
       - name: Contract, guardrail and invariant tests
         run: python -m pytest pipeline/tests -q -p no:cacheprovider
+
+      # The query service prototype (docs/QUERY_SERVICE.md) answers from a built cube, and its tests are skipped without
+      # one, so a run with no cube would report them as passing. The newest published cube release is taken the way
+      # deploy.yml takes it, about 3 MB; no release is a failure, not a skip. So is a release without the fact table
+      # (the tests skip without it), and so is any test that reports as skipped. They run here because this job already
+      # has Python and DuckDB. They need nothing from the pipeline's own tests, which run first.
+      - name: Query service prototype tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # pipefail: the tests' output is piped to tee below, and without it a failing test would pass the step.
+        shell: bash
+        run: |
+          set -o pipefail
+          release='[.[] | select((.draft | not) and (.tag_name | test("^cube-[0-9]{4}-[0-9]{2}$")) and any(.assets[]; .name == "public-data.tar.gz")) | .tag_name] | sort | last // empty'
+          tag=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq "$release")
+          if [ -z "$tag" ]; then
+            echo "No cube release to test the query service against." >&2
+            exit 1
+          fi
+          mkdir -p public/data
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern public-data.tar.gz --dir "$RUNNER_TEMP"
+          tar -xzf "$RUNNER_TEMP/public-data.tar.gz" -C public/data
+          echo "Cube: release $tag" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ ! -d public/data/facts ]; then
+            echo "The cube release $tag has no fact table (facts/), so the query service's tests would all be skipped." >&2
+            exit 1
+          fi
+          python -m pytest scripts/query_service_prototype -q -rs -p no:cacheprovider | tee "$RUNNER_TEMP/query-service-tests.txt"
+          if grep -Eq "[0-9]+ skipped" "$RUNNER_TEMP/query-service-tests.txt"; then
+            echo "A query service test was skipped; a skipped test tested nothing." >&2
+            exit 1
+          fi
+
+  site-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      # The same Node and cache as deploy.yml.
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      # --ignore-scripts, as deploy.yml: no dependency runs an install script on the runner.
+      - name: Dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      # `astro sync` writes the types the site's code is checked against (.astro/types.d.ts), which `astro build` would
+      # also write, but the build needs a cube and takes longer. TypeScript is not a dependency of the site, so it is
+      # fetched for the check, at the version the check was written against.
+      - name: Types
+        run: |
+          npx astro sync
+          npx -y -p typescript@7.0.2 tsc --noEmit
+
+      - name: Site tests
+        run: node --test "tests/site/*.test.ts"

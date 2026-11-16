@@ -184,6 +184,7 @@ config/
   dimensions.json     # what users can break down by, with each dimension's derive rule
   measures.json       # what users can measure
   presets.json        # the Explore canon, as data
+  chart_rules.json    # which shapes fit a question: the one rule table (D-100)
   pipeline.json       # source field bindings, thresholds, detection rules
   narrative/          # planned (D-062): phrase templates, verb bands, banned words
 data/reference/
@@ -215,7 +216,7 @@ pipeline/
   tests/               # golden contract, guardrails, invariant #1 scan
 .github/workflows/
   monthly-build.yml    # tried daily; builds each month once; keeps each built cube as a release and the whole register in a private archive
-  checks.yml           # the pipeline tests on every pull request
+  checks.yml           # the pipeline tests, the site's tests and typecheck, and the query service prototype's tests, on every pull request
   deploy.yml           # builds the public site from the newest cube release and uploads it to Cloudflare Pages
 .github/deploy/        # the deploy's upload tool (wrangler), pinned by its own lockfile
 .claude/agents/        # Claude Code sub-agent definitions, each naming its model (D-062, D-085)

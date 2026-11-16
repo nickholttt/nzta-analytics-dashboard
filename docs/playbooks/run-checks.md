@@ -15,19 +15,25 @@ Run them from the repo root in Git Bash on Windows (on Linux or macOS, use `.ven
 - The tests never read `src/` or `config/presets.json`. A UI-only change can't break them, but
   run them anyway if you're unsure what you touched.
 
-## 1b. Site sentence tests (Node's own test runner, no dependency)
+## 1b. Site tests (Node's own test runner, no dependency)
 
 ```bash
 node --test "tests/site/*.test.ts"
 ```
 
-- Tests the pure sentence-building in `src/lib/sentences.ts` (the change on a year ago, the monthly answer, a ranking's
-  description, a month the address names) against the real phrase templates in `config/presets.json` and
-  `config/dimensions.json`. Needs Node 22.18 or later, which runs `.ts` files that use only erasable type syntax: the
-  module under test has no imports, and the tests import it by its `.ts` path.
+- Tests the sentence-building in `src/lib/sentences.ts` against the real phrase templates in `config/presets.json` and
+  `config/dimensions.json`, and the chart rules (`tests/site/shapes.test.ts`, D-100) and what every preset and Build
+  question draws (`tests/site/shape-defaults.test.ts`). Needs Node 22.18 or later, which runs `.ts` files that use only
+  erasable type syntax. The tests of the chart rules run the site's real modules through a loader in
+  `tests/site/support/` (extensions, JSON imports, `import.meta.env`, and `module.stripTypeScriptTypes`, which Node marks
+  experimental).
 - Quote the glob: Node 22's `--test` treats an unquoted directory as a file.
-- Expect `# pass 8`, `# fail 0` (2026-11-15). The config rules for the same templates are in
+- Expect `# pass 65`, `# fail 0` (2026-11-16), in about two seconds. The config rules for the same templates are in
   `pipeline/tests/test_site_config.py`, part of the pytest run above.
+- `tests/site/shape-defaults.test.ts` fails when a preset or a Build question draws differently from
+  `tests/site/fixtures/shape-defaults.json`. If the difference is meant, read each line, regenerate with
+  `UPDATE_SHAPE_DEFAULTS=1 node --test tests/site/shape-defaults.test.ts` and list the differences in the decision record.
+- CI runs these on every pull request, with the typecheck below and the query service prototype's tests (D-101).
 
 ## 2. Typecheck the site
 
@@ -37,7 +43,9 @@ npx -y -p typescript tsc --noEmit
 
 - TypeScript is **not** a dependency in `package.json`, so a plain `npx tsc --noEmit` fails with
   "This is not the tsc command you are looking for". The `-p typescript` form downloads the
-  current TypeScript into the npx cache. The version is not pinned.
+  current TypeScript into the npx cache. CI pins the version (`typescript@7.0.2`, D-101).
+- It needs the types Astro writes to `.astro/`. `npx astro build` writes them; so does `npx astro sync`, which needs no cube.
+  Without either, `import.meta.env` is an error in two files.
 - `astro build` strips types without checking them, so this is the only typecheck.
 - Expect exit code 0 and no output.
 

@@ -1,5 +1,5 @@
 {
-  "$comment": "The complete vocabulary of the Build surface. Adding a dimension here, with a derive block, is the only way to extend it. No count is fixed: manifest.json lists which dimensions are live in each build (docs/CUBE_SCHEMA.md). derive kinds are documented in pipeline/derive.py; fields are the logical names bound in config/pipeline.json.",
+  "$comment": "The complete vocabulary of the Build surface. Adding a dimension here, with a derive block, is the only way to extend it. No count is fixed: manifest.json lists which dimensions are live in each build (docs/CUBE_SCHEMA.md). derive kinds are documented in pipeline/derive.py; fields are the logical names bound in config/pipeline.json. Every dimension states its kind (category, ordered_band or place) and its cardinality; the chart rules read them (config/chart_rules.json).",
   "datasets": [
     {
       "id": "registrations_surviving",
@@ -110,7 +110,7 @@
       "public_note": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is.",
       "source": "nzta:motive_power + reference:powertrain_map",
       "derive": { "kind": "lookup", "field": "motive_power", "reference": "powertrain_map.csv", "key": "nzta_motive_power", "value": "powertrain" },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "low",
       "help": "How the vehicle is powered: petrol, diesel, hybrid, plug-in hybrid, electric.",
       "note": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are identified by nameplate, so the category takes the label and coverage published in the manifest (mild_hybrid_identification_coverage): 'Mild hybrid (identified)' with its coverage, until coverage is high."
@@ -120,7 +120,7 @@
       "label": "Brand",
       "source": "nzta:make + reference:brand_registry + reference:model_registry",
       "derive": { "kind": "brand", "value": "make_canonical" },
-      "shape_hint": "league",
+      "kind": "category",
       "cardinality": "high",
       "help": "The badge on the car. Normalised via the brand registry."
     },
@@ -129,7 +129,7 @@
       "label": "Manufacturer group",
       "source": "reference:brand_registry",
       "derive": { "kind": "brand", "value": "parent_group" },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "high",
       "$cardinality_comment": "high, like make: 43 named groups in the 2026-08 cube, every one with vehicles in the last 12 months, the 14 largest holding 88% of those vehicles. A single 12-month window of competitors is drawn as a ranking (league), as for brands; longer periods stay a mix chart (D-050).",
       "help": "Who owns the brand. Toyota, Lexus and Daihatsu all roll up to Toyota Group."
@@ -140,7 +140,7 @@
       "public_label": "Country of the brand's owner",
       "source": "reference:brand_registry",
       "derive": { "kind": "brand", "value": "owner_country" },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "low",
       "help": "The home country of the company that owns the brand today, or for a defunct brand the last company that built it. Volvo counts as China here."
     },
@@ -149,7 +149,7 @@
       "label": "Brand originally from",
       "source": "reference:brand_registry",
       "derive": { "kind": "brand", "value": "heritage_country" },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "low",
       "help": "Where the brand was founded. Volvo counts as Sweden here."
     },
@@ -159,7 +159,7 @@
       "public_note": "Where a vehicle was built is not recorded for almost every vehicle first registered before late 1985, and is recorded for almost all since. The grey line near the top of the chart until then is that gap in the record, not where vehicles came from.",
       "source": "nzta:original_country",
       "derive": { "kind": "raw", "field": "original_country" },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "medium",
       "help": "The country where the vehicle was principally manufactured. A Toyota built in Thailand counts as Thailand."
     },
@@ -168,7 +168,7 @@
       "label": "Imported from",
       "source": "nzta:previous_country",
       "derive": { "kind": "raw", "field": "previous_country" },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "medium",
       "applies_to": [
         "used_imports"
@@ -188,7 +188,7 @@
         "range_max": "gvm_max_kg",
         "value": "segment"
       },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "low",
       "help": "Car, ute, van, truck or other. The register records most SUVs as station wagons, so they count as cars.",
       "$comment": "segment_map matches on vehicle_type + body_type. Where gvm_min_kg/gvm_max_kg are set, GVM must fall in that inclusive range and a missing GVM matches nothing; where both are blank, GVM is not used."
@@ -206,7 +206,7 @@
         "range_max": "gvm_max_kg",
         "value": "segment_group"
       },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "low",
       "help": "Light passenger, light commercial, heavy commercial or other, from the same vehicle type, body and gross vehicle mass as vehicle type. Not the same split: utes and vans fall in all three classes.",
       "$comment": "The same segment_map.csv match as segment, reading its segment_group column, so powertrain-mix can narrow to light passenger vehicles. segment = Car is not light passenger: light passenger also holds the passenger-registered utes and vans."
@@ -217,7 +217,7 @@
       "public_note": "The type NZTA registers the vehicle under. It is a different thing from Vehicle type, which sorts vehicles into cars, utes, vans and trucks from the body and weight as well: a ute can be registered as a passenger vehicle. Only the types this site counts are shown.",
       "source": "nzta:vehicle_type + reference:vehicle_scope",
       "derive": { "kind": "lookup", "field": "vehicle_type", "reference": "vehicle_scope.csv", "key": "vehicle_type", "value": "label" },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "low",
       "help": "The type NZTA registers the vehicle under, such as passenger cars and vans. It is not the car, ute, van and truck split of Vehicle type, which also reads the body type and weight.",
       "$comment": "The lookup reads the same vehicle_scope.csv key that decides which vehicles are in scope, so it cannot meet a type that scope does not know (the build aborts on one). Only in-scope types reach a slice; a type brought into scope later appears under its label with no other change. A series source carries no register field, so the dimension is not live for registrations_cars_long_run (derive.applicable), with no applies_to."
@@ -227,7 +227,7 @@
       "label": "New or used",
       "source": "nzta:import_status + reference:import_status_map",
       "derive": { "kind": "lookup", "field": "import_status", "reference": "import_status_map.csv", "key": "nzta_import_status", "value": "import_status" },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "low",
       "help": "Whether the vehicle was new or second-hand when it first entered NZ."
     },
@@ -243,7 +243,7 @@
           {"label": {"from": "import_status_map.csv", "where": {"nzta_import_status": "USED"}, "column": "import_status"}, "series": "cars_ex_overseas"}
         ]
       },
-      "shape_hint": "mix",
+      "kind": "category",
       "cardinality": "low",
       "applies_to": [
         "registrations_cars_long_run"
@@ -268,7 +268,7 @@
         ],
         "exceeds_total_allowed": ["1975-07"]
       },
-      "shape_hint": "distribution",
+      "kind": "ordered_band",
       "cardinality": "low",
       "applies_to": [
         "registrations_cars_long_run"
@@ -281,7 +281,7 @@
       "public_label": "Owner's region",
       "source": "nzta:tla + reference:tla_region",
       "derive": { "kind": "lookup", "field": "tla", "reference": "tla_region.csv", "key": "tla", "value": "region" },
-      "shape_hint": "geo",
+      "kind": "place",
       "cardinality": "medium",
       "help": "The region where the registered owner lives now, from their most recent address. Not where the vehicle is used, and not necessarily where the owner lived when it was first registered."
     },
@@ -291,7 +291,7 @@
       "public_note": "Age on the snapshot date, not when the vehicle was bought. It is counted from the year NZTA records for each vehicle, not from when it was built: for a vehicle sold new here since 2007, the year it was first registered here; for a used import, a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year.",
       "source": "derived:vehicle_year",
       "derive": { "kind": "band", "from": "snapshot_year", "minus": "vehicle_year" },
-      "shape_hint": "distribution",
+      "kind": "ordered_band",
       "cardinality": "low",
       "applies_to": [
         "registrations_surviving",
@@ -319,7 +319,7 @@
       "label": "Engine size",
       "source": "derived:cc_rating",
       "derive": { "kind": "band", "field": "cc", "no_engine": true },
-      "shape_hint": "distribution",
+      "kind": "ordered_band",
       "cardinality": "low",
       "help": "Engine capacity in bands. Electric vehicles fall in a separate 'none' band.",
       "basis": "CC_RATING, for powertrains with has_combustion_engine = true in powertrain_map",
@@ -342,7 +342,7 @@
       "public_note": "Age when first registered in New Zealand, counted from the year NZTA records for each vehicle. A vehicle sold new here since 2007 is 0 years old by definition, because that year is its first registration here; for a used import it is a year from its life overseas, usually when it was built or first registered there. For vehicles sold new here before 2007 that year is less consistent, sometimes a year early. A year, not a date, so an age can be out by a year. Counted among vehicles still registered at the snapshot: arrivals from earlier years have had longer to leave the register, and vehicles do not all leave at the same rate, so the longer the span, the more the ages shown may differ from those that arrived at the time.",
       "source": "derived:registration_year - vehicle_year",
       "derive": { "kind": "band", "from": "registration_year", "minus": "vehicle_year" },
-      "shape_hint": "distribution",
+      "kind": "ordered_band",
       "cardinality": "low",
       "applies_to": [
         "registrations_surviving",
@@ -385,7 +385,7 @@
       "source": "nzta:make + nzta:model + reference:model_registry",
       "derive": { "kind": "model", "cap": 300 },
       "key_separator": "|",
-      "shape_hint": "league",
+      "kind": "category",
       "cardinality": "very_high",
       "help": "The nameplate, as brand and model. Only the models with the most registrations over the trailing 12 months keep their name; the rest are grouped as other. The cap is in this dimension's derive block and every build publishes it. Never use submodel, which is free text.",
       "note_template": "Only the {dataset.model_cap.model.cap} models with the most registrations in the trailing {dataset.coverage_trailing.window_months} months are named, so older months are mostly grouped as other and historical coverage is partial. Named models cover {dataset.model_cap.model.coverage_trailing|pct} of trailing volume and {dataset.model_cap.model.coverage_all_time|pct} of all-time volume."
