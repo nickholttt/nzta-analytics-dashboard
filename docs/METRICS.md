@@ -530,7 +530,12 @@ behind the figure, not on the figure rounded to four decimals that the manifest
 shows: 139,999 of 200,000 reads 0.7 and is under 70%, so it withholds. Under
 it the dataset shows its mild hybrids as Hybrid, undivided, in every slice, pair and fact table, the manifest
 says `mild_split_published: false` beside the figure, and the build adds a
-warning; the other dataset is judged on its own figure. On the 2026-10
+warning; the other dataset is judged on its own figure. A window with no hybrid
+at all, or only `full` calls at the high level, has nothing to divide and
+publishes (both figures read null). A window with no identified mild and no
+unknown hybrid, only `full` calls below the high level, has those calls as its
+whole denominator at high confidence only: that figure reads 0% while the stated
+figure reads null, and the split is withheld (D-110). On the 2026-10
 snapshot both are above it (74.0% and 74.0%, after the rows below), so both
 publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
 same today) is a build warning for a dataset that still publishes. A dataset
