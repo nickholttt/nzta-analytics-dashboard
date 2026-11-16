@@ -21,6 +21,9 @@ const groups = presetGroups
     };
   })
   .filter((g) => g.presets.length > 0 || g.messages.length > 0);
+// Only the page's first chart is fetched on load; every other waits for it and for the visitor to come near it
+// (src/lib/loadGate.ts), so the first answer is not slowed by charts below it. A group's own `defer` is therefore met already.
+const firstPresetId = groups.flatMap((g) => g.presets)[0]?.id;
 ---
 
 <Layout title="Explore" activeNav="explore">
@@ -47,7 +50,7 @@ const groups = presetGroups
           <h2 class="section-title">{g.title}</h2>
         </div>
         {g.presets.map((p) => (
-          <PresetPanel client:only="react" presetId={p.id} lead={g.lead ?? false} defer={g.defer ?? false} audience="public" />
+          <PresetPanel client:only="react" presetId={p.id} lead={g.lead ?? false} defer={p.id !== firstPresetId} audience="public" />
         ))}
         {g.messages.map((m) => (
           <div class="callout blocked">
