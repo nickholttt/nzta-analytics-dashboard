@@ -121,10 +121,15 @@ def privacy_breaches(dmap: dict, pipeline: dict, dimensions: dict) -> list[str]:
     fields = by_name(dmap, REGISTER)
     published = published_classes(dmap)
     dims = {d["id"]: d for d in dimensions["dimensions"] if "derive" in d}
+    owner_groups, rule = set(dmap["owner_groups"]), dmap["owner_rule"]
     problems: list[str] = []
 
     def cleared(name: str, output: str, dim_id: str | None) -> bool:
         entry = fields[name]
+        # The user's rule binds whatever a class or an exception says: an owner field reaches only the outputs
+        # the rule names, and a field the rule holds back reaches none (D-096).
+        if entry["group"] in owner_groups and (output not in rule["outputs"] or name in rule["not_published"]):
+            return False
         if entry["privacy"] in published:
             return True
         return any(
@@ -214,8 +219,8 @@ def test_entry_has_required_keys_and_enum_values(index: int):
     assert entry["privacy_reason"].strip(), f"{label}: privacy_reason is empty"
     if entry["after_review"] is not None:
         assert entry["after_review"] in enums["after_review"], f"{label}: after_review outside {enums['after_review']}"
-    if dmap["privacy_classes"][entry["privacy"]]["pending_review"]:
-        assert entry["after_review"] is not None, f"{label}: a field held for the review must say what follows it"
+    if dmap["privacy_classes"][entry["privacy"]]["restricted"]:
+        assert entry["after_review"] is not None, f"{label}: a restricted field must say which form its rule takes"
     assert entry["bound"] is None or (isinstance(entry["bound"], str) and entry["bound"]), f"{label}: bound"
     assert isinstance(entry["not_recorded"], list), f"{label}: not_recorded is a list"
     relations = entry["relations"]
@@ -407,19 +412,62 @@ def test_approval_names_its_decision():
         assert approval["decision"] in recorded, "approved classes must name the decision record that approved them"
 
 
-def test_while_proposed_owner_fields_and_vin_derivatives_stay_unpublished():
-    """The work order's section 3, until the user approves the review: owner fields, postcode and VIN11 stay out."""
+def test_the_owner_rule_is_the_users_and_never_reaches_the_fact_table():
+    """D-096: owner fields only in tables of one or two fields, with small cells hidden."""
     dmap = load_map()
-    if dmap["approval"]["privacy_classes"] != dmap["enums"]["approval"][0]:
-        pytest.skip("the classes are approved; the decision record governs")
+    rule = dmap["owner_rule"]
+    recorded = set(re.findall(r"^## (D-\d{3})\b", DECISIONS.read_text(encoding="utf-8"), flags=re.MULTILINE))
+    assert rule["decision"] in recorded, "the owner rule must name the decision record that holds the user's word"
+    assert rule["outputs"] and set(rule["outputs"]) <= set(dmap["enums"]["output"])
+    assert "facts" not in rule["outputs"], "the fact table crosses many fields; the rule allows one or two"
+    assert isinstance(rule["minimum_count"], int) and rule["minimum_count"] > 1
+    assert isinstance(rule["enforced"], bool)
+    fields, published = {e["name"]: e for e in dmap["fields"]}, published_classes(dmap)
+    owner_groups = set(dmap["owner_groups"])
+    for name in rule["not_published"]:
+        assert fields[name]["group"] in owner_groups, f"{name}: the rule holds back owner fields only"
+        assert fields[name]["privacy"] not in published, f"{name}: held back by the user, but marked published"
+
+
+def test_the_owner_rule_binds_even_a_field_marked_published():
+    """Once the rule is enforced and an owner field is public, it still reaches only a slice or a pair."""
+    cfg, dmap = config.load(), load_map()
+    owner_groups = set(dmap["owner_groups"])
+    bound = [e for e in entries(dmap, REGISTER) if e["bound"] and e["group"] in owner_groups]
+    if not bound:
+        pytest.skip("no owner field is bound, so there is nothing to probe")
+    opened = copy.deepcopy(dmap)
+    opened["owner_rule"]["enforced"] = True
+    public = next(name for name, spec in opened["privacy_classes"].items() if spec["published"])
+    for entry in opened["fields"]:
+        if entry["group"] in owner_groups:
+            entry["privacy"] = public
+            entry.pop("published_exceptions", None)
+    assert privacy_breaches(opened, cfg.pipeline, cfg.dimensions) == [], "a slice of a public owner field is allowed"
+
+    pipeline, dimensions = copy.deepcopy(cfg.pipeline), copy.deepcopy(cfg.dimensions)
+    dimensions["dimensions"].append({"id": "probe", "derive": {"kind": "raw", "field": bound[0]["bound"]}})
+    dataset = next(name for name, spec in pipeline["datasets"].items() if "facts" in spec)
+    pipeline["datasets"][dataset]["facts"].append("probe")
+    pipeline[SNAPSHOT_ARCHIVE]["group_by"].append(bound[0]["bound"])
+    found = privacy_breaches(opened, pipeline, dimensions)
+    assert any(p.startswith("facts 'probe'") for p in found), found
+    assert any(p.startswith(SNAPSHOT_ARCHIVE) for p in found), found
+
+
+def test_owner_fields_and_vin_derivatives_stay_unpublished_until_the_rule_is_enforced():
+    """Approval alone publishes nothing: until the pipeline hides small cells, owner fields stay out; VIN11 always."""
+    dmap = load_map()
     published = published_classes(dmap)
     owner_groups = set(dmap["owner_groups"])
     assert owner_groups <= set(dmap["enums"]["group"])
     derived_only = {v for v in dmap["enums"]["after_review"] if v.startswith("derived")}
     assert derived_only, "no after_review value means 'derived fields only'"
     for entry in dmap["fields"]:
-        if entry["group"] in owner_groups or entry["after_review"] in derived_only:
-            assert entry["privacy"] not in published, f"{entry['name']}: held by the work order, but marked published"
+        if entry["after_review"] in derived_only:
+            assert entry["privacy"] not in published, f"{entry['name']}: only a field derived from it may be published"
+        if entry["group"] in owner_groups and not dmap["owner_rule"]["enforced"]:
+            assert entry["privacy"] not in published, f"{entry['name']}: an owner field, and the rule is not enforced yet"
 
 
 def test_free_text_is_never_a_breakdown_or_a_filter():
@@ -430,13 +478,13 @@ def test_free_text_is_never_a_breakdown_or_a_filter():
 
 def test_an_exception_stays_inside_what_its_decision_covers():
     dmap = load_map()
-    proposed = dmap["approval"]["privacy_classes"] == dmap["enums"]["approval"][0]
+    owner_groups = set(dmap["owner_groups"])
     for entry in dmap["fields"]:
         for exception in entry.get("published_exceptions", []):
             covers = set(exception["decision_covers"])
             assert set(exception["outputs"]) <= covers, f"{entry['name']}: outputs reach past {exception['decision']}"
-            if proposed:
-                assert "facts" not in covers, f"{entry['name']}: no held field reaches the fact table before the review"
+            if entry["group"] in owner_groups:
+                assert "facts" not in covers, f"{entry['name']}: no owner field reaches the fact table (D-096)"
 
 
 # --- relations ----------------------------------------------------------------------------------------------------

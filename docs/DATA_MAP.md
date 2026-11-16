@@ -1,17 +1,18 @@
 # Data map
 
-**Status: finished (the work order's package E, 2026-11-14), with the privacy classes PROPOSED and
-not approved.** Until the user approves them, the work order's §3 is binding: no owner field
-(district, region, usage, industry class, owner type), no postcode and nothing derived from `VIN11`
-is published without asking. **One owner-derived output is published today:** the `region` slice
-(share of vehicles by the owner's region, by month) is in the public cube release `cube-2026-10` and
-in every build. It rests on D-078, where the user chose to leave region out of the fact table "until
-the Stage 2 privacy review" on the option that "the region map still draws"; keeping the slice
-itself was Claude's reading of that option (D-078, point 3, decided by Claude, unreviewed). The work
-order, written later, names region among the fields not published without asking, so the slice sits
-awkwardly with §3's wording. Whether it stays is the user's to decide, and is one of the questions
-put to the user. Nothing here binds a field. Build still offers only what `config/dimensions.json`
-defines.
+**Status: finished (the work order's package E, 2026-11-14). The privacy classes were approved by
+the user on 2026-11-16 (D-096):**
+
+- the 31 register fields and 10 dashboard columns that describe the vehicle are public;
+- an owner field (district, region, usage, industry class, road transport code, owner type) may be
+  published only in a table of one or two fields, with any cell counting fewer than 10 vehicles
+  hidden. **None is published yet:** the pipeline does not hide small cells, so until it does
+  (package F) owner fields stay out of every published file, other than the `region` slice below;
+- the `region` slice (share of vehicles by the owner's region, by month), published since before
+  the work order under D-078, stays as it is, with no minimum count;
+- postcode totals are not published for now, and nothing derived from `VIN11` is covered.
+
+Nothing here binds a field. Build still offers only what `config/dimensions.json` defines.
 
 The same map in machine-readable form is `config/data_map.json`, kept true to the pipeline's config
 by `pipeline/tests/test_data_map.py`. That file holds no measured figure; the figures are here.
@@ -53,9 +54,9 @@ privacy; relations.
 ## Summary
 
 Uses: **B** break down, **F** filter, then what can be measured (count only, or also an average
-and a median). Values are S then W. Privacy is the proposed class, and is not approved.
+and a median). Values are S then W. Privacy is the class the user approved (D-096).
 
-| Field | Kind | Values (S; W) | Uses | Privacy (proposed) | Bound as |
+| Field | Kind | Values (S; W) | Uses | Privacy | Bound as |
 |---|---|---|---|---|---|
 | `FIRST_NZ_REGISTRATION_YEAR` | time | 107; 127 | B F, count | public | `registration_year` |
 | `FIRST_NZ_REGISTRATION_MONTH` | time | 12; 12 | B F, count | public | `registration_month` |
@@ -85,11 +86,11 @@ and a median). Values are S then W. Privacy is the proposed class, and is not ap
 | `ORIGINAL_COUNTRY` | category, many | 46; 48 | B F, count | public | `original_country` |
 | `PREVIOUS_COUNTRY` | category, many | 45; 49 | B F, count (used imports) | public | `previous_country` |
 | `NZ_ASSEMBLED` | category, few | 3; 3 | B F, count (from 2000) | public | no |
-| `TLA` | place, many | 67; 67 | B F, count | held for review | `tla` |
-| `POSTCODE` | place, many | not measured; 1,331 | B F, count | held for review | no |
-| `VEHICLE_USAGE` | category, few | 7; 8 | B F, count | held for review | no |
-| `INDUSTRY_CLASS` | category, many | 15; 15 | B F, count | held for review | no |
-| `ROAD_TRANSPORT_CODE` | category, many | 20; 20 | B F, count (heavy-vehicle topics) | held for review | no |
+| `TLA` | place, many | 67; 67 | B F, count | owner rule | `tla` |
+| `POSTCODE` | place, many | not measured; 1,331 | B F, count | not published for now | no |
+| `VEHICLE_USAGE` | category, few | 7; 8 | B F, count | owner rule | no |
+| `INDUSTRY_CLASS` | category, many | 15; 15 | B F, count | owner rule | no |
+| `ROAD_TRANSPORT_CODE` | category, many | 20; 20 | B F, count (heavy-vehicle topics) | owner rule | no |
 | `SUBMODEL` | free text | 60,999; 93,703 | none (search at most) | public | no |
 | `MVMA_MODEL_CODE` | identifier | 24,866; 30,633 | none (lookup key) | public | no |
 | `INDUSTRY_MODEL_CODE` | identifier | 47,961; 61,555 | none (lookup key) | public | no |
@@ -99,19 +100,19 @@ and a median). Values are S then W. Privacy is the proposed class, and is not ap
 | `OBJECTID` | identifier | one per row | none | never published | `object_id` |
 
 The dashboard's 13 columns are in "The dashboard's fields" below: each is as its register field
-except where that section says otherwise. Ten are proposed public; `Owner Type`, `Territorial
-authority` and `Vehicle usage` are held for the review.
+except where that section says otherwise. Ten are public; `Owner Type`, `Territorial
+authority` and `Vehicle usage` fall under the owner rule.
 
 Counts. Register: 17 bound and 23 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
-2 place, 1 free text. By proposed class: 31 public, 5 held for the review, 2 never published,
-2 never pulled. Dashboard: 10 category, 1 time, 1 number, 1 place; 10 public, 3 held.
+2 place, 1 free text. By class: 31 public, 5 under the owner rule, 2 never published,
+2 never pulled. Dashboard: 10 category, 1 time, 1 number, 1 place; 10 public, 3 under the owner rule.
 
-## Privacy classes: proposed, for the user to approve
+## Privacy classes: approved by the user on 2026-11-16 (D-096)
 
 | Class | Fields | Why |
 |---|---|---|
-| Proposed public | The 31 register fields that describe the vehicle; the dashboard's 10 vehicle columns | They describe the vehicle, not its owner, and NZTA publishes each of them vehicle by vehicle |
-| Held: not published before the privacy review | `TLA` (and `region` from it), `POSTCODE`, `VEHICLE_USAGE`, `INDUSTRY_CLASS`, `ROAD_TRANSPORT_CODE`; the dashboard's `Owner Type`, `Territorial authority`, `Vehicle usage` | They describe or locate the owner. Proposed for after the review: public only above a minimum count; the postcode only as area totals above a minimum count (D-076) |
+| Public | The 31 register fields that describe the vehicle; the dashboard's 10 vehicle columns | They describe the vehicle, not its owner, and NZTA publishes each of them vehicle by vehicle |
+| Owner rule | `TLA` (and `region` from it), `POSTCODE`, `VEHICLE_USAGE`, `INDUSTRY_CLASS`, `ROAD_TRANSPORT_CODE`; the dashboard's `Owner Type`, `Territorial authority`, `Vehicle usage` | They describe or locate the owner. Published only in a table of one or two fields, with any cell under 10 vehicles hidden, and not before the pipeline hides them (`owner_rule` in `config/data_map.json`). Postcode totals are not published for now (D-076, D-096) |
 | Never published | `VIN11`, `OBJECTID` | `VIN11` narrows a vehicle to a handful, and only a field derived from it may be published, once checked and approved (D-076, D-079). `OBJECTID` is a row number |
 | Never pulled | `CHASSIS7`, `ENGINE_NUMBER` | They identify a vehicle and serve no question (D-062, D-076; `register_archive.never_pulled`) |
 
@@ -125,9 +126,12 @@ pair, a dimension's slice, or the committed snapshot aggregate (`snapshot_archiv
 fields a dimension reads from its `derive` block, plus the fields its kind reads without naming
 them, plus make and model wherever motive power is read (the hybrid classification rewrites motive
 power from them). It does not see a published file the pipeline writes by any other route, or a
-field read by code that `config/data_map.json`'s `derive_reads` does not describe. While the classes
-are proposed it also fails if an owner field or a field derivable only from `VIN11` is marked
-published, or if an exception reaches the fact table.
+field read by code that `config/data_map.json`'s `derive_reads` does not describe. It also fails if a
+field derivable only from `VIN11` is marked published, if an owner field is marked published while
+the owner rule is not enforced, or if an exception on an owner field reaches the fact table. An
+owner field is refused in any output the owner rule does not name (the fact table, the snapshot
+aggregate), and `POSTCODE` in every output (`owner_rule.not_published`), whatever its class or
+exceptions say.
 
 **Context from NZTA.** NZTA's notes say owner location is given by territorial authority "to make
 sure it isn't possible to identify a person", and its field list leaves the postcode out, though the
@@ -140,7 +144,7 @@ vehicles (D-078). Binding another field into the table can only split rows, so t
 alone in a row can only stay the same or rise. The table holds no owner field, so following a
 one-vehicle row from month to month shows only whether that vehicle is still registered.
 
-The questions for the user are put with this map's pull request (#53).
+The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 ## Identity and time
 
@@ -155,7 +159,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Not recorded.** NULL, covered by `sentinels.csv`. The 172 S vehicles cannot be placed in a
   month and are counted in the manifest (`docs/MODEL_AND_AGE.md` §5).
 - **Traps.** A count by this year is of survivors, not registrations (`docs/METRICS.md`).
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** With the month, it picks out a vehicle in combination with other fields. Moves
   together with: vehicle year (banded) 0.64, true by construction for NZ-new vehicles from 2007;
   then transmission 0.37 and where assembled 0.30 (measured).
@@ -169,7 +173,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Not recorded.** NULL, covered.
 - **Traps.** Counts by month of year are seasonal: on S, January 377,650 and June 418,581 vehicles.
   2026 holds months 1 to 10 only.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Picks out a vehicle in combination. It moves with no field above 0.05.
 
 ### `VEHICLE_YEAR`
@@ -190,7 +194,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** 3,756 S vehicles have a vehicle year after their registration year, 20 of them by more
   than a year; they fall to the age bands' `unknown`. Any series that includes NZ-new vehicles and
   crosses January 2007 needs a break marker.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Picks out a vehicle in combination. Moves together with: registration year (banded)
   0.64 and import status 0.48, both by construction; transmission 0.34 (measured).
 
@@ -214,7 +218,7 @@ The questions for the user are put with this map's pull request (#53).
   `segment` ("Vehicle type" in Build: car, ute, van, truck, other), which reads body type and gross
   vehicle mass as well: a ute registered as a passenger vehicle is a passenger car or van here and a ute
   there.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Moves together with: class 1.00 and body type 0.97 (by definition, inferred -
   confirm); road transport code 0.82 on the 57,232 S vehicles that have one; gross vehicle mass
   (banded) 0.77 (measured).
@@ -232,7 +236,7 @@ The questions for the user are put with this map's pull request (#53).
   types: 41,952 S vehicles (0.9%) are not under their body type's commoner type. On S, 32,977 light
   vans and 5,087 utilities are passenger vehicles. On W, 9 of 27 body types have two parents (88,124
   vehicles off the commoner one).
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Moves together with: vehicle type 0.97 and class 0.71 (by definition, inferred -
   confirm); gross vehicle mass (banded) 0.53 and seats (banded) 0.43 (measured).
 
@@ -253,7 +257,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** **`NA` is a class, not "not applicable"**: 701,639 S goods vehicles. A rule that treats
   `NA` as missing would remove nearly every light commercial. It must never become a sentinel. MC is
   not an SUV marker on its own (`segment_map.csv`'s note). A chart over time starts in 2000.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Rolls up to vehicle type on S (1 vehicle of 4,286,433 with a class disagrees); not
   on W (6 of 21 classes have two parents, 99,365 vehicles off). Moves together with: vehicle type
   1.00, body type 0.71 and gross vehicle mass (banded) 0.57 (all by definition, inferred - confirm);
@@ -270,7 +274,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Not recorded.** No form seen.
 - **Traps.** Sub-brands and bare words persist (`model_registry.csv`). `TRAILER` is a make on W
   (549,041 vehicles; 3 on S).
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Rolls up to manufacturer group and to owner country through `brand_registry.csv`,
   by construction. Picks out a vehicle in combination. Not measured for moving together (too many
   values).
@@ -292,7 +296,7 @@ The questions for the user are put with this map's pull request (#53).
   upper-cased and trimmed (the profile does not give the basis); one row is not upper case. The
   same model name sits under more than one make for 1,427 of 28,000 S models (40,793 vehicles off
   the commoner make).
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Rolls up to make only as the make-and-model pair the site builds; the raw name does
   not. Picks out a vehicle in combination. Not measured for moving together.
 
@@ -306,7 +310,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Coverage.** S 100.0% in every period; W all but 6.
 - **Not recorded.** NULL (W 6, S 5), covered.
 - **Traps.** None found.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Picks out a vehicle in combination. Moves together with nothing strongly: vehicle
   type 0.25, import status 0.15, vehicle year (banded) 0.15, gross vehicle mass (banded) 0.14.
 
@@ -322,7 +326,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** 207 S vehicles have more than 60 seats (up to 999); 158 S vehicles with about 50 seats
   are cars or goods vehicles. Proposed guard: 1 to 60. The mean moves little (S 5.011 over every
   real value, 5.001 inside the guard).
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Moves together with: vehicle type 0.49, road transport code 0.44 (57,219 vehicles),
   body type 0.43 (measured).
 
@@ -337,7 +341,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Not recorded.** Zero (S 727,150). **Not in `sentinels.csv`.**
 - **Traps.** One axle (S 1,966) and seven to nine (S 15) are implausible for these vehicles. A zero
   is common on cars too, so axles are not a clean heavy-vehicle marker.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Not measured for moving together.
 
 ### `TRANSMISSION_TYPE`
@@ -354,7 +358,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** `OTHER` is a recorded value on 110,739 S vehicles, 105,880 of them first registered from
   2020; what it holds is not shown (electric drives, inferred - confirm). A question using this field
   is narrowed to NZ-new vehicles and says so.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Recorded on the same vehicles as power and the MVMA model code (below). Moves
   together with: vehicle type 0.54, class 0.43, gross vehicle mass (banded) 0.40, registration year
   (banded) 0.37 (measured).
@@ -371,7 +375,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** `NOT ON LIST` (W 56, S 36) is a recorded value. Some values look like spellings of one
   refrigerant. R404A sits on 35,377 S passenger cars; not checked against specifications. A chart
   over time starts in 2010.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Moves together with nothing strongly: vehicle year (banded) 0.23, import status
   0.20.
 
@@ -388,7 +392,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Coverage.** Every S vehicle. W 85.1%: trailers have none (884,255 NULL).
 - **Not recorded.** NULL, covered.
 - **Traps.** `OTHER` is a recorded catch-all (S 115). Two petrol hybrid codes are in use at once.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Moves together with: vehicle type 0.72, combined fuel consumption (banded) 0.49,
   transmission 0.34 (measured).
 
@@ -406,7 +410,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** **`sentinels.csv`'s rule for every field turns NULL into "not recorded"**, which would
   be wrong if the reading holds: binding it as a breakdown would need a "none" label instead.
   Petrol (S 51), diesel (24) and `OTHER` (1) as a second fuel are odd beside a primary fuel.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Not measured for moving together.
 
 ### `CC_RATING`
@@ -433,7 +437,7 @@ The questions for the user are put with this map's pull request (#53).
   vehicles with an engine fall outside was not measured. **The bound band "4.0 L and over" has no
   upper limit**, so the 382 values land in it today. Never average over every vehicle: the zeros
   pull it down.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Picks out a vehicle in combination. Moves together with: gross vehicle mass (banded)
   0.52, vehicle type 0.52, class 0.44, combined fuel consumption (banded) 0.42 (measured).
 
@@ -451,7 +455,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** 999 on 118 S vehicles (107 of them Jaguar petrol) is a placeholder. 99 on 4,016
   (2,916 Mitsubishi petrol) may be real or a default: unverified. 59 S vehicles are below 5 kW.
   Proposed guard: 5 to 900 (192 S vehicles outside).
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Recorded on the same vehicles as transmission and the MVMA code: all three on
   2,517,036 S vehicles (2,516,929 NZ-new, and 107 used imports, which is the count of used imports
   with all three, not with any one), 92.1% of NZ-new. Picks out a vehicle in
@@ -475,7 +479,7 @@ The questions for the user are put with this map's pull request (#53).
   petrol hybrid 3.8, petrol 7.0), so a mean over all powertrains reflects the mix. **The bound guard
   is above 0 and at most 60** (`config/pipeline.json`); the profile's proposed range is 0.1 to 30,
   with 83 S values above 30 (largest 95). How many lie above 60 was not measured.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Moves together with: motive power 0.49, engine size (banded) 0.42, vehicle type 0.40
   (measured).
 
@@ -494,7 +498,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** The combined figure is outside the urban-to-extra-urban range on 5,297 of 1,280,676 S
   vehicles that have all three. Proposed guards: urban above 0 to 40 (11 S above), extra-urban above
   0 to 30 (60 S above 30).
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** 97.6% of the S vehicles with an urban figure also have power (1,359,738 of
   1,393,284). Not measured for moving together.
 
@@ -517,7 +521,7 @@ The questions for the user are put with this map's pull request (#53).
   goods vehicle at 1 kg lands in a light class; how many do was not measured. The largest on S is
   315,600 (787,627 on W). Proposed guard: 300 to 60,000 (1,824 S outside). A mean over cars and
   trucks together is set by the trucks.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Picks out a vehicle in combination. Moves together with: vehicle type 0.77 and engine
   size (banded) 0.52 (measured); class 0.57 and body type 0.53 (by definition, inferred - confirm).
 
@@ -535,7 +539,7 @@ The questions for the user are put with this map's pull request (#53).
   W 5.0%.
 - **Not recorded.** Zero (S 4,337,512). **Not in `sentinels.csv`.**
 - **Traps.** Bunched on a few values. Proposed guard: 1,000 to 60,000 (none outside on S, 2 on W).
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Recorded with axles on 182,960 of the 182,964 S vehicles that have it. Not measured
   for moving together.
 
@@ -560,7 +564,7 @@ The questions for the user are put with this map's pull request (#53).
   Proposed guards: height 1,000 to 4,600 (5,020 S outside, 3.5% of those recorded), width 1,200 to
   2,600 (4,278 outside, 2.9%). Without them the mean height is 2.8% lower and the mean width 1.0%
   lower.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Not measured for moving together.
 
 ## Where it came from
@@ -577,7 +581,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Not recorded.** No form seen.
 - **Traps.** It decides which other fields exist: power, transmission and the MVMA code for NZ-new
   vehicles; previous country and the industry model code for used imports.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Moves together with: age at registration 0.99 and vehicle year (banded) 0.48, both by
   construction; country built in 0.53 and gross vehicle mass (banded) 0.47 (measured).
 
@@ -591,7 +595,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Not recorded.** `NOT KNOWN` (W 173,327; S 94,208, 2.1%; 93,652 of the 120,012 S vehicles first
   registered before 1990) and `USED UN-REGIST` (W 8; S 0), both covered.
 - **Traps.** `OTHER` (S 15,592) is a recorded catch-all, not "not known".
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Moves together with: vehicle type 0.59, import status 0.53, class 0.35 (measured).
 
 ### `PREVIOUS_COUNTRY`
@@ -608,7 +612,7 @@ The questions for the user are put with this map's pull request (#53).
   334 used imports, where it means "not recorded") and `USED UN-REGIST` (S 40), both covered.
 - **Traps.** `OTHER` (S 1,172) is a catch-all. `NEW ZEALAND` is the previous country of 299 S used
   imports (33,858 W vehicles, and 66,084 re-registered W vehicles).
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Recorded only for used imports. Moves together with (used imports only): age at
   registration 0.26, vehicle year (banded) 0.23, country built in 0.21, engine size (banded) 0.21.
 
@@ -624,7 +628,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Not recorded.** `UNKNOWN` (W 350,980; S 184,863: 162,984 NZ-new, 21,879 used). **Not in
   `sentinels.csv`.**
 - **Traps.** The first pass counted it "100% filled" because it counted `UNKNOWN` as a value.
-- **Privacy.** Proposed public.
+- **Privacy.** Public.
 - **Relations.** Moves together with: registration year (banded) 0.30, transmission 0.21 (measured).
 
 ## Who has it
@@ -643,9 +647,9 @@ The questions for the user are put with this map's pull request (#53).
   18,721, Rangitikei 14,717, Stratford 10,292, Waitomo 8,528 S vehicles; 179,212 in all), so region is
   a best fit there (`tla_region.csv`). Rental and lease fleets are counted at their owner's address
   (`docs/DATA_SOURCES.md`).
-- **Privacy.** **Held for the review.** The `region` slice derived from it is published today, as the
-  recorded exception (status line above): keeping it rests on D-078's unreviewed point 3, and whether
-  it stays is the user's call. Proposed for after the review: public above a minimum count.
+- **Privacy.** **Owner rule** (D-096). The `region` slice derived from it is published today, as the
+  recorded exception (status line above), and the user confirmed that it stays. The slice carries no
+  minimum count.
 - **Relations.** Rolls up to region through `tla_region.csv`: all 67 S values are in the file, none
   twice. Picks out a vehicle in combination. Moves together with nothing above 0.15 (road transport
   code 0.15, vehicle type 0.13).
@@ -656,13 +660,14 @@ The questions for the user are put with this map's pull request (#53).
   Kept in the private archive only (D-076).
 - **Kind and values.** Place. 1,331 values in the 2026-10 archive file, one of them the zero (W;
   D-079).
-- **Uses.** None before the review. Proposed for after it: area totals above a minimum count.
+- **Uses.** None for now (D-096). If that changes: area totals above a minimum count only.
 - **Coverage.** W 95.1% (5,638,818 vehicles above zero). Not measured on S.
 - **Not recorded.** Zero (W 288,172; no empty value). **Not in `sentinels.csv`.**
 - **Traps.** NZTA stores it as a number, so a postcode starting with zero loses it: 152 postcodes
   holding 885,064 vehicles are below 1000 (W). Of the 1,330 above zero, 154 hold fewer than 5 vehicles
   and 237 fewer than 20 (D-079).
-- **Privacy.** **Held for the review**; then area totals above a minimum count only (D-076).
+- **Privacy.** **Not published for now** (the user, D-096); if ever, area totals above a minimum
+  count only (D-076).
 - **Relations.** Postcode to district is not checked. Picks out a vehicle in combination.
 
 ### `VEHICLE_USAGE`
@@ -681,7 +686,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** The rental share differs widely between months: among NZ-new passenger cars on S it is
   41.1% for October 2026, 4.6% for July 2026 and 0.9% for March 2026. The dashboard's usage list is
   finer (20 values).
-- **Privacy.** **Held for the review**; then above a minimum count.
+- **Privacy.** **Owner rule** (D-096): a table of one or two fields, cells under 10 vehicles hidden.
 - **Relations.** Moves together with: road transport code 0.44 (57,232 vehicles; partly by
   definition, inferred - confirm); industry class 0.41, gross vehicle mass (banded) 0.41 and vehicle
   type 0.40 (measured). Industry class at 0.41 is not a copy of usage.
@@ -699,7 +704,7 @@ The questions for the user are put with this map's pull request (#53).
   `sentinels.csv`.**
 - **Traps.** `VEHICLE DEALER` (S 15) and `VEHICLE TRADER` (S 8,610) read as two names for one idea
   (inferred - confirm); if so, binding should join them by a reference lookup.
-- **Privacy.** **Held for the review**; then above a minimum count.
+- **Privacy.** **Owner rule** (D-096): a table of one or two fields, cells under 10 vehicles hidden.
 - **Relations.** Road transport code does not roll up to it (below). Moves together with: usage 0.41,
   vehicle type 0.36, class 0.30 (measured).
 
@@ -722,7 +727,7 @@ The questions for the user are put with this map's pull request (#53).
   for the second fuel.
 - **Traps.** 6.2% of its vehicles sit outside the commercial road transport class. 669 S log haulage
   vehicles are passenger cars.
-- **Privacy.** **Held for the review**: it describes the owner's business, in the owner's own words.
+- **Privacy.** **Owner rule** (D-096): it describes the owner's business, in the owner's own words.
 - **Relations.** **Does not roll up to industry class**: 19 of its 20 codes on S sit under more than
   one class (3,565 of 57,232 vehicles off the commoner class). Moves together with: vehicle type 0.82
   (by definition, inferred - confirm); seats (banded) 0.44 and class 0.44 (measured), on 57,000
@@ -741,7 +746,7 @@ The questions for the user are put with this map's pull request (#53).
   names.
 - **Traps.** Stray spaces on 1,399 S vehicles (1,839 W); 201 rows are not upper case (W, as the
   profile reads).
-- **Privacy.** Proposed public, never a breakdown.
+- **Privacy.** Public, never a breakdown.
 - **Relations.** Picks out a vehicle in combination.
 
 ### `MVMA_MODEL_CODE`
@@ -756,7 +761,7 @@ The questions for the user are put with this map's pull request (#53).
 - **Traps.** **Not a clean key.** On S, 96 codes hold more than one make (253 vehicles off the
   commoner make) and 1,306 more than one model name (11,861 vehicles off). Many are spellings of one
   model (`VX COMMODORE` and `COMMODORE`), not all (one code holds Colorado and Trailblazer).
-- **Privacy.** Proposed public, never a breakdown.
+- **Privacy.** Public, never a breakdown.
 - **Relations.** Recorded with power and transmission (above). Picks out a vehicle in combination.
 
 ### `INDUSTRY_MODEL_CODE`
@@ -772,7 +777,7 @@ The questions for the user are put with this map's pull request (#53).
   `NOT AVAILABLE` (S).
 - **Traps.** 4,915 of 47,959 codes on S point to more than one make and model (80,830 vehicles off
   the commonest). Stray spaces on 46 S vehicles (55 W).
-- **Privacy.** Proposed public, never a breakdown.
+- **Privacy.** Public, never a breakdown.
 - **Relations.** Picks out a vehicle in combination.
 
 ### `VIN11`
@@ -836,7 +841,7 @@ file and 2 in the dataset. It is not bound: the dataset is not built yet.
 They are the dashboard's forms of `VIN11` and `POSTCODE`, which are kept in the private archive
 only and published in no form (D-076, D-084).
 
-| Column | Register field | Values in the file | Where it differs from the register field | Not recorded | Privacy (proposed) |
+| Column | Register field | Values in the file | Where it differs from the register field | Not recorded | Privacy |
 |---|---|---|---|---|---|
 | `Registration month` | first NZ registration year and month | 70 months, none missing | The dashboard's registration month. NZTA calls it the date of first ownership, which "may differ from" the first registration in New Zealand; in count it agrees with the register's month (below) | none seen | public |
 | `Import status` | `IMPORT_STATUS` | 4 | none | none seen | public |
@@ -848,9 +853,9 @@ only and published in no form (D-076, D-084).
 | `Country of origin` | `ORIGINAL_COUNTRY` | 48 | none | `NOT KNOWN` (720) | public |
 | `Vehicle year` | `VEHICLE_YEAR` | 129 | none | none seen | public |
 | `Vehicle Status` | none | 2 | A column of the dashboard only (below) | none seen | public |
-| `Owner Type` | none | 3 | A column of the dashboard only (below) | none seen | held for the review |
-| `Territorial authority` | `TLA` | 70 | Two values the register lacks (below) | `UNKNOWN` (5,141) | held for the review |
-| `Vehicle usage` | `VEHICLE_USAGE` | 20 | A finer list, at an earlier moment (below) | `UNDEFINED` (382) | held for the review |
+| `Owner Type` | none | 3 | A column of the dashboard only (below) | none seen | owner rule |
+| `Territorial authority` | `TLA` | 70 | Two values the register lacks (below) | `UNKNOWN` (5,141) | owner rule |
+| `Vehicle usage` | `VEHICLE_USAGE` | 20 | A finer list, at an earlier moment (below) | `UNDEFINED` (382) | owner rule |
 
 **How each lines up with the register** (D-087):
 
@@ -876,9 +881,9 @@ only and published in no form (D-076, D-084).
   (`ACTIVE`) or since removed (`INACTIVE`) at its latest monthly update, read from the counts
   (`docs/METRICS.md`), not from NZTA's wording. 80,852 vehicles are `INACTIVE`: 9.9% of January 2021,
   none of October 2026. NZTA's page also names "reversed"; the file has none. Uses: break down and
-  filter, count only. Proposed public: it says whether the vehicle is still registered.
+  filter, count only. Public: it says whether the vehicle is still registered.
 - **`Owner Type`** (category, few). Individual 1,045,469; Company 810,118; Other 28,199. Uses: break
-  down and filter, count only, once approved. Held for the review: it describes the owner. Most
+  down and filter, count only, under the owner rule (D-096): it describes the owner. Most
   likely the owner at first registration, **not proven** (below).
 
 What the export cannot give: gross vehicle mass and engine size, so the site's `segment`,
@@ -1005,8 +1010,8 @@ Some fields pick out a vehicle on their own: `VIN11`, `CHASSIS7`, `ENGINE_NUMBER
 within one release. Others do it in combination: the first registration year and month, vehicle
 year, make, model, submodel, the two model codes, engine size, power, gross mass and colour, with the
 owner's district and postcode. In each monthly file the same combination can find the same vehicle,
-and so show its owner fields changing. That is why the archive is private (D-063), why owner fields wait
-for the review, and why no row-level file is ever published. Measured: on the 2026-10 dry run, month
+and so show its owner fields changing. That is why the archive is private (D-063), why owner fields are
+published only under the owner rule, and why no row-level file is ever published. Measured: on the 2026-10 dry run, month
 and the twelve vehicle dimensions of the fact table already leave 50.2% of its rows counting one
 vehicle (7.1% of vehicles; D-078). How unique the full combination is was not measured.
 
@@ -1174,12 +1179,12 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | `ALTERNATIVE_MOTIVE_POWER` as a filter | NULL must read "none", not `__UNDEFINED__`: a reference lookup or a sentinel exception, decided when bound |
 | `NUMBER_OF_AXLES` as a filter | Add `0`. Guard 2 to 6 |
 | `VDAM_WEIGHT`, `HEIGHT`, `WIDTH`, `ROAD_TRANSPORT_CODE` | With the heavy-vehicle topic (package I). Add `0` for the three numbers; guards 1,000 to 60,000, 1,000 to 4,600 and 1,200 to 2,600. The road transport code's NULL reads "none" once that reading is confirmed |
-| `VEHICLE_USAGE`, `INDUSTRY_CLASS` | Bound but kept out of every published file until the review. Add `UNKNOWN` for industry class; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup once confirmed. Labels do not say "when first registered"; usage is shown to be current for rental only |
+| `VEHICLE_USAGE`, `INDUSTRY_CLASS` | Bound, and kept out of every published file until the pipeline enforces the owner rule (D-096). Add `UNKNOWN` for industry class; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup once confirmed. Labels do not say "when first registered"; usage is shown to be current for rental only |
 | `MODEL` (already bound) | Add the clear forms of nothing (`UNKNOWN`, `NOT KNOWN`, `UNK`, `N/A`, `-`, `.`, `0`, `000`); look at `X`, `XX`, `OTHER` and `NA` by make first. Trim stray spaces |
 
 **Not bound as fields:** `MVMA_MODEL_CODE` and `INDUSTRY_MODEL_CODE` (lookup keys for the model-level
 segment, package I, each needing its forms of nothing first); `SUBMODEL` (never a breakdown);
-`POSTCODE` (waits for the review); `VIN11`, `CHASSIS7`, `ENGINE_NUMBER`, `OBJECTID`.
+`POSTCODE` (not published for now, D-096); `VIN11`, `CHASSIS7`, `ENGINE_NUMBER`, `OBJECTID`.
 
 ## Where this map disagrees with other files (noted, not changed)
 
@@ -1201,13 +1206,13 @@ segment, package I, each needing its forms of nothing first); `SUBMODEL` (never 
    weak (colour and gross mass, 0.14). It also lists `CHASSIS7` and `ENGINE_NUMBER` as "never
    published"; they are never pulled.
 7. **`docs/CUBE_SCHEMA.md`'s list of pairs that may be added** includes `powertrain__region`: it reads
-   the owner's district and may not be added before the review.
+   the owner's district and may not be added before the pipeline enforces the owner rule (D-096).
 8. **The first pass** gave whole-register coverage only, counted `UNKNOWN` as filled for where
    assembled and industry class, and read some numbers (999 seats, 99,999 cc) as the guards' main
    problem; on S the zeros and ones matter more.
-9. **The `region` slice and the work order's §3.** The slice is published today on D-078's
-   unreviewed point 3, while §3 names region among the fields not published without asking (status
-   line at the top). The user decides.
+9. **The `region` slice and the work order's §3.** Settled: the slice was published on D-078's
+   point 3 while §3 named region among the fields not published without asking; the user
+   confirmed on 2026-11-16 that it stays (D-096).
 10. **The profile's own report** gives 107 used imports with a transmission and with an MVMA code;
     its `coverage.csv` gives 116 and 131. 107 is the count with all three NZ-new fields. This map
     uses `coverage.csv`.
@@ -1234,8 +1239,9 @@ Notes for the work that follows. None of it is done here.
   hand-kept year.
 - **Binding** (package F), in the order above. Each binding changes `sentinels.csv` and the map's
   `sentinels_pending` in one commit, and marks the entry `bound` with its logical name.
-- **The privacy review.** The user approves or changes the classes; the decision record says what
-  was approved, `approval.privacy_classes` becomes `approved`, and only then may an owner field reach
-  a published file.
+- **Enforcing the owner rule** (package F). The pipeline hides any cell under 10 vehicles in a
+  slice or pair that reads an owner field; `owner_rule.enforced` becomes true in the same change, and
+  only then may an owner field reach a published file. Whether the `region` slice then takes the
+  minimum count too is a question for the user.
 - **Settling usage and industry class** for good: the same vehicles in the October and November
   archive files, if the user agrees to the match ("As first registered, or today").

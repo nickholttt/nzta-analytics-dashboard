@@ -3449,3 +3449,74 @@ New entries use this template:
     Build's conditions follow the fact table.
   - Reversing it: remove the dimension from `config/dimensions.json` and the two config lists; two golden changes back.
 - Status: decided by Claude (unreviewed)
+
+## D-096 2026-11-16 — The user's answers to the parked questions: where supplied counts live, the About page, the privacy classes and the owner rule
+- Agent: user (the answers), claude (the record, and the readings marked as claude's)
+- Basis: the user's message of 2026-11-16, answering the ten questions in `docs/CHECKPOINT.md` as it stood on
+  2026-11-15; `config/data_map.json`, `docs/DATA_MAP.md` and `pipeline/tests/test_data_map.py` as changed with this
+  record; `config/site.json`. A search of `src/` on 2026-11-16 found no cookie, browser storage or analytics code.
+- Context: work order 1 parked ten questions rather than stop (D-082). The privacy classes of the data map were a
+  proposal (D-090), so the order's §3 kept every owner field unpublished; the About page was a draft with six gaps
+  (D-086); both supplied stores sat on the user's computer only (D-092, D-094).
+- Decision (user), by the question's number:
+  1. **Where the converted counts live:** option (a), a small file of counts in this public repository, with no
+     owner field. The same for Stats NZ's series. How it is done is D-097, in its own pull request.
+  2. **The About page.** The site's name is parked: the user has no name they like yet. Contact: through
+     nickholt.co.nz. Connection to the motor industry, to be added "for the meantime": the user works at the
+     Colonial Motor Company as a Systems Analyst. Privacy: no tracking "or anything" right now, to be looked at again closer to
+     going live. The web address stays a gap.
+  3. **Privacy classes.** (a) The 31 register fields and 10 dashboard columns that say nothing of an owner are
+     public. (b) Owner fields: only in tables of one or two fields, with small cells hidden, at a minimum of 10
+     vehicles. (c) The `region` slice already published stays. (d) Postcode totals: not now.
+  4. **Vehicles may be matched privately between two months' archive files**, to settle whether usage and industry
+     class are as first registered or as now.
+  5. **The monthly dashboard export also takes the mass and engine-size groupings**, and the history is taken again.
+     The retaken history will arrive in the user's Downloads folder; that part waits until it does.
+  6. **The query service** is decided after package D's trim is measured.
+  7. **True registrations move first on the home page**, when the home page is rebuilt (package H).
+  8. **The Stats NZ hand export and going public:** later.
+  9. **The repository's "About" line on GitHub:** as proposed: "Plain answers about New Zealand's vehicle market,
+     from NZTA and Stats NZ open data. Work in progress; not public yet." Set on 2026-11-16.
+  10. **The code's licence:** not answered. The message left the three options standing, so the question stays open.
+- How each was recorded, and claude's readings (unreviewed):
+  1. **The classes are marked approved** (`approval` in `config/data_map.json` names this record). The class ids
+     change with it: `proposed_public` becomes `public`, `not_published_before_review` becomes `owner_restricted`,
+     and the flag `pending_review` becomes `restricted`. Options: keep the old ids (no churn, but an approved class
+     would still be called proposed); rename (chosen: a name that is false is worse than a one-off rename, and only
+     the map's own test read them).
+  2. **The owner rule is data**: `owner_rule` in `config/data_map.json` holds the outputs it allows (a slice or a
+     pair, never the fact table), the minimum count of 10, and `enforced: false`.
+  3. **Approval alone publishes nothing** (claude's reading). The pipeline does not hide small cells today, so
+     until it does (package F) every owner field stays out of every published file, and a test holds that while
+     `enforced` is false. The other reading, that the answer lets owner fields be published at once, was not taken:
+     the rule the user chose cannot be kept by a pipeline that cannot hide a cell. Whether the user wants to see
+     the first owner-field table before it is published is asked in the final report.
+  4. **The `region` slice stays exactly as it is**, with no minimum count (claude's reading of "it stays"). Whether
+     it takes the minimum of 10 once the pipeline can hide cells is a question for the user then; applying it would
+     change a published slice.
+  5. **A table of one or two fields is read as a slice or a pair** (claude's reading): a slice is one field by
+     month, a pair is two. The month is not counted as a field. The fact table and the committed snapshot aggregate
+     cross many fields, so no owner field joins either: the map's test refuses an owner field in any output the
+     rule does not name, whatever the field's class or exceptions say (the reviewer of #60 showed that the first
+     version of the test did not).
+  5a. **"Not now" for postcode totals is data too**: `owner_rule.not_published` names `POSTCODE`, and the test
+     refuses it in every output. It leaves the list only on the user's word, in a new record.
+  6. **Nothing derived from `VIN11` is covered** by the answers, so D-076 stands: only after a check against the
+     data and the user's approval.
+  7. **The About page's privacy sentence states what is true today**, not a promise: "Today it carries no
+     advertising, sets no cookies and does not track its visitors." The user's words were about now, with the
+     question to be looked at again before going live; the go-public playbook says so. Three gaps are left (the
+     site's name, its address, and who runs it, which the message did not answer), so the page still says it is a
+     draft.
+  8. **The match between archive files waits for a second month**: the archive holds October only. It is done when
+     November's file is stored (December).
+  9. **The export's new groupings wait for the retaken file.** `python -m pipeline supply` refuses a file whose
+     header is not the configured one, so the playbook and `config/pipeline.json` change together, when the file
+     shows what the columns are called.
+- Consequences:
+  - Nothing new is published by this record. What a build writes is unchanged; the golden contract is unchanged.
+  - CLAUDE.md's non-goals still say postcode figures "wait for the Stage 2 privacy review". The user's answer is
+     "not now", which that wording still covers; CLAUDE.md is not edited (the order's §3).
+  - Package F binds the owner fields privately, builds the hiding of small cells, and only then sets `enforced`.
+  - Reversing the renames: three ids in `config/data_map.json` and one line in its test.
+- Status: accepted (the user's answers); the readings above are decided by Claude (unreviewed)
