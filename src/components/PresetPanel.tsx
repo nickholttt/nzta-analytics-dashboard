@@ -582,11 +582,21 @@ export default function PresetPanel({
         </div>
       ))}
 
-      {chart ?? (preventsRender.length === 0 && !rows ? (
-        <p className="meta" role="status">
-          {wanted ? "Loading the chart…" : "This chart loads as you scroll to it."}
+      {/* One polite status per chart that is being fetched, named by the chart's question, and the same element says when it
+          has arrived (then hidden from the eye, which sees the chart). A chart not yet asked for says so in plain text that is
+          not live, so a page of charts never speaks for all of them at once; the internal page draws everything at once and
+          has no live regions. */}
+      {preventsRender.length === 0 && !wanted ? <p className="meta">This chart loads as you scroll to it.</p> : null}
+      {preventsRender.length === 0 && wanted ? (
+        <p
+          className={rows ? "visually-hidden" : "meta"}
+          role={internal ? undefined : "status"}
+          aria-labelledby={internal ? undefined : questionId}
+        >
+          {rows ? (rows.length > 0 ? "The chart has loaded." : "") : "Loading the chart…"}
         </p>
-      ) : null)}
+      ) : null}
+      {chart}
 
       <ul className="notes">
         {derived?.caveat && !notBuilt && preventsRender.length === 0 ? (
