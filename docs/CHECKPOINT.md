@@ -30,9 +30,8 @@ independently of the site's code; figures are compared with published New Zealan
 
 ## Open pull requests
 
-- #64 `claude/first-load` (D-099): the first-load trim. Checks pass; **not yet reviewed**
-  (its reviewer stopped at the usage limit). It has not taken in #62: merge `main` first.
-- #65 `claude/published-comparison` (D-105): **not yet reviewed.**
+- #64 `claude/first-load` (D-099): the first-load trim, with `main` up to #62 merged in.
+  Its review is under way.
 
 ## Work in hand, in the order to pick it up
 
@@ -43,7 +42,7 @@ independently of the site's code; figures are compared with published New Zealan
    state does not yet reflect is excused; playbooks. Then a clean branch
    `claude/supplied-counts` from `main`, so no commit that reaches `main` ever held the
    untrimmed file. The first pushed version stays reachable on GitHub through #63.
-2. **Review and merge #64 and #65.**
+2. **Review and merge #64.** (#65, the comparison and the user's three answers, is merged.)
 3. **The engine's audit** (D-104): every measure recomputed from the register's rows, then
    compared with what the built site shows. Stopped in its first phase, reading definitions.
    The built site for it is the worktree `nzta-audit`.

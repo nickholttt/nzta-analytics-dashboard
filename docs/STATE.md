@@ -53,7 +53,6 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
   `claude/supplied-counts`.
 - `claude/first-load` (#64, D-099; worktree `nzta-firstload`): `astro.config.mjs`,
   `src/lib/loadGate.ts`, `src/lib/data.ts`, `PresetPanel.tsx`, `deploy.yml`, `scripts/`.
-- `claude/published-comparison` (#65, D-105; worktree `nzta-notes`): two pages, three docs.
 - `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
 - `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): one reference
   file. Nothing in it goes live before the user approves.
