@@ -78,7 +78,7 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
 2. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
 3. Mild hybrids are identified for about 74% of each dataset's hybrids at high confidence over
    12 months (D-110's stricter count). Under 70% a dataset shows its hybrids undivided and the
-   build warns: about 1,100 more unidentified hybrids on true registrations would do it.
+   build warns, on its summary page and `/status` (#72): about 1,100 more would do it.
 4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). It holds no owner field; the user's minimum of 10 is for owner fields (D-096).
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
@@ -122,7 +122,7 @@ November's file (December).
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about three minutes) and the site's 146 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 152 tests (under half a minute).
 
 - A scratch script run from the session's shared scratch folder can pick up a stray file
   there in place of a Python module: run it with `python -I`, or from a folder of its own.

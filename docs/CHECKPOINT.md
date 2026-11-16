@@ -46,8 +46,8 @@ independently of the site's code; figures are compared with published New Zealan
    - On the pipeline's side, done (#68, D-108): eight hybrid nameplates added, each from a
      published source (true registrations' coverage 66.0% to 83.5%); a dataset under 70%
      shows its hybrids undivided; the tie at the model cap has a rule; a new NZTA value no
-     longer refuses the committed counts. Its review's follow-ups are done too (#70, D-110):
-     a build warns when a split flips; the "high confidence" figure counts only such calls.
+     longer refuses the committed counts. Its review's follow-ups too (#70, #72): a flip warns
+     on the build's summary page and `/status`; a stricter coverage count (D-110, D-112).
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. First: a total of new vehicles on the trade's basis beside the default scope
