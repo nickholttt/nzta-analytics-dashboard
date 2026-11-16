@@ -359,17 +359,21 @@ passenger type are 99.88% of Stats NZ's cars. So it is shown under its
 own name, with that caveat in one line, and not called completeness.
 Measured on the 2026-10 snapshot, survivors as a share of Stats NZ's
 count, new then ex-overseas: March 1976, 3.9% and 0.3%; March 1990,
-5.7% and 2.3%; March 2005, 49.8% and 16.0%; March 2015, 90.5% and
-61.6%; August 2026, 99.8% and 99.6%. Never used to scale a figure. On the site (D-098) it is drawn from July
-1975, the first month the denominator is split by new or ex-overseas,
-with the caveat above in one line and a link to `/method`; its total
-line is the survivors of the passenger type over Stats NZ's whole count
-of cars. Read from the local build's files: March 1976, 3.9% and 0.3%;
-March 1990, 5.7% and 2.3%; March 2005, 49.8% and 15.9% (16.0% above;
-the same cell, not reconciled); March 2015, 90.5% and 61.6%; August
-2026, 99.8% and 99.6%. The ex-overseas line reaches 27.8% in April 1986
-(77 survivors over 277 cars counted by Stats NZ), well above its
-neighbours: it is drawn as it is, and is a reason for the caveat.
+5.7% and 2.3%; March 2005, 49.8% and 15.9%; March 2015, 90.5% and
+61.6%; August 2026, 99.8% and 99.6%. Never used to scale a figure.
+(March 2005's used-import figure is 2,107 survivors over 13,211 cars,
+15.949%; an earlier version of this section gave 16.0%, a rounding slip.)
+On the site (D-098) it is drawn from July 1975, the first month the
+denominator is split by new or ex-overseas, with a one-line caveat and a
+link to `/method`; its total line is the survivors of the passenger type
+over Stats NZ's whole count of cars. A month left out (under the
+precision floor, collapsed against its own recent history, or not split)
+breaks the line; a month standing alone between gaps is drawn as a dot.
+The ex-overseas line reaches 27.8% in April 1986 (77 survivors over 277
+cars counted by Stats NZ), well above its neighbours, and is high
+through 1986 and 1987 and low again by 1989: it is drawn as it is. It is
+not a survival rate: that feature does not look like cars surviving, and
+a line can move with how each source classes a car.
 
 **Per capita** — registrations per 1,000 residents, using Stats NZ
 subnational population estimates. Population is a separate reference file

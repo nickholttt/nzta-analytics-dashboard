@@ -123,6 +123,9 @@ export type DerivedMeasure = Measure & {
   numerator_narrowed_to?: { dimension: string; values: string[] };
   // One line, with a link, under the chart: what a reader must know before trusting the ratio.
   caveat?: { text: string; link_label: string; href: string };
+  // False where the measure's own definition already says what both datasets count, so their definitions are not repeated in the
+  // notes. Absent means shown.
+  show_dataset_definitions?: boolean;
   total_label?: string;
   definition?: string;
   // The line under a ratio chart ({base}: where its axis starts) and the name of its table of figures ({from}, {to}).

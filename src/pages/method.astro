@@ -213,18 +213,20 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
     <p>
       Before the registrations dashboard begins there is no count of true registrations by vehicle. For cars, the
       register's passenger cars and vans still registered are set against Stats NZ's count of cars registered for the
-      first time that month, new and registered overseas first, from the first month Stats NZ splits them. It shows how
-      much of each month's count the register still holds today.
+      first time that month, new and registered overseas first, from the first month Stats NZ splits them.
     </p>
     <ul>
       <li>
-        <strong>It is not completeness</strong>: the two sides come from different sources that name their classes
-        differently, so it is a ratio of one count to another, not of the same cars. Read its shape over years rather than
-        one month.
+        <strong>It is not a survival rate and not completeness</strong>: the two sides come from different sources that
+        name their classes differently, so it is a ratio of one count to another, not of the same cars. A line can rise
+        or fall with how each source counts a car, as well as with how many are still registered, and a rise or fall in
+        it should not be read as cars leaving the register. Where a class is small its line can move a long way from one
+        month to the next.
       </li>
       <li>
         <strong>The same rules</strong>: a figure above 100% is drawn as it is, a month with too few cars behind it or far
-        fewer than the months before is left out, and the ratio is never used to scale or adjust any other figure.
+        fewer than the months before is left out and the line breaks there rather than joining the months either side,
+        and the ratio is never used to scale or adjust any other figure.
       </li>
     </ul>
 
