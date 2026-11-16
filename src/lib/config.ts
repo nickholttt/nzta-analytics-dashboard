@@ -3,7 +3,7 @@
 import presetsDoc from "../../config/presets.json";
 import type { AnswerTemplates as Answer } from "./sentences";
 import type { FiguresPhrases } from "./figures";
-import type { PickedRankingPhrases, RankingPhrases, RankingThinPhrases, YearPhrases } from "./sentences";
+import type { MatrixPhrases, PickedRankingPhrases, RankingPhrases, RankingThinPhrases, YearPhrases } from "./sentences";
 import measuresDoc from "../../config/measures.json";
 import dimensionsDoc from "../../config/dimensions.json";
 import pipelineDoc from "../../config/pipeline.json";
@@ -45,6 +45,12 @@ export type Preset = {
   // A ratio of two datasets drawn for each value of `dimension` crossed with each value of this other dimension. Both datasets
   // must carry the pair of the two dimensions (the numerator as a pair slice, the denominator in its fact table).
   cross?: string;
+  // A second breakdown: the preset is a grid, `dimension` down the side and this field across the top, for one window (D-114). values2 are the
+  // values chosen for the columns (values, for the rows); with none chosen the grid shows the largest. cell_basis says what a cell holds when
+  // the address does not: count, all, row or column.
+  dimension2?: string;
+  values2?: string[];
+  cell_basis?: string;
   // A figure and a sentence for one month above the chart (the latest, or the one the visitor chooses).
   answer?: AnswerTemplates;
   series?: unknown[];
@@ -183,6 +189,8 @@ export type NotOffered = string | { text: string; when_not_built: string };
 
 export type BuilderSpec = {
   id: string;
+  // Pairs of fields that Build does not cross: each value of one sits under one value of the other.
+  cannot_cross: string[][];
   // What is counted when the address does not say; datasets lists every one the page can offer, in order, where built.
   dataset: string;
   datasets: string[];
@@ -193,7 +201,7 @@ export type BuilderSpec = {
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
-  notices: { dataset: string; by: string; left_out: string };
+  notices: { dataset: string; by: string; by2: string; left_out: string };
   not_offered: NotOffered[];
 };
 
@@ -207,7 +215,9 @@ type PresetsDoc = {
       RankingThinPhrases &
       PickedRankingPhrases &
       FiguresPhrases & { figures_not_recorded_cell: string; figures_withheld_thin: string; share_change_no_prior: string; not_ranked_before: string; year_too_few_window: string; period_replaced: string } &
-      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; grey_beyond_scale: string };
+      YearPhrases &
+      MatrixPhrases & { matrix_none: string; matrix_units: string; matrix_basis_head: string; matrix_basis_count: string; matrix_basis_all: string; matrix_basis_row: string; matrix_basis_column: string; matrix_total_count: string; matrix_total_share: string; matrix_legend_count: string; matrix_legend_share: string; matrix_legend_unshaded: string; matrix_legend_grey: string; matrix_window_pick: string; matrix_month_pick: string; matrix_scroll_hint: string; matrix_no_base_row: string; matrix_no_base_column: string; build_second_and: string; build_second_none: string; build_second_swap: string; build_second_remove: string; build_second_rows: string; build_second_columns: string; build_second_hint: string } & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; grey_beyond_scale: string };
+    matrix: { rows: number; columns: number; step_fractions: number[]; cells: Record<string, string> };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;

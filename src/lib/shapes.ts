@@ -32,3 +32,11 @@ export const valuesClass = (cardinality?: string, table: RuleTable = ruleTable):
 
 // Whether a kind of measure can be asked of all vehicles together, with no breakdown.
 export const needsBreakdown = (kind?: string, table: RuleTable = ruleTable): boolean => Boolean(kind && table.needs_breakdown.includes(kind));
+
+// Whether a shape is always a picture of one window and never of a series over time: every rule that lists it asks for one period. A ranking
+// and a grid are, a line and a map are not. The time row offers a view of such a shape the one-month and 12-month windows, as one it can be
+// brought back to.
+export const isWindowShape = (shape: string, table: RuleTable = ruleTable): boolean => {
+  const listing = table.rules.filter((r) => r.shapes.includes(shape));
+  return listing.length > 0 && listing.every((r) => r.when.span === "one_period");
+};

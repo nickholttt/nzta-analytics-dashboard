@@ -2,7 +2,7 @@
 // breakdown to compare, which vehicles to keep, and, where more than one shape fits, which to draw (D-058, D-059). Each
 // becomes a preset like any in the canon, two for share and number, so the resolver and the panel treat a built chart
 // exactly as they treat an Explore one.
-import { builderSpec, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
+import { builderSpec, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
 import type { BuilderMeasure, Preset } from "./config";
 import { isBuilt } from "./data";
 import type { Manifest } from "./data";
@@ -10,6 +10,7 @@ import { monthLabel } from "./measures";
 import { drawnShapes, inferShape, questionFacts, resolvePreset } from "./resolve";
 import { isChoosable } from "./reserved";
 import { needsBreakdown } from "./shapes";
+import { chartDefaults } from "./config";
 
 export type Question = {
   // What is counted: a dataset id from builderSpec.datasets.
@@ -17,6 +18,11 @@ export type Question = {
   measure: string;
   by: string | null;
   values: string[];
+  // A second breakdown: the question is a grid, `by` down the side and this field across the top, for one window (D-114). values are the
+  // rows chosen and values2 the columns; with none chosen the grid shows the largest. Neither is ever the page's own, so neither is a state of
+  // the question apart from the address.
+  by2?: string | null;
+  values2?: string[];
   where: Record<string, string[]>;
   view: string | null;
   // With the ranking view and values chosen: rank every value under the same conditions instead of the ones chosen. The choice is
@@ -35,7 +41,8 @@ export type BuilderOption = {
   joiner: string;
   derived: boolean;
   allowsTotal: boolean;
-  dimensions: { id: string; phrase: string; values: boolean }[];
+  // with: the fields this one can be crossed with in a grid (the fact table carries both, they are not one nested in the other).
+  dimensions: { id: string; phrase: string; values: boolean; with: string[] }[];
 };
 export type FilterOption = { id: string; label: string };
 // What one dataset offers; label is how the page names what it counts.
@@ -71,8 +78,9 @@ export function questionText(q: Question, measureId: string, label: (value: stri
   const m = findBuilderMeasure(measureId);
   if (!m) return "";
   const by = q.by ? dimensionsOf(m)[q.by] : undefined;
-  const words = [measurePhrase(m), by ? m.joiner : "", by].filter(Boolean).join(" ");
-  const named = !m.derived && q.by && q.values.length ? `: ${q.values.map(label).join(", ")}` : "";
+  const by2 = q.by && q.by2 && !m.derived ? dimensionsOf(m)[q.by2] : undefined;
+  const words = [measurePhrase(m), by ? m.joiner : "", by, by2 ? phrases.build_second_and : "", by2].filter(Boolean).join(" ");
+  const named = !m.derived && !by2 && q.by && q.values.length ? `: ${q.values.map(label).join(", ")}` : "";
   return words.charAt(0).toUpperCase() + words.slice(1) + named;
 }
 
@@ -82,17 +90,25 @@ const TREND = "trend";
 // The view that ranks. A ranking of the values a visitor chose is a view of the question, since it is what the question looks like in
 // one window: the rule table says where it fits (config/chart_rules.json, D-111).
 export const RANKING = "league";
+// The view of a question with a second breakdown: a grid, the only shape that fits two fields crossed in one window.
+export const MATRIX = "matrix";
 
 function presetFor(q: Question, measureId: string, id: string, label?: (value: string) => string): Preset {
   const m = findBuilderMeasure(measureId);
   // Ranking every value sets the choice aside: the chart, its title and its figures are those of the question without it.
   const asked = q.view === RANKING && q.rankAll ? { ...q, values: [] } : q;
+  // A second breakdown makes the question a grid of the two fields; the values chosen are the lines of each side, and none are the page's own.
+  const crossed = Boolean(!m?.derived && asked.by && asked.by2);
   const values = !m?.derived && asked.by && asked.values.length ? asked.values : undefined;
+  const values2 = crossed && asked.values2?.length ? asked.values2 : undefined;
   const where = cleanWhere(q.where);
-  const dimensionNote = q.by ? forDataset(builderSpec.dimension_notes[q.by], q.dataset) : undefined;
+  const dimensionNote = joined(
+    q.by ? forDataset(builderSpec.dimension_notes[q.by], q.dataset) : undefined,
+    crossed && q.by2 ? forDataset(builderSpec.dimension_notes[q.by2], q.dataset) : undefined,
+  );
   // A count by a breakdown is lines unless the visitor asked for the ranking; a view the visitor chose among the shapes that fit
   // applies to the rest. The resolver reports a view that does not fit the question.
-  const view = measureId === COUNT && q.by ? (q.view === RANKING ? RANKING : TREND) : q.view;
+  const view = crossed ? MATRIX : measureId === COUNT && q.by ? (q.view === RANKING ? RANKING : TREND) : q.view;
   const preset: Preset = {
     id,
     question: questionText(asked, measureId, label) + (q.dataset === builderSpec.dataset ? "" : ` (${datasetName(q.dataset)})`),
@@ -102,14 +118,15 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
     period: builderSpec.period,
     // Chosen values reach their ranking through the view, not through the time row: the time row of a lines chart offers no ranking
     // window, so there is one way in and the page says which view is on (D-111).
-    ranking_period: values ? undefined : builderSpec.ranking_period,
+    ranking_period: values || crossed ? undefined : builderSpec.ranking_period,
     events: true,
     note: joined(forDataset(m?.note, q.dataset), dimensionNote),
     note_template: m?.note_template ? joined(m.note_template, dimensionNote) : undefined,
-    top_n: values || !q.by ? undefined : m?.top_n?.[q.by],
+    top_n: values || crossed || !q.by ? undefined : m?.top_n?.[q.by],
     ...(m?.derived ? { derived: m.id } : { measure: m?.id }),
     ...(values ? { values } : {}),
-    ...(values && q.pageValues ? { page_values: true } : {}),
+    ...(values && q.pageValues && !crossed ? { page_values: true } : {}),
+    ...(crossed ? { dimension2: q.by2 as string, ...(values2 ? { values2 } : {}) } : {}),
     ...(q.view === RANKING && q.rankAll ? { ranks_all: true } : {}),
     ...(Object.keys(where).length ? { where } : {}),
     ...(view ? { shape_override: view } : {}),
@@ -125,7 +142,7 @@ export function builderPresets(q: Question, label?: (value: string) => string): 
   const m = findBuilderMeasure(q.measure);
   if (!m) return [];
   // A ranking has the share and the number of vehicles in one table, so a measure of two parts is one chart in this view.
-  const parts = q.view === RANKING ? partsOf(m).slice(0, 1) : partsOf(m);
+  const parts = q.view === RANKING || (q.by2 && q.by) ? partsOf(m).slice(0, 1) : partsOf(m);
   return parts.map((part, i) => presetFor(q, part.id, i === 0 ? builderSpec.id : `${builderSpec.id}-${part.id}`, label));
 }
 
@@ -142,6 +159,10 @@ export function viewsFor(q: Question): string[] {
   const all = ranksChosen && !shapes.includes(RANKING) ? [...shapes, RANKING] : shapes;
   return all.length > 1 ? all : [];
 }
+
+// Whether Build crosses two fields: they are two, and neither sits under a single value of the other (config builder.cannot_cross).
+export const canCross = (a: string, b: string): boolean =>
+  a !== b && !builderSpec.cannot_cross.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
 
 // What a dataset is called to a visitor: its public label, and for one that starts later than the register, where it starts.
 export function datasetName(id: string, manifest?: Manifest): string {
@@ -169,12 +190,14 @@ function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabula
   const measures = builderSpec.measures
     .map((m): BuilderOption => {
       const probe = (by: string | null, values: string[] = []) => draws({ ...blank, measure: m.id, by, values }, manifest);
-      const dimensions = Object.entries(dimensionsOf(m)).flatMap(([id, phrase]) => {
+      const offered = Object.entries(dimensionsOf(m)).flatMap(([id, phrase]) => {
         const values = !m.derived && Boolean(facts?.dimensions.includes(id)) && probe(id, ["?"]);
         // A count by a breakdown draws a line per chosen value, so without values it has nothing to draw.
         const needsValues = partsOf(m).some((p) => p.id === COUNT);
         return values || (!needsValues && probe(id)) ? [{ id, phrase, values }] : [];
       });
+      // A grid needs the fact table to carry both fields, and a plain measure of vehicles.
+      const dimensions = offered.map((d) => ({ ...d, with: m.derived || !d.values ? [] : offered.filter((o) => o.values && canCross(d.id, o.id)).map((o) => o.id) }));
       return {
         id: m.id,
         phrase: measurePhrase(m),
@@ -218,24 +241,29 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   const dimension = m.dimensions.find((d) => d.id === q.by);
   const by = dimension ? dimension.id : m.allowsTotal && (q.by === null || q.by === undefined) ? null : (m.dimensions[0]?.id ?? null);
   const takesValues = Boolean(by && m.dimensions.find((d) => d.id === by)?.values);
+  // A second breakdown only where the dataset carries both fields and they can be crossed; otherwise the question has none.
+  const by2 = by && q.by2 && dimension?.with.includes(q.by2) ? q.by2 : null;
   const onBreakdown = by ? (q.where?.[by] ?? []) : [];
+  const onBreakdown2 = by2 ? (q.where?.[by2] ?? []) : [];
   // A value the page does not offer to choose (the one a cap collapses to) is left out of the values and the conditions: the page says so
   // (readingNotes), as it does for a breakdown it does not have.
   const where = Object.fromEntries(
     Object.entries(q.where ?? {})
-      .filter(([d, kept]) => d !== by && kept.length > 0)
+      .filter(([d, kept]) => d !== by && d !== by2 && kept.length > 0)
       .map(([d, kept]) => [d, kept.filter(isChoosable)]),
   );
   const asked = (q.values?.length ? q.values : onBreakdown).filter(isChoosable);
-  const values = takesValues ? [...new Set(asked)].slice(0, MAX_VALUES) : [];
-  // Values the page chose: any question that names none, and one the page has filled in and the visitor has not touched.
-  const pageValues = takesValues && (values.length === 0 || q.pageValues === true);
-  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, where, view: null, ...(pageValues ? { pageValues } : {}) };
+  const values = takesValues ? [...new Set(asked)].slice(0, by2 ? chartDefaults.matrix.rows : MAX_VALUES) : [];
+  const values2 = by2 ? [...new Set((q.values2?.length ? q.values2 : onBreakdown2).filter(isChoosable))].slice(0, chartDefaults.matrix.columns) : [];
+  // Values the page chose: any question that names none, and one the page has filled in and the visitor has not touched. A grid chooses its own
+  // lines in the window it shows, so it has no starting values to fill in.
+  const pageValues = !by2 && takesValues && (values.length === 0 || q.pageValues === true);
+  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, ...(by2 ? { by2, values2 } : {}), where, view: null, ...(pageValues ? { pageValues } : {}) };
   // A count with no values yet is waiting for the page's own, which come after the page has looked at the data; a view that needs
   // two or more is judged as if they were there, so a link to the ranking of the page's values is kept.
   const waiting = pageValues && values.length === 0 && partsOf(findBuilderMeasure(m.id) as BuilderMeasure).some((p) => p.id === COUNT);
   const judged = waiting ? { ...settled, values: ["?", "?"] } : settled;
-  const view = q.view && viewsFor(judged).includes(q.view) ? q.view : null;
+  const view = !by2 && q.view && viewsFor(judged).includes(q.view) ? q.view : null;
   return { ...settled, view, ...(view === RANKING && q.rankAll ? { rankAll: true } : {}) };
 }
 
@@ -247,6 +275,8 @@ const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 export type Reading = {
   dataset?: { asked: string; shown: string };
   by?: { asked: string; dataset: string; shown: string };
+  // The second breakdown the link named and the question cannot have.
+  by2?: { asked: string };
   // Values the link named that the page does not offer to choose, each with the field it was named for.
   left_out?: { asked: string; field: string }[];
 };
@@ -274,6 +304,7 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
     const shown = settled.by ? offered?.dimensions.find((d) => d.id === settled.by)?.phrase : undefined;
     note.by = { asked: lowerFirst(dimensionLabel(asked.by) ?? asked.by), dataset: lowerFirst(datasetName(settled.dataset)), shown: shown ?? "all of them together" };
   }
+  if (typeof asked.by2 === "string" && asked.by2 !== "" && asked.by2 !== settled.by2) note.by2 = { asked: lowerFirst(dimensionLabel(asked.by2) ?? asked.by2) };
   return note;
 }
 
@@ -298,6 +329,8 @@ export function readQuestion(search: string): Partial<Question> {
     measure: params.get(key("measure")) ?? undefined,
     by: by === null ? undefined : by === "" ? null : by,
     values: params.getAll(key("value")),
+    by2: params.get(key("by2")) || undefined,
+    values2: params.getAll(key("value2")),
     where,
     view: params.get(key("view")),
     rankAll: params.get(key("rank")) === "all",
@@ -311,6 +344,10 @@ export function questionParams(q: Question): URLSearchParams {
   // The page's own values are not in the address: a link without values means them.
   if (!q.pageValues) for (const v of q.values) params.append(key("value"), v);
   for (const [d, kept] of Object.entries(cleanWhere(q.where))) for (const v of kept) params.append(key(`${WHERE}${d}`), v);
+  if (q.by2) {
+    params.set(key("by2"), q.by2);
+    for (const v of q.values2 ?? []) params.append(key("value2"), v);
+  }
   if (q.view) params.set(key("view"), q.view);
   if (q.view === RANKING && q.rankAll) params.set(key("rank"), "all");
   return params;
@@ -322,18 +359,19 @@ export function questionParams(q: Question): URLSearchParams {
 export function builderQuestionFor(view: Preset): Question | null {
   if (view.id.startsWith(builderSpec.id) || view.series || !view.dataset || !builderSpec.datasets.includes(view.dataset) || !view.dimension) return null;
   const m = builderSpec.measures.find((x) => !x.parts && (x.derived ? x.id === view.derived : !view.derived && x.id === view.measure));
-  if (!m || !(view.dimension in m.dimensions) || m.top_n?.[view.dimension] !== view.top_n) return null;
+  if (!m || !(view.dimension in m.dimensions) || (view.dimension2 ? !(view.dimension2 in m.dimensions) : m.top_n?.[view.dimension] !== view.top_n)) return null;
   const where = noConditions();
   for (const filter of view.filters ?? []) for (const [d, v] of Object.entries(filter)) (where[d] ??= []).push(v);
-  return { dataset: view.dataset, measure: m.id, by: view.dimension, values: [], where, view: null };
+  return { dataset: view.dataset, measure: m.id, by: view.dimension, values: [], ...(view.dimension2 ? { by2: view.dimension2, values2: [] } : {}), where, view: null };
 }
 
 // The Build page's address for a question. It carries the time range the chart was showing, where that differs from
 // the question's own default, so the chart opens as the reader left it.
-export function builderHref(q: Question, period?: string, fullHistory = false): string {
+export function builderHref(q: Question, period?: string, fullHistory = false, cells?: string): string {
   const params = questionParams(q);
   const [first] = builderPresets(q);
   if (period && first && period !== first.period) params.set(key("period"), period);
   if (fullHistory) params.set(key("range"), "all");
+  if (cells) params.set(key("cells"), cells);
   return `/build?${params}`;
 }

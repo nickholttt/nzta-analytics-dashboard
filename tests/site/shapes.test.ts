@@ -69,11 +69,11 @@ test("every rule is reached by some question, so each has a case", () => {
   for (const rule of ruleTable.rules) assert.ok(reached.has(rule.id), `no question is decided by ${rule.id}`);
 });
 
-test("two fields crossed in one window fit a matrix, which has no renderer and is never offered", () => {
+test("two fields crossed in one window fit a matrix, which is offered now that it has a renderer", () => {
   const crossed = { measure: "count", by: "category", values: "many", span: "one_period", picked: "none", crossed_with: "category" };
   assert.deepEqual(shapesFor(crossed), ["matrix"]);
-  assert.ok(!resolve.RENDERED_SHAPES.has("matrix"));
-  assert.deepEqual(resolve.drawnShapes(crossed), [], "a shape with no renderer is not offered");
+  assert.ok(resolve.RENDERED_SHAPES.has("matrix"));
+  assert.deepEqual(resolve.drawnShapes(crossed), ["matrix"]);
   // Crossed with time is not a matrix: time is the axis of a line. Crossed over time is a line for each combination.
   assert.ok(!shapesFor({ ...crossed, crossed_with: "time" }).includes("matrix"));
   assert.ok(!shapesFor({ ...crossed, span: "over_time" }).includes("matrix"));
@@ -95,16 +95,27 @@ test("a preset that crosses two fields over time states the crossing, and still 
     const resolution = resolve.resolvePreset(view, manifest);
     assert.equal(resolution.shape, "trend");
     assert.equal(resolution.status, "live");
-    // In one window the same crossing fits only a grid, which has no renderer, and the resolver says so.
+    // In one window the same crossing fits only a grid. The grid draws the vehicles in two fields; this is a ratio of two datasets, which it
+    // does not draw, so the resolver blocks it and says why (it was "no renderer" before the grid had one). The time row never offers the period.
     const window = resolve.resolvePreset({ ...view, period: "latest_year" }, manifest);
     assert.equal(window.shape, "matrix");
-    assert.ok(window.blocked.some((m) => /no renderer/.test(m)), `${p.id}: ${window.blocked}`);
+    assert.equal(window.status, "blocked");
+    assert.ok(window.blocked.some((m) => /grid of two fields/.test(m)), `${p.id}: ${window.blocked}`);
+    assert.ok(!resolve.rankingPeriods(view).includes("latest_year"), `${p.id}: the time row does not offer a window it cannot draw`);
   }
 });
 
 test("only shapes with a renderer are ever offered, and the first offered is the one drawn", () => {
   for (const c of combinations()) for (const s of resolve.drawnShapes(c)) assert.ok(resolve.RENDERED_SHAPES.has(s));
   for (const s of resolve.RENDERED_SHAPES) assert.ok(SIX.includes(s));
+});
+
+test("RENDERED_SHAPES and the panel's branches name the same shapes", () => {
+  // `has a renderer` is known in two places: this set, which the rule table's answers are cut by, and the panel, which picks the component. A shape
+  // in one and not the other would be offered and not drawn, or drawn and never offered.
+  const panel = read("src/components/PresetPanel.tsx");
+  const branches = new Set([...panel.matchAll(/shape === "([a-z]+)"/g)].map((m) => m[1]));
+  assert.deepEqual([...branches].sort(), [...resolve.RENDERED_SHAPES].sort());
 });
 
 test("a table of the figures is available for every shape that is drawn", () => {
