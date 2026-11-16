@@ -136,7 +136,7 @@
       "identified_full": 13,
       "unknown": 1,
       "coverage_stated_confidence": 0.6667,
-      "coverage_high_confidence_only": 0.3333,
+      "coverage_high_confidence_only": 0.25,
       "mild_share_of_source_hybrids": 0.125,
       "identified_mild_by_confidence": {
        "high": 1,
@@ -152,7 +152,7 @@
       "identified_full": 13,
       "unknown": 1,
       "coverage_stated_confidence": 0.6667,
-      "coverage_high_confidence_only": 0.3333,
+      "coverage_high_confidence_only": 0.25,
       "mild_share_of_source_hybrids": 0.125,
       "identified_mild_by_confidence": {
        "high": 1,
@@ -290,7 +290,7 @@
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
    "registrations_surviving: 1 rows are dated after the snapshot month and were excluded",
-   "registrations_surviving: mild hybrid identification coverage over the trailing 12 months is 33.3% counting high-confidence classifications only, below 70%, so the mild hybrid split is not published: its mild hybrids are counted as Hybrid",
+   "registrations_surviving: mild hybrid identification coverage over the trailing 12 months is 25.0% counting high-confidence classifications only, below 70%, so the mild hybrid split is not published: its mild hybrids are counted as Hybrid",
    "registrations_flow was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
    "registrations_cars_long_run was not built: the supplied store for statsnz_tpt is absent (data/supplied/statsnz_tpt); add a file with `python -m pipeline supply statsnz_tpt <csv>`",
    "no last good state: first run, so previous-run comparisons were skipped"

@@ -546,7 +546,9 @@ def test_mild_hybrid_coverage_is_published_and_adds_up(tmp_path, workspace):
         denominator = basis["identified_mild"] + basis["unknown"]
         assert basis["coverage_stated_confidence"] == round(basis["identified_mild"] / denominator, 4)
         high = by_confidence[h["high_confidence_level"]] + by_confidence["code_default"]
-        assert basis["coverage_high_confidence_only"] == round(high / denominator, 4)
+        # Full rows below the high level stay in the denominator at high confidence, so it lies between the figure over
+        # the stated denominator and the one over every hybrid; the exact counts are held in the tests built from counts.
+        assert round(high / (denominator + basis["identified_full"]), 4) <= basis["coverage_high_confidence_only"] <= round(high / denominator, 4)
         assert basis["coverage_high_confidence_only"] <= basis["coverage_stated_confidence"]
 
 
@@ -717,40 +719,50 @@ def test_a_window_with_no_hybrid_to_divide_is_not_withheld():
     con.execute("CREATE TABLE rows AS SELECT TRUE AS in_scope, TRUE AS fleet_entry, DATE '2026-08-01' AS reg_month, "
                 f"'X' AS {cfg.pipeline['engine']['field']}, 'X' AS {cfg.pipeline['engine']['field']}__source, "
                 "CAST(NULL AS VARCHAR) AS hybrid_class, CAST(NULL AS VARCHAR) AS hybrid_confidence")
-    out = m.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
+    out, _ = m.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
     assert out["trailing"]["source_hybrids"] == 0 and out["trailing"]["coverage_high_confidence_only"] is None
     assert out["mild_split_published"] is True
     con.close()
 
 
-def coverage_from_counts(cfg, identified_high: int, unknown: int, full_medium: int = 0) -> dict:
+def coverage_from_counts(cfg, identified_high: int, unknown: int, full_below_high: int = 0, full_high: int = 0,
+                         below_high: str | None = None) -> dict:
     """hybrid_coverage over a table of exactly these counts: vehicles recorded under a hybrid code, `identified_high` of them
-    classified mild at high confidence, `full_medium` classified full at medium confidence and `unknown` not classified at
-    all, all in the trailing window."""
+    classified mild at high confidence, `full_high` classified full at high confidence, `full_below_high` classified full at
+    the level `below_high` (the first level under the high one by default) and `unknown` not classified at all, all in the
+    trailing window."""
     h, engine = cfg.pipeline["hybrid_classification"], cfg.pipeline["engine"]
     keys = reference.hybrid_keys(cfg)
     code = sorted(keys["source_hybrid"] - keys["mild"])[0]
     con = duckdb.connect()
     con.execute(f"CREATE TABLE rows (in_scope BOOLEAN, fleet_entry BOOLEAN, reg_month DATE, {engine['field']} VARCHAR, "
                 f"{engine['field']}__source VARCHAR, hybrid_class VARCHAR, hybrid_confidence VARCHAR)")
-    medium = next(level for level in h["confidence_levels"] if level != h["high_confidence_level"])
-    for kind, level, n in ((h["types"]["mild"], h["high_confidence_level"], identified_high), (None, None, unknown),
-                           (h["types"]["full"], medium, full_medium)):
+    high = h["high_confidence_level"]
+    below = below_high or next(level for level in h["confidence_levels"] if level != high)
+    for kind, level, n in ((h["types"]["mild"], high, identified_high), (None, None, unknown),
+                           (h["types"]["full"], high, full_high), (h["types"]["full"], below, full_below_high)):
         con.execute(f"INSERT INTO rows SELECT TRUE, TRUE, DATE '2026-08-01', ?, ?, ?, ? FROM range({n})", [code, code, kind, level])
-    out = metrics.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
+    out, counts = metrics.hybrid_coverage(con, cfg, "fleet_entry", date(2025, 9, 1), date(2026, 8, 1), 12)
     con.close()
     assert out["trailing"]["identified_mild"] == identified_high and out["trailing"]["unknown"] == unknown
+    assert out["trailing"]["identified_full"] == full_high + full_below_high
+    assert counts["trailing"] == (identified_high, identified_high + unknown + full_below_high)
     return out
 
 
-def test_a_nameplate_called_full_at_medium_confidence_leaves_the_denominator_at_both_levels():
-    """What docs/METRICS.md says of the figure at high confidence only: it demotes mild rows, not full ones."""
+@pytest.mark.parametrize("level", [None, "low"])
+def test_a_nameplate_called_full_below_high_confidence_stays_in_the_denominator_at_high_confidence_only(level):
+    """docs/METRICS.md: at high confidence only, a classification below the high level counts as none, whichever way it
+    points. The two figures differ by exactly those vehicles; a full call at the high level leaves both denominators."""
     cfg = make_cfg({})
     without = coverage_from_counts(cfg, 60, 20)["trailing"]
-    with_full = coverage_from_counts(cfg, 60, 20, full_medium=500)["trailing"]
-    assert with_full["identified_full"] == 500 and with_full["source_hybrids"] == 580
-    assert with_full["coverage_stated_confidence"] == without["coverage_stated_confidence"] == 0.75
-    assert with_full["coverage_high_confidence_only"] == without["coverage_high_confidence_only"] == 0.75
+    below = coverage_from_counts(cfg, 60, 20, full_below_high=500, below_high=level)["trailing"]
+    assert below["identified_full"] == 500 and below["source_hybrids"] == 580
+    assert without["coverage_stated_confidence"] == without["coverage_high_confidence_only"] == 0.75
+    assert below["coverage_stated_confidence"] == 0.75, "the stated figure is unchanged by a full call at any confidence"
+    assert below["coverage_high_confidence_only"] == round(60 / (80 + 500), 4)
+    at_high = coverage_from_counts(cfg, 60, 20, full_high=500)["trailing"]
+    assert at_high["coverage_stated_confidence"] == at_high["coverage_high_confidence_only"] == 0.75
 
 
 def threshold_counts(cfg) -> tuple[int, int, int]:
@@ -770,6 +782,20 @@ def test_a_dataset_exactly_at_the_threshold_publishes_and_one_vehicle_under_it_d
     assert exactly["mild_split_published"] is True
     assert coverage_from_counts(cfg, at - 1, total - at + 1)["mild_split_published"] is False
     assert coverage_from_counts(cfg, at + 1, total - at - 1)["mild_split_published"] is True
+
+
+def test_a_dataset_that_publishes_on_its_mild_calls_alone_is_withheld_once_full_calls_below_high_confidence_count_as_unknown():
+    cfg = make_cfg({})
+    at, total, _ = threshold_counts(cfg)
+    assert coverage_from_counts(cfg, at, total - at)["mild_split_published"] is True
+    # The same vehicles and one more, called full at a level under high: the stated figure is untouched, the split is not.
+    out = coverage_from_counts(cfg, at, total - at, full_below_high=1)
+    assert out["trailing"]["coverage_stated_confidence"] == coverage_from_counts(cfg, at, total - at)["trailing"]["coverage_stated_confidence"]
+    assert out["mild_split_published"] is False
+    # And exactly at the threshold with the full calls counted: the denominator is the unknown and the full vehicles together.
+    full = total // 10
+    assert coverage_from_counts(cfg, at, total - at - full, full_below_high=full)["mild_split_published"] is True
+    assert coverage_from_counts(cfg, at, total - at - full + 1, full_below_high=full)["mild_split_published"] is False
 
 
 def test_a_figure_that_rounds_up_to_the_threshold_but_is_under_it_does_not_publish():

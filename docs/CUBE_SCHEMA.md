@@ -424,9 +424,9 @@ figure; the label rule above is unchanged.
 powertrain contradicts their `mild_hybrid_models.csv` classification (a
 full hybrid shown as Mild hybrid, or the reverse). Coverage is given at
 stated confidence and at high confidence only, so how much it rests on
-medium- and low-confidence `mild` classifications is visible, not buried (a
-`full` classification leaves the denominator whatever its confidence;
-`METRICS.md`).
+medium- and low-confidence classifications is visible, not buried. At high
+confidence only a classification below the high level counts as none, `mild` or
+`full` alike: both stay in the denominator as unidentified (`METRICS.md`, D-110).
 
 ## Source discovery, snapshot date and change key
 
