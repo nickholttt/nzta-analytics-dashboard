@@ -212,8 +212,9 @@ def test_the_dataset_goes_into_the_state_with_the_stores_own_totals(built):
 
 def test_the_register_datasets_are_untouched_by_a_second_supplied_source(built):
     manifest = built["manifest"]
-    assert list(manifest["datasets"]) == [SURVIVING, "registrations_flow", DATASET]
-    assert "not_built" in manifest["datasets"]["registrations_flow"] and "not_built" not in manifest["datasets"][SURVIVING]
+    assert list(manifest["datasets"]) == [SURVIVING, "registrations_flow", "registrations_flow_wider", DATASET]
+    assert all("not_built" in manifest["datasets"][d] for d in ("registrations_flow", "registrations_flow_wider"))
+    assert "not_built" not in manifest["datasets"][SURVIVING]
 
 
 def band_dimension(cfg):

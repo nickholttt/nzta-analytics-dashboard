@@ -64,7 +64,14 @@
     "empty_token": "<EMPTY>"
   },
   "scope": {
-    "vehicle": { "file": "vehicle_scope.csv", "field": "vehicle_type", "key": "vehicle_type", "in_scope": "in_scope" },
+    "vehicle": {
+      "file": "vehicle_scope.csv",
+      "field": "vehicle_type",
+      "key": "vehicle_type",
+      "in_scope": "in_scope",
+      "$also_comment": "Wider scopes: a flag of `rows` (the key) that is true for a vehicle whose type is true in this column of the vehicle scope file and whose import status is in scope. A dataset names one scope flag in its `require` (`in_scope` or one of these) and counts the types that flag says (D-113).",
+      "also": { "in_trade_scope": "trade_scope" }
+    },
     "status": {
       "file": "import_status_map.csv",
       "field": "import_status",
@@ -136,6 +143,12 @@
       "source": "nzta_dashboard",
       "require": ["in_scope", "fleet_entry"],
       "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "import_status", "age_at_registration_band", "model"]
+    },
+    "registrations_flow_wider": {
+      "$comment": "registrations_flow on a wider scope (D-106, D-113): the same source, import-status rule and code, counting the vehicle types the vehicle scope file marks in its trade_scope column (the default scope's two and buses, motor caravans and special purpose vehicles) in place of those it marks in_scope. Where the two datasets disagree is only in which vehicle types they count. No pairs, as for registrations_flow. Its facts are registrations_flow's and the passenger-or-commercial group (trade_group).",
+      "source": "nzta_dashboard",
+      "require": ["in_trade_scope", "fleet_entry"],
+      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "trade_group", "import_status", "age_at_registration_band", "model"]
     },
     "registrations_cars_long_run": {
       "$comment": "Read from the supplied source statsnz_tpt, a source of kind series (pipeline/series.py): Stats NZ's monthly count of cars and station wagons registered for the first time, from January 1961. `total` is the series that gives each month's vehicles. Its dimensions (car_origin, car_engine_band in dimensions.json) are Stats NZ's own breakdowns of that total, published separately, so they cannot be crossed with each other or with anything else: there are no pairs and no fact table. Nothing else the table holds (commercial vehicles, buses, motorcycles, power cycles, tractors) is built, because its classes are not lined up with NZTA's vehicle types (D-065).",

@@ -274,8 +274,8 @@ def test_a_fact_table_that_counts_a_vehicle_twice_aborts(tmp_path, workspace, mo
     # A lookup that matched a vehicle twice would repeat it in dims, and in every count taken from dims with it.
     build_dims = derive.build_dims
 
-    def repeating_one_vehicle(con, cfg, derived):
-        build_dims(con, cfg, derived)
+    def repeating_one_vehicle(con, cfg, derived, *scope):
+        build_dims(con, cfg, derived, *scope)
         con.execute("INSERT INTO dims SELECT * FROM dims WHERE fleet_entry AND reg_month IS NOT NULL ORDER BY reg_month LIMIT 1")
 
     monkeypatch.setattr(derive, "build_dims", repeating_one_vehicle)

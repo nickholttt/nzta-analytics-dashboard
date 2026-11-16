@@ -204,15 +204,19 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 - **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`, which also
   gives every type a readable label: the name a visitor reads, with no part in scope). The file's
-  `trade_scope` column marks the types the trade's total of new vehicles counts: the two in scope and
-  buses, motor caravans and special purpose vehicles, which the trade counts as commercial vehicles
-  (D-105, D-106). It decides nothing the datasets count today; it is the set of types whose model names the
-  committed store of the dashboard keeps (DATA_SOURCES §D).
+  `trade_scope` column marks the types of a wider scope: the two in scope and
+  buses, motor caravans and special purpose vehicles. With them added, our counts of new vehicles
+  come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared
+  (`docs/METRICS.md`; D-105, D-106). It decides which types `registrations_flow_wider` counts (D-113), and it is the set of types
+  whose model names the committed store of the dashboard keeps (DATA_SOURCES §D). Its `trade_group` column sorts each of those types
+  into two groups: passenger cars and vans are `Passenger`; every other type in `trade_scope`
+  (goods vehicles, buses, motor caravans, special purpose vehicles) is `Commercial`; a type outside it has no
+  group (D-113).
 - **Kind and values.** Category. 2 values on S (passenger car/van 3,617,900; goods van, truck or
   utility 902,576), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
 - **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` (labelled "Registered as",
   for visitors too, so it cannot be read as the site's "Vehicle type"; Build offers it as a
-  condition as soon as a cube carries it) on `registrations_surviving` and `registrations_flow`, which both carry it, with its pairs and
+  condition as soon as a cube carries it) on `registrations_surviving`, `registrations_flow` and `registrations_flow_wider`, which all carry it, with its pairs and
   fact-table columns listed in `docs/CUBE_SCHEMA.md`. It holds the types `vehicle_scope.csv` puts in
   scope, so two values today, under that file's labels. It is not live on
   `registrations_cars_long_run`, whose source is a published series with no register field.
@@ -867,8 +871,11 @@ only and published in no form (D-076, D-084).
   months and within 65 vehicles (0.23%) in any one month.
 - **Make.** Three values the whole register lacks, the largest `LANDROVER` beside `LAND ROVER`
   (424 vehicles, 165 of them in 2021). 30 makes of the register's same 70 months are absent, most
-  with one to four vehicles. Over 99.8% of in-scope vehicles map through `brand_registry.csv`.
-- **Model.** (The committed store keeps it only where a dataset or the trade's total counts the vehicle:
+  with one to four vehicles. Over 99.8% of in-scope vehicles map through `brand_registry.csv`. On the types
+  only `registrations_flow_wider` counts (buses, motor caravans, special purpose vehicles), 97.8% of new
+  vehicles of all time map once seven bus, crane and motorhome makes were added (93.6% before; D-113,
+  `docs/METRICS.md`).
+- **Model.** (The committed store keeps it only where a dataset or the wider scope counts the vehicle:
   DATA_SOURCES §D.) NZTA's cleaned name. 2,854 values (18,946 vehicles) are nowhere in the register, because
   some nameplates are split finer; since January 2025 the largest are `COROLLA CROSS` and
   `LANDCRUISER PRADO`. Since January 2025, 98.2% of vehicles carry a make and model spelled the same
@@ -985,6 +992,7 @@ is derived from, read from its `derive` block:
 | `imported_from` | `PREVIOUS_COUNTRY` | none |
 | `segment`, `segment_group` | `VEHICLE_TYPE`, `BODY_TYPE`, `GROSS_VEHICLE_MASS` | `segment_map.csv` |
 | `vehicle_type` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `label` column) |
+| `trade_group` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `trade_group` column; `registrations_flow_wider` only) |
 | `import_status` | `IMPORT_STATUS` | `import_status_map.csv` |
 | `region` | `TLA` | `tla_region.csv` |
 | `vehicle_year_band` | `VEHICLE_YEAR`, against the snapshot year | none |

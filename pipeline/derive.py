@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from . import reference, supplied
+from . import normalise, reference, supplied
 from .contract import MODEL_KEY_SEPARATOR, OTHER, UNDEFINED, UNMAPPED
 from .normalise import SOURCE_SUFFIX, lit
 from .reference import quote
@@ -232,9 +232,13 @@ def derive(con, cfg, dim: dict, index: int, snapshot_year: int) -> Derived:
     raise ValueError(f"dimension {dim_id}: unknown derive kind {kind!r}")
 
 
-def build_dims(con, cfg, derived: list[Derived]) -> None:
-    """One row per in-scope vehicle, with every derived dimension value and unmapped flag."""
+def build_dims(con, cfg, derived: list[Derived], scope: str | None = None) -> None:
+    """One row per vehicle the dataset's scope counts, with every derived dimension value and unmapped flag. `scope` is
+    the flag of `rows` that decides which vehicle types are in (normalise.scope_flag): the default scope when none is given.
+    Every scope flag stays a column, so a dataset's `require` can name its own."""
     p = cfg.pipeline
+    scopes = list(normalise.scope_columns(cfg))
+    scope = scope or scopes[0]
     alt = p["alternative_fuel"]
     joins: list[str] = []
     for d in derived:
@@ -242,7 +246,7 @@ def build_dims(con, cfg, derived: list[Derived]) -> None:
     # The alternative fuel is compared with the motive power NZTA recorded, before any model_registry override.
     primary = alt["primary"] + (SOURCE_SUFFIX if alt["primary"] == p["engine"]["field"] else "")
     columns = [
-        "r.in_scope", "r.fleet_entry", "r.status_label", "r.reg_month", "r.registration_year", "r.vehicle_year",
+        *(f"r.{quote(flag)}" for flag in scopes), "r.fleet_entry", "r.status_label", "r.reg_month", "r.registration_year", "r.vehicle_year",
         "r.has_engine", "r.fc_value", "r.fc_status",
         f"{_field(primary)} AS fuel_primary", f"{_field(alt['alternative'])} AS fuel_alternative",
     ]
@@ -254,7 +258,7 @@ def build_dims(con, cfg, derived: list[Derived]) -> None:
                 f"{_field(d.band_source + '__missing')} AS {quote(f'bm__{d.dim_id}')}",
                 f"{_field(d.band_source + '__sentinel')} AS {quote(f'bs__{d.dim_id}')}",
             ]
-    con.execute(f"CREATE OR REPLACE TABLE dims AS SELECT {', '.join(columns)} FROM rows r {' '.join(joins)} WHERE r.in_scope")
+    con.execute(f"CREATE OR REPLACE TABLE dims AS SELECT {', '.join(columns)} FROM rows r {' '.join(joins)} WHERE r.{quote(scope)}")
 
 
 def undivide_hybrids(con, cfg, derived: list[Derived]) -> list[str]:
