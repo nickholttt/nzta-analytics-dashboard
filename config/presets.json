@@ -378,6 +378,16 @@
           "period": "all"
         },
         {
+          "id": "registrations-completeness-by-type",
+          "question": "How many of the vehicles registered each month are still on the register, by kind of vehicle and whether new or used?",
+          "status": "live",
+          "derived": "completeness",
+          "dataset": "registrations_flow",
+          "dimension": "vehicle_type",
+          "cross": "import_status",
+          "period": "all"
+        },
+        {
           "id": "registrations-powertrain-mix",
           "question": "What share of registrations does each powertrain take?",
           "status": "live",

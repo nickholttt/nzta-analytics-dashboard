@@ -211,7 +211,18 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
         add("blocked", `dimension "${breakdownHere}" is not live in ${id}`);
       }
     }
-    if (numeratorDimension && isBuilt(manifest, ratio.numerator_dataset)) {
+    // Each value crossed with another dimension's: the denominator from its fact table, the numerator from the pair slice.
+    if (preset.cross && preset.dimension && !ratio.numerator_narrowed_to) {
+      const facts = cubeDataset ? manifest.datasets[cubeDataset]?.facts : undefined;
+      const missing = [preset.dimension, preset.cross].filter((d) => !facts?.dimensions.includes(d));
+      if (cubeDataset && missing.length) add("blocked", `the fact table of ${cubeDataset} does not carry ${missing.join(", ")}, so the figures cannot be crossed by ${preset.cross}`);
+      else if (cubeDataset) source = { dataset: cubeDataset, dimension: preset.dimension, facts: { where: {} }, cross: { dimension: preset.cross } };
+      const pair = isBuilt(manifest, ratio.numerator_dataset) ? findPair(manifest.datasets[ratio.numerator_dataset].live_pairs ?? [], preset.dimension, preset.cross) : undefined;
+      if (isBuilt(manifest, ratio.numerator_dataset)) {
+        if (!pair) add("blocked", `dataset "${ratio.numerator_dataset}" needs the ${preset.dimension} x ${preset.cross} pair slice, which this build does not carry`);
+        else companion = { dataset: ratio.numerator_dataset, dimension: preset.dimension, cross: { dimension: preset.cross, pair } };
+      }
+    } else if (numeratorDimension && isBuilt(manifest, ratio.numerator_dataset)) {
       const narrow = ratio.numerator_narrowed_to;
       const pair = narrow ? findPair(manifest.datasets[ratio.numerator_dataset].live_pairs ?? [], numeratorDimension, narrow.dimension) : undefined;
       if (narrow && !pair) {
@@ -222,6 +233,8 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
       }
     }
   }
+
+  if (preset.cross && !(ratio?.numerator_dataset && ratio.denominator_dataset)) add("invalid", `"cross" is for a ratio of two datasets; this preset names no such derived measure`, false);
 
   const status: PresetStatus = invalid.length > 0 ? "invalid" : blocked.length > 0 ? "blocked" : "live";
   const statusDisagreement =

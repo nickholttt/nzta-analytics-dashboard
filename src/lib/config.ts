@@ -41,6 +41,9 @@ export type Preset = {
   // Draw the breakdown frame by frame through time; no renderer does yet, so the resolver blocks it.
   animate_by?: string;
   derived?: string;
+  // A ratio of two datasets drawn for each value of `dimension` crossed with each value of this other dimension. Both datasets
+  // must carry the pair of the two dimensions (the numerator as a pair slice, the denominator in its fact table).
+  cross?: string;
   // A figure and a sentence for one month above the chart (the latest, or the one the visitor chooses).
   answer?: AnswerTemplates;
   series?: unknown[];

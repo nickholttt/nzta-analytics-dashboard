@@ -4,6 +4,7 @@ import { parquetRead, parquetReadObjects } from "hyparquet";
 import type { ColumnData } from "hyparquet";
 import { compressors } from "hyparquet-compressors";
 import { builderSpec } from "./config";
+import { crossPair, crossValue } from "./cross";
 
 const DATA = "/data";
 
@@ -20,7 +21,12 @@ export type ViewSource = {
   dimension: string | null;
   filter?: { pair: string; side: "a" | "b"; dimension: string; values: string[] };
   facts?: { values?: string[]; where: Record<string, string[]> };
+  // Each value of the breakdown crossed with each value of this other dimension, one row for each combination (a value reads
+  // "breakdown value · other value"), from a pair slice when `pair` is given, otherwise from the fact table. Where the
+  // other dimension is not narrowed to some values, the crossed rows add up to the month's whole.
+  cross?: { dimension: string; pair?: { pair: string; side: "a" | "b" } };
 };
+
 
 // What the build says about the fact table (docs/CUBE_SCHEMA.md, Fact table). Absent from a manifest built before it.
 export type FactsManifest = { rows: number; dimensions: string[]; not_live: Record<string, string> };
@@ -292,15 +298,21 @@ async function serviceView(dataset: string, dimension: string | null, values: st
 // left blank (the renderers draw no share over a denominator of 0). A chosen value gets a row of 0 in a month where it
 // has none, so its line runs through that month rather than breaking. With no breakdown, one row per month holds the
 // total.
-export async function factView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>) {
-  if (QUERY_SERVICE) return serviceView(dataset, dimension, values, where);
+//
+// cross: each breakdown value is crossed with this other dimension's, so a row's value is "breakdown value · other value".
+// The query service is not asked for a crossed view: its question has one breakdown, so it is read from the table here.
+export async function factView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>, cross?: string) {
+  if (QUERY_SERVICE && !cross) return serviceView(dataset, dimension, values, where);
   const filters = Object.entries(where).filter(([, kept]) => kept.length > 0);
-  const [months, counts, breakdown, ...filterColumns] = await Promise.all([
+  const [months, counts, firstBreakdown, other, ...filterColumns] = await Promise.all([
     loadFactMonths(dataset),
     loadFactColumn(dataset, "n"),
     dimension ? loadFactColumn(dataset, dimension) : Promise.resolve(null),
+    dimension && cross ? loadFactColumn(dataset, cross) : Promise.resolve(null),
     ...filters.map(([d]) => loadFactColumn(dataset, d)),
   ]);
+  const breakdown: FactColumn | null =
+    firstBreakdown && other ? Array.from({ length: firstBreakdown.length }, (_, i) => crossValue(String(firstBreakdown[i]), String(other[i]))) : firstBreakdown;
   const keep = filters.map(([, kept]) => new Set(kept));
   const chosen = values ? new Set(values) : null;
   const totals = new Map<string, number>();
@@ -336,8 +348,9 @@ export async function factView(dataset: string, dimension: string | null, values
 }
 
 export const loadView = async (source: ViewSource): Promise<SliceRow[]> => {
-  const { dataset, dimension, filter, facts } = source;
-  if (facts) return factView(dataset, dimension, facts.values, facts.where);
+  const { dataset, dimension, filter, facts, cross } = source;
+  if (cross?.pair) return crossPair(await loadPair(dataset, cross.pair.pair), cross.pair.side);
+  if (facts) return factView(dataset, dimension, facts.values, facts.where, cross?.dimension);
   if (!dimension) throw new Error("a view from the cube's slices needs a breakdown");
   if (!filter) return loadSlice(dataset, dimension);
   return narrowPair(await loadPair(dataset, filter.pair), filter.side, filter.values);
