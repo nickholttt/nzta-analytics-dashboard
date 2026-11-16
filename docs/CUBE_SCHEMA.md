@@ -421,8 +421,8 @@ runs `python -m pipeline supply`. Each source names its `kind` in `config/pipeli
 is laid out and how its datasets are built: `counted_rows` (the dashboard) or `series` (a published table of monthly
 series, below).
 
-**The store**, `data/supplied/<id>/` (gitignored for now: whether it may live in the public repository
-is the user's decision):
+**The store**, `data/supplied/<id>/`, committed to the repository (the user, 2026-11-16, D-097) so that GitHub's
+builds read the same two files as a local build, and nothing else is kept there:
 
 - `registrations.parquet`: one row per month and combination of the public fields. Columns, in order:
   `month` (DATE, the first day), the fields named in `supplied.<id>.fields` under their logical names,
