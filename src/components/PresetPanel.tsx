@@ -296,6 +296,8 @@ export default function PresetPanel({
       ? [
           fillNote(internal ? phrases.identification_coverage_internal : phrases.identification_coverage, {
             label: coverage.label,
+            // The name of the value the coverage is for, as config gives it (the hybrid block of config/pipeline.json).
+            value: hybrid.mild_powertrain.toLowerCase(),
             window: coverage.trailing.window_months,
             trailing: pct(coverage.trailing.coverage_stated_confidence ?? 0),
             all_time: pct(coverage.all_time.coverage_stated_confidence ?? 0),

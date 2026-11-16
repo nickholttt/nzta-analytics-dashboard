@@ -45,8 +45,8 @@
       "not_recorded": "The source does not record this breakdown from {from} to {to}. The grey band marks those months: they are left blank, not drawn as zero.",
       "breakdown_starts": "This breakdown is recorded from {from} on, so no earlier month is drawn.",
       "exceeds_total": "In {month} the published figures for this breakdown add up to more than the month's total. They are shown as published, and the total is not adjusted.",
-      "identification_coverage": "{label}: at least {trailing} of mild hybrids registered in the last {window} months are identified (at least {all_time} over all time), so this line may undercount them.",
-      "identification_coverage_internal": "{label}: over the trailing {window} months, {trailing} of mild hybrids are identified at stated confidence and {trailing_high} counting the high-confidence classifications alone (all time {all_time} and {all_time_high}). A lower bound: every unresolved hybrid counts as a missed mild hybrid.",
+      "identification_coverage": "{label}: at least {trailing} of the {value} vehicles registered in the last {window} months are identified (at least {all_time} over all time), so this line may undercount them.",
+      "identification_coverage_internal": "{label}: over the trailing {window} months, {trailing} of the {value} vehicles are identified at stated confidence and {trailing_high} counting the high-confidence classifications alone (all time {all_time} and {all_time_high}). A lower bound: every vehicle not yet resolved counts as one that was missed.",
       "identification_coverage_whole": "These coverage figures are for every vehicle in the dataset, not for the vehicles this chart is narrowed to."
     },
     "$comment": "Chart-level defaults that are not per-preset decisions. mix_smoothing: monthly share on survivors data swings too hard to read, so a mix chart defaults to a trailing share and offers monthly as a toggle. top_n_basis: which window ranks the values that keep their own line; the rest become one remainder series.",

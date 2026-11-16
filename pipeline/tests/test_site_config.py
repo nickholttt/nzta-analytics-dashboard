@@ -163,3 +163,50 @@ def test_the_measure_that_sets_the_year_change_floor_exists():
     measures = {m["id"]: m for m in _json("config/measures.json")["measures"]}
     measure = measures.get(defaults["year_change_measure"])
     assert measure and measure.get("guards", {}).get("min_denominator"), "year_change_measure must name a measure with a min_denominator"
+
+
+# ---- A template names no value of a dimension and no label of a reference file (CLAUDE.md invariant 1 and 8) ----
+#
+# Words about the data are written once, in config, and name no domain value: the value comes in as a placeholder. The lint
+# above checks placeholders, digits and causal words, none of which catches a template that says "hybrids" or a brand. The
+# names come from the reference files and the bands in config/dimensions.json, so a value added there is caught without an edit
+# here. config/narrative/rules.json lists, under ordinary_words, the few names that are also plain words in a sentence.
+
+import csv
+
+# (reference file, columns whose values the site shows a visitor as a value or a label)
+_NAME_COLUMNS = {
+    "brand_registry.csv": ["make_canonical", "parent_group", "owner_country", "heritage_country", "brand_region"],
+    "powertrain_map.csv": ["powertrain", "powertrain_detail", "powertrain_group"],
+    "segment_map.csv": ["segment", "segment_group"],
+    "vehicle_scope.csv": ["label"],
+    "import_status_map.csv": ["import_status"],
+    "tla_region.csv": ["region"],
+    "statsnz_series.csv": ["label"],
+}
+
+
+def _domain_names() -> set[str]:
+    names: set[str] = set()
+    for filename, columns in _NAME_COLUMNS.items():
+        with (ROOT / "data" / "reference" / filename).open(encoding="utf-8", newline="") as handle:
+            for row in csv.DictReader(handle):
+                names.update((row.get(c) or "").strip() for c in columns)
+    for dimension in _json("config/dimensions.json")["dimensions"]:
+        names.update(band["label"] for band in dimension.get("bands", []))
+    ordinary = {w.lower() for w in _json("config/narrative/rules.json").get("ordinary_words", [])}
+    return {n for n in names if len(n) >= 4 and n.lower() not in ordinary}
+
+
+def test_there_are_domain_names_to_check_templates_against():
+    names = _domain_names()
+    assert len(names) > 100 and "Mild hybrid" in names, "the reference names did not load: this test would pass without checking anything"
+
+
+@pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)
+def test_a_template_names_no_dimension_value_and_no_reference_label(kind, where, text):
+    bare = PLACEHOLDER.sub(" ", text)
+    for name in _domain_names():
+        assert not re.search(rf"(?<![\w-]){re.escape(name)}(?:s|es)?(?![\w-])", bare, re.IGNORECASE), (
+            f"{where}: names '{name}', a value or label that lives in config and the reference files; fill it in as a placeholder"
+        )

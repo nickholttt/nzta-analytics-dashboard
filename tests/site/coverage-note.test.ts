@@ -8,7 +8,7 @@ import { fillTemplate } from "../../src/lib/sentences.ts";
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const phrases = JSON.parse(read("config/presets.json")).defaults.phrases;
-const facts = { label: "LABEL", window: 12, trailing: "T%", all_time: "A%", trailing_high: "TH%", all_time_high: "AH%" };
+const facts = { label: "LABEL", value: "VALUE", window: 12, trailing: "T%", all_time: "A%", trailing_high: "TH%", all_time_high: "AH%" };
 
 test("both coverage notes fill completely from the facts the panel supplies", () => {
   for (const key of ["identification_coverage", "identification_coverage_internal"]) {

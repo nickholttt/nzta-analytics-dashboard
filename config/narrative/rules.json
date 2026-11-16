@@ -26,11 +26,13 @@
     "huge",
     "massive"
   ],
+  "ordinary_words": [],
+  "$ordinary_words_comment": "Names from the reference files that are also plain words in a sentence and so may appear in a template. pipeline/tests/test_site_config.py fails a template that names any other value or label. Empty today.",
   "filters": ["pct", "month", "date"],
   "placeholders": {
     "answer": ["month", "count", "prior_month", "prior_count", "change"],
     "words": ["months", "window"],
-    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to", "count", "label", "window", "trailing", "all_time", "trailing_high", "all_time_high"],
+    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to", "count", "label", "value", "window", "trailing", "all_time", "trailing_high", "all_time_high"],
     "notices": ["asked", "shown", "dataset"],
     "unit_note": ["base"],
     "caveat": [],
