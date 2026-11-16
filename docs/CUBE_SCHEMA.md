@@ -549,6 +549,12 @@ figure of its manifest entry (tested). The store keeps the model for the types t
 (`supplied.nzta_dashboard.outside_scope.also_kept_column`), and the build refuses a store whose ledger trimmed the
 model of a (type, status) pair any dataset reading it counts, not only the dataset the trim names.
 
+Measured on the 2026-10 pull (2026-11-17): `registrations_flow_wider` is 1,506,467 vehicles over 70 months (23,064
+more than `registrations_flow`: buses 10,997, motor caravans 11,541 and special purpose vehicles 526). Its slices are
+140,695 bytes and its fact table 136,452 rows and 386,878 bytes, 527,573 bytes in all; without the fact table the
+dataset would add 140,695 bytes. The whole cube's payload goes from 3,753,258 to 4,281,132 bytes (+14.1%) against the
+8,000,000 byte budget. Build can only ask a dataset that has a fact table, so it carries one.
+
 ### A source of kind `series`
 
 Stats NZ's long-run table of motor vehicles registered by type is the second supplied source (`statsnz_tpt`,

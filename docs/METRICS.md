@@ -259,6 +259,29 @@ with 71 buses, 129 motor caravans and 5 special purpose vehicles, 3,285. We
 cannot split light from heavy commercial on this dataset (the export has no
 gross vehicle mass), nor SUVs from cars.
 
+**The same figures from the built dataset (D-113).** The "plus three types" column above was computed from the
+dashboard counts. The table below is read from the built `registrations_flow_wider` (its fact table, `import_status`
+kept to `NZ New`, summed by month), on the 2026-10 snapshot's build. Every figure equals the column above to the vehicle.
+
+| Period | Published | The built dataset, new vehicles | Difference |
+|---|---|---|---|
+| March 2021 | 15,498 | 15,301 | -197 (-1.3%) |
+| August 2022 | 14,690 | 14,568 | -122 (-0.8%) |
+| June 2023 | 23,560 | 23,399 | -161 (-0.7%) |
+| June 2024 | 9,423 | 9,379 | -44 (-0.5%) |
+| October 2024 | 12,568 | 12,515 | -53 (-0.4%) |
+| October 2025 | 14,218 | 14,191 | -27 (-0.2%) |
+| March 2026 | 14,908 | 14,872 | -36 (-0.2%) |
+| October 2026 | 15,118 | 15,109 | -9 (-0.06%) |
+| 2021 | 165,287 | 163,796 | -1,491 (-0.9%) |
+| 2024 | 128,776 | 128,392 | -384 (-0.3%) |
+| 2025 | 137,853 | 137,604 | -249 (-0.2%) |
+
+October 2026, new vehicles by `trade_group`: Passenger 11,824 against the MIA's light passenger 11,833 (-9);
+Commercial 3,285 against its light and heavy commercial 3,285 (2,805 plus 480). The dataset cannot split light
+from heavy commercial. Its used imports in October 2026 are 8,726 of every counted type, 8,285 of them
+passenger and 441 commercial; the 8,285 is the figure AutoTalk published for passenger cars and vans.
+
 **Used imports** (passenger cars and vans; published by AutoTalk from NZTA's
 data): 2021, 121,884 against our 119,996 (-1.5%); 2022, 110,757 against
 109,606 (-1.0%); October 2026, 8,285 against 8,285.
