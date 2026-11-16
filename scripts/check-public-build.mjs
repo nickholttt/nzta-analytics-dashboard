@@ -1,8 +1,8 @@
 // Checks the output of the public build (INTERNAL_PAGES=false npx astro build) after the fact, from dist/ alone:
 //   node scripts/check-public-build.mjs [dist]
-// It fails, naming the file, when the output holds an internal page, a script no page reaches, or a page that names a
-// script the output does not hold. Known issue 7 was the second: the status page's script shipped, unlinked, in a build
-// without the status page. Exit 0 when the output is clean.
+// It fails, naming the file, when the output holds an internal page, a script no page reaches, a page that names a
+// script the output does not hold, or a script that names a chunk (in any quote form, or in Vite's dependency map) the output does not hold.
+// Known issue 7 was the second: the status page's script shipped, unlinked, in a build without the status page. Exit 0 when the output is clean.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 
@@ -29,8 +29,20 @@ for (const file of readdirSync(root, { recursive: true, encoding: "utf8" }).filt
 for (const file of readdirSync(join(root, "_astro")).filter((f) => f.endsWith(".js")))
   if (!reached.has(`/_astro/${file}`)) problems.push(`_astro/${file} is not reached from any page`);
 
+// An independent guard (the review of #75): the pattern above, like the one that prunes the build (astro.config.mjs), reads import paths in the
+// forms it was written for, and a form it does not read is a script both miss (Vite writes a lazy import with backquotes, and lists a
+// chunk's own dependencies in a map of plain strings). So this reads nothing of the syntax: every file name of the form Name.Hash.js that
+// appears anywhere in a script the pages reach, in whatever quotes or none, must exist in the output.
+const named = /[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{6,}\.js\b/g;
+const held = new Set(readdirSync(join(root, "_astro")).filter((f) => f.endsWith(".js")));
+for (const url of [...reached]) {
+  for (const [name] of readFileSync(join(root, url), "utf8").matchAll(named)) {
+    if (!held.has(name)) problems.push(`${url} names ${name}, which is not in the output`);
+  }
+}
+
 if (problems.length) {
-  console.error(problems.map((p) => `- ${p}`).join("\n"));
+  console.error([...new Set(problems)].map((p) => `- ${p}`).join("\n"));
   process.exit(1);
 }
 console.log(`${root}: no internal page, and every script is reached from a page (${reached.size} scripts).`);
