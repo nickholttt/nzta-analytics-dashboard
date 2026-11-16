@@ -4,7 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { rankByCount } from "../../src/lib/ranking.ts";
+import { nameOrder, rankByCount } from "../../src/lib/ranking.ts";
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const entry = (name: string, n: number) => ({ value: name, name, n });
@@ -66,6 +66,21 @@ test("the audit's case: four brands on 3 vehicles behind 40 others all stand at 
   // read #42; the rule gives all four the rank of the first, #41.
   const arrivedFourth = [...above, entry("CITROEN", 3), entry("LOTUS", 3), entry("MAZDA", 3), entry("DONGFENG", 3)].map((e, i) => [e.value, i + 1] as const);
   assert.equal(new Map(arrivedFourth).get("DONGFENG"), 44);
+});
+
+test("nameOrder is the order of a tie in any list sorted by size: alphabetical by the name, the same whatever the input order", () => {
+  const names = ["TOYOTA RAV4", "Petrol", "PHEV", "BEV", "Other (beyond the cap)"];
+  assert.deepEqual([...names].sort(nameOrder), [...names].reverse().sort(nameOrder));
+  assert.deepEqual(["PHEV", "Petrol"].sort(nameOrder), ["Petrol", "PHEV"]);
+});
+
+test("the lines, the key, the hover order, the colours and the map order a tie by the name shown", () => {
+  const mix = read("src/components/MixChart.tsx");
+  assert.match(mix, /name: label\(value\), n \}\)\)\)\.map\(\(e\) => e\.value\)/);
+  for (const part of [/nameOrder\(label\(a\), label\(b\)\)\);\n? *const colourRank|nameOrder\(label\(a\), label\(b\)\)\)\);/, /nameOrder\(label\(a\.series\), label\(b\.series\)\)/]) assert.match(mix, part);
+  assert.match(read("src/components/TrendChart.tsx"), /nameOrder\(label\(a\.series\), label\(b\.series\)\)/);
+  assert.match(read("src/components/GeoChart.tsx"), /name: label\(a\.value\)/);
+  assert.match(read("src/components/TrendChart.tsx"), /derivedSeries\(preset\.derived, rows, label\)/);
 });
 
 test("the league and the other charts that order by size use the rule, not a bare sort on the count", () => {

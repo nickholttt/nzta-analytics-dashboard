@@ -6,6 +6,9 @@ export type Countable = { value: string; name: string; n: number };
 
 const collator = new Intl.Collator("en");
 
+// Two names in the order a reader expects: the order for a tie in any list sorted by size, whether or not it shows a rank.
+export const nameOrder = (a: string, b: string): number => collator.compare(a, b) || (a < b ? -1 : a > b ? 1 : 0);
+
 // Largest count first; equal counts alphabetically by the name shown, and by the raw value if two values show the same name,
 // so the order is the same whatever order the entries came in.
 export function byCountThenName(a: Countable, b: Countable): number {

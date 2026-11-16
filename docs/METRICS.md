@@ -288,8 +288,10 @@ match, beyond the cap, and any other the cube reserves). A value with no vehicle
   table says how many more entries share the last rank shown, when there are any.
 - **Top-5 share** is the combined count of the five largest values over the month's denominator (the narrowed set's, under a condition). Which of several tied
   values is the fifth cannot change that sum; it can change which names the readout lists, and those follow the same order.
-- Where the site orders a chart's lines or its map's table by size, equal counts are ordered alphabetically by the value's
-  key, with no rank shown.
+- Where the site orders something by size without showing a rank (a chart's lines and their colours, the key under it, the
+  order of labels at the end of the lines, the map's table, the names the top-5 readout lists), equal counts are ordered
+  alphabetically by the name shown, with the raw key last. These are orders, not ranks: no rank is shown and a tie is not
+  marked. On a chart that keeps only its largest values, a tie at the cut takes the alphabetically first value.
 
 ### Two suppression guards
 

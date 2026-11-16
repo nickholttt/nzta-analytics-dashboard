@@ -14,6 +14,7 @@ import type { Preset } from "../lib/config";
 import { answerLine, fillTemplate, hoverLine, monthRuns, monthsOf, sayBadMonth, sayExceedsTotal, sayNotRecorded, sayOffChart, sayStarts, unrecordedMonths } from "../lib/sentences";
 import { NOT_RECORDED_TOKEN, percent } from "../lib/sentences";
 import type { Manifest, SliceRow } from "../lib/data";
+import { nameOrder } from "../lib/ranking";
 import { derivedSeries, isRatioMeasure, ratioSeries } from "../lib/derived";
 import { isolatedMonths, lineMonths } from "../lib/ratio";
 import type { RatioPoint, RatioSeries } from "../lib/derived";
@@ -74,6 +75,9 @@ type Point = {
 
 // The values a count draws a line for: the ones a question names, or, for a count by a low-cardinality breakdown that
 // names none, every value the slice records (not the token for what the source does not record).
+// The label of a chart that was given none: one function, so a chart that depends on it is not redrawn for want of a stable one.
+const asIs = (v: string) => v;
+
 function lineValues(preset: Preset, rows: SliceRow[]): string[] | undefined {
   if (preset.derived) return undefined;
   if (preset.values?.length) return preset.values;
@@ -91,7 +95,7 @@ export function TrendChart(props: Props) {
 
 // One line per value of the dimension and one for the total, each a share of the denominator dataset's count for the same
 // month. The axis starts where the data does, and says so, since a share that stays near 100% would otherwise draw flat.
-function RatioTrend({ preset, rows, companion, manifest, lead = false, label = (v) => v }: Props & { companion: SliceRow[] }) {
+function RatioTrend({ preset, rows, companion, manifest, lead = false, label = asIs }: Props & { companion: SliceRow[] }) {
   const derived = findDerived(preset.derived);
   const guards = derived?.guards ?? {};
   const totalLabel = derived?.total_label ?? "All";
@@ -195,7 +199,7 @@ type ValuePoint = { month: string; date: Date; series: string; y?: number };
 // One count line per chosen value. Colours go by vehicles in the last 12 months, largest first, the rule the mix chart
 // uses for its first slots, so a value shown as a share and as a count wears the same colour in both. A count carries
 // no share guard, so nothing is greyed.
-function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, values }: Props & { values: string[] }) {
+function ValuesTrend({ preset, rows, manifest, lead = false, label = asIs, values }: Props & { values: string[] }) {
   const rolling = preset.measure === "rolling_12m";
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
@@ -240,8 +244,8 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   }, [rows, preset, manifest, values, rolling]);
 
   const colour = useCallback(
-    (s: string) => seriesColour([...model.totals].sort((a, b) => (b.n ?? -1) - (a.n ?? -1)).findIndex((t) => t.series === s)),
-    [model.totals],
+    (s: string) => seriesColour([...model.totals].sort((a, b) => (b.n ?? -1) - (a.n ?? -1) || nameOrder(label(a.series), label(b.series))).findIndex((t) => t.series === s)),
+    [model.totals, label],
   );
 
   const render = useCallback(
@@ -335,7 +339,7 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = (v) => v, v
   );
 }
 
-function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false, label = (v) => v, month, onMonth, after }: Props) {
+function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false, label = asIs, month, onMonth, after }: Props) {
   const derived = preset.derived ? findDerived(preset.derived) : undefined;
   const share = derived?.unit === PERCENT;
   const words = datasetWords(preset.dataset);
@@ -355,7 +359,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
     const byMonth = new Map<string, number>();
     const detail = new Map<string, string[]>();
     const counts = new Map<string, number>();
-    const series = preset.derived ? derivedSeries(preset.derived, rows) : undefined;
+    const series = preset.derived ? derivedSeries(preset.derived, rows, label) : undefined;
     if (series) {
       for (const p of series) {
         if (p.value !== undefined) byMonth.set(p.month, p.value);

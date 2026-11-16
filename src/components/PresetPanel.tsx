@@ -20,6 +20,19 @@ const BASIS_NOTE = "Registrations recorded by NZTA. Not the same as vehicle sale
 
 // A value's own words where it is one of the reserved tokens, otherwise the value as it is. Asked with hasOwn, since a
 // value can be any text and a plain lookup would answer a built-in for one such as "constructor".
+// A value's label as a function that keeps its identity from one render to the next, so a chart that orders ties by the name shown
+// does not recompute whenever the panel does. One per dimension and relabelling.
+const labelFunctions = new Map<string, (v: string) => string>();
+const labelFor = (dimensionId: string | undefined, relabelAs: string | undefined) => {
+  const key = `${dimensionId ?? ""}|${relabelAs ?? ""}`;
+  let fn = labelFunctions.get(key);
+  if (!fn) {
+    fn = (v: string) => (relabelAs !== undefined && v === hybrid.mild_powertrain ? relabelAs : valueWords(dimensionId, reservedLabel(v)));
+    labelFunctions.set(key, fn);
+  }
+  return fn;
+};
+
 export const reservedLabel = (v: string) => (Object.hasOwn(RESERVED_LABELS, v) ? RESERVED_LABELS[v] : v);
 
 export const RESERVED_LABELS: Record<string, string> = {
@@ -231,7 +244,7 @@ export default function PresetPanel({
   const dsManifest = served ? manifest.datasets[served] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
-  const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : valueWords(dimension?.id, reservedLabel(v)));
+  const label = labelFor(dimension?.id, relabels ? (coverage as { label: string }).label : undefined);
   const guards = guardsFor(effectivePreset.measure, effectivePreset.derived);
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;

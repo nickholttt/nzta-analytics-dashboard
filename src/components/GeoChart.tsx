@@ -56,11 +56,11 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
     const denominator = [...denominators.values()].reduce((a, b) => a + b, 0);
     const regions: Region[] = [...totals.entries()]
       .map(([value, n]) => ({ value, n, share: denominator > 0 ? n / denominator : 0 }))
-      .sort((a, b) => byCountThenName({ ...a, name: a.value }, { ...b, name: b.value }));
+      .sort((a, b) => byCountThenName({ ...a, name: label(a.value) }, { ...b, name: label(b.value) }));
     const byValue = new Map(regions.map((r) => [r.value, r]));
     const max = Math.max(0.01, ...regions.map((r) => r.share));
     return { win, regions, byValue, known, denominator, max, suppressed: denominator < minDenominator };
-  }, [rows, preset, manifest, minDenominator]);
+  }, [rows, preset, manifest, minDenominator, label]);
 
   const render = useCallback(
     (width: number) => {

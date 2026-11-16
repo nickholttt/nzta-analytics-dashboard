@@ -23,7 +23,7 @@ export type DerivedPoint = { month: string; value?: number; n: number; denominat
 // month. Membership is recomputed every month, which is the whole point — a fixed five would track
 // the fortunes of those five rather than how concentrated the market is. Reserved tokens never take
 // a place: "no reference match" is not a brand, and on make it is a large share of the early months.
-export function topNShare(rows: SliceRow[], topN: number): DerivedPoint[] {
+export function topNShare(rows: SliceRow[], topN: number, nameOf: (value: string) => string = (v) => v): DerivedPoint[] {
   const byMonth = new Map<string, { denominator: number; values: { value: string; n: number }[] }>();
   for (const r of rows) {
     let month = byMonth.get(r.month);
@@ -35,7 +35,7 @@ export function topNShare(rows: SliceRow[], topN: number): DerivedPoint[] {
     .map(([month, { denominator, values }]) => {
       // Equal counts are ordered by the value (lib/ranking.ts), so the five named never depend on the order of the rows. The
       // five's combined count is the same whichever of several tied values is named.
-      const top = [...values].sort((a, b) => byCountThenName({ ...a, name: a.value }, { ...b, name: b.value })).slice(0, topN);
+      const top = [...values].sort((a, b) => byCountThenName({ ...a, name: nameOf(a.value) }, { ...b, name: nameOf(b.value) })).slice(0, topN);
       const n = top.reduce((sum, v) => sum + v.n, 0);
       return {
         month,
@@ -47,11 +47,11 @@ export function topNShare(rows: SliceRow[], topN: number): DerivedPoint[] {
     });
 }
 
-export function derivedSeries(derivedId: string, rows: SliceRow[]): DerivedPoint[] | undefined {
+export function derivedSeries(derivedId: string, rows: SliceRow[], nameOf?: (value: string) => string): DerivedPoint[] | undefined {
   if (derivedId !== TOP_N_SHARE) return undefined;
   const topN = findDerived(derivedId)?.top_n;
   if (!topN) throw new Error(`derived measure "${derivedId}" has no top_n in config/measures.json`);
-  return topNShare(rows, topN);
+  return topNShare(rows, topN, nameOf);
 }
 
 // A ratio of two datasets, docs/METRICS.md (completeness; cars still registered against a published count): one dataset's
