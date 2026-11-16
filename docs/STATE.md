@@ -58,8 +58,7 @@ Four branches, each in its own worktree (`git worktree list`), started 2026-11-1
   `astro.config.mjs`, the layout, fonts, `src/lib/data.ts`.
 
 - **This folder's `public/data`** (gitignored) is the dry-run build of #58: three datasets.
-  `data/supplied/` (gitignored) holds both stores, `nzta_dashboard` and `statsnz_tpt`. Also
-  local: the data map's field profile and the packages' plans, under `data/staging/`.
+  Also local: both stores in `data/supplied/`; the data map's field profile in `data/staging/`.
 
 ## Raw files on this computer (gitignored)
 
@@ -124,10 +123,9 @@ two months' archive files needs November's file (December).
 
 ## How to run
 
-`AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). The pipeline
-tests pass in `Checks` in about two minutes (2026-11-16, #60). On `main` as of #59, in a fresh
-worktree: `tsc --noEmit` exit 0 once `astro build` has run (it writes the types `tsc` needs),
-`astro build` 10 pages, the site's 11 tests (`node --test "tests/site/*.test.ts"`).
+`AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
+the pipeline tests in about two minutes (#60). In a fresh worktree on 2026-11-16: `astro build`
+10 pages, then `tsc --noEmit` exit 0 (the build writes the types it needs), the site's 11 tests.
 
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and
