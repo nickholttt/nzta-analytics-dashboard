@@ -46,6 +46,7 @@
     ],
     "not_live": {
      "imported_from": "does not apply to this dataset",
+     "trade_group": "does not apply to this dataset",
      "car_origin": "does not apply to this dataset",
      "car_engine_band": "does not apply to this dataset"
     },
@@ -229,6 +230,10 @@
     "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register.",
     "not_built": "the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`"
    },
+   "registrations_flow_wider": {
+    "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register, counting buses, motor caravans and special purpose vehicles as well as the vehicle types registrations_flow counts.",
+    "not_built": "the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`"
+   },
    "registrations_cars_long_run": {
     "definition": "Cars and station wagons registered in New Zealand for the first time in month M, new and ex-overseas, as Stats NZ publishes them from NZTA's records.",
     "not_built": "the supplied store for statsnz_tpt is absent (data/supplied/statsnz_tpt); add a file with `python -m pipeline supply statsnz_tpt <csv>`"
@@ -292,6 +297,7 @@
    "registrations_surviving: 1 rows are dated after the snapshot month and were excluded",
    "registrations_surviving: mild hybrid identification coverage over the trailing 12 months is 25.0% counting high-confidence classifications only, below 70%, so the mild hybrid split is not published: its mild hybrids are counted as Hybrid",
    "registrations_flow was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
+   "registrations_flow_wider was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
    "registrations_cars_long_run was not built: the supplied store for statsnz_tpt is absent (data/supplied/statsnz_tpt); add a file with `python -m pipeline supply statsnz_tpt <csv>`",
    "no last good state: first run, so previous-run comparisons were skipped"
   ]

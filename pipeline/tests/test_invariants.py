@@ -20,7 +20,7 @@ VOCABULARY_COLUMNS = {
     "segment_map.csv": ["vehicle_type", "body_type", "segment", "segment_group"],
     "tla_region.csv": ["tla", "region"],
     "import_status_map.csv": ["nzta_import_status", "import_status"],
-    "vehicle_scope.csv": ["vehicle_type", "label", "scope_group"],
+    "vehicle_scope.csv": ["vehicle_type", "label", "scope_group", "trade_group"],
     "model_registry.csv": ["model_canonical", "aliases", "override_value", "match_motive_power", "match_import_status", "match_vehicle_type"],
     "mild_hybrid_models.csv": ["make", "models", "override_value", "match_motive_power", "match_import_status"],
     "events.csv": ["id", "title", "scope_values"],

@@ -179,7 +179,7 @@ _NAME_COLUMNS = {
     "brand_registry.csv": ["make_canonical", "parent_group", "owner_country", "heritage_country", "brand_region"],
     "powertrain_map.csv": ["powertrain", "powertrain_detail", "powertrain_group"],
     "segment_map.csv": ["segment", "segment_group"],
-    "vehicle_scope.csv": ["label"],
+    "vehicle_scope.csv": ["label", "trade_group"],
     "import_status_map.csv": ["import_status"],
     "tla_region.csv": ["region"],
     "statsnz_series.csv": ["label"],

@@ -157,3 +157,22 @@ def test_trade_scope_is_a_true_or_false_for_every_type_and_never_narrower_than_t
     assert {r["trade_scope"] for r in rows} <= {true, "false"}
     assert all(r["trade_scope"] == true for r in rows if r[vehicle["in_scope"]] == true)
     assert any(r["trade_scope"] == true and r[vehicle["in_scope"]] != true for r in rows), "trade_scope adds nothing to the default scope"
+
+
+def test_trade_group_sorts_every_wider_scope_type_into_one_of_two_groups_and_leaves_the_rest_blank():
+    # The trade's two groups (D-113): the passenger type on its own, every other type of the wider scope together.
+    # No group is named here: the file's own values are read, so a rename is a one-column edit.
+    cfg = make_cfg({})
+    vehicle, true = cfg.pipeline["scope"]["vehicle"], cfg.pipeline["boolean_true"]
+    rows = scope_rows(cfg)
+    assert all("trade_group" in r for r in rows)
+    counted = [r for r in rows if r["trade_scope"] == true]
+    assert all(r["trade_group"].strip() == r["trade_group"] and r["trade_group"] for r in counted), "a counted type with no group"
+    assert all(r["trade_group"] == "" for r in rows if r["trade_scope"] != true), "a type outside the wider scope has a group"
+    by_group = Counter(r["trade_group"] for r in counted)
+    assert len(by_group) == 2, by_group
+    assert sorted(by_group.values())[0] == 1, "one group is the passenger type alone"
+    # The default scope holds the passenger type and the goods type: they must land in different groups.
+    default = {r["trade_group"] for r in rows if r[vehicle["in_scope"]] == true}
+    assert len(default) == 2
+    assert not {*by_group} & {UNDEFINED, UNMAPPED, OTHER}

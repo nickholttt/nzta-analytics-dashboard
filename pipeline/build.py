@@ -135,7 +135,7 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
             exclude(dim["id"], f"reference files missing: {missing}")
         else:
             derived.append(derive.derive(con, cfg, dim, index, snapshot_month.year))
-    derive.build_dims(con, cfg, derived)
+    derive.build_dims(con, cfg, derived, normalise.scope_flag(cfg, dataset, require))
     # Judged on this dataset's own hybrids, before any slice is written: a dataset that identifies too few of its mild
     # hybrids shows its hybrids undivided, whatever another dataset publishes.
     hybrid, high_counts = metrics.hybrid_coverage(con, cfg, ds, window_start, snapshot_month, window)

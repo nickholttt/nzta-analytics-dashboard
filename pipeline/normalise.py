@@ -75,16 +75,33 @@ def build_src(con, cfg, types: dict[str, str], schema_fields: set[str]) -> None:
     con.execute(f"CREATE OR REPLACE TABLE src AS SELECT {', '.join(columns)} FROM raw")
 
 
+def scope_columns(cfg) -> dict[str, str]:
+    """The flags of `rows` that say a vehicle type is counted, each with the column of the vehicle scope file it reads: the
+    default scope first, then every wider one config lists (`scope.vehicle.also`)."""
+    vehicle = cfg.pipeline["scope"]["vehicle"]
+    return {"in_scope": vehicle["in_scope"], **vehicle.get("also", {})}
+
+
+def scope_flag(cfg, dataset: str, require: list[str]) -> str:
+    """The one flag in a dataset's `require` that decides which vehicle types it counts. Which `rows` the dataset's table
+    `dims` holds follows from it, so a dataset naming none, or two, has no scope to build."""
+    named = [f for f in require if f in scope_columns(cfg)]
+    if len(named) != 1:
+        raise GuardrailError("build", f"{dataset}: require must name exactly one of the scope flags {sorted(scope_columns(cfg))} "
+                                      f"to say which vehicle types it counts; it names {named or 'none'}")
+    return named[0]
+
+
 def scope_flags(cfg) -> dict:
     """The flags of `rows` that come from the two scope files, each as a function of a vehicle-type row and an
     import-status row of those files. `build_rows` sets the same flags in SQL; a test holds the two together."""
     p = cfg.pipeline
     true = p["boolean_true"]
-    vehicle, status = p["scope"]["vehicle"], p["scope"]["status"]
-    return {
-        "in_scope": lambda v, s: v[vehicle["in_scope"]] == true and s[status["in_scope"]] == true,
-        "fleet_entry": lambda v, s: s[status["fleet_entry"]] == true,
-    }
+    status = p["scope"]["status"]
+    flags = {name: (lambda v, s, column=column: v[column] == true and s[status["in_scope"]] == true)
+             for name, column in scope_columns(cfg).items()}
+    flags["fleet_entry"] = lambda v, s: s[status["fleet_entry"]] == true
+    return flags
 
 
 def build_rows(con, cfg) -> None:
@@ -95,8 +112,9 @@ def build_rows(con, cfg) -> None:
     # Both are joined to every vehicle below: a key listed twice would count each of its vehicles twice.
     reference.require_unique([r[vehicle["key"]] for r in vehicle_rows], vehicle["file"])
     reference.require_unique([r[status["key"]] for r in status_rows], status["file"])
-    reference.register(con, "ref_vehicle_scope", ["key", "in_scope"],
-                       [(r[vehicle["key"]], r[vehicle["in_scope"]]) for r in vehicle_rows])
+    scopes = scope_columns(cfg)
+    reference.register(con, "ref_vehicle_scope", ["key", *scopes],
+                       [(r[vehicle["key"]], *(r[column] for column in scopes.values())) for r in vehicle_rows])
     reference.register(con, "ref_status", ["key", "in_scope", "fleet_entry", "label"],
                        [(r[status["key"]], r[status["in_scope"]], r[status["fleet_entry"]], r[status["label"]])
                         for r in status_rows])
@@ -148,13 +166,16 @@ def build_rows(con, cfg) -> None:
     model_final = f"coalesce(pr.model_canonical, ma.model_canonical, {model})"
     source_hybrid = ", ".join(lit(k) for k in sorted(hybrids["source_hybrid"])) or "NULL"
     resolved = f"coalesce(hy.target, s.{motive})"
+    # One flag per scope config lists, each in a column of its own name: the vehicle type is counted by that scope and the
+    # import status is in scope.
+    scope_sql = " ".join(f"(vs.{quote(name)} = {true} AND st.in_scope = {true}) AS {quote(name)}," for name in scopes)
     con.execute(f"""
         CREATE OR REPLACE TABLE rows AS
         SELECT s.* REPLACE ({resolved} AS {motive}),
             s.{motive} AS {quote(engine['field'] + SOURCE_SUFFIX)},
             hy.hybrid_type AS hybrid_class,
             hy.confidence AS hybrid_confidence,
-            (vs.in_scope = {true} AND st.in_scope = {true}) AS in_scope,
+            {scope_sql}
             (st.fleet_entry = {true}) AS fleet_entry,
             st.label AS status_label,
             CASE WHEN s.registration_year IS NOT NULL AND s.registration_month BETWEEN 1 AND 12

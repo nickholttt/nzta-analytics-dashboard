@@ -217,6 +217,43 @@ def outside_scope(cfg, source: dict) -> dict | None:
             "known": {vehicle["field"]: sorted(vehicles), status["field"]: sorted(statuses)}, "counted": counted}
 
 
+def counted_pairs(cfg, dataset: str) -> set[tuple[str, str]]:
+    """The (vehicle type, import status) pairs a dataset counts, from its `require` flags and the two scope files."""
+    p = cfg.pipeline
+    vehicle, status = p["scope"]["vehicle"], p["scope"]["status"]
+    flags, require = normalise.scope_flags(cfg), p["datasets"][dataset]["require"]
+    unknown = [f for f in require if f not in flags]
+    if unknown:
+        raise abort(f"dataset {dataset} requires {unknown}, which do not come from the scope files, so the rows it counts "
+                    "cannot be told from the source's values alone")
+    vehicles = {r[vehicle["key"]]: r for r in reference.read(cfg.reference(vehicle["file"]))}
+    statuses = {r[status["key"]]: r for r in reference.read(cfg.reference(status["file"]))}
+    return {(vk, sk) for vk, vr in vehicles.items() for sk, sr in statuses.items() if all(flags[f](vr, sr) for f in require)}
+
+
+def readers_of(cfg, source: dict) -> list[str]:
+    """The datasets that read this supplied source."""
+    return [d for d, c in cfg.pipeline["datasets"].items() if "source" in c and cfg.supplied(c["source"]) is source]
+
+
+def beyond_the_trim(cfg, source: dict, recorded: dict | None, again: str) -> list[str]:
+    """A refusal for each dataset, other than the one the trim was written for, that counts a (vehicle type, import status)
+    pair whose model the store did not keep. Its model dimension would be not recorded for those vehicles, with no
+    warning, so the store is refused as it is for the dataset the trim names."""
+    if not recorded:
+        return []
+    kept = {tuple(pair) for pair in recorded["counted"]}
+    out = []
+    for dataset in readers_of(cfg, source):
+        if dataset == recorded["dataset"]:
+            continue
+        missing = sorted(counted_pairs(cfg, dataset) - kept)
+        if missing:
+            out.append(f"the store did not keep the model of {len(missing)} (vehicle type, import status) pairs that "
+                       f"{dataset} counts ({pairs_text(missing)}). {again}")
+    return out
+
+
 class ScopeCheck(NamedTuple):
     """What differs between the scope a store was trimmed to and the scope config and the scope files give today.
     `refusals` make the store wrong (a model it blanked would now be read); `warnings` leave it correct but larger than
@@ -243,15 +280,17 @@ def scope_problems(cfg, source: dict, ledger: dict) -> ScopeCheck:
     the store was written, or a field added to the rule leaves the store holding more than it needs: a warning. A ledger
     that does not say what the store was trimmed to, or a rule config no longer has, cannot be judged: a refusal."""
     wanted, recorded = outside_scope(cfg, source), ledger.get("outside_scope")
-    if wanted == recorded:
-        return ScopeCheck([], [])
     again = ("Supply the whole history again from the raw exports: remove both store files and run `supply` "
              "(docs/playbooks/supply-dashboard-month.md, Replacing the whole history)")
+    # Judged first and whether or not the trim changed: a second dataset can count what the first never did.
+    beyond = beyond_the_trim(cfg, source, recorded, again)
+    if wanted == recorded:
+        return ScopeCheck(beyond, [])
     if wanted is None:
         return ScopeCheck(["the ledger records a scope the store was trimmed to, but config/pipeline.json has no outside_scope rule now"], [])
     if recorded is None:
         return ScopeCheck(["the ledger does not say what the store was trimmed to, but config/pipeline.json has an outside_scope rule"], [])
-    refusals, warnings = [], []
+    refusals, warnings = list(beyond), []
     blanked_then = blanked_pairs(recorded)
     now_read = sorted(blanked_then & {(v, s) for v, s in wanted["counted"]})
     if now_read:

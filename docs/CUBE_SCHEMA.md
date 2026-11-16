@@ -43,7 +43,9 @@ Build step 1 emits `manifest.json`, `cube/registrations_surviving/`,
 
 When the supplied store for `registrations_flow` is present (*Supplied sources*), the build also emits
 `cube/registrations_flow/`, `facts/registrations_flow/` and its block in `manifest.json`; it configures
-no pairs. When the store for `registrations_cars_long_run` is present, the build emits
+no pairs. With the same store it emits `cube/registrations_flow_wider/`, `facts/registrations_flow_wider/` and
+its block: the same dataset on a wider scope of vehicle types (D-113, *The wider scope*, below). When the store
+for `registrations_cars_long_run` is present, the build emits
 `cube/registrations_cars_long_run/` (one slice for each of its two dimensions) and its block in
 `manifest.json`, and no pair slices and no fact table (*A source of kind `series`*).
 
@@ -235,7 +237,8 @@ summed over all of them it gives the dataset's month totals, the slices'
 the browser: `n` over the sum of `n` for the same month and filter.
 
 `vehicle_type` (NZTA's own vehicle type, under the labels in
-`vehicle_scope.csv`) is a column of both register-shaped datasets' tables.
+`vehicle_scope.csv`) is a column of the register-shaped datasets' tables (`trade_group`, the passenger or commercial
+group, is a column of `registrations_flow_wider`'s alone).
 `registrations_flow` has no `segment`, so the column is the only way to ask
 true registrations by vehicle type together with a brand or a powertrain. On
 `registrations_surviving` it adds no rows: on the 2026-10 pull the table is
@@ -533,6 +536,25 @@ dimension ids. For the dashboard these are the dimensions that need the gross ve
 size and the district. Fuel consumption is all missing: `fc_n` is 0 and `fc_sum` is null in every row.
 `vehicle_status` is kept in the store only; it is not a dimension.
 
+**The wider scope** (`registrations_flow_wider`, D-113). A second dataset reads the same store through the same
+code and differs from `registrations_flow` in one thing: which vehicle types it counts. `scope.vehicle.also` in
+`config/pipeline.json` names each wider scope as a flag of `rows` (here `in_trade_scope`) and the column of
+`vehicle_scope.csv` it reads (`trade_scope`); a dataset's `require` names exactly one scope flag, which decides the
+rows of its table `dims`, its hybrid coverage and its guards (a `require` naming none or two aborts the build).
+`registrations_flow_wider` takes `require` `in_trade_scope` and `fleet_entry`. Its facts are `registrations_flow`'s
+and `trade_group`, the dimension that sorts each counted type into the groups `vehicle_scope.csv`'s `trade_group`
+column gives (a lookup, as `vehicle_type` is; it applies to this dataset only, so no file of another dataset
+changes). No pairs, as for `registrations_flow`. Adding it changes no byte of any other dataset's files and no
+figure of its manifest entry (tested). The store keeps the model for the types the wider scope counts
+(`supplied.nzta_dashboard.outside_scope.also_kept_column`), and the build refuses a store whose ledger trimmed the
+model of a (type, status) pair any dataset reading it counts, not only the dataset the trim names.
+
+Measured on the 2026-10 pull (2026-11-17): `registrations_flow_wider` is 1,506,467 vehicles over 70 months (23,064
+more than `registrations_flow`: buses 10,997, motor caravans 11,541 and special purpose vehicles 526). Its slices are
+140,695 bytes and its fact table 136,452 rows and 386,878 bytes, 527,573 bytes in all; without the fact table the
+dataset would add 140,695 bytes. The whole cube's payload goes from 3,753,258 to 4,281,132 bytes (+14.1%) against the
+8,000,000 byte budget. Build can only ask a dataset that has a fact table, so it carries one.
+
 ### A source of kind `series`
 
 Stats NZ's long-run table of motor vehicles registered by type is the second supplied source (`statsnz_tpt`,
@@ -716,6 +738,9 @@ Supplied sources:
   from the last good build's by more than `supplied.<id>.max_month_change` (2%), and the ledger has no
   replacement of that month that the last good build explains (see the state's `supplied_files`, above). The totals are kept in
   the state as `supplied_totals.<dataset>`, so an edit to a scope file cannot trip this check.
+- The store did not keep the model of a (vehicle type, import status) pair that another dataset reading it counts
+  (`registrations_flow_wider` counts types `registrations_flow` does not), checked as the trim of the dataset the ledger
+  names is. A `require` that names no scope flag or more than one aborts the build.
 - A supplied dataset was built in the last good run and its store is now absent.
 - A dimension of the `series` derive kind names no datasets in `applies_to`, or names one that does not read a source of
   kind `series`: it would be offered to datasets that cannot derive it. The build stops before it reads anything.
