@@ -6,10 +6,10 @@ MOPED,Mopeds,false,false,,moped,
 ATV,All-terrain vehicles,false,false,,atv,Not explicitly decided. Out by default.
 TRAILER/CARAVAN,Trailers and caravans,false,false,,trailer,
 TRAILER NOT DESIGNED FOR H/WAY USE,Trailers not designed for highway use,false,false,,trailer,
-MOTOR CARAVAN,Motor caravans,false,true,Commercial,motorhome,"Self-propelled motorhomes. Not explicitly decided. Out by default. Marked in trade_scope, the wider scope: with this type added to the two in scope, our counts of new vehicles meet the published totals compared (D-105, D-106)."
-BUS,Buses,false,true,Commercial,bus,"Not explicitly decided. Out by default. Marked in trade_scope, the wider scope: with this type added to the two in scope, our counts of new vehicles meet the published totals compared (D-105, D-106)."
+MOTOR CARAVAN,Motor caravans,false,true,Commercial,motorhome,"Self-propelled motorhomes. Not explicitly decided. Out by default. Marked in trade_scope, the wider scope: with the three types marked this way added to the two in scope, our counts of new vehicles come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared (docs/METRICS.md; D-105, D-106)."
+BUS,Buses,false,true,Commercial,bus,"Not explicitly decided. Out by default. Marked in trade_scope, the wider scope: with the three types marked this way added to the two in scope, our counts of new vehicles come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared (docs/METRICS.md; D-105, D-106)."
 TRACTOR,Tractors,false,false,,machinery,
 HIGH SPEED AGRICULTURAL VEHICLE,High-speed agricultural vehicles,false,false,,machinery,
 AGRICULTURAL MACHINE,Agricultural machines,false,false,,machinery,
 MOBILE MACHINE,Mobile machines,false,false,,machinery,
-SPECIAL PURPOSE VEHICLE,Special purpose vehicles,false,true,Commercial,special_purpose,"Not explicitly decided. Out by default. Marked in trade_scope, the wider scope: with this type added to the two in scope, our counts of new vehicles meet the published totals compared (D-105, D-106)."
+SPECIAL PURPOSE VEHICLE,Special purpose vehicles,false,true,Commercial,special_purpose,"Not explicitly decided. Out by default. Marked in trade_scope, the wider scope: with the three types marked this way added to the two in scope, our counts of new vehicles come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared (docs/METRICS.md; D-105, D-106)."

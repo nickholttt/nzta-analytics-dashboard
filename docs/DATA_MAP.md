@@ -205,8 +205,9 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 - **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`, which also
   gives every type a readable label: the name a visitor reads, with no part in scope). The file's
   `trade_scope` column marks the types of a wider scope: the two in scope and
-  buses, motor caravans and special purpose vehicles, which our counts of new vehicles need to meet the
-  published totals compared (D-105, D-106). It decides which types `registrations_flow_wider` counts (D-113), and it is the set of types
+  buses, motor caravans and special purpose vehicles. With them added, our counts of new vehicles
+  come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared
+  (`docs/METRICS.md`; D-105, D-106). It decides which types `registrations_flow_wider` counts (D-113), and it is the set of types
   whose model names the committed store of the dashboard keeps (DATA_SOURCES §D). Its `trade_group` column sorts each of those types
   into two groups: passenger cars and vans are `Passenger`; every other type in `trade_scope`
   (goods vehicles, buses, motor caravans, special purpose vehicles) is `Commercial`; a type outside it has no
