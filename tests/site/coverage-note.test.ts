@@ -27,11 +27,13 @@ test("the sentence for a narrowed chart says the figures are for every vehicle i
 
 test("the panel adds that sentence whenever the view is narrowed by a filter of its own or by conditions, and holds no words of its own", () => {
   const panel = read("src/components/PresetPanel.tsx");
-  assert.match(panel, /narrowed \|\| keptBy\?\.length \? \[phrases\.identification_coverage_whole\]/);
+  assert.ok(panel.includes("narrowed: narrowed || Boolean(keptBy?.length)"));
   assert.doesNotMatch(panel, /of mild hybrids/);
+  // The notes are made in src/lib/hybrid.ts (tests/site/hybrid-split.test.ts runs it); the words are templates in config.
+  assert.ok(read("src/lib/hybrid.ts").includes("...(narrowed ? [phrases.identification_coverage_whole] : [])"));
   // ... and only where the value the note speaks of has a line: it must be in the rows the chart draws.
-  assert.match(panel, /relabels && coverage && coverageDrawn/);
-  assert.match(panel, /rows\?\.some\(\(r\) => r\.value === hybrid\.mild_powertrain && r\.n > 0\)/);
+  assert.ok(panel.includes("mildDrawn: coverageDrawn"));
+  assert.ok(panel.includes("rows?.some((r) => r.value === hybrid.mild_powertrain && r.n > 0)"));
 });
 
 test("the note on a capped dimension names the count its dataset ranks by, from the dataset's own words", () => {

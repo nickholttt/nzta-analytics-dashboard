@@ -7,6 +7,7 @@ import { builderSpec } from "./config";
 import { monthKey } from "./monthkey";
 import { UNREADABLE_DATA, isUnreadableForm } from "./unreadable";
 import { crossPair, crossValue, narrowPair } from "./cross";
+import type { HybridCoverage } from "./hybrid";
 
 export { monthKey };
 
@@ -42,11 +43,7 @@ export type ViewSource = {
 // What the build says about the fact table (docs/CUBE_SCHEMA.md, Fact table). Absent from a manifest built before it.
 export type FactsManifest = { rows: number; dimensions: string[]; not_live: Record<string, string> };
 
-export type CoverageBasis = {
-  window_months?: number;
-  coverage_stated_confidence: number | null;
-  coverage_high_confidence_only: number | null;
-};
+export type { CoverageBasis } from "./hybrid";
 
 // A dataset made from a file a maintainer supplies by hand says which file's months and when it was taken
 // (docs/CUBE_SCHEMA.md, Supplied sources).
@@ -73,7 +70,7 @@ export type DatasetManifest = {
   // Absent from a manifest built before pair slices existed.
   live_pairs?: string[];
   facts?: FactsManifest | null;
-  mild_hybrid_identification_coverage?: { label: string; all_time: CoverageBasis; trailing: CoverageBasis };
+  mild_hybrid_identification_coverage?: HybridCoverage;
 };
 
 export type Manifest = {

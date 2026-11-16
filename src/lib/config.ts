@@ -190,7 +190,7 @@ type PresetsDoc = {
     year_change_measure: string;
     phrases: RankingPhrases &
       RankingThinPhrases &
-      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string };
+      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
@@ -226,7 +226,9 @@ export const datasets = dimensionsDoc.datasets as unknown as Dataset[];
 export const periods = dimensionsDoc.periods as unknown as Period[];
 
 const pipeline = pipelineDoc as unknown as {
-  hybrid_classification: { powertrain_column: string; mild_powertrain: string };
+  // source_hybrid.value names the powertrain value that holds the hybrids; undivided_powertrain, where the pipeline names it, the one
+  // that holds them where a dataset does not divide them (the same value today).
+  hybrid_classification: { powertrain_column: string; mild_powertrain: string; source_hybrid: { column: string; value: string }; undivided_powertrain?: string };
   events: { scope_dimension_aliases: Record<string, string>; scope_without_values: string[] };
 };
 export const hybrid = pipeline.hybrid_classification;

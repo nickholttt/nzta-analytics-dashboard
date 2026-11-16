@@ -4,6 +4,7 @@ import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder"
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { datasetFirstMonth } from "../lib/built";
 import { compositionStart } from "../lib/composition";
+import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
@@ -303,7 +304,9 @@ export default function PresetPanel({
   // no rows and holds no vehicles (docs/METRICS.md, "Months in which nothing is counted").
   const covers = { first: datasetFirstMonth(dsManifest, firstMonth), last: latestMonthOf(effectivePreset, manifest) };
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
-  const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
+  const onPowertrain = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
+  // A dataset that does not divide its hybrids has no mild line to relabel (docs/CUBE_SCHEMA.md, mild_split_published).
+  const relabels = onPowertrain && splitPublished(coverage);
   const label = labelFor(dimension?.id, relabels ? (coverage as { label: string }).label : undefined);
   const guards = guardsFor(effectivePreset.measure, effectivePreset.derived);
   const guard = guards.min_denominator ?? 0;
@@ -367,22 +370,19 @@ export default function PresetPanel({
   // It speaks of one line, so it appears only where that value is among those drawn: a view that chose other values, or whose
   // condition leaves it none, has no such line.
   const coverageDrawn = Boolean(rows?.some((r) => r.value === hybrid.mild_powertrain && r.n > 0));
-  const coverageNote =
-    relabels && coverage && coverageDrawn
-      ? [
-          fillNote(internal ? phrases.identification_coverage_internal : phrases.identification_coverage, {
-            label: coverage.label,
-            // The name of the value the coverage is for, as config gives it (the hybrid block of config/pipeline.json).
-            value: hybrid.mild_powertrain.toLowerCase(),
-            window: coverage.trailing.window_months,
-            trailing: pct(coverage.trailing.coverage_stated_confidence ?? 0),
-            all_time: pct(coverage.all_time.coverage_stated_confidence ?? 0),
-            trailing_high: pct(coverage.trailing.coverage_high_confidence_only ?? 0),
-            all_time_high: pct(coverage.all_time.coverage_high_confidence_only ?? 0),
-          }).text,
-          ...(narrowed || keptBy?.length ? [phrases.identification_coverage_whole] : []),
-        ].join(" ")
-      : undefined;
+  // A dataset that withholds the split says its hybrids are shown undivided, and the note about the mild line does not appear.
+  const hybridText = hybridNotes({
+    coverage,
+    onPowertrain,
+    mildDrawn: coverageDrawn,
+    narrowed: narrowed || Boolean(keptBy?.length),
+    internal,
+    mildValue: hybrid.mild_powertrain,
+    undividedValue: hybrid.undivided_powertrain ?? hybrid.source_hybrid.value,
+    phrases,
+    percent: pct,
+  });
+  const coverageNote = hybridText.coverage;
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
@@ -695,6 +695,11 @@ export default function PresetPanel({
           </li>
         ))}
         {coverageNote ? <li>{coverageNote}</li> : null}
+        {hybridText.withheld ? (
+          <li>
+            {hybridText.withheld} <a href="/caveats#mild-hybrid-limits">{phrases.mild_split_withheld_link}</a>
+          </li>
+        ) : null}
         {greyNote && !internal ? (
           <li>
             Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably
