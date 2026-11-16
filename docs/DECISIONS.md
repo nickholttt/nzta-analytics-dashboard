@@ -3729,6 +3729,9 @@ New entries use this template:
     cube's contract and to the service in one pull request can fail them until the next release carries the change.
   - If branch protection lists required checks, `site-tests` is a new name to add. (Not known from here.)
   - Reversing it: delete the `site-tests` job and the prototype step from `checks.yml`.
+- Amended at the second review of #62: the step that runs the prototype's tests pipes their output to `tee`, and a
+  workflow step's default shell has no `pipefail`, so a failing test passed the step. The step now names
+  `shell: bash` and sets `pipefail`.
 - Status: decided by Claude (unreviewed)
 
 ## D-104 2026-11-16 — The user's direction: the engine comes first and must be right; the public site waits; figures are checked against outside sources

@@ -21,9 +21,13 @@ Last updated by claude on 2026-11-16
 
 ## The user's direction of 16 November (D-104)
 
-The engine comes first and must be right; the public site waits. Do not trade checking for
-speed, and do not propose launching early. Recompute each measure independently, and compare
-figures with published New Zealand sources where a measure is unprobed or looks wrong.
+The user's words: "keep working on the engine, it needs to be flawless, the public can wait";
+"dont skim out on making it right"; and to consult what is published online about the New
+Zealand market where things do not look right or a measure has not been probed.
+
+Claude's reading, unreviewed (D-104): the work order's order stands, with the engine before
+the public-facing packages and no proposal to launch early; each measure is recomputed
+independently of the site's code; figures are compared with published New Zealand sources.
 
 ## Open pull requests (none)
 
