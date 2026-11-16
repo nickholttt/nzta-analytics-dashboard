@@ -105,7 +105,7 @@
       "show_dataset_definitions": false,
       "note_template": "Each line divides the cars still registered by the cars counted as registered for the first time, for the same month. Months with fewer than {measure.guards.min_denominator} cars behind the figure, or far fewer than the months before, are left out and the line breaks there; they are not drawn as zero.",
       "caveat": {
-        "text": "This is not a survival rate: the two sources name their classes of vehicle differently, so a line can rise or fall with how each source counts a car, not with how many are still registered.",
+        "text": "This is not a survival rate: the two sources name their classes of vehicle differently, so a line can rise or fall with how each source counts a car, as well as with how many are still registered.",
         "link_label": "How this ratio is made",
         "href": "/method#cars-still-registered"
       },

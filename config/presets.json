@@ -432,7 +432,7 @@
         },
         {
           "id": "cars-still-registered",
-          "question": "How many of the cars counted as registered each month are still registered?",
+          "question": "How do the cars still registered compare with the cars counted as registered each month?",
           "status": "live",
           "derived": "cars_still_registered",
           "dataset": "registrations_cars_long_run",
