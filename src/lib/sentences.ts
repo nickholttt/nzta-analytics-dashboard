@@ -68,7 +68,10 @@ export function changeOnYear(now: number | undefined, prior: number | undefined,
   return { prior, change, direction: Math.abs(change) < SAME_BELOW ? "same" : change > 0 ? "up" : "down" };
 }
 
-export const count = (n: number) => Math.round(n).toLocaleString("en-NZ");
+// One formatter, made once: toLocaleString makes a new one on every call, and a chart's hover text asks for a figure per
+// point.
+const COUNT_FORMAT = new Intl.NumberFormat("en-NZ");
+export const count = (n: number) => COUNT_FORMAT.format(Math.round(n));
 
 // The rows of one dataset's slice: every month the dataset has, each row carrying that month's total. The functions below
 // take these rows whole, never a window of them, so the months a chart draws cannot change a sentence.

@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { answerLine, fillTemplate, hoverLine, monthsOf, percent, rankingText, sayBadMonth, sayOffChart } from "../../src/lib/sentences.ts";
+import { answerLine, count, fillTemplate, hoverLine, monthsOf, percent, rankingText, sayBadMonth, sayOffChart } from "../../src/lib/sentences.ts";
 
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const json = (path: string) => JSON.parse(read(path));
@@ -116,4 +116,9 @@ test("LeagueChart takes whether there are earlier figures from rankingText, neve
   assert.match(league, /rankingText\(phrases,/);
   assert.match(league, /const hasPrior = ranking\.hasPrior;/);
   assert.doesNotMatch(league, /hasPrior\s*[:=]\s*true/);
+});
+
+test("count writes a whole number with the group separator, rounded, as toLocaleString does", () => {
+  for (const n of [0, 1, 999, 1000, 21091, 1234567.4, 1234567.5, -2500, 0.4]) assert.equal(count(n), Math.round(n).toLocaleString("en-NZ"));
+  assert.equal(count(21091), "21,091");
 });
