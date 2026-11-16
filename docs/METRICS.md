@@ -379,6 +379,23 @@ high-confidence figure below `warn_below_trailing_high_confidence_coverage`
 vehicles) stay unresolved because sources disagree on them: never classify
 a contested nameplate to raise coverage.
 
+The file is keyed on the make and model as the dataset spells them, so a
+nameplate the register and the dashboard spell differently needs a row for
+each spelling. Measured on the 2026-10 snapshot, the hybrids that matched no
+row were 177 of the register's 91,264 in the last 12 months and 4,832 of
+true registrations' 91,614; 4,650 of those were Toyota's Corolla Cross,
+which the dashboard names and the register records as COROLLA.
+Seven rows were added for full hybrids (nine nameplates: Corolla Cross, Prius c
+and v, Niro Plus, Staria and Staria Load, ES, H7 and X55), which moves no
+powertrain line, and one for the Mercedes-Benz C 200 as mild, at medium
+confidence. Trailing coverage, stated and at high confidence, went
+from 83.0% and 78.9% to 83.5% and 79.3% on the register, and from 66.0%
+and 62.7% to 83.5% and 79.2% on true registrations. All-time, from 80.4%
+and 61.6% to 83.1% and 63.6%, and from 72.2% and 59.7% to 83.0% and 68.5%.
+The nameplates still matching no row number six or fewer each over the last
+12 months; the rows the file marks unresolved hold another 2,894 hybrids on
+the register and 2,905 on true registrations over the same months.
+
 **Mean fleet age** — (snapshot year − vehicle year), volume-weighted, across
 the fleet. Report median alongside the mean; the distribution has a long
 tail and the mean alone misleads.
