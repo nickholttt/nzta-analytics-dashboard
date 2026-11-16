@@ -24,7 +24,8 @@ parser.add_argument("--top", type=int, default=25)
 args = parser.parse_args()
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from pipeline import build, config, metrics, normalise, reference, schema, supplied  # noqa: E402
+from pipeline import build, config, metrics, normalise, schema, supplied  # noqa: E402
+from pipeline.errors import GuardrailError  # noqa: E402
 
 cfg = config.load()
 p = cfg.pipeline
@@ -38,21 +39,27 @@ types = schema.pull_types(expected, list(p["fields"].values()))
 names = {f["name"] for f in expected["fields"]}
 con = duckdb.connect()
 
-if "source" in dataset_cfg:
-    aborts, warnings = [], []
-    ledger, first, latest = supplied.load_store(con, cfg, dataset_cfg["source"], aborts, warnings)
-    assert not aborts, aborts
-    build.supplied_raw(con, cfg, dataset_cfg["source"], types)
-    snapshot = latest.replace(day=1)
-else:
-    if not args.pull:
-        sys.exit("a dataset built from the register needs the saved pull folder")
-    source = json.loads((Path(args.pull) / "source.json").read_text(encoding="utf-8"))
-    normalise.ingest(con, f"{args.pull}/pages/*.json.gz", types)
-    snapshot = date.fromisoformat(source["change_key"]["snapshot"]).replace(day=1)
-normalise.build_src(con, cfg, types, names)
-con.execute("DROP TABLE raw")
-normalise.build_rows(con, cfg)
+try:
+    if "source" in dataset_cfg:
+        aborts, warnings = [], []
+        loaded = supplied.load_store(con, cfg, dataset_cfg["source"], aborts, warnings)
+        if aborts or loaded is None:
+            sys.exit(f"the supplied store for {dataset_cfg['source']} cannot be read: {'; '.join(aborts) or 'it is absent'}")
+        build.supplied_raw(con, cfg, dataset_cfg["source"], types)
+        snapshot = loaded[2].replace(day=1)
+    else:
+        if not args.pull:
+            sys.exit("a dataset built from the register needs the saved pull folder")
+        if not (Path(args.pull) / "source.json").exists():
+            sys.exit(f"{args.pull} has no source.json: it is not a saved pull folder (data/raw/YYYY-MM/<timestamp>)")
+        source = json.loads((Path(args.pull) / "source.json").read_text(encoding="utf-8"))
+        normalise.ingest(con, f"{args.pull}/pages/*.json.gz", types)
+        snapshot = date.fromisoformat(source["change_key"]["snapshot"]).replace(day=1)
+    normalise.build_src(con, cfg, types, names)
+    con.execute("DROP TABLE raw")
+    normalise.build_rows(con, cfg)
+except GuardrailError as exc:
+    sys.exit(f"the data could not be read: {exc}")
 
 window = int(p["trailing_window_months"])
 start = metrics.month_add(snapshot, -(window - 1))
@@ -64,6 +71,11 @@ threshold = block["publish_split_at_trailing_high_confidence_coverage"]
 t = block["trailing"]
 print(f"{args.dataset}, {start:%Y-%m} to {snapshot:%Y-%m}: {t['source_hybrids']:,} hybrids; identified mild {t['identified_mild']:,}, "
       f"identified full {t['identified_full']:,}, unknown {t['unknown']:,}")
+if not denominator:
+    # Nothing to divide: the build publishes the split here (docs/METRICS.md), and there is nothing that counts against it.
+    print("at high confidence only: no hybrid in the window that could be mild, so there is no figure and the split is "
+          f"{'published' if block['mild_split_published'] else 'withheld'}; nothing counts against it")
+    sys.exit(0)
 print(f"at high confidence only: {high:,} of {denominator:,} = {high / denominator:.2%}; the split is "
       f"{'published' if block['mild_split_published'] else 'withheld'} at {threshold:.0%}")
 needed = Fraction(str(threshold))
@@ -73,25 +85,21 @@ else:
     print(f"it reaches {threshold:.0%} with {math.ceil(needed * denominator - high):,} more mild calls at high confidence, "
           f"or with {denominator - math.floor(high / needed):,} of the unidentified hybrids settled as full calls at high confidence")
 
-h, engine = p["hybrid_classification"], p["engine"]["field"]
-recorded = engine + normalise.SOURCE_SUFFIX
-keys = reference.hybrid_keys(cfg)
-codes = ", ".join(normalise.lit(k) for k in sorted(keys["source_hybrid"]))
-mild_codes = ", ".join(normalise.lit(k) for k in sorted(keys["mild"])) or "NULL"
-high_level = normalise.lit(h["high_confidence_level"])
-# What the figure at high confidence only leaves out of its numerator: a vehicle that is no mild call at the high level, not
-# identified by the code mapping alone, and not a full call at the high level (which leaves the denominator).
+# The vehicles behind the figure: the dataset's own row set, the window, and the pipeline's own condition for what the figure at
+# high confidence only leaves out of its numerator (metrics.hybrid_conditions), so the two cannot drift apart.
+conditions = metrics.hybrid_conditions(cfg)
 rows = con.execute(f"""
     SELECT make_final, model_final, coalesce(hybrid_class, 'no row') AS call, coalesce(hybrid_confidence, '') AS confidence, count(*) AS vehicles
     FROM rows
-    WHERE in_scope AND fleet_entry AND reg_month BETWEEN DATE '{start}' AND DATE '{snapshot}'
-      AND {normalise.quote(recorded)} IN ({codes})
-      AND NOT coalesce(hybrid_class = {normalise.lit(h['types']['mild'])} AND hybrid_confidence = {high_level}, FALSE)
-      AND NOT coalesce(hybrid_class = {normalise.lit(h['types']['full'])} AND hybrid_confidence = {high_level}, FALSE)
-      AND NOT (hybrid_class IS NULL AND {normalise.quote(recorded)} IN ({mild_codes}))
+    WHERE {metrics.hybrid_base(ds, conditions)} AND reg_month BETWEEN {metrics.date_sql(start)} AND {metrics.date_sql(snapshot)}
+      AND {conditions['against_high']}
     GROUP BY ALL ORDER BY vehicles DESC, make_final, model_final
 """).fetchall()
-print(f"\nvehicles that count against the figure, by make and model ({sum(r[4] for r in rows):,} in all; "
+listed = sum(r[4] for r in rows)
+# The same vehicles counted the pipeline's way: the figure's denominator less its numerator. A difference is a bug here, not data.
+if listed != denominator - high:
+    sys.exit(f"the list holds {listed:,} vehicles and the figure leaves out {denominator - high:,}: the two rules have drifted apart")
+print(f"\nvehicles that count against the figure, by make and model ({listed:,} in all; "
       f"'no row' is a nameplate the hybrid file does not list):")
 for make, model, call, confidence, vehicles in rows[: args.top]:
     print(f"{vehicles:>7,}  {make} {model}  [{call}{' at ' + confidence if confidence else ''}]")

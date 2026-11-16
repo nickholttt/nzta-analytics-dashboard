@@ -77,11 +77,18 @@ def unmapped_guard(con, derived, g: dict, start: date, end: date, window: int) -
     return out
 
 
-def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> tuple[dict, dict[str, tuple[int, int]]]:
-    """mild_hybrid_identification_coverage for one dataset (docs/METRICS.md): of the vehicles recorded under a hybrid
-    code, how many are identified mild, identified full, or unknown, and the label the category must carry. Also the
-    whole counts behind the figure at high confidence only, (numerator, denominator) for the whole history and the
-    trailing window: the decisions taken on it compare these, not the figure rounded for the manifest."""
+def hybrid_base(ds: str, conditions: dict[str, str]) -> str:
+    """The vehicles of a dataset that are recorded under a hybrid code, as a condition on `rows`: its in-scope rows, in the
+    dataset's own row set `ds` (dataset_filter), with a hybrid code. A window is a further condition on `reg_month`."""
+    return f"in_scope AND {ds} AND {conditions['source_hybrid']}"
+
+
+def hybrid_conditions(cfg) -> dict[str, str]:
+    """The conditions on `rows` that mild hybrid identification coverage counts with (docs/METRICS.md), as SQL: the vehicles
+    recorded under a hybrid code (`source_hybrid`), and which of them are identified mild, identified full or identified by the
+    code mapping alone. `against_high` is what the figure at high confidence only leaves out of its numerator: a vehicle that is
+    no mild call at the high level, not identified by the code mapping alone, and not a full call at the high level (which
+    leaves the denominator). hybrid_coverage and anything that lists the vehicles behind its figure read them from here."""
     h = cfg.pipeline["hybrid_classification"]
     keys, kind = reference.hybrid_keys(cfg), h["types"]
     shown, recorded = cfg.pipeline["engine"]["field"], cfg.pipeline["engine"]["field"] + SOURCE_SUFFIX
@@ -91,14 +98,33 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> t
 
     classified_mild = f"coalesce(hybrid_class = {lit(kind['mild'])}, FALSE)"
     code_default = f"(hybrid_class IS NULL AND {among(recorded, keys['mild'])})"
-    mild = f"({classified_mild} OR {code_default})"
     full = f"coalesce(hybrid_class = {lit(kind['full'])}, FALSE)"
+    at_high = f"coalesce(hybrid_confidence = {lit(h['high_confidence_level'])}, FALSE)"
+    return {
+        "among_shown_mild": among(shown, keys["mild"]),
+        "source_hybrid": among(recorded, keys["source_hybrid"]),
+        "classified_mild": classified_mild,
+        "code_default": code_default,
+        "mild": f"({classified_mild} OR {code_default})",
+        "full": full,
+        "against_high": f"NOT ({classified_mild} AND {at_high}) AND NOT {code_default} AND NOT ({full} AND {at_high})",
+    }
+
+
+def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> tuple[dict, dict[str, tuple[int, int]]]:
+    """mild_hybrid_identification_coverage for one dataset (docs/METRICS.md): of the vehicles recorded under a hybrid
+    code, how many are identified mild, identified full, or unknown, and the label the category must carry. Also the
+    whole counts behind the figure at high confidence only, (numerator, denominator) for the whole history and the
+    trailing window: the decisions taken on it compare these, not the figure rounded for the manifest."""
+    h = cfg.pipeline["hybrid_classification"]
+    c = hybrid_conditions(cfg)
+    classified_mild, code_default, mild, full = c["classified_mild"], c["code_default"], c["mild"], c["full"]
     measures = [
         "count(*)", f"count(*) FILTER (WHERE {mild})", f"count(*) FILTER (WHERE {full})",
         f"count(*) FILTER (WHERE NOT {mild} AND NOT {full})", f"count(*) FILTER (WHERE {code_default})",
         f"count(*) FILTER (WHERE {full} AND hybrid_confidence = {lit(h['high_confidence_level'])})",
     ] + [f"count(*) FILTER (WHERE {classified_mild} AND hybrid_confidence = {lit(level)})" for level in h["confidence_levels"]]
-    base = f"in_scope AND {ds} AND {among(recorded, keys['source_hybrid'])}"
+    base = hybrid_base(ds, c)
 
     def basis(where: str) -> tuple[dict, tuple[int, int]]:
         n, identified, full_n, unknown, code, full_high, *levels = con.execute(f"SELECT {', '.join(measures)} FROM rows WHERE {where}").fetchone()
@@ -131,7 +157,7 @@ def hybrid_coverage(con, cfg, ds: str, start: date, end: date, window: int) -> t
     recent, recent_counts = basis(f"{base} AND reg_month BETWEEN {date_sql(start)} AND {date_sql(end)}")
     disagreeing = con.execute(f"""
         SELECT count(*) FROM rows WHERE {base}
-          AND (({classified_mild} AND NOT {among(shown, keys['mild'])}) OR ({full} AND {among(shown, keys['mild'])}))
+          AND (({classified_mild} AND NOT {c['among_shown_mild']}) OR ({full} AND {c['among_shown_mild']}))
     """).fetchone()[0]
     figures = [b["coverage_stated_confidence"] for b in (whole, recent) if b["coverage_stated_confidence"] is not None]
     complete = bool(figures) and min(figures) >= h["complete_at_coverage"]
