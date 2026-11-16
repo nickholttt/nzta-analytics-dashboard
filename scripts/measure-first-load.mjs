@@ -4,6 +4,7 @@
 //   node scripts/measure-first-load.mjs --playwright <folder holding node_modules/playwright-core>
 //        --chrome <path to chrome-headless-shell> [--dist dist] [--port 4341] [--runs 5] [--pages home,q3]
 //        [--profile phone|desktop] [--out <folder for the JSON result>] [--screens <folder for screenshots>]
+//        [--without-fonts]   (refuses the font files, to read what they cost; the page then draws in its fallback fonts)
 //
 // The browser library and the browser are not dependencies of the site: install playwright-core in a folder outside the
 // repository. Headless only.
@@ -95,6 +96,7 @@ const browser = await chromium.launch({ executablePath: chrome, headless: true }
 
 async function visit(page, { throttle, settleMs, shot }) {
   const context = await browser.newContext({ viewport: prof.viewport });
+  if (args["without-fonts"]) await context.route("**/*.woff2", (route) => route.abort());
   const tab = await context.newPage();
   await tab.addInitScript(initScript);
   const cdp = await context.newCDPSession(tab);
