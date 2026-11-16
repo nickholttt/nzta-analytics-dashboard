@@ -78,7 +78,7 @@ test("the ratio chart draws every month of its window through lineMonths, never 
 test("where the breakdown begins is said only when the window reaches the first month; a count's last year is whole or absent", () => {
   const trend = read("src/components/TrendChart.tsx");
   assert.match(trend, /model\.from === firstMonth \? startsSentence : undefined/);
-  assert.match(trend, /months\.every\(\(v\) => v !== undefined\)/);
+  assert.match(trend, /n: windowTotal\(latest, reader\(s\)\)/);
 });
 
 test("the cars-still-registered notes carry only what bears on the view: no repeat of the definitions, no site-wide promise", () => {

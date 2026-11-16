@@ -27,11 +27,13 @@ test("the sentence for a narrowed chart says the figures are for every vehicle i
 
 test("the panel adds that sentence whenever the view is narrowed by a filter of its own or by conditions, and holds no words of its own", () => {
   const panel = read("src/components/PresetPanel.tsx");
-  assert.match(panel, /narrowed \|\| keptBy\?\.length \? \[phrases\.identification_coverage_whole\]/);
+  assert.ok(panel.includes("narrowed: narrowed || Boolean(keptBy?.length)"));
   assert.doesNotMatch(panel, /of mild hybrids/);
+  // The notes are made in src/lib/hybrid.ts (tests/site/hybrid-split.test.ts runs it); the words are templates in config.
+  assert.ok(read("src/lib/hybrid.ts").includes("...(narrowed ? [phrases.identification_coverage_whole] : [])"));
   // ... and only where the value the note speaks of has a line: it must be in the rows the chart draws.
-  assert.match(panel, /relabels && coverage && coverageDrawn/);
-  assert.match(panel, /rows\?\.some\(\(r\) => r\.value === hybrid\.mild_powertrain && r\.n > 0\)/);
+  assert.ok(panel.includes("mildDrawn: coverageDrawn"));
+  assert.ok(panel.includes("rows?.some((r) => r.value === hybrid.mild_powertrain && r.n > 0)"));
 });
 
 test("the note on a capped dimension names the count its dataset ranks by, from the dataset's own words", () => {
@@ -45,15 +47,25 @@ test("the note on a capped dimension names the count its dataset ranks by, from 
   assert.equal(new Set(counts).size, counts.length, "no two datasets share one: each says its own");
 });
 
-test("the note under a 12-month share says a point is blank for a month with no vehicles in what is counted, as well as for a missing month", () => {
+test("the note under a 12-month share says what a window with no vehicles in a month does, when it is left blank, and names no month or figure", () => {
   for (const key of ["rolling_share_note", "rolling_share_note_internal"]) {
     const filled = fillTemplate(phrases[key], { months: 12 });
     assert.deepEqual(filled.unresolved, [], key);
-    assert.match(filled.text, /no vehicles in what is counted/, key);
-    assert.match(filled.text, /missing/, key);
+    if (key === "rolling_share_note") {
+      // A month in which nothing is counted adds none to the share; the point is blank only for a window with no vehicles at all,
+      // or one that starts before the data does.
+      assert.match(filled.text, /no vehicles are counted adds nothing/, key);
+      assert.match(filled.text, /its 12 months hold no vehicles in what is counted/, key);
+      assert.match(filled.text, /or start before the data does/, key);
+    } else {
+      assert.match(filled.text, /counts as zero in a window/, key);
+      assert.match(filled.text, /no vehicles at all/, key);
+      assert.match(filled.text, /before the dataset's first month/, key);
+    }
     assert.doesNotMatch(phrases[key], /\d/, "the number of months comes in as a placeholder");
   }
   const mix = read("src/components/MixChart.tsx");
   assert.match(mix, /fillTemplate\(phrases\.rolling_share_note, \{ months: TRAILING_MONTHS \}\)/);
   assert.doesNotMatch(mix, /is missing from the data/);
+  assert.doesNotMatch(mix, /has no vehicles in what is counted, or is missing/);
 });

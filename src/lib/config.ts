@@ -2,7 +2,7 @@
 // category and event-scope bindings. No domain value is written in this code.
 import presetsDoc from "../../config/presets.json";
 import type { AnswerTemplates as Answer } from "./sentences";
-import type { RankingPhrases, YearPhrases } from "./sentences";
+import type { RankingPhrases, RankingThinPhrases, YearPhrases } from "./sentences";
 import measuresDoc from "../../config/measures.json";
 import dimensionsDoc from "../../config/dimensions.json";
 import pipelineDoc from "../../config/pipeline.json";
@@ -77,6 +77,10 @@ export type Dimension = {
   // its counterpart on the public pages; /status keeps the original.
   public_label?: string;
   public_note?: string;
+  // A note that holds only in some states of a build names a condition (src/lib/dimensionNote.ts) and gives what to say when it does not.
+  note_condition?: string;
+  note_otherwise?: string;
+  public_note_otherwise?: string;
 };
 
 // How a chart says what its dataset counts. Each is a template; the chart fills in the {names} it knows.
@@ -178,7 +182,7 @@ export type BuilderSpec = {
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
-  notices: { dataset: string; by: string };
+  notices: { dataset: string; by: string; left_out: string };
   not_offered: NotOffered[];
 };
 
@@ -189,7 +193,8 @@ type PresetsDoc = {
   defaults: {
     year_change_measure: string;
     phrases: RankingPhrases &
-      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string };
+      RankingThinPhrases &
+      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; grey_beyond_scale: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
@@ -225,7 +230,9 @@ export const datasets = dimensionsDoc.datasets as unknown as Dataset[];
 export const periods = dimensionsDoc.periods as unknown as Period[];
 
 const pipeline = pipelineDoc as unknown as {
-  hybrid_classification: { powertrain_column: string; mild_powertrain: string };
+  // source_hybrid.value names the powertrain value that holds the hybrids; undivided_powertrain, where the pipeline names it, the one
+  // that holds them where a dataset does not divide them (the same value today).
+  hybrid_classification: { powertrain_column: string; mild_powertrain: string; source_hybrid: { column: string; value: string }; undivided_powertrain?: string };
   events: { scope_dimension_aliases: Record<string, string>; scope_without_values: string[] };
 };
 export const hybrid = pipeline.hybrid_classification;

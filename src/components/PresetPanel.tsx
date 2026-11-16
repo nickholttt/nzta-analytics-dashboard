@@ -3,13 +3,15 @@ import { useEffect, useMemo, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
+import { dimensionNote } from "../lib/dimensionNote";
+import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
-import { latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
-import { openGate, whenGateOpens } from "../lib/loadGate";
+import { datasetCovers, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
+import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
@@ -116,6 +118,8 @@ export default function PresetPanel({
   const [wanted, setWanted] = useState(!defer || linked);
   const [sentinel, setSentinel] = useState<HTMLElement | null>(null);
   const [near, setNear] = useState(false);
+  // Bumped when a panel that was taken for near is found not to be, so its observer starts afresh and reports where it is now.
+  const [looked, setLooked] = useState(0);
   useEffect(() => {
     if (wanted || !sentinel) return;
     if (typeof IntersectionObserver === "undefined") {
@@ -132,8 +136,29 @@ export default function PresetPanel({
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [wanted, sentinel]);
-  useEffect(() => (near && !wanted ? whenGateOpens(() => setWanted(true)) : undefined), [near, wanted]);
+  }, [wanted, sentinel, looked]);
+  // Once the gate is open, where the panel is is read again after the page has settled: while the page's islands mount and
+  // before the first chart has drawn, every panel is a short placeholder and the whole page can sit inside the margin, so a panel
+  // taken for near then may be a screen or many away now. Only one that is near still loads.
+  useEffect(() => {
+    if (!near || wanted || !sentinel) return;
+    let frame = 0;
+    const cancelGate = whenGateOpens(() => {
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => {
+          if (typeof IntersectionObserver === "undefined" || isNearScreen(sentinel.getBoundingClientRect(), window.innerHeight)) setWanted(true);
+          else {
+            setNear(false);
+            setLooked((n) => n + 1);
+          }
+        });
+      });
+    });
+    return () => {
+      cancelGate();
+      cancelAnimationFrame(frame);
+    };
+  }, [near, wanted, sentinel]);
   // What a visitor is told when the query service fails: its own sentence, not the reload advice for a file.
   const [serviceError, setServiceError] = useState<string | null>(null);
 
@@ -187,6 +212,10 @@ export default function PresetPanel({
   }, []);
 
   const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
+  // The months the dataset covers, for every figure that sums a window: a month inside them in which a condition keeps nothing has no
+  // rows and holds no vehicles (docs/METRICS.md, "Months in which nothing is counted"). One object until the preset, the build or the
+  // first month changes, so the charts that read it do not recompute on every render of the panel.
+  const covers = useMemo(() => (effectivePreset && manifest ? datasetCovers(effectivePreset, manifest, firstMonth) : undefined), [effectivePreset, manifest, firstMonth]);
 
   // The resolver says where the rows come from: a 1-D slice, or a pair slice narrowed to the view's filter. A view
   // changed again before its rows arrive drops them, so a slow earlier load cannot draw under a later view.
@@ -218,10 +247,24 @@ export default function PresetPanel({
     };
   }, [resolution, wanted]);
 
-  // The page's first chart, once it has what it needs or cannot have it, lets the deferred ones begin.
+  // The page's first chart, once it is drawn or cannot be (an error, nothing to draw, a view the cube cannot give), lets the deferred
+  // ones begin. A chart that has its rows is drawn a moment later, and its height is what moves the panels below it, so the gate
+  // waits for the figure itself; where none appears within a few seconds it opens anyway, so a chart that never draws cannot hold
+  // the rest of the page back.
   useEffect(() => {
-    if (!defer && (rows || error || (resolution && resolution.preventsRender.length > 0))) openGate();
-  }, [defer, rows, error, resolution]);
+    if (defer) return;
+    if (error || (resolution && resolution.preventsRender.length > 0) || (rows && rows.length === 0)) return openGate();
+    if (!rows || !sentinel) return;
+    const drawn = () => Boolean(sentinel.querySelector("[role=img]"));
+    if (drawn()) return openGate();
+    const watch = new MutationObserver(() => drawn() && openGate());
+    watch.observe(sentinel, { childList: true, subtree: true });
+    const fallback = setTimeout(openGate, 4000);
+    return () => {
+      watch.disconnect();
+      clearTimeout(fallback);
+    };
+  }, [defer, rows, error, resolution, sentinel]);
 
   const panelClass = `panel${lead ? " lead" : ""}${wanted ? "" : " loading"}`;
   const [scrolled, setScrolled] = useState(false);
@@ -262,7 +305,9 @@ export default function PresetPanel({
   const served = servedFrom(effectivePreset.dataset, manifest);
   const dsManifest = served ? manifest.datasets[served] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
-  const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
+  const onPowertrain = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
+  // A dataset that does not divide its hybrids has no mild line to relabel (docs/CUBE_SCHEMA.md, mild_split_published).
+  const relabels = onPowertrain && splitPublished(coverage);
   const label = labelFor(dimension?.id, relabels ? (coverage as { label: string }).label : undefined);
   const guards = guardsFor(effectivePreset.measure, effectivePreset.derived);
   const guard = guards.min_denominator ?? 0;
@@ -296,9 +341,9 @@ export default function PresetPanel({
   // Where the figures come from and the date of the export, said under every chart whose dataset is supplied.
   const sourceNote = findDataset(effectivePreset.dataset)?.source_note;
   if (sourceNote && !notBuilt) addNote("source", undefined, sourceNote);
-  const publicDimensionNote = !internal && dimension ? dimension.public_note : undefined;
-  if (publicDimensionNote) addNote("dimension", publicDimensionNote);
-  else addNote("dimension", dimension?.note, dimension?.note_template);
+  // The dimension's note may depend on the state of the dataset (a mild line only where the split is published): src/lib/dimensionNote.ts.
+  const dimensionText = dimensionNote(dimension, internal, { splitPublished: splitPublished(coverage) });
+  addNote("dimension", dimensionText.plain, dimensionText.template);
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
   // terms, is internal.
@@ -326,22 +371,19 @@ export default function PresetPanel({
   // It speaks of one line, so it appears only where that value is among those drawn: a view that chose other values, or whose
   // condition leaves it none, has no such line.
   const coverageDrawn = Boolean(rows?.some((r) => r.value === hybrid.mild_powertrain && r.n > 0));
-  const coverageNote =
-    relabels && coverage && coverageDrawn
-      ? [
-          fillNote(internal ? phrases.identification_coverage_internal : phrases.identification_coverage, {
-            label: coverage.label,
-            // The name of the value the coverage is for, as config gives it (the hybrid block of config/pipeline.json).
-            value: hybrid.mild_powertrain.toLowerCase(),
-            window: coverage.trailing.window_months,
-            trailing: pct(coverage.trailing.coverage_stated_confidence ?? 0),
-            all_time: pct(coverage.all_time.coverage_stated_confidence ?? 0),
-            trailing_high: pct(coverage.trailing.coverage_high_confidence_only ?? 0),
-            all_time_high: pct(coverage.all_time.coverage_high_confidence_only ?? 0),
-          }).text,
-          ...(narrowed || keptBy?.length ? [phrases.identification_coverage_whole] : []),
-        ].join(" ")
-      : undefined;
+  // A dataset that withholds the split says its hybrids are shown undivided, and the note about the mild line does not appear.
+  const hybridText = hybridNotes({
+    coverage,
+    onPowertrain,
+    mildDrawn: coverageDrawn,
+    narrowed: narrowed || Boolean(keptBy?.length),
+    internal,
+    mildValue: hybrid.mild_powertrain,
+    undividedValue: hybrid.undivided_powertrain ?? hybrid.source_hybrid.value,
+    phrases,
+    percent: pct,
+  });
+  const coverageNote = hybridText.coverage;
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
@@ -371,6 +413,7 @@ export default function PresetPanel({
           rows={rows}
           manifest={manifest}
           events={events}
+          covers={covers}
           minDenominator={guard}
           collapseFraction={collapseFraction}
           label={label}
@@ -398,6 +441,7 @@ export default function PresetPanel({
           preset={effectivePreset}
           rows={rows}
           manifest={manifest}
+          covers={covers}
           minDenominator={guard}
           collapseFraction={collapseFraction}
           lead={lead}
@@ -464,7 +508,7 @@ export default function PresetPanel({
   // One row of time options. An all-time mix chart that opens on a later start names that start, and
   // offers the full record as its own option, so no two buttons say the same thing. A period that ranks
   // the chart comes last: it draws a different chart, not a shorter span of the same one.
-  const start = shape === "mix" && rows ? compositionStart(rows, dimension, guard) : undefined;
+  const start = shape === "mix" && rows ? compositionStart(rows, dimension, guard, covers) : undefined;
   // A preset whose own period is none of the spans and does not rank it (a distribution of the last 12 months) keeps
   // that period as a span of its own, in order of length, so the option it opens on is always in the row.
   const ranking = rankingPeriods(presetView(preset, activeGranularityId));
@@ -652,11 +696,16 @@ export default function PresetPanel({
           </li>
         ))}
         {coverageNote ? <li>{coverageNote}</li> : null}
+        {hybridText.withheld ? (
+          <li>
+            {hybridText.withheld} <a href="/caveats#mild-hybrid-limits">{phrases.mild_split_withheld_link}</a>
+          </li>
+        ) : null}
         {greyNote && !internal ? (
           <li>
             Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably
             {collapseFraction > 0 ? ", and months with far fewer vehicles than the months before them, which may not describe a normal month" : ""}.
-            They are drawn in grey, not dropped. <a href="/method">How the figures are made</a>.
+            They are drawn in grey, not dropped. {phrases.grey_beyond_scale} <a href="/method">How the figures are made</a>.
           </li>
         ) : null}
         {greyNote && internal ? (
@@ -665,7 +714,7 @@ export default function PresetPanel({
             {collapseFraction > 0
               ? `, and months whose total collapsed below ${Math.round(collapseFraction * 100)}% of the median of the ${TRAILING_MONTHS} months before them. The second guard is not the first: a month can be precisely measured and still describe a different population, which is what a nationwide shutdown does to a month of registrations`
               : ""}
-            . Their shares are drawn in grey, not dropped and not zeroed.
+            . Their shares are drawn in grey, not dropped and not zeroed. {phrases.grey_beyond_scale}
           </li>
         ) : null}
         {notBuilt && !internal ? null : <li className="basis">{BASIS_NOTE}</li>}

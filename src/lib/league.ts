@@ -2,7 +2,8 @@
 // change. Pure, so tests/site/ runs it with Node's own test runner; LeagueChart draws what this returns. The one ranking rule
 // (shared ranks, alphabetical within a tie) is in ranking.ts; docs/METRICS.md, "Ranking and ties".
 import { rankByCount } from "./ranking";
-import { changeOnYear } from "./sentences";
+import { changeOnYear, fillTemplate, vehiclesText } from "./sentences";
+import type { RankingThinPhrases } from "./sentences";
 
 // The rows of a slice: one per month and value. Under a condition a month in which the condition keeps nothing has no rows, so
 // an absent month inside the dataset's months is a month of zero vehicles, never a missing one.
@@ -95,4 +96,36 @@ export function leagueRows(input: LeagueInput) {
   const lastRank = items.length ? items[items.length - 1].rank : undefined;
   const tiedBeyond = lastRank === undefined ? 0 : current.slice(topN).filter((e) => e.rank === lastRank).length;
   return { items, currentDenom, priorDenom, tiedBeyond };
+}
+
+// Whether a ranking's base is too small to read a share from, and the one sentence that says how small (docs/METRICS.md, "A ranking
+// and the precision floor"). The floor is the share's own, 200 vehicles, applied to a window's total as it is to a month's: a
+// ranking of one month is read against the floor on that month's vehicles, and a ranking of twelve months on the twelve months'
+// total, never on 12 times the floor (a window is tested as a whole everywhere else on the site: the key under a share chart, the
+// bar chart, the map). A ranking is never hidden for it: its shares and its changes in share stay, greyed.
+//   shares: the window the ranking ranks holds fewer vehicles than the floor, so every share is greyed, and so is every change in
+//     share (a change reads this window's share).
+//   changes: the changes in share are greyed: the window ranked is under the floor, or the earlier window it is compared with holds
+//     some vehicles but fewer than the floor. An earlier window of no vehicles gives no change at all, so nothing is greyed there.
+export function rankingGuard(input: {
+  floor: number;
+  currentDenom: number;
+  priorDenom: number;
+  hasPrior: boolean;
+  window: string;
+  priorDates: string;
+  // The ranking is of one month, so its earlier window is one month and the sentence says "month", not "months".
+  single: boolean;
+  phrases: RankingThinPhrases;
+}): { shares: boolean; changes: boolean; sentence: string | undefined } {
+  const { floor, currentDenom, priorDenom, hasPrior, window, priorDates, single, phrases } = input;
+  const shares = floor > 0 && currentDenom < floor;
+  const earlier = floor > 0 && hasPrior && priorDenom > 0 && priorDenom < floor;
+  const changes = shares || earlier;
+  const sentence = shares
+    ? fillTemplate(phrases.ranking_thin, { vehicles: vehiclesText(currentDenom), window, floor }).text
+    : earlier
+      ? fillTemplate(single ? phrases.ranking_thin_prior_month : phrases.ranking_thin_prior, { vehicles: vehiclesText(priorDenom), prior: priorDates, floor }).text
+      : undefined;
+  return { shares, changes, sentence };
 }

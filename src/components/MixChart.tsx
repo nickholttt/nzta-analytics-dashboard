@@ -10,7 +10,6 @@ import { MEASUREMENT, layoutMarkers, selectEvents } from "../lib/events";
 import {
   TRAILING_MONTHS,
   addMonths,
-  collapsedAgainstTrailingMedian,
   monthDate,
   monthLabel,
   monthRange,
@@ -19,8 +18,9 @@ import {
   rollingShare,
   shareChange,
   trailingWindow,
-  windowShare,
 } from "../lib/measures";
+import type { Covers } from "../lib/rolling";
+import { axisTop, countIn, figureAt, greyedAt, keyWindow, shareLine } from "../lib/shareline";
 import { monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
 import {
@@ -44,6 +44,7 @@ import {
 } from "../lib/theme";
 import { latestMonthOf } from "../lib/resolve";
 import { nameOrder, rankByCount } from "../lib/ranking";
+import { BEYOND_CAP } from "../lib/reserved";
 import { getParam, setParam } from "../lib/url";
 import { EventList } from "./EventList";
 import { PlotFigure } from "./PlotFigure";
@@ -58,7 +59,6 @@ const MARGIN_BOTTOM = 28;
 const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
 // The pipeline's token for values beyond its own cap (docs/CUBE_SCHEMA.md): a group too small to name, so
 // on a capped chart it belongs in the remainder, unlike the tokens for what the record could not place.
-const BEYOND_CAP = "__OTHER__";
 const ownLine = (v: string) => isReserved(v) && v !== BEYOND_CAP;
 const ROLLING = "rolling_12m";
 
@@ -79,6 +79,9 @@ type Props = {
   rows: SliceRow[];
   manifest: Manifest;
   events: Event[] | null;
+  // The months the dataset covers (rolling.ts, Covers): a month inside them in which the view has no rows holds no vehicles, so a
+  // window counts it as zero. Undefined where the first month is not known, and then only a month with rows is a month.
+  covers?: Covers;
   minDenominator: number;
   collapseFraction: number;
   label: (value: string) => string;
@@ -90,7 +93,7 @@ type Props = {
   internal?: boolean;
 };
 
-export function MixChart({ preset, dimension, rows, manifest, events, minDenominator, collapseFraction, label, lead = false, fullHistory = false, internal = false }: Props) {
+export function MixChart({ preset, dimension, rows, manifest, events, covers, minDenominator, collapseFraction, label, lead = false, fullHistory = false, internal = false }: Props) {
   const [showUnscoped, setShowUnscoped] = useState(false);
   const defaultSmoothing = preset.smoothing ?? chartDefaults.mix_smoothing;
   const [smoothing, setSmoothing] = useState<string>(() => {
@@ -125,7 +128,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     // An all-time mix chart starts where the dimension first had something to show, not at the first
     // month with any data. All time stays one click away; it is never the default.
     const wholeSeries = preset.period === "all" || preset.period === undefined;
-    const defaultStart = wholeSeries ? compositionStart(rows, dimension, minDenominator) : undefined;
+    const defaultStart = wholeSeries ? compositionStart(rows, dimension, minDenominator, covers) : undefined;
     const win = defaultStart && !fullHistory ? { from: defaultStart, to: full.to } : full;
 
     // top_n ranks by vehicles over the trailing window, not over the whole period. A period total
@@ -167,12 +170,13 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     const series = preset.top_n ? [...kept, ...reservedDrawn, ALL_OTHER] : [...ranked, ...unranked];
     const named = [...kept, ...new Set(rows.map((r) => r.value).filter(ownLine))];
 
-    const denominatorFor = (month: string) => denominators.get(month);
+    // What a figure over a window reads: the rows' own denominators, a month inside the dataset's months with no rows as zero.
+    const line = shareLine(denominators, { rolling, covers, rowsFirst: first, minDenominator, collapseFraction });
     const namedIn = new Map<string, number>();
     const nFor = (month: string, s: string) => {
-      const den = denominators.get(month);
+      const den = line.windowed(month);
       if (den === undefined) return undefined;
-      if (s !== ALL_OTHER) return cell.get(s)?.get(month) ?? 0;
+      if (s !== ALL_OTHER) return countIn(line, cell.get(s), month);
       let inNamed = namedIn.get(month);
       if (inNamed === undefined) namedIn.set(month, (inNamed = named.reduce((sum, k) => sum + (cell.get(k)?.get(month) ?? 0), 0)));
       return den - inNamed;
@@ -193,7 +197,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     for (const s of candidates) {
       let max = 0;
       for (const m of monthRange(full.from, full.to)) {
-        const r = rollingShare(m, first, (k) => nFor(k, s), denominatorFor);
+        const r = rollingShare(m, line.first, (k) => nFor(k, s), line.windowed);
         if (r && r.denominator >= minDenominator && r.share > max) max = r.share;
       }
       peak.set(s, max);
@@ -205,46 +209,18 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     const ownColour = (s: string) => s !== ALL_OTHER && hasOwnColour(colourRank.get(s) ?? Number.POSITIVE_INFINITY);
 
     // Rolling is computed here from n and denominator, never read from the cube: the cube carries
-    // counts only, so the window and the suppression guard stay changeable without a rebuild.
-    const valueAt = (month: string, s: string) => {
-      if (!rolling) {
-        const den = denominatorFor(month);
-        const n = nFor(month, s);
-        if (den === undefined || !den || n === undefined) return undefined;
-        return { share: n / den, n, denominator: den };
-      }
-      const r = rollingShare(month, first, (m) => nFor(m, s), denominatorFor);
-      return r ? { share: r.share, n: r.n, denominator: r.denominator } : undefined;
-    };
-
-    // The guard applies to whatever denominator the drawn figure actually rests on: the month's own
-    // when monthly, the window's when rolling. An absent figure is not suppressed, it is absent.
-    // Two guards, docs/METRICS.md: a precision floor on the denominator behind the drawn figure, and
-    // a representativeness floor against the month's own recent history. Neither implies the other.
-    const collapsed = (month: string) => collapsedAgainstTrailingMedian(month, denominatorFor, collapseFraction);
-
-    const basisDenominator = (month: string) => {
-      if (!rolling) return denominatorFor(month);
-      if (addMonths(month, -(TRAILING_MONTHS - 1)) < first) return undefined;
-      let total = 0;
-      for (const m of monthRange(addMonths(month, -(TRAILING_MONTHS - 1)), month)) {
-        const den = denominatorFor(m);
-        if (den === undefined) return undefined;
-        total += den;
-      }
-      return total;
-    };
+    // counts only, so the window and the suppression guard stay changeable without a rebuild. The guards apply to
+    // whatever denominator the drawn figure actually rests on (src/lib/shareline.ts): the month's own when monthly, the
+    // window's when rolling. Two guards, docs/METRICS.md: a precision floor on the denominator behind the drawn figure,
+    // and a representativeness floor against the month's own recent history. Neither implies the other.
+    const valueAt = (month: string, s: string) => figureAt(line, month, (k) => nFor(k, s));
 
     const points: Point[] = [];
     const bands: { x1: Date; x2: Date; y1: number; y2: number }[] = [];
     let runStart: string | null = null;
     const months = monthRange(win.from, win.to);
     for (const m of months) {
-      const basis = basisDenominator(m);
-      const thin = basis !== undefined && basis < minDenominator;
-      // The rolling figure spans a year, so one collapsed month does not make its window
-      // unrepresentative; the guard applies to the month's own share.
-      const greyed: Greyed | undefined = thin ? "thin" : !rolling && collapsed(m) ? "collapsed" : undefined;
+      const greyed: Greyed | undefined = greyedAt(line, m);
       const suppressed = greyed !== undefined;
       if (suppressed && runStart === null) runStart = m;
       if (!suppressed && runStart !== null) {
@@ -262,10 +238,11 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     // figure it shows, largest first, so the reader never has to re-sort it by eye.
     const summary = series
       .map((s) => {
-        const now = windowShare(addMonths(latest, -(TRAILING_MONTHS - 1)), latest, (m) => nFor(m, s), denominatorFor);
-        const before = windowShare(addMonths(latest, -(2 * TRAILING_MONTHS - 1)), addMonths(latest, -TRAILING_MONTHS), (m) => nFor(m, s), denominatorFor);
-        const shown = now.denominator >= minDenominator ? now.n / now.denominator : undefined;
-        return { series: s, before, shown, colour: colourOf(s), remainder: s === ALL_OTHER };
+        const now = keyWindow(line, addMonths(latest, -(TRAILING_MONTHS - 1)), latest, (m) => nFor(m, s));
+        const before = keyWindow(line, addMonths(latest, -(2 * TRAILING_MONTHS - 1)), addMonths(latest, -TRAILING_MONTHS), (m) => nFor(m, s));
+        // A window that reaches outside the dataset's months has no figure, and the key says so rather than suppress it.
+        const shown = now.missing === 0 && now.denominator >= minDenominator ? now.n / now.denominator : undefined;
+        return { series: s, before, shown, nowOutside: now.missing > 0, colour: colourOf(s), remainder: s === ALL_OTHER };
       })
       // Ordered by the figure it shows, largest first. The remainder is pinned last whatever its
       // size: it is what is left over, not a competitor, and sorting it among the named values
@@ -273,7 +250,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       .sort((a, b) => Number(a.remainder) - Number(b.remainder) || (b.shown ?? -1) - (a.shown ?? -1) || nameOrder(label(a.series), label(b.series)));
 
     return { win, full, rankWin, series, points, bands, summary, categories, defaultStart, colourOf, ownColour };
-  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, fullHistory, label]);
+  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, fullHistory, label, covers]);
 
   const selected = useMemo(
     () => (preset.events && events ? selectEvents(events, dimension.id, model.categories, `${model.win.from}-01`, manifest.latest_snapshot) : null),
@@ -322,8 +299,10 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       const marginTop = 24 + (laneCount - 1) * LANE_HEIGHT;
       // Reduced, not spread into Math.max: a breakdown with many values over a long period has more points than a
       // call can take as arguments, and the chart would fail to draw.
-      const highest = model.points.reduce((top, p) => Math.max(top, p.share ?? 0), 0.05);
+      // The axis is set by the points drawn in colour; greyed points are drawn within it and cut off at its edge (axisTop).
+      const highest = axisTop(model.points.map((p) => ({ value: p.share, grey: p.suppressed })), 0.05);
       const yMax = Math.min(1, highest * 1.05);
+      const inFrame = (p: Point) => Math.min(p.share as number, yMax);
       const bands = model.bands.map((b) => ({ ...b, y2: yMax }));
       const { ownColour } = model;
 
@@ -408,7 +387,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
               fontSize: 11,
             }),
           ),
-          Plot.lineY(model.points, { x: "date", y: "share", z: "series", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH }),
+          Plot.lineY(model.points, { x: "date", y: "share", z: "series", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH, clip: true }),
           Plot.lineY(contextPoints, {
             x: "date",
             y: "share",
@@ -431,13 +410,13 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
           Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: RULE_STRONG })),
           Plot.dot(
             model.points.filter((p) => p.share !== undefined),
-            Plot.pointer({ x: "date", y: "share", r: 4, fill: "series", stroke: PAPER, strokeWidth: 1.5 }),
+            Plot.pointer({ x: "date", y: inFrame, r: 4, fill: "series", stroke: PAPER, strokeWidth: 1.5 }),
           ),
           Plot.tip(
             model.points.filter((p) => p.share !== undefined),
             Plot.pointer({
               x: "date",
-              y: "share",
+              y: inFrame,
               ...tipStyle,
               title: (p: Point) =>
                 readout({
@@ -491,8 +470,8 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
           </tr>
         </thead>
         <tbody>
-          {model.summary.map(({ series, before, shown, colour, remainder }) => {
-            const beforeOk = before.denominator >= minDenominator;
+          {model.summary.map(({ series, before, shown, nowOutside, colour, remainder }) => {
+            const beforeOk = before.missing === 0 && before.denominator >= minDenominator;
             const changeShown = shown !== undefined && beforeOk;
             return (
               <tr key={series} className={remainder ? "remainder" : undefined}>
@@ -500,8 +479,10 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
                   <span className="swatch" style={{ background: colour }} aria-hidden="true" />
                   <span>{label(series)}</span>
                 </td>
-                <td className={shown === undefined ? "suppressed" : "figure"}>{shown === undefined ? "suppressed" : pct(shown)}</td>
-                <td className={changeShown ? "change" : "suppressed"}>{changeShown ? shareChange(shown - before.n / before.denominator) : "suppressed"}</td>
+                <td className={shown === undefined ? "suppressed" : "figure"}>{shown === undefined ? (nowOutside ? phrases.window_outside_data : "suppressed") : pct(shown)}</td>
+                <td className={changeShown ? "change" : "suppressed"}>
+                  {changeShown ? shareChange(shown - before.n / before.denominator) : nowOutside || before.missing > 0 ? phrases.window_outside_data : "suppressed"}
+                </td>
               </tr>
             );
           })}

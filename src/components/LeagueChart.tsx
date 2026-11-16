@@ -5,9 +5,9 @@ import { datasetWords, findDataset, findPeriod, phrases, yearChangeFloor } from 
 import type { Dimension, Preset } from "../lib/config";
 import { datasetFirstMonth } from "../lib/built";
 import type { Manifest, SliceRow } from "../lib/data";
-import { TRAILING_MONTHS, addMonths, monthLabel, monthRange, pct, shareChange } from "../lib/measures";
-import { fillTemplate, rankingText, rankingWindows, sayBadMonth } from "../lib/sentences";
-import { count, readout, spanPeriod } from "../lib/readout";
+import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, monthRange, pct, shareChange } from "../lib/measures";
+import { fillTemplate, rankingText, rankingWindows, rankingWords, sayBadMonth } from "../lib/sentences";
+import { count, greyedReason, readout, spanPeriod } from "../lib/readout";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
 import {
   FONT_TEXT,
@@ -18,12 +18,13 @@ import {
   REMAINDER,
   RULE,
   RULE_STRONG,
+  SUPPRESSED_LINE,
   chartHeight,
   plotStyle,
   seriesColour,
   tipStyle,
 } from "../lib/theme";
-import { leagueRows } from "../lib/league";
+import { leagueRows, rankingGuard } from "../lib/league";
 import type { LeagueRow } from "../lib/league";
 import { PlotFigure } from "./PlotFigure";
 
@@ -92,11 +93,23 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
   const yearFloor = yearChangeFloor();
 
+  // The floor a share is read against: the share measure's own, whatever the preset counts, since a ranking prints shares
+  // (docs/METRICS.md, "A ranking and the precision floor").
+  const floor = floorOf("share");
   const model = useMemo(() => {
     const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior, topN, nameOf: label, yearFloor });
     const items: LeagueItem[] = result.items.map((item, idx) => ({ ...item, colour: seriesColour(idx), isRemainder: false }));
-    return { items, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior, tiedBeyond: result.tiedBeyond };
-  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking]);
+    const guard = rankingGuard({
+      floor,
+      currentDenom: result.currentDenom,
+      priorDenom: result.priorDenom,
+      hasPrior: ranking.hasPrior,
+      ...rankingWords(phrases, { span, end, latest }),
+      single: span === 1,
+      phrases,
+    });
+    return { items, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior, tiedBeyond: result.tiedBeyond, guard: items.length > 0 ? guard : { shares: false, changes: false, sentence: undefined } };
+  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor]);
 
   const basis = ranking.text;
   const monthNotice = sayBadMonth(phrases.bad_month, month, end);
@@ -165,7 +178,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
           Plot.barX(model.items, {
             y: "name",
             x: isShare ? "share" : "n",
-            fill: "colour",
+            fill: isShare && model.guard.shares ? SUPPRESSED_LINE : "colour",
             insetTop: 2,
             insetBottom: 2,
             rx: 2,
@@ -202,9 +215,11 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
                   share: d.share,
                   n: d.n,
                   base: model.currentDenom,
+                  greyed: model.guard.shares ? "thin" : undefined,
+                  minDenominator: floor,
                   extra: [
                     move,
-                    ...(d.shareDelta !== undefined ? [`Change in share: ${shareChange(d.shareDelta)}`] : []),
+                    ...(d.shareDelta !== undefined ? [`Change in share: ${shareChange(d.shareDelta)}`, ...(model.guard.changes && !model.guard.shares ? [greyedReason("thin", floor)] : [])] : []),
                     ...(showYear ? yearLine(d) : []),
                   ],
                 });
@@ -214,7 +229,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         ],
       });
     },
-    [model, displayMode, currentFrom, end, showYear],
+    [model, displayMode, currentFrom, end, showYear, floor],
   );
 
   const countHead = (
@@ -284,6 +299,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
 
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
       <p className="chart-unit">{basis}</p>
+      {model.guard.sentence ? <p className="chart-unit">{model.guard.sentence}</p> : null}
 
       <PlotFigure
         render={render}
@@ -357,9 +373,19 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
                       {item.yearChange === undefined ? "—" : signed(item.yearChange)}
                     </td>
                   ) : null}
-                  <td className="figure">{pct(item.share)}</td>
-                  <td className="change" style={{ textAlign: "right" }}>
-                    {item.shareDelta === undefined ? "—" : shareChange(item.shareDelta)}
+                  <td className={model.guard.shares ? "figure greyed" : "figure"}>
+                    {model.guard.shares ? <span className="visually-hidden">Greyed: </span> : null}
+                    {pct(item.share)}
+                  </td>
+                  <td className={model.guard.changes && item.shareDelta !== undefined ? "change greyed" : "change"} style={{ textAlign: "right" }}>
+                    {item.shareDelta === undefined ? (
+                      "—"
+                    ) : (
+                      <>
+                        {model.guard.changes ? <span className="visually-hidden">Greyed: </span> : null}
+                        {shareChange(item.shareDelta)}
+                      </>
+                    )}
                   </td>
                   {showYear ? null : <td className="figure">{item.n.toLocaleString()}</td>}
                   <td style={{ textAlign: "right", color: "var(--ink-3)" }}>

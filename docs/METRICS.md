@@ -247,9 +247,9 @@ Source and method: `docs/DATA_SOURCES.md` §C (D-065, D-094). Measured on
 | Measure | Definition |
 |---|---|
 | Count | Number of vehicles matching the filters in the period. |
-| Share | Count ÷ count of all vehicles in the same dataset and month **that the view counts**. With no condition that is every vehicle of the dataset in the month. With a condition (a chart's own filter, or a condition on Build) it is the vehicles the condition keeps, and the page says so: "Only vehicles where ... are counted". A share inside a condition is therefore a share of the narrowed set, never of the whole month. Greyed or suppressed by the two guards below, place by place as "What a tripped guard does" says; the representativeness guard applies to monthly shares only, not to 12-month ones. |
+| Share | Count ÷ count of all vehicles in the same dataset and month **that the view counts**. With no condition that is every vehicle of the dataset in the month. With a condition (a chart's own filter, or a condition on Build) it is the vehicles the condition keeps, and the page says so: "Only vehicles where ... are counted". A share inside a condition is therefore a share of the narrowed set, never of the whole month. A share of no vehicles has no value: it is blank, never 0% (see "Months in which nothing is counted", below). Greyed or suppressed by the two guards below, place by place as "What a tripped guard does" says; the representativeness guard applies to monthly shares only, not to 12-month ones. |
 | Change on a year ago | (this month − same month last year) ÷ same month last year. Withheld (the page says the earlier month has too few vehicles) when the earlier count is under 50, and not given when the earlier month is not in the data. |
-| 12-month running total | Sum of the trailing 12 months inclusive of the current month. A window missing any of its months has no total: the line breaks. |
+| 12-month running total | Sum of the trailing 12 months inclusive of the current month. A month inside the dataset's months in which nothing is counted reads zero ("Months in which nothing is counted", below). A window with a month outside them, or one the source does not record, has no total: the line breaks. |
 
 **The last 12 months and the 12 months before** are counted back from each
 dataset's own newest month (`latest_month` in the manifest), not from the
@@ -262,6 +262,36 @@ same months a year earlier.
 
 **Share changes are always expressed in percentage points.** 10% to 15% is
 +5pp. Enforce in the formatter, not per chart.
+
+### Months in which nothing is counted (D-109)
+
+A view can keep no vehicles in a month: a chart's own filter, or a Build condition, that nothing in that month meets. Such a month
+has **no rows** in what the page loads. Whether it is a month of zero vehicles or a month the data lacks depends on where it lies:
+
+- **Inside the dataset's own months it is a month of zero vehicles**, never a missing month. The dataset's months run from its
+  first month (the start of its supplied file, or otherwise the earliest month in which it has vehicles, read from the data the
+  view loads: `datasetFirstMonth`, `loadFirstMonth`) to its newest (`latest_month` in the manifest). Every month after the first,
+  with or without rows, is inside. Where the first month is not known, nothing is taken to be inside.
+- **Outside them it is missing**: a month before the dataset's first month. A figure that needs it has no value.
+- **A share of no vehicles has no value.** Where a whole window holds no vehicles in what is counted, the share is blank. It is
+  never drawn or printed as 0%.
+
+Every figure that sums a window over rows a condition can thin out reads that rule, and nothing else decides it. A window that
+holds vehicles but fewer than the floor is still greyed by the precision floor, with the zero months in its total.
+
+| Figure | Reads |
+|---|---|
+| A share over time drawn as a 12-month share (the line, its hover, and the peak that decides which lines take a colour) | Months with no rows inside the dataset count as zero in the window. Blank where the window reaches outside the dataset's months, or holds no vehicles. |
+| The precision floor on that share | The window's vehicles, zero months included. A window under the floor, one that holds none included, is greyed; the figure is still drawn where there is one. |
+| The representativeness floor on a monthly share, and the top-5 share's | The median of the 12 months before, with a month inside the dataset that has no rows as zero. It does not fire where one of the 12 is outside the dataset, or the median is zero. A month with no rows of its own has no share and no grey. |
+| The last 12 months and the 12 months before, in the key under a share chart | Zero months inside the dataset are zero. A window that reaches outside the dataset's months has no figure and the key says so. |
+| The year before, of a ranking | As "Ranking and ties", below: the earlier window must lie wholly inside the dataset's months. |
+| A count's 12-month running total, and a count line | A month with no rows inside the dataset reads zero. A month outside it, or one the source does not record, is a gap, and a window with one has no total. |
+| The change on a year ago for one month's count (the answer sentence and the hover) | Read from rows that have one row for each month (a total, or the fact table's rows with no breakdown), so a month with nothing is a zero there and a month before the dataset is absent: no change. Already as this rule says. |
+| The combined share of the largest five | A monthly figure, not a window: a month with no vehicles has no share. Its representativeness floor reads the row above. |
+| The default start of an all-time share chart | Found on the same 12-month shares, so a window reads as the first row says. |
+
+A **monthly** share has no window. A month with no rows has no share (no vehicles), and is not greyed.
 
 ### Ranking and ties (D-107)
 
@@ -276,10 +306,8 @@ match, beyond the cap, and any other the cube reserves). A value with no vehicle
 - **A move** is the rank a year before minus the rank now, both shared ranks. Entries tied now move together unless they were
   not tied then.
 - **The rank a year before** is the rank in the same months a year earlier, ranked by the same rule.
-- **Whether there is a year-before comparison** is decided by the dataset's own months, not by which months a narrowed view
-  has rows for. The earlier window must lie wholly inside the months the dataset covers: from its first month (the start of
-  its supplied file, or otherwise the earliest month in which it has vehicles, read from the data the view loads) to its
-  newest. Every month after the first, with or without rows, is inside the dataset. If it does not, the
+- **Whether there is a year-before comparison** is decided by the dataset's own months ("Months in which nothing is counted",
+  above), not by which months a narrowed view has rows for. The earlier window must lie wholly inside them. If it does not, the
   ranking has no rank a year before, no move, no change in share and no change on a year ago, and says so; none of the four
   is shown. If it does, all four are shown, and a month in which a condition keeps no vehicles, which has no rows, counts as a
   month of zero vehicles. An entry with no vehicles in the earlier window has no rank then and reads as new; its change on a
@@ -295,6 +323,27 @@ match, beyond the cap, and any other the cube reserves). A value with no vehicle
   order of labels at the end of the lines, the map's table, the names the top-5 readout lists), equal counts are ordered
   alphabetically by the name shown, with the raw key last. These are orders, not ranks: no rank is shown and a tie is not
   marked. On a chart that keeps only its largest values, a tie at the cut takes the alphabetically first value.
+
+### A ranking and the precision floor (D-109)
+
+A ranking prints shares and changes in share, so it reads the precision floor like any other share, and greys what it prints
+where its base is too small. The floor is the share measure's own (`min_denominator` in `config/measures.json`, 200 vehicles), read
+against the **total of the window the ranking ranks**, the same way as everywhere else a window is tested: a single month against
+that month's vehicles, and the 12 months ending in a month against the 12 months' total. It is not multiplied by 12 for a
+window of 12: the key under a share chart, a bar chart over a period and the map already test one window's total against the one
+floor, and `/method` says the floor applies to the 12 months' total. The definitions settle this, so the reading that would
+grey more (a floor of 12 times 200) is not taken.
+
+- **The window ranked is under the floor.** Every share is greyed, and so is every change in share, since a change reads this
+  window's share. The bars are grey where they show shares. One sentence says how many vehicles the ranking rests on and the
+  floor.
+- **Only the earlier window is under the floor** (it holds some vehicles, fewer than the floor). The shares stand; the changes in
+  share are greyed, with a sentence of their own. An earlier window with no vehicles gives no change in share at all (a share of
+  no vehicles has no value), so nothing is greyed there.
+- **Nothing is hidden.** Ranks, moves, counts, shares and changes are printed as before; greying changes how they look and what
+  the hover says, not whether they are there. A change on a year ago has its own guard (the measure's floor) and is unchanged.
+- The floor is the share measure's whichever measure the chart counts, because the shares in a ranking's table are shares of a
+  window whatever the bars show.
 
 ### Two suppression guards
 
@@ -328,14 +377,23 @@ listed in the decision record D-107.
 
 | Place | Precision floor (under the minimum vehicles) | Representativeness floor |
 |---|---|---|
-| A share over time, month by month, or as a share of the last 12 months: the line, and the top-5 share line | The month is **greyed**. The coloured line is not drawn through it. A thin grey line carries the figure and a shaded band marks a run of greyed months. The test is on the denominator behind the drawn figure: the month's own, or the 12 months' total for a 12-month share. | Tested on the month's own denominator, for **monthly** shares only. A 12-month share is not tested. Greyed in the same way. |
+| A share over time, month by month, or as a share of the last 12 months: the line, and the top-5 share line | The month is **greyed**. The coloured line is not drawn through it. A thin grey line carries the figure and a shaded band marks a run of greyed months. The test is on the denominator behind the drawn figure: the month's own, or the 12 months' total for a 12-month share, a month with no vehicles in it counted as zero. | Tested on the month's own denominator, for **monthly** shares only. A 12-month share is not tested. Greyed in the same way. |
 | The reading shown on hover over a point, on any chart | The figure and the vehicles behind it are printed, then "Greyed: fewer than N vehicles behind this figure". | The figure and vehicles, then "Greyed: far fewer vehicles than the months before, so it may not describe a normal month". If both trip, the precision reason is the one given. |
 | The table of figures under the top-5 share line | Every month with a figure is listed with its share and its vehicles, and a Note column carries the grey reason. The figure is **printed**. | The same. |
 | The key under a chart of shares over time (the last 12 months, and the change on the 12 months before) | The 12-month share is **suppressed** if that window's vehicles are under the floor. The change is suppressed if either window is. | Not tested: a window is not a month. |
 | A bar chart by band, and the map (a share over one period) | Tested on the whole period's vehicles. If under the floor, every bar or region is **greyed**, the hover reading carries the reason, the line above the chart says "greyed: under N", and the table of figures prints the share as **suppressed** (the count is printed). | Not tested. |
-| A ranking | **Neither guard is applied.** A ranking's shares, its change in share and its moves are always printed, whatever the base. | Not applied. |
+| A ranking | The ranking's window holds fewer vehicles than the floor: every share and every change in share is **greyed** (printed, in grey, the bars grey when they show shares, the hover reading carrying the reason), with one sentence under the chart saying how few vehicles it rests on. Where only the earlier window it is compared with is under the floor, the changes in share alone are greyed. No rank, move or figure is withheld. See "A ranking and the precision floor", below. | Not applied: a window is not a month. |
 | An answer sentence, or the reading on a count | These are counts, not shares, and carry neither guard. The change on a year ago is the only withheld figure: under 50 vehicles in the earlier month it is not given and the sentence says there are too few vehicles to compare with. | None. |
 | A count, or a 12-month running total | A count carries no share guard. | None. |
+
+**A greyed figure and the vertical axis (D-109, review of #69).** The vertical axis of a share-over-time chart (the lines of a
+share, the top-5 share line) is set by the points drawn in colour, the ones the guards do not grey. A greyed point can be far
+higher than any of them (a month of a few vehicles in the register's early years, or a window with one vehicle of a small
+group), and would otherwise stretch the axis until the lines that carry the chart are squeezed. Greyed points are drawn within
+that frame and cut off at its edge; the hover and the table of figures still give a greyed figure in full, and the grey note says
+a greyed figure above the scale is cut off. Where no point is drawn in colour (everything is greyed), the axis is set by what there
+is. A count line carries no share guard, so nothing on it is greyed; the bar chart, the map and a ranking grey all their bars or
+none, and so set their scale by all of them or, when greyed, by what there is.
 
 A condition (a chart's own filter, or a Build condition) changes what the
 denominator is, not what the guards do: both are tested on the narrowed set, as
@@ -606,9 +664,18 @@ with its own vintage; label the estimate year on the chart.
   recorded, while the brand dimension shows "No reference match" for the same
   vehicle. A vehicle with no make or no model has the model "Not recorded".
 
+- **Reserved values in Build (D-109).** Build offers the two reserved values that say something true of the vehicles they hold, and
+  not the third. *Not recorded* (the source gave no value) and *no reference match* (a value the reference has no row for) are
+  offered like any value: as a value to compare, and as a condition. *Beyond the cap* is where a cardinality cap puts the values
+  below it, which are not a group of vehicles and move with the cap's basis; it is not offered to compare or as a condition, and a
+  ranking gives it no place. A link that names it for either is not refused: the value is left out, the address is corrected, and the
+  page says so in a sentence from config (`builder.notices.left_out`). A condition left with no value keeps every vehicle and is
+  held empty on the page, as a condition with no value yet is.
+
 ## Estimation rules
 
-- Never interpolate a missing month. Render a gap.
+- Never interpolate a missing month. Render a gap. A month inside the dataset in which nothing is counted is not missing: it is zero
+  ("Months in which nothing is counted").
 - Never extrapolate beyond the latest snapshot.
 - Grey or suppress rather than round to zero: a figure under a guard is never
   drawn or printed as 0 (`What a tripped guard does`, above).

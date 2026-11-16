@@ -17,9 +17,12 @@ import type { Manifest, SliceRow } from "../lib/data";
 import { nameOrder } from "../lib/ranking";
 import { derivedSeries, isRatioMeasure, ratioSeries } from "../lib/derived";
 import { isolatedMonths, lineMonths } from "../lib/ratio";
+import { axisTop } from "../lib/shareline";
+import { zeroInside } from "../lib/rolling";
+import type { Covers } from "../lib/rolling";
 import type { RatioPoint, RatioSeries } from "../lib/derived";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
-import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, monthDate, monthLabel, monthRange, pct, periodWindow } from "../lib/measures";
+import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, counted, monthDate, monthLabel, monthRange, pct, periodWindow, windowTotal } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count, greyedReason, monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
@@ -48,6 +51,9 @@ type Props = {
   preset: Preset;
   rows: SliceRow[];
   manifest: Manifest;
+  // The months the dataset covers: a month inside them in which the view has no rows holds no vehicles, so a count reads zero
+  // there and a window counts it as zero (docs/METRICS.md, "Months in which nothing is counted").
+  covers?: Covers;
   minDenominator: number;
   collapseFraction: number;
   lead?: boolean;
@@ -199,7 +205,7 @@ type ValuePoint = { month: string; date: Date; series: string; y?: number };
 // One count line per chosen value. Colours go by vehicles in the last 12 months, largest first, the rule the mix chart
 // uses for its first slots, so a value shown as a share and as a count wears the same colour in both. A count carries
 // no share guard, so nothing is greyed.
-function ValuesTrend({ preset, rows, manifest, lead = false, label = asIs, values }: Props & { values: string[] }) {
+function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asIs, values }: Props & { values: string[] }) {
   const rolling = preset.measure === "rolling_12m";
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
@@ -213,26 +219,17 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = asIs, value
     // A month the source records nothing of for this breakdown is a gap too: its vehicles sit under the not-recorded token,
     // so a value would read zero there when the truth is that nobody knows.
     const unrecorded = new Set(unrecordedMonths(rows));
-    // A month absent from the data is a gap, never a zero: METRICS.md, never interpolate a missing month.
-    const at = (m: string, s: string) => (present.has(m) && !unrecorded.has(m) ? (cell.get(`${m}|${s}`) ?? 0) : undefined);
+    // A month outside the dataset's months is a gap, never a zero: METRICS.md, never interpolate a missing month. A month inside
+    // them in which the view has no rows holds no vehicles, so it is a zero.
+    const reader = (s: string) => counted((m) => present.has(m), covers, (m) => unrecorded.has(m), (m) => cell.get(`${m}|${s}`));
     const points: ValuePoint[] = [];
     for (const s of values) {
-      for (const m of monthRange(win.from, win.to)) {
-        let y = at(m, s);
-        if (rolling) {
-          const trailing = monthRange(addMonths(m, -11), m).map((k) => at(k, s));
-          y = trailing.every((v) => v !== undefined) ? trailing.reduce((a, b) => (a as number) + (b as number), 0) : undefined;
-        }
-        points.push({ month: m, date: monthDate(m), series: s, y });
-      }
+      const at = reader(s);
+      for (const m of monthRange(win.from, win.to)) points.push({ month: m, date: monthDate(m), series: s, y: rolling ? windowTotal(m, at) : at(m) });
     }
     const latest = latestMonthOf(preset, manifest);
-    const lastYear = monthRange(addMonths(latest, -11), latest);
     // The last year's figure is a whole year's or none: a month the source does not record, or the data lacks, is not a zero.
-    const totals = values.map((s) => {
-      const months = lastYear.map((m) => at(m, s));
-      return { series: s, n: months.every((v) => v !== undefined) ? months.reduce((sum, v) => (sum as number) + (v as number), 0) : undefined } as { series: string; n?: number };
-    });
+    const totals = values.map((s): { series: string; n?: number } => ({ series: s, n: windowTotal(latest, reader(s)) }));
     // The stretches of the drawn window that are left blank because the source does not record them, and the months in which
     // the published parts add up to more than the month's total (read from the manifest, not from the sums).
     const runs = monthRuns([...unrecorded].filter((m) => m >= win.from && m <= win.to));
@@ -241,7 +238,7 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = asIs, value
       (m) => m >= win.from && m <= win.to,
     );
     return { win, points, totals, unrecorded, runs, exceeding };
-  }, [rows, preset, manifest, values, rolling]);
+  }, [rows, preset, manifest, values, rolling, covers]);
 
   const colour = useCallback(
     (s: string) => seriesColour([...model.totals].sort((a, b) => (b.n ?? -1) - (a.n ?? -1) || nameOrder(label(a.series), label(b.series))).findIndex((t) => t.series === s)),
@@ -339,7 +336,7 @@ function ValuesTrend({ preset, rows, manifest, lead = false, label = asIs, value
   );
 }
 
-function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, lead = false, label = asIs, month, onMonth, after }: Props) {
+function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFraction, lead = false, label = asIs, month, onMonth, after }: Props) {
   const derived = preset.derived ? findDerived(preset.derived) : undefined;
   const share = derived?.unit === PERCENT;
   const words = datasetWords(preset.dataset);
@@ -355,6 +352,8 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
     const denominators = new Map<string, number>();
     for (const r of rows) denominators.set(r.month, r.denominator);
     const denominatorFor = (m: string) => denominators.get(m);
+    // What the representativeness guard's median reads: a month inside the dataset's months with no rows is a month of zero.
+    const windowed = zeroInside(denominatorFor, covers);
 
     const byMonth = new Map<string, number>();
     const detail = new Map<string, string[]>();
@@ -377,13 +376,12 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
     const points: Point[] = [];
     const bands: { x1: Date; x2: Date }[] = [];
     let runStart: string | null = null;
+    // A count over a month inside the dataset's months with no rows is zero; a share of no vehicles has no value, so a derived
+    // series keeps the months it has a figure for.
+    const countAt = counted((m) => byMonth.has(m), series ? undefined : covers, () => false, (m) => byMonth.get(m));
     for (const m of monthRange(win.from, win.to)) {
-      let y = byMonth.get(m);
-      if (preset.measure === "rolling_12m") {
-        const trailing = monthRange(addMonths(m, -11), m).map((k) => byMonth.get(k));
-        // A running total needs all 12 months; a missing month leaves a gap, never an interpolation.
-        y = trailing.every((v) => v !== undefined) ? trailing.reduce((a, b) => (a as number) + (b as number), 0) : undefined;
-      }
+      // A running total needs all 12 months; a missing month leaves a gap, never an interpolation.
+      const y = preset.measure === "rolling_12m" ? windowTotal(m, countAt) : countAt(m);
       // A share carries both guards; a count is a count and carries neither.
       const den = denominatorFor(m);
       const greyed: Greyed | undefined =
@@ -391,7 +389,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
           ? undefined
           : den < minDenominator
             ? "thin"
-            : collapsedAgainstTrailingMedian(m, denominatorFor, collapseFraction)
+            : collapsedAgainstTrailingMedian(m, windowed, collapseFraction)
               ? "collapsed"
               : undefined;
       const suppressed = greyed !== undefined;
@@ -404,7 +402,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
     }
     if (runStart !== null) bands.push({ x1: monthDate(runStart), x2: monthDate(addMonths(win.to, 1)) });
     return { win, points, bands, byMonth };
-  }, [rows, preset, manifest, share, minDenominator, collapseFraction]);
+  }, [rows, preset, manifest, share, minDenominator, collapseFraction, covers]);
 
   // The answer: the count for one month, against the same month a year earlier. Months come from the points that have a
   // figure, newest first, so the choice offers only months the data has.
@@ -420,8 +418,10 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
 
   const render = useCallback(
     (width: number) => {
-      const top = model.points.reduce((most, p) => Math.max(most, p.y ?? 0), 0.01);
+      // The axis is set by the points drawn in colour; greyed points are drawn within it and cut off at its edge (shareline.ts, axisTop).
+      const top = axisTop(model.points.map((p) => ({ value: p.y, grey: p.suppressed })), 0.01);
       const yMax = share ? Math.min(1, top * 1.05) : top * 1.05;
+      const inFrame = (p: Point) => Math.min(p.y as number, yMax);
       const format = share ? (d: number) => `${Math.round(d * 100)}%` : (d: number) => d.toLocaleString();
       return Plot.plot({
         width,
@@ -445,7 +445,7 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: format }),
           Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
           Plot.ruleY([0], { stroke: RULE_STRONG }),
-          Plot.lineY(model.points, { x: "date", y: "y", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH }),
+          Plot.lineY(model.points, { x: "date", y: "y", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH, clip: true }),
           Plot.lineY(
             model.points.map((p) => (p.suppressed ? { ...p, y: undefined } : p)),
             { x: "date", y: "y", stroke: SERIES[0], strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" },
@@ -453,13 +453,13 @@ function OneTrend({ preset, rows, manifest, minDenominator, collapseFraction, le
           Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: RULE_STRONG })),
           Plot.dot(
             model.points.filter((p) => p.y !== undefined),
-            Plot.pointerX({ x: "date", y: "y", r: 4, fill: SERIES[0], stroke: PAPER, strokeWidth: 1.5 }),
+            Plot.pointerX({ x: "date", y: inFrame, r: 4, fill: SERIES[0], stroke: PAPER, strokeWidth: 1.5 }),
           ),
           Plot.tip(
             model.points.filter((p) => p.y !== undefined),
             Plot.pointerX({
               x: "date",
-              y: "y",
+              y: inFrame,
               ...tipStyle,
               title: (p: Point) =>
                 readout({

@@ -3,6 +3,7 @@
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { builderSpec, datasetWords, dimensionLabel, findDataset, valueWords } from "../lib/config";
+import { isChoosable } from "../lib/reserved";
 import { MAX_VALUES, builderPresets, questionParams, readQuestion, readingNotes, settle, viewsFor } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
@@ -45,7 +46,7 @@ async function valueOptions(dataset: string, dimension: string, where: Record<st
     if (r.month >= from && r.month <= latest) o.recent += r.n;
     byValue.set(r.value, o);
   }
-  return [...byValue.values()].filter((o) => o.total > 0).sort((a, b) => b.recent - a.recent || b.total - a.total || a.value.localeCompare(b.value));
+  return [...byValue.values()].filter((o) => o.total > 0 && isChoosable(o.value)).sort((a, b) => b.recent - a.recent || b.total - a.total || a.value.localeCompare(b.value));
 }
 
 function failureHint(e: unknown): string {
@@ -196,10 +197,11 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const [notices, setNotices] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     const asked = readQuestion(window.location.search);
-    const note = readingNotes(all, asked, settle(all, asked));
+    const note = readingNotes(all, asked, settle(all, asked), valueLabel);
     return [
       ...(note.dataset ? [fillNote(builderSpec.notices.dataset, note.dataset).text] : []),
       ...(note.by ? [fillNote(builderSpec.notices.by, note.by).text] : []),
+      ...(note.left_out ?? []).map((left) => fillNote(builderSpec.notices.left_out, left).text),
     ];
   });
   // What the chosen dataset offers: its measures, and the conditions its fact table can apply.

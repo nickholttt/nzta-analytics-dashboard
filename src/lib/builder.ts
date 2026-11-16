@@ -8,6 +8,7 @@ import { isBuilt } from "./data";
 import type { Manifest } from "./data";
 import { monthLabel } from "./measures";
 import { drawnShapes, inferShape, questionFacts, resolvePreset } from "./resolve";
+import { isChoosable } from "./reserved";
 import { needsBreakdown } from "./shapes";
 
 export type Question = {
@@ -176,8 +177,14 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   const by = dimension ? dimension.id : m.allowsTotal && (q.by === null || q.by === undefined) ? null : (m.dimensions[0]?.id ?? null);
   const takesValues = Boolean(by && m.dimensions.find((d) => d.id === by)?.values);
   const onBreakdown = by ? (q.where?.[by] ?? []) : [];
-  const where = Object.fromEntries(Object.entries(q.where ?? {}).filter(([d, kept]) => d !== by && kept.length > 0));
-  const asked = q.values?.length ? q.values : onBreakdown;
+  // A value the page does not offer to choose (the one a cap collapses to) is left out of the values and the conditions: the page says so
+  // (readingNotes), as it does for a breakdown it does not have.
+  const where = Object.fromEntries(
+    Object.entries(q.where ?? {})
+      .filter(([d, kept]) => d !== by && kept.length > 0)
+      .map(([d, kept]) => [d, kept.filter(isChoosable)]),
+  );
+  const asked = (q.values?.length ? q.values : onBreakdown).filter(isChoosable);
   const values = takesValues ? [...new Set(asked)].slice(0, MAX_VALUES) : [];
   const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, where, view: null };
   return { ...settled, view: q.view && viewsFor(settled).includes(q.view) ? q.view : null };
@@ -188,10 +195,28 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
 // A label as it reads inside a sentence.
 const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
-export type Reading = { dataset?: { asked: string; shown: string }; by?: { asked: string; dataset: string; shown: string } };
+export type Reading = {
+  dataset?: { asked: string; shown: string };
+  by?: { asked: string; dataset: string; shown: string };
+  // Values the link named that the page does not offer to choose, each with the field it was named for.
+  left_out?: { asked: string; field: string }[];
+};
 
-export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled: Question): Reading {
+export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled: Question, label: (value: string, dimension: string) => string = (v) => v): Reading {
   const note: Reading = {};
+  const named = [
+    ...(asked.by && asked.values ? asked.values.map((v) => ({ v, d: asked.by as string })) : []),
+    ...Object.entries(asked.where ?? {}).flatMap(([d, kept]) => kept.map((v) => ({ v, d }))),
+  ].filter(({ v }) => !isChoosable(v));
+  if (named.length) {
+    const seen = new Set<string>();
+    note.left_out = named.flatMap(({ v, d }) => {
+      const key = `${d}|${v}`;
+      if (seen.has(key)) return [];
+      seen.add(key);
+      return [{ asked: label(v, d), field: lowerFirst(dimensionLabel(d) ?? d) }];
+    });
+  }
   if (asked.dataset && asked.dataset !== settled.dataset) {
     note.dataset = { asked: lowerFirst(findDataset(asked.dataset)?.public_label ?? asked.dataset), shown: lowerFirst(datasetName(settled.dataset)) };
   }
