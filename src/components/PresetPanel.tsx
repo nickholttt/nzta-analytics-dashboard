@@ -109,7 +109,9 @@ export default function PresetPanel({
     }
     const observer = new IntersectionObserver(
       (seen) => {
-        if (seen.some((s) => s.isIntersecting)) setNear(true);
+        // The latest state, not the first sight: while the page's islands are still mounting every panel is briefly
+        // near the top, and that must not count once the layout has settled.
+        setNear(seen[seen.length - 1].isIntersecting);
       },
       { rootMargin: "100% 0px" },
     );
