@@ -45,15 +45,25 @@ test("the note on a capped dimension names the count its dataset ranks by, from 
   assert.equal(new Set(counts).size, counts.length, "no two datasets share one: each says its own");
 });
 
-test("the note under a 12-month share says a point is blank for a month with no vehicles in what is counted, as well as for a missing month", () => {
+test("the note under a 12-month share says what a window with no vehicles in a month does, when it is left blank, and names no month or figure", () => {
   for (const key of ["rolling_share_note", "rolling_share_note_internal"]) {
     const filled = fillTemplate(phrases[key], { months: 12 });
     assert.deepEqual(filled.unresolved, [], key);
-    assert.match(filled.text, /no vehicles in what is counted/, key);
-    assert.match(filled.text, /missing/, key);
+    if (key === "rolling_share_note") {
+      // A month in which nothing is counted adds none to the share; the point is blank only for a window with no vehicles at all,
+      // or one that starts before the data does.
+      assert.match(filled.text, /no vehicles are counted adds nothing/, key);
+      assert.match(filled.text, /its 12 months hold no vehicles in what is counted/, key);
+      assert.match(filled.text, /or start before the data does/, key);
+    } else {
+      assert.match(filled.text, /counts as zero in a window/, key);
+      assert.match(filled.text, /no vehicles at all/, key);
+      assert.match(filled.text, /before the dataset's first month/, key);
+    }
     assert.doesNotMatch(phrases[key], /\d/, "the number of months comes in as a placeholder");
   }
   const mix = read("src/components/MixChart.tsx");
   assert.match(mix, /fillTemplate\(phrases\.rolling_share_note, \{ months: TRAILING_MONTHS \}\)/);
   assert.doesNotMatch(mix, /is missing from the data/);
+  assert.doesNotMatch(mix, /has no vehicles in what is counted, or is missing/);
 });

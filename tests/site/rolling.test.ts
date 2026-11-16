@@ -3,8 +3,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { isReserved, rollingMix } from "../../src/lib/rolling.ts";
+import type { Covers } from "../../src/lib/rolling.ts";
 import { monthKey } from "../../src/lib/monthkey.ts";
-import { addMonths } from "../../src/lib/sentences.ts";
+import { addMonths, monthRange } from "../../src/lib/sentences.ts";
 
 type Row = { month: string; value: string; n: number; denominator: number };
 
@@ -14,15 +15,23 @@ const between = (lo: number, hi: number) => lo + Math.floor(random() * (hi - lo 
 const key = (y: number, m: number) => `${y}-${String(m).padStart(2, "0")}`;
 
 // The definition in words: for each month that has a figure, the twelve months ending there must all have a figure and
-// start no earlier than the first month, and their denominators must reach the floor; each value's share is its count
-// over those months (a row repeated for a month and value: the last one stands) divided by the window's denominators.
-function plain(rows: Row[], floor: number, window: number) {
+// start no earlier than the first month, and their denominators must reach the floor and not be zero (a share of no vehicles has
+// no value); each value's share is its count over those months (a row repeated for a month and value: the last one stands)
+// divided by the window's denominators. With the dataset's months known (`covers`), every month of them is a month of the
+// series, and one with no row at all holds no vehicles: its denominator is zero (docs/METRICS.md, "Months in which nothing is
+// counted"). A month whose rows all carry a reserved value is neither, as before. The reference was changed for this on
+// purpose: it used to skip a window with a month it had no row for, and to give NaN for a window of zero vehicles.
+function plain(rows: Row[], floor: number, window: number, covers?: Covers) {
   const usable = rows.filter((r) => !isReserved(r.value));
   const denominator = new Map<string, number>();
   const count = new Map<string, number>();
   for (const r of usable) {
     denominator.set(r.month, r.denominator);
     count.set(JSON.stringify([r.month, r.value]), r.n);
+  }
+  if (covers) {
+    const anyRow = new Set(rows.map((r) => r.month));
+    for (const m of monthRange(covers.first, covers.last)) if (!anyRow.has(m)) denominator.set(m, 0);
   }
   const months = [...denominator.keys()].sort();
   const values = [...new Set(usable.map((r) => r.value))];
@@ -33,7 +42,7 @@ function plain(rows: Row[], floor: number, window: number) {
     if (window_[0] < months[0]) continue;
     if (window_.some((m) => !denominator.has(m))) continue;
     const total = window_.reduce((s, m) => s + (denominator.get(m) as number), 0);
-    if (total < floor) continue;
+    if (total === 0 || total < floor) continue;
     out.push({ month, shares: values.map((v) => window_.reduce((s, m) => s + (count.get(JSON.stringify([m, v])) ?? 0), 0) / total) });
   }
   return out;
@@ -41,11 +50,12 @@ function plain(rows: Row[], floor: number, window: number) {
 
 const VALUES = ["A", "B", "C|D", "E|", "__UNDEFINED__", "__UNMAPPED__", "__OTHER__"];
 
-function series(): Row[] {
+function series(): { rows: Row[]; covers: Covers } {
   const rows: Row[] = [];
   let y = between(1990, 2020);
   let m = between(1, 12);
   const months = between(0, 45);
+  const first = key(y, m);
   for (let i = 0; i < months; i++, m++) {
     if (m > 12) (m = 1), y++;
     if (random() < 0.1) continue; // a month with no rows at all
@@ -53,15 +63,16 @@ function series(): Row[] {
     for (const v of VALUES) if (random() < 0.8) rows.push({ month: key(y, m), value: v, n: between(0, 300), denominator });
     if (random() < 0.15) rows.push({ month: key(y, m), value: "A", n: between(0, 300), denominator }); // repeated: the last stands
   }
-  return rows;
+  return { rows, covers: { first, last: addMonths(first, months - 1) } };
 }
 
-test("the rolling mix equals the plain definition over a few thousand seeded series, windows of 12 and 3", () => {
+test("the rolling mix equals the plain definition over a few thousand seeded series, windows of 12 and 3, with and without the dataset's months", () => {
   for (let i = 0; i < 2500; i++) {
-    const rows = series();
+    const { rows, covers } = series();
     const floor = between(0, 6000);
     const window = i % 4 === 0 ? 3 : 12;
     assert.deepEqual(rollingMix(rows, floor, window), plain(rows, floor, window), `series ${i}`);
+    assert.deepEqual(rollingMix(rows, floor, window, covers), plain(rows, floor, window, covers), `series ${i} with its months`);
   }
 });
 

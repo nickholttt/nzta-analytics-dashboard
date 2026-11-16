@@ -13,6 +13,7 @@ import { chartDefaults } from "./config";
 import type { Dimension } from "./config";
 import { TRAILING_MONTHS } from "./measures";
 import { isReserved, rollingMix } from "./rolling";
+import type { Covers } from "./rolling";
 import type { SliceRow } from "./data";
 
 const rules = chartDefaults.mix_default_start;
@@ -25,15 +26,15 @@ export const appliesTo = (dimension?: Dimension) =>
 // in 1977 before the run that begins in 2009 and never breaks.
 // The start an all-time mix chart opens on, when it is later than the first month with data. The panel
 // labels its range options from it and the chart draws from it, so both name the same month.
-export function compositionStart(rows: SliceRow[], dimension: Dimension | undefined, minDenominator: number): string | undefined {
+export function compositionStart(rows: SliceRow[], dimension: Dimension | undefined, minDenominator: number, covers?: Covers): string | undefined {
   if (!appliesTo(dimension) || rows.length === 0) return undefined;
   const first = rows.reduce((m, r) => (r.month < m ? r.month : m), rows[0].month);
-  const start = defaultStartMonth(rows, minDenominator);
+  const start = defaultStartMonth(rows, minDenominator, covers);
   return start && start > first ? start : undefined;
 }
 
-export function defaultStartMonth(rows: SliceRow[], minDenominator: number): string | undefined {
-  const mix = rollingMix(rows, minDenominator, TRAILING_MONTHS);
+export function defaultStartMonth(rows: SliceRow[], minDenominator: number, covers?: Covers): string | undefined {
+  const mix = rollingMix(rows, minDenominator, TRAILING_MONTHS, covers);
   const qualifies = mix.map((m) => m.shares.filter((s) => s > rules.min_share).length >= rules.min_categories);
   for (let i = 0; i + rules.sustain_months <= qualifies.length; i++) {
     if (qualifies.slice(i, i + rules.sustain_months).every(Boolean)) return mix[i].month;

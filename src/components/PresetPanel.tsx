@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
+import { datasetFirstMonth } from "../lib/built";
 import { compositionStart } from "../lib/composition";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
@@ -261,6 +262,9 @@ export default function PresetPanel({
   const derived = findDerived(effectivePreset.derived);
   const served = servedFrom(effectivePreset.dataset, manifest);
   const dsManifest = served ? manifest.datasets[served] : undefined;
+  // The months the dataset covers, for every figure that sums a window: a month inside them in which a condition keeps nothing has
+  // no rows and holds no vehicles (docs/METRICS.md, "Months in which nothing is counted").
+  const covers = { first: datasetFirstMonth(dsManifest, firstMonth), last: latestMonthOf(effectivePreset, manifest) };
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
   const label = labelFor(dimension?.id, relabels ? (coverage as { label: string }).label : undefined);
@@ -371,6 +375,7 @@ export default function PresetPanel({
           rows={rows}
           manifest={manifest}
           events={events}
+          covers={covers}
           minDenominator={guard}
           collapseFraction={collapseFraction}
           label={label}
@@ -398,6 +403,7 @@ export default function PresetPanel({
           preset={effectivePreset}
           rows={rows}
           manifest={manifest}
+          covers={covers}
           minDenominator={guard}
           collapseFraction={collapseFraction}
           lead={lead}
@@ -464,7 +470,7 @@ export default function PresetPanel({
   // One row of time options. An all-time mix chart that opens on a later start names that start, and
   // offers the full record as its own option, so no two buttons say the same thing. A period that ranks
   // the chart comes last: it draws a different chart, not a shorter span of the same one.
-  const start = shape === "mix" && rows ? compositionStart(rows, dimension, guard) : undefined;
+  const start = shape === "mix" && rows ? compositionStart(rows, dimension, guard, covers) : undefined;
   // A preset whose own period is none of the spans and does not rank it (a distribution of the last 12 months) keeps
   // that period as a span of its own, in order of length, so the option it opens on is always in the row.
   const ranking = rankingPeriods(presetView(preset, activeGranularityId));
