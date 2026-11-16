@@ -13,7 +13,7 @@ Last updated by claude on 2026-11-16
   - **The site's figures were set beside published ones** (D-105): October 2026 agrees with
     the MIA to 0.06% once three vehicle types the site leaves out are counted; older months
     sit about 1% lower, cause not established. For the audit: range-extended electric
-    vehicles sit with plug-in hybrids here and apparently not in the trade's count.
+    vehicles sit with plug-in hybrids here and apparently not in AutoTalk's count.
   - **The user answered three more questions** (D-106): a total on the trade's basis beside
     the default scope; the MIT licence for the code; the site is run by "an individual".
   - **The sub-agents stopped twice at the account's usage limit**; "Work in hand" says where.

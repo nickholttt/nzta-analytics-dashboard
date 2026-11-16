@@ -163,7 +163,7 @@ What is established, and what is not:
   is that the counts meet once the three types are added. Motorcycles are in
   neither total.
 - **Older months sit lower.** Against the MIA, AutoTalk and Stats NZ alike,
-  the gap that scope does not explain is 0.3% or less for 2025 and 2026,
+  the gap that scope does not explain is 0.4% or less for 2025 and 2026,
   up to 0.5% for 2024, and about 1% for 2021 and 2022. Published figures
   are as first reported or as restated; ours are as the dashboard holds them
   at the latest export, and NZTA says past months can change (above). Month
