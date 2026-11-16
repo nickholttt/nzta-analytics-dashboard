@@ -8,6 +8,7 @@ import type { Dimension, Preset } from "../lib/config";
 import { loadRegions } from "../lib/data";
 import type { Manifest, RegionOutlines, SliceRow } from "../lib/data";
 import { pct, periodWindow } from "../lib/measures";
+import { byCountThenName } from "../lib/ranking";
 import { latestMonthOf } from "../lib/resolve";
 import { readout, spanPeriod } from "../lib/readout";
 import { INK_3, PAPER, SERIES, SUPPRESSED_LINE, plotStyle } from "../lib/theme";
@@ -55,11 +56,11 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
     const denominator = [...denominators.values()].reduce((a, b) => a + b, 0);
     const regions: Region[] = [...totals.entries()]
       .map(([value, n]) => ({ value, n, share: denominator > 0 ? n / denominator : 0 }))
-      .sort((a, b) => b.n - a.n);
+      .sort((a, b) => byCountThenName({ ...a, name: label(a.value) }, { ...b, name: label(b.value) }));
     const byValue = new Map(regions.map((r) => [r.value, r]));
     const max = Math.max(0.01, ...regions.map((r) => r.share));
     return { win, regions, byValue, known, denominator, max, suppressed: denominator < minDenominator };
-  }, [rows, preset, manifest, minDenominator]);
+  }, [rows, preset, manifest, minDenominator, label]);
 
   const render = useCallback(
     (width: number) => {

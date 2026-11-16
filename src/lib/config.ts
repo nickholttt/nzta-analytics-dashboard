@@ -81,6 +81,8 @@ export type Dimension = {
 
 // How a chart says what its dataset counts. Each is a template; the chart fills in the {names} it knows.
 export type DatasetWords = {
+  // The count a cap on the number of named values ranks by, as a noun phrase ("the models with the most ...").
+  cap_count: string;
   count_heading: string;
   month_unit: string;
   window_unit: string;
@@ -182,12 +184,12 @@ export type BuilderSpec = {
 
 type PresetsDoc = {
   // label and title head the group's section on the Explore page; lead marks the charts that carry it.
-  // defer: the section draws its data only when scrolled to.
+  // defer: the section draws its data only when scrolled to. Explore defers every chart but the page's first anyway.
   groups: { id: string; label: string; title: string; lead?: boolean; defer?: boolean; presets: Preset[] }[];
   defaults: {
     year_change_measure: string;
     phrases: RankingPhrases &
-      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string };
+      YearPhrases & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
     top_n_basis: string;
@@ -237,6 +239,12 @@ export const dimensionLabel = (id: string, internal = false) => {
   const d = findDimension(id);
   return (!internal && d?.public_label) || d?.label;
 };
+// A value as a visitor reads it: a compound value (brand and model) has its dimension's separator replaced by a space. The
+// value itself, in addresses and in the data, is unchanged.
+export function valueWords(dimensionId: string | undefined, value: string): string {
+  const separator = findDimension(dimensionId)?.key_separator;
+  return separator && value.includes(separator) ? value.split(separator).join(" ") : value;
+}
 export const findDataset = (id?: string) => datasets.find((d) => d.id === id);
 // A dataset's words for what it counts: its own, or its base dataset's where it is another one filtered.
 export function datasetWords(id?: string): DatasetWords | undefined {

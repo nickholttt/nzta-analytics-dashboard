@@ -1,14 +1,15 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { useEffect, useMemo, useState } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
-import { compositeRules, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
+import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
 import { compositionStart } from "../lib/composition";
-import { ServiceError, loadEvents, loadManifest, loadView } from "../lib/data";
+import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
+import { openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
@@ -20,6 +21,19 @@ const BASIS_NOTE = "Registrations recorded by NZTA. Not the same as vehicle sale
 
 // A value's own words where it is one of the reserved tokens, otherwise the value as it is. Asked with hasOwn, since a
 // value can be any text and a plain lookup would answer a built-in for one such as "constructor".
+// A value's label as a function that keeps its identity from one render to the next, so a chart that orders ties by the name shown
+// does not recompute whenever the panel does. One per dimension and relabelling.
+const labelFunctions = new Map<string, (v: string) => string>();
+const labelFor = (dimensionId: string | undefined, relabelAs: string | undefined) => {
+  const key = `${dimensionId ?? ""}|${relabelAs ?? ""}`;
+  let fn = labelFunctions.get(key);
+  if (!fn) {
+    fn = (v: string) => (relabelAs !== undefined && v === hybrid.mild_powertrain ? relabelAs : valueWords(dimensionId, reservedLabel(v)));
+    labelFunctions.set(key, fn);
+  }
+  return fn;
+};
+
 export const reservedLabel = (v: string) => (Object.hasOwn(RESERVED_LABELS, v) ? RESERVED_LABELS[v] : v);
 
 export const RESERVED_LABELS: Record<string, string> = {
@@ -58,8 +72,8 @@ export default function PresetPanel({
   presetId?: string;
   preset?: Preset;
   anchored?: boolean;
-  // Draw nothing from the cube until the panel is scrolled into view, so a section below the first charts adds no
-  // downloads before they draw.
+  // Draw nothing from the cube until the page's first chart is drawn and this panel is within a screen of the visible
+  // part of the page, so the charts below the first add no downloads before it draws (src/lib/loadGate.ts).
   defer?: boolean;
   lead?: boolean;
   audience?: "public" | "internal";
@@ -92,6 +106,8 @@ export default function PresetPanel({
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [events, setEvents] = useState<Event[] | null>(null);
   const [rows, setRows] = useState<SliceRow[] | null>(null);
+  // The first month the dataset has vehicles in, loaded with the rows: a ranking needs it to know whether a year before exists.
+  const [firstMonth, setFirstMonth] = useState<string | undefined>(undefined);
   // For a measure that divides one dataset by another: the numerator's rows, beside `rows`, the denominator's.
   const [companion, setCompanion] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -99,18 +115,25 @@ export default function PresetPanel({
   const linked = typeof window !== "undefined" && window.location.hash === `#${presetId}`;
   const [wanted, setWanted] = useState(!defer || linked);
   const [sentinel, setSentinel] = useState<HTMLElement | null>(null);
+  const [near, setNear] = useState(false);
   useEffect(() => {
     if (wanted || !sentinel) return;
     if (typeof IntersectionObserver === "undefined") {
-      setWanted(true);
+      setNear(true);
       return;
     }
-    const observer = new IntersectionObserver((seen) => {
-      if (seen.some((s) => s.isIntersecting)) setWanted(true);
-    });
+    const observer = new IntersectionObserver(
+      (seen) => {
+        // The latest state, not the first sight: while the page's islands are still mounting every panel is briefly
+        // near the top, and that must not count once the layout has settled.
+        setNear(seen[seen.length - 1].isIntersecting);
+      },
+      { rootMargin: "100% 0px" },
+    );
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [wanted, sentinel]);
+  useEffect(() => (near && !wanted ? whenGateOpens(() => setWanted(true)) : undefined), [near, wanted]);
   // What a visitor is told when the query service fails: its own sentence, not the reload advice for a file.
   const [serviceError, setServiceError] = useState<string | null>(null);
 
@@ -174,10 +197,14 @@ export default function PresetPanel({
     setRows(null);
     setCompanion(null);
     const other = resolution?.companion;
-    Promise.all([loadView(source), other ? loadView(other) : Promise.resolve(null)]).then(
-      ([loaded, second]) => {
+    Promise.all([
+      loadView(source).then(async (loaded) => [loaded, await loadFirstMonth(source, loaded)] as const),
+      other ? loadView(other) : Promise.resolve(null),
+    ]).then(
+      ([[loaded, first], second]) => {
         if (!current) return;
         setCompanion(second);
+        setFirstMonth(first);
         setRows(loaded);
       },
       (e) => {
@@ -190,6 +217,11 @@ export default function PresetPanel({
       current = false;
     };
   }, [resolution, wanted]);
+
+  // The page's first chart, once it has what it needs or cannot have it, lets the deferred ones begin.
+  useEffect(() => {
+    if (!defer && (rows || error || (resolution && resolution.preventsRender.length > 0))) openGate();
+  }, [defer, rows, error, resolution]);
 
   const panelClass = `panel${lead ? " lead" : ""}${wanted ? "" : " loading"}`;
   const [scrolled, setScrolled] = useState(false);
@@ -231,7 +263,7 @@ export default function PresetPanel({
   const dsManifest = served ? manifest.datasets[served] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
   const relabels = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
-  const label = (v: string) => (relabels && v === hybrid.mild_powertrain ? (coverage as { label: string }).label : reservedLabel(v));
+  const label = labelFor(dimension?.id, relabels ? (coverage as { label: string }).label : undefined);
   const guards = guardsFor(effectivePreset.measure, effectivePreset.derived);
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
@@ -270,15 +302,15 @@ export default function PresetPanel({
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
   // terms, is internal.
-  const quoted = (values: string[]) => values.map((v) => `“${reservedLabel(v)}”`).join(" or ");
+  const quoted = (values: string[], dimensionId?: string) => values.map((v) => `“${valueWords(dimensionId, reservedLabel(v))}”`).join(" or ");
   const nameOf = (id: string) => {
     const words = dimensionWords(id, internal) || id;
     return words.charAt(0).toLowerCase() + words.slice(1);
   };
   const scope = keptBy?.length
-    ? `Only vehicles where ${keptBy.map((k) => `${nameOf(k.dimension)} is ${quoted(k.values)}`).join(", and ")} are counted.`
+    ? `Only vehicles where ${keptBy.map((k) => `${nameOf(k.dimension)} is ${quoted(k.values, k.dimension)}`).join(", and ")} are counted.`
     : narrowedBy
-      ? `Only ${quoted(narrowedBy.values)} vehicles are counted.`
+      ? `Only ${quoted(narrowedBy.values, narrowedBy.dimension)} vehicles are counted.`
       : undefined;
   const unapplied = notApplied.length
     ? (effectivePreset.filters ?? []).flatMap((f) => Object.entries(f)).filter(([key]) => key !== narrowedBy?.dimension)
@@ -289,6 +321,27 @@ export default function PresetPanel({
       ? `This chart is not narrowed to “${v}”: the data can't be narrowed that way yet.`
       : `This chart includes every vehicle, not only “${v}”: the data can't be narrowed that way yet.`,
   );
+  // The identification coverage is the dataset's, as the build publishes it. A chart narrowed to part of the dataset
+  // (its own filter, or a built question's conditions) says so, since the figure is not for the vehicles drawn.
+  // It speaks of one line, so it appears only where that value is among those drawn: a view that chose other values, or whose
+  // condition leaves it none, has no such line.
+  const coverageDrawn = Boolean(rows?.some((r) => r.value === hybrid.mild_powertrain && r.n > 0));
+  const coverageNote =
+    relabels && coverage && coverageDrawn
+      ? [
+          fillNote(internal ? phrases.identification_coverage_internal : phrases.identification_coverage, {
+            label: coverage.label,
+            // The name of the value the coverage is for, as config gives it (the hybrid block of config/pipeline.json).
+            value: hybrid.mild_powertrain.toLowerCase(),
+            window: coverage.trailing.window_months,
+            trailing: pct(coverage.trailing.coverage_stated_confidence ?? 0),
+            all_time: pct(coverage.all_time.coverage_stated_confidence ?? 0),
+            trailing_high: pct(coverage.trailing.coverage_high_confidence_only ?? 0),
+            all_time_high: pct(coverage.all_time.coverage_high_confidence_only ?? 0),
+          }).text,
+          ...(narrowed || keptBy?.length ? [phrases.identification_coverage_whole] : []),
+        ].join(" ")
+      : undefined;
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
@@ -371,6 +424,7 @@ export default function PresetPanel({
           preset={effectivePreset}
           dimension={dimension}
           rows={rows}
+          firstMonth={firstMonth}
           manifest={manifest}
           minDenominator={guard}
           label={label}
@@ -569,6 +623,20 @@ export default function PresetPanel({
         </div>
       ))}
 
+      {/* One polite status per chart that is being fetched, named by the chart's question, and the same element says when it
+          has arrived (then hidden from the eye, which sees the chart). A chart not yet asked for says so in plain text that is
+          not live, so a page of charts never speaks for all of them at once; the internal page draws everything at once and
+          has no live regions. */}
+      {preventsRender.length === 0 && !wanted ? <p className="meta">This chart loads as you scroll to it.</p> : null}
+      {preventsRender.length === 0 && wanted ? (
+        <p
+          className={rows ? "visually-hidden" : "meta"}
+          role={internal ? undefined : "status"}
+          aria-labelledby={internal ? undefined : questionId}
+        >
+          {rows ? (rows.length > 0 ? "The chart has loaded." : "") : "Loading the chart…"}
+        </p>
+      ) : null}
       {chart}
 
       <ul className="notes">
@@ -583,21 +651,7 @@ export default function PresetPanel({
             {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
           </li>
         ))}
-        {relabels && coverage && !internal ? (
-          <li>
-            {coverage.label}: at least {pct(coverage.trailing.coverage_stated_confidence ?? 0)} of mild hybrids registered in the last{" "}
-            {coverage.trailing.window_months} months are identified (at least {pct(coverage.all_time.coverage_stated_confidence ?? 0)} over
-            all time), so this line may undercount them.
-          </li>
-        ) : null}
-        {relabels && coverage && internal ? (
-          <li>
-            {coverage.label}: over the trailing {coverage.trailing.window_months} months,{" "}
-            {pct(coverage.trailing.coverage_stated_confidence ?? 0)} of mild hybrids are identified at stated confidence and{" "}
-            {pct(coverage.trailing.coverage_high_confidence_only ?? 0)} counting high-confidence classifications only (all time{" "}
-            {pct(coverage.all_time.coverage_stated_confidence ?? 0)} and {pct(coverage.all_time.coverage_high_confidence_only ?? 0)}). A lower bound: every unresolved hybrid counts as a missed mild hybrid.
-          </li>
-        ) : null}
+        {coverageNote ? <li>{coverageNote}</li> : null}
         {greyNote && !internal ? (
           <li>
             Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably

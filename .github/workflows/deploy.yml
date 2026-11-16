@@ -16,6 +16,8 @@ on:
       - "config/**"
       - "public/geo/**"
       - "astro.config.mjs"
+      - "scripts/check-public-build.mjs"
+      - "scripts/internal-pages.json"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
@@ -118,6 +120,9 @@ jobs:
             echo "The public build links to an internal page, in the files above." >&2
             exit 1
           fi
+          # An internal page left in the output, or a script no page reaches (the status page's once shipped that way,
+          # unlinked), fails here, before anything is handed to the upload job (D-099).
+          node scripts/check-public-build.mjs
 
       # The upload job is started only when it has something to do. A job that names an environment is recorded as a
       # deployment to it, so starting it to find the secrets missing would show a deployment that never happened. This

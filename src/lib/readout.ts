@@ -2,6 +2,7 @@
 // its figure with the vehicles behind it, why it is greyed if it is, then anything only that chart has. Each renderer
 // passes what it knows; the order and the wording are decided here.
 import { TRAILING_MONTHS, monthLabel, pct } from "./measures";
+import { count } from "./sentences";
 
 export type Greyed = "thin" | "collapsed";
 
@@ -17,7 +18,7 @@ export type Readout = {
   extra?: string[];
 };
 
-export const count = (n: number) => Math.round(n).toLocaleString("en-NZ");
+export { count };
 const vehicles = (n: number) => `${count(n)} ${Math.round(n) === 1 ? "vehicle" : "vehicles"}`;
 
 // Why a figure is greyed, in the same words in a readout and in a chart's table of figures.

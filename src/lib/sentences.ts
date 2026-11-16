@@ -5,15 +5,35 @@
 
 // ---- Months ----
 
-export function addMonths(key: string, k: number): string {
-  const [y, m] = key.split("-").map(Number);
-  const t = y * 12 + (m - 1) + k;
-  return `${Math.floor(t / 12)}-${String((t % 12) + 1).padStart(2, "0")}`;
+// Called per month inside loops over every month of a series, so it parses without splitting and pads from a table.
+const MONTH_PART = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
+// A month as a count of months since year 0, and back: the form to step through a range in. Something that is not a
+// "YYYY-MM" key (a missing month, text) has no index: NaN, which compares false with everything, so a range over it is
+// empty (as before), and monthAt turns it into "" rather than a "NaN-undefined" that could pass for a month.
+export function monthIndex(key: string): number {
+  if (typeof key !== "string") return Number.NaN;
+  const dash = key.indexOf("-");
+  const month = Number(key.slice(dash + 1));
+  return dash > 0 && month >= 1 && month <= 12 ? Number(key.slice(0, dash)) * 12 + (month - 1) : Number.NaN;
+}
+export const monthAt = (index: number): string => (Number.isInteger(index) ? `${Math.floor(index / 12)}-${MONTH_PART[((index % 12) + 12) % 12]}` : "");
+export const addMonths = (key: string, k: number): string => monthAt(monthIndex(key) + k);
+
+// Every month from one key to another, both included; empty when either is not a month or the first is after the second.
+export function monthRange(from: string, to: string): string[] {
+  const out: string[] = [];
+  for (let t = monthIndex(from), last = monthIndex(to); t <= last; t++) out.push(monthAt(t));
+  return out;
 }
 
 // A month as a reader says it: "Aug 2026", not "2026-08".
 const MONTH_FORMAT = new Intl.DateTimeFormat("en-NZ", { month: "short", year: "numeric", timeZone: "UTC" });
-export const monthLabel = (key: string) => MONTH_FORMAT.format(new Date(`${key}-01T00:00:00Z`));
+const LABELS = new Map<string, string>();
+export const monthLabel = (key: string) => {
+  let label = LABELS.get(key);
+  if (label === undefined) LABELS.set(key, (label = MONTH_FORMAT.format(new Date(`${key}-01T00:00:00Z`))));
+  return label;
+};
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
@@ -68,7 +88,10 @@ export function changeOnYear(now: number | undefined, prior: number | undefined,
   return { prior, change, direction: Math.abs(change) < SAME_BELOW ? "same" : change > 0 ? "up" : "down" };
 }
 
-export const count = (n: number) => Math.round(n).toLocaleString("en-NZ");
+// One formatter, made once: toLocaleString makes a new one on every call, and a chart's hover text asks for a figure per
+// point.
+const COUNT_FORMAT = new Intl.NumberFormat("en-NZ");
+export const count = (n: number) => COUNT_FORMAT.format(Math.round(n));
 
 // The rows of one dataset's slice: every month the dataset has, each row carrying that month's total. The functions below
 // take these rows whole, never a window of them, so the months a chart draws cannot change a sentence.
@@ -142,8 +165,10 @@ export type RankingFacts = {
   span: number;
   end: string;
   latest: string;
-  // Every month the ranking's rows have. Whether there are figures a year earlier is decided from these, here.
-  monthsPresent: Iterable<string>;
+  // The first and last month of the dataset the ranking is of (its supplied start or its earliest month with vehicles, and its
+  // newest), never the months a narrowed view has rows for: under a condition a month with no vehicles has no rows, and that is
+  // a month of zero, not a month the dataset lacks.
+  covers: { first: string; last: string };
 };
 
 const dates = (from: string, to: string) => (from === to ? monthLabel(from) : `${monthLabel(from)} to ${monthLabel(to)}`);
@@ -155,12 +180,10 @@ export function rankingWindows(end: string, span: number) {
 }
 
 // What a ranking covers, and what it is compared with, and whether there is a comparison at all: it is only described when
-// every month of the earlier window is in the rows. A ranking with none says so instead of describing one.
+// the earlier window lies wholly inside the months the dataset covers. A ranking with none says so instead of describing one.
 export function rankingText(p: RankingPhrases, f: RankingFacts): { text: string; hasPrior: boolean } {
   const { currentFrom, priorFrom, priorTo } = rankingWindows(f.end, f.span);
-  const present = new Set(f.monthsPresent);
-  let hasPrior = true;
-  for (let m = priorFrom; m <= priorTo; m = addMonths(m, 1)) if (!present.has(m)) hasPrior = false;
+  const hasPrior = priorFrom >= f.covers.first && priorTo <= f.covers.last;
   const span = { span: f.span, end: monthLabel(f.end) };
   const window = fillTemplate(f.span === 1 ? p.window_month : f.end === f.latest ? p.window_last : p.window_to, span).text;
   const parts = [fillTemplate(f.basis, { window }).text];

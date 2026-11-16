@@ -1,0 +1,203 @@
+{
+ "first_month_with_rows": "1912-01",
+ "rows": [
+  {
+   "month": "1925-01",
+   "value": "AUSTIN",
+   "n": 1,
+   "denominator": 12
+  },
+  {
+   "month": "1925-01",
+   "value": "DODGE",
+   "n": 1,
+   "denominator": 12
+  },
+  {
+   "month": "1925-01",
+   "value": "FIAT",
+   "n": 2,
+   "denominator": 12
+  },
+  {
+   "month": "1925-01",
+   "value": "MORRIS",
+   "n": 1,
+   "denominator": 12
+  },
+  {
+   "month": "1925-01",
+   "value": "__UNMAPPED__",
+   "n": 7,
+   "denominator": 12
+  },
+  {
+   "month": "1925-02",
+   "value": "__UNMAPPED__",
+   "n": 1,
+   "denominator": 1
+  },
+  {
+   "month": "1925-06",
+   "value": "AUSTIN",
+   "n": 2,
+   "denominator": 2
+  },
+  {
+   "month": "1925-09",
+   "value": "CHRYSLER",
+   "n": 1,
+   "denominator": 2
+  },
+  {
+   "month": "1925-09",
+   "value": "DODGE",
+   "n": 1,
+   "denominator": 2
+  },
+  {
+   "month": "1925-11",
+   "value": "AUSTIN",
+   "n": 1,
+   "denominator": 4
+  },
+  {
+   "month": "1925-11",
+   "value": "__UNMAPPED__",
+   "n": 3,
+   "denominator": 4
+  },
+  {
+   "month": "1925-12",
+   "value": "__UNMAPPED__",
+   "n": 1,
+   "denominator": 1
+  },
+  {
+   "month": "1926-01",
+   "value": "CHEVROLET",
+   "n": 1,
+   "denominator": 8
+  },
+  {
+   "month": "1926-01",
+   "value": "DODGE",
+   "n": 2,
+   "denominator": 8
+  },
+  {
+   "month": "1926-01",
+   "value": "FIAT",
+   "n": 1,
+   "denominator": 8
+  },
+  {
+   "month": "1926-01",
+   "value": "MORRIS",
+   "n": 1,
+   "denominator": 8
+  },
+  {
+   "month": "1926-01",
+   "value": "__UNMAPPED__",
+   "n": 3,
+   "denominator": 8
+  },
+  {
+   "month": "1926-02",
+   "value": "CHEVROLET",
+   "n": 1,
+   "denominator": 2
+  },
+  {
+   "month": "1926-02",
+   "value": "__UNMAPPED__",
+   "n": 1,
+   "denominator": 2
+  },
+  {
+   "month": "1926-03",
+   "value": "FORD",
+   "n": 1,
+   "denominator": 1
+  },
+  {
+   "month": "1926-04",
+   "value": "FORD",
+   "n": 1,
+   "denominator": 1
+  },
+  {
+   "month": "1926-06",
+   "value": "__UNMAPPED__",
+   "n": 1,
+   "denominator": 1
+  },
+  {
+   "month": "1926-07",
+   "value": "__UNMAPPED__",
+   "n": 1,
+   "denominator": 1
+  },
+  {
+   "month": "1926-09",
+   "value": "FORD",
+   "n": 1,
+   "denominator": 2
+  },
+  {
+   "month": "1926-09",
+   "value": "__UNMAPPED__",
+   "n": 1,
+   "denominator": 2
+  },
+  {
+   "month": "1926-10",
+   "value": "AUSTIN",
+   "n": 1,
+   "denominator": 3
+  },
+  {
+   "month": "1926-10",
+   "value": "FORD",
+   "n": 1,
+   "denominator": 3
+  },
+  {
+   "month": "1926-10",
+   "value": "__UNMAPPED__",
+   "n": 1,
+   "denominator": 3
+  },
+  {
+   "month": "1926-11",
+   "value": "FORD",
+   "n": 1,
+   "denominator": 1
+  },
+  {
+   "month": "1926-12",
+   "value": "AUSTIN",
+   "n": 1,
+   "denominator": 4
+  },
+  {
+   "month": "1926-12",
+   "value": "DODGE",
+   "n": 1,
+   "denominator": 4
+  },
+  {
+   "month": "1926-12",
+   "value": "FORD",
+   "n": 1,
+   "denominator": 4
+  },
+  {
+   "month": "1926-12",
+   "value": "MORRIS",
+   "n": 1,
+   "denominator": 4
+  }
+ ]
+}

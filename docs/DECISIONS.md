@@ -3686,6 +3686,199 @@ New entries use this template:
   - Build does not offer the long-run dataset: it has no fact table, so a question on it could not take chosen values or conditions.
   - `/method` gained two sections, written by hand like the rest of the page (the narrative engine will take them over).
   - Reversing it: remove the `long-run` group, the preset `registrations-completeness-by-type` and the derived measure from config; the code then draws nothing new. The resolver's treatment of a missing entry is independent and can stay.
+
+## D-099 2026-11-16 — First load: the page's own code and processor work trimmed, Explore fetches only its first chart on load, the public build drops the internal pages' scripts; the 3 second target is not met and what is left is mostly the data files
+- Agent: claude
+- Basis: the work order §5.D; STATE known issues 1 and 7; D-091 (the phone profile and what "first answer" means) and
+  `docs/QUERY_SERVICE.md`; measurements made on 2026-11-16 on this computer against the 2026-10 dry-run cube with all three
+  datasets, by `scripts/measure-first-load.mjs`; the commits of `claude/first-load`. This file has no separate index, so
+  the heading is the record's index line.
+- Context: a Build question's first answer took 7.4 to 11.6 s on the phone profile, about 460 KB of each page was its own
+  code and fonts, and the public build still shipped the status page's script. The target is a first answer under 3 s.
+- Method (D-091's, recorded so the figures compare): headless Chromium (headless shell 1248, `playwright-core` 1.64.1, outside
+  the repository); a new visitor each run (empty cache); 390 x 844 px, 150 ms added latency, 1.6 Mbps down, 750 kbps up
+  (not recorded in D-091; the value `docs/QUERY_SERVICE.md` set), processor slowed four times. The built site is served by
+  the script's own static server, which stands in for Cloudflare Pages as D-091's did: page, script, style and JSON gzipped,
+  Parquet and fonts as they are, an ETag and `Cache-Control: public, max-age=0, must-revalidate`. `astro preview` is not
+  used for the figures: it sends nothing compressed. A KB is 1,024 bytes; bytes are what Chrome reports crossing the
+  network, headers included. "First answer" is the time from the start of navigation until the page has drawn the charts it
+  draws on its own: both charts of a Build question and, for Explore, its first chart (the others no longer load at once).
+  Five runs each, the median and the range. The Build links are the 3-field and 8-field questions of
+  `docs/QUERY_SERVICE.md` (`scripts/first-load-pages.json`). The method reproduced D-091: its 3-field question took
+  7.4 s [7.2 to 8.4], here 7.59 s [7.43 to 7.74]; its 8-field question 11.6 s, here 11.12 s.
+- Measured, before and after (production build, phone profile, five runs each). The "before" is the build of `main` at the start of
+  this work. The "after" is on the merged code (`main` with #60 and #61 taken in), measured on 2026-11-16 after the merge; the
+  figures of the branch before the merge are under "At the merge" below:
+
+  | Page | First answer before | after | Bytes before | after | Code / fonts / data before | after | Requests before | after |
+  |---|---|---|---|---|---|---|---|---|
+  | Explore, first chart (home) | 7.98 s [7.00 to 9.26] | 4.61 s [4.46 to 4.68] | 916 KB | 538 KB | 300 / 165 / 452 KB | 240 / 165 / 133 KB | 17 | 13 |
+  | Explore, first chart drawn on a page opened at a chart's link (`/#...`) | 6.94 s [6.80 to 7.11] | 4.70 s [4.48 to 5.21] | 916 KB | 538 KB | 300 / 165 / 452 KB | 240 / 165 / 133 KB | 17 | 13 |
+  | Build, 3 fields | 7.59 s [7.43 to 7.74] | 6.58 s [6.29 to 6.84] | 1,035 KB | 975 KB | 304 / 165 / 566 KB | 244 / 165 / 566 KB | 16 | 16 |
+  | Build, 8 fields | 11.12 s [10.86 to 11.15] | 10.32 s [10.29 to 10.54] | 1,681 KB | 1,621 KB | 304 / 165 / 1,212 KB | 244 / 165 / 1,212 KB | 21 | 21 |
+
+  - The home page's "before" is one build measured two ways. Ended at its first chart (above): 7.98 s. Ended when all
+    seven charts it drew on load were drawn, as the first run did: 18.07 s [16.52 to 19.36], with its first chart at
+    9.53 s [7.27 to 10.64]. The spread before is wide because seven charts shared one connection and one processor.
+  - The linked-chart row measures the first chart drawn on a page opened at a chart's link, not that chart's own figure: the
+    script counted any chart, and on that page the first chart and the linked one load together, so the figure may be the
+    page's first chart. The script now takes a `target` (a panel's id) in `scripts/first-load-pages.json` and, when present,
+    waits for that panel's own figure; this row was taken before that change and has not been re-measured.
+  - "Code" is the page, its styles and its scripts. The fonts are the same two files either side (168,584 bytes).
+  - Build's data is the same bytes before and after: the fact-table columns the question names, 379,113 bytes of them
+    the count column.
+  - The pages look the same: screenshots at 390 and 1280 px before and after (home, a linked chart, both Build
+    questions); and the markup of every chart on the home page and the linked page, after all the page's charts were
+    scrolled into view and with Plot's random ids removed, is identical for ten charts of eleven. The eleventh (the last
+    true-registrations chart) did not load when scrolled to in the old build and does now. Both Build questions' charts
+    and text are identical.
+- What each change saved. These are medians of three runs on the phone profile made as each change landed, so they are
+  indicative, not the five-run figures above; the order is the order they were made in.
+  1. **Only the zstd decoder** (`src/lib/data.ts`): every column chunk of the cube is zstd (327 chunks, all files checked),
+     hyparquet reads snappy and uncompressed pages itself, and `hyparquet-compressors` shipped brotli, gzip and lz4
+     decoders too. 64.4 KB less compressed script on every page that reads data (home 307,237 to 242,815 bytes of code,
+     a Build page 311,522 to 247,097; read on a desktop run, where bytes do not vary). The time of this change alone was
+     not measured on the phone.
+  2. **Explore fetches only its first chart on load** (`src/lib/loadGate.ts`, `PresetPanel`, `index.astro`): a deferred
+     panel starts once the first has its rows and it is within one screen of the visible page. Data fetched before the
+     first chart is drawn: 462 KB to 171 KB on the home page. Time on its own: none (10.2 s against 9.5 s, within the
+     spread): the processor, not the connection, was the limit (next).
+  3. **Processor work on a chart's first draw** (six commits: a number formatter made once; month keys parsed without
+     splitting, labelled once and converted once per distinct month; month ranges stepped by number; the rolling mix's
+     windows summed over cells laid out by month; the mix chart's counts looked up by value then month). A profile of the
+     home page's first draw, processor slowed four times, network not throttled, development build, showed
+     `toLocaleString` building a formatter on every call as the largest single cost, then month arithmetic, then
+     string-keyed lookups. Time to the first chart on that profile: 10.7 s, then 7.8, 5.2 and 4.1 s after the successive
+     commits. On the phone profile with the network, home went from 10.2 s to 5.4 s with all six. The strings and shares
+     are unchanged (tests; the rolling mix compared with its previous version on 200 random series with gaps, repeated
+     rows and reserved values).
+  4. **Telling the browser what the island needs** (`astro.config.mjs`, a build step; no dependency): every script an
+     island imports listed as `modulepreload` in the page's head, and the manifest preloaded. Hand-patched first: Build
+     7.23 to 6.56 s. Implemented: home 5.43 to 4.59 s, Build 7.39 to 6.78 s.
+  5. **The public build's scripts** (`astro.config.mjs`, `scripts/check-public-build.mjs`): see below. No time effect.
+- Tried and not kept (each measured):
+  - **One chunk per renderer shape**, loaded when a view of that shape is resolved: Plot's core (84 KB compressed) is
+    needed by every shape and the shape-specific code is small. Code went up by 1 to 6 KB and requests from 17 to 26;
+    nothing was saved.
+  - **Opening the Explore gate when the first chart's figure is drawn** rather than when its rows are in: 4.59 to 4.64 s.
+  - **The serif's file without its optical-size axis** (`source-serif-4/wght.css`, 50.8 KB against 122.4 KB): home 4.59 to
+    4.24 s [3.7 to 4.5], Build 6.78 to 6.62 s. It draws every heading in a different cut, heavier and wider, which a
+    visitor would see (screenshots made), so it was reverted. It is one import line if the owner wants the saving.
+- What the fonts cost: with the font files refused, home 3.94 s against 4.59 and Build 6.04 s against 6.78 (three runs
+  each; the page draws in its fallback fonts). About 0.65 to 0.75 s on every first visit. Not changed: delaying the fonts
+  until the first chart draws would show the fallback until then, on every visit unless a flag remembers they are cached,
+  and the swap would land while the visitor reads. That is a visible choice, so it is the owner's.
+- Known issue 7, the status page's script: `INTERNAL_PAGES=false npx astro build` now removes `status/` and `sense-check/`
+  itself, and every script in `_astro` that no remaining page reaches (a page names it, or a reached script imports it,
+  statically or dynamically). `node scripts/check-public-build.mjs` checks the output: exit 0 and "6 scripts" on this
+  build; on the public build as it was before this work it exits 1 naming `_astro/PresetTriage.Dd44jqz5.js`; on a build
+  with the internal pages it names both folders. The deploy's `rm -rf dist/status dist/sense-check` is now a no-op and
+  stays. The deploy runs the check (see "At the merge" below); the first version of this work did not. In a preview of the public build
+  `/status/`, `/sense-check/`, an unknown address and the removed script return 404; the internal build's `/status` still
+  draws (axe clean at 390 and 1280 px).
+- Where the time goes now (after, phone profile, medians):
+  - **Explore's first chart, 4.61 s** (the split below was measured before the merge, at 4.15 s). The last byte of the page's scripts and styles is at 2.28 s and of the fonts at
+    2.45 s (402 KB through a 200 KB/s link is 2.0 s); the island then starts, asks for one 67 KB file and draws, which is
+    the 1.7 s to the answer. Fonts refused, 3.94 s. Data is 94 KB of 496 KB before the merge, 133 KB of 538 KB after.
+  - **Build, 3 fields, 6.58 s** (split measured before the merge, at 6.75 s). Code and fonts are done at 2.3 to 2.5 s; the last data byte is at 5.65 s; the sums and
+    the draw take the 1.1 s after it. **Data is 566 KB of 975 KB (58%); with 8 fields, 1,212 KB of 1,621 KB (75%).** At
+    this link's 200 KB/s the data alone is 2.8 s for the 3-field question and 6.1 s for the 8-field one, before any code
+    or font. So no change to the page's own code can bring a Build question under 3 s here: with no script and no font at
+    all, the 3-field question's data would still take most of the 3 s.
+- **The target of 3 s is not met** on any page measured: Explore's first chart 4.61 s, the first chart on a page opened at a chart's link 4.70 s, Build 6.58 s
+  and 10.32 s. Explore is within reach by trimming bytes (fonts about 0.7 s; the serif file 0.2 to 0.35 s; the React
+  runtime, 66 KB compressed of the 240 KB of code, would need a dependency decision; not measured). Build needs less
+  data: a hosted service answers in 41 to 62 KB where the static columns take 566 to 1,212 KB (D-091), or the files get
+  lighter (a pipeline change, not made here: no file or format was touched). For the owner's parked question, arithmetic
+  and not a measurement: D-091's service-side figure for the 3-field question (4.2 s, with about 62 KB, or 0.3 s, more
+  code and fonts than now) would be about 3.9 s today, so a service alone would not reach 3 s either, without the fonts or
+  a smaller runtime as well.
+- Decisions a reviewer could want reversed (each is one commit or a few lines):
+  1. The figures come from the script's own gzip server, not `astro preview` and not Cloudflare. Cloudflare Pages is
+     assumed to compress text (gzip or brotli) and to apply `_headers`; neither is verified (nothing is deployed). A
+     brotli figure was not measured.
+  2. The Explore page is judged on its first chart, not on all the charts it draws, because it no longer draws them all
+     at once. Every chart but the page's first is now deferred, so a group's own `defer` in `config/presets.json` is
+     redundant and left (its comment in `config.ts` says so). A deferred chart says it loads as you scroll, then that it is
+     loading; before, a chart waiting for its rows said nothing.
+  3. The gate opens when the first chart has its rows; a deferred panel then starts when it is within one viewport height
+     (`rootMargin` 100%) of the visible page. A first chart that fails, or has nothing to draw, opens it at once.
+  4. Only the zstd decoder is taken from `hyparquet-compressors`. A cube written in a codec other than zstd, snappy or
+     uncompressed fails with hyparquet's "unsupported compression codec", and the chart says that its data is in a form the page cannot read and that
+     reloading will not help (changed at review, below; at first it said only that its data did not load). The
+     pipeline writes zstd (`docs/CUBE_SCHEMA.md`).
+  5. `astro.config.mjs` now holds two build steps, `preloadIslands` and `prunePublicBuild`, and names `/data/manifest.json`
+     and the two internal folders. They read the built output and add no dependency.
+  6. `public/_headers` lets a browser keep `/_astro/*` (content-hashed names) for a year. It affects repeat visits only,
+     has not been seen working, and is in no figure above.
+  7. Edits in code another branch may be changing: `PresetPanel.tsx` (the gate and a loading line, about 20 lines),
+     `MixChart.tsx` (the counts' lookup, about 10 lines), `composition.ts` (one function), `sentences.ts`, `measures.ts`,
+     `data.ts`, `readout.ts`, `index.astro`. They change no output.
+  8. `scripts/` gains `measure-first-load.mjs` (its browser library stays outside `package.json`), `first-load-pages.json`
+     and `check-public-build.mjs`; `AGENTS.md` and `docs/playbooks/run-checks.md` say how to run them.
+- Not done or not verified: no run on Cloudflare; no brotli figure; the first draw's processor cost was profiled in a
+  development build, so its split is indicative; no repeat-visit figures (D-091 had some; `_headers` would change them);
+  320 px was not screenshotted (390 and 1280 were, with axe, and no page scrolls sideways at either); on a phone the Build
+  page's chart sits below the question picker, so its first answer is drawn below the fold.
+- Found on the way (axe; identical before and after the speed work): on the Build page `label-content-name-mismatch`
+  (serious) on the "Remove this condition" buttons, whose accessible name, "Remove the condition on ...", does not contain
+  their visible words (2 nodes with the 3-field question, 7 with the 8-field); and `heading-order` (moderate), STATE known
+  issue 6. Explore (the home page and a linked chart) and the internal status page have no violations.
+- Consequences: STATE known issues 1 and 7 and the first-load line of CHECKPOINT package D change (the lead updates them);
+  the brief's "Fast" row cites 6.1 s, now 4.61 s (Explore) and 6.58 s (Build). The monthly build and the cube are
+  untouched.
+- Reversing it: each commit of `claude/first-load` stands alone; the gate and the loading line are one commit, the preload
+  step and the pruning step are two.
+- At the merge of main (2026-11-16): the branch took in #60 and #61 (a merge commit). The only conflict was this file: D-096
+  and D-098 from main are kept, in number order, before this record; STATE, CHECKPOINT and README are main's, unedited here.
+  No code conflicted. #61's new group "The long run" is deferred under the gate like every chart but the first, and was
+  checked in a browser at 390 and 1280 px: on load, in those runs, it fetched nothing from the group (the second review saw a far chart fetched on load in
+  3 of 7 loads, below), and when scrolled to all three of its
+  charts, the ratio chart with its lone-month dots among them, draw. That check found a fault of the gate's own: a panel
+  counted as near the screen if it had ever been, and while the page's islands mount every panel is briefly near the
+  top, so at 390 px the group's first chart was fetched on load. A panel now counts by its latest position (a commit of its
+  own). #61's code added no cost on the first chart's path that was worth an optimisation, so none was made.
+  - Re-measured after the merge (above): home first chart 4.61 s against 4.15 s before it. The same-session comparison says
+    that is the computer, not the code: the pre-merge build of this branch measured 4.58 s and 4.59 s and the merged one 4.62 s
+    and 4.52 s, in alternating runs of four. The merged page carries 2.6 KB more script (245,925 bytes of code against
+    243,341), and its data before the first chart is drawn varies from 97 to 137 KB between runs, by whether the second
+    chart's 57 KB file lands first; it is not something #61 added.
+  - The Build question's accessible-name finding is fixed (`label-content-name-mismatch`: the button's name is now "Remove this
+    condition: <field>", containing the words it shows; `tests/site/accessible-names.test.ts` holds it and fails on the old
+    wording). Build's axe result is now `heading-order` only (STATE known issue 6).
+  - The deploy now runs `node scripts/check-public-build.mjs` in the build job, after the public build and before the site is
+    handed to the upload job, so a leaked internal page or an unreached script fails the deploy; the workflow also reruns when
+    the check changes (`paths`). `pipeline/tests/test_workflow.py` holds the order. Nothing new is pinned.
+  - 320 px: no horizontal scroll on the home page or a Build question (the page is as wide as the screen at every scroll position tried); the one table the check flagged, a chart's key, is 296 px wide there.
+- At review (#64, 2026-11-16): an independent comparison of this branch with main found no figure, string, table cell or chart
+  geometry changed apart from the button's new name, and asked for the following, each its own commit.
+  - **Wording**: the deploy-check sentence and the linked-chart row, corrected above. The script takes a `target` panel id
+    (the pages file sets it for the linked chart) for the next measurement.
+  - **Waiting and arrival**: only a chart that is being fetched has a live region, named by `aria-labelledby` its question; the
+    same element becomes "The chart has loaded." (hidden from the eye) when its rows arrive, so a polite status reads it once.
+    A chart not yet asked for says "loads as you scroll" in plain, non-live text, and the internal page has no live regions,
+    so a page never speaks for every chart at once. Read in the accessibility tree: two regions on the home page on load in that reading (a far chart is sometimes fetched on load
+    too, and then has its own),
+    each named by its question, each announcing once. Chosen over putting the answer sentence in a live region (it would
+    read a long sentence at each draw, and the Build page redraws on every setting).
+  - **Unreadable data**: a file in a codec the reader has no decoder for says so without advice to reload and without naming
+    a codec (`src/lib/unreadable.ts`).
+  - **Edges of the month functions**: a malformed or missing month has no index (NaN, so a range is empty, as before) and
+    `monthAt` gives an empty string, not "NaN-undefined". `monthRange` moved to `sentences.ts`; the rolling mix and `monthKey`
+    moved, unchanged, to `rolling.ts` and `monthkey.ts` so tests reach them. Tests are seeded and fast: 3,000 ranges, 2,500
+    series against a plain version, 2,000 months. The remainder cache in `MixChart` is inside a hook and has no test of its own.
+  - **Codecs**: `config/pipeline.json` `site_reader.codecs` lists what the site's reader can decode (zstd, snappy, uncompressed);
+    `pipeline/tests/test_parquet_codecs.py` checks every published file against it, and `tests/site/reader-codecs.test.ts` checks
+    `data.ts` agrees. The writers for the archive and the supplied stores are not read by the site and are not checked.
+  - **One source for the internal folder names**: `scripts/internal-pages.json`, read by `astro.config.mjs` and the check.
+    `deploy.yml` keeps its own link-check pattern, which its test exercises against sample text, so it still names them.
+  - After these, the home page (scrolled so every chart loads) and four Build questions render the same text, tables, links,
+    labels and chart markup as before them, with the status regions set aside.
+- At the second review (#64): a chart far down the page is sometimes fetched on load (3 of 7 loads without
+  scrolling: one chart of the long-run group at 390 px, two other charts' files at 1280 px). Before the charts
+  draw, every panel is a short placeholder, so the whole page can sit within the near-screen margin when the gate
+  opens. Every chart still loads when scrolled to; none was found stuck. Not fixed here: the gate should look at
+  a panel's position again after the first chart has drawn. It costs a first visit some bytes, not correctness.
 - Status: decided by Claude (unreviewed)
 
 ## D-100 2026-11-16 — The chart rules: one table in config says which shapes fit a question, and Build and the resolver read it
@@ -3999,6 +4192,42 @@ New entries use this template:
 - Consequences: the About page has two gaps left (the site's name and its address). The total on the trade's basis
   never replaces a default figure and is never used to scale one; it is named for what it counts.
 - Status: accepted (the user's answers); the choices above are decided by Claude (unreviewed)
+
+## D-107 2026-11-16 — The audit's site-side fixes: a rule for ties, what the guards do, and the wording that did not say what the site does
+- Agent: claude
+- Basis: the independent audit of the question engine, asked for in D-104 (the owner: it "needs to be flawless" before anything goes public). It recomputed 34,693 of the site's figures from the raw register rows: 34,618 agree exactly, 74 are withheld on both sides, 1 differs. No count is wrong. The one figure that differs is a rank a year before (Build, share of the brands by 12 months, `build.where.powertrain=BEV`, DONGFENG: #44). The rest is a missing rule for ties, and wording and definitions that did not say what the site does. The pipeline-side findings (a nameplate missing from the mild hybrid reference file, the mild split's threshold per dataset, ties at the model cap) are other work on another branch and are not in this record. Code: `src/lib/ranking.ts`, `src/lib/config.ts`, `src/components/{LeagueChart,MixChart,GeoChart,TrendChart,PresetPanel,QuestionBuilder}.tsx`, `src/lib/{derived,notes}.ts`, `src/pages/caveats.astro`; config: `config/{presets,dimensions}.json`, `config/narrative/rules.json`; docs: `docs/METRICS.md`; tests: `tests/site/{ranking,coverage-note,value-words}.test.ts`.
+- Context and the decisions, by item:
+  1. **Ties.** The league sorted by count only, so tied entries took ranks in the order the data arrived, and their rank a year before and their move followed that accident. Options: (a) **shared ranks**, the usual competition ranking (1, 2, 2, 4), tied entries listed alphabetically; (b) a stable tie-break with distinct ranks (alphabetical position: 1, 2, 3, 4). Chosen (a), the owner's brief: a tie is a fact about the counts, and (b) invents a difference of one place between two entries the data cannot tell apart, which a move then shows as a change. Cost of (a): the next rank skips (4 after 2, 2), and a reader may wonder where #3 went. **One consequence to read before the audit's case is closed:** under (a) DONGFENG's rank a year before is **#41**, not #42. Forty brands stand above the four on 3 vehicles, so all four read #41. #42 is DONGFENG's position by the alphabet (CITROEN 41, DONGFENG 42), which is what (b) would give. The old site showed #44 because DONGFENG arrived fourth of the four. Two other rows in the same table change by the same cause (ZEEKR's earlier rank #32 to #30, FARIZON's #34 to #33).
+     - Applies to: the league's current and earlier ranks and every move (`LeagueChart`); the choice of which values a share-over-time chart names when it keeps only its largest (`MixChart`); the order of the map's table (`GeoChart`) and of the five names in the top-5 readout (`derived.ts`).
+     - Order within a tie: alphabetical by the name shown, with `Intl.Collator("en")`, and by raw key if two values show one name. The same order, by the name shown, is used wherever the site sorts by size without showing a rank: the share-over-time chart's cut at its largest values, its lines' colours by size and by peak, its key, the order of the labels at the end of its lines, the single-measure trend's colours, the map's table and the top-5 readout's names. Those are orders, not ranks: no rank is shown. (The first version of this branch ordered the line chart and the map by the raw key, which differs from the name shown for reserved values and for models; review of #67 asked for the name, and the panel now hands the charts one label function per dimension that keeps its identity, so ordering by it costs no recompute.) **On a chart capped at its largest values, a tie at the cut can now name a different value than before.**
+     - A list cut at a number of places (top 10, 15, 25) is cut after sorting, so a tie across the cut shows the alphabetically first of the tied entries and omits the rest. Not changed: showing the whole tie would make the list longer than the number asked for.
+     - **The largest five.** The combined count of the five largest values is the same whichever of several tied values is called fifth, so a tie at fifth place cannot change that figure. It could change which five names the readout lists; they now follow the same order. Not tested against the data: the argument is arithmetic. Colours by size are orders too and have the same tie-break (the first version left them on count only).
+  2. **What the guards do** (`docs/METRICS.md`, "What a tripped guard does"). The doc said a share is "suppressed by both guards" and to "suppress rather than round to zero". The site greys a guarded month and still prints its figure. The decision is the first version of the charts (D-014, commit d788e41: "the share guard greys months under 200 vehicles rather than dropping or zeroing them"), the guards D-015, and `/method`'s "Greyed, not zeroed" D-031. METRICS now says, place by place, what the code does. **Where the code and the decision disagree, nothing was changed:** (i) a ranking applies neither guard, so its shares and moves print at any base; (ii) the key under a share chart, and the table of figures under a bar chart or the map, print "suppressed" in place of the figure, where the decision says to grey it. Also written: the representativeness guard cannot fire when any of the 12 months before is missing or fewer than 12 exist, nor when the median is zero (as the code does); a share inside a condition takes the narrowed set as its denominator (the core definition now says so, and the page already says "Only vehicles where ... are counted").
+  3. **The coverage note on a narrowed chart.** It quoted the whole dataset's identification coverage as if it were the chart's. Options: (a) say so on a narrowed view; (b) leave the note off a narrowed view. Chosen (a): the figure is true of the dataset and tells a reader how far to trust the mild line wherever it appears; (b) would remove the one caveat a reader of that line needs. No coverage is computed in the browser. The words were hand-written in `PresetPanel.tsx`, with a domain name in a `.tsx` file, so they moved to `config/presets.json` (`defaults.phrases.identification_coverage*`) and the placeholders they use are listed in `config/narrative/rules.json`. A view is narrowed when a filter of its own or a Build condition applies. The internal page's note says "the high-confidence classifications alone", since "only" is a banned word.
+  4. **`/caveats`.** Three sentences were stale (the site does count what was first registered, by make and model, for the months NZTA's registrations dashboard covers). Reworded with no figure, year or month; section 1 now says which charts count what. Nothing else on the page was found untrue by the audit's notes. Its own figures (5,926,990 rows, 27 body types, the RAV4, CX-5 and Outlander shares) agree with the audit and are dated or unchanged. They still go stale as the register moves.
+  5. **Small wording.** The model-cap note takes the count the dataset ranks by from the dataset's own words (`words.cap_count`); the note template reads `{words.cap_count}`. A model reads as words (`valueWords`, `src/lib/config.ts`: the dimension's separator becomes a space) in the table of figures, the key, hover readouts, the value picker (chips, suggestions, and the search, which now matches the words), the conditions sentence and the top-5 readout. Addresses and data keep the raw key. The dimension's `help` line was reworded to say the same, though the site does not read it.
+  6. **`rules.max_filters`.** `config/dimensions.json` said 2. No reader exists in the site, its tests, the pipeline or the docs, and Build applies three or more conditions. Removed rather than set to a number nothing enforces; the comment says there is no limit (D-062, the work order). `chart_type_is_user_selectable` beside it is also read by nothing and was left.
+  7. **Definitions written down** in `docs/METRICS.md`, each from what the code does: "the last 12 months" and "the 12 months before" are counted back from each dataset's own newest month; a goods vehicle with a gross mass of zero reads "Not recorded" (confirmed on the current local build: 88 vehicles carry the reserved value for not recorded on the segment dimension, none the one for no reference match; `sentinels.csv` says such a vehicle "matches no segment_map row" and the audit's notes call it unmapped, which describes the reference lookup, not the value the cube carries); a model of a make with no reference match keeps the raw make in its key. The tie at the 300-model cap is not defined here: it is the pipeline piece.
+- Checked: the shape defaults fixture is unchanged; 22 views (every Explore chart on the home page and six Build questions) were read headless on a build of `origin/main` and a build of this branch; of 14,766 strings and cells 14,755 are identical once a model is read as words, and the 11 that differ are the tied ranks and their moves in the audit's table (6), two tied rows of the key under the powertrain charts exchanging places (4), and the new sentence under the narrowed powertrain chart (1). Before the fix, a model's raw key in the models' table headings and captions was a further 12.
+- Consequences: a reader of a tied ranking sees the same rank twice; the rank after skips. A reviewer who would rather have distinct alphabetical ranks changes `rankByCount` in `src/lib/ranking.ts` (one function) and the METRICS paragraph. Open for the lead: the two places where the code differs from the decision (item 2), whether a ranking should apply the guards, and the axe finding on `/build/` (`label-content-name-mismatch` on the condition's remove button), which `main` has and pull request #64 fixes.
+- Review of #67 (the independent review confirmed the tie rule row for row and found no changed count), and what changed in answer. Choices a reviewer could want reversed:
+  1. **Whether a ranking has a year-before comparison** is decided by the dataset's own months, not by which months a narrowed slice has rows for. Under a condition a month with no vehicles has no rows, and the old check took it for a month the dataset lacks: the hydrogen ranking (Build, share of the brands, last 12 months, condition on that powertrain) said "There are no figures a year earlier" and still printed DAF's rank a year before, #2, because only the Move column checked the flag. Now: the comparison exists when the earlier window lies wholly inside the months the dataset covers, and then the rank a year before, the move, the change in share and the change on a year ago show together, an absent month counting as zero; otherwise none of the four shows. The dataset's first month is the start of its supplied file, or for the register its count of months back from its newest. The register's earliest months are sparse, so that month is later than its true first (1927-02 against 1912-01 at the 2026-10 snapshot); no window a ranking compares reaches either. The check lives in `rankingText` (`src/lib/sentences.ts`) and the rows in one tested function, `leagueRows` (`src/lib/league.ts`), which the component calls. A change on a year ago is still withheld where the earlier count is under the measure's floor (the hydrogen case: 3).
+  2. **Every other place that asks for a figure a year earlier,** examined: the answer sentence and the hover on a monthly count read whole-month rows with one row per month, zeros included (the fact table's rows with no breakdown), so a month with nothing is a zero there and a month before the dataset is absent: no change. The key under a share chart sums its two 12-month windows with absent months as zero, so it is right under a condition; its change would be computed against a partial window only for a dataset under 24 months old, which no build has: not changed. The top-5 readout makes no year comparison. **Found, not changed:** a share over time drawn as a 12-month share, under a condition, leaves a gap wherever a month in its window has no rows (the rolling share needs every month's denominator, and a month with nothing kept has none); inside the dataset's months that month is zero. It is the same mistake in a figure that is not a year-earlier comparison, so it is listed for the lead.
+  3. **The identification-coverage templates** name no value: the name comes in as `{value}` from the hybrid block of config, and `pipeline/tests/test_site_config.py` now fails any template that names a value or label from the reference files or a band in `config/dimensions.json` (`ordinary_words` in `config/narrative/rules.json` lists exceptions; none today). The lint covers the templates it already collected, not a dimension's `note_template` or `public_note`.
+  4. **The coverage note** appears only where its line is drawn: the value must be among the rows the chart draws.
+  5. **A tie across the top-N cut** now has a sentence from a template (`defaults.phrases.tie_beyond_cut`): how many entries beyond the list share the last rank shown. The list still shows the alphabetically first.
+  6. **METRICS** says all reserved values take no place in a ranking.
+- Second review of #67, and what changed in answer (added; the entries above stand as decided):
+  1. **The register's first month.** Item 1 above took the dataset's first month from the manifest's `months`, which is the number of months that have rows (1,197 for the register), not a span: it gave 1927-02 where the register's first month is 1912-01. It never admitted a comparison that is not there, but it blocked real ones, and the sentence above that no compared window reaches that month was wrong: the month picker offers 1926-12, and a ranking of 1926 against 1925 (six of 1925's twelve months have rows, 22 vehicles) said "There are no figures a year earlier". Now a dataset with no supplied start has as its first month the earliest month in which it has rows, read from data the view already loads (`loadFirstMonth` in `src/lib/data.ts`): the fact table's month column for a question that reads it, the pair slice a narrowed view was cut from, otherwise the rows; no field was added to the manifest. A month after the first with no rows is zero. With the query service answering a question the table is not read and the rows' own first month stands, which can be later than the true one where a condition empties the early months: it blocks a comparison that exists and never admits one that does not. The test that encoded the derived month is replaced by one on the earliest month with rows and by the 1926-12 case with its counts (`tests/site/league.test.ts`, `tests/site/fixtures/league-1926.json`).
+  2. **What the template lint covers.** `pipeline/tests/test_site_config.py` now has no length floor: every value and label in the reference files (brands, parent groups, countries, powertrains, segments, vehicle types, import statuses, regions, the Stats NZ labels) and every band label is matched as a whole word, ignoring case, with a simple plural; a test shows it catching a short name, a plural and another case. `ordinary_words` in `config/narrative/rules.json` holds the one plain word the templates needed, "Car", for the long-run dataset's own word for what it counts; no other template was flagged. **It covers** the templates the file already collected: a preset's answer, the phrases, the builder notices, each dataset's words, source note and not-built message, and the ratio measures' note, unit note, table label and caveat. **It does not cover** a dimension's `public_note`, `note`, `help` or `note_template`, a preset's own `note`, or model names (which come from the data). Those already name values or use a listed word today, all before this branch: the powertrain dimension's notes (hybrid, mild hybrid), the presets `brand-owner-origin` and `new-vs-used`, many `help` texts, and the model dimension's `note_template`. They are left for the narrative work (D-062) and were not rewritten here.
+  3. **The note under a 12-month share chart** said a point is left blank "when any of its 12 months is missing from the data". Under a condition a month in which nothing is kept has no rows and is not missing, it holds no vehicles. The rolling share was not changed (it is its own piece: a window with such a month is still left blank, where the month is zero). The sentence now says what the chart does: blank when any of its months has no vehicles in what is counted, or is missing. Both notes (public and internal) moved from the component into `defaults.phrases` as templates with the number of months as a placeholder. `/caveats` now says the Stats NZ series is split by new and ex-overseas and by engine size for part of its span.
+- Third review of #67 (added): with a month of no vehicles now read as zero, an earlier window can lie inside the dataset's
+  months and hold no vehicles at all under a condition. The change in share was then taken against a share of 0%, which does
+  not exist (0 of 0 vehicles): one brand of hydrogen vehicles in a single month read "+100.0 pp". `leagueRows` now leaves the
+  change in share undefined when the earlier window's denominator is zero, so the column shows a dash; the entry still reads
+  as new. Where the earlier window has vehicles, an entry absent then had a share of zero and its change is its whole share.
+  The lint also does not read `events.csv`, so a template naming an event or a policy would pass; no template does.
+- Status: decided by Claude (unreviewed)
 
 ## D-108 2026-11-16 — The audit's pipeline findings: hybrid nameplates the dashboard spells differently, the mild split withheld under its threshold, the model cap's tie rule, a narrower scope refusal, and which unmapped rate is which
 - Agent: claude (a sub-agent, to the lead's brief)

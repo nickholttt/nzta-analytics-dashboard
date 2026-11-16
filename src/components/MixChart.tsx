@@ -1,7 +1,8 @@
 // mix: share of each value over time, as lines. Months under the share guard are greyed, not hidden.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo, useState } from "react";
-import { chartDefaults } from "../lib/config";
+import { chartDefaults, phrases } from "../lib/config";
+import { fillTemplate } from "../lib/sentences";
 import type { Dimension, Preset } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import type { Event, Manifest, SliceRow } from "../lib/data";
@@ -42,6 +43,7 @@ import {
   xTicks,
 } from "../lib/theme";
 import { latestMonthOf } from "../lib/resolve";
+import { nameOrder, rankByCount } from "../lib/ranking";
 import { getParam, setParam } from "../lib/url";
 import { EventList } from "./EventList";
 import { PlotFigure } from "./PlotFigure";
@@ -107,10 +109,14 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
   const smoothingOption = chartDefaults.mix_smoothing_options.find((o) => o.id === smoothing);
 
   const model = useMemo(() => {
-    const cell = new Map<string, number>();
+    // By value, then month: a figure is looked up many thousands of times per draw, and one key built from both would be
+    // a new string each time.
+    const cell = new Map<string, Map<string, number>>();
     const denominators = new Map<string, number>();
     for (const r of rows) {
-      cell.set(`${r.month}|${r.value}`, r.n);
+      let byMonth = cell.get(r.value);
+      if (!byMonth) cell.set(r.value, (byMonth = new Map()));
+      byMonth.set(r.month, r.n);
       denominators.set(r.month, r.denominator);
     }
     const monthsPresent = [...denominators.keys()].sort();
@@ -129,7 +135,9 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     const rankWin = trailingWindow(win.to, first);
     const totals = new Map<string, number>();
     for (const r of rows) if (r.month >= rankWin.from && r.month <= rankWin.to) totals.set(r.value, (totals.get(r.value) ?? 0) + r.n);
-    const ranked = [...totals.entries()].filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).map(([v]) => v);
+    // Equal totals are ordered alphabetically by the name shown (lib/ranking.ts), so which value takes a place at the cut never
+    // depends on the order the rows arrive in.
+    const ranked = rankByCount([...totals.entries()].filter(([, n]) => n > 0).map(([value, n]) => ({ value, name: label(value), n }))).map((e) => e.value);
     const kept = preset.top_n ? ranked.filter((v) => !isReserved(v)).slice(0, preset.top_n) : ranked;
 
     // Event scoping asks which categories the chart actually shows over its period. That is not the
@@ -154,17 +162,20 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
     // one: it is not a group too small to name. Folded into the remainder, an era with no country recorded
     // read as "All other" near 100% (D-046).
     const rankedSet = new Set(ranked);
-    const unranked = preset.top_n ? [] : [...drawn].filter((v) => !rankedSet.has(v)).sort();
-    const reservedDrawn = preset.top_n ? [...drawn].filter(ownLine).sort() : [];
+    const unranked = preset.top_n ? [] : [...drawn].filter((v) => !rankedSet.has(v)).sort((a, b) => nameOrder(label(a), label(b)));
+    const reservedDrawn = preset.top_n ? [...drawn].filter(ownLine).sort((a, b) => nameOrder(label(a), label(b))) : [];
     const series = preset.top_n ? [...kept, ...reservedDrawn, ALL_OTHER] : [...ranked, ...unranked];
     const named = [...kept, ...new Set(rows.map((r) => r.value).filter(ownLine))];
 
     const denominatorFor = (month: string) => denominators.get(month);
+    const namedIn = new Map<string, number>();
     const nFor = (month: string, s: string) => {
       const den = denominators.get(month);
       if (den === undefined) return undefined;
-      if (s !== ALL_OTHER) return cell.get(`${month}|${s}`) ?? 0;
-      return den - named.reduce((sum, k) => sum + (cell.get(`${month}|${k}`) ?? 0), 0);
+      if (s !== ALL_OTHER) return cell.get(s)?.get(month) ?? 0;
+      let inNamed = namedIn.get(month);
+      if (inNamed === undefined) namedIn.set(month, (inNamed = named.reduce((sum, k) => sum + (cell.get(k)?.get(month) ?? 0), 0)));
+      return den - inNamed;
     };
 
     // Which series take one of the palette's colours. A mix chart tells two stories, what matters now and
@@ -188,7 +199,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       peak.set(s, max);
     }
     const byTrailing = ranked.filter((v) => peak.has(v)).slice(0, chartDefaults.colour_slots_by_trailing);
-    const byPeak = candidates.filter((s) => !byTrailing.includes(s)).sort((a, b) => (peak.get(b) ?? 0) - (peak.get(a) ?? 0));
+    const byPeak = candidates.filter((s) => !byTrailing.includes(s)).sort((a, b) => (peak.get(b) ?? 0) - (peak.get(a) ?? 0) || nameOrder(label(a), label(b)));
     const colourRank = new Map([...byTrailing, ...byPeak].map((s, i) => [s, i]));
     const colourOf = (s: string) => (s === ALL_OTHER ? REMAINDER : seriesColour(colourRank.get(s) ?? Number.POSITIVE_INFINITY));
     const ownColour = (s: string) => s !== ALL_OTHER && hasOwnColour(colourRank.get(s) ?? Number.POSITIVE_INFINITY);
@@ -259,10 +270,10 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       // Ordered by the figure it shows, largest first. The remainder is pinned last whatever its
       // size: it is what is left over, not a competitor, and sorting it among the named values
       // invites a reader to read it as one.
-      .sort((a, b) => Number(a.remainder) - Number(b.remainder) || (b.shown ?? -1) - (a.shown ?? -1));
+      .sort((a, b) => Number(a.remainder) - Number(b.remainder) || (b.shown ?? -1) - (a.shown ?? -1) || nameOrder(label(a.series), label(b.series)));
 
     return { win, full, rankWin, series, points, bands, summary, categories, defaultStart, colourOf, ownColour };
-  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, fullHistory]);
+  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, fullHistory, label]);
 
   const selected = useMemo(
     () => (preset.events && events ? selectEvents(events, dimension.id, model.categories, `${model.win.from}-01`, manifest.latest_snapshot) : null),
@@ -336,7 +347,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
       const gap = (LABEL_LINE_HEIGHT / innerHeight) * yMax;
       let previous = Number.POSITIVE_INFINITY;
       const stacked = [...ends]
-        .sort((a, b) => (b.share ?? 0) - (a.share ?? 0))
+        .sort((a, b) => (b.share ?? 0) - (a.share ?? 0) || nameOrder(label(a.series), label(b.series)))
         .map((p) => {
           const labelY = Math.min(p.share as number, previous - gap);
           previous = labelY;
@@ -517,7 +528,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
               }% of vehicles over the previous ${TRAILING_MONTHS} months, for ${chartDefaults.mix_default_start.sustain_months} months running. Records start in ${monthLabel(model.full.from)}: choose All records to see them. `
             : ""}
           {!internal && rolling
-            ? `Each point is the share over the ${TRAILING_MONTHS} months up to that month, which smooths out month-to-month swings. A point is left blank when any of its ${TRAILING_MONTHS} months is missing from the data.`
+            ? fillTemplate(phrases.rolling_share_note, { months: TRAILING_MONTHS }).text
             : ""}
           {internal && model.defaultStart
             ? `The default start is the first month with at least ${chartDefaults.mix_default_start.min_categories} categories above ${
@@ -527,7 +538,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, minDenomin
               )}. `
             : ""}
           {internal && rolling
-            ? `Each point is the trailing ${TRAILING_MONTHS} months' vehicles of this value over the trailing ${TRAILING_MONTHS} months' total, computed in the browser from the monthly counts. A window missing a month is left blank, never filled in.`
+            ? fillTemplate(phrases.rolling_share_note_internal, { months: TRAILING_MONTHS }).text
             : ""}
         </p>
       ) : null}

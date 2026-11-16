@@ -1,5 +1,5 @@
 // Measures computed in the browser from n and denominator (docs/CUBE_SCHEMA.md, docs/METRICS.md).
-import { addMonths } from "./sentences";
+import { addMonths, monthRange } from "./sentences";
 import { chartDefaults, findDerived, findMeasure, findPeriod, shareChangeUnit } from "./config";
 import type { Guards } from "./config";
 
@@ -20,16 +20,11 @@ export function shareChange(delta: number): string {
   return `${sign}${Math.abs(v).toFixed(1)} pp`;
 }
 
-export { addMonths, monthLabel } from "./sentences";
+export { addMonths, monthLabel, monthRange } from "./sentences";
 
 export const monthDate = (key: string) => new Date(`${key}-01T00:00:00Z`);
 
 
-export function monthRange(from: string, to: string): string[] {
-  const out: string[] = [];
-  for (let k = from; k <= to; k = addMonths(k, 1)) out.push(k);
-  return out;
-}
 
 // The trailing window every trailing figure on the site uses: the top-N ranking basis, the rolling
 // share, and the summary table's two comparison windows. One number, from config.

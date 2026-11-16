@@ -247,18 +247,64 @@ Source and method: `docs/DATA_SOURCES.md` §C (D-065, D-094). Measured on
 | Measure | Definition |
 |---|---|
 | Count | Number of vehicles matching the filters in the period. |
-| Share | Count ÷ count of all vehicles in the same dataset and month. Suppressed by both guards below; the representativeness guard applies to monthly shares only, not 12-month ones. |
-| Change on a year ago | (this month − same month last year) ÷ same month last year. Suppressed when the base is under 50. |
-| 12-month running total | Sum of the trailing 12 months inclusive of the current month. |
+| Share | Count ÷ count of all vehicles in the same dataset and month **that the view counts**. With no condition that is every vehicle of the dataset in the month. With a condition (a chart's own filter, or a condition on Build) it is the vehicles the condition keeps, and the page says so: "Only vehicles where ... are counted". A share inside a condition is therefore a share of the narrowed set, never of the whole month. Greyed or suppressed by the two guards below, place by place as "What a tripped guard does" says; the representativeness guard applies to monthly shares only, not to 12-month ones. |
+| Change on a year ago | (this month − same month last year) ÷ same month last year. Withheld (the page says the earlier month has too few vehicles) when the earlier count is under 50, and not given when the earlier month is not in the data. |
+| 12-month running total | Sum of the trailing 12 months inclusive of the current month. A window missing any of its months has no total: the line breaks. |
+
+**The last 12 months and the 12 months before** are counted back from each
+dataset's own newest month (`latest_month` in the manifest), not from the
+snapshot or the calendar. The last 12 months are that month and the 11 before
+it; the 12 months before are the 12 months ending 12 months before that
+newest month. A dataset whose newest month is earlier than the register's (the
+Stats NZ series) has windows that end earlier. A ranking that ends in another
+month counts back from that month in the same way, and its year before is the
+same months a year earlier.
 
 **Share changes are always expressed in percentage points.** 10% to 15% is
 +5pp. Enforce in the formatter, not per chart.
 
+### Ranking and ties (D-107)
+
+A ranking orders the values of one dimension by their count in one window: a single month, or the 12 months ending in a
+month. Reserved values take no place: every value the cube writes between double underscores (not recorded, no reference
+match, beyond the cap, and any other the cube reserves). A value with no vehicles in the window is not ranked.
+
+- **Equal counts share a rank**, the rank of the first of them: 1, 2, 2, 4 (the usual competition ranking). The next rank
+  after a tie skips the places the tie used.
+- **Equal counts are listed in alphabetical order of the name a reader sees** (for a model, the make and model as words).
+  Two values that show the same name are ordered by their raw key. The order never depends on the order the data arrives in.
+- **A move** is the rank a year before minus the rank now, both shared ranks. Entries tied now move together unless they were
+  not tied then.
+- **The rank a year before** is the rank in the same months a year earlier, ranked by the same rule.
+- **Whether there is a year-before comparison** is decided by the dataset's own months, not by which months a narrowed view
+  has rows for. The earlier window must lie wholly inside the months the dataset covers: from its first month (the start of
+  its supplied file, or otherwise the earliest month in which it has vehicles, read from the data the view loads) to its
+  newest. Every month after the first, with or without rows, is inside the dataset. If it does not, the
+  ranking has no rank a year before, no move, no change in share and no change on a year ago, and says so; none of the four
+  is shown. If it does, all four are shown, and a month in which a condition keeps no vehicles, which has no rows, counts as a
+  month of zero vehicles. An entry with no vehicles in the earlier window has no rank then and reads as new; its change on a
+  year ago is withheld where the earlier count is under the measure's floor, as for any entry. Where the earlier window
+  holds no vehicles at all in what is counted, no entry has a share then (a share of no vehicles has no value), so no change
+  in share is shown for any entry; where it holds some, an entry absent then had a share of zero.
+- **A list cut at a number of places** (the top 10, 15 or 25, or a chart that names its largest values) is cut after the
+  sorting above, so a tie that straddles the cut shows the alphabetically first of the tied entries. A sentence under the
+  table says how many more entries share the last rank shown, when there are any.
+- **Top-5 share** is the combined count of the five largest values over the month's denominator (the narrowed set's, under a condition). Which of several tied
+  values is the fifth cannot change that sum; it can change which names the readout lists, and those follow the same order.
+- Where the site orders something by size without showing a rank (a chart's lines and their colours, the key under it, the
+  order of labels at the end of the lines, the map's table, the names the top-5 readout lists), equal counts are ordered
+  alphabetically by the name shown, with the raw key last. These are orders, not ranks: no rank is shown and a tie is not
+  marked. On a chart that keeps only its largest values, a tie at the cut takes the alphabetically first value.
+
 ### Two suppression guards
 
-A share is suppressed when **either** guard trips. They look similar and
-they are not redundant. Anyone tempted to collapse them into one should
-read this section first.
+A share is greyed or suppressed (below) when **either** guard trips. They
+look similar and they are not redundant. Anyone tempted to collapse them into
+one should read this section first. The site greys a figure rather than
+dropping or zeroing it: the first version of the charts did so on 2026-09-12
+(D-014, commit d788e41: "the share guard greys months under 200 vehicles
+rather than dropping or zeroing them"), the guards themselves are D-015, and
+D-031 put the same words on `/method` ("Greyed, not zeroed").
 
 Both guards test the share's own denominator. On a plain slice that is the
 dataset's whole month. A pair slice carries the same whole-month
@@ -271,6 +317,31 @@ floor is the filtered month against the median of the filtered base over the
 12 months before it. A filtered chart can therefore suppress a month the
 unfiltered chart draws.
 
+### What a tripped guard does
+
+Two different things happen, and the words keep them apart. A figure is
+**greyed** when it is still drawn or printed, in grey and with the reason. A
+figure is **suppressed** when the word "suppressed" is printed in its place.
+Nothing is ever drawn or printed as zero because a guard tripped. This is what
+the code does, place by place; where it differs from the decisions above it is
+listed in the decision record D-107.
+
+| Place | Precision floor (under the minimum vehicles) | Representativeness floor |
+|---|---|---|
+| A share over time, month by month, or as a share of the last 12 months: the line, and the top-5 share line | The month is **greyed**. The coloured line is not drawn through it. A thin grey line carries the figure and a shaded band marks a run of greyed months. The test is on the denominator behind the drawn figure: the month's own, or the 12 months' total for a 12-month share. | Tested on the month's own denominator, for **monthly** shares only. A 12-month share is not tested. Greyed in the same way. |
+| The reading shown on hover over a point, on any chart | The figure and the vehicles behind it are printed, then "Greyed: fewer than N vehicles behind this figure". | The figure and vehicles, then "Greyed: far fewer vehicles than the months before, so it may not describe a normal month". If both trip, the precision reason is the one given. |
+| The table of figures under the top-5 share line | Every month with a figure is listed with its share and its vehicles, and a Note column carries the grey reason. The figure is **printed**. | The same. |
+| The key under a chart of shares over time (the last 12 months, and the change on the 12 months before) | The 12-month share is **suppressed** if that window's vehicles are under the floor. The change is suppressed if either window is. | Not tested: a window is not a month. |
+| A bar chart by band, and the map (a share over one period) | Tested on the whole period's vehicles. If under the floor, every bar or region is **greyed**, the hover reading carries the reason, the line above the chart says "greyed: under N", and the table of figures prints the share as **suppressed** (the count is printed). | Not tested. |
+| A ranking | **Neither guard is applied.** A ranking's shares, its change in share and its moves are always printed, whatever the base. | Not applied. |
+| An answer sentence, or the reading on a count | These are counts, not shares, and carry neither guard. The change on a year ago is the only withheld figure: under 50 vehicles in the earlier month it is not given and the sentence says there are too few vehicles to compare with. | None. |
+| A count, or a 12-month running total | A count carries no share guard. | None. |
+
+A condition (a chart's own filter, or a Build condition) changes what the
+denominator is, not what the guards do: both are tested on the narrowed set, as
+the first paragraph of this section says. A filtered chart can therefore grey a
+month the unfiltered chart draws.
+
 **The precision floor — denominator under 200.** Below this the month has
 too few vehicles for a percentage to mean anything, and each further
 vehicle moves the figure visibly. It is also what covers the sparse early
@@ -280,7 +351,11 @@ history: 493 of the 1,195 months in `registrations_surviving` sit under
 **The representativeness floor — denominator under a third of the median
 of the 12 months before it.** A month can clear the precision floor
 comfortably and still describe a different population from the months
-either side of it.
+either side of it. The median is of the 12 calendar months immediately before
+the month. If any of those 12 months is not in the data, or the month is one
+of a dataset's first 12, there is nothing to compare against and the guard
+does not fire; it never fires by default. It does not fire either when that
+median is zero.
 
 The reference case is April 2020, NZ's level-4 lockdown, and it is the
 only month in the whole series that collapses this way while clearing
@@ -489,10 +564,26 @@ a line can move with how each source classes a car.
 subnational population estimates. Population is a separate reference file
 with its own vintage; label the estimate year on the chart.
 
+## Values in edge cases
+
+- **A goods vehicle with a gross mass of zero reads "Not recorded" on the
+  segment dimension.** The register records 0 where the mass was not captured
+  (`sentinels.csv`), which the pipeline treats as no value. The segment
+  reference has ranges of mass for goods vehicles, so a goods vehicle of a body
+  type that has them and no mass is "Not recorded", not "No reference match".
+  Passenger vehicles ignore mass.
+- **A model whose make has no match in the brand reference keeps the raw make
+  in its key.** The model's key is the canonical make, a separator and the
+  model; where there is no canonical make, the make as the register records it
+  stands in its place. Such a model is therefore listed under the make as
+  recorded, while the brand dimension shows "No reference match" for the same
+  vehicle. A vehicle with no make or no model has the model "Not recorded".
+
 ## Estimation rules
 
 - Never interpolate a missing month. Render a gap.
 - Never extrapolate beyond the latest snapshot.
-- Suppress rather than round to zero.
+- Grey or suppress rather than round to zero: a figure under a guard is never
+  drawn or printed as 0 (`What a tripped guard does`, above).
 - Any figure the user could mistake for official must carry the basis note:
   *"Registrations recorded by NZTA. Not the same as vehicle sales."*
