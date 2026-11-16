@@ -213,9 +213,10 @@ SUNLONG 1, VAUXHALL 1, WESTERN STAR 1, ZEMTEC 1.
 - **Hybrids.** The added types hold 33 vehicles recorded under a hybrid code all time and 1 in the trailing window. All
   but one have a row in `mild_hybrid_models.csv` (a Hino, model 500, has none). The wider dataset's trailing figures are
   the default scope's to the vehicle but one: 91,615 source hybrids against 91,614, identified at stated confidence
-  83.45%, and at high confidence 14,271 of 19,286 (74.0%) under D-110's count, so its mild split is published (the
-  level is 70%). 1,101 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
-  time the high-confidence figure is 46,102 of 71,434 (64.5%).
+  85.34%, and at high confidence 14,327 of 17,854 (80.25%) under D-110's count, so its mild split is published (the
+  level is 70%). 2,613 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
+  time the high-confidence figure is 46,158 of 67,876 (68.0%). (Measured again on 2026-11-17 with D-115's rows; D-113
+  measured 83.45%, 14,271 of 19,286 and 46,102 of 71,434 before them.)
 - **Anything else.** Vehicle age at registration (the band's unknown), model (not recorded) and powertrain show no rate on
   the added types unlike the default scope's; the country built in is not recorded for 7 of the 16,767 new vehicles
   of the added types all time, as for 7 of 852,131 in the default scope.
