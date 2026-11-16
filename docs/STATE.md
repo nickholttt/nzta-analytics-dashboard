@@ -86,8 +86,7 @@ requests, the engine's audit, then package F. CHECKPOINT, "Work in hand".
    fall a month behind at each refresh until the narrative engine (package H; D-086).
 6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
    Notes in config that no lint reads name a value or say why (D-107, D-109; for H).
-7. A chart below the first loads as it nears the screen; printing or searching the page
-   before scrolling reaches only what has loaded (D-099).
+7. Printing or searching a page before scrolling reaches only the charts that have loaded (D-099).
 8. True registrations of new vehicles read 1.4% to 3.9% under published totals (three vehicle
    types the default scope leaves out; a total on the trade's basis is next, D-106), and older
    months about 1% lower, cause not established (D-105).
