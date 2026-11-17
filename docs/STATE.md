@@ -78,8 +78,7 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
   `history/` (January 2021 to October 2026, 1,883,786 vehicles), `2021-01/`, `2026-10/`.
 - `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's monthly series, 1961-01 to 2026-09,
   fetched read-only from Infoshare; the user's own hand export replaces it later (D-065).
-- **No local file holds `VIN11` or `POSTCODE`.** A backup folder on the project's disk holds
-  both pulls and both dashboard files.
+- **No local file holds `VIN11` or `POSTCODE`.** A backup folder holds the pulls and exports.
 
 ## Known issues
 
