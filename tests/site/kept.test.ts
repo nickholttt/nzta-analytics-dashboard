@@ -168,7 +168,7 @@ test("the line above the chart says which snapshot the figures are from, and nev
   assert.equal(line?.kind, "withheld");
   assert.equal(
     line?.text,
-    "The snapshot of 31 October 2026 that this link is pinned to does not hold this question. Pinned to Oct 2026. The figures come from the newer snapshot of 30 November 2026, so they may differ from those seen when it was pinned.",
+    "The snapshot of 31 October 2026 that this link is pinned to cannot answer this question. Pinned to Oct 2026. The figures come from the newer snapshot of 30 November 2026, so they may differ from those seen when it was pinned.",
   );
 
   const byOwner = read(`build.measure=count&build.by=${owner}&build.view=league&build.snapshot=2026-10`);
@@ -176,7 +176,7 @@ test("the line above the chart says which snapshot the figures are from, and nev
   // Followed by the line the newest snapshot gets, whatever that is for this chart.
   assert.equal(
     pinLine(byOwner, served, withheld)?.text,
-    `The snapshot of 31 October 2026 that this link is pinned to does not say that small counts in this field were hidden, so its figures for this question are not shown. ${pinNote(byOwner, served)?.text}`,
+    `The snapshot of 31 October 2026 that this link is pinned to does not say that small counts were hidden in the fields this question names, so its figures for this question are not shown. ${pinNote(byOwner, served)?.text}`,
   );
 
   // Not kept: the line D-125 gives, word for word. Not pinned: none.
