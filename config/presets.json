@@ -179,6 +179,7 @@
       "mild_split_withheld": "In this dataset the {value} vehicles are shown undivided: too few could be told apart to split them into types.",
       "mild_split_withheld_internal": "In this dataset the {value} vehicles are shown undivided: the trailing high-confidence coverage, {trailing_high}, is under {threshold}, the level at which the split is published.",
       "mild_split_withheld_link": "How the types are told apart",
+      "field_note_link": "The full note",
       "identification_coverage_whole": "These coverage figures are for every vehicle in the dataset, not for the vehicles this chart is narrowed to."
     },
     "$comment": "Chart-level defaults that are not per-preset decisions. mix_smoothing: monthly share on survivors data swings too hard to read, so a mix chart defaults to a trailing share and offers monthly as a toggle. top_n_basis: which window ranks the values that keep their own line; the rest become one remainder series.",
@@ -218,6 +219,7 @@
       "dataset": "This link asked to count {asked}, which this build does not have. It is counting {shown} instead.",
       "by": "This link asked to break the figures down by {asked}, which is not available for {dataset}. It shows {shown} instead.",
       "left_out": "This link named “{asked}” for {field}, which is not a value that can be chosen here, so it was left out.",
+      "absent": "This link named “{asked}” for {field}, which is not a value in the data for {dataset}, so it was left out.",
       "by2": "This link asked for a second breakdown by {asked}, which this question cannot have. It shows the question without one.",
       "value2": "This link named values for a second breakdown, but it names no second breakdown, so the values were left out.",
       "snapshot": "This link named the snapshot “{asked}”, which is not a month, so it was left out.",

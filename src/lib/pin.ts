@@ -42,8 +42,10 @@ export function holdsWindow(q: Question): boolean {
   return Boolean(first) && END_MONTH_SHAPES.has(inferShape(first, findDimension(first.dimension), findMeasure(first.measure)));
 }
 
-// What to tell a visitor about a pinned question against the snapshot served now; undefined for a question that is not pinned.
-export function pinNote(q: Question, manifest: Manifest): PinNote | undefined {
+// What to tell a visitor about a pinned question against the snapshot served now; undefined for a question that is not pinned. firstMonth: the first
+// month the page has seen the dataset hold vehicles, from the data the chart loaded (src/lib/data.ts, loadFirstMonth), for a dataset whose manifest does
+// not state its first month. Without it the line does not say a window is kept for such a dataset.
+export function pinNote(q: Question, manifest: Manifest, firstMonth?: string): PinNote | undefined {
   if (!isMonthKey(q.snapshot)) return undefined;
   const served = manifest.latest_snapshot;
   const fill = (kind: PinNote["kind"], template: string): PinNote => ({
@@ -57,13 +59,13 @@ export function pinNote(q: Question, manifest: Manifest): PinNote | undefined {
   const holds = holdsWindow(q);
   // A chart that ends in a month the visitor can name falls back to the newest where the pinned month is not one it has a window for: after
   // the dataset's newest month, or before its first month plus the window's length. It then cannot be said to keep ending in the pinned month.
-  // Where the manifest does not give the dataset's first month (it does for a supplied dataset only), whether the chart has a window for the
-  // pinned month is not known here, so the line does not say the window is kept: the chart says which months it shows.
+  // Where neither the manifest (it gives it for a supplied dataset only) nor the chart's own data has given the dataset's first month, whether the
+  // chart has a window for the pinned month is not known here, so the line does not say the window is kept: the chart says which months it shows.
   let firstKnown = false;
   if (holds && first) {
     const months = findPeriod(first.period)?.months;
     const span = months !== undefined && months <= TRAILING_MONTHS ? months : TRAILING_MONTHS;
-    const start = datasetFirstMonth(manifest.datasets[servedFrom(q.dataset, manifest) ?? ""], undefined);
+    const start = datasetFirstMonth(manifest.datasets[servedFrom(q.dataset, manifest) ?? ""], firstMonth);
     firstKnown = start !== "9999-12";
     if (q.snapshot > latest || (firstKnown && q.snapshot < addMonths(start, span - 1))) return fill("uncovered", notices.pin_uncovered);
   }
