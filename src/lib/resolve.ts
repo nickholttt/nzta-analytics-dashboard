@@ -287,7 +287,9 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
       } else if (breakdownHere && !manifest.datasets[id].live_dimensions.includes(breakdownHere)) {
         add("blocked", `dimension "${breakdownHere}" is not live in ${id}`);
       } else {
-        hidesCells(id, [breakdownHere, id === ratio.numerator_dataset ? ratio.numerator_narrowed_to?.dimension : undefined]);
+        // The same fields the check on the chart's own dataset passes, plus this dataset's own breakdown and narrowing: a question that names a
+        // listed field is blocked for every dataset it reads, not only the one it is drawn from (D-130, D-133).
+        hidesCells(id, [breakdownHere, preset.dimension2, preset.cross, ...narrowing.map((n) => n.key), ...asked, id === ratio.numerator_dataset ? ratio.numerator_narrowed_to?.dimension : undefined]);
       }
     }
     // Each value crossed with another dimension's: the denominator from its fact table, the numerator from the pair slice.
