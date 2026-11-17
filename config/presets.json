@@ -269,7 +269,7 @@
           "age_at_registration_band": "age when registered here",
           "region": "owner's region",
           "segment_group": "vehicle class",
-          "nzta_class": "NZTA class code",
+          "nzta_class": "NZTA vehicle class",
           "model": "model"
         },
         "top_n": {
@@ -302,7 +302,7 @@
           "age_at_registration_band": "age when registered here",
           "region": "owner's region",
           "segment_group": "vehicle class",
-          "nzta_class": "NZTA class code",
+          "nzta_class": "NZTA vehicle class",
           "model": "model"
         },
         "$dimensions_comment": "A count by a breakdown draws one line per chosen value, so it needs the fact table; with no breakdown it is the total of the vehicles kept.",
