@@ -121,6 +121,7 @@ def with_(row: list[str], **changes: str) -> list[str]:
     (build(with_(CAR, basis="")), "every row needs a basis"),
     (build(SUV, with_(LATER, match_vehicle_year_min="2018")), "also matched by line 2"),
     (build(SUV, with_(LATER, match_vehicle_year_min="")), "also matched by line 2"),
+    (build(with_(CAR, confidence="certain")), "is not one of ['high', 'low', 'medium']"),
     (build(with_(CAR, confidence="low")), "exactly when its confidence is low"),
     (build(with_(LATER, confidence="medium")), "exactly when its confidence is low"),
     (build(with_(SUV, match_vehicle_year_max="19")), "not a four-digit year"),
