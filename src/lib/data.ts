@@ -9,10 +9,14 @@ import { monthKey } from "./monthkey";
 import { UNREADABLE_DATA, isUnreadableForm } from "./unreadable";
 import { crossPair, crossValue, narrowPair } from "./cross";
 import type { HybridCoverage } from "./hybrid";
+import { isMonthFolder, readIndex } from "./snapshotIndex";
+import type { KeptSnapshots } from "./snapshotIndex";
 
 export { monthKey };
 
 const DATA = "/data";
+// An earlier snapshot is read from a folder of its own, the cube exactly as that month's release held it (D-131).
+const KEPT = "snapshots";
 
 // The cube is written with zstd (docs/CUBE_SCHEMA.md); hyparquet reads snappy and uncompressed pages itself. The package
 // of every codec ships a brotli decoder, a gzip one and a lz4 one this site never uses, so only the one the files need is
@@ -33,6 +37,8 @@ export type SliceRow = { month: string; value: string; n: number; denominator: n
 export type ViewSource = {
   dataset: string;
   dimension: string | null;
+  // The kept snapshot (a month) the rows are read from; none: the newest, which the data folder itself holds.
+  snapshot?: string;
   filter?: { pair: string; side: "a" | "b"; dimension: string; values: string[] };
   facts?: { values?: string[]; where: Record<string, string[]> };
   // Each value of the breakdown crossed with each value of this other dimension, one row for each combination (a value reads
@@ -119,14 +125,35 @@ function once<T>(key: string, load: () => Promise<T>): Promise<T> {
   return cache.get(key) as Promise<T>;
 }
 
-async function fetchOk(path: string): Promise<Response> {
-  const res = await fetch(`${DATA}/${path}`);
-  if (!res.ok) throw new Error(`public/data/${path}: HTTP ${res.status}`);
+// The folder a read comes from. Every cache key below carries it, so a file read from a kept snapshot and the same file of the newest never share an
+// entry. Only a month is ever turned into a path.
+const inFolder = (snapshot: string | undefined, path: string): string => {
+  if (snapshot === undefined) return path;
+  if (!isMonthFolder(snapshot)) throw new Error(`${snapshot} is not a snapshot month`);
+  return `${KEPT}/${snapshot}/${path}`;
+};
+
+async function fetchOk(path: string, snapshot?: string): Promise<Response> {
+  const where = inFolder(snapshot, path);
+  const res = await fetch(`${DATA}/${where}`);
+  if (!res.ok) throw new Error(`public/data/${where}: HTTP ${res.status}`);
   return res;
 }
 
-export const loadManifest = () => once("manifest", async () => (await fetchOk("manifest.json")).json() as Promise<Manifest>);
-export const loadEvents = () => once("events", async () => (await fetchOk("events.json")).json() as Promise<Event[]>);
+export const loadManifest = (snapshot?: string) => once(inFolder(snapshot, "manifest"), async () => (await fetchOk("manifest.json", snapshot)).json() as Promise<Manifest>);
+export const loadEvents = (snapshot?: string) => once(inFolder(snapshot, "events"), async () => (await fetchOk("events.json", snapshot)).json() as Promise<Event[]>);
+
+// The months a deploy keeps beside the newest, or null where there is no readable index (a local build has none; a deploy that kept nothing has an
+// empty one). Absent is no error: a pin then reads as it does with no kept snapshot.
+export const loadKeptSnapshots = () =>
+  once("kept-snapshots", async (): Promise<KeptSnapshots | null> => {
+    try {
+      const res = await fetch(`${DATA}/${KEPT}/index.json`);
+      return res.ok ? readIndex(await res.json()) : null;
+    } catch {
+      return null;
+    }
+  });
 
 // Region outlines for the map, written by scripts/region-boundaries.mjs. Not cube data: they sit beside it, not in it.
 export type RegionOutlines = {
@@ -162,10 +189,10 @@ const asRecorded = (dimension: string): ((value: string) => string) => {
   return band === undefined ? (value) => value : (value) => (value === band ? NOT_RECORDED_TOKEN : value);
 };
 
-export const loadSlice = (dataset: string, dimension: string) =>
-  once(`slice:${dataset}/${dimension}`, async () => {
+export const loadSlice = (dataset: string, dimension: string, snapshot?: string) =>
+  once(inFolder(snapshot, `slice:${dataset}/${dimension}`), async () => {
     const path = `cube/${dataset}/${dimension}.parquet`;
-    const file = await (await fetchOk(path)).arrayBuffer();
+    const file = await (await fetchOk(path, snapshot)).arrayBuffer();
     const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "dim_value", "n", "denominator"] }));
     const recorded = asRecorded(dimension);
     return rows.map(
@@ -175,9 +202,9 @@ export const loadSlice = (dataset: string, dimension: string) =>
 
 type PairRow = { month: string; a: string; b: string; n: number };
 
-const loadPair = (dataset: string, pair: string) =>
-  once(`pair:${dataset}/${pair}`, async () => {
-    const file = await (await fetchOk(`pairs/${dataset}/${pair}.parquet`)).arrayBuffer();
+const loadPair = (dataset: string, pair: string, snapshot?: string) =>
+  once(inFolder(snapshot, `pair:${dataset}/${pair}`), async () => {
+    const file = await (await fetchOk(`pairs/${dataset}/${pair}.parquet`, snapshot)).arrayBuffer();
     const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "a_value", "b_value", "n"] }));
     const [first, second] = pair.split(PAIR_SEPARATOR);
     const [recordedA, recordedB] = [asRecorded(first), asRecorded(second)];
@@ -188,9 +215,9 @@ const loadPair = (dataset: string, pair: string) =>
 // order, so a question downloads only the columns it names and lines them up by position.
 type FactColumn = ArrayLike<unknown>;
 
-const loadFactColumn = (dataset: string, column: string) =>
-  once(`facts:${dataset}/${column}`, async (): Promise<FactColumn> => {
-    const file = await (await fetchOk(`facts/${dataset}/${column}.parquet`)).arrayBuffer();
+const loadFactColumn = (dataset: string, column: string, snapshot?: string) =>
+  once(inFolder(snapshot, `facts:${dataset}/${column}`), async (): Promise<FactColumn> => {
+    const file = await (await fetchOk(`facts/${dataset}/${column}.parquet`, snapshot)).arrayBuffer();
     const chunks: ColumnData[] = [];
     await decoded(() => parquetRead({ file, compressors, columns: [column], onChunk: (chunk) => chunks.push(chunk) }));
     chunks.sort((a, b) => a.rowStart - b.rowStart);
@@ -204,9 +231,9 @@ const loadFactColumn = (dataset: string, column: string) =>
 
 // The month column as "YYYY-MM" keys. The table is sorted by month, so the same value repeats in runs and one
 // conversion per distinct month serves them all.
-const loadFactMonths = (dataset: string) =>
-  once(`facts:${dataset}/month-keys`, async () => {
-    const raw = await loadFactColumn(dataset, "month");
+const loadFactMonths = (dataset: string, snapshot?: string) =>
+  once(inFolder(snapshot, `facts:${dataset}/month-keys`), async () => {
+    const raw = await loadFactColumn(dataset, "month", snapshot);
     const keys = new Map<string, string>();
     const out: string[] = new Array(raw.length);
     for (let i = 0; i < raw.length; i++) {
@@ -307,16 +334,17 @@ async function serviceView(dataset: string, dimension: string | null, values: st
 // total.
 //
 // cross: each breakdown value is crossed with this other dimension's, so a row's value is "breakdown value · other value".
-// The query service is not asked for a crossed view: its question has one breakdown, so it is read from the table here.
-export async function factView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>, cross?: string) {
-  if (QUERY_SERVICE && !cross) return serviceView(dataset, dimension, values, where);
+// The query service is not asked for a crossed view: its question has one breakdown, so it is read from the table here. Nor is it asked for a
+// kept snapshot's: it answers from the newest it holds (docs/QUERY_SERVICE.md), so the table of that snapshot's folder is read instead.
+export async function factView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>, cross?: string, snapshot?: string) {
+  if (QUERY_SERVICE && !cross && snapshot === undefined) return serviceView(dataset, dimension, values, where);
   const filters = Object.entries(where).filter(([, kept]) => kept.length > 0);
   const [months, counts, firstBreakdown, other, ...filterColumns] = await Promise.all([
-    loadFactMonths(dataset),
-    loadFactColumn(dataset, "n"),
-    dimension ? loadFactColumn(dataset, dimension) : Promise.resolve(null),
-    dimension && cross ? loadFactColumn(dataset, cross) : Promise.resolve(null),
-    ...filters.map(([d]) => loadFactColumn(dataset, d)),
+    loadFactMonths(dataset, snapshot),
+    loadFactColumn(dataset, "n", snapshot),
+    dimension ? loadFactColumn(dataset, dimension, snapshot) : Promise.resolve(null),
+    dimension && cross ? loadFactColumn(dataset, cross, snapshot) : Promise.resolve(null),
+    ...filters.map(([d]) => loadFactColumn(dataset, d, snapshot)),
   ]);
   const breakdown: FactColumn | null =
     firstBreakdown && other ? Array.from({ length: firstBreakdown.length }, (_, i) => crossValue(String(firstBreakdown[i]), String(other[i]))) : firstBreakdown;
@@ -358,14 +386,14 @@ export async function factView(dataset: string, dimension: string | null, values
 // (one row each, with vehicles in it), and the month's total of those vehicles as the denominator. The window and the lines of the grid are
 // chosen later, from these rows (src/lib/matrix.ts), so a question downloads the columns it names once and a new window needs no more. The
 // query service is not asked: its question has one breakdown, so the table is read here, as for any crossed view.
-export async function factGrid(dataset: string, dimension: string, other: string, where: Record<string, string[]>): Promise<SliceRow[]> {
+export async function factGrid(dataset: string, dimension: string, other: string, where: Record<string, string[]>, snapshot?: string): Promise<SliceRow[]> {
   const filters = Object.entries(where).filter(([, kept]) => kept.length > 0);
   const [months, counts, first, second, ...filterColumns] = await Promise.all([
-    loadFactMonths(dataset),
-    loadFactColumn(dataset, "n"),
-    loadFactColumn(dataset, dimension),
-    loadFactColumn(dataset, other),
-    ...filters.map(([d]) => loadFactColumn(dataset, d)),
+    loadFactMonths(dataset, snapshot),
+    loadFactColumn(dataset, "n", snapshot),
+    loadFactColumn(dataset, dimension, snapshot),
+    loadFactColumn(dataset, other, snapshot),
+    ...filters.map(([d]) => loadFactColumn(dataset, d, snapshot)),
   ]);
   const keep = filters.map(([, kept]) => new Set(kept));
   const totals = new Map<string, number>();
@@ -403,17 +431,17 @@ export async function loadFirstMonth(source: ViewSource, rows: readonly SliceRow
     for (const m of months) if (first === undefined || m < first) first = m;
     return first;
   };
-  if (source.facts && !QUERY_SERVICE) return earliest(await loadFactMonths(source.dataset));
-  if (source.filter) return earliest((await loadPair(source.dataset, source.filter.pair)).map((r) => r.month));
+  if (source.facts && (!QUERY_SERVICE || source.snapshot !== undefined)) return earliest(await loadFactMonths(source.dataset, source.snapshot));
+  if (source.filter) return earliest((await loadPair(source.dataset, source.filter.pair, source.snapshot)).map((r) => r.month));
   return earliest(rows.map((r) => r.month));
 }
 
 export const loadView = async (source: ViewSource): Promise<SliceRow[]> => {
-  const { dataset, dimension, filter, facts, cross } = source;
-  if (facts && cross?.grid && dimension) return factGrid(dataset, dimension, cross.dimension, facts.where);
-  if (cross?.pair) return crossPair(await loadPair(dataset, cross.pair.pair), cross.pair.side);
-  if (facts) return factView(dataset, dimension, facts.values, facts.where, cross?.dimension);
+  const { dataset, dimension, filter, facts, cross, snapshot } = source;
+  if (facts && cross?.grid && dimension) return factGrid(dataset, dimension, cross.dimension, facts.where, snapshot);
+  if (cross?.pair) return crossPair(await loadPair(dataset, cross.pair.pair, snapshot), cross.pair.side);
+  if (facts) return factView(dataset, dimension, facts.values, facts.where, cross?.dimension, snapshot);
   if (!dimension) throw new Error("a view from the cube's slices needs a breakdown");
-  if (!filter) return loadSlice(dataset, dimension);
-  return narrowPair(await loadPair(dataset, filter.pair), filter.side, filter.values);
+  if (!filter) return loadSlice(dataset, dimension, snapshot);
+  return narrowPair(await loadPair(dataset, filter.pair, snapshot), filter.side, filter.values);
 };
