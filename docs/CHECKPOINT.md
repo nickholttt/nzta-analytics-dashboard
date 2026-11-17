@@ -34,7 +34,7 @@ to launch early, each measure recomputed and set beside published New Zealand so
 
 ## Open pull requests
 
-None. Two branches are being built (STATE, "In progress").
+- **#86**: "My questions" (D-125). In review.
 
 ## The queue, in order
 

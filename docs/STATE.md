@@ -64,7 +64,7 @@ E but for two pipeline items. Packages F and I are in hand: CHECKPOINT, "The que
 
 - Being built, not pushed: `claude/hybrid-rollup` (worktree `nzta-notes`; hybrids as one
   figure, D-124; cut from the closed #83's branch, so its commits are re-made on `main` before
-  it is pushed) and `claude/my-questions` (`nzta-firstload`; saved questions, D-125).
+  it is pushed). **#86** `claude/my-questions` (`nzta-firstload`; D-125): open, in review.
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
   D-103's draft scheme file sits untracked in `nzta-segments`.
 
