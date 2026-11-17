@@ -46,17 +46,14 @@ def sentinel_forms(cfg, column: str) -> set[str]:
     return {r[s["value"]] for r in reference.read(cfg.reference(s["file"])) if r[s["field"]] == column}
 
 
-def reference_labels(cfg, dim_id: str, directory=None) -> dict[str, str]:
+def reference_labels(cfg, dim_id: str) -> dict[str, str]:
     d = spec_of(cfg, dim_id)["derive"]
-    path = (directory / d["reference"]) if directory else cfg.reference(d["reference"])
-    return {r[d["key"]]: r[d["value"]] for r in reference.read(path)}
+    return {r[d["key"]]: r[d["value"]] for r in reference.read(cfg.reference(d["reference"]))}
 
 
-def build_fixture(tmp_path, workspace, extra_rows=(), tweak=None):
+def build_fixture(tmp_path, workspace, extra_rows=()):
     rows = load_rows() + list(extra_rows)
     cfg = make_cfg(workspace)
-    if tweak:
-        tweak(cfg)
     manifest = build.build(cfg, source_for(rows), write_pages(tmp_path / "pages", rows), None, NOW)
     return cfg, rows, manifest
 
@@ -189,16 +186,15 @@ def new_code_in_snapshot_month(rows, cfg, dim_id: str, count: int, first_id: int
 def test_a_new_raw_value_is_unmapped_warns_with_headroom_and_stops_the_build_above_the_threshold(tmp_path, workspace, dim_id):
     rows, cfg0 = load_rows(), make_cfg(workspace)
     g = cfg0.pipeline["guardrails"]
-    # Both bases of the guard are looser than the trailing one here only if the whole run holds more rows; the window is
-    # most of the fixture, so the trailing figure decides. One vehicle fewer than the abort needs must still build.
-    cfg, _, manifest = build_fixture(tmp_path / "base", workspace)
+    # The window holds most of the fixture, so the trailing figure decides. One vehicle fewer than the abort needs builds.
+    _, _, manifest = build_fixture(tmp_path / "base", workspace)
     base = manifest["datasets"][SURVIVING]["unmapped_guard"][dim_id]["trailing"]["rows"]
     rate = g["max_unmapped_rate_trailing"]
     over = math.floor(rate * base / (1 - rate)) + 1  # the fewest unmapped vehicles whose share of the window exceeds the rate
     assert over >= 2, "the fixture's window is too small to show a build that passes one under the threshold"
 
     just_under = new_code_in_snapshot_month(rows, cfg0, dim_id, over - 1, 5000)
-    ok_cfg, _, ok = build_fixture(tmp_path / "under", {k: v.parent / "under" / v.name for k, v in workspace.items()}, just_under)
+    _, _, ok = build_fixture(tmp_path / "under", {k: v.parent / "under" / v.name for k, v in workspace.items()}, just_under)
     figures = ok["datasets"][SURVIVING]["unmapped_guard"][dim_id]
     assert figures["trailing"]["unmapped"] == over - 1 and figures["trailing"]["headroom_rows"] >= 0
     assert any(w.startswith(f"{SURVIVING}.{dim_id}:") and "warning level" in w for w in ok["warnings"]), ok["warnings"]
