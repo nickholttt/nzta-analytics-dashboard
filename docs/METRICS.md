@@ -213,9 +213,9 @@ SUNLONG 1, VAUXHALL 1, WESTERN STAR 1, ZEMTEC 1.
 - **Hybrids.** The added types hold 33 vehicles recorded under a hybrid code all time and 1 in the trailing window. All
   but one have a row in `mild_hybrid_models.csv` (a Hino, model 500, has none). The wider dataset's trailing figures are
   the default scope's to the vehicle but one: 91,615 source hybrids against 91,614, identified at stated confidence
-  85.33%, and at high confidence 14,327 of 18,253 (78.49%) under D-110's count, so its mild split is published (the
-  level is 70%). 2,214 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
-  time the high-confidence figure is 46,158 of 68,275 (67.6%). (Measured again on 2026-11-17 with D-115's rows as
+  85.31%, and at high confidence 14,327 of 18,257 (78.47%) under D-110's count, so its mild split is published (the
+  level is 70%). 2,210 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
+  time the high-confidence figure is 46,158 of 68,281 (67.6%). (Measured again on 2026-11-17 with D-115's rows as
   corrected in review; D-113 measured 83.45%, 14,271 of 19,286 and 46,102 of 71,434 before them.)
 - **Anything else.** Vehicle age at registration (the band's unknown), model (not recorded) and powertrain show no rate on
   the added types unlike the default scope's; the country built in is not recorded for 7 of the 16,767 new vehicles
@@ -801,9 +801,9 @@ same today) is a build warning for a dataset that still publishes. A dataset
 that crosses the threshold between one build and the next changes its whole
 history of the two values at once, so that build adds a warning naming the
 direction and both figures (`CUBE_SCHEMA.md`, Warnings; the margin on true
-registrations is 14,327 of 18,253 hybrids at high confidence on 2026-10: 2,214
-more unidentified hybrids in the window would cross 70%, and 2,221 on the
-register, 14,297 of 18,203; it was 1,101 and 1,111 before D-115, so keeping
+registrations is 14,327 of 18,257 hybrids at high confidence on 2026-10: 2,210
+more unidentified hybrids in the window would cross 70%, and 2,217 on the
+register, 14,297 of 18,207; it was 1,101 and 1,111 before D-115, so keeping
 `mild_hybrid_models.csv` current matters). All-time mild hybrid
 history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
 vehicles) stay unresolved because sources disagree on them: never classify
@@ -826,23 +826,24 @@ and 61.6% to 83.1% and 63.6%, and from 72.2% and 59.7% to 83.0% and 68.5%.
 The nameplates still matching no row number six or fewer each over the last
 12 months; the rows the file marked unresolved held another 2,894 hybrids on
 the register and 2,905 on true registrations over the same months (before D-115;
-the rows marked unresolved at low confidence hold 2,499 and 2,509 today).
+the rows marked unresolved at low confidence hold 2,503 and 2,513 today).
 
 D-115 raised three rows to high confidence on a maker's or its New Zealand
 distributor's own page: the Chery Tiggo 4 Pro (New Zealand new, full), the
-Nissan X-Trail's petrol hybrid as a used import of vehicle year 2015 to 2022
-(full) and the Foton Tunland (mild). The BAIC B30 is full at medium, because the
+Nissan X-Trail's petrol hybrid as a used import of vehicle year 2015 to 2021
+(full; 2022 holds both generations and is unresolved, with later years) and the
+Foton Tunland (mild). The BAIC B30 is full at medium, because the
 only page that says full hybrid is one dealership's stock listing for one
-vehicle. 1,089 vehicles on true registrations in the window were counting
-against the high-confidence figure and no longer do (1,033 left the denominator
-as full calls, 56 joined the numerator as mild calls); on the register 1,086
-(1,030 and 56). A used import Tiggo and an X-Trail of vehicle year 2024 now match
-no row or an unresolved one, and count against it. Nothing was raised for the
+vehicle. 1,085 vehicles on true registrations in the window were counting
+against the high-confidence figure and no longer do (1,029 left the denominator
+as full calls, 56 joined the numerator as mild calls); on the register 1,082
+(1,026 and 56). A used import Tiggo and the X-Trails of vehicle year 2022 or
+later now match no row or an unresolved one, and count against it. Nothing was raised for the
 Honda IMA hybrids, which the makers' own pages call neither mild nor full, nor
 for Subaru's e-Boxer, whose maker says the car runs on its electric motor up to
 40 km/h and assists the engine otherwise; both stay as they were. The rows left
-at medium or low confidence still hold 3,926 vehicles in the window on true
-registrations (and on the wider dataset) and 3,906 on the register.
+at medium or low confidence still hold 3,930 vehicles in the window on true
+registrations (and on the wider dataset) and 3,910 on the register.
 
 **Named models** — the model dimension names the 300 models with the most
 vehicles in the trailing 12 months and groups every other model as
