@@ -129,6 +129,8 @@ export type Dataset = {
   // What a chart says when a build did not make the dataset.
   not_built_message?: string;
   words?: DatasetWords;
+  // Datasets that count some of the same vehicles as this one, so no chart reads both (datasetClashes).
+  never_charted_with?: string[];
   base?: string;
   filter?: Record<string, string[]>;
   status?: string;
@@ -289,3 +291,25 @@ export const findPeriod = (id?: string) => periods.find((p) => p.id === id);
 export const COMPOSITE = "composite";
 export const isComposite = (preset: Preset) => preset.type === COMPOSITE;
 export const isDeclaredComposite = (preset: Preset) => compositeRules.members.includes(preset.id);
+
+// ---- Datasets that count the same vehicles are never drawn together ----
+
+// The datasets one chart reads: its own; both a ratio divides; the dataset each series of a curated comparison names. A dataset
+// that is another one filtered counts as that one.
+export function datasetsRead(preset: Preset, derived: (id?: string) => DerivedMeasure | undefined = findDerived): string[] {
+  const named = [
+    preset.dataset,
+    derived(preset.derived)?.numerator_dataset,
+    derived(preset.derived)?.denominator_dataset,
+    ...(preset.series ?? []).map((s) => (s as { dataset?: string } | null)?.dataset),
+  ];
+  const served = named.filter((id): id is string => Boolean(id)).map((id) => findDataset(id)?.base ?? id);
+  return [...new Set(served)];
+}
+
+// The pairs among these datasets that config says are never charted together (dimensions.json, never_charted_with): one counts the
+// vehicles the other does, so a chart of both would count them twice or set a scope against its own subset. Declared on either side.
+export function datasetClashes(ids: readonly string[], list: readonly Dataset[] = datasets): [string, string][] {
+  const declared = (a: string, b: string) => list.find((d) => d.id === a)?.never_charted_with?.includes(b) ?? false;
+  return ids.flatMap((a, i) => ids.slice(i + 1).filter((b) => declared(a, b) || declared(b, a)).map((b): [string, string] => [a, b]));
+}

@@ -74,6 +74,8 @@ A dataset the cube has no entry for (a cube built before it existed), or marks `
 
 A dataset's `words` block says what its charts count (column headings, captions), `source_note` is said under every chart of it (filled from the manifest, with the export's date), and `not_built_message` is what a chart says where the build did not make it. On the Build page `builder.datasets` lists what a question can count; a text that differs by dataset is an object keyed by dataset id, and the choice is `build.dataset` in the address (absent means the first).
 
+A dataset may list in `never_charted_with` the datasets that count some of the same vehicles as it does (the wider scope of true registrations counts the default scope's vehicles again). No chart reads two datasets that are listed: `resolvePreset` marks a preset that does, through its own dataset, a ratio's two or a curated comparison's series, as invalid, and a test holds the canon and every Build question to it (D-118).
+
 ## Rules
 
 - A preset that needs a **new dimension, measure or pair slice** changes `config/dimensions.json` or

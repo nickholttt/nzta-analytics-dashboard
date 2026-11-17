@@ -4,7 +4,7 @@
 // The check also produces a status, and presets.json carries an authored one. They are compared
 // rather than merged: an authored status that no longer matches the build is reported, because a
 // triage table that has quietly gone stale is worse than no triage table.
-import { COMPOSITE, chartDefaults, compositeRules, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, periods, presets } from "./config";
+import { COMPOSITE, chartDefaults, compositeRules, datasetClashes, datasetsRead, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, periods, presets } from "./config";
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
 import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt } from "./data";
 import type { Manifest, ViewSource } from "./data";
@@ -134,6 +134,11 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
       add("invalid", `a composite preset may carry at most ${compositeRules.max_series} series; this one carries ${preset.series.length}`, false);
     }
     add("blocked", "composite presets have no renderer in this tool: a curated two-series comparison, deliberately outside the builder grammar");
+  }
+
+  // Datasets that count the same vehicles are never drawn together, however a chart comes to read two (config/dimensions.json, never_charted_with).
+  for (const [a, b] of datasetClashes(datasetsRead(preset))) {
+    add("invalid", `datasets "${a}" and "${b}" count some of the same vehicles and are never drawn on one chart; config/dimensions.json lists them in never_charted_with`);
   }
 
   // A dataset that dimensions.json defines as another one filtered (base and filter) is served from its base, narrowed.
