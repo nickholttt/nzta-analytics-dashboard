@@ -47,8 +47,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **Build crosses two fields**, drawn as the sixth shape, `matrix`: a shaded grid with totals,
   as vehicles or a share of all, of the row or of the column (#75, D-114). Two Explore grids.
 - **SUV or car per nameplate**: a file nothing reads yet (#84, D-117, D-123), 179 nameplates.
-- **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
-  read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
+- **One rule table says which shapes fit a question** (#62, D-100, `config/chart_rules.json`).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
