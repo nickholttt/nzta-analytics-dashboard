@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 from pipeline import config, reference
+from pipeline.privacy import fields_read, resolve as _resolve, strings as _strings
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_MAP = ROOT / "config" / "data_map.json"
@@ -57,57 +58,7 @@ def published_classes(dmap: dict) -> set[str]:
     return {name for name, spec in dmap["privacy_classes"].items() if spec["published"]}
 
 
-# --- which source fields a dimension reads, from its derive block -------------------------------------------------
-
-
-def _strings(node) -> set[str]:
-    """Every string value and object key anywhere in a derive block."""
-    if isinstance(node, str):
-        return {node}
-    if isinstance(node, dict):
-        found = set(node)
-        for value in node.values():
-            found |= _strings(value)
-        return found
-    if isinstance(node, list):
-        found = set()
-        for value in node:
-            found |= _strings(value)
-        return found
-    return set()
-
-
-def _resolve(pipeline: dict, item: str) -> set[str]:
-    logical = set(pipeline["fields"])
-    if "." not in item:
-        assert item in logical, f"data_map derive_reads names {item!r}, which is not a logical field of pipeline.json"
-        return {item}
-    node = pipeline
-    for part in item.split("."):
-        assert isinstance(node, dict) and part in node, f"data_map derive_reads path {item!r} is not in pipeline.json"
-        node = node[part]
-    found = ({node} if isinstance(node, str) else set(node)) & logical
-    assert found, f"data_map derive_reads path {item!r} names no logical field of pipeline.json"
-    return found
-
-
-def fields_read(dim: dict, pipeline: dict, reads: dict) -> set[str]:
-    """The register field names a dimension's derivation reads."""
-    derive = dim["derive"]
-    logical = _strings(derive) & set(pipeline["fields"])
-    for item in reads["by_kind"].get(derive["kind"], []):
-        logical |= _resolve(pipeline, item)
-    for flag, items in reads["by_flag"].items():
-        if derive.get(flag):
-            for item in items:
-                logical |= _resolve(pipeline, item)
-    # Fields read because another field is read (the hybrid classification rewrites motive power from make and model).
-    for key, items in reads.get("by_field", {}).items():
-        if _resolve(pipeline, key) & logical:
-            for item in items:
-                logical |= _resolve(pipeline, item)
-    return {pipeline["fields"][f] for f in logical}
-
+# --- which source fields a dimension reads, from its derive block (pipeline/privacy.py) --------------------------------
 
 SNAPSHOT_ARCHIVE = "snapshot_archive"
 
