@@ -79,6 +79,8 @@
       "matrix_leaders": "{count} combinations are level as the largest, each with {counted}: {list}.",
       "matrix_leader_picked": "Among the {field} values you picked, the largest combination is {row_field} {row} and {column_field} {column}: {counted}.",
       "matrix_leaders_picked": "Among the {field} values you picked, {count} combinations are level as the largest, each with {counted}: {list}.",
+      "matrix_leaders_rest_one": "One of these is counted in {rest}, not in a cell of its own.",
+      "matrix_leaders_rest": "{count} of these are counted in {rest}, not in a cell of their own.",
       "matrix_pair": "{row_field} {row} and {column_field} {column}",
       "matrix_none": "No vehicles were counted {window}, so there is no grid to show.",
       "matrix_cells_count": "Each cell is a number of vehicles. The last row and column add up the vehicles in each column and each row.",

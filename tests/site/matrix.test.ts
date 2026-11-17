@@ -306,6 +306,30 @@ test("the largest combination is worked out over every named pair in the window,
   assert.equal(g.total, 299, "100 in A, 100 in B and 99 in K");
 });
 
+test("level leaders: the first is on the grid, one the cut would lose is counted in the rest line, and the sentence says how many are", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  // A by x and B by y are level at 50. Rows are cut at one, so B's row is in the rest line; the columns hold both.
+  const g = grid([src("A", "x", 50), src("B", "y", 50), src("C", "x", 10)], { rowSide: side({ limit: 1 }) });
+  assert.deepEqual(g.leaders.map((l) => [l.row.key, l.column.key, l.inRest]), [["A", "x", false], ["B", "y", true]]);
+  assert.deepEqual(g.rows.lines.map((l) => l.kind), ["value", "rest"], "B has no row of its own");
+  const facts = {
+    basis: "count" as const, rowField: "thing", columnField: "kind", window: "in the window", total: g.total, conditions: false, floor: 200, rest: "All other",
+    leaders: g.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })), among: g.leadersAmong, counted: (n: number) => `${n} vehicles`,
+    rows: { field: "thing", mode: g.rows.mode, shown: 1, tiedBeyond: 0, rest: g.rows.rest }, columns: { field: "kind", mode: g.columns.mode, shown: 2, tiedBeyond: 0, rest: g.columns.rest },
+    thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  };
+  const one = matrixSentences(phrases, facts).leader as string;
+  assert.match(one, /^2 combinations are level as the largest, each with 50 vehicles: thing A and kind x; thing B and kind y\. One of these is counted in All other, not in a cell of its own\.$/);
+  // Two of three in the rest line is said in the plural; none in it adds nothing.
+  const three = matrixSentences(phrases, { ...facts, leaders: [...facts.leaders, { row: "D", column: "z", n: 50, inRest: true }] }).leader as string;
+  assert.match(three, /\. 2 of these are counted in All other, not in a cell of their own\.$/);
+  const shown = grid([src("A", "x", 50), src("B", "y", 50)]);
+  assert.ok(shown.leaders.every((l) => !l.inRest));
+  const plain = matrixSentences(phrases, { ...facts, leaders: shown.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })) }).leader as string;
+  assert.ok(!/counted in/.test(plain));
+});
+
 test("where the visitor picked values the leader is the largest among those, and the sentence says so", async () => {
   const { phrases } = await import("../../src/lib/config.ts");
   const { matrixSentences } = await import("../../src/lib/sentences.ts");

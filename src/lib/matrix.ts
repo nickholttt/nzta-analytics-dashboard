@@ -73,7 +73,8 @@ export type GridCell = {
   greyed: boolean;
 };
 
-export type Leader = { row: { key: string; name: string }; column: { key: string; name: string }; n: number };
+// inRest: the row or the column of this combination is not a line of its own, so its vehicles are counted in a cell of the rest line.
+export type Leader = { row: { key: string; name: string }; column: { key: string; name: string }; n: number; inRest: boolean };
 
 export type Grid = {
   basis: Basis;
@@ -90,7 +91,8 @@ export type Grid = {
   greyedRows: number[];
   greyedColumns: number[];
   // The combinations of two named values (reserved values and "All other" take no place) with the most vehicles, all that are level: over every
-  // pair in the window, or, on a side the visitor picked values for, among those values only. They need not all be on the grid.
+  // pair in the window, or, on a side the visitor picked values for, among those values only. The first has its row and column on the grid; a
+  // later one may be counted in the rest line (inRest).
   leaders: Leader[];
   // Which sides the leaders are among the picked values of.
   leadersAmong: { rows: boolean; columns: boolean };
@@ -284,7 +286,11 @@ export function gridOf(input: GridInput): Grid {
   const greyedColumns = basis === "column" ? columnTotals.flatMap((t, j) => (t > 0 && t < floor ? [j] : [])) : [];
 
   const name = (side: SideSpec, value: string) => ({ key: value, name: side.nameOf(value) });
-  const leaders = led.found.map((l): Leader => ({ row: name(input.rowSide, l.value), column: name(input.columnSide, l.other), n: l.n }));
+  // Only the first of several level leaders has its row and column kept on the grid, so a later one can sit in the rest line; the sentence says so.
+  const stands = (side: Side, value: string) => side.lines.some((l) => l.kind !== "rest" && l.key === value);
+  const leaders = led.found.map(
+    (l): Leader => ({ row: name(input.rowSide, l.value), column: name(input.columnSide, l.other), n: l.n, inRest: !stands(rows, l.value) || !stands(columns, l.other) }),
+  );
   return {
     basis, rows, columns, cells, rowTotals, columnTotals, total, legend, wholeGreyed, greyedRows, greyedColumns, leaders,
     leadersAmong: { rows: led.rowPicked, columns: led.columnPicked },

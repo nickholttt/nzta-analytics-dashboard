@@ -416,6 +416,8 @@ export type MatrixPhrases = {
   matrix_leaders: string;
   matrix_leader_picked: string;
   matrix_leaders_picked: string;
+  matrix_leaders_rest_one: string;
+  matrix_leaders_rest: string;
   matrix_pair: string;
   matrix_cells_count: string;
   matrix_cells_all: string;
@@ -471,7 +473,8 @@ export type MatrixFacts = {
   floor: number;
   // The name of the line that holds every value not shown.
   rest: string;
-  leaders: readonly { row: string; column: string; n: number }[];
+  // inRest: counted in a cell of the rest line, not in a cell of its own.
+  leaders: readonly { row: string; column: string; n: number; inRest?: boolean }[];
   // Which sides the largest combination is among the picked values of; neither is the largest of the whole window.
   among: { rows: boolean; columns: boolean };
   // The figure of a combination in the dataset's own words for what it counts (countedText).
@@ -532,6 +535,9 @@ export function matrixSentences(p: MatrixPhrases, f: MatrixFacts) {
             counted: f.counted(f.leaders[0].n),
             list: f.leaders.map(pair).filter(Boolean).join("; "),
           });
+  // Level leaders named in the sentence that the grid does not show as a cell of their own: the sentence must not point at what is not there.
+  const inRest = f.leaders.filter((l) => l.inRest).length;
+  const leaderRest = inRest > 0 ? said(inRest === 1 ? p.matrix_leaders_rest_one : p.matrix_leaders_rest, { ...base, count: inRest }) : undefined;
   const cells = said(
     f.basis === "count" ? p.matrix_cells_count : f.basis === "all" ? (f.conditions ? p.matrix_cells_all_where : p.matrix_cells_all) : f.basis === "row" ? p.matrix_cells_row : p.matrix_cells_column,
     base,
@@ -542,5 +548,5 @@ export function matrixSentences(p: MatrixPhrases, f: MatrixFacts) {
         f.thin.rows > 0 ? said(f.thin.rows === 1 ? p.matrix_thin_rows_one : p.matrix_thin_rows, { ...base, count: f.thin.rows }) : undefined,
         f.thin.columns > 0 ? said(f.thin.columns === 1 ? p.matrix_thin_columns_one : p.matrix_thin_columns, { ...base, count: f.thin.columns }) : undefined,
       ]);
-  return { leader, cells, rows: side("rows", f.rows), columns: side("columns", f.columns), thin, tiny: f.tiny ? said(p.matrix_tiny, base) : undefined };
+  return { leader: leader && leaderRest ? `${leader} ${leaderRest}` : leader, cells, rows: side("rows", f.rows), columns: side("columns", f.columns), thin, tiny: f.tiny ? said(p.matrix_tiny, base) : undefined };
 }

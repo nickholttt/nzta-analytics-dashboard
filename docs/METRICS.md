@@ -558,7 +558,10 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
   is a line of zeros and not a gap (a gap in an ordered scale reads as a finding); a band the data never has under the conditions is not a line.
   Values picked on an ordered band are shown in the band's order, not by size. A value picked that has no vehicles in the window is a line of
   zeros. Where the largest combination (below) has a row or column the cut would put in All other, that value is shown as well, out of its
-  place, and a sentence says so, so the answer can always be found on the grid.
+  place, and a sentence says so, so the answer can be found on the grid. This is done for **one** combination: where several are level, the
+  first (by the order of the rows, then of the columns) is kept; any of the others whose row or column is not a line of its own is counted in a
+  cell of All other, and the answer says how many ("One of these is counted in All other, not in a cell of its own"). Every level combination is
+  still named, none is dropped, and none is claimed to be where it is not.
 - **Reserved values** are as in a ranking ("Ranking and ties"), with one difference of place. *Not recorded* and *no reference match* describe
   real vehicles, so each is a line of its own (italic, after the named values, in that order) when it has vehicles in the window or is picked;
   it takes no place and is never the largest combination. *Beyond the cap* is where a cap puts values, not a fact about any vehicle: it is never
@@ -582,7 +585,7 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
   so the legend and the grid agree. Every cell prints its
   figure, so colour is never the only way to read it.
 - **The answer.** One sentence: the combination of two named values with the most vehicles in the window, with that count in the dataset's own
-  words for what it counts; every combination level with it where there are several. It is worked out over **every named pair in the window**,
+  words for what it counts; every combination level with it where there are several, followed, where some of those are counted in All other, by a sentence saying how many. It is worked out over **every named pair in the window**,
   whatever the cut, so it is true of the question and not of the lines shown. Where the visitor picked values on a side, it is the largest
   **among the values picked** and the sentence says so ("Among the brand values you picked, ..."), since the leader of the whole window may be a
   value they left out. It is the same fact whatever the cells show, so it is never a share of a thin row. It names no value or figure in the template, and says nothing about why.

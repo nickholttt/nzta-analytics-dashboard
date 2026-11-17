@@ -114,7 +114,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
       conditions,
       floor,
       rest: grid.rows.lines.find((l) => l.kind === "rest")?.name ?? grid.columns.lines.find((l) => l.kind === "rest")?.name ?? "",
-      leaders: grid.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n })),
+      leaders: grid.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })),
       among: grid.leadersAmong,
       tiny: table.hasTiny,
       counted: (n) => countedText(words?.leader_count, n, windowWords),
