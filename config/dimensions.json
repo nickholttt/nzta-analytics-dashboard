@@ -490,6 +490,39 @@
       ]
     },
     {
+      "id": "power_band",
+      "label": "Power",
+      "public_note": "Engine or motor power in kilowatts, in bands. NZTA records power for vehicles sold new in New Zealand: almost no used import has one, so they show as not recorded. Among new passenger cars and vans, and new goods vehicles of 3.5 tonnes or less, almost none has a power before 1994, most do in 1994 and 1995, and from 1996 nearly all do. About half of heavier new goods vehicles have none. A power of zero is not recorded, and a value outside 5 to 900 kW is not taken as a power: both are counted as not recorded.",
+      "source": "nzta:power_rating",
+      "derive": { "kind": "band", "field": "power" },
+      "kind": "ordered_band",
+      "cardinality": "low",
+      "help": "The power NZTA records for the vehicle, in kilowatts and in bands from under 75 kW to 500 kW and over. Recorded for vehicles sold new here only.",
+      "basis": "POWER_RATING, inside the guard of 5 to 900 kW",
+      "$comment": "min and max are inclusive kW; the top band stops at the guard (900), so a value above it, which includes the placeholder 999, falls to unknown, as does one below 5. A zero is the form of not recorded (sentinels.csv), so it is NULL by the time it is banded and falls to unknown too; the manifest counts the causes apart (bands.power_band.source_sentinel, out_of_bands). The field is recorded for NZ-new vehicles only (docs/DATA_MAP.md): the pipeline does not look at the import status, so the few used imports that have a value keep it. No mean or median is built.",
+      "bands": [
+        { "label": "Under 75 kW", "min": 5, "max": 74 },
+        { "label": "75-99 kW", "min": 75, "max": 99 },
+        { "label": "100-149 kW", "min": 100, "max": 149 },
+        { "label": "150-199 kW", "min": 150, "max": 199 },
+        { "label": "200-299 kW", "min": 200, "max": 299 },
+        { "label": "300-499 kW", "min": 300, "max": 499 },
+        { "label": "500 kW and over", "min": 500, "max": 900 },
+        { "label": "unknown", "unknown": true }
+      ]
+    },
+    {
+      "id": "transmission",
+      "label": "Gearbox",
+      "public_note": "The kind of gearbox NZTA records, in four groups: automatic, manual, continuously variable and other. NZTA records it for vehicles sold new in New Zealand: almost no used import has one, so they show as not recorded. Among new passenger cars and vans, and new goods vehicles of 3.5 tonnes or less, almost none has one before 1995, few do in 1995, and from 1996 nearly all do. About half of heavier new goods vehicles have none. Other is NZTA's own value OTHER, which the register does not explain, so it is shown as Other and not put with the automatic, manual or continuously variable gearboxes; most of the vehicles it holds are battery electric.",
+      "source": "nzta:transmission_type + reference:transmission_map",
+      "derive": { "kind": "lookup", "field": "transmission", "reference": "transmission_map.csv", "key": "nzta_transmission", "value": "group" },
+      "kind": "category",
+      "cardinality": "low",
+      "help": "The kind of gearbox NZTA records for the vehicle, in four groups. Recorded for vehicles sold new here only.",
+      "$comment": "A group, not the number of gears: transmission_map.csv gives each of NZTA's 28 values one group and a label of its own, and the dimension publishes the group. A blank is the only form of not recorded and sentinels.csv lists none for the field. A new raw value has no row in the file and trips the unmapped guard (pipeline.json guardrails.abort_on_unmapped). The field is recorded for NZ-new vehicles only (docs/DATA_MAP.md): the pipeline does not look at the import status, so the few used imports that have a value keep it. Not live for the datasets whose source carries no gearbox (derive.applicable), with no applies_to."
+    },
+    {
       "id": "model",
       "label": "Model",
       "source": "nzta:make + nzta:model + reference:model_registry",

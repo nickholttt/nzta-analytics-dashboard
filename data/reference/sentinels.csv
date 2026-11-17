@@ -9,3 +9,4 @@ VEHICLE_YEAR,0,"None in scope at 2026-08. Falls to the unknown age band, counted
 GROSS_VEHICLE_MASS,0,"Recorded as 0 when not captured (24% of in-scope saloons). Passenger segments ignore GVM; a goods vehicle with GVM 0 matches no segment_map row (89 in-scope rows)."
 NZ_ASSEMBLED,UNKNOWN,"NZTA writes UNKNOWN where it holds no answer: all but 24 of the 179,720 vehicles first registered before August 1995, and almost none from December 1995 (docs/DATA_MAP.md). Means not recorded."
 NUMBER_OF_SEATS,0,"Zero seats means not recorded: 8,408 vehicles in registrations_surviving, 8,368 of them first registered from January 1994 to December 1995 (docs/DATA_MAP.md). Falls to the unknown band, counted apart from a count above the guard."
+POWER_RATING,0,"Zero power means not recorded: 1,988,072 of the 4,520,304 vehicles in registrations_surviving (200,079 NZ-new and 1,787,993 used imports), and no value is empty (docs/DATA_MAP.md)."

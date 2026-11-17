@@ -28,6 +28,7 @@ VOCABULARY_COLUMNS = {
     "statsnz_series.csv": ["header", "series_id", "label", "group"],
     "nz_assembled_map.csv": ["nzta_nz_assembled", "label"],
     "class_map.csv": ["nzta_class", "label"],
+    "transmission_map.csv": ["nzta_transmission", "group", "label"],
 }
 
 

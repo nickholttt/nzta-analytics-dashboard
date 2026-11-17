@@ -337,6 +337,26 @@ not recorded (`sentinels.csv`, under `NUMBER_OF_SEATS`), so it is NULL when band
 8,408 and 207, of 4,520,304 vehicles. Seats are not recorded for many vehicles first registered from early 1994 to late
 1995, so `unknown` is large in those months; the dimension's `public_note` says so. No mean or median is built.
 
+`power_band` (the power NZTA records in kilowatts, in the bands of `dimensions.json`; D-128) is a band again, and a column of
+`registrations_surviving`'s table with a slice of its own; the other three datasets carry no power, so it is not live for them
+(`not_live`: "the source does not carry POWER_RATING") and none of their files changes. Its guard is the band edge, 5 to 900: a
+value inside it lands in its band and anything else lands in `unknown`. A zero is the form of not recorded
+(`sentinels.csv`, under `POWER_RATING`), so it is NULL when banded; the manifest counts the causes apart
+(`counts.bands.power_band`: `source_sentinel` the zeros, `out_of_bands` the values below 5 or above 900, `source_missing` the
+blanks). On the 2026-10 pull they are 1,988,072, 192 and 0, of 4,520,304 vehicles. NZTA records power for vehicles sold new
+here only, and the pipeline does not look at the import status: the 141 used imports with a power keep it, and the other
+1,787,993 are in `unknown`. The dimension's `public_note` says so, and from which month power is well
+recorded. No mean or median is built.
+
+`transmission` (the kind of gearbox NZTA records, in four groups under the names in the `group` column of
+`transmission_map.csv`; D-128) is a lookup again, with a group for a label, so many of NZTA's 28 values share one published
+value. It is a column of `registrations_surviving`'s table and has a slice of its own; the other three datasets carry no
+gearbox, so it is not live for them (`not_live`: "the source does not carry TRANSMISSION_TYPE") and none of their files
+changes. A blank is the only form of not recorded, and `sentinels.csv` lists none for the field. A raw value the file does not
+hold reads `__UNMAPPED__` and counts against the dimension's unmapped guard (below). NZTA records the gearbox for vehicles
+sold new here only, and the pipeline does not look at the import status: the 116 used imports with a gearbox keep it, and the
+other 1,788,018 read `__UNDEFINED__`. `public_note` says so, and from which month the gearbox is well recorded.
+
 `powertrain_group` (the powertrain in five groups, under the names in the `powertrain_group_label` column of
 `powertrain_map.csv`; D-124) is a column of the table of every dataset whose `facts` list the powertrain (the three that
 have a fact table), and has a slice of each. It is read from the same final motive power as the powertrain, and the file
@@ -824,7 +844,7 @@ Mapping:
   in-scope row, or in-scope rows first registered in the trailing 12
   months. Both must pass.
 - Unmapped powertrain above 2% of in-scope rows, on the same two bases.
-- Unmapped `nz_assembled`, `nzta_class` or `powertrain_group` above 2% of in-scope rows, on the same two bases (every dimension in
+- Unmapped `nz_assembled`, `nzta_class`, `transmission` or `powertrain_group` above 2% of in-scope rows, on the same two bases (every dimension in
   `abort_on_unmapped` in `config/pipeline.json` is guarded so, D-116).
 - A dimension that was live in the last good run exceeds its unmapped
   threshold or loses a reference file.
@@ -913,7 +933,7 @@ is worse than one that is visibly stale.
 
 ## Warnings — the build continues, recorded in `manifest.warnings`
 
-- Unmapped make, powertrain, `powertrain_group`, `nz_assembled` or `nzta_class` over the trailing 12 months is above 0.5% of
+- Unmapped make, powertrain, `powertrain_group`, `nz_assembled`, `nzta_class` or `transmission` over the trailing 12 months is above 0.5% of
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
@@ -1002,3 +1022,13 @@ With the class labels (D-121), measured on a dry run of 2026-11-17 on the same p
 because rows sit in a different order (`n` 416,657 against 415,777, `model` 334,233 against 334,041, `seats_band` 190,236
 against 191,330). Mapped back to the codes the table's 755,586 rows are the same rows. The payload is 4,877,607 bytes
 (+1,868). The other 83 files are byte-identical.
+
+With `power_band` and `transmission` (D-128), measured on dry runs of 2026-11-17 on the 2026-10 pull, each against the run before
+it, the first against a run of the same code without either: the table is 755,586 rows in 2,284,749 bytes over 19 files; with
+`power_band` 776,745 rows (+21,159) in 2,416,943 bytes (+132,194, of which the new file is 100,654 and the 19 files already there
+grow by 31,540 because rows split); with `transmission` too 799,057 rows (+22,312) in 2,530,064 bytes (+113,121, the new file
+93,637) over 21 files. Together +43,471 rows and +245,315 bytes (+10.7%). The two new 1-D slices are 33,511 and 27,867 bytes. The
+whole payload is 5,218,968 bytes (was 4,912,275, +306,693 or +6.2%; +165,705 for the power, +140,988 for the gearbox), 65.2% of
+the 8,000,000 byte budget. Mapped back, with the two new columns summed out, the table's 755,586 rows are the same rows as before.
+The other 75 files, which are every other slice and pair of this dataset and every file of the other three datasets, are
+byte-identical; the 19 fact-table files that were there and the manifest differ.
