@@ -207,7 +207,7 @@
       "group": "what_the_vehicle_is",
       "kind": "category",
       "cardinality": "few",
-      "definition": "NZTA's vehicle equipment standard class, a short code. One code reads like 'not applicable' and is a real class code: on the register almost every vehicle under it is a goods vehicle of 3.5 t gross mass or less. The meaning of each code has not been read from NZTA's or the Land Transport Rules' definitions, so the dimension shows the codes themselves.",
+      "definition": "NZTA's vehicle equipment standard class, a short code. NZTA's vehicle classes page defines 27 classes, in a table the maintainer supplied on 17 November 2026; class_map.csv gives each its label and description, and the dimension shows the label with the code in brackets. OTH is not on that page and is shown as its code. One code reads like 'not applicable' and is a real class code (NZTA's light goods vehicle).",
       "uses": { "break_down": true, "filter": true, "measure": ["count"] },
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",

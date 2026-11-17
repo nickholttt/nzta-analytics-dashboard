@@ -256,11 +256,15 @@ three other datasets (`not_live`: "the source does not carry NZ_ASSEMBLED"), and
 `UNKNOWN` is a sentinel (`sentinels.csv`, under this field only), so it reads `__UNDEFINED__`, as NULL does; a raw
 value the map does not hold reads `__UNMAPPED__` and counts against the dimension's unmapped guard (below).
 
-`nzta_class` (NZTA's vehicle equipment standard class, shown as its code under the labels in `class_map.csv`; D-116)
-is the same in every respect: a column of `registrations_surviving`'s table and a slice, not live for the three
-other datasets. A blank class is the only form of not recorded, and `sentinels.csv` lists none for it, because the
-code `NA` is a class code (on the register almost every vehicle under it is a goods vehicle of 3.5 t gross mass or less); the labels are the codes themselves because no definition could be read.
-`class_map.csv` holds every code on the whole register, not only those of the types in scope.
+`nzta_class` (NZTA's vehicle equipment standard class, shown as NZTA's label for it with the code in brackets, under the
+labels in `class_map.csv`; D-116, D-121) is the same in every respect: a column of `registrations_surviving`'s table and a
+slice, not live for the three other datasets. A blank class is the only form of not recorded, and `sentinels.csv` lists none
+for it, because the code `NA` is a class code (NZTA's label for it is "Light goods vehicle"). `class_map.csv` holds the 27
+classes of the table the maintainer supplied from NZTA's vehicle classes page on 2026-11-17 (each with its description,
+page address and date) and `OTH`, a value the register holds that the page does not define, whose label is its code. It
+holds every code on the whole register, not only those of the types in scope, and seven that the register did not carry at
+the 2026-10 snapshot, so a class NZTA defines reads as its label the day it first appears; a code the table does not hold
+still reads `__UNMAPPED__` and counts against the guard.
 
 `seats_band` (the number of seats NZTA records, in the bands of `dimensions.json`; D-116) is the same again, but a band
 and not a lookup: it has no reference file and no unmapped value, so it is not in `abort_on_unmapped`. Its guard is the
@@ -888,3 +892,9 @@ by 188,781 bytes together, because rows split. Added alone to the table, each ad
 17,304, 35,876 and 33,269 bytes. The whole payload is 4,875,739 bytes (was 4,281,132, +594,607 or +13.9%), 60.9% of the
 8,000,000 byte budget. 54.8% of the table's rows count one vehicle (was 50.2%), holding 9.2% of the vehicles (was 7.1%).
 The other three datasets' files, and every 1-D slice and pair of this one that was there, are byte-identical.
+
+With the class labels (D-121), measured on a dry run of 2026-11-17 on the same pull: the `nzta_class` slice is 36,221 bytes
+(was 35,876) and its column in the table 117,458 (was 115,913), and three other columns of the table differ in size only
+because rows sit in a different order (`n` 416,657 against 415,777, `model` 334,233 against 334,041, `seats_band` 190,236
+against 191,330). Mapped back to the codes the table's 755,586 rows are the same rows. The payload is 4,877,607 bytes
+(+1,868). The other 83 files are byte-identical.
