@@ -1,0 +1,9 @@
+nzta_vehicle_usage,label,notes
+AGRICULTURAL,Agricultural,"NZTA's value says AGRICULTURAL. The register does not define it further."
+EMERGENCY,Emergency,"NZTA's value says EMERGENCY. The register does not define it further."
+OTHER,Other,"NZTA's value says OTHER: a recorded catch-all, not a blank. The register does not say what it holds."
+OTHER GOODS,Other goods,"NZTA's value says OTHER GOODS. The register does not say what it is other than."
+PRIVATE PASSENGER,Private passenger,"NZTA's value says PRIVATE PASSENGER. The register does not define it further."
+RENTAL,Rental,"NZTA's value says RENTAL. It is the usage recorded now: for rental it is shown to differ from the usage at first registration (docs/DATA_MAP.md)."
+TAXI COMMERCIAL PASSENGER,Taxi or commercial passenger,"NZTA's value runs the words TAXI COMMERCIAL PASSENGER together. The register does not say whether it is one group or two, so the label keeps both words."
+TRANSPORT LICENSED GOODS,Licensed goods transport,"NZTA's value says TRANSPORT LICENSED GOODS. The register does not define it further."

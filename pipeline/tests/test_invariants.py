@@ -29,6 +29,7 @@ VOCABULARY_COLUMNS = {
     "nz_assembled_map.csv": ["nzta_nz_assembled", "label"],
     "class_map.csv": ["nzta_class", "label"],
     "transmission_map.csv": ["nzta_transmission", "group", "label"],
+    "vehicle_usage_map.csv": ["nzta_vehicle_usage", "label"],
 }
 
 
