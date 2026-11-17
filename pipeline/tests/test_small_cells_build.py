@@ -167,24 +167,6 @@ def test_no_owner_dimension_is_in_the_fact_table_or_a_pair(built):
     assert not any(owners & set(pair.split("__")) for pair in entry["live_pairs"])
 
 
-# --- a pair with an owner dimension is refused ------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize("order", [0, 1])
-def test_a_pair_with_an_owner_dimension_aborts_in_either_order(tmp_path, workspace, order):
-    cfg = make_cfg(workspace)
-    pair = ["import_status", owner_dimension()]
-    cfg.pipeline["datasets"][DATASET]["pairs"] = [pair[::-1] if order else pair]
-    expect_abort(lambda: run(tmp_path, cfg, load_rows(), publish=False), "a pair with an owner dimension is not built")
-
-
-def test_the_refusal_names_the_owner_field_that_is_read(tmp_path, workspace):
-    cfg = make_cfg(workspace)
-    cfg.pipeline["datasets"][DATASET]["pairs"] = [["import_status", owner_dimension()]]
-    owner_field = privacy.owner_dimensions(cfg)[owner_dimension()][0]
-    expect_abort(lambda: run(tmp_path, cfg, load_rows(), publish=False), f"reads {owner_field}")
-
-
 # --- a slice that should be protected and is not never reaches public/data ----------------------------------------------
 
 
@@ -244,6 +226,7 @@ def test_a_different_minimum_in_the_map_changes_what_is_hidden(tmp_path, workspa
     dmap = privacy.load_map(config.load())
     dmap["owner_rule"]["minimum_count"] = 30
     dmap["owner_rule"]["second_rule"]["minimum_hidden_vehicles"] = 30
+    dmap["owner_rule"]["pair_rule"]["minimum_hidden_vehicles_per_line"] = 30
     custom = tmp_path / "data_map.json"
     custom.write_text(json.dumps(dmap), encoding="utf-8")
     rows, names = extra_rows(load_rows())
@@ -270,6 +253,9 @@ def test_a_map_that_groups_no_field_as_the_owner_leaves_a_slice_unprotected(tmp_
 @pytest.mark.parametrize("damage", [
     lambda m: m["owner_rule"].pop("second_rule"),
     lambda m: m["owner_rule"]["second_rule"].update(minimum_hidden_vehicles=1),
+    lambda m: m["owner_rule"].pop("pair_rule"),
+    lambda m: m["owner_rule"]["pair_rule"].update(minimum_hidden_cells_per_line=1),
+    lambda m: m["owner_rule"]["pair_rule"].update(minimum_hidden_vehicles_per_line=9),
     lambda m: m.pop("derive_reads"),
 ])
 def test_a_data_map_the_build_cannot_use_aborts_before_anything_is_written(tmp_path, workspace, damage):

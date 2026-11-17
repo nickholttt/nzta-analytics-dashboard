@@ -118,3 +118,19 @@ def small_cell_rule(dmap: dict) -> SmallCellRule:
     if found.minimum < 2 or found.hidden_cells < 2 or found.hidden_vehicles < found.minimum:
         raise DataMapError(f"data_map owner_rule is too weak to protect a cell: {found}")
     return found
+
+
+def pair_cell_rule(dmap: dict) -> SmallCellRule:
+    """The numbers of the rule for a table of two fields, one an owner field (D-135): the same minimum count as for one
+    field, and the least a line of the table may hide, with its own numbers in `owner_rule.pair_rule`. The same strength
+    tests apply as for a slice."""
+    rule = dmap["owner_rule"]
+    pair = rule.get("pair_rule") or {}
+    try:
+        found = SmallCellRule(int(rule["minimum_count"]), int(pair["minimum_hidden_cells_per_line"]),
+                              int(pair["minimum_hidden_vehicles_per_line"]))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise DataMapError(f"data_map owner_rule has no usable minimum_count and pair_rule ({exc!r})") from exc
+    if found.minimum < 2 or found.hidden_cells < 2 or found.hidden_vehicles < found.minimum:
+        raise DataMapError(f"data_map owner_rule.pair_rule is too weak to protect a cell: {found}")
+    return found

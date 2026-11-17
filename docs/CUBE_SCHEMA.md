@@ -140,8 +140,8 @@ nothing, unless in every month: no visible `n` is under the minimum (a row with 
 is hidden and the visible counts add up to the `denominator`, or at least `minimum_hidden_cells` cells are hidden, at least
 one row is visible, and the `denominator` less the visible counts is at least `minimum_hidden_vehicles` and larger than the
 number of hidden cells, or the month is one reserved row whose `n` is the `denominator`; and no hidden or reserved row
-carries a fuel figure. A pair with such a dimension is not built (below), and neither the fact table nor the committed
-snapshot aggregate holds an owner field (D-078, D-096).
+carries a fuel figure. A pair with such a dimension is held to its own rule (*Pairs with an owner dimension*, below), and
+neither the fact table nor the committed snapshot aggregate holds an owner field (D-078, D-096).
 
 Limits, stated and not solved (D-127). The project's owner accepts these knowingly:
 
@@ -175,7 +175,7 @@ suppression thresholds impossible to change without a rebuild.
 | `__UNDEFINED__` | Not recorded: the source value is empty or listed in `sentinels.csv`. For a dataset built from a published series it also means vehicles the published breakdown does not account for: every vehicle of a month before the breakdown starts, or the difference where its values fall short of the total. |
 | `__UNMAPPED__` | Recorded, but no reference row matches it (a make absent from `brand_registry.csv`). |
 | `__OTHER__` | Recorded and mapped, but collapsed by a cardinality cap (a model beyond the cap). |
-| `__NOT_BROKEN_DOWN__` | Only in a slice of an owner dimension: the month is not broken down by this dimension, because under the small-cell rule no cell of it would stay visible (above). The row's `n` is the month's total. |
+| `__NOT_BROKEN_DOWN__` | Only in a slice of an owner dimension, or a pair with one: the month is not broken down by this dimension, because under the small-cell rule no cell of it would stay visible (above, and *Pairs with an owner dimension*). The row's `n` is the month's total. In a pair it is the value of both columns. |
 
 "Not recorded" and "no brand match" are different facts and never share a
 token. Banded dimensions use their own `unknown` band from
@@ -236,9 +236,10 @@ never opened. Start with these and add on demand:
 `powertrain__segment_group`, `import_status__vehicle_type`
 
 Each dataset's `pairs` in `config/pipeline.json` lists the pairs a build
-emits, as `[dim_a, dim_b]`; the list above is what may be added, except `powertrain__region`:
-a pair with a dimension that reads an owner field aborts the run, because the rule for a table
-of two fields has to protect both of its totals, and that is not built (D-127). Emitted
+emits, as `[dim_a, dim_b]`; the list above is what may be added. A pair with a dimension that reads an
+owner field is written under the rule for a table of two fields (*Pairs with an owner dimension*, below,
+D-135), and the data map's test still holds it to the outputs the owner's rule allows (`published_exceptions`
+in `config/data_map.json`). Emitted
 today: `import_status__age_at_registration_band`, which serves `used_imports`
 and `nz_new` (`registrations_surviving` filtered by import status) by age
 when first registered here, and `powertrain__segment_group`, which applies a
@@ -272,6 +273,78 @@ row, so a sum of a pair's `fc_sum` matches the slice's only to within that
 rounding. The denominator is the whole dataset's month, not the filtered
 subset's, so a filtered share is computed in the browser: `n` over the sum
 of `n` for the same `month` and filter value.
+
+## Pairs with an owner dimension (D-135)
+
+A pair slice in which one or both dimensions read an owner field (the data map's `owner_groups`, as for a slice above) is
+held to the user's rule for a table of two fields (D-096, D-120). The table is published with both one-field slices, so the
+total of every *line* is public: a line is one value of a dimension with all its cells in the pair (a row for the first
+dimension, a column for the second), and its total is that value's count in the dimension's slice. A hidden cell is therefore
+what its line's total leaves after the visible cells, and the rule has to protect it against both of its lines at once. It is
+data, not code: the numbers are `owner_rule.minimum_count` and `owner_rule.pair_rule` in `config/data_map.json`
+(`minimum_hidden_cells_per_line` 2, `minimum_hidden_vehicles_per_line` 10, tested not to fall below the floors of the rule for
+a slice), and which pairs it holds is read from the data map as for a slice. The manifest's `small_cell_pairs` block, below,
+says which pairs it held and what it hid. A *cell* is one value of each dimension in one period (a month).
+
+In each period, in this order:
+
+1. **First rule.** A cell counting fewer than `minimum` (10) vehicles is hidden: its row stays, with `n` null, and the
+   `denominator`, the period's total, stays. The three fuel columns are null on **every** row of a protected pair, not only on
+   a hidden one: a visible cell's fuel-eligible count (`fc_eligible_n`) is a lower bound on the count of every cell in its
+   line, and set beside the one-field slices' fuel counts it narrows what the totals leave a hidden cell (measured on the
+   first real table, D-135), so a protected pair carries counts alone.
+2. **A value hidden in its one-field slice.** If a dimension's slice hides a value in the period, every cell on that value's
+   line is hidden in the pair too, since the line's total is not public. If either slice is not broken down in the period (it
+   is one reserved row), neither is the pair (4, below).
+3. **Line rule.** Until nothing changes: every line whose total is public and that holds a hidden cell must hold at least
+   `minimum_hidden_cells_per_line` hidden cells, which together count at least `minimum_hidden_vehicles_per_line` and more
+   vehicles than there are of them (else each is exactly one). Where a line does not, the line's smallest visible cell is
+   hidden, preferring a cell whose other line already holds a hidden cell (that closes a rectangle of hidden cells and hides
+   least), then the smaller count, then the cell that sorts first (the first dimension's value, then the second's, in byte
+   order). One cell is hidden at a time and the lines are looked at in a fixed order (rows, then columns, each in value order),
+   so the same table always gives the same result whatever order its rows arrive in. A line whose value was hidden by (2) is
+   exempt: its total is not public.
+4. **A period that cannot be protected** is not broken down: it has one row, with `__NOT_BROKEN_DOWN__` in both `a_value` and
+   `b_value`, and `n` and `denominator` both the period's total, the fuel columns null. That is a period in which a line
+   cannot meet the line rule (it has no visible cell left to hide), in which a line with hidden cells would keep no visible
+   cell, in which every cell would be hidden, in which the audit (below) finds a hidden cell pinned to one value, or in which
+   either one-field slice is not broken down. Which cells had vehicles is not shown for it.
+
+**The audit.** For every hidden cell, the build works out the smallest and largest count that every public line total, the
+period's total and every visible cell leave it, with each hidden cell holding at least one vehicle. The values the totals
+allow are the integer flows of a small transportation problem, and the range for one cell is an interval; its ends are found
+exactly by testing whether a given value is possible with a maximum-flow computation (`pair_cells.bounds`). Where some
+values of a dimension are hidden in its slice, their lines share one known sum, the period's total less the lines that are
+public, and the audit uses that. A period in which any hidden cell's smallest and largest are the same value, or in which
+no values fit the totals, is not broken down (4, above), and the build aborts if a written pair still holds one. A search of
+random tables found that the counts of (3) can hold while one cell is pinned (a table of four rows and four columns with
+nine hidden cells; `pipeline/tests/test_pair_cells.py` keeps it), so the counts alone do not give the guarantee and the audit
+is part of the rule.
+
+What holds in a period that has hidden cells (and the build aborts unless it does): no visible `n` is under the minimum; every
+line whose total is public and that holds a hidden cell holds at least `minimum_hidden_cells_per_line` of them, which together
+count at least `minimum_hidden_vehicles_per_line` and more than the number of them, and keeps a visible cell; every cell on a
+line hidden in its slice is hidden; and, for every hidden cell, the public totals leave at least two values. The build reads
+each such pair back from the written file and from the written one-field slices, and aborts, publishing nothing, unless in
+every period those hold, a period either slice does not break down is one reserved row, the visible counts of a line with no
+hidden cell add up to the line's total in its slice, every value in the pair is a value of its slice, the `denominator` is the
+same on every row and is the slice's, no row carries a fuel figure, and the file's periods, hidden rows and reserved rows
+equal what the writer meant to write. Summed over `b_value`, a protected pair no longer gives `dim_a`'s slice, since hidden
+cells have no `n`.
+
+Limits, stated and not solved (D-135). The project's owner accepts these knowingly:
+
+- Which cells are hidden is visible, not which of them are small: a hidden row names its two values, and a cell the line rule
+  hid can hold many more than the minimum.
+- The audit counts the values that this table's own public totals leave a cell. It does not combine tables: two pairs of the
+  same owner dimension with different second dimensions, the one-field slices, and the same table in the neighbouring snapshot
+  are each published, and a reader who combines them can know more than any one table shows. Nothing in the build compares
+  them.
+- A range wide enough to pass the audit can still be narrow in practice: the manifest gives, for each protected pair,
+  `narrowest_range`, the smallest spread (largest less smallest) that any hidden cell has in any period, so how close the
+  closest cell comes is visible. A spread of 0 never publishes.
+- The audit runs once per period when the pair is written and again when it is read back, and its cost grows with the hidden
+  cells of a period; a pair with many periods and many hidden cells in each is slower to build.
 
 ## Fact table
 
@@ -480,6 +553,16 @@ two rows that match the same vehicle (Aborts, below).
   "warnings": []
 }
 ```
+
+`small_cell_pairs` is on a dataset only when one of its pairs is held to the rule for a table of two fields (*Pairs with an owner
+dimension*). It holds one entry for each such pair, keyed by the pair's file name (`{dim_a}__{dim_b}`), so a reader tells a protected
+pair from a plain one by finding its name there. The entry has `minimum`, `minimum_hidden_cells` and `minimum_hidden_vehicles` (the
+rule: the minimum count and the pair rule's two per-line numbers); `months` (periods in the pair); `cells_hidden_first_rule` (rows with
+a null `n` that the first rule hid), `cells_hidden_by_slice` (those hidden because their value is hidden in its one-field slice) and
+`cells_hidden_second_rule` (those the line rule hid), each hidden cell counted once, in that order; `vehicles_in_hidden_cells` (what
+they held); `months_not_broken_down` and `vehicles_in_months_not_broken_down` (periods that are one reserved row, and their vehicles);
+and `narrowest_range` (the smallest spread the audit left any hidden cell in any period, null when no cell is hidden). The read-back
+check compares the file's periods, hidden rows and reserved rows with these figures.
 
 `small_cells` is on each dataset built from vehicle rows (the register's, and a supplied source's that counts vehicles); a
 dataset of a source of kind `series` has none. It holds one entry for each live dimension that reads an
@@ -897,7 +980,14 @@ Pairs:
   a dimension the dataset cannot derive, or names a dimension whose id
   contains `__` (the separator in a pair file's name).
 
-- A pair names a dimension that reads an owner field (`small_cells` above).
+- A pair with a dimension that reads an owner field, read back from the written file against the written one-field slices,
+  breaks the rule for a table of two fields in any period (a visible count under the minimum; a line with fewer than
+  `minimum_hidden_cells_per_line` hidden cells or with hidden cells holding too few vehicles or no more than there are of them;
+  a line with hidden cells and no visible cell; a value hidden in its slice that has a visible cell; visible counts that do not
+  add up to their line's total; a value that is not in its slice; a period either slice does not break down that is not one
+  reserved row; a total that is not the slices'; a fuel figure on any row; a hidden cell the totals pin to one value, or
+  totals that leave no values), or its periods, hidden rows or reserved rows differ from what the writer meant to write
+  (*Pairs with an owner dimension* above).
 
 Owner fields (D-127):
 
@@ -907,7 +997,8 @@ Owner fields (D-127):
   month's total; a fuel figure on a hidden row; visible counts that do not add up), or its months, hidden rows
   or reserved rows differ from what the writer meant to write.
 - `config/data_map.json` is missing, cannot be read the way the build needs, or holds a rule too weak to protect a cell
-  (`minimum_count` under 2, fewer than two hidden cells, or fewer hidden vehicles than the minimum).
+  (`minimum_count` under 2, fewer than two hidden cells, or fewer hidden vehicles than the minimum, in `second_rule` or in
+  `pair_rule`).
 
 Fact table:
 

@@ -117,7 +117,7 @@ Counts. Register: 22 bound and 18 not. By kind: 17 category, 12 number, 6 identi
 | Class | Fields | Why |
 |---|---|---|
 | Public | The 31 register fields that describe the vehicle; the dashboard's 10 vehicle columns | They describe the vehicle, not its owner, and NZTA publishes each of them vehicle by vehicle |
-| Owner rule | `TLA` (and `region` from it), `POSTCODE`, `VEHICLE_USAGE`, `INDUSTRY_CLASS`, `ROAD_TRANSPORT_CODE`; the dashboard's `Owner Type`, `Territorial authority`, `Vehicle usage` | They describe or locate the owner. Published only in a table of one or two fields, with any cell under 10 vehicles hidden (`owner_rule` in `config/data_map.json`; the pipeline hides them in a slice since D-127, and refuses a pair), and not before the owner has been shown the field's first table (D-120). Postcode totals are not published for now (D-076, D-096) |
+| Owner rule | `TLA` (and `region` from it), `POSTCODE`, `VEHICLE_USAGE`, `INDUSTRY_CLASS`, `ROAD_TRANSPORT_CODE`; the dashboard's `Owner Type`, `Territorial authority`, `Vehicle usage` | They describe or locate the owner. Published only in a table of one or two fields, with any cell under 10 vehicles hidden (`owner_rule` in `config/data_map.json`; the pipeline hides them in a slice since D-127 and in a pair with a second field since D-135), and not before the owner has been shown the field's first table (D-120). Postcode totals are not published for now (D-076, D-096) |
 | Never published | `VIN11`, `OBJECTID` | `VIN11` narrows a vehicle to a handful, and only a field derived from it may be published, once checked and approved (D-076, D-079). `OBJECTID` is a row number |
 | Never pulled | `CHASSIS7`, `ENGINE_NUMBER` | They identify a vehicle and serve no question (D-062, D-076; `register_archive.never_pulled`) |
 
@@ -1445,7 +1445,8 @@ Notes for the work that follows. None of it is done here.
 - **Enforcing the owner rule** (package F). Done for a slice (D-127): the pipeline hides any cell under
   10 vehicles in the slice of a dimension that reads an owner field, under a second rule, and reads the
   slice back; `owner_rule.enforced` is true. The `region` slice takes it (the user's ruling of 2026-11-17).
-  Not done: a pair with an owner field, which needs both of its totals protected; and the first table of
+  Done for a pair of an owner field and another field (D-135): each line of the table keeps the rule, and the
+  build proves it from the written file with an audit of what the totals pin down. Not done: the first table of
   any other owner field, which the user is shown before a build publishes it (D-120).
 - **Settling usage and industry class** for good: the same vehicles in the October and November
   archive files, if the user agrees to the match ("As first registered, or today").

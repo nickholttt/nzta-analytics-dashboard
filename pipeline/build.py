@@ -9,7 +9,7 @@ from typing import NamedTuple
 
 import duckdb
 
-from . import derive, events, guardrails, metrics, normalise, outputs, privacy, schema, series, small_cells, supplied
+from . import derive, events, guardrails, metrics, normalise, outputs, pair_cells, privacy, schema, series, small_cells, supplied
 from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
@@ -19,26 +19,29 @@ def iso_utc(moment: datetime) -> str:
     return moment.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def owner_protection(cfg) -> tuple[dict[str, list[str]], privacy.SmallCellRule]:
-    """The dimensions that read an owner field, with the fields they read, and the small-cell rule that holds their
-    slices (config/data_map.json, D-127). A data map the build cannot read aborts, as a missing reference file does."""
+def owner_protection(cfg) -> tuple[dict[str, list[str]], privacy.SmallCellRule, privacy.SmallCellRule]:
+    """The dimensions that read an owner field, with the fields they read, the small-cell rule that holds their slices
+    (D-127) and the rule that holds a pair with one (D-135), both from config/data_map.json. A data map the build cannot
+    read aborts, as a missing reference file does."""
     try:
         dmap = privacy.load_map(cfg)
-        return privacy.owner_dimensions(cfg, dmap), privacy.small_cell_rule(dmap)
+        return privacy.owner_dimensions(cfg, dmap), privacy.small_cell_rule(dmap), privacy.pair_cell_rule(dmap)
     except (privacy.DataMapError, OSError, KeyError) as exc:
         raise GuardrailError("data map", f"config/data_map.json cannot be used to protect owner fields: {exc!r}") from exc
 
 
 def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, staging, aborts: list[str],
-                warnings: list[str], protected: dict[str, list[str]]) -> tuple[list[str], dict[str, str]]:
-    """The pair slices config/pipeline.json names for this dataset. An entry that is not two different dimension ids, a
-    pair listed twice in either order, or a dimension the dataset cannot derive is a configuration error and aborts, and
-    so does a pair with a dimension that reads an owner field: the rule for a table of two fields has to protect both
-    of its margins, and that is not built yet (D-127). A pair whose dimension is not live this run waits, as the
-    dimension does, with a warning."""
+                warnings: list[str], protected: dict[str, list[str]], pair_rule: privacy.SmallCellRule
+                ) -> tuple[list[str], dict[str, str], dict[str, dict]]:
+    """The pair slices config/pipeline.json names for this dataset, and the figures of those held to the pair rule. An
+    entry that is not two different dimension ids, a pair listed twice in either order, or a dimension the dataset cannot
+    derive is a configuration error and aborts. A pair with a dimension that reads an owner field is written under the
+    rule for a table of two fields and then read back from the file; one that breaks it aborts the run (D-135). A pair
+    whose dimension is not live this run waits, as the dimension does, with a warning. The one-field slices of both
+    dimensions have been written by then: the rule is held to what they publish."""
     known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
     by_id = {d.dim_id: d for d in live}
-    written, waiting, seen = [], {}, set()
+    written, waiting, seen, figures = [], {}, set(), {}
     for pair in dataset_cfg.get("pairs") or []:
         if not (isinstance(pair, list) and len(pair) == 2 and all(isinstance(d, str) for d in pair)) or pair[0] == pair[1]:
             aborts.append(f"{dataset}: pair {pair!r} must name two different dimensions")
@@ -58,20 +61,21 @@ def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, 
         if unknown:
             aborts.append(f"{dataset}.{key}: {', '.join(unknown)} is not a derivable dimension of this dataset in dimensions.json")
             continue
-        owners = {d: protected[d] for d in pair if d in protected}
-        if owners:
-            read = "; ".join(f"{d} reads {', '.join(fields)}" for d, fields in owners.items())
-            aborts.append(f"{dataset}.{key}: a pair with an owner dimension is not built ({read}). A table of two fields "
-                          f"needs both of its totals protected, which the small-cell rule does not do yet (D-127)")
-            continue
         missing = [d for d in pair if d not in by_id]
         if missing:
             waiting[key] = f"dimensions not live: {', '.join(missing)}"
             warnings.append(f"{dataset}.{key} is not live: {waiting[key]}")
             continue
-        outputs.write_pair(con, cfg, by_id[pair[0]], by_id[pair[1]], ds, staging / "pairs" / dataset / f"{key}.parquet")
+        path = staging / "pairs" / dataset / f"{key}.parquet"
+        if not any(d in protected for d in pair):
+            outputs.write_pair(con, cfg, by_id[pair[0]], by_id[pair[1]], ds, path)
+        else:
+            slices = [staging / "cube" / dataset / f"{d}.parquet" for d in pair]
+            stats = pair_cells.write_protected_pair(con, cfg, by_id[pair[0]], by_id[pair[1]], ds, path, pair_rule, *slices)
+            aborts += [f"{dataset}.{key}: {problem}" for problem in pair_cells.check_pair(con, path, pair_rule, *slices, stats)]
+            figures[key] = stats
         written.append(key)
-    return written, waiting
+    return written, waiting, figures
 
 
 def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, staging,
@@ -177,7 +181,7 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
             live.append(d)
         else:
             exclude(d.dim_id, f"unmapped rate {rates[d.dim_id]:.2%} is above {g['max_unmapped_rate']:.0%} of in-scope rows")
-    protected, small_rule = owner_protection(cfg)
+    protected, small_rule, pair_rule = owner_protection(cfg)
     small_cell_figures = {}
     for d in live:
         path = staging / "cube" / dataset / f"{d.dim_id}.parquet"
@@ -189,7 +193,8 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
         figures = small_cells.write_protected_slice(con, cfg, d, ds, path, small_rule)
         aborts += [f"{dataset}.{d.dim_id}: {problem}" for problem in small_cells.check_slice(con, path, small_rule, figures)]
         small_cell_figures[d.dim_id] = figures
-    live_pairs, not_live_pairs = write_pairs(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings, protected)
+    live_pairs, not_live_pairs, pair_figures = write_pairs(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings,
+                                                           protected, pair_rule)
 
     counts = metrics.month_counts(con, ds)
     facts = write_fact_table(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
@@ -211,6 +216,7 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
         "live_pairs": live_pairs,
         "not_live_pairs": not_live_pairs,
         "small_cells": small_cell_figures,
+        **({"small_cell_pairs": pair_figures} if pair_figures else {}),
         "facts": facts,
         "unmapped_rates": rates,
         "unmapped_guard": guard,
