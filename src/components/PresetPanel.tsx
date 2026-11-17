@@ -103,12 +103,15 @@ export default function PresetPanel({
   anchored = true,
   defer = false,
   snapshot,
+  onFirstMonth,
 }: {
   presetId?: string;
   preset?: Preset;
   anchored?: boolean;
   // A kept snapshot (a month) to read every figure of the chart from, instead of the newest (src/lib/kept.ts, D-131).
   snapshot?: string;
+  // Told the first month the dataset has vehicles in, when the chart's rows arrive: the Build page's pinned line needs it (src/lib/pin.ts).
+  onFirstMonth?: (month: string | undefined) => void;
   // Draw nothing from the cube until the page's first chart is drawn and this panel is within a screen of the visible
   // part of the page, so the charts below the first add no downloads before it draws (src/lib/loadGate.ts).
   defer?: boolean;
@@ -164,6 +167,8 @@ export default function PresetPanel({
   const [rows, setRows] = useState<SliceRow[] | null>(null);
   // The first month the dataset has vehicles in, loaded with the rows: a ranking needs it to know whether a year before exists.
   const [firstMonth, setFirstMonth] = useState<string | undefined>(undefined);
+  const tell = useRef(onFirstMonth);
+  tell.current = onFirstMonth;
   // For a measure that divides one dataset by another: the numerator's rows, beside `rows`, the denominator's.
   const [companion, setCompanion] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -289,6 +294,7 @@ export default function PresetPanel({
         if (!current) return;
         setCompanion(second);
         setFirstMonth(first);
+        tell.current?.(first);
         setRows(loaded);
       },
       (e) => {
