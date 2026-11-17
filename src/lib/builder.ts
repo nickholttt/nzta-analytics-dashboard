@@ -2,12 +2,15 @@
 // breakdown to compare, which vehicles to keep, and, where more than one shape fits, which to draw (D-058, D-059). Each
 // becomes a preset like any in the canon, two for share and number, so the resolver and the panel treat a built chart
 // exactly as they treat an Explore one.
-import { builderSpec, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
+import dataMapDoc from "../../config/data_map.json";
+import { builderSpec, dimensions, lowerLabel, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
 import type { BuilderMeasure, Preset } from "./config";
 import { isBuilt } from "./data";
 import type { Manifest } from "./data";
 import { monthLabel } from "./measures";
 import { drawnShapes, inferShape, questionFacts, resolvePreset } from "./resolve";
+import { nested, rollUps } from "./nesting";
+import type { MapDimension, MapField } from "./nesting";
 import { isChoosable } from "./reserved";
 import { needsBreakdown } from "./shapes";
 import { chartDefaults } from "./config";
@@ -160,9 +163,17 @@ export function viewsFor(q: Question): string[] {
   return all.length > 1 ? all : [];
 }
 
-// Whether Build crosses two fields: they are two, and neither sits under a single value of the other (config builder.cannot_cross).
+// What rolls up to what, from the data map. Read when first asked, so a page that never asks does not carry the map.
+let rollUpsOfMap: ReturnType<typeof rollUps> | undefined;
+const rolledUp = (a: string, b: string): boolean => {
+  rollUpsOfMap ??= rollUps((dataMapDoc as unknown as { fields: MapField[] }).fields, dimensions as unknown as MapDimension[]);
+  return nested(rollUpsOfMap, a, b);
+};
+
+// Whether Build crosses two fields: they are two, and neither sits under a single value of the other. That is a pair measured and listed
+// in config (builder.cannot_cross), or one the data map says rolls up (a class under its type of vehicle, D-122).
 export const canCross = (a: string, b: string): boolean =>
-  a !== b && !builderSpec.cannot_cross.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+  a !== b && !builderSpec.cannot_cross.some(([x, y]) => (x === a && y === b) || (x === b && y === a)) && !rolledUp(a, b);
 
 // What a dataset is called to a visitor: its public label, and for one that starts later than the register, where it starts.
 export function datasetName(id: string, manifest?: Manifest): string {
@@ -225,7 +236,7 @@ export function withValues(where: Record<string, string[]>, dimension: string, v
 // The words on a condition's remove button, and the name a screen reader or a voice user gets for it: the same words, then the field, so
 // the visible label is part of the name (WCAG 2.5.3).
 export const REMOVE_CONDITION = "Remove this condition";
-export const removeConditionLabel = (field: string): string => `${REMOVE_CONDITION}: ${field.toLowerCase()}`;
+export const removeConditionLabel = (field: string): string => `${REMOVE_CONDITION}: ${lowerLabel(field)}`;
 
 // As many values as the palette has colours: past that, lines can no longer be told apart (src/lib/theme.ts).
 export const MAX_VALUES = 8;
@@ -270,7 +281,7 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
 // What a link asked for that the page did not give, so it can say so: the dataset it named and the breakdown it named, each
 // with what is shown instead. A condition the page cannot apply is already said where it is kept.
 // A label as it reads inside a sentence.
-const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+const lowerFirst = lowerLabel;
 
 export type Reading = {
   dataset?: { asked: string; shown: string };

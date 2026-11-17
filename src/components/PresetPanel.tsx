@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { figuresHeader } from "../lib/figuresHeader";
-import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
+import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { dimensionNote } from "../lib/dimensionNote";
 import { conditionsSentence } from "../lib/scope";
@@ -12,8 +12,9 @@ import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Dimension, Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
-import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
+import { TRAILING_MONTHS, guardsFor, monthLabel, notRecordedDrawn, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
+import { NOT_RECORDED_TOKEN } from "../lib/sentences";
 import { datasetCovers, fitsPin, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
@@ -397,13 +398,19 @@ export default function PresetPanel({
   // The dimension's note may depend on the state of the dataset (a mild line only where the split is published): src/lib/dimensionNote.ts.
   const dimensionText = dimensionNote(dimension, internal, { splitPublished: splitPublished(coverage) });
   addNote("dimension", dimensionText.plain, dimensionText.template);
+  // A share is a share of everything counted, so vehicles with no value of the breakdown are in the whole and drawn as a part of it. Said where the
+  // chart has such a part in the window it draws, so a reader never takes a share to be of the vehicles recorded.
+  if (measure?.kind === "share" && dimension && preventsRender.length === 0 && (shape === "mix" || shape === "distribution") && rows && notRecordedDrawn(rows, effectivePreset.period, latestMonthOf(effectivePreset, manifest))) {
+    const field = dimensionWords(dimension.id, internal) || dimension.id;
+    notes.push({ key: "share-of-all", text: fillNote(phrases.share_with_not_recorded, { field, value: reservedLabel(NOT_RECORDED_TOKEN) }).text, unresolved: [] });
+  }
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
   // terms, is internal.
   const quoted = (values: string[], dimensionId?: string) => values.map((v) => `“${valueWords(dimensionId, reservedLabel(v))}”`).join(" or ");
   const nameOf = (id: string) => {
     const words = dimensionWords(id, internal) || id;
-    return words.charAt(0).toLowerCase() + words.slice(1);
+    return lowerLabel(words);
   };
   const scope = keptBy?.length
     ? conditionsSentence(keptBy, nameOf, (d, v) => valueWords(d, reservedLabel(v)))

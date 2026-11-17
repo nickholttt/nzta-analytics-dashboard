@@ -461,7 +461,7 @@
     {
       "id": "seats_band",
       "label": "Seats",
-      "public_note": "The number of seats NZTA records, in bands. Seats are not recorded for many of the vehicles first registered from early 1994 to late 1995, so unknown is large for those months and small otherwise. A count of zero is not recorded, and a count above 60 is not taken as a number of seats: both are counted as unknown.",
+      "public_note": "The number of seats NZTA records, in bands. Seats are not recorded for many of the vehicles first registered from early 1994 to late 1995, so the not-recorded part is large for those months and small otherwise. A count of zero is not recorded, and a count above 60 is not taken as a number of seats: both are counted as not recorded.",
       "source": "nzta:number_of_seats",
       "derive": { "kind": "band", "field": "seats" },
       "kind": "ordered_band",

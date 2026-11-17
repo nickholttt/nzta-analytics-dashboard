@@ -3,7 +3,7 @@
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, phrases, valueWords } from "../lib/config";
+import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases, valueWords } from "../lib/config";
 import { REST_NAME, isChoosable } from "../lib/reserved";
 import { MAX_VALUES, RANKING, REMOVE_CONDITION, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
@@ -241,7 +241,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
   // The other shapes a question may be drawn as are a choice of their own; the ranking is reached from the values, where it is about them.
   const otherViews = views.filter((v) => v !== RANKING);
-  const noun = breakdown ? filterLabel(breakdown.id).toLowerCase() : "";
+  const noun = breakdown ? lowerLabel(filterLabel(breakdown.id)) : "";
   const own = !question.pageValues;
   const ranking = pickedBuilderSentences(phrases, {
     own,
@@ -448,12 +448,12 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
             ].map((side) => (
               <fieldset className="question-part" key={side.legend}>
                 <legend>
-                  {side.legend}: {filterLabel(side.id).toLowerCase()}
+                  {side.legend}: {lowerLabel(filterLabel(side.id))}
                 </legend>
                 <ValuePicker
                   dataset={dataset}
                   dimension={side.id}
-                  noun={filterLabel(side.id).toLowerCase()}
+                  noun={lowerLabel(filterLabel(side.id))}
                   chosen={side.chosen}
                   where={applicable(question.where)}
                   max={side.max}
@@ -576,7 +576,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                   <ValuePicker
                     dataset={dataset}
                     dimension={d}
-                    noun={filterLabel(d).toLowerCase()}
+                    noun={lowerLabel(filterLabel(d))}
                     chosen={kept}
                     where={applicable(without(question.where, d))}
                     onChange={(values) => {

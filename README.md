@@ -15,7 +15,9 @@ From the data GitHub builds, which anyone can download (see "Run it"):
 
 - **How the mix has changed**: powertrains (petrol, diesel, hybrid, electric),
   new against used imports, who owns the brands, where vehicles are built, how
-  old used imports are when they arrive, cars against utes, vans and trucks.
+  old used imports are when they arrive, cars against utes, vans and trucks,
+  how many seats vehicles have, NZTA's class code, and whether a vehicle was
+  imported or assembled here.
 - **Which brands lead** over the latest twelve months, and who is gaining or
   losing ground.
 - **Your own question**, on the Build page: choose what to count, break it

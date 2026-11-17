@@ -172,7 +172,7 @@ Setup, **not re-run this session** (the environment already existed):
    - If Claude Code's own permission check refuses a merge, it is not worked around: the pull
      request stays open, the next package is stacked on it, and the user is given one batch line.
    - One forced run of October is allowed, once, only if the most recent daily run reports the
-     source unchanged; a second is not.
+     source unchanged; a second is not (except the supplied-counts case in this rule, D-120).
    - Making anything public is still asked for.
 8. **Don't build ahead of the current step.** The user works in gated steps with a stop-and-report
    after each; the current step is in `docs/STATE.md`. During work order 1 the steps are its
