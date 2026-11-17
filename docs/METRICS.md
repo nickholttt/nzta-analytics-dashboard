@@ -997,6 +997,15 @@ Land Rover Discovery 181, GAC GS3 Emzoom 180. The register's all-time figure is 
 nameplates, not the many that were registered earlier and have since gone. `scripts/segment_coverage.py` prints these figures
 for either dataset.
 
+**Set beside the trade's own placement, privately (2026-11-17).** The FCAI publishes one complete sample of its VFACTS
+report on its own site (the national report for August 2023), which lists every model sold in Australia that month under
+its segment. Every entry of this file was set beside it. Of the file's 171 make-and-model entries (two nameplates have two
+rows each), 100 appear in that report and all 100 sit in the same class there: SUV for `suv`, its Passenger class for `car`.
+Seven of the file's `unresolved` entries appear there, and 64 entries do not appear at all (mostly Japanese used imports and
+models launched since). The report says it may not be reproduced, so nothing from it is in the file or in this repository:
+no row's class, basis or confidence rests on it, and a row stays `medium` where only that report would confirm its class.
+The comparison is a check on the rule, not a source.
+
 **The register's `CLASS` as a cross-check, not an input.** `MC` is the register's off-road passenger class. For each
 nameplate in the file with at least 30 passenger vehicles in the register: no `car` row has a majority `MC`; one has over a
 quarter (Mitsubishi Delica, 29%). `MC` is weak evidence for an SUV: among the file's `suv` rows it runs from 0% (Mazda CX-5,

@@ -5027,4 +5027,12 @@ New entries use this template:
   8. The script takes the file's name as a constant and the vehicle group (`passenger`), the class to show (`suv`) and an optional import status as arguments with defaults, so no domain value is in it.
 - Sources that could not be read: the New Zealand sites of Honda, Ford, Tesla and MG, and Mitsubishi's model pages (they refused automated readers); Toyota's, Nissan's and Honda's Japanese lineup pages (no models in what was served); the MIA's April 2025 PDF (binary; its figures were read from a search result's quotation of it); Omoda & Jaecoo's site (no connection). Several of these makers' pages were found by search and are used as `medium` only.
 - Tests: `pipeline/tests/test_model_segment.py` (20), `test_invariants.py` and `test_unmatched_hybrids.py` pass. `scripts/segment_coverage.py` was run on both datasets, and its trailing and all-time figures agree with an independent computation from the built rows of both datasets, to the vehicle.
+- Follow-up, 2026-11-17 (the lead, after the file was written): the file was set beside the FCAI's published sample of its
+  VFACTS report (August 2023, on the FCAI's own site), privately. Of 171 entries, 100 appear in that report and all 100 are
+  in the same class there; 7 `unresolved` entries appear there; 64 do not appear. Nothing from the report is in the file or
+  the repository (it says it may not be reproduced), and no row rests on it: the owner has been asked whether a trade list
+  may be a source, and until they answer it is a check only. What it suggests for the next slice, each still needing a
+  source this project can cite: the people movers and sports cars now under `car`; the `unresolved` nameplates that the
+  trade places one way or the other; and that one register name can span several of the trade's segments (the register's
+  Land Cruiser name covers the wagon, the Prado and the cab-chassis).
 - Status: decided by Claude (unreviewed)
