@@ -320,7 +320,7 @@ test("level leaders: the first is on the grid, one the cut would lose is counted
     thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
   };
   const one = matrixSentences(phrases, facts).leader as string;
-  assert.match(one, /^2 combinations are level as the largest, each with 50 vehicles: thing A and kind x; thing B and kind y\. One of these is counted in All other, not in a cell of its own\.$/);
+  assert.match(one, /^2 combinations of two named values are level as the largest, each with 50 vehicles: thing A and kind x; thing B and kind y\. One of these is counted in All other, not in a cell of its own\.$/);
   // Two of three in the rest line is said in the plural; none in it adds nothing.
   const three = matrixSentences(phrases, { ...facts, leaders: [...facts.leaders, { row: "D", column: "z", n: 50, inRest: true }] }).leader as string;
   assert.match(three, /\. 2 of these are counted in All other, not in a cell of their own\.$/);
@@ -328,6 +328,20 @@ test("level leaders: the first is on the grid, one the cut would lose is counted
   assert.ok(shown.leaders.every((l) => !l.inRest));
   const plain = matrixSentences(phrases, { ...facts, leaders: shown.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })) }).leader as string;
   assert.ok(!/counted in/.test(plain));
+});
+
+test("the answer says it is the largest of two named values, so it stays true beside a reserved line that holds more", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  const g = grid([src("A", "x", 10), src("B", "x", 5), src("__UNDEFINED__", "x", 500), src("__UNMAPPED__", "y", 400)]);
+  assert.ok(g.rows.lines.some((l) => l.kind === "reserved") && g.rowTotals.some((t) => t > g.leaders[0].n), "a reserved line is on the grid and holds more");
+  const sentence = matrixSentences(phrases, {
+    basis: "count", rowField: "thing", columnField: "kind", window: "in the window", total: g.total, conditions: false, floor: 200, rest: "All other",
+    leaders: g.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })), among: g.leadersAmong, counted: (n: number) => `${n} vehicles`,
+    rows: { field: "thing", mode: g.rows.mode, shown: 2, tiedBeyond: 0, rest: g.rows.rest }, columns: { field: "kind", mode: g.columns.mode, shown: 1, tiedBeyond: 0, rest: g.columns.rest },
+    thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  }).leader as string;
+  assert.match(sentence, /^The largest combination of two named values is thing A and kind x: 10 vehicles/);
 });
 
 test("where the visitor picked values the leader is the largest among those, and the sentence says so", async () => {
@@ -345,11 +359,11 @@ test("where the visitor picked values the leader is the largest among those, and
     thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
   });
   const picked = matrixSentences(phrases, facts(g)).leader as string;
-  assert.match(picked, /Among the thing values you picked, the largest combination is thing C and kind y: 7 vehicles/);
+  assert.match(picked, /Among the thing values you picked, the largest combination of two named values is thing C and kind y: 7 vehicles/);
   const whole = grid(rows);
   assert.deepEqual(whole.leaders.map((l) => l.row.key), ["A"], "with nothing picked the leader is A by x");
   const plain = matrixSentences(phrases, facts(whole)).leader as string;
-  assert.match(plain, /^The largest combination is thing A and kind x: 1000 vehicles/);
+  assert.match(plain, /^The largest combination of two named values is thing A and kind x: 1000 vehicles/);
   assert.ok(!/you picked/.test(plain));
 });
 

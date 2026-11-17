@@ -16,7 +16,7 @@
 //   - a figure is printed once, to one decimal place, and the file and the shade step are made from that printed figure, never from the
 //     unrounded one, so the three cannot disagree;
 //   - the answer, the largest combination, is the largest over every named pair in the window where the sides are the page's own, and the
-//     largest among the values picked where the visitor picked; the largest combination is always shown on the grid.
+//     largest among the values picked where the visitor picked; the first of the largest combinations is always shown on the grid.
 import { byCountThenName, nameOrder, rankByCount } from "./ranking";
 import { BEYOND_CAP, REST_NAME } from "./reserved";
 import { NOT_RECORDED_TOKEN, NO_MATCH_TOKEN } from "./sentences";

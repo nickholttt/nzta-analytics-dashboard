@@ -588,7 +588,9 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
   words for what it counts; every combination level with it where there are several, followed, where some of those are counted in All other, by a sentence saying how many. It is worked out over **every named pair in the window**,
   whatever the cut, so it is true of the question and not of the lines shown. Where the visitor picked values on a side, it is the largest
   **among the values picked** and the sentence says so ("Among the brand values you picked, ..."), since the leader of the whole window may be a
-  value they left out. It is the same fact whatever the cells show, so it is never a share of a thin row. It names no value or figure in the template, and says nothing about why.
+  value they left out. It is the same fact whatever the cells show, so it is never a share of a thin row. Reserved values take no place in it, and a line of
+  a reserved value can hold more vehicles than the largest cell, so the sentence says what it is: "The largest combination **of two named
+  values** is ...", in each of its four forms, and is true beside such a line. It names no value or figure in the template, and says nothing about why.
 - **The table of figures and the file** are the grid itself, with its last row and column, cell for cell (a wide grid is rows by columns as
   on the page). A column of shares is headed (%); the notes above the table say what a cell holds, how each side was chosen, what All other
   holds, what is greyed, what a less-than sign means, and that the last row and column are vehicles. A sentence that cannot be filled is
