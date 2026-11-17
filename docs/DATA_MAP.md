@@ -344,8 +344,8 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 - **Traps.** Sub-brands and bare words persist (`model_registry.csv`). `TRAILER` is a make on W
   (549,041 vehicles; 3 on S).
 - **Privacy.** Public.
-- **Relations.** Rolls up to manufacturer group and to owner country through `brand_registry.csv`,
-  by construction. Picks out a vehicle in combination. Not measured for moving together (too many
+- **Relations.** Rolls up to manufacturer group, to owner country and to heritage country through
+  `brand_registry.csv`, by construction (heritage country added on 2026-11-18, D-136's review). Picks out a vehicle in combination. Not measured for moving together (too many
   values).
 
 ### `MODEL`
@@ -1144,7 +1144,7 @@ region through `tla_region.csv`. Two of the first pass's claims failed.
 |---|---|---|
 | District (`TLA`) to region | Yes, through `tla_region.csv` | All 67 S values are in the file, none twice; seven districts straddle regions and are assigned to the region holding most residents |
 | `CLASS` to vehicle type | Yes on S only | 1 of 4,286,433 S vehicles disagrees; on W, 6 of 21 classes have two parents |
-| Make to manufacturer group to owner country | Yes, by construction | `brand_registry.csv` gives each canonical make one group and one country |
+| Make to manufacturer group to owner country, and make to heritage country | Yes, by construction | `brand_registry.csv` gives each canonical make one group, one owner country and one heritage country, and each group one owner country (a test holds the file to it) |
 | Model to make | Only as the make-and-model pair the site builds | The raw model name sits under more than one make for 1,427 of 28,000 S models |
 | Body type to vehicle type | **No** (first pass said yes) | 4 of 13 S body types under both vehicle types; 41,952 S vehicles off the commoner type |
 | Road transport code to industry class | **No** (first pass said yes) | 19 of 20 codes under more than one class; 3,565 of 57,232 vehicles off the commoner class |

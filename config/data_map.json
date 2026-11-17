@@ -94,7 +94,8 @@
       { "a": "age_at_registration_band", "b": "IMPORT_STATUS", "basis": "by_construction" },
       { "a": "age_at_registration_band", "b": "VEHICLE_YEAR", "basis": "by_construction" },
       { "a": "FIRST_NZ_REGISTRATION_YEAR", "b": "VEHICLE_YEAR", "basis": "by_construction" },
-      { "a": "IMPORT_STATUS", "b": "VEHICLE_YEAR", "basis": "by_construction" }
+      { "a": "IMPORT_STATUS", "b": "VEHICLE_YEAR", "basis": "by_construction" },
+      { "a": "parent_group", "b": "owner_country", "basis": "by_construction" }
     ]
   },
   "fields": [
@@ -247,7 +248,8 @@
       "relations": {
         "rolls_up_to": [
           { "to": "parent_group", "via": "brand_registry.csv", "holds_on": "by_construction" },
-          { "to": "owner_country", "via": "brand_registry.csv", "holds_on": "by_construction" }
+          { "to": "owner_country", "via": "brand_registry.csv", "holds_on": "by_construction" },
+          { "to": "heritage_country", "via": "brand_registry.csv", "holds_on": "by_construction" }
         ],
         "derived_from": [],
         "follows_vehicle": "combined"
@@ -965,7 +967,8 @@
       "relations": {
         "rolls_up_to": [
           { "to": "parent_group", "via": "brand_registry.csv", "holds_on": "by_construction" },
-          { "to": "owner_country", "via": "brand_registry.csv", "holds_on": "by_construction" }
+          { "to": "owner_country", "via": "brand_registry.csv", "holds_on": "by_construction" },
+          { "to": "heritage_country", "via": "brand_registry.csv", "holds_on": "by_construction" }
         ],
         "derived_from": [],
         "follows_vehicle": "combined"

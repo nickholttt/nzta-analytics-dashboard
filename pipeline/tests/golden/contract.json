@@ -104,7 +104,7 @@
      "file": "associations/registrations_surviving.json",
      "dimensions": 19,
      "pairs": 171,
-     "not_findings": 13,
+     "not_findings": 16,
      "left_out": {}
     },
     "unmapped_rates": {
@@ -416,7 +416,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 110334,
+  "payload_bytes": 110632,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -13272,7 +13272,12 @@
       "values_a": 8,
       "values_b": 23
      },
-     "relation": []
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "by_construction"
+      }
+     ]
     },
     {
      "a": "heritage_country",
@@ -13289,7 +13294,12 @@
       "values_a": 8,
       "values_b": 38
      },
-     "relation": []
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "as_make_and_model_key"
+      }
+     ]
     },
     {
      "a": "heritage_country",
@@ -14574,7 +14584,12 @@
       "values_a": 6,
       "values_b": 19
      },
-     "relation": []
+     "relation": [
+      {
+       "kind": "true_by_definition",
+       "basis": "by_construction"
+      }
+     ]
     },
     {
      "a": "owner_country",
