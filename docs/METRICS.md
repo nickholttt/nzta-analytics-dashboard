@@ -901,6 +901,12 @@ keeps both values is one line of their sum (new passenger cars and vans in Octob
 share of the two together needs a roll-up dimension (`powertrain_group` in
 `powertrain_map.csv` holds one) and a pipeline change; none exists.
 
+`powertrain_map.csv` gives each powertrain value one group in `powertrain_group` (a test holds it, and that the two values
+the mild split moves a vehicle between, Hybrid and Mild hybrid, share a group) and each group a plain-word name in
+`powertrain_group_label`, which is the name a visitor sees (D-124). The key column keeps its short values because the hybrid
+classification reads them (`hybrid_classification.source_hybrid` in `config/pipeline.json`), and one of them is also a
+powertrain value.
+
 The file is keyed on the make and model as the dataset spells them, so a
 nameplate the register and the dashboard spell differently needs a row for
 each spelling. Measured on the 2026-10 snapshot, the hybrids that matched no

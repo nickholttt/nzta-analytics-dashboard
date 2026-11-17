@@ -236,7 +236,7 @@ test("the table holds no domain value: no field, measure, dataset or reference v
   // The values the reference files hold for the columns a visitor sees.
   const columns: Record<string, string[]> = {
     "brand_registry.csv": ["make_canonical", "parent_group", "owner_country", "heritage_country", "brand_region"],
-    "powertrain_map.csv": ["nzta_motive_power", "powertrain", "powertrain_detail", "powertrain_group"],
+    "powertrain_map.csv": ["nzta_motive_power", "powertrain", "powertrain_detail", "powertrain_group", "powertrain_group_label"],
     "segment_map.csv": ["vehicle_type", "body_type", "segment", "segment_group"],
     "tla_region.csv": ["tla", "region"],
     "import_status_map.csv": ["nzta_import_status", "import_status"],

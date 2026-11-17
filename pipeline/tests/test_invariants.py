@@ -16,7 +16,7 @@ PIPELINE = Path(__file__).resolve().parent.parent
 
 VOCABULARY_COLUMNS = {
     "brand_registry.csv": ["make_canonical", "aliases", "parent_group", "owner_country", "heritage_country"],
-    "powertrain_map.csv": ["nzta_motive_power", "powertrain", "powertrain_detail", "powertrain_group"],
+    "powertrain_map.csv": ["nzta_motive_power", "powertrain", "powertrain_detail", "powertrain_group", "powertrain_group_label"],
     "segment_map.csv": ["vehicle_type", "body_type", "segment", "segment_group"],
     "tla_region.csv": ["tla", "region"],
     "import_status_map.csv": ["nzta_import_status", "import_status"],
