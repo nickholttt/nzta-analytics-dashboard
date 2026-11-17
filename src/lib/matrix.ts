@@ -46,6 +46,9 @@ export type SideSpec = {
   picked?: readonly string[];
   // An ordered band: its values in this order. Never cut or ranked, picked or not.
   order?: readonly string[];
+  // Of those, the values that are not a place on the scale (a band definition with no range: the value means not recorded or not applicable).
+  // They take no part in setting where the scale begins and ends, and follow the bands.
+  unplaced?: readonly string[];
   nameOf: (value: string) => string;
 };
 
@@ -113,6 +116,13 @@ export type GridInput = {
   stepFractions: readonly number[];
 };
 
+// An ordered field's bands as config defines them: their labels in order, and those that are not a place on the scale. A band definition with no
+// range (neither a lower nor an upper end) is a flagged value that means not recorded or not applicable, not a stretch of the scale.
+export const bandScale = (bands: readonly { label: string; min?: number; max?: number | null }[]) => ({
+  order: bands.map((b) => b.label),
+  unplaced: bands.filter((b) => b.min === undefined && b.max === undefined).map((b) => b.label),
+});
+
 // Which values stand on a side, from the vehicles each holds in the window. seen: the values the data has in any month under the conditions,
 // which an ordered band shows from its first to its last (a band with no vehicles in the window, or that the data never has between them, is a
 // line of zeros, not a gap). keep: a value to show whatever its rank.
@@ -134,9 +144,10 @@ export function chooseSide(totals: ReadonlyMap<string, number>, spec: SideSpec, 
   } else if (spec.order) {
     mode = "ordered";
     // Every band from the first to the last the data has under the conditions (in any month), in its own order, so the scale has no gap: a band
-    // between them that the data never has is a line of zeros. A value the order does not know follows.
+    // between them that the data never has is a line of zeros. A value the order does not know, and one that is not a place on the scale, follows.
     const values = new Set([...[...(seen ?? [])].filter((v) => !isReserved(v)), ...named.map((e) => e.value)]);
-    const places = [...values].flatMap((v) => (at.has(v) ? [at.get(v) as number] : []));
+    const off = new Set(spec.unplaced ?? []);
+    const places = [...values].flatMap((v) => (at.has(v) && !off.has(v) ? [at.get(v) as number] : []));
     const between = places.length ? (spec.order ?? []).slice(Math.min(...places), Math.max(...places) + 1) : [];
     shown = [...new Set([...between, ...values])].map(entry).sort(byOrder);
   } else {

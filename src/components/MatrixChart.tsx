@@ -9,7 +9,7 @@ import { chartDefaults, datasetWords, findDataset, findPeriod, phrases } from ".
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, monthRange, pct } from "../lib/measures";
-import { BASES, gridOf, gridTable, isBasis, tableFigures } from "../lib/matrix";
+import { BASES, bandScale, gridOf, gridTable, isBasis, tableFigures } from "../lib/matrix";
 import type { Basis, CellSource, Grid, SideSpec } from "../lib/matrix";
 import { count, spanPeriod } from "../lib/readout";
 import { latestMonthOf } from "../lib/resolve";
@@ -40,7 +40,7 @@ type Props = {
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 // An ordered band is shown whole in the order config gives its bands; any other field is ranked.
-const orderOf = (d: Dimension): readonly string[] | undefined => (d.kind === "ordered_band" && d.bands ? d.bands.map((b) => b.label) : undefined);
+const scaleOf = (d: Dimension) => (d.kind === "ordered_band" && d.bands ? bandScale(d.bands) : undefined);
 
 export const defaultBasis = (preset: Preset): Basis => {
   if (isBasis(preset.cell_basis)) return preset.cell_basis;
@@ -75,7 +75,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
 
   const cells = useMemo<CellSource[]>(() => rows.flatMap((r) => (r.other === undefined ? [] : [{ month: r.month, value: r.value, other: r.other, n: r.n }])), [rows]);
   const grid: Grid = useMemo(() => {
-    const side = (limit: number, picked: string[] | undefined, d: Dimension, nameOf: (v: string) => string): SideSpec => ({ limit, picked, order: orderOf(d), nameOf });
+    const side = (limit: number, picked: string[] | undefined, d: Dimension, nameOf: (v: string) => string): SideSpec => ({ limit, picked, order: scaleOf(d)?.order, unplaced: scaleOf(d)?.unplaced, nameOf });
     return gridOf({
       rows: cells,
       from: currentFrom,

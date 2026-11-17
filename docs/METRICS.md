@@ -557,7 +557,9 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
   or not: **every band from the first the data has under the conditions (in any month) to the last, in its own order, is a line**, the order
   being the one config gives the field's bands. So a band with no vehicles in the window, or one that the data never has but that lies between two
   that it does, is a line of zeros and not a gap (a gap in an ordered scale reads as a finding, and "with no value left out in between" would be
-  untrue); a band before the first or after the last the data has is not a line. A value the order does not know follows the bands. Values picked on an ordered band are shown in the band's order, not by size. A value picked that has no vehicles in the window is a line of
+  untrue); a band before the first or after the last the data has is not a line. The first and the last are the first and last **real** band the data has: a band definition in config with no range (the flagged values
+  "unknown" and "none", which mean not recorded or not applicable) is not a place on the scale, takes no part in setting its ends, and follows the
+  bands as a reserved line does, so a few such vehicles do not pad a grid narrowed to low bands out to the last band. A value the order does not know follows the bands. Values picked on an ordered band are shown in the band's order, not by size. A value picked that has no vehicles in the window is a line of
   zeros. Where the largest combination (below) has a row or column the cut would put in All other, that value is shown as well, out of its
   place, and a sentence says so, so the answer can be found on the grid. This is done for **one** combination: where several are level, the
   first (by the order of the rows, then of the columns) is kept; any of the others whose row or column is not a line of its own is counted in a

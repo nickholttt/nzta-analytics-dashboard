@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { CellSource, GridInput, SideSpec } from "../../src/lib/matrix.ts";
 
-const { gridOf, gridTable, chooseSide, tableFigures, REST_NAME } = await import("../../src/lib/matrix.ts");
+const { gridOf, gridTable, chooseSide, tableFigures, bandScale, REST_NAME } = await import("../../src/lib/matrix.ts");
 const { figuresCsv } = await import("../../src/lib/figures.ts");
 
 const nameOf = (v: string) => (v === "__UNDEFINED__" ? "Not recorded" : v === "__UNMAPPED__" ? "No match" : v === "__OTHER__" ? "Beyond cap" : v);
@@ -100,6 +100,29 @@ test("an ordered band is shown from the first band the data has to the last, wit
   // One band alone is one line; a value the order does not know follows the bands.
   assert.deepEqual(grid([src("3", "x", 5)], { rowSide: side({ order }) }).rows.lines.map((l) => l.key), ["3"]);
   assert.deepEqual(grid([src("3", "x", 5), src("zz", "x", 1), src("1", "x", 2)], { rowSide: side({ order }) }).rows.lines.map((l) => l.key), ["1", "2", "3", "zz"]);
+});
+
+test("a value that means not recorded or not applicable takes no part in setting the ends of an ordered scale, and follows the bands", async () => {
+  const config = await import("../../src/lib/config.ts");
+  // Config's own bands: those with no range are the flagged values, and they end each list.
+  const flagged = config.dimensions.filter((d) => d.kind === "ordered_band" && d.bands).map((d) => [d.id, bandScale(d.bands!).unplaced] as const);
+  assert.ok(flagged.some(([, u]) => u.length > 0), "config has bands with no range");
+  for (const d of config.dimensions.filter((x) => x.kind === "ordered_band" && x.bands)) {
+    const { order, unplaced } = bandScale(d.bands!);
+    assert.deepEqual(order.slice(order.length - unplaced.length), unplaced, `${d.id}: the bands with no range are the last of its order`);
+    assert.ok(order.length > unplaced.length, `${d.id}: and it has bands with a range`);
+  }
+  const order = ["0", "1", "2", "3", "4", "none", "unknown"];
+  const unplaced = ["none", "unknown"];
+  // A grid narrowed to low bands, with a few vehicles of an unknown one: no padding up to band 4 for their sake.
+  const g = grid([src("0", "x", 70), src("2", "x", 9), src("unknown", "x", 3)], { rowSide: side({ order, unplaced }) });
+  assert.deepEqual(g.rows.lines.map((l) => l.key), ["0", "1", "2", "unknown"]);
+  assert.deepEqual(g.rows.lines.map((l) => l.total), [70, 0, 9, 3]);
+  // Without the marker the same data would pad to the end of the order, which is what this prevents.
+  assert.deepEqual(grid([src("0", "x", 70), src("2", "x", 9), src("unknown", "x", 3)], { rowSide: side({ order }) }).rows.lines.map((l) => l.key), order);
+  // Only flagged values: they are the lines, in their order; a flagged value that is absent is not a line.
+  assert.deepEqual(grid([src("unknown", "x", 3), src("none", "x", 2)], { rowSide: side({ order, unplaced }) }).rows.lines.map((l) => l.key), ["none", "unknown"]);
+  assert.deepEqual(grid([src("4", "x", 3)], { rowSide: side({ order, unplaced }) }).rows.lines.map((l) => l.key), ["4"]);
 });
 
 test("values picked on an ordered band keep the band's order, whatever their size", () => {
