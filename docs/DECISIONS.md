@@ -5398,6 +5398,7 @@ New entries use this template:
 - Review of #82, 2026-11-17 (the lead, applying the reviewer's two findings; this record is new in the pull request, so it is corrected in place):
   (1) the line that says a share is of all vehicles was judged on every month loaded, so it could name a not-recorded part the chart did not draw (the reviewer's case: a share by engine size for plug-in hybrids over the last 12 months, where the window holds none and all time holds 297). It is now judged on the window the chart draws (`notRecordedDrawn` in `src/lib/measures.ts`), with a test. (2) `seats_band`'s note said "unknown" twice where the page says "Not recorded"; it now says "not recorded" (one sentence of `config/dimensions.json`, no other change to the file).
   The reviewer's follow-ups, not done here: a link that names a band's old `unknown` value counts nothing and says nothing; a count by a banded field over all time leaves blank the months in which no vehicle has a value, one sentence per stretch; a count by a banded field drops the not-recorded vehicles without a line saying so, as other fields already do; the query service prototype does not make the same rewrite; the pair test checks names, not counts.
+- Status: decided by Claude (unreviewed)
 
 ## D-121 2026-11-17 — NZTA's vehicle class labels: the table the owner supplied is checked against the register and put in `class_map.csv`
 - Agent: claude (a sub-agent, to the lead's brief)
