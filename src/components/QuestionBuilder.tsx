@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases, valueWords } from "../lib/config";
 import { REST_NAME, isChoosable } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, addressParams, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
@@ -18,8 +18,6 @@ import keepWords from "../../config/my_questions.json";
 import MyQuestions from "./MyQuestions";
 import PresetPanel, { reservedLabel } from "./PresetPanel";
 
-// The chart's own settings in the address bar. A new question clears them, so its charts open on their defaults.
-const CHART_PARAMS = ["period", "range", "smoothing", "month", "cells"];
 // Values filled in when a count is broken down and none are chosen yet: a count draws one line per value.
 const STARTING_VALUES = 5;
 const SUGGESTIONS = 8;
@@ -268,13 +266,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   // The builder's settings in the address, replaced by the question's. A new question clears the charts' own settings
   // (the first chart's are scoped by the builder's id, a second chart's by its own); the first read keeps them.
   const writeAddress = (settled: Question, keepChart: boolean) => {
-    const url = new URL(window.location.href);
-    for (const k of [...url.searchParams.keys()]) {
-      const chartSetting = k.startsWith(`${builderSpec.id}-`) || CHART_PARAMS.some((p) => k === `${builderSpec.id}.${p}`);
-      if ((k.startsWith(`${builderSpec.id}.`) || k.startsWith(`${builderSpec.id}-`)) && !(keepChart && chartSetting)) url.searchParams.delete(k);
-    }
-    for (const [k, v] of questionParams(settled)) url.searchParams.append(k, v);
-    const next = `${url.pathname}?${url.searchParams}${url.hash}`;
+    const next = `${window.location.pathname}?${addressParams(window.location.search, settled, keepChart)}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) window.history.replaceState(null, "", next);
   };
   // So a link that named something the page does not offer is corrected in the address where it is read, not only

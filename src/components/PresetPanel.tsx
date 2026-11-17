@@ -2,7 +2,7 @@
 import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
-import { heldEnd } from "../lib/pin";
+import { shownEnd } from "../lib/pin";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { figuresHeader } from "../lib/figuresHeader";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
@@ -461,8 +461,7 @@ export default function PresetPanel({
 
   // A pinned question keeps its window ending in the month it was pinned to (src/lib/pin.ts), so the month the visitor may otherwise choose is
   // not offered: to look at another, they unpin. A pin at or after the newest month changes nothing, and the page says so in its pin line.
-  const pinnedEnd = heldEnd(effectivePreset.through, latestMonthOf(effectivePreset, manifest));
-  const shownMonth = pinnedEnd ?? month;
+  const shownMonth = shownEnd(effectivePreset.through, latestMonthOf(effectivePreset, manifest), month);
   const chooseMonth = effectivePreset.through ? undefined : handleMonthChange;
 
   let chart = null;

@@ -8,9 +8,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { everythingBuilt } from "./support/observe.ts";
 
-const { builderVocabulary, builderPresets, questionParams, readQuestion, readingNotes, settle } = await import("../../src/lib/builder.ts");
+const { addressParams, builderVocabulary, builderPresets, questionParams, readQuestion, readingNotes, settle } = await import("../../src/lib/builder.ts");
 const { dimensions } = await import("../../src/lib/config.ts");
-const { heldEnd, holdsWindow, pinNote } = await import("../../src/lib/pin.ts");
+const { heldEnd, holdsWindow, pinNote, shownEnd } = await import("../../src/lib/pin.ts");
 const { END_MONTH_SHAPES } = await import("../../src/lib/resolve.ts");
 const { fillTemplate } = await import("../../src/lib/sentences.ts");
 
@@ -121,4 +121,25 @@ test("the snapshot is told by its month alone: any date within the pinned month 
   const q = read(`${ranking}&build.snapshot=2026-10`);
   for (const date of ["2026-10-01", "2026-10-31"]) assert.equal(pinNote(q, manifestOf(date))?.kind, "same", date);
   assert.equal(pinNote(q, manifestOf("2026-11-30"))?.kind, "newer");
+});
+
+test("a month the visitor picked in a ranking is not carried into the pin: the pinned window ends in the pin's month, not in the one picked", () => {
+  // Pinned to the snapshot served (the newest month): the chart ends in the newest month whatever was picked before.
+  assert.equal(shownEnd("2026-10", "2026-10", "2025-03"), undefined);
+  // Pinned to an earlier month: that month.
+  assert.equal(shownEnd("2026-10", "2026-11", "2025-03"), "2026-10");
+  // Not pinned: the month the visitor picked, and none means the newest.
+  assert.equal(shownEnd(undefined, "2026-10", "2025-03"), "2025-03");
+  assert.equal(shownEnd(undefined, "2026-10", ""), "");
+});
+
+test("pinning takes the picked month out of the address and keeps the chart's other settings; an unpinned question keeps its month", () => {
+  const search = `?${ranking}&build.period=1y&build.month=2025-03&other=1`;
+  const unpinned = addressParams(search, read(ranking), true);
+  assert.equal(unpinned.get("build.month"), "2025-03");
+  const pinned = addressParams(search, read(`${ranking}&build.snapshot=2026-10`), true);
+  assert.equal(pinned.has("build.month"), false);
+  assert.equal(pinned.get("build.period"), "1y");
+  assert.equal(pinned.get("build.snapshot"), "2026-10");
+  assert.equal(pinned.get("other"), "1");
 });

@@ -21,6 +21,10 @@ export const servedMonth = (manifest: Manifest): string => manifest.latest_snaps
 // dataset's newest month. So the same pin ends in the same month until the data moves on, and a question with no pin always follows the newest.
 export const heldEnd = (through: string | undefined, newest: string): string | undefined => (through && through < newest ? through : undefined);
 
+// The month a ranking or a grid ends in: a pinned question's, never the month the visitor had picked before pinning; otherwise the one they picked
+// (empty: the newest).
+export const shownEnd = (through: string | undefined, newest: string, picked: string): string | undefined => (through ? heldEnd(through, newest) : picked);
+
 export type PinNote = { kind: "same" | "newer" | "ahead"; text: string };
 
 // Whether the question's chart ends in a month a pin can hold.

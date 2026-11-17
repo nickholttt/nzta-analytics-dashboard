@@ -391,6 +391,22 @@ export function builderQuestionFor(view: Preset): Question | null {
   return { dataset: view.dataset, measure: m.id, by: view.dimension, values: [], ...(view.dimension2 ? { by2: view.dimension2, values2: [] } : {}), where, view: null };
 }
 
+// The chart's own settings in the address (the first chart's are scoped by the builder's id, a later part's by its own id and a dash).
+const CHART_PARAMS = ["period", "range", "smoothing", "month", "cells"];
+
+// An address with the builder's settings replaced by the question's. A new question clears the chart's settings; the first read keeps them. A
+// pinned question has no month of its own to look at (its window is the pin's), so a month the visitor had picked goes when they pin.
+export function addressParams(search: string, q: Question, keepChart: boolean): URLSearchParams {
+  const params = new URLSearchParams(search);
+  for (const k of [...params.keys()]) {
+    const chartSetting = k.startsWith(`${builderSpec.id}-`) || CHART_PARAMS.some((p) => k === `${builderSpec.id}.${p}`);
+    const ours = k.startsWith(`${builderSpec.id}.`) || k.startsWith(`${builderSpec.id}-`);
+    if (ours && (!(keepChart && chartSetting) || (q.snapshot && k === key("month")))) params.delete(k);
+  }
+  for (const [k, v] of questionParams(q)) params.append(k, v);
+  return params;
+}
+
 // The Build page's address for a question. It carries the time range the chart was showing, where that differs from
 // the question's own default, so the chart opens as the reader left it.
 export function builderHref(q: Question, period?: string, fullHistory = false, cells?: string): string {
