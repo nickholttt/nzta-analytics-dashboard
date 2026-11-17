@@ -14,6 +14,8 @@ import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count } from "../lib/readout";
 import { fillTemplate, pickedBuilderSentences } from "../lib/sentences";
+import keepWords from "../../config/my_questions.json";
+import MyQuestions from "./MyQuestions";
 import PresetPanel, { reservedLabel } from "./PresetPanel";
 
 // The chart's own settings in the address bar. A new question clears them, so its charts open on their defaults.
@@ -639,10 +641,17 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
 
       {pin ? (
         <div className={pin.kind === "same" ? "callout curated" : "callout warning"} id="pin-line">
-          <span className="callout-label">{builderSpec.keep.pinned_label}</span>
+          <span className="callout-label">{keepWords.pinned_label}</span>
           {pin.text}{" "}
-          <button type="button" className="button-quiet" onClick={() => ask({ snapshot: undefined }, true, true)}>
-            {builderSpec.keep.unpin}
+          <button
+            type="button"
+            className="button-quiet"
+            onClick={() => {
+              ask({ snapshot: undefined }, true, true);
+              focusSoon(() => document.getElementById("pin-toggle"));
+            }}
+          >
+            {keepWords.unpin}
           </button>
         </div>
       ) : null}
@@ -677,6 +686,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
           <PresetPanel key={`${p.id}:${String(questionParams(question))}:${question.values.join("|")}`} preset={p} audience="public" anchored={false} />
         ),
       )}
+
+      <MyQuestions all={all} served={served} title={presets[0]?.question ?? ""} snapshot={question.snapshot} onPin={(month) => ask({ snapshot: month }, true, true)} />
 
       {notOffered.length > 0 ? (
         <section className="not-offered" aria-labelledby="not-offered-head">

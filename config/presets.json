@@ -226,11 +226,6 @@
       "pin_newer_open": "Pinned to {pinned|month}. This chart always runs to the newest month, {latest|month}, so it shows the newer snapshot of {date|date}, and its figures may differ from those seen when it was pinned.",
       "pin_ahead": "This link is pinned to {pinned|month}, a snapshot this site does not have yet. It shows the snapshot of {date|date}."
     },
-    "keep": {
-      "$comment": "The words of the controls that keep a question: pin it, and (My questions) save it. Interface words, not sentences about the data; a sentence that carries a date or a month is a notice above, which the template lint holds to config/narrative/rules.json.",
-      "pinned_label": "Pinned",
-      "unpin": "Unpin"
-    },
     "$datasets_comment": "What a question counts. The first is the default, and an address with no build.dataset means it. Each is offered only where the build made it, and only the dimensions, values and conditions that dataset carries are offered with it. A text that differs by dataset (note, dimension_notes) is an object keyed by dataset id.",
     "cannot_cross": [
       ["make", "parent_group"],

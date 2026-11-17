@@ -206,7 +206,6 @@ export type BuilderSpec = {
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
   notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_open: string; pin_ahead: string };
-  keep: { pinned_label: string; unpin: string };
   not_offered: NotOffered[];
 };
 
