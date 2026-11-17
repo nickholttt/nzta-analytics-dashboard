@@ -65,8 +65,7 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/moves-together` (D-136; worktree `nzta-audit`) and `claude/site-followups` (D-137;
-  `nzta-firstload`): being built, not pushed yet.
+- `claude/moves-together` (D-136; worktree `nzta-audit`): being built, not pushed yet.
 - `claude/fleet-usage-private` (D-135; `nzta-notes`): the first owner table, the fleet by
   usage. **Local only, never pushed** until the user has seen its figures (D-120, D-134).
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
@@ -86,8 +85,8 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 1. First load at phone width is slow (local, throttled, 2026-11-16, D-099): Explore's first
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against 3 s. Not timed since the table grew.
-2. "Area Outside Region" (the Chatham Islands) reaches visitors as is. A link that names a
-   band's old `unknown` value, or a class by its bare code, now matches nothing and says nothing.
+2. "Area Outside Region" (the Chatham Islands) reaches visitors as is. A link naming a value
+   the data no longer holds is told so and the value dropped (#98, D-137).
 3. Mild hybrids are identified for about 80% of each dataset's hybrids at high confidence
    over 12 months (D-110, D-119). Under 70% a dataset shows them undivided and warns (#72).
 4. **Over half of the fact table's rows count one vehicle** (54.8% of rows, D-116, measured
