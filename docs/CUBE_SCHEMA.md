@@ -934,3 +934,13 @@ With the class labels (D-121), measured on a dry run of 2026-11-17 on the same p
 because rows sit in a different order (`n` 416,657 against 415,777, `model` 334,233 against 334,041, `seats_band` 190,236
 against 191,330). Mapped back to the codes the table's 755,586 rows are the same rows. The payload is 4,877,607 bytes
 (+1,868). The other 83 files are byte-identical.
+
+With `power_band` and `transmission` (D-128), measured on dry runs of 2026-11-17 on the 2026-10 pull, each against the run before
+it, the first against a run of the same code without either: the table is 755,586 rows in 2,284,749 bytes over 19 files; with
+`power_band` 776,745 rows (+21,159) in 2,416,943 bytes (+132,194, of which the new file is 100,654 and the 19 files already there
+grow by 31,540 because rows split); with `transmission` too 799,057 rows (+22,312) in 2,530,064 bytes (+113,121, the new file
+93,637) over 21 files. Together +43,471 rows and +245,315 bytes (+10.7%). The two new 1-D slices are 33,511 and 27,867 bytes. The
+whole payload is 5,218,968 bytes (was 4,912,275, +306,693 or +6.2%; +165,705 for the power, +140,988 for the gearbox), 65.2% of
+the 8,000,000 byte budget. Mapped back, with the two new columns summed out, the table's 755,586 rows are the same rows as before.
+The other 75 files, which are every other slice and pair of this dataset and every file of the other three datasets, are
+byte-identical; the 19 fact-table files that were there and the manifest differ.

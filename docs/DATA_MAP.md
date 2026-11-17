@@ -446,8 +446,8 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   cube** (power has a similar gap of its own: `POWER_RATING`). Passenger cars and vans: no month
   from May 2003 has more than 1% with no gearbox recorded (April 2003: 18 of 1,791), and 4,027 of
   1,757,869 from May 2003 on have none. Goods vehicles of 3.5 tonnes gross mass or less: no month from
-  February 2017 above 1%. Goods vehicles heavier than that: every month to October 2026 is above 1%
-  (42,429 of 81,369 first registered from May 2003 have none, over 12 tonnes 32,468 of 49,624). For all
+  February 2017 above 1%. Goods vehicles heavier than that, or with no mass recorded (ten): every month to October
+  2026 is above 1% (42,429 of 81,369 first registered from May 2003 have none, over 12 tonnes 32,468 of 49,624). For all
   NZ-new vehicles together the last month above 1% is the latest, October 2026 (172 of 14,912, 1.15%), and
   320 of the 322 months from January 2000 are above it: of the 215,250 NZ-new vehicles with none,
   118,540 are passenger cars and vans (114,513 of them before May 2003) and 96,710 are goods vehicles
@@ -563,9 +563,9 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   imports keep their value and every other used import is in `unknown`. **Where the gap is, among the
   NZ-new vehicles of the cube.** Passenger cars and vans: no month from May 2003 has more than 1% with no
   power (April 2003: 18 of 1,791), and 3,989 of 1,757,869 from May 2003 on have none. Goods vehicles of 3.5
-  tonnes gross mass or less: no month from February 2017 above 1%. Goods vehicles heavier than that: every
-  month to October 2026 is above 1% (42,412 of 81,369 first registered from May 2003 have none, over 12
-  tonnes 32,457 of 49,624); makes that record none on nearly every vehicle include Hino, Scania, Kenworth,
+  tonnes gross mass or less: no month from February 2017 above 1%. Goods vehicles heavier than that, or with no mass
+  recorded (ten): every month to October 2026 is above 1% (42,412 of 81,369 first registered from May 2003
+  have none, over 12 tonnes 32,457 of 49,624); makes that record none on nearly every vehicle include Hino, Scania, Kenworth,
   DAF and UD Trucks. So for all NZ-new vehicles together the last month above 1% is the latest, October
   2026 (172 of 14,912, 1.15%), and 320 of the 322 months from January 2000 are above it: the gap stands in
   the goods vehicles, 90,909 of the 200,079 NZ-new vehicles with none (45.4%), the rest being passenger cars
