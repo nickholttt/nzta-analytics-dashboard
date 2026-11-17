@@ -221,7 +221,7 @@
       "by2": "This link asked for a second breakdown by {asked}, which this question cannot have. It shows the question without one.",
       "value2": "This link named values for a second breakdown, but it names no second breakdown, so the values were left out.",
       "snapshot": "This link named the snapshot “{asked}”, which is not a month, so it was left out.",
-      "pin_same": "Pinned to the snapshot of {date|date}, the one this page shows.",
+      "pin_same": "Pinned to {pinned|month}, the snapshot month this page shows.",
       "pin_newer": "Pinned to {pinned|month}: the window keeps ending in that month. The figures come from the newer snapshot of {date|date}, so they may differ from those seen when it was pinned.",
       "pin_newer_open": "Pinned to {pinned|month}. This chart always runs to the newest month, {latest|month}, so it shows the newer snapshot of {date|date}, and its figures may differ from those seen when it was pinned.",
       "pin_ahead": "This link is pinned to {pinned|month}, a snapshot this site does not have yet. It shows the snapshot of {date|date}."

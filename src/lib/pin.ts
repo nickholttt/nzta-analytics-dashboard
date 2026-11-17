@@ -2,8 +2,9 @@
 // a snapshot's figures: those of a snapshot that has been replaced are not here, and a past month's can change between snapshots (vehicles
 // leave the register, months are restated). What a pin does, and what the page says it does, is therefore:
 //   - the window keeps ending in the pinned month, in the charts that end in a month the visitor can name (END_MONTH_SHAPES);
-//   - the figures are always those of the snapshot being served, and the page says so, with its date, whenever that is not the snapshot the
-//     question was pinned on (the sentences are in config/presets.json, builder.notices).
+//   - the figures are always those of the snapshot being served, and the page says so, with its date, whenever that is not the snapshot month
+//     the question was pinned to (the sentences are in config/presets.json, builder.notices). The snapshot is told by its month alone: the
+//     snapshot date is always the last day of its month (docs/CUBE_SCHEMA.md), so a rebuild of the same month cannot be told from the first.
 // A question that is not pinned has no month: it ends in the newest one, so a saved link redraws on a new month with nothing to do.
 import { builderSpec, findDimension, findMeasure } from "./config";
 import { builderPresets, isMonthKey } from "./builder";
@@ -29,8 +30,7 @@ export function holdsWindow(q: Question): boolean {
 }
 
 // What to tell a visitor about a pinned question against the snapshot served now; undefined for a question that is not pinned.
-// pinnedOn is the date of the snapshot when it was pinned here, where that is known (a link carries only the month).
-export function pinNote(q: Question, manifest: Manifest, pinnedOn?: string): PinNote | undefined {
+export function pinNote(q: Question, manifest: Manifest): PinNote | undefined {
   if (!isMonthKey(q.snapshot)) return undefined;
   const served = manifest.latest_snapshot;
   const fill = (kind: PinNote["kind"], template: string): PinNote => ({
@@ -39,7 +39,6 @@ export function pinNote(q: Question, manifest: Manifest, pinnedOn?: string): Pin
   });
   const notices = builderSpec.notices;
   if (q.snapshot > servedMonth(manifest)) return fill("ahead", notices.pin_ahead);
-  // The same snapshot: the same month, and the same date where the date it was pinned on is known.
-  if (q.snapshot === servedMonth(manifest) && (pinnedOn === undefined || pinnedOn === served)) return fill("same", notices.pin_same);
+  if (q.snapshot === servedMonth(manifest)) return fill("same", notices.pin_same);
   return fill("newer", holdsWindow(q) ? notices.pin_newer : notices.pin_newer_open);
 }

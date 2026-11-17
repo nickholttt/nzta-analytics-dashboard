@@ -65,9 +65,7 @@ export default function MyQuestions({ all, served, title, snapshot, onPin }: Pro
   const save = () => {
     const query = questionQuery(window.location.search);
     if (query === undefined) return;
-    // The date of the snapshot, kept when this page's pin is to the snapshot it serves; a link carries only the month.
-    const pinnedOn = snapshot && served && snapshot === servedMonth(served) ? served.latest_snapshot : undefined;
-    const entry: Saved = { id: newId(), name: title, query, saved: new Date().toISOString(), ...(pinnedOn ? { pinned_on: pinnedOn } : {}) };
+    const entry: Saved = { id: newId(), name: title, query, saved: new Date().toISOString() };
     const outcome: { added?: ReturnType<typeof add> } = {};
     if (!change((items) => (outcome.added = add(items, entry)).items)) return;
     const { result, entry: kept } = outcome.added ?? { result: "added" as const };
@@ -81,7 +79,7 @@ export default function MyQuestions({ all, served, title, snapshot, onPin }: Pro
 
   const pinOne = (item: Saved, pinned: boolean) => {
     if (!served) return;
-    if (change((items) => pinEntry(items, item.id, pinned ? null : { month: servedMonth(served), date: served.latest_snapshot }))) {
+    if (change((items) => pinEntry(items, item.id, pinned ? null : servedMonth(served)))) {
       setStatus(say(pinned ? words.status_unpinned : words.status_pinned, { name: item.name }));
     }
   };
@@ -123,7 +121,7 @@ export default function MyQuestions({ all, served, title, snapshot, onPin }: Pro
 
   // Each entry's question as the page settles it, to say what its pin means against the snapshot served now.
   const notes = useMemo(
-    () => new Map(loaded.items.map((item) => [item.id, served ? pinNote(settle(all, readQuestion(`?${item.query}`)), served, item.pinned_on)?.text : undefined])),
+    () => new Map(loaded.items.map((item) => [item.id, served ? pinNote(settle(all, readQuestion(`?${item.query}`)), served)?.text : undefined])),
     [loaded.items, all, served],
   );
   const available = loaded.state === "ok";

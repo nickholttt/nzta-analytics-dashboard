@@ -1,7 +1,6 @@
 // My questions: the questions a visitor saved, kept in this browser and nowhere else (D-125). No account, nothing is sent. A saved question is
 // a Build link (the address bar's form of the question, D-111), so it opens through the same validation as any link and the question has one
-// spelling. What is kept for each is that link's query, a name the visitor can edit, when it was saved and, where it is pinned, the date of the
-// snapshot it was pinned on. Storage is read defensively: a value that cannot be read is dropped and counted, never allowed to break the page.
+// spelling. What is kept for each is that link's query (a pin is in it, as build.snapshot), a name the visitor can edit and when it was saved. Storage is read defensively: a value that cannot be read is dropped and counted, never allowed to break the page.
 import { builderSpec } from "./config";
 
 export const STORAGE_KEY = "nzta.my_questions";
@@ -17,9 +16,6 @@ export type Saved = {
   query: string;
   // When it was saved, as an ISO time.
   saved: string;
-  // The date of the snapshot served when it was pinned here (YYYY-MM-DD); absent for a question not pinned, or pinned by a link that carried
-  // only the month.
-  pinned_on?: string;
 };
 
 // The two methods of the browser's storage this file uses, so a test can hold a stand-in.
@@ -40,8 +36,6 @@ export function browserStorage(): Store | null {
     return null;
   }
 }
-
-const isDate = (text: unknown): text is string => typeof text === "string" && /^\d{4}-\d{2}-\d{2}$/.test(text) && !Number.isNaN(Date.parse(text));
 
 // The question's own parameters of an address, and nothing else; undefined where there are none. The month a ranking ends in is a setting of
 // the chart that is looking at the newest month, so it is left out: a saved question is not pinned unless it says so (build.snapshot).
@@ -67,7 +61,6 @@ const clean = (raw: unknown): Saved | undefined => {
     name: r.name.trim().slice(0, MAX_NAME),
     query,
     saved: r.saved,
-    ...(isDate(r.pinned_on) ? { pinned_on: r.pinned_on } : {}),
   };
 };
 
@@ -130,15 +123,14 @@ export const rename = (items: Saved[], id: string, name: string): Saved[] => {
 
 export const remove = (items: Saved[], id: string): Saved[] => items.filter((i) => i.id !== id);
 
-// Pin or unpin a saved question: its link gains or loses the snapshot's month, and the date it was pinned on is kept with it.
-export function pinEntry(items: Saved[], id: string, snapshot: { month: string; date: string } | null): Saved[] {
+// Pin or unpin a saved question: its link gains or loses the snapshot's month.
+export function pinEntry(items: Saved[], id: string, month: string | null): Saved[] {
   return items.map((i) => {
     if (i.id !== id) return i;
     const params = new URLSearchParams(i.query);
     params.delete(`${builderSpec.id}.snapshot`);
-    if (snapshot) params.set(`${builderSpec.id}.snapshot`, snapshot.month);
-    const { pinned_on: _was, ...rest } = i;
-    return { ...rest, query: params.toString(), ...(snapshot ? { pinned_on: snapshot.date } : {}) };
+    if (month) params.set(`${builderSpec.id}.snapshot`, month);
+    return { ...i, query: params.toString() };
   });
 }
 

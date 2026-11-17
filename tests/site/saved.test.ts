@@ -26,7 +26,7 @@ const listOf = (...items: object[]) => JSON.stringify({ v: 1, items });
 test("what is stored comes back as it went in", () => {
   const written: Record<string, string> = {};
   const store = { getItem: (k: string) => written[k] ?? null, setItem: (k: string, v: string) => void (written[k] = v) };
-  const items = [entry(), entry({ id: "b2", name: "Another", query: `build.measure=share&build.by=${long}&build.snapshot=2026-10`, pinned_on: "2026-10-31" })];
+  const items = [entry(), entry({ id: "b2", name: "Another", query: `build.measure=share&build.by=${long}&build.snapshot=2026-10` })];
   assert.equal(saved.persist(store, items), true);
   assert.deepEqual(saved.load(store), { state: "ok", items, unreadable: 0 });
 });
@@ -78,10 +78,9 @@ test("a stored link keeps Build's own parameters and nothing else", () => {
   assert.equal(loaded.items[0].query, `build.measure=count&build.by=${long}`);
 });
 
-test("a name is trimmed and cut, and a pinned date that is not a date is not kept", () => {
-  const loaded = saved.load(storeOf(listOf(entry({ name: `  ${"n".repeat(300)}  `, pinned_on: "tomorrow" }))));
+test("a name is trimmed and cut", () => {
+  const loaded = saved.load(storeOf(listOf(entry({ name: `  ${"n".repeat(300)}  ` }))));
   assert.equal(loaded.items[0].name.length, saved.MAX_NAME);
-  assert.equal("pinned_on" in loaded.items[0], false);
 });
 
 test("a question saved from the address keeps its settings but not the month a ranking was looked at in", () => {
@@ -109,15 +108,13 @@ test("rename and remove change one entry; a blank name changes nothing", () => {
   assert.deepEqual(saved.remove(items, "a1").map((i) => i.id), ["b2"]);
 });
 
-test("pinning a saved question adds the snapshot to its link and the date it was pinned on, and unpinning takes both away", () => {
+test("pinning a saved question adds the snapshot to its link, and unpinning takes it away", () => {
   const items = [entry({ query: `build.measure=count&build.by=${long}&build.view=league` })];
-  const pinned = saved.pinEntry(items, "a1", { month: "2026-10", date: "2026-10-31" });
+  const pinned = saved.pinEntry(items, "a1", "2026-10");
   assert.equal(new URLSearchParams(pinned[0].query).get("build.snapshot"), "2026-10");
-  assert.equal(pinned[0].pinned_on, "2026-10-31");
   assert.equal(settle(vocabulary, readQuestion(`?${pinned[0].query}`)).snapshot, "2026-10");
   const loose = saved.pinEntry(pinned, "a1", null);
   assert.equal(loose[0].query, items[0].query);
-  assert.equal("pinned_on" in loose[0], false);
 });
 
 test("the list is exported as plain text, a name and a link each, in the order listed", () => {
@@ -136,7 +133,7 @@ test("a saved question that is not pinned redraws on the newest month; a pinned 
   const query = saved.questionQuery(`?build.measure=count&build.by=${long}&build.value=a&build.value=b&build.view=league&build.month=2026-08`) as string;
   const open = (query: string) => builderPresets(settle(vocabulary, readQuestion(`?${query}`)))[0];
   const loose = open(query);
-  const pinned = open(saved.pinEntry([entry({ query })], "a1", { month: "2026-10", date: "2026-10-31" })[0].query);
+  const pinned = open(saved.pinEntry([entry({ query })], "a1", "2026-10")[0].query);
   const endsIn = (preset: typeof loose, latest: string) => heldEnd(preset.through, latestMonthOf(preset, manifestWith(latest))) ?? latestMonthOf(preset, manifestWith(latest));
   // The same stored question, opened before and after a new month arrives.
   assert.equal(endsIn(loose, "2026-10"), "2026-10");

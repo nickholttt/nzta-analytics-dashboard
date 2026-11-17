@@ -57,11 +57,11 @@ test("a pinned window keeps its month while the data goes on, and one with no pi
   assert.equal(heldEnd("2026-12", "2026-11"), undefined, "a pin ahead of the data cannot be held: the newest is shown");
 });
 
-test("the pin line on the snapshot pinned to says so, with its date", () => {
+test("the pin line on the snapshot month pinned to says so, and claims no more than the month", () => {
   const q = read(`${ranking}&build.snapshot=2026-10`);
   const note = pinNote(q, manifestOf("2026-10-31"));
   assert.equal(note?.kind, "same");
-  assert.equal(note?.text, "Pinned to the snapshot of 31 October 2026, the one this page shows.");
+  assert.equal(note?.text, "Pinned to Oct 2026, the snapshot month this page shows.");
 });
 
 test("on a newer snapshot a ranking keeps its window and says the figures are the newer snapshot's and may differ", () => {
@@ -98,12 +98,6 @@ test("a pin ahead of the snapshot served is said, and the snapshot shown is name
   assert.equal(note?.text, "This link is pinned to Dec 2026, a snapshot this site does not have yet. It shows the snapshot of 30 November 2026.");
 });
 
-test("a snapshot rebuilt in its month is not the one pinned on, when the date it was pinned on is known", () => {
-  const q = read(`${ranking}&build.snapshot=2026-10`);
-  assert.equal(pinNote(q, manifestOf("2026-10-31"), "2026-10-31")?.kind, "same");
-  assert.equal(pinNote(q, manifestOf("2026-10-31"), "2026-10-15")?.kind, "newer");
-});
-
 test("a question that is not pinned has no pin line", () => {
   assert.equal(pinNote(read(ranking), manifestOf("2026-10-31")), undefined);
 });
@@ -121,4 +115,10 @@ test("the shapes that can hold a pinned window are the charts that are given a m
   for (const [shape, file] of Object.entries(shapes)) {
     assert.equal(/\bmonth\?: string/.test(source(file)), END_MONTH_SHAPES.has(shape), `${file}: takes an end month, but END_MONTH_SHAPES (src/lib/resolve.ts) says ${END_MONTH_SHAPES.has(shape)}`);
   }
+});
+
+test("the snapshot is told by its month alone: any date within the pinned month is the same snapshot, as a rebuild of it would be", () => {
+  const q = read(`${ranking}&build.snapshot=2026-10`);
+  for (const date of ["2026-10-01", "2026-10-31"]) assert.equal(pinNote(q, manifestOf(date))?.kind, "same", date);
+  assert.equal(pinNote(q, manifestOf("2026-11-30"))?.kind, "newer");
 });
