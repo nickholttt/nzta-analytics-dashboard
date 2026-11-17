@@ -5127,3 +5127,160 @@ New entries use this template:
   Land Cruiser name covers the wagon, the Prado and the cab-chassis).
 - Follow-up, 2026-11-17 (claude, after the review of #78): four rows changed and the figures above were re-measured. Kia Picanto `car` high to `unresolved` low (the page's "SUVs" heading also holds small cars). The Kia SUV row high to medium (the heading also lists a small car and a people mover, so it is a menu group). Honda FIT|JAZZ split: FIT stays `car` medium, JAZZ `unresolved` low (Honda New Zealand's own listing says "Small Hatch/SUV Crossover"). Skoda Superb `car` medium to `unresolved` low (absence from a list is not a placement). Notes now give measured NZ-new shares for the `high` rows and "no NZ-new vehicle in the trailing window" for the used-import rows. Counts: 110 rows, 171 entries; the comparison with the FCAI's sample is 171 entries, 98 in the same class, 9 `unresolved` entries that appear there, 64 not in the report (was 100, 7, 64). The script's `--focus` and `--group` have no defaults.
 - Status: decided by Claude (unreviewed)
+
+## D-119 2026-11-17 — Where the line between mild and full hybrid is drawn, and Subaru's hybrids classed under it
+- Agent: claude (a sub-agent, to the lead's brief)
+- Basis: D-104 (the engine must be right, nothing guessed, checked against published sources), D-108, D-110 and D-115;
+  `data/reference/mild_hybrid_models.csv`, `docs/METRICS.md` ("Mild or full: the line", "Subaru") and `docs/MODEL_AND_AGE.md` §1;
+  the saved 2026-10 pull and the committed dashboard store, read with `scripts/unmatched_hybrids.py` on the three datasets, a scratch
+  script that reads the register's rows and the store and writes nothing in the repository, and a dry run of the whole build (exit 0, one
+  warning: the Stats NZ store ends at 2026-09, as before). Public pages read on 2026-11-17, named below (nothing about this project was
+  sent to any site). The pages were read through the fetch tool, which answers a question about a page rather than returning it, so every
+  fragment quoted below and in the file is as that tool returned it; a reviewer should check them against the pages.
+- Context: the file calls each hybrid nameplate mild or full, but the repository never stated its line, and Subaru's hybrids (XV,
+  Impreza, Forester, Crosstrek: 1,462 vehicles in the window Nov 2025 to Oct 2026 on true registrations, 1,458 on the register) were
+  unresolved at low because their motor can move the car alone at low speed while the engine is the main drive. D-115 left this as a
+  definition for the owner: the "motor cannot drive the car" line made them full, the "motor is not the main source of drive" line made
+  them mild. Research on 2026-11-17 found that every authority that draws the line uses one test, whether the electric motor can propel
+  the vehicle on its own: the US Department of Energy ("Mild hybrid systems cannot power the vehicle using electricity alone."), the US
+  EPA ("mild" systems "that cannot propel the vehicle on their own"), the SMMT ("MHEVs cannot be driven on electricity alone") and the
+  Australian Government's Green Vehicle Guide ("If the electric motor can propel the vehicle, these vehicles will appear on the Green
+  Vehicle Guide as a plugless hybrid"). EU type-approval law has no mild category and no New Zealand authority was found to define the
+  line. The full quotations, with dates, are in `docs/METRICS.md`. This reverses the earlier leaning, named in the lead's brief, toward
+  calling such systems mild (D-115's second reading); `docs/CHECKPOINT.md` item 7 on this branch already says full, so the lead
+  should reconcile the two.
+- Options considered:
+  - *Leave Subaru contested.* Rejected: the reason was that sources class the system both ways, but the authorities' test does not
+    depend on the label; the maker's own statement about the motor settles it, and leaving 1,462 vehicles unresolved held coverage
+    down although the evidence that decides the class exists.
+  - *"The motor is not the main source of drive" as the test (Subaru mild).* Rejected: no authority read uses it, and it would call a
+    system mild although its maker says the motor alone moves the car.
+  - *The authorities' test: can the motor propel the vehicle on its own, however briefly or slowly.* Chosen.
+  - *Class all Subaru full at high from Subaru Europe's page.* Rejected: the rule for `high` is a maker's or distributor's page stating the
+    capability for the cars the row matches. Subaru's own texts differ by market (see below) and none read shows the e-BOXER to be one
+    system across them.
+  - *Class the Impreza hybrids by analogy to the XV.* Rejected: the XV Hybrid releases name the XV only.
+  - *Move the Honda IMA rows.* Rejected: no primary source read says whether an IMA car's motor can propel it. Under the line an IMA car is
+    mild if its motor cannot propel it alone, and full if it can; the rows stay as they were (mild, medium).
+- Decision: the line is written in `docs/METRICS.md`. In `mild_hybrid_models.csv` the one Subaru row is replaced by 16 rows, split by
+  import status and vehicle year so that no two rows of a nameplate overlap and, for the three statuses in the hybrid scope (new,
+  used import, re-registered), none leaves a gap. No other nameplate's class or confidence changed. Counts are vehicles in the window
+  Nov 2025 to Oct 2026 / all time (true registrations, whose store starts in January 2021, then the register). All the Subaru hybrid
+  vehicles in the store are passenger cars and vans; I did not count Subaru separately on the wider dataset, whose 3,531 vehicles
+  counting against its trailing figure equal true registrations'.
+
+  | Row | Class, confidence | True registrations | Register |
+  |---|---|---|---|
+  | Crosstrek, new in NZ | full, high | 34 / 218 | 34 / 216 |
+  | Crosstrek, used import, year 2023 on | full, medium | 38 / 56 | 38 / 56 |
+  | Crosstrek, used import, year 2022 or earlier | unresolved, low | 1 / 1 | 1 / 1 |
+  | Forester, new in NZ, year 2026 | full, high | 365 / 365 | 365 / 365 |
+  | Forester, new in NZ, 2020 to 2025 | full, medium | 62 / 349 | 61 / 356 |
+  | Forester, new in NZ, 2019 or earlier | unresolved, low | 0 / 0 | 0 / 0 |
+  | Forester, used import, year 2018 on | full, medium | 57 / 131 | 57 / 130 |
+  | Forester, used import, 2017 or earlier | unresolved, low | 0 / 1 | 0 / 1 |
+  | XV, new in NZ, year 2020 on | full, medium | 0 / 139 | 0 / 146 |
+  | XV, new in NZ, 2019 or earlier | unresolved, low | 0 / 0 | 0 / 1 |
+  | XV, used import, 2012 or earlier | unresolved, low | 0 / 2 | 0 / 2 |
+  | XV, used import, 2013 to 2016 (the XV Hybrid) | full, medium | 471 / 2,788 | 469 / 2,956 |
+  | XV, used import, 2017 and 2018 (changeover) | unresolved, low | 35 / 96 | 35 / 110 |
+  | XV, used import, year 2019 on (e-BOXER) | full, medium | 233 / 589 | 233 / 581 |
+  | Impreza, used import, all years | unresolved, low | 166 / 949 | 165 / 1,073 |
+  | All four, re-registered | unresolved, low | 0 / 0 | 0 / 15 |
+  | Total | | 1,462 / 5,684 | 1,458 / 6,009 |
+
+  What the row holds, by years (window / all time; true registrations, then the register): the XV Hybrid years (the XV, used import, 2013
+  to 2016) 471 / 2,788 and 469 / 2,956; the e-BOXER years, meaning the Crosstrek, the Forester and the XV from 2019, new or used, with
+  the new-generation Forester's Strong Hybrid among them, 789 / 1,847 and 788 / 1,850; unresolved (the Impreza, the changeover years,
+  strays and re-registered cars) 202 / 1,049 and 201 / 1,203.
+
+  The evidence for each, all from Subaru's own pages, read 2026-11-17:
+  1. *Subaru New Zealand's e-BOXER page* (https://subaru.co.nz/eboxer; undated, with 2026 and MY27 labels): lists the Crosstrek Premium
+     Hybrid and the Forester AWD Hybrid, Sport and Touring, and says that in certain conditions such as when gently pulling away or
+     driving at low speeds "the battery-powered electric motor alone drives the car" and "The petrol engine remains off, using no fuel
+     and achieving zero emissions." It sets the Crosstrek new in New Zealand at high. It does not name the XV or the Forester of 2020 to
+     2024, so those are medium.
+  2. *Subaru New Zealand's release of 21 July 2025 for the new Forester* (https://www.subaru.co.nz/node/1143): the Strong Hybrid
+     "combines a 2.5-litre Boxer engine with a 90kW electric motor and 1.1kWh lithium-ion battery" and EV Drive Mode "allows the vehicle
+     to operate solely on electric power at speeds up to 30km/h for short distances". It sets the Forester new in New Zealand at high
+     for vehicle year 2026, when every one on the register is 2498 cc (365 of 365). Vehicle year 2025 holds that car from June 2025 (247
+     of 249 on the register) and two 1995 cc e-BOXER Foresters (January and May), and no match column reads engine size, so 2025 stays in
+     the medium row with 2020 to 2024. That keeps 61 vehicles of the Strong Hybrid in the window at medium that a column for engine size
+     would put at high.
+  3. *Subaru Japan's support FAQ* on motor driving in e-BOXER cars (https://faq.subaru.jp/faq/show/11689; published 2024-05-09, updated
+     2025-05-01): lists the conditions in which "motor driving" and engine stop do not occur in the Forester (SK type, F type) e-BOXER.
+     It presupposes that they occur otherwise, gives no speed and names no other model. With Subaru Europe's page (the existing source:
+     "can reach up to 40km/h in electric mode", depending on the car and the battery) it supports the Japanese-market used imports at
+     medium, not high.
+  4. *Subaru Corporation's Geneva release of 5 March 2019* (https://www.subaru.co.jp/press/news-en/2019_03_05_6990/): the
+     European-specification e-BOXER is a 2.0 litre engine with a motor integrated in the Lineartronic transmission, and the release
+     speaks only of power assist. Subaru's texts therefore differ in emphasis across markets, and none read shows the e-BOXER to be one
+     system across them. This is why no used-import row is high.
+  5. *Subaru Japan's release of 11 September 2018* (https://www.subaru.co.jp/press/news/2018_09_11_6225/): the e-BOXER Advance grade
+     (2.0 litre direct-injection horizontally opposed engine plus electrification technology) is added to the XV from October 2018; it
+     says nothing of electric-only driving.
+  6. *Fuji Heavy Industries' releases for the XV Hybrid*: 29 March 2013, for the XV Crosstrek Hybrid shown in New York
+     (https://www.subaru.co.jp/en/news/archives/press/2013/13_03_29e_1_87456.html): "The hybrid system offers EV (Electric Vehicle)
+     driving at low speeds and motor assist driving at medium speeds", motor 10 kW; 24 June 2013, for the Japanese XV Hybrid
+     (https://www.subaru.co.jp/en/news/archives/press/2013/13_06_24e_89396.html): the all-wheel drive "can distribute torque to four wheels
+     even in EV (Electric Vehicle) driving at low speeds", on sale that day. Neither says in so many words that the motor alone drives the
+     car, and the Japanese one is for one grade, so the XV Hybrid years are full at medium.
+  The XV Hybrid's last year is not given by any source read. The register's engine size is 1995 cc for nearly all vehicles of both
+  systems, so it does not split 2017 and 2018. Those two years (96 vehicles on true registrations, 110 on the register) are a guard
+  and stay unresolved at low; 35 are in the window. The first used import Forester hybrids on either dataset are of vehicle year 2018,
+  which fits the Japanese e-BOXER Forester (on sale in 2018); that is from the data, not from a source read, and one Forester of 2009
+  stays unresolved. The vehicle year of a used import is the year of first registration anywhere (`MODEL_AND_AGE.md` §1), which is why
+  the XV Hybrid's Japanese launch year (2013) is a usable lower bound; the two XV hybrids of 2012 sit in an unresolved row.
+- Rows whose basis does not fit the line, found on reading the file, none changed (a class changes only with a primary source):
+  - **Honda Fit IMA (the PETROL HYBRID and PETROL ELECTRIC HYBRID rows to vehicle year 2012, mild, medium)**: the row's own note records
+    a 2010 MONOist report, read through a summary of a garbled copy, that the Fit Hybrid enters EV driving at low speeds. If that holds,
+    the Fit IMA is full under the line. Honda's own release names the system and does not say. The Insight, Civic, Jazz, Shuttle and
+    Freed IMA rows say "commonly classed as a mild hybrid" and rest on no statement about the motor.
+  - **Honda CR-Z and Spike, and Mercedes-Benz S 400 (mild, medium)**: the basis states "an assist motor that cannot drive the car on its
+    own", which is the line's test, but no source read for either row states it.
+  - **GWM Tank (full, medium)**: Driven Car Guide says the motor can drive on electric power alone (full under the line); GWM's New
+    Zealand dealer calls the non-plug-in range "mild hybrid". The row is unchanged, at medium, as D-115 left it.
+  Every other mild row names a starter-generator, an integrated starter-generator or a 12 V or 48 V system (Suzuki, Nissan S-Hybrid,
+  Mazda M Hybrid, Mercedes EQ Boost, Volvo, Audi, Ford, VW and Skoda, Peugeot, Cupra, BMW, Alfa Romeo, Maserati, Land Rover, Foton, the
+  Toyota 48 V diesel), and every other full row names the maker's hybrid system or calls it a full hybrid. I did not check any of these
+  against a maker page, and the file says so on each ("not row-verified"). No row contradicts its class on its own wording except as
+  listed; "consistent" here means only that.
+- Choices a reviewer could want reversed:
+  1. The Forester of vehicle year 2025 new in New Zealand is medium although 247 of its 249 vehicles on the register are the car the
+     release describes, because a year column cannot tell them from two earlier cars. Moving the row boundary to 2025 would put 61 more
+     vehicles in the window at high, at the price of two wrongly covered earlier cars.
+  2. The Crosstrek new in New Zealand is high for all its years (2023 to 2026) on a page that is undated and names the 2026 model.
+  3. Every used-import row is medium although the Forester FAQ and the XV Hybrid releases are Subaru's own, for the reasons in 3, 4 and 6.
+  4. The XV guard years are 2017 and 2018; 2018 could be argued e-BOXER only.
+  5. The Impreza stays unresolved (166 in the window on true registrations), although most of its hybrids are probably the XV Hybrid.
+  6. The class of the XV Hybrid rests on "EV driving at low speeds" meaning the motor drives the car, which Subaru's wording implies and
+     does not state.
+  To veto: set any one row back to `unresolved` at `low` (or delete all sixteen and restore the single row,
+  `SUBARU,XV|IMPREZA|FORESTER|CROSSTREK,unresolved`, no match columns, low); the golden contract does not move either way. To keep the
+  classes and take back the confidence, set a `high` row to `medium`.
+- Not done: no Subaru page for the Japanese XV (GT) e-BOXER or for the XV's New Zealand launch stating electric-only driving was found;
+  Subaru Japan's owner's manual for the Forester was too large to fetch; Subaru New Zealand's Forester e-BOXER model page refused the
+  fetch (403); a trade report of Subaru New Zealand's 2020 e-BOXER launch was seen only as a headline in a search result and is not
+  used. No code change; no match column for engine size (it would settle the Forester 2025 row and nothing else on these datasets).
+  `src/pages/caveats.astro` section 6 still says contested nameplates "such as Subaru e-Boxer models remain unclassified": that is now
+  untrue of most of them (the page is code, so it is for the lead).
+- Consequences (2026-10 snapshot, the saved pull and the committed store, a dry run of the whole build: exit 0):
+  - Trailing coverage at high confidence: true registrations and the wider dataset 14,327 of 18,257 (78.47%, room 2,210) to 14,327 of
+    17,858 (80.23%, room 2,609); the register 14,297 of 18,207 (78.52%, room 2,217) to 14,297 of 17,808 (80.28%, room 2,616). The 399
+    Subaru vehicles in the window that are `full` at high left the denominator on each.
+  - Trailing coverage at stated confidence: 85.31% to 91.88% on true registrations and the wider dataset (15,031 mild of 16,360), and
+    85.35% to 91.93% on the register (14,997 of 16,314). The manifest's identified mild counts are unchanged (15,031; 14,997).
+  - All time at high confidence: true registrations 46,157 of 68,279 (67.6%) to 46,157 of 67,696 (68.2%); the wider dataset 46,158 of
+    68,281 to 46,158 of 67,698 (68.2%); the register 46,115 of 73,554 (62.7%) to 46,115 of 72,973 (63.2%). The all-time denominators are
+    the earlier ones less 583 (581 on the register), the Subaru vehicles that became `full` at high; the manifest's percentages
+    (0.6818, 0.6818, 0.6319) agree. All time at stated confidence is 89.5% on the register and 89.7% on the other two (83.5% on each before).
+  - Vehicles in the window still counting against the high-confidence figure: 3,531 on true registrations and on the wider dataset (was
+    3,930) and 3,511 on the register (was 3,910): 1,253 unresolved at low, 1,498 full at medium, 704 mild at medium and 76 with no row
+    (register 1,246, 1,494, 700 and 71). Subaru's 861 (858) full at medium count against the figure until a page names the cars.
+  - No powertrain line moves. Every new row is `full` or `unresolved` with no override, so each vehicle keeps the powertrain value its
+    motive power gives it, and the build rejects a `full` row whose powertrain would be Mild hybrid (`classification_disagrees_with_powertrain`
+    is 0 on all three datasets). The golden contract is unchanged (`test_golden.py` passes without `UPDATE_GOLDEN`).
+  - The lead's notes: `docs/CHECKPOINT.md` item 7 already records Claude's decision to class Subaru's e-Boxer cars full; this record
+    supplies its basis and the part of it that is medium. STATE and CHECKPOINT are not touched here. `AGENTS.md`'s row for the dry run
+    quotes coverage figures from earlier records and is unchanged.
+- Status: decided by Claude (unreviewed)
