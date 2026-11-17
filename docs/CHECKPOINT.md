@@ -7,7 +7,7 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session.
-  - **Merged, #60 to #75** (#63 was closed unmerged): the user's answers (D-096, D-106);
+  - **Merged, #60 to #77** (#63 was closed unmerged): the user's answers (D-096, D-106);
     package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
     D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
     supplied counts as files (D-097); the audit's fixes (D-107 to D-110, with #70).
@@ -49,11 +49,11 @@ New Zealand sources.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. Done: ranked chosen values, conditions, CSV, the acceptance question on today's
    fields (#71); true registrations on the wider scope as a dataset (#73, D-113); a second
-   breakdown in Build, drawn as the `matrix` grid (#75, #76; D-114). Next: the site showing
-   `registrations_flow_wider` (never on one chart with another dataset; "new vehicles" is
-   its `import_status` condition). Then: colour, seats, where assembled, class; power and
-   transmission; owner fields last, unpublished until small cells are hidden (D-096). Left:
-   "My questions", the related-fields note, the question with a new field.
+   breakdown in Build, drawn as the `matrix` grid (#75, #76; D-114); the wider scope on the
+   site, never on a chart with another dataset (#77, D-118). Next: assembled, class and seats,
+   then colour; power and transmission; owner fields last, unpublished until small cells are
+   hidden (D-096). Left: "My questions", the related-fields note, the question with a new
+   field, hybrids and mild hybrids as one figure (a roll-up dimension, D-118).
 4. **Paused, half written, uncommitted, behind `main`:** package H's narrative spec (D-102;
    worktree `nzta-screens`: `config/narrative/` files and a lint test, no `docs/NARRATIVE.md`)
    and package I's segment scheme (D-103; worktree `nzta-segments`: one reference file).
