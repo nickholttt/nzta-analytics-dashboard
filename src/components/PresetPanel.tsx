@@ -402,7 +402,7 @@ export default function PresetPanel({
   // chart has such a part, so a reader never takes a share to be of the vehicles recorded.
   if (measure?.kind === "share" && dimension && preventsRender.length === 0 && (shape === "mix" || shape === "distribution") && rows?.some((r) => r.value === NOT_RECORDED_TOKEN && r.n > 0)) {
     const field = dimensionWords(dimension.id, internal) || dimension.id;
-    notes.push({ key: "share-of-all", text: fillNote(phrases.share_with_not_recorded, { field: lowerLabel(field), value: reservedLabel(NOT_RECORDED_TOKEN) }).text, unresolved: [] });
+    notes.push({ key: "share-of-all", text: fillNote(phrases.share_with_not_recorded, { field, value: reservedLabel(NOT_RECORDED_TOKEN) }).text, unresolved: [] });
   }
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config

@@ -72,7 +72,7 @@ test("the fact table's column of a banded field is read the same way: a conditio
 
 test("the line that says a share is of all vehicles, not-recorded ones included, fills from config with no placeholder left, and names no value", () => {
   const { fillTemplate } = sentencesModule;
-  const filled = fillTemplate(config.phrases.share_with_not_recorded, { field: "a field", value: "A value" });
+  const filled = fillTemplate(config.phrases.share_with_not_recorded, { field: "A field", value: "A value" });
   assert.deepEqual(filled.unresolved, []);
-  assert.equal(filled.text, "Each share is of all vehicles counted, including any whose a field is not recorded. Those are drawn as their own part, “A value”.");
+  assert.equal(filled.text, "A field: each share is of all vehicles counted, including any not recorded, which are drawn as their own part, “A value”.");
 });
