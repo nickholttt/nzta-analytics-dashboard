@@ -5,7 +5,7 @@
 // src/lib/matrix.ts; every sentence is a template in config.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { chartDefaults, datasetWords, findDataset, findPeriod, phrases } from "../lib/config";
+import { chartDefaults, datasetWords, findDataset, findPeriod, lowerLabel, phrases } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, monthRange, pct } from "../lib/measures";
@@ -37,7 +37,7 @@ type Props = {
   after?: () => ReactNode;
 };
 
-const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+const lower = lowerLabel;
 
 // An ordered band is shown whole in the order config gives its bands; any other field is ranked.
 const scaleOf = (d: Dimension) => (d.kind === "ordered_band" && d.bands ? bandScale(d.bands) : undefined);

@@ -120,7 +120,9 @@ suppression thresholds impossible to change without a rebuild.
 
 "Not recorded" and "no brand match" are different facts and never share a
 token. Banded dimensions use their own `unknown` band from
-`dimensions.json` instead, and the manifest counts each cause separately.
+`dimensions.json` instead, and the manifest counts each cause separately. The files are not changed for it: the site reads
+that band as `__UNDEFINED__` when it loads a slice, a pair or a column of the fact table (`src/lib/data.ts`, D-122), so on the
+page it is "Not recorded" and is treated as the reserved value is everywhere.
 
 ### Fuel consumption
 

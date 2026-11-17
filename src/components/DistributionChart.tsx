@@ -1,7 +1,7 @@
 // distribution: an ordered band dimension over the preset's period, in band order from dimensions.json.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
-import { datasetWords } from "../lib/config";
+import { datasetWords, lowerLabel } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { monthLabel, pct, periodWindow } from "../lib/measures";
@@ -108,7 +108,7 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
       </p>
       <PlotFigure
         render={render}
-        label={`Bar chart, ${spanPeriod(model.win.from, model.win.to)}: the ${model.share ? "share" : "number"} of vehicles by ${heading.toLowerCase()}, one bar for each band.`}
+        label={`Bar chart, ${spanPeriod(model.win.from, model.win.to)}: the ${model.share ? "share" : "number"} of vehicles by ${lowerLabel(heading)}, one bar for each band.`}
       />
       <FiguresTable
         label={`${heading}: figures, ${spanPeriod(model.win.from, model.win.to)}`}

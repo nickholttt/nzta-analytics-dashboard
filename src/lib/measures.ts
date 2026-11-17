@@ -1,5 +1,5 @@
 // Measures computed in the browser from n and denominator (docs/CUBE_SCHEMA.md, docs/METRICS.md).
-import { addMonths, monthRange } from "./sentences";
+import { NOT_RECORDED_TOKEN, addMonths, monthRange } from "./sentences";
 import { chartDefaults, findDerived, findMeasure, findPeriod, shareChangeUnit } from "./config";
 import type { Guards } from "./config";
 import { isInside } from "./rolling";
@@ -66,6 +66,15 @@ export function periodWindow(periodId: string | undefined, first: string, latest
   if (!period.months) throw new Error(`period "${periodId}" has no months in config/dimensions.json`);
   const from = addMonths(latest, -(period.months - 1));
   return { from: from < first ? first : from, to: latest };
+}
+
+// Whether the window a chart draws holds any vehicle with no value of the breakdown. The rows hold every month loaded and a chart
+// draws only its period, so a sentence about a not-recorded part must be judged on the window, never on all the rows.
+export function notRecordedDrawn(rows: { month: string; value: string; n: number }[], periodId: string | undefined, latest: string): boolean {
+  if (rows.length === 0) return false;
+  const first = rows.reduce((m, r) => (r.month < m ? r.month : m), rows[0].month);
+  const win = periodWindow(periodId, first, latest);
+  return rows.some((r) => r.value === NOT_RECORDED_TOKEN && r.n > 0 && r.month >= win.from && r.month <= win.to);
 }
 
 // Sum of n and of denominator over a month range, for trailing-window shares. `missing` counts the months the denominator has no
