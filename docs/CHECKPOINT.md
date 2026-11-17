@@ -89,10 +89,9 @@ to launch early, each measure recomputed and set beside published New Zealand so
    sentence; the retaken dashboard history, due in Downloads (the user, 17 November: still
    to come).
 
-Answered on 17 November (D-120): trade lists are a private check only, and none reached
-through the user's work is used at all; both readings of the chart rule stay; a change to
-the committed counts may be followed by one forced build of the current month; the line
-between mild and full hybrids stands.
+Answered on 17 November (D-120): trade lists are a private check only, none reached through
+the user's work is used at all; both readings of the chart rule stay; a change to the committed
+counts may be followed by one forced build of the current month; the hybrid line stands.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
