@@ -132,11 +132,13 @@ test("a field that describes the owner is read from a kept snapshot only where t
   assert.equal(ownerSet.has(long), false);
   assert.equal(ownerSliceReady(kept, dataset, long, ownerSet), true, "a field that is not the owner's needs nothing");
   assert.equal(ownerSliceReady(kept, dataset, owner, ownerSet), false, "a snapshot that does not say the rule was applied");
-  const says = (dimensionList: string[]) => manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: dimensionList }));
+  const says = (dimensionList: string[]) =>
+    manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: Object.fromEntries(dimensionList.map((d) => [d, { minimum: 10 }])) }));
   assert.equal(ownerSliceReady(says([owner]), dataset, owner, ownerSet), true);
   assert.equal(ownerSliceReady(says([long]), dataset, owner, ownerSet), false, "it says so of another field only");
   assert.equal(ownerSliceReady(says([]), dataset, owner, ownerSet), false);
   assert.equal(ownerSliceReady(manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: owner })), dataset, owner, ownerSet), false, "the wrong shape says nothing");
+  assert.equal(ownerSliceReady(manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: [owner] })), dataset, owner, ownerSet), false, "a list is the wrong shape too");
 
   const byOwner = `build.measure=count&build.by=${owner}&build.view=league&build.snapshot=2026-10`;
   const withheld = await readingFor(read(byOwner), served, loaders().load, ownerSet);

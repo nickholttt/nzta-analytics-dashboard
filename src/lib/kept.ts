@@ -15,10 +15,9 @@ import { resolvePreset, servedFrom } from "./resolve";
 import { fillTemplate } from "./sentences";
 import type { KeptSnapshots } from "./snapshotIndex";
 
-// The key of a snapshot's manifest that says the small-cell rule (D-096, D-127) was applied to its owner-field tables. A STAND-IN: the build
-// that adds the rule has not reached this branch, so the name and shape here are a guess (for each dataset, a list of the dimensions whose tables
-// had small cells hidden). When that build names its own, change this constant and `appliedTo` below; nothing else reads the key.
-export const SMALL_CELL_KEY = "small_cell_rule";
+// The key of a snapshot's manifest that says the small-cell rule (D-096, D-127) was applied to its owner-field tables: for each dataset, one entry
+// for each dimension whose slice had small cells hidden (docs/CUBE_SCHEMA.md, the manifest's small_cells block). Nothing else reads the key.
+export const SMALL_CELL_KEY = "small_cells";
 
 // The dimensions made from an owner field, as the vocabulary gives them (Vocabulary.owner).
 export type Owner = ReadonlySet<string>;
@@ -28,7 +27,7 @@ export type Owner = ReadonlySet<string>;
 export function ownerSliceReady(manifest: Manifest, dataset: string, dimension: string, owner: Owner): boolean {
   if (!owner.has(dimension)) return true;
   const applied = (manifest.datasets[dataset] as unknown as Record<string, unknown> | undefined)?.[SMALL_CELL_KEY];
-  return Array.isArray(applied) && applied.includes(dimension);
+  return typeof applied === "object" && applied !== null && !Array.isArray(applied) && Object.prototype.hasOwnProperty.call(applied, dimension);
 }
 
 // The month of the kept snapshot a question is pinned to, if it is pinned to one: a month before the snapshot served that the index lists.
