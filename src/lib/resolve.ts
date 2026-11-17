@@ -6,7 +6,7 @@
 // triage table that has quietly gone stale is worse than no triage table.
 import { COMPOSITE, chartDefaults, compositeRules, datasetClashes, datasetsRead, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, periods, presets } from "./config";
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
-import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt } from "./data";
+import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt, smallCellDimensions } from "./data";
 import type { Manifest, ViewSource } from "./data";
 import { datasetFirstMonth, isUnbuilt } from "./built";
 import type { Covers } from "./rolling";
@@ -219,6 +219,18 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     }
   });
 
+  // A table that hides its small counts is not drawn, whatever the question does with it: as a breakdown, a second one, a crossing or a condition
+  // (D-130). A field the manifest lists is blocked here, before anything loads; the loader refuses such a table too, in case a manifest is wrong or old.
+  const hidesCells = (dataset: string | undefined, fields: (string | null | undefined)[]) => {
+    const hidden = new Set(smallCellDimensions(manifest, dataset));
+    for (const d of new Set(fields)) {
+      const text = `dimension "${d}" has small counts hidden in ${dataset}, and this site does not draw a table like that yet`;
+      if (d && hidden.has(d) && !blocked.includes(text)) add("blocked", text);
+    }
+  };
+  const asked = Object.entries(preset.where ?? {}).filter(([, kept]) => kept.length > 0).map(([d]) => d);
+  hidesCells(cubeDataset, [breakdown, preset.dimension2, preset.cross, ...narrowing.map((n) => n.key), ...asked]);
+
   // A built question that names values or filters is summed from the fact table, which carries every configured
   // dimension at once, so any number of filters applies. Without a fact table, or one that lacks a dimension the question
   // names, nothing is drawn: a chart quietly missing a filter would answer a different question.
@@ -274,6 +286,8 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
         add("blocked", manifest.datasets[id]?.not_built ? `dataset "${id}" was not built in this build (${manifest.datasets[id].not_built})` : `dataset "${id}" is not in the cube`);
       } else if (breakdownHere && !manifest.datasets[id].live_dimensions.includes(breakdownHere)) {
         add("blocked", `dimension "${breakdownHere}" is not live in ${id}`);
+      } else {
+        hidesCells(id, [breakdownHere, id === ratio.numerator_dataset ? ratio.numerator_narrowed_to?.dimension : undefined]);
       }
     }
     // Each value crossed with another dimension's: the denominator from its fact table, the numerator from the pair slice.

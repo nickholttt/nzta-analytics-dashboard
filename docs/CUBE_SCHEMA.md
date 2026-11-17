@@ -103,7 +103,65 @@ the dimension (`test_golden.py` checks it on the golden build). The one exceptio
 series (*A source of kind `series`*): where the dimension's values add up to more than the total and the config allows it
 for that month, the values are carried as published and `n` sums to more than `denominator`. The manifest names those
 months under `exceeds_total`. **A reader of the cube must read `exceeds_total` before treating a slice's sum as the
-month's total.**
+month's total.** The other exception is a slice of a dimension that describes the owner, below: its hidden cells have no
+`n`, so the `n` that are there sum to less than the `denominator`.
+
+### Slices of owner dimensions: small cells (D-127)
+
+A dimension that reads a field the data map puts in an owner group (`owner_groups` in `config/data_map.json`: today the
+owner's region, from the register's district, and only in `registrations_surviving`) is published under the user's rule
+for owner fields (D-096, D-120). The rule, its numbers (`owner_rule` in the same file) and the dimensions it holds are
+data, not code; the manifest's `small_cells` block, below, says which slices it held and what it hid. A *cell* is one
+value of the dimension in one month.
+
+1. **First rule.** A cell counting fewer than `minimum` (10) vehicles is hidden. Its row stays, so the value is still
+   listed for the month, but `n` is null, and so are `fc_sum`, `fc_n` and `fc_eligible_n`, which bound `n`. The
+   `denominator`, the month's total, stays: every slice publishes it.
+2. **Second rule.** In a month with at least one hidden cell, the smallest visible cell is hidden too (a tie goes to the
+   value that sorts first, in byte order), and again, until at least `minimum_hidden_cells` (2) cells are hidden, they
+   together count at least `minimum_hidden_vehicles` (10), and they hold more vehicles than there are of them (else each
+   would be exactly one). A month's total less its visible cells is then a sum of two or more cells that is itself at
+   least that many. That does not hide every cell's count from someone who knows the rule (limits, below). A cell hidden
+   by the second rule is not told apart in the file from one hidden by the first.
+3. **A month in which no cell would stay visible** has no row per value. It has one row, `dim_value` =
+   `__NOT_BROKEN_DOWN__`, with `n` and `denominator` both the month's total and the fuel columns null. This is a month
+   whose cells are all under the minimum (a month with a total under the minimum, or a single small cell, are cases of
+   it), or in which the second rule has to hide the last visible cell. It is decided after both rules have run: a month with
+   every cell hidden would show which values had vehicles, and a count of hidden cells as large as the vehicles they hold
+   (ten values of one vehicle each) would give every cell away exactly. Nothing about any value of the dimension can be
+   derived for that month. A month with a single cell of `minimum` or more is shown as counted: nothing is hidden.
+
+What holds, then, in a month that has hidden cells (and the build aborts unless it does): at least two cells are hidden, at
+least one cell stays visible, the hidden cells together count at least `minimum_hidden_vehicles` and more than the number of
+them, and each hidden cell is between 1 and the smallest visible count. A null `n` means hidden, never zero (a month with no
+vehicles is absent from the slice, as everywhere); the cell may be under the minimum, or may be the one the second rule hid,
+which can hold many more than the minimum. The build reads each such slice back from the written file and aborts, publishing
+nothing, unless in every month: no visible `n` is under the minimum (a row with no `dim_value` included); and either no cell
+is hidden and the visible counts add up to the `denominator`, or at least `minimum_hidden_cells` cells are hidden, at least
+one row is visible, and the `denominator` less the visible counts is at least `minimum_hidden_vehicles` and larger than the
+number of hidden cells, or the month is one reserved row whose `n` is the `denominator`; and no hidden or reserved row
+carries a fuel figure. A pair with such a dimension is not built (below), and neither the fact table nor the committed
+snapshot aggregate holds an owner field (D-078, D-096).
+
+Limits, stated and not solved (D-127). The project's owner accepts these knowingly:
+
+- A cell that falls under the minimum in one snapshot and was over it in the neighbouring one is bounded by the
+  neighbour, since each snapshot restates its months. The release `cube-2026-10` was published before the rule and still
+  holds the slice unhidden.
+- Which cells are hidden is visible, not which of them are small: a hidden row names its value.
+- Someone who knows the rule knows the second rule hides at most one cell of `minimum` or more, the smallest visible one.
+  The month's total less its visible counts is the sum of its hidden cells. In a month with two hidden cells that
+  together hold 19 or more, one is therefore small and the other is the cell the second rule hid, which holds at least
+  the minimum and no more than the smallest visible count, so the pair of values can be narrowed. (Two hidden cells
+  holding 18 or fewer may both be small.) In principle a pair can be pinned exactly: a hidden sum of 19 beside a smallest
+  visible count of 10 can only be 9 and 10, though not which cell holds which. On the 2026-10 pull (D-127) no month
+  does: 279 months have exactly two hidden cells; of the 166 that hold 19 or more, none pins the smaller cell to one
+  value, 2 narrow it to two values, 8 to five values or fewer, and 140 learn nothing; the other 113 never narrow to
+  one pair.
+- When the extra hidden cell is a large region whose count can be guessed from its neighbouring months, the small cell is
+  known to within the error of that guess.
+- The fuel columns of a month's hidden cells, summed together, can be worked out from another slice's month total less
+  the visible region rows. That is about the group of hidden cells, not any one cell.
 
 Derive `share`, `yoy`, `rolling_12m`, mean fuel consumption
 (`fc_sum / fc_n`) and fuel-consumption coverage (`fc_n / fc_eligible_n`)
@@ -117,6 +175,7 @@ suppression thresholds impossible to change without a rebuild.
 | `__UNDEFINED__` | Not recorded: the source value is empty or listed in `sentinels.csv`. For a dataset built from a published series it also means vehicles the published breakdown does not account for: every vehicle of a month before the breakdown starts, or the difference where its values fall short of the total. |
 | `__UNMAPPED__` | Recorded, but no reference row matches it (a make absent from `brand_registry.csv`). |
 | `__OTHER__` | Recorded and mapped, but collapsed by a cardinality cap (a model beyond the cap). |
+| `__NOT_BROKEN_DOWN__` | Only in a slice of an owner dimension: the month is not broken down by this dimension, because under the small-cell rule no cell of it would stay visible (above). The row's `n` is the month's total. |
 
 "Not recorded" and "no brand match" are different facts and never share a
 token. Banded dimensions use their own `unknown` band from
@@ -177,7 +236,9 @@ never opened. Start with these and add on demand:
 `powertrain__segment_group`, `import_status__vehicle_type`
 
 Each dataset's `pairs` in `config/pipeline.json` lists the pairs a build
-emits, as `[dim_a, dim_b]`; the list above is what may be added. Emitted
+emits, as `[dim_a, dim_b]`; the list above is what may be added, except `powertrain__region`:
+a pair with a dimension that reads an owner field aborts the run, because the rule for a table
+of two fields has to protect both of its totals, and that is not built (D-127). Emitted
 today: `import_status__age_at_registration_band`, which serves `used_imports`
 and `nz_new` (`registrations_surviving` filtered by import status) by age
 when first registered here, and `powertrain__segment_group`, which applies a
@@ -320,7 +381,7 @@ The table carries nothing about a vehicle's owner. `region` is where the
 owner lives, and it is left out of `facts` (D-078; the user's rule for owner
 fields allows them in a slice or a pair only, D-096): with it, two in three of the table's rows counted a single vehicle
 (64.8% on the 2026-10 pull), each with the owner's region beside the model
-and the month. The `region` slice is not affected, and a question that only
+and the month. The `region` slice is not affected by that (it takes the small-cell rule, above), and a question that only
 breaks down by region is still answered from it. Putting `region` back would
 need the user to change that rule first; it is then a one-word change to
 `facts`, and a contract change shown to the user.
@@ -364,6 +425,11 @@ two rows that match the same vehicle (Aborts, below).
       "not_live": { "imported_from": "does not apply to this dataset" },
       "live_pairs": ["import_status__age_at_registration_band"],
       "not_live_pairs": {},
+      "small_cells": {
+        "region": { "minimum": 10, "minimum_hidden_cells": 2, "minimum_hidden_vehicles": 10, "months": 790,
+                    "cells_hidden_first_rule": 3000, "cells_hidden_second_rule": 200, "vehicles_in_hidden_cells": 9000,
+                    "months_not_broken_down": 20, "vehicles_in_months_not_broken_down": 60 }
+      },
       "facts": { "rows": 643414, "dimensions": ["powertrain", "make", "..."], "not_live": {} },
       "unmapped_rates": { "make": 0.0062, "powertrain": 0.0 },
       "unmapped_guard": {
@@ -414,6 +480,16 @@ two rows that match the same vehicle (Aborts, below).
   "warnings": []
 }
 ```
+
+`small_cells` is on each dataset built from vehicle rows (the register's, and a supplied source's that counts vehicles); a
+dataset of a source of kind `series` has none. It holds one entry for each live dimension that reads an
+owner field, and is `{}` when there is none. The entry's figures are what the written file holds, so the site and the method
+page can state them from data: `minimum`, `minimum_hidden_cells` and `minimum_hidden_vehicles` (the rule, from
+`owner_rule`); `months` (months in the slice); `cells_hidden_first_rule` and `cells_hidden_second_rule` (rows with a null `n`,
+by the rule that hid them); `vehicles_in_hidden_cells` (what those rows held, which is also each such month's total less its
+visible cells, summed); `months_not_broken_down` and `vehicles_in_months_not_broken_down` (months that are one reserved
+row, and their vehicles). The figures in the example above are placeholders for the shape. The read-back check compares the
+file's months, hidden rows and reserved rows with these figures.
 
 Every dataset entry carries `latest_month`: the month the dataset's own snapshot ends at (the register's
 snapshot month for a register dataset). A dataset built from a supplied source has the same keys plus
@@ -820,6 +896,18 @@ Pairs:
   two different dimension ids, lists a pair twice in either order, names
   a dimension the dataset cannot derive, or names a dimension whose id
   contains `__` (the separator in a pair file's name).
+
+- A pair names a dimension that reads an owner field (`small_cells` above).
+
+Owner fields (D-127):
+
+- A slice of a dimension that reads an owner field, read back from the written file, breaks the small-cell rule in any month
+  (a visible count under the minimum; too few hidden cells, or hidden cells holding too few vehicles; hidden cells and no visible
+  cell in a month; hidden cells holding no more vehicles than there are of them; a reserved row that is not alone or not the
+  month's total; a fuel figure on a hidden row; visible counts that do not add up), or its months, hidden rows
+  or reserved rows differ from what the writer meant to write.
+- `config/data_map.json` is missing, cannot be read the way the build needs, or holds a rule too weak to protect a cell
+  (`minimum_count` under 2, fewer than two hidden cells, or fewer hidden vehicles than the minimum).
 
 Fact table:
 

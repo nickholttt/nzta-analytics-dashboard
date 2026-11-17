@@ -73,16 +73,14 @@ def write_facts(con, derived: list, ds: str, directory: Path) -> tuple[int, int]
     return rows, total
 
 
-def _write_counts(con, cfg, keys: list[tuple[str, str]], ds: str, path: Path) -> None:
-    """Counts by month and the given dimension columns. The denominator is the dataset's whole month in both kinds of
-    slice, so a pair summed over either value reproduces that value's 1-D slice."""
-    path.parent.mkdir(parents=True, exist_ok=True)
+def counts_sql(cfg, keys: list[tuple[str, str]], ds: str) -> str:
+    """The query for counts by month and the given dimension columns. The denominator is the dataset's whole month in
+    both kinds of slice, so a pair summed over either value reproduces that value's 1-D slice."""
     decimals = int(cfg.pipeline["fuel_consumption"]["sum_decimals"])
     selected = ", ".join(f"{column} AS {alias}" for column, alias in keys)
     names = ", ".join(alias for _, alias in keys)
     grouped = ", ".join(f"b.{alias}" for _, alias in keys)
-    con.execute(f"""
-        COPY (
+    return f"""
             WITH base AS (
                 SELECT reg_month, {selected}, has_engine, fc_status, fc_value FROM dims WHERE {ds}
             ),
@@ -97,8 +95,12 @@ def _write_counts(con, cfg, keys: list[tuple[str, str]], ds: str, path: Path) ->
             FROM base b JOIN totals t USING (reg_month)
             GROUP BY b.reg_month, {grouped}
             ORDER BY month, {names}
-        ) TO {lit(path.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)
-    """)
+        """
+
+
+def _write_counts(con, cfg, keys: list[tuple[str, str]], ds: str, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    con.execute(f"COPY ({counts_sql(cfg, keys, ds)}) TO {lit(path.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)")
 
 
 def write_archive(con, cfg, path: Path) -> None:

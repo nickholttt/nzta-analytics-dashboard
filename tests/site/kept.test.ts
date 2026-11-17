@@ -148,8 +148,10 @@ test("a field that describes the owner is read from a kept snapshot only where t
   const byOwner = `build.measure=count&build.by=${owner}&build.view=league&build.snapshot=2026-10`;
   const withheld = await readingFor(read(byOwner), served, loaders().load, ownerSet);
   assert.equal(withheld.kind === "withheld" && withheld.why, "owner");
+  // A snapshot that says the rule was applied lists the field under small_cells, and a table that hides small counts is not drawn yet (D-130): the
+  // question is blocked against that manifest, so it is withheld as one the snapshot cannot answer. Once a hidden cell can be drawn, this is "kept".
   const allowed = await readingFor(read(byOwner), served, loaders({ manifests: { "2026-10": says([owner]) } }).load, ownerSet);
-  assert.equal(allowed.kind, "kept");
+  assert.equal(allowed.kind === "withheld" && allowed.why, "missing");
   // The same field as a condition on a question that breaks down by another.
   const asCondition = read(`${ranking}&build.where.${owner}=x&build.snapshot=2026-10`);
   assert.equal(asCondition.where[owner]?.[0], "x", "the question carries the condition");

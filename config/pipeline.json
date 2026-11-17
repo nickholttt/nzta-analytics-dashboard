@@ -275,6 +275,7 @@
     "state": "data/state/last_good.json",
     "expected_schema": "pipeline/expected_schema.json",
     "dimensions": "config/dimensions.json",
+    "data_map": "config/data_map.json",
     "events_doc": "docs/EVENTS_LAYER.md"
   }
 }

@@ -183,15 +183,16 @@ def test_live_dimension_cannot_silently_drop_out(tmp_path, workspace):
 def test_a_pair_waits_while_one_of_its_dimensions_is_not_live(tmp_path, workspace):
     rows = load_rows()
     template = next(r for r in rows if r["OBJECTID"] == 62)
-    extra = [dict(template, OBJECTID=2000 + i, TLA=f"UNKNOWN DISTRICT {i}") for i in range(5)]
+    # A body type the segment map does not know, on enough vehicles to push the segment over the unmapped limit.
+    extra = [dict(template, OBJECTID=2000 + i, BODY_TYPE=f"UNKNOWN BODY {i}") for i in range(5)]
     cfg = make_cfg(workspace)
-    cfg.pipeline["datasets"]["registrations_surviving"]["pairs"] = [["import_status", "region"]]
+    cfg.pipeline["datasets"]["registrations_surviving"]["pairs"] = [["import_status", "segment"]]
     manifest = run(tmp_path, cfg, rows + extra, publish=False)
     info = manifest["datasets"]["registrations_surviving"]
-    assert "region" in info["not_live"]
+    assert "segment" in info["not_live"]
     assert info["live_pairs"] == []
-    assert info["not_live_pairs"] == {"import_status__region": "dimensions not live: region"}
-    assert any("import_status__region is not live" in w for w in manifest["warnings"]), manifest["warnings"]
+    assert info["not_live_pairs"] == {"import_status__segment": "dimensions not live: segment"}
+    assert any("import_status__segment is not live" in w for w in manifest["warnings"]), manifest["warnings"]
     assert not (workspace["staging"] / "build" / "pairs").exists()
 
 
