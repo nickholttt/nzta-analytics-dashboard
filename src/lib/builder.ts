@@ -301,6 +301,13 @@ export function noteRemoved(before: Pick<Question, "where">, asked: Question): Q
   return removed.length ? { ...asked, widened: [...(asked.widened ?? []), ...removed] } : asked;
 }
 
+// The question the page settles to when it changes. A condition the visitor took away is remembered as removed (noteRemoved); one the page itself
+// dropped because the link named a value the data does not hold (absentValues) is not, since the visitor removed nothing: the question then starts as
+// the same link without that condition would, with the condition its breakdown calls for (D-137).
+export function settleChange(all: Vocabulary, before: Pick<Question, "where">, asked: Question, byVisitor: boolean): Question {
+  return settle(all, byVisitor ? noteRemoved(before, asked) : asked);
+}
+
 // A question from the address bar, kept only as far as the page offers it; otherwise the nearest one that is. A
 // condition on the breakdown itself becomes the values compared, where the breakdown takes values, so choosing to break
 // down by what was a condition never quietly widens the question. A condition the page cannot apply (a field the fact

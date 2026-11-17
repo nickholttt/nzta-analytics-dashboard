@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases, valueWords } from "../lib/config";
 import { REST_NAME, isChoosable } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, isMonthKey, narrowingNotes, noteRemoved, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues, withoutValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, isMonthKey, narrowingNotes, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, settleChange, viewsFor, withValues, withoutValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, fieldValues, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
@@ -313,7 +313,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   // link was told.
   // keepChart: the chart's own settings stay in the address (the window a ranking is of), as when a ranking of the values chosen
   // becomes the ranking of every value and back.
-  const ask = (next: Partial<Question>, fromVisitor = true, keepChart = false) => {
+  const ask = (next: Partial<Question>, fromVisitor = true, keepChart = false, removal = true) => {
     const asked = { ...latest.current, ...next };
     // Ranking every value is a state of the ranking view only.
     if (next.view !== undefined && next.view !== RANKING) asked.rankAll = false;
@@ -331,7 +331,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     // on the page while the visitor changes something else, and goes only when they remove it.
     const held = Object.entries(asked.where ?? {}).filter(([d, kept]) => kept.length === 0 && canApply(d));
     // A condition the question had and the visitor took away stays away, though a breakdown would start the question with it (D-132).
-    const settled = settle(all, noteRemoved(latest.current, asked));
+    const settled = settleChange(all, latest.current, asked, removal);
     for (const [d] of held) if (d !== settled.by && !(d in settled.where)) settled.where[d] = [];
     latest.current = settled;
     if (fromVisitor) setNotices([]);
@@ -392,7 +392,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     absentValues(asked, canApply, readTable).then((absent) => {
       const now = latest.current;
       if (absent.length === 0 || now.dataset !== asked.dataset) return;
-      ask(withoutValues(now, absent), false, true);
+      ask(withoutValues(now, absent), false, true, false);
       setNotices((before) => [...before, ...absentNotes(asked.dataset, absent, valueLabel)]);
     });
     // Once per page, when the reading is first known; ask and the closures read the latest question through its ref.

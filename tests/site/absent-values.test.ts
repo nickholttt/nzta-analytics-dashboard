@@ -143,6 +143,31 @@ test("the page runs the check once, against the question's own dataset, and says
   const page = readFileSync(new URL("../../src/components/QuestionBuilder.tsx", import.meta.url), "utf8");
   assert.match(page, /absentValues\(asked, canApply, readTable\)/);
   assert.match(page, /fieldValues\(from, field, /);
-  assert.match(page, /ask\(withoutValues\(now, absent\), false, true\)/);
+  assert.match(page, /ask\(withoutValues\(now, absent\), false, true, false\)/);
+  assert.match(page, /settleChange\(all, latest\.current, asked, removal\)/);
   assert.match(page, /\.\.\.absentNotes\(asked\.dataset, absent, valueLabel\)/);
+});
+
+test("a condition dropped because its value is absent does not widen the question: the condition its breakdown calls for comes back, as for the same link without it", async () => {
+  const [rule] = Object.values(builderSpec.narrowings);
+  const field = "power_band";
+  assert.ok(rule && vocabulary.narrowings?.[field]?.some((n) => n.dimension === rule.dimension), "the breakdown calls for the configured condition");
+  const link = builder.readQuestion(`?build.measure=share&build.by=${field}&build.where.${rule.dimension}=Bogus`);
+  const settled = builder.settle(vocabulary, link);
+  assert.deepEqual(settled.where, { [rule.dimension]: ["Bogus"] }, "the link's own condition stands until the table says otherwise");
+  const absent = await builder.absentValues(settled, everything, async () => new Set(["not Bogus"]));
+  assert.deepEqual(absent, [{ dimension: rule.dimension, value: "Bogus" }]);
+  const asked = { ...settled, ...builder.withoutValues(settled, absent) };
+  const after = builder.settleChange(vocabulary, settled, asked, false);
+  assert.deepEqual(after.where, { [rule.dimension]: [rule.value] });
+  assert.equal(after.widened, undefined);
+  const params = builder.questionParams(after);
+  assert.deepEqual(params.getAll(`build.where.${rule.dimension}`), [rule.value]);
+  assert.equal(params.has("build.widen"), false);
+  assert.equal(builder.narrowingNotes(vocabulary, after).length, 1, "the sentence that says the question starts narrowed");
+  // The same link without the condition settles to the same question.
+  assert.deepEqual(builder.settle(vocabulary, builder.readQuestion(`?build.measure=share&build.by=${field}`)).where, after.where);
+  // A removal by the visitor is still remembered as one.
+  const removed = builder.settleChange(vocabulary, after, { ...after, where: {} }, true);
+  assert.deepEqual(removed.widened, [rule.dimension]);
 });
