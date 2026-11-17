@@ -1,0 +1,3 @@
+nzta_nz_assembled,label,notes
+IMPORTED BUILT-UP,Imported built up,"NZTA's flag for a vehicle that came into New Zealand already assembled. Almost every vehicle on the register."
+NZ ASSEMBLED/BUILT,Assembled or built in New Zealand,"NZTA's flag for a vehicle assembled or built here, including from an imported kit. Not a place: for a vehicle assembled here from a kit, ORIGINAL_COUNTRY records the kit's country (docs/DATA_MAP.md)."

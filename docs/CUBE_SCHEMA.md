@@ -249,6 +249,27 @@ table grows from 129,103 rows and 345,774 bytes to 131,260 rows (+1.7%) and
 is not live for `registrations_cars_long_run`, which carries no register
 field (*Supplied sources*).
 
+`nz_assembled` (NZTA's flag for a vehicle assembled or built in New Zealand or imported built up,
+under the labels in `nz_assembled_map.csv`; D-116) is a column of `registrations_surviving`'s table and has a
+slice of its own. The dashboard export and the Stats NZ table carry no such field, so the dimension is not live for the
+three other datasets (`not_live`: "the source does not carry NZ_ASSEMBLED"), and none of their files changes. NZTA's
+`UNKNOWN` is a sentinel (`sentinels.csv`, under this field only), so it reads `__UNDEFINED__`, as NULL does; a raw
+value the map does not hold reads `__UNMAPPED__` and counts against the dimension's unmapped guard (below).
+
+`nzta_class` (NZTA's vehicle equipment standard class, shown as its code under the labels in `class_map.csv`; D-116)
+is the same in every respect: a column of `registrations_surviving`'s table and a slice, not live for the three
+other datasets. A blank class is the only form of not recorded, and `sentinels.csv` lists none for it, because the
+code `NA` is a class code (on the register almost every vehicle under it is a goods vehicle of 3.5 t gross mass or less); the labels are the codes themselves because no definition could be read.
+`class_map.csv` holds every code on the whole register, not only those of the types in scope.
+
+`seats_band` (the number of seats NZTA records, in the bands of `dimensions.json`; D-116) is the same again, but a band
+and not a lookup: it has no reference file and no unmapped value, so it is not in `abort_on_unmapped`. Its guard is the
+band edge: a count from 1 to 60 lands in its band, and anything else lands in the `unknown` band. A zero is a form of
+not recorded (`sentinels.csv`, under `NUMBER_OF_SEATS`), so it is NULL when banded; the manifest counts the two causes apart
+(`counts.bands.seats_band`: `source_sentinel` the zeros, `out_of_bands` the counts above 60). On the 2026-10 pull they are
+8,408 and 207, of 4,520,304 vehicles. Seats are not recorded for many vehicles first registered from early 1994 to late
+1995, so `unknown` is large in those months; the dimension's `public_note` says so. No mean or median is built.
+
 A list that is empty or not distinct dimension ids, or names a dimension the
 dataset cannot derive (or `month`, `n` or `rid`), aborts the run. A listed dimension
 that is not live this run is left out of the table, with a warning, and listed
@@ -707,6 +728,8 @@ Mapping:
   in-scope row, or in-scope rows first registered in the trailing 12
   months. Both must pass.
 - Unmapped powertrain above 2% of in-scope rows, on the same two bases.
+- Unmapped `nz_assembled` or `nzta_class` above 2% of in-scope rows, on the same two bases (every dimension in
+  `abort_on_unmapped` in `config/pipeline.json` is guarded so, D-116).
 - A dimension that was live in the last good run exceeds its unmapped
   threshold or loses a reference file.
 
@@ -782,7 +805,7 @@ is worse than one that is visibly stale.
 
 ## Warnings — the build continues, recorded in `manifest.warnings`
 
-- Unmapped make or powertrain over the trailing 12 months is above 0.5% of
+- Unmapped make, powertrain, `nz_assembled` or `nzta_class` over the trailing 12 months is above 0.5% of
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
@@ -856,3 +879,12 @@ of the table's rows (50.2%) count one vehicle, 7.1% of the vehicles. The
 2026-08 pull, the snapshot of the manifest example above: 643,414 rows in
 1,736,400 bytes. With `region` the 2026-10 table was 1,734,417 rows in
 3,885,012 bytes.
+
+With `nz_assembled`, `nzta_class` and `seats_band` (D-116), measured on a dry run of 2026-11-17 on the 2026-10 pull against
+the dry run of the same day without them: the table is 755,586 rows (was 641,618) in 2,277,006 bytes (was 1,768,848,
++28.7%) over 18 files. The three new files are 12,134, 115,913 and 191,330 bytes, and the 15 files that were there grow
+by 188,781 bytes together, because rows split. Added alone to the table, each adds rows: `nz_assembled` 1,800 (643,418),
+`nzta_class` 26,304 (667,922), `seats_band` 87,953 (729,571); the three together 113,968. The three 1-D slices are
+17,304, 35,876 and 33,269 bytes. The whole payload is 4,875,739 bytes (was 4,281,132, +594,607 or +13.9%), 60.9% of the
+8,000,000 byte budget. 54.8% of the table's rows count one vehicle (was 50.2%), holding 9.2% of the vehicles (was 7.1%).
+The other three datasets' files, and every 1-D slice and pair of this one that was there, are byte-identical.
