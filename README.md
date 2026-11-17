@@ -33,6 +33,8 @@ them until the next month is built):
 - **How many vehicles were registered in any month since January 2021**, and
   whether that is up or down on a year ago, by brand and by model.
 - **Which brands and models lead** in any single month.
+- **The same count on a wider scope**, with buses, motor caravans and special
+  purpose vehicles counted too, and passenger against commercial.
 - **How complete the picture is**: for each month, how many of the vehicles
   registered are still on the register, by kind of vehicle and new or used.
 - **How many cars were registered each month back to 1961**, new and

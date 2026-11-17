@@ -439,6 +439,29 @@ test("a count of one is said in the singular, here and in the plural, for the re
   assert.ok(cols.includes("Columns: one not shown has as many vehicles as the last column shown, and is counted in All other."), cols.join(" | "));
 });
 
+test("one value standing on a side is said in the singular, whether the page chose it by size or the visitor picked it, on either side", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  const facts = (rows: { mode: "largest" | "picked" | "all"; shown: number }, columns: { mode: "largest" | "picked" | "all"; shown: number }) => ({
+    basis: "count" as const, rowField: "thing", columnField: "kind", window: "in the window", total: 100, conditions: false, floor: 200, rest: "All other",
+    leaders: [], among: { rows: false, columns: false }, counted: (n: number) => String(n),
+    rows: { field: "thing", tiedBeyond: 0, ...rows }, columns: { field: "kind", tiedBeyond: 0, ...columns },
+    thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  });
+  const one = matrixSentences(phrases, facts({ mode: "picked", shown: 1 }, { mode: "largest", shown: 1 }));
+  assert.deepEqual(one.rows, ["Rows: the one thing value you picked."]);
+  assert.deepEqual(one.columns, ["Columns: the kind value with the most vehicles in the window."]);
+  const swapped = matrixSentences(phrases, facts({ mode: "largest", shown: 1 }, { mode: "picked", shown: 1 }));
+  assert.deepEqual(swapped.rows, ["Rows: the thing value with the most vehicles in the window."]);
+  assert.deepEqual(swapped.columns, ["Columns: the one kind value you picked."]);
+  // Two or more keep the plural, and a side that lists every value is unchanged.
+  const many = matrixSentences(phrases, facts({ mode: "picked", shown: 2 }, { mode: "largest", shown: 3 }));
+  assert.deepEqual(many.rows, ["Rows: the 2 thing values you picked."]);
+  assert.deepEqual(many.columns, ["Columns: the 3 kind values with the most vehicles in the window."]);
+  assert.deepEqual(matrixSentences(phrases, facts({ mode: "all", shown: 1 }, { mode: "all", shown: 4 })).rows, ["Rows: every thing value that has vehicles in the window."]);
+  for (const side of ["rows", "columns"]) for (const kind of ["largest_one", "picked_one"]) assert.equal(typeof (phrases as Record<string, unknown>)[`matrix_${side}_${kind}`], "string");
+});
+
 test("a sentence that cannot be filled is dropped, not shown with a gap", async () => {
   const { phrases } = await import("../../src/lib/config.ts");
   const { matrixSentences } = await import("../../src/lib/sentences.ts");
