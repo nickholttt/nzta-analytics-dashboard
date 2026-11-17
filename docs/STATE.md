@@ -24,24 +24,28 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **`registrations_flow_wider`** (#73, D-113): true registrations with buses, motor caravans
   and special purpose vehicles too. On the site (#77, D-118): Build's third choice, two charts.
 - **NZTA's vehicle type is a dimension** (#58, D-095), and on the register dataset so are the
-  assembly flag, the class code and seats in bands (#79, D-116): conditions in Build so far.
+  assembly flag, the class and seats in bands (#79, D-116): breakdowns in Build, and the
+  acceptance question passes with one swapped in (#82, D-122). A class reads as NZTA's label
+  with its code, from the table the user supplied (#85, D-121). **The powertrain rolls up to
+  five groups**, so hybrids, full or mild, can be asked for as one share (#87, D-124).
 - **The site shows true registrations and the long run on a local build** (#56, #61; D-093,
   D-098): a group in Explore and a choice of what Build counts; cars first registered each
   month from 1961, and cars still registered set against Stats NZ's count (not a survival
   rate). A build without a dataset says so in place of its charts.
 - **The site's code is on `main`**, with `/about` (a draft; two gaps left for the user, D-106),
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
-  site from the newest cube release and uploads nothing. **Nothing is deployed**: the
-  variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-16).
-- **First load is trimmed** (#64, D-099): Explore fetches its first chart, then those near the
-  screen; the public build drops what no page reaches, and the deploy checks that first.
+  site and uploads nothing. **Nothing is deployed**: `CLOUDFLARE_PAGES_PROJECT` is unset.
+- **First load is trimmed** (#64, D-099); the public build drops what no page reaches.
 - **The engine was audited against the register's rows** (2026-11-16): of 34,693 figures one
   differed, a tie in a ranking. Fixed since (#67 to #69): ties, and a month with nothing counted.
 - **Build ranks the values a visitor picks**, labelled as among those picked, and every chart
   downloads its figures as CSV (#71, D-111). The owner's acceptance question passes.
+- **"My questions"** (#86, D-125): a Build question saved in the browser, redrawn on the newest
+  month, able to be pinned: a pin holds a window, never another snapshot's figures.
 - **Build crosses two fields**, drawn as the sixth shape, `matrix`: a shaded grid with totals,
   as vehicles or a share of all, of the row or of the column (#75, D-114). Two Explore grids.
-- **SUV or car per nameplate** is a reference file nothing reads yet (#78, D-117): 169 nameplates.
+- **SUV or car per nameplate** is a reference file nothing reads yet (#78, #84; D-117, D-123):
+  179 nameplates, 47 rows on a maker's own page.
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
   read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
@@ -55,12 +59,14 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Current step
 
 **Work order 1**, engine first (the user, D-104). A, B, C and G are done on a local build, and
-E but for two pipeline items. Packages F and I are in hand: CHECKPOINT, "The queue".
+E but for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPOINT.
 
 ## In progress (all claude; nothing by gemini)
 
+- Nothing is being built. The worktrees `nzta-audit`, `nzta-notes` and `nzta-firstload` sit
+  detached at `main`; `nzta-audit` and `nzta-notes` hold local builds of the cube (gitignored).
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
-- D-103's draft scheme file sits untracked in `nzta-segments`.
+  D-103's draft scheme file sits untracked in `nzta-segments`.
 
 ## Raw files on this computer (gitignored)
 
@@ -71,16 +77,15 @@ E but for two pipeline items. Packages F and I are in hand: CHECKPOINT, "The que
 - `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's monthly series, 1961-01 to 2026-09,
   fetched read-only from Infoshare; the user's own hand export replaces it later (D-065).
 - **No local file holds `VIN11` or `POSTCODE`.**
-- **Copies:** a backup folder on the project's own disk holds both register pulls and both
-  dashboard CSV files; two more of the history file are in Downloads.
+- **Copies:** a backup folder on the project's disk holds both pulls and both dashboard files.
 
 ## Known issues
 
 1. First load at phone width is slow (local, throttled, 2026-11-16, D-099): Explore's first
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
    data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
-2. "Area Outside Region" (the Chatham Islands) reaches visitors as is; classes show as codes
-   (D-116) until the labels the user supplied on 17 November are in `class_map.csv` (D-120).
+2. "Area Outside Region" (the Chatham Islands) reaches visitors as is. A link that names a
+   band's old `unknown` value, or a class by its bare code, now matches nothing and says nothing.
 3. Mild hybrids are identified for about 80% of each dataset's hybrids at high confidence
    over 12 months (D-110's count; 74% before #74 and #80, D-115, D-119). Under 70% a dataset
    shows its hybrids undivided and the build warns (#72): about 2,600 more would do it.
@@ -114,14 +119,12 @@ E but for two pipeline items. Packages F and I are in hand: CHECKPOINT, "The que
 ## Blocked or waiting on the user
 
 Nothing stops the work (CHECKPOINT, questions). Waiting on the user: the site's name and
-address; the retaken dashboard history, due in the user's Downloads folder. The query service
-is decided after the full engine's audit (D-120). Waiting on a
+address; the retaken dashboard history; the query service, after the engine's audit (D-120). Waiting on a
 date: matching vehicles between two months' archive files needs November's file (December).
 
 ## How to run
 
-`AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about three minutes) and the site's 258 tests (under half a minute).
+`AGENTS.md` §Commands has the verified commands. `Checks` runs both suites in about six minutes.
 
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and
