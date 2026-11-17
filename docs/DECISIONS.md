@@ -6177,3 +6177,37 @@ New entries use this template:
   heritage country is now refused, as a grid of make by owner country already was; the site tests pass unchanged (399). Model with vehicle
   type (0.9637) stays a measured finding.
 - Status: decided by Claude (unreviewed)
+
+## D-138 2026-11-18 — The user's end state for the site: a self-serve analytics canvas, noted for when the UI work starts, with nothing changed now
+- Agent: user (the direction), claude (the record and the readings marked)
+- Basis: the user's message of 2026-11-18, during the eleventh session of work order 1, quoted below; CLAUDE.md ("The goal",
+  "How every page reads", the invariants and the shapes); the site as it stands on `main` (Explore's question-titled
+  presets, Build's question builder, D-058, D-100, D-111, D-114, D-125).
+- Context: the user asked whether what is being built will be "adaptable, flexible and not bound by what we think is
+  correct", and said where they want the site to end up.
+- Decision (user), in the user's words: "The goal is not to fix the user into looking at what we tell them to look at
+  which vstat currently does. When we start on the ui and how we classify data, my high-level end-state goal is that we
+  would have built a watered-down Power BI-style visual analytics page which is fully customisable with the measures from
+  the data set where the user can build their own charts by dragging and dropping and choose different ways of
+  visualising the data. We could eventually pull and build new data sets into the site, but the page we have at the
+  moment (in terms of UI) doesn't fit the bill from what I've seen (correct me if im wrong)." And: "Don't change what you
+  are currently working on, just note it down for when we eventually get to it."
+- Claude's readings (unreviewed):
+  1. **The user is right about today's page.** Build already lets a visitor choose any measure, any breakdown and a
+     second one, any number of conditions and the period, saves questions as links, and offers every shape the rule table
+     says fits. But it is a form, not a canvas: one chart per view, chosen from menus, no dragging, no page of several
+     charts the visitor arranges, no measure the visitor defines, and only the shapes the rule table allows. Explore is a
+     fixed set of questions chosen by the site.
+  2. **What would have to change is the user's to decide, when the work starts**: CLAUDE.md's "One question per view",
+     "Nothing is on the page that does not bear on the question" and "they never get a shape that does not fit", and
+     possibly the six shapes (hard rule 1). These are not changed now.
+  3. **What holds whatever the UI** (Claude's reading of the invariants, to be confirmed then): the browser never sees a
+     vehicle row; owner fields only under the small-cell rules; every sentence from a template; every figure one step from
+     its definition, source and snapshot date. A canvas that lets a visitor "choose different ways of visualising the
+     data" would still need a rule for a chart that cannot honestly show a question (a pie of 300 models; a line of a
+     one-period table).
+  4. **The engine is the part a canvas sits on**: the fact table and slices, the data map (what each field is and can be
+     used for), the chart rule table, questions as links, saved questions, kept snapshots. Work in progress continues as
+     queued. When UI or classification work begins (package H or a later stage), this record is raised first.
+- Consequences: a line in `docs/CHECKPOINT.md`; nothing built or changed.
+- Status: accepted (the user's direction); the readings above are decided by Claude (unreviewed)

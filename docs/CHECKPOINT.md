@@ -13,7 +13,7 @@ Last updated by claude on 2026-11-18
   vstat equals ours for October 2026 (D-118). Hybrids as one group, new passenger vehicles,
   October 2026: 4,978 of 11,824; Auto Trader has the same total and 4,859 "petrol hybrids";
   119 of our mild hybrids that month are one diesel nameplate; cause not claimed (D-124).
-- 2026-11-17 and 18, eleventh session (D-126, D-134). **Merged: #90 to #98.** Axles withdrawn
+- 2026-11-17 and 18, eleventh session (D-126, D-134). **Merged: #90 to #99.** Axles withdrawn
   (D-129); a pinned link reads its own snapshot's cube (D-131); the `region` slice under the
   small-cell rule (D-127); power and the gearbox bound (D-128); the site refuses a table with
   hidden counts (D-130, D-133). **October forced again** (D-134): the release `cube-2026-10`
@@ -28,13 +28,15 @@ Last updated by claude on 2026-11-18
 
 ## Open pull requests
 
-- None. Being built, not pushed: `claude/moves-together` (D-136, worktree `nzta-audit`):
-  package E's "moves together" figures written each build, which Build's related-fields
-  note needs.
-- **Not pushed, on purpose:** `claude/fleet-usage-private` (D-135; `nzta-notes`): the first
-  owner table. It is shown to the user before any push (D-120, D-134).
+- None. #99 (D-136): each build writes how strongly every pair of public fields moves together.
+- **Not pushed, on purpose:** `claude/fleet-usage-private` (D-135; `nzta-notes`), the first
+  owner table, built; `claude/fleet-usage-private-site` (D-139; `nzta-firstload`), drawing it
+  with hidden cells. Shown to the user before any push (D-120, D-134).
 
 ## The queue, in order
+
+**The user's end state (D-138):** a self-serve, drag-and-drop chart canvas, not a page that
+tells visitors what to look at. Nothing changes now; raise it first when UI work starts.
 
 1. **The first owner table: the fleet by usage, "used as, today"** (the user, D-134): every
    vehicle in the snapshot, by usage and by usage and vehicle type, never by first
@@ -93,7 +95,7 @@ Last updated by claude on 2026-11-18
 D-082, D-085 to D-095 (the eighth session). The ninth: the readings in D-096, D-104 and D-106
 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119 (D-119's line is now the
 user's). The tenth: the readings in D-120, and D-121 to D-125. The eleventh: the readings in
-D-126 and D-134, and D-127 to D-133. Not yet in a record: the three sizes in queue item 5.
+D-126, D-134 and D-138, and D-127 to D-137. Not yet in a record: the three sizes in queue item 5.
 
 ## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
 
