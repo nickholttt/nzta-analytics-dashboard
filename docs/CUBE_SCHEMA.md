@@ -466,13 +466,15 @@ the dataset's dimensions. A pair on few vehicles is not a fault: its count is wr
 ```
 
 Dimensions are listed in id order and each pair once, `a` before `b` in that order, sorted by `a` then `b`, so n dimensions
-give n(n-1)/2 pairs. The file is written with `
-` line endings and counts towards `payload_bytes`.
+give n(n-1)/2 pairs. The file is written with `\n` (LF) line endings and counts towards `payload_bytes`.
 
 The manifest entry is `associations`: `{ "file": "associations/{dataset}.json", "dimensions": 19, "pairs": 171,
-"not_findings": 13, "left_out": {} }`, where `not_findings` counts the pairs that carry a `relation`.
+"not_findings": 16, "left_out": {} }`, where `not_findings` counts the pairs that carry a `relation`.
 
-**Measured** on a dry run of 2026-11-18 on the saved pull of the 2026-10 snapshot (exit 0, 702.6 s in all):
+**Measured** on a dry run of 2026-11-18 on the saved pull of the 2026-10 snapshot (exit 0, 702.6 s in all), before the data
+map recorded that the make rolls up to heritage country and that a manufacturer group has one owner country (D-136's
+follow-up). Under the config as it now stands the marked pairs are 16, 10 and 11 (counted from config with
+`association.relations`, not rebuilt), and each file is a few hundred bytes larger than the table says:
 
 | dataset | dimensions | pairs | marked | bytes | gzipped |
 |---|---|---|---|---|---|
@@ -524,7 +526,7 @@ window).
                     "months_not_broken_down": 20, "vehicles_in_months_not_broken_down": 60 }
       },
       "facts": { "rows": 643414, "dimensions": ["powertrain", "make", "..."], "not_live": {} },
-      "associations": { "file": "associations/registrations_surviving.json", "dimensions": 19, "pairs": 171, "not_findings": 13, "left_out": {} },
+      "associations": { "file": "associations/registrations_surviving.json", "dimensions": 19, "pairs": 171, "not_findings": 16, "left_out": {} },
       "unmapped_rates": { "make": 0.0062, "powertrain": 0.0 },
       "unmapped_guard": {
         "make": {

@@ -345,8 +345,9 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   (549,041 vehicles; 3 on S).
 - **Privacy.** Public.
 - **Relations.** Rolls up to manufacturer group, to owner country and to heritage country through
-  `brand_registry.csv`, by construction (heritage country added on 2026-11-18, D-136's review). Picks out a vehicle in combination. Not measured for moving together (too many
-  values).
+  `brand_registry.csv`, by construction (heritage country added on 2026-11-18, D-136). Picks out
+  a vehicle in combination. Not measured for moving together by hand (too many values); the build
+  measures it (D-136).
 
 ### `MODEL`
 
