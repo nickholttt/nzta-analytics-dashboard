@@ -261,11 +261,14 @@
           "owner_country": "brand owner's country",
           "heritage_country": "brand's original country",
           "built_in": "country where built",
+          "nz_assembled": "whether imported or assembled here",
           "vehicle_year_band": "vehicle age",
           "engine_size_band": "engine size",
+          "seats_band": "seats",
           "age_at_registration_band": "age when registered here",
           "region": "owner's region",
           "segment_group": "vehicle class",
+          "nzta_class": "NZTA class code",
           "model": "model"
         },
         "top_n": {
@@ -292,10 +295,13 @@
           "owner_country": "brand owner's country",
           "heritage_country": "brand's original country",
           "built_in": "country where built",
+          "nz_assembled": "whether imported or assembled here",
           "engine_size_band": "engine size",
+          "seats_band": "seats",
           "age_at_registration_band": "age when registered here",
           "region": "owner's region",
           "segment_group": "vehicle class",
+          "nzta_class": "NZTA class code",
           "model": "model"
         },
         "$dimensions_comment": "A count by a breakdown draws one line per chosen value, so it needs the fact table; with no breakdown it is the total of the vehicles kept.",
