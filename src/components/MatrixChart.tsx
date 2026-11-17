@@ -104,7 +104,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
     [grid, rowHeading, floor],
   );
   const sentences = useMemo(() => {
-    const side = (s: Grid["rows"], field: string) => ({ field, mode: s.mode, shown: s.lines.filter((l) => l.kind === "value").length, tiedBeyond: s.tiedBeyond, kept: s.kept, rest: s.rest });
+    const side = (s: Grid["rows"], field: string) => ({ field, mode: s.mode, shown: s.shown, tiedBeyond: s.tiedBeyond, kept: s.kept, rest: s.rest });
     return matrixSentences(phrases, {
       basis,
       rowField,

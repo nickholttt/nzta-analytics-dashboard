@@ -562,7 +562,7 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
   place, and a sentence says so, so the answer can be found on the grid. This is done for **one** combination: where several are level, the
   first (by the order of the rows, then of the columns) is kept; any of the others whose row or column is not a line of its own is counted in a
   cell of All other, and the answer says how many ("One of these is counted in All other, not in a cell of its own"). Every level combination is
-  still named, none is dropped, and none is claimed to be where it is not.
+  still named, none is dropped, and none is claimed to be where it is not. The sentence that says a side shows "the N values with the most vehicles" counts only the values chosen by size, not the one kept out of its place, so it and the sentence about the kept value agree (the count is `Side.shown` in `src/lib/matrix.ts`).
 - **Reserved values** are as in a ranking ("Ranking and ties"), with one difference of place. *Not recorded* and *no reference match* describe
   real vehicles, so each is a line of its own (italic, after the named values, in that order) when it has vehicles in the window or is picked;
   it takes no place and is never the largest combination. *Beyond the cap* is where a cap puts values, not a fact about any vehicle: it is never

@@ -352,6 +352,27 @@ test("the answer says it is the largest of two named values, so it stays true be
   assert.match(sentence, /^The largest combination of two named values is thing A and kind x: 10 vehicles/);
 });
 
+test("a side cut by size counts the values chosen by size, not the one kept for the answer, so its two sentences agree", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  // Columns w 119, p 30, q 30, z 20, cut at two; the largest pair (a, z) is 20, so z is kept though q, which is level with p, is cut.
+  const rows = [..."abcdefg"].map((r) => src(r, "w", 17)).concat([src("a", "p", 15), src("b", "p", 15), src("a", "q", 15), src("b", "q", 15), src("a", "z", 20)]);
+  const g = grid(rows, { columnSide: side({ limit: 2 }) });
+  assert.deepEqual(g.leaders.map((l) => [l.row.key, l.column.key, l.n]), [["a", "z", 20]]);
+  assert.equal(g.columns.kept, "z");
+  assert.deepEqual(g.columns.lines.filter((l) => l.kind === "value").map((l) => l.key), ["w", "p", "z"], "three lines, z out of its place");
+  assert.equal(g.columns.shown, 2, "the two chosen by size");
+  assert.equal(g.rows.shown, 7, "a side with nothing kept counts all its lines");
+  const side2 = (s: typeof g.columns, field: string) => ({ field, mode: s.mode, shown: s.shown, tiedBeyond: s.tiedBeyond, kept: s.kept, rest: s.rest });
+  const said = matrixSentences(phrases, {
+    basis: "count", rowField: "thing", columnField: "kind", window: "in the window", total: g.total, conditions: false, floor: 200, rest: "All other",
+    leaders: g.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })), among: g.leadersAmong, counted: (n: number) => `${n} vehicles`,
+    rows: side2(g.rows, "thing"), columns: side2(g.columns, "kind"), thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  });
+  assert.match(said.columns[0], /^Columns: the 2 kind values with the most vehicles/);
+  assert.ok(said.columns.some((s) => /z is shown as well, out of its place/.test(s)));
+});
+
 test("where the visitor picked values the leader is the largest among those, and the sentence says so", async () => {
   const { phrases } = await import("../../src/lib/config.ts");
   const { matrixSentences } = await import("../../src/lib/sentences.ts");

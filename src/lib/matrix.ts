@@ -54,6 +54,9 @@ export type Line = { key: string; name: string; kind: LineKind; total: number };
 
 export type Side = {
   lines: Line[];
+  // How many named values stand here by the side's own rule: the lines of a value, not the one kept out of its rank (that one is not among
+  // "the most", so a sentence that counts the values chosen by size must not count it).
+  shown: number;
   // How the lines were chosen: the visitor's picks, the largest, every value there is, or every band of an ordered field in its order.
   mode: "picked" | "largest" | "all" | "ordered";
   // Values cut at the limit that have the same count, and so the same rank, as the last line shown (they are in "All other").
@@ -170,7 +173,8 @@ export function chooseSide(totals: ReadonlyMap<string, number>, spec: SideSpec, 
       }
     : undefined;
   if (rest) lines.push({ key: "", name: REST_NAME, kind: "rest", total: rest.total });
-  return { lines, mode, tiedBeyond, ...(kept ? { kept } : {}), ...(rest ? { rest: rest.detail } : {}) };
+  const shownByRule = lines.filter((l) => l.kind === "value").length - (kept ? 1 : 0);
+  return { lines, mode, shown: shownByRule, tiedBeyond, ...(kept ? { kept } : {}), ...(rest ? { rest: rest.detail } : {}) };
 }
 
 // The combinations of two named values with the most vehicles in the window: all that are level, ordered by the rank of their row then their column.
