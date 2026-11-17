@@ -352,13 +352,19 @@ What is established, and what is not:
   1 November 2026, https://autotrader.co.nz/news/top-sellers-for-october-what-cars-are-kiwis-buying,
   which credits NZTA registration data) gives 11,824 new passenger registrations, "petrol
   hybrids" at 4,859 and 41.1%, and plug-in hybrids, counted separately, at 1,477 (this site:
-  1,477). Ours is 119 higher; the page does not say what its 4,859 counts and the cause is
-  not established. The Motor Industry Association's
+  1,477). Ours is 119 higher. The page calls its figure "petrol hybrids" among new passenger
+  vehicles; this site's group holds petrol and diesel hybrids, full and mild. Whether the
+  page's figure includes mild or diesel hybrids is not stated, so the bases differ and the
+  119 is not explained here. One measured fact, which does not establish the cause: of the
+  506 Mild hybrid vehicles in that month's count, 119 are one diesel nameplate (Toyota Land
+  Cruiser Prado), the same number as the difference. The Motor Industry Association's
   release for October, as reported by DRIVEN Car Guide on 4 November 2026
   (https://www.drivencarguide.co.nz/news/new-zealand-new-vehicle-sales-october-rentals-drive-sales-evs-up-194-year-on-year/),
   gives passenger registrations of 11,833, battery electric 1,481 (this site: 1,481) and
   plug-in hybrids 1,445 (this site: 1,477), and no hybrid total in the text read; the MIA's
-  own page was not found. Nothing here is adjusted to match.
+  own page was not found, and the bases differ (scope; whether plug-ins sit in a hybrid
+  figure; the figures are as a trade-press article reports them). Nothing here is adjusted
+  to match.
 - **Not compared:** the Ministry of Transport's fleet statistics and the
   MIA's brand and model lists could not be read (the first refuses automated
   readers, the second is for members). AutoTalk's top ten brands and models
@@ -914,7 +920,7 @@ lines. A count can: in Build, a count of vehicles with a condition on the powert
 keeps both values is one line of their sum (new passenger cars and vans in October
 2026 on true registrations: 4,978, against 4,472 Hybrid and 506 Mild hybrid). A share
 of the two together is the dimension `powertrain_group` ("Powertrain group" in Build): a
-roll-up of the powertrain from the group column of `powertrain_map.csv`, a slice and a
+roll-up of the powertrain from the `powertrain_group_label` column of `powertrain_map.csv`, a slice and a
 fact-table column of every dataset that has the powertrain. A share by it is of every
 vehicle the question keeps, as every share is. It adds no row to a fact table, because a
 group is a function of the powertrain, and it does not depend on the mild split, so it

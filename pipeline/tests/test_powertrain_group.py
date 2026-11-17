@@ -67,9 +67,8 @@ def test_the_two_values_the_mild_split_moves_between_are_in_the_same_group():
 
 
 def test_a_label_is_plain_words_that_cannot_be_taken_for_a_single_powertrain_value():
-    """A visitor sees only the label. It may share its words with a powertrain value only of its own group (a group
-    that holds the values none of the others do is called by the word those values share); it is never the name of a
-    value of another group, nor the internal key of any other group, nor a reserved value."""
+    """A visitor sees only the label. It is never the name of a powertrain value or of a powertrain detail, of its own
+    group or another, nor the internal key of another group, nor a reserved value: a group is not one powertrain."""
     rows = map_rows()
     labels = {r[LABEL] for r in rows}
     assert len(labels) >= 4
@@ -79,8 +78,8 @@ def test_a_label_is_plain_words_that_cannot_be_taken_for_a_single_powertrain_val
         assert label and label.strip() == label and not label.startswith("_") and label not in reserved, repr(label)
     for label in labels:
         group = next(r[GROUP] for r in rows if r[LABEL] == label)
-        others = {name.lower() for r in rows if r[GROUP] != group for name in (r[POWERTRAIN], r[DETAIL], r[GROUP])}
-        assert label.lower() not in others, f"{label!r} is also the name of a value in another group"
+        taken = {name.lower() for r in rows for name in (r[POWERTRAIN], r[DETAIL])} | {r[GROUP].lower() for r in rows if r[GROUP] != group}
+        assert label.lower() not in taken, f"{label!r} is also the name of a powertrain value, a detail or another group's key"
     # The internal key is not the label of any group: the hybrid classification reads the key's own values.
     h = config.load().pipeline["hybrid_classification"]["source_hybrid"]
     assert h["column"] == GROUP

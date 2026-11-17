@@ -469,7 +469,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 - **Not recorded.** NULL, covered.
 - **Traps.** `OTHER` is a recorded catch-all (S 115). Two petrol hybrid codes are in use at once.
 - **Privacy.** Public.
-- **Relations.** Rolls up to the powertrain group (`powertrain_group`, the group column of
+- **Relations.** Rolls up to the powertrain group (`powertrain_group`, the `powertrain_group_label` column of
   `powertrain_map.csv`, D-124): each powertrain value is in one group, so Build does not cross the
   powertrain with its group. Moves together with: vehicle type 0.72, combined fuel consumption (banded) 0.49,
   transmission 0.34 (measured).
