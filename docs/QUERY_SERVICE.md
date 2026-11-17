@@ -199,7 +199,9 @@ The register changes once a month, so an answer is computed once per question an
   disk (`--store`), while the snapshot was the newest; otherwise the request is refused with 404.
   So a figure pinned after its month has been replaced cannot be served by the prototype. A hosted
   service that must keep every pinned link working needs either to keep each month's table or to
-  carry the stored answers forward; that is a choice for the build, recorded in the proposal.
+  carry the stored answers forward; that is a choice for the build, recorded in the proposal. The
+  site does not rely on this for a pinned link: the deploy keeps each earlier snapshot's cube and the
+  browser reads it (D-131), so the prototype does not serve kept snapshots and is never sent a question for one.
 - **In memory** the prototype keeps at most 10,000 answers, the least recently used dropped
   first, so a stream of made-up questions cannot grow it for ever. On disk it is not capped.
 - **The browser and any cache in between** may keep an answer too. An answer to an older snapshot
