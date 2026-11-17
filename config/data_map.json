@@ -430,7 +430,7 @@
       "cardinality": "many",
       "definition": "Engine or motor power in kilowatts, recorded for NZ-new vehicles.",
       "uses": { "break_down": true, "filter": true, "measure": ["count", "average", "median"] },
-      "guard": { "status": "proposed", "valid_min_inclusive": 5, "valid_max_inclusive": 900, "requires_engine": false },
+      "guard": { "status": "bound", "valid_min_inclusive": 5, "valid_max_inclusive": 900, "requires_engine": false },
       "recorded_for": ["nz_new"],
       "nothing_means": "not_recorded",
       "not_recorded": ["0"],
@@ -438,7 +438,7 @@
       "privacy": "public",
       "privacy_reason": "Describes the vehicle.",
       "after_review": null,
-      "bound": null,
+      "bound": "power",
       "relations": { "rolls_up_to": [], "derived_from": [], "follows_vehicle": "combined" }
     },
     {

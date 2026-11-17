@@ -276,6 +276,17 @@ not recorded (`sentinels.csv`, under `NUMBER_OF_SEATS`), so it is NULL when band
 8,408 and 207, of 4,520,304 vehicles. Seats are not recorded for many vehicles first registered from early 1994 to late
 1995, so `unknown` is large in those months; the dimension's `public_note` says so. No mean or median is built.
 
+`power_band` (the power NZTA records in kilowatts, in the bands of `dimensions.json`; D-128) is a band again, and a column of
+`registrations_surviving`'s table with a slice of its own; the other three datasets carry no power, so it is not live for them
+(`not_live`: "the source does not carry POWER_RATING") and none of their files changes. Its guard is the band edge, 5 to 900: a
+value inside it lands in its band and anything else lands in `unknown`. A zero is the form of not recorded
+(`sentinels.csv`, under `POWER_RATING`), so it is NULL when banded; the manifest counts the causes apart
+(`counts.bands.power_band`: `source_sentinel` the zeros, `out_of_bands` the values below 5 or above 900, `source_missing` the
+blanks). On the 2026-10 pull they are 1,988,072, 192 and 0, of 4,520,304 vehicles. NZTA records power for vehicles sold new
+here only, and the pipeline does not look at the import status: the 141 used imports with a power keep it, and the other
+1,787,993 are in `unknown`. The dimension's `public_note` says so, and from which month power is well
+recorded. No mean or median is built.
+
 `powertrain_group` (the powertrain in five groups, under the names in the `powertrain_group_label` column of
 `powertrain_map.csv`; D-124) is a column of the table of every dataset whose `facts` list the powertrain (the three that
 have a fact table), and has a slice of each. It is read from the same final motive power as the powertrain, and the file

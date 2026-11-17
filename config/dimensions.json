@@ -490,6 +490,28 @@
       ]
     },
     {
+      "id": "power_band",
+      "label": "Power",
+      "public_note": "Engine or motor power in kilowatts, in bands. NZTA records power only for vehicles sold new in New Zealand: almost every used import has none and shows as unknown. For passenger cars and vans sold new it is recorded from May 2003; for goods vehicles of 3.5 tonnes or less from February 2017; some heavier new goods vehicles have none in every year. A power of zero is not recorded, and a value outside 5 to 900 kW is not taken as a power: both are counted as unknown.",
+      "source": "nzta:power_rating",
+      "derive": { "kind": "band", "field": "power" },
+      "kind": "ordered_band",
+      "cardinality": "low",
+      "help": "The power NZTA records for the vehicle, in kilowatts and in bands from under 75 kW to 500 kW and over. Recorded for vehicles sold new here only.",
+      "basis": "POWER_RATING, inside the guard of 5 to 900 kW",
+      "$comment": "min and max are inclusive kW; the top band stops at the guard (900), so a value above it, which includes the placeholder 999, falls to unknown, as does one below 5. A zero is the form of not recorded (sentinels.csv), so it is NULL by the time it is banded and falls to unknown too; the manifest counts the causes apart (bands.power_band.source_sentinel, out_of_bands). The field is recorded for NZ-new vehicles only (docs/DATA_MAP.md): the pipeline does not look at the import status, so the few used imports that have a value keep it. No mean or median is built.",
+      "bands": [
+        { "label": "Under 75 kW", "min": 5, "max": 74 },
+        { "label": "75-99 kW", "min": 75, "max": 99 },
+        { "label": "100-149 kW", "min": 100, "max": 149 },
+        { "label": "150-199 kW", "min": 150, "max": 199 },
+        { "label": "200-299 kW", "min": 200, "max": 299 },
+        { "label": "300-499 kW", "min": 300, "max": 499 },
+        { "label": "500 kW and over", "min": 500, "max": 900 },
+        { "label": "unknown", "unknown": true }
+      ]
+    },
+    {
       "id": "model",
       "label": "Model",
       "source": "nzta:make + nzta:model + reference:model_registry",
