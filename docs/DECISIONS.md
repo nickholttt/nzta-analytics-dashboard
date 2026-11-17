@@ -5717,3 +5717,56 @@ New entries use this template:
   longer wait for the first owner table; a new item for the pinned link). Numbers given out for this
   session's parallel work: D-127 the small-cell rule, D-128 power and transmission, D-129 the axles finding.
 - Status: accepted (the user's instructions); the readings above are decided by Claude (unreviewed)
+
+## D-129 2026-11-17 — What `NUMBER_OF_AXLES` records: a count of axles on heavy vehicles, zero or two on light ones whatever the vehicle, so the field is withdrawn from every use for now
+- Agent: claude (the lead, on a read-only profile by a sub-agent whose figures the lead re-ran)
+- Basis: the user's instruction of 2026-11-17 (D-126 item 3: check what the field means against the data before
+  it is offered anywhere, given the class TA trailers); the saved 2026-10 pull, all 5,926,990 vehicles of every
+  vehicle type, read on 2026-11-17 by scripts outside the repository (the field, the class, the vehicle type,
+  the gross vehicle mass, the first registration year; no owner field, `VIN11` or `POSTCODE` was loaded);
+  `docs/DATA_MAP.md` as it stood (the field as a filter for three or more axles, a proposed guard of 2 to 6);
+  D-121 (NZTA's class table: class TA is a single-axled trailer).
+- Context: the data map offered the field as a filter. The class labels of D-121 showed that it disagrees
+  with the definition of class TA for 99.7% of the class, which was stated and not explained.
+- Measured (whole pull; each figure in `docs/DATA_MAP.md` under the field):
+  - The field is never NULL. Zero on 1,156,224 vehicles, one on 9,759, two on 4,663,486, three on 49,551,
+    four on 39,257, five on 8,646, six to nine on 67.
+  - Where it varies it behaves as a count of axles: in class NC the median gross vehicle mass is 15,000 kg
+    at two axles, 24,500 at three, 31,600 at four and 35,000 at five; class TD trailers spread from one to
+    five axles; buses have a median mass of 3,250 kg at two axles and 21,350 at three. Zero is on 2 vehicles
+    of class NC and none of class TD.
+  - On light vehicles it is zero or two: passenger cars and vans zero 687,152, two 3,015,304, one 1,153,
+    three or more 376; motorcycles zero 178,720, two 13,246.
+  - Class TA: one axle 1,760, two 541,493, three 22. Before 1996, 292 of 334 record one; from 1996, 1,468 of
+    542,941. Of the two-axle TA trailers 517,911 have no gross vehicle mass; of the one-axle ones, 158.
+  - Not a count of wheels: cars read two, and most motorcycles read zero.
+  - No public source saying how the field is filled was found on 2026-11-17 (the open data service's layer
+    gives the field no description; NZTA's field descriptions give one sentence; NZTA's website was not
+    read, since it blocks automated readers).
+- Decision:
+  1. **The meaning recorded in the data map is what was measured**: a count on heavy vehicles; on light
+     vehicles and light trailers a zero (nothing recorded) or a two that cannot be told from a value filled
+     in without counting. That NZTA's system fills in a two is not claimed: it was not measured and no
+     source says so.
+  2. **The field has no use for now.** `config/data_map.json` sets `filter` to false and `measure` to none,
+     and `recorded_for` to heavy vehicles. Build offers only what the map defines, so the field cannot be
+     asked for. It was not bound, so no published file changes.
+  3. **If it is offered later, it is within heavy vehicle classes only**, worded as axles as recorded, with
+     the heavy vehicle topic (package I) and a record of its own.
+  4. **The proposed guard of 2 to 6 is withdrawn**: it would drop one-axle heavy trailers (304 of class TD).
+     The note in the map's binding table says what to do instead if the field is bound.
+- Options considered:
+  - *Keep the filter "three or more axles" for every vehicle.* Three or more is almost only heavy vehicles,
+    so the filter would mostly work; but its complement ("two axles") and any share over all vehicles would
+    chart how the field was filled. Rejected for now: a filter whose other side misleads is not offered.
+  - *Offer it now for heavy classes only.* Honest on the counts above, but neither published scope has a
+    heavy vehicle topic, a condition that narrows to heavy classes would have to be built, and nothing asks
+    for it yet. Left for package I.
+  - *Withdraw every use until then* (chosen): the smallest change, and undone by two values in one file.
+- Not established: why class TA changes at 1996; why zeros are common in the newest months of a year; whether
+  a two on a car is counted or filled in (cars have two axles either way).
+- Choices a reviewer could want reversed: withdrawing the filter rather than keeping it for heavy classes;
+  `recorded_for` set to heavy vehicles although the field is not zero on most light vehicles.
+- Consequences: the data map no longer offers the field anywhere. Nothing in a published file, the pipeline
+  or the site changes. Package I decides whether heavy vehicles get it.
+- Status: decided by Claude (unreviewed)
