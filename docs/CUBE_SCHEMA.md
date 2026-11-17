@@ -256,6 +256,12 @@ three other datasets (`not_live`: "the source does not carry NZ_ASSEMBLED"), and
 `UNKNOWN` is a sentinel (`sentinels.csv`, under this field only), so it reads `__UNDEFINED__`, as NULL does; a raw
 value the map does not hold reads `__UNMAPPED__` and counts against the dimension's unmapped guard (below).
 
+`nzta_class` (NZTA's vehicle equipment standard class, shown as its code under the labels in `class_map.csv`; D-116)
+is the same in every respect: a column of `registrations_surviving`'s table and a slice, not live for the three
+other datasets. A blank class is the only form of not recorded, and `sentinels.csv` lists none for it, because the
+code `NA` is a class of light goods vehicle; the labels are the codes themselves because no definition could be read.
+`class_map.csv` holds every code on the whole register, not only those of the types in scope.
+
 A list that is empty or not distinct dimension ids, or names a dimension the
 dataset cannot derive (or `month`, `n` or `rid`), aborts the run. A listed dimension
 that is not live this run is left out of the table, with a warning, and listed
@@ -714,7 +720,7 @@ Mapping:
   in-scope row, or in-scope rows first registered in the trailing 12
   months. Both must pass.
 - Unmapped powertrain above 2% of in-scope rows, on the same two bases.
-- Unmapped `nz_assembled` above 2% of in-scope rows, on the same two bases (every dimension in
+- Unmapped `nz_assembled` or `nzta_class` above 2% of in-scope rows, on the same two bases (every dimension in
   `abort_on_unmapped` in `config/pipeline.json` is guarded so, D-116).
 - A dimension that was live in the last good run exceeds its unmapped
   threshold or loses a reference file.
@@ -791,7 +797,7 @@ is worse than one that is visibly stale.
 
 ## Warnings — the build continues, recorded in `manifest.warnings`
 
-- Unmapped make, powertrain or `nz_assembled` over the trailing 12 months is above 0.5% of
+- Unmapped make, powertrain, `nz_assembled` or `nzta_class` over the trailing 12 months is above 0.5% of
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.

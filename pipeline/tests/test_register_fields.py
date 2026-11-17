@@ -25,7 +25,7 @@ from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
 
 SURVIVING = "registrations_surviving"
 # The dimensions of this module that are a lookup on one register field.
-LOOKUPS = ["nz_assembled"]
+LOOKUPS = ["nz_assembled", "nzta_class"]
 
 
 def spec_of(cfg, dim_id: str) -> dict:
@@ -229,3 +229,35 @@ def test_a_code_added_to_the_reference_file_maps_with_no_other_change(tmp_path, 
     assert manifest["datasets"][SURVIVING]["unmapped_rates"][dim_id] == 0.0
     counts = slice_counts(workspace["public"], dim_id)
     assert counts["A new label"] == 1 and UNMAPPED not in counts
+
+
+# --- the class code -----------------------------------------------------------------------------------------------------
+
+CLASS_DIM = "nzta_class"
+# One of NZTA's class codes reads like "not applicable" and is a real class of light goods vehicle. It is the one code
+# written out here: the test exists to hold it (docs/DATA_MAP.md, CLASS).
+LOOKS_LIKE_MISSING = "NA"
+
+
+def test_na_is_a_class_and_is_never_a_form_of_not_recorded():
+    cfg = make_cfg({})
+    s = cfg.pipeline["sentinels"]
+    rows = reference.read(cfg.reference(s["file"]))
+    column = source_column(cfg, CLASS_DIM)
+    assert not [r for r in rows if r[s["field"]] == column], "sentinels.csv lists a form of not recorded for the class"
+    assert not [r for r in rows if r[s["field"]] == s["any_field"] and r[s["value"]] == LOOKS_LIKE_MISSING]
+    assert LOOKS_LIKE_MISSING in reference_labels(cfg, CLASS_DIM), "the code is not in the class file, so it would read as unmapped"
+
+
+def test_vehicles_of_the_na_class_are_counted_under_their_label_and_only_a_blank_reads_not_recorded(tmp_path, workspace):
+    cfg, rows, manifest = build_fixture(tmp_path, workspace)
+    entry = manifest["datasets"][SURVIVING]
+    column = source_column(cfg, CLASS_DIM)
+    here = counted(cfg, rows, entry["latest_month"])
+    na_vehicles = sum(1 for r in here if r.get(column) == LOOKS_LIKE_MISSING)
+    blank = sum(1 for r in here if r.get(column) in (None, ""))
+    assert na_vehicles > 0 and blank > 0, "the fixture holds no vehicle of that class, or none with a blank class"
+    counts = slice_counts(workspace["public"], CLASS_DIM)
+    assert counts[reference_labels(cfg, CLASS_DIM)[LOOKS_LIKE_MISSING]] == na_vehicles
+    assert counts[UNDEFINED] == blank
+    assert counts[UNMAPPED] == 0

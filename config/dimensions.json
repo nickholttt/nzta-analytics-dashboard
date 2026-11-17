@@ -445,6 +445,17 @@
       "$comment": "UNKNOWN is a sentinel (sentinels.csv), so it reads as not recorded; a new raw value has no row in nz_assembled_map.csv and trips the unmapped guard (pipeline.json guardrails.abort_on_unmapped). A series source carries no register field, so the dimension is not live for registrations_cars_long_run, and the dashboard export has none, so it is not live for the two flow datasets (derive.applicable), with no applies_to."
     },
     {
+      "id": "nzta_class",
+      "label": "NZTA class code",
+      "public_note": "NZTA's vehicle equipment standard class, shown as its code. Recording is patchy before 2002 and differs between new and used vehicles, so the mix of classes before then, and the vehicles with no class recorded, show what was recorded, not what was registered. NA is a class of light goods vehicle, not a missing value. A class sits under one type of vehicle, so setting the two side by side shows the same split twice.",
+      "source": "nzta:class + reference:class_map",
+      "derive": { "kind": "lookup", "field": "nzta_class", "reference": "class_map.csv", "key": "nzta_class", "value": "label" },
+      "kind": "category",
+      "cardinality": "low",
+      "help": "NZTA's vehicle equipment standard class, as its code. What each code means has not been read from NZTA's or the Land Transport Rules' definitions, so the codes are shown as they are.",
+      "$comment": "A blank class is the only form of not recorded: it reads __UNDEFINED__ and sentinels.csv lists none for this field, because NA is a real class (a light goods vehicle) and must never be treated as one. class_map.csv holds every code on the whole register, so a vehicle type brought into scope later does not trip the unmapped guard, and a new code does (pipeline.json guardrails.abort_on_unmapped). Not live for the datasets whose source carries no class (derive.applicable), with no applies_to."
+    },
+    {
       "id": "model",
       "label": "Model",
       "source": "nzta:make + nzta:model + reference:model_registry",

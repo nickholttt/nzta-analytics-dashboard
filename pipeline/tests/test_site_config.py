@@ -184,6 +184,7 @@ _NAME_COLUMNS = {
     "tla_region.csv": ["region"],
     "statsnz_series.csv": ["label"],
     "nz_assembled_map.csv": ["label"],
+    "class_map.csv": ["label"],
 }
 
 

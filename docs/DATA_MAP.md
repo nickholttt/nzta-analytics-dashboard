@@ -65,7 +65,7 @@ and a median). Values are S then W. Privacy is the class the user approved (D-09
 | `VEHICLE_YEAR` | number | 128; 136 | B (banded) F, count | public | `vehicle_year` |
 | `VEHICLE_TYPE` | category, few | 2; 14 | B F, count | public | `vehicle_type` |
 | `BODY_TYPE` | category, many | 13; 27 | B F, count | public | `body_type` |
-| `CLASS` | category, few | 7; 21 | B F, count | public | no |
+| `CLASS` | category, few | 7; 21 | B F, count (from March 2002) | public | `nzta_class` |
 | `MAKE` | category, many | 371; 1,030 | B F, count | public | `make` |
 | `MODEL` | category, many | 28,000; 175,398 | B (within make) F, count | public | `model` |
 | `BASIC_COLOUR` | category, many | 14; 14 | B F, count | public | no |
@@ -105,7 +105,7 @@ The dashboard's 13 columns are in "The dashboard's fields" below: each is as its
 except where that section says otherwise. Ten are public; `Owner Type`, `Territorial
 authority` and `Vehicle usage` fall under the owner rule.
 
-Counts. Register: 18 bound and 22 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
+Counts. Register: 19 bound and 21 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
 2 place, 1 free text. By class: 31 public, 5 under the owner rule, 2 never published,
 2 never pulled. Dashboard: 10 category, 1 time, 1 number, 1 place; 10 public, 3 under the owner rule.
 
@@ -257,21 +257,42 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   N goods vehicles, T trailers and L motorcycle-type vehicles. MA holds most cars; MC is the passenger
   class for off-road vehicles (402,266 of its 414,719 S vehicles are station wagons); MB holds light
   vans; NA, NB and NC are goods classes holding, in turn, utes and light vans, then trucks, then
-  heavier trucks.
-- **Kind and values.** Category. 7 values on S, 21 on W. S: MA 3,018,623; NA 701,639; MC 414,719;
-  NB 72,851; NC 68,051; MB 8,848; LE 1,702.
-- **Uses.** Break down from 2000, filter. Count only.
-- **Coverage.** S 94.8% (NEW 92.4%, USED 98.5%): before 1990 8.1%, 1990s 30.2%, 2000s 98.2%, and
-  100% from 2010. W 93.5%.
-- **Not recorded.** NULL (W 385,434; S 234,043), covered.
+  heavier trucks. **No definition of the codes could be read (D-116).** The Land Transport Rules'
+  table of vehicle classes is on legislation.govt.nz, which answered an automated reader with HTTP 403
+  on 2026-11-17, and NZTA's own site blocks automated readers, which is not worked around. So the
+  dimension's labels are the codes themselves (`class_map.csv`), and the meanings above stay inferred.
+- **Kind and values.** Category. 7 values on S, 21 on W (`class_map.csv` holds all 21, so a wider
+  scope does not trip the unmapped guard). S: MA 3,018,623; NA 701,639; MC 414,719; NB 72,851; NC
+  68,051; MB 8,848; LE 1,702.
+- **Uses.** Break down from March 2002, filter. Count only. **Bound** as the dimension `nzta_class`
+  ("NZTA class code"), a slice and a fact-table column of `registrations_surviving` (D-116).
+- **Coverage.** S 94.8% (NEW 92.4%, USED 98.5%), and it depends on the year and on new or used.
+  Not recorded, re-measured 2026-11-17 on the cube's 4,520,304 vehicles: NZ-new, 194,840 of 219,015
+  first registered before 2000 (89%), 11,673 of 45,479 in 2000 and 2001 (26%), 588 of 409,840 in 2002
+  to 2009, 25 of 2,057,836 from 2010; used imports, 26,849 of 60,661 before 2000 (44%), none of
+  22,471 in 2000 and 2001, 6 of 213,328 in 2002 to 2009, 62 of 1,491,674 from 2010. By month, all
+  vehicles: January 2000 54.3% not recorded (1,293 of 2,381), December 2000 10.8% (275 of 2,550),
+  December 2001 2.2% (77 of 3,540), March 2002 0.64% (25 of 3,934). The last month above 1% is
+  February 2002; from March 2002 on, 591 of 4,166,149 are not recorded. For NZ-new vehicles alone the
+  last month above 1% is July 2002. **A chart of class over time is honest from March 2002**; before
+  then the mix moves with what was recorded, not with what was registered (the earlier "from 2000"
+  and "100% from 2010" were both wrong).
+- **Not recorded.** NULL (W 385,434; S 234,043), covered. No other form occurs: the codes are 2 or 3
+  letters and digits.
 - **Traps.** **`NA` is a class, not "not applicable"**: 701,639 S goods vehicles. A rule that treats
-  `NA` as missing would remove nearly every light commercial. It must never become a sentinel. MC is
-  not an SUV marker on its own (`segment_map.csv`'s note). A chart over time starts in 2000.
+  `NA` as missing would remove nearly every light commercial. It must never become a sentinel, and
+  a test holds that it does not (D-116). MC is not an SUV marker on its own (`segment_map.csv`'s
+  note).
 - **Privacy.** Public.
-- **Relations.** Rolls up to vehicle type on S (1 vehicle of 4,286,433 with a class disagrees); not
-  on W (6 of 21 classes have two parents, 99,365 vehicles off). Moves together with: vehicle type
-  1.00, body type 0.71 and gross vehicle mass (banded) 0.57 (all by definition, inferred - confirm);
-  road transport code 0.44 on 57,020 vehicles.
+- **Relations.** Rolls up to vehicle type on S (MA, MB, MC and LE under passenger cars and vans; NA,
+  NB and NC under goods vans, trucks and utes; 1 vehicle of 4,286,433 with a class disagrees: an MA
+  registered as a goods vehicle); not on W (6 of 21 classes have two parents, 99,365 vehicles
+  off), so a question that crosses class with vehicle type should be refused on S. Near-collinear
+  with gross vehicle mass for goods vehicles: on the cube's goods vehicles NA is at or under 3.5 t
+  for 701,555 of 701,637 (9 above, 73 with no mass), NB between 3.5 and 12 t for 72,772 of 72,774, and
+  NC over 12 t for all 67,963. Moves together with: vehicle type 1.00, body type 0.71 and gross vehicle
+  mass (banded) 0.57 (all by definition, inferred - confirm); road transport code 0.44 on 57,020
+  vehicles.
 
 ### `MAKE`
 
@@ -1190,7 +1211,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | `BASIC_COLOUR` | None new (NULL is covered). A raw dimension. Its label says "colour as recorded", since the moment is not known |
 | `NUMBER_OF_SEATS` | Add `0` to `sentinels.csv`. Bands 1-2, 3-4, 5, 6-7, 8+ and `unknown`; values above 60 fall to `unknown`. A mean only inside 1 to 60 |
 | `NZ_ASSEMBLED` | **Bound (D-116).** `UNKNOWN` added to `sentinels.csv`. Charts over time start in December 1995 |
-| `CLASS` | NULL is covered. **`NA` must never become a sentinel.** A label for each code needs a small reference file from NZTA's class definitions (inferred meanings until then). Charts start in 2000 |
+| `CLASS` | **Bound (D-116).** NULL is covered. **`NA` must never become a sentinel**; a test holds it. `class_map.csv` gives each code a label; no definition could be read, so the label is the code and the meaning stays inferred. Charts start in March 2002 |
 
 **2. NZ-new only.** Each `applies_to` the NZ-new dataset, or is narrowed to it, and says so.
 
