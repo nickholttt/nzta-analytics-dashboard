@@ -7,67 +7,68 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session. **Merged, #60 to #80** (#63 was closed unmerged). The
-  user's answers are D-096 and D-106. Figures set beside published ones: within 0.06% of the
-  MIA's for October 2026 on the wider scope, older months about 1% lower, cause not
-  established (D-105, D-113); equal to vstat's for October 2026 (D-118).
+  user's answers are D-096 and D-106. Nothing is in flight: no agent is running and no
+  branch but #81's is open.
+- **Figures set beside published ones.** New vehicles on the wider scope: within 0.06% of the
+  MIA's for October 2026, older months about 1% lower, cause not established (D-105, D-113).
+  vstat (the Motor Trade Association's) equals ours for October 2026 (D-118). The 98 SUV-file
+  entries that could be set beside the FCAI's published sample all agree (D-117).
+- **What official sources settled on 17 November** (kept here until a piece uses each):
+  - Mild or full: every authority read asks whether the motor can move the car alone (in
+    METRICS, D-119). ACEA counts mild hybrids as hybrids, the UK's SMMT under petrol and
+    diesel, the MIA in one "Hybrids" bucket; the FCAI's rule was not found.
+  - No New Zealand government dataset classes models as SUVs (Rightcar and EECA's label site
+    have no download; Clean Car Standard model data comes by request, with no body type).
+  - Vehicle class MC is four-wheel drive plus four of five measured clearances and angles (the
+    Rule's table as a certifier's 2010 sheet reproduces it): no SUV flag. Class labels wait.
+  - Stats NZ's series leaves out re-registered vehicles and differs from NZTA's by timing; no
+    publisher states how it revises past months.
 
 ## The user's direction of 16 November (D-104)
 
-The user's words: "keep working on the engine, it needs to be flawless, the public can wait";
-"dont skim out on making it right"; and to consult what is published online about the New
-Zealand market where things do not look right or a measure has not been probed.
+"keep working on the engine, it needs to be flawless, the public can wait"; consult what is
+published about the New Zealand market. Claude's reading, unreviewed: engine first, no proposal
+to launch early, each measure recomputed and set beside published New Zealand sources.
 
-Claude's reading, unreviewed (D-104): the work order's order stands, engine first, with no
-proposal to launch early; each measure is recomputed independently and set beside published
-New Zealand sources.
+## Open pull requests
 
-## Open pull requests (none)
+- **#81**, these notes (docs only). Waiting on the user or the next session to merge.
 
-## Work in hand, in the order to pick it up
+## The queue, in order
 
-1. **What the engine's audit found** (D-104, D-107): of 34,693 figures recomputed from the
-   register's rows and the dashboard export, 34,618 agree, 74 are withheld on both sides and
-   1 differed (a tie in a ranking). No count was wrong. All of it is fixed:
-   - On the site (#67, #69; D-107, D-109): equal counts share a rank; a month with nothing
-     counted is zero in every windowed figure; a thin ranking greys and says so; the
-     coverage note; `/caveats`; a lint against naming a value in a template; the load gate.
-   - In the pipeline (#68, #70, #72; D-108, D-110, D-112): eight hybrid nameplates from
-     published sources; a dataset under 70% shows its hybrids undivided, and a flip warns on
-     the build's summary page and `/status`; a rule for the tie at the model cap.
-   - Three more nameplates at high confidence (#74, D-115) and the mild-or-full line written
-     down, with Subaru's hybrids classed under it (#80, D-119): 74% to 80%. Left: the rows those
-     records kept; Tank (moving it changes the golden contract); a reader refusing a bad row.
-2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
-3. **Package F**, each field checked against the data and published sources before Build
-   offers it. Done: ranking of chosen values, conditions, CSV (#71); the wider scope as a
-   dataset and on the site (#73, #77; D-113, D-118); the `matrix` grid (#75, #76; D-114);
-   three register fields as dimensions (#79, D-116). Next: offer them as breakdowns (class
-   never crossed with vehicle type), class labels from the Rule's table, colour in a narrower
-   table; power and transmission; owner fields last (D-096). Left: "My questions", the
-   related-fields note, the question with a new field, hybrids and mild hybrids as one figure
-   (D-118).
-4. **Package I, first slice** (#78, D-117): SUV or car for 169 nameplates, 90% of recent
-   passenger vehicles; 77 of 110 rows only medium; nothing reads the file; no disagreement in
-   98 comparisons with the FCAI's published sample (a private check). Next: primary sources
-   for the medium rows; three sizes from cited dimensions against the FCAI's footprint bands;
-   people movers; a rule per dataset; then the wiring with its coverage guard.
-5. **Paused, half written, uncommitted, behind `main`:** package H's narrative spec (D-102;
-   worktree `nzta-screens`). D-103's draft scheme file is untracked in `nzta-segments`.
+1. **Build offers the three new fields as breakdowns** (#79, D-116; the hand-kept lists in
+   `config/presets.json`; class never crossed with vehicle type; "not recorded" shown as the
+   gap it is), then **the acceptance question with one of them swapped in**, at 390 and 1280
+   px, as a link, with a CSV: package F's done-when.
+2. **Hybrids and mild hybrids as one figure**: a roll-up dimension from `powertrain_map.csv`'s
+   group column, so a share of all hybrids can be asked and set beside the MIA's and vstat's
+   (D-118). A pipeline piece with a golden contract change.
+3. **The SUV file's next slice** (D-117): primary sources for the 77 medium rows (many makers'
+   pages need a browser that runs scripts; never get around a refusal); people movers and
+   sports cars; three sizes each for cars and SUVs from cited length and width against the
+   FCAI's footprint bands, grouped as the Australian Automobile Association groups them; a rule
+   per dataset (the register hides two models under other names); then the wiring and its guard.
+4. **Colour**, in a narrower table of counts of its own (a contract change; costs in D-116).
+5. **Small engine follow-ups**: Tank to unresolved (a golden contract change); a reader that
+   refuses a malformed reference row; the X-Trail row's basis; the dataset guard on a filtered
+   dataset (D-118); the fixture harness's fields; a seats average.
+6. **The rest of package F**: power and transmission; owner fields, private until small cells
+   are hidden (D-096); "My questions"; the related-fields note.
+7. **Paused, uncommitted, behind `main`:** package H's narrative spec (D-102; worktree
+   `nzta-screens`). D-103's draft scheme file is untracked in `nzta-segments`.
 
 ## Left in the packages
 
 - **A.** Follow-ups (D-088, D-089): a digest of the rows the archive job pulls; dependencies
-  pinned by hash and a draft-then-publish release step (after December's build); admin
-  bypass on `production` (the user's); `/build/` skips a heading (H); a second scope for
-  events; a lookup refusing a blank value at build.
+  pinned by hash and a draft-then-publish release step (after December's build); admin bypass
+  on `production` (the user's); a second scope for events; a lookup refusing a blank value.
 - **B.** Each month, as soon as the dashboard has it: the user's export, `python -m pipeline
-  supply`, a `--dry-run` build, a pull request with the store's two files (D-097). A store
-  rebuilt whole cannot yet excuse a month it restates by more than 2% (`supply` needs an
-  option). **C.** The user's own Stats NZ export replaces the fetched copy.
+  supply`, a `--dry-run` build, a pull request with the store's two files (D-097). **C.** The
+  user's own Stats NZ export replaces the fetched copy.
 - **D.** First load (#64, D-099): Explore's first chart 4.6 s, a Build answer 6.6 s on a phone,
-  against 3 s (question 2). Left: the linked chart's own time; a far chart fetched on load.
+  against 3 s; the fact table is 28.7% larger since #79 and is not timed again (question 2).
 - **E.** The pipeline writing the "moves together" figures each build; `sentinels.csv`
-  gaining the map's forms as each field is bound; the rule table checking `uses.break_down`.
+  gaining the map's forms as fields are bound; the rule table checking `uses.break_down`.
 - **The final report** (the order §6), with `docs/brief/MASTER_BRIEF.md` §4 and §12 updated.
   Keep `README.md`'s "What it can answer today" and "Not there yet" lists true as work lands.
 
@@ -75,45 +76,44 @@ New Zealand sources.
 
 1. **The site's name and web address** (`config/site.json`, search `TO DECIDE`): parked by
    the user. The About page stays a marked draft until both are filled.
-2. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`), now that the trim is
-   measured (D-099): a Build answer still takes 6.6 to 10.3 s on a phone, nearly all of it
-   the data download. A paid function (about US$5 a month), or lighter files at no cost.
-   Recommend deciding after the engine's audit. With no answer nothing is spent.
-3. **The first owner-field table** (package F; D-096): see it before a build publishes it?
-   Recommend yes. And should the `region` slice then take the minimum of 10? Recommend yes.
-   With no answer: built locally only, shown in the final report; the slice stays as it is.
-4. **Two readings of CLAUDE.md's chart rule** (D-100): a list is ranked by the field's own
-   recorded judgement, not a count of its values; a count by a region draws lines, not a
-   map. Recommend keeping both. With no answer both stay.
-5. **A month supplied after the register's build is not published until the next month's
-   build.** May a change to the committed counts rebuild the current month? It is a forced
-   run, asked for each time today. Recommend yes, for that case only. With no answer: no.
-6. **CLAUDE.md still says `matrix`'s renderer "is planned" and that Plot draws all six
-   shapes**; the grid is an HTML table (D-114). May Claude correct the two sentences? Recommend
-   yes. With no answer they stay, and the table can become a Plot figure if you prefer.
-7. **A hybrid is full when its motor can move the car alone, mild when it cannot** (#80, D-119;
-   Claude's decision, unreviewed, on the US Department of Energy's, the EPA's, the SMMT's and
-   Australia's Green Vehicle Guide's wording). Subaru's hybrids are classed under it. Veto to undo.
-8. **May a trade list (the FCAI's published sample, or one you can reach through work) be a
-   source for a model's segment?** Today it is a private check only; recommend keeping that.
+2. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`): a Build answer takes 6.6 to
+   10.3 s on a phone, nearly all of it data, and the table has grown since. A paid function
+   (about US$5 a month), or lighter files at no cost. With no answer nothing is spent.
+3. **The first owner-field table** (D-096): see it before a build publishes it, and give the
+   `region` slice the minimum of 10 then? Recommend yes to both. With no answer: local only.
+4. **Two readings of CLAUDE.md's chart rule** (D-100): recommend keeping both; with no answer
+   both stay.
+5. **May a change to the committed counts rebuild the current month?** It is a forced run.
+   Recommend yes, for that case only. With no answer: no.
+6. **CLAUDE.md says `matrix`'s renderer "is planned" and Plot draws all six shapes** (it is an
+   HTML table, D-114), and its layout lacks new files. May Claude correct it? Recommend yes.
+7. **May a trade list (the FCAI's published sample, or one you can reach through work) be
+   cited for a model's segment?** Today it is a private check only; recommend keeping that.
+8. **The vehicle class table from the Land Transport Rule** (its site refuses an automated
+   reader): paste it and the class codes get their labels. With no answer they stay codes.
 9. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
-   sentence, read again before going live; the retaken dashboard history, due in Downloads.
+   sentence; the retaken dashboard history, due in Downloads.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
 D-082, D-085 to D-095 (the eighth session). This session: the readings in D-096, D-104 and
-D-106 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-118.
+D-106 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119. D-119 is the
+line between mild and full hybrids. Not yet in a record: the three sizes in queue item 3.
+
+## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
+
+One fresh reviewer per pull request. The builder's brief carries a checklist of what reviewers
+kept finding; the reviewer gets the evidence and three to five things to test; a mechanical
+fix is checked by the lead against the reviewer's stated remedy. Three sub-agents at once.
 
 ## Prompt for the next session
 
-/start. Continue `docs/brief/WORK_ORDER.md` from where CHECKPOINT says ("Work in hand", in its
-order). Its §2 still stands: you may merge this work order's pull requests into `main` in this
-session when checks are green and an independent reviewer agrees, and nothing in its §3 is
-touched. Do not stop for questions; park what needs me and keep going. D-104 stands: the
-engine first and right; check figures against published sources.
+/start. Continue `docs/brief/WORK_ORDER.md` from CHECKPOINT's queue, in its order. Its §2
+still stands: you may merge this work order's pull requests into `main` in this session when
+checks are green and an independent reviewer agrees, and nothing in its §3 is touched. Do not
+stop for questions; park what needs me and keep going. D-104 stands: the engine first and
+right; check figures against published sources. Run reviews as CHECKPOINT says.
 
-Check first: `git worktree list`, and `git status` in each worktree (two hold uncommitted
-work); the open pull requests; the `Monthly build` runs since 15 November (no forced run is
-left); that `CLOUDFLARE_PAGES_PROJECT` is still unset. Run three or four sub-agents at once,
-no more: the account's usage limit stopped six on 16 November. No path from the user's
-computer in a doc, a commit or a pull request.
+Check first: `git worktree list` and `git status` in each (`nzta-screens` and `nzta-segments`
+hold uncommitted files: read before touching); open pull requests; the `Monthly build` runs
+since 16 November; `CLOUDFLARE_PAGES_PROJECT` still unset. No local path in a doc or commit.

@@ -54,7 +54,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Current step
 
 **Work order 1**, engine first (the user, D-104). A, B, C and G are done on a local build, and
-E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
+E but for two pipeline items. Packages F and I are in hand: CHECKPOINT, "The queue".
 
 ## In progress (all claude; nothing by gemini)
 
@@ -78,7 +78,7 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 1. First load at phone width is slow (local, throttled, 2026-11-16, D-099): Explore's first
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
    data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
-2. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
+2. "Area Outside Region" (the Chatham Islands) reaches visitors as is; classes show as codes (D-116).
 3. Mild hybrids are identified for about 80% of each dataset's hybrids at high confidence
    over 12 months (D-110's count; 74% before #74 and #80, D-115, D-119). Under 70% a dataset
    shows its hybrids undivided and the build warns (#72): about 2,600 more would do it.
@@ -98,15 +98,15 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
   built (#75, D-114) as an HTML table, not a Plot figure. CLAUDE.md's shapes are the user's
   to change (the order's §3; CHECKPOINT, questions).
 - `docs/brief/MASTER_BRIEF.md` still calls `matrix` proposed, says Plot draws "all five
-  shapes", and keeps the cap of five waiting pull requests. The work order wins (its §5); the
-  brief is updated with the final report (its §6).
-- CLAUDE.md's repo layout still marks `docs/DATA_MAP.md` as planned and does not list
-  `config/data_map.json`, `data/supplied/`, `tests/site/` or `data/reference/statsnz_series.csv`.
+  shapes", keeps the cap of five waiting pull requests, and says D-061 stops chosen values
+  being ranked (Build ranks them since #71, D-111). The work order wins (its §5); the brief is
+  updated with the final report (its §6).
+- CLAUDE.md's repo layout still marks `docs/DATA_MAP.md` and `model_segment.csv` as planned
+  and does not list `config/data_map.json`, `data/supplied/`, `tests/site/`, or the reference
+  files `statsnz_series.csv`, `nz_assembled_map.csv` and `class_map.csv`.
 - An event marker can appear on a chart whose filter excludes the vehicles the event is about
   (`docs/EVENTS_LAYER.md`, D-089). No chart shows a wrong marker today.
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
-- `docs/brief/MASTER_BRIEF.md` still says D-061 stops chosen values being ranked; Build ranks
-  them as a labelled view since #71 (D-111). The brief is updated with the final report.
 - NZTA's page says an inactive vehicle is one "registered and registration cancelled in the
   same month". The counts say `INACTIVE` behaves as since removed (`docs/METRICS.md`, D-087).
 - `docs/DATA_MAP.md` lists ten places where it disagrees with other files (an engine band
