@@ -57,12 +57,17 @@ export function pinNote(q: Question, manifest: Manifest): PinNote | undefined {
   const holds = holdsWindow(q);
   // A chart that ends in a month the visitor can name falls back to the newest where the pinned month is not one it has a window for: after
   // the dataset's newest month, or before its first month plus the window's length. It then cannot be said to keep ending in the pinned month.
+  // Where the manifest does not give the dataset's first month (it does for a supplied dataset only), whether the chart has a window for the
+  // pinned month is not known here, so the line does not say the window is kept: the chart says which months it shows.
+  let firstKnown = false;
   if (holds && first) {
     const months = findPeriod(first.period)?.months;
     const span = months !== undefined && months <= TRAILING_MONTHS ? months : TRAILING_MONTHS;
     const start = datasetFirstMonth(manifest.datasets[servedFrom(q.dataset, manifest) ?? ""], undefined);
-    if (q.snapshot > latest || (start !== "9999-12" && q.snapshot < addMonths(start, span - 1))) return fill("uncovered", notices.pin_uncovered);
+    firstKnown = start !== "9999-12";
+    if (q.snapshot > latest || (firstKnown && q.snapshot < addMonths(start, span - 1))) return fill("uncovered", notices.pin_uncovered);
   }
   if (q.snapshot === servedMonth(manifest)) return fill("same", notices.pin_same);
-  return fill("newer", holds ? notices.pin_newer : notices.pin_newer_open);
+  if (!holds) return fill("newer", notices.pin_newer_open);
+  return fill("newer", firstKnown ? notices.pin_newer : notices.pin_newer_plain);
 }

@@ -64,14 +64,22 @@ test("the pin line on the snapshot month pinned to says so, and claims no more t
   assert.equal(note?.text, "Pinned to Oct 2026, the snapshot month this page shows.");
 });
 
-test("on a newer snapshot a ranking keeps its window and says the figures are the newer snapshot's and may differ", () => {
+test("on a newer snapshot a ranking says the figures are the newer snapshot's and may differ, and that its window is kept only where the dataset's first month is known", () => {
+  // The default dataset: the manifest does not give its first month, so the line cannot know the chart has a window for the pinned month.
   const q = read(`${ranking}&build.snapshot=2026-10`);
   assert.equal(holdsWindow(q), true);
   const note = pinNote(q, manifestOf("2026-11-30"));
   assert.equal(note?.kind, "newer");
+  assert.equal(note?.text, "Pinned to Oct 2026. The figures come from the newer snapshot of 30 November 2026, so they may differ from those seen when it was pinned.");
+  // A month long before any vehicle on the register: the chart falls back to the newest month, and the line must not say the window is kept.
+  const early = pinNote(read(`${ranking}&build.snapshot=1880-03`), manifestOf("2026-11-30"));
+  assert.doesNotMatch(early?.text ?? "", /keeps ending/);
+  // A supplied dataset gives its first month, so a pinned month it has a window for is said to be kept.
+  const supplied = pinNote(rankingOn(behind, "&build.snapshot=2026-08"), behindManifest("2026-11-30", "2026-11"));
+  assert.equal(supplied?.kind, "newer");
   assert.equal(
-    note?.text,
-    "Pinned to Oct 2026: the window keeps ending in that month. The figures come from the newer snapshot of 30 November 2026, so they may differ from those seen when it was pinned.",
+    supplied?.text,
+    "Pinned to Aug 2026: the window keeps ending in that month. The figures come from the newer snapshot of 30 November 2026, so they may differ from those seen when it was pinned.",
   );
 });
 
