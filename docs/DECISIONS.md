@@ -5678,3 +5678,42 @@ New entries use this template:
   build that each powertrain value sits under one group on all three datasets, that the hybrid group equals the two hybrid values in
   every month, that no fact table gained a row and that nothing but the manifest and six new files differs from the build before.
 - Status: decided by Claude (unreviewed)
+
+## D-126 2026-11-17 — The user's three changes opening the eleventh session: the region slice takes the small-cell rule now, a pinned link is to load its snapshot's cube release, and the axles field is checked before it is offered
+- Agent: user (the instructions), claude (the record, and the readings marked)
+- Basis: the user's message opening the eleventh session of work order 1, 2026-11-17, quoted below; D-096 and
+  D-120 (the owner rule and when the `region` slice takes it); D-125 (what a pin holds); `docs/DATA_MAP.md`
+  (`NUMBER_OF_AXLES`, and the `CLASS` section's count of class TA trailers by axles).
+- Decision (user), in the user's words:
+  1. "Undo decision 2. The region slice is already in a public cube release, so it takes the small-cell rule
+     (the minimum of 10 and the second rule that stops a total giving a hidden cell away) in the same change
+     that builds that rule, so December's build carries it."
+  2. "Queue: a pinned link loads the cube release for its snapshot, so a quoted figure still shows after later
+     refreshes."
+  3. "Check what NUMBER_OF_AXLES means against the data before it is offered anywhere, given the class TA
+     trailers."
+- What follows, and claude's readings (unreviewed):
+  1. "Decision 2" is the second line of the list of choices in the tenth session's closing report, which is
+     not in the repository. The only choice of that session about when the `region` slice takes the minimum
+     is D-120's reading 4, second sentence ("when that table is published ... not before"), so that reading
+     is the one undone, and with it D-096's reading 4 ("the `region` slice stays exactly as it is"). The
+     slice takes both rules in the change that builds them (D-127), which is to be on `main` before NZTA's
+     December refresh. The rest of D-120's reading 4 stands: the first table of any other owner field is
+     shown to the user before a build may publish it.
+  2. The release `cube-2026-10` already holds the slice with no cell hidden. It is left as it is: replacing a
+     release cannot be undone and a further forced run of October is not allowed (the work order's §3,
+     D-082), so whether it is replaced is a question for the user (`docs/CHECKPOINT.md`).
+  3. The pinned link is a queue item, placed after the small-cell work and before colour (claude's choice of
+     place; the user gave none). When it is built it supersedes D-125's "a pin holds a window, never a past
+     snapshot's figures". Two things it must settle are noted now so they are not lost: where a browser can
+     read a past snapshot's cube from (not established: whether a page can read a release's files straight
+     from GitHub was not tested), and that a link pinned to October 2026 would read a release whose `region`
+     slice has no cell hidden (reading 2).
+  4. `NUMBER_OF_AXLES` is not bound, and is not offered as a filter, a breakdown or a measure anywhere, until
+     what it records has been measured on the saved pull and written into the data map with its own record
+     (D-129). The data map's present entry (a filter for three or more axles, a guard of 2 to 6) is a
+     proposal that waits on that.
+- Consequences: the queue in `docs/CHECKPOINT.md` changes (the small-cell rule and the `region` slice no
+  longer wait for the first owner table; a new item for the pinned link). Numbers given out for this
+  session's parallel work: D-127 the small-cell rule, D-128 power and transmission, D-129 the axles finding.
+- Status: accepted (the user's instructions); the readings above are decided by Claude (unreviewed)

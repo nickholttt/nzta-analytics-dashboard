@@ -10,10 +10,10 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
   - **The last build is the forced run 43637172195** (14 November 2026; snapshot 2026-10;
-    5,926,990 rows; no warning): the one forced run the work order allowed. The release
-    `cube-2026-10` holds its cube, with the fact table. `Deploy` uploaded nothing.
-  - **The build is tried every day** at 06:17 UTC (D-064, D-070). The newest run seen on
-    17 November is the 16th's ("Source unchanged").
+    5,926,990 rows; no warning), the one forced run allowed. The release `cube-2026-10`
+    holds its cube, with the fact table and the `region` slice with no cell hidden.
+  - **The build is tried every day** at 06:17 UTC (D-064, D-070). The newest run listed on
+    17 November is the 16th's: nothing built (its deploy and archive jobs were skipped).
   - **The archive**: the private repository `nickholttt/nzta-register-archive` holds one
     release, `snapshot-2026-10`, two files (the second holds `VIN11` and `POSTCODE`).
 - **`registrations_flow`** (#55, D-092): true first registrations from the user's exports of
@@ -35,7 +35,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **The site's code is on `main`**, with `/about` (a draft; two gaps left for the user, D-106),
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
   site and uploads nothing. **Nothing is deployed**: `CLOUDFLARE_PAGES_PROJECT` is unset.
-- **First load is trimmed** (#64, D-099); the public build drops what no page reaches.
+  First load is trimmed (#64, D-099): the public build drops what no page reaches.
 - **The engine was audited against the register's rows** (2026-11-16): of 34,693 figures one
   differed, a tie in a ranking. Fixed since (#67 to #69): ties, and a month with nothing counted.
 - **Build ranks the values a visitor picks**, labelled as among those picked, and every chart
@@ -51,20 +51,22 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
-  them (package F); the `region` slice stays, and takes the floor of 10 when the first owner
-  table is published, which the user sees first (D-120); no postcode totals for now.
+  them (package F); the `region` slice takes the floor of 10 and a second rule in the change
+  that builds them, before December's build (D-126; being built, D-127); another owner
+  field's first table is shown to the user first (D-120); no postcode totals for now.
 - **The query service** is proposed, not provisioned (#54, D-091). **Events**: 54 rows, 50
   verified; four are unverified on purpose. Don't guess dates.
 
 ## Current step
 
-**Work order 1**, engine first (the user, D-104). A, B, C and G are done on a local build, and
-E but for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPOINT.
+**Work order 1**, engine first (D-104). A, B, C and G are done on a local build, and E but
+for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPOINT.
 
 ## In progress (all claude; nothing by gemini)
 
-- Nothing is being built. The worktrees `nzta-audit`, `nzta-notes` and `nzta-firstload` sit
-  detached at `main`; `nzta-audit` and `nzta-notes` hold local builds of the cube (gitignored).
+- `claude/small-cells` (D-127; worktree `nzta-audit`): the small-cell rule and the `region`
+  slice. `claude/power-transmission` (D-128; `nzta-notes`): two register fields bound. Both
+  touch `pipeline/` or config, `docs/CUBE_SCHEMA.md` and the golden contract.
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
   D-103's draft scheme file sits untracked in `nzta-segments`.
 
@@ -107,20 +109,19 @@ E but for two pipeline items. F's done-when is met (#82); the rest of F and I: C
   updated with the final report (its §6).
 - An event marker can appear on a chart whose filter excludes the vehicles the event is about
   (`docs/EVENTS_LAYER.md`, D-089). No chart shows a wrong marker today.
-- D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
-- NZTA's page says an inactive vehicle is one "registered and registration cancelled in the
-  same month". The counts say `INACTIVE` behaves as since removed (`docs/METRICS.md`, D-087).
-- `docs/DATA_MAP.md` lists ten places where it disagrees with other files (an engine band
-  with no upper limit; a fuel guard looser than the profile supports; stale counts in
-  `sentinels.csv`'s notes). Each is fixed when its field is next touched (package F).
+- NZTA's page calls an inactive vehicle one "registered and registration cancelled in the same
+  month"; the counts say `INACTIVE` behaves as since removed (`docs/METRICS.md`, D-087).
+- D-058's "no owner data" is corrected by D-078. `docs/DATA_MAP.md` lists ten places where it
+  disagrees with other files (an engine band with no upper limit; a looser fuel guard; stale
+  counts in `sentinels.csv`'s notes). Each is fixed when its field is next touched.
 - CLAUDE.md's non-goals say postcode figures "wait for the Stage 2 privacy review". The user's
   answer is "not now" (D-096); CLAUDE.md is not edited (the order's §3).
 
 ## Blocked or waiting on the user
 
 Nothing stops the work (CHECKPOINT, questions). Waiting on the user: the site's name and
-address; the retaken dashboard history; the query service, after the engine's audit (D-120). Waiting on a
-date: matching vehicles between two months' archive files needs November's file (December).
+address; the retaken dashboard history; the query service, after the engine's audit (D-120).
+Waiting on a date: matching vehicles between two months' archive files needs November's file.
 
 ## How to run
 
