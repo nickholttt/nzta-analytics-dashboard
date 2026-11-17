@@ -17,7 +17,8 @@ export async function resolve(specifier, context, nextResolve) {
 
 export async function load(url, context, nextLoad) {
   if (url.endsWith(".json")) return nextLoad(url, { ...context, importAttributes: { type: "json" } });
-  if (!url.includes("/src/") || !url.endsWith(".ts")) return nextLoad(url, context);
+  // A query on the end (a test imports a module again under a new one to get a fresh instance) does not change what the file is.
+  if (!url.includes("/src/") || !url.split("?")[0].endsWith(".ts")) return nextLoad(url, context);
   const { source } = await nextLoad(url, { ...context, format: "module" });
   const code = stripTypeScriptTypes(String(source), { mode: "transform" }).replaceAll("import.meta.env", "({})");
   return { format: "module", source: code, shortCircuit: true };

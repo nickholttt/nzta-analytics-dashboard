@@ -5,11 +5,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases, valueWords } from "../lib/config";
 import { REST_NAME, isChoosable } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, addressParams, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, addressParams, builderPresets, isMonthKey, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
-import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
+import { ServiceError, datasetLatestMonth, factView, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
-import { canPin, pinNote } from "../lib/pin";
+import { canPin, servedMonth } from "../lib/pin";
+import { pickerMonth, pinLine, readingFor } from "../lib/kept";
+import type { Loaders, Owner, Reading } from "../lib/kept";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count } from "../lib/readout";
@@ -34,11 +36,11 @@ type ValueOption = { value: string; recent: number; total: number };
 // Every value of a breakdown, largest in the last 12 months first, then largest over all time: what a visitor most
 // likely wants is at the top, and a value that has gone (a brand no longer sold) is still there to find. Counted
 // among the vehicles the question's other conditions keep, so the list matches what the chart will show.
-async function valueOptions(dataset: string, dimension: string, where: Record<string, string[]>): Promise<ValueOption[]> {
+async function valueOptions(dataset: string, dimension: string, where: Record<string, string[]>, snapshot?: string): Promise<ValueOption[]> {
   const filtered = Object.values(where).some((kept) => kept.length > 0);
   const [rows, manifest] = await Promise.all([
-    filtered ? factView(dataset, dimension, undefined, where) : loadSlice(dataset, dimension),
-    loadManifest(),
+    filtered ? factView(dataset, dimension, undefined, where, undefined, snapshot) : loadSlice(dataset, dimension, snapshot),
+    loadManifest(snapshot),
   ]);
   const latest = datasetLatestMonth(manifest, dataset);
   const from = addMonths(latest, -(TRAILING_MONTHS - 1));
@@ -57,7 +59,7 @@ function failureHint(e: unknown): string {
   return e.down ? "The question service is not answering, so the values to choose from did not load. Try again in a few minutes." : e.message;
 }
 
-function useValueOptions(dataset: string, dimension: string, where: Record<string, string[]>) {
+function useValueOptions(dataset: string, dimension: string, where: Record<string, string[]>, snapshot?: string) {
   const [options, setOptions] = useState<ValueOption[] | null>(null);
   // What the hint says when the list did not load: a file that failed, the query service not answering, or the
   // service's own sentence when it refused the question (trying again would not help).
@@ -67,20 +69,21 @@ function useValueOptions(dataset: string, dimension: string, where: Record<strin
     let current = true;
     setOptions(null);
     setFailed(null);
-    valueOptions(dataset, dimension, JSON.parse(whereKey)).then(
+    valueOptions(dataset, dimension, JSON.parse(whereKey), snapshot).then(
       (o) => current && setOptions(o),
       (e) => current && setFailed(failureHint(e)),
     );
     return () => {
       current = false;
     };
-  }, [dataset, dimension, whereKey]);
+  }, [dataset, dimension, whereKey, snapshot]);
   return { options, failed };
 }
 
 function ValuePicker({
   dataset,
   dimension,
+  snapshot,
   noun,
   chosen,
   where,
@@ -93,6 +96,8 @@ function ValuePicker({
 }: {
   dataset: string;
   dimension: string;
+  // The kept snapshot (a month) the suggestions are counted in, where the question reads from one and it can answer for this field (pickerMonth).
+  snapshot?: string;
   noun: string;
   chosen: string[];
   where: Record<string, string[]>;
@@ -106,7 +111,7 @@ function ValuePicker({
   // The name of the list of chosen values, where "chosen" would not be true of them.
   chosenLabel?: string;
 }) {
-  const { options, failed } = useValueOptions(dataset, dimension, where);
+  const { options, failed } = useValueOptions(dataset, dimension, where, snapshot);
   const [query, setQuery] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const box = useRef<HTMLDivElement>(null);
@@ -208,6 +213,34 @@ const say = (template?: string) => fillNote(template ?? "", { months: TRAILING_M
 
 const without = (where: Record<string, string[]>, dimension: string) => Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
 
+const loaders: Loaders = { index: loadKeptSnapshots, manifest: loadManifest, slice: loadSlice };
+const FROM_NEWEST: Reading = { kind: "served" };
+
+// Where the question reads its figures from (src/lib/kept.ts): the newest snapshot at once for a question that is not pinned or is pinned to the
+// snapshot served or ahead of it, and for one pinned to an earlier month once the index, that snapshot's manifest and the values chosen have been
+// read. Undefined until then, and for a new question until it is read, so a chart is never drawn from one snapshot and then another.
+function useReading(q: Question, served: Manifest | null | undefined, owner: Owner): Reading | undefined {
+  const key = `${String(questionParams(q))}|${q.values.join("|")}|${q.values2?.join("|") ?? ""}`;
+  const [decided, setDecided] = useState<{ key: string; reading: Reading } | null>(null);
+  const latestQuestion = useRef(q);
+  latestQuestion.current = q;
+  const earlier = Boolean(served && isMonthKey(q.snapshot) && q.snapshot < servedMonth(served));
+  useEffect(() => {
+    if (!earlier || !served) return;
+    let current = true;
+    readingFor(latestQuestion.current, served, loaders, owner).then((reading) => current && setDecided({ key, reading }));
+    return () => {
+      current = false;
+    };
+    // The question is read through its key.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, earlier, served, owner]);
+  if (!isMonthKey(q.snapshot) || served === null) return FROM_NEWEST;
+  if (served === undefined) return undefined;
+  if (!earlier) return FROM_NEWEST;
+  return decided?.key === key ? decided.reading : undefined;
+}
+
 export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocabulary }) {
   const [question, setQuestion] = useState<Question>(() =>
     settle(all, typeof window === "undefined" ? {} : readQuestion(window.location.search)),
@@ -227,10 +260,12 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     ];
   });
   // The snapshot this page serves, to say what a pinned question is pinned to (src/lib/pin.ts).
-  const [served, setServed] = useState<Manifest | null>(null);
+  const [served, setServed] = useState<Manifest | null | undefined>(undefined);
   useEffect(() => {
     loadManifest().then(setServed, () => setServed(null));
   }, []);
+  const ownerFields = useMemo(() => new Set(all.owner), [all]);
+  const reading = useReading(question, served, ownerFields);
   // What the chosen dataset offers: its measures, and the conditions its fact table can apply.
   const vocabulary = all.datasets.find((v) => v.dataset === question.dataset) ?? all.datasets[0];
   const { dataset } = vocabulary;
@@ -245,7 +280,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const countsLines = measure.id === "count" || builderSpec.measures.find((m) => m.id === measure.id)?.parts?.includes("count");
   const presets = useMemo(() => builderPresets(question, (v) => valueLabel(v, question.by ?? undefined)), [question]);
   const views = useMemo(() => viewsFor(question), [question]);
-  const pin = served ? pinNote(question, served) : undefined;
+  const pin = served && reading ? pinLine(question, served, reading) : undefined;
   const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
   // The other shapes a question may be drawn as are a choice of their own; the ranking is reached from the values, where it is about them.
   const otherViews = views.filter((v) => v !== RANKING);
@@ -305,6 +340,11 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   // A count broken down draws one line per chosen value, so with none chosen it starts on the largest few among the
   // vehicles the conditions keep. Applied only if the question is still waiting for them when the list arrives.
   const whereKey = JSON.stringify(applicable(question.where));
+  // A question read from a kept snapshot starts on that snapshot's largest values, not the newest's, so it shows what it showed when it was pinned.
+  const keptFolder = reading?.kind === "kept" ? reading.month : undefined;
+  // The suggestions under each picker are counted in the kept snapshot too, so they agree with the line above the chart; for a field the kept snapshot
+  // cannot give them for, they stay the newest's.
+  const pickAt = (dimension: string, where: Record<string, string[]>) => pickerMonth(reading, dataset, dimension, where, ownerFields);
   const awaitingValues = Boolean(countsLines && question.by && !question.by2 && question.values.length === 0 && breakdown?.values);
   // The question whose starting values were looked for and not found: nothing was first registered in the last 12
   // months among the vehicles its conditions keep.
@@ -314,9 +354,9 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const [startFailedFor, setStartFailedFor] = useState<string | null>(null);
   useEffect(() => {
     const by = question.by;
-    if (!awaitingValues || !by) return;
+    if (!awaitingValues || !by || reading === undefined) return;
     let current = true;
-    valueOptions(dataset, by, JSON.parse(whereKey)).then(
+    valueOptions(dataset, by, JSON.parse(whereKey), keptFolder).then(
       (options) => {
         const now = latest.current;
         if (!current || now.by !== by || now.values.length > 0) return;
@@ -331,7 +371,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     };
     // ask reads the latest question through its ref; these are what decide whether starting values are needed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [awaitingValues, question.by, dataset, whereKey]);
+  }, [awaitingValues, question.by, dataset, whereKey, reading === undefined, keptFolder]);
   const words = datasetWords(dataset);
 
   const datasetInfo = findDataset(dataset);
@@ -455,6 +495,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                 <ValuePicker
                   dataset={dataset}
                   dimension={side.id}
+                  snapshot={pickAt(side.id, applicable(question.where))}
                   noun={lowerLabel(filterLabel(side.id))}
                   chosen={side.chosen}
                   where={applicable(question.where)}
@@ -501,6 +542,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
               <ValuePicker
                 dataset={dataset}
                 dimension={breakdown.id}
+                snapshot={pickAt(breakdown.id, applicable(question.where))}
                 noun={noun}
                 chosen={question.values}
                 where={applicable(question.where)}
@@ -578,6 +620,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                   <ValuePicker
                     dataset={dataset}
                     dimension={d}
+                    snapshot={pickAt(d, applicable(without(question.where, d)))}
                     noun={lowerLabel(filterLabel(d))}
                     chosen={kept}
                     where={applicable(without(question.where, d))}
@@ -632,7 +675,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
       </form>
 
       {pin ? (
-        <div className={pin.kind === "same" ? "callout curated" : "callout warning"} id="pin-line">
+        <div className={pin.kind === "same" || pin.kind === "kept" ? "callout curated" : "callout warning"} id="pin-line">
           <span className="callout-label">{keepWords.pinned_label}</span>
           {pin.text}{" "}
           <button
@@ -648,8 +691,16 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
         </div>
       ) : null}
 
-      {/* Keyed by the question, so a new question remounts each panel and reads its cleared settings. */}
-      {presets.map((p) =>
+      {/* Keyed by the question, so a new question remounts each panel and reads its cleared settings. A question pinned to an earlier month waits
+          for the decision on where its figures come from, so no chart is drawn from one snapshot and then another. */}
+      {reading === undefined ? (
+        <section className="panel loading">
+          <p className="meta" role="status">
+            {keepWords.pin_reading}
+          </p>
+        </section>
+      ) : null}
+      {reading === undefined ? null : presets.map((p) =>
         // A number by a breakdown is one line per chosen value. With none chosen there is no such chart to draw, and
         // the total alone would sit under a title that promises a breakdown.
         awaitingValues && p.measure === "count" ? (
@@ -675,11 +726,11 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
             )}
           </section>
         ) : (
-          <PresetPanel key={`${p.id}:${String(questionParams(question))}:${question.values.join("|")}`} preset={p} audience="public" anchored={false} />
+          <PresetPanel key={`${p.id}:${String(questionParams(question))}:${question.values.join("|")}:${keptFolder ?? ""}`} preset={p} audience="public" anchored={false} snapshot={keptFolder} />
         ),
       )}
 
-      <MyQuestions all={all} served={served} title={presets[0]?.question ?? ""} snapshot={question.snapshot} pinnable={served ? canPin(question, served) : false} onPin={(month) => ask({ snapshot: month }, true, true)} />
+      <MyQuestions all={all} served={served ?? null} title={presets[0]?.question ?? ""} snapshot={question.snapshot} pinnable={served ? canPin(question, served) : false} onPin={(month) => ask({ snapshot: month }, true, true)} />
 
       {notOffered.length > 0 ? (
         <section className="not-offered" aria-labelledby="not-offered-head">
