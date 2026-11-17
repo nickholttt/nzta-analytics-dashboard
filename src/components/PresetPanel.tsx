@@ -12,7 +12,7 @@ import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Dimension, Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
-import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
+import { TRAILING_MONTHS, guardsFor, monthLabel, notRecordedDrawn, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { NOT_RECORDED_TOKEN } from "../lib/sentences";
 import { datasetCovers, fitsPin, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
@@ -399,8 +399,8 @@ export default function PresetPanel({
   const dimensionText = dimensionNote(dimension, internal, { splitPublished: splitPublished(coverage) });
   addNote("dimension", dimensionText.plain, dimensionText.template);
   // A share is a share of everything counted, so vehicles with no value of the breakdown are in the whole and drawn as a part of it. Said where the
-  // chart has such a part, so a reader never takes a share to be of the vehicles recorded.
-  if (measure?.kind === "share" && dimension && preventsRender.length === 0 && (shape === "mix" || shape === "distribution") && rows?.some((r) => r.value === NOT_RECORDED_TOKEN && r.n > 0)) {
+  // chart has such a part in the window it draws, so a reader never takes a share to be of the vehicles recorded.
+  if (measure?.kind === "share" && dimension && preventsRender.length === 0 && (shape === "mix" || shape === "distribution") && rows && notRecordedDrawn(rows, effectivePreset.period, latestMonthOf(effectivePreset, manifest))) {
     const field = dimensionWords(dimension.id, internal) || dimension.id;
     notes.push({ key: "share-of-all", text: fillNote(phrases.share_with_not_recorded, { field, value: reservedLabel(NOT_RECORDED_TOKEN) }).text, unresolved: [] });
   }

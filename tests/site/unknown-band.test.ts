@@ -70,6 +70,24 @@ test("the fact table's column of a banded field is read the same way: a conditio
   assert.equal(sum(other, NOT_RECORDED_TOKEN), 7);
 });
 
+test("a not-recorded part outside the window a chart draws does not count as drawn", async () => {
+  const { notRecordedDrawn } = await import("../../src/lib/measures.ts");
+  const windowed = config.periods.find((p) => p.months);
+  assert.ok(windowed?.months, "config has a period that is a number of months");
+  const latest = "2026-10";
+  const before = sentencesModule.addMonths(latest, -windowed.months);
+  const rows = [
+    { month: before, value: NOT_RECORDED_TOKEN, n: 5 },
+    { month: before, value: "A", n: 1 },
+    { month: latest, value: "A", n: 3 },
+  ];
+  assert.equal(notRecordedDrawn(rows, windowed.id, latest), false, "the only not-recorded vehicles are a month before the window");
+  assert.equal(notRecordedDrawn(rows, "all", latest), true, "over every month they are drawn");
+  assert.equal(notRecordedDrawn([...rows, { month: latest, value: NOT_RECORDED_TOKEN, n: 1 }], windowed.id, latest), true);
+  assert.equal(notRecordedDrawn([...rows, { month: latest, value: NOT_RECORDED_TOKEN, n: 0 }], windowed.id, latest), false, "a zero is not a part");
+  assert.equal(notRecordedDrawn([], windowed.id, latest), false);
+});
+
 test("the line that says a share is of all vehicles, not-recorded ones included, fills from config with no placeholder left, and names no value", () => {
   const { fillTemplate } = sentencesModule;
   const filled = fillTemplate(config.phrases.share_with_not_recorded, { field: "A field", value: "A value" });
