@@ -7,7 +7,7 @@
 //   - every vehicle the conditions keep in the window is in exactly one cell, so the cells add up to the total, and the totals are the
 //     conditions' totals; values that are not shown stand together in one line, "All other", never left out;
 //   - the lines on a side are the visitor's picks or the largest in the window, ordered by count with ties alphabetical (the one
-//     ranking rule, ranking.ts); an ordered band is shown whole, every band the data has under the conditions, in its own order, picked or not;
+//     ranking rule, ranking.ts); an ordered band is shown from the first band the data has to the last, in its own order, with a line of zeros for one between them with none;
 //   - reserved values: "not recorded" and "no reference match" describe real vehicles and are lines of their own (after the named values,
 //     taking no place in the ranking); "beyond the cap" is where a cap puts values, so it is always in "All other";
 //   - a share is a share of everything counted (the grid), or of its row, or of its column, as the visitor chooses; it is greyed when its base
@@ -111,7 +111,8 @@ export type GridInput = {
 };
 
 // Which values stand on a side, from the vehicles each holds in the window. seen: the values the data has in any month under the conditions,
-// which an ordered band shows whole (a band with no vehicles in the window is a line of zeros, not a gap). keep: a value to show whatever its rank.
+// which an ordered band shows from its first to its last (a band with no vehicles in the window, or that the data never has between them, is a
+// line of zeros, not a gap). keep: a value to show whatever its rank.
 export function chooseSide(totals: ReadonlyMap<string, number>, spec: SideSpec, seen?: ReadonlySet<string>, keep?: string): Side {
   const named = [...totals].filter(([value, n]) => !isReserved(value) && n > 0).map(([value, n]) => ({ value, name: spec.nameOf(value), n }));
   const total = (value: string) => totals.get(value) ?? 0;
@@ -129,9 +130,12 @@ export function chooseSide(totals: ReadonlyMap<string, number>, spec: SideSpec, 
     shown = spec.order ? chosen.sort(byOrder) : rankByCount(chosen);
   } else if (spec.order) {
     mode = "ordered";
-    // Every band the data has under the conditions, in any month, in its own order; any value the order does not know follows.
+    // Every band from the first to the last the data has under the conditions (in any month), in its own order, so the scale has no gap: a band
+    // between them that the data never has is a line of zeros. A value the order does not know follows.
     const values = new Set([...[...(seen ?? [])].filter((v) => !isReserved(v)), ...named.map((e) => e.value)]);
-    shown = [...values].map(entry).sort(byOrder);
+    const places = [...values].flatMap((v) => (at.has(v) ? [at.get(v) as number] : []));
+    const between = places.length ? (spec.order ?? []).slice(Math.min(...places), Math.max(...places) + 1) : [];
+    shown = [...new Set([...between, ...values])].map(entry).sort(byOrder);
   } else {
     const ranked = rankByCount(named);
     mode = ranked.length <= spec.limit ? "all" : "largest";

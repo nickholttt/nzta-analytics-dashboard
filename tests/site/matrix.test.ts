@@ -84,14 +84,22 @@ test("an ordered band is shown whole in its own order, not cut and not ranked", 
   assert.equal(g.rows.lines.some((l) => l.kind === "rest"), false);
 });
 
-test("a band with no vehicles in the window is a line of zeros where the data has it in any month, and is not a gap; a band the data never has is not a line", () => {
-  const order = ["0", "1", "2", "3", "4"];
-  const rows = [src("3", "x", 900), src("0", "x", 70), src("2", "x", 40, "2020-01"), src("4", "x", 5, "2019-05")];
+test("an ordered band is shown from the first band the data has to the last, with a line of zeros for each band between with none; none is a gap", () => {
+  const order = ["0", "1", "2", "3", "4", "5", "6"];
+  // 2 and 4 are in the data only in other months; 1 and 5 are never in it; 0 and 6 are never in it and are outside the first and the last.
+  const rows = [src("3", "x", 900), src("2", "x", 40, "2020-01"), src("4", "x", 5, "2019-05")].concat([src("1", "x", 70)]);
   const g = grid(rows, { rowSide: side({ order }) });
-  assert.deepEqual(g.rows.lines.map((l) => l.key), ["0", "2", "3", "4"], "1 is never in the data, so it is not a line; 2 and 4 are, in other months");
+  assert.deepEqual(g.rows.lines.map((l) => l.key), ["1", "2", "3", "4"], "from the first the data has (1) to the last (4); 0, 5 and 6 are outside them");
   assert.deepEqual(g.rows.lines.map((l) => l.total), [70, 0, 900, 0]);
   assert.deepEqual(g.cells[1].map((c) => c.n), [0]);
   assert.equal(g.total, 970, "the vehicles of other months are not counted");
+  // A band the data never has in the middle is a line of zeros, so the scale does not skip.
+  const gap = grid([src("0", "x", 70), src("3", "x", 900)], { rowSide: side({ order }) });
+  assert.deepEqual(gap.rows.lines.map((l) => [l.key, l.total]), [["0", 70], ["1", 0], ["2", 0], ["3", 900]]);
+  assert.equal(gap.total, 970);
+  // One band alone is one line; a value the order does not know follows the bands.
+  assert.deepEqual(grid([src("3", "x", 5)], { rowSide: side({ order }) }).rows.lines.map((l) => l.key), ["3"]);
+  assert.deepEqual(grid([src("3", "x", 5), src("zz", "x", 1), src("1", "x", 2)], { rowSide: side({ order }) }).rows.lines.map((l) => l.key), ["1", "2", "3", "zz"]);
 });
 
 test("values picked on an ordered band keep the band's order, whatever their size", () => {
