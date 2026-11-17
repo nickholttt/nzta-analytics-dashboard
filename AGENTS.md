@@ -44,7 +44,7 @@ Run from the repo root.
 |---|---|---|
 | Pipeline tests (as CI) | `.venv/Scripts/python.exe -m pytest pipeline/tests -q -p no:cacheprovider` | 100 passed, 520 s with a site build going (2026-11-13) |
 | Typecheck site | `npx -y -p typescript tsc --noEmit` | exit 0. TypeScript isn't a dependency, so plain `npx tsc` fails |
-| Site tests | `node --test "tests/site/*.test.ts"` | 191 passed in about 2 s (2026-11-17); also run on every pull request (D-101) |
+| Site tests | `node --test "tests/site/*.test.ts"` | 237 passed in about 3 s (2026-11-17); also run on every pull request (D-101) |
 | Build site | `npx astro build` | 7 pages built to `dist/`, `404.html` among them (2026-10-22). No npm `build` script exists |
 | Build the public site, as the deploy does (D-056) | Git Bash: `INTERNAL_PAGES=false npx astro build && rm -rf dist/status dist/sense-check` | 2026-10-22, against the 2026-08 cube: 5 pages left, none linking to `/status` or `/sense-check`; in a preview those two and any unknown address return 404. Since D-099 the build itself drops those two folders and every script no remaining page reaches (`astro.config.mjs`), so the `rm` is a no-op kept for safety; the next row checks it |
 | Check the public build's output | `node scripts/check-public-build.mjs` (after the public build) | exit 0 and "6 scripts" on 2026-11-16; on the build as it was before D-099 it exits 1 naming `_astro/PresetTriage.*.js` (known issue 7), and on a build with the internal pages it names both folders |
@@ -114,8 +114,8 @@ Setup, **not re-run this session** (the environment already existed):
   `main` since 2026-11-13 (#26 to #29, #35, #37 to #39), and the first release, `cube-2026-10`, exists.
 - `src/pages/index.astro` hosts React islands; only its first chart fetches on load, the others wait on `src/lib/loadGate.ts` (D-099). `src/lib/config.ts` loads `config/*.json`, `data.ts`
   reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
-  `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo}Chart.tsx`
-  are the renderers of five of the six allowed shapes (`matrix`, approved in D-083, has none yet), and `PresetTriage.tsx` lists every preset with what blocks it, and (as `BuildWarnings`, D-112) the cube's own warnings, on the internal status page only.
+  `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo,Matrix}Chart.tsx`
+  are the renderers of the six allowed shapes (`matrix`, approved in D-083, is a table drawn from the design tokens, D-114), and `PresetTriage.tsx` lists every preset with what blocks it, and (as `BuildWarnings`, D-112) the cube's own warnings, on the internal status page only.
 - `scripts/unmatched_hybrids.py` lists, for one dataset, the hybrids that count against its mild hybrid coverage at high
   confidence, by make and model. Run by hand when a build warns that the split flipped (`docs/playbooks/check-monthly-run.md`,
   D-112); it reads the repository and a saved pull and writes nothing.

@@ -47,12 +47,13 @@ import {
 } from "../lib/theme";
 import { latestMonthOf } from "../lib/resolve";
 import { nameOrder, rankByCount } from "../lib/ranking";
-import { BEYOND_CAP } from "../lib/reserved";
+import { BEYOND_CAP, REST_NAME } from "../lib/reserved";
 import { getParam, setParam } from "../lib/url";
 import { EventList } from "./EventList";
 import { PlotFigure } from "./PlotFigure";
 
-export const ALL_OTHER = "All other";
+// One name for the line that holds every value not shown, here and in the grid (src/lib/reserved.ts).
+export const ALL_OTHER = REST_NAME;
 const LANE_HEIGHT = 15;
 const LABEL_LINE_HEIGHT = 15;
 const LEADER_PX = 14;
