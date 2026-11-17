@@ -623,7 +623,9 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
   dropped, not shown with a gap.
 - **The fact table answers it** (`docs/CUBE_SCHEMA.md`, Fact table): two fields it carries, under any conditions it carries. A field it does not
   carry (the owner's region, the vehicle's age) cannot be crossed. Build offers no pair where each value of one sits under a single value of the
-  other (a model under its brand, a brand under its group; `builder.cannot_cross`), since its empty cells would be empty by construction.
+  other (a model under its brand, a brand under its group; `builder.cannot_cross`), since its empty cells would be empty by construction. Nor does it
+  offer a pair the data map records as a roll-up (`relations.rolls_up_to` in `config/data_map.json`, through any number of steps, and for a dimension
+  read from that field alone): NZTA's class code rolls up to the registered-as type, so the two are not crossed (`src/lib/nesting.ts`, D-122).
 
 ### Two suppression guards
 

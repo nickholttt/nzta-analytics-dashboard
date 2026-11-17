@@ -9,6 +9,7 @@ import { everythingBuilt } from "./support/observe.ts";
 
 const config = await import("../../src/lib/config.ts");
 const builder = await import("../../src/lib/builder.ts");
+const { fillTemplate } = await import("../../src/lib/sentences.ts");
 
 const NEW = ["nz_assembled", "nzta_class", "seats_band"];
 const manifest = everythingBuilt();
@@ -54,4 +55,79 @@ test("a phrase exists in config for each breakdown the builder offers, and the s
     assert.ok(builder.questionText(q, "share").toLowerCase().includes(phrase.toLowerCase()), builder.questionText(q, "share"));
   }
   assert.ok(config.builderSpec.measures.every((m) => !m.derived || NEW.every((f) => !(f in m.dimensions))));
+});
+
+// ---- a class is never set beside the type it rolls up to (D-122) ----
+
+const { rollUps, nested } = await import("../../src/lib/nesting.ts");
+const dataMap = JSON.parse((await import("node:fs")).readFileSync(new URL("../../config/data_map.json", import.meta.url), "utf8"));
+const field = (name: string, bound: string | null, to: string[] = []) => ({ name, bound, relations: { rolls_up_to: to.map((t) => ({ to: t })) } });
+const dim = (id: string, derive: { kind: string; field?: string }) => ({ id, derive });
+
+test("a field the data map says rolls up to another is nested under it, in either order, and so is a field read from the same one alone", () => {
+  const ups = rollUps(dataMap.fields, config.dimensions as never);
+  assert.ok(nested(ups, "nzta_class", "vehicle_type") && nested(ups, "vehicle_type", "nzta_class"));
+  // trade_group is vehicle_type looked up again, so a class is under it too.
+  assert.ok(nested(ups, "nzta_class", "trade_group"));
+  // The map's other roll-ups, through any number of steps: a model under its brand under its group.
+  assert.ok(nested(ups, "model", "make") && nested(ups, "make", "parent_group") && nested(ups, "model", "parent_group"));
+  // A field read from several (a vehicle type from type, body and weight) is not the field its parts roll up to.
+  assert.ok(!nested(ups, "nzta_class", "segment") && !nested(ups, "nzta_class", "segment_group"));
+  assert.ok(!nested(ups, "nzta_class", "seats_band") && !nested(ups, "nzta_class", "nz_assembled"));
+  assert.ok(!nested(ups, "vehicle_type", "trade_group"), "two readings of one field do not roll up to each other; config.builder.cannot_cross lists that pair");
+});
+
+test("the rule on a map of its own: direct, through steps, a field read from one field, one read from several, and a loop", () => {
+  const map = [field("A", "a", ["B"]), field("B", "b", ["c"]), field("D", "d")];
+  const dims = [dim("a", { kind: "raw", field: "a" }), dim("a_looked_up", { kind: "lookup", field: "a" }), dim("b", { kind: "raw", field: "b" }), dim("c", { kind: "brand" }), dim("d", { kind: "raw", field: "d" }), dim("ab", { kind: "range_lookup" })];
+  const ups = rollUps(map, dims);
+  assert.deepEqual([...(ups.get("a") ?? [])].sort(), ["b", "c"]);
+  assert.deepEqual([...(ups.get("a_looked_up") ?? [])].sort(), ["b", "c"], "a lookup of a field rolls up wherever the field does");
+  assert.ok(nested(ups, "c", "a") && !nested(ups, "d", "a") && !nested(ups, "ab", "b"));
+  const loop = rollUps([field("A", "a", ["B"]), field("B", "b", ["A"])], [dim("a", { kind: "raw", field: "a" }), dim("b", { kind: "raw", field: "b" })]);
+  assert.ok(nested(loop, "a", "b"), "a loop in a map ends");
+  // A target the map does not hold, and a field with no dimension, add nothing.
+  assert.equal(rollUps([field("A", "a", ["nothing"]), field("Z", null, ["a"])], dims).size, 0);
+});
+
+test("Build does not cross a class with the type it rolls up to, either way round, nor offer the pair; every other pair it did offer it still does", () => {
+  assert.equal(builder.canCross("nzta_class", "vehicle_type"), false);
+  assert.equal(builder.canCross("vehicle_type", "nzta_class"), false);
+  assert.equal(builder.canCross("nzta_class", "trade_group"), false);
+  // Neither is offered to cross with a class even when it is offered at all.
+  const spec = config.builderSpec.measures.filter((m) => !m.derived && !m.parts);
+  const before = spec.map((m) => m.dimensions);
+  try {
+    for (const m of spec) m.dimensions = { ...m.dimensions, vehicle_type: "registered as", trade_group: "passenger or commercial" };
+    const [offeredNow] = builder.builderVocabulary(manifest).datasets;
+    for (const id of ["share", "count"]) {
+      const options = offeredNow.measures.find((m) => m.id === id)?.dimensions ?? [];
+      const cls = options.find((d) => d.id === "nzta_class");
+      const type = options.find((d) => d.id === "vehicle_type");
+      assert.ok(cls && type, `${id}: both fields are breakdowns in this test`);
+      assert.ok(!cls.with.includes("vehicle_type") && !cls.with.includes("trade_group") && !type.with.includes("nzta_class"), `${id}: not crossed`);
+      assert.ok(cls.with.includes("powertrain") && cls.with.includes("seats_band") && type.with.includes("powertrain"), `${id}: still crossed with the rest`);
+    }
+    // A link that asks for the pair is answered with a question that is valid, and says so once.
+    const asked = { dataset: vocabulary.dataset, measure: "share", by: "nzta_class", by2: "vehicle_type", values: [], values2: [], where: {}, view: null };
+    const settled = builder.settle({ datasets: [offeredNow] }, asked);
+    assert.equal(settled.by, "nzta_class");
+    assert.equal(settled.by2, undefined);
+    const note = builder.readingNotes({ datasets: [offeredNow] }, asked, settled);
+    assert.ok(note.by2 && note.by2.asked.length > 0);
+    assert.match(fillTemplate(config.builderSpec.notices.by2, note.by2).text, /^This link asked for a second breakdown by .+, which this question cannot have\. It shows the question without one\.$/);
+    const swapped = { ...asked, by: "vehicle_type", by2: "nzta_class" };
+    assert.equal(builder.settle({ datasets: [offeredNow] }, swapped).by2, undefined, "the other way round");
+  } finally {
+    spec.forEach((m, i) => (m.dimensions = before[i]));
+  }
+});
+
+test("as the page stands, a link that asks for a class by a type of vehicle lands on a valid question and says why in one line", () => {
+  const asked = builder.readQuestion("?build.measure=share&build.by=nzta_class&build.by2=vehicle_type");
+  const settled = builder.settle(all, asked);
+  assert.equal(settled.by, "nzta_class");
+  assert.equal(settled.by2, undefined);
+  assert.ok(builder.readingNotes(all, asked, settled).by2);
+  assert.ok(builder.builderPresets(settled).every((p) => p.dimension === "nzta_class" && !p.dimension2));
 });

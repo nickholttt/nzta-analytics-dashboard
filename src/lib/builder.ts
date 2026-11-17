@@ -2,12 +2,15 @@
 // breakdown to compare, which vehicles to keep, and, where more than one shape fits, which to draw (D-058, D-059). Each
 // becomes a preset like any in the canon, two for share and number, so the resolver and the panel treat a built chart
 // exactly as they treat an Explore one.
-import { builderSpec, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
+import dataMapDoc from "../../config/data_map.json";
+import { builderSpec, dimensions, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
 import type { BuilderMeasure, Preset } from "./config";
 import { isBuilt } from "./data";
 import type { Manifest } from "./data";
 import { monthLabel } from "./measures";
 import { drawnShapes, inferShape, questionFacts, resolvePreset } from "./resolve";
+import { nested, rollUps } from "./nesting";
+import type { MapDimension, MapField } from "./nesting";
 import { isChoosable } from "./reserved";
 import { needsBreakdown } from "./shapes";
 import { chartDefaults } from "./config";
@@ -160,9 +163,17 @@ export function viewsFor(q: Question): string[] {
   return all.length > 1 ? all : [];
 }
 
-// Whether Build crosses two fields: they are two, and neither sits under a single value of the other (config builder.cannot_cross).
+// What rolls up to what, from the data map. Read when first asked, so a page that never asks does not carry the map.
+let rollUpsOfMap: ReturnType<typeof rollUps> | undefined;
+const rolledUp = (a: string, b: string): boolean => {
+  rollUpsOfMap ??= rollUps((dataMapDoc as unknown as { fields: MapField[] }).fields, dimensions as unknown as MapDimension[]);
+  return nested(rollUpsOfMap, a, b);
+};
+
+// Whether Build crosses two fields: they are two, and neither sits under a single value of the other. That is a pair measured and listed
+// in config (builder.cannot_cross), or one the data map says rolls up (a class under its type of vehicle, D-122).
 export const canCross = (a: string, b: string): boolean =>
-  a !== b && !builderSpec.cannot_cross.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+  a !== b && !builderSpec.cannot_cross.some(([x, y]) => (x === a && y === b) || (x === b && y === a)) && !rolledUp(a, b);
 
 // What a dataset is called to a visitor: its public label, and for one that starts later than the register, where it starts.
 export function datasetName(id: string, manifest?: Manifest): string {
