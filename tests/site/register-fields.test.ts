@@ -131,3 +131,15 @@ test("as the page stands, a link that asks for a class by a type of vehicle land
   assert.ok(builder.readingNotes(all, asked, settled).by2);
   assert.ok(builder.builderPresets(settled).every((p) => p.dimension === "nzta_class" && !p.dimension2));
 });
+
+test("a label reads in a sentence with its first letter lower, and an acronym at its start is left as written", () => {
+  assert.equal(config.lowerLabel("Country where built"), "country where built");
+  assert.equal(config.lowerLabel("NZTA class code"), "NZTA class code");
+  assert.equal(config.lowerLabel("Engine size (Stats NZ bands)"), "engine size (Stats NZ bands)");
+  assert.equal(config.lowerLabel(""), "");
+  assert.equal(builder.removeConditionLabel(config.dimensionLabel("nzta_class") as string), "Remove this condition: NZTA class code");
+  // The sentence a link that names a second breakdown the question cannot have is answered with.
+  const asked = { dataset: vocabulary.dataset, measure: "share", by: "powertrain", by2: "nzta_class", values: [], where: {}, view: null };
+  const note = builder.readingNotes({ datasets: [{ ...vocabulary, measures: [{ ...measure("share"), dimensions: measure("share").dimensions.map((d) => ({ ...d, with: [] })) }] }] }, asked, builder.settle(all, { ...asked, by2: null }));
+  assert.equal(note.by2?.asked, "NZTA class code");
+});

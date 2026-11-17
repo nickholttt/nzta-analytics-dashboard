@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { figuresHeader } from "../lib/figuresHeader";
-import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite } from "../lib/config";
+import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { dimensionNote } from "../lib/dimensionNote";
 import { conditionsSentence } from "../lib/scope";
@@ -402,7 +402,7 @@ export default function PresetPanel({
   // chart has such a part, so a reader never takes a share to be of the vehicles recorded.
   if (measure?.kind === "share" && dimension && preventsRender.length === 0 && (shape === "mix" || shape === "distribution") && rows?.some((r) => r.value === NOT_RECORDED_TOKEN && r.n > 0)) {
     const field = dimensionWords(dimension.id, internal) || dimension.id;
-    notes.push({ key: "share-of-all", text: fillNote(phrases.share_with_not_recorded, { field: field.toLowerCase(), value: reservedLabel(NOT_RECORDED_TOKEN) }).text, unresolved: [] });
+    notes.push({ key: "share-of-all", text: fillNote(phrases.share_with_not_recorded, { field: lowerLabel(field), value: reservedLabel(NOT_RECORDED_TOKEN) }).text, unresolved: [] });
   }
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
@@ -410,7 +410,7 @@ export default function PresetPanel({
   const quoted = (values: string[], dimensionId?: string) => values.map((v) => `“${valueWords(dimensionId, reservedLabel(v))}”`).join(" or ");
   const nameOf = (id: string) => {
     const words = dimensionWords(id, internal) || id;
-    return words.charAt(0).toLowerCase() + words.slice(1);
+    return lowerLabel(words);
   };
   const scope = keptBy?.length
     ? conditionsSentence(keptBy, nameOf, (d, v) => valueWords(d, reservedLabel(v)))

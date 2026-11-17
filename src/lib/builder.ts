@@ -3,7 +3,7 @@
 // becomes a preset like any in the canon, two for share and number, so the resolver and the panel treat a built chart
 // exactly as they treat an Explore one.
 import dataMapDoc from "../../config/data_map.json";
-import { builderSpec, dimensions, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
+import { builderSpec, dimensions, lowerLabel, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
 import type { BuilderMeasure, Preset } from "./config";
 import { isBuilt } from "./data";
 import type { Manifest } from "./data";
@@ -236,7 +236,7 @@ export function withValues(where: Record<string, string[]>, dimension: string, v
 // The words on a condition's remove button, and the name a screen reader or a voice user gets for it: the same words, then the field, so
 // the visible label is part of the name (WCAG 2.5.3).
 export const REMOVE_CONDITION = "Remove this condition";
-export const removeConditionLabel = (field: string): string => `${REMOVE_CONDITION}: ${field.toLowerCase()}`;
+export const removeConditionLabel = (field: string): string => `${REMOVE_CONDITION}: ${lowerLabel(field)}`;
 
 // As many values as the palette has colours: past that, lines can no longer be told apart (src/lib/theme.ts).
 export const MAX_VALUES = 8;
@@ -281,7 +281,7 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
 // What a link asked for that the page did not give, so it can say so: the dataset it named and the breakdown it named, each
 // with what is shown instead. A condition the page cannot apply is already said where it is kept.
 // A label as it reads inside a sentence.
-const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+const lowerFirst = lowerLabel;
 
 export type Reading = {
   dataset?: { asked: string; shown: string };

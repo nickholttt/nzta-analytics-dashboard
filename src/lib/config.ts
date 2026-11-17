@@ -279,6 +279,9 @@ export function valueWords(dimensionId: string | undefined, value: string): stri
   const separator = findDimension(dimensionId)?.key_separator;
   return separator && value.includes(separator) ? value.split(separator).join(" ") : value;
 }
+// A label as it reads inside a sentence: its first letter in lower case, unless the label opens with an acronym (two capitals or more), which stays
+// as written. Whole-lowercasing a label would also lower the acronyms and names in the rest of it.
+export const lowerLabel = (label: string): string => (/^[A-Z]{2,}(?![a-z])/.test(label) ? label : label.charAt(0).toLowerCase() + label.slice(1));
 export const findDataset = (id?: string) => datasets.find((d) => d.id === id);
 // A dataset's words for what it counts: its own, or its base dataset's where it is another one filtered.
 export function datasetWords(id?: string): DatasetWords | undefined {
