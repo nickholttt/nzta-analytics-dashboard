@@ -156,7 +156,9 @@ Setup, **not re-run this session** (the environment already existed):
 7. **Don't push to `main` or merge into it** without the user's word in that session, naming the
    pull request ("merge N"). A merge into `main` also needs green checks and a reviewer sub-agent
    that has not seen the author's reasoning. A forced Monthly build, and anything that makes
-   something public, is asked for each time (user, 2026-11-14, D-081). An agent may push its own
+   something public, is asked for each time (user, 2026-11-14, D-081); the one exception is a
+   forced build of the month already built after the committed counts in `data/supplied/` have
+   changed on `main` (user, 2026-11-17, D-120). An agent may push its own
    branches (`claude/*`, `gemini/*`) and open pull requests from them (user, 2026-10-19). GitHub
    API access goes through `gh` only (full path above; not on the Git Bash PATH), never the Git
    Credential Manager token.

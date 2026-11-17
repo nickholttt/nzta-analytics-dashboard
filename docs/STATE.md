@@ -47,7 +47,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
-  them (package F); the `region` slice stays; postcode totals are not published for now.
+  them (package F); the `region` slice stays, and takes the floor of 10 when the first owner
+  table is published, which the user sees first (D-120); no postcode totals for now.
 - **The query service** is proposed, not provisioned (#54, D-091). **Events**: 54 rows, 50
   verified; four are unverified on purpose. Don't guess dates.
 
@@ -78,7 +79,8 @@ E but for two pipeline items. Packages F and I are in hand: CHECKPOINT, "The que
 1. First load at phone width is slow (local, throttled, 2026-11-16, D-099): Explore's first
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
    data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
-2. "Area Outside Region" (the Chatham Islands) reaches visitors as is; classes show as codes (D-116).
+2. "Area Outside Region" (the Chatham Islands) reaches visitors as is; classes show as codes
+   (D-116) until the labels the user supplied on 17 November are in `class_map.csv` (D-120).
 3. Mild hybrids are identified for about 80% of each dataset's hybrids at high confidence
    over 12 months (D-110's count; 74% before #74 and #80, D-115, D-119). Under 70% a dataset
    shows its hybrids undivided and the build warns (#72): about 2,600 more would do it.
@@ -94,16 +96,10 @@ E but for two pipeline items. Packages F and I are in hand: CHECKPOINT, "The que
 
 ## Where docs and code disagree (noted, not changed)
 
-- CLAUDE.md says `matrix`'s renderer "is planned" and that Plot draws all six shapes. It is
-  built (#75, D-114) as an HTML table, not a Plot figure. CLAUDE.md's shapes are the user's
-  to change (the order's §3; CHECKPOINT, questions).
 - `docs/brief/MASTER_BRIEF.md` still calls `matrix` proposed, says Plot draws "all five
   shapes", keeps the cap of five waiting pull requests, and says D-061 stops chosen values
   being ranked (Build ranks them since #71, D-111). The work order wins (its §5); the brief is
   updated with the final report (its §6).
-- CLAUDE.md's repo layout still marks `docs/DATA_MAP.md` and `model_segment.csv` as planned
-  and does not list `config/data_map.json`, `data/supplied/`, `tests/site/`, or the reference
-  files `statsnz_series.csv`, `nz_assembled_map.csv` and `class_map.csv`.
 - An event marker can appear on a chart whose filter excludes the vehicles the event is about
   (`docs/EVENTS_LAYER.md`, D-089). No chart shows a wrong marker today.
 - D-058 says the register has "no owner data": corrected by D-078, and D-058 is not edited.
@@ -118,7 +114,8 @@ E but for two pipeline items. Packages F and I are in hand: CHECKPOINT, "The que
 ## Blocked or waiting on the user
 
 Nothing stops the work (CHECKPOINT, questions). Waiting on the user: the site's name and
-address; the retaken dashboard history, due in the user's Downloads folder. Waiting on a
+address; the retaken dashboard history, due in the user's Downloads folder. The query service
+is decided after the full engine's audit (D-120). Waiting on a
 date: matching vehicles between two months' archive files needs November's file (December).
 
 ## How to run

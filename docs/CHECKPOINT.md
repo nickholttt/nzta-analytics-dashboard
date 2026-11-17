@@ -7,8 +7,9 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session. **Merged, #60 to #80** (#63 was closed unmerged). The
-  user's answers are D-096 and D-106. Nothing is in flight: no agent is running and no
-  branch but #81's is open.
+  user's answers are D-096 and D-106.
+- 2026-11-17, tenth session: the user answered the parked questions (D-120). CLAUDE.md's two
+  sentences about the grid and Plot are corrected, and its layout lists what exists.
 - **Figures set beside published ones.** New vehicles on the wider scope: within 0.06% of the
   MIA's for October 2026, older months about 1% lower, cause not established (D-105, D-113).
   vstat (the Motor Trade Association's) equals ours for October 2026 (D-118). The 98 SUV-file
@@ -32,10 +33,14 @@ to launch early, each measure recomputed and set beside published New Zealand so
 
 ## Open pull requests
 
-- **#81**, these notes (docs only). Waiting on the user or the next session to merge.
+- **#81**, these notes, D-120, CLAUDE.md's corrections and AGENTS.md hard rule 7's one
+  exception (docs only).
 
 ## The queue, in order
 
+0. **Class labels** (D-120): `incoming/vehicle_class_labels.csv`, the user's copy of NZTA's
+   vehicle classes page, checked against the saved pull's codes, moved into `class_map.csv`
+   with source and date; then `incoming/` is deleted. `OTH` has no row in it.
 1. **Build offers the three new fields as breakdowns** (#79, D-116; the hand-kept lists in
    `config/presets.json`; class never crossed with vehicle type; "not recorded" shown as the
    gap it is), then **the acceptance question with one of them swapped in**, at 390 and 1280
@@ -53,7 +58,9 @@ to launch early, each measure recomputed and set beside published New Zealand so
    refuses a malformed reference row; the X-Trail row's basis; the dataset guard on a filtered
    dataset (D-118); the fixture harness's fields; a seats average.
 6. **The rest of package F**: power and transmission; owner fields, private until small cells
-   are hidden (D-096); "My questions"; the related-fields note.
+   are hidden (D-096); the first owner table is shown to the user before any build publishes
+   it, and the `region` slice takes the floor of 10 then (D-120); "My questions"; the
+   related-fields note.
 7. **Paused, uncommitted, behind `main`:** package H's narrative spec (D-102; worktree
    `nzta-screens`). D-103's draft scheme file is untracked in `nzta-segments`.
 
@@ -76,29 +83,23 @@ to launch early, each measure recomputed and set beside published New Zealand so
 
 1. **The site's name and web address** (`config/site.json`, search `TO DECIDE`): parked by
    the user. The About page stays a marked draft until both are filled.
-2. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`): a Build answer takes 6.6 to
-   10.3 s on a phone, nearly all of it data, and the table has grown since. A paid function
-   (about US$5 a month), or lighter files at no cost. With no answer nothing is spent.
-3. **The first owner-field table** (D-096): see it before a build publishes it, and give the
-   `region` slice the minimum of 10 then? Recommend yes to both. With no answer: local only.
-4. **Two readings of CLAUDE.md's chart rule** (D-100): recommend keeping both; with no answer
-   both stay.
-5. **May a change to the committed counts rebuild the current month?** It is a forced run.
-   Recommend yes, for that case only. With no answer: no.
-6. **CLAUDE.md says `matrix`'s renderer "is planned" and Plot draws all six shapes** (it is an
-   HTML table, D-114), and its layout lacks new files. May Claude correct it? Recommend yes.
-7. **May a trade list (the FCAI's published sample, or one you can reach through work) be
-   cited for a model's segment?** Today it is a private check only; recommend keeping that.
-8. **The vehicle class table from the Land Transport Rule** (its site refuses an automated
-   reader): paste it and the class codes get their labels. With no answer they stay codes.
-9. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
-   sentence; the retaken dashboard history, due in Downloads.
+2. **The query service** (`docs/brief/QUERY_SERVICE_PROPOSAL.md`): the user decides after the
+   full engine is audited again (D-120). Nothing is provisioned or spent until then.
+3. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
+   sentence; the retaken dashboard history, due in Downloads (the user, 17 November: still
+   to come).
+
+Answered on 17 November (D-120): trade lists are a private check only, and none reached
+through the user's work is used at all; both readings of the chart rule stay; a change to
+the committed counts may be followed by one forced build of the current month; the line
+between mild and full hybrids stands.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
 D-082, D-085 to D-095 (the eighth session). This session: the readings in D-096, D-104 and
-D-106 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119. D-119 is the
-line between mild and full hybrids. Not yet in a record: the three sizes in queue item 3.
+D-106 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119 (D-119's line is
+now the user's). The tenth session: the readings in D-120, and CLAUDE.md's layout brought up
+to date. Not yet in a record: the three sizes in queue item 3.
 
 ## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
 

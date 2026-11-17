@@ -5295,3 +5295,59 @@ New entries use this template:
   and the stated-confidence figures did not move (91.88% and 91.93%: the unknown counts, 1,329 and 1,317, are unchanged). The figures
   above are the corrected ones; the version before the review read 80.23% and 80.28%, room 2,609 and 2,616.
 - Status: decided by Claude (unreviewed)
+
+## D-120 2026-11-17 — The user's answers of 17 November: trade lists stay a private check, two CLAUDE.md sentences corrected, class labels supplied, the owner table shown first, a supplied month may rebuild the current month, the hybrid line stands
+- Agent: user (the answers), claude (the record, and the readings marked)
+- Basis: the user's message opening the tenth session, 2026-11-17, answering the questions parked in
+  `docs/CHECKPOINT.md` as it stood at commit 06fca95 (there numbered 7, 6, 8, 3, 4, 5 and 2, and D-119). The
+  user's words are quoted.
+- Decision (user):
+  1. **Trade lists.** "Trade lists: a private check only. The FCAI's published sample may be used that way. Do
+     not use any list reached through my work at all. The public file cites only sources anyone can check."
+  2. **CLAUDE.md.** "Yes: correct the two CLAUDE.md sentences about the grid and Plot."
+  3. **Vehicle class labels.** "Vehicle class labels are in incoming/vehicle_class_labels.csv, from NZTA's
+     vehicle classes page, with source and date on each row. Check it against the codes in the register, use
+     it, and delete incoming/."
+  4. **The first owner-field table.** "Owner-field table: show me before any build publishes it. Yes, the
+     region slice takes the minimum of 10."
+  5. **The chart rule.** "Keep both readings of the chart rule."
+  6. **Rebuilding the current month.** "Yes: a supplied month may rebuild the current month, for that case
+     only."
+  7. **Mild or full.** "The hybrid definition stands."
+  8. **The query service.** "Query service: after the engine's audit."
+  And: "The retaken dashboard history is still to come; keep that part parked."
+- What follows, and claude's readings (unreviewed):
+  1. A row of `data/reference/model_segment.csv` rests only on a page anyone can open. The FCAI's published
+     sample stays what it was in D-117: a check made privately, whose result may be stated, and never a row's
+     basis. No list reached through the user's work is read, asked for or used, as a basis or as a check.
+  2. The two sentences are corrected in commit 4cb7106: the grid's renderer is an HTML table drawn from the
+     design tokens (D-114), and Observable Plot draws five of the six shapes. Claude's own choice, in a commit
+     of its own (3c6fbec) so it can be taken back alone: CLAUDE.md's repo layout now lists the files that
+     exist (the data map and its config form, the SUV-or-car file, three reference files, the committed
+     supplied counts, the site's tests). No invariant, non-goal or shape is touched by either.
+  3. The file holds 27 rows (class code, label, description, source, date). Read beside
+     `data/reference/class_map.csv`: every code the register carries has a row except `OTH`, and the file
+     has seven codes the map does not (`AA`, `AB`, `LB1`, `LB2`, `LE1`, `LE2`, `MD`). The pipeline piece
+     that uses it checks it against the saved pull's own codes, moves the labels into `class_map.csv` with
+     their source and date, and deletes `incoming/`. Until it merges the classes still show as codes. D-116's
+     statement that the codes' meanings had not been read is superseded by that piece's record.
+  4. The first table with an owner field is built on a local build and shown to the user, as figures and
+     screenshots, before any pull request that would let a GitHub build publish it is merged. Reading of
+     "takes the minimum of 10": the `region` slice gets the same floor (a cell under 10 vehicles hidden) when
+     that table is published, as the question was put ("then"), not before. The hiding itself is built and
+     tested privately first (D-096).
+  5. Nothing changes: both readings recorded in D-100 stay.
+  6. A change to the committed counts in `data/supplied/` may be followed by one forced Monthly build of the
+     month already built, without asking each time. This amends, for that case only, D-081's "a forced
+     Monthly build is asked for each time" and D-082's "a second forced run is not allowed". AGENTS.md hard
+     rule 7 says so in the same commit as this record. Every other forced run is still asked for.
+  7. D-119's line (a hybrid is full when its motor can move the car alone, mild when it cannot) is accepted
+     by the user. Reading: the answer covers the line; the classes of single nameplates under it stay data
+     that a better source can correct.
+  8. Reading: the choice between a paid function and lighter files (D-091) waits until the full engine
+     (package F) is finished and audited against the register's rows again, as on 16 November. Nothing is
+     provisioned and nothing is spent. Known issue 1 (a Build answer takes 6.6 to 10.3 s on a phone) stays
+     open until then.
+- Consequences: the questions these answer leave `docs/CHECKPOINT.md`. Still parked there: the site's name and
+  address, the Stats NZ hand export, going public, the privacy sentence, and the retaken dashboard history.
+- Status: accepted (the user's answers); the readings above are decided by Claude (unreviewed)
