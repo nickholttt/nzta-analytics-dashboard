@@ -301,6 +301,13 @@ export function noteRemoved(before: Pick<Question, "where">, asked: Question): Q
   return removed.length ? { ...asked, widened: [...(asked.widened ?? []), ...removed] } : asked;
 }
 
+// The question the page settles to when it changes. A condition the visitor took away is remembered as removed (noteRemoved); one the page itself
+// dropped because the link named a value the data does not hold (absentValues) is not, since the visitor removed nothing: the question then starts as
+// the same link without that condition would, with the condition its breakdown calls for (D-137).
+export function settleChange(all: Vocabulary, before: Pick<Question, "where">, asked: Question, byVisitor: boolean): Question {
+  return settle(all, byVisitor ? noteRemoved(before, asked) : asked);
+}
+
 // A question from the address bar, kept only as far as the page offers it; otherwise the nearest one that is. A
 // condition on the breakdown itself becomes the values compared, where the breakdown takes values, so choosing to break
 // down by what was a condition never quietly widens the question. A condition the page cannot apply (a field the fact
@@ -392,6 +399,61 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
   if (!asked.by2 && (asked.values2 ?? []).length > 0) note.value2 = true;
   if (asked.snapshot && !settled.snapshot) note.snapshot = { asked: asked.snapshot };
   return note;
+}
+
+// A value a question names for a field, as a breakdown's value or a condition's. The page's own starting values are not named by the visitor and are
+// read from the field's table, so they are not listed.
+export type NamedValue = { dimension: string; value: string };
+
+export function namedValues(q: Question): NamedValue[] {
+  const named: NamedValue[] = [
+    ...(q.by && !q.pageValues ? q.values.map((value) => ({ dimension: q.by as string, value })) : []),
+    ...(q.by && q.by2 ? (q.values2 ?? []).map((value) => ({ dimension: q.by2 as string, value })) : []),
+    ...Object.entries(q.where).flatMap(([dimension, kept]) => kept.map((value) => ({ dimension, value }))),
+  ];
+  const seen = new Set<string>();
+  return named.filter(({ dimension, value }) => !seen.has(`${dimension}|${value}`) && seen.add(`${dimension}|${value}`));
+}
+
+// Reads the values one dataset's own table of a field holds, given the other conditions the question has (they decide which file the field's picker
+// reads, and so which file this reads: src/lib/data.ts, fieldValues). Undefined when the table cannot be read; the picker says so itself.
+export type FieldValuesReader = (dataset: string, dimension: string, others: Record<string, string[]>) => Promise<ReadonlySet<string> | undefined>;
+
+// The values the question names that its dataset's own table of that field does not hold: a value the data never had or no longer has, which would
+// match no vehicle and say nothing. Judged by the question's own dataset, so a value that only another dataset holds is absent here. A field this
+// data cannot condition on is not judged (the page already says so), nor one whose table could not be read.
+export async function absentValues(q: Question, canApply: (dimension: string) => boolean, read: FieldValuesReader): Promise<NamedValue[]> {
+  const named = namedValues(q).filter((n) => canApply(n.dimension));
+  const applicable = Object.fromEntries(Object.entries(q.where).filter(([d, kept]) => canApply(d) && kept.length > 0));
+  const fields = [...new Set(named.map((n) => n.dimension))];
+  const held = await Promise.all(fields.map((d) => read(q.dataset, d, Object.fromEntries(Object.entries(applicable).filter(([other]) => other !== d)))));
+  return named.filter((n) => {
+    const table = held[fields.indexOf(n.dimension)];
+    return table !== undefined && !table.has(n.value);
+  });
+}
+
+// The question without those values: a condition left with no value goes with them, as it does when the visitor takes its last value away.
+export function withoutValues(q: Question, absent: NamedValue[]): Pick<Question, "values" | "values2" | "where"> {
+  const gone = (dimension: string, value: string) => absent.some((a) => a.dimension === dimension && a.value === value);
+  const where = Object.fromEntries(
+    Object.entries(q.where).flatMap(([d, kept]): [string, string[]][] => {
+      const left = kept.filter((v) => !gone(d, v));
+      return left.length === 0 && kept.length > 0 ? [] : [[d, left]];
+    }),
+  );
+  return {
+    values: q.by ? q.values.filter((v) => !gone(q.by as string, v)) : q.values,
+    values2: q.by2 ? (q.values2 ?? []).filter((v) => !gone(q.by2 as string, v)) : q.values2,
+    where,
+  };
+}
+
+// One sentence for each value a link named that the data does not hold.
+export function absentNotes(dataset: string, absent: NamedValue[], label: (value: string, dimension: string) => string = (v) => v): string[] {
+  return absent.map(({ dimension, value }) =>
+    fillTemplate(builderSpec.notices.absent, { asked: label(value, dimension), field: lowerFirst(dimensionLabel(dimension) ?? dimension), dataset: lowerFirst(datasetName(dataset)) }).text,
+  );
 }
 
 // The address-bar form of a question, scoped by the builder's id. Values repeat a key rather than join with a
