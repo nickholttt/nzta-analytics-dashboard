@@ -5318,8 +5318,9 @@ New entries use this template:
   And: "The retaken dashboard history is still to come; keep that part parked."
 - What follows, and claude's readings (unreviewed):
   1. A row of `data/reference/model_segment.csv` rests only on a page anyone can open. The FCAI's published
-     sample stays what it was in D-117: a check made privately, whose result may be stated, and never a row's
-     basis. No list reached through the user's work is read, asked for or used, as a basis or as a check.
+     sample stays a private check, as in D-117, and never a row's basis. Reading: the result already written
+     in D-117 and `docs/CHECKPOINT.md` stays as written, and is not extended or restated elsewhere. No list
+     reached through the user's work is read, asked for or used, as a basis or as a check.
   2. The two sentences are corrected in commit 4cb7106: the grid's renderer is an HTML table drawn from the
      design tokens (D-114), and Observable Plot draws five of the six shapes. Claude's own choice, in a commit
      of its own (3c6fbec) so it can be taken back alone: CLAUDE.md's repo layout now lists the files that
@@ -5331,16 +5332,19 @@ New entries use this template:
      that uses it checks it against the saved pull's own codes, moves the labels into `class_map.csv` with
      their source and date, and deletes `incoming/`. Until it merges the classes still show as codes. D-116's
      statement that the codes' meanings had not been read is superseded by that piece's record.
-  4. The first table with an owner field is built on a local build and shown to the user, as figures and
-     screenshots, before any pull request that would let a GitHub build publish it is merged. Reading of
+  4. Reading of "show me before any build publishes it": the first table with an owner field is built on a
+     local build and shown to the user, as figures and screenshots, before any pull request that would let a
+     GitHub build publish it is merged. Reading of
      "takes the minimum of 10": the `region` slice gets the same floor (a cell under 10 vehicles hidden) when
      that table is published, as the question was put ("then"), not before. The hiding itself is built and
      tested privately first (D-096).
   5. Nothing changes: both readings recorded in D-100 stay.
-  6. A change to the committed counts in `data/supplied/` may be followed by one forced Monthly build of the
-     month already built, without asking each time. This amends, for that case only, D-081's "a forced
-     Monthly build is asked for each time" and D-082's "a second forced run is not allowed". AGENTS.md hard
-     rule 7 says so in the same commit as this record. Every other forced run is still asked for.
+  6. A change to the committed counts in `data/supplied/` may be followed by a forced Monthly build of the
+     month already built. Readings: one such build per change, without asking each time; "the current month"
+     is the month already built; it covers no deploy and nothing that makes anything public. This amends,
+     for that case only, D-081's "a forced Monthly build is asked for each time" and D-082's "a second forced
+     run is not allowed". AGENTS.md hard rule 7 says so in the same commit as this record. Every other forced
+     run is still asked for.
   7. D-119's line (a hybrid is full when its motor can move the car alone, mild when it cannot) is accepted
      by the user. Reading: the answer covers the line; the classes of single nameplates under it stay data
      that a better source can correct.

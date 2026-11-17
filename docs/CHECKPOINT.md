@@ -21,7 +21,7 @@ Last updated by claude on 2026-11-17
   - No New Zealand government dataset classes models as SUVs (Rightcar and EECA's label site
     have no download; Clean Car Standard model data comes by request, with no body type).
   - Vehicle class MC is four-wheel drive plus four of five measured clearances and angles (the
-    Rule's table as a certifier's 2010 sheet reproduces it): no SUV flag. Class labels wait.
+    Rule's table as a certifier's 2010 sheet reproduces it): no SUV flag. Class labels: queue item 0.
   - Stats NZ's series leaves out re-registered vehicles and differs from NZTA's by timing; no
     publisher states how it revises past months.
 
