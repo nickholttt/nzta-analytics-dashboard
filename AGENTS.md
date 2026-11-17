@@ -108,7 +108,7 @@ Setup, **not re-run this session** (the environment already existed):
   starts `deploy.yml`, and a job `archive` keeps the whole register for the month as one Parquet
   file in the private repository `nzta-register-archive` (D-063, D-071). `checks.yml` runs the
   pipeline tests, and the site's tests, typecheck and the query service prototype's tests, on every pull request (D-048, D-101). `deploy.yml` builds the public site from the newest
-  cube release; a second job uploads it to Cloudflare Pages from `main` only, behind the environment
+  cube release and keeps every earlier cube release's files beside it for pinned links (D-131); a second job uploads it to Cloudflare Pages from `main` only, behind the environment
   `production`, once the repository variable `CLOUDFLARE_PAGES_PROJECT` switches it on (D-072); its
   upload tool, wrangler, is pinned by its own lockfile in `.github/deploy/` (D-057). All of it is on
   `main` since 2026-11-13 (#26 to #29, #35, #37 to #39), and the first release, `cube-2026-10`, exists.

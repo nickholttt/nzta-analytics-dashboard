@@ -10,6 +10,7 @@ import type { Manifest } from "./data";
 import { monthLabel } from "./measures";
 import { drawnShapes, inferShape, questionFacts, resolvePreset } from "./resolve";
 import { nested, rollUps } from "./nesting";
+import { ownerDimensions } from "./owner";
 import type { MapDimension, MapField } from "./nesting";
 import { isChoosable } from "./reserved";
 import { needsBreakdown } from "./shapes";
@@ -53,7 +54,9 @@ export type BuilderOption = {
 export type FilterOption = { id: string; label: string };
 // What one dataset offers; label is how the page names what it counts.
 export type DatasetVocabulary = { dataset: string; label: string; measures: BuilderOption[]; filters: FilterOption[] };
-export type Vocabulary = { datasets: DatasetVocabulary[] };
+// owner: the dimensions made from a field that describes the owner (src/lib/owner.ts), which a kept snapshot's table of is read only where it says its
+// small cells were hidden (src/lib/kept.ts).
+export type Vocabulary = { datasets: DatasetVocabulary[]; owner: string[] };
 
 const findBuilderMeasure = (id: string) => builderSpec.measures.find((m) => m.id === id);
 const partsOf = (m: BuilderMeasure) => (m.parts ?? [m.id]).map(findBuilderMeasure).filter((x): x is BuilderMeasure => Boolean(x));
@@ -196,7 +199,7 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
     .filter((id) => isBuilt(manifest, id))
     .map((id) => datasetVocabulary(manifest, id))
     .filter((v) => v.measures.length > 0);
-  return { datasets };
+  return { datasets, owner: ownerDimensions(dataMapDoc as unknown as Parameters<typeof ownerDimensions>[0], dimensions) };
 }
 
 function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabulary {

@@ -12,7 +12,7 @@ import { conditionsSentence } from "../lib/scope";
 import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
 import type { Dimension, Preset } from "../lib/config";
-import type { Event, Manifest, SliceRow } from "../lib/data";
+import type { Event, Manifest, SliceRow, ViewSource } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, notRecordedDrawn, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { NOT_RECORDED_TOKEN } from "../lib/sentences";
@@ -102,10 +102,13 @@ export default function PresetPanel({
   audience = "public",
   anchored = true,
   defer = false,
+  snapshot,
 }: {
   presetId?: string;
   preset?: Preset;
   anchored?: boolean;
+  // A kept snapshot (a month) to read every figure of the chart from, instead of the newest (src/lib/kept.ts, D-131).
+  snapshot?: string;
   // Draw nothing from the cube until the page's first chart is drawn and this panel is within a screen of the visible
   // part of the page, so the charts below the first add no downloads before it draws (src/lib/loadGate.ts).
   defer?: boolean;
@@ -258,9 +261,9 @@ export default function PresetPanel({
   const effectivePreset = useMemo(() => (preset ? presetView(preset, activeGranularityId, activePeriod) : null), [preset, activeGranularityId, activePeriod]);
 
   useEffect(() => {
-    loadManifest().then(setManifest, (e) => setError(String(e)));
-    loadEvents().then(setEvents, (e) => setError(String(e)));
-  }, []);
+    loadManifest(snapshot).then(setManifest, (e) => setError(String(e)));
+    loadEvents(snapshot).then(setEvents, (e) => setError(String(e)));
+  }, [snapshot]);
 
   const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
   // The months the dataset covers, for every figure that sums a window: a month inside them in which a condition keeps nothing has no
@@ -277,9 +280,10 @@ export default function PresetPanel({
     setRows(null);
     setCompanion(null);
     const other = resolution?.companion;
+    const from = (s: ViewSource): ViewSource => (snapshot === undefined ? s : { ...s, snapshot });
     Promise.all([
-      loadView(source).then(async (loaded) => [loaded, await loadFirstMonth(source, loaded)] as const),
-      other ? loadView(other) : Promise.resolve(null),
+      loadView(from(source)).then(async (loaded) => [loaded, await loadFirstMonth(from(source), loaded)] as const),
+      other ? loadView(from(other)) : Promise.resolve(null),
     ]).then(
       ([[loaded, first], second]) => {
         if (!current) return;
@@ -296,7 +300,7 @@ export default function PresetPanel({
     return () => {
       current = false;
     };
-  }, [resolution, wanted]);
+  }, [resolution, wanted, snapshot]);
 
   // The page's first chart, once it is drawn or cannot be (an error, nothing to draw, a view the cube cannot give), lets the deferred
   // ones begin. A chart that has its rows is drawn a moment later, and its height is what moves the panels below it, so the gate
