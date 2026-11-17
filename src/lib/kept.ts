@@ -8,6 +8,7 @@
 import { builderSpec } from "./config";
 import { builderPresets, isMonthKey } from "./builder";
 import type { Question } from "./builder";
+import { SMALL_CELL_KEY } from "./data";
 import type { Manifest } from "./data";
 import { pinNote, servedMonth } from "./pin";
 import type { PinNote } from "./pin";
@@ -16,8 +17,9 @@ import { fillTemplate } from "./sentences";
 import type { KeptSnapshots } from "./snapshotIndex";
 
 // The key of a snapshot's manifest that says the small-cell rule (D-096, D-127) was applied to its owner-field tables: for each dataset, one entry
-// for each dimension whose slice had small cells hidden (docs/CUBE_SCHEMA.md, the manifest's small_cells block). Nothing else reads the key.
-export const SMALL_CELL_KEY = "small_cells";
+// for each dimension whose slice had small cells hidden (docs/CUBE_SCHEMA.md, the manifest's small_cells block). It is defined in data.ts, where the
+// resolver also reads it (D-130), and kept exported from here for the tests and the script that name it.
+export { SMALL_CELL_KEY };
 
 // The dimensions made from an owner field, as the vocabulary gives them (Vocabulary.owner).
 export type Owner = ReadonlySet<string>;
