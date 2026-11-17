@@ -332,6 +332,15 @@ What is established, and what is not:
   ours without 190 range-extended electric vehicles is 6,862.
 - **Not explained:** one used-import figure for October 2025 published on
   the month's last day (7,381 against our 6,999).
+- **A second published source, compared on 2026-11-17 (the lead's check; D-118).**
+  The Motor Trade Association's vstat site (vstat.mta.org.nz), which says it is
+  built from NZTA data, shows for October 2026 the same count of new passenger
+  cars and vans as true registrations here (11,824) and the same top ten new
+  models. It counts mild hybrids, including 48-volt diesel utes, as hybrids,
+  where this site shows them as a line of their own. Its hybrid figure for new
+  passenger cars and vans in October 2026, 4,978, equals this site's hybrid line
+  and mild hybrid line together (4,472 and 506, recomputed from the fact table
+  on 2026-11-17). The comparison is of counts; no definition of the MTA's was read.
 - **Not compared:** the Ministry of Transport's fleet statistics and the
   MIA's brand and model lists could not be read (the first refuses automated
   readers, the second is for members). AutoTalk's top ten brands and models
