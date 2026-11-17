@@ -83,6 +83,37 @@ test("on a newer snapshot a ranking says the figures are the newer snapshot's an
   );
 });
 
+test("a dataset whose manifest gives no first month is told it by the chart: a pinned month it covers is said to keep its window, one before it is not", () => {
+  const manifest = manifestOf("2026-11-30");
+  const q = read(`${ranking}&build.snapshot=2026-10`);
+  assert.equal(findPeriod(builderPresets(q)[0].period)?.months, 12, "the window this test counts from");
+  // The first month the chart's rows hold vehicles in, as loadFirstMonth gives it.
+  const told = pinNote(q, manifest, "2012-04");
+  assert.equal(told?.kind, "newer");
+  assert.equal(
+    told?.text,
+    "Pinned to Oct 2026: the window keeps ending in that month. The figures come from the newer snapshot of 30 November 2026, so they may differ from those seen when it was pinned.",
+  );
+  // Told nothing, the line claims no window, as before.
+  assert.doesNotMatch(pinNote(q, manifest)?.text ?? "", /keeps ending/);
+  // A pinned month before the first month plus the window's length has no window: the chart shows the newest month, and the line says so.
+  const early = pinNote(read(`${ranking}&build.snapshot=2012-10`), manifest, "2012-04");
+  assert.equal(early?.kind, "uncovered");
+  assert.equal(pinNote(read(`${ranking}&build.snapshot=2013-03`), manifest, "2012-04")?.kind, "newer", "the first month plus 11 is covered");
+  assert.equal(pinNote(read(`${ranking}&build.snapshot=2013-02`), manifest, "2012-04")?.kind, "uncovered", "the month before it is not");
+  // A supplied dataset's own first month, which the manifest states, is not replaced by what the chart saw.
+  const supplied = pinNote(rankingOn(behind, "&build.snapshot=2021-11"), behindManifest("2026-10-31", "2026-10"), "1990-01");
+  assert.equal(supplied?.kind, "uncovered");
+});
+
+test("the Build page hands the first month the chart loaded to the pinned line, from the first chart only", () => {
+  const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
+  assert.ok(read("src/components/QuestionBuilder.tsx").includes("pinLine(question, served, reading, firstSeen?.key === firstKey ? firstSeen.month : undefined)"));
+  assert.ok(read("src/components/QuestionBuilder.tsx").includes("onFirstMonth={i === 0 ? (month) => setFirstSeen({ key: panelKey(p.id), month }) : undefined}"));
+  assert.match(read("src/components/PresetPanel.tsx"), /setFirstMonth\(first\);\s+tell\.current\?\.\(first\);/);
+  assert.ok(read("src/lib/kept.ts").includes("pinNote(q, reading.manifest, firstMonth)"));
+});
+
 test("a chart that cannot end in an earlier month says it runs to the newest, never that its window is held", () => {
   const q = read(`build.measure=count&build.by=${long}&build.value=a&build.value=b&build.snapshot=2026-10`);
   assert.equal(holdsWindow(q), false);

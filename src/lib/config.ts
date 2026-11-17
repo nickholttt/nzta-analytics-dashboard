@@ -91,6 +91,8 @@ export type Dimension = {
   // its counterpart on the public pages; /status keeps the original.
   public_label?: string;
   public_note?: string;
+  // The note in one line, shown in place of public_note with a link to the full one (src/lib/dimensionNote.ts, D-137).
+  public_line?: string;
   // A note that holds only in some states of a build names a condition (src/lib/dimensionNote.ts) and gives what to say when it does not.
   note_condition?: string;
   note_otherwise?: string;
@@ -208,7 +210,7 @@ export type BuilderSpec = {
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
-  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string; narrowed: string; narrowed_label: string };
+  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; absent: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string; narrowed: string; narrowed_label: string };
   not_offered: NotOffered[];
 };
 
@@ -223,7 +225,7 @@ type PresetsDoc = {
       PickedRankingPhrases &
       FiguresPhrases & { figures_not_recorded_cell: string; figures_withheld_thin: string; share_change_no_prior: string; not_ranked_before: string; year_too_few_window: string; period_replaced: string } &
       YearPhrases &
-      MatrixPhrases & { identification_together: string; matrix_none: string; matrix_units: string; matrix_basis_head: string; matrix_basis_count: string; matrix_basis_all: string; matrix_basis_row: string; matrix_basis_column: string; matrix_total_count: string; matrix_total_share: string; matrix_legend_count: string; matrix_legend_share: string; matrix_legend_unshaded: string; matrix_legend_unshaded_plain: string; matrix_legend_up_to: string; matrix_legend_range: string; matrix_region: string; matrix_eyebrow: string; build_second_label: string; build_second_hint_ordered: string; chart_load_failed_label: string; chart_load_failed: string; chart_draw_failed_label: string; chart_draw_failed: string; matrix_legend_grey: string; matrix_window_pick: string; matrix_month_pick: string; matrix_scroll_hint: string; matrix_no_base_row: string; matrix_no_base_column: string; build_second_and: string; build_second_none: string; build_second_swap: string; build_second_remove: string; build_second_rows: string; build_second_columns: string; build_second_hint: string } & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; share_with_not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; grey_beyond_scale: string };
+      MatrixPhrases & { identification_together: string; matrix_none: string; matrix_units: string; matrix_basis_head: string; matrix_basis_count: string; matrix_basis_all: string; matrix_basis_row: string; matrix_basis_column: string; matrix_total_count: string; matrix_total_share: string; matrix_legend_count: string; matrix_legend_share: string; matrix_legend_unshaded: string; matrix_legend_unshaded_plain: string; matrix_legend_up_to: string; matrix_legend_range: string; matrix_region: string; matrix_eyebrow: string; build_second_label: string; build_second_hint_ordered: string; chart_load_failed_label: string; chart_load_failed: string; chart_draw_failed_label: string; chart_draw_failed: string; matrix_legend_grey: string; matrix_window_pick: string; matrix_month_pick: string; matrix_scroll_hint: string; matrix_no_base_row: string; matrix_no_base_column: string; build_second_and: string; build_second_none: string; build_second_swap: string; build_second_remove: string; build_second_rows: string; build_second_columns: string; build_second_hint: string } & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; share_with_not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; field_note_link: string; grey_beyond_scale: string };
     matrix: { rows: number; columns: number; step_fractions: number[]; cells: Record<string, string> };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];

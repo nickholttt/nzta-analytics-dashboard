@@ -135,8 +135,8 @@ export function pickerMonth(reading: Reading | undefined, dataset: string, dimen
 export type KeptNote = PinNote | { kind: "kept" | "withheld"; text: string };
 
 // The line above the chart for a pinned question, given where it reads from; undefined for a question that is not pinned.
-export function pinLine(q: Question, served: Manifest, reading: Reading): KeptNote | undefined {
-  const newest = pinNote(q, served);
+export function pinLine(q: Question, served: Manifest, reading: Reading, firstMonth?: string): KeptNote | undefined {
+  const newest = pinNote(q, served, firstMonth);
   if (reading.kind === "served" || !newest) return newest;
   const notices = builderSpec.notices;
   const say = (template: string) => fillTemplate(template, { pinned: q.snapshot, date: reading.manifest.latest_snapshot }).text;
@@ -144,6 +144,6 @@ export function pinLine(q: Question, served: Manifest, reading: Reading): KeptNo
     return { kind: "withheld", text: `${say(reading.why === "owner" ? notices.pin_kept_withheld : notices.pin_kept_missing)} ${newest.text}` };
   }
   // Where the dataset ends before the snapshot or the pinned month has no window, the line the kept snapshot gives is the one that says so.
-  const own = pinNote(q, reading.manifest);
+  const own = pinNote(q, reading.manifest, firstMonth);
   return own && own.kind !== "same" ? own : { kind: "kept", text: say(notices.pin_kept) };
 }
