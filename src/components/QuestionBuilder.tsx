@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases, valueWords } from "../lib/config";
 import { REST_NAME, isChoosable } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, addressParams, builderPresets, isMonthKey, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, addressParams, builderPresets, isMonthKey, narrowingNotes, noteRemoved, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
@@ -280,6 +280,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const countsLines = measure.id === "count" || builderSpec.measures.find((m) => m.id === measure.id)?.parts?.includes("count");
   const presets = useMemo(() => builderPresets(question, (v) => valueLabel(v, question.by ?? undefined)), [question]);
   const views = useMemo(() => viewsFor(question), [question]);
+  // Said while the question still holds the condition a breakdown's field calls for (D-132).
+  const narrowed = useMemo(() => narrowingNotes(all, question), [all, question]);
   const pin = served && reading ? pinLine(question, served, reading) : undefined;
   const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
   // The other shapes a question may be drawn as are a choice of their own; the ranking is reached from the values, where it is about them.
@@ -329,7 +331,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     // A condition with no value yet keeps every vehicle and has no place in the address, so settle drops it. It stays
     // on the page while the visitor changes something else, and goes only when they remove it.
     const held = Object.entries(asked.where ?? {}).filter(([d, kept]) => kept.length === 0 && canApply(d));
-    const settled = settle(all, asked);
+    // A condition the question had and the visitor took away stays away, though a breakdown would start the question with it (D-132).
+    const settled = settle(all, noteRemoved(latest.current, asked));
     for (const [d] of held) if (d !== settled.by && !(d in settled.where)) settled.where[d] = [];
     latest.current = settled;
     if (fromVisitor) setNotices([]);
@@ -673,6 +676,13 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
           </div>
         ) : null}
       </form>
+
+      {narrowed.map((text) => (
+        <div className="callout curated" role="status" key={text}>
+          <span className="callout-label">{builderSpec.notices.narrowed_label}</span>
+          {text}
+        </div>
+      ))}
 
       {pin ? (
         <div className={pin.kind === "same" || pin.kind === "kept" ? "callout curated" : "callout warning"} id="pin-line">
