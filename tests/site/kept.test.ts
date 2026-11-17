@@ -244,3 +244,15 @@ test("what a kept snapshot is asked about is what the chart reads: no question B
   }
   assert.ok(checked > 20, "the test looked at the questions Build offers");
 });
+
+test("the deploy script's list of owner dimensions and its manifest key are the page's: the same files, the same rule, so the two cannot drift", async () => {
+  const script = await import("../../scripts/kept-snapshots.mjs");
+  assert.deepEqual(script.realOwnerDimensions(), ownerDimensions(dataMap, dimensions));
+  assert.deepEqual(script.realOwnerDimensions(), vocabulary.owner);
+  assert.equal(script.SMALL_CELL_KEY, SMALL_CELL_KEY);
+  // And on a map that uses each way a field can be an owner's (its class, its group) and each way a dimension can read one (its id, a lookup, a nested derive).
+  const map = { owner_groups: ["who"], fields: [{ bound: "own", privacy: "owner_restricted" }, { bound: "grouped", group: "who", privacy: "public" }, { bound: "plain", group: "vehicle", privacy: "public" }, { bound: null, privacy: "owner_restricted" }] };
+  const dims = [{ id: "own" }, { id: "by_lookup", derive: { kind: "lookup", field: "own" } }, { id: "by_group", derive: { kind: "copy", from: { field: "grouped" } } }, { id: "vehicle_thing", derive: { field: "plain" } }];
+  assert.deepEqual(script.ownerDimensionIds(map, dims), ownerDimensions(map, dims));
+  assert.deepEqual(script.ownerDimensionIds(map, dims), ["own", "by_lookup", "by_group"]);
+});

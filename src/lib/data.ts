@@ -15,7 +15,7 @@ import type { KeptSnapshots } from "./snapshotIndex";
 export { monthKey };
 
 const DATA = "/data";
-// An earlier snapshot is read from a folder of its own, the cube exactly as that month's release held it (D-131).
+// An earlier snapshot is read from a folder of its own, that month's release less any owner table its manifest does not cover (D-131).
 const KEPT = "snapshots";
 
 // The cube is written with zstd (docs/CUBE_SCHEMA.md); hyparquet reads snappy and uncompressed pages itself. The package

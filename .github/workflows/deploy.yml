@@ -107,13 +107,14 @@ jobs:
 
       # Every earlier snapshot's cube, so a link pinned to a month shows that month's figures (D-131): each published
       # cube-YYYY-MM release that carries the cube's file, other than the newest (which is in public/data already), is
-      # unpacked as released into public/data/snapshots/<YYYY-MM>. The tag list is read into a variable first, so a failed
+      # unpacked into public/data/snapshots/<YYYY-MM>. The tag list is read into a variable first, so a failed
       # request stops the run instead of reading as no releases, and with --paginate so no release past the first hundred
       # is left out (the filter runs on each page, so it still gives one tag a line, only not in one order across pages).
       # A release that cannot be downloaded or unpacked stops the run too, since a deploy that quietly dropped a snapshot
       # would break the links pinned to it. With one release, or none, there is nothing to keep and the index is written
-      # empty. The script checks each folder (its manifest must be for the month it is named for) and writes the index
-      # the page reads.
+      # empty. The script checks each folder (its manifest must be for the month it is named for), removes from it any table
+      # of an owner field that its manifest does not say the small-cell rule was applied to (so a kept folder is the release
+      # less those tables, and the summary lists them), and writes the index the page reads.
       - name: The earlier snapshots
         if: steps.site.outputs.ready == 'true'
         run: |

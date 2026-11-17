@@ -4,14 +4,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const script = fileURLToPath(new URL("../../scripts/kept-snapshots.mjs", import.meta.url));
 const checker = fileURLToPath(new URL("../../scripts/check-public-build.mjs", import.meta.url));
-const { indexProblems, problemsIn, readKept, writeIndex } = await import("../../scripts/kept-snapshots.mjs");
+const { SMALL_CELL_KEY, indexProblems, ownerTableProblems, problemsIn, readKept, realOwnerDimensions, uncoveredOwnerTables, withholdOwnerTables, writeIndex } = await import("../../scripts/kept-snapshots.mjs");
 
 // A data folder whose newest snapshot is `served`, with the kept folders given: folder name -> the snapshot date its manifest names (null: no manifest).
 function data(served: string, kept: Record<string, string | null>) {
@@ -137,4 +137,100 @@ test("the public-build check fails when a kept folder is malformed or the index 
   } finally {
     rmSync(dist, { recursive: true, force: true });
   }
+});
+
+// A kept folder with tables for an owner dimension and for others, as a release holds them. `covered`: the entry the manifest gives each dataset's
+// small_cells block for the owner dimension (undefined: the manifest has no such block).
+const owner = realOwnerDimensions()[0];
+const other = "plain_a";
+const other2 = "plain_b";
+const dataset = "ds";
+function withKept(covered: unknown, run: (dir: string, folder: string) => void) {
+  const dir = mkdtempSync(join(tmpdir(), "owner-"));
+  try {
+    writeFileSync(join(dir, "manifest.json"), JSON.stringify({ latest_snapshot: "2026-12-31" }));
+    const folder = join(dir, "snapshots", "2026-10");
+    const datasetEntry = covered === undefined ? {} : { [SMALL_CELL_KEY]: { [owner]: covered } };
+    mkdirSync(folder, { recursive: true });
+    writeFileSync(join(folder, "manifest.json"), JSON.stringify({ latest_snapshot: "2026-10-31", datasets: { [dataset]: datasetEntry } }));
+    for (const file of [
+      `cube/${dataset}/${owner}.parquet`,
+      `cube/${dataset}/${other}.parquet`,
+      `pairs/${dataset}/${owner}__${other}.parquet`,
+      `pairs/${dataset}/${other}__${owner}.parquet`,
+      `pairs/${dataset}/${other}__${other2}.parquet`,
+      `facts/${dataset}/${owner}.parquet`,
+      `facts/${dataset}/n.parquet`,
+      `facts/${dataset}/${other}.parquet`,
+    ]) {
+      mkdirSync(join(folder, file, ".."), { recursive: true });
+      writeFileSync(join(folder, file), "x");
+    }
+    run(dir, folder);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+const OWNER_FILES = [`cube/${dataset}/${owner}.parquet`, `facts/${dataset}/${owner}.parquet`, `pairs/${dataset}/${other}__${owner}.parquet`, `pairs/${dataset}/${owner}__${other}.parquet`].sort();
+
+test("a kept folder whose manifest has no small_cells block loses every table of an owner dimension, and keeps every other file", () => {
+  assert.ok(owner, "the data map needs an owner dimension");
+  withKept(undefined, (dir, folder) => {
+    assert.deepEqual(uncoveredOwnerTables(folder), OWNER_FILES);
+    const run = cli(dir);
+    assert.equal(run.status, 0, run.out);
+    for (const file of OWNER_FILES) assert.match(run.out, new RegExp(`Withheld snapshots/2026-10/${file.replace(/[.]/g, "[.]")}`));
+    for (const file of OWNER_FILES) assert.throws(() => readFileSync(join(folder, file)), file);
+    for (const file of [`cube/${dataset}/${other}.parquet`, `pairs/${dataset}/${other}__${other2}.parquet`, `facts/${dataset}/n.parquet`, `facts/${dataset}/${other}.parquet`, "manifest.json"]) {
+      assert.equal(readFileSync(join(folder, file), "utf8").length > 0, true, file);
+    }
+    assert.deepEqual(ownerTableProblems(dir), []);
+  });
+});
+
+test("a kept folder whose manifest says the rule was applied to the owner dimension keeps its tables", () => {
+  withKept({ minimum: 10 }, (dir, folder) => {
+    assert.deepEqual(uncoveredOwnerTables(folder), []);
+    const run = cli(dir);
+    assert.equal(run.status, 0, run.out);
+    assert.doesNotMatch(run.out, /Withheld/);
+    for (const file of OWNER_FILES) assert.equal(readFileSync(join(folder, file), "utf8"), "x", file);
+  });
+});
+
+test("an entry that is not a block under the dimension does not cover it", () => {
+  for (const entry of [null, false, [], "applied"]) {
+    withKept(entry, (_dir, folder) => assert.deepEqual(uncoveredOwnerTables(folder), OWNER_FILES, JSON.stringify(entry)));
+  }
+});
+
+test("the script's own removal is one function and the check reads the same: withholdOwnerTables removes what ownerTableProblems names", () => {
+  withKept(undefined, (dir) => {
+    assert.equal(ownerTableProblems(dir).length, OWNER_FILES.length);
+    assert.equal(withholdOwnerTables(dir).length, OWNER_FILES.length);
+    assert.deepEqual(ownerTableProblems(dir), []);
+  });
+});
+
+test("the public-build check fails when an owner table that the snapshot does not cover is put back, and names it", () => {
+  withKept(undefined, (dir, folder) => {
+    const dist = mkdtempSync(join(tmpdir(), "dist-"));
+    try {
+      mkdirSync(join(dist, "_astro"));
+      writeFileSync(join(dist, "index.html"), `<html><astro-island component-url="/_astro/Entry.AbCd1234.js"></astro-island></html>`);
+      writeFileSync(join(dist, "_astro", "Entry.AbCd1234.js"), "export const a = 1;");
+      cpSync(dir, join(dist, "data"), { recursive: true });
+      const check = () => spawnSync(process.execPath, [checker, dist], { encoding: "utf8" });
+      assert.match(check().stderr, new RegExp(`snapshots/2026-10/cube/${dataset}/${owner}[.]parquet is a table of an owner field`));
+      assert.equal(spawnSync(process.execPath, [script, join(dist, "data")], { encoding: "utf8" }).status, 0);
+      const clean = check();
+      assert.equal(clean.status, 0, clean.stderr);
+      mkdirSync(join(dist, "data", "snapshots", "2026-10", "cube", dataset), { recursive: true });
+      writeFileSync(join(dist, "data", "snapshots", "2026-10", "cube", dataset, `${owner}.parquet`), "x");
+      assert.equal(check().status, 1);
+      assert.match(check().stderr, /owner field/);
+    } finally {
+      rmSync(dist, { recursive: true, force: true });
+    }
+  });
 });
