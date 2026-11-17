@@ -456,6 +456,26 @@
       "$comment": "A blank class is the only form of not recorded: it reads __UNDEFINED__ and sentinels.csv lists none for this field, because NA is a real class (a light goods vehicle) and must never be treated as one. class_map.csv holds every code on the whole register, so a vehicle type brought into scope later does not trip the unmapped guard, and a new code does (pipeline.json guardrails.abort_on_unmapped). Not live for the datasets whose source carries no class (derive.applicable), with no applies_to."
     },
     {
+      "id": "seats_band",
+      "label": "Seats",
+      "public_note": "The number of seats NZTA records, in bands. Seats are not recorded for many of the vehicles first registered from early 1994 to late 1995, so unknown is large for those months and small otherwise. A count of zero is not recorded, and a count above 60 is not taken as a number of seats: both are counted as unknown.",
+      "source": "nzta:number_of_seats",
+      "derive": { "kind": "band", "field": "seats" },
+      "kind": "ordered_band",
+      "cardinality": "low",
+      "help": "How many seats NZTA records for the vehicle, in bands from 1-2 to 8 or more.",
+      "basis": "NUMBER_OF_SEATS, inside the guard of 1 to 60",
+      "$comment": "min and max are inclusive; the top band stops at the guard (60), so a count above it, which is not a number of seats, falls to unknown. A zero is the form of not recorded (sentinels.csv), so it is NULL by the time it is banded and falls to unknown too; the manifest counts the two causes apart (bands.seats_band.source_sentinel, out_of_bands). No mean or median is built.",
+      "bands": [
+        { "label": "1-2", "min": 1, "max": 2 },
+        { "label": "3-4", "min": 3, "max": 4 },
+        { "label": "5", "min": 5, "max": 5 },
+        { "label": "6-7", "min": 6, "max": 7 },
+        { "label": "8+", "min": 8, "max": 60 },
+        { "label": "unknown", "unknown": true }
+      ]
+    },
+    {
       "id": "model",
       "label": "Model",
       "source": "nzta:make + nzta:model + reference:model_registry",

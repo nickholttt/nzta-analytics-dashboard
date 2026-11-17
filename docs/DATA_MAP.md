@@ -69,7 +69,7 @@ and a median). Values are S then W. Privacy is the class the user approved (D-09
 | `MAKE` | category, many | 371; 1,030 | B F, count | public | `make` |
 | `MODEL` | category, many | 28,000; 175,398 | B (within make) F, count | public | `model` |
 | `BASIC_COLOUR` | category, many | 14; 14 | B F, count | public | no |
-| `NUMBER_OF_SEATS` | number | 172; 193 | B (banded) F, count, average, median | public | no |
+| `NUMBER_OF_SEATS` | number | 172; 193 | B (banded) F, count (average and median not built) | public | `seats` |
 | `NUMBER_OF_AXLES` | number | 10; 10 | F, count | public | no |
 | `TRANSMISSION_TYPE` | category, many | 28; 28 | B F, count (NZ-new only) | public | no |
 | `SYNTHETIC_GREENHOUSE_GAS` | category, many | 38; 39 | B F, count (from 2010) | public | no |
@@ -105,7 +105,7 @@ The dashboard's 13 columns are in "The dashboard's fields" below: each is as its
 except where that section says otherwise. Ten are public; `Owner Type`, `Territorial
 authority` and `Vehicle usage` fall under the owner rule.
 
-Counts. Register: 19 bound and 21 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
+Counts. Register: 20 bound and 20 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
 2 place, 1 free text. By class: 31 public, 5 under the owner rule, 2 never published,
 2 never pulled. Dashboard: 10 category, 1 time, 1 number, 1 place; 10 public, 3 under the owner rule.
 
@@ -349,14 +349,28 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 - **Meaning.** NZTA: "Records the number of seats in a vehicle".
 - **Kind and values.** Number. 172 values on S, 193 on W. Median 5.
-- **Uses.** Break down banded, filter; average and median inside the guard. Proposed bands, with the
-  S share inside the range: 1-2 (4.5%), 3-4 (8.1%), 5 (75.4%), 6-7 (9.8%), 8+ (2.2%).
+- **Uses.** Break down banded, filter; average and median inside the guard. **Bound as bands only**
+  (D-116): the dimension `seats_band` ("Seats"), a slice and a fact-table column of
+  `registrations_surviving`. On the cube's 4,520,304 vehicles the bands are 1-2: 201,636 (4.5%); 3-4:
+  364,527 (8.1%); 5: 3,402,655 (75.3%); 6-7: 441,525 (9.8%); 8+ (8 to 60): 101,346 (2.2%); unknown:
+  8,615 (0.2%). An average or a median needs a sum and a count per cell, as fuel consumption has, and
+  is not built.
 - **Coverage.** S 99.8% (NEW 99.7%, USED 100.0%); the 1990s 94.7%. W 79.8%: trailers and motorcycles
-  have none.
-- **Not recorded.** Zero (S 8,408, almost all NZ-new; W 1,200,405). **Not in `sentinels.csv`.**
-- **Traps.** 207 S vehicles have more than 60 seats (up to 999); 158 S vehicles with about 50 seats
-  are cars or goods vehicles. Proposed guard: 1 to 60. The mean moves little (S 5.011 over every
-  real value, 5.001 inside the guard).
+  have none. **The gap is in 1994 and 1995.** Of the 8,408 zeros on the cube, 8,368 are vehicles first
+  registered from January 1994 to December 1995, 34 were first registered before 1994 and 6 in 1998
+  to 2001. In 23 months, January 1994 to November 1995, more than 1% of the month's vehicles have no seats
+  recorded: between 27% and 37% of each month's vehicles from April 1994 to October 1995 (428 of 1,507
+  in August 1995). In December 1995 it is 2 of 1,388, and from January 1996 on 6 vehicles in all. So a chart of seats over
+  time is honest up to December 1993 and from December 1995, and the `unknown` band shows the gap in
+  between.
+- **Not recorded.** Zero (S 8,408, almost all NZ-new: 8,398 NZ-new and 10 used; W 1,200,405).
+  `0` is in `sentinels.csv` under this field since D-116, so it is counted as a source sentinel and
+  falls in `unknown`.
+- **Traps.** 207 S vehicles have more than 60 seats (up to 999; 174 passenger cars and vans, 33
+  goods vehicles); 158 S vehicles with about 50 seats are cars or goods vehicles. The guard is 1 to 60
+  (D-116): a count above it falls in `unknown`, counted apart from the zeros in the manifest
+  (`bands.seats_band.out_of_bands` 207, `source_sentinel` 8,408). The mean moves little (S 5.011 over
+  every real value, 5.001 inside the guard).
 - **Privacy.** Public.
 - **Relations.** Moves together with: vehicle type 0.49, road transport code 0.44 (57,219 vehicles),
   body type 0.43 (measured).
@@ -1209,7 +1223,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | Field | Sentinels and guards before it is bound |
 |---|---|
 | `BASIC_COLOUR` | None new (NULL is covered). A raw dimension. Its label says "colour as recorded", since the moment is not known |
-| `NUMBER_OF_SEATS` | Add `0` to `sentinels.csv`. Bands 1-2, 3-4, 5, 6-7, 8+ and `unknown`; values above 60 fall to `unknown`. A mean only inside 1 to 60 |
+| `NUMBER_OF_SEATS` | **Bound as bands (D-116).** `0` added to `sentinels.csv`. Bands 1-2, 3-4, 5, 6-7, 8+ and `unknown`; values above 60 fall to `unknown`. A mean only inside 1 to 60: not built |
 | `NZ_ASSEMBLED` | **Bound (D-116).** `UNKNOWN` added to `sentinels.csv`. Charts over time start in December 1995 |
 | `CLASS` | **Bound (D-116).** NULL is covered. **`NA` must never become a sentinel**; a test holds it. `class_map.csv` gives each code a label; no definition could be read, so the label is the code and the meaning stays inferred. Charts start in March 2002 |
 

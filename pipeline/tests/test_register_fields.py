@@ -10,9 +10,11 @@ in this file (invariant 1): every code, label and form is read from config and t
 from __future__ import annotations
 
 import csv
+import json
 import math
 import shutil
 from collections import Counter
+from pathlib import Path
 
 import duckdb
 import pytest
@@ -24,6 +26,7 @@ from pipeline.errors import GuardrailError
 from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
 
 SURVIVING = "registrations_surviving"
+ROOT = Path(__file__).resolve().parents[2]
 # The dimensions of this module that are a lookup on one register field.
 LOOKUPS = ["nz_assembled", "nzta_class"]
 
@@ -261,3 +264,109 @@ def test_vehicles_of_the_na_class_are_counted_under_their_label_and_only_a_blank
     assert counts[reference_labels(cfg, CLASS_DIM)[LOOKS_LIKE_MISSING]] == na_vehicles
     assert counts[UNDEFINED] == blank
     assert counts[UNMAPPED] == 0
+
+
+# --- seats, in bands ----------------------------------------------------------------------------------------------------
+
+SEATS_DIM = "seats_band"
+SEATS_FIELD = "seats"
+# A month no fixture vehicle was first registered in, so that month's slice holds the vehicles a test adds and no others.
+EMPTY_YEAR, EMPTY_MONTH = 2024, 3
+# The edges of the bands, and the counts either side of the guard. Numbers, not domain values.
+SEAT_COUNTS = [None, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 59, 60, 61, 62, 999]
+ZERO_FORM = "0"
+
+
+def seat_bands(cfg) -> tuple[list[dict], str]:
+    bands = spec_of(cfg, SEATS_DIM)["bands"]
+    return bands, next(b["label"] for b in bands if b.get("unknown"))
+
+
+def seat_vehicles(counts, first_id: int) -> list[dict]:
+    template = next(r for r in load_rows() if r["OBJECTID"] == 62)
+    return [dict(template, OBJECTID=first_id + i, FIRST_NZ_REGISTRATION_YEAR=EMPTY_YEAR, FIRST_NZ_REGISTRATION_MONTH=EMPTY_MONTH,
+                 NUMBER_OF_SEATS=n) for i, n in enumerate(counts)]
+
+
+def band_of(cfg, n) -> str:
+    """Where a count of seats lands, worked out from the bands in config and the forms of not recorded, not from the build."""
+    bands, unknown = seat_bands(cfg)
+    if n is None or str(n) in sentinel_forms(cfg, cfg.pipeline["fields"][SEATS_FIELD]):
+        return unknown
+    return next((b["label"] for b in bands if "min" in b and b["min"] <= n <= b["max"]), unknown)
+
+
+def test_the_seat_bands_do_not_overlap_start_above_zero_and_stop_at_the_guard():
+    cfg = make_cfg({})
+    bands, unknown = seat_bands(cfg)
+    ranged = [b for b in bands if "min" in b]
+    assert [b for b in bands if b.get("unknown")] == [{"label": unknown, "unknown": True}]
+    for a, b in zip(ranged, ranged[1:]):
+        assert a["max"] + 1 == b["min"], f"{a['label']} and {b['label']} leave a gap or overlap"
+    assert ranged[0]["min"] == 1, "zero seats is not a number of seats: it is the form of not recorded"
+    top = ranged[-1]["max"]
+    assert top == 60
+    guard = next(e for e in json.loads((ROOT / "config" / "data_map.json").read_text(encoding="utf-8"))["fields"]
+                 if e["name"] == cfg.pipeline["fields"][SEATS_FIELD])["guard"]
+    assert (guard["valid_min_inclusive"], guard["valid_max_inclusive"]) == (ranged[0]["min"], top)
+    assert guard["status"] == "bound", "the guard is applied by the bands, so the map must not call it proposed"
+
+
+def test_zero_seats_is_a_form_of_not_recorded_for_this_field_alone():
+    cfg = make_cfg({})
+    s = cfg.pipeline["sentinels"]
+    rows = reference.read(cfg.reference(s["file"]))
+    assert ZERO_FORM in sentinel_forms(cfg, cfg.pipeline["fields"][SEATS_FIELD])
+    assert not [r for r in rows if r[s["field"]] == s["any_field"] and r[s["value"]] == ZERO_FORM]
+
+
+def test_each_seat_count_lands_in_its_band_and_a_zero_and_a_count_over_the_guard_land_in_unknown(tmp_path, workspace):
+    rows = load_rows() + seat_vehicles(SEAT_COUNTS, 8000)
+    cfg = make_cfg(workspace)
+    manifest = build.build(cfg, source_for(rows), write_pages(tmp_path / "pages", rows), None, NOW)
+    entry = manifest["datasets"][SURVIVING]
+    assert SEATS_DIM in entry["live_dimensions"] and SEATS_DIM in entry["facts"]["dimensions"]
+    path = (workspace["public"] / "cube" / SURVIVING / f"{SEATS_DIM}.parquet").as_posix()
+    got = dict(duckdb.connect().execute(
+        f"SELECT dim_value, sum(n) FROM read_parquet('{path}') WHERE month = DATE '{EMPTY_YEAR}-{EMPTY_MONTH:02d}-01' GROUP BY 1").fetchall())
+    assert got == dict(Counter(band_of(cfg, n) for n in SEAT_COUNTS))
+    # The edges, stated outright so that a change to the bands cannot move them and the test with them.
+    label = {n: band_of(cfg, n) for n in SEAT_COUNTS}
+    unknown = seat_bands(cfg)[1]
+    assert label[None] == label[0] == label[61] == label[62] == label[999] == unknown
+    assert label[1] == label[2] != label[3] == label[4] != label[5] != label[6] == label[7] != label[8]
+    assert label[8] == label[9] == label[59] == label[60] != unknown
+    assert len({label[n] for n in (1, 3, 5, 6, 8)}) == 5
+
+
+def test_a_blank_a_zero_and_a_count_over_the_guard_are_counted_apart_in_the_manifest(tmp_path, workspace):
+    rows = load_rows() + seat_vehicles(SEAT_COUNTS, 8000)
+    cfg = make_cfg(workspace)
+    manifest = build.build(cfg, source_for(rows), write_pages(tmp_path / "pages", rows), None, NOW)
+    entry = manifest["datasets"][SURVIVING]
+    counted_rows = counted(cfg, rows, entry["latest_month"])
+    seats = [r.get("NUMBER_OF_SEATS") for r in counted_rows]
+    top = max(b["max"] for b in seat_bands(cfg)[0] if "min" in b)
+    assert entry["counts"]["bands"][SEATS_DIM] == {
+        "source_missing": sum(1 for n in seats if n is None),
+        "source_sentinel": sum(1 for n in seats if n is not None and str(n) == ZERO_FORM),
+        "negative": 0,
+        "out_of_bands": sum(1 for n in seats if n is not None and n > top),
+    }
+    bands = entry["counts"]["bands"][SEATS_DIM]
+    assert bands["source_sentinel"] >= 3 and bands["out_of_bands"] >= 3 and bands["source_missing"] >= 2, (
+        "the fixture does not hold each reason more than once, so the test would prove little")
+    slice_unknown = slice_counts(workspace["public"], SEATS_DIM)[seat_bands(cfg)[1]]
+    assert slice_unknown == bands["source_missing"] + bands["source_sentinel"] + bands["out_of_bands"]
+
+
+def test_the_bands_are_live_where_the_register_is_the_source_and_not_where_the_source_carries_no_seats():
+    cfg = make_cfg({})
+    field = spec_of(cfg, SEATS_DIM)["derive"]["field"]
+    assert derive.needed_fields(cfg, spec_of(cfg, SEATS_DIM)["derive"]) == {field}
+    assert "applies_to" not in spec_of(cfg, SEATS_DIM)
+    for dataset in (d for d in cfg.pipeline["datasets"] if d != SURVIVING):
+        live, not_live = derive.applicable(cfg, dataset)
+        assert SEATS_DIM not in {d["id"] for d in live}, dataset
+        assert not_live[SEATS_DIM] == "the source does not carry " + cfg.source_field(field), dataset
+        assert SEATS_DIM not in (cfg.pipeline["datasets"][dataset].get("facts") or []), dataset
