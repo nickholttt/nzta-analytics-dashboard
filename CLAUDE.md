@@ -204,6 +204,7 @@ data/reference/
   events.csv          # 54 policy/macro/OEM events for the annotation layer
   class_map.csv       # NZTA vehicle class code -> label (D-116)
   nz_assembled_map.csv  # NZTA's assembly flag -> label (D-116)
+  transmission_map.csv  # NZTA's gearbox value -> group: automatic, manual, continuously variable or other (D-128)
   statsnz_series.csv  # Stats NZ's table headers -> series, group and role (D-094)
   model_segment.csv   # canonical make + model -> SUV or car, with basis and confidence: two slices, and nothing reads it yet (D-117, D-123)
 docs/

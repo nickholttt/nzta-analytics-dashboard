@@ -1,0 +1,29 @@
+nzta_transmission,group,label,notes
+3-GEAR AUTO,Automatic,3-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is.
+4-GEAR AUTO,Automatic,4-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is.
+5-GEAR AUTO,Automatic,5-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is.
+6-GEAR AUTO,Automatic,6-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is.
+7-GEAR AUTO,Automatic,7-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is.
+8-GEAR AUTO,Automatic,8-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is.
+9-GEAR AUTO,Automatic,9-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is.
+10-GEAR AUTO,Automatic,10-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is.
+12-GEAR AUTO,Automatic,12-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is. Every vehicle with this value in registrations_surviving at 2026-10 is a goods vehicle.
+16-GEAR AUTO,Automatic,16-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is. Every vehicle with this value in registrations_surviving at 2026-10 is a goods vehicle.
+18-GEAR AUTO,Automatic,18-gear automatic,NZTA's value says AUTO. The register does not say what kind of automatic gearbox it is. Every vehicle with this value in registrations_surviving at 2026-10 is a goods vehicle.
+3-GEAR MANUAL,Manual,3-gear manual,NZTA's value says MANUAL.
+4-GEAR MANUAL,Manual,4-gear manual,NZTA's value says MANUAL.
+5-GEAR MANUAL,Manual,5-gear manual,NZTA's value says MANUAL.
+6-GEAR MANUAL,Manual,6-gear manual,NZTA's value says MANUAL.
+7-GEAR MANUAL,Manual,7-gear manual,NZTA's value says MANUAL.
+8-GEAR MANUAL,Manual,8-gear manual,NZTA's value says MANUAL.
+9-GEAR MANUAL,Manual,9-gear manual,NZTA's value says MANUAL.
+10-GEAR MANUAL,Manual,10-gear manual,NZTA's value says MANUAL.
+11-GEAR MANUAL,Manual,11-gear manual,NZTA's value says MANUAL.
+12-GEAR MANUAL,Manual,12-gear manual,NZTA's value says MANUAL.
+13-GEAR MANUAL,Manual,13-gear manual,NZTA's value says MANUAL.
+14-GEAR MANUAL,Manual,14-gear manual,NZTA's value says MANUAL.
+15-GEAR MANUAL,Manual,15-gear manual,NZTA's value says MANUAL.
+16-GEAR MANUAL,Manual,16-gear manual,NZTA's value says MANUAL.
+18-GEAR MANUAL,Manual,18-gear manual,NZTA's value says MANUAL.
+CONTINUOUSLY VARIABLE,Continuously variable,Continuously variable,NZTA's value says CONTINUOUSLY VARIABLE.
+OTHER,Other,Other,"NZTA's value says only OTHER and the register does not say what it holds, so it is not placed in a gearbox group and is not guessed (D-128). At 2026-10 in registrations_surviving it is on NZ-new passenger cars and vans and goods vehicles, and on no used import; two thirds of the vehicles are battery electric."

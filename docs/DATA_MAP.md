@@ -426,14 +426,27 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   The values give the number of gears and automatic or manual, or continuously variable.
 - **Kind and values.** Category, 28 values. S: 6-gear auto 719,347; continuously variable 492,914;
   4-gear auto 280,612; 5-gear manual 254,689.
-- **Uses.** Break down and filter, NZ-new vehicles only. Count only. A grouping into automatic,
-  manual, continuously variable and other would be a reference lookup (invariant 4).
+- **Uses.** Break down and filter, NZ-new vehicles only. Count only. The grouping into automatic,
+  manual, continuously variable and other is a reference lookup (invariant 4): `transmission_map.csv`
+  (D-128) holds all 28 values the register carries, each with its group, a readable label and the basis
+  for the group. A value goes in a group by what the value itself says: the 11 values of the form
+  `N-GEAR AUTO` (3 to 18 gears) are automatic, the 15 of the form `N-GEAR MANUAL` (3 to 18) are manual,
+  `CONTINUOUSLY VARIABLE` is continuously variable, and `OTHER`, which says only that, is other: the
+  register does not say what it holds, so it is not placed. "Automatic" is NZTA's word AUTO; the
+  register does not say whether it is a torque-converter, dual-clutch or automated manual gearbox. On
+  the cube's 4,520,304 vehicles the groups hold: automatic 1,530,025; manual 383,358; continuously
+  variable 492,914; other 110,739; no value (NULL) 2,003,268.
 - **Coverage.** **NZ-new only**: NEW 92.1%, USED 0.0% (116 vehicles). Nothing before 1990; 1990s
   33.9%; from 2000 between 56.9% and 64.2% of all S vehicles. W 43.7%.
 - **Not recorded.** NULL, covered.
 - **Traps.** `OTHER` is a recorded value on 110,739 S vehicles, 105,880 of them first registered from
-  2020; what it holds is not shown (electric drives, inferred - confirm). A question using this field
-  is narrowed to NZ-new vehicles and says so.
+  2020; what it holds is not shown. By NZTA's motive power, on the cube's 110,739 vehicles (all NZ-new,
+  none a used import): electric 75,794 (68.4%), plug-in petrol hybrid 17,974, petrol 15,476,
+  range-extended electric 636, petrol electric hybrid 437, petrol hybrid 396, diesel 22 and fuel cell
+  hydrogen 4. So most, not all, are battery electric, and whether a single-speed drive is what the value
+  means is a guess, so the value stays in other. All 28 values are matched to a
+  group by their text; the 12-, 16- and 18-gear AUTO values are on goods vehicles only. A question using this
+  field is narrowed to NZ-new vehicles and says so.
 - **Privacy.** Public.
 - **Relations.** Recorded on the same vehicles as power and the MVMA model code (below). Moves
   together with: vehicle type 0.54, class 0.43, gross vehicle mass (banded) 0.40, registration year
@@ -1290,7 +1303,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | Field | Sentinels and guards before it is bound |
 |---|---|
 | `POWER_RATING` | **Bound as bands (D-128).** `0` added to `sentinels.csv`. Guard 5 to 900 (999 is a placeholder), applied by the bands: a value outside it falls to `unknown`. A mean or median needs a sum and a count per cell, as fuel consumption has: not built |
-| `TRANSMISSION_TYPE` | None new. `OTHER` stays a value. A grouping lookup (automatic, manual, continuously variable, other) is optional and a reference file of its own |
+| `TRANSMISSION_TYPE` | None new. `OTHER` stays a value. The grouping lookup (automatic, manual, continuously variable, other) is the reference file `transmission_map.csv` (D-128), all 28 values |
 
 **3. The rest.**
 
