@@ -60,6 +60,19 @@
      "import_status__vehicle_type"
     ],
     "not_live_pairs": {},
+    "small_cells": {
+     "region": {
+      "minimum": 10,
+      "minimum_hidden_cells": 2,
+      "minimum_hidden_vehicles": 10,
+      "months": 17,
+      "cells_hidden_first_rule": 0,
+      "cells_hidden_second_rule": 0,
+      "vehicles_in_hidden_cells": 0,
+      "months_not_broken_down": 17,
+      "vehicles_in_months_not_broken_down": 56
+     }
+    },
     "facts": {
      "rows": 56,
      "dimensions": [
@@ -365,7 +378,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 49625,
+  "payload_bytes": 48907,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -5129,336 +5142,156 @@
    "rows": [
     [
      "1965-04-01",
-     "Canterbury",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
      null,
-     0,
-     1
+     null,
+     null
     ],
     [
      "1998-01-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
      null,
-     0,
-     1
+     null,
+     null
     ],
     [
      "2007-06-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
      null,
-     0,
-     1
+     null,
+     null
     ],
     [
      "2019-03-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
-     6.1,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2025-08-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
-     5.0,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2025-09-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      2,
      2,
      null,
-     0,
-     2
+     null,
+     null
     ],
     [
      "2025-10-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      2,
      2,
-     10.7,
-     2,
-     2
+     null,
+     null,
+     null
     ],
     [
      "2025-11-01",
-     "Auckland",
-     1,
+     "__NOT_BROKEN_DOWN__",
      2,
-     9.1,
-     1,
-     1
-    ],
-    [
-     "2025-11-01",
-     "Bay of Plenty",
-     1,
      2,
-     6.2,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2025-12-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      2,
      2,
-     14.6,
-     2,
-     2
+     null,
+     null,
+     null
     ],
     [
      "2026-01-01",
-     "Auckland",
-     1,
+     "__NOT_BROKEN_DOWN__",
      2,
-     5.4,
-     1,
-     1
-    ],
-    [
-     "2026-01-01",
-     "__UNDEFINED__",
-     1,
      2,
-     4.9,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2026-02-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      3,
      3,
-     17.3,
-     3,
-     3
+     null,
+     null,
+     null
     ],
     [
      "2026-03-01",
-     "Auckland",
-     2,
+     "__NOT_BROKEN_DOWN__",
      5,
-     3.4,
-     1,
-     1
-    ],
-    [
-     "2026-03-01",
-     "Canterbury",
-     1,
      5,
-     10.1,
-     1,
-     1
-    ],
-    [
-     "2026-03-01",
-     "Nelson",
-     1,
-     5,
-     5.1,
-     1,
-     1
-    ],
-    [
-     "2026-03-01",
-     "Waikato",
-     1,
-     5,
-     5.1,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2026-04-01",
-     "Auckland",
-     3,
+     "__NOT_BROKEN_DOWN__",
      5,
-     5.0,
-     1,
-     2
-    ],
-    [
-     "2026-04-01",
-     "Bay of Plenty",
-     1,
      5,
-     7.2,
-     1,
-     1
-    ],
-    [
-     "2026-04-01",
-     "Wellington",
-     1,
-     5,
-     4.6,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2026-05-01",
-     "Auckland",
-     1,
+     "__NOT_BROKEN_DOWN__",
      6,
-     5.4,
-     1,
-     1
-    ],
-    [
-     "2026-05-01",
-     "Canterbury",
-     3,
-     6,
-     19.6,
-     3,
-     3
-    ],
-    [
-     "2026-05-01",
-     "Gisborne",
-     1,
-     6,
-     7.9,
-     1,
-     1
-    ],
-    [
-     "2026-05-01",
-     "Manawatū-Whanganui",
-     1,
-     6,
-     5.0,
-     1,
-     1
-    ],
-    [
-     "2026-06-01",
-     "Auckland",
-     3,
-     6,
-     7.1,
-     2,
-     2
-    ],
-    [
-     "2026-06-01",
-     "Southland",
-     1,
      6,
      null,
-     0,
-     1
+     null,
+     null
     ],
     [
      "2026-06-01",
-     "Wellington",
-     1,
+     "__NOT_BROKEN_DOWN__",
+     6,
      6,
      null,
-     0,
-     0
-    ],
-    [
-     "2026-06-01",
-     "__UNMAPPED__",
-     1,
-     6,
-     6.9,
-     1,
-     1
+     null,
+     null
     ],
     [
      "2026-07-01",
-     "Auckland",
-     2,
+     "__NOT_BROKEN_DOWN__",
      5,
-     13.5,
-     2,
-     2
-    ],
-    [
-     "2026-07-01",
-     "Northland",
-     1,
      5,
-     5.1,
-     1,
-     1
-    ],
-    [
-     "2026-07-01",
-     "Otago",
-     1,
-     5,
-     4.8,
-     1,
-     1
-    ],
-    [
-     "2026-07-01",
-     "Waikato",
-     1,
-     5,
-     3.9,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2026-08-01",
-     "Auckland",
-     6,
+     "__NOT_BROKEN_DOWN__",
      11,
-     23.9,
-     5,
-     5
-    ],
-    [
-     "2026-08-01",
-     "Canterbury",
-     1,
-     11,
-     7.4,
-     1,
-     1
-    ],
-    [
-     "2026-08-01",
-     "Hawke's Bay",
-     1,
-     11,
-     7.6,
-     1,
-     1
-    ],
-    [
-     "2026-08-01",
-     "Otago",
-     1,
      11,
      null,
-     0,
-     0
-    ],
-    [
-     "2026-08-01",
-     "Waikato",
-     2,
-     11,
-     8.8,
-     2,
-     2
+     null,
+     null
     ]
    ]
   },

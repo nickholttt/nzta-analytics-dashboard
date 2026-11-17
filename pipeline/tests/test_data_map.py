@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 from pipeline import config, reference
+from pipeline.privacy import fields_read, resolve as _resolve, strings as _strings
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_MAP = ROOT / "config" / "data_map.json"
@@ -57,57 +58,7 @@ def published_classes(dmap: dict) -> set[str]:
     return {name for name, spec in dmap["privacy_classes"].items() if spec["published"]}
 
 
-# --- which source fields a dimension reads, from its derive block -------------------------------------------------
-
-
-def _strings(node) -> set[str]:
-    """Every string value and object key anywhere in a derive block."""
-    if isinstance(node, str):
-        return {node}
-    if isinstance(node, dict):
-        found = set(node)
-        for value in node.values():
-            found |= _strings(value)
-        return found
-    if isinstance(node, list):
-        found = set()
-        for value in node:
-            found |= _strings(value)
-        return found
-    return set()
-
-
-def _resolve(pipeline: dict, item: str) -> set[str]:
-    logical = set(pipeline["fields"])
-    if "." not in item:
-        assert item in logical, f"data_map derive_reads names {item!r}, which is not a logical field of pipeline.json"
-        return {item}
-    node = pipeline
-    for part in item.split("."):
-        assert isinstance(node, dict) and part in node, f"data_map derive_reads path {item!r} is not in pipeline.json"
-        node = node[part]
-    found = ({node} if isinstance(node, str) else set(node)) & logical
-    assert found, f"data_map derive_reads path {item!r} names no logical field of pipeline.json"
-    return found
-
-
-def fields_read(dim: dict, pipeline: dict, reads: dict) -> set[str]:
-    """The register field names a dimension's derivation reads."""
-    derive = dim["derive"]
-    logical = _strings(derive) & set(pipeline["fields"])
-    for item in reads["by_kind"].get(derive["kind"], []):
-        logical |= _resolve(pipeline, item)
-    for flag, items in reads["by_flag"].items():
-        if derive.get(flag):
-            for item in items:
-                logical |= _resolve(pipeline, item)
-    # Fields read because another field is read (the hybrid classification rewrites motive power from make and model).
-    for key, items in reads.get("by_field", {}).items():
-        if _resolve(pipeline, key) & logical:
-            for item in items:
-                logical |= _resolve(pipeline, item)
-    return {pipeline["fields"][f] for f in logical}
-
+# --- which source fields a dimension reads, from its derive block (pipeline/privacy.py) --------------------------------
 
 SNAPSHOT_ARCHIVE = "snapshot_archive"
 
@@ -455,8 +406,10 @@ def test_the_owner_rule_binds_even_a_field_marked_published():
     assert any(p.startswith(SNAPSHOT_ARCHIVE) for p in found), found
 
 
-def test_owner_fields_and_vin_derivatives_stay_unpublished_until_the_rule_is_enforced():
-    """Approval alone publishes nothing: until the pipeline hides small cells, owner fields stay out; VIN11 always."""
+def test_owner_fields_and_vin_derivatives_stay_unpublished_until_the_owner_has_seen_the_first_table():
+    """The pipeline hides small cells since D-127, and that alone publishes no owner field: the user asked to be shown the
+    first table of an owner field before any build publishes it (D-120 item 4). The one that is published, the region slice,
+    is a recorded exception, not a published class. A field leaves this test only with a new decision record from the owner."""
     dmap = load_map()
     published = published_classes(dmap)
     owner_groups = set(dmap["owner_groups"])
@@ -466,8 +419,22 @@ def test_owner_fields_and_vin_derivatives_stay_unpublished_until_the_rule_is_enf
     for entry in dmap["fields"]:
         if entry["after_review"] in derived_only:
             assert entry["privacy"] not in published, f"{entry['name']}: only a field derived from it may be published"
-        if entry["group"] in owner_groups and not dmap["owner_rule"]["enforced"]:
-            assert entry["privacy"] not in published, f"{entry['name']}: an owner field, and the rule is not enforced yet"
+        if entry["group"] in owner_groups:
+            assert entry["privacy"] not in published, f"{entry['name']}: an owner field, and its first table has not been shown to the owner"
+
+
+def test_a_new_dimension_over_an_owner_field_is_refused_although_the_rule_is_enforced():
+    """`enforced` publishes nothing: a dimension that reads an owner field, other than the recorded exception, is still a breach."""
+    cfg, dmap = config.load(), load_map()
+    owner = next(e for e in entries(dmap, REGISTER) if e["bound"] and e["group"] in set(dmap["owner_groups"]))
+    excepted = {x["dimension"] for e in dmap["fields"] for x in e.get("published_exceptions", [])}
+    assert "probe" not in excepted
+    dims = copy.deepcopy(cfg.dimensions)
+    dims["dimensions"].append({"id": "probe", "derive": {"kind": "raw", "field": owner["bound"]}})
+    assert dmap["owner_rule"]["enforced"] is True
+    found = privacy_breaches(dmap, cfg.pipeline, dims)
+    assert any(p.startswith("slice 'probe'") for p in found), found
+    assert not any(f"'{dim}'" in p for dim in excepted for p in found), "the recorded exception is not a breach"
 
 
 def test_free_text_is_never_a_breakdown_or_a_filter():

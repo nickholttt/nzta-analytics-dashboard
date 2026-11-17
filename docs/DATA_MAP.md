@@ -6,10 +6,13 @@ the user on 2026-11-16 (D-096):**
 - the 31 register fields and 10 dashboard columns that describe the vehicle are public;
 - an owner field (district, region, usage, industry class, road transport code, owner type) may be
   published only in a table of one or two fields, with any cell counting fewer than 10 vehicles
-  hidden. **None is published yet:** the pipeline does not hide small cells, so until it does
-  (package F) owner fields stay out of every published file, other than the `region` slice below;
+  hidden. **None is published yet** other than the `region` slice below: the pipeline hides small
+  cells in a slice since D-127, but the user asked to be shown the first table of an owner field
+  before a build publishes it (D-120), so every other owner field stays out of every published file;
 - the `region` slice (share of vehicles by the owner's region, by month), published since before
-  the work order under D-078, stays as it is, with no minimum count;
+  the work order under D-078, stays, and since D-127 takes the minimum of 10 (the user's ruling of
+  2026-11-17, D-120 item 4) with a second rule that limits what a total gives away of a hidden cell
+  (`docs/CUBE_SCHEMA.md`, "Slices of owner dimensions"). A pair with it is not built;
 - postcode totals are not published for now, and nothing derived from `VIN11` is covered.
 
 The map itself binds nothing. A field is bound in `config/pipeline.json` and given a dimension in
@@ -114,12 +117,12 @@ Counts. Register: 20 bound and 20 not. By kind: 17 category, 12 number, 6 identi
 | Class | Fields | Why |
 |---|---|---|
 | Public | The 31 register fields that describe the vehicle; the dashboard's 10 vehicle columns | They describe the vehicle, not its owner, and NZTA publishes each of them vehicle by vehicle |
-| Owner rule | `TLA` (and `region` from it), `POSTCODE`, `VEHICLE_USAGE`, `INDUSTRY_CLASS`, `ROAD_TRANSPORT_CODE`; the dashboard's `Owner Type`, `Territorial authority`, `Vehicle usage` | They describe or locate the owner. Published only in a table of one or two fields, with any cell under 10 vehicles hidden, and not before the pipeline hides them (`owner_rule` in `config/data_map.json`). Postcode totals are not published for now (D-076, D-096) |
+| Owner rule | `TLA` (and `region` from it), `POSTCODE`, `VEHICLE_USAGE`, `INDUSTRY_CLASS`, `ROAD_TRANSPORT_CODE`; the dashboard's `Owner Type`, `Territorial authority`, `Vehicle usage` | They describe or locate the owner. Published only in a table of one or two fields, with any cell under 10 vehicles hidden (`owner_rule` in `config/data_map.json`; the pipeline hides them in a slice since D-127, and refuses a pair), and not before the owner has been shown the field's first table (D-120). Postcode totals are not published for now (D-076, D-096) |
 | Never published | `VIN11`, `OBJECTID` | `VIN11` narrows a vehicle to a handful, and only a field derived from it may be published, once checked and approved (D-076, D-079). `OBJECTID` is a row number |
 | Never pulled | `CHASSIS7`, `ENGINE_NUMBER` | They identify a vehicle and serve no question (D-062, D-076; `register_archive.never_pulled`) |
 
 **The one exception in place, and what the test checks.** The `region` slice, derived from `TLA`, is
-published (status line above); the fact table leaves `region` out (D-078). The map records the
+published under the small-cell rule (status line above); the fact table leaves `region` out (D-078). The map records the
 slice as an exception on the `TLA` entry (`published_exceptions`, with the outputs its decision
 covers: the slice only). `pipeline/tests/test_data_map.py` fails if a field whose class is not
 published is read by any of these, other than through a recorded exception: a fact-table column, a
@@ -129,8 +132,9 @@ fields a dimension reads from its `derive` block, plus the fields its kind reads
 them, plus make and model wherever motive power is read (the hybrid classification rewrites motive
 power from them). It does not see a published file the pipeline writes by any other route, or a
 field read by code that `config/data_map.json`'s `derive_reads` does not describe. It also fails if a
-field derivable only from `VIN11` is marked published, if an owner field is marked published while
-the owner rule is not enforced, or if an exception on an owner field reaches the fact table. An
+field derivable only from `VIN11` is marked published, if an owner field is marked published (until
+the owner has been shown its first table, D-120; `owner_rule.enforced` is true since D-127 and does
+not by itself open any field), or if an exception on an owner field reaches the fact table. An
 owner field is refused in any output the owner rule does not name (the fact table, the snapshot
 aggregate), and `POSTCODE` in every output (`owner_rule.not_published`), whatever its class or
 exceptions say.
@@ -768,9 +772,10 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   18,721, Rangitikei 14,717, Stratford 10,292, Waitomo 8,528 S vehicles; 179,212 in all), so region is
   a best fit there (`tla_region.csv`). Rental and lease fleets are counted at their owner's address
   (`docs/DATA_SOURCES.md`).
-- **Privacy.** **Owner rule** (D-096). The `region` slice derived from it is published today, as the
-  recorded exception (status line above), and the user confirmed that it stays. The slice carries no
-  minimum count.
+- **Privacy.** **Owner rule** (D-096). The `region` slice derived from it is published, as the
+  recorded exception (status line above), and the user confirmed that it stays. Since D-127 the slice
+  takes the minimum of 10, a cell under it hidden, and a second rule that limits what a total gives away of a
+  hidden cell. A pair with it is not built.
 - **Relations.** Rolls up to region through `tla_region.csv`: all 67 S values are in the file, none
   twice. Picks out a vehicle in combination. Moves together with nothing above 0.15 (road transport
   code 0.15, vehicle type 0.13).
@@ -1312,7 +1317,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | `ALTERNATIVE_MOTIVE_POWER` as a filter | NULL must read "none", not `__UNDEFINED__`: a reference lookup or a sentinel exception, decided when bound |
 | `NUMBER_OF_AXLES` | Not bound for now (D-129). If bound with the heavy-vehicle topic: add `0`; keep 1 to 6 (a guard of 2 to 6 would drop the 304 one-axle class TD trailers); count 7 and over apart; heavy classes only |
 | `VDAM_WEIGHT`, `HEIGHT`, `WIDTH`, `ROAD_TRANSPORT_CODE` | With the heavy-vehicle topic (package I). Add `0` for the three numbers; guards 1,000 to 60,000, 1,000 to 4,600 and 1,200 to 2,600. The road transport code's NULL reads "none" once that reading is confirmed |
-| `VEHICLE_USAGE`, `INDUSTRY_CLASS` | Bound, and kept out of every published file until the pipeline enforces the owner rule (D-096). Add `UNKNOWN` for industry class; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup once confirmed. Labels do not say "when first registered"; usage is shown to be current for rental only |
+| `VEHICLE_USAGE`, `INDUSTRY_CLASS` | Bound, and kept out of every published file until the owner has been shown the field's first table (D-120). Add `UNKNOWN` for industry class; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup once confirmed. Labels do not say "when first registered"; usage is shown to be current for rental only |
 | `MODEL` (already bound) | Add the clear forms of nothing (`UNKNOWN`, `NOT KNOWN`, `UNK`, `N/A`, `-`, `.`, `0`, `000`); look at `X`, `XX`, `OTHER` and `NA` by make first. Trim stray spaces |
 
 **Not bound as fields:** `MVMA_MODEL_CODE` and `INDUSTRY_MODEL_CODE` (lookup keys for the model-level
@@ -1374,9 +1379,10 @@ Notes for the work that follows. None of it is done here.
   hand-kept year.
 - **Binding** (package F), in the order above. Each binding changes `sentinels.csv` and the map's
   `sentinels_pending` in one commit, and marks the entry `bound` with its logical name.
-- **Enforcing the owner rule** (package F). The pipeline hides any cell under 10 vehicles in a
-  slice or pair that reads an owner field; `owner_rule.enforced` becomes true in the same change, and
-  only then may an owner field reach a published file. Whether the `region` slice then takes the
-  minimum count too is a question for the user.
+- **Enforcing the owner rule** (package F). Done for a slice (D-127): the pipeline hides any cell under
+  10 vehicles in the slice of a dimension that reads an owner field, under a second rule, and reads the
+  slice back; `owner_rule.enforced` is true. The `region` slice takes it (the user's ruling of 2026-11-17).
+  Not done: a pair with an owner field, which needs both of its totals protected; and the first table of
+  any other owner field, which the user is shown before a build publishes it (D-120).
 - **Settling usage and industry class** for good: the same vehicles in the October and November
   archive files, if the user agrees to the match ("As first registered, or today").

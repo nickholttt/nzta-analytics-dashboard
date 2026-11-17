@@ -17,8 +17,8 @@ import shutil
 import duckdb
 
 from pipeline import build, config
-from pipeline.contract import (FACT_COUNT, FACT_DIMENSION_TYPE, FACT_MONTH, FACTS_DIR, PAIR_COLUMNS, PAIR_SEPARATOR,
-                               SLICE_COLUMNS)
+from pipeline.contract import (FACT_COUNT, FACT_DIMENSION_TYPE, FACT_MONTH, FACTS_DIR, NOT_BROKEN_DOWN, PAIR_COLUMNS,
+                               PAIR_SEPARATOR, SLICE_COLUMNS)
 
 from .conftest import FIXTURES, GOLDEN, NOW, load_rows, make_cfg, source_for, write_pages
 
@@ -77,16 +77,30 @@ def test_cube_matches_golden(tmp_path, workspace):
 def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):
     contract, _ = built_contract(tmp_path, workspace)
     assert contract["slices"], "no slices were written"
+    protected = {f"{dataset}/{dim}.parquet" for dataset, info in contract["manifest"]["datasets"].items()
+                 for dim in info.get("small_cells", {})}
     for name, doc in contract["slices"].items():
         assert doc["schema"] == [list(c) for c in SLICE_COLUMNS], name
         keys = [(r[0], r[1]) for r in doc["rows"]]
         assert keys == sorted(keys), f"{name} is not sorted by month, dim_value"
         totals = {}
-        for month, _, n, denominator, fc_sum, fc_n, fc_eligible_n in doc["rows"]:
+        for month, value, n, denominator, fc_sum, fc_n, fc_eligible_n in doc["rows"]:
+            if name in protected and n is None:
+                # A cell hidden by the small-cell rule (D-127): its counts and the fuel counts that bound them are null.
+                assert fc_sum is None and fc_n is None and fc_eligible_n is None, (name, month, value)
+                continue
             totals.setdefault(month, [0, denominator])[0] += n
+            if name in protected and value == NOT_BROKEN_DOWN:
+                assert fc_sum is None and fc_n is None and fc_eligible_n is None, (name, month)
+                continue
             assert fc_n <= fc_eligible_n <= n
             assert (fc_sum is None) == (fc_n == 0)
-        assert all(total == denominator for total, denominator in totals.values()), f"{name}: n does not sum to denominator"
+        if name in protected:
+            # Hidden cells are missing from the sum, so it cannot exceed the month's total; the rule itself is held by
+            # test_small_cells_build.py and by the build's own read-back.
+            assert all(total <= denominator for total, denominator in totals.values()), f"{name}: n adds up to more than the denominator"
+        else:
+            assert all(total == denominator for total, denominator in totals.values()), f"{name}: n does not sum to denominator"
 
 
 def test_every_pair_has_the_contract_schema_and_adds_up_to_both_of_its_slices(tmp_path, workspace):
