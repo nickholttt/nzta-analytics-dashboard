@@ -9,7 +9,8 @@ Last updated by claude on 2026-11-17
 - 2026-11-16 and 17, ninth session. **Merged, #60 to #80** (#63 was closed unmerged). The
   user's answers are D-096 and D-106.
 - 2026-11-17, tenth session: the user answered the parked questions (D-120). CLAUDE.md's two
-  sentences about the grid and Plot are corrected, and its layout lists what exists.
+  sentences about the grid and Plot are corrected, and its layout lists what exists (#81).
+  **Merged: #81, #82, #84, #85** (#83 was closed and rebuilt as #85). `incoming/` is deleted.
 - **Figures set beside published ones.** New vehicles on the wider scope: within 0.06% of the
   MIA's for October 2026, older months about 1% lower, cause not established (D-105, D-113).
   vstat (the Motor Trade Association's) equals ours for October 2026 (D-118). The 98 SUV-file
@@ -33,30 +34,27 @@ to launch early, each measure recomputed and set beside published New Zealand so
 
 ## Open pull requests
 
-- **#81**, these notes, D-120, CLAUDE.md's corrections and AGENTS.md hard rule 7's one
-  exception (docs only).
+None. Two branches are being built (STATE, "In progress").
 
 ## The queue, in order
 
-0. **Class labels** (D-120): `incoming/vehicle_class_labels.csv`, the user's copy of NZTA's
-   vehicle classes page, checked against the saved pull's codes, moved into `class_map.csv`
-   with source and date; then `incoming/` is deleted. `OTH` has no row in it.
-1. **Build offers the three new fields as breakdowns** (#79, D-116; the hand-kept lists in
-   `config/presets.json`; class never crossed with vehicle type; "not recorded" shown as the
-   gap it is), then **the acceptance question with one of them swapped in**, at 390 and 1280
-   px, as a link, with a CSV: package F's done-when.
-2. **Hybrids and mild hybrids as one figure**: a roll-up dimension from `powertrain_map.csv`'s
-   group column, so a share of all hybrids can be asked and set beside the MIA's and vstat's
-   (D-118). A pipeline piece with a golden contract change.
-3. **The SUV file's next slice** (D-117): primary sources for the 77 medium rows (many makers'
-   pages need a browser that runs scripts; never get around a refusal); people movers and
-   sports cars; three sizes each for cars and SUVs from cited length and width against the
-   FCAI's footprint bands, grouped as the Australian Automobile Association groups them; a rule
-   per dataset (the register hides two models under other names); then the wiring and its guard.
+Done this session: the class labels (#85, D-121); the three fields as breakdowns and the
+acceptance question with one swapped in, package F's done-when (#82, D-122); the SUV file's
+second slice (#84, D-123).
+1. **Hybrids and mild hybrids as one figure** (D-124, being built): a roll-up dimension from
+   `powertrain_map.csv`'s group column, set beside the MIA's. A golden contract change.
+2. **"My questions"** (D-125, being built): saved in the browser, redrawn on the newest month,
+   able to be pinned; a pin holds the window, never another snapshot's figures.
+3. **The SUV file's next slice** (D-123, "left"): people movers and sports cars; whether the
+   register holds the Levorg Layback as LEVORG and the Impreza XV as IMPREZA; three sizes each
+   for cars and SUVs from cited length and width against the FCAI's footprint bands; a rule
+   per dataset; then the wiring and its guard. 61 rows are still `medium`: the sites refuse.
 4. **Colour**, in a narrower table of counts of its own (a contract change; costs in D-116).
 5. **Small engine follow-ups**: Tank to unresolved (a golden contract change); a reader that
    refuses a malformed reference row; the X-Trail row's basis; the dataset guard on a filtered
-   dataset (D-118); the fixture harness's fields; a seats average.
+   dataset (D-118); the fixture harness's fields; a seats average. From #82's review: a notice
+   for a link naming a value the data no longer holds; the three fields' notes cut to a line;
+   class with segment group recorded in the data map; the service prototype's `unknown`.
 6. **The rest of package F**: power and transmission; owner fields, private until small cells
    are hidden (D-096); the first owner table is shown to the user before any build publishes
    it, and the `region` slice takes the floor of 10 then (D-120); "My questions"; the
