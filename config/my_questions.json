@@ -6,6 +6,7 @@
   "intro": "Save a question to come back to it. A saved question opens on the newest month. Pin it to keep its window where the chart can hold one.",
   "browser_only": "Saved in this browser only. Nothing is sent anywhere, and the list does not follow you to another browser or device.",
   "save": "Save this question",
+  "pin_unavailable": "A pin is not offered for this question: its figures end in an earlier month than the snapshot month.",
   "pin": "Pin to the snapshot of {date|date}",
   "pin_one": "Pin",
   "unpin_one": "Unpin",

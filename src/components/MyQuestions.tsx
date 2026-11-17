@@ -3,13 +3,12 @@
 // (builder.keep). Nothing is sent anywhere; the list lives in this browser's storage, and where that is blocked the page says so and Build
 // works as it does without it.
 import { useEffect, useMemo, useRef, useState } from "react";
-import { builderSpec } from "../lib/config";
 import keepWords from "../../config/my_questions.json";
 import { readQuestion, settle } from "../lib/builder";
 import type { Vocabulary } from "../lib/builder";
 import type { Manifest } from "../lib/data";
 import { fillNote } from "../lib/notes";
-import { pinNote, servedMonth } from "../lib/pin";
+import { canPin, pinNote, servedMonth } from "../lib/pin";
 import { MAX_SAVED, STORAGE_KEY, add, browserStorage, exportLinks, hrefOf, load, persist, pinEntry, questionQuery, remove, rename } from "../lib/saved";
 import type { Loaded, Saved } from "../lib/saved";
 
@@ -26,10 +25,12 @@ type Props = {
   title: string;
   // The month the question on screen is pinned to, if it is.
   snapshot: string | undefined;
+  // Whether the question on screen can be pinned (src/lib/pin.ts, canPin).
+  pinnable: boolean;
   onPin: (month: string | undefined) => void;
 };
 
-export default function MyQuestions({ all, served, title, snapshot, onPin }: Props) {
+export default function MyQuestions({ all, served, title, snapshot, pinnable, onPin }: Props) {
   const [loaded, setLoaded] = useState<Loaded>(() => load(browserStorage()));
   // What the last action did, in a live region so a screen reader hears it.
   const [status, setStatus] = useState("");
@@ -119,9 +120,15 @@ export default function MyQuestions({ all, served, title, snapshot, onPin }: Pro
     }
   };
 
-  // Each entry's question as the page settles it, to say what its pin means against the snapshot served now.
-  const notes = useMemo(
-    () => new Map(loaded.items.map((item) => [item.id, served ? pinNote(settle(all, readQuestion(`?${item.query}`)), served)?.text : undefined])),
+  // Each entry's question as the page settles it, to say what its pin means against the snapshot served now and whether it can be pinned.
+  const info = useMemo(
+    () =>
+      new Map(
+        loaded.items.map((item) => {
+          const q = settle(all, readQuestion(`?${item.query}`));
+          return [item.id, { note: served ? pinNote(q, served)?.text : undefined, pinned: Boolean(q.snapshot), pinnable: served ? canPin(q, served) : false }] as const;
+        }),
+      ),
     [loaded.items, all, served],
   );
   const available = loaded.state === "ok";
@@ -139,12 +146,13 @@ export default function MyQuestions({ all, served, title, snapshot, onPin }: Pro
             {words.save}
           </button>
         ) : null}
-        {served ? (
+        {served && (pinnable || snapshot) ? (
           <button type="button" id="pin-toggle" className="button-quiet" onClick={pinHere}>
             {snapshot ? words.unpin : say(words.pin, { date: served.latest_snapshot })}
           </button>
         ) : null}
       </div>
+      {served && !pinnable && !snapshot ? <p className="meta">{words.pin_unavailable}</p> : null}
       <p className="meta saved-status" role="status">
         {status}
       </p>
@@ -191,7 +199,8 @@ export default function MyQuestions({ all, served, title, snapshot, onPin }: Pro
                           {item.name}
                         </a>
                         <p className="meta">{say(words.saved_on, { date: item.saved.slice(0, 10) })}</p>
-                        {notes.get(item.id) ? <p className="meta saved-pin">{notes.get(item.id)}</p> : null}
+                        {info.get(item.id)?.note ? <p className="meta saved-pin">{info.get(item.id)?.note}</p> : null}
+                        {served && !info.get(item.id)?.pinned && !info.get(item.id)?.pinnable ? <p className="meta">{words.pin_unavailable}</p> : null}
                         <div className="saved-actions">
                           <button
                             type="button"
@@ -205,14 +214,14 @@ export default function MyQuestions({ all, served, title, snapshot, onPin }: Pro
                           >
                             {words.rename}
                           </button>
-                          {served ? (
+                          {served && (info.get(item.id)?.pinned || info.get(item.id)?.pinnable) ? (
                             <button
                               type="button"
                               className="button-quiet"
-                              aria-label={`${new URLSearchParams(item.query).has(`${builderSpec.id}.snapshot`) ? words.unpin_one : words.pin_one}: ${item.name}`}
-                              onClick={() => pinOne(item, new URLSearchParams(item.query).has(`${builderSpec.id}.snapshot`))}
+                              aria-label={`${info.get(item.id)?.pinned ? words.unpin_one : words.pin_one}: ${item.name}`}
+                              onClick={() => pinOne(item, Boolean(info.get(item.id)?.pinned))}
                             >
-                              {new URLSearchParams(item.query).has(`${builderSpec.id}.snapshot`) ? words.unpin_one : words.pin_one}
+                              {info.get(item.id)?.pinned ? words.unpin_one : words.pin_one}
                             </button>
                           ) : null}
                           <button type="button" className="button-quiet" aria-label={`${words.remove}: ${item.name}`} onClick={() => removeOne(item)}>

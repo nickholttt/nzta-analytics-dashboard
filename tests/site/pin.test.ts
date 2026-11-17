@@ -9,8 +9,8 @@ import { readFileSync } from "node:fs";
 import { everythingBuilt } from "./support/observe.ts";
 
 const { addressParams, builderVocabulary, builderPresets, questionParams, readQuestion, readingNotes, settle } = await import("../../src/lib/builder.ts");
-const { dimensions } = await import("../../src/lib/config.ts");
-const { heldEnd, holdsWindow, pinNote, shownEnd } = await import("../../src/lib/pin.ts");
+const { dimensions, findPeriod } = await import("../../src/lib/config.ts");
+const { canPin, heldEnd, holdsWindow, pinNote, shownEnd } = await import("../../src/lib/pin.ts");
 const { END_MONTH_SHAPES } = await import("../../src/lib/resolve.ts");
 const { fillTemplate } = await import("../../src/lib/sentences.ts");
 
@@ -142,4 +142,52 @@ test("pinning takes the picked month out of the address and keeps the chart's ot
   assert.equal(pinned.get("build.period"), "1y");
   assert.equal(pinned.get("build.snapshot"), "2026-10");
   assert.equal(pinned.get("other"), "1");
+});
+
+// A build in which the second dataset (true registrations: a supplied one) starts in 2021-01 and ends a month before the register's snapshot.
+const behind = vocabulary.datasets[1]?.dataset as string;
+const behindManifest = (snapshot: string, latest: string) =>
+  ({
+    ...everything,
+    latest_snapshot: snapshot,
+    datasets: Object.fromEntries(
+      Object.entries(everything.datasets).map(([id, d]) => [id, id === behind ? { ...d, latest_month: latest, supplied: { months: { first: "2021-01" } } } : { ...d, latest_month: snapshot.slice(0, 7) }]),
+    ),
+  }) as unknown as typeof everything;
+const rankingOn = (dataset: string, extra = "") => read(`build.dataset=${dataset}&${ranking}${extra}`);
+
+test("a pin is offered only where the question's figures reach the snapshot's month", () => {
+  assert.ok(behind, "the build needs a second dataset");
+  const manifest = behindManifest("2026-11-30", "2026-10");
+  assert.equal(canPin(rankingOn(vocabulary.datasets[0].dataset), manifest), true);
+  assert.equal(canPin(rankingOn(behind), manifest), false, "the dataset ends in 2026-10 and the snapshot is 2026-11");
+  assert.equal(canPin(rankingOn(behind), behindManifest("2026-10-31", "2026-10")), true, "the same dataset once the months agree");
+});
+
+test("a pin that the dataset's newest month contradicts does not say the window keeps ending in it", () => {
+  const manifest = behindManifest("2026-11-30", "2026-10");
+  const link = rankingOn(behind, "&build.snapshot=2026-11");
+  assert.equal(holdsWindow(link), true);
+  const note = pinNote(link, manifest);
+  assert.equal(note?.kind, "uncovered");
+  assert.equal(note?.text, "Pinned to Nov 2026, which this chart has no figures for, so it shows the newest month, Oct 2026, of the snapshot of 30 November 2026.");
+  assert.doesNotMatch(note?.text ?? "", /keeps ending|the one this page shows/);
+});
+
+test("a pinned month before the dataset has a window for it is said, and the month a window needs is the first plus its length", () => {
+  const manifest = behindManifest("2026-10-31", "2026-10");
+  const first = pinNote(rankingOn(behind, "&build.snapshot=2019-05"), manifest);
+  assert.equal(first?.kind, "uncovered");
+  assert.equal(first?.text, "Pinned to May 2019, which this chart has no figures for, so it shows the newest month, Oct 2026, of the snapshot of 31 October 2026.");
+  // A window of 12 months from 2021-01 first ends in 2021-12.
+  assert.equal(findPeriod(builderPresets(rankingOn(behind))[0].period)?.months, 12, "the window this test counts from");
+  assert.equal(pinNote(rankingOn(behind, "&build.snapshot=2021-11"), manifest)?.kind, "uncovered");
+  assert.equal(pinNote(rankingOn(behind, "&build.snapshot=2021-12"), manifest)?.kind, "newer");
+});
+
+test("a chart that cannot hold a window is not told it has no window for the month", () => {
+  const manifest = behindManifest("2026-11-30", "2026-10");
+  const lines = read(`build.dataset=${behind}&build.measure=count&build.by=${long}&build.value=a&build.value=b&build.snapshot=2026-11`);
+  assert.equal(holdsWindow(lines), false);
+  assert.equal(pinNote(lines, manifest)?.kind, "same");
 });

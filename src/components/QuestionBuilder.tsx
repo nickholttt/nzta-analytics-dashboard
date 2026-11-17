@@ -9,7 +9,7 @@ import { MAX_VALUES, RANKING, REMOVE_CONDITION, addressParams, builderPresets, q
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
-import { pinNote } from "../lib/pin";
+import { canPin, pinNote } from "../lib/pin";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count } from "../lib/readout";
@@ -679,7 +679,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
         ),
       )}
 
-      <MyQuestions all={all} served={served} title={presets[0]?.question ?? ""} snapshot={question.snapshot} onPin={(month) => ask({ snapshot: month }, true, true)} />
+      <MyQuestions all={all} served={served} title={presets[0]?.question ?? ""} snapshot={question.snapshot} pinnable={served ? canPin(question, served) : false} onPin={(month) => ask({ snapshot: month }, true, true)} />
 
       {notOffered.length > 0 ? (
         <section className="not-offered" aria-labelledby="not-offered-head">
