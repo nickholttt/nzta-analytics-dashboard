@@ -6166,4 +6166,14 @@ New entries use this template:
   9. The trailing window is the existing `trailing_window_months`, not a separate setting.
   10. **Found, not changed:** three pairs measure 1.0000 (0.9999 to 0.9994 in the trailing window) and are not marked because the data map does not record them: heritage country with make and with model (the brand registry gives each make one heritage country, but `MAKE` rolls up only to parent group and owner country in `config/data_map.json`), and owner country with parent group (nothing records that a parent group has one owner country). Model with vehicle type (0.9637) and with the segment are measured findings, strong because a nameplate sits in one kind of vehicle; no rule marks them. Whether the map gains `rolls_up_to` rows for the first three is a data map change, which also changes what the site's `nesting.ts` refuses to cross, and is not made here.
 - Consequences: Build can read `associations/{dataset}.json` for its related-fields note: the figure, the vehicles it rests on, and whether the pair is true by definition, with nothing fetched about a vehicle. The threshold above which a note appears, and its wording, are still to be set in config by the site's work, and the site does not read the file yet. For the lead's `docs/STATE.md` and `docs/CHECKPOINT.md`: package E's leftover is done on the pipeline side (the file, the marks, the contract, the docs); to do: the site's reading, and the decision in choice 10. The dimensions a later dataset adds to `facts` get pairs with no further change; an owner dimension never does.
+- Follow-up, 2026-11-18 (the lead, on choice 10, before the review): the three pairs are true by construction, so the data map now says so
+  and they are marked. All four brand dimensions are read from the make through `brand_registry.csv`, which gives each canonical make one
+  heritage country and each manufacturer group one owner country (no group has two). So `MAKE`, and the dashboard's `Make`, roll up to
+  `heritage_country` too (beside `parent_group` and `owner_country`), and `moves_together.true_by_definition` lists `parent_group` with
+  `owner_country` (by construction). A test now reads every by-construction relation through a reference file from the map and fails if the
+  file gives a lower value two higher ones (seen failing with one make's owner country changed). Marked pairs of `registrations_surviving`
+  in the golden build: 13 to 16 (heritage country with make and with model, owner country with parent group); the golden contract moves only
+  in that file's marks, its `not_findings` count and `payload_bytes`. The site's `nesting.ts` reads the same roll-ups, so a grid of make by
+  heritage country is now refused, as a grid of make by owner country already was; the site tests pass unchanged (399). Model with vehicle
+  type (0.9637) stays a measured finding.
 - Status: decided by Claude (unreviewed)
