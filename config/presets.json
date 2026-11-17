@@ -261,6 +261,7 @@
         "joiner": "by",
         "dimensions": {
           "powertrain": "powertrain",
+          "powertrain_group": "powertrain group",
           "import_status": "whether new or used",
           "trade_group": "passenger or commercial",
           "segment": "vehicle type",
@@ -295,6 +296,7 @@
         "joiner": "by",
         "dimensions": {
           "powertrain": "powertrain",
+          "powertrain_group": "powertrain group",
           "import_status": "whether new or used",
           "trade_group": "passenger or commercial",
           "segment": "vehicle type",

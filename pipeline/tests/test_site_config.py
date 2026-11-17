@@ -189,7 +189,7 @@ import csv
 # (reference file, columns whose values the site shows a visitor as a value or a label)
 _NAME_COLUMNS = {
     "brand_registry.csv": ["make_canonical", "parent_group", "owner_country", "heritage_country", "brand_region"],
-    "powertrain_map.csv": ["powertrain", "powertrain_detail", "powertrain_group"],
+    "powertrain_map.csv": ["powertrain", "powertrain_detail", "powertrain_group", "powertrain_group_label"],
     "segment_map.csv": ["segment", "segment_group"],
     "vehicle_scope.csv": ["label", "trade_group"],
     "import_status_map.csv": ["import_status"],

@@ -469,7 +469,9 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 - **Not recorded.** NULL, covered.
 - **Traps.** `OTHER` is a recorded catch-all (S 115). Two petrol hybrid codes are in use at once.
 - **Privacy.** Public.
-- **Relations.** Moves together with: vehicle type 0.72, combined fuel consumption (banded) 0.49,
+- **Relations.** Rolls up to the powertrain group (`powertrain_group`, the `powertrain_group_label` column of
+  `powertrain_map.csv`, D-124): each powertrain value is in one group, so Build does not cross the
+  powertrain with its group. Moves together with: vehicle type 0.72, combined fuel consumption (banded) 0.49,
   transmission 0.34 (measured).
 
 ### `ALTERNATIVE_MOTIVE_POWER`
@@ -1070,6 +1072,7 @@ is derived from, read from its `derive` block:
 | Dimension | Register fields | Reference |
 |---|---|---|
 | `powertrain` | `MOTIVE_POWER` (mild hybrids identified by make and model) | `powertrain_map.csv`, `mild_hybrid_models.csv` |
+| `powertrain_group` | `MOTIVE_POWER`, read as `powertrain` reads it | `powertrain_map.csv` (its `powertrain_group_label` column) |
 | `make`, `parent_group`, `owner_country`, `heritage_country` | `MAKE`, `MODEL` (model exceptions match on motive power, import status, vehicle type and vehicle year) | `brand_registry.csv`, `model_registry.csv` |
 | `model` | `MAKE`, `MODEL` | the same |
 | `built_in` | `ORIGINAL_COUNTRY` | none |

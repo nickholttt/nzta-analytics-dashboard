@@ -158,6 +158,17 @@
       "note": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are identified by nameplate, so the category takes the label and coverage published in the manifest (mild_hybrid_identification_coverage): 'Mild hybrid (identified)' with its coverage, until coverage is high."
     },
     {
+      "id": "powertrain_group",
+      "label": "Powertrain group",
+      "public_note": "Powertrain values put into groups. The group that holds the hybrid and mild hybrid values together is the same whether or not a dataset divides its hybrids. NZTA does not record whether a hybrid is mild or full.",
+      "source": "nzta:motive_power + reference:powertrain_map",
+      "derive": { "kind": "lookup", "field": "motive_power", "reference": "powertrain_map.csv", "key": "nzta_motive_power", "value": "powertrain_group_label" },
+      "kind": "category",
+      "cardinality": "low",
+      "help": "How the vehicle is powered, in groups: a roll-up of powertrain in which each powertrain value sits in one group.",
+      "$comment": "The same motive power as powertrain, read through the same final motive power (after mild_hybrid_models.csv), so a vehicle's group is a function of the powertrain it ends up with: powertrain_map.csv gives each powertrain exactly one group (a test holds it). The value is the label column powertrain_group_label, not powertrain_group: the hybrid classification reads powertrain_group's own values (pipeline.json hybrid_classification.source_hybrid), and one of them is also a powertrain value. The mild split does not touch it (derive.undivide_hybrids moves only the column that looks up the powertrain column), so it is published where the split is withheld. An unmapped or not-recorded motive power reads as it does for powertrain."
+    },
+    {
       "id": "make",
       "label": "Brand",
       "source": "nzta:make + reference:brand_registry + reference:model_registry",

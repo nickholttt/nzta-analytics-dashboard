@@ -139,19 +139,19 @@
       "$pairs_comment": "The two-dimensional slices this dataset emits, each [dim_a, dim_b], written to pairs/{dataset}/{dim_a}__{dim_b}.parquet. Only pairs a chart or filter needs (docs/CUBE_SCHEMA.md, Pair slices).",
       "pairs": [["import_status", "age_at_registration_band"], ["powertrain", "segment_group"], ["import_status", "vehicle_type"]],
       "$facts_comment": "The fact table: counts by month and every dimension listed here, one Parquet file per column under facts/{dataset}/, so the browser can answer any combination by downloading only the columns a question needs (docs/CUBE_SCHEMA.md, Fact table; D-058). region is left out on purpose (D-078), and the user's rule for owner fields allows them in a slice or a pair only (D-096): it is where the vehicle's owner lives, and with it two in three of the table's rows counted a single vehicle.",
-      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "vehicle_type", "import_status", "engine_size_band", "age_at_registration_band", "nz_assembled", "nzta_class", "seats_band", "model"]
+      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "vehicle_type", "import_status", "engine_size_band", "age_at_registration_band", "nz_assembled", "nzta_class", "seats_band", "model"]
     },
     "registrations_flow": {
       "$comment": "Read from the supplied source nzta_dashboard (the `supplied` block), through the same normalise, derive and output code as the register. The same require as registrations_surviving, so the two count the same kinds of vehicle: the dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
       "source": "nzta_dashboard",
       "require": ["in_scope", "fleet_entry"],
-      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "import_status", "age_at_registration_band", "model"]
+      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "import_status", "age_at_registration_band", "model"]
     },
     "registrations_flow_wider": {
       "$comment": "registrations_flow on a wider scope (D-106, D-113): the same source, import-status rule and code, counting the vehicle types the vehicle scope file marks in its trade_scope column (the default scope's two and buses, motor caravans and special purpose vehicles) in place of those it marks in_scope. Where the two datasets disagree is only in which vehicle types they count. No pairs, as for registrations_flow. Its facts are registrations_flow's and the passenger-or-commercial group (trade_group).",
       "source": "nzta_dashboard",
       "require": ["in_trade_scope", "fleet_entry"],
-      "facts": ["powertrain", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "trade_group", "import_status", "age_at_registration_band", "model"]
+      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "trade_group", "import_status", "age_at_registration_band", "model"]
     },
     "registrations_cars_long_run": {
       "$comment": "Read from the supplied source statsnz_tpt, a source of kind series (pipeline/series.py): Stats NZ's monthly count of cars and station wagons registered for the first time, from January 1961. `total` is the series that gives each month's vehicles. Its dimensions (car_origin, car_engine_band in dimensions.json) are Stats NZ's own breakdowns of that total, published separately, so they cannot be crossed with each other or with anything else: there are no pairs and no fact table. Nothing else the table holds (commercial vehicles, buses, motorcycles, power cycles, tractors) is built, because its classes are not lined up with NZTA's vehicle types (D-065).",
@@ -229,7 +229,7 @@
   "guardrails": {
     "max_in_scope_row_change": 0.02,
     "max_unmapped_rate": 0.02,
-    "abort_on_unmapped": ["make", "powertrain", "nz_assembled", "nzta_class"],
+    "abort_on_unmapped": ["make", "powertrain", "powertrain_group", "nz_assembled", "nzta_class"],
     "max_unmapped_rate_trailing": 0.02,
     "warn_unmapped_rate_trailing": 0.005,
     "zero_row_min_previous_rows": 1000,

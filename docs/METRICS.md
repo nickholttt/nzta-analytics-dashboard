@@ -344,6 +344,27 @@ What is established, and what is not:
   together (4,472 and 506, recomputed from the fact table on 2026-11-17). Only
   that vehicle type and month were compared. The comparison is of counts; no
   definition of the MTA's was read.
+- **Hybrids as one group, beside published figures (D-124, read 2026-11-17).** On true
+  registrations, new passenger cars and vans in October 2026 are 11,824, of which the
+  group "Hybrid, full or mild" holds 4,978 (42.10%): 4,472 Hybrid and 506 Mild hybrid,
+  recomputed from the fact table's column files outside the pipeline, the share being of
+  all 11,824. Auto Trader New Zealand's list of October's top sellers (published
+  1 November 2026, https://autotrader.co.nz/news/top-sellers-for-october-what-cars-are-kiwis-buying,
+  which credits NZTA registration data) gives 11,824 new passenger registrations, "petrol
+  hybrids" at 4,859 and 41.1%, and plug-in hybrids, counted separately, at 1,477 (this site:
+  1,477). Ours is 119 higher. The page calls its figure "petrol hybrids" among new passenger
+  vehicles; this site's group holds petrol and diesel hybrids, full and mild. Whether the
+  page's figure includes mild or diesel hybrids is not stated, so the bases differ and the
+  119 is not explained here. One measured fact, which does not establish the cause: of the
+  506 Mild hybrid vehicles in that month's count, 119 are one diesel nameplate (Toyota Land
+  Cruiser Prado), the same number as the difference. The Motor Industry Association's
+  release for October, as reported by DRIVEN Car Guide on 4 November 2026
+  (https://www.drivencarguide.co.nz/news/new-zealand-new-vehicle-sales-october-rentals-drive-sales-evs-up-194-year-on-year/),
+  gives passenger registrations of 11,833, battery electric 1,481 (this site: 1,481) and
+  plug-in hybrids 1,445 (this site: 1,477), and no hybrid total in the text read; the MIA's
+  own page was not found, and the bases differ (scope; whether plug-ins sit in a hybrid
+  figure; the figures are as a trade-press article reports them). Nothing here is adjusted
+  to match.
 - **Not compared:** the Ministry of Transport's fleet statistics and the
   MIA's brand and model lists could not be read (the first refuses automated
   readers, the second is for members). AutoTalk's top ten brands and models
@@ -889,17 +910,31 @@ would be Mild hybrid. A `full` row at medium counts against the high-confidence 
 the line an IMA car is mild if its motor cannot propel it alone, and no primary source read
 says either way.
 
-**Hybrids as one figure (D-118).** NZTA records a hybrid as hybrid, not as mild or
+**Hybrids as one figure (D-118, D-124).** NZTA records a hybrid as hybrid, not as mild or
 full. Every hybrid code of NZTA's that does not plug in maps to Hybrid or to Mild
 hybrid (`powertrain_map.csv`), so the two lines added together hold every such
 vehicle. On a chart that draws the mild line the site says so under it
 (`identification_together` in `config/presets.json`); it says nothing about what
-another source shows. Neither a ranking nor a share can be added in the browser. A
-count can: in Build, a count of vehicles with a condition on the powertrain that
+another source shows. A ranking or a share cannot be added up in the browser from two
+lines. A count can: in Build, a count of vehicles with a condition on the powertrain that
 keeps both values is one line of their sum (new passenger cars and vans in October
-2026 on true registrations: 4,978, against 4,472 Hybrid and 506 Mild hybrid). A
-share of the two together needs a roll-up dimension (`powertrain_group` in
-`powertrain_map.csv` holds one) and a pipeline change; none exists.
+2026 on true registrations: 4,978, against 4,472 Hybrid and 506 Mild hybrid). A share
+of the two together is the dimension `powertrain_group` ("Powertrain group" in Build): a
+roll-up of the powertrain from the `powertrain_group_label` column of `powertrain_map.csv`, a slice and a
+fact-table column of every dataset that has the powertrain. A share by it is of every
+vehicle the question keeps, as every share is. It adds no row to a fact table, because a
+group is a function of the powertrain, and it does not depend on the mild split, so it
+is the same on a dataset that withholds the split. Its five values are named in
+`powertrain_group_label`; the one that holds both hybrid values is the group of all
+hybrids that do not plug in, full or mild. It is not the same thing as a source's hybrid
+figure unless that source counts the same vehicles under it (whether plug-in hybrids are
+in it, and the scope).
+
+`powertrain_map.csv` gives each powertrain value one group in `powertrain_group` (a test holds it, and that the two values
+the mild split moves a vehicle between, Hybrid and Mild hybrid, share a group) and each group a plain-word name in
+`powertrain_group_label`, which is the name a visitor sees (D-124). The key column keeps its short values because the hybrid
+classification reads them (`hybrid_classification.source_hybrid` in `config/pipeline.json`), and one of them is also a
+powertrain value.
 
 The file is keyed on the make and model as the dataset spells them, so a
 nameplate the register and the dashboard spell differently needs a row for

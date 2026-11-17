@@ -276,6 +276,20 @@ not recorded (`sentinels.csv`, under `NUMBER_OF_SEATS`), so it is NULL when band
 8,408 and 207, of 4,520,304 vehicles. Seats are not recorded for many vehicles first registered from early 1994 to late
 1995, so `unknown` is large in those months; the dimension's `public_note` says so. No mean or median is built.
 
+`powertrain_group` (the powertrain in five groups, under the names in the `powertrain_group_label` column of
+`powertrain_map.csv`; D-124) is a column of the table of every dataset whose `facts` list the powertrain (the three that
+have a fact table), and has a slice of each. It is read from the same final motive power as the powertrain, and the file
+gives every powertrain value one group, so a group is a function of the powertrain: the table gains no row, and no vehicle
+sits in a group other than its powertrain's. The mild split does not move it (the two values it moves a vehicle between are
+in one group), so it is published on a dataset that withholds the split. It is not live for `registrations_cars_long_run`
+(`not_live`: "the source does not carry MOTIVE_POWER"). A motive power the file does not hold reads `__UNMAPPED__` here as
+it does for the powertrain, and the dimension is in `abort_on_unmapped` beside it. Measured on a dry run of 2026-11-17 on
+the 2026-10 pull against the build of the branch before it: the table's rows are unchanged (755,586 on
+`registrations_surviving`, 131,260 on `registrations_flow`, 136,452 on `registrations_flow_wider`); the files added are
+18,829 bytes (slice) and 6,115 (column) on the first, 2,920 and 1,851 on the second, 2,920 and 1,864 on the third; the
+payload is 4,877,607 bytes before and 4,912,106 after (+34,499), 61.4% of the 8,000,000 byte budget. Every other file is
+byte-identical; the manifest gains the dimension's entries.
+
 A list that is empty or not distinct dimension ids, or names a dimension the
 dataset cannot derive (or `month`, `n` or `rid`), aborts the run. A listed dimension
 that is not live this run is left out of the table, with a warning, and listed
@@ -734,7 +748,7 @@ Mapping:
   in-scope row, or in-scope rows first registered in the trailing 12
   months. Both must pass.
 - Unmapped powertrain above 2% of in-scope rows, on the same two bases.
-- Unmapped `nz_assembled` or `nzta_class` above 2% of in-scope rows, on the same two bases (every dimension in
+- Unmapped `nz_assembled`, `nzta_class` or `powertrain_group` above 2% of in-scope rows, on the same two bases (every dimension in
   `abort_on_unmapped` in `config/pipeline.json` is guarded so, D-116).
 - A dimension that was live in the last good run exceeds its unmapped
   threshold or loses a reference file.
@@ -811,7 +825,7 @@ is worse than one that is visibly stale.
 
 ## Warnings — the build continues, recorded in `manifest.warnings`
 
-- Unmapped make, powertrain, `nz_assembled` or `nzta_class` over the trailing 12 months is above 0.5% of
+- Unmapped make, powertrain, `powertrain_group`, `nz_assembled` or `nzta_class` over the trailing 12 months is above 0.5% of
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
