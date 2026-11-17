@@ -5678,3 +5678,96 @@ New entries use this template:
   build that each powertrain value sits under one group on all three datasets, that the hybrid group equals the two hybrid values in
   every month, that no fact table gained a row and that nothing but the manifest and six new files differs from the build before.
 - Status: decided by Claude (unreviewed)
+
+## D-126 2026-11-17 — The user's three changes opening the eleventh session: the region slice takes the small-cell rule now, a pinned link is to load its snapshot's cube release, and the axles field is checked before it is offered
+- Agent: user (the instructions), claude (the record, and the readings marked)
+- Basis: the user's message opening the eleventh session of work order 1, 2026-11-17, quoted below; D-096 and
+  D-120 (the owner rule and when the `region` slice takes it); D-125 (what a pin holds); `docs/DATA_MAP.md`
+  (`NUMBER_OF_AXLES`, and the `CLASS` section's count of class TA trailers by axles).
+- Decision (user), in the user's words:
+  1. "Undo decision 2. The region slice is already in a public cube release, so it takes the small-cell rule
+     (the minimum of 10 and the second rule that stops a total giving a hidden cell away) in the same change
+     that builds that rule, so December's build carries it."
+  2. "Queue: a pinned link loads the cube release for its snapshot, so a quoted figure still shows after later
+     refreshes."
+  3. "Check what NUMBER_OF_AXLES means against the data before it is offered anywhere, given the class TA
+     trailers."
+- What follows, and claude's readings (unreviewed):
+  1. "Decision 2" is the second line of the list of choices in the tenth session's closing report, which is
+     not in the repository. The only choice of that session about when the `region` slice takes the minimum
+     is D-120's reading 4, second sentence ("when that table is published ... not before"), so that reading
+     is the one undone, and with it D-096's reading 4 ("the `region` slice stays exactly as it is"). The
+     slice takes both rules in the change that builds them (D-127), which is to be on `main` before NZTA's
+     December refresh. The rest of D-120's reading 4 stands: the first table of any other owner field is
+     shown to the user before a build may publish it.
+  2. The release `cube-2026-10` already holds the slice with no cell hidden. It is left as it is: replacing a
+     release cannot be undone and a further forced run of October is not allowed (the work order's §3,
+     D-082), so whether it is replaced is a question for the user (`docs/CHECKPOINT.md`).
+  3. The pinned link is a queue item, placed after the small-cell work and before colour (claude's choice of
+     place; the user gave none). When it is built it supersedes D-125's "a pin holds a window, never a past
+     snapshot's figures". Two things it must settle are noted now so they are not lost: where a browser can
+     read a past snapshot's cube from (not established: whether a page can read a release's files straight
+     from GitHub was not tested), and that a link pinned to October 2026 would read a release whose `region`
+     slice has no cell hidden (reading 2).
+  4. `NUMBER_OF_AXLES` is not bound, and is not offered as a filter, a breakdown or a measure anywhere, until
+     what it records has been measured on the saved pull and written into the data map with its own record
+     (D-129). The data map's present entry (a filter for three or more axles, a guard of 2 to 6) is a
+     proposal that waits on that.
+- Consequences: the queue in `docs/CHECKPOINT.md` changes (the small-cell rule and the `region` slice no
+  longer wait for the first owner table; a new item for the pinned link). Numbers given out for this
+  session's parallel work: D-127 the small-cell rule, D-128 power and transmission, D-129 the axles finding.
+- Status: accepted (the user's instructions); the readings above are decided by Claude (unreviewed)
+
+## D-129 2026-11-17 — What `NUMBER_OF_AXLES` records: a count of axles on heavy vehicles, zero or two on light ones whatever the vehicle, so the field is withdrawn from every use for now
+- Agent: claude (the lead, on a read-only profile by a sub-agent whose figures the lead re-ran)
+- Basis: the user's instruction of 2026-11-17 (D-126 item 3: check what the field means against the data before
+  it is offered anywhere, given the class TA trailers); the saved 2026-10 pull, all 5,926,990 vehicles of every
+  vehicle type, read on 2026-11-17 by scripts outside the repository (the field, the class, the vehicle type,
+  the gross vehicle mass, the first registration year; no owner field, `VIN11` or `POSTCODE` was loaded);
+  `docs/DATA_MAP.md` as it stood (the field as a filter for three or more axles, a proposed guard of 2 to 6);
+  D-121 (NZTA's class table: class TA is a single-axled trailer).
+- Context: the data map offered the field as a filter. The class labels of D-121 showed that it disagrees
+  with the definition of class TA for 99.7% of the class, which was stated and not explained.
+- Measured (whole pull; each figure in `docs/DATA_MAP.md` under the field):
+  - The field is never NULL. Zero on 1,156,224 vehicles, one on 9,759, two on 4,663,486, three on 49,551,
+    four on 39,257, five on 8,646, six to nine on 67.
+  - Where it varies it behaves as a count of axles: in class NC the median gross vehicle mass is 15,000 kg
+    at two axles, 24,500 at three, 31,600 at four and 35,000 at five; class TD trailers spread from one to
+    five axles; buses have a median mass of 3,250 kg at two axles and 21,350 at three. Zero is on 2 vehicles
+    of class NC and none of class TD.
+  - On light vehicles it is zero or two: passenger cars and vans zero 687,152, two 3,015,304, one 1,153,
+    three or more 376; motorcycles zero 178,720, two 13,246.
+  - Class TA: one axle 1,760, two 541,493, three 22. Before 1996, 292 of 334 record one; from 1996, 1,468 of
+    542,941. Of the two-axle TA trailers 517,911 have no gross vehicle mass; of the one-axle ones, 158.
+  - Not a count of wheels: cars read two, and most motorcycles read zero.
+  - No public source saying how the field is filled was found on 2026-11-17 (the open data service's layer
+    gives the field no description; NZTA's field descriptions give one sentence; NZTA's website was not
+    read, since it blocks automated readers).
+- Decision:
+  1. **The meaning recorded in the data map is what was measured**: a count on heavy vehicles; on light
+     vehicles and light trailers a zero (nothing recorded) or a two that cannot be told from a value filled
+     in without counting. That NZTA's system fills in a two is not claimed: it was not measured and no
+     source says so.
+  2. **The field has no use for now.** `config/data_map.json` sets `filter` to false and `measure` to none,
+     and `recorded_for` to heavy vehicles. Build offers only what the map defines, so the field cannot be
+     asked for. It was not bound, so no published file changes.
+  3. **If it is offered later, it is within heavy vehicle classes only**, worded as axles as recorded, with
+     the heavy vehicle topic (package I) and a record of its own.
+  4. **The proposed guard of 2 to 6 is withdrawn**: it would drop one-axle heavy trailers (304 of class TD).
+     The note in the map's binding table says what to do instead if the field is bound.
+- Options considered:
+  - *Keep the filter "three or more axles" for every vehicle.* Three or more is almost only heavy vehicles,
+    so the filter would mostly work; but its complement ("two axles") and any share over all vehicles would
+    chart how the field was filled. Rejected for now: a filter whose other side misleads is not offered.
+  - *Offer it now for heavy classes only.* Honest on the counts above, but neither published scope has a
+    heavy vehicle topic, a condition that narrows to heavy classes would have to be built, and nothing asks
+    for it yet. Left for package I.
+  - *Withdraw every use until then* (chosen): the smallest change, and undone by two values in one file.
+- Not established: why class TA changes at 1996; why zeros are common among passenger cars and vans first
+  registered in early 2023 (61.1% of those of January 2023, 44.5% of February's and 19.2% of March's, against
+  3.2% of January 2024's); whether a two on a car is counted or filled in (cars have two axles either way).
+- Choices a reviewer could want reversed: withdrawing the filter rather than keeping it for heavy classes;
+  `recorded_for` set to heavy vehicles although the field is not zero on most light vehicles.
+- Consequences: the data map no longer offers the field anywhere. Nothing in a published file, the pipeline
+  or the site changes. Package I decides whether heavy vehicles get it.
+- Status: decided by Claude (unreviewed)

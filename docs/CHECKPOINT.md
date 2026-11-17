@@ -8,62 +8,59 @@ Last updated by claude on 2026-11-17
   to D-119). October was forced once; no second forced run is allowed (D-082), except after
   a change to the committed counts (D-120).
 - 2026-11-17, tenth session. The user answered the parked questions (D-120). **Merged: #81,
-  #82, #84, #85, #86, #87** (#83 was closed and rebuilt as #85: two of its commits failed a
-  test after #82 landed). `incoming/` is deleted. No agent is running and no branch is open
-  but this file's. #82 (D-122): three register fields as breakdowns, package F's done-when.
-  #85 (D-121): the class labels. #84 (D-123): the SUV file's second slice. #87 (D-124):
-  hybrids as one group. #86 (D-125): "My questions", and what a pin can honestly hold.
+  #82, #84 to #88.** #82 (D-122): three register fields as breakdowns, package F's
+  done-when. #85 (D-121): the class labels. #84 (D-123): the SUV file's second slice. #87
+  (D-124): hybrids as one group. #86 (D-125): "My questions", and what a pin can hold.
 - **Figures set beside published ones.** New vehicles on the wider scope: within 0.06% of the
   MIA's for October 2026, older months about 1% lower, cause not established (D-105, D-113).
   vstat equals ours for October 2026 (D-118). Hybrids as one group, new passenger vehicles,
   October 2026: 4,978 of 11,824; Auto Trader has the same total and 4,859 "petrol hybrids";
   119 of our mild hybrids that month are one diesel nameplate; cause not claimed (D-124).
+- 2026-11-17, eleventh session, the user (D-126): the `region` slice takes the small-cell rule
+  now; a pinned link is to load its snapshot's release (queued); axles are checked first.
 - **Measured on 17 November for the next pieces** (a read-only profile of the saved 2026-10
-  pull; it reproduced the cube's 4,520,304 vehicles; restate each figure in the record of
-  the piece that uses it, re-measured):
-  - Power and transmission: recorded for about 92% of NZ-new vehicles and almost no used
-    imports (141 and 116). The gap is heavy vehicles (several truck makes record none). For
-    passenger cars and vans no month from May 2003 has more than 1% missing. Transmission
-    has 28 raw values; `OTHER` holds 110,739 vehicles, most of them battery electric.
-  - Cost on the wide fact table (755,586 rows): power in the map's bands +21,159 rows;
-    transmission in four groups +124,543 bytes; both +43,471 rows and +244,239 bytes (+10.7%).
+  pull; restate each figure, re-measured, in the record of the piece that uses it):
   - Colour: 14 values, 5 blanks. A narrow table with make alone is about 276 KB; with make
     and segment group or import status about 370 KB; with make and powertrain 407 KB.
   - Owner fields, latest 12 months as one window: one cell under 10 each for district, region
     and industry class. By month over all history 47.7% of district cells are under 10, and
     in 174 to 443 of 1,197 months exactly one cell would be hidden, which a total gives
     away: the hiding needs a second rule. The register has no owner-type field.
-  - The `region` slice under a floor of 10: 5,668 of 16,406 region-month cells (19,078
-    vehicles), nearly all before 1990; from 1990, 419 cells; in the latest 12 months, 3.
 
 ## Open pull requests
 
-- These notes (docs only), if not yet merged when the next session starts.
+- #90: D-126 and the axles finding (D-129), in review. `claude/small-cells` and
+  `claude/power-transmission` are being built (`nzta-audit`, `nzta-notes`), not yet pushed.
 
 ## The queue, in order
 
-1. **Power and transmission** (package F): bound for NZ-new vehicles, power in the data map's
-   bands, transmission through a reference file of groups; each with its guard, its
-   "recorded only for" rule and the months it is well recorded. A golden contract change.
-2. **Hiding small cells, then the first owner table** (D-096, D-120): cells under 10 hidden,
-   with a second rule where a total would give one away; built and tested privately. The
-   first owner table is shown to the user, as figures and screenshots, before any pull
-   request that would let a build publish it merges; the `region` slice takes the floor then.
-3. **Colour**, in a narrow table of counts of its own (a contract change; costs above).
-4. **The SUV file's next slice** (D-123, "left"): people movers and sports cars; whether the
+1. **Power and transmission** (package F; D-128; branch `claude/power-transmission`, being
+   built): power in the data map's bands, transmission through a reference file of groups;
+   each with its guard, its "recorded only for" rule and the months it is well recorded. Two
+   golden contract changes. Then, as its own pull request, the two as breakdowns in Build.
+2. **Hiding small cells, with the `region` slice** (D-126, D-127; branch `claude/small-cells`,
+   being built): cells under 10 hidden, a second rule where a total would give one away; the
+   build checks its own file. **On `main` before NZTA's December refresh.** Then the site
+   reading a hidden cell (D-130). Then the first owner table, built privately and shown to
+   the user, as figures and screenshots, before a pull request that would publish it merges.
+3. **A pinned link loads the cube release for its snapshot** (the user, D-126), so a quoted
+   figure still shows after later refreshes. To settle first: where a browser can read a past
+   snapshot's cube from; October's release holds the `region` slice unhidden (D-126).
+4. **Colour**, in a narrow table of counts of its own (a contract change; costs above).
+5. **The SUV file's next slice** (D-123, "left"): people movers and sports cars; whether the
    register holds the Levorg Layback as LEVORG and the Impreza XV as IMPREZA; three sizes each
    for cars and SUVs from cited length and width against the FCAI's footprint bands; a rule
    per dataset; then the wiring and its guard. 61 rows are still `medium`: the sites refuse.
-5. **Small follow-ups.** Engine: Tank to unresolved (a golden change); a reader that refuses a
-   malformed reference row; the X-Trail row's basis; the dataset guard on a filtered dataset
-   (D-118); the fixture harness's fields; a seats average. Site: a notice for a link naming
-   a value the data no longer holds (a band's `unknown`, a class by its bare code); the
+6. **Small follow-ups.** Engine: Tank to unresolved (a golden change); a reader that refuses
+   a malformed reference row; the X-Trail row's basis; the dataset guard on a filtered
+   dataset (D-118); the fixture harness's fields; a seats average. Site: a notice for a link
+   naming a value the data no longer holds (a band's `unknown`, a class by its bare code); the
    register fields' notes cut to a line; class with segment group recorded in the data map;
    the pinned line told the first month the panel loads, so the register's line can say its
    window is kept (D-125); the template lint reading `config/my_questions.json`; the query
    service prototype's `unknown` and `build.snapshot`.
-6. **The related-fields note** from the data map, in Build (package F's last site item).
-7. **Paused, uncommitted, behind `main`:** package H's narrative spec (D-102; worktree
+7. **The related-fields note** from the data map, in Build (package F's last site item).
+8. **Paused, uncommitted, behind `main`:** package H's narrative spec (D-102; worktree
    `nzta-screens`). D-103's draft scheme file is untracked in `nzta-segments`.
 
 ## Left in the packages
@@ -90,13 +87,16 @@ Last updated by claude on 2026-11-17
    full engine is audited again (D-120). Nothing is provisioned or spent until then.
 3. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
    sentence; the retaken dashboard history (the user, 17 November: still to come).
+4. **The release `cube-2026-10` holds the `region` slice with no cell hidden** (D-126). (a)
+   Leave it. (b) "Force October" once the rule is on `main`, replacing the release.
+   Recommended (b): a pinned link will read it. No answer: (a), and a pin skips its regions.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
 D-082, D-085 to D-095 (the eighth session). The ninth: the readings in D-096, D-104 and D-106
 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119 (D-119's line is now the
-user's). The tenth: the readings in D-120, and D-121 to D-125. Not yet in a record: the three
-sizes in queue item 4.
+user's). The tenth: the readings in D-120, and D-121 to D-125. The eleventh: the readings in
+D-126. Not yet in a record: the three sizes in queue item 5.
 
 ## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
 
