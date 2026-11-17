@@ -1,6 +1,6 @@
 """How much of a dataset's passenger vehicles the model segment file classifies, and how the SUV share moves, by month.
 
-    python -I scripts/segment_coverage.py <dataset> [<saved pull folder>] [--top N] [--months N] [--focus CLASS] [--group GROUP]
+    python -I scripts/segment_coverage.py <dataset> [<saved pull folder>] --focus CLASS --group GROUP [--top N] [--months N] [--import-status LABEL]
                                            (from the repository root)
 
 A dataset built from the register needs the saved pull (data/raw/YYYY-MM/<timestamp>); one built from a supplied source reads that
@@ -8,7 +8,7 @@ source's committed store. Reads the repository and the pull and writes nothing: 
 script, run by hand; the pipeline never runs it (D-117). Nothing reads data/reference/model_segment.csv in a build yet.
 
 A vehicle counts here when the dataset's own filter counts it and its vehicle type is in the vehicle scope file's `--group`
-(`passenger` by default). It has a row when the file has a row for its canonical make and model whose vehicle-year bounds it
+(a `scope_group` value). It has a row when the file has a row for its canonical make and model whose vehicle-year bounds it
 meets; a vehicle with no vehicle year meets no row that bounds the year.
 """
 
@@ -25,8 +25,8 @@ parser.add_argument("dataset")
 parser.add_argument("pull", nargs="?")
 parser.add_argument("--top", type=int, default=25, help="how many nameplates without a row to list")
 parser.add_argument("--months", type=int, default=24, help="how many of the latest months to show the share for")
-parser.add_argument("--focus", default="suv", help="the class whose share is shown by month")
-parser.add_argument("--group", default="passenger", help="the scope_group of vehicle_scope.csv that counts as passenger vehicles")
+parser.add_argument("--focus", required=True, help="the class (a value of the file's class column) whose share is shown by month")
+parser.add_argument("--group", required=True, help="the scope_group of vehicle_scope.csv that counts as passenger vehicles")
 parser.add_argument("--import-status", help="count only vehicles with this import status label, as import_status_map.csv spells it")
 args = parser.parse_args()
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
