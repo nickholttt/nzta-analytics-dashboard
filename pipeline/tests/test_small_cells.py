@@ -51,7 +51,8 @@ def test_the_second_rule_goes_on_until_the_hidden_cells_count_what_the_rule_asks
     # A rule that asks for three cells holding 40 vehicles: 2, then 15 (17), 15 (32) and 15 (47) in value order.
     strict = SmallCellRule(minimum=10, hidden_cells=3, hidden_vehicles=40)
     assert decide_month(cells(a=2, b=15, c=15, d=15, e=500), strict) == Hidden(("a",), ("b", "c", "d"))
-    assert decide_month(cells(a=2, b=15, c=15, d=15), strict) == Hidden(("a",), ("b", "c", "d"))
+    assert decide_month(cells(a=2, b=15, c=15, d=15, e=500, f=500), strict) == Hidden(("a",), ("b", "c", "d"))
+    assert decide_month(cells(a=2, b=15, c=15, d=15), strict) is None, "all four hidden: nothing would stay visible"
     assert decide_month(cells(a=2, b=15, c=15), strict) is None
 
 
@@ -81,11 +82,47 @@ def test_a_month_whose_total_is_under_the_minimum_is_not_broken_down():
 
 def test_a_month_where_everything_is_hidden_and_the_rule_is_not_met_is_not_broken_down():
     assert decide_month(cells(a=4, b=5), RULE) is None
-    assert decide_month(cells(a=9, b=9), RULE) == Hidden(("a", "b"), ()), "18 vehicles in two cells meet the rule"
 
 
-def test_a_month_where_everything_is_hidden_and_the_rule_is_met_hides_every_cell():
-    assert decide_month(cells(a=4, b=5, c=6), RULE) == Hidden(("a", "b", "c"), ())
+def test_a_month_where_every_cell_would_be_hidden_is_not_broken_down_even_when_the_rule_is_met():
+    """No cell would stay visible, so nothing is lost by dropping the rows, and which values had vehicles is not shown."""
+    assert decide_month(cells(a=4, b=5, c=6), RULE) is None
+    assert decide_month(cells(a=9, b=9), RULE) is None, "18 vehicles in two cells meet the first two parts of the rule"
+
+
+def test_ten_cells_of_one_vehicle_are_not_broken_down():
+    """Ten cells holding ten vehicles: every hidden cell would be exactly 1 and the rule's own counts would pass."""
+    assert decide_month([(f"v{i}", 1) for i in range(10)], RULE) is None
+
+
+def test_ten_cells_holding_twelve_vehicles_are_not_broken_down():
+    """Near-miss of the same shape: each cell pinned to 1, 2 or 3 by the total."""
+    month = [(f"v{i}", 1) for i in range(8)] + [("v8", 2), ("v9", 2)]
+    assert sum(n for _, n in month) == 12
+    assert decide_month(month, RULE) is None
+
+
+def test_two_cells_of_five_with_nothing_else_are_not_broken_down():
+    assert decide_month(cells(a=5, b=5), RULE) is None
+
+
+def test_two_cells_of_five_beside_a_visible_forty_stay_as_hidden_rows():
+    assert decide_month(cells(a=5, b=5, c=40), RULE) == Hidden(("a", "b"), ())
+
+
+def test_a_second_rule_that_hides_the_last_visible_cell_leaves_a_month_not_broken_down():
+    # One small cell, then the second rule hides the only larger one: all hidden.
+    assert decide_month(cells(a=3, b=50), RULE) is None
+    # Two small cells under the minimum together; the rule wants 10, so it takes the 12, and nothing is left.
+    assert decide_month(cells(a=2, b=3, c=12), RULE) is None
+    assert decide_month(cells(a=2, b=3, c=12, d=40), RULE) == Hidden(("a", "b"), ("c",))
+
+
+def test_ten_cells_of_one_beside_a_visible_cell_hide_a_larger_cell_too():
+    """Ten hidden cells of 1 add up to 10, which meets the counts of the rule but pins every cell to 1: one more is hidden."""
+    ones = [(f"v{i}", 1) for i in range(10)]
+    assert decide_month(ones + [("x", 40)], RULE) is None, "the only visible cell is the one hidden"
+    assert decide_month(ones + [("x", 40), ("y", 60)], RULE) == Hidden(tuple(f"v{i}" for i in range(10)), ("x",))
 
 
 def test_a_total_minus_the_visible_cells_is_never_one_cell_or_fewer_than_the_minimum():
@@ -102,6 +139,8 @@ def test_a_total_minus_the_visible_cells_is_never_one_cell_or_fewer_than_the_min
                     counted = dict(month)
                     assert len(hidden) >= RULE.hidden_cells
                     assert sum(counted[v] for v in hidden) >= RULE.hidden_vehicles
+                    assert sum(counted[v] for v in hidden) > len(hidden)
+                    assert len(hidden) < len(month), "at least one cell stays visible"
                     assert all(counted[v] >= RULE.minimum for v in decision.second)
                     assert all(counted[v] < RULE.minimum for v in decision.first)
 
@@ -126,7 +165,7 @@ SPEC = {
     month(2): {"a": 3, "b": 4},                 # 7 vehicles: nothing to say about either
     month(3): {"a": 50, "b": 60},               # nothing under the minimum
     month(4): {"a": 2, "b": 50, "c": 60},       # exactly one small cell
-    month(5): {"a": 4, "b": 5, "c": 6},         # everything hidden, the rule met
+    month(5): {"a": 4, "b": 5, "c": 6},         # every cell would be hidden: not broken down
 }
 
 
@@ -161,7 +200,7 @@ def test_a_hidden_cell_keeps_its_row_and_its_denominator_and_loses_every_count(w
     assert rows[(4, "a")] == (None, 112, None, None, None)
     assert rows[(4, "b")] == (None, 112, None, None, None)
     assert rows[(4, "c")][0] == 60
-    assert {k: v for k, v in rows.items() if k[0] == 5} == {(5, v): (None, 15, None, None, None) for v in "abc"}
+    assert {k: v for k, v in rows.items() if k[0] == 5} == {(5, NOT_BROKEN_DOWN): (15, 15, None, None, None)}
 
 
 def test_a_month_with_nothing_under_the_minimum_is_written_as_counted(written):
@@ -178,13 +217,14 @@ def test_a_month_that_is_not_broken_down_is_one_row_with_the_reserved_value_and_
 def test_the_manifest_figures_say_what_was_hidden(written):
     assert written.stats == {
         "minimum": 10, "minimum_hidden_cells": 2, "minimum_hidden_vehicles": 10, "months": 5,
-        # month 1: a (9); month 4: a (2); month 5: a, b, c
-        "cells_hidden_first_rule": 5,
+        # month 1: a (9); month 4: a (2)
+        "cells_hidden_first_rule": 2,
         # month 1: b; month 4: b
         "cells_hidden_second_rule": 2,
-        "vehicles_in_hidden_cells": 9 + 10 + 2 + 50 + 4 + 5 + 6,
-        "months_not_broken_down": 1,
-        "vehicles_in_months_not_broken_down": 7,
+        "vehicles_in_hidden_cells": 9 + 10 + 2 + 50,
+        # month 2 (7 vehicles) and month 5 (4 + 5 + 6)
+        "months_not_broken_down": 2,
+        "vehicles_in_months_not_broken_down": 7 + 15,
     }
 
 
@@ -246,6 +286,36 @@ def test_the_check_names_hidden_cells_that_count_under_the_minimum_together(tmp_
     rows = [(1, "a", None, 60, None, None, None), (1, "b", None, 60, None, None, None), (1, "c", 51, 60, 255.0, 51, 51)]
     problems = broken(tmp_path, rows)
     assert any("the hidden cells together count fewer than 10" in p for p in problems), problems
+
+
+def test_the_check_names_a_month_with_hidden_cells_and_no_visible_cell(tmp_path):
+    """Two hidden cells holding 12: the other two parts of the rule pass, and a reader would see every cell's range."""
+    rows = [(1, "a", None, 12, None, None, None), (1, "b", None, 12, None, None, None)]
+    problems = broken(tmp_path, rows)
+    assert any("hidden cells and no visible cell" in p and "2024-01" in p for p in problems), problems
+    assert not any("exactly one" in p or "fewer than" in p for p in problems), problems
+
+
+def test_the_check_names_hidden_cells_that_are_each_exactly_one_vehicle(tmp_path):
+    """Ten hidden cells holding ten vehicles beside a visible cell: the counts of the rule pass, every cell is 1."""
+    hidden = [(1, f"v{i}", None, 50, None, None, None) for i in range(10)]
+    rows = hidden + [(1, "x", 40, 50, 200.0, 40, 40)]
+    problems = broken(tmp_path, rows)
+    assert any("each is exactly one" in p and "2024-01" in p for p in problems), problems
+    assert not any("no visible cell" in p or "fewer than" in p for p in problems), problems
+
+
+def test_ten_hidden_cells_holding_eleven_vehicles_beside_a_visible_cell_pass(tmp_path):
+    hidden = [(1, f"v{i}", None, 51, None, None, None) for i in range(10)]
+    assert broken(tmp_path, hidden + [(1, "x", 40, 51, 200.0, 40, 40)]) == []
+
+
+def test_the_check_catches_a_visible_count_under_the_minimum_on_a_row_with_no_value(tmp_path):
+    """A NULL dim_value must not slip past the comparison with the reserved value."""
+    rows = [(1, None, 3, 219, 15.0, 3, 3), (1, "b", None, 219, None, None, None), (1, "c", 200, 219, 1000.0, 200, 200),
+            (1, "d", None, 219, None, None, None)]
+    problems = broken(tmp_path, rows)
+    assert any("a visible count is under the minimum of 10" in p and "2024-01" in p for p in problems), problems
 
 
 def test_the_check_names_a_month_that_was_neither_hidden_nor_added_up(tmp_path):

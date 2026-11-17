@@ -118,27 +118,45 @@ value of the dimension in one month.
    listed for the month, but `n` is null, and so are `fc_sum`, `fc_n` and `fc_eligible_n`, which bound `n`. The
    `denominator`, the month's total, stays: every slice publishes it.
 2. **Second rule.** In a month with at least one hidden cell, the smallest visible cell is hidden too (a tie goes to the
-   value that sorts first, in byte order), and again, until at least `minimum_hidden_cells` (2) cells are hidden and
-   together count at least `minimum_hidden_vehicles` (10). The month's total less its visible cells is then a sum of two or
-   more cells that is itself at least that many, so it gives no hidden cell away. A cell hidden by the second rule is not
-   told apart in the file from one hidden by the first.
-3. **A month that cannot meet the second rule** (every cell hidden and the rule still not met: a month whose total is
-   under the minimum, or a single small cell) has no row per value. It has one row, `dim_value` = `__NOT_BROKEN_DOWN__`,
-   with `n` and `denominator` both the month's total and the fuel columns null. Nothing about any value of the dimension
-   can be derived for that month. A month with a single cell of `minimum` or more is shown as counted: nothing is hidden.
+   value that sorts first, in byte order), and again, until at least `minimum_hidden_cells` (2) cells are hidden, they
+   together count at least `minimum_hidden_vehicles` (10), and they hold more vehicles than there are of them (else each
+   would be exactly one). A month's total less its visible cells is then a sum of two or more cells that is itself at
+   least that many. That does not hide every cell's count from someone who knows the rule (limits, below). A cell hidden
+   by the second rule is not told apart in the file from one hidden by the first.
+3. **A month in which no cell would stay visible** has no row per value. It has one row, `dim_value` =
+   `__NOT_BROKEN_DOWN__`, with `n` and `denominator` both the month's total and the fuel columns null. This is a month
+   whose cells are all under the minimum (a month with a total under the minimum, or a single small cell, are cases of
+   it), or in which the second rule has to hide the last visible cell. It is decided after both rules have run: a month with
+   every cell hidden would show which values had vehicles, and a count of hidden cells as large as the vehicles they hold
+   (ten values of one vehicle each) would give every cell away exactly. Nothing about any value of the dimension can be
+   derived for that month. A month with a single cell of `minimum` or more is shown as counted: nothing is hidden.
 
-A null `n` therefore means "hidden, fewer vehicles than the rule shows", never zero (a month with no vehicles is absent
-from the slice, as everywhere). The build reads each such slice back from the written file and aborts, publishing nothing,
-unless in every month: no visible `n` is under the minimum; and either no cell is hidden and the visible counts add up to
-the `denominator`, or at least `minimum_hidden_cells` cells are hidden and the `denominator` less the visible counts is at
-least `minimum_hidden_vehicles`, or the month is one reserved row whose `n` is the `denominator`; and no hidden or reserved
-row carries a fuel figure. A pair with such a dimension is not built (below), and neither the fact table nor the committed
+What holds, then, in a month that has hidden cells (and the build aborts unless it does): at least two cells are hidden, at
+least one cell stays visible, the hidden cells together count at least `minimum_hidden_vehicles` and more than the number of
+them, and each hidden cell is between 1 and the smallest visible count. A null `n` means hidden, never zero (a month with no
+vehicles is absent from the slice, as everywhere); the cell may be under the minimum, or may be the one the second rule hid,
+which can hold many more than the minimum. The build reads each such slice back from the written file and aborts, publishing
+nothing, unless in every month: no visible `n` is under the minimum (a row with no `dim_value` included); and either no cell
+is hidden and the visible counts add up to the `denominator`, or at least `minimum_hidden_cells` cells are hidden, at least
+one row is visible, and the `denominator` less the visible counts is at least `minimum_hidden_vehicles` and larger than the
+number of hidden cells, or the month is one reserved row whose `n` is the `denominator`; and no hidden or reserved row
+carries a fuel figure. A pair with such a dimension is not built (below), and neither the fact table nor the committed
 snapshot aggregate holds an owner field (D-078, D-096).
 
-Limits, stated and not solved (D-127): a cell that falls under the minimum in one snapshot and was over it in the
-neighbouring one is bounded by the neighbour, since each snapshot restates its months; the release `cube-2026-10` was
-published before the rule and still holds the slice unhidden; and which cells are small is itself visible, as in any
-published table with marked cells.
+Limits, stated and not solved (D-127). The project's owner accepts these knowingly:
+
+- A cell that falls under the minimum in one snapshot and was over it in the neighbouring one is bounded by the
+  neighbour, since each snapshot restates its months. The release `cube-2026-10` was published before the rule and still
+  holds the slice unhidden.
+- Which cells are hidden is visible, not which of them are small: a hidden row names its value.
+- Someone who knows the rule knows the second rule hides at most one cell of `minimum` or more, the smallest visible one.
+  In a month with two hidden cells, one is therefore small and the other is the smallest visible, and the pair of values
+  can be narrowed: the month's total less its visible counts is their sum, and the larger of the two is at least the
+  minimum. How far is measured in D-127 on the build it describes.
+- When the extra hidden cell is a large region whose count can be guessed from its neighbouring months, the small cell is
+  known to within the error of that guess.
+- The fuel columns of a month's hidden cells, summed together, can be worked out from another slice's month total less
+  the visible region rows. That is about the group of hidden cells, not any one cell.
 
 Derive `share`, `yoy`, `rolling_12m`, mean fuel consumption
 (`fc_sum / fc_n`) and fuel-consumption coverage (`fc_n / fc_eligible_n`)
@@ -152,7 +170,7 @@ suppression thresholds impossible to change without a rebuild.
 | `__UNDEFINED__` | Not recorded: the source value is empty or listed in `sentinels.csv`. For a dataset built from a published series it also means vehicles the published breakdown does not account for: every vehicle of a month before the breakdown starts, or the difference where its values fall short of the total. |
 | `__UNMAPPED__` | Recorded, but no reference row matches it (a make absent from `brand_registry.csv`). |
 | `__OTHER__` | Recorded and mapped, but collapsed by a cardinality cap (a model beyond the cap). |
-| `__NOT_BROKEN_DOWN__` | Only in a slice of an owner dimension: the month is not broken down by this dimension, because the small-cell rule could not be met (above). The row's `n` is the month's total. |
+| `__NOT_BROKEN_DOWN__` | Only in a slice of an owner dimension: the month is not broken down by this dimension, because under the small-cell rule no cell of it would stay visible (above). The row's `n` is the month's total. |
 
 "Not recorded" and "no brand match" are different facts and never share a
 token. Banded dimensions use their own `unknown` band from
@@ -859,8 +877,9 @@ Pairs:
 Owner fields (D-127):
 
 - A slice of a dimension that reads an owner field, read back from the written file, breaks the small-cell rule in any month
-  (a visible count under the minimum; too few hidden cells, or hidden cells holding too few vehicles; a reserved row that is not
-  alone or not the month's total; a fuel figure on a hidden row; visible counts that do not add up), or its months, hidden rows
+  (a visible count under the minimum; too few hidden cells, or hidden cells holding too few vehicles; hidden cells and no visible
+  cell in a month; hidden cells holding no more vehicles than there are of them; a reserved row that is not alone or not the
+  month's total; a fuel figure on a hidden row; visible counts that do not add up), or its months, hidden rows
   or reserved rows differ from what the writer meant to write.
 - `config/data_map.json` is missing, cannot be read the way the build needs, or holds a rule too weak to protect a cell
   (`minimum_count` under 2, fewer than two hidden cells, or fewer hidden vehicles than the minimum).

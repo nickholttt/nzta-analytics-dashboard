@@ -15,7 +15,7 @@
     "second_rule": {
       "minimum_hidden_cells": 2,
       "minimum_hidden_vehicles": 10,
-      "$comment": "D-127. In a month where any cell is hidden, hide the smallest visible cell (ties by value order) until at least minimum_hidden_cells cells are hidden and together count at least minimum_hidden_vehicles, so that a total minus the visible cells is a sum of two or more cells that is itself at least that many. A month that cannot meet it gets one reserved row instead (docs/CUBE_SCHEMA.md). minimum_hidden_vehicles may not be below minimum_count (tested)."
+      "$comment": "D-127. In a month where any cell is hidden, hide the smallest visible cell (ties by value order) until at least minimum_hidden_cells cells are hidden and together count at least minimum_hidden_vehicles, so that a total minus the visible cells is a sum of two or more cells that is itself at least that many and more than the number of them. A month in which that would leave no cell visible gets one reserved row instead (docs/CUBE_SCHEMA.md), which limits what a total gives away and does not close it (limits in D-127). minimum_hidden_vehicles may not be below minimum_count (tested)."
     },
     "enforced": true,
     "not_published": ["POSTCODE"],
@@ -667,7 +667,7 @@
       "privacy_reason": "Locates the owner; crossed with fine vehicle detail it can come down to one vehicle.",
       "after_review": "minimum_count",
       "published_exceptions": [
-        { "dimension": "region", "outputs": ["slice"], "decision": "D-078", "decision_covers": ["slice"], "$comment": "Kept by D-078's point 3 on the user's option that the region map still draws; the user confirmed on 2026-11-16 that the slice stays (D-096). Published under the small-cell rule since D-127 (the owner's ruling of 2026-11-17, D-120 item 4): a cell under owner_rule.minimum_count is hidden, and a second rule keeps a total from giving a hidden cell away." }
+        { "dimension": "region", "outputs": ["slice"], "decision": "D-078", "decision_covers": ["slice"], "$comment": "Kept by D-078's point 3 on the user's option that the region map still draws; the user confirmed on 2026-11-16 that the slice stays (D-096). Published under the small-cell rule since D-127 (the owner's ruling of 2026-11-17, D-120 item 4): a cell under owner_rule.minimum_count is hidden, and a second rule limits what a total gives away of a hidden cell." }
       ],
       "bound": "tla",
       "relations": {

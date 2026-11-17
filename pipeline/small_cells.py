@@ -1,10 +1,11 @@
 """The small-cell rule for a slice of an owner dimension (D-096, D-120, D-127).
 
 A cell is one value of the dimension in one month. The first rule hides a cell under `minimum` vehicles. The second rule
-keeps a total from giving a hidden cell away: in a month with any hidden cell, the smallest visible cells are hidden too
-until at least `hidden_cells` cells are hidden and together they count at least `hidden_vehicles`, so the month's total
-minus its visible cells is a sum of two or more cells that is itself at least that many. A month that cannot meet that has
-no per-value row at all, only one row with the reserved value that carries the month's total.
+limits what a total gives away of a hidden cell: in a month with any hidden cell, the smallest visible cells are hidden too
+until at least `hidden_cells` cells are hidden and together they count at least `hidden_vehicles` (and more than the
+number of cells, which would be one vehicle in each). A month in which no cell would stay visible has no per-value row at
+all, only one row with the reserved value that carries the month's total: with every cell hidden, a count of hidden
+cells as large as the vehicles they hold would give every cell away.
 
 `decide_month` is the rule on its own. `write_protected_slice` applies it to a dimension's counts and writes the slice.
 `check_slice` reads a written file back and says what breaks the rule, so a slice that should be protected and is not
@@ -37,8 +38,9 @@ def decide_month(cells: list[tuple[str, int]], rule: SmallCellRule) -> Hidden | 
     """The cells to hide in one month, given (value, n) for every cell, or None when the month cannot be broken down.
 
     Cells under the minimum are hidden. If there are any, the smallest visible cells are hidden one at a time, the value
-    that sorts first breaking a tie, until the hidden cells are at least `hidden_cells` and count at least
-    `hidden_vehicles` together. If every cell is hidden and that is still not met, the month is not broken down.
+    that sorts first breaking a tie, until the hidden cells are at least `hidden_cells`, count at least `hidden_vehicles`
+    together, and hold more vehicles than there are of them (else each is exactly one). If that leaves no cell visible,
+    the month is not broken down: nothing in it would have been shown, and which values had vehicles is not shown either.
     """
     first = sorted(value for value, n in cells if n < rule.minimum)
     if not first:
@@ -47,12 +49,15 @@ def decide_month(cells: list[tuple[str, int]], rule: SmallCellRule) -> Hidden | 
     hidden_vehicles = sum(counted[v] for v in first)
     visible = sorted((n, value) for value, n in cells if n >= rule.minimum)
     second: list[str] = []
-    while len(first) + len(second) < rule.hidden_cells or hidden_vehicles < rule.hidden_vehicles:
+    while (len(first) + len(second) < rule.hidden_cells or hidden_vehicles < rule.hidden_vehicles
+           or hidden_vehicles <= len(first) + len(second)):
         if len(second) == len(visible):
             return None
         n, value = visible[len(second)]
         second.append(value)
         hidden_vehicles += n
+    if len(second) == len(visible):
+        return None
     return Hidden(tuple(first), tuple(second))
 
 
@@ -134,7 +139,8 @@ def check_slice(con, path: Path, rule: SmallCellRule, expected: dict | None = No
     - no visible count is under the minimum;
     - a month with no hidden cell and no reserved row has its visible counts add up to its denominator;
     - a month with hidden cells has at least `hidden_cells` of them, and its denominator minus its visible counts, which
-      is what they hold together, is at least `hidden_vehicles`;
+      is what they hold together, is at least `hidden_vehicles` and more than the number of them (else each holds exactly
+      one vehicle); and it has at least one visible cell (else it should be one reserved row);
     - a hidden row carries no fuel figure;
     - a month with a reserved row has that row alone, and its `n` is the month's denominator.
 
@@ -144,10 +150,11 @@ def check_slice(con, path: Path, rule: SmallCellRule, expected: dict | None = No
     rows = con.execute(f"""
         SELECT month,
                count(*) FILTER (WHERE dim_value = {reserved}) AS reserved_rows,
-               count(*) FILTER (WHERE dim_value <> {reserved} AND n IS NULL) AS hidden_rows,
+               count(*) FILTER (WHERE dim_value IS DISTINCT FROM {reserved} AND n IS NULL) AS hidden_rows,
+               count(*) FILTER (WHERE dim_value IS DISTINCT FROM {reserved} AND n IS NOT NULL) AS visible_rows,
                count(*) AS all_rows,
-               count(*) FILTER (WHERE dim_value <> {reserved} AND n < {int(rule.minimum)}) AS small_visible,
-               coalesce(sum(n) FILTER (WHERE dim_value <> {reserved}), 0) AS visible_sum,
+               count(*) FILTER (WHERE dim_value IS DISTINCT FROM {reserved} AND n < {int(rule.minimum)}) AS small_visible,
+               coalesce(sum(n) FILTER (WHERE dim_value IS DISTINCT FROM {reserved}), 0) AS visible_sum,
                min(denominator) AS low_denominator, max(denominator) AS high_denominator,
                max(n) FILTER (WHERE dim_value = {reserved}) AS reserved_n,
                count(*) FILTER (WHERE (n IS NULL OR dim_value = {reserved})
@@ -159,7 +166,7 @@ def check_slice(con, path: Path, rule: SmallCellRule, expected: dict | None = No
     def flag(problem: str, month) -> None:
         found.setdefault(problem, []).append(month)
 
-    for (month, reserved_rows, hidden_rows, all_rows, small_visible, visible_sum, low, high, reserved_n, fuel) in rows:
+    for (month, reserved_rows, hidden_rows, visible_rows, all_rows, small_visible, visible_sum, low, high, reserved_n, fuel) in rows:
         if low != high:
             flag("the month's denominator is not the same on every row", month)
         if small_visible:
@@ -174,6 +181,10 @@ def check_slice(con, path: Path, rule: SmallCellRule, expected: dict | None = No
                 flag(f"fewer than {rule.hidden_cells} cells are hidden", month)
             elif high - visible_sum < rule.hidden_vehicles:
                 flag(f"the hidden cells together count fewer than {rule.hidden_vehicles}", month)
+            if not visible_rows:
+                flag("a month has hidden cells and no visible cell (it should be one reserved row)", month)
+            if hidden_rows >= high - visible_sum:
+                flag("the hidden cells hold no more vehicles than there are of them, so each is exactly one", month)
         elif visible_sum != high:
             flag("the visible counts do not add up to the month's denominator", month)
     problems = [f"{problem} in {_examples(months)}" for problem, months in found.items()]

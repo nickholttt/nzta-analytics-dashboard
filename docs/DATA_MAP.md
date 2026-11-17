@@ -11,7 +11,7 @@ the user on 2026-11-16 (D-096):**
   before a build publishes it (D-120), so every other owner field stays out of every published file;
 - the `region` slice (share of vehicles by the owner's region, by month), published since before
   the work order under D-078, stays, and since D-127 takes the minimum of 10 (the user's ruling of
-  2026-11-17, D-120 item 4) with a second rule that keeps a total from giving a hidden cell away
+  2026-11-17, D-120 item 4) with a second rule that limits what a total gives away of a hidden cell
   (`docs/CUBE_SCHEMA.md`, "Slices of owner dimensions"). A pair with it is not built;
 - postcode totals are not published for now, and nothing derived from `VIN11` is covered.
 
@@ -774,8 +774,8 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   (`docs/DATA_SOURCES.md`).
 - **Privacy.** **Owner rule** (D-096). The `region` slice derived from it is published, as the
   recorded exception (status line above), and the user confirmed that it stays. Since D-127 the slice
-  takes the minimum of 10, a cell under it hidden, and a second rule so that a total gives no hidden
-  cell away. A pair with it is not built.
+  takes the minimum of 10, a cell under it hidden, and a second rule that limits what a total gives away of a
+  hidden cell. A pair with it is not built.
 - **Relations.** Rolls up to region through `tla_region.csv`: all 67 S values are in the file, none
   twice. Picks out a vehicle in combination. Moves together with nothing above 0.15 (road transport
   code 0.15, vehicle type 0.13).

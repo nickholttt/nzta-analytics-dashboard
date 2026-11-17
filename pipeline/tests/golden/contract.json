@@ -66,11 +66,11 @@
       "minimum_hidden_cells": 2,
       "minimum_hidden_vehicles": 10,
       "months": 17,
-      "cells_hidden_first_rule": 5,
+      "cells_hidden_first_rule": 0,
       "cells_hidden_second_rule": 0,
-      "vehicles_in_hidden_cells": 11,
-      "months_not_broken_down": 16,
-      "vehicles_in_months_not_broken_down": 45
+      "vehicles_in_hidden_cells": 0,
+      "months_not_broken_down": 17,
+      "vehicles_in_months_not_broken_down": 56
      }
     },
     "facts": {
@@ -378,7 +378,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 48864,
+  "payload_bytes": 48907,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -5286,44 +5286,8 @@
     ],
     [
      "2026-08-01",
-     "Auckland",
-     null,
+     "__NOT_BROKEN_DOWN__",
      11,
-     null,
-     null,
-     null
-    ],
-    [
-     "2026-08-01",
-     "Canterbury",
-     null,
-     11,
-     null,
-     null,
-     null
-    ],
-    [
-     "2026-08-01",
-     "Hawke's Bay",
-     null,
-     11,
-     null,
-     null,
-     null
-    ],
-    [
-     "2026-08-01",
-     "Otago",
-     null,
-     11,
-     null,
-     null,
-     null
-    ],
-    [
-     "2026-08-01",
-     "Waikato",
-     null,
      11,
      null,
      null,

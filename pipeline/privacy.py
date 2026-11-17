@@ -98,8 +98,8 @@ def owner_dimensions(cfg, dmap: dict | None = None) -> dict[str, list[str]]:
 
 @dataclass(frozen=True)
 class SmallCellRule:
-    """The user's rule for an owner field in a table of one field (D-096) and the second rule that keeps a total from
-    giving a hidden cell away (D-127). All three numbers are data in `owner_rule`."""
+    """The user's rule for an owner field in a table of one field (D-096) and the second rule that limits what a total
+    gives away of a hidden cell (D-127). All three numbers are data in `owner_rule`."""
 
     minimum: int
     hidden_cells: int

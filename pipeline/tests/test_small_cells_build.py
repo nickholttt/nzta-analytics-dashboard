@@ -56,8 +56,8 @@ def extra_rows(rows: list[dict]) -> tuple[list[dict], dict]:
         (2023, 5): [(d1, 9), (d2, 10), (d3, 25), (d4, 40)],    # 9 hidden, 10 hidden by the second rule
         (2023, 6): [(d1, 3), (d2, 2)],                         # 5 vehicles: not broken down
         (2023, 7): [(d1, 12), (d2, 15)],                       # nothing under the minimum
-        (2023, 8): [(d1, 4), (d2, 4), (d3, 4)],                # everything hidden and 12 vehicles: rule met
-        (2023, 9): [(d1, 5), (d2, 40)],                        # one small cell, the other hidden with it
+        (2023, 8): [(d1, 4), (d2, 4), (d3, 4)],                # 12 vehicles, every cell under the minimum: not broken down
+        (2023, 9): [(d1, 5), (d2, 40)],                        # the second rule hides the 40, and then no cell is visible
     }
     for month, cells in plan.items():
         for district, count in cells:
@@ -102,10 +102,12 @@ def test_the_owner_slice_is_written_under_the_rule(built):
 def test_a_month_that_cannot_be_broken_down_is_one_reserved_row_with_its_total(built):
     _, region, *_ = built
     assert region[(2023, 6)] == {NOT_BROKEN_DOWN: (5, 5, None, None, None)}
-    # 5 and 40: the small cell is hidden, and so is the other, which is the smallest visible one
-    sept = region[(2023, 9)]
-    assert sorted(v[0] is None for v in sept.values()) == [True, True], "the small cell and the smallest visible cell are hidden"
-    assert {d for _, d, *_ in sept.values()} == {45}
+
+
+def test_a_month_whose_second_rule_would_hide_the_last_visible_cell_is_not_broken_down(built):
+    _, region, *_ = built
+    # 5 and 40: the small cell is hidden, the second rule hides the 40 as the smallest visible cell, and none is left
+    assert region[(2023, 9)] == {NOT_BROKEN_DOWN: (45, 45, None, None, None)}
 
 
 def test_a_month_with_nothing_under_the_minimum_is_shown_whole(built):
@@ -113,10 +115,20 @@ def test_a_month_with_nothing_under_the_minimum_is_shown_whole(built):
     assert [region[(2023, 7)][names[k]][0] for k in ("v1", "v2")] == [12, 15]
 
 
-def test_a_month_where_everything_is_hidden_and_the_rule_is_met_keeps_its_three_rows(built):
+def test_a_month_where_every_cell_is_under_the_minimum_is_one_reserved_row_even_with_twelve_vehicles(built):
     _, region, *_ = built
-    august = region[(2023, 8)]
-    assert len(august) == 3 and all(v[0] is None and v[1] == 12 for v in august.values())
+    assert region[(2023, 8)] == {NOT_BROKEN_DOWN: (12, 12, None, None, None)}
+
+
+def test_no_month_of_the_built_slice_has_hidden_rows_and_no_visible_row(built):
+    _, region, *_ = built
+    hidden_months = 0
+    for cells in region.values():
+        rows = {v: c for v, c in cells.items() if v != NOT_BROKEN_DOWN}
+        if any(n is None for n, *_r in rows.values()):
+            hidden_months += 1
+            assert any(n is not None for n, *_r in rows.values())
+    assert hidden_months >= 1, "the fixture holds a month with real hidden rows, built end to end"
 
 
 def test_the_manifest_says_what_was_hidden_and_agrees_with_the_file(built):
@@ -164,7 +176,6 @@ def test_a_pair_with_an_owner_dimension_aborts_in_either_order(tmp_path, workspa
     pair = ["import_status", owner_dimension()]
     cfg.pipeline["datasets"][DATASET]["pairs"] = [pair[::-1] if order else pair]
     expect_abort(lambda: run(tmp_path, cfg, load_rows(), publish=False), "a pair with an owner dimension is not built")
-    assert not (workspace["public"] / "manifest.json").exists()
 
 
 def test_the_refusal_names_the_owner_field_that_is_read(tmp_path, workspace):
@@ -205,6 +216,24 @@ def test_a_slice_whose_hidden_cells_are_too_few_aborts_the_build(tmp_path, works
     with pytest.raises(GuardrailError) as info:
         run(tmp_path, cfg, rows)
     assert "cells are hidden" in str(info.value) or "together count fewer than" in str(info.value), str(info.value)
+    assert not workspace["public"].exists()
+
+
+def test_a_slice_with_a_month_of_hidden_rows_and_no_visible_row_aborts_the_build(tmp_path, workspace, monkeypatch):
+    """The old choice: every cell hidden when the counts of the rule are met, instead of one reserved row."""
+    real = small_cells.decide_month
+
+    def every_cell_hidden(cells, rule):
+        if all(n < rule.minimum for _, n in cells) and sum(n for _, n in cells) >= rule.hidden_vehicles and len(cells) >= rule.hidden_cells:
+            return small_cells.Hidden(tuple(sorted(v for v, _ in cells)), ())
+        return real(cells, rule)
+
+    monkeypatch.setattr(small_cells, "decide_month", every_cell_hidden)
+    rows, _ = extra_rows(load_rows())
+    cfg = make_cfg(workspace)
+    with pytest.raises(GuardrailError) as info:
+        run(tmp_path, cfg, rows)
+    assert "hidden cells and no visible cell" in str(info.value), str(info.value)
     assert not workspace["public"].exists()
 
 
