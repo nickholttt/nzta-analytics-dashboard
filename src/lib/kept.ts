@@ -27,7 +27,10 @@ export type Owner = ReadonlySet<string>;
 export function ownerSliceReady(manifest: Manifest, dataset: string, dimension: string, owner: Owner): boolean {
   if (!owner.has(dimension)) return true;
   const applied = (manifest.datasets[dataset] as unknown as Record<string, unknown> | undefined)?.[SMALL_CELL_KEY];
-  return typeof applied === "object" && applied !== null && !Array.isArray(applied) && Object.prototype.hasOwnProperty.call(applied, dimension);
+  if (typeof applied !== "object" || applied === null || Array.isArray(applied)) return false;
+  // The entry itself must be a block describing the rule's application: null, false or a list under the key does not say it was applied.
+  const entry = Object.prototype.hasOwnProperty.call(applied, dimension) ? (applied as Record<string, unknown>)[dimension] : undefined;
+  return typeof entry === "object" && entry !== null && !Array.isArray(entry);
 }
 
 // The month of the kept snapshot a question is pinned to, if it is pinned to one: a month before the snapshot served that the index lists.
@@ -106,7 +109,8 @@ export async function readingFor(q: Question, served: Manifest, load: Loaders, o
       }
     }
   } catch {
-    return { kind: "withheld", month, manifest, why: "missing" };
+    // A table that could not be fetched says nothing about what the snapshot holds, so no claim is made: the page does what D-125 did.
+    return { kind: "served" };
   }
   return { kind: "kept", month, manifest };
 }

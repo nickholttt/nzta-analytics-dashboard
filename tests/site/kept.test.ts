@@ -109,11 +109,12 @@ test("a kept snapshot that did not build the dataset, or does not have the field
   assert.equal(holds(pinned("2026-10"), kept, ownerSet), "yes");
 });
 
-test("a value the kept snapshot does not hold cannot be drawn from it, and neither can a snapshot whose table cannot be read", async () => {
+test("a value the kept snapshot does not hold cannot be drawn from it, and a table that cannot be fetched makes no claim", async () => {
   const none = await readingFor(pinned("2026-10"), served, loaders({ held: ["a"] }).load, ownerSet);
   assert.equal(none.kind === "withheld" && none.why, "missing");
   assert.equal((await readingFor(pinned("2026-10"), served, loaders({ held: ["a", "b"] }).load, ownerSet)).kind, "kept");
-  assert.equal((await readingFor(pinned("2026-10"), served, loaders({ sliceFails: true }).load, ownerSet)).kind, "withheld");
+  // A table that cannot be fetched says nothing about what the snapshot holds: no claim, and the newest is shown as D-125 shows it.
+  assert.deepEqual(await readingFor(pinned("2026-10"), served, loaders({ sliceFails: true }).load, ownerSet), { kind: "served" });
   assert.equal(hasValues([{ value: "a" }, { value: "b" }], ["a", "b"]), true);
   assert.equal(hasValues([{ value: "a" }], ["a", "b"]), false);
   assert.equal(hasValues([], []), true);
@@ -139,6 +140,10 @@ test("a field that describes the owner is read from a kept snapshot only where t
   assert.equal(ownerSliceReady(says([]), dataset, owner, ownerSet), false);
   assert.equal(ownerSliceReady(manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: owner })), dataset, owner, ownerSet), false, "the wrong shape says nothing");
   assert.equal(ownerSliceReady(manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: [owner] })), dataset, owner, ownerSet), false, "a list is the wrong shape too");
+  // An entry under the dimension's key that is not a block (null, false, a number, a list, text) does not say the rule was applied.
+  for (const entry of [null, false, true, 0, 10, "applied", [], [10]]) {
+    assert.equal(ownerSliceReady(manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: { [owner]: entry } })), dataset, owner, ownerSet), false, JSON.stringify(entry));
+  }
 
   const byOwner = `build.measure=count&build.by=${owner}&build.view=league&build.snapshot=2026-10`;
   const withheld = await readingFor(read(byOwner), served, loaders().load, ownerSet);
