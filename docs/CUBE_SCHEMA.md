@@ -150,11 +150,14 @@ Limits, stated and not solved (D-127). The project's owner accepts these knowing
   holds the slice unhidden.
 - Which cells are hidden is visible, not which of them are small: a hidden row names its value.
 - Someone who knows the rule knows the second rule hides at most one cell of `minimum` or more, the smallest visible one.
-  In a month with two hidden cells, one is therefore small and the other is the smallest visible, and the pair of values
-  can be narrowed: the month's total less its visible counts is their sum, and the larger of the two is at least the
-  minimum. On the 2026-10 pull (D-127): 279 months have exactly two hidden cells; of the 166 that hold 19 or more, none
-  pins the smaller cell to one value, 2 narrow it to two values, 8 to five values or fewer, and 140 learn nothing; the
-  other 113 never narrow to one pair.
+  The month's total less its visible counts is the sum of its hidden cells. In a month with two hidden cells that
+  together hold 19 or more, one is therefore small and the other is the cell the second rule hid, which holds at least
+  the minimum and no more than the smallest visible count, so the pair of values can be narrowed. (Two hidden cells
+  holding 18 or fewer may both be small.) In principle a pair can be pinned exactly: a hidden sum of 19 beside a smallest
+  visible count of 10 can only be 9 and 10, though not which cell holds which. On the 2026-10 pull (D-127) no month
+  does: 279 months have exactly two hidden cells; of the 166 that hold 19 or more, none pins the smaller cell to one
+  value, 2 narrow it to two values, 8 to five values or fewer, and 140 learn nothing; the other 113 never narrow to
+  one pair.
 - When the extra hidden cell is a large region whose count can be guessed from its neighbouring months, the small cell is
   known to within the error of that guess.
 - The fuel columns of a month's hidden cells, summed together, can be worked out from another slice's month total less
