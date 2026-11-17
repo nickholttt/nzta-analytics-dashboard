@@ -3,7 +3,8 @@
 import { parquetRead, parquetReadObjects } from "hyparquet";
 import type { ColumnData } from "hyparquet";
 import { decompressZstd } from "hyparquet-compressors";
-import { builderSpec } from "./config";
+import { builderSpec, unrecordedBand } from "./config";
+import { NOT_RECORDED_TOKEN } from "./sentences";
 import { monthKey } from "./monthkey";
 import { UNREADABLE_DATA, isUnreadableForm } from "./unreadable";
 import { crossPair, crossValue, narrowPair } from "./cross";
@@ -153,13 +154,22 @@ async function decoded<T>(read: () => Promise<T>): Promise<T> {
   }
 }
 
+// A banded dimension keeps its own unknown band in the cube, where other dimensions have the reserved not-recorded value. Read as that value, so a
+// vehicle with no usable value is the same thing to every chart, ranking, grid, condition and label whichever way the field is made. A value the
+// dimension does not hold as unknown is returned as it is.
+const asRecorded = (dimension: string): ((value: string) => string) => {
+  const band = unrecordedBand(dimension);
+  return band === undefined ? (value) => value : (value) => (value === band ? NOT_RECORDED_TOKEN : value);
+};
+
 export const loadSlice = (dataset: string, dimension: string) =>
   once(`slice:${dataset}/${dimension}`, async () => {
     const path = `cube/${dataset}/${dimension}.parquet`;
     const file = await (await fetchOk(path)).arrayBuffer();
     const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "dim_value", "n", "denominator"] }));
+    const recorded = asRecorded(dimension);
     return rows.map(
-      (r): SliceRow => ({ month: monthKey(r.month), value: String(r.dim_value), n: Number(r.n), denominator: Number(r.denominator) }),
+      (r): SliceRow => ({ month: monthKey(r.month), value: recorded(String(r.dim_value)), n: Number(r.n), denominator: Number(r.denominator) }),
     );
   });
 
@@ -169,7 +179,9 @@ const loadPair = (dataset: string, pair: string) =>
   once(`pair:${dataset}/${pair}`, async () => {
     const file = await (await fetchOk(`pairs/${dataset}/${pair}.parquet`)).arrayBuffer();
     const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "a_value", "b_value", "n"] }));
-    return rows.map((r): PairRow => ({ month: monthKey(r.month), a: String(r.a_value), b: String(r.b_value), n: Number(r.n) }));
+    const [first, second] = pair.split(PAIR_SEPARATOR);
+    const [recordedA, recordedB] = [asRecorded(first), asRecorded(second)];
+    return rows.map((r): PairRow => ({ month: monthKey(r.month), a: recordedA(String(r.a_value)), b: recordedB(String(r.b_value)), n: Number(r.n) }));
   });
 
 // One column of the fact table, as an array in the table's row order. Every column file holds the same rows in the same
@@ -184,6 +196,9 @@ const loadFactColumn = (dataset: string, column: string) =>
     chunks.sort((a, b) => a.rowStart - b.rowStart);
     const out: unknown[] = [];
     for (const chunk of chunks) for (let i = 0; i < chunk.columnData.length; i++) out[chunk.rowStart + i] = chunk.columnData[i];
+    // The column of a dimension (the others are the month and the count, which are no dimension and have no unknown band).
+    const unknown = unrecordedBand(column);
+    if (unknown !== undefined) for (let i = 0; i < out.length; i++) if (out[i] === unknown) out[i] = NOT_RECORDED_TOKEN;
     return out;
   });
 

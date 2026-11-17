@@ -50,7 +50,10 @@ The page to start from is where you put the person. Start everyone on the page s
 For A, also check the brief's four conditions on the answer: it draws at 320 px and at 1280 px, it can be shared as
 a link, it downloads as CSV, and it redraws by itself on the next snapshot. The last cannot be seen in one session:
 record it as untested until a second snapshot exists. Then ask A again with another field swapped in for powertrain
-or segment, as the brief says.
+or segment, as the brief says. Build offers seats, NZTA's class code and whether a vehicle was imported or assembled here
+as fields to swap in (D-122). The acceptance question was run with the powertrain and one value of seats, and with the
+powertrain and one value of class, on vehicles still registered, as a link, at 390 and 1280 px, with the file of figures
+compared against the fact table (D-122). No visitor has been given it.
 
 After each question ask: "What is that figure counting?" (the site counts vehicles first registered in a month that
 are still registered today, not sales, unless the page says otherwise).
