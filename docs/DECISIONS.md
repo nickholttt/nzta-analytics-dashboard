@@ -4779,43 +4779,65 @@ New entries use this template:
 - Basis: D-104 (the engine must be right, checked against published sources), D-108, D-110 and D-112; `data/reference/mild_hybrid_models.csv`,
   `docs/METRICS.md` and `docs/MODEL_AND_AGE.md` §1; the saved 2026-10 pull and the committed dashboard store, read with
   `scripts/unmatched_hybrids.py` and a scratch script that calls the pipeline's own functions and writes nothing in the repository;
-  public pages read on 2026-11-17, named below (nothing about this project was sent to any site).
+  public pages read on 2026-11-17, named below (nothing about this project was sent to any site). Corrected in place after the review of #74
+  (the record is new in that pull request).
 - Context: the split is published while at least 70% of a dataset's trailing hybrids are identified at high confidence. On 2026-10 true
   registrations stood at 14,271 of 19,286 (74.00%) with room for 1,101 more unidentified hybrids, and the register at 14,241 of
   19,233 (74.04%). The owner's direction is that coverage is never raised by guessing, so a row goes to high only when a primary source
-  states the system for the nameplate as sold in the market the row matches; a trade-press report alone stays at medium.
+  (a maker's or its New Zealand distributor's own page, release or specification sheet, or a government source) states the system for the
+  nameplate as sold in the market the row matches; a trade-press report alone, or a dealership's stock listing, stays at medium.
 - Options considered:
   - *Raise every large row.* Rejected: the count of vehicles is not evidence.
   - *Raise the Honda IMA rows (Fit 358, Freed 136, CR-Z 66, Insight 52, Spike 21, Shuttle 9 in the window) to high.* Rejected: Honda's
     own release for the Fit Hybrid names the 1.3 litre i-VTEC with IMA and does not say mild or full, and a 2010 MONOist report (read
-    through a summary of a garbled copy) says the Fit Hybrid enters EV driving at low speeds, which the file's own wording for IMA (an
-    assist motor that cannot drive the car) does not cover. The rows stay at medium; the Fit rows' notes now say so.
+    through a summary of a garbled copy of the page) says the Fit Hybrid enters EV driving at low speeds, which the file's own wording
+    for IMA (an assist motor that cannot drive the car) does not cover. The rows stay at medium; the Fit rows' notes now say so.
   - *Split Honda Fit year 2013 and Honda Shuttle year 2015 on engine size.* Not possible in the file: no match column reads engine
     capacity, and the dashboard store (true registrations) has no such field. See "left" below.
   - *Classify Subaru's e-Boxer.* Rejected: see "left".
-- Decision, changed (true registrations, the window Nov 2025 to Oct 2026; the register in brackets):
-  1. **Chery Tiggo 4 Pro**, 664 (663): full at medium to full at high. Chery New Zealand's launch release says "the new series-parallel
-     hybrid has a 1.5-litre petrol engine" (https://chery.co.nz/news/chery-unveils-tiggo-4-hybrid-efficient-performance-meets-everyday-value);
-     Autotrader NZ's report of the launch gives a 71 kW petrol engine, a 150 kW electric motor and a 1.83 kWh battery
-     (https://autotrader.co.nz/news/tiggo-4-range-expands-with-a-pair-of-hybrids). The maker does not write "full hybrid"; the call
-     rests on a series-parallel layout being one whose motor drives the wheels, which is the file's line for full.
-  2. **BAIC B30**, 397 (396): unresolved at low to full at high. Armstrong's, named by Autotrader NZ as BAIC's New Zealand distributor,
-     lists the B30 Premium Adventure Hybrid as adding "a full hybrid system" to the platform, with a 1.5 litre turbo petrol engine, front
-     electric motor drive and EV-style operation at low speeds
-     (https://www.armstrongs.co.nz/our-vehicles/make-baic/model-b30/dealership-armstrongs-baic-christchurch/new-vehicle/3866304). This is
-     one dealership listing: the Auckland listing read (.../dealership-armstrongs-baic-auckland/new-vehicle/3992304) says "hybrid" and
-     does not use the words "full hybrid", and Driven Car Guide's review says the petrol engine operates mainly as a generator.
-  3. **Nissan X-Trail, PETROL HYBRID, vehicle year 2015 or later**, 371 (369): full at medium to full at high. Nissan's global newsroom
-     release of 6 April 2015 describes the Japanese X-Trail Hybrid as Nissan's "one-motor two-clutch parallel hybrid system", in which
-     the motor drives the wheels, one clutch separates it from the engine and EV mode driving is available at high speeds
-     (https://global.nissannews.com/en/releases/150407-01-e). The row is split on vehicle year: 2015 and later at high; 2014 and earlier
-     (two vehicles on true registrations, none in the window) stay at medium, because the source does not cover a year before the
-     hybrid went on sale (on the register the same two are left at medium: 2,337 of 2,339 X-Trail petrol hybrids are now at high). A
-     vehicle with no vehicle year would match neither row and count as unknown; none of either dataset's X-Trail petrol hybrids has none.
-  4. **Foton Tunland**, 56 (56): mild at medium to mild at high. Foton New Zealand's Tunland page (https://www.foton.co.nz/trucks/tunland)
-     names the powertrain "Aucan Diesel 48V Mild Hybrid".
-  5. **Notes only, no classification changed:** Honda Fit (the IMA row and the year 2013 row), KGM Torres, Tank, BAIC X55 and the
+- Decision, changed (true registrations, the window Nov 2025 to Oct 2026, then all time; the register in brackets):
+  1. **Chery Tiggo 4 Pro, New Zealand new only**, 663 (662) in the window, 807 (805) all time: full at medium to full at high. Chery New
+     Zealand's launch release says "the new series-parallel hybrid has a 1.5-litre petrol engine"
+     (https://chery.co.nz/news/chery-unveils-tiggo-4-hybrid-efficient-performance-meets-everyday-value); Autotrader NZ's report of the
+     launch gives a 71 kW petrol engine, a 150 kW electric motor and a 1.83 kWh battery and does not mention plugging in
+     (https://autotrader.co.nz/news/tiggo-4-range-expands-with-a-pair-of-hybrids). The maker does not write "full hybrid"; the call rests
+     on a series-parallel layout being one whose motor drives the wheels, which is the file's line for full. That the release's Tiggo 4
+     Hybrid is the car recorded as TIGGO 4 PRO is **inferred from the data, not shown by a source**: TIGGO 4 PRO is the only Tiggo 4
+     spelling in either dataset, and its PETROL HYBRID vehicles begin in 2025-08, about when Chery NZ's hybrid spec sheet was published
+     (its file path is dated 2025-07). The row now has `match_import_status` NZ New, because both sources are New Zealand-market. The one
+     used import (vehicle year 2026, registered 2026-10, on both datasets) therefore matches no row and counts as unknown (it counted as
+     full at high before this correction).
+  2. **Nissan X-Trail, PETROL HYBRID, used imports, vehicle years 2015 to 2022**, 370 (368) in the window, 2,352 (2,327) all time: full
+     at medium to full at high. Nissan's global newsroom release of 6 April 2015 describes the Japanese X-Trail Hybrid as Nissan's
+     "one-motor two-clutch parallel hybrid system", in which the motor drives the wheels, one clutch separates it from the engine and EV
+     mode driving is available at high speeds (https://global.nissannews.com/en/releases/150407-01-e). Nissan's release of 20 July 2022
+     for the next-generation X-Trail says the Japan model becomes "a dedicated e-POWER model" with sales from 25 July 2022
+     (https://global.nissannews.com/en/releases/nissan-launches-the-all-new-x-trail-in-japan); the 2015 generation's hybrid was therefore
+     first registered in Japan no later than 2022. That release does not itself say when the earlier hybrid stopped being sold, so the
+     2022 cap is a judgement from the launch date, not a quotation. The other two PETROL HYBRID X-Trail rows, both Used Import: vehicle
+     year 2014 or earlier stays full at medium (2 vehicles each, none in the window); vehicle year 2023 or later is **unresolved at
+     low** (1 vehicle each, in the window: a vehicle year of 2024, which is not the 2015 generation's car and may be an e-Power recorded
+     under the other code, but one recorded code is not evidence). A New Zealand-new or re-registered X-Trail recorded as PETROL HYBRID
+     now matches no row: none exists on true registrations; the register has 9 re-registered ones, none in the window, which
+     `scripts/unmatched_hybrids.py` would list if one entered it. What the figure counts: of the register's 2,339 X-Trail petrol hybrids
+     all time, 2,330 are used imports; 2,327 of those are in the high row, 2 in the medium row and 1 in the unresolved row (an earlier
+     version of this record said 2,337 of 2,339 are at high; that counted every status and had no upper year). True registrations: all
+     2,355 are used imports, 2,352 / 2 / 1.
+  3. **Foton Tunland**, 56 (56) in the window and all time: mild at medium to mild at high. Foton New Zealand's Tunland page
+     (https://www.foton.co.nz/trucks/tunland) names the powertrain "Aucan Diesel 48V Mild Hybrid".
+  4. **Notes only, no classification changed:** Honda Fit (the IMA row and the year 2013 row), KGM Torres, Tank, BAIC X55 and the
      Subaru row have a better-evidenced note.
+- Decision, kept at medium after review: **BAIC B30**, 397 (396) in the window and all time (the model has been on sale since 2025-12):
+  unresolved at low to full at **medium**. The page that says "a full hybrid system" is one Armstrong's dealership's stock listing for
+  one vehicle (https://www.armstrongs.co.nz/our-vehicles/make-baic/model-b30/dealership-armstrongs-baic-christchurch/new-vehicle/3866304):
+  it will go when the car sells, it does not say Armstrong's is the distributor, and the same group's Auckland listing says only "hybrid".
+  That Armstrong's is BAIC's New Zealand distributor is from Armstrong's own buyer's guide of 25 August 2026
+  (https://www.armstrongs.co.nz/?p=26056), which calls the car a "self-charging hybrid" and a petrol-electric system, without saying full.
+  No BAIC New Zealand or distributor model page, release or specification sheet stating the type was found
+  (https://autotrader.co.nz/showroom/baic/baic-set-for-nz-launch-announces-first-two-models is Autotrader NZ's report of the
+  announcement and says "hybrid assistance"). The row is no longer unresolved because a New Zealand distributor listing, two reviews
+  (Driven Car Guide: the petrol engine mainly a generator) and the guide agree on a self-charging hybrid that drives on its motor at low
+  speed; it counts against the high-confidence figure until a durable page names the type.
 - Decision, looked at and left:
   - **Subaru XV, Impreza, Forester, Crosstrek** (739, 166, 484, 73): unresolved at low, unchanged. Subaru Europe's page on the e-BOXER
     (https://subaru.eu/subarumagazine/edition-2/e-boxer) says it is "a hybrid system that uses electric power from a compact battery
@@ -4840,11 +4862,15 @@ New entries use this template:
   - **KGM Torres** (62): full at medium, unchanged. KGM New Zealand's page (https://www.kgm.co.nz/torres-hybrid) gives a 1.5 litre turbo
     engine and dual motors delivering 150 kW through an e-DHT, with no type named. That KGM says the car runs EV-only is from Auto
     Trader NZ's report.
-  - **Tank** (41): full at medium, unchanged, and two sources disagree. Driven Car Guide's launch report calls the Tank 300 hybrid "a
-    full hybrid" able to drive on electric power alone for short distances, with a 78 kW motor; GWM's New Zealand dealer Ingham, in its
-    plug-in launch release, calls the non-plug-in range "mild hybrid" (https://www.inghamdriven.nz/gwm/news/59/1372/). A reviewer may
-    want this row lowered to unresolved; it was left because lowering it moves no count (full at medium and unresolved both count
-    against the figure) and the disagreement is now in the row's note.
+  - **Tank** (41): full at medium, unchanged, and two New Zealand sources disagree. Driven Car Guide's launch report calls the Tank 300
+    hybrid "a full hybrid" able to drive on electric power alone for short distances, with a 78 kW motor; GWM's New Zealand dealer Ingham,
+    in its plug-in launch release, calls the non-plug-in range "mild hybrid" (https://www.inghamdriven.nz/gwm/news/59/1372/). The review
+    asked for the row to move to unresolved at low, as the Subaru row does. **That change was made and not kept**: the golden contract's
+    fixture holds one GWM Tank hybrid row, so the move changes the golden manifest (`test_cube_matches_golden` fails), and a golden
+    change is a deliberate act of its own commit (`UPDATE_GOLDEN`), which this brief did not allow. For the lead: the move is one row of
+    the file plus a golden update. It moves no count against the high-confidence figure (full at medium and unresolved both count
+    against it), and it lowers stated trailing coverage by 41 vehicles in the denominator on true registrations and the register
+    (about 0.2 percentage points), because an unresolved row is unknown at stated confidence and a full row leaves the denominator.
   - **BAIC X55** (34): full at medium, unchanged. Armstrong's X55 pages found list only the petrol; Driven Car Guide says BAIC calls the
     powertrain "RE-HEV".
   - **Hyundai Staria Load** (25), **Lexus ES** (19), **GWM H7** (14), **BMW ActiveHybrid and BMW 3 and 5 series** (42), **Audi A6** (20),
@@ -4854,22 +4880,30 @@ New entries use this template:
     (https://www.audi.com/en/the-new-audi-a6-avant-business-class-meets-sports-elite-16487/fuel-efficient-and-high-performance-mhev-plus-technology-16495)
     says the 3.0 TFSI has the 48 V mild hybrid and the 2.0 TFSI at launch had none, so it does not settle the 2.0 litre cars the row
     also catches. Skoda, Mercedes-Benz and Volkswagen were not searched.
-  - **Nameplates with no row** (75 on true registrations; Mercedes-Benz E-Class 6, Audi A3 5, BMW 120 5, Volvo V60 5, Audi A8 4 and a tail
-    of one to three each): no row added. The E-Class (all new, 2025 and 2026) is probably the E 200 with a 48 V system, but the one New
-    Zealand page read said nothing of its powertrain, and the others carry several systems under one name.
+  - **Nameplates with no row** (76 on true registrations in the window, 75 and the Tiggo used import; Mercedes-Benz E-Class 6, Audi A3 5,
+    BMW 120 5, Volvo V60 5, Audi A8 4 and a tail of one to three each): no row added. The E-Class (all new, 2025 and 2026) is probably the
+    E 200 with a 48 V system, but the one New Zealand page read said nothing of its powertrain, and the others carry several systems
+    under one name.
 - Choices a reviewer could want reversed:
-  1. The Chery call rests on "series-parallel" meaning a motor that can drive the wheels, which the maker does not write out.
-  2. The BAIC B30 call rests on one distributor listing; a second listing read says only "hybrid".
-  3. The X-Trail row is split at vehicle year 2015, which leaves two old vehicles (and any with no year) outside the high row.
-  4. The Honda IMA rows stay at medium although most press and the file's own wording call IMA mild.
-  5. Notes were added to rows that did not change, so the record of why they stayed is in the file.
+  1. The Chery call rests on "series-parallel" meaning a motor that can drive the wheels, which the maker does not write out, and on
+     TIGGO 4 PRO being the release's Tiggo 4 Hybrid, which is inferred from the data.
+  2. The X-Trail upper year 2022 is from the next generation's launch date, not from a statement that the old hybrid stopped.
+  3. The Honda IMA rows stay at medium although most press and the file's own wording call IMA mild.
+  4. The B30 is full at medium on a listing and a guide that both stop short of "full hybrid" in the distributor's own durable text.
+  5. Tank stays full at medium, against the review's request, because of the golden contract (above).
+  6. Notes were added to rows that did not change, so the record of why they stayed is in the file.
 - Not done: no code change was made; a match column for engine capacity would settle the Fit 2013 and Shuttle 2015 rows on the register
-  only, and is not recommended unless the store gains the field. The Subaru decision is the owner's. A dry run of the whole build was
-  not made (the targeted tests and the golden test were).
-- Consequences: on the 2026-10 snapshot, trailing coverage at high confidence goes from 14,241 of 19,233 (74.04%) to 14,297 of 17,805
-  (80.30%) on the register and from 14,271 of 19,286 (74.00%) to 14,327 of 17,854 (80.25%) on true registrations; the room before 70%
-  goes from 1,111 to 2,619 and from 1,101 to 2,613 unidentified hybrids. Stated trailing coverage goes from 83.5% to 85.4% on the
-  register and from 83.5% to 85.3% on true registrations. All-time at high confidence goes from 60.1% to 63.0% (register) and from
-  64.5% to 68.0% (true registrations). No powertrain line moves: the Foton row has no override, and the full calls leave a vehicle under
-  Hybrid. The golden contract is unchanged.
+  only, and is not recommended unless the store gains the field. The Subaru decision is the owner's. The Tank move needs a golden update.
+  A dry run of the whole build was not made (the targeted tests and the golden test were).
+- Consequences: on the 2026-10 snapshot, trailing coverage at high confidence goes from 14,241 of 19,233 (74.04%) to 14,297 of 18,203
+  (78.54%) on the register, from 14,271 of 19,286 (74.00%) to 14,327 of 18,253 (78.49%) on true registrations, and from 14,271 of 19,286 (74.00%, D-113) to 14,327 of 18,253 (78.49%) on the wider dataset
+  `registrations_flow_wider`; the room before 70% goes from 1,111 to 2,221, from 1,101 to 2,214, and from 1,101 to 2,214. Stated trailing coverage goes from 83.5% to
+  85.4% on the register (85.37%) and from 83.5% to 85.3% on true registrations and the wider dataset (85.33%). All-time at high confidence
+  goes from 60.1% to 62.7% (register: 46,115 of 73,548), from 64.5% to 67.6% (true registrations: 46,157 of 68,273) and to 67.6% on the
+  wider dataset (46,158 of 68,275); all-time stated coverage is 83.5% on each. Vehicles in the window still counting against the
+  figure: 3,906 on the register (2,499 unresolved at low, 636 full at medium, 700 mild at medium, 71 with no row), 3,926 on true
+  registrations and on the wider dataset (2,509, 637, 704, 76); they were 4,992 and 5,015. Against the review's figures for the B30 at
+  medium alone (true registrations 14,327 of 18,251, 78.50%, room 2,216; register 14,297 of 18,201, 78.55%, room 2,223) these differ by
+  the same two vehicles in each dataset, the Tiggo used import and the 2024 X-Trail, which now count as unknown. No powertrain line
+  moves: the Foton row has no override, and the full calls leave a vehicle under Hybrid. The golden contract is unchanged.
 - Status: decided by Claude (unreviewed)
