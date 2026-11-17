@@ -224,10 +224,11 @@ SUNLONG 1, VAUXHALL 1, WESTERN STAR 1, ZEMTEC 1.
 - **Hybrids.** The added types hold 33 vehicles recorded under a hybrid code all time and 1 in the trailing window. All
   but one have a row in `mild_hybrid_models.csv` (a Hino, model 500, has none). The wider dataset's trailing figures are
   the default scope's to the vehicle but one: 91,615 source hybrids against 91,614, identified at stated confidence
-  85.31%, and at high confidence 14,327 of 18,257 (78.47%) under D-110's count, so its mild split is published (the
-  level is 70%). 2,210 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
-  time the high-confidence figure is 46,158 of 68,281 (67.6%). (Measured again on 2026-11-17 with D-115's rows as
-  corrected in review; D-113 measured 83.45%, 14,271 of 19,286 and 46,102 of 71,434 before them.)
+  91.88%, and at high confidence 14,327 of 17,858 (80.23%) under D-110's count, so its mild split is published (the
+  level is 70%). 2,609 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
+  time the high-confidence figure is 46,158 of 67,698 (68.2%). (Measured again on 2026-11-17 with D-119's Subaru rows; with D-115's rows
+  as corrected in review it was 85.31%, 14,327 of 18,257 (78.47%), room for 2,210, and 46,158 of 68,281 all time; D-113
+  measured 83.45%, 14,271 of 19,286 and 46,102 of 71,434 before them.)
 - **Anything else.** Vehicle age at registration (the band's unknown), model (not recorded) and powertrain show no rate on
   the added types unlike the default scope's; the country built in is not recorded for 7 of the 16,767 new vehicles
   of the added types all time, as for 7 of 852,131 in the default scope.
@@ -761,6 +762,40 @@ register has no CO2 field, and CO2 is never estimated from fuel
 consumption: the conversion depends on the fuel and would be our
 assumption presented as data.
 
+**Mild or full: the line (D-119).** NZTA records a hybrid as hybrid and does not say which kind
+(`docs/DATA_SOURCES.md`). `mild_hybrid_models.csv` draws the line with the test every authority
+read that draws one uses: can the electric motor propel the vehicle on its own? A hybrid is *full*
+when it can, however briefly or slowly, and *mild* when it cannot. What decides a row is what the
+maker states about the motor, not the maker's label or which part is the main source of drive: a
+system whose motor can move the car alone at low speed is full even when the engine does most of
+the driving. The authorities, read on their own pages on 2026-11-17:
+
+- US Department of Energy, Alternative Fuels Data Center, "Hybrid Electric Vehicles"
+  (https://afdc.energy.gov/vehicles/electric-basics-hev): "Mild hybrids—also called micro
+  hybrids—use a battery and electric motor to help power the vehicle"; "Mild hybrid systems cannot
+  power the vehicle using electricity alone."; "Full hybrids have larger batteries and more
+  powerful electric motors, which can power the vehicle for short distances and at low speeds."
+- US Environmental Protection Agency, Automotive Trends Report highlights, updated 19 February 2026
+  (https://www.epa.gov/automotive-trends/highlights-automotive-trends-report): hybrids include
+  "'strong' hybrid systems (HEV) that can temporarily power the vehicle without engaging the
+  engine" and "'mild' hybrid systems (MHEV) that cannot propel the vehicle on their own".
+- SMMT (UK), "Types of electric vehicles", 25 July 2025
+  (https://www.smmt.co.uk/article/types-of-electric-vehicles/): "Crucially, MHEVs cannot be driven
+  on electricity alone."
+- Australian Government, Green Vehicle Guide FAQ (https://greenvehicleguide.gov.au/pages/About/FAQ):
+  "MHEVs use an internal combustion engine to propel the vehicle, but may have a small electric
+  motor"; "If the electric motor can propel the vehicle, these vehicles will appear on the Green
+  Vehicle Guide as a plugless hybrid".
+
+European Union type-approval law (Regulation (EU) 2017/1151) has no mild category, and no New
+Zealand authority was found to define the line. Publishers differ on whether mild hybrids count as
+hybrids: ACEA's monthly release footnotes its hybrid figure "Includes full and mild hybrids" (May
+2025 release); the SMMT counts them under petrol and diesel ("Petrol and diesel totals include mild
+hybrid electric vehicles (MHEVs)"); the Motor Industry Association of New Zealand reports one
+"Hybrids" category. A comparison with a published hybrid figure has to say which of these it
+matches (see "Hybrids as one figure" below). The line moves no row by itself: a row's class changes
+only with a primary source for the nameplate the row matches.
+
 **Mild hybrid identification coverage** — every vehicle NZTA records under
 a hybrid code (`powertrain_group = Hybrid` in `powertrain_map.csv`) is
 *identified mild* (a `mild` row in `mild_hybrid_models.csv`, or no row and a
@@ -795,9 +830,10 @@ powertrain values; the figure and what rests on it (the publish threshold and
 the warning level) are all it changes (D-110). Before D-110 every `full` row
 left the denominator at both levels; the figures below that predate it are
 marked. On the 2026-10 snapshot the trailing figure at high confidence is
-78.5% on the register and 78.5% on true registrations (74.0% and 74.0% before
-D-115's rows, and 79.3% and 79.2% under the count before D-110) and the
-all-time figure 62.7% and 67.6% (60.1% and 64.5% before D-115's rows; 63.6%
+80.3% on the register and 80.2% on true registrations (78.5% and 78.5% before
+D-119's Subaru rows, 74.0% and 74.0% before D-115's rows, and 79.3% and 79.2%
+under the count before D-110) and the
+all-time figure 63.2% (46,115 of 72,973) and 68.2% (46,157 of 67,696) (62.7% and 67.6% before D-119; 60.1% and 64.5% before D-115's rows; 63.6%
 and 68.5% under the count before D-110). At the 2026-08 snapshot,
 under the earlier count, all-time coverage is 83.0% at stated confidence but
 62.8% at high confidence only, because 13,808 Honda IMA hybrids are classified
@@ -816,19 +852,37 @@ publishes (both figures read null). A window with no identified mild and no
 unknown hybrid, only `full` calls below the high level, has those calls as its
 whole denominator at high confidence only: that figure reads 0% while the stated
 figure reads null, and the split is withheld (D-110). On the 2026-10
-snapshot both are above it (78.5% and 78.5%, after the rows below), so both
+snapshot both are above it (80.3% and 80.2%, after the rows below), so both
 publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
 same today) is a build warning for a dataset that still publishes. A dataset
 that crosses the threshold between one build and the next changes its whole
 history of the two values at once, so that build adds a warning naming the
 direction and both figures (`CUBE_SCHEMA.md`, Warnings; the margin on true
-registrations is 14,327 of 18,257 hybrids at high confidence on 2026-10: 2,210
-more unidentified hybrids in the window would cross 70%, and 2,217 on the
-register, 14,297 of 18,207; it was 1,101 and 1,111 before D-115, so keeping
+registrations is 14,327 of 17,858 hybrids at high confidence on 2026-10: 2,609
+more unidentified hybrids in the window would cross 70%, and 2,616 on the
+register, 14,297 of 17,808; it was 2,210 and 2,217 before D-119 and 1,101 and
+1,111 before D-115, so keeping
 `mild_hybrid_models.csv` current matters). All-time mild hybrid
-history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
-vehicles) stay unresolved because sources disagree on them: never classify
-a contested nameplate to raise coverage.
+history rests on the Honda IMA call and should be read that way.
+
+**Subaru (D-119).** Subaru's hybrids (XV, Impreza, Forester and Crosstrek) were unresolved
+as a whole because their motor can move the car alone at low speed while the engine is the main
+drive. Under the line above that makes them full wherever Subaru states it. In the window
+(Nov 2025 to Oct 2026) true registrations hold 1,462 of them (1,458 on the register). Now: the
+Crosstrek as sold new in New Zealand and the Forester of vehicle year 2026 are full at high
+confidence (Subaru New Zealand's own pages state electric-only driving: 399 vehicles on true
+registrations and on the register); the Forester of 2020 to 2025 new in New Zealand, the XV
+new in New Zealand from 2020, the used imports (XV Hybrid 2013 to 2016, e-BOXER from 2018 or
+2019) are full at medium, because no Subaru page read states electric-only driving for those
+cars or shows the e-BOXER to be one system across markets (861 on true registrations, 858 on
+the register); the Impreza, the XV of vehicle years 2017 and 2018 (the changeover), the
+Crosstrek used import before 2023, strays and re-registered cars stay unresolved at low
+confidence (202 on true registrations, 201 on the register). `full` rows carry no override, so
+no vehicle moves between powertrain values; the build rejects a `full` row whose powertrain
+would be Mild hybrid. A `full` row at medium counts against the high-confidence figure
+(above), so only the 399 at high change it. Honda's IMA rows are as they were (medium): under
+the line an IMA car is mild if its motor cannot propel it alone, and no primary source read
+says either way.
 
 **Hybrids as one figure (D-118).** NZTA records a hybrid as hybrid, not as mild or
 full. Every hybrid code of NZTA's that does not plug in maps to Hybrid or to Mild
@@ -874,9 +928,12 @@ as full calls, 56 joined the numerator as mild calls); on the register 1,082
 later now match no row or an unresolved one, and count against it. Nothing was raised for the
 Honda IMA hybrids, which the makers' own pages call neither mild nor full, nor
 for Subaru's e-Boxer, whose maker says the car runs on its electric motor up to
-40 km/h and assists the engine otherwise; both stay as they were. The rows left
-at medium or low confidence still hold 3,930 vehicles in the window on true
-registrations (and on the wider dataset) and 3,910 on the register.
+40 km/h and assists the engine otherwise; both stayed as they were (D-119 later
+classed Subaru's, above). The rows left at medium or low confidence held 3,930
+vehicles in the window on true registrations (and on the wider dataset) and
+3,910 on the register; after D-119 they hold 3,531 and 3,511 (1,253 unresolved at
+low confidence, 1,498 full at medium, 704 mild at medium and 76 with no row, on true
+registrations; 1,246, 1,494, 700 and 71 on the register).
 
 **Named models** — the model dimension names the 300 models with the most
 vehicles in the trailing 12 months and groups every other model as
