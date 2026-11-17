@@ -134,7 +134,8 @@ The only six renderers. Every preset and every builder output maps to one.
 Shape is **inferred** from measure + dimension. Where more than one shape
 fits the question, the visitor may switch among those that fit; they never
 get a shape that does not fit, and there is no seventh. The sixth, `matrix`,
-was approved by the user on 2026-11-14 (D-083); its renderer is planned.
+was approved by the user on 2026-11-14 (D-083); its renderer is an HTML
+table drawn from the design tokens, not a Plot figure (D-114).
 
 | Shape | Renderer | Triggered by |
 |---|---|---|
@@ -162,7 +163,8 @@ visual variant chosen by config inside a shape (such as the ridgeline inside
 
 - Astro + React islands, static output, deployed to Cloudflare Pages
   (planned: nothing is deployed yet; the site runs locally, D-014)
-- Observable Plot for all six shapes
+- Observable Plot for five of the six shapes; `matrix` is an HTML table
+  drawn from the design tokens (D-114)
 - TanStack Table (virtualised) for league tables (planned: not yet a
   dependency; `LeagueChart` draws a Plot bar chart over a plain,
   non-virtualised rank table; no Explore preset is a live league, and the
@@ -185,6 +187,7 @@ config/
   measures.json       # what users can measure
   presets.json        # the Explore canon, as data
   chart_rules.json    # which shapes fit a question: the one rule table (D-100)
+  data_map.json       # the data map in machine-readable form (D-090)
   pipeline.json       # source field bindings, thresholds, detection rules
   narrative/          # planned (D-062): phrase templates, verb bands, banned words
 data/reference/
@@ -198,7 +201,10 @@ data/reference/
   model_registry.csv  # EXCEPTIONS ONLY - renames, badge twins, match traps
   mild_hybrid_models.csv  # which hybrid nameplates are mild or full, with basis and confidence
   events.csv          # 54 policy/macro/OEM events for the annotation layer
-  model_segment.csv   # planned (D-062): canonical make + model -> VFACTS-style segment, with basis and confidence
+  class_map.csv       # NZTA vehicle class code -> label (D-116)
+  nz_assembled_map.csv  # NZTA's assembly flag -> label (D-116)
+  statsnz_series.csv  # Stats NZ's table headers -> series, group and role (D-094)
+  model_segment.csv   # canonical make + model -> SUV or car, with basis and confidence: a first slice that nothing reads yet (D-117)
 docs/
   DATA_SOURCES.md     # endpoints, cadence, field traps, licence
   METRICS.md          # exact measure definitions
@@ -206,10 +212,11 @@ docs/
   EVENTS_LAYER.md     # annotation, mechanism classes, pull-forward design
   MODEL_AND_AGE.md    # age-at-registration + derived model launch dates
   NARRATIVE.md        # planned (D-062): facts, phrase sets, neutrality rules, tests
-  DATA_MAP.md         # planned (D-062): every source field: meaning, coverage, uses, privacy class, relations
+  DATA_MAP.md         # every source field: meaning, coverage, uses, privacy class, relations (D-090)
   brief/MASTER_BRIEF.md  # direction and order of work for the current stage
 data/snapshots/        # committed: one small aggregate per snapshot, never raw rows
 data/state/            # committed: last_good.json, what the next run's guardrails compare against
+data/supplied/         # committed: counts from the maintainer's hand exports (NZTA's dashboard, Stats NZ), each with a ledger (D-097)
 pipeline/
   expected_schema.json  # live field list captured once; asserted every run
   __main__.py          # python -m pipeline {init-schema | run | build}
@@ -221,6 +228,7 @@ pipeline/
 .github/deploy/        # the deploy's upload tool (wrangler), pinned by its own lockfile
 .claude/agents/        # Claude Code sub-agent definitions, each naming its model (D-062, D-085)
 src/                   # the local reference UI: pages, renderers (components/), cube and config readers (lib/)
+tests/site/            # the site's tests, run on every pull request (D-101)
 public/geo/            # committed: region outlines for the map (Stats NZ, CC BY 4.0), written by scripts/
 scripts/               # maintainer scripts run by hand, never by the pipeline
 ```
