@@ -7,7 +7,7 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session.
-  - **Merged, #60 to #75** (#63 was closed unmerged): the user's answers (D-096, D-106);
+  - **Merged, #60 to #76** (#63 was closed unmerged): the user's answers (D-096, D-106);
     package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
     D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
     supplied counts as files (D-097); the audit's fixes (D-107 to D-110, with #70).
@@ -31,20 +31,18 @@ New Zealand sources.
 
 ## Work in hand, in the order to pick it up
 
-1. **What the engine's audit found** (D-104, D-107). A checker recomputed 34,693 of the
-   site's figures from the register's rows and the dashboard export: 34,618 agree, 74 are
-   withheld on both sides, 1 differs (a tie in a ranking). No count is wrong.
-   - On the site's side, done (#67): equal counts share a rank; a ranking's comparison with
-     a year earlier is decided by the dataset's own months, and a month with no vehicles
-     under a condition is zero; METRICS says what each guard does; the coverage note;
-     `/caveats`; models read as words; a lint against naming a value in a template.
-   - Also done on the site (#69, D-109): the zero-month rule in every windowed figure; a thin
-     ranking greys and says so; Build no longer offers "beyond the cap"; the load gate.
-   - On the pipeline's side, done (#68, D-108): eight hybrid nameplates added, each from a
-     published source (true registrations' coverage 66.0% to 83.5%); a dataset under 70%
-     shows its hybrids undivided; the tie at the model cap has a rule; a new NZTA value no
-     longer refuses the committed counts. Its review's follow-ups too (#70, #72): a flip warns
-     on the build's summary page and `/status`; a stricter coverage count (D-110, D-112).
+1. **What the engine's audit found** (D-104, D-107): of 34,693 figures recomputed from the
+   register's rows and the dashboard export, 34,618 agree, 74 are withheld on both sides and
+   1 differed (a tie in a ranking). No count was wrong. All of it is fixed:
+   - On the site (#67, #69; D-107, D-109): equal counts share a rank; a month with nothing
+     counted is zero in every windowed figure; a thin ranking greys and says so; the
+     coverage note; `/caveats`; a lint against naming a value in a template; the load gate.
+   - In the pipeline (#68, #70, #72; D-108, D-110, D-112): eight hybrid nameplates from
+     published sources; a dataset under 70% shows its hybrids undivided, and a flip warns on
+     the build's summary page and `/status`; a rule for the tie at the model cap.
+   - Three more nameplates at high confidence on the maker's own page (#74, D-115): 74% to
+     78.5%. Left: the rows D-115 kept; Tank (two sources disagree; moving it changes the
+     golden contract); a reader that refuses a malformed reference row.
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. Done: ranked chosen values, conditions, CSV, the acceptance question on today's
@@ -62,15 +60,14 @@ New Zealand sources.
 
 - **A.** Follow-ups (D-088, D-089): a digest of the rows the archive job pulls; dependencies
   pinned by hash and a draft-then-publish release step (after December's build); admin
-  bypass on `production` (the user's); `/build/`
-  skips a heading (H); a second scope for events; a lookup refusing a blank value at build.
+  bypass on `production` (the user's); `/build/` skips a heading (H); a second scope for
+  events; a lookup refusing a blank value at build.
 - **B.** Each month, as soon as the dashboard has it: the user's export, `python -m pipeline
   supply`, a `--dry-run` build, a pull request with the store's two files (D-097). A store
   rebuilt whole cannot yet excuse a month it restates by more than 2% (`supply` needs an
   option). **C.** The user's own Stats NZ export replaces the fetched copy.
-- **D.** First load is trimmed (#64, D-099): Explore's first chart 4.6 s, a Build answer 6.6 s
-  on the phone profile, against 3 s; Build waits on its data (question 2). Left: the linked
-  chart's own time; a far chart is sometimes fetched on load.
+- **D.** First load (#64, D-099): Explore's first chart 4.6 s, a Build answer 6.6 s on a phone,
+  against 3 s (question 2). Left: the linked chart's own time; a far chart fetched on load.
 - **E.** The pipeline writing the "moves together" figures each build; `sentinels.csv`
   gaining the map's forms as each field is bound; the rule table checking `uses.break_down`.
 - **The final report** (the order §6), with `docs/brief/MASTER_BRIEF.md` §4 and §12 updated.
@@ -96,7 +93,10 @@ New Zealand sources.
 6. **CLAUDE.md still says `matrix`'s renderer "is planned" and that Plot draws all six
    shapes**; the grid is an HTML table (D-114). May Claude correct the two sentences? Recommend
    yes. With no answer they stay, and the table can become a Plot figure if you prefer.
-7. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
+7. **What "mild hybrid" means for a car that can creep on its motor** (D-115; Subaru's
+   e-Boxer and Honda's older IMA cars): mild if the motor is not the main drive (recommended,
+   Claude's view), or full if it can move the car at all? With no answer Subaru stays unresolved.
+8. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
    sentence, read again before going live; the retaken dashboard history, due in Downloads.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
