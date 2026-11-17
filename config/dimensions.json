@@ -449,14 +449,14 @@
     },
     {
       "id": "nzta_class",
-      "label": "NZTA class code",
-      "public_note": "NZTA's vehicle equipment standard class, shown as its code. Recording is patchy before 2002 and differs between new and used vehicles, so the mix of classes before then, and the vehicles with no class recorded, show what was recorded, not what was registered. NA is a class code, not a missing value: on this register almost every vehicle under it is a goods vehicle of 3.5 tonnes gross mass or less. A class almost always sits under one type of vehicle, so setting the two side by side shows the same split twice.",
+      "label": "NZTA vehicle class",
+      "public_note": "NZTA's vehicle equipment standard class, shown as NZTA's label with its code in brackets. The labels are from NZTA's vehicle classes page, as supplied by the maintainer on 17 November 2026; OTH is not in the supplied table and is shown as its code. The class is the one NZTA recorded: it is not checked against the vehicle's mass or seats. Recording is patchy before 2002 and differs between new and used vehicles, so the mix of classes before then, and the vehicles with no class recorded, show what was recorded, not what was registered. NA is a class code, not a missing value. A class almost always sits under one type of vehicle, so setting the two side by side shows the same split twice.",
       "source": "nzta:class + reference:class_map",
       "derive": { "kind": "lookup", "field": "nzta_class", "reference": "class_map.csv", "key": "nzta_class", "value": "label" },
       "kind": "category",
       "cardinality": "low",
-      "help": "NZTA's vehicle equipment standard class, as its code. What each code means has not been read from NZTA's or the Land Transport Rules' definitions, so the codes are shown as they are.",
-      "$comment": "A blank class is the only form of not recorded: it reads __UNDEFINED__ and sentinels.csv lists none for this field, because NA is a real class (a light goods vehicle) and must never be treated as one. class_map.csv holds every code on the whole register, so a vehicle type brought into scope later does not trip the unmapped guard, and a new code does (pipeline.json guardrails.abort_on_unmapped). Not live for the datasets whose source carries no class (derive.applicable), with no applies_to."
+      "help": "NZTA's vehicle equipment standard class: NZTA's label with the code in brackets. The labels and definitions are from NZTA's vehicle classes page, supplied by the maintainer on 17 November 2026. OTH is not in the supplied table and is shown as its code.",
+      "$comment": "A blank class is the only form of not recorded: it reads __UNDEFINED__ and sentinels.csv lists none for this field, because NA is a real class (NZTA's light goods vehicle) and must never be treated as one. class_map.csv holds every code on the whole register and the classes NZTA defines that the register did not carry in October 2026, so a vehicle type brought into scope later, or a defined class that first appears, does not trip the unmapped guard, and a code the table does not hold does (pipeline.json guardrails.abort_on_unmapped). Not live for the datasets whose source carries no class (derive.applicable), with no applies_to."
     },
     {
       "id": "seats_band",
