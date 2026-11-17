@@ -22,7 +22,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   next build of a new month builds it; the release `cube-2026-10` does not hold it.
 - **`registrations_cars_long_run`** (#57, D-094; Stats NZ's cars, 1961 on): the same.
 - **`registrations_flow_wider`** (#73, D-113): true registrations with buses, motor caravans
-  and special purpose vehicles too, and a passenger or commercial group. Not on the site yet.
+  and special purpose vehicles too. On the site (#77, D-118): Build's third choice, two charts.
 - **NZTA's vehicle type is a dimension** (#58, D-095); GitHub's next build writes it.
 - **The site shows true registrations and the long run on a local build** (#56, #61; D-093,
   D-098): a group in Explore and a choice of what Build counts; cars first registered each
@@ -124,7 +124,7 @@ date: matching vehicles between two months' archive files needs November's file 
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about three minutes) and the site's 250 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 258 tests (under half a minute).
 
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and

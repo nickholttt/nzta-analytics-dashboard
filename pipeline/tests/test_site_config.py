@@ -133,6 +133,18 @@ def test_a_ratio_measure_divides_one_defined_dataset_by_another():
         assert m["numerator_dataset"] != m["denominator_dataset"], f"{m['id']}: it divides a dataset by itself"
 
 
+def test_no_ratio_divides_datasets_that_are_never_charted_together():
+    datasets = {d["id"]: d for d in _json("config/dimensions.json")["datasets"]}
+    never = {frozenset((d["id"], other)) for d in datasets.values() for other in d.get("never_charted_with", [])}
+    assert never, "no dataset is marked never_charted_with: this test would pass without checking anything"
+    for pair in never:
+        assert len(pair) == 2 and pair <= set(datasets), f"never_charted_with names a dataset config does not define, or itself: {sorted(pair)}"
+    ratios = [m for m in _json("config/measures.json")["derived_measures"] if "numerator_dataset" in m]
+    assert ratios, "no ratio measure: this test would pass without checking anything"
+    for m in ratios:
+        assert frozenset((m["numerator_dataset"], m["denominator_dataset"])) not in never, f"{m['id']}: it divides datasets config says are never charted together"
+
+
 def test_a_ratio_measure_names_only_dimensions_config_defines():
     dimensions = {d["id"] for d in _json("config/dimensions.json")["dimensions"]}
     ratios = [m for m in _json("config/measures.json")["derived_measures"] if "numerator_dataset" in m]

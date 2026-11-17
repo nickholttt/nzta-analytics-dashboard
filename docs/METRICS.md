@@ -159,6 +159,17 @@ D-113).
   exists for the added types, plus `trade_group`. `segment`, `segment_group`,
   `engine_size_band`, `region` and the vehicle-age band need fields the
   dashboard lacks and are not live, as for `registrations_flow`.
+- **Where it is on the site (D-118).** Build offers it as a third thing to count
+  ("True registrations, wider scope"), with every field its fact table carries as a
+  condition and `trade_group` ("passenger or commercial") as a breakdown. Explore's
+  True registrations group holds two charts on it, each keeping new vehicles
+  (`import_status` = `NZ New`), directly after the chart of the default scope's
+  monthly count: the count by month, and the share Passenger and Commercial take.
+  The first is not the default scope's count with buses added: that chart counts new
+  and used vehicles, this one new only. A list in config (`never_charted_with`)
+  keeps the dataset off any chart that reads `registrations_flow` or
+  `registrations_surviving`, including a ratio of the register's survivors to it:
+  the survivors hold only the default scope's types.
 - **Guards.** Every guard applies as it does to `registrations_flow`: the
   store's months, rows and totals against its ledger, a month whose store
   total moved by more than 2% without a recorded replacement, an emptied
@@ -322,6 +333,16 @@ What is established, and what is not:
   ours without 190 range-extended electric vehicles is 6,862.
 - **Not explained:** one used-import figure for October 2025 published on
   the month's last day (7,381 against our 6,999).
+- **A second published source, compared on 2026-11-17 (the lead's check; D-118).**
+  The Motor Trade Association's vstat site (vstat.mta.org.nz), which says it is
+  built from NZTA data, shows for October 2026 the same count of new passenger
+  cars and vans as true registrations here (11,824) and the same top ten new
+  models. It shows one hybrid figure, where this site shows mild hybrids as a
+  line of their own. Its hybrid figure for new passenger cars and vans in
+  October 2026, 4,978, equals this site's hybrid line and mild hybrid line
+  together (4,472 and 506, recomputed from the fact table on 2026-11-17). Only
+  that vehicle type and month were compared. The comparison is of counts; no
+  definition of the MTA's was read.
 - **Not compared:** the Ministry of Transport's fleet statistics and the
   MIA's brand and model lists could not be read (the first refuses automated
   readers, the second is for members). AutoTalk's top ten brands and models
@@ -808,6 +829,18 @@ register, 14,297 of 18,207; it was 1,101 and 1,111 before D-115, so keeping
 history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
 vehicles) stay unresolved because sources disagree on them: never classify
 a contested nameplate to raise coverage.
+
+**Hybrids as one figure (D-118).** NZTA records a hybrid as hybrid, not as mild or
+full. Every hybrid code of NZTA's that does not plug in maps to Hybrid or to Mild
+hybrid (`powertrain_map.csv`), so the two lines added together hold every such
+vehicle. On a chart that draws the mild line the site says so under it
+(`identification_together` in `config/presets.json`); it says nothing about what
+another source shows. Neither a ranking nor a share can be added in the browser. A
+count can: in Build, a count of vehicles with a condition on the powertrain that
+keeps both values is one line of their sum (new passenger cars and vans in October
+2026 on true registrations: 4,978, against 4,472 Hybrid and 506 Mild hybrid). A
+share of the two together needs a roll-up dimension (`powertrain_group` in
+`powertrain_map.csv` holds one) and a pipeline change; none exists.
 
 The file is keyed on the make and model as the dataset spells them, so a
 nameplate the register and the dashboard spell differently needs a row for
