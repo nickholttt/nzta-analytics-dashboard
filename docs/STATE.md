@@ -79,9 +79,9 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
    data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
 2. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
-3. Mild hybrids are identified for about 78.5% of each dataset's hybrids at high confidence
-   over 12 months (D-110's count; 74% before #74, D-115). Under 70% a dataset shows its hybrids
-   undivided and the build warns (#72): about 2,200 more unidentified hybrids would do it.
+3. Mild hybrids are identified for about 80% of each dataset's hybrids at high confidence
+   over 12 months (D-110's count; 74% before #74 and #80, D-115, D-119). Under 70% a dataset
+   shows its hybrids undivided and the build warns (#72): about 2,600 more would do it.
 4. **Over half of the fact table's rows count one vehicle** (54.8% of rows, 9.2% of vehicles,
    D-116); no owner field in it (D-096). It grew 28.7% with three fields; not re-timed on a phone.
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and

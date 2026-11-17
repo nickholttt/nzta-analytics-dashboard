@@ -6,7 +6,7 @@ Last updated by claude on 2026-11-17
 
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
-- 2026-11-16 and 17, ninth session. **Merged, #60 to #79** (#63 was closed unmerged). The
+- 2026-11-16 and 17, ninth session. **Merged, #60 to #80** (#63 was closed unmerged). The
   user's answers are D-096 and D-106. Figures set beside published ones: within 0.06% of the
   MIA's for October 2026 on the wider scope, older months about 1% lower, cause not
   established (D-105, D-113); equal to vstat's for October 2026 (D-118).
@@ -34,9 +34,9 @@ New Zealand sources.
    - In the pipeline (#68, #70, #72; D-108, D-110, D-112): eight hybrid nameplates from
      published sources; a dataset under 70% shows its hybrids undivided, and a flip warns on
      the build's summary page and `/status`; a rule for the tie at the model cap.
-   - Three more nameplates at high confidence on the maker's own page (#74, D-115): 74% to
-     78.5%. Left: the rows D-115 kept; Tank (two sources disagree; moving it changes the
-     golden contract); a reader that refuses a malformed reference row.
+   - Three more nameplates at high confidence (#74, D-115) and the mild-or-full line written
+     down, with Subaru's hybrids classed under it (#80, D-119): 74% to 80%. Left: the rows those
+     records kept; Tank (moving it changes the golden contract); a reader refusing a bad row.
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. Done: ranking of chosen values, conditions, CSV (#71); the wider scope as a
@@ -91,9 +91,9 @@ New Zealand sources.
 6. **CLAUDE.md still says `matrix`'s renderer "is planned" and that Plot draws all six
    shapes**; the grid is an HTML table (D-114). May Claude correct the two sentences? Recommend
    yes. With no answer they stay, and the table can become a Plot figure if you prefer.
-7. **Subaru's e-Boxer cars are to be classed as full hybrids** (next piece; Claude's decision,
-   unreviewed): the US Department of Energy and EPA, the UK's SMMT and Australia's Green Vehicle
-   Guide draw the line at whether the motor can move the car alone. Veto to keep them unresolved.
+7. **A hybrid is full when its motor can move the car alone, mild when it cannot** (#80, D-119;
+   Claude's decision, unreviewed, on the US Department of Energy's, the EPA's, the SMMT's and
+   Australia's Green Vehicle Guide's wording). Subaru's hybrids are classed under it. Veto to undo.
 8. **May a trade list (the FCAI's published sample, or one you can reach through work) be a
    source for a model's segment?** Today it is a private check only; recommend keeping that.
 9. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
