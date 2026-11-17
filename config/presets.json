@@ -219,7 +219,17 @@
       "by": "This link asked to break the figures down by {asked}, which is not available for {dataset}. It shows {shown} instead.",
       "left_out": "This link named “{asked}” for {field}, which is not a value that can be chosen here, so it was left out.",
       "by2": "This link asked for a second breakdown by {asked}, which this question cannot have. It shows the question without one.",
-      "value2": "This link named values for a second breakdown, but it names no second breakdown, so the values were left out."
+      "value2": "This link named values for a second breakdown, but it names no second breakdown, so the values were left out.",
+      "snapshot": "This link named the snapshot “{asked}”, which is not a month, so it was left out.",
+      "pin_same": "Pinned to the snapshot of {date|date}, the one this page shows.",
+      "pin_newer": "Pinned to {pinned|month}: the window keeps ending in that month. The figures come from the newer snapshot of {date|date}, so they may differ from those seen when it was pinned.",
+      "pin_newer_open": "Pinned to {pinned|month}. This chart always runs to the newest month, {latest|month}, so it shows the newer snapshot of {date|date}, and its figures may differ from those seen when it was pinned.",
+      "pin_ahead": "This link is pinned to {pinned|month}, a snapshot this site does not have yet. It shows the snapshot of {date|date}."
+    },
+    "keep": {
+      "$comment": "The words of the controls that keep a question: pin it, and (My questions) save it. Interface words, not sentences about the data; a sentence that carries a date or a month is a notice above, which the template lint holds to config/narrative/rules.json.",
+      "pinned_label": "Pinned",
+      "unpin": "Unpin"
     },
     "$datasets_comment": "What a question counts. The first is the default, and an address with no build.dataset means it. Each is offered only where the build made it, and only the dimensions, values and conditions that dataset carries are offered with it. A text that differs by dataset (note, dimension_notes) is an object keyed by dataset id.",
     "cannot_cross": [

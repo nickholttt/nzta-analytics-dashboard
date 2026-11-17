@@ -34,6 +34,9 @@ export type Question = {
   // The values are the page's own starting values (the largest under the conditions), not the visitor's. They are not in the address, so
   // they follow the conditions and the dataset, and a shared link reproduces the page: no build.value means the page's own (D-111).
   pageValues?: boolean;
+  // Pinned to the snapshot of this month (YYYY-MM): the window keeps ending in it, in the charts that end in a month the visitor can name
+  // (a ranking, a grid). The site serves one snapshot, so the figures are that snapshot's; the page says when it is not the one pinned to.
+  snapshot?: string;
 };
 
 // What the page offers, worked out at build time against the cube as built and handed to the island as plain data.
@@ -132,6 +135,7 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
     ...(crossed ? { dimension2: q.by2 as string, ...(values2 ? { values2 } : {}) } : {}),
     ...(q.view === RANKING && q.rankAll ? { ranks_all: true } : {}),
     ...(Object.keys(where).length ? { where } : {}),
+    ...(q.snapshot ? { through: q.snapshot } : {}),
     ...(view ? { shape_override: view } : {}),
   };
   const shape = inferShape(preset, findDimension(q.by), findMeasure(preset.measure));
@@ -241,6 +245,9 @@ export const removeConditionLabel = (field: string): string => `${REMOVE_CONDITI
 // As many values as the palette has colours: past that, lines can no longer be told apart (src/lib/theme.ts).
 export const MAX_VALUES = 8;
 
+// A pin names a month, written as the address writes every month.
+export const isMonthKey = (text: string | undefined): text is string => typeof text === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(text);
+
 // A question from the address bar, kept only as far as the page offers it; otherwise the nearest one that is. A
 // condition on the breakdown itself becomes the values compared, where the breakdown takes values, so choosing to break
 // down by what was a condition never quietly widens the question. A condition the page cannot apply (a field the fact
@@ -269,7 +276,7 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   // Values the page chose: any question that names none, and one the page has filled in and the visitor has not touched. A grid chooses its own
   // lines in the window it shows, so it has no starting values to fill in.
   const pageValues = !by2 && takesValues && (values.length === 0 || q.pageValues === true);
-  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, ...(by2 ? { by2, values2 } : {}), where, view: null, ...(pageValues ? { pageValues } : {}) };
+  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, ...(by2 ? { by2, values2 } : {}), where, view: null, ...(pageValues ? { pageValues } : {}), ...(isMonthKey(q.snapshot) ? { snapshot: q.snapshot } : {}) };
   // A count with no values yet is waiting for the page's own, which come after the page has looked at the data; a view that needs
   // two or more is judged as if they were there, so a link to the ranking of the page's values is kept.
   const waiting = pageValues && values.length === 0 && partsOf(findBuilderMeasure(m.id) as BuilderMeasure).some((p) => p.id === COUNT);
@@ -290,6 +297,8 @@ export type Reading = {
   by2?: { asked: string };
   // Values for a second breakdown the link names no second breakdown for.
   value2?: true;
+  // A snapshot the link named that is not a month.
+  snapshot?: { asked: string };
   // Values the link named that the page does not offer to choose, each with the field it was named for.
   left_out?: { asked: string; field: string }[];
 };
@@ -319,6 +328,7 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
   }
   if (typeof asked.by2 === "string" && asked.by2 !== "" && asked.by2 !== settled.by2) note.by2 = { asked: lowerFirst(dimensionLabel(asked.by2) ?? asked.by2) };
   if (!asked.by2 && (asked.values2 ?? []).length > 0) note.value2 = true;
+  if (asked.snapshot && !settled.snapshot) note.snapshot = { asked: asked.snapshot };
   return note;
 }
 
@@ -347,6 +357,7 @@ export function readQuestion(search: string): Partial<Question> {
     values2: params.getAll(key("value2")),
     where,
     view: params.get(key("view")),
+    snapshot: params.get(key("snapshot")) || undefined,
     rankAll: params.get(key("rank")) === "all",
   };
 }
@@ -362,6 +373,7 @@ export function questionParams(q: Question): URLSearchParams {
     params.set(key("by2"), q.by2);
     for (const v of q.values2 ?? []) params.append(key("value2"), v);
   }
+  if (q.snapshot) params.set(key("snapshot"), q.snapshot);
   if (q.view) params.set(key("view"), q.view);
   if (q.view === RANKING && q.rankAll) params.set(key("rank"), "all");
   return params;

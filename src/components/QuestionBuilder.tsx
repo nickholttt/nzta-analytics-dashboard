@@ -8,7 +8,8 @@ import { REST_NAME, isChoosable } from "../lib/reserved";
 import { MAX_VALUES, RANKING, REMOVE_CONDITION, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
-import type { SliceRow } from "../lib/data";
+import type { Manifest, SliceRow } from "../lib/data";
+import { pinNote } from "../lib/pin";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count } from "../lib/readout";
@@ -221,9 +222,15 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
       ...(note.by ? [fillNote(builderSpec.notices.by, note.by).text] : []),
       ...(note.by2 ? [fillNote(builderSpec.notices.by2, note.by2).text] : []),
       ...(note.value2 ? [builderSpec.notices.value2] : []),
+      ...(note.snapshot ? [fillNote(builderSpec.notices.snapshot, note.snapshot).text] : []),
       ...(note.left_out ?? []).map((left) => fillNote(builderSpec.notices.left_out, left).text),
     ];
   });
+  // The snapshot this page serves, to say what a pinned question is pinned to (src/lib/pin.ts).
+  const [served, setServed] = useState<Manifest | null>(null);
+  useEffect(() => {
+    loadManifest().then(setServed, () => setServed(null));
+  }, []);
   // What the chosen dataset offers: its measures, and the conditions its fact table can apply.
   const vocabulary = all.datasets.find((v) => v.dataset === question.dataset) ?? all.datasets[0];
   const { dataset } = vocabulary;
@@ -238,6 +245,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const countsLines = measure.id === "count" || builderSpec.measures.find((m) => m.id === measure.id)?.parts?.includes("count");
   const presets = useMemo(() => builderPresets(question, (v) => valueLabel(v, question.by ?? undefined)), [question]);
   const views = useMemo(() => viewsFor(question), [question]);
+  const pin = served ? pinNote(question, served) : undefined;
   const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
   // The other shapes a question may be drawn as are a choice of their own; the ranking is reached from the values, where it is about them.
   const otherViews = views.filter((v) => v !== RANKING);
@@ -628,6 +636,16 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
           </div>
         ) : null}
       </form>
+
+      {pin ? (
+        <div className={pin.kind === "same" ? "callout curated" : "callout warning"} id="pin-line">
+          <span className="callout-label">{builderSpec.keep.pinned_label}</span>
+          {pin.text}{" "}
+          <button type="button" className="button-quiet" onClick={() => ask({ snapshot: undefined }, true, true)}>
+            {builderSpec.keep.unpin}
+          </button>
+        </div>
+      ) : null}
 
       {/* Keyed by the question, so a new question remounts each panel and reads its cleared settings. */}
       {presets.map((p) =>

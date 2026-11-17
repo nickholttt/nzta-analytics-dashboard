@@ -63,6 +63,8 @@ export type Preset = {
   page_values?: boolean;
   // The ranking of every value, asked for from a ranking of some (D-111): the page opens with who is first.
   ranks_all?: boolean;
+  // A question pinned to a snapshot (YYYY-MM): the window of a chart that ends in a month the visitor can name keeps ending in it (src/lib/pin.ts).
+  through?: string;
   where?: Record<string, string[]>;
   smoothing?: string;
   granularity_options?: GranularityOption[];
@@ -203,7 +205,8 @@ export type BuilderSpec = {
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
-  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string };
+  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_open: string; pin_ahead: string };
+  keep: { pinned_label: string; unpin: string };
   not_offered: NotOffered[];
 };
 
