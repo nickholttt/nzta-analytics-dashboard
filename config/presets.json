@@ -210,7 +210,7 @@
     "$comment": "The Build page: a question a visitor builds (what to measure, what to compare, which vehicles to keep, D-058), drawn through the same panel and resolver as Explore. Values and filters are summed from the fact table; without them a chart reads the slices. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
     "id": "build",
     "dataset": "registrations_surviving",
-    "datasets": ["registrations_surviving", "registrations_flow"],
+    "datasets": ["registrations_surviving", "registrations_flow", "registrations_flow_wider"],
     "notices": {
       "$comment": "What the page says when a link asks for something the page cannot give and shows the nearest question instead. The address is corrected as it is for a condition the page cannot apply; the words say so, so a link never quietly counts something else. Placeholders: config/narrative/rules.json.",
       "dataset": "This link asked to count {asked}, which this build does not have. It is counting {shown} instead.",
@@ -228,9 +228,10 @@
       ["model", "make"],
       ["model", "parent_group"],
       ["model", "owner_country"],
-      ["model", "heritage_country"]
+      ["model", "heritage_country"],
+      ["trade_group", "vehicle_type"]
     ],
-    "$cannot_cross_comment": "Pairs of fields where each value of one sits under a single value of the other (a model under its brand, a brand under its group), so a grid of the two would be empty except along one line and its empty cells would be empty by construction, not by what people bought. Measured on the 2026-10 fact tables of both datasets: each value of the first sat under one value of the second, except that two models of the survivors and one of true registrations sat under two brands (and so two groups and countries). The data map's rolls_up_to gives make to parent_group and owner_country and model to make. Build offers no second breakdown that makes one of these pairs. Also measured: segment_group (vehicle class) sits under one vehicle_type (registered as), but vehicle_type is a condition only and never a breakdown, so no pair is listed for it; add [segment_group, vehicle_type] if it is ever offered. segment (vehicle type in Build's words) and segment_group are not nested (4 of 6 segments have more than one class), and are crossed.",
+    "$cannot_cross_comment": "Pairs of fields where each value of one sits under a single value of the other (a model under its brand, a brand under its group), so a grid of the two would be empty except along one line and its empty cells would be empty by construction, not by what people bought. Measured on the 2026-10 fact tables of both datasets: each value of the first sat under one value of the second, except that two models of the survivors and one of true registrations sat under two brands (and so two groups and countries). The data map's rolls_up_to gives make to parent_group and owner_country and model to make. Build offers no second breakdown that makes one of these pairs. Also measured: segment_group (vehicle class) sits under one vehicle_type (registered as), but vehicle_type is a condition only and never a breakdown, so no pair is listed for it; add [segment_group, vehicle_type] if it is ever offered. On the 2026-10 fact table of true registrations on the wider scope each of its five registered-as types sits under exactly one passenger-or-commercial group (Passenger holds one, Commercial four), so [trade_group, vehicle_type] is listed; vehicle_type is still a condition only, and the pair is listed so that offering it as a breakdown later cannot make a grid empty by construction. segment (vehicle type in Build's words) and segment_group are not nested (4 of 6 segments have more than one class), and are crossed.",
     "period": "all",
     "period_when_comparing": "10y",
     "$period_when_comparing_comment": "A question that names values (brands, models) opens on the last ten years: most named values have little or no history before that, and all time would spend most of the chart on empty decades. The time row still offers all time.",
@@ -252,6 +253,7 @@
         "dimensions": {
           "powertrain": "powertrain",
           "import_status": "whether new or used",
+          "trade_group": "passenger or commercial",
           "segment": "vehicle type",
           "make": "brand",
           "parent_group": "manufacturer group",
@@ -282,6 +284,7 @@
         "dimensions": {
           "powertrain": "powertrain",
           "import_status": "whether new or used",
+          "trade_group": "passenger or commercial",
           "segment": "vehicle type",
           "make": "brand",
           "parent_group": "manufacturer group",

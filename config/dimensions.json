@@ -56,6 +56,7 @@
       "id": "registrations_flow_wider",
       "label": "New registrations, wider scope",
       "public_label": "True registrations, wider scope",
+      "attribution": "Data source: NZTA's registrations dashboard, released under CC BY 4.0. Figures describe registrations recorded by NZTA, not sales.",
       "grain": "flow",
       "shows_year_change": true,
       "$shows_year_change_comment": "As registrations_flow: every vehicle registered in a month, so the change on the same month a year earlier is a change in registrations.",
