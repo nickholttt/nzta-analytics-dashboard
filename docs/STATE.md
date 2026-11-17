@@ -40,6 +40,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   downloads its figures as CSV (#71, D-111). The owner's acceptance question passes.
 - **Build crosses two fields**, drawn as the sixth shape, `matrix`: a shaded grid with totals,
   as vehicles or a share of all, of the row or of the column (#75, D-114). Two Explore grids.
+- **SUV or car per nameplate** is a reference file nothing reads yet (#78, D-117): 169 nameplates.
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
   read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
@@ -56,10 +57,9 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
-- `claude/suv-lookup` (D-117; `nzta-segments`, where D-103's draft sits untracked): SUV or car.
-- `claude/bind-vehicle-fields` (D-116; this folder): assembled, class and seats as dimensions.
-  `claude/wider-scope-site` (D-118; `nzta-notes`): the wider scope on the site.
+- `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**); D-103's draft scheme file
+  sits untracked in `nzta-segments`. `claude/bind-vehicle-fields` (D-116; this folder):
+  assembled, class and seats. `claude/wider-scope-site` (#77, D-118; `nzta-notes`).
 
 ## Raw files on this computer (gitignored)
 

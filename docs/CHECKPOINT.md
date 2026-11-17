@@ -6,16 +6,10 @@ Last updated by claude on 2026-11-17
 
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
-- 2026-11-16 and 17, ninth session.
-  - **Merged, #60 to #76** (#63 was closed unmerged): the user's answers (D-096, D-106);
-    package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
-    D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
-    supplied counts as files (D-097); the audit's fixes (D-107 to D-110, with #70).
-  - **The site's figures were set beside published ones** (D-105): October 2026 is within
-    0.06% of the MIA's once three more vehicle types are counted; older months sit about 1%
-    lower, cause not established. AutoTalk seems to count range-extended cars differently.
-  - **The user answered three more questions** (D-106): a wider total beside the default
-    scope; the MIT licence; the site is run by "an individual".
+- 2026-11-16 and 17, ninth session. **Merged, #60 to #78** (#63 was closed unmerged). The
+  user's answers are D-096 and D-106. Figures set beside published ones: within 0.06% of the
+  MIA's for October 2026 on the wider scope, older months about 1% lower, cause not
+  established (D-105, D-113); equal to vstat's for October 2026 (D-118).
 
 ## The user's direction of 16 November (D-104)
 
@@ -52,9 +46,13 @@ New Zealand sources.
    its `import_status` condition). Then: colour, seats, where assembled, class; power and
    transmission; owner fields last, unpublished until small cells are hidden (D-096). Left:
    "My questions", the related-fields note, the question with a new field.
-4. **Paused, half written, uncommitted, behind `main`:** package H's narrative spec (D-102;
-   worktree `nzta-screens`: `config/narrative/` files and a lint test, no `docs/NARRATIVE.md`)
-   and package I's segment scheme (D-103; worktree `nzta-segments`: one reference file).
+4. **Package I, first slice** (#78, D-117): SUV or car for 169 nameplates, 90% of recent
+   passenger vehicles; 77 of 109 rows only medium; nothing reads the file; no disagreement in
+   100 comparisons with the FCAI's published sample (a private check). Next: primary sources
+   for the medium rows; three sizes from cited dimensions against the FCAI's footprint bands;
+   people movers; a rule per dataset; then the wiring with its coverage guard.
+5. **Paused, half written, uncommitted, behind `main`:** package H's narrative spec (D-102;
+   worktree `nzta-screens`). D-103's draft scheme file is untracked in `nzta-segments`.
 
 ## Left in the packages
 
@@ -96,13 +94,15 @@ New Zealand sources.
 7. **What "mild hybrid" means for a car that can creep on its motor** (D-115; Subaru's
    e-Boxer and Honda's older IMA cars): mild if the motor is not the main drive (recommended,
    Claude's view), or full if it can move the car at all? With no answer Subaru stays unresolved.
-8. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
+8. **May a trade list (the FCAI's published sample, or one you can reach through work) be a
+   source for a model's segment?** Today it is a private check only; recommend keeping that.
+9. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
    sentence, read again before going live; the retaken dashboard history, due in Downloads.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
 D-082, D-085 to D-095 (the eighth session). This session: the readings in D-096, D-104 and
-D-106 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-115.
+D-106 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-118.
 
 ## Prompt for the next session
 
