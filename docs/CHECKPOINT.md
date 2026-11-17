@@ -13,12 +13,13 @@ Last updated by claude on 2026-11-18
   vstat equals ours for October 2026 (D-118). Hybrids as one group, new passenger vehicles,
   October 2026: 4,978 of 11,824; Auto Trader has the same total and 4,859 "petrol hybrids";
   119 of our mild hybrids that month are one diesel nameplate; cause not claimed (D-124).
-- 2026-11-17 and 18, eleventh session (D-126, D-134). **Merged: #90 to #95.** Axles withdrawn
+- 2026-11-17 and 18, eleventh session (D-126, D-134). **Merged: #90 to #97.** Axles withdrawn
   (D-129); a pinned link reads its own snapshot's cube (D-131); the `region` slice under the
   small-cell rule (D-127); power and the gearbox bound (D-128); the site refuses a table with
   hidden counts (D-130, D-133). **October forced again** (D-134): the release `cube-2026-10`
   now holds all four datasets and the `region` slice with small cells hidden, checked on the
-  published file. It broke two prototype tests in `Checks`; #97 fixes them.
+  published file. It broke two prototype tests in `Checks`; #97 fixed them. Build offers
+  power and the gearbox, starting with vehicles sold new (#96, D-132).
 - **Measured on 17 November for the next pieces** (a read-only profile of the saved 2026-10
   pull; restate each figure, re-measured, in the record of the piece that uses it):
   - Colour: 14 values, 5 blanks. A narrow table with make alone is about 276 KB; with make
@@ -26,12 +27,9 @@ Last updated by claude on 2026-11-18
 
 ## Open pull requests
 
-- **#97** (D-134; `claude/prototype-follows-rebuild`, worktree `nzta-audit`): the prototype's
-  limit and pinned total follow the rebuilt cube, and the user's answers. **Merge first**:
-  `Checks` fails on every other pull request until it is in.
-- **#96** (D-132; `claude/build-power-gearbox`, `nzta-firstload`): power and the gearbox as
-  Build breakdowns, starting with vehicles sold new. Review agreed after one fix; after #97,
-  merge `main` in and wait for green `Checks`.
+- None. Being built, not pushed: `claude/moves-together` (D-136, worktree `nzta-audit`):
+  package E's "moves together" figures written each build, which Build's related-fields
+  note needs; `claude/site-followups` (D-137, `nzta-firstload`): queue item 6's site half.
 - **Not pushed, on purpose:** `claude/fleet-usage-private` (D-135; `nzta-notes`): the first
   owner table. It is shown to the user before any push (D-120, D-134).
 
@@ -62,7 +60,8 @@ Last updated by claude on 2026-11-18
    the pinned line told the first month the panel loads, so the register's line can say its
    window is kept (D-125); the template lint reading `config/my_questions.json`; the query
    service prototype's `unknown` and `build.snapshot`.
-7. **The related-fields note** from the data map, in Build (package F's last site item).
+7. **The related-fields note** from the data map, in Build (package F's last site item),
+   reading the figures D-136 writes.
 8. **Paused, uncommitted, behind `main`:** package H's narrative spec (D-102; worktree
    `nzta-screens`). D-103's draft scheme file is untracked in `nzta-segments`.
 

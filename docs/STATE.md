@@ -27,7 +27,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **NZTA's vehicle type is a dimension** (#58, D-095), and on the register dataset so are the
   assembly flag, the class (NZTA's label with its code, D-121) and seats in bands (#79, D-116):
   breakdowns in Build (#82, D-122). **Power in bands and the gearbox in four groups** too
-  (#93, D-128): conditions in Build; as breakdowns, in review (#96). **The powertrain rolls up to
+  (#93, D-128), breakdowns in Build from vehicles sold new (#96, D-132). **The powertrain rolls up to
   five groups**, so hybrids, full or mild, can be asked for as one share (#87, D-124).
 - **The site shows true registrations and the long run on a local build** (#56, #61; D-093,
   D-098): a group in Explore and a choice of what Build counts; cars first registered each
@@ -65,8 +65,8 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 ## In progress (all claude; nothing by gemini)
 
-- #97 `claude/prototype-follows-rebuild` (D-134; worktree `nzta-audit`) and #96
-  `claude/build-power-gearbox` (D-132; `nzta-firstload`): in review; #97 merges first.
+- `claude/moves-together` (D-136; worktree `nzta-audit`) and `claude/site-followups` (D-137;
+  `nzta-firstload`): being built, not pushed yet.
 - `claude/fleet-usage-private` (D-135; `nzta-notes`): the first owner table, the fleet by
   usage. **Local only, never pushed** until the user has seen its figures (D-120, D-134).
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
