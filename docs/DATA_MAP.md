@@ -296,7 +296,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   defines, so a wider scope, or a class that first appears later, does not trip the unmapped guard). S: MA 3,018,623; NA 701,639; MC 414,719; NB 72,851; NC
   68,051; MB 8,848; LE 1,702.
 - **Uses.** Break down from March 2002, filter. Count only. **Bound** as the dimension `nzta_class`
-  ("NZTA class code"), a slice and a fact-table column of `registrations_surviving` (D-116).
+  ("NZTA vehicle class"), a slice and a fact-table column of `registrations_surviving` (D-116).
 - **Coverage.** S 94.8% (NEW 92.4%, USED 98.5%), and it depends on the year and on new or used.
   Not recorded, re-measured 2026-11-17 on the cube's 4,520,304 vehicles: NZ-new, 194,840 of 219,015
   first registered before 2000 (89%), 11,673 of 45,479 in 2000 and 2001 (26%), 588 of 409,840 in 2002
