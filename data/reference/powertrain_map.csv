@@ -13,12 +13,12 @@ PLUGIN DIESEL HYBRID,PHEV,PHEV,Plug-in,Plug-in hybrid,true,true,true,
 ELECTRIC [PETROL EXTENDED],PHEV,EREV,Plug-in,Plug-in hybrid,true,true,true,"Range-extended EV: battery drive plus a petrol generator. Classed PHEV because it carries an engine that burns fuel. About 900 rows (BMW i3 REx, Leapmotor). A documented judgement call."
 ELECTRIC [DIESEL EXTENDED],PHEV,EREV,Plug-in,Plug-in hybrid,true,true,true,Same treatment as petrol-extended. 4 rows; none in scope.
 ELECTRIC,BEV,BEV,Electric,Battery electric,true,false,true,CC_RATING is 0 on 86% of rows and a small non-zero value on the rest. Engine size comes from has_combustion_engine; never infer it from CC.
-ELECTRIC FUEL CELL HYDROGEN,Hydrogen,FCEV,Other,Other,true,false,true,
-PLUG IN FUEL CELL HYDROGEN HYBRID,Hydrogen,Plug-in FCEV,Other,Other,true,false,true,"Plug-in battery plus hydrogen fuel cell. Classed with hydrogen, not PHEV, because it burns no liquid fuel."
-ELECTRIC FUEL CELL OTHER,Other,FCEV (other fuel),Other,Other,true,false,true,Fuel cell with an unstated fuel. None in scope.
-PLUG IN FUEL CELL OTHER HYBRID,Other,Plug-in FCEV (other fuel),Other,Other,true,false,true,1 row; none in scope.
-OTHER,Other,Other,Other,Other,false,true,true,"About 115 in-scope rows. CC_RATING is non-zero on 93%, so treated as having an engine."
+ELECTRIC FUEL CELL HYDROGEN,Hydrogen,FCEV,Other,Hydrogen and other,true,false,true,
+PLUG IN FUEL CELL HYDROGEN HYBRID,Hydrogen,Plug-in FCEV,Other,Hydrogen and other,true,false,true,"Plug-in battery plus hydrogen fuel cell. Classed with hydrogen, not PHEV, because it burns no liquid fuel."
+ELECTRIC FUEL CELL OTHER,Other,FCEV (other fuel),Other,Hydrogen and other,true,false,true,Fuel cell with an unstated fuel. None in scope.
+PLUG IN FUEL CELL OTHER HYBRID,Other,Plug-in FCEV (other fuel),Other,Hydrogen and other,true,false,true,1 row; none in scope.
+OTHER,Other,Other,Other,Hydrogen and other,false,true,true,"About 115 in-scope rows. CC_RATING is non-zero on 93%, so treated as having an engine."
 PLUG-IN PETROL HYBRID,PHEV,PHEV,Plug-in,Plug-in hybrid,true,true,false,Starter-kit spelling. The service writes PLUGIN PETROL HYBRID. Kept in case NZTA changes spelling.
 PLUG-IN DIESEL HYBRID,PHEV,PHEV,Plug-in,Plug-in hybrid,true,true,false,Starter-kit spelling. The service writes PLUGIN DIESEL HYBRID.
-HYDROGEN,Hydrogen,FCEV,Other,Other,true,false,false,Starter-kit key. The service records fuel cells as ELECTRIC FUEL CELL HYDROGEN.
+HYDROGEN,Hydrogen,FCEV,Other,Hydrogen and other,true,false,false,Starter-kit key. The service records fuel cells as ELECTRIC FUEL CELL HYDROGEN.
 PETROL AND LPG,Petrol,Petrol,ICE,Combustion engine only,false,true,false,"Starter-kit key. Dual fuel is recorded as MOTIVE_POWER = PETROL with ALTERNATIVE_MOTIVE_POWER = LPG, and collapses to the primary fuel either way."

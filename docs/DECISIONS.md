@@ -5597,4 +5597,10 @@ New entries use this template:
   4. The sentence and link added to `/differences`, and the figures of the published-figure comparison in `docs/METRICS.md`, which will go stale as the sources change.
   5. The group is a lookup on the motive power and not on the powertrain, relying on a test that the file gives every powertrain value one group, rather than a derive kind that reads the powertrain's value.
 - Consequences: Build can ask a share, a count or a grid by the group on all three datasets that have the powertrain; a share of hybrids, full or mild, is one question. The group is crossed with anything but the powertrain. No other roll-up is made. For the lead's `docs/STATE.md` and `docs/CHECKPOINT.md`: queue item 2 is done on this branch (stacked on #83); `AGENTS.md`'s dry-run row could gain a line for this build (exit 0 in 13 min 9 s, payload 4,912,106 bytes, +34,499, six new files and a changed manifest, the other 88 byte-identical); any statement elsewhere that a share of the two hybrid values cannot be had is now stale (none was found in `docs/` outside this file's earlier records).
+- Follow-up, 2026-11-17 (the lead, before the review): the fifth group's label is "Hydrogen and other", not "Other". "Other" is also
+  the name of one powertrain value, and the brief asked for labels that cannot be mistaken for a single powertrain (choice 1 above
+  describes the earlier label). It is one cell of `powertrain_group_label` on the six rows of that group; the golden contract does not
+  move (no fixture vehicle is in the group) and the targeted tests pass. The screens and the page's table quoted above were taken
+  with the earlier label, where they read "Other 0.0%". The commits of this piece were first made on the branch of #83, which was
+  closed unmerged; they were re-made on `main` with the same content, so the hashes differ from those a builder's notes may give.
 - Status: decided by Claude (unreviewed)
