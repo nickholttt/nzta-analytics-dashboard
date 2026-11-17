@@ -135,6 +135,10 @@
   },
   "engine": { "reference": "powertrain_map.csv", "field": "motive_power", "key": "nzta_motive_power", "flag": "has_combustion_engine" },
   "alternative_fuel": { "primary": "motive_power", "alternative": "alternative_motive_power" },
+  "associations": {
+    "$comment": "How strongly each pair of a dataset's fact-table dimensions moves together (pipeline/association.py, docs/CUBE_SCHEMA.md Associations): the bias-corrected Cramer's V, written to associations/{dataset}.json for the whole dataset and for the trailing_window_months, rounded to this many decimals. Which pairs are not findings comes from config/data_map.json.",
+    "decimals": 4
+  },
   "datasets": {
     "registrations_surviving": {
       "require": ["in_scope", "fleet_entry"],

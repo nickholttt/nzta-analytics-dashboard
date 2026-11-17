@@ -17,7 +17,7 @@ import shutil
 import duckdb
 
 from pipeline import build, config
-from pipeline.contract import (FACT_COUNT, FACT_DIMENSION_TYPE, FACT_MONTH, FACTS_DIR, NOT_BROKEN_DOWN, PAIR_COLUMNS,
+from pipeline.contract import (ASSOCIATIONS_DIR, FACT_COUNT, FACT_DIMENSION_TYPE, FACT_MONTH, FACTS_DIR, NOT_BROKEN_DOWN, PAIR_COLUMNS,
                                PAIR_SEPARATOR, SLICE_COLUMNS)
 
 from .conftest import FIXTURES, GOLDEN, NOW, load_rows, make_cfg, source_for, write_pages
@@ -53,10 +53,12 @@ def built_contract(tmp_path, workspace) -> tuple[dict, dict]:
     # update, and a change in what the site downloads never passes unnoticed.
     manifest = json.loads((public / "manifest.json").read_text(encoding="utf-8"))
     events = json.loads((public / "events.json").read_text(encoding="utf-8"))
-    contract = {"manifest": manifest, "slices": {}, "pairs": {}, "facts": {}, "events": events}
+    contract = {"manifest": manifest, "slices": {}, "pairs": {}, "facts": {}, "associations": {}, "events": events}
     for kind, folder in (("slices", "cube"), ("pairs", "pairs"), ("facts", FACTS_DIR)):
         for path in sorted((public / folder).rglob("*.parquet")):
             contract[kind][path.relative_to(public / folder).as_posix()] = read_slice(path)
+    for path in sorted((public / ASSOCIATIONS_DIR).glob("*.json")):
+        contract["associations"][path.name] = json.loads(path.read_text(encoding="utf-8"))
     return contract, {"events": events, "cfg": cfg}
 
 
@@ -72,6 +74,7 @@ def test_cube_matches_golden(tmp_path, workspace):
         assert sorted(contract[kind]) == sorted(expected[kind]), kind
         for name, doc in expected[kind].items():
             assert contract[kind][name] == doc, name
+    assert contract["associations"] == expected["associations"]
 
 
 def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):

@@ -9,6 +9,7 @@ what the pipeline does. No field value is written here (design invariant #1): ev
 from __future__ import annotations
 
 import copy
+import csv
 import json
 import re
 from pathlib import Path
@@ -469,6 +470,52 @@ def test_relations_point_at_known_fields_and_files():
                 assert cfg.reference(roll["via"]).exists(), f"{entry['name']}: no reference file {roll['via']}"
         unknown = set(entry["relations"]["derived_from"]) - same_source
         assert not unknown, f"{entry['name']}: derived from unknown fields {unknown}"
+
+
+def test_a_by_construction_rollup_through_a_reference_file_holds_in_that_file():
+    """A roll-up or a pair marked by_construction through a reference file is only true while the file makes it so: each
+    value of the lower column has one value of the higher (for the brand registry, one manufacturer group, owner
+    country and heritage country per make, and one owner country per group). Read from the map, not named here."""
+    cfg, dmap = config.load(), load_map()
+    dims = {d["id"]: d for d in cfg.dimensions["dimensions"]}
+    checked = 0
+    for entry in dmap["fields"]:
+        lower = dims.get(entry.get("bound") or "")
+        for roll in entry["relations"]["rolls_up_to"]:
+            higher = dims.get(roll["to"])
+            if roll["holds_on"] != "by_construction" or not roll["via"] or not lower or not higher:
+                continue
+            key, value = lower["derive"].get("value"), higher["derive"].get("value")
+            if lower["derive"].get("kind") != higher["derive"].get("kind") or not key or not value:
+                continue
+            rows = list(csv.DictReader(cfg.reference(roll["via"]).open(encoding="utf-8", newline="")))
+            if key not in rows[0] or value not in rows[0]:
+                continue
+            seen: dict[str, set[str]] = {}
+            for row in rows:
+                seen.setdefault(row[key], set()).add(row[value])
+            split = {k: v for k, v in seen.items() if len(v) > 1}
+            assert not split, f"{entry['name']} -> {roll['to']} through {roll['via']}: more than one {value} for {split}"
+            checked += 1
+    together = dmap["moves_together"]["true_by_definition"]
+    for pair in together:
+        a, b = dims.get(pair["a"]), dims.get(pair["b"])
+        if pair["basis"] != "by_construction" or not a or not b or a["derive"].get("kind") != b["derive"].get("kind"):
+            continue
+        reference = a["derive"].get("reference") or cfg.pipeline.get("brand", {}).get("registry")
+        if not reference or not cfg.reference(reference).exists():
+            continue
+        rows = list(csv.DictReader(cfg.reference(reference).open(encoding="utf-8", newline="")))
+        ka, kb = a["derive"].get("value"), b["derive"].get("value")
+        if not rows or ka not in rows[0] or kb not in rows[0]:
+            continue
+        seen = {}
+        for row in rows:
+            seen.setdefault(row[ka], set()).add(row[kb])
+        split = {k: v for k, v in seen.items() if len(v) > 1}
+        assert not split, f"{pair['a']} with {pair['b']}: more than one {kb} for {split}"
+        checked += 1
+    assert checked >= 1, "no by_construction relation through a reference file was checked"
 
 
 def test_pairs_true_by_definition_name_known_fields():

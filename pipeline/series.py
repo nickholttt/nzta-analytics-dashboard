@@ -558,6 +558,7 @@ def build(con, cfg, source_id: str, names: list[str], latest: date, previous_liv
             "live_pairs": [],
             "not_live_pairs": {},
             "facts": None,
+            "associations": None,
             "undefined": undefined,
             "exceeds_total": exceeds,
         }, counts, live)
