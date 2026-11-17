@@ -225,3 +225,22 @@ test("the dimensions that read an owner field come from the data map and the dim
   assert.ok(real.length >= 1);
   assert.deepEqual(real, vocabulary.owner);
 });
+
+test("what a kept snapshot is asked about is what the chart reads: no question Build offers reads a second dataset, a pair or a narrowed table that `asks` does not list", async () => {
+  // `asks` (src/lib/kept.ts) lists the chart's own dataset and the fields it names. A measure that divides one dataset by another, or a dataset that is
+  // another one narrowed through a pair, reads more than that. Build offers none today; the day it does, this fails, and `asks` must list what is read.
+  const { buildQuestions } = await import("./support/observe.ts");
+  const { builderPresets } = await import("../../src/lib/builder.ts");
+  const { resolvePreset } = await import("../../src/lib/resolve.ts");
+  let checked = 0;
+  for (const { key, question } of buildQuestions()) {
+    for (const preset of builderPresets(question)) {
+      const { companion, source } = resolvePreset(preset, everything);
+      assert.equal(companion, undefined, `${key} reads a second dataset`);
+      assert.equal(source?.filter, undefined, `${key} reads a pair that narrows it`);
+      assert.equal(source?.cross?.pair, undefined, `${key} reads a pair`);
+      checked++;
+    }
+  }
+  assert.ok(checked > 20, "the test looked at the questions Build offers");
+});
