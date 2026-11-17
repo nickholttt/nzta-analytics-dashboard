@@ -187,6 +187,7 @@ config/
   measures.json       # what users can measure
   presets.json        # the Explore canon, as data
   chart_rules.json    # which shapes fit a question: the one rule table (D-100)
+  my_questions.json   # the interface words of Build's saved questions (D-125)
   data_map.json       # the data map in machine-readable form (D-090)
   pipeline.json       # source field bindings, thresholds, detection rules
   narrative/          # planned (D-062): phrase templates, verb bands, banned words
@@ -204,7 +205,7 @@ data/reference/
   class_map.csv       # NZTA vehicle class code -> label (D-116)
   nz_assembled_map.csv  # NZTA's assembly flag -> label (D-116)
   statsnz_series.csv  # Stats NZ's table headers -> series, group and role (D-094)
-  model_segment.csv   # canonical make + model -> SUV or car, with basis and confidence: a first slice that nothing reads yet (D-117)
+  model_segment.csv   # canonical make + model -> SUV or car, with basis and confidence: two slices, and nothing reads it yet (D-117, D-123)
 docs/
   DATA_SOURCES.md     # endpoints, cadence, field traps, licence
   METRICS.md          # exact measure definitions
