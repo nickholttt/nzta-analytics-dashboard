@@ -5,9 +5,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases, valueWords } from "../lib/config";
 import { REST_NAME, isChoosable } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, addressParams, builderPresets, isMonthKey, narrowingNotes, noteRemoved, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, isMonthKey, narrowingNotes, noteRemoved, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues, withoutValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
-import { ServiceError, datasetLatestMonth, factView, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
+import { ServiceError, datasetLatestMonth, factView, fieldValues, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
 import { canPin, servedMonth } from "../lib/pin";
 import { pickerMonth, pinLine, readingFor } from "../lib/kept";
@@ -375,6 +375,24 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     // ask reads the latest question through its ref; these are what decide whether starting values are needed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [awaitingValues, question.by, dataset, whereKey, reading === undefined, keptFolder]);
+  // A link can name a value its dataset's own table of that field does not hold, which would match no vehicle and say nothing. Checked once, when
+  // the page knows where its figures come from, against the files the pickers read in the same question; the value is left out and the page says so.
+  const checkedNames = useRef(false);
+  useEffect(() => {
+    if (reading === undefined || checkedNames.current) return;
+    checkedNames.current = true;
+    const asked = latest.current;
+    const readTable = (from: string, field: string, others: Record<string, string[]>) =>
+      fieldValues(from, field, Object.values(others).some((kept) => kept.length > 0), pickAt(field, others)).catch(() => undefined);
+    absentValues(asked, canApply, readTable).then((absent) => {
+      const now = latest.current;
+      if (absent.length === 0 || now.dataset !== asked.dataset) return;
+      ask(withoutValues(now, absent), false, true);
+      setNotices((before) => [...before, ...absentNotes(asked.dataset, absent, valueLabel)]);
+    });
+    // Once per page, when the reading is first known; ask and the closures read the latest question through its ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reading === undefined]);
   const words = datasetWords(dataset);
 
   const datasetInfo = findDataset(dataset);

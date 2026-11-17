@@ -208,7 +208,7 @@ export type BuilderSpec = {
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
-  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string; narrowed: string; narrowed_label: string };
+  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; absent: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string; narrowed: string; narrowed_label: string };
   not_offered: NotOffered[];
 };
 

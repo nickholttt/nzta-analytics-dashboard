@@ -218,6 +218,7 @@
       "dataset": "This link asked to count {asked}, which this build does not have. It is counting {shown} instead.",
       "by": "This link asked to break the figures down by {asked}, which is not available for {dataset}. It shows {shown} instead.",
       "left_out": "This link named “{asked}” for {field}, which is not a value that can be chosen here, so it was left out.",
+      "absent": "This link named “{asked}” for {field}, which is not a value in the data for {dataset}, so it was left out.",
       "by2": "This link asked for a second breakdown by {asked}, which this question cannot have. It shows the question without one.",
       "value2": "This link named values for a second breakdown, but it names no second breakdown, so the values were left out.",
       "snapshot": "This link named the snapshot “{asked}”, which is not a month, so it was left out.",
