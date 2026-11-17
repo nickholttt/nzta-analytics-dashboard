@@ -5986,3 +5986,60 @@ New entries use this template:
 - Decision: (1) The test in `tests/site/hidden-cells-loader.test.ts` has no early return. It fails unless `pipeline/contract.py` has exactly one assignment of `NOT_BROKEN_DOWN` (a type annotation, either quote style and a trailing comment are allowed) and its value equals `NOT_BROKEN_DOWN_TOKEN`. It was seen failing when the pipeline's value was changed, when its constant was renamed and when the site's constant was changed. (2) The ratio check in `src/lib/resolve.ts` passes the second breakdown, the crossing, the narrowing and the conditions as well, so a question that names a field listed under a dataset's `small_cells` is blocked for every dataset it reads. Two of the three new tests in `tests/site/hidden-cells-manifest.test.ts` fail when any one of those four is removed (the third checks the dataset is named once, not twice).
 - Consequences: D-130's Choices 6, which says the comparison prints a diagnostic and passes until the pipeline holds the value, no longer applies. No hidden cell could reach a chart by the ratio route before this: the rule changes one-field slices only and Build offers no such measure. This closes a gap in the check, not a live fault.
 - Status: decided by Claude (unreviewed)
+
+## D-134 2026-11-18 — The user's answers of 18 November: October is forced and rebuilt, the first owner table is the fleet by usage as it is today, and what the dashboard's usage column records is settled before any table of usage at first registration
+- Agent: user (the answers), claude (the record, the readings marked, and what the forced build did)
+- Basis: the user's message of 2026-11-18, answering the two questions put in the eleventh session (the release
+  `cube-2026-10` and its unhidden `region` slice, D-126 reading 2; which owner table first, D-096 and D-120), quoted
+  below; the Monthly build runs 44121658453 and 44173471254 and the Deploy run 44174921475, read on 2026-11-18; the
+  release's files, downloaded and read the same day.
+- Decision (user), in the user's words:
+  1. "Force October, only if the latest daily run reports the register unchanged. Read that run first; if NZTA has
+     changed it, do not force."
+  2. "Owner table: vehicle usage, but over every vehicle still registered today (the current fleet), broken down by
+     usage and optionally by vehicle type. Never by month or year of first registration, because usage describes the
+     vehicle now. Label it "used as, today". Build it privately and show me the figures and screenshots before any
+     pull request."
+  3. "Queue, before any table of usage at first registration: use the private matching between two months' archive
+     files (already approved) to settle what the dashboard's own usage column records: at first registration or now.
+     Report what you find."
+  And: "Industry class and district wait."
+- What was done under item 1:
+  - The latest daily run (44121658453, 17 November 16:05 UTC, on `main` with the small-cell rule and the power and
+    gearbox dimensions) said "Source unchanged since the last good build (snapshot 2026-10-31); nothing to do." So the
+    build was forced (run 44173471254, 17 November 20:50 UTC). Every job passed.
+  - It pulled 5,926,990 rows and built four datasets (`registrations_surviving` 4,520,304 vehicles;
+    `registrations_flow` 1,483,403; `registrations_flow_wider` 1,506,467; `registrations_cars_long_run` 9,050,400),
+    the first build on GitHub to hold the three supplied ones. One warning: the Stats NZ store ends at 2026-09.
+  - The release `cube-2026-10` was replaced: `public-data.tar.gz`, 5,120,798 bytes, 99 files, payload 5,210,807
+    bytes; the register's fact table has 799,057 rows and 19 fields.
+  - **The `region` slice in the release is now under the small-cell rule.** The manifest says 3,666 cells hidden by
+    the first rule, 297 by the second, 22,256 vehicles in hidden cells, 327 months not broken down holding 3,977
+    vehicles. Read back from the published file with separate SQL: no region cell under 10 is visible; no month has
+    exactly one hidden cell or hidden cells with no visible one; the smallest total of a month's hidden cells is 10;
+    6 cells are hidden in the latest 12 months. D-126 reading 2 and D-127's limit "the release was published before
+    the rule" no longer describe the release.
+  - The private archive was not touched: its job said the month is already archived and a month's file is never
+    replaced. `Deploy` (44174921475) built the site and uploaded nothing. The bot committed the state (8063146);
+    the snapshot aggregate was unchanged.
+  - **A consequence the lead had not foreseen.** `Checks` runs the query service prototype's tests against the newest
+    cube release, so two of them began to fail on every pull request: the prototype refused a question naming all 19
+    fact-table fields (its limit was 16, set when Build offered 12), and the total pinned for the acceptance question
+    was the earlier build's (409,241 vehicles; the rebuilt cube has 409,204, with Ford's 1,972 and Toyota's 292,740
+    unchanged). Recomputed by the lead from the release's fact-table columns with no service code: 409,204. Why 37
+    vehicles left that condition between the builds of 14 and 17 November was not traced; reference data changed
+    between them. The limit is now 24 and the total 409,204, in the same pull request as this record, and
+    `docs/playbooks/check-monthly-run.md` says to run those tests after a forced build.
+- Claude's readings (unreviewed):
+  1. Item 2: "every vehicle still registered today" is every vehicle in the register's snapshot, of every vehicle
+     type and import status, counted as at the snapshot date: a new dataset with one period, never a breakdown of
+     first registrations. It is built on a local branch that is not pushed (the repository is public), and its
+     figures and screenshots go to the user before any pull request; its record will be D-135.
+  2. Item 3: "the dashboard's own usage column" is the "Vehicle usage" column of NZTA's registrations dashboard
+     export, which the supplied store drops. The matching needs November's archive file, which the archive job
+     writes after NZTA's December refresh, so it is to be queued for then in `docs/CHECKPOINT.md`. No table of usage by
+     month or year of first registration is built before it is reported.
+  3. Industry class and district are not built, profiled further or proposed until the user says.
+- Consequences: the parked question about the October release is closed. A link pinned to October reads a release
+  whose manifest says the rule was applied (D-131). The owner-table queue item is the fleet by usage.
+- Status: accepted (the user's answers); the readings above are decided by Claude (unreviewed)
