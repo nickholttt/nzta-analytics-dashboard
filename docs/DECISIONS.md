@@ -5763,8 +5763,9 @@ New entries use this template:
     heavy vehicle topic, a condition that narrows to heavy classes would have to be built, and nothing asks
     for it yet. Left for package I.
   - *Withdraw every use until then* (chosen): the smallest change, and undone by two values in one file.
-- Not established: why class TA changes at 1996; why zeros are common in the newest months of a year; whether
-  a two on a car is counted or filled in (cars have two axles either way).
+- Not established: why class TA changes at 1996; why zeros are common among passenger cars and vans first
+  registered in early 2023 (61.1% of those of January 2023, 44.5% of February's and 19.2% of March's, against
+  3.2% of January 2024's); whether a two on a car is counted or filled in (cars have two axles either way).
 - Choices a reviewer could want reversed: withdrawing the filter rather than keeping it for heavy classes;
   `recorded_for` set to heavy vehicles although the field is not zero on most light vehicles.
 - Consequences: the data map no longer offers the field anywhere. Nothing in a published file, the pipeline

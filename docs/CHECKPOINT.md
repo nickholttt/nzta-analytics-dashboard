@@ -26,13 +26,11 @@ Last updated by claude on 2026-11-17
     and industry class. By month over all history 47.7% of district cells are under 10, and
     in 174 to 443 of 1,197 months exactly one cell would be hidden, which a total gives
     away: the hiding needs a second rule. The register has no owner-type field.
-  - The `region` slice under a floor of 10: 5,668 of 16,406 region-month cells (19,078
-    vehicles), nearly all before 1990; from 1990, 419 cells; in the latest 12 months, 3.
 
 ## Open pull requests
 
-- These notes (docs only). `claude/small-cells` and `claude/power-transmission` are being
-  built in the worktrees `nzta-audit` and `nzta-notes`; neither is pushed yet.
+- #90: D-126 and the axles finding (D-129), in review. `claude/small-cells` and
+  `claude/power-transmission` are being built (`nzta-audit`, `nzta-notes`), not yet pushed.
 
 ## The queue, in order
 
@@ -47,18 +45,16 @@ Last updated by claude on 2026-11-17
    the user, as figures and screenshots, before a pull request that would publish it merges.
 3. **A pinned link loads the cube release for its snapshot** (the user, D-126), so a quoted
    figure still shows after later refreshes. To settle first: where a browser can read a past
-   snapshot's cube from; October's release holds the `region` slice unhidden (D-125).
+   snapshot's cube from; October's release holds the `region` slice unhidden (D-126).
 4. **Colour**, in a narrow table of counts of its own (a contract change; costs above).
 5. **The SUV file's next slice** (D-123, "left"): people movers and sports cars; whether the
    register holds the Levorg Layback as LEVORG and the Impreza XV as IMPREZA; three sizes each
    for cars and SUVs from cited length and width against the FCAI's footprint bands; a rule
    per dataset; then the wiring and its guard. 61 rows are still `medium`: the sites refuse.
-6. **Small follow-ups.** Engine: what `NUMBER_OF_AXLES` records, into the data map before
-   the field is offered anywhere (D-126, D-129); Tank to unresolved (a golden change); a
-   reader that refuses a malformed reference row; the X-Trail row's basis; the dataset guard
-   on a filtered dataset (D-118); the fixture harness's fields; a seats average. Site: a
-   notice for a link naming a value the data no longer holds (a band's `unknown`, a class by
-   its bare code); the
+6. **Small follow-ups.** Engine: Tank to unresolved (a golden change); a reader that refuses
+   a malformed reference row; the X-Trail row's basis; the dataset guard on a filtered
+   dataset (D-118); the fixture harness's fields; a seats average. Site: a notice for a link
+   naming a value the data no longer holds (a band's `unknown`, a class by its bare code); the
    register fields' notes cut to a line; class with segment group recorded in the data map;
    the pinned line told the first month the panel loads, so the register's line can say its
    window is kept (D-125); the template lint reading `config/my_questions.json`; the query
@@ -91,6 +87,9 @@ Last updated by claude on 2026-11-17
    full engine is audited again (D-120). Nothing is provisioned or spent until then.
 3. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
    sentence; the retaken dashboard history (the user, 17 November: still to come).
+4. **The release `cube-2026-10` holds the `region` slice with no cell hidden** (D-126). (a)
+   Leave it. (b) "Force October" once the rule is on `main`, replacing the release.
+   Recommended (b): a pinned link will read it. No answer: (a), and a pin skips its regions.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 

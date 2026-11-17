@@ -412,7 +412,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 - **Meaning.** NZTA: "Records the number of axles the vehicle has". Measured on the whole 2026-10
   pull (W, 5,926,990 vehicles; D-129): it behaves as a count of axles on heavy vehicles and not on
   light ones.
-  - **Heavy vehicles: a count.** Gross vehicle mass rises with it. Class NC (74,475 vehicles):
+  - **Heavy vehicles, and buses: a count.** Gross vehicle mass rises with it. Class NC (74,475 vehicles):
     median mass 15,000 kg at two axles (16,167 vehicles), 24,500 at three (32,937), 31,600 at four
     (24,873), 35,000 at five (470). Class TD trailers (40,557): one axle 304, two 5,893, three
     12,227, four 14,160, five 7,959. Buses: median mass 3,250 kg at two axles (34,549) and 21,350
