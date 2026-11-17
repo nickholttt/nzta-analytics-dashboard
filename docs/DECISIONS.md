@@ -4867,22 +4867,27 @@ New entries use this template:
      (its file path is dated 2025-07). The row now has `match_import_status` NZ New, because both sources are New Zealand-market. The one
      used import (vehicle year 2026, registered 2026-10, on both datasets) therefore matches no row and counts as unknown (it counted as
      full at high before this correction).
-  2. **Nissan X-Trail, PETROL HYBRID, used imports, vehicle years 2015 to 2022**, 370 (368) in the window, 2,352 (2,327) all time: full
+  2. **Nissan X-Trail, PETROL HYBRID, used imports, vehicle years 2015 to 2021**, 366 (364) in the window, 2,346 (2,321) all time: full
      at medium to full at high. Nissan's global newsroom release of 6 April 2015 describes the Japanese X-Trail Hybrid as Nissan's
      "one-motor two-clutch parallel hybrid system", in which the motor drives the wheels, one clutch separates it from the engine and EV
      mode driving is available at high speeds (https://global.nissannews.com/en/releases/150407-01-e). Nissan's release of 20 July 2022
      for the next-generation X-Trail says the Japan model becomes "a dedicated e-POWER model" with sales from 25 July 2022
      (https://global.nissannews.com/en/releases/nissan-launches-the-all-new-x-trail-in-japan); the 2015 generation's hybrid was therefore
-     first registered in Japan no later than 2022. That release does not itself say when the earlier hybrid stopped being sold, so the
-     2022 cap is a judgement from the launch date, not a quotation. The other two PETROL HYBRID X-Trail rows, both Used Import: vehicle
-     year 2014 or earlier stays full at medium (2 vehicles each, none in the window); vehicle year 2023 or later is **unresolved at
-     low** (1 vehicle each, in the window: a vehicle year of 2024, which is not the 2015 generation's car and may be an e-Power recorded
-     under the other code, but one recorded code is not evidence). A New Zealand-new or re-registered X-Trail recorded as PETROL HYBRID
+     first registered in Japan no later than 2022, and the next generation's cars carry 2022 and later. The high row stops at 2021
+     because the register's engine sizes show 2022 holding both generations (checked on the saved pull; the first version of this record
+     capped at 2022). Used-import PETROL HYBRID X-Trails on the register by vehicle year and engine size: every year from 2015 to
+     2021 is about 1990 to 1999 cc (2020: 97 at 1997 cc, 1 at 1990; 2021: 29 at 1997 cc, 2 at 1990) apart from three strays (2015: one
+     at 1905 and one at 1977; 2017: one at 9197, a typing error); **2022 has 4 at 1997 cc (the 2015 hybrid's 2.0 litre) and 2 at 1497 cc
+     (the next generation's 1.5 litre)**, and the 2024 vehicle is also 1497 cc. The store has no engine size and no match column reads
+     one, so the year cannot be split. The other two PETROL HYBRID X-Trail rows, both Used Import: vehicle year 2014 or earlier stays
+     full at medium (2 vehicles each, none in the window); vehicle year **2022 or later is unresolved at low** (7 vehicles all time
+     on the register and 7 on true registrations; 5 in the window on each: 4 of vehicle year 2022 and the 2024 one; one recorded code
+     is not evidence, and the next generation's cars among them are not the car the 2015 release describes). A New Zealand-new or re-registered X-Trail recorded as PETROL HYBRID
      now matches no row: none exists on true registrations; the register has 9 re-registered ones, none in the window, which
      `scripts/unmatched_hybrids.py` would list if one entered it. What the figure counts: of the register's 2,339 X-Trail petrol hybrids
-     all time, 2,330 are used imports; 2,327 of those are in the high row, 2 in the medium row and 1 in the unresolved row (an earlier
+     all time, 2,330 are used imports; 2,321 of those are in the high row, 2 in the medium row and 7 in the unresolved row (an earlier
      version of this record said 2,337 of 2,339 are at high; that counted every status and had no upper year). True registrations: all
-     2,355 are used imports, 2,352 / 2 / 1.
+     2,355 are used imports, 2,346 / 2 / 7.
   3. **Foton Tunland**, 56 (56) in the window and all time: mild at medium to mild at high. Foton New Zealand's Tunland page
      (https://www.foton.co.nz/trucks/tunland) names the powertrain "Aucan Diesel 48V Mild Hybrid".
   4. **Notes only, no classification changed:** Honda Fit (the IMA row and the year 2013 row), KGM Torres, Tank, BAIC X55 and the
@@ -4947,7 +4952,9 @@ New entries use this template:
 - Choices a reviewer could want reversed:
   1. The Chery call rests on "series-parallel" meaning a motor that can drive the wheels, which the maker does not write out, and on
      TIGGO 4 PRO being the release's Tiggo 4 Hybrid, which is inferred from the data.
-  2. The X-Trail upper year 2022 is from the next generation's launch date, not from a statement that the old hybrid stopped.
+  2. The X-Trail upper year 2021 is from the register's engine sizes for 2022 and the next generation's launch date, not from a
+     statement that the old hybrid stopped; true registrations cannot show engine size, so its 2022 cars (the same 6 in the dashboard
+     store) are left unresolved with the register's.
   3. The Honda IMA rows stay at medium although most press and the file's own wording call IMA mild.
   4. The B30 is full at medium on a listing and a guide that both stop short of "full hybrid" in the distributor's own durable text.
   5. Tank stays full at medium, against the review's request, because of the golden contract (above).
@@ -4955,15 +4962,15 @@ New entries use this template:
 - Not done: no code change was made; a match column for engine capacity would settle the Fit 2013 and Shuttle 2015 rows on the register
   only, and is not recommended unless the store gains the field. The Subaru decision is the owner's. The Tank move needs a golden update.
   A dry run of the whole build was not made (the targeted tests and the golden test were).
-- Consequences: on the 2026-10 snapshot, trailing coverage at high confidence goes from 14,241 of 19,233 (74.04%) to 14,297 of 18,203
-  (78.54%) on the register, from 14,271 of 19,286 (74.00%) to 14,327 of 18,253 (78.49%) on true registrations, and from 14,271 of 19,286 (74.00%, D-113) to 14,327 of 18,253 (78.49%) on the wider dataset
-  `registrations_flow_wider`; the room before 70% goes from 1,111 to 2,221, from 1,101 to 2,214, and from 1,101 to 2,214. Stated trailing coverage goes from 83.5% to
-  85.4% on the register (85.37%) and from 83.5% to 85.3% on true registrations and the wider dataset (85.33%). All-time at high confidence
-  goes from 60.1% to 62.7% (register: 46,115 of 73,548), from 64.5% to 67.6% (true registrations: 46,157 of 68,273) and to 67.6% on the
-  wider dataset (46,158 of 68,275); all-time stated coverage is 83.5% on each. Vehicles in the window still counting against the
-  figure: 3,906 on the register (2,499 unresolved at low, 636 full at medium, 700 mild at medium, 71 with no row), 3,926 on true
-  registrations and on the wider dataset (2,509, 637, 704, 76); they were 4,992 and 5,015. Against the review's figures for the B30 at
-  medium alone (true registrations 14,327 of 18,251, 78.50%, room 2,216; register 14,297 of 18,201, 78.55%, room 2,223) these differ by
-  the same two vehicles in each dataset, the Tiggo used import and the 2024 X-Trail, which now count as unknown. No powertrain line
+- Consequences: on the 2026-10 snapshot, trailing coverage at high confidence goes from 14,241 of 19,233 (74.04%) to 14,297 of 18,207
+  (78.52%) on the register, from 14,271 of 19,286 (74.00%) to 14,327 of 18,257 (78.47%) on true registrations, and from 14,271 of 19,286 (74.00%, D-113) to 14,327 of 18,257 (78.47%) on the wider dataset
+  `registrations_flow_wider`; the room before 70% goes from 1,111 to 2,217, from 1,101 to 2,210, and from 1,101 to 2,210. Stated trailing coverage goes from 83.5% to
+  85.4% on the register (85.35%) and from 83.5% to 85.3% on true registrations and the wider dataset (85.31%). All-time at high confidence
+  goes from 60.1% to 62.7% (register: 46,115 of 73,554), from 64.5% to 67.6% (true registrations: 46,157 of 68,279) and to 67.6% on the
+  wider dataset (46,158 of 68,281); all-time stated coverage is 83.5% on each. Vehicles in the window still counting against the
+  figure: 3,910 on the register (2,503 unresolved at low, 636 full at medium, 700 mild at medium, 71 with no row), 3,930 on true
+  registrations and on the wider dataset (2,513, 637, 704, 76); they were 4,992 and 5,015. Against the review's figures for the B30 at
+  medium alone and the X-Trail high row to 2021 (true registrations and the wider dataset 14,327 of 18,257, 78.47%, room 2,210; register
+  14,297 of 18,207, 78.52%, room 2,217; the register's used-import X-Trails 2,321 at high, 2 at medium, 7 unresolved) these are the same. No powertrain line
   moves: the Foton row has no override, and the full calls leave a vehicle under Hybrid. The golden contract is unchanged.
 - Status: decided by Claude (unreviewed)
