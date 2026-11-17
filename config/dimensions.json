@@ -492,7 +492,7 @@
     {
       "id": "power_band",
       "label": "Power",
-      "public_note": "Engine or motor power in kilowatts, in bands. NZTA records power only for vehicles sold new in New Zealand: almost every used import has none and shows as unknown. For passenger cars and vans sold new it is recorded from May 2003; for goods vehicles of 3.5 tonnes or less from February 2017; some heavier new goods vehicles have none in every year. A power of zero is not recorded, and a value outside 5 to 900 kW is not taken as a power: both are counted as unknown.",
+      "public_note": "Engine or motor power in kilowatts, in bands. NZTA records power for vehicles sold new in New Zealand: almost no used import has one, so they show as not recorded. Among new passenger cars and vans, and new goods vehicles of 3.5 tonnes or less, almost none has a power before 1994, most do in 1994 and 1995, and from 1996 nearly all do. About half of heavier new goods vehicles have none. A power of zero is not recorded, and a value outside 5 to 900 kW is not taken as a power: both are counted as not recorded.",
       "source": "nzta:power_rating",
       "derive": { "kind": "band", "field": "power" },
       "kind": "ordered_band",
@@ -514,7 +514,7 @@
     {
       "id": "transmission",
       "label": "Gearbox",
-      "public_note": "The kind of gearbox NZTA records, in four groups: automatic, manual, continuously variable and other. NZTA records it for vehicles sold new in New Zealand only: almost every used import has none and shows as not recorded. For passenger cars and vans sold new it is recorded from May 2003; for goods vehicles of 3.5 tonnes or less from February 2017; some heavier new goods vehicles have none in every year. Other is NZTA's own value OTHER, which the register does not explain, so it is not placed in a group; most of the vehicles it holds are battery electric.",
+      "public_note": "The kind of gearbox NZTA records, in four groups: automatic, manual, continuously variable and other. NZTA records it for vehicles sold new in New Zealand: almost no used import has one, so they show as not recorded. Among new passenger cars and vans, and new goods vehicles of 3.5 tonnes or less, almost none has one before 1995, few do in 1995, and from 1996 nearly all do. About half of heavier new goods vehicles have none. Other is NZTA's own value OTHER, which the register does not explain, so it is shown as Other and not put with the automatic, manual or continuously variable gearboxes; most of the vehicles it holds are battery electric.",
       "source": "nzta:transmission_type + reference:transmission_map",
       "derive": { "kind": "lookup", "field": "transmission", "reference": "transmission_map.csv", "key": "nzta_transmission", "value": "group" },
       "kind": "category",

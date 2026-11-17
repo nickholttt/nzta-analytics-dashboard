@@ -478,7 +478,11 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   NZ-new vehicles together the last month above 1% is the latest, October 2026 (172 of 14,912, 1.15%), and
   320 of the 322 months from January 2000 are above it: of the 215,250 NZ-new vehicles with none,
   118,540 are passenger cars and vans (114,513 of them before May 2003) and 96,710 are goods vehicles
-  (44.9%). `transmission`'s public note says the first two.
+  (44.9%). By year of first registration (D-128's review; NZ-new vehicles of the cube):
+  before 1994 no vehicle has a gearbox recorded; in 1994 it is missing on 100.0% of passenger cars and vans and of
+  goods vehicles of 3.5 tonnes or less, in 1995 on 85.8% and 87.1%; from 1996 it is missing on at most 1.9% and 0.9% of
+  any year's (4,844 of 1,854,158 and 1,308 of 623,296 in all). Heavier goods vehicles from 1996: 46,213 of 90,336 have
+  none. `transmission`'s public note gives the years, not the months.
 - **Not recorded.** NULL, covered. `sentinels.csv` lists nothing for the field: no other form occurs.
 - **Traps.** `OTHER` is a recorded value on 110,739 S vehicles, 105,880 of them first registered from
   2020; what it holds is not shown. By NZTA's motive power, on the cube's 110,739 vehicles (all NZ-new,
@@ -596,13 +600,20 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   DAF and UD Trucks. So for all NZ-new vehicles together the last month above 1% is the latest, October
   2026 (172 of 14,912, 1.15%), and 320 of the 322 months from January 2000 are above it: the gap stands in
   the goods vehicles, 90,909 of the 200,079 NZ-new vehicles with none (45.4%), the rest being passenger cars
-  and vans, 105,181 of the 109,170 before May 2003. `power_band`'s public note says the first two.
+  and vans, 105,181 of the 109,170 before May 2003. By year of first registration (D-128's review; NZ-new vehicles of the cube, a
+  power being a value inside the guard): before 1994 a power is on 12 of 101,625 passenger cars and vans and 33 of
+  30,867 goods vehicles of 3.5 tonnes or less; in 1994 it is missing on 34.1% and 29.9%, in 1995 on 10.3% and 9.6%; from
+  1996 it is missing on at most 2.0% and 0.8% of any year's (4,960 of 1,854,158 and 1,310 of 623,296 in all). Heavier goods
+  vehicles from 1996: 46,059 of 90,336 have none, between 21.7% and 58.1% of a year's. Counting values outside the guard
+  as missing, as the `unknown` band does, the last month above 1% for passenger cars and vans is April 2004, not April
+  2003. `power_band`'s public note gives the years, not the months.
 - **Not recorded.** Zero. S 1,988,207 on the map's own count; on the cube's 4,520,304 vehicles
   1,988,072: 1,787,993 used imports (all but 141 of 1,788,134) and 200,079 NZ-new (7.3% of 2,732,170).
   No value is empty. `0` is in `sentinels.csv` under this field since D-128, so it reads as not recorded
   wherever the field is bound.
 - **Traps.** 999 on 118 S vehicles (107 of them Jaguar petrol) is a placeholder. 99 on 4,016
-  (2,916 Mitsubishi petrol) may be real or a default: unverified. 59 S vehicles are below 5 kW.
+  (2,916 Mitsubishi petrol) may be real or a default: unverified. 59 S vehicles are below 5 kW. Between 901
+  and 998 kW are 15 passenger cars (13 at 980 and 2 at 959): not checked, and outside the guard.
   The guard is 5 to 900 (D-128, bound): a value outside it falls in `unknown`, counted apart from the
   zeros and the blanks in the manifest (`bands.power_band`: `source_sentinel` 1,988,072, `out_of_bands`
   192 (59 below 5 kW, 15 from 901 to 998, 118 of 999), `source_missing` 0).

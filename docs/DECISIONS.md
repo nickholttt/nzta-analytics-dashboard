@@ -5857,8 +5857,24 @@ New entries use this template:
   3. `OTHER` in the group Other, and the file saying so rather than guessing; the long AUTO and MANUAL values (up to 18 gears) in Automatic and Manual by their text.
   4. The four group names, and the extra `label` column of the file that nothing reads yet (Options considered).
   5. `transmission` in `abort_on_unmapped`, so a new raw value stops the build at 2% rather than only taking the dimension out.
-  6. The months said in the two `public_note`s (May 2003; February 2017 for goods vehicles up to 3.5 t): they are the last months above 1% on this pull and go stale as data arrives; a mechanism that reads them from the build was weighed in D-116 and not built.
+  6. What the two `public_note`s say about when the fields are recorded. As first written they named months (May 2003; February 2017 for goods vehicles up to 3.5 t), the last months above 1% on this pull; the review of #93 found that a visitor would read "recorded from" as "nothing before", which the data contradicts, so the notes now give years (below). A mechanism that reads such dates from the build was weighed in D-116 and not built.
   7. No special case for the import status (item 4), so the 141 and 116 used imports with a value are published.
   8. The fixtures' rewrite (above).
 - Consequences: The site, unchanged, offers the two dimensions as filters only, by D-116's rule (`src/lib/builder.ts` lists every dimension in the dataset's `facts` that config defines); a breakdown needs a phrase for each in `config/presets.json` (`builder.measures[].dimensions`), which this branch does not touch. The 309 site tests pass on this branch. A later site piece should show `power_band`'s `unknown` and the gearbox's `__UNDEFINED__` as "Not recorded", and should put the NZ-new-only note beside any chart of either (it is in `public_note`). `CLAUDE.md`'s layout lists `transmission_map.csv`. `README.md`'s "What it can answer today" is unchanged: the site does not offer either field yet. Not done: an average or median of power, the number of gears as a dimension, a live-from mechanism for a dimension, and the dry-run row of `AGENTS.md` (the lead's).
+- Review of #93, 2026-11-18 (the lead, applying the reviewer's finding; this record is new in the pull request, so it is corrected in place). The
+  reviewer recomputed every band and group from the saved pages with no pipeline code and found no difference from the built slices or the fact
+  table. One thing had to change: both public notes said the field "is recorded from May 2003" for passenger cars and vans and "from February
+  2017" for goods vehicles of 3.5 tonnes or less. Those are the last months with more than 1% missing, not when recording began. Measured by
+  the lead on the saved pull (NZ-new vehicles of the cube; a power being a value inside the guard; "heavier" being a goods vehicle over 3.5
+  tonnes or with no mass recorded, 58 of them): before 1994 a power is on 12 of 101,625 passenger cars and vans, 33 of 30,867 lighter goods
+  vehicles and 3 of 10,759 heavier ones, and a gearbox on none; in 1994 a power is missing on 34.1% of the cars and 29.9% of the lighter goods
+  vehicles and a gearbox on 100.0% of both; in 1995, 10.3% and 9.6% for power, 85.8% and 87.1% for the gearbox; from 1996 the worst year is
+  2.0% (power) and 1.9% (gearbox) for the cars, 0.8% and 0.9% for the lighter goods vehicles. Heavier goods vehicles from 1996: 46,059 of
+  90,336 have no power and 46,213 no gearbox, between 21.7% and 58.1% of a year's for power. So the notes now say: almost none before 1994
+  (power) or 1995 (gearbox), most or few in the years between, nearly all from 1996, and about half of heavier new goods vehicles have none.
+  Also found: with values outside the guard counted as missing, as the `unknown` band counts them, the last month above 1% for passenger cars
+  and vans is April 2004, not April 2003 (the figure in item 4 above counts zeros only); the data map says so. The notes use "not recorded"
+  for both fields, and the gearbox note says Other "is shown as Other", not "is not placed in a group". The 15 vehicles between 901 and
+  998 kW (13 at 980, 2 at 959, all passenger cars) are in the data map's traps as not checked. Not changed: the reference file, the bands,
+  the guard, the golden contract.
 - Status: decided by Claude (unreviewed)
