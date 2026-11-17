@@ -1,5 +1,5 @@
 {
-  "$comment": "Cases any implementation of the query service must pass (docs/QUERY_SERVICE.md): hostile questions, each limit, and a few answers whose totals are known. The prototype's tests read this file, and a later implementation (the proposal's edge function) is to be run against it too. Each case: 'query' is the question as sent after /v1/<dataset>/answer?; 'generate' adds keys built here rather than written out (count copies of key, values prefix0, prefix1, ...); 'settings' overrides the service's settings for that case, for a limit no real field can reach today; 'status' is what the service must answer; 'totals', where given, are checked only against the snapshot named (they are that snapshot's counts): the sum of the month totals, and the sum of each value's cells. Domain values live here, not in code.",
+  "$comment": "Cases any implementation of the query service must pass (docs/QUERY_SERVICE.md): hostile questions, each limit, and a few answers whose totals are known. The prototype's tests read this file, and a later implementation (the proposal's edge function) is to be run against it too. Each case: 'query' is the question as sent after /v1/<dataset>/answer?; 'generate' adds keys built here rather than written out (count copies of key, values prefix0, prefix1, ...); 'settings' overrides the service's settings for that case, for a limit no real field can reach today; 'status' is what the service must answer; 'totals', where given, are checked only against the snapshot named (they are that snapshot's counts): the sum of the month totals, and the sum of each value's cells. They are the counts of one build of that snapshot: a rebuild of the same month under changed reference data can move them, and then they are measured again from the new cube's fact table (as on 17 November 2026, D-134). Domain values live here, not in code.",
   "dataset": "registrations_surviving",
   "cases": [
     {"id": "sql-key", "why": "SQL is not part of a question", "query": "sql=SELECT%201", "status": 400},
@@ -82,7 +82,7 @@
       "why": "the work order's acceptance question: three brands, one powertrain, one vehicle class",
       "query": "build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger",
       "status": 200,
-      "totals": {"snapshot": "2026-10-31", "denominator_sum": 409241, "value_sums": {"TOYOTA": 292740, "FORD": 1972}}
+      "totals": {"snapshot": "2026-10-31", "denominator_sum": 409204, "value_sums": {"TOYOTA": 292740, "FORD": 1972}}
     },
     {
       "id": "everything",
