@@ -7,7 +7,7 @@
 //   - every vehicle the conditions keep in the window is in exactly one cell, so the cells add up to the total, and the totals are the
 //     conditions' totals; values that are not shown stand together in one line, "All other", never left out;
 //   - the lines on a side are the visitor's picks or the largest in the window, ordered by count with ties alphabetical (the one
-//     ranking rule, ranking.ts); an ordered band is shown whole, every band the data has under the conditions, in its own order, picked or not;
+//     ranking rule, ranking.ts); an ordered band is shown from the first band the data has to the last, in its own order, with a line of zeros for one between them with none;
 //   - reserved values: "not recorded" and "no reference match" describe real vehicles and are lines of their own (after the named values,
 //     taking no place in the ranking); "beyond the cap" is where a cap puts values, so it is always in "All other";
 //   - a share is a share of everything counted (the grid), or of its row, or of its column, as the visitor chooses; it is greyed when its base
@@ -16,7 +16,7 @@
 //   - a figure is printed once, to one decimal place, and the file and the shade step are made from that printed figure, never from the
 //     unrounded one, so the three cannot disagree;
 //   - the answer, the largest combination, is the largest over every named pair in the window where the sides are the page's own, and the
-//     largest among the values picked where the visitor picked; the largest combination is always shown on the grid.
+//     largest among the values picked where the visitor picked; the first of the largest combinations is always shown on the grid.
 import { byCountThenName, nameOrder, rankByCount } from "./ranking";
 import { BEYOND_CAP, REST_NAME } from "./reserved";
 import { NOT_RECORDED_TOKEN, NO_MATCH_TOKEN } from "./sentences";
@@ -46,6 +46,9 @@ export type SideSpec = {
   picked?: readonly string[];
   // An ordered band: its values in this order. Never cut or ranked, picked or not.
   order?: readonly string[];
+  // Of those, the values that are not a place on the scale (a band definition with no range: the value means not recorded or not applicable).
+  // They take no part in setting where the scale begins and ends, and follow the bands.
+  unplaced?: readonly string[];
   nameOf: (value: string) => string;
 };
 
@@ -54,6 +57,9 @@ export type Line = { key: string; name: string; kind: LineKind; total: number };
 
 export type Side = {
   lines: Line[];
+  // How many named values stand here by the side's own rule: the lines of a value, not the one kept out of its rank (that one is not among
+  // "the most", so a sentence that counts the values chosen by size must not count it).
+  shown: number;
   // How the lines were chosen: the visitor's picks, the largest, every value there is, or every band of an ordered field in its order.
   mode: "picked" | "largest" | "all" | "ordered";
   // Values cut at the limit that have the same count, and so the same rank, as the last line shown (they are in "All other").
@@ -73,7 +79,8 @@ export type GridCell = {
   greyed: boolean;
 };
 
-export type Leader = { row: { key: string; name: string }; column: { key: string; name: string }; n: number };
+// inRest: the row or the column of this combination is not a line of its own, so its vehicles are counted in a cell of the rest line.
+export type Leader = { row: { key: string; name: string }; column: { key: string; name: string }; n: number; inRest: boolean };
 
 export type Grid = {
   basis: Basis;
@@ -90,7 +97,8 @@ export type Grid = {
   greyedRows: number[];
   greyedColumns: number[];
   // The combinations of two named values (reserved values and "All other" take no place) with the most vehicles, all that are level: over every
-  // pair in the window, or, on a side the visitor picked values for, among those values only. They need not all be on the grid.
+  // pair in the window, or, on a side the visitor picked values for, among those values only. The first has its row and column on the grid; a
+  // later one may be counted in the rest line (inRest).
   leaders: Leader[];
   // Which sides the leaders are among the picked values of.
   leadersAmong: { rows: boolean; columns: boolean };
@@ -108,8 +116,16 @@ export type GridInput = {
   stepFractions: readonly number[];
 };
 
+// An ordered field's bands as config defines them: their labels in order, and those that are not a place on the scale. A band definition with no
+// range (neither a lower nor an upper end) is a flagged value that means not recorded or not applicable, not a stretch of the scale.
+export const bandScale = (bands: readonly { label: string; min?: number; max?: number | null }[]) => ({
+  order: bands.map((b) => b.label),
+  unplaced: bands.filter((b) => b.min === undefined && b.max === undefined).map((b) => b.label),
+});
+
 // Which values stand on a side, from the vehicles each holds in the window. seen: the values the data has in any month under the conditions,
-// which an ordered band shows whole (a band with no vehicles in the window is a line of zeros, not a gap). keep: a value to show whatever its rank.
+// which an ordered band shows from its first to its last (a band with no vehicles in the window, or that the data never has between them, is a
+// line of zeros, not a gap). keep: a value to show whatever its rank.
 export function chooseSide(totals: ReadonlyMap<string, number>, spec: SideSpec, seen?: ReadonlySet<string>, keep?: string): Side {
   const named = [...totals].filter(([value, n]) => !isReserved(value) && n > 0).map(([value, n]) => ({ value, name: spec.nameOf(value), n }));
   const total = (value: string) => totals.get(value) ?? 0;
@@ -127,9 +143,13 @@ export function chooseSide(totals: ReadonlyMap<string, number>, spec: SideSpec, 
     shown = spec.order ? chosen.sort(byOrder) : rankByCount(chosen);
   } else if (spec.order) {
     mode = "ordered";
-    // Every band the data has under the conditions, in any month, in its own order; any value the order does not know follows.
+    // Every band from the first to the last the data has under the conditions (in any month), in its own order, so the scale has no gap: a band
+    // between them that the data never has is a line of zeros. A value the order does not know, and one that is not a place on the scale, follows.
     const values = new Set([...[...(seen ?? [])].filter((v) => !isReserved(v)), ...named.map((e) => e.value)]);
-    shown = [...values].map(entry).sort(byOrder);
+    const off = new Set(spec.unplaced ?? []);
+    const places = [...values].flatMap((v) => (at.has(v) && !off.has(v) ? [at.get(v) as number] : []));
+    const between = places.length ? (spec.order ?? []).slice(Math.min(...places), Math.max(...places) + 1) : [];
+    shown = [...new Set([...between, ...values])].map(entry).sort(byOrder);
   } else {
     const ranked = rankByCount(named);
     mode = ranked.length <= spec.limit ? "all" : "largest";
@@ -164,7 +184,8 @@ export function chooseSide(totals: ReadonlyMap<string, number>, spec: SideSpec, 
       }
     : undefined;
   if (rest) lines.push({ key: "", name: REST_NAME, kind: "rest", total: rest.total });
-  return { lines, mode, tiedBeyond, ...(kept ? { kept } : {}), ...(rest ? { rest: rest.detail } : {}) };
+  const shownByRule = lines.filter((l) => l.kind === "value").length - (kept ? 1 : 0);
+  return { lines, mode, shown: shownByRule, tiedBeyond, ...(kept ? { kept } : {}), ...(rest ? { rest: rest.detail } : {}) };
 }
 
 // The combinations of two named values with the most vehicles in the window: all that are level, ordered by the rank of their row then their column.
@@ -284,7 +305,11 @@ export function gridOf(input: GridInput): Grid {
   const greyedColumns = basis === "column" ? columnTotals.flatMap((t, j) => (t > 0 && t < floor ? [j] : [])) : [];
 
   const name = (side: SideSpec, value: string) => ({ key: value, name: side.nameOf(value) });
-  const leaders = led.found.map((l): Leader => ({ row: name(input.rowSide, l.value), column: name(input.columnSide, l.other), n: l.n }));
+  // Only the first of several level leaders has its row and column kept on the grid, so a later one can sit in the rest line; the sentence says so.
+  const stands = (side: Side, value: string) => side.lines.some((l) => l.kind !== "rest" && l.key === value);
+  const leaders = led.found.map(
+    (l): Leader => ({ row: name(input.rowSide, l.value), column: name(input.columnSide, l.other), n: l.n, inRest: !stands(rows, l.value) || !stands(columns, l.other) }),
+  );
   return {
     basis, rows, columns, cells, rowTotals, columnTotals, total, legend, wholeGreyed, greyedRows, greyedColumns, leaders,
     leadersAmong: { rows: led.rowPicked, columns: led.columnPicked },

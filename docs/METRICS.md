@@ -552,13 +552,19 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
 - **Which values stand on a side.** The visitor's picks (up to the number of lines the side shows), or, with none, the values with the most
   vehicles in the window, ordered by their count with ties alphabetical by the name shown (the one rule, "Ranking and ties"). A side shows 10
   rows and 8 columns (`defaults.matrix` in `config/presets.json`). Every value not shown stands together in one line, **All other**, so the
-  totals are the conditions' totals and nothing is left out; the page says how many values it holds. A tie at the cut shows the alphabetically
-  first, and a sentence says how many more share the last count shown. An ordered band (an age, an engine size) is never cut or ranked, picked
-  or not: **every band the data has under the conditions, in any month, is a line, in its own order**, so a band with no vehicles in the window
-  is a line of zeros and not a gap (a gap in an ordered scale reads as a finding); a band the data never has under the conditions is not a line.
-  Values picked on an ordered band are shown in the band's order, not by size. A value picked that has no vehicles in the window is a line of
+  totals are the conditions' totals and nothing is left out; the page says how many values it holds ("one further ... value" for a count of one, "3 further ... values" for more). A tie at the cut shows the alphabetically
+  first, and a sentence says how many more share the last count shown ("one not shown has as many ... and is counted in", or "2 not shown have as many ... and are counted in"). An ordered band (an age, an engine size) is never cut or ranked, picked
+  or not: **every band from the first the data has under the conditions (in any month) to the last, in its own order, is a line**, the order
+  being the one config gives the field's bands. So a band with no vehicles in the window, or one that the data never has but that lies between two
+  that it does, is a line of zeros and not a gap (a gap in an ordered scale reads as a finding, and "with no value left out in between" would be
+  untrue); a band before the first or after the last the data has is not a line. The first and the last are the first and last **real** band the data has: a band definition in config with no range (the flagged values
+  "unknown" and "none", which mean not recorded or not applicable) is not a place on the scale, takes no part in setting its ends, and follows the
+  bands as a reserved line does, so a few such vehicles do not pad a grid narrowed to low bands out to the last band. A value the order does not know follows the bands. Values picked on an ordered band are shown in the band's order, not by size. A value picked that has no vehicles in the window is a line of
   zeros. Where the largest combination (below) has a row or column the cut would put in All other, that value is shown as well, out of its
-  place, and a sentence says so, so the answer can always be found on the grid.
+  place, and a sentence says so, so the answer can be found on the grid. This is done for **one** combination: where several are level, the
+  first (by the order of the rows, then of the columns) is kept; any of the others whose row or column is not a line of its own is counted in a
+  cell of All other, and the answer says how many ("One of these is counted in All other, not in a cell of its own"). Every level combination is
+  still named, none is dropped, and none is claimed to be where it is not. The sentence that says a side shows "the N values with the most vehicles" counts only the values chosen by size, not the one kept out of its place, so it and the sentence about the kept value agree (the count is `Side.shown` in `src/lib/matrix.ts`).
 - **Reserved values** are as in a ranking ("Ranking and ties"), with one difference of place. *Not recorded* and *no reference match* describe
   real vehicles, so each is a line of its own (italic, after the named values, in that order) when it has vehicles in the window or is picked;
   it takes no place and is never the largest combination. *Beyond the cap* is where a cap puts values, not a fact about any vehicle: it is never
@@ -582,10 +588,12 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
   so the legend and the grid agree. Every cell prints its
   figure, so colour is never the only way to read it.
 - **The answer.** One sentence: the combination of two named values with the most vehicles in the window, with that count in the dataset's own
-  words for what it counts; every combination level with it where there are several. It is worked out over **every named pair in the window**,
+  words for what it counts; every combination level with it where there are several, followed, where some of those are counted in All other, by a sentence saying how many. It is worked out over **every named pair in the window**,
   whatever the cut, so it is true of the question and not of the lines shown. Where the visitor picked values on a side, it is the largest
   **among the values picked** and the sentence says so ("Among the brand values you picked, ..."), since the leader of the whole window may be a
-  value they left out. It is the same fact whatever the cells show, so it is never a share of a thin row. It names no value or figure in the template, and says nothing about why.
+  value they left out. It is the same fact whatever the cells show, so it is never a share of a thin row. Reserved values take no place in it, and a line of
+  a reserved value can hold more vehicles than the largest cell, so the sentence says what it is: "The largest combination **of two named
+  values** is ...", in each of its four forms, and is true beside such a line. It names no value or figure in the template, and says nothing about why.
 - **The table of figures and the file** are the grid itself, with its last row and column, cell for cell (a wide grid is rows by columns as
   on the page). A column of shares is headed (%); the notes above the table say what a cell holds, how each side was chosen, what All other
   holds, what is greyed, what a less-than sign means, and that the last row and column are vehicles. A sentence that cannot be filled is

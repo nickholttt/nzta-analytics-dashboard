@@ -294,6 +294,7 @@ test("a preset that pins its shape pins one the table says fits: a shape of any 
   assert.ok(pinned >= 2);
   assert.ok(windowed >= 2, "the two grids of the canon are window shapes");
 });
+
 test("the resolver reports a preset pinned to a shape that does not fit as invalid, and one that fits as sound", () => {
   const dataset = config.builderSpec.dataset;
   const share = config.measures.find((m) => m.kind === "share");

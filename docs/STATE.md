@@ -124,7 +124,7 @@ date: matching vehicles between two months' archive files needs November's file 
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about three minutes) and the site's 237 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 250 tests (under half a minute).
 
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and
