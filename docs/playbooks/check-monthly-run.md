@@ -153,12 +153,12 @@ register has 14,297 of 18,207 (78.52%), room for 2,217, and true registrations 1
 (78.47%), room for 2,210 (the wider dataset reads the same as true registrations); of the 3,930
 vehicles still counting against true registrations' figure, 2,513 are `unresolved` at low
 confidence, 637 `full` at medium, 704 `mild` at medium and 76 have no row. After D-119's Subaru
-rows (the same day, the same inputs) the register has 14,297 of 17,808 (80.28%), room for 2,616,
-and true registrations 14,327 of 17,858 (80.23%), room for 2,609 (the wider dataset again the
-same); of the 3,531 vehicles now counting against true registrations' figure, 1,253 are
-`unresolved` at low confidence, 1,498 `full` at medium, 704 `mild` at medium and 76 have no row
-(3,511 on the register: 1,246, 1,494, 700 and 71). Subaru's 399 `full` vehicles at high
-confidence left the denominator; its 861 at medium (858 on the register) still count against it.
+rows (the same day, the same inputs) the register has 14,297 of 17,814 (80.26%), room for 2,610,
+and true registrations 14,327 of 17,864 (80.20%), room for 2,603 (the wider dataset again the
+same); of the 3,537 vehicles now counting against true registrations' figure, 1,253 are
+`unresolved` at low confidence, 1,504 `full` at medium, 704 `mild` at medium and 76 have no row
+(3,517 on the register: 1,246, 1,500, 700 and 71). Subaru's 393 `full` vehicles at high
+confidence left the denominator; its 867 at medium (864 on the register) still count against it.
 
 ## Also each month: has step 1b's source appeared?
 

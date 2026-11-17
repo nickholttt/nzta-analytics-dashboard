@@ -5162,16 +5162,17 @@ New entries use this template:
   - *Class the Impreza hybrids by analogy to the XV.* Rejected: the XV Hybrid releases name the XV only.
   - *Move the Honda IMA rows.* Rejected: no primary source read says whether an IMA car's motor can propel it. Under the line an IMA car is
     mild if its motor cannot propel it alone, and full if it can; the rows stay as they were (mild, medium).
-- Decision: the line is written in `docs/METRICS.md`. In `mild_hybrid_models.csv` the one Subaru row is replaced by 16 rows, split by
+- Decision: the line is written in `docs/METRICS.md`. In `mild_hybrid_models.csv` the one Subaru row is replaced by 17 rows, split by
   import status and vehicle year so that no two rows of a nameplate overlap and, for the three statuses in the hybrid scope (new,
   used import, re-registered), none leaves a gap. No other nameplate's class or confidence changed. Counts are vehicles in the window
   Nov 2025 to Oct 2026 / all time (true registrations, whose store starts in January 2021, then the register). All the Subaru hybrid
-  vehicles in the store are passenger cars and vans; I did not count Subaru separately on the wider dataset, whose 3,531 vehicles
+  vehicles in the store are passenger cars and vans; I did not count Subaru separately on the wider dataset, whose 3,537 vehicles
   counting against its trailing figure equal true registrations'.
 
   | Row | Class, confidence | True registrations | Register |
   |---|---|---|---|
-  | Crosstrek, new in NZ | full, high | 34 / 218 | 34 / 216 |
+  | Crosstrek, new in NZ, year 2026 on | full, high | 28 / 28 | 28 / 28 |
+  | Crosstrek, new in NZ, 2023 to 2025 | full, medium | 6 / 190 | 6 / 188 |
   | Crosstrek, used import, year 2023 on | full, medium | 38 / 56 | 38 / 56 |
   | Crosstrek, used import, year 2022 or earlier | unresolved, low | 1 / 1 | 1 / 1 |
   | Forester, new in NZ, year 2026 | full, high | 365 / 365 | 365 / 365 |
@@ -5198,7 +5199,7 @@ New entries use this template:
   1. *Subaru New Zealand's e-BOXER page* (https://subaru.co.nz/eboxer; undated, with 2026 and MY27 labels): lists the Crosstrek Premium
      Hybrid and the Forester AWD Hybrid, Sport and Touring, and says that in certain conditions such as when gently pulling away or
      driving at low speeds "the battery-powered electric motor alone drives the car" and "The petrol engine remains off, using no fuel
-     and achieving zero emissions." It sets the Crosstrek new in New Zealand at high. It does not name the XV or the Forester of 2020 to
+     and achieving zero emissions." It sets the Crosstrek new in New Zealand of vehicle year 2026 at high; the 2023 to 2025 cars are medium (see the review line below). It does not name the XV or the Forester of 2020 to
      2024, so those are medium.
   2. *Subaru New Zealand's release of 21 July 2025 for the new Forester* (https://www.subaru.co.nz/node/1143): the Strong Hybrid
      "combines a 2.5-litre Boxer engine with a 90kW electric motor and 1.1kWh lithium-ion battery" and EV Drive Mode "allows the vehicle
@@ -5249,13 +5250,13 @@ New entries use this template:
   1. The Forester of vehicle year 2025 new in New Zealand is medium although 247 of its 249 vehicles on the register are the car the
      release describes, because a year column cannot tell them from two earlier cars. Moving the row boundary to 2025 would put 61 more
      vehicles in the window at high, at the price of two wrongly covered earlier cars.
-  2. The Crosstrek new in New Zealand is high for all its years (2023 to 2026) on a page that is undated and names the 2026 model.
+  2. The Crosstrek new in New Zealand is high only for vehicle year 2026, the car the undated page names; 2023 to 2025 (6 in the window) are medium, on the data that every one is 1995 cc.
   3. Every used-import row is medium although the Forester FAQ and the XV Hybrid releases are Subaru's own, for the reasons in 3, 4 and 6.
   4. The XV guard years are 2017 and 2018; 2018 could be argued e-BOXER only.
   5. The Impreza stays unresolved (166 in the window on true registrations), although most of its hybrids are probably the XV Hybrid.
   6. The class of the XV Hybrid rests on "EV driving at low speeds" meaning the motor drives the car, which Subaru's wording implies and
      does not state.
-  To veto: set any one row back to `unresolved` at `low` (or delete all sixteen and restore the single row,
+  To veto: set any one row back to `unresolved` at `low` (or delete all seventeen and restore the single row,
   `SUBARU,XV|IMPREZA|FORESTER|CROSSTREK,unresolved`, no match columns, low); the golden contract does not move either way. To keep the
   classes and take back the confidence, set a `high` row to `medium`.
 - Not done: no Subaru page for the Japanese XV (GT) e-BOXER or for the XV's New Zealand launch stating electric-only driving was found;
@@ -5266,21 +5267,31 @@ New entries use this template:
   untrue of most of them (the page is code, so it is for the lead).
 - Consequences (2026-10 snapshot, the saved pull and the committed store, a dry run of the whole build: exit 0):
   - Trailing coverage at high confidence: true registrations and the wider dataset 14,327 of 18,257 (78.47%, room 2,210) to 14,327 of
-    17,858 (80.23%, room 2,609); the register 14,297 of 18,207 (78.52%, room 2,217) to 14,297 of 17,808 (80.28%, room 2,616). The 399
+    17,864 (80.20%, room 2,603); the register 14,297 of 18,207 (78.52%, room 2,217) to 14,297 of 17,814 (80.26%, room 2,610). The 399
     Subaru vehicles in the window that are `full` at high left the denominator on each.
   - Trailing coverage at stated confidence: 85.31% to 91.88% on true registrations and the wider dataset (15,031 mild of 16,360), and
     85.35% to 91.93% on the register (14,997 of 16,314). The manifest's identified mild counts are unchanged (15,031; 14,997).
-  - All time at high confidence: true registrations 46,157 of 68,279 (67.6%) to 46,157 of 67,696 (68.2%); the wider dataset 46,158 of
-    68,281 to 46,158 of 67,698 (68.2%); the register 46,115 of 73,554 (62.7%) to 46,115 of 72,973 (63.2%). The all-time denominators are
-    the earlier ones less 583 (581 on the register), the Subaru vehicles that became `full` at high; the manifest's percentages
-    (0.6818, 0.6818, 0.6319) agree. All time at stated confidence is 89.5% on the register and 89.7% on the other two (83.5% on each before).
-  - Vehicles in the window still counting against the high-confidence figure: 3,531 on true registrations and on the wider dataset (was
-    3,930) and 3,511 on the register (was 3,910): 1,253 unresolved at low, 1,498 full at medium, 704 mild at medium and 76 with no row
-    (register 1,246, 1,494, 700 and 71). Subaru's 861 (858) full at medium count against the figure until a page names the cars.
+  - All time at high confidence: true registrations 46,157 of 68,279 (67.6%) to 46,157 of 67,886 (68.0%); the wider dataset 46,158 of
+    68,281 to 46,158 of 67,888 (68.0%); the register 46,115 of 73,554 (62.7%) to 46,115 of 73,161 (63.0%). The all-time denominators are
+    the earlier ones less 393 on each dataset, the Subaru vehicles that are `full` at high (derived after the review of #80, not
+    re-run: the dry run before it gave the manifest's 0.6818, 0.6818 and 0.6319 with 583 and 581, which agreed with the same arithmetic). All time at stated confidence is 89.5% on the register and 89.7% on the other two (83.5% on each before).
+  - Vehicles in the window still counting against the high-confidence figure: 3,537 on true registrations and on the wider dataset (was
+    3,930) and 3,517 on the register (was 3,910): 1,253 unresolved at low, 1,504 full at medium, 704 mild at medium and 76 with no row
+    (register 1,246, 1,500, 700 and 71). Subaru's 867 (864) full at medium count against the figure until a page names the cars.
   - No powertrain line moves. Every new row is `full` or `unresolved` with no override, so each vehicle keeps the powertrain value its
     motive power gives it, and the build rejects a `full` row whose powertrain would be Mild hybrid (`classification_disagrees_with_powertrain`
     is 0 on all three datasets). The golden contract is unchanged (`test_golden.py` passes without `UPDATE_GOLDEN`).
   - The lead's notes: `docs/CHECKPOINT.md` item 7 already records Claude's decision to class Subaru's e-Boxer cars full; this record
     supplies its basis and the part of it that is medium. STATE and CHECKPOINT are not touched here. `AGENTS.md`'s row for the dry run
     quotes coverage figures from earlier records and is unchanged.
+- Review of #80, 2026-11-17 (claude, applying the reviewer's findings; this record is new in the pull request, so it is corrected in place): the
+  Crosstrek new in New Zealand is `high` only from vehicle year 2026 (the car the undated page names), with a new `medium` row for 2023 to
+  2025 (6 in the window, 190 all time on true registrations, 188 on the register, every one 1995 cc on the register, from the data and not
+  a source); the Forester 2020 to 2025 and XV new-in-New-Zealand rows now cite the other markets' Subaru pages that name those cars (Subaru
+  Japan's FAQ, Subaru Europe's e-BOXER page, the 11 September 2018 release) and say why they stay medium; the Impreza note and the
+  re-registered basis were reworded; METRICS gained the URLs and read dates for the EU Regulation and the MIA's February 2024 release.
+  Re-measured with `scripts/unmatched_hybrids.py`: true registrations and the wider dataset 14,327 of 17,864 (80.20%, room 2,603, 3,537
+  against), the register 14,297 of 17,814 (80.26%, room 2,610, 3,517 against); the high rows in the window fell from 399 to 393 on each
+  and the stated-confidence figures did not move (91.88% and 91.93%: the unknown counts, 1,329 and 1,317, are unchanged). The figures
+  above are the corrected ones; the version before the review read 80.23% and 80.28%, room 2,609 and 2,616.
 - Status: decided by Claude (unreviewed)
