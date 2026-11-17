@@ -1153,6 +1153,11 @@ committee's placements; here a vehicle's class is its nameplate's, whole), so th
   ranking gives it no place. A link that names it for either is not refused: the value is left out, the address is corrected, and the
   page says so in a sentence from config (`builder.notices.left_out`). A condition left with no value keeps every vehicle and is
   held empty on the page, as a condition with no value yet is.
+- **The unknown band of a banded field is *not recorded* (D-122).** A field cut into bands keeps its vehicles with no usable value in a
+  band of its own (`unknown` in `config/dimensions.json`). The site reads that band as the reserved not-recorded value, so it is labelled
+  "Not recorded", takes no place in a ranking, is a grey line on a share over time, follows the scale in a grid, and is chosen as a condition
+  or a value under that name. A share by such a field, or by one that holds the reserved value, is a share of everything counted, the
+  not-recorded vehicles included, and a line under the chart says so (`share_with_not_recorded`).
 
 ## Estimation rules
 

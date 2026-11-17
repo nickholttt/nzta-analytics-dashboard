@@ -14,6 +14,7 @@ import type { Dimension, Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
+import { NOT_RECORDED_TOKEN } from "../lib/sentences";
 import { datasetCovers, fitsPin, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
@@ -397,6 +398,12 @@ export default function PresetPanel({
   // The dimension's note may depend on the state of the dataset (a mild line only where the split is published): src/lib/dimensionNote.ts.
   const dimensionText = dimensionNote(dimension, internal, { splitPublished: splitPublished(coverage) });
   addNote("dimension", dimensionText.plain, dimensionText.template);
+  // A share is a share of everything counted, so vehicles with no value of the breakdown are in the whole and drawn as a part of it. Said where the
+  // chart has such a part, so a reader never takes a share to be of the vehicles recorded.
+  if (measure?.kind === "share" && dimension && preventsRender.length === 0 && (shape === "mix" || shape === "distribution") && rows?.some((r) => r.value === NOT_RECORDED_TOKEN && r.n > 0)) {
+    const field = dimensionWords(dimension.id, internal) || dimension.id;
+    notes.push({ key: "share-of-all", text: fillNote(phrases.share_with_not_recorded, { field: field.toLowerCase(), value: reservedLabel(NOT_RECORDED_TOKEN) }).text, unresolved: [] });
+  }
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
   // cannot apply is said in a callout: a visitor is told what the chart includes in plain words; the reason, in config
   // terms, is internal.
