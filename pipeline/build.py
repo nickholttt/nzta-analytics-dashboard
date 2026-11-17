@@ -9,7 +9,7 @@ from typing import NamedTuple
 
 import duckdb
 
-from . import derive, events, guardrails, metrics, normalise, outputs, privacy, schema, series, small_cells, supplied
+from . import association, derive, events, guardrails, metrics, normalise, outputs, privacy, schema, series, small_cells, supplied
 from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, PAIR_SEPARATOR
 from .errors import GuardrailError
 from .reference import quote
@@ -193,6 +193,11 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
 
     counts = metrics.month_counts(con, ds)
     facts = write_fact_table(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings)
+    # From the same counts as the fact table, so only its live dimensions: a table that did not get written has no pairs.
+    associations = None
+    if facts is not None and counts:
+        associations = association.write(con, cfg, dataset, facts["dimensions"], {d.dim_id: d for d in live}, ds, window_start,
+                                         snapshot_month, date.fromisoformat(min(counts) + "-01"), protected, staging, aborts)
     if counts.get(snapshot_key, 0) == 0:
         aborts.append(f"{dataset}: the snapshot month {snapshot_key} has no rows")
     deviation = metrics.latest_month_deviation(counts, snapshot_month, window)
@@ -212,6 +217,7 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
         "not_live_pairs": not_live_pairs,
         "small_cells": small_cell_figures,
         "facts": facts,
+        "associations": associations,
         "unmapped_rates": rates,
         "unmapped_guard": guard,
         "mild_hybrid_identification_coverage": hybrid,

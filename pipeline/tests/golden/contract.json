@@ -100,6 +100,13 @@
      ],
      "not_live": {}
     },
+    "associations": {
+     "file": "associations/registrations_surviving.json",
+     "dimensions": 19,
+     "pairs": 171,
+     "not_findings": 16,
+     "left_out": {}
+    },
     "unmapped_rates": {
      "powertrain": 0.0,
      "powertrain_group": 0.0,
@@ -409,7 +416,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 53319,
+  "payload_bytes": 110632,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -12321,6 +12328,3053 @@
     [
      "Passenger cars and vans"
     ]
+   ]
+  }
+ },
+ "associations": {
+  "registrations_surviving.json": {
+   "dataset": "registrations_surviving",
+   "measure": "cramers_v_bias_corrected",
+   "decimals": 4,
+   "windows": {
+    "all": {
+     "from": "1965-04",
+     "to": "2026-08"
+    },
+    "trailing": {
+     "from": "2025-09",
+     "to": "2026-08"
+    }
+   },
+   "dimensions": [
+    "age_at_registration_band",
+    "built_in",
+    "engine_size_band",
+    "heritage_country",
+    "import_status",
+    "make",
+    "model",
+    "nz_assembled",
+    "nzta_class",
+    "owner_country",
+    "parent_group",
+    "power_band",
+    "powertrain",
+    "powertrain_group",
+    "seats_band",
+    "segment",
+    "segment_group",
+    "transmission",
+    "vehicle_type"
+   ],
+   "pairs": [
+    {
+     "a": "age_at_registration_band",
+     "b": "built_in",
+     "all": {
+      "v": 0.3105,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 9
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 8
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "engine_size_band",
+     "all": {
+      "v": 0.3425,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 8
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "heritage_country",
+     "all": {
+      "v": 0.3488,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "import_status",
+     "all": {
+      "v": 0.9497,
+      "vehicles": 53,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.9668,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "relation": [
+      {
+       "kind": "true_by_definition",
+       "basis": "by_construction"
+      }
+     ]
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "make",
+     "all": {
+      "v": 0.0,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 22
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 20
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "model",
+     "all": {
+      "v": 0.0,
+      "vehicles": 49,
+      "values_a": 5,
+      "values_b": 36
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 36
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "nz_assembled",
+     "all": {
+      "v": 0.0,
+      "vehicles": 48,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 44,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "nzta_class",
+     "all": {
+      "v": 0.2272,
+      "vehicles": 51,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.3039,
+      "vehicles": 46,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "owner_country",
+     "all": {
+      "v": 0.0,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "parent_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 20
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 18
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "power_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 23,
+      "values_a": 2,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 22,
+      "values_a": 2,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "powertrain",
+     "all": {
+      "v": 0.0,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "seats_band",
+     "all": {
+      "v": 0.2017,
+      "vehicles": 48,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.2732,
+      "vehicles": 44,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "segment",
+     "all": {
+      "v": 0.0,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "segment_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 52,
+      "values_a": 7,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.0652,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "transmission",
+     "all": {
+      "v": 0.0,
+      "vehicles": 27,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 26,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.0,
+      "vehicles": 53,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "engine_size_band",
+     "all": {
+      "v": 0.4562,
+      "vehicles": 54,
+      "values_a": 10,
+      "values_b": 8
+     },
+     "trailing": {
+      "v": 0.3259,
+      "vehicles": 49,
+      "values_a": 9,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "heritage_country",
+     "all": {
+      "v": 0.8782,
+      "vehicles": 54,
+      "values_a": 11,
+      "values_b": 9
+     },
+     "trailing": {
+      "v": 0.8468,
+      "vehicles": 49,
+      "values_a": 10,
+      "values_b": 8
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "import_status",
+     "all": {
+      "v": 0.5464,
+      "vehicles": 55,
+      "values_a": 11,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.5515,
+      "vehicles": 50,
+      "values_a": 10,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "make",
+     "all": {
+      "v": 0.7341,
+      "vehicles": 54,
+      "values_a": 11,
+      "values_b": 25
+     },
+     "trailing": {
+      "v": 0.7186,
+      "vehicles": 49,
+      "values_a": 10,
+      "values_b": 23
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "model",
+     "all": {
+      "v": 0.541,
+      "vehicles": 51,
+      "values_a": 10,
+      "values_b": 39
+     },
+     "trailing": {
+      "v": 0.5244,
+      "vehicles": 50,
+      "values_a": 10,
+      "values_b": 39
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "nz_assembled",
+     "all": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 11,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 46,
+      "values_a": 10,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "nzta_class",
+     "all": {
+      "v": 0.0,
+      "vehicles": 53,
+      "values_a": 11,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 48,
+      "values_a": 10,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "owner_country",
+     "all": {
+      "v": 0.8041,
+      "vehicles": 54,
+      "values_a": 11,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.8474,
+      "vehicles": 49,
+      "values_a": 10,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "parent_group",
+     "all": {
+      "v": 0.7133,
+      "vehicles": 54,
+      "values_a": 11,
+      "values_b": 21
+     },
+     "trailing": {
+      "v": 0.6944,
+      "vehicles": 49,
+      "values_a": 10,
+      "values_b": 19
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "power_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 25,
+      "values_a": 8,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 24,
+      "values_a": 8,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "powertrain",
+     "all": {
+      "v": 0.0,
+      "vehicles": 54,
+      "values_a": 11,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 49,
+      "values_a": 9,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 54,
+      "values_a": 11,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 49,
+      "values_a": 9,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 11,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 46,
+      "values_a": 10,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "segment",
+     "all": {
+      "v": 0.5097,
+      "vehicles": 54,
+      "values_a": 11,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.5113,
+      "vehicles": 49,
+      "values_a": 10,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "segment_group",
+     "all": {
+      "v": 0.1701,
+      "vehicles": 54,
+      "values_a": 11,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.1683,
+      "vehicles": 49,
+      "values_a": 10,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "transmission",
+     "all": {
+      "v": 0.1754,
+      "vehicles": 29,
+      "values_a": 8,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0801,
+      "vehicles": 28,
+      "values_a": 8,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.3167,
+      "vehicles": 55,
+      "values_a": 11,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.3106,
+      "vehicles": 50,
+      "values_a": 10,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "heritage_country",
+     "all": {
+      "v": 0.4261,
+      "vehicles": 54,
+      "values_a": 8,
+      "values_b": 9
+     },
+     "trailing": {
+      "v": 0.2931,
+      "vehicles": 49,
+      "values_a": 7,
+      "values_b": 8
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "import_status",
+     "all": {
+      "v": 0.2773,
+      "vehicles": 55,
+      "values_a": 8,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.2482,
+      "vehicles": 50,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "make",
+     "all": {
+      "v": 0.4131,
+      "vehicles": 54,
+      "values_a": 8,
+      "values_b": 25
+     },
+     "trailing": {
+      "v": 0.2997,
+      "vehicles": 49,
+      "values_a": 7,
+      "values_b": 23
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "model",
+     "all": {
+      "v": 0.5048,
+      "vehicles": 51,
+      "values_a": 7,
+      "values_b": 39
+     },
+     "trailing": {
+      "v": 0.4872,
+      "vehicles": 50,
+      "values_a": 7,
+      "values_b": 39
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "nz_assembled",
+     "all": {
+      "v": 0.3886,
+      "vehicles": 50,
+      "values_a": 8,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.3962,
+      "vehicles": 46,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "nzta_class",
+     "all": {
+      "v": 0.3518,
+      "vehicles": 53,
+      "values_a": 8,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.3905,
+      "vehicles": 48,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "owner_country",
+     "all": {
+      "v": 0.2682,
+      "vehicles": 54,
+      "values_a": 8,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.2619,
+      "vehicles": 49,
+      "values_a": 7,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "parent_group",
+     "all": {
+      "v": 0.4728,
+      "vehicles": 54,
+      "values_a": 8,
+      "values_b": 21
+     },
+     "trailing": {
+      "v": 0.38,
+      "vehicles": 49,
+      "values_a": 7,
+      "values_b": 19
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "power_band",
+     "all": {
+      "v": 0.2313,
+      "vehicles": 25,
+      "values_a": 7,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.1917,
+      "vehicles": 24,
+      "values_a": 7,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "powertrain",
+     "all": {
+      "v": 0.5148,
+      "vehicles": 54,
+      "values_a": 8,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.5173,
+      "vehicles": 49,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.5314,
+      "vehicles": 54,
+      "values_a": 8,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.5385,
+      "vehicles": 49,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 8,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 46,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "segment",
+     "all": {
+      "v": 0.4952,
+      "vehicles": 54,
+      "values_a": 8,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.5024,
+      "vehicles": 49,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "segment_group",
+     "all": {
+      "v": 0.5915,
+      "vehicles": 54,
+      "values_a": 8,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.5964,
+      "vehicles": 49,
+      "values_a": 7,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "transmission",
+     "all": {
+      "v": 0.5323,
+      "vehicles": 29,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.5511,
+      "vehicles": 28,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.5989,
+      "vehicles": 55,
+      "values_a": 8,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.6,
+      "vehicles": 50,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "import_status",
+     "all": {
+      "v": 0.4876,
+      "vehicles": 55,
+      "values_a": 9,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.4875,
+      "vehicles": 50,
+      "values_a": 8,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "make",
+     "all": {
+      "v": 0.8076,
+      "vehicles": 55,
+      "values_a": 9,
+      "values_b": 25
+     },
+     "trailing": {
+      "v": 0.8018,
+      "vehicles": 50,
+      "values_a": 8,
+      "values_b": 23
+     },
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "by_construction"
+      }
+     ]
+    },
+    {
+     "a": "heritage_country",
+     "b": "model",
+     "all": {
+      "v": 0.5498,
+      "vehicles": 51,
+      "values_a": 8,
+      "values_b": 38
+     },
+     "trailing": {
+      "v": 0.5345,
+      "vehicles": 50,
+      "values_a": 8,
+      "values_b": 38
+     },
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "as_make_and_model_key"
+      }
+     ]
+    },
+    {
+     "a": "heritage_country",
+     "b": "nz_assembled",
+     "all": {
+      "v": 0.0,
+      "vehicles": 51,
+      "values_a": 9,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 8,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "nzta_class",
+     "all": {
+      "v": 0.0,
+      "vehicles": 53,
+      "values_a": 9,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 48,
+      "values_a": 8,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "owner_country",
+     "all": {
+      "v": 0.8797,
+      "vehicles": 55,
+      "values_a": 9,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.9495,
+      "vehicles": 50,
+      "values_a": 8,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "parent_group",
+     "all": {
+      "v": 0.7697,
+      "vehicles": 55,
+      "values_a": 9,
+      "values_b": 21
+     },
+     "trailing": {
+      "v": 0.7559,
+      "vehicles": 50,
+      "values_a": 8,
+      "values_b": 19
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "power_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 25,
+      "values_a": 7,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 24,
+      "values_a": 7,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "powertrain",
+     "all": {
+      "v": 0.0,
+      "vehicles": 54,
+      "values_a": 9,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0372,
+      "vehicles": 49,
+      "values_a": 8,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 54,
+      "values_a": 9,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 49,
+      "values_a": 8,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 9,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 46,
+      "values_a": 8,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "segment",
+     "all": {
+      "v": 0.4806,
+      "vehicles": 54,
+      "values_a": 9,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.4865,
+      "vehicles": 49,
+      "values_a": 8,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "segment_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 54,
+      "values_a": 9,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 49,
+      "values_a": 8,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "transmission",
+     "all": {
+      "v": 0.2242,
+      "vehicles": 29,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.1992,
+      "vehicles": 28,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.1862,
+      "vehicles": 55,
+      "values_a": 9,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.1885,
+      "vehicles": 50,
+      "values_a": 8,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "make",
+     "all": {
+      "v": 0.3405,
+      "vehicles": 55,
+      "values_a": 2,
+      "values_b": 25
+     },
+     "trailing": {
+      "v": 0.3595,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 23
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "model",
+     "all": {
+      "v": 0.4512,
+      "vehicles": 52,
+      "values_a": 2,
+      "values_b": 39
+     },
+     "trailing": {
+      "v": 0.4496,
+      "vehicles": 51,
+      "values_a": 2,
+      "values_b": 39
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "nz_assembled",
+     "all": {
+      "v": 0.1557,
+      "vehicles": 51,
+      "values_a": 2,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.1583,
+      "vehicles": 47,
+      "values_a": 2,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "nzta_class",
+     "all": {
+      "v": 0.4011,
+      "vehicles": 54,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.4253,
+      "vehicles": 49,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "owner_country",
+     "all": {
+      "v": 0.5249,
+      "vehicles": 55,
+      "values_a": 2,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.5285,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "parent_group",
+     "all": {
+      "v": 0.4375,
+      "vehicles": 55,
+      "values_a": 2,
+      "values_b": 21
+     },
+     "trailing": {
+      "v": 0.461,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 19
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "power_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 26,
+      "values_a": 2,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 25,
+      "values_a": 2,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "powertrain",
+     "all": {
+      "v": 0.0843,
+      "vehicles": 55,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0903,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.0999,
+      "vehicles": 55,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.1146,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "seats_band",
+     "all": {
+      "v": 0.2433,
+      "vehicles": 51,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.2444,
+      "vehicles": 47,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "segment",
+     "all": {
+      "v": 0.1824,
+      "vehicles": 55,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.1913,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "segment_group",
+     "all": {
+      "v": 0.2283,
+      "vehicles": 55,
+      "values_a": 2,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.2397,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "transmission",
+     "all": {
+      "v": 0.0,
+      "vehicles": 30,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 29,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.1222,
+      "vehicles": 56,
+      "values_a": 2,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.1274,
+      "vehicles": 51,
+      "values_a": 2,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "model",
+     "all": {
+      "v": 0.7711,
+      "vehicles": 51,
+      "values_a": 23,
+      "values_b": 38
+     },
+     "trailing": {
+      "v": 0.7711,
+      "vehicles": 50,
+      "values_a": 23,
+      "values_b": 38
+     },
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "as_make_and_model_key"
+      }
+     ]
+    },
+    {
+     "a": "make",
+     "b": "nz_assembled",
+     "all": {
+      "v": 0.0,
+      "vehicles": 51,
+      "values_a": 22,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 21,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "nzta_class",
+     "all": {
+      "v": 0.3137,
+      "vehicles": 53,
+      "values_a": 24,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.3115,
+      "vehicles": 48,
+      "values_a": 22,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "owner_country",
+     "all": {
+      "v": 0.7906,
+      "vehicles": 55,
+      "values_a": 25,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.7833,
+      "vehicles": 50,
+      "values_a": 23,
+      "values_b": 6
+     },
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "by_construction"
+      }
+     ]
+    },
+    {
+     "a": "make",
+     "b": "parent_group",
+     "all": {
+      "v": 0.9393,
+      "vehicles": 55,
+      "values_a": 25,
+      "values_b": 21
+     },
+     "trailing": {
+      "v": 0.9333,
+      "vehicles": 50,
+      "values_a": 23,
+      "values_b": 19
+     },
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "by_construction"
+      }
+     ]
+    },
+    {
+     "a": "make",
+     "b": "power_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 25,
+      "values_a": 15,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 24,
+      "values_a": 15,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "powertrain",
+     "all": {
+      "v": 0.5596,
+      "vehicles": 54,
+      "values_a": 24,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.5722,
+      "vehicles": 49,
+      "values_a": 22,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.5739,
+      "vehicles": 54,
+      "values_a": 24,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.591,
+      "vehicles": 49,
+      "values_a": 22,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 25,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 46,
+      "values_a": 23,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "segment",
+     "all": {
+      "v": 0.6061,
+      "vehicles": 54,
+      "values_a": 24,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.6072,
+      "vehicles": 49,
+      "values_a": 22,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "segment_group",
+     "all": {
+      "v": 0.5561,
+      "vehicles": 54,
+      "values_a": 24,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.5564,
+      "vehicles": 49,
+      "values_a": 22,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "transmission",
+     "all": {
+      "v": 0.3509,
+      "vehicles": 29,
+      "values_a": 15,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.3327,
+      "vehicles": 28,
+      "values_a": 15,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.4007,
+      "vehicles": 55,
+      "values_a": 25,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.3984,
+      "vehicles": 50,
+      "values_a": 23,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "nz_assembled",
+     "all": {
+      "v": 0.5316,
+      "vehicles": 48,
+      "values_a": 35,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.5164,
+      "vehicles": 47,
+      "values_a": 35,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "nzta_class",
+     "all": {
+      "v": 0.4667,
+      "vehicles": 50,
+      "values_a": 38,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.4483,
+      "vehicles": 49,
+      "values_a": 38,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "owner_country",
+     "all": {
+      "v": 0.5375,
+      "vehicles": 51,
+      "values_a": 38,
+      "values_b": 6
+     },
+     "trailing": {
+      "v": 0.5222,
+      "vehicles": 50,
+      "values_a": 38,
+      "values_b": 6
+     },
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "as_make_and_model_key"
+      }
+     ]
+    },
+    {
+     "a": "model",
+     "b": "parent_group",
+     "all": {
+      "v": 0.6975,
+      "vehicles": 51,
+      "values_a": 38,
+      "values_b": 19
+     },
+     "trailing": {
+      "v": 0.6975,
+      "vehicles": 50,
+      "values_a": 38,
+      "values_b": 19
+     },
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "as_make_and_model_key"
+      }
+     ]
+    },
+    {
+     "a": "model",
+     "b": "power_band",
+     "all": {
+      "v": 0.1812,
+      "vehicles": 26,
+      "values_a": 23,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.1348,
+      "vehicles": 25,
+      "values_a": 23,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "powertrain",
+     "all": {
+      "v": 0.499,
+      "vehicles": 51,
+      "values_a": 38,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.4821,
+      "vehicles": 50,
+      "values_a": 38,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.4863,
+      "vehicles": 51,
+      "values_a": 38,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.4692,
+      "vehicles": 50,
+      "values_a": 38,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 48,
+      "values_a": 38,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 38,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "segment",
+     "all": {
+      "v": 0.5259,
+      "vehicles": 51,
+      "values_a": 38,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.5108,
+      "vehicles": 50,
+      "values_a": 38,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "segment_group",
+     "all": {
+      "v": 0.5204,
+      "vehicles": 51,
+      "values_a": 38,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.5053,
+      "vehicles": 50,
+      "values_a": 38,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "transmission",
+     "all": {
+      "v": 0.1039,
+      "vehicles": 30,
+      "values_a": 24,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.1241,
+      "vehicles": 29,
+      "values_a": 24,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "model",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.5099,
+      "vehicles": 52,
+      "values_a": 39,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.4949,
+      "vehicles": 51,
+      "values_a": 39,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "nzta_class",
+     "all": {
+      "v": 0.0,
+      "vehicles": 49,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 45,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "owner_country",
+     "all": {
+      "v": 0.0,
+      "vehicles": 51,
+      "values_a": 2,
+      "values_b": 6
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 2,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "parent_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 51,
+      "values_a": 2,
+      "values_b": 20
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 2,
+      "values_b": 19
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "power_band",
+     "all": {
+      "v": null,
+      "vehicles": 22,
+      "values_a": 1,
+      "values_b": 6
+     },
+     "trailing": {
+      "v": null,
+      "vehicles": 21,
+      "values_a": 1,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "powertrain",
+     "all": {
+      "v": 0.2621,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.2378,
+      "vehicles": 46,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.2992,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.2816,
+      "vehicles": 46,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "seats_band",
+     "all": {
+      "v": 0.468,
+      "vehicles": 46,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.4589,
+      "vehicles": 43,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "segment",
+     "all": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 46,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "segment_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 2,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 46,
+      "values_a": 2,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "transmission",
+     "all": {
+      "v": 0.3145,
+      "vehicles": 26,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.3772,
+      "vehicles": 25,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "nz_assembled",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.0,
+      "vehicles": 51,
+      "values_a": 2,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 2,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "nzta_class",
+     "b": "owner_country",
+     "all": {
+      "v": 0.0,
+      "vehicles": 53,
+      "values_a": 5,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "nzta_class",
+     "b": "parent_group",
+     "all": {
+      "v": 0.4263,
+      "vehicles": 53,
+      "values_a": 5,
+      "values_b": 20
+     },
+     "trailing": {
+      "v": 0.436,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 18
+     },
+     "relation": []
+    },
+    {
+     "a": "nzta_class",
+     "b": "power_band",
+     "all": {
+      "v": 0.0815,
+      "vehicles": 26,
+      "values_a": 2,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0726,
+      "vehicles": 25,
+      "values_a": 2,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "nzta_class",
+     "b": "powertrain",
+     "all": {
+      "v": 0.4898,
+      "vehicles": 53,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.4836,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "nzta_class",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.2383,
+      "vehicles": 53,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.2404,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "nzta_class",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 49,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 45,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "nzta_class",
+     "b": "segment",
+     "all": {
+      "v": 0.7911,
+      "vehicles": 53,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.7882,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": [
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
+    },
+    {
+     "a": "nzta_class",
+     "b": "segment_group",
+     "all": {
+      "v": 0.9798,
+      "vehicles": 53,
+      "values_a": 5,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.9775,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 3
+     },
+     "relation": [
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
+    },
+    {
+     "a": "nzta_class",
+     "b": "transmission",
+     "all": {
+      "v": 0.0,
+      "vehicles": 30,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 29,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "nzta_class",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.9707,
+      "vehicles": 54,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.9676,
+      "vehicles": 49,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "in_scope_dataset"
+      },
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
+    },
+    {
+     "a": "owner_country",
+     "b": "parent_group",
+     "all": {
+      "v": 0.8416,
+      "vehicles": 55,
+      "values_a": 7,
+      "values_b": 21
+     },
+     "trailing": {
+      "v": 0.8394,
+      "vehicles": 50,
+      "values_a": 6,
+      "values_b": 19
+     },
+     "relation": [
+      {
+       "kind": "true_by_definition",
+       "basis": "by_construction"
+      }
+     ]
+    },
+    {
+     "a": "owner_country",
+     "b": "power_band",
+     "all": {
+      "v": 0.0638,
+      "vehicles": 25,
+      "values_a": 5,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.1354,
+      "vehicles": 24,
+      "values_a": 5,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "owner_country",
+     "b": "powertrain",
+     "all": {
+      "v": 0.1547,
+      "vehicles": 54,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.1941,
+      "vehicles": 49,
+      "values_a": 6,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "owner_country",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.0941,
+      "vehicles": 54,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.1613,
+      "vehicles": 49,
+      "values_a": 6,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "owner_country",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 46,
+      "values_a": 6,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "owner_country",
+     "b": "segment",
+     "all": {
+      "v": 0.5175,
+      "vehicles": 54,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.5302,
+      "vehicles": 49,
+      "values_a": 6,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "owner_country",
+     "b": "segment_group",
+     "all": {
+      "v": 0.1443,
+      "vehicles": 54,
+      "values_a": 7,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.179,
+      "vehicles": 49,
+      "values_a": 6,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "owner_country",
+     "b": "transmission",
+     "all": {
+      "v": 0.2944,
+      "vehicles": 29,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.2719,
+      "vehicles": 28,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "owner_country",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.2586,
+      "vehicles": 55,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.2778,
+      "vehicles": 50,
+      "values_a": 6,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "parent_group",
+     "b": "power_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 25,
+      "values_a": 11,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 24,
+      "values_a": 11,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "parent_group",
+     "b": "powertrain",
+     "all": {
+      "v": 0.5841,
+      "vehicles": 54,
+      "values_a": 20,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.6032,
+      "vehicles": 49,
+      "values_a": 18,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "parent_group",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.5828,
+      "vehicles": 54,
+      "values_a": 20,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.6064,
+      "vehicles": 49,
+      "values_a": 18,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "parent_group",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 21,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 46,
+      "values_a": 19,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "parent_group",
+     "b": "segment",
+     "all": {
+      "v": 0.6688,
+      "vehicles": 54,
+      "values_a": 20,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.6764,
+      "vehicles": 49,
+      "values_a": 18,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "parent_group",
+     "b": "segment_group",
+     "all": {
+      "v": 0.6226,
+      "vehicles": 54,
+      "values_a": 20,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.6297,
+      "vehicles": 49,
+      "values_a": 18,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "parent_group",
+     "b": "transmission",
+     "all": {
+      "v": 0.3926,
+      "vehicles": 29,
+      "values_a": 11,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.3751,
+      "vehicles": 28,
+      "values_a": 11,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "parent_group",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.4858,
+      "vehicles": 55,
+      "values_a": 21,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.492,
+      "vehicles": 50,
+      "values_a": 19,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "power_band",
+     "b": "powertrain",
+     "all": {
+      "v": 0.1549,
+      "vehicles": 26,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.1545,
+      "vehicles": 25,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "power_band",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 26,
+      "values_a": 7,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 25,
+      "values_a": 7,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "power_band",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 26,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 25,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "power_band",
+     "b": "segment",
+     "all": {
+      "v": 0.0815,
+      "vehicles": 26,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0726,
+      "vehicles": 25,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "power_band",
+     "b": "segment_group",
+     "all": {
+      "v": 0.0815,
+      "vehicles": 26,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0726,
+      "vehicles": 25,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "power_band",
+     "b": "transmission",
+     "all": {
+      "v": 0.0,
+      "vehicles": 26,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 25,
+      "values_a": 7,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "power_band",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.0815,
+      "vehicles": 26,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0726,
+      "vehicles": 25,
+      "values_a": 7,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.9901,
+      "vehicles": 55,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.9891,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": [
+      {
+       "kind": "rolls_up",
+       "basis": "by_construction"
+      },
+      {
+       "kind": "same_field",
+       "basis": null
+      }
+     ]
+    },
+    {
+     "a": "powertrain",
+     "b": "seats_band",
+     "all": {
+      "v": 0.1649,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.1214,
+      "vehicles": 46,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain",
+     "b": "segment",
+     "all": {
+      "v": 0.4679,
+      "vehicles": 54,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.4595,
+      "vehicles": 49,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain",
+     "b": "segment_group",
+     "all": {
+      "v": 0.5953,
+      "vehicles": 54,
+      "values_a": 5,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.5886,
+      "vehicles": 49,
+      "values_a": 5,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain",
+     "b": "transmission",
+     "all": {
+      "v": 0.5009,
+      "vehicles": 30,
+      "values_a": 4,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.5138,
+      "vehicles": 29,
+      "values_a": 4,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.8872,
+      "vehicles": 55,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.8823,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain_group",
+     "b": "seats_band",
+     "all": {
+      "v": 0.179,
+      "vehicles": 50,
+      "values_a": 4,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.1377,
+      "vehicles": 46,
+      "values_a": 4,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain_group",
+     "b": "segment",
+     "all": {
+      "v": 0.0,
+      "vehicles": 54,
+      "values_a": 4,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 49,
+      "values_a": 4,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain_group",
+     "b": "segment_group",
+     "all": {
+      "v": 0.0,
+      "vehicles": 54,
+      "values_a": 4,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 49,
+      "values_a": 4,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain_group",
+     "b": "transmission",
+     "all": {
+      "v": 0.6388,
+      "vehicles": 30,
+      "values_a": 3,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.6573,
+      "vehicles": 29,
+      "values_a": 3,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "powertrain_group",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.0,
+      "vehicles": 55,
+      "values_a": 4,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 4,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "seats_band",
+     "b": "segment",
+     "all": {
+      "v": 0.1291,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0902,
+      "vehicles": 46,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "seats_band",
+     "b": "segment_group",
+     "all": {
+      "v": 0.1616,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.129,
+      "vehicles": 46,
+      "values_a": 5,
+      "values_b": 3
+     },
+     "relation": []
+    },
+    {
+     "a": "seats_band",
+     "b": "transmission",
+     "all": {
+      "v": 0.0516,
+      "vehicles": 29,
+      "values_a": 4,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.125,
+      "vehicles": 28,
+      "values_a": 4,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "seats_band",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.225,
+      "vehicles": 51,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.1986,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "segment",
+     "b": "segment_group",
+     "all": {
+      "v": 0.9903,
+      "vehicles": 55,
+      "values_a": 4,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.9893,
+      "vehicles": 50,
+      "values_a": 4,
+      "values_b": 3
+     },
+     "relation": [
+      {
+       "kind": "same_field",
+       "basis": null
+      },
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
+    },
+    {
+     "a": "segment",
+     "b": "transmission",
+     "all": {
+      "v": 0.0,
+      "vehicles": 30,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 29,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "segment",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.981,
+      "vehicles": 55,
+      "values_a": 4,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.9789,
+      "vehicles": 50,
+      "values_a": 4,
+      "values_b": 2
+     },
+     "relation": [
+      {
+       "kind": "same_field",
+       "basis": null
+      },
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
+    },
+    {
+     "a": "segment_group",
+     "b": "transmission",
+     "all": {
+      "v": 0.0,
+      "vehicles": 30,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 29,
+      "values_a": 2,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "segment_group",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.9905,
+      "vehicles": 55,
+      "values_a": 3,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.9895,
+      "vehicles": 50,
+      "values_a": 3,
+      "values_b": 2
+     },
+     "relation": [
+      {
+       "kind": "same_field",
+       "basis": null
+      },
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
+    },
+    {
+     "a": "transmission",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.0,
+      "vehicles": 30,
+      "values_a": 4,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 29,
+      "values_a": 4,
+      "values_b": 2
+     },
+     "relation": []
+    }
    ]
   }
  },
