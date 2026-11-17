@@ -111,8 +111,16 @@ test("the pin sentences fill with nothing left over", () => {
 
 test("the shapes that can hold a pinned window are the charts that are given a month to end in", () => {
   const source = (name: string) => readFileSync(new URL(`../../src/components/${name}.tsx`, import.meta.url), "utf8");
-  const shapes: Record<string, string> = { league: "LeagueChart", matrix: "MatrixChart", mix: "MixChart", distribution: "DistributionChart", geo: "GeoChart" };
+  const shapes: Record<string, string> = { league: "LeagueChart", matrix: "MatrixChart", trend: "TrendChart", mix: "MixChart", distribution: "DistributionChart", geo: "GeoChart" };
+  // The trend chart takes a month too, but only to read a figure and a sentence for it (a preset with an `answer`), which no question on the Build
+  // page has: Build's lines always draw to the newest month, so the trend is not a shape a pin can hold.
+  const readsAMonthOnly = new Set(["trend"]);
   for (const [shape, file] of Object.entries(shapes)) {
+    if (readsAMonthOnly.has(shape)) {
+      assert.equal(END_MONTH_SHAPES.has(shape), false, `${file} reads a month for an answer line only`);
+      assert.match(source(file), /\bmonth\?: string/, `${file} no longer takes a month: drop it from readsAMonthOnly`);
+      continue;
+    }
     assert.equal(/\bmonth\?: string/.test(source(file)), END_MONTH_SHAPES.has(shape), `${file}: takes an end month, but END_MONTH_SHAPES (src/lib/resolve.ts) says ${END_MONTH_SHAPES.has(shape)}`);
   }
 });
