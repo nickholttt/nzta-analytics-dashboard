@@ -38,6 +38,9 @@ export type Figures = {
   period: string;
   columns: Column[];
   rows: Cell[][];
+  // Lines the file carries above the table, after the period, that say what the figures are (a grid says what a cell holds and what its
+  // last row and column hold). Never a figure the table does not show.
+  notes?: string[];
 };
 
 // The cell of a row in the column with this key.
@@ -142,6 +145,7 @@ export function figuresCsv(header: FiguresHeader, figures: Figures, phrases: Fig
   note("Question", header.question);
   note("What is counted", header.counted);
   note("Period", figures.period);
+  for (const line of figures.notes ?? []) lines.push(noteLine(line));
   note(header.datasets.length > 1 ? "Datasets" : "Dataset", header.datasets.join(" and "));
   note("Snapshot", header.snapshot);
   // A source note is a sentence that names itself ("Source: ..."), so it takes no label.

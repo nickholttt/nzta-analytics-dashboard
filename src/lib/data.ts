@@ -23,7 +23,8 @@ const compressors = { ZSTD: (input: Uint8Array) => (decompressZstd as (input: Ui
 // A pair's file is pairs/{dataset}/{dim_a}__{dim_b}.parquet (docs/CUBE_SCHEMA.md, Pair slices).
 export const PAIR_SEPARATOR = "__";
 
-export type SliceRow = { month: string; value: string; n: number; denominator: number };
+// other: on the rows of a grid (two fields crossed), the value of the second field; value is the first
+export type SliceRow = { month: string; value: string; n: number; denominator: number; other?: string };
 
 // Where a view's rows come from: a 1-D slice, a pair slice narrowed to some values of its other dimension (side says
 // which of the pair's two dimensions is the view's breakdown), or the fact table, summed to the chosen values of the
@@ -36,7 +37,8 @@ export type ViewSource = {
   // Each value of the breakdown crossed with each value of this other dimension, one row for each combination (a value reads
   // "breakdown value · other value"), from a pair slice when `pair` is given, otherwise from the fact table. Where the
   // other dimension is not narrowed to some values, the crossed rows add up to the month's whole.
-  cross?: { dimension: string; pair?: { pair: string; side: "a" | "b" } };
+  // With grid set, the rows are those of a grid (factGrid): one for each month and pair of values, the second field's value in `other`.
+  cross?: { dimension: string; pair?: { pair: string; side: "a" | "b" }; grid?: boolean };
 };
 
 
@@ -337,6 +339,44 @@ export async function factView(dataset: string, dimension: string | null, values
   return out;
 }
 
+// The fact table summed to the cells of a grid: for each month, each pair of values of two fields among the vehicles every filter keeps
+// (one row each, with vehicles in it), and the month's total of those vehicles as the denominator. The window and the lines of the grid are
+// chosen later, from these rows (src/lib/matrix.ts), so a question downloads the columns it names once and a new window needs no more. The
+// query service is not asked: its question has one breakdown, so the table is read here, as for any crossed view.
+export async function factGrid(dataset: string, dimension: string, other: string, where: Record<string, string[]>): Promise<SliceRow[]> {
+  const filters = Object.entries(where).filter(([, kept]) => kept.length > 0);
+  const [months, counts, first, second, ...filterColumns] = await Promise.all([
+    loadFactMonths(dataset),
+    loadFactColumn(dataset, "n"),
+    loadFactColumn(dataset, dimension),
+    loadFactColumn(dataset, other),
+    ...filters.map(([d]) => loadFactColumn(dataset, d)),
+  ]);
+  const keep = filters.map(([, kept]) => new Set(kept));
+  const totals = new Map<string, number>();
+  const cells = new Map<string, Map<string, SliceRow>>();
+  rows: for (let i = 0; i < months.length; i++) {
+    for (let f = 0; f < keep.length; f++) if (!keep[f].has(String(filterColumns[f][i]))) continue rows;
+    const month = months[i];
+    const n = Number(counts[i]);
+    totals.set(month, (totals.get(month) ?? 0) + n);
+    const value = String(first[i]);
+    const second_ = String(second[i]);
+    let byPair = cells.get(month);
+    if (!byPair) cells.set(month, (byPair = new Map()));
+    const key = `${value}\u0000${second_}`;
+    const cell = byPair.get(key);
+    if (cell) cell.n += n;
+    else byPair.set(key, { month, value, other: second_, n, denominator: 0 });
+  }
+  const out: SliceRow[] = [];
+  for (const month of [...cells.keys()].sort()) {
+    const denominator = totals.get(month) as number;
+    for (const cell of cells.get(month)?.values() ?? []) if (cell.n > 0) out.push({ ...cell, denominator });
+  }
+  return out;
+}
+
 // The first month the view's dataset has vehicles in, from data the view has already loaded: the fact table's month column for a
 // question that reads it, the pair slice a narrowed view was cut from, else the rows themselves (a slice holds every month with
 // vehicles). Not derived from the manifest, whose count of months is a count of months with rows, not a span. With the query
@@ -355,6 +395,7 @@ export async function loadFirstMonth(source: ViewSource, rows: readonly SliceRow
 
 export const loadView = async (source: ViewSource): Promise<SliceRow[]> => {
   const { dataset, dimension, filter, facts, cross } = source;
+  if (facts && cross?.grid && dimension) return factGrid(dataset, dimension, cross.dimension, facts.where);
   if (cross?.pair) return crossPair(await loadPair(dataset, cross.pair.pair), cross.pair.side);
   if (facts) return factView(dataset, dimension, facts.values, facts.where, cross?.dimension);
   if (!dimension) throw new Error("a view from the cube's slices needs a breakdown");

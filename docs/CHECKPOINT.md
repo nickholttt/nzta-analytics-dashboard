@@ -7,16 +7,15 @@ Last updated by claude on 2026-11-17
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
 - 2026-11-16 and 17, ninth session.
-  - **Merged, #60 to #74** (#63 was closed unmerged): the user's answers (D-096, D-106);
+  - **Merged, #60 to #76** (#63 was closed unmerged): the user's answers (D-096, D-106);
     package C's charts (D-098); the chart rules, and the site's tests in `Checks` (D-100,
     D-101); the first-load trim (D-099); the comparison with published figures (D-105); the
     supplied counts as files (D-097); the audit's fixes (D-107 to D-110, with #70).
   - **The site's figures were set beside published ones** (D-105): October 2026 is within
     0.06% of the MIA's once three more vehicle types are counted; older months sit about 1%
     lower, cause not established. AutoTalk seems to count range-extended cars differently.
-  - **The user answered three more questions** (D-106): a total on the trade's basis beside
-    the default scope; the MIT licence for the code; the site is run by "an individual".
-  - **The engine was audited** against the register's rows ("Work in hand", 1).
+  - **The user answered three more questions** (D-106): a wider total beside the default
+    scope; the MIT licence; the site is run by "an individual".
 
 ## The user's direction of 16 November (D-104)
 
@@ -41,35 +40,34 @@ New Zealand sources.
    - In the pipeline (#68, #70, #72; D-108, D-110, D-112): eight hybrid nameplates from
      published sources; a dataset under 70% shows its hybrids undivided, and a flip warns on
      the build's summary page and `/status`; a rule for the tie at the model cap.
-   - Four more nameplates at high confidence, each on the maker's or its distributor's own
-     page (#74, D-115): about 74% to 80%. Left: the rows D-115 lists as looked at and kept.
+   - Three more nameplates at high confidence on the maker's own page (#74, D-115): 74% to
+     78.5%. Left: the rows D-115 kept; Tank (two sources disagree; moving it changes the
+     golden contract); a reader that refuses a malformed reference row.
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. Done: ranked chosen values, conditions, CSV, the acceptance question on today's
-   fields (#71); true registrations on the wider scope as a dataset (#73, D-113; the user,
-   D-106). Next: the site showing `registrations_flow_wider` (charts, Build's choice, never on
-   one chart with another dataset; "new vehicles" is its `import_status` condition). Then:
-   colour, seats, where assembled, class; power and transmission; owner fields last, unpublished
-   until the pipeline hides small cells (D-096). Left: the `matrix` renderer (in hand), "My
-   questions", the related-fields note, the question with a new field.
-4. **Paused, half written, uncommitted:** package H's narrative spec (D-102; worktree
-   `nzta-screens`, `claude/narrative-spec`: `config/narrative/` files and a lint test, no
-   `docs/NARRATIVE.md` yet) and package I's proposed segment scheme (D-103; worktree
-   `nzta-segments`, `claude/model-segments`: one reference file so far). Both are behind `main`.
+   fields (#71); true registrations on the wider scope as a dataset (#73, D-113); a second
+   breakdown in Build, drawn as the `matrix` grid (#75, #76; D-114). Next: the site showing
+   `registrations_flow_wider` (never on one chart with another dataset; "new vehicles" is
+   its `import_status` condition). Then: colour, seats, where assembled, class; power and
+   transmission; owner fields last, unpublished until small cells are hidden (D-096). Left:
+   "My questions", the related-fields note, the question with a new field.
+4. **Paused, half written, uncommitted, behind `main`:** package H's narrative spec (D-102;
+   worktree `nzta-screens`: `config/narrative/` files and a lint test, no `docs/NARRATIVE.md`)
+   and package I's segment scheme (D-103; worktree `nzta-segments`: one reference file).
 
 ## Left in the packages
 
 - **A.** Follow-ups (D-088, D-089): a digest of the rows the archive job pulls; dependencies
   pinned by hash and a draft-then-publish release step (after December's build); admin
-  bypass on `production` (the user's); `/build/`
-  skips a heading (H); a second scope for events; a lookup refusing a blank value at build.
+  bypass on `production` (the user's); `/build/` skips a heading (H); a second scope for
+  events; a lookup refusing a blank value at build.
 - **B.** Each month, as soon as the dashboard has it: the user's export, `python -m pipeline
   supply`, a `--dry-run` build, a pull request with the store's two files (D-097). A store
   rebuilt whole cannot yet excuse a month it restates by more than 2% (`supply` needs an
   option). **C.** The user's own Stats NZ export replaces the fetched copy.
-- **D.** First load is trimmed (#64): Explore's first chart 7.98 s to 4.61 s, a Build answer
-  7.59 s to 6.58 s, on the phone profile. The 3-second target is not met; Build waits on its
-  data (question 2). Left: the linked chart's own time; a far chart is sometimes fetched on load.
+- **D.** First load (#64, D-099): Explore's first chart 4.6 s, a Build answer 6.6 s on a phone,
+  against 3 s (question 2). Left: the linked chart's own time; a far chart fetched on load.
 - **E.** The pipeline writing the "moves together" figures each build; `sentinels.csv`
   gaining the map's forms as each field is bound; the rule table checking `uses.break_down`.
 - **The final report** (the order §6), with `docs/brief/MASTER_BRIEF.md` §4 and §12 updated.
@@ -92,11 +90,13 @@ New Zealand sources.
 5. **A month supplied after the register's build is not published until the next month's
    build.** May a change to the committed counts rebuild the current month? It is a forced
    run, asked for each time today. Recommend yes, for that case only. With no answer: no.
-6. **What "mild hybrid" means for a car that can creep on its motor** (D-115): Subaru's
-   e-Boxer (about 1,460 vehicles a year) and Honda's older IMA cars (about 640). Their makers
-   say neither mild nor full. Mild if the motor is not the main drive (recommended, Claude's
-   view), or full if it can move the car at all. With no answer: Subaru stays unresolved.
-7. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
+6. **CLAUDE.md still says `matrix`'s renderer "is planned" and that Plot draws all six
+   shapes**; the grid is an HTML table (D-114). May Claude correct the two sentences? Recommend
+   yes. With no answer they stay, and the table can become a Plot figure if you prefer.
+7. **What "mild hybrid" means for a car that can creep on its motor** (D-115; Subaru's
+   e-Boxer and Honda's older IMA cars): mild if the motor is not the main drive (recommended,
+   Claude's view), or full if it can move the car at all? With no answer Subaru stays unresolved.
+8. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
    sentence, read again before going live; the retaken dashboard history, due in Downloads.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)

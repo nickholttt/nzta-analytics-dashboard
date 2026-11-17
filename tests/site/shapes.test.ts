@@ -12,7 +12,7 @@ import { buildQuestions, everythingBuilt } from "./support/observe.ts";
 const config = await import("../../src/lib/config.ts");
 const resolve = await import("../../src/lib/resolve.ts");
 const builder = await import("../../src/lib/builder.ts");
-const { ruleTable, shapesFor, valuesClass, needsBreakdown } = await import("../../src/lib/shapes.ts");
+const { ruleTable, shapesFor, valuesClass, needsBreakdown, isWindowShape } = await import("../../src/lib/shapes.ts");
 
 const SIX = ["mix", "trend", "league", "distribution", "geo", "matrix"];
 const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
@@ -69,11 +69,11 @@ test("every rule is reached by some question, so each has a case", () => {
   for (const rule of ruleTable.rules) assert.ok(reached.has(rule.id), `no question is decided by ${rule.id}`);
 });
 
-test("two fields crossed in one window fit a matrix, which has no renderer and is never offered", () => {
+test("two fields crossed in one window fit a matrix, which is offered now that it has a renderer", () => {
   const crossed = { measure: "count", by: "category", values: "many", span: "one_period", picked: "none", crossed_with: "category" };
   assert.deepEqual(shapesFor(crossed), ["matrix"]);
-  assert.ok(!resolve.RENDERED_SHAPES.has("matrix"));
-  assert.deepEqual(resolve.drawnShapes(crossed), [], "a shape with no renderer is not offered");
+  assert.ok(resolve.RENDERED_SHAPES.has("matrix"));
+  assert.deepEqual(resolve.drawnShapes(crossed), ["matrix"]);
   // Crossed with time is not a matrix: time is the axis of a line. Crossed over time is a line for each combination.
   assert.ok(!shapesFor({ ...crossed, crossed_with: "time" }).includes("matrix"));
   assert.ok(!shapesFor({ ...crossed, span: "over_time" }).includes("matrix"));
@@ -95,16 +95,27 @@ test("a preset that crosses two fields over time states the crossing, and still 
     const resolution = resolve.resolvePreset(view, manifest);
     assert.equal(resolution.shape, "trend");
     assert.equal(resolution.status, "live");
-    // In one window the same crossing fits only a grid, which has no renderer, and the resolver says so.
+    // In one window the same crossing fits only a grid. The grid draws the vehicles in two fields; this is a ratio of two datasets, which it
+    // does not draw, so the resolver blocks it and says why (it was "no renderer" before the grid had one). The time row never offers the period.
     const window = resolve.resolvePreset({ ...view, period: "latest_year" }, manifest);
     assert.equal(window.shape, "matrix");
-    assert.ok(window.blocked.some((m) => /no renderer/.test(m)), `${p.id}: ${window.blocked}`);
+    assert.equal(window.status, "blocked");
+    assert.ok(window.blocked.some((m) => /grid of two fields/.test(m)), `${p.id}: ${window.blocked}`);
+    assert.ok(!resolve.rankingPeriods(view).includes("latest_year"), `${p.id}: the time row does not offer a window it cannot draw`);
   }
 });
 
 test("only shapes with a renderer are ever offered, and the first offered is the one drawn", () => {
   for (const c of combinations()) for (const s of resolve.drawnShapes(c)) assert.ok(resolve.RENDERED_SHAPES.has(s));
   for (const s of resolve.RENDERED_SHAPES) assert.ok(SIX.includes(s));
+});
+
+test("RENDERED_SHAPES and the panel's branches name the same shapes", () => {
+  // `has a renderer` is known in two places: this set, which the rule table's answers are cut by, and the panel, which picks the component. A shape
+  // in one and not the other would be offered and not drawn, or drawn and never offered.
+  const panel = read("src/components/PresetPanel.tsx");
+  const branches = new Set([...panel.matchAll(/shape === "([a-z]+)"/g)].map((m) => m[1]));
+  assert.deepEqual([...branches].sort(), [...resolve.RENDERED_SHAPES].sort());
 });
 
 test("a table of the figures is available for every shape that is drawn", () => {
@@ -257,18 +268,31 @@ const reachable = (p: { period?: string }, ranking: string[]) => [...new Set([..
 const fitsAt = (p: Parameters<typeof resolve.questionFacts>[0], period: string) =>
   shapesFor(resolve.questionFacts({ ...p, period }, config.findDimension(p.dimension), config.findMeasure(p.measure)));
 
-test("a preset that pins its shape pins one the table says fits, at every period the time row offers", () => {
+test("a preset that pins its shape pins one the table says fits: a shape of any period at every period the time row can name, a window shape at the windows it offers", () => {
   let pinned = 0;
+  let windowed = 0;
   for (const p of config.presets) {
     if (!p.shape_override) continue;
     const view = resolve.presetView(p);
-    for (const period of reachable(view, resolve.rankingPeriods(view))) {
-      const fitting = fitsAt(view, period);
-      assert.ok(fitting.includes(p.shape_override), `${p.id} pins ${p.shape_override} at ${period}; the table gives ${fitting}`);
+    if (!isWindowShape(p.shape_override)) {
+      // A line or a distribution fits whatever the period, so it is held to every period the time row can offer.
+      for (const period of reachable(view, resolve.rankingPeriods(view))) {
+        const fitting = fitsAt(view, period);
+        assert.ok(fitting.includes(p.shape_override), `${p.id} pins ${p.shape_override} at ${period}; the table gives ${fitting}`);
+      }
+    } else {
+      // A window shape (a ranking, a grid) fits one window only: it opens on a period it fits, the time row offers it a window, and every window the
+      // panel adds for it is one the table gives the shape at (the time row never offers it a span of years, which fitsPin enforces).
+      assert.ok(fitsAt(view, view.period ?? "all").includes(p.shape_override), `${p.id} opens on a period its pin does not fit`);
+      const windows = resolve.rankingPeriods(view);
+      assert.ok(windows.length > 0, `${p.id}: the time row offers no window`);
+      for (const period of windows) assert.ok(fitsAt(view, period).includes(p.shape_override), `${p.id}: ${period} is offered and the table does not give ${p.shape_override} there`);
+      windowed++;
     }
     pinned++;
   }
   assert.ok(pinned >= 2);
+  assert.ok(windowed >= 2, "the two grids of the canon are window shapes");
 });
 
 test("the resolver reports a preset pinned to a shape that does not fit as invalid, and one that fits as sound", () => {

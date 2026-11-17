@@ -47,6 +47,17 @@ export function buildQuestions(): BuildQuestion[] {
       }
     }
   }
+  // The same questions with a second breakdown: each breakdown crossed with the next one the measure offers that can be crossed with it, as a grid.
+  for (const dataset of config.builderSpec.datasets) {
+    for (const m of config.builderSpec.measures as unknown as Entry[]) {
+      if (m.derived) continue;
+      const offered = offeredBy(m);
+      offered.forEach((by, at) => {
+        const by2 = [...offered.slice(at + 1), ...offered.slice(0, at)].find((d) => builder.canCross(by, d));
+        if (by2) list.push({ key: `build ${dataset} ${m.id} ${by}+${by2} picked=0`, question: { dataset, measure: m.id, by, values: [], by2, values2: [], where: {}, view: null } });
+      });
+    }
+  }
   return list;
 }
 

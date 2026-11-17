@@ -1,5 +1,6 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { figuresHeader } from "../lib/figuresHeader";
@@ -9,7 +10,7 @@ import { dimensionNote } from "../lib/dimensionNote";
 import { conditionsSentence } from "../lib/scope";
 import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
-import type { Preset } from "../lib/config";
+import type { Dimension, Preset } from "../lib/config";
 import type { Event, Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, guardsFor, monthLabel, pct } from "../lib/measures";
 import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
@@ -23,6 +24,30 @@ import type { FiguresGetter } from "./FiguresContext";
 import { LeagueChart } from "./LeagueChart";
 import { MixChart } from "./MixChart";
 import { TrendChart } from "./TrendChart";
+
+// The grid is loaded when a grid is drawn, so a page that draws none does not download it.
+const MatrixChart = lazy(() => import("./MatrixChart").then((m) => ({ default: m.MatrixChart })));
+
+// A chunk that cannot be fetched (the visitor went offline, or a deploy replaced it) throws where it is drawn. Without this the panel would vanish.
+// A failed fetch is told from any other error: reloading helps the first, and says nothing useful for the second.
+const FETCH_FAILURE = /dynamically imported module|importing a module script failed|loading chunk|failed to fetch/i;
+class ChunkBoundary extends Component<{ children: ReactNode }, { failed: "load" | "draw" | null }> {
+  state: { failed: "load" | "draw" | null } = { failed: null };
+  static getDerivedStateFromError(error: unknown) {
+    return { failed: FETCH_FAILURE.test(String((error as { message?: string } | undefined)?.message ?? error)) ? "load" : "draw" };
+  }
+  render() {
+    const { failed } = this.state;
+    return failed ? (
+      <div className="callout blocked">
+        <span className="callout-label">{failed === "load" ? phrases.chart_load_failed_label : phrases.chart_draw_failed_label}</span>
+        {failed === "load" ? phrases.chart_load_failed : phrases.chart_draw_failed}
+      </div>
+    ) : (
+      this.props.children
+    );
+  }
+}
 
 const BASIS_NOTE = "Registrations recorded by NZTA. Not the same as vehicle sales.";
 
@@ -329,10 +354,14 @@ export default function PresetPanel({
   const served = servedFrom(effectivePreset.dataset, manifest);
   const dsManifest = served ? manifest.datasets[served] : undefined;
   const coverage = dsManifest?.mild_hybrid_identification_coverage;
-  const onPowertrain = Boolean(coverage && dimension?.derive?.value === hybrid.powertrain_column);
+  const dimension2 = findDimension(effectivePreset.dimension2);
+  const isPowertrain = (d?: Dimension) => Boolean(coverage && d?.derive?.value === hybrid.powertrain_column);
+  const onPowertrain = isPowertrain(dimension) || isPowertrain(dimension2);
   // A dataset that does not divide its hybrids has no mild line to relabel (docs/CUBE_SCHEMA.md, mild_split_published).
   const relabels = onPowertrain && splitPublished(coverage);
-  const label = labelFor(dimension?.id, relabels ? (coverage as { label: string }).label : undefined);
+  const relabelAs = (d?: Dimension) => (relabels && isPowertrain(d) ? (coverage as { label: string }).label : undefined);
+  const label = labelFor(dimension?.id, relabelAs(dimension));
+  const label2 = labelFor(dimension2?.id, relabelAs(dimension2));
   const guards = guardsFor(effectivePreset.measure, effectivePreset.derived);
   const guard = guards.min_denominator ?? 0;
   const collapseFraction = guards.min_share_of_trailing_median ?? 0;
@@ -394,7 +423,7 @@ export default function PresetPanel({
   // (its own filter, or a built question's conditions) says so, since the figure is not for the vehicles drawn.
   // It speaks of one line, so it appears only where that value is among those drawn: a view that chose other values, or whose
   // condition leaves it none, has no such line.
-  const coverageDrawn = Boolean(rows?.some((r) => r.value === hybrid.mild_powertrain && r.n > 0));
+  const coverageDrawn = Boolean(rows?.some((r) => (r.value === hybrid.mild_powertrain || r.other === hybrid.mild_powertrain) && r.n > 0));
   // A dataset that withholds the split says its hybrids are shown undivided, and the note about the mild line does not appear.
   const hybridText = hybridNotes({
     coverage,
@@ -412,9 +441,10 @@ export default function PresetPanel({
 
   // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
   const dimensionLabel = dimension ? dimensionWords(dimension.id, internal) : undefined;
+  const dimensionLabel2 = dimension2 ? dimensionWords(dimension2.id, internal) : undefined;
 
   // The answer comes straight under the question: a count's figure and sentence for a month, or who is first in a ranking.
-  const answerFirst = preventsRender.length === 0 && Boolean(rows?.length) && ((Boolean(preset.answer) && shape === "trend") || (shape === "league" && Boolean(effectivePreset.values?.length || effectivePreset.ranks_all)));
+  const answerFirst = preventsRender.length === 0 && Boolean(rows?.length) && ((Boolean(preset.answer) && shape === "trend") || (shape === "league" && Boolean(effectivePreset.values?.length || effectivePreset.ranks_all)) || shape === "matrix");
   const replacedNotice = periodReplaced ? (
     <p className="chart-unit" role="status">
       {fillNote(phrases.period_replaced, periodReplaced).text}
@@ -522,6 +552,34 @@ export default function PresetPanel({
           }
         />
       );
+    } else if (shape === "matrix" && dimension && dimension2) {
+      chart = (
+        <ChunkBoundary>
+        <Suspense fallback={<p className="meta">Loading the chart…</p>}>
+          <MatrixChart
+            preset={effectivePreset}
+            dimension={dimension}
+            dimension2={dimension2}
+            rows={rows}
+            manifest={manifest}
+            label={label}
+            label2={label2}
+            rowHeading={dimensionLabel ?? dimension.label}
+            columnHeading={dimensionLabel2 ?? dimension2.label}
+            month={month}
+            onMonth={handleMonthChange}
+            after={() => (
+              <>
+                {definitionBlock}
+                {actionsBlock}
+                {controlsBlock}
+                {replacedNotice}
+              </>
+            )}
+          />
+        </Suspense>
+        </ChunkBoundary>
+      );
     } else if (shape === "geo" && dimension) {
       chart = (
         <GeoChart
@@ -538,14 +596,17 @@ export default function PresetPanel({
   }
 
   const definition = notBuilt ? undefined : (derived?.definition ?? ((!internal && dataset?.public_definition) || dataset?.definition));
-  const eyebrow = dimensionLabel ?? derived?.label ?? measure?.label;
+  const eyebrow =
+    dimensionLabel && dimensionLabel2
+      ? fillNote(phrases.matrix_eyebrow, { row_field: dimensionLabel, column_field: dimensionLabel2 }).text
+      : (dimensionLabel ?? derived?.label ?? measure?.label);
 
   // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube
   // draws what it says, and opened on the time range shown here.
   const builderQuestion = builderQuestionFor(effectivePreset);
   const builderLink =
     builderQuestion && builderPresets(builderQuestion).every((p) => resolvePreset(p, manifest).preventsRender.length === 0)
-      ? builderHref(builderQuestion, activePeriod, fullHistory)
+      ? builderHref(builderQuestion, activePeriod, fullHistory, shape === "matrix" ? getParam(presetId, "cells", "") || effectivePreset.cell_basis || undefined : undefined)
       : undefined;
   const questionId = `${preset.id}-question`;
 
@@ -573,7 +634,7 @@ export default function PresetPanel({
       key: id,
       id,
       // LeagueChart ranks the period's own months (a month, or the last 12), so the label names them.
-      label: `${findPeriod(id)?.months ?? TRAILING_MONTHS}-month ranking`,
+      label: shape === "matrix" ? (findPeriod(id)?.label ?? id) : `${findPeriod(id)?.months ?? TRAILING_MONTHS}-month ranking`,
       full: false,
     })),
   ].filter((o) => fitsPin(effectivePreset, o.id));
@@ -794,7 +855,7 @@ export default function PresetPanel({
       {internal ? (
         <p className="spec">
           {effectivePreset.id} · {shape} · {effectivePreset.dataset ?? "composite"} · {effectivePreset.derived ?? measure?.id ?? effectivePreset.measure}
-          {effectivePreset.dimension ? ` · ${effectivePreset.dimension}` : ""} · {effectivePreset.period ?? "no period"}
+          {effectivePreset.dimension ? ` · ${effectivePreset.dimension}` : ""}{effectivePreset.dimension2 ? ` × ${effectivePreset.dimension2}` : ""} · {effectivePreset.period ?? "no period"}
           {effectivePreset.top_n ? ` · top ${effectivePreset.top_n} by trailing vehicles` : ""} · snapshot {manifest.latest_snapshot}
         </p>
       ) : null}
