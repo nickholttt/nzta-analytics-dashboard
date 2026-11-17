@@ -24,9 +24,9 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **`registrations_flow_wider`** (#73, D-113): true registrations with buses, motor caravans
   and special purpose vehicles too. On the site (#77, D-118): Build's third choice, two charts.
 - **NZTA's vehicle type is a dimension** (#58, D-095), and on the register dataset so are the
-  assembly flag, the class and seats in bands (#79, D-116): breakdowns in Build, and the
-  acceptance question passes with one swapped in (#82, D-122). A class reads as NZTA's label
-  with its code, from the table the user supplied (#85, D-121). **The powertrain rolls up to
+  assembly flag, the class (NZTA's label with its code, D-121) and seats in bands (#79, D-116):
+  breakdowns in Build (#82, D-122). **Power in bands and the gearbox in four groups** too
+  (#93, D-128): conditions in Build; as breakdowns, being built. **The powertrain rolls up to
   five groups**, so hybrids, full or mild, can be asked for as one share (#87, D-124).
 - **The site shows true registrations and the long run on a local build** (#56, #61; D-093,
   D-098): a group in Explore and a choice of what Build counts; cars first registered each
@@ -51,9 +51,11 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
-  them (package F); the `region` slice takes the small-cell rule before December's build
-  (D-126; #91, D-127, in review); another owner field's first table is shown to the user
-  first (D-120); no postcode totals for now. Axles have no use for now (#90, D-129).
+  them. **The `region` slice is written under the small-cell rule from the next build**
+  (#91, D-126, D-127): a cell under 10 hidden and a second with it, a month with no visible
+  cell not broken down, the build aborting if a count could be worked out. The site refuses
+  a table with hidden counts and draws none yet (#94, D-130). Another owner field's first
+  table is shown to the user first (D-120). Axles have no use for now (#90, D-129).
 - **The query service** is proposed, not provisioned (#54, D-091). **Events**: 54 rows, 50
   verified; four are unverified on purpose. Don't guess dates.
 
@@ -64,9 +66,9 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 ## In progress (all claude; nothing by gemini)
 
-- **#91** `claude/small-cells` (D-127; worktree `nzta-audit`), **#93**
-  `claude/power-transmission` (D-128; `nzta-notes`) and **#94** `claude/hidden-cells-guard`
-  (D-130; `nzta-firstload`): pushed, each in review. #91 and #93 both change the golden file.
+- `claude/build-power-gearbox` (D-132; worktree `nzta-firstload`): power and the gearbox as
+  breakdowns in Build, narrowed by default to vehicles sold new. `claude/hidden-cells-followups`
+  (D-133; `nzta-audit`): two follow-ups from #94's review. Neither is pushed yet.
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
   D-103's draft scheme file sits untracked in `nzta-segments`.
 
@@ -74,24 +76,22 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 - `data/raw/2026-08/20260911T093818Z`: 5,905,376 rows, the 17 bound fields.
 - `data/raw/2026-10/20261113T045017Z`: 5,926,990 rows, 36 fields. Pulled by hand (D-066).
-- `data/raw/nzta-dashboard/`: the user's exports of NZTA's registrations dashboard (D-084):
-  `history/` (January 2021 to October 2026, 1,883,786 vehicles), `2021-01/`, `2026-10/`.
-- `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's monthly series, 1961-01 to 2026-09,
-  fetched read-only from Infoshare; the user's own hand export replaces it later (D-065).
+- `data/raw/nzta-dashboard/`: the user's exports of NZTA's dashboard (D-084): `history/`
+  (January 2021 to October 2026, 1,883,786 vehicles), `2021-01/`, `2026-10/`.
+- `data/raw/statsnz/2026-11-14/TPT052601.csv`: Stats NZ's series, 1961-01 to 2026-09, fetched
+  from Infoshare; the user's own export replaces it later (D-065).
 - **No local file holds `VIN11` or `POSTCODE`.** A backup folder holds the pulls and exports.
 
 ## Known issues
 
 1. First load at phone width is slow (local, throttled, 2026-11-16, D-099): Explore's first
-   chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
-   data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
+   chart 4.61 s, a Build answer 6.58 to 10.32 s, against 3 s. Not timed since the table grew.
 2. "Area Outside Region" (the Chatham Islands) reaches visitors as is. A link that names a
    band's old `unknown` value, or a class by its bare code, now matches nothing and says nothing.
 3. Mild hybrids are identified for about 80% of each dataset's hybrids at high confidence
-   over 12 months (D-110's count; 74% before #74 and #80, D-115, D-119). Under 70% a dataset
-   shows its hybrids undivided and the build warns (#72): about 2,600 more would do it.
-4. **Over half of the fact table's rows count one vehicle** (54.8% of rows, 9.2% of vehicles,
-   D-116); no owner field in it (D-096). It grew 28.7% with three fields; not re-timed on a phone.
+   over 12 months (D-110, D-119). Under 70% a dataset shows them undivided and warns (#72).
+4. **Over half of the fact table's rows count one vehicle** (54.8% of rows, D-116, measured
+   before power and the gearbox took it from 755,586 to 799,057 rows, D-128); no owner field.
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
 6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
