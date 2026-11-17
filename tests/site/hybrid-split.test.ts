@@ -52,6 +52,20 @@ test("a dataset that publishes the split, or whose manifest has no flag, is as b
   assert.equal(ask(block(), { mildDrawn: false }).coverage, undefined);
 });
 
+test("where two lines are drawn the note says that, added together, they are what a source that does not divide hybrids shows as one, naming both from config", () => {
+  const notes = ask(block());
+  assert.match(notes.coverage ?? "", /The undiv and mild lines added together are what a source that does not tell them apart shows as one line\.$/);
+  // Said after the note that the coverage figures are the whole dataset's when the view is narrowed, and said once.
+  const narrowed = ask(block(), { narrowed: true }).coverage ?? "";
+  assert.ok(narrowed.indexOf("every vehicle in the dataset") < narrowed.indexOf("added together"));
+  assert.equal(narrowed.split("added together").length, 2);
+  // A dataset that shows its hybrids undivided has no second line to add, so says nothing of it; nor does a chart without the mild line.
+  const none = [ask(block({ mild_split_published: false })).withheld, ask(block(), { mildDrawn: false }).coverage];
+  for (const text of none) assert.ok(!text?.includes("added together"), String(text));
+  // Both names are placeholders, filled from config; the template holds neither.
+  assert.match(phrases.identification_together, /\{hybrid\}.*\{value\}/);
+});
+
 test("only a chart by the powertrain field, and only where the build has a block for the dataset, carries either note", () => {
   assert.deepEqual(ask(block({ mild_split_published: false }), { onPowertrain: false }), {});
   assert.deepEqual(ask(undefined), {});

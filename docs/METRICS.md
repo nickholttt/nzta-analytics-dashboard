@@ -817,6 +817,17 @@ history rests on the Honda IMA call and should be read that way. Subaru e-Boxer 
 vehicles) stay unresolved because sources disagree on them: never classify
 a contested nameplate to raise coverage.
 
+**Hybrids as one figure (D-118).** NZTA records a hybrid as hybrid, not as mild or
+full, so a source that does not tell them apart shows one hybrid figure, which on
+this site is the Hybrid and Mild hybrid lines added together. On a chart that draws
+the mild line the site says so under it (`identification_together` in
+`config/presets.json`). Neither a ranking nor a share can be added in the browser. A
+count can: in Build, a count of vehicles with a condition on the powertrain that
+keeps both values is one line of their sum (new passenger cars and vans in October
+2026 on true registrations: 4,978, against 4,472 Hybrid and 506 Mild hybrid). A
+share of the two together needs a roll-up dimension (`powertrain_group` in
+`powertrain_map.csv` holds one) and a pipeline change; none exists.
+
 The file is keyed on the make and model as the dataset spells them, so a
 nameplate the register and the dashboard spell differently needs a row for
 each spelling. Measured on the 2026-10 snapshot, the hybrids that matched no
