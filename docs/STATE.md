@@ -41,6 +41,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   downloads its figures as CSV (#71, D-111). The owner's acceptance question passes.
 - **Build crosses two fields**, drawn as the sixth shape, `matrix`: a shaded grid with totals,
   as vehicles or a share of all, of the row or of the column (#75, D-114). Two Explore grids.
+- **SUV or car per nameplate** is a reference file nothing reads yet (#78, D-117): 169 nameplates.
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
   read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
@@ -58,7 +59,7 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 ## In progress (all claude; nothing by gemini)
 
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
-- `claude/suv-lookup` (D-117; `nzta-segments`, where D-103's draft sits untracked): SUV or car.
+- D-103's draft scheme file sits untracked in `nzta-segments`.
 
 ## Raw files on this computer (gitignored)
 
@@ -82,8 +83,7 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
    over 12 months (D-110's count; 74% before #74, D-115). Under 70% a dataset shows its hybrids
    undivided and the build warns (#72): about 2,200 more unidentified hybrids would do it.
 4. **Over half of the fact table's rows count one vehicle** (54.8% of rows, 9.2% of vehicles,
-   2026-10 dry run, D-116). It holds no owner field (the minimum of 10 is for those, D-096). It
-   grew 28.7% with three fields; a Build answer's time on a phone is not measured again.
+   D-116); no owner field in it (D-096). It grew 28.7% with three fields; not re-timed on a phone.
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
 6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).

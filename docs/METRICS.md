@@ -965,6 +965,110 @@ a line can move with how each source classes a car.
 subnational population estimates. Population is a separate reference file
 with its own vintage; label the estimate year on the chart.
 
+## SUV or car, by nameplate: `model_segment.csv` (D-117)
+
+The register records most SUVs as station wagons (`BODY_TYPE`), so no register field says whether a vehicle is an SUV. A
+nameplate does: the class of a make and model is a lookup, not a measurement (invariant 4). `data/reference/model_segment.csv`
+is that lookup for the nameplates that make up most recent passenger registrations. **Nothing reads it yet**: it is not a
+dimension, no build uses it, and no figure on the site depends on it. A maintainer reads its coverage with
+`scripts/segment_coverage.py`; `pipeline/tests/test_model_segment.py` holds its form.
+
+**The rule.**
+- A nameplate is `suv` when its maker, or its maker's New Zealand distributor, places it in its SUV range or calls it an SUV on
+  its own page, for the market the vehicles come from: the New Zealand site for NZ-new vehicles, the maker's Japanese or global
+  site for used imports. It is `car` when the maker's own page places it among its hatchbacks, sedans, wagons, coupes,
+  convertibles or people movers and does not call it an SUV.
+- **`car` means "not an SUV" in this first slice.** It includes people movers (a minivan or wagon body for more than five
+  seats) and sports cars (coupes, convertibles and roadsters), which the FCAI's criteria put in their Passenger class beside
+  hatchbacks and sedans, not in SUV. A finer class for them is a later piece. Utes, vans, trucks and buses are not in the file:
+  `segment_map.csv` already separates them from register fields. A commercial van that NZTA registers as a passenger vehicle
+  is `unresolved`, not `car`.
+- **Why the maker's own categorisation.** A model's class in the trade (the FCAI's VFACTS classification in Australia, the
+  Motor Industry Association's segments here) is a committee's judgement. The FCAI's criteria are indicative ("a 2/4 door wagon
+  body style and elevated ride height", no ride height published, "exceptions do occur based on market focus and other
+  subjective criteria"); the MIA publishes only its top five segments each month and no model-by-model list. So this file does
+  not claim to reproduce either body's placement of any model. It states a rule the project can cite.
+- **Confidence.** `high`: a primary page, a maker's or its distributor's, read in the session with its URL and the date read in
+  the row's `basis`, covering the markets that make up at least 80% of the nameplate's vehicles in the trailing 12 months.
+  `medium`: a review, a trade or reference source (Wikipedia is used and named as such), a maker's page found by search but
+  not read (a number of makers' sites refuse automated readers), or a primary page that covers under 80% of the nameplate's
+  vehicles. `low` is always `unresolved`, and an `unresolved` row is always `low`: the maker's pages disagree, the maker says
+  "crossover" without saying SUV, one name covers both kinds across generations that the match columns cannot separate, or no
+  source was read. A large count never raises a row's confidence.
+- **Match columns.** `match_vehicle_year_min` and `match_vehicle_year_max`, as in the other reference files. Used only where a
+  nameplate changed kind between generations and the year can be defended under `docs/MODEL_AND_AGE.md` §1 (for NZ-new vehicles
+  from 2007 `VEHICLE_YEAR` is the registration year; for used imports it is a year from the vehicle's life overseas, so a
+  bound on it is a bound on when the generation could have been first registered anywhere). A vehicle with no vehicle year
+  matches no row that bounds the year, as for `model_registry.csv`. Two rows for one nameplate may not overlap. The two
+  nameplates that use it are Corolla (the Corolla Cross, an SUV, was first sold in 2020) and Leaf (the third generation, a
+  crossover, is 2025 on). The years from the first SUV generation on are `unresolved`.
+
+**A register spelling the dashboard does not share.** The register records the Corolla Cross as `COROLLA` and the Prado as
+`LANDCRUISER`; the dashboard records `COROLLA CROSS` and `LANDCRUISER PRADO` (the register's trailing `COROLLA` is 11,305
+vehicles, the dashboard's `COROLLA` 6,600 plus `COROLLA CROSS` 4,651, to within 0.5%). A row is keyed on the make and model as the
+pipeline derives them for either dataset, so one file serves both. For `COROLLA`, where the register's name hides an SUV, the
+file leaves 2020 on unresolved in both datasets, which makes the dashboard's NZ-new Corolla unresolved too, though the
+dashboard does tell the two apart. A per-dataset rule is a later piece (D-117).
+
+**Coverage reached** (measured 2026-11-17; passenger vehicles, the `passenger` scope group of `vehicle_scope.csv`, each
+dataset's own filter; the 2026-10 snapshot; trailing is November 2025 to October 2026; "has a row" counts `unresolved` rows,
+"classified" does not).
+
+| Dataset | Window | Vehicles | Has a row | Classified | `suv` | `car` | `unresolved` | no row |
+|---|---|---|---|---|---|---|---|---|
+| `registrations_flow` | trailing | 201,088 | 180,872 (89.95%) | 167,302 (83.20%) | 100,832 (50.14%) | 66,470 (33.06%) | 13,570 (6.75%) | 20,216 (10.05%) |
+| `registrations_flow` | all time | 1,218,768 | 1,006,922 (82.62%) | 953,325 (78.22%) | 519,440 (42.62%) | 433,885 (35.60%) | 53,597 (4.40%) | 211,846 (17.38%) |
+| `registrations_surviving` | trailing | 200,387 | 180,378 (90.01%) | 162,103 (80.89%) | 96,004 (47.91%) | 66,099 (32.99%) | 18,275 (9.12%) | 20,009 (9.99%) |
+| `registrations_surviving` | all time | 3,617,895 | 2,216,733 (61.27%) | 2,120,061 (58.60%) | 966,547 (26.72%) | 1,153,514 (31.88%) | 96,672 (2.67%) | 1,401,162 (38.73%) |
+
+The file has 110 rows for 171 entries (169 distinct make-and-model pairs; Corolla and Leaf have two rows each): 16 rows at
+`high` (14 `suv`, 2 `car`), 77 at `medium` (31 `suv`, 46 `car`) and 17 at `low`, all `unresolved`. By entries: `suv` 29 high
+and 62 medium, `car` 3 high and 56 medium, `unresolved` 21. By vehicles in the flow dataset's trailing window, `high` is
+21.25% and `medium` 61.95%; in the register's, 18.28% and 62.62%. The 169 pairs are the 150 largest passenger nameplates of
+the two datasets' trailing windows combined and 19 more, to rank 169. The stopping rule was the register's cumulative share of
+vehicles in the combined list reaching 90%: it did at rank 169 (90.0%), where the dashboard's was 89.9%, 0.1 point short. The
+brief's limit was 150 nameplates, which gave 88.0% and 87.9% (see D-117). The largest nameplates still without a row
+(trailing, flow): Subaru BRZ 189, Suzuki Solio 189, BAIC X55 186, Suzuki Vitara 184, Omoda E5 183, Skoda Kodiaq 183, Suzuki
+S-Cross 182, Land Rover Discovery 181, Volvo EX30 181, GAC GS3 Emzoom 180. The register's all-time figure is low because the file lists current
+nameplates, not the many that were registered earlier and have since gone. `scripts/segment_coverage.py` prints these figures
+for either dataset.
+
+**Set beside the trade's own placement, privately (2026-11-17).** The FCAI publishes one complete sample of its VFACTS
+report on its own site (the national report for August 2023), which lists every model sold in Australia that month under
+its segment. Every entry of this file was set beside it. Of the file's 171 make-and-model entries (two nameplates have two
+rows each), 98 appear in that report in the same class: SUV for `suv`, its Passenger class for `car`.
+Nine of the file's `unresolved` entries appear there, and 64 entries do not appear at all (mostly Japanese used imports and
+models launched since). The report says it may not be reproduced, so nothing from it is in the file or in this repository:
+no row's class, basis or confidence rests on it, and a row stays `medium` where only that report would confirm its class.
+The comparison is a check on the rule, not a source.
+
+**The register's `CLASS` as a cross-check, not an input.** `MC` is the register's off-road passenger class. For each
+nameplate in the file with at least 30 passenger vehicles in the register: no `car` row has a majority `MC`; one has over a
+quarter (Mitsubishi Delica, 29%). `MC` is weak evidence for an SUV: among the file's `suv` rows it runs from 0% (Mazda CX-5,
+Mitsubishi ASX) to 99% (Land Cruiser, Jimny, Everest). Among passenger vehicles first registered in the trailing window and
+still registered, 11.2% of NZ-new vehicles are `MC` and 1.7% of used imports, so it says little about recent used imports.
+The `suv` rows with almost no `MC` and few station wagons, which the register records mostly as hatchbacks: Nissan Qashqai
+(85% hatchback), Kia Stonic (85%), Nissan Kicks (75%), Nissan Juke (75%), Chery Tiggo 9 (all 289). The file follows the makers
+and Wikipedia here, not the register's body type, which records a body shape and not a kind of vehicle.
+
+**Set beside published figures** (true registrations of NZ-new passenger vehicles, `registrations_flow`; reported, nothing
+adjusted to match). The share is a range: the lowest counts only `suv` rows, the highest adds every `unresolved` and
+no-row passenger vehicle.
+
+| Month | Our NZ-new vehicles | Our SUV share | Published |
+|---|---|---|---|
+| April 2025 | 6,073 passenger (SUV 4,455; unresolved 266; no row 856) | 73.4% to 91.8% of passenger | MIA, light passenger vehicles: SUV Compact 34.3%, Medium 32.2%, Large 12.6%, at least 79.1% (its top five segments only) |
+| June 2026, whole market | 13,411 of all types (SUV 7,451; passenger unresolved 987; passenger no row 830) | 55.6% to 69.1% of all | AfMA: Medium SUV 4,292, Compact SUV 2,787, Large SUV 1,083 of 13,438, at least 60.7% |
+
+The published figure lies inside our range at both dates. The range is 18 points wide in April 2025 and 13 in June 2026, so
+the comparison tests the file's coverage and nothing finer. In April 2025 the MIA's three SUV segments held 4,820 vehicles
+(2,087 + 1,963 + 770, read from a search result's quotation of the release; the PDF itself could not be read); our `suv` rows
+alone hold 4,455, 365 fewer, and our unresolved and no-row passenger vehicles number 1,122. In June 2026 AfMA's three held
+8,162 (read from the page); our `suv` rows hold 7,451, 711 fewer, against 1,817 unresolved and no-row passenger vehicles.
+Our totals are within 0.2% of the published ones (6,073 passenger vehicles against about 6,085 light passenger vehicles,
+derived from the MIA's quoted counts and shares (2,087 at 34.3%), not read from the release; 13,411 against 13,438). These are different definitions (the MIA's and AfMA's segments are a
+committee's placements; here a vehicle's class is its nameplate's, whole), so the figures are not expected to match.
+
 ## Values in edge cases
 
 - **A goods vehicle with a gross mass of zero reads "Not recorded" on the
