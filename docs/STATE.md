@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-17
+Last updated by claude on 2026-11-18
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is in
 `docs/CHECKPOINT.md`. The direction is the user's standing work order,
@@ -41,19 +41,19 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **Build ranks the values a visitor picks**, labelled as among those picked, and every chart
   downloads its figures as CSV (#71, D-111). The owner's acceptance question passes.
 - **"My questions"** (#86, D-125): a Build question saved in the browser, redrawn on the newest
-  month, able to be pinned: a pin holds a window, never another snapshot's figures.
+  month, able to be pinned. **A link pinned to an earlier month reads that snapshot's own
+  cube** where the deploy has kept it (#92, D-131); where it has not, it holds a window.
 - **Build crosses two fields**, drawn as the sixth shape, `matrix`: a shaded grid with totals,
   as vehicles or a share of all, of the row or of the column (#75, D-114). Two Explore grids.
-- **SUV or car per nameplate** is a reference file nothing reads yet (#78, #84; D-117, D-123):
-  179 nameplates, 47 rows on a maker's own page.
+- **SUV or car per nameplate**: a file nothing reads yet (#84, D-117, D-123), 179 nameplates.
 - **Which shapes fit a question is one rule table** (#62, D-100): `config/chart_rules.json`,
   read by Explore and Build. `Checks` also runs the site's tests and the prototype's (D-101).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
-  them (package F); the `region` slice takes the floor of 10 and a second rule in the change
-  that builds them, before December's build (D-126; being built, D-127); another owner
-  field's first table is shown to the user first (D-120); no postcode totals for now.
+  them (package F); the `region` slice takes the small-cell rule before December's build
+  (D-126; #91, D-127, in review); another owner field's first table is shown to the user
+  first (D-120); no postcode totals for now. Axles have no use for now (#90, D-129).
 - **The query service** is proposed, not provisioned (#54, D-091). **Events**: 54 rows, 50
   verified; four are unverified on purpose. Don't guess dates.
 
@@ -64,9 +64,9 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/small-cells` (D-127; worktree `nzta-audit`): the small-cell rule and the `region`
-  slice. `claude/power-transmission` (D-128; `nzta-notes`): two register fields bound. Both
-  touch the pipeline or its config and the golden contract. #90 (D-129, axles): in review.
+- **#91** `claude/small-cells` (D-127; worktree `nzta-audit`), **#93**
+  `claude/power-transmission` (D-128; `nzta-notes`) and **#94** `claude/hidden-cells-guard`
+  (D-130; `nzta-firstload`): pushed, each in review. #91 and #93 both change the golden file.
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
   D-103's draft scheme file sits untracked in `nzta-segments`.
 

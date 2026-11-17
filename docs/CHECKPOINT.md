@@ -4,48 +4,48 @@ Last updated by claude on 2026-11-17
 
 ## Where we left off
 
-- 2026-11-14 to 17, the eighth and ninth sessions of work order 1: #47 to #80 merged (D-082
-  to D-119). October was forced once; no second forced run is allowed (D-082), except after
+- 2026-11-14 to 17, the eighth to tenth sessions of work order 1: #47 to #88 merged (D-082
+  to D-125). October was forced once; no second forced run is allowed (D-082), except after
   a change to the committed counts (D-120).
-- 2026-11-17, tenth session. The user answered the parked questions (D-120). **Merged: #81,
-  #82, #84 to #88.** #82 (D-122): three register fields as breakdowns, package F's
-  done-when. #85 (D-121): the class labels. #84 (D-123): the SUV file's second slice. #87
-  (D-124): hybrids as one group. #86 (D-125): "My questions", and what a pin can hold.
 - **Figures set beside published ones.** New vehicles on the wider scope: within 0.06% of the
   MIA's for October 2026, older months about 1% lower, cause not established (D-105, D-113).
   vstat equals ours for October 2026 (D-118). Hybrids as one group, new passenger vehicles,
   October 2026: 4,978 of 11,824; Auto Trader has the same total and 4,859 "petrol hybrids";
   119 of our mild hybrids that month are one diesel nameplate; cause not claimed (D-124).
-- 2026-11-17, eleventh session, the user (D-126): the `region` slice takes the small-cell rule
-  now; a pinned link is to load its snapshot's release (queued); axles are checked first.
+- 2026-11-17 and 18, eleventh session. The user changed three things (D-126). **Merged: #90**
+  (D-126; D-129: `NUMBER_OF_AXLES` is a count only on heavy vehicles and is withdrawn from
+  every use) **and #92** (D-131: a link pinned to an earlier month reads that snapshot's own
+  cube, which the deploy keeps in the built site, less any owner table not written under the
+  small-cell rule). `Deploy` ran clean on `main` after #92 and uploaded nothing; with one
+  release, downloading a second is not yet proven on GitHub.
 - **Measured on 17 November for the next pieces** (a read-only profile of the saved 2026-10
   pull; restate each figure, re-measured, in the record of the piece that uses it):
   - Colour: 14 values, 5 blanks. A narrow table with make alone is about 276 KB; with make
     and segment group or import status about 370 KB; with make and powertrain 407 KB.
-  - Owner fields, latest 12 months as one window: one cell under 10 each for district, region
-    and industry class. By month over all history 47.7% of district cells are under 10, and
-    in 174 to 443 of 1,197 months exactly one cell would be hidden, which a total gives
-    away: the hiding needs a second rule. The register has no owner-type field.
 
-## Open pull requests
+## Open pull requests (each in independent review on 18 November)
 
-- #90: D-126 and the axles finding (D-129), in review. `claude/small-cells` and
-  `claude/power-transmission` are being built (`nzta-audit`, `nzta-notes`), not yet pushed.
+- **#91** (D-127; `claude/small-cells`, worktree `nzta-audit`): the `region` slice under the
+  small-cell rule. The review found a month shape that gave hidden cells away; fixed (a month
+  with no visible cell is not broken down), re-measured, in re-check. **Merge this first.**
+- **#93** (D-128; `claude/power-transmission`, `nzta-notes`): power in bands, the gearbox in
+  four groups. Whichever of #91 and #93 merges second needs `main` merged in and the golden
+  file regenerated in that merge commit (both change `payload_bytes` and the manifest).
+- **#94** (D-130; `claude/hidden-cells-guard`, `nzta-firstload`): the site refuses a slice
+  with hidden counts and blocks a question over a protected dimension. After #91 merges, run
+  `node --test tests/site/hidden-cells-loader.test.ts`: its printed note must be gone.
 
 ## The queue, in order
 
-1. **Power and transmission** (package F; D-128; branch `claude/power-transmission`, being
-   built): power in the data map's bands, transmission through a reference file of groups;
-   each with its guard, its "recorded only for" rule and the months it is well recorded. Two
-   golden contract changes. Then, as its own pull request, the two as breakdowns in Build.
-2. **Hiding small cells, with the `region` slice** (D-126, D-127; branch `claude/small-cells`,
-   being built): cells under 10 hidden, a second rule where a total would give one away; the
-   build checks its own file. **On `main` before NZTA's December refresh.** Then the site
-   reading a hidden cell (D-130). Then the first owner table, built privately and shown to
-   the user, as figures and screenshots, before a pull request that would publish it merges.
-3. **A pinned link loads the cube release for its snapshot** (the user, D-126), so a quoted
-   figure still shows after later refreshes. To settle first: where a browser can read a past
-   snapshot's cube from; October's release holds the `region` slice unhidden (D-126).
+1. **Power and transmission in Build** (package F): after #93, the two fields as breakdowns
+   (config phrases, the "recorded for NZ-new vehicles only" note, the shape fixture).
+2. **The first owner table** (D-096, D-120), after #91: built privately and shown to the
+   user, as figures and screenshots, before a pull request that would publish it merges.
+   Measured on 17 November: by month, 47.7% of district cells are under 10; over the latest
+   12 months as one window, one cell each for district, region and industry class.
+3. **Drawing a hidden cell** (D-130 lists what it needs), only when a chart by the owner's
+   region is wanted. **The pinned link's leftovers** (D-131): the "newest cube" step reads one
+   page of releases; the host's limits are unchecked (a kept snapshot adds about 3.2 MB).
 4. **Colour**, in a narrow table of counts of its own (a contract change; costs above).
 5. **The SUV file's next slice** (D-123, "left"): people movers and sports cars; whether the
    register holds the Levorg Layback as LEVORG and the Impreza XV as IMPREZA; three sizes each
@@ -96,7 +96,7 @@ Last updated by claude on 2026-11-17
 D-082, D-085 to D-095 (the eighth session). The ninth: the readings in D-096, D-104 and D-106
 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119 (D-119's line is now the
 user's). The tenth: the readings in D-120, and D-121 to D-125. The eleventh: the readings in
-D-126. Not yet in a record: the three sizes in queue item 5.
+D-126, and D-127 to D-131. Not yet in a record: the three sizes in queue item 5.
 
 ## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
 
