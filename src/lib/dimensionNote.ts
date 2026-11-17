@@ -28,9 +28,9 @@ export type NoteFields = {
 // The anchor of a field's section on the method page.
 export const fieldNoteAnchor = (id: string): string => `field-${id}`;
 
-// The full note a field has a section for on the method page: where it has a one-line form, and no condition. A note with a condition speaks of
-// the chart it sits on (it says what the note below it holds, or goes when a build lacks what it describes), so its line stands without a section.
-export const fullNote = (d: NoteFields | undefined): string | undefined => (d?.public_line && !d.note_condition ? d.public_note : undefined);
+// The full note a field has a section for on the method page: where it has a one-line form. A note with a condition speaks of the chart it sits on
+// (it says what the note below it holds, or goes when a build lacks what it describes), so it has no line and a chart shows it whole; a test holds it.
+export const fullNote = (d: NoteFields | undefined): string | undefined => (d?.public_line ? d.public_note : undefined);
 
 // The note a view carries: plain text, or a template to fill from the manifest. A public page reads public_line, or public_note where there is
 // no line; more is set where the line has a full note to link to.

@@ -18,11 +18,21 @@ const state = { splitPublished: true };
 const offered = new Set(builderSpec.measures.flatMap((m) => Object.keys(m.dimensions ?? {})));
 const withLine = dimensions.filter((d) => d.public_line);
 
-test("every field Build offers that has a public note has a one-line form", () => {
+test("every field Build offers that has a public note has a one-line form, except a note with a condition", () => {
   const noted = dimensions.filter((d) => offered.has(d.id) && d.public_note);
   assert.ok(noted.length >= 5, "the fields the brief names, at least, are offered and noted");
-  const missing = noted.filter((d) => !d.public_line).map((d) => d.id);
+  // A note with a condition speaks of the chart it sits on (what the note below it holds, or nothing where a build lacks what it describes), so it
+  // has no section on the method page to link to. Cut to a line it would leave its whole text reachable nowhere, so it has no line and a chart shows it
+  // whole (the rule below holds that).
+  const missing = noted.filter((d) => !d.public_line && !d.note_condition).map((d) => d.id);
   assert.deepEqual(missing, [], `fields with a public_note and no public_line: ${missing.join(", ")}`);
+  assert.ok(noted.some((d) => d.note_condition), "config has a conditional note: the exemption is in use");
+});
+
+test("a note with a condition has no line, so its whole text is what a chart shows", () => {
+  const conditional = dimensions.filter((d) => d.note_condition);
+  assert.ok(conditional.length > 0);
+  for (const d of conditional) assert.equal(d.public_line, undefined, `${d.id}: a line with no whole note to link to`);
 });
 
 test("a one-line form summarises a note: it has one, and is shorter", () => {
@@ -54,12 +64,12 @@ test("a public chart shows the line and links to the full note; the maintainers'
   assert.equal(dimensionNote(plain, true, state).more, undefined);
 });
 
-test("a note with a condition shows its line while it holds, its other sentence when it does not, and links to nothing", () => {
-  const conditional = dimensions.find((d) => d.public_line && d.note_condition);
-  assert.ok(conditional, "config has a conditional note with a line");
+test("a note with a condition shows whole while it holds, its other sentence when it does not, and links to nothing", () => {
+  const conditional = dimensions.find((d) => d.public_note && d.note_condition);
+  assert.ok(conditional, "config has a conditional note");
   assert.equal(fullNote(conditional), undefined, "a note about the chart it sits on has no section of its own");
   const holds = dimensionNote(conditional, false, { splitPublished: true });
-  assert.equal(holds.plain, conditional.public_line);
+  assert.equal(holds.plain, conditional.public_note);
   assert.equal(holds.more, undefined);
   const not = dimensionNote(conditional, false, { splitPublished: false });
   assert.equal(not.plain, conditional.public_note_otherwise);
