@@ -134,7 +134,8 @@ The only six renderers. Every preset and every builder output maps to one.
 Shape is **inferred** from measure + dimension. Where more than one shape
 fits the question, the visitor may switch among those that fit; they never
 get a shape that does not fit, and there is no seventh. The sixth, `matrix`,
-was approved by the user on 2026-11-14 (D-083); its renderer is planned.
+was approved by the user on 2026-11-14 (D-083); its renderer is an HTML
+table drawn from the design tokens, not a Plot figure (D-114).
 
 | Shape | Renderer | Triggered by |
 |---|---|---|
@@ -162,7 +163,8 @@ visual variant chosen by config inside a shape (such as the ridgeline inside
 
 - Astro + React islands, static output, deployed to Cloudflare Pages
   (planned: nothing is deployed yet; the site runs locally, D-014)
-- Observable Plot for all six shapes
+- Observable Plot for five of the six shapes; `matrix` is an HTML table
+  drawn from the design tokens (D-114)
 - TanStack Table (virtualised) for league tables (planned: not yet a
   dependency; `LeagueChart` draws a Plot bar chart over a plain,
   non-virtualised rank table; no Explore preset is a live league, and the
