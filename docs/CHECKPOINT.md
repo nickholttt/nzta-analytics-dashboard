@@ -49,7 +49,7 @@ New Zealand sources.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. Done: ranked chosen values, conditions, CSV, the acceptance question on today's
    fields (#71); true registrations on the wider scope as a dataset (#73, D-113); a second
-   breakdown in Build, drawn as the `matrix` grid (#75, D-114). Next: the site showing
+   breakdown in Build, drawn as the `matrix` grid (#75, #76; D-114). Next: the site showing
    `registrations_flow_wider` (never on one chart with another dataset; "new vehicles" is
    its `import_status` condition). Then: colour, seats, where assembled, class; power and
    transmission; owner fields last, unpublished until small cells are hidden (D-096). Left:
