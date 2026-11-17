@@ -431,8 +431,12 @@ export type MatrixPhrases = {
   matrix_thin_columns: string;
   matrix_rows_largest: string;
   matrix_columns_largest: string;
+  matrix_rows_largest_one: string;
+  matrix_columns_largest_one: string;
   matrix_rows_picked: string;
   matrix_columns_picked: string;
+  matrix_rows_picked_one: string;
+  matrix_columns_picked_one: string;
   matrix_rows_all: string;
   matrix_columns_all: string;
   matrix_rows_ordered: string;
@@ -511,7 +515,8 @@ export function matrixSentences(p: MatrixPhrases, f: MatrixFacts) {
         ])
       : [];
     return present([
-      said(p[key(s.mode)], context),
+      // One value standing on a side is said in the singular, as the rest line and a tie are.
+      said(p[key(s.shown === 1 && (s.mode === "largest" || s.mode === "picked") ? `${s.mode}_one` : s.mode)], context),
       s.tiedBeyond > 0 && s.mode === "largest" ? said(p[key(s.tiedBeyond === 1 ? "tie_one" : "tie")], context) : undefined,
       s.kept ? said(p[key("kept")], context) : undefined,
       s.rest && parts.length ? said(p[key("rest")], { ...context, list: sayList(parts) }) : undefined,

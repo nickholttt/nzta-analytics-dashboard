@@ -41,11 +41,11 @@ New Zealand sources.
 3. **Package F**, each field checked against the data and published sources before Build
    offers it. Done: ranked chosen values, conditions, CSV, the acceptance question on today's
    fields (#71); true registrations on the wider scope as a dataset (#73, D-113); a second
-   breakdown in Build, drawn as the `matrix` grid (#75, #76; D-114). Next: the site showing
-   `registrations_flow_wider` (never on one chart with another dataset; "new vehicles" is
-   its `import_status` condition). Then: colour, seats, where assembled, class; power and
-   transmission; owner fields last, unpublished until small cells are hidden (D-096). Left:
-   "My questions", the related-fields note, the question with a new field.
+   breakdown in Build, drawn as the `matrix` grid (#75, #76; D-114); the wider scope on the
+   site, never on a chart with another dataset (#77, D-118). Next: assembled, class and seats,
+   then colour; power and transmission; owner fields last, unpublished until small cells are
+   hidden (D-096). Left: "My questions", the related-fields note, the question with a new
+   field, hybrids and mild hybrids as one figure (a roll-up dimension, D-118).
 4. **Package I, first slice** (#78, D-117): SUV or car for 169 nameplates, 90% of recent
    passenger vehicles; 77 of 109 rows only medium; nothing reads the file; no disagreement in
    100 comparisons with the FCAI's published sample (a private check). Next: primary sources

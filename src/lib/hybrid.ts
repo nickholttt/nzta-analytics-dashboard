@@ -21,6 +21,7 @@ export type HybridPhrases = {
   identification_coverage: string;
   identification_coverage_internal: string;
   identification_coverage_whole: string;
+  identification_together: string;
   mild_split_withheld: string;
   mild_split_withheld_internal: string;
 };
@@ -74,6 +75,8 @@ export function hybridNotes(input: {
         all_time_high: percent(coverage.all_time.coverage_high_confidence_only ?? 0),
       }).text,
       ...(narrowed ? [phrases.identification_coverage_whole] : []),
+      // The sum of the two lines is what a source that does not divide hybrids shows as one; said where the mild line is, since that is where a visitor sees two.
+      fillTemplate(phrases.identification_together, { hybrid: undividedValue.toLowerCase(), value: mildValue.toLowerCase() }).text,
     ].join(" "),
   };
 }
