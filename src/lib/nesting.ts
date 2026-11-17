@@ -7,7 +7,7 @@ export type MapDimension = { id: string; derive: { kind: string; field?: string 
 
 // The dimensions a map field stands for: the one with its bound name, and any that is a lookup, a copy or a banding of that field alone. A
 // dimension read from several fields (a segment from type, body and weight) is not that field, so a roll-up of the field does not carry to it.
-const standingFor = (field: MapField, dimensions: readonly MapDimension[]): string[] =>
+export const standingFor = (field: MapField, dimensions: readonly MapDimension[]): string[] =>
   field.bound ? dimensions.filter((d) => d.id === field.bound || (d.derive.field === field.bound && ["raw", "lookup", "band"].includes(d.derive.kind))).map((d) => d.id) : [];
 
 // For each dimension, the dimensions it rolls up to, through any number of steps (a model under its brand under its group).

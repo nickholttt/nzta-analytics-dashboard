@@ -230,7 +230,9 @@
       "pin_kept": "Pinned to {pinned|month}. These are the figures of the snapshot of {date|date}, kept on this site.",
       "pin_kept_missing": "The snapshot of {date|date} that this link is pinned to cannot answer this question.",
       "pin_kept_withheld": "The snapshot of {date|date} that this link is pinned to does not say that small counts were hidden in the fields this question names, so its figures for this question are not shown.",
-      "small_cells_hidden": "This table has small counts hidden, and this site does not draw a table like that yet."
+      "small_cells_hidden": "This table has small counts hidden, and this site does not draw a table like that yet.",
+      "narrowed_label": "Starts with the vehicles it is recorded for",
+      "narrowed": "The register records {field} for {kind}. This question starts with those; remove the condition to count every vehicle."
     },
     "$datasets_comment": "What a question counts. The first is the default, and an address with no build.dataset means it. Each is offered only where the build made it, and only the dimensions, values and conditions that dataset carries are offered with it. A text that differs by dataset (note, dimension_notes) is an object keyed by dataset id.",
     "cannot_cross": [
@@ -245,6 +247,10 @@
       ["trade_group", "vehicle_type"]
     ],
     "$cannot_cross_comment": "Pairs of fields where each value of one sits under a single value of the other (a model under its brand, a brand under its group), so a grid of the two would be empty except along one line and its empty cells would be empty by construction, not by what people bought. Measured on the 2026-10 fact tables of both datasets: each value of the first sat under one value of the second, except that two models of the survivors and one of true registrations sat under two brands (and so two groups and countries). The data map's rolls_up_to gives make to parent_group and owner_country and model to make. Build offers no second breakdown that makes one of these pairs. Also measured: segment_group (vehicle class) sits under one vehicle_type (registered as), but vehicle_type is a condition only and never a breakdown, so no pair is listed for it; add [segment_group, vehicle_type] if it is ever offered. On the 2026-10 fact table of true registrations on the wider scope each of its five registered-as types sits under exactly one passenger-or-commercial group (Passenger holds one, Commercial four), so [trade_group, vehicle_type] is listed; vehicle_type is still a condition only, and the pair is listed so that offering it as a breakdown later cannot make a grid empty by construction. segment (vehicle type in Build's words) and segment_group are not nested (4 of 6 segments have more than one class), and are crossed. Build also reads the data map itself (src/lib/nesting.ts): a field that rolls up to another there, through any number of steps, is not crossed with it, nor with a dimension read from that field alone, so NZTA's class code is not crossed with the registered-as type or its passenger-or-commercial reading (D-122). This list stays for pairs the map does not record.",
+    "narrowings": {
+      "nz_new": { "dimension": "import_status", "value": "NZ New", "kind": "vehicles sold new in New Zealand" }
+    },
+    "$narrowings_comment": "A field the data map records for only a kind of vehicle (recorded_for) is narrowed to that kind when a question breaks down by it: the question starts with this condition, as an ordinary one the visitor can remove (src/lib/narrowing.ts, D-132). The key is a class of the map's recorded_for; the value is the condition that keeps it (a dimension and one of its values) and the words for the vehicles it keeps, filled into builder.notices.narrowed. A class with no entry narrows nothing and says nothing. The value is as the cube writes it (data/reference/import_status_map.csv, import_status); a test holds it to that file.",
     "period": "all",
     "period_when_comparing": "10y",
     "$period_when_comparing_comment": "A question that names values (brands, models) opens on the last ten years: most named values have little or no history before that, and all time would spend most of the chart on empty decades. The time row still offers all time.",

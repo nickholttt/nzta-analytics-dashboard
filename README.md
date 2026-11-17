@@ -19,7 +19,9 @@ From the data GitHub builds, which anyone can download (see "Run it"):
   how many seats vehicles have, engine power in bands of kilowatts, the kind of
   gearbox, NZTA's class code, and whether a vehicle was imported or assembled
   here. Power and the gearbox are recorded for vehicles sold new here and for
-  almost no used import, and those show as not recorded.
+  almost no used import, so a question broken down by either starts with the
+  vehicles sold new here and says so; remove that condition to count every
+  vehicle, and the used imports show as not recorded.
 - **Which brands lead** over the latest twelve months, and who is gaining or
   losing ground.
 - **Your own question**, on the Build page: choose what to count, break it
