@@ -1,11 +1,11 @@
-# Builds the public site from the newest cube and uploads it to Cloudflare Pages (D-055, D-056, D-057). Runs when the
-# monthly build starts it after building a month, on a push to main that changes the site, and by hand. Two jobs. The
-# first builds the site and holds no secret. The second uploads it: it names the environment "production", which only
-# main can use and which is where the Cloudflare secrets live, so no other branch's workflow can read them, and the
-# site's own dependencies are never installed beside the token. Nothing is uploaded until deploying is switched on by
-# the repository variable CLOUDFLARE_PAGES_PROJECT; until then the site is built and the run stops, so the build is
-# still checked. On a ref whose site has no public build (a branch cut from main before the site reached it with #46)
-# it stops before building.
+# Builds the public site from the newest cube, with every earlier snapshot's cube kept beside it (D-131), and uploads it to
+# Cloudflare Pages (D-055, D-056, D-057). Runs when the monthly build starts it after building a month, on a push to main that
+# changes the site, and by hand. Two jobs. The first builds the site and holds no secret. The second uploads it: it names
+# the environment "production", which only main can use and which is where the Cloudflare secrets live, so no other
+# branch's workflow can read them, and the site's own dependencies are never installed beside the token. Nothing is
+# uploaded until deploying is switched on by the repository variable CLOUDFLARE_PAGES_PROJECT; until then the site is built
+# and the run stops, so the build is still checked. On a ref whose site has no public build (a branch cut from main
+# before the site reached it with #46) it stops before building.
 name: Deploy
 
 on:
@@ -17,6 +17,7 @@ on:
       - "public/geo/**"
       - "astro.config.mjs"
       - "scripts/check-public-build.mjs"
+      - "scripts/kept-snapshots.mjs"
       - "scripts/internal-pages.json"
       - "package.json"
       - "package-lock.json"
@@ -103,6 +104,30 @@ jobs:
             echo "Cube: artifact $name (no cube release yet)" | tee -a "$GITHUB_STEP_SUMMARY"
           fi
           node -p "'Snapshot ' + require('./public/data/manifest.json').latest_snapshot" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # Every earlier snapshot's cube, so a link pinned to a month shows that month's figures (D-131): each published
+      # cube-YYYY-MM release that carries the cube's file, other than the newest (which is in public/data already), is
+      # unpacked as released into public/data/snapshots/<YYYY-MM>. The tag list is read into a variable first, so a failed
+      # request stops the run instead of reading as no releases; a release that cannot be downloaded or unpacked stops it
+      # too, since a deploy that quietly dropped a snapshot would break the links pinned to it. With one release, or none,
+      # there is nothing to keep and the index is written empty. The script checks each folder (its manifest must be for
+      # the month it is named for) and writes the index the page reads.
+      - name: The earlier snapshots
+        if: steps.site.outputs.ready == 'true'
+        run: |
+          newest=$(node -p "require('./public/data/manifest.json').latest_snapshot.slice(0, 7)")
+          release='[.[] | select((.draft | not) and (.tag_name | test("^cube-[0-9]{4}-[0-9]{2}$")) and any(.assets[]; .name == "public-data.tar.gz")) | .tag_name] | sort | .[]'
+          tags=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq "$release")
+          for tag in $tags; do
+            month="${tag#cube-}"
+            if [ "$month" = "$newest" ]; then continue; fi
+            mkdir -p "$RUNNER_TEMP/$tag" "public/data/snapshots/$month"
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern public-data.tar.gz --dir "$RUNNER_TEMP/$tag"
+            tar -xzf "$RUNNER_TEMP/$tag/public-data.tar.gz" -C "public/data/snapshots/$month"
+            rm -rf "$RUNNER_TEMP/$tag"
+          done
+          kept=$(node scripts/kept-snapshots.mjs public/data)
+          echo "$kept" | tee -a "$GITHUB_STEP_SUMMARY"
 
       # The internal pages, /status and /sense-check, stay off the public site (D-056): INTERNAL_PAGES=false drops the
       # links to them, and the pages themselves are removed from the build. A link to one that a later change lets back

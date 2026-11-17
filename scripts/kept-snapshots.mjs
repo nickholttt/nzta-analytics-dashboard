@@ -84,5 +84,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     process.exit(1);
   }
   const kept = writeIndex(dataDir);
-  console.log(`${dataDir}: ${kept.length} earlier snapshot(s) kept${kept.length ? ` (${kept.map((s) => s.month).join(", ")})` : ""}; snapshots/${INDEX_FILE} written.`);
+  console.log(`Earlier snapshots kept: ${kept.length}${kept.length ? ` (${kept.map((s) => s.month).join(", ")})` : ""}; snapshots/${INDEX_FILE} written.`);
 }
