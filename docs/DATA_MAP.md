@@ -51,7 +51,9 @@ by `pipeline/tests/test_data_map.py`. That file holds no measured figure; the fi
   tell apart (`src/lib/theme.ts`, D-060). Numbers, codes and free text are always "many".
 - **Moves together** is the bias-corrected Cramér's V between two fields, from 0 (no association) to
   1 (one decides the other), over S rows where both are recorded, with numbers cut into bands. It
-  says how strongly two fields move together and nothing about why.
+  says how strongly two fields move together and nothing about why. The figures on this page were
+  measured by hand on 2026-11-15 and 16; since D-136 every build writes them for the dimensions
+  (`docs/CUBE_SCHEMA.md`, Associations), and "Moves together with" below sets the two beside each other.
 
 Each field below has the same parts: meaning; kind and values; uses; coverage; not recorded; traps;
 privacy; relations.
@@ -1240,7 +1242,8 @@ site never offers these as a finding):
 | Road transport code and usage | 0.44 | Both name commercial services (inferred - confirm) |
 | Age at registration and vehicle year (banded) | 0.27 | Age is computed from vehicle year |
 
-A field and any dimension derived from it are always such a pair.
+A field and any dimension derived from it are always such a pair. The build marks all three kinds in its
+file: a pair listed here, a dimension that rolls up to another, and two dimensions derived from the same field.
 
 **Measured pairs, the strongest** (S; rows are vehicles with both recorded):
 
@@ -1264,11 +1267,45 @@ A field and any dimension derived from it are always such a pair.
 Each field's strongest partners are in its own section above. District moves with nothing above
 0.15; colour with nothing above 0.25; registration month with nothing above 0.05.
 
+**Written each build (D-136).** `public/data/associations/{dataset}.json` holds the bias-corrected Cramér's V of every
+pair of a dataset's fact-table dimensions, for the whole dataset and for the latest 12 months, with the vehicles
+counted and the number of values on each side, and marks the pairs above that are not findings
+(`docs/CUBE_SCHEMA.md`, Associations: the formula, which vehicles count, the faults that stop a build). Its pairs
+are of the dimensions the site publishes, so it differs from the profile above wherever a dimension groups or bands
+its field differently, and it measures pairs the profile did not (make, model, the brand lookups). The profile
+and its table stay as the record of 2026-11-15 and 16, measured on the private archive's file. The build's figures
+below are from the dry run of 2026-11-18 on the saved pull of the 2026-10 snapshot (`registrations_surviving`,
+4,520,304 vehicles; the profile's 4,520,476 includes 172 with no registration month, which the cube leaves out).
+
+| Pair | This page | Build | Why they differ |
+|---|---|---|---|
+| Country built in and vehicle type | 0.59 | 0.5939 | The same fields and values |
+| Import status and country built in | 0.53 | 0.5319 | The same |
+| Class and vehicle type | 1.00 | 1.0000 | The same |
+| Country built in and class | 0.35 | 0.3467 | The same |
+| Seats (banded) and vehicle type | 0.49 | 0.4864 | Equal to two places (this page does not give its seat bands) |
+| Age at registration and import status | 0.99 | 0.9864 | Equal to two places |
+| Motive power and vehicle type | 0.72 | 0.7102 | The build uses the powertrain: 10 values, with the mild hybrids divided by make and model. Raw motive power (15 values) recomputed from the pages: 0.7175 |
+| Transmission and vehicle type | 0.54 | 0.4518 | The build uses four gearbox groups for NZTA's 28 values. Recomputed from the pages: raw 0.5372, groups 0.4518 |
+| Class and transmission | 0.43 | 0.2940 | The same cause. Raw recomputed: 0.4277 |
+| Motive power and transmission | 0.34 | 0.5904 | The same cause, and the largest gap. Recomputed from the pages: raw by raw 0.3423, raw motive power by the four groups 0.588 |
+| Engine size (banded) and vehicle type | 0.52 | 0.4968 | The build's band for "no engine" (electric vehicles) is a value, so 4,518,886 vehicles count against 4,412,632 here, and its bands start at 50 cc and end at "4.0 L and over". This page's bands with zero engine size left out, recomputed: 0.5161 |
+| Engine size (banded) and class | 0.44 | 0.3544 | The same cause. Recomputed: 0.4353 |
+| Engine size and power (both banded) | 0.37 | 0.3543 | Not recomputed. The engine band's no-engine value and the power band's edges apply |
+| Power (banded) and transmission | 0.32 | 0.2050 | Not recomputed. The gearbox groups apply |
+| NZ-assembled flag and transmission | 0.21 | 0.1404 | Not recomputed. The gearbox groups apply |
+
+Pairs of the strongest table with gross vehicle mass, combined fuel consumption, body type and road transport code have
+no dimension in a fact table, so the build has no figure for them. Where a recomputed figure is given, it was
+computed from the saved pages with plain DuckDB and no pipeline code, by the bands and sentinels written out in a
+scratch script; the three pairs checked against the file itself are in D-136.
+
 **What it will mean on the site.** The association is computed each build, not taken from this
 page. Where a question crosses two fields that move together strongly (and the pair is not true by
 definition), the workbench shows one neutral line, for example that the two fields move together
 strongly and holding one fixed may change the answer, with the figure one step away. It never says
-why. The threshold and the wording are config, set by the work that builds it.
+why. The threshold and the wording are config, set by the work that builds it; the site does not read
+the file yet.
 
 ## `VIN11` checked against the data
 
@@ -1428,11 +1465,11 @@ Notes for the work that follows. None of it is done here.
 - **Build reading the map.** Offer a field only if it is bound, its dimension is live, its privacy
   class is published (`privacy_classes.<class>.published`), and its `uses` allow it. Narrow a
   question to `recorded_for` and say so. The method page's definition line is `definition`.
-- **The association figures each build.** Bias-corrected Cramér's V on the in-scope dataset, rows
-  with both fields recorded, numbers cut into their bands, with the row count beside each figure;
-  leave out pairs listed in `moves_together.true_by_definition` and pairs of a field with a dimension
-  derived from it. The profile's method is in this doc ("Moves together with"). The figures go to a
-  per-build output, not to this file.
+- **The association figures each build.** Built (D-136): `associations/{dataset}.json`, bias-corrected Cramér's V
+  on each dataset's vehicles, rows with both values recorded, with the row count beside each figure. It marks
+  rather than leaves out the pairs listed in `moves_together.true_by_definition`, those that roll up and those
+  derived from one field, so the site can say "true by definition". Not done: the site's reading of it. The
+  profile's method is in this doc ("Moves together with"); the figures are in the file, not in this doc.
 - **Coverage each build.** The coverage figures here (by status, type and period) will go stale. A
   per-build output of the same shares would let a chart start where its field does without a
   hand-kept year.

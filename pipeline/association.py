@@ -161,6 +161,9 @@ def month_key(month) -> str:
 def measure_pairs(con, cfg, dim_ids: list[str], live: dict, ds: str, window_start, snapshot_month) -> list[dict]:
     """Every pair of the dimensions, sorted, with its figures in both windows, from the dataset's counts by month and
     dimension (the fact table's rows)."""
+    if len(dim_ids) < 2:
+        # A table with one live dimension, or none, has no pair to measure.
+        return []
     columns = ", ".join(f"{live[i].column} AS {quote(i)}" for i in dim_ids)
     con.execute(f"""
         CREATE OR REPLACE TEMP TABLE association_cells AS
