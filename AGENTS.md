@@ -42,7 +42,7 @@ Run from the repo root.
 
 | Purpose | Command | Verified result 2026-09-13 |
 |---|---|---|
-| Pipeline tests (as CI) | `.venv/Scripts/python.exe -m pytest pipeline/tests -q -p no:cacheprovider` | 100 passed, 520 s with a site build going (2026-11-13) |
+| Pipeline tests (as CI) | `.venv/Scripts/python.exe -m pytest pipeline/tests -q -p no:cacheprovider` | 889 passed in 25 min 12 s (2026-11-17, before `main` was merged in); `Checks` runs it on every pull request in about five minutes |
 | Typecheck site | `npx -y -p typescript tsc --noEmit` | exit 0. TypeScript isn't a dependency, so plain `npx tsc` fails |
 | Site tests | `node --test "tests/site/*.test.ts"` | 258 passed in about 3 s (2026-11-17); also run on every pull request (D-101) |
 | Build site | `npx astro build` | 7 pages built to `dist/`, `404.html` among them (2026-10-22). No npm `build` script exists |
