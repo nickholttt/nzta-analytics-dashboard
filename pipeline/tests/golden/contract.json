@@ -47,6 +47,7 @@
      "nzta_class",
      "seats_band",
      "power_band",
+     "transmission",
      "model"
     ],
     "not_live": {
@@ -81,6 +82,7 @@
       "nzta_class",
       "seats_band",
       "power_band",
+      "transmission",
       "model"
      ],
      "not_live": {}
@@ -105,6 +107,7 @@
      "nzta_class": 0.0,
      "seats_band": 0.0,
      "power_band": 0.0,
+     "transmission": 0.0,
      "model": 0.0
     },
     "unmapped_guard": {
@@ -197,6 +200,24 @@
        "abort_above": 0.02,
        "headroom_rows": 1
       }
+     },
+     "transmission": {
+      "whole_run": {
+       "rows": 59,
+       "unmapped": 0,
+       "rate": 0.0,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 52,
+       "unmapped": 0,
+       "rate": 0.0,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      }
      }
     },
     "mild_hybrid_identification_coverage": {
@@ -256,6 +277,7 @@
       "region": 0.9608,
       "nz_assembled": 0.9216,
       "nzta_class": 0.9608,
+      "transmission": 0.5686,
       "model": 1.0
      }
     },
@@ -374,7 +396,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 51814,
+  "payload_bytes": 54037,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -6651,6 +6673,373 @@
     ]
    ]
   },
+  "registrations_surviving/transmission.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "__UNDEFINED__",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "__UNDEFINED__",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "__UNDEFINED__",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "Continuously variable",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "__UNDEFINED__",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "Automatic",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "__UNDEFINED__",
+     2,
+     2,
+     10.7,
+     2,
+     2
+    ],
+    [
+     "2025-11-01",
+     "Automatic",
+     1,
+     2,
+     9.1,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "__UNDEFINED__",
+     1,
+     2,
+     6.2,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "Automatic",
+     1,
+     2,
+     7.8,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "Manual",
+     1,
+     2,
+     6.8,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "Manual",
+     1,
+     2,
+     4.9,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "__UNDEFINED__",
+     1,
+     2,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "Continuously variable",
+     1,
+     3,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "Manual",
+     1,
+     3,
+     6.0,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "__UNDEFINED__",
+     1,
+     3,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Automatic",
+     1,
+     5,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Continuously variable",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Manual",
+     1,
+     5,
+     10.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "__UNDEFINED__",
+     2,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Manual",
+     1,
+     5,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Other",
+     1,
+     5,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-04-01",
+     "__UNDEFINED__",
+     3,
+     5,
+     11.8,
+     2,
+     3
+    ],
+    [
+     "2026-05-01",
+     "Automatic",
+     1,
+     6,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Continuously variable",
+     1,
+     6,
+     8.4,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Manual",
+     1,
+     6,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "__UNDEFINED__",
+     3,
+     6,
+     16.2,
+     3,
+     3
+    ],
+    [
+     "2026-06-01",
+     "Continuously variable",
+     1,
+     6,
+     6.9,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "Other",
+     2,
+     6,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-06-01",
+     "__UNDEFINED__",
+     3,
+     6,
+     7.1,
+     2,
+     3
+    ],
+    [
+     "2026-07-01",
+     "Automatic",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "Other",
+     1,
+     5,
+     4.8,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "__UNDEFINED__",
+     3,
+     5,
+     17.4,
+     3,
+     3
+    ],
+    [
+     "2026-08-01",
+     "Automatic",
+     5,
+     11,
+     30.7,
+     5,
+     5
+    ],
+    [
+     "2026-08-01",
+     "Continuously variable",
+     2,
+     11,
+     9.6,
+     2,
+     2
+    ],
+    [
+     "2026-08-01",
+     "Other",
+     1,
+     11,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-08-01",
+     "__UNDEFINED__",
+     3,
+     11,
+     7.4,
+     2,
+     2
+    ]
+   ]
+  },
   "registrations_surviving/vehicle_type.parquet": {
    "schema": [
     [
@@ -11742,6 +12131,184 @@
     ],
     [
      "Light passenger"
+    ]
+   ]
+  },
+  "registrations_surviving/transmission.parquet": {
+   "schema": [
+    [
+     "transmission",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Automatic"
     ]
    ]
   },

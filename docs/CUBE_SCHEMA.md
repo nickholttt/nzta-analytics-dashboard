@@ -287,6 +287,15 @@ here only, and the pipeline does not look at the import status: the 141 used imp
 1,787,993 are in `unknown`. The dimension's `public_note` says so, and from which month power is well
 recorded. No mean or median is built.
 
+`transmission` (the kind of gearbox NZTA records, in four groups under the names in the `group` column of
+`transmission_map.csv`; D-128) is a lookup again, with a group for a label, so many of NZTA's 28 values share one published
+value. It is a column of `registrations_surviving`'s table and has a slice of its own; the other three datasets carry no
+gearbox, so it is not live for them (`not_live`: "the source does not carry TRANSMISSION_TYPE") and none of their files
+changes. A blank is the only form of not recorded, and `sentinels.csv` lists none for the field. A raw value the file does not
+hold reads `__UNMAPPED__` and counts against the dimension's unmapped guard (below). NZTA records the gearbox for vehicles
+sold new here only, and the pipeline does not look at the import status: the 116 used imports with a gearbox keep it, and the
+other 1,788,018 read `__UNDEFINED__`. `public_note` says so, and from which month the gearbox is well recorded.
+
 `powertrain_group` (the powertrain in five groups, under the names in the `powertrain_group_label` column of
 `powertrain_map.csv`; D-124) is a column of the table of every dataset whose `facts` list the powertrain (the three that
 have a fact table), and has a slice of each. It is read from the same final motive power as the powertrain, and the file
@@ -759,7 +768,7 @@ Mapping:
   in-scope row, or in-scope rows first registered in the trailing 12
   months. Both must pass.
 - Unmapped powertrain above 2% of in-scope rows, on the same two bases.
-- Unmapped `nz_assembled`, `nzta_class` or `powertrain_group` above 2% of in-scope rows, on the same two bases (every dimension in
+- Unmapped `nz_assembled`, `nzta_class`, `transmission` or `powertrain_group` above 2% of in-scope rows, on the same two bases (every dimension in
   `abort_on_unmapped` in `config/pipeline.json` is guarded so, D-116).
 - A dimension that was live in the last good run exceeds its unmapped
   threshold or loses a reference file.
@@ -836,7 +845,7 @@ is worse than one that is visibly stale.
 
 ## Warnings — the build continues, recorded in `manifest.warnings`
 
-- Unmapped make, powertrain, `powertrain_group`, `nz_assembled` or `nzta_class` over the trailing 12 months is above 0.5% of
+- Unmapped make, powertrain, `powertrain_group`, `nz_assembled`, `nzta_class` or `transmission` over the trailing 12 months is above 0.5% of
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.

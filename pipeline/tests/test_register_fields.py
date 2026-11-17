@@ -28,7 +28,10 @@ from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
 SURVIVING = "registrations_surviving"
 ROOT = Path(__file__).resolve().parents[2]
 # The dimensions of this module that are a lookup on one register field.
-LOOKUPS = ["nz_assembled", "nzta_class"]
+LOOKUPS = ["nz_assembled", "nzta_class", "transmission"]
+# The lookups that give each code a label of its own. A grouping (the transmission) gives many codes one label on purpose.
+ONE_LABEL_PER_CODE = ["nz_assembled", "nzta_class"]
+GROUPED = "transmission"
 
 
 def spec_of(cfg, dim_id: str) -> dict:
@@ -102,7 +105,7 @@ def fact_counts(public, dim_id: str) -> Counter:
 # --- the reference files and the sentinels ------------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("dim_id", LOOKUPS)
+@pytest.mark.parametrize("dim_id", ONE_LABEL_PER_CODE)
 def test_every_code_has_a_readable_label_that_names_one_code_only(dim_id):
     cfg = make_cfg({})
     labels = reference_labels(cfg, dim_id)
@@ -113,6 +116,17 @@ def test_every_code_has_a_readable_label_that_names_one_code_only(dim_id):
     assert not set(values) & {UNDEFINED, UNMAPPED, OTHER}
     d = spec_of(cfg, dim_id)["derive"]
     assert d["kind"] == "lookup" and d["value"] != d["key"]
+
+
+def test_a_grouped_lookup_publishes_the_groups_label_and_has_fewer_values_than_codes(tmp_path, workspace):
+    cfg, rows, manifest = build_fixture(tmp_path, workspace)
+    d = spec_of(cfg, GROUPED)["derive"]
+    labels = reference_labels(cfg, GROUPED)
+    assert d["kind"] == "lookup" and d["value"] == "group", "the dimension must publish the group, not the label of each code"
+    assert 2 <= len(set(labels.values())) < len(labels), "a grouping that does not group proves nothing"
+    published = set(slice_counts(workspace["public"], GROUPED)) - {UNDEFINED, UNMAPPED}
+    assert published <= set(labels.values()) and len(published) >= 3, published
+    assert max(Counter(labels.values()).values()) > 1
 
 
 @pytest.mark.parametrize("dim_id", LOOKUPS)

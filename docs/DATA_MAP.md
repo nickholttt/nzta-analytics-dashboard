@@ -71,7 +71,7 @@ and a median). Values are S then W. Privacy is the class the user approved (D-09
 | `BASIC_COLOUR` | category, many | 14; 14 | B F, count | public | no |
 | `NUMBER_OF_SEATS` | number | 172; 193 | B (banded) F, count (average and median not built) | public | `seats` |
 | `NUMBER_OF_AXLES` | number | 10; 10 | F, count | public | no |
-| `TRANSMISSION_TYPE` | category, many | 28; 28 | B F, count (NZ-new only) | public | no |
+| `TRANSMISSION_TYPE` | category, many | 28; 28 | B F, count (NZ-new only) | public | `transmission` |
 | `SYNTHETIC_GREENHOUSE_GAS` | category, many | 38; 39 | B F, count (from 2010) | public | no |
 | `MOTIVE_POWER` | category, many | 15; 18 | B F, count | public | `motive_power` |
 | `ALTERNATIVE_MOTIVE_POWER` | category, many | 9; 9 | F, count | public | `alternative_motive_power` |
@@ -105,7 +105,7 @@ The dashboard's 13 columns are in "The dashboard's fields" below: each is as its
 except where that section says otherwise. Ten are public; `Owner Type`, `Territorial
 authority` and `Vehicle usage` fall under the owner rule.
 
-Counts. Register: 21 bound and 19 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
+Counts. Register: 22 bound and 18 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
 2 place, 1 free text. By class: 31 public, 5 under the owner rule, 2 never published,
 2 never pulled. Dashboard: 10 category, 1 time, 1 number, 1 place; 10 public, 3 under the owner rule.
 
@@ -435,10 +435,24 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   register does not say what it holds, so it is not placed. "Automatic" is NZTA's word AUTO; the
   register does not say whether it is a torque-converter, dual-clutch or automated manual gearbox. On
   the cube's 4,520,304 vehicles the groups hold: automatic 1,530,025; manual 383,358; continuously
-  variable 492,914; other 110,739; no value (NULL) 2,003,268.
-- **Coverage.** **NZ-new only**: NEW 92.1%, USED 0.0% (116 vehicles). Nothing before 1990; 1990s
-  33.9%; from 2000 between 56.9% and 64.2% of all S vehicles. W 43.7%.
-- **Not recorded.** NULL, covered.
+  variable 492,914; other 110,739; no value (NULL) 2,003,268. **Bound (D-128)** as the dimension
+  `transmission` ("Gearbox"), a lookup on `transmission_map.csv` publishing the group, a slice and a
+  fact-table column of `registrations_surviving`, and in `abort_on_unmapped`: a raw value the file does
+  not hold reads `__UNMAPPED__` and counts against the guard.
+- **Coverage.** **NZ-new only**: NEW 92.1% (2,516,920 of 2,732,170 on the cube), USED 0.0% (116 of
+  1,788,134). Nothing before 1990; 1990s 33.9%; from 2000 between 56.9% and 64.2% of all S vehicles.
+  W 43.7%. The pipeline does not look at the import status: the 116 used imports keep their value and
+  every other used import reads not recorded. **Where the gap is, among the NZ-new vehicles of the
+  cube** (power has a similar gap of its own: `POWER_RATING`). Passenger cars and vans: no month
+  from May 2003 has more than 1% with no gearbox recorded (April 2003: 18 of 1,791), and 4,027 of
+  1,757,869 from May 2003 on have none. Goods vehicles of 3.5 tonnes gross mass or less: no month from
+  February 2017 above 1%. Goods vehicles heavier than that: every month to October 2026 is above 1%
+  (42,429 of 81,369 first registered from May 2003 have none, over 12 tonnes 32,468 of 49,624). For all
+  NZ-new vehicles together the last month above 1% is the latest, October 2026 (172 of 14,912, 1.15%), and
+  320 of the 322 months from January 2000 are above it: of the 215,250 NZ-new vehicles with none,
+  118,540 are passenger cars and vans (114,513 of them before May 2003) and 96,710 are goods vehicles
+  (44.9%). `transmission`'s public note says the first two.
+- **Not recorded.** NULL, covered. `sentinels.csv` lists nothing for the field: no other form occurs.
 - **Traps.** `OTHER` is a recorded value on 110,739 S vehicles, 105,880 of them first registered from
   2020; what it holds is not shown. By NZTA's motive power, on the cube's 110,739 vehicles (all NZ-new,
   none a used import): electric 75,794 (68.4%), plug-in petrol hybrid 17,974, petrol 15,476,
@@ -1117,6 +1131,8 @@ is derived from, read from its `derive` block:
 | `vehicle_year_band` | `VEHICLE_YEAR`, against the snapshot year | none |
 | `engine_size_band` | `CC_RATING`, and `MOTIVE_POWER` for "no engine" | `powertrain_map.csv` |
 | `age_at_registration_band` | `FIRST_NZ_REGISTRATION_YEAR`, `VEHICLE_YEAR` | none |
+| `power_band` | `POWER_RATING`; `registrations_surviving` only (D-128) | none |
+| `transmission` | `TRANSMISSION_TYPE`; `registrations_surviving` only (D-128) | `transmission_map.csv` (its `group` column) |
 
 The dataset's scope is derived from `VEHICLE_TYPE` and `IMPORT_STATUS` (`vehicle_scope.csv`,
 `import_status_map.csv`). No register field is derived from another.
