@@ -2,6 +2,7 @@
 import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
+import { shownEnd } from "../lib/pin";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { figuresHeader } from "../lib/figuresHeader";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
@@ -458,6 +459,11 @@ export default function PresetPanel({
     </p>
   ) : null;
 
+  // A pinned question keeps its window ending in the month it was pinned to (src/lib/pin.ts), so the month the visitor may otherwise choose is
+  // not offered: to look at another, they unpin. A pin at or after the newest month changes nothing, and the page says so in its pin line.
+  const shownMonth = shownEnd(effectivePreset.through, latestMonthOf(effectivePreset, manifest), month);
+  const chooseMonth = effectivePreset.through ? undefined : handleMonthChange;
+
   let chart = null;
   if (preventsRender.length === 0 && rows) {
     // A view that loads no rows is said, not drawn: every renderer needs at least one month. A filter value that matches
@@ -527,8 +533,8 @@ export default function PresetPanel({
                 )
               : undefined
           }
-          month={month}
-          onMonth={handleMonthChange}
+          month={shownMonth}
+          onMonth={chooseMonth}
         />
       );
     } else if (shape === "league" && dimension) {
@@ -543,8 +549,8 @@ export default function PresetPanel({
           label={label}
           valueHeading={dimensionLabel ?? dimension.label}
           lead={lead}
-          month={month}
-          onMonth={handleMonthChange}
+          month={shownMonth}
+          onMonth={chooseMonth}
           after={
             answerFirst
               ? () => (
@@ -573,8 +579,8 @@ export default function PresetPanel({
             label2={label2}
             rowHeading={dimensionLabel ?? dimension.label}
             columnHeading={dimensionLabel2 ?? dimension2.label}
-            month={month}
-            onMonth={handleMonthChange}
+            month={shownMonth}
+            onMonth={chooseMonth}
             after={() => (
               <>
                 {definitionBlock}

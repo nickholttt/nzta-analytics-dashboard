@@ -55,6 +55,11 @@ as fields to swap in (D-122). The acceptance question was run with the powertrai
 powertrain and one value of class, on vehicles still registered, as a link, at 390 and 1280 px, with the file of figures
 compared against the fact table (D-122). No visitor has been given it.
 
+Also give the visitor "My questions" (D-125): ask them to keep the question they just answered so they can come back
+to it, and watch whether they find "Save this question" and "My questions" below the chart. Then ask what they expect
+a saved question to show next month, and whether they say a pinned one shows the figures they saw: the site says it shows
+the window, and the figures of the snapshot being served.
+
 After each question ask: "What is that figure counting?" (the site counts vehicles first registered in a month that
 are still registered today, not sales, unless the page says otherwise).
 

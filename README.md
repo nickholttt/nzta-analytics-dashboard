@@ -23,6 +23,13 @@ From the data GitHub builds, which anyone can download (see "Run it"):
 - **Your own question**, on the Build page: choose what to count, break it
   down, pick the brands or values to compare, add conditions, cross two
   fields in a grid, download the figures, share the link.
+- **Your saved questions**, under "My questions" on the Build page: save the
+  question on screen, rename it, list and export them as links. They are kept in
+  your browser only (no account, nothing sent anywhere, and the list does not
+  follow you to another device). A saved question opens on the newest month.
+  Pin it to the snapshot being served and a ranking or a grid keeps its window
+  ending in that month; the page says whether the figures are those of the
+  snapshot pinned to or of a newer one.
 
 These count vehicles that are still registered, so older months are missing
 the vehicles since scrapped.
@@ -173,6 +180,11 @@ a reference value.
   has released so far; its next monthly build holds them.
 - SUVs cannot be told apart from cars: the register records most as station
   wagons. A model-level classification is planned.
+- A pinned question cannot show an older snapshot's figures: the site serves
+  only the newest, and a past month's figures can change between snapshots. A
+  pin holds the window, and the page says which snapshot the figures are from.
+  Charts that always run to the newest month (lines over time, the distribution, the map)
+  cannot hold even the window, and say so.
 - A question on the Build page takes several seconds to answer on a phone.
   Most of the wait is the page's own code and fonts; the rest is the table of
   counts the browser downloads and adds up itself.
