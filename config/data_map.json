@@ -17,9 +17,9 @@
       "minimum_hidden_vehicles": 10,
       "$comment": "D-127. In a month where any cell is hidden, hide the smallest visible cell (ties by value order) until at least minimum_hidden_cells cells are hidden and together count at least minimum_hidden_vehicles, so that a total minus the visible cells is a sum of two or more cells that is itself at least that many. A month that cannot meet it gets one reserved row instead (docs/CUBE_SCHEMA.md). minimum_hidden_vehicles may not be below minimum_count (tested)."
     },
-    "enforced": false,
+    "enforced": true,
     "not_published": ["POSTCODE"],
-    "$comment": "The user's rule for owner fields (2026-11-16, D-096): only in tables of one or two fields (a slice or a pair, never the fact table or the committed snapshot aggregate), with any cell counting fewer than minimum_count vehicles hidden. The map's test holds an owner field to those outputs whatever its class or exceptions say. enforced is false until the pipeline hides small cells in a published slice or pair; while it is false no owner field is in a published class, and the only owner-derived output is the recorded exception on TLA. not_published lists owner fields the user holds back altogether for now: postcode totals (the same answer). A field leaves the list only on the user's word, in a new decision record. Nothing derived from VIN11 is covered by this rule."
+    "$comment": "The user's rule for owner fields (2026-11-16, D-096): only in tables of one or two fields (a slice or a pair, never the fact table or the committed snapshot aggregate), with any cell counting fewer than minimum_count vehicles hidden. The map's test holds an owner field to those outputs whatever its class or exceptions say. enforced is true since D-127: the pipeline hides small cells (the two rules above) in the slice of every dimension that reads an owner field, reads each such slice back, and refuses a pair with one (pipeline/small_cells.py, pipeline/privacy.py). That does not publish any other owner field: the map's test keeps every owner field out of a published class until the owner has been shown that field's first table (D-120). not_published lists owner fields the user holds back altogether for now: postcode totals (the same answer). A field leaves the list only on the user's word, in a new decision record. Nothing derived from VIN11 is covered by this rule."
   },
   "cardinality": {
     "few_max_values": 8,
@@ -50,7 +50,7 @@
       "restricted": true,
       "published": false,
       "pulled": true,
-      "meaning": "Describes the owner, or locates the owner. Built and tested privately. The user's rule for publishing it is owner_rule (D-096); none is published until the pipeline enforces that rule, other than through a recorded exception. Each field's after_review says which form the rule takes for it."
+      "meaning": "Describes the owner, or locates the owner. Built and tested privately. The user's rule for publishing it is owner_rule (D-096). The pipeline enforces it for a slice since D-127, but a field is published only through a recorded exception, or once the owner has been shown its first table (D-120). Each field's after_review says which form the rule takes for it."
     },
     "never_published": {
       "restricted": false,
@@ -667,7 +667,7 @@
       "privacy_reason": "Locates the owner; crossed with fine vehicle detail it can come down to one vehicle.",
       "after_review": "minimum_count",
       "published_exceptions": [
-        { "dimension": "region", "outputs": ["slice"], "decision": "D-078", "decision_covers": ["slice"], "$comment": "Kept by D-078's point 3 on the user's option that the region map still draws; the user confirmed on 2026-11-16 that the slice stays (D-096). It is published as it was, with no minimum count applied." }
+        { "dimension": "region", "outputs": ["slice"], "decision": "D-078", "decision_covers": ["slice"], "$comment": "Kept by D-078's point 3 on the user's option that the region map still draws; the user confirmed on 2026-11-16 that the slice stays (D-096). Published under the small-cell rule since D-127 (the owner's ruling of 2026-11-17, D-120 item 4): a cell under owner_rule.minimum_count is hidden, and a second rule keeps a total from giving a hidden cell away." }
       ],
       "bound": "tla",
       "relations": {
