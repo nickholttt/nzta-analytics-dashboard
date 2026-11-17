@@ -252,17 +252,48 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 ### `CLASS`
 
-- **Meaning.** NZTA: "Vehicle equipment standard classification". A short code. Read from the data
-  (inferred - confirm against NZTA's class definitions): codes beginning M are passenger vehicles,
-  N goods vehicles, T trailers and L motorcycle-type vehicles. MA holds most cars; MC is the passenger
-  class for off-road vehicles (402,266 of its 414,719 S vehicles are station wagons); MB holds light
-  vans; NA, NB and NC are goods classes holding, in turn, utes and light vans, then trucks, then
-  heavier trucks. **No definition of the codes could be read (D-116).** The Land Transport Rules'
-  table of vehicle classes is on legislation.govt.nz, which answered an automated reader with HTTP 403
-  on 2026-11-17, and NZTA's own site blocks automated readers, which is not worked around. So the
-  dimension's labels are the codes themselves (`class_map.csv`), and the meanings above stay inferred.
-- **Kind and values.** Category. 7 values on S, 21 on W (`class_map.csv` holds all 21, so a wider
-  scope does not trip the unmapped guard). S: MA 3,018,623; NA 701,639; MC 414,719; NB 72,851; NC
+- **Meaning.** NZTA: "Vehicle equipment standard classification". A short code. The table the maintainer
+  supplied by hand from NZTA's vehicle classes page on 2026-11-17 lists 27 codes (the page blocks
+  automated readers, so no agent or build read it; D-121). `class_map.csv` holds those 27 and `OTH`, 28 in
+  all. The definitions, in the supplied table's words shortened: M, passenger vehicles and omnibuses: MA a passenger car with up to nine seats
+  including the driver's, MB a forward control passenger vehicle, MC an off-road passenger vehicle (up to
+  nine seats, four-wheel drive, at least four of the listed off-road features); MD a light omnibus (more
+  than nine seats, gross vehicle mass up to 5 tonnes; MD1 to MD4 split it by mass and seats) and ME a heavy
+  omnibus (more than nine seats, over 5 tonnes). N, goods vehicles by gross vehicle mass: NA up to 3.5
+  tonnes, NB over 3.5 and up to 12, NC over 12. T, trailers by gross vehicle mass: TA a single-axle trailer
+  up to 0.75 tonnes, TB another trailer up to 3.5, TC over 3.5 and up to 10, TD over 10. L, mopeds,
+  motorcycles and tricycles: LA and LB mopeds on two and three wheels, LC a motorcycle, LD a motorcycle and
+  side-car, LE a motor tricycle (LB1, LB2, LE1 and LE2 say which wheels are at the front). AA and AB, pedal
+  cycles. `OTH` is not in that table: it is a value the register holds (83,228 vehicles of seven vehicle
+  types), and its label is the code. The dimension shows each label with its code in brackets.
+- **Checked against the register (2026-11-17, W, 5,926,990 vehicles).** 21 codes carry vehicles and 385,434
+  vehicles have none. Every one of the 21 has a row in the supplied table except `OTH`; the table's other
+  seven codes (AA, AB, LB1, LB2, LE1, LE2, MD) occur on no vehicle. Where a definition names something the
+  register records, vehicles recorded that fit it and vehicles that do not (a mass of 0 and a seat count of
+  0 are not recorded and are counted apart; mass is taken as kilograms, which the fits below support):
+  - Seats, MA to MC (up to nine): of 3,519,756, 3,518,625 have one to nine seats, 1,114 have ten or more
+    (MA 576, MB 432, MC 106) and 17 have 0 seats.
+  - Seats, MD1 to ME (more than nine): of 37,355, 36,664 have ten or more, 690 have nine or fewer (MD1 559,
+    MD2 1, MD3 47, MD4 9, ME 74) and 1 has 0 seats. MD1's 12-seat limit: no vehicle has more; 23,314 of
+    23,874 have 10 to 12 seats, 559 have fewer and 1 has 0. MD2's over-12 limit: 261 of 361 have more, 100
+    have 12 or fewer (90 with 12, 9 with 11, 1 with 3).
+  - Mass, goods vehicles: NA (up to 3.5 t) 744,836 of 744,929 fit, 10 are heavier (9 between 3.5 and 4.5 t,
+    1 over 12 t) and 83 have no mass; NB (3.5 to 12 t) 109,656 of 109,680 fit, 24 do not (6 at or under 3.5
+    t, 18 over 12 t); NC (over 12 t) 74,427 of 74,475 fit, 48 do not (32 between 10 and 12 t, 16 between 5
+    and 10 t).
+  - Mass, omnibuses: MD1 (up to 3.5 t) 23,871 of 23,874 fit and 3 have no mass; MD2 (up to 3.5 t) 360 of
+    361; MD3 (3.5 to 4.5 t) 1,486 of 1,535; MD4 (4.5 to 5 t) 800 of 876; ME (over 5 t) 10,628 of 10,709.
+  - Mass, trailers: TA (up to 0.75 t) all 25,189 with a mass fit, and 518,086 of 543,275 have no mass; TB (up
+    to 3.5 t) 186,425 of 186,427 fit, the other 2 are over 12 t; TC (3.5 to 10 t) all 1,511; TD (over 10 t)
+    all 40,557.
+  - Axles, TA (a single-axle trailer): of 543,275, 1,760 record one axle, 541,493 two and 22 three. The
+    register's `NUMBER_OF_AXLES` does not agree with the definition for 99.7% of the class. The mismatch is
+    stated, not explained or corrected.
+  - Both seats and mass, MD1 to ME, vehicles with both recorded: the fit on both is MD1 23,311 of 23,870,
+    MD2 260 of 361, MD3 1,440 of 1,535, MD4 793 of 876, ME 10,554 of 10,709. The mismatches are findings,
+    not corrected here: the dimension reports the class NZTA recorded.
+- **Kind and values.** Category. 7 values on S, 21 on W (`class_map.csv` holds all 21 and the 7 more the supplied table
+  lists, so a wider scope, or a class that first appears later, does not trip the unmapped guard). S: MA 3,018,623; NA 701,639; MC 414,719; NB 72,851; NC
   68,051; MB 8,848; LE 1,702.
 - **Uses.** Break down from March 2002, filter. Count only. **Bound** as the dimension `nzta_class`
   ("NZTA class code"), a slice and a fact-table column of `registrations_surviving` (D-116).
@@ -1230,7 +1261,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | `BASIC_COLOUR` | None new (NULL is covered). A raw dimension. Its label says "colour as recorded", since the moment is not known |
 | `NUMBER_OF_SEATS` | **Bound as bands (D-116).** `0` added to `sentinels.csv`. Bands 1-2, 3-4, 5, 6-7, 8+ and `unknown`; values above 60 fall to `unknown`. A mean only inside 1 to 60: not built |
 | `NZ_ASSEMBLED` | **Bound (D-116).** `UNKNOWN` added to `sentinels.csv`. Charts over time start in December 1995 |
-| `CLASS` | **Bound (D-116).** NULL is covered. **`NA` must never become a sentinel**; a test holds it. `class_map.csv` gives each code a label; no definition could be read, so the label is the code and the meaning stays inferred. Charts start in March 2002 |
+| `CLASS` | **Bound (D-116); labelled (D-121).** NULL is covered. **`NA` must never become a sentinel**; a test holds it. `class_map.csv` gives each code NZTA's label with the code in brackets, from the table the maintainer supplied on 2026-11-17; `OTH` is not in that table and keeps its code as its label. Charts start in March 2002 |
 
 **2. NZ-new only.** Each `applies_to` the NZ-new dataset, or is narrowed to it, and says so.
 
