@@ -672,9 +672,9 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   `registrations_surviving` (D-116).
 - **Coverage.** S 95.9%: before 1990 0.0% (`UNKNOWN` on 119,994 of 120,012), 1990s 59.6%, 100% from
   2000 (370 of 4.24 million unknown). W 94.1%. By month (re-measured 2026-11-17 on the cube's 4,520,304
-  vehicles): every vehicle first registered up to July 1995 is `UNKNOWN`; recording starts in August
-  1995 (10 of 1,507 recorded) and is nearly complete by November (936 of 1,429 recorded) and December
-  (1,379 of 1,388). From January 1996 no month has more than 1% unknown (7 vehicles in 1996 to 1999,
+  vehicles): all but 24 of the 179,720 vehicles first registered up to July 1995 are `UNKNOWN`; recording
+  starts in August 1995 (10 of 1,507 recorded), reaches about two thirds in November (936 of 1,429 recorded)
+  and is nearly complete in December (1,379 of 1,388). From January 1996 no month has more than 1% unknown (7 vehicles in 1996 to 1999,
   370 from 2000), so **it is honest to chart from December 1995** (0.6% unknown in that month). The
   earlier "from 2000" was more cautious than the data.
 - **Not recorded.** `UNKNOWN` (W 350,980; S 184,863: 162,984 NZ-new, 21,879 used). NULL does not

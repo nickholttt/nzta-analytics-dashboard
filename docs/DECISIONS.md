@@ -5053,4 +5053,11 @@ New entries use this template:
   7. The `public_note` wording of each dimension, including that the class note says "NA is a class of light goods vehicle", which rests on this data (701,555 of its 701,637 goods vehicles at or under 3.5 t) and not on a definition.
   8. The fixtures' rewrite (above).
 - Consequences: The site, unchanged, offers the three new dimensions only as filters: `src/lib/builder.ts` builds its list of filters from the dimensions in the dataset's `facts` that config defines, and a breakdown needs a phrase for the dimension in `config/presets.json` (`builder.measures[].dimensions`), which this branch does not touch. A later site piece can add those phrases, should refuse to cross `nzta_class` with `vehicle_type` (the class rolls up to the type on this dataset, `config/data_map.json`), and should show `seats_band`'s `unknown` as the gap it is. `docs/DATA_MAP.md` and `config/data_map.json` mark the three bound. The reference files `CLAUDE.md`'s repo layout lists gain two, `data/reference/nz_assembled_map.csv` and `data/reference/class_map.csv` (not edited here). Not done: colour, seats as a mean or median, labels for the class codes, a live-from mechanism.
+- Follow-up, 2026-11-17 (the lead, after the independent review of #79): two statements said more than the data shows and
+  are changed, with the reviewer's wording. (1) The class note and the data map said `NA` "is a class of light goods vehicle",
+  a definition this record says was not read: they now say it is a class code and that on the register almost every vehicle
+  under it is a goods vehicle of 3.5 tonnes gross mass or less (choice 7 above describes the earlier wording). The note also
+  says a class "almost always" sits under one type of vehicle (one vehicle does not). (2) `sentinels.csv` and `docs/DATA_MAP.md`
+  said every vehicle first registered before August 1995 has no assembly flag: 24 of 179,720 have one, and November 1995 is
+  about two thirds recorded, not nearly complete. Not changed: a test names the code `NA` to pin the trap it guards against.
 - Status: decided by Claude (unreviewed)

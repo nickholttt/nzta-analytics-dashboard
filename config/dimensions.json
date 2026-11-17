@@ -450,7 +450,7 @@
     {
       "id": "nzta_class",
       "label": "NZTA class code",
-      "public_note": "NZTA's vehicle equipment standard class, shown as its code. Recording is patchy before 2002 and differs between new and used vehicles, so the mix of classes before then, and the vehicles with no class recorded, show what was recorded, not what was registered. NA is a class of light goods vehicle, not a missing value. A class sits under one type of vehicle, so setting the two side by side shows the same split twice.",
+      "public_note": "NZTA's vehicle equipment standard class, shown as its code. Recording is patchy before 2002 and differs between new and used vehicles, so the mix of classes before then, and the vehicles with no class recorded, show what was recorded, not what was registered. NA is a class code, not a missing value: on this register almost every vehicle under it is a goods vehicle of 3.5 tonnes gross mass or less. A class almost always sits under one type of vehicle, so setting the two side by side shows the same split twice.",
       "source": "nzta:class + reference:class_map",
       "derive": { "kind": "lookup", "field": "nzta_class", "reference": "class_map.csv", "key": "nzta_class", "value": "label" },
       "kind": "category",

@@ -259,7 +259,7 @@ value the map does not hold reads `__UNMAPPED__` and counts against the dimensio
 `nzta_class` (NZTA's vehicle equipment standard class, shown as its code under the labels in `class_map.csv`; D-116)
 is the same in every respect: a column of `registrations_surviving`'s table and a slice, not live for the three
 other datasets. A blank class is the only form of not recorded, and `sentinels.csv` lists none for it, because the
-code `NA` is a class of light goods vehicle; the labels are the codes themselves because no definition could be read.
+code `NA` is a class code (on the register almost every vehicle under it is a goods vehicle of 3.5 t gross mass or less); the labels are the codes themselves because no definition could be read.
 `class_map.csv` holds every code on the whole register, not only those of the types in scope.
 
 `seats_band` (the number of seats NZTA records, in the bands of `dimensions.json`; D-116) is the same again, but a band
