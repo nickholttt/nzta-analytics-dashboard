@@ -91,6 +91,10 @@ def compare(cfg, current: dict, previous: dict | None) -> tuple[list[str], list[
         if emptied:
             aborts.append(f"{dataset}: {len(emptied)} month(s) with at least {floor:,} rows last good run now have none: {emptied[:12]}")
 
+    stocks_aborts, stocks_warnings = stock_changes(cfg, current.get("stock_totals", {}), previous)
+    aborts += stocks_aborts
+    warnings += stocks_warnings
+
     cut, before_cut = current["moving_cutoff"], previous.get("moving_cutoff") or {}
     if cut.get("vehicle_year") is not None and before_cut.get("vehicle_year") not in (None, cut["vehicle_year"]):
         warnings.append(
@@ -98,6 +102,31 @@ def compare(cfg, current: dict, previous: dict | None) -> tuple[list[str], list[
             "an import rule or the data changed"
         )
     warnings += split_flips(cfg, current.get("mild_split", {}), previous)
+    return aborts, warnings
+
+
+def stock_changes(cfg, current: dict[str, dict], previous: dict) -> tuple[list[str], list[str]]:
+    """A stock dataset has one period, the snapshot's month, so it has no months to lose and the missing-month check does not
+    apply to it (its totals are kept apart from `month_counts` for that reason). It is compared by its total instead: a
+    dataset whose vehicles moved by more than `max_stock_change` since the last good build aborts the run, as the in-scope
+    row count does. A dataset the last good build did not hold (the first build that has it, or a state written before it
+    existed) has nothing to compare with: it warns, saying so, and the next build compares with this one's total. A record
+    that is not in the shape written here is ignored the same way, so that a guard never raises on a bad state."""
+    kept = previous.get("stock_totals")
+    kept = kept if isinstance(kept, dict) else {}
+    limit = cfg.pipeline["guardrails"]["max_stock_change"] if current else None
+    aborts, warnings = [], []
+    for dataset, now in current.items():
+        before = kept.get(dataset)
+        before_vehicles = before.get("vehicles") if isinstance(before, dict) else None
+        if not isinstance(before_vehicles, int) or isinstance(before_vehicles, bool) or before_vehicles <= 0:
+            warnings.append(f"{dataset}: the last good build holds no total for this dataset, so it was not compared; the next build is "
+                            f"compared with this one's {now['vehicles']:,} vehicles")
+            continue
+        change = (now["vehicles"] - before_vehicles) / before_vehicles
+        if abs(change) > limit:
+            aborts.append(f"{dataset}: its vehicles moved {change:+.2%} since the last good build ({before_vehicles:,} -> "
+                          f"{now['vehicles']:,}); the limit is {limit:.0%}")
     return aborts, warnings
 
 

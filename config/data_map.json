@@ -6,6 +6,7 @@
     "decision": "D-096",
     "$comment": "Approved by the user on 2026-11-16, recorded in the decision record named in decision. 'approved' is only ever set on the user's word."
   },
+  "$stock_only_comment": "A register field's entry may carry stock_only: true (D-135). It says the field describes the vehicle as it is at the snapshot, not as it was when first registered, so a count of it by month of first registration would misread it. A dimension that reads such a field is built for a dataset marked stock in config/pipeline.json and for no other; the build and pipeline/tests/test_stock.py hold this from this map (pipeline/privacy.py stock_only_dimensions), and no dimension id is named in code.",
   "owner_groups": ["who_has_it"],
   "$owner_groups_comment": "Groups whose fields describe or locate the owner. They are published only as owner_rule allows.",
   "owner_rule": {

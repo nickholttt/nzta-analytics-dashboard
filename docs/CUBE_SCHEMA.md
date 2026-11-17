@@ -56,7 +56,8 @@ Pipeline state lives outside `/public/data` and is committed to the repo:
 - `data/state/last_good.json`: the last successful run's change key, row
   counts, per-month counts, live dimensions and moving cutoff. Every
   guardrail that compares against "the previous run" reads this file.
-  `mild_split` keeps, for each built dataset that has a mild hybrid coverage
+  `stock_totals` keeps, for each stock dataset (*Stock datasets*), the snapshot and the number of
+  vehicles it counted, apart from `month_counts`. `mild_split` keeps, for each built dataset that has a mild hybrid coverage
   block, `published` (whether the split was published) and
   `trailing_high_confidence_coverage` (the figure it was judged on, or null
   when the window held no hybrid). A state written before it existed has no
@@ -692,6 +693,45 @@ snapshot month was built, the run says so on its summary page and builds
 nothing. Only a run started by hand with `force` rebuilds a month, so a
 later edit by NZTA never replaces what the first build published.
 
+## Stock datasets (D-135)
+
+Every other dataset counts first registrations: its months are months of first registration, and a vehicle is counted in the
+month it was first registered. A *stock* counts the other thing: every vehicle in the register at the snapshot, as at the
+snapshot date, whatever its type, its import status or the date it was first registered. It is marked `"stock": true` in its
+entry in `config/pipeline.json`. It has one period, the snapshot's month, and its files carry no vehicle's own month or year
+of first registration, as a column or as a value. It exists for fields that describe the vehicle as it is now (the data map's
+`stock_only`, below), which a count by month of first registration would misread as what the vehicle was when it arrived.
+
+How a stock passes through the build:
+
+- **Scope and period.** A stock names no scope flag (`require` is empty): `dims` holds every row of the register, and each
+  row's period is the snapshot's month. The code that groups counts by period then gives one period, and the manifest says
+  `months` 1 and `latest_month` the snapshot's. `rows` is the register's whole row count.
+- **Dimensions.** A stock lists the dimensions it is offered (`dimensions`), and only those are built for it; every other
+  dimension is `not_live` for it with the reason. It is also given `not_by`, a list of fields of `config/pipeline.json`
+  (today the year and the month of first registration): the build aborts, before it reads anything, if a dimension it is
+  offered reads one of them.
+- **Fields that describe the vehicle now.** `config/data_map.json` marks such a field `stock_only: true`. A dimension that
+  reads one is built for a stock dataset and for no other, from the data map and not from the dimension's name: its
+  `applies_to` must name only stock datasets (the build aborts if it names none, or any that is not a stock), no other
+  dataset may list it in `dimensions`, `pairs` or `facts` (the build aborts), and even if `applies_to` were widened,
+  `derive.applicable` leaves it `not_live` in every dataset that is not a stock.
+- **No mild hybrid split.** A stock has no `mild_hybrid_identification_coverage` block: that figure is judged on the months of
+  first registration of the hybrids in a window.
+- **Counts that describe months of first registration.** `counts.no_registration_month` and
+  `counts.registration_after_snapshot` are 0 by construction for a stock, whose period is not read from the vehicle. The
+  `trailing` basis of an unmapped-value guard is the whole fleet, since every row is in the one period.
+- **The state and the comparison with the last good build.** `data/state/last_good.json` keeps a stock's total apart from
+  the series of months in `month_counts`, because the check that a populous month has not been emptied reads months, and a
+  stock's one month changes every build. It keeps `stock_totals.<dataset>`: `{ "snapshot": "2026-10-31", "vehicles": n }`. A
+  later build aborts if the stock's vehicles moved by more than `guardrails.max_stock_change` (2%, as the in-scope row count)
+  since the last good build. A dataset the last good build does not hold (its first build, or a state written before
+  `stock_totals` existed, or a record not in this shape) is not compared: the build warns, saying so, and the next build is
+  compared with this one's total.
+- **What the build reads back.** The stock's vehicles are the register's rows (an abort if they differ), its counts have the
+  one period (an abort if they have another), and every slice and pair file of it has the contract's columns and one month, the
+  snapshot's (an abort otherwise).
+
 ## Supplied sources
 
 A dataset may be built from a file a maintainer supplies by hand instead of from the register. The
@@ -902,6 +942,9 @@ Source and schema:
 
 Volume:
 
+- A stock dataset's vehicles differ from the last good run's by more than `guardrails.max_stock_change` (2%); a stock
+  dataset counts a different number of vehicles than the register holds rows, has more than the one period, or has a slice
+  or pair file with a column other than the contract's or a month other than the snapshot's (*Stock datasets*).
 - In-scope source rows differ from the last good run by more than 2%. The
   fleet grows slowly; a jump means the source changed.
 - A month that had at least 1,000 rows in the last good run now has none,
@@ -972,6 +1015,13 @@ Supplied sources:
   not listed in `exceeds_total_allowed`, or one of its values would be below zero; some but not all of a
   dimension's series have a figure in a month; a dimension that was live in the last good run lacks a reference
   file; the latest month has no vehicles.
+
+Stock datasets, found before anything is read (*Stock datasets*):
+
+- A stock dataset names a source, a non-empty `require`, no `dimensions` list, a pair of a dimension it is not offered, a
+  `not_by` that names a field `config/pipeline.json` does not have, or a dimension that reads a field in `not_by`.
+- A dimension that reads a field the data map marks `stock_only` has no `applies_to`, names a dataset that is not a stock in it,
+  or is listed in the `dimensions`, `pairs` or `facts` of a dataset that is not a stock.
 
 Pairs:
 
@@ -1064,6 +1114,8 @@ is worse than one that is visibly stale.
 - A supplied store ends before the register's snapshot month: the export is missing the months after it.
 - A dataset of a source of kind `series` has a dimension whose reference file is missing and was not live
   before: it stays out, and the warning names the file.
+- A stock dataset is not in the last good state (its first build, or a state written before `stock_totals` existed): it is not
+  compared, and the next build compares with this one's total.
 - There is no last good state (first run), so previous-run comparisons were
   skipped.
 

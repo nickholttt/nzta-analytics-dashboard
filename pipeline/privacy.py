@@ -81,19 +81,36 @@ def owner_fields(dmap: dict) -> set[str]:
     return {e["name"] for e in dmap["fields"] if e["source"] == REGISTER and e["group"] in groups}
 
 
-def owner_dimensions(cfg, dmap: dict | None = None) -> dict[str, list[str]]:
-    """Each dimension of config/dimensions.json that reads an owner field, with the owner fields it reads. A dimension
-    that reads none is not here; whatever a dimension reads is decided by its derive block and the map's `derive_reads`."""
-    dmap = dmap if dmap is not None else load_map(cfg)
-    owners = owner_fields(dmap)
+def dimensions_reading(cfg, dmap: dict, fields: set[str]) -> dict[str, list[str]]:
+    """Each dimension of config/dimensions.json that reads any of `fields`, with the ones it reads. A dimension that reads
+    none is not here; whatever a dimension reads is decided by its derive block and the map's `derive_reads`."""
     found = {}
     for dim in cfg.dimensions["dimensions"]:
         if "derive" not in dim:
             continue
-        read = sorted(fields_read(dim, cfg.pipeline, dmap["derive_reads"]) & owners)
+        read = sorted(fields_read(dim, cfg.pipeline, dmap["derive_reads"]) & fields)
         if read:
             found[dim["id"]] = read
     return found
+
+
+def owner_dimensions(cfg, dmap: dict | None = None) -> dict[str, list[str]]:
+    """Each dimension of config/dimensions.json that reads an owner field, with the owner fields it reads."""
+    dmap = dmap if dmap is not None else load_map(cfg)
+    return dimensions_reading(cfg, dmap, owner_fields(dmap))
+
+
+def stock_only_fields(dmap: dict) -> set[str]:
+    """The register fields the map marks `stock_only`: they describe the vehicle as it is at the snapshot, so a count of them
+    by the month a vehicle was first registered would misread them (D-135)."""
+    return {e["name"] for e in dmap["fields"] if e["source"] == REGISTER and e.get("stock_only") is True}
+
+
+def stock_only_dimensions(cfg, dmap: dict | None = None) -> dict[str, list[str]]:
+    """Each dimension that reads a `stock_only` field, with the fields it reads. Such a dimension is built for a dataset that
+    is a stock and for no other."""
+    dmap = dmap if dmap is not None else load_map(cfg)
+    return dimensions_reading(cfg, dmap, stock_only_fields(dmap))
 
 
 @dataclass(frozen=True)

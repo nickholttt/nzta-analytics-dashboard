@@ -10,7 +10,8 @@ from typing import NamedTuple
 import duckdb
 
 from . import derive, events, guardrails, metrics, normalise, outputs, pair_cells, privacy, schema, series, small_cells, supplied
-from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, PAIR_SEPARATOR
+from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, PAIR_COLUMNS, PAIR_SEPARATOR, SLICE_COLUMNS
+from .normalise import lit
 from .errors import GuardrailError
 from .reference import quote
 
@@ -130,11 +131,96 @@ def register_datasets(p: dict) -> dict:
     return {name: cfg for name, cfg in p["datasets"].items() if "source" not in cfg}
 
 
+def stock_configuration_problems(cfg) -> list[str]:
+    """What the configuration of the stock datasets breaks, found before anything is read (D-135).
+
+    A dataset that is a stock (`stock` in config/pipeline.json) counts every vehicle of the register as at the snapshot, so it
+    names no other source, no scope flag, and the dimensions it is offered: it is offered no dimension that reads a field it
+    is never broken down by (`not_by`, the fields that give a vehicle's month or year of first registration). A dimension
+    that reads a field the data map marks `stock_only` (a field that describes the vehicle as at the snapshot) is for stock
+    datasets alone: its `applies_to` names only stock datasets, and no other dataset lists it among its dimensions, pairs or
+    fact-table columns. Every one of these is read from config, not named here."""
+    try:
+        dmap = privacy.load_map(cfg)
+        held = privacy.stock_only_dimensions(cfg, dmap)
+    except (privacy.DataMapError, OSError, KeyError) as exc:
+        raise GuardrailError("data map", f"config/data_map.json cannot be used to protect owner fields: {exc!r}") from exc
+    datasets = cfg.pipeline["datasets"]
+    stocks = {name for name, spec in datasets.items() if spec.get("stock")}
+    dims = {d["id"]: d for d in cfg.dimensions["dimensions"] if "derive" in d}
+    problems = []
+    for dim_id, fields in sorted(held.items()):
+        applies = dims[dim_id].get("applies_to")
+        if applies is None:
+            problems.append(f"dimension {dim_id} reads {', '.join(fields)}, which describes the vehicle as at the snapshot, so it must "
+                            "name the stock datasets it is for in applies_to (config/dimensions.json); without it every dataset would be offered it")
+        elif [d for d in applies if d not in stocks]:
+            problems.append(f"dimension {dim_id} reads {', '.join(fields)}, which describes the vehicle as at the snapshot, but applies_to "
+                            f"names {[d for d in applies if d not in stocks]}, which are not stock datasets")
+        for dataset, spec in datasets.items():
+            named = set(spec.get("dimensions") or []) | set(spec.get("facts") or []) | {d for pair in spec.get("pairs") or [] for d in pair}
+            if dataset not in stocks and dim_id in named:
+                problems.append(f"{dataset} lists {dim_id}, which reads {', '.join(fields)}: it describes the vehicle as at the snapshot, "
+                                "so only a stock dataset counts it")
+    for dataset in sorted(stocks):
+        spec = datasets[dataset]
+        if "source" in spec:
+            problems.append(f"{dataset}: a stock counts the register's own vehicles, so it names no other source")
+        if spec.get("require"):
+            problems.append(f"{dataset}: a stock counts every vehicle, so its require must be empty; it names {spec['require']}")
+        offered = spec.get("dimensions")
+        if not (isinstance(offered, list) and offered and all(isinstance(d, str) for d in offered)):
+            problems.append(f"{dataset}: a stock lists the dimensions it is offered (dimensions)")
+            continue
+        unknown = [d for d in offered if d not in dims]
+        if unknown:
+            problems.append(f"{dataset}: dimensions names {unknown}, which are not dimensions with a derive block in dimensions.json")
+        outside = [pair for pair in spec.get("pairs") or [] if not set(pair) <= set(offered)]
+        if outside:
+            problems.append(f"{dataset}: pairs {outside} name a dimension the dataset is not offered")
+        never = spec.get("not_by") or []
+        unbound = [f for f in never if f not in cfg.pipeline["fields"]]
+        if unbound:
+            problems.append(f"{dataset}: not_by names {unbound}, which are not fields of config/pipeline.json")
+            continue
+        refused = {cfg.pipeline["fields"][f] for f in never}
+        for dim_id in (d for d in offered if d in dims):
+            read = privacy.fields_read(dims[dim_id], cfg.pipeline, dmap["derive_reads"]) & refused
+            if read:
+                problems.append(f"{dataset}: {dim_id} reads {', '.join(sorted(read))}, which a stock is never broken down by (not_by)")
+    return problems
+
+
+def stock_problems(con, staging, dataset: str, snapshot_month: date, counts: dict[str, int]) -> list[str]:
+    """What a stock's written files break: it counts every vehicle the register holds, it has the one period, the snapshot's
+    month, and every slice and pair file has the contract's columns and that month alone, so that no vehicle's own month or
+    year of first registration is a column or a value of any file (D-135)."""
+    found = []
+    held = con.execute("SELECT count(*) FROM rows").fetchone()[0]
+    if sum(counts.values()) != held:
+        found.append(f"counts {sum(counts.values()):,} vehicles, but the register holds {held:,} and a stock counts every vehicle")
+    if set(counts) != {snapshot_month.strftime("%Y-%m")}:
+        found.append(f"has the periods {sorted(counts)[:5]}, but a stock has one, the snapshot's month")
+    for folder, columns in (("cube", SLICE_COLUMNS), ("pairs", PAIR_COLUMNS)):
+        for path in sorted((staging / folder / dataset).glob("*.parquet")):
+            source = f"read_parquet({lit(path.as_posix())})"
+            described = [row[0] for row in con.execute(f"DESCRIBE SELECT * FROM {source}").fetchall()]
+            if described != [name for name, _ in columns]:
+                found.append(f"{folder}/{path.name} has the columns {described}, not the contract's")
+            months = [row[0] for row in con.execute(f"SELECT DISTINCT month FROM {source}").fetchall()]
+            if months != [snapshot_month]:
+                found.append(f"{folder}/{path.name} has the months {[m.isoformat() for m in months][:5]}, but a stock has one, the snapshot's")
+    return found
+
+
 def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: date, previous_live: dict, staging,
                   aborts: list[str], warnings: list[str]) -> Built:
     """One dataset's slices, pairs and fact table from the tables `rows` and `dims` the caller has built, and its
-    manifest entry. `snapshot_month` is the dataset's own latest month."""
+    manifest entry. `snapshot_month` is the dataset's own latest month. A dataset that is a stock (`stock` in its config,
+    D-135) counts every vehicle of the register as at that month: it has the one period, and none of the figures that
+    describe a series of months of first registration (the mild hybrid split)."""
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
+    stock = bool(dataset_cfg.get("stock"))
     snapshot_key = snapshot_month.strftime("%Y-%m")
     window = int(p["trailing_window_months"])
     window_start = metrics.month_add(snapshot_month, -(window - 1))
@@ -157,11 +243,11 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
             exclude(dim["id"], f"reference files missing: {missing}")
         else:
             derived.append(derive.derive(con, cfg, dim, index, snapshot_month.year))
-    derive.build_dims(con, cfg, derived, normalise.scope_flag(cfg, dataset, require))
+    derive.build_dims(con, cfg, derived, normalise.scope_flag(cfg, dataset, require, stock), snapshot_month if stock else None)
     # Judged on this dataset's own hybrids, before any slice is written: a dataset that identifies too few of its mild
     # hybrids shows its hybrids undivided, whatever another dataset publishes.
-    hybrid, high_counts = metrics.hybrid_coverage(con, cfg, ds, window_start, snapshot_month, window)
-    if not hybrid["mild_split_published"]:
+    hybrid, high_counts = (None, None) if stock else metrics.hybrid_coverage(con, cfg, ds, window_start, snapshot_month, window)
+    if hybrid and not hybrid["mild_split_published"]:
         derive.undivide_hybrids(con, cfg, derived)
     caps = {d.dim_id: derive.apply_model_cap(con, d, ds, window_start, snapshot_month) for d in derived if d.kind == "model"}
     rates = metrics.unmapped_rates(con, derived)
@@ -204,6 +290,8 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
     if deviation is not None and abs(deviation) > g["latest_month_max_deviation"]:
         warnings.append(f"{dataset}: {snapshot_key} count deviates {deviation:+.0%} from the median of the previous {window} months")
     quality = metrics.quality_counts(con, derived, require, snapshot_month)
+    if stock:
+        aborts += [f"{dataset}: {problem}" for problem in stock_problems(con, staging, dataset, snapshot_month, counts)]
     if quality["registration_after_snapshot"]:
         warnings.append(f"{dataset}: {quality['registration_after_snapshot']:,} rows are dated after the snapshot month and were excluded")
     entry = {
@@ -220,11 +308,13 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
         "facts": facts,
         "unmapped_rates": rates,
         "unmapped_guard": guard,
-        "mild_hybrid_identification_coverage": hybrid,
+        **({} if stock else {"mild_hybrid_identification_coverage": hybrid}),
         "coverage_trailing": metrics.coverage(con, derived, ds, window_start, snapshot_month, window),
         "counts": quality,
         "model_cap": caps,
     }
+    if stock:
+        return Built(entry, counts, [d.dim_id for d in live], ds)
     disagreeing = hybrid["classification_disagrees_with_powertrain"]
     if disagreeing:
         warnings.append(f"{dataset}: {disagreeing:,} vehicles show a powertrain that contradicts their classification in "
@@ -362,7 +452,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     now = now or datetime.now(timezone.utc)
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
     # Before anything is read: a series dimension that would be offered to a register dataset cannot be derived there.
-    misconfigured = derive.series_dimension_problems(cfg)
+    misconfigured = derive.series_dimension_problems(cfg) + stock_configuration_problems(cfg)
     if misconfigured:
         raise GuardrailError("build", "\n  - " + "\n  - ".join(misconfigured))
     aborts: list[str] = []
@@ -401,13 +491,17 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
         shutil.rmtree(staging)
     staging.mkdir(parents=True)
 
-    datasets, month_counts, live_dimensions = {}, {}, {}
+    datasets, month_counts, live_dimensions, stock_totals = {}, {}, {}, {}
     moving = {"vehicle_year": None, "age": None, "snapshot_year": snapshot_month.year}
     age_report = {"window_months": window, "rows": 0}
     for dataset, dataset_cfg in register_datasets(p).items():
         built = build_dataset(con, cfg, dataset, dataset_cfg, snapshot_month, previous_live, staging, aborts, warnings)
         datasets[dataset] = built.entry
-        month_counts[dataset] = built.counts
+        if dataset_cfg.get("stock"):
+            # One period, the snapshot's: the next build is compared by its total, not by months it would lack (guardrails.compare).
+            stock_totals[dataset] = {"snapshot": latest_snapshot, "vehicles": sum(built.counts.values())}
+        else:
+            month_counts[dataset] = built.counts
         live_dimensions[dataset] = built.live
         if dataset == p["used_imports"]["dataset"]:
             by_vehicle_year, by_age = metrics.used_import_years(con, cfg, built.ds, window_start, snapshot_month)
@@ -443,6 +537,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
         "latest_snapshot": latest_snapshot,
         "change_key": source["change_key"],
         "month_counts": month_counts,
+        "stock_totals": stock_totals,
         "moving_cutoff": moving,
         "mild_split": guardrails.split_record(datasets),
     }
@@ -510,6 +605,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             "live_dimensions": live_dimensions,
             "moving_cutoff": moving,
             "month_counts": month_counts,
+            "stock_totals": stock_totals,
             "mild_split": current["mild_split"],
             "supplied_totals": supplied_totals,
             "supplied_files": supplied_files,

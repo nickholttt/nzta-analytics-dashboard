@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from . import normalise, reference, supplied
+from . import normalise, privacy, reference, supplied
 from .contract import MODEL_KEY_SEPARATOR, OTHER, UNDEFINED, UNMAPPED
 from .normalise import SOURCE_SUFFIX, lit
 from .reference import quote
@@ -108,13 +108,24 @@ def series_dimension_problems(cfg) -> list[str]:
 
 
 def applicable(cfg, dataset: str) -> tuple[list[dict], dict[str, str]]:
+    """The dimensions a dataset can derive and why each of the others cannot. A dataset that lists its `dimensions` in
+    config/pipeline.json is offered those and no others. A dimension that reads a field describing the vehicle as at the
+    snapshot (the data map's `stock_only`, D-135) is offered to a dataset that is a stock and to no other, whatever its
+    `applies_to` says."""
     dims, not_live = [], {}
     carried = carried_fields(cfg, dataset)
+    spec = cfg.pipeline["datasets"].get(dataset, {})
+    offered, stock = spec.get("dimensions"), bool(spec.get("stock"))
+    held = privacy.stock_only_dimensions(cfg)
     for dim in cfg.dimensions["dimensions"]:
         applies = dim.get("applies_to")
         lacking = sorted(needed_fields(cfg, dim["derive"]) - carried) if carried is not None and "derive" in dim else []
         if applies is not None and dataset not in applies:
             not_live[dim["id"]] = "does not apply to this dataset"
+        elif dim["id"] in held and not stock:
+            not_live[dim["id"]] = "reads a field that describes the vehicle as at the snapshot, which only a stock dataset counts"
+        elif offered is not None and dim["id"] not in offered:
+            not_live[dim["id"]] = "not offered to this dataset (its dimensions in config/pipeline.json)"
         elif lacking:
             not_live[dim["id"]] = "the source does not carry " + ", ".join(cfg.source_field(f) for f in lacking)
         elif "derive" not in dim:
@@ -232,10 +243,14 @@ def derive(con, cfg, dim: dict, index: int, snapshot_year: int) -> Derived:
     raise ValueError(f"dimension {dim_id}: unknown derive kind {kind!r}")
 
 
-def build_dims(con, cfg, derived: list[Derived], scope: str | None = None) -> None:
+def build_dims(con, cfg, derived: list[Derived], scope: str | None = None, stock_month=None) -> None:
     """One row per vehicle the dataset's scope counts, with every derived dimension value and unmapped flag. `scope` is
     the flag of `rows` that decides which vehicle types are in (normalise.scope_flag): the default scope when none is given.
-    Every scope flag stays a column, so a dataset's `require` can name its own."""
+    Every scope flag stays a column, so a dataset's `require` can name its own.
+
+    A stock (`stock_month` given, D-135) counts every vehicle of the register, whatever its type, status or date, as at that
+    month: its period column `reg_month` is that month for every row, so the counting code that groups by period gives it one
+    period, and no vehicle's own month of first registration reaches any file of the dataset."""
     p = cfg.pipeline
     scopes = list(normalise.scope_columns(cfg))
     scope = scope or scopes[0]
@@ -246,7 +261,9 @@ def build_dims(con, cfg, derived: list[Derived], scope: str | None = None) -> No
     # The alternative fuel is compared with the motive power NZTA recorded, before any model_registry override.
     primary = alt["primary"] + (SOURCE_SUFFIX if alt["primary"] == p["engine"]["field"] else "")
     columns = [
-        *(f"r.{quote(flag)}" for flag in scopes), "r.fleet_entry", "r.status_label", "r.reg_month", "r.registration_year", "r.vehicle_year",
+        *(f"r.{quote(flag)}" for flag in scopes), "r.fleet_entry", "r.status_label",
+        "r.reg_month" if stock_month is None else f"DATE {lit(stock_month.isoformat())} AS reg_month",
+        "r.registration_year", "r.vehicle_year",
         "r.has_engine", "r.fc_value", "r.fc_status",
         f"{_field(primary)} AS fuel_primary", f"{_field(alt['alternative'])} AS fuel_alternative",
     ]
@@ -258,7 +275,8 @@ def build_dims(con, cfg, derived: list[Derived], scope: str | None = None) -> No
                 f"{_field(d.band_source + '__missing')} AS {quote(f'bm__{d.dim_id}')}",
                 f"{_field(d.band_source + '__sentinel')} AS {quote(f'bs__{d.dim_id}')}",
             ]
-    con.execute(f"CREATE OR REPLACE TABLE dims AS SELECT {', '.join(columns)} FROM rows r {' '.join(joins)} WHERE r.{quote(scope)}")
+    where = "TRUE" if stock_month is not None else f"r.{quote(scope)}"
+    con.execute(f"CREATE OR REPLACE TABLE dims AS SELECT {', '.join(columns)} FROM rows r {' '.join(joins)} WHERE {where}")
 
 
 def undivide_hybrids(con, cfg, derived: list[Derived]) -> list[str]:
