@@ -31,9 +31,12 @@ for (const file of readdirSync(join(root, "_astro")).filter((f) => f.endsWith(".
 
 // An independent guard (the review of #75): the pattern above, like the one that prunes the build (astro.config.mjs), reads import paths in the
 // forms it was written for, and a form it does not read is a script both miss (Vite writes a lazy import with backquotes, and lists a
-// chunk's own dependencies in a map of plain strings). So this reads nothing of the syntax: every file name of the form Name.Hash.js that
-// appears anywhere in a script the pages reach, in whatever quotes or none, must exist in the output.
-const named = /[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{6,}\.js\b/g;
+// chunk's own dependencies in a map of plain strings). So this reads nothing of the syntax: every file name shaped like the build's own
+// output that appears anywhere in a script the pages reach must exist in the output. That shape, read from the real output: a name that may
+// itself hold dots (a page's script is Page.astro_astro_type_script_index_0_lang.<hash>.js), then a dot, then exactly 8 characters of the
+// base64url alphabet, then .js. It is read as a whole name, starting after a quote, a slash or ./, so that text such as "astro.config.js",
+// or a longer word that merely ends in eight letters, is not taken for a file.
+const named = /(?<=["'`/])[A-Za-z0-9_.-]+\.[A-Za-z0-9_-]{8}\.js\b/g;
 const held = new Set(readdirSync(join(root, "_astro")).filter((f) => f.endsWith(".js")));
 for (const url of [...reached]) {
   for (const [name] of readFileSync(join(root, url), "utf8").matchAll(named)) {
