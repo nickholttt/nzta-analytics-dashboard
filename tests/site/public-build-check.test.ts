@@ -57,3 +57,23 @@ test("a missing file whose name holds a dot is named whole", () => {
   assert.equal(run.status, 1);
   assert.match(run.out, /names Page\.astro_x_lang\.Gone4567\.js, which is not in the output/);
 });
+
+test("a script in the folder whose hash is not eight characters fails by name, so a change of the build tool's hash cannot switch the check off", () => {
+  const run = check(importing, { "react.Zz9Yy8Xx.js": "export const a = 1;", "late.AbCdEfGhIj.js": "export const b = 2;" });
+  assert.equal(run.status, 1);
+  assert.match(run.out, /_astro\/late\.AbCdEfGhIj\.js does not have the shape/);
+});
+
+test("a quoted string that is not a script of the folder is not read as a file, even when its middle part is eight characters", () => {
+  const run = check((n) => `${importing(n)}\nconst a = "lodash.debounce.js", b = "/vendor/chart.registry.js", c = '../elsewhere/dist.production.js';`, { "react.Zz9Yy8Xx.js": "export const a = 1;" });
+  assert.equal(run.status, 0, run.out);
+});
+
+test("a chunk named in Vite's dependency map that the output lacks fails by name, and one it holds passes", () => {
+  const map = (file: string) => `const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["_astro/${file}","_astro/react.Zz9Yy8Xx.js"])))=>i.map(i=>d[i]);`;
+  const missing = check((n) => `${importing(n)}\n${map("Grid.Gone4567.js")}`, { "react.Zz9Yy8Xx.js": "export const a = 1;" });
+  assert.equal(missing.status, 1);
+  assert.match(missing.out, /names Grid\.Gone4567\.js, which is not in the output/);
+  const held = check((n) => `${importing(n)}\n${map("Grid.Here4567.js")}`, { "react.Zz9Yy8Xx.js": "export const a = 1;", "Grid.Here4567.js": "export const g = 1;" });
+  assert.equal(held.status, 0, held.out);
+});
