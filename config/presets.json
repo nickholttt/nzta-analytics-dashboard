@@ -529,6 +529,33 @@
           }
         },
         {
+          "id": "registrations-new-wider-monthly",
+          "question": "How many new vehicles were registered each month on the wider scope, which also counts buses, motor caravans and special purpose vehicles?",
+          "$comment": "Beside the chart above, which counts new and used vehicles of fewer types: this one keeps new vehicles only, on a dataset that counts buses, motor caravans and special purpose vehicles as well (D-106, D-113, D-118). The two datasets are never on one chart (D-118).",
+          "status": "live",
+          "dataset": "registrations_flow_wider",
+          "measure": "count",
+          "where": { "import_status": ["NZ New"] },
+          "period": "all",
+          "answer": {
+            "$comment": "As the answer above, for new vehicles on the wider scope. A template names no month, figure or cause.",
+            "up": "In {month}, {count} new vehicles were registered on the wider scope, up {change|pct} on {prior_month}, when {prior_count} were.",
+            "down": "In {month}, {count} new vehicles were registered on the wider scope, down {change|pct} on {prior_month}, when {prior_count} were.",
+            "same": "In {month}, {count} new vehicles were registered on the wider scope, the same as in {prior_month}, when {prior_count} were.",
+            "alone": "In {month}, {count} new vehicles were registered on the wider scope."
+          }
+        },
+        {
+          "id": "registrations-new-wider-passenger-or-commercial",
+          "question": "How do new registrations divide between passenger and commercial vehicles on the wider scope?",
+          "status": "live",
+          "dataset": "registrations_flow_wider",
+          "measure": "share",
+          "dimension": "trade_group",
+          "where": { "import_status": ["NZ New"] },
+          "period": "all"
+        },
+        {
           "id": "model-leaderboard",
           "question": "Which brands and models were registered most?",
           "status": "live",

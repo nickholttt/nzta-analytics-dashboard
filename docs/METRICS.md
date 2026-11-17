@@ -159,6 +159,17 @@ D-113).
   exists for the added types, plus `trade_group`. `segment`, `segment_group`,
   `engine_size_band`, `region` and the vehicle-age band need fields the
   dashboard lacks and are not live, as for `registrations_flow`.
+- **Where it is on the site (D-118).** Build offers it as a third thing to count
+  ("True registrations, wider scope"), with every field its fact table carries as a
+  condition and `trade_group` ("passenger or commercial") as a breakdown. Explore's
+  True registrations group holds two charts on it, each keeping new vehicles
+  (`import_status` = `NZ New`), directly after the chart of the default scope's
+  monthly count: the count by month, and the share Passenger and Commercial take.
+  The first is not the default scope's count with buses added: that chart counts new
+  and used vehicles, this one new only. A list in config (`never_charted_with`)
+  keeps the dataset off any chart that reads `registrations_flow` or
+  `registrations_surviving`, including a ratio of the register's survivors to it:
+  the survivors hold only the default scope's types.
 - **Guards.** Every guard applies as it does to `registrations_flow`: the
   store's months, rows and totals against its ledger, a month whose store
   total moved by more than 2% without a recorded replacement, an emptied
