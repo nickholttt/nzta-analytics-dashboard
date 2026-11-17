@@ -147,8 +147,12 @@ committed store, matching the manifest's figures): the register had 14,241 of 19
 confidence only (74.04%), room for 1,111 more unidentified hybrids before the split falls under
 70%; true registrations 14,271 of 19,286 (74.00%), room for 1,101. Of the 5,015 vehicles counting
 against true registrations' figure, 2,905 were `unresolved` at low confidence, 1,275 `full` at medium,
-760 `mild` at medium and 75 had no row: today the margin is mostly in rows that exist and are not at
-high confidence, not in missing nameplates.
+760 `mild` at medium and 75 had no row: the margin was mostly in rows that exist and are not at
+high confidence, not in missing nameplates. After D-115's rows (the same day, the same inputs) the
+register has 14,297 of 18,207 (78.52%), room for 2,217, and true registrations 14,327 of 18,257
+(78.47%), room for 2,210 (the wider dataset reads the same as true registrations); of the 3,930
+vehicles still counting against true registrations' figure, 2,513 are `unresolved` at low
+confidence, 637 `full` at medium, 704 `mild` at medium and 76 have no row.
 
 ## Also each month: has step 1b's source appeared?
 

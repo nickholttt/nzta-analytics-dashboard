@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { CellSource, GridInput, SideSpec } from "../../src/lib/matrix.ts";
 
-const { gridOf, gridTable, chooseSide, tableFigures, REST_NAME } = await import("../../src/lib/matrix.ts");
+const { gridOf, gridTable, chooseSide, tableFigures, bandScale, REST_NAME } = await import("../../src/lib/matrix.ts");
 const { figuresCsv } = await import("../../src/lib/figures.ts");
 
 const nameOf = (v: string) => (v === "__UNDEFINED__" ? "Not recorded" : v === "__UNMAPPED__" ? "No match" : v === "__OTHER__" ? "Beyond cap" : v);
@@ -84,14 +84,45 @@ test("an ordered band is shown whole in its own order, not cut and not ranked", 
   assert.equal(g.rows.lines.some((l) => l.kind === "rest"), false);
 });
 
-test("a band with no vehicles in the window is a line of zeros where the data has it in any month, and is not a gap; a band the data never has is not a line", () => {
-  const order = ["0", "1", "2", "3", "4"];
-  const rows = [src("3", "x", 900), src("0", "x", 70), src("2", "x", 40, "2020-01"), src("4", "x", 5, "2019-05")];
+test("an ordered band is shown from the first band the data has to the last, with a line of zeros for each band between with none; none is a gap", () => {
+  const order = ["0", "1", "2", "3", "4", "5", "6"];
+  // 2 and 4 are in the data only in other months; 1 and 5 are never in it; 0 and 6 are never in it and are outside the first and the last.
+  const rows = [src("3", "x", 900), src("2", "x", 40, "2020-01"), src("4", "x", 5, "2019-05")].concat([src("1", "x", 70)]);
   const g = grid(rows, { rowSide: side({ order }) });
-  assert.deepEqual(g.rows.lines.map((l) => l.key), ["0", "2", "3", "4"], "1 is never in the data, so it is not a line; 2 and 4 are, in other months");
+  assert.deepEqual(g.rows.lines.map((l) => l.key), ["1", "2", "3", "4"], "from the first the data has (1) to the last (4); 0, 5 and 6 are outside them");
   assert.deepEqual(g.rows.lines.map((l) => l.total), [70, 0, 900, 0]);
   assert.deepEqual(g.cells[1].map((c) => c.n), [0]);
   assert.equal(g.total, 970, "the vehicles of other months are not counted");
+  // A band the data never has in the middle is a line of zeros, so the scale does not skip.
+  const gap = grid([src("0", "x", 70), src("3", "x", 900)], { rowSide: side({ order }) });
+  assert.deepEqual(gap.rows.lines.map((l) => [l.key, l.total]), [["0", 70], ["1", 0], ["2", 0], ["3", 900]]);
+  assert.equal(gap.total, 970);
+  // One band alone is one line; a value the order does not know follows the bands.
+  assert.deepEqual(grid([src("3", "x", 5)], { rowSide: side({ order }) }).rows.lines.map((l) => l.key), ["3"]);
+  assert.deepEqual(grid([src("3", "x", 5), src("zz", "x", 1), src("1", "x", 2)], { rowSide: side({ order }) }).rows.lines.map((l) => l.key), ["1", "2", "3", "zz"]);
+});
+
+test("a value that means not recorded or not applicable takes no part in setting the ends of an ordered scale, and follows the bands", async () => {
+  const config = await import("../../src/lib/config.ts");
+  // Config's own bands: those with no range are the flagged values, and they end each list.
+  const flagged = config.dimensions.filter((d) => d.kind === "ordered_band" && d.bands).map((d) => [d.id, bandScale(d.bands!).unplaced] as const);
+  assert.ok(flagged.some(([, u]) => u.length > 0), "config has bands with no range");
+  for (const d of config.dimensions.filter((x) => x.kind === "ordered_band" && x.bands)) {
+    const { order, unplaced } = bandScale(d.bands!);
+    assert.deepEqual(order.slice(order.length - unplaced.length), unplaced, `${d.id}: the bands with no range are the last of its order`);
+    assert.ok(order.length > unplaced.length, `${d.id}: and it has bands with a range`);
+  }
+  const order = ["0", "1", "2", "3", "4", "none", "unknown"];
+  const unplaced = ["none", "unknown"];
+  // A grid narrowed to low bands, with a few vehicles of an unknown one: no padding up to band 4 for their sake.
+  const g = grid([src("0", "x", 70), src("2", "x", 9), src("unknown", "x", 3)], { rowSide: side({ order, unplaced }) });
+  assert.deepEqual(g.rows.lines.map((l) => l.key), ["0", "1", "2", "unknown"]);
+  assert.deepEqual(g.rows.lines.map((l) => l.total), [70, 0, 9, 3]);
+  // Without the marker the same data would pad to the end of the order, which is what this prevents.
+  assert.deepEqual(grid([src("0", "x", 70), src("2", "x", 9), src("unknown", "x", 3)], { rowSide: side({ order }) }).rows.lines.map((l) => l.key), order);
+  // Only flagged values: they are the lines, in their order; a flagged value that is absent is not a line.
+  assert.deepEqual(grid([src("unknown", "x", 3), src("none", "x", 2)], { rowSide: side({ order, unplaced }) }).rows.lines.map((l) => l.key), ["none", "unknown"]);
+  assert.deepEqual(grid([src("4", "x", 3)], { rowSide: side({ order, unplaced }) }).rows.lines.map((l) => l.key), ["4"]);
 });
 
 test("values picked on an ordered band keep the band's order, whatever their size", () => {
@@ -306,6 +337,65 @@ test("the largest combination is worked out over every named pair in the window,
   assert.equal(g.total, 299, "100 in A, 100 in B and 99 in K");
 });
 
+test("level leaders: the first is on the grid, one the cut would lose is counted in the rest line, and the sentence says how many are", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  // A by x and B by y are level at 50. Rows are cut at one, so B's row is in the rest line; the columns hold both.
+  const g = grid([src("A", "x", 50), src("B", "y", 50), src("C", "x", 10)], { rowSide: side({ limit: 1 }) });
+  assert.deepEqual(g.leaders.map((l) => [l.row.key, l.column.key, l.inRest]), [["A", "x", false], ["B", "y", true]]);
+  assert.deepEqual(g.rows.lines.map((l) => l.kind), ["value", "rest"], "B has no row of its own");
+  const facts = {
+    basis: "count" as const, rowField: "thing", columnField: "kind", window: "in the window", total: g.total, conditions: false, floor: 200, rest: "All other",
+    leaders: g.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })), among: g.leadersAmong, counted: (n: number) => `${n} vehicles`,
+    rows: { field: "thing", mode: g.rows.mode, shown: 1, tiedBeyond: 0, rest: g.rows.rest }, columns: { field: "kind", mode: g.columns.mode, shown: 2, tiedBeyond: 0, rest: g.columns.rest },
+    thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  };
+  const one = matrixSentences(phrases, facts).leader as string;
+  assert.match(one, /^2 combinations of two named values are level as the largest, each with 50 vehicles: thing A and kind x; thing B and kind y\. One of these is counted in All other, not in a cell of its own\.$/);
+  // Two of three in the rest line is said in the plural; none in it adds nothing.
+  const three = matrixSentences(phrases, { ...facts, leaders: [...facts.leaders, { row: "D", column: "z", n: 50, inRest: true }] }).leader as string;
+  assert.match(three, /\. 2 of these are counted in All other, not in a cell of their own\.$/);
+  const shown = grid([src("A", "x", 50), src("B", "y", 50)]);
+  assert.ok(shown.leaders.every((l) => !l.inRest));
+  const plain = matrixSentences(phrases, { ...facts, leaders: shown.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })) }).leader as string;
+  assert.ok(!/counted in/.test(plain));
+});
+
+test("the answer says it is the largest of two named values, so it stays true beside a reserved line that holds more", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  const g = grid([src("A", "x", 10), src("B", "x", 5), src("__UNDEFINED__", "x", 500), src("__UNMAPPED__", "y", 400)]);
+  assert.ok(g.rows.lines.some((l) => l.kind === "reserved") && g.rowTotals.some((t) => t > g.leaders[0].n), "a reserved line is on the grid and holds more");
+  const sentence = matrixSentences(phrases, {
+    basis: "count", rowField: "thing", columnField: "kind", window: "in the window", total: g.total, conditions: false, floor: 200, rest: "All other",
+    leaders: g.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })), among: g.leadersAmong, counted: (n: number) => `${n} vehicles`,
+    rows: { field: "thing", mode: g.rows.mode, shown: 2, tiedBeyond: 0, rest: g.rows.rest }, columns: { field: "kind", mode: g.columns.mode, shown: 1, tiedBeyond: 0, rest: g.columns.rest },
+    thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  }).leader as string;
+  assert.match(sentence, /^The largest combination of two named values is thing A and kind x: 10 vehicles/);
+});
+
+test("a side cut by size counts the values chosen by size, not the one kept for the answer, so its two sentences agree", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  // Columns w 119, p 30, q 30, z 20, cut at two; the largest pair (a, z) is 20, so z is kept though q, which is level with p, is cut.
+  const rows = [..."abcdefg"].map((r) => src(r, "w", 17)).concat([src("a", "p", 15), src("b", "p", 15), src("a", "q", 15), src("b", "q", 15), src("a", "z", 20)]);
+  const g = grid(rows, { columnSide: side({ limit: 2 }) });
+  assert.deepEqual(g.leaders.map((l) => [l.row.key, l.column.key, l.n]), [["a", "z", 20]]);
+  assert.equal(g.columns.kept, "z");
+  assert.deepEqual(g.columns.lines.filter((l) => l.kind === "value").map((l) => l.key), ["w", "p", "z"], "three lines, z out of its place");
+  assert.equal(g.columns.shown, 2, "the two chosen by size");
+  assert.equal(g.rows.shown, 7, "a side with nothing kept counts all its lines");
+  const side2 = (s: typeof g.columns, field: string) => ({ field, mode: s.mode, shown: s.shown, tiedBeyond: s.tiedBeyond, kept: s.kept, rest: s.rest });
+  const said = matrixSentences(phrases, {
+    basis: "count", rowField: "thing", columnField: "kind", window: "in the window", total: g.total, conditions: false, floor: 200, rest: "All other",
+    leaders: g.leaders.map((l) => ({ row: l.row.name, column: l.column.name, n: l.n, inRest: l.inRest })), among: g.leadersAmong, counted: (n: number) => `${n} vehicles`,
+    rows: side2(g.rows, "thing"), columns: side2(g.columns, "kind"), thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  });
+  assert.match(said.columns[0], /^Columns: the 2 kind values with the most vehicles/);
+  assert.ok(said.columns.some((s) => /z is shown as well, out of its place/.test(s)));
+});
+
 test("where the visitor picked values the leader is the largest among those, and the sentence says so", async () => {
   const { phrases } = await import("../../src/lib/config.ts");
   const { matrixSentences } = await import("../../src/lib/sentences.ts");
@@ -321,12 +411,32 @@ test("where the visitor picked values the leader is the largest among those, and
     thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
   });
   const picked = matrixSentences(phrases, facts(g)).leader as string;
-  assert.match(picked, /Among the thing values you picked, the largest combination is thing C and kind y: 7 vehicles/);
+  assert.match(picked, /Among the thing values you picked, the largest combination of two named values is thing C and kind y: 7 vehicles/);
   const whole = grid(rows);
   assert.deepEqual(whole.leaders.map((l) => l.row.key), ["A"], "with nothing picked the leader is A by x");
   const plain = matrixSentences(phrases, facts(whole)).leader as string;
-  assert.match(plain, /^The largest combination is thing A and kind x: 1000 vehicles/);
+  assert.match(plain, /^The largest combination of two named values is thing A and kind x: 1000 vehicles/);
   assert.ok(!/you picked/.test(plain));
+});
+
+test("a count of one is said in the singular, here and in the plural, for the rest line and for a tie at the cut", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  const facts = (restValues: number, tiedBeyond: number) => ({
+    basis: "count" as const, rowField: "thing", columnField: "kind", window: "in the window", total: 100, conditions: false, floor: 200, rest: "All other",
+    leaders: [], among: { rows: false, columns: false }, counted: (n: number) => String(n),
+    rows: { field: "thing", mode: "largest" as const, shown: 2, tiedBeyond, rest: { values: restValues, notRecorded: false, unmatched: false, beyondCap: false } },
+    columns: { field: "kind", mode: "all" as const, shown: 2, tiedBeyond: 0 },
+    thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  });
+  const one = matrixSentences(phrases, facts(1, 1)).rows;
+  assert.ok(one.includes("Rows: one not shown has as many vehicles as the last row shown, and is counted in All other."), one.join(" | "));
+  assert.ok(one.includes("Rows: All other holds one further thing value."), one.join(" | "));
+  const many = matrixSentences(phrases, facts(3, 2)).rows;
+  assert.ok(many.includes("Rows: 2 not shown have as many vehicles as the last row shown, and are counted in All other."), many.join(" | "));
+  assert.ok(many.includes("Rows: All other holds 3 further thing values."), many.join(" | "));
+  const cols = matrixSentences(phrases, { ...facts(0, 0), columns: { field: "kind", mode: "largest" as const, shown: 2, tiedBeyond: 1 } }).columns;
+  assert.ok(cols.includes("Columns: one not shown has as many vehicles as the last column shown, and is counted in All other."), cols.join(" | "));
 });
 
 test("a sentence that cannot be filled is dropped, not shown with a gap", async () => {

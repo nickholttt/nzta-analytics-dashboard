@@ -56,9 +56,10 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/narrative-spec` (D-102; worktree `nzta-screens`, **uncommitted**): `config/narrative/`.
-- `claude/model-segments` (D-103; worktree `nzta-segments`, **uncommitted**): a proposal only.
-- `claude/hybrid-confidence` (D-115; worktree `nzta-audit`): `mild_hybrid_models.csv`'s rows.
+- `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
+- `claude/suv-lookup` (D-117; `nzta-segments`, where D-103's draft sits untracked): SUV or car.
+- `claude/bind-vehicle-fields` (D-116; this folder): assembled, class and seats as dimensions.
+  `claude/wider-scope-site` (D-118; `nzta-notes`): the wider scope on the site.
 
 ## Raw files on this computer (gitignored)
 
@@ -78,19 +79,18 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
    chart 4.61 s, a Build answer 6.58 to 10.32 s, against a target of 3 s. Build waits on its
    data: 566 KB to 1,212 KB of fact table, beside about 410 KB of code and fonts.
 2. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
-3. Mild hybrids are identified for about 74% of each dataset's hybrids at high confidence over
-   12 months (D-110's stricter count). Under 70% a dataset shows its hybrids undivided and the
-   build warns, on its summary page and `/status` (#72): about 1,100 more would do it.
+3. Mild hybrids are identified for about 78.5% of each dataset's hybrids at high confidence
+   over 12 months (D-110's count; 74% before #74, D-115). Under 70% a dataset shows its hybrids
+   undivided and the build warns (#72): about 2,200 more unidentified hybrids would do it.
 4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
    2026-10 dry run). It holds no owner field; the user's minimum of 10 is for owner fields (D-096).
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
 6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
-   Notes in config that no lint reads name a value or say why (D-107, D-109; for H).
-7. Printing or searching a page before scrolling reaches only the charts that have loaded (D-099).
-8. New vehicles read 1.4% to 3.9% under published totals on the default scope, and 0.06% to
-   1.3% under on the wider one; the older the month the wider the gap, cause not established
-   (D-105, D-113). This folder's `public/data` predates #68.
+   Notes in config that no lint reads name a value or say why (D-107, D-109; for H). Printing
+   or searching a page before scrolling reaches only the charts that have loaded (D-099).
+7. New vehicles read 1.4% to 3.9% under published totals on the default scope and 0.06% to
+   1.3% under on the wider one, wider in older months, cause not established (D-105, D-113).
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -124,7 +124,7 @@ date: matching vehicles between two months' archive files needs November's file 
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands (Git Bash; `gh` by full path). `Checks` runs
-the pipeline tests (about three minutes) and the site's 237 tests (under half a minute).
+the pipeline tests (about three minutes) and the site's 250 tests (under half a minute).
 
 - NZTA's website and its registrations dashboard block automated readers. Don't work around
   it: the dashboard is read only from files the user supplies. NZTA's open data service and
