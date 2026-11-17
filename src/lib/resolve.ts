@@ -74,6 +74,11 @@ export const fitsPin = (preset: Preset, period: string): boolean =>
 // (a preset's `cross`) is a line, and in one window it fits a grid that nothing draws.
 export const canDraw = (preset: Preset, shape: string): boolean => shape !== "matrix" || (Boolean(preset.dimension2) && !preset.derived && !preset.series);
 
+// The shapes whose chart ends its window in a month the visitor can name (the panel hands the month to the ranking and the grid). The other charts
+// always run to the dataset's newest month, so a question pinned to an earlier month cannot hold their window (src/lib/pin.ts). Held to the charts
+// by tests/site/pin.test.ts.
+export const END_MONTH_SHAPES = new Set(["league", "matrix"]);
+
 // The shapes that fit the question and have a renderer, best first. A visitor is offered these and no others.
 export const drawnShapes = (facts: Facts): string[] => shapesFor(facts).filter((s) => RENDERED_SHAPES.has(s));
 

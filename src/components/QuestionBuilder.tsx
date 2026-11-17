@@ -5,18 +5,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases, valueWords } from "../lib/config";
 import { REST_NAME, isChoosable } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, addressParams, builderPresets, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
-import type { SliceRow } from "../lib/data";
+import type { Manifest, SliceRow } from "../lib/data";
+import { canPin, pinNote } from "../lib/pin";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count } from "../lib/readout";
 import { fillTemplate, pickedBuilderSentences } from "../lib/sentences";
+import keepWords from "../../config/my_questions.json";
+import MyQuestions from "./MyQuestions";
 import PresetPanel, { reservedLabel } from "./PresetPanel";
 
-// The chart's own settings in the address bar. A new question clears them, so its charts open on their defaults.
-const CHART_PARAMS = ["period", "range", "smoothing", "month", "cells"];
 // Values filled in when a count is broken down and none are chosen yet: a count draws one line per value.
 const STARTING_VALUES = 5;
 const SUGGESTIONS = 8;
@@ -221,9 +222,15 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
       ...(note.by ? [fillNote(builderSpec.notices.by, note.by).text] : []),
       ...(note.by2 ? [fillNote(builderSpec.notices.by2, note.by2).text] : []),
       ...(note.value2 ? [builderSpec.notices.value2] : []),
+      ...(note.snapshot ? [fillNote(builderSpec.notices.snapshot, note.snapshot).text] : []),
       ...(note.left_out ?? []).map((left) => fillNote(builderSpec.notices.left_out, left).text),
     ];
   });
+  // The snapshot this page serves, to say what a pinned question is pinned to (src/lib/pin.ts).
+  const [served, setServed] = useState<Manifest | null>(null);
+  useEffect(() => {
+    loadManifest().then(setServed, () => setServed(null));
+  }, []);
   // What the chosen dataset offers: its measures, and the conditions its fact table can apply.
   const vocabulary = all.datasets.find((v) => v.dataset === question.dataset) ?? all.datasets[0];
   const { dataset } = vocabulary;
@@ -238,6 +245,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const countsLines = measure.id === "count" || builderSpec.measures.find((m) => m.id === measure.id)?.parts?.includes("count");
   const presets = useMemo(() => builderPresets(question, (v) => valueLabel(v, question.by ?? undefined)), [question]);
   const views = useMemo(() => viewsFor(question), [question]);
+  const pin = served ? pinNote(question, served) : undefined;
   const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
   // The other shapes a question may be drawn as are a choice of their own; the ranking is reached from the values, where it is about them.
   const otherViews = views.filter((v) => v !== RANKING);
@@ -258,13 +266,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   // The builder's settings in the address, replaced by the question's. A new question clears the charts' own settings
   // (the first chart's are scoped by the builder's id, a second chart's by its own); the first read keeps them.
   const writeAddress = (settled: Question, keepChart: boolean) => {
-    const url = new URL(window.location.href);
-    for (const k of [...url.searchParams.keys()]) {
-      const chartSetting = k.startsWith(`${builderSpec.id}-`) || CHART_PARAMS.some((p) => k === `${builderSpec.id}.${p}`);
-      if ((k.startsWith(`${builderSpec.id}.`) || k.startsWith(`${builderSpec.id}-`)) && !(keepChart && chartSetting)) url.searchParams.delete(k);
-    }
-    for (const [k, v] of questionParams(settled)) url.searchParams.append(k, v);
-    const next = `${url.pathname}?${url.searchParams}${url.hash}`;
+    const next = `${window.location.pathname}?${addressParams(window.location.search, settled, keepChart)}${window.location.hash}`;
     if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) window.history.replaceState(null, "", next);
   };
   // So a link that named something the page does not offer is corrected in the address where it is read, not only
@@ -629,6 +631,23 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
         ) : null}
       </form>
 
+      {pin ? (
+        <div className={pin.kind === "same" ? "callout curated" : "callout warning"} id="pin-line">
+          <span className="callout-label">{keepWords.pinned_label}</span>
+          {pin.text}{" "}
+          <button
+            type="button"
+            className="button-quiet"
+            onClick={() => {
+              ask({ snapshot: undefined }, true, true);
+              focusSoon(() => document.getElementById("pin-toggle"));
+            }}
+          >
+            {keepWords.unpin}
+          </button>
+        </div>
+      ) : null}
+
       {/* Keyed by the question, so a new question remounts each panel and reads its cleared settings. */}
       {presets.map((p) =>
         // A number by a breakdown is one line per chosen value. With none chosen there is no such chart to draw, and
@@ -659,6 +678,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
           <PresetPanel key={`${p.id}:${String(questionParams(question))}:${question.values.join("|")}`} preset={p} audience="public" anchored={false} />
         ),
       )}
+
+      <MyQuestions all={all} served={served} title={presets[0]?.question ?? ""} snapshot={question.snapshot} pinnable={served ? canPin(question, served) : false} onPin={(month) => ask({ snapshot: month }, true, true)} />
 
       {notOffered.length > 0 ? (
         <section className="not-offered" aria-labelledby="not-offered-head">
