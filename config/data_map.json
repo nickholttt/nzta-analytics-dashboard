@@ -377,7 +377,13 @@
       "privacy_reason": "Describes the vehicle.",
       "after_review": null,
       "bound": "motive_power",
-      "relations": { "rolls_up_to": [], "derived_from": [], "follows_vehicle": "no" }
+      "relations": {
+        "rolls_up_to": [
+          { "to": "powertrain_group", "via": "powertrain_map.csv", "holds_on": "by_construction" }
+        ],
+        "derived_from": [],
+        "follows_vehicle": "no"
+      }
     },
     {
       "name": "ALTERNATIVE_MOTIVE_POWER",

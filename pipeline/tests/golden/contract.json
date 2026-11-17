@@ -29,6 +29,7 @@
     "latest_month": "2026-08",
     "live_dimensions": [
      "powertrain",
+     "powertrain_group",
      "make",
      "parent_group",
      "owner_country",
@@ -63,6 +64,7 @@
      "rows": 56,
      "dimensions": [
       "powertrain",
+      "powertrain_group",
       "make",
       "parent_group",
       "owner_country",
@@ -83,6 +85,7 @@
     },
     "unmapped_rates": {
      "powertrain": 0.0,
+     "powertrain_group": 0.0,
      "make": 0.016949,
      "parent_group": 0.016949,
      "owner_country": 0.016949,
@@ -103,6 +106,24 @@
     },
     "unmapped_guard": {
      "powertrain": {
+      "whole_run": {
+       "rows": 59,
+       "unmapped": 0,
+       "rate": 0.0,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 52,
+       "unmapped": 0,
+       "rate": 0.0,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      }
+     },
+     "powertrain_group": {
       "whole_run": {
        "rows": 59,
        "unmapped": 0,
@@ -219,6 +240,7 @@
      "fuel_consumption": 0.9111,
      "dimensions": {
       "powertrain": 0.9804,
+      "powertrain_group": 0.9804,
       "make": 0.9804,
       "parent_group": 0.9804,
       "owner_country": 0.9804,
@@ -343,7 +365,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 47600,
+  "payload_bytes": 49625,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -4784,6 +4806,292 @@
      17.9,
      3,
      3
+    ]
+   ]
+  },
+  "registrations_surviving/powertrain_group.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "Combustion engine only",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "Combustion engine only",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "Combustion engine only",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "Combustion engine only",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "Combustion engine only",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "Combustion engine only",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "Combustion engine only",
+     1,
+     2,
+     8.8,
+     1,
+     1
+    ],
+    [
+     "2025-10-01",
+     "Plug-in hybrid",
+     1,
+     2,
+     1.9,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "Combustion engine only",
+     2,
+     2,
+     15.3,
+     2,
+     2
+    ],
+    [
+     "2025-12-01",
+     "Combustion engine only",
+     2,
+     2,
+     14.6,
+     2,
+     2
+    ],
+    [
+     "2026-01-01",
+     "Combustion engine only",
+     2,
+     2,
+     10.3,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "Combustion engine only",
+     2,
+     3,
+     13.9,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "Hybrid, full or mild",
+     1,
+     3,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Combustion engine only",
+     2,
+     5,
+     15.2,
+     2,
+     2
+    ],
+    [
+     "2026-03-01",
+     "Hybrid, full or mild",
+     2,
+     5,
+     8.5,
+     2,
+     2
+    ],
+    [
+     "2026-03-01",
+     "__UNDEFINED__",
+     1,
+     5,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-04-01",
+     "Battery electric",
+     1,
+     5,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-04-01",
+     "Combustion engine only",
+     4,
+     5,
+     16.8,
+     3,
+     4
+    ],
+    [
+     "2026-05-01",
+     "Combustion engine only",
+     3,
+     6,
+     18.0,
+     3,
+     3
+    ],
+    [
+     "2026-05-01",
+     "Hybrid, full or mild",
+     3,
+     6,
+     19.9,
+     3,
+     3
+    ],
+    [
+     "2026-06-01",
+     "Battery electric",
+     2,
+     6,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-06-01",
+     "Combustion engine only",
+     2,
+     6,
+     6.9,
+     1,
+     2
+    ],
+    [
+     "2026-06-01",
+     "Hybrid, full or mild",
+     2,
+     6,
+     7.1,
+     2,
+     2
+    ],
+    [
+     "2026-07-01",
+     "Combustion engine only",
+     2,
+     5,
+     13.5,
+     2,
+     2
+    ],
+    [
+     "2026-07-01",
+     "Hybrid, full or mild",
+     3,
+     5,
+     13.8,
+     3,
+     3
+    ],
+    [
+     "2026-08-01",
+     "Battery electric",
+     2,
+     11,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-08-01",
+     "Combustion engine only",
+     4,
+     11,
+     25.5,
+     4,
+     4
+    ],
+    [
+     "2026-08-01",
+     "Hybrid, full or mild",
+     5,
+     11,
+     22.2,
+     5,
+     5
     ]
    ]
   },
@@ -10168,6 +10476,184 @@
     ],
     [
      "Petrol"
+    ]
+   ]
+  },
+  "registrations_surviving/powertrain_group.parquet": {
+   "schema": [
+    [
+     "powertrain_group",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Plug-in hybrid"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
     ]
    ]
   },

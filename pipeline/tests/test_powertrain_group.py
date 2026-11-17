@@ -9,12 +9,19 @@ powertrain or group value is written in this file (invariant 1): every one is re
 from __future__ import annotations
 
 import csv
+import math
 from collections import defaultdict
 
-from pipeline import config, reference
-from pipeline.contract import OTHER, UNDEFINED, UNMAPPED
+import duckdb
+import pytest
 
-from .conftest import make_cfg
+from pipeline import build, config, derive, reference
+from pipeline.contract import OTHER, UNDEFINED, UNMAPPED
+from pipeline.errors import GuardrailError
+
+from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
+from .test_register_fields import (SURVIVING, counted, expected_lookup_counts, fact_counts, new_code_in_snapshot_month,
+                                   slice_counts, source_column)
 
 POWERTRAIN, GROUP, LABEL, DETAIL = "powertrain", "powertrain_group", "powertrain_group_label", "powertrain_detail"
 
@@ -88,3 +95,140 @@ def test_the_label_column_is_in_the_file_the_file_is_read_with_and_ends_in_a_lin
     with path.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.reader(handle))
     assert LABEL in rows[0] and len({len(r) for r in rows}) == 1, "a row with a different number of fields"
+
+
+# --- what a build publishes ---------------------------------------------------------------------------------------------
+
+DIM = "powertrain_group"
+
+
+def build_fixture(tmp_path, workspace, extra_rows=(), tweak=None):
+    """The fixture register built into this workspace, after `tweak(cfg)` if one is given."""
+    rows = load_rows() + list(extra_rows)
+    cfg = make_cfg(workspace)
+    if tweak:
+        tweak(cfg)
+    manifest = build.build(cfg, source_for(rows), write_pages(tmp_path / "pages", rows), None, NOW)
+    return cfg, rows, manifest
+
+
+def publishing_the_split(cfg):
+    cfg.pipeline["hybrid_classification"]["publish_split_at_trailing_high_confidence_coverage"] = 0.0
+
+
+def the_label_of(cfg) -> dict[str, str]:
+    """Each powertrain value's group name, from the reference file alone."""
+    return {r[POWERTRAIN]: r[LABEL] for r in map_rows(cfg)}
+
+
+def fact_pairs(public, dataset: str = SURVIVING) -> list[tuple[str, str, int]]:
+    """(powertrain, group, vehicles) for every row of the fact table: its column files line up row by row."""
+    d = public / "facts" / dataset
+    con = duckdb.connect()
+    parts = {c: f"(SELECT row_number() OVER () AS i, {c} FROM read_parquet('{(d / (c + '.parquet')).as_posix()}')) {c}"
+             for c in (POWERTRAIN, DIM, "n")}
+    rows = con.execute(f"SELECT {POWERTRAIN}.{POWERTRAIN}, {DIM}.{DIM}, n.n FROM {parts[POWERTRAIN]} "
+                       f"JOIN {parts[DIM]} USING (i) JOIN {parts['n']} USING (i)").fetchall()
+    con.close()
+    return rows
+
+
+def test_every_dataset_that_cuts_by_powertrain_carries_the_group_beside_it_and_guards_it():
+    cfg = make_cfg({})
+    datasets = {d: spec for d, spec in cfg.pipeline["datasets"].items() if POWERTRAIN in (spec.get("facts") or [])}
+    assert len(datasets) >= 3
+    for dataset, spec in datasets.items():
+        assert DIM in spec["facts"], dataset
+        assert DIM in {d["id"] for d in derive.applicable(cfg, dataset)[0]}, dataset
+    abort = cfg.pipeline["guardrails"]["abort_on_unmapped"]
+    assert DIM in abort and POWERTRAIN in abort
+    dims = {d["id"]: d for d in cfg.dimensions["dimensions"]}
+    assert dims[DIM]["derive"]["field"] == dims[POWERTRAIN]["derive"]["field"]
+    assert dims[DIM]["derive"]["value"] == LABEL, "the dimension must publish the visible name, not the key the hybrid classification reads"
+
+
+def test_the_group_counts_are_the_powertrain_counts_rolled_up_and_every_vehicle_is_in_the_group_of_its_powertrain(tmp_path, workspace):
+    cfg, rows, manifest = build_fixture(tmp_path, workspace, tweak=publishing_the_split)
+    entry = manifest["datasets"][SURVIVING]
+    assert DIM in entry["live_dimensions"] and DIM in entry["facts"]["dimensions"] and DIM not in entry["not_live"]
+    # Worked out from the raw codes and the reference file, before the mild split moves a hybrid between two codes: the
+    # same figures, because the two codes it moves between share a group.
+    expected = expected_lookup_counts(cfg, DIM, counted(cfg, rows, entry["latest_month"]))
+    assert len(expected) >= 4 and UNMAPPED not in expected
+    assert slice_counts(workspace["public"], DIM) == expected
+    assert fact_counts(workspace["public"], DIM) == expected
+    assert entry["unmapped_rates"][DIM] == entry["unmapped_rates"][POWERTRAIN] == 0.0
+    # Zero vehicles whose group is not the group of their final powertrain, and a powertrain never in two groups.
+    pairs = fact_pairs(workspace["public"])
+    label = the_label_of(cfg)
+    disagree = sum(n for p, g, n in pairs if p in label and label[p] != g)
+    assert pairs and disagree == 0, f"{disagree} vehicles sit in a group other than their powertrain's"
+    assert all(g == label[p] for p, g, n in pairs if p in label)
+    # A hybrid code the mild split moved is in the fixture, so the check above covers a vehicle that changed code.
+    h = cfg.pipeline["hybrid_classification"]
+    assert {h["mild_powertrain"], h["undivided_powertrain"]} <= {p for p, _, _ in pairs}
+
+
+def test_the_group_is_published_where_the_mild_split_is_withheld_and_does_not_move(tmp_path, workspace):
+    cfg = make_cfg(workspace)
+    h = cfg.pipeline["hybrid_classification"]
+    mild = h["mild_powertrain"]
+    rows = load_rows()
+
+    h["publish_split_at_trailing_high_confidence_coverage"] = 0.0
+    shown = build.build(cfg, source_for(rows), write_pages(tmp_path / "shown", rows), None, NOW)
+    assert shown["datasets"][SURVIVING]["mild_hybrid_identification_coverage"]["mild_split_published"] is True
+    published = slice_counts(workspace["public"], DIM)
+    assert mild in {p for p, _, _ in fact_pairs(workspace["public"])}
+
+    h["publish_split_at_trailing_high_confidence_coverage"] = 1.0
+    withheld = build.build(cfg, source_for(rows), write_pages(tmp_path / "held", rows), None, NOW)
+    entry = withheld["datasets"][SURVIVING]
+    assert entry["mild_hybrid_identification_coverage"]["mild_split_published"] is False
+    assert DIM in entry["live_dimensions"] and DIM in entry["facts"]["dimensions"] and DIM not in entry["not_live"]
+    pairs = fact_pairs(workspace["public"])
+    assert mild not in {p for p, _, _ in pairs}, "the split is withheld, so no vehicle shows the mild value"
+    assert slice_counts(workspace["public"], DIM) == published, "withholding the split moved a vehicle between groups"
+    label = the_label_of(cfg)
+    assert all(label[p] == g for p, g, n in pairs if p in label)
+
+
+def test_the_group_adds_no_row_to_the_fact_table(tmp_path, workspace):
+    """A group is a function of the powertrain, so the table's rows split no further."""
+    _, _, with_group = build_fixture(tmp_path / "with", workspace)
+
+    def without(cfg):
+        facts = cfg.pipeline["datasets"][SURVIVING]["facts"]
+        cfg.pipeline["datasets"][SURVIVING]["facts"] = [f for f in facts if f != DIM]
+
+    other = {k: v.parent / "without" / v.name for k, v in workspace.items()}
+    _, _, plain = build_fixture(tmp_path / "without", other, tweak=without)
+    assert DIM not in plain["datasets"][SURVIVING]["facts"]["dimensions"]
+    assert with_group["datasets"][SURVIVING]["facts"]["rows"] == plain["datasets"][SURVIVING]["facts"]["rows"] > 0
+
+
+def test_a_motive_power_the_map_does_not_hold_is_unmapped_in_the_group_and_stops_the_build_by_the_groups_own_guard(tmp_path, workspace):
+    rows, cfg0 = load_rows(), make_cfg(workspace)
+    g = cfg0.pipeline["guardrails"]
+    _, _, manifest = build_fixture(tmp_path / "base", workspace)
+    base = manifest["datasets"][SURVIVING]["unmapped_guard"][DIM]["trailing"]["rows"]
+    rate = g["max_unmapped_rate_trailing"]
+    over = math.floor(rate * base / (1 - rate)) + 1
+    assert over >= 2
+    assert source_column(cfg0, DIM) == source_column(cfg0, POWERTRAIN)
+
+    beyond = new_code_in_snapshot_month(rows, cfg0, POWERTRAIN, over, 6000)
+
+    def only_the_group(cfg):
+        cfg.pipeline["guardrails"]["abort_on_unmapped"] = [DIM]
+
+    with pytest.raises(GuardrailError) as info:
+        build_fixture(tmp_path / "over", {k: v.parent / "over" / v.name for k, v in workspace.items()}, beyond, tweak=only_the_group)
+    assert f"{SURVIVING}.{DIM}: unmapped rate" in str(info.value), str(info.value)
+
+    def neither(cfg):
+        guarded = cfg.pipeline["guardrails"]["abort_on_unmapped"]
+        cfg.pipeline["guardrails"]["abort_on_unmapped"] = [d for d in guarded if d not in (DIM, POWERTRAIN)]
+
+    _, _, quiet = build_fixture(tmp_path / "quiet", {k: v.parent / "quiet" / v.name for k, v in workspace.items()}, beyond, tweak=neither)
+    assert quiet["datasets"][SURVIVING]["unmapped_rates"][DIM] > 0, "the same rows build when neither dimension is guarded"
