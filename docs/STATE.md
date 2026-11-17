@@ -27,8 +27,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **NZTA's vehicle type is a dimension** (#58, D-095), and on the register dataset so are the
   assembly flag, the class (NZTA's label with its code, D-121) and seats in bands (#79, D-116):
   breakdowns in Build (#82, D-122). **Power in bands and the gearbox in four groups** too
-  (#93, D-128), breakdowns in Build from vehicles sold new (#96, D-132). **The powertrain rolls up to
-  five groups**, so hybrids, full or mild, can be asked for as one share (#87, D-124).
+  (#93, D-128), breakdowns starting with vehicles sold new (#96, D-132). **The powertrain
+  rolls up to five groups**: hybrids, full or mild, as one share (#87, D-124).
 - **The site shows true registrations and the long run on a local build** (#56, #61; D-093,
   D-098): a group in Explore and a choice of what Build counts; cars first registered each
   month from 1961, and cars still registered set against Stats NZ's count (not a survival
