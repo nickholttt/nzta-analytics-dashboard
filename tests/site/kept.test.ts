@@ -10,7 +10,7 @@ import { everythingBuilt } from "./support/observe.ts";
 
 const { builderVocabulary, readQuestion, settle } = await import("../../src/lib/builder.ts");
 const { dimensions } = await import("../../src/lib/config.ts");
-const { SMALL_CELL_KEY, hasValues, holds, keptMonth, ownerSliceReady, pinLine, readingFor } = await import("../../src/lib/kept.ts");
+const { SMALL_CELL_KEY, hasValues, holds, keptMonth, ownerSliceReady, pickerMonth, pinLine, readingFor } = await import("../../src/lib/kept.ts");
 const { ownerDimensions } = await import("../../src/lib/owner.ts");
 const dataMap = JSON.parse(readFileSync(new URL("../../config/data_map.json", import.meta.url), "utf8"));
 const { fillTemplate } = await import("../../src/lib/sentences.ts");
@@ -255,4 +255,33 @@ test("the deploy script's list of owner dimensions and its manifest key are the 
   const dims = [{ id: "own" }, { id: "by_lookup", derive: { kind: "lookup", field: "own" } }, { id: "by_group", derive: { kind: "copy", from: { field: "grouped" } } }, { id: "vehicle_thing", derive: { field: "plain" } }];
   assert.deepEqual(script.ownerDimensionIds(map, dims), ownerDimensions(map, dims));
   assert.deepEqual(script.ownerDimensionIds(map, dims), ["own", "by_lookup", "by_group"]);
+});
+
+test("the suggestions under a picker are counted in the kept snapshot where it can give them, and in the newest's where it cannot (the owner field, a field not live in it)", () => {
+  const reading = { kind: "kept" as const, month: "2026-10", manifest: kept };
+  assert.equal(pickerMonth(reading, dataset, long, {}, ownerSet), "2026-10", "a field the kept snapshot has: its month");
+  for (const not of [{ kind: "served" as const }, { kind: "withheld" as const, month: "2026-10", manifest: kept, why: "missing" as const }, undefined]) {
+    assert.equal(pickerMonth(not, dataset, long, {}, ownerSet), undefined, JSON.stringify(not?.kind));
+  }
+  // A condition picker opened with no value is not in the question, so `asks` never named its field: the picker checks it itself.
+  assert.equal(pickerMonth(reading, dataset, owner, {}, ownerSet), undefined, "an owner field the kept snapshot does not cover");
+  const covers = manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: { [owner]: { minimum: 10 } } }));
+  assert.equal(pickerMonth({ ...reading, manifest: covers }, dataset, owner, {}, ownerSet), "2026-10", "and one it does");
+  // Counted among conditions: each must be carried by the kept snapshot's fact table, and no owner one may be uncovered.
+  assert.equal(pickerMonth(reading, dataset, long, { [owner]: ["x"] }, ownerSet), undefined);
+  assert.equal(pickerMonth(reading, dataset, long, { [owner]: [] }, ownerSet), "2026-10", "a condition with no value keeps every vehicle and is not read");
+  const lacking = manifestOf("2026-10-31", (_id, e) => ({ ...e, live_dimensions: (e.live_dimensions as string[]).filter((d) => d !== long) }));
+  assert.equal(pickerMonth({ ...reading, manifest: lacking }, dataset, long, {}, ownerSet), undefined, "a field not live in the kept snapshot");
+  const noFacts = manifestOf("2026-10-31", (_id, e) => ({ ...e, facts: { dimensions: [] } }));
+  assert.equal(pickerMonth({ ...reading, manifest: noFacts }, dataset, long, { [long]: ["x"] }, ownerSet), undefined, "a condition its fact table does not carry");
+});
+
+test("every list of values on the Build page is asked of the snapshot the question reads from", () => {
+  const source = readFileSync(new URL("../../src/components/QuestionBuilder.tsx", import.meta.url), "utf8");
+  const count = (text: string) => source.split(text).length - 1;
+  const pickers = count("<ValuePicker");
+  assert.equal(pickers, 3, "the page has three lists of values; if that changed, this test must follow");
+  assert.equal(count("snapshot={pickAt("), pickers, "each picker is given its snapshot");
+  assert.ok(source.includes("valueOptions(dataset, dimension, JSON.parse(whereKey), snapshot)"), "the picker's list is read from it");
+  assert.ok(source.includes("[dataset, dimension, whereKey, snapshot]"), "and read again when it changes");
 });

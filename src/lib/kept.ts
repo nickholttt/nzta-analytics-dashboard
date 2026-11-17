@@ -115,6 +115,21 @@ export async function readingFor(q: Question, served: Manifest, load: Loaders, o
   return { kind: "kept", month, manifest };
 }
 
+// The kept snapshot a picker's suggestions are counted in: the month the question reads from, when that snapshot can give a list for this field, and
+// otherwise none (the newest's). It can where the field is live in it and, for a list counted among conditions, carried by its fact table, and where
+// no owner field named is one its manifest leaves uncovered: a condition picker opened with no value yet is not in the question, so `asks` has not
+// checked its field, and this does.
+export function pickerMonth(reading: Reading | undefined, dataset: string, dimension: string, where: Record<string, string[]>, owner: Owner): string | undefined {
+  if (reading?.kind !== "kept") return undefined;
+  const served = servedFrom(dataset, reading.manifest) ?? dataset;
+  const entry = reading.manifest.datasets[served];
+  if (!entry) return undefined;
+  const conditions = Object.entries(where).filter(([, kept]) => kept.length > 0).map(([d]) => d);
+  const named = [dimension, ...conditions];
+  const filtered = conditions.length > 0;
+  return named.every((d) => ownerSliceReady(reading.manifest, served, d, owner) && entry.live_dimensions.includes(d) && (!filtered || Boolean(entry.facts?.dimensions.includes(d)))) ? reading.month : undefined;
+}
+
 export type KeptNote = PinNote | { kind: "kept" | "withheld"; text: string };
 
 // The line above the chart for a pinned question, given where it reads from; undefined for a question that is not pinned.

@@ -10,7 +10,7 @@ import type { Question, Vocabulary } from "../lib/builder";
 import { ServiceError, datasetLatestMonth, factView, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
 import { canPin, servedMonth } from "../lib/pin";
-import { pinLine, readingFor } from "../lib/kept";
+import { pickerMonth, pinLine, readingFor } from "../lib/kept";
 import type { Loaders, Owner, Reading } from "../lib/kept";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
@@ -59,7 +59,7 @@ function failureHint(e: unknown): string {
   return e.down ? "The question service is not answering, so the values to choose from did not load. Try again in a few minutes." : e.message;
 }
 
-function useValueOptions(dataset: string, dimension: string, where: Record<string, string[]>) {
+function useValueOptions(dataset: string, dimension: string, where: Record<string, string[]>, snapshot?: string) {
   const [options, setOptions] = useState<ValueOption[] | null>(null);
   // What the hint says when the list did not load: a file that failed, the query service not answering, or the
   // service's own sentence when it refused the question (trying again would not help).
@@ -69,20 +69,21 @@ function useValueOptions(dataset: string, dimension: string, where: Record<strin
     let current = true;
     setOptions(null);
     setFailed(null);
-    valueOptions(dataset, dimension, JSON.parse(whereKey)).then(
+    valueOptions(dataset, dimension, JSON.parse(whereKey), snapshot).then(
       (o) => current && setOptions(o),
       (e) => current && setFailed(failureHint(e)),
     );
     return () => {
       current = false;
     };
-  }, [dataset, dimension, whereKey]);
+  }, [dataset, dimension, whereKey, snapshot]);
   return { options, failed };
 }
 
 function ValuePicker({
   dataset,
   dimension,
+  snapshot,
   noun,
   chosen,
   where,
@@ -95,6 +96,8 @@ function ValuePicker({
 }: {
   dataset: string;
   dimension: string;
+  // The kept snapshot (a month) the suggestions are counted in, where the question reads from one and it can answer for this field (pickerMonth).
+  snapshot?: string;
   noun: string;
   chosen: string[];
   where: Record<string, string[]>;
@@ -108,7 +111,7 @@ function ValuePicker({
   // The name of the list of chosen values, where "chosen" would not be true of them.
   chosenLabel?: string;
 }) {
-  const { options, failed } = useValueOptions(dataset, dimension, where);
+  const { options, failed } = useValueOptions(dataset, dimension, where, snapshot);
   const [query, setQuery] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const box = useRef<HTMLDivElement>(null);
@@ -339,6 +342,9 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const whereKey = JSON.stringify(applicable(question.where));
   // A question read from a kept snapshot starts on that snapshot's largest values, not the newest's, so it shows what it showed when it was pinned.
   const keptFolder = reading?.kind === "kept" ? reading.month : undefined;
+  // The suggestions under each picker are counted in the kept snapshot too, so they agree with the line above the chart; for a field the kept snapshot
+  // cannot give them for, they stay the newest's.
+  const pickAt = (dimension: string, where: Record<string, string[]>) => pickerMonth(reading, dataset, dimension, where, ownerFields);
   const awaitingValues = Boolean(countsLines && question.by && !question.by2 && question.values.length === 0 && breakdown?.values);
   // The question whose starting values were looked for and not found: nothing was first registered in the last 12
   // months among the vehicles its conditions keep.
@@ -489,6 +495,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                 <ValuePicker
                   dataset={dataset}
                   dimension={side.id}
+                  snapshot={pickAt(side.id, applicable(question.where))}
                   noun={lowerLabel(filterLabel(side.id))}
                   chosen={side.chosen}
                   where={applicable(question.where)}
@@ -535,6 +542,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
               <ValuePicker
                 dataset={dataset}
                 dimension={breakdown.id}
+                snapshot={pickAt(breakdown.id, applicable(question.where))}
                 noun={noun}
                 chosen={question.values}
                 where={applicable(question.where)}
@@ -612,6 +620,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
                   <ValuePicker
                     dataset={dataset}
                     dimension={d}
+                    snapshot={pickAt(d, applicable(without(question.where, d)))}
                     noun={lowerLabel(filterLabel(d))}
                     chosen={kept}
                     where={applicable(without(question.where, d))}
