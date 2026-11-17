@@ -3,6 +3,8 @@
 UNDEFINED = "__UNDEFINED__"
 UNMAPPED = "__UNMAPPED__"
 OTHER = "__OTHER__"
+# The one row of a month that a protected slice (an owner dimension, D-127) does not break down: its n is the month's total.
+NOT_BROKEN_DOWN = "__NOT_BROKEN_DOWN__"
 MODEL_KEY_SEPARATOR = "|"
 
 SLICE_COLUMNS = [

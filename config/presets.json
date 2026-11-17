@@ -229,7 +229,8 @@
       "pin_ahead": "This link is pinned to {pinned|month}, a snapshot this site does not have yet. It shows the snapshot of {date|date}.",
       "pin_kept": "Pinned to {pinned|month}. These are the figures of the snapshot of {date|date}, kept on this site.",
       "pin_kept_missing": "The snapshot of {date|date} that this link is pinned to cannot answer this question.",
-      "pin_kept_withheld": "The snapshot of {date|date} that this link is pinned to does not say that small counts were hidden in the fields this question names, so its figures for this question are not shown."
+      "pin_kept_withheld": "The snapshot of {date|date} that this link is pinned to does not say that small counts were hidden in the fields this question names, so its figures for this question are not shown.",
+      "small_cells_hidden": "This table has small counts hidden, and this site does not draw a table like that yet."
     },
     "$datasets_comment": "What a question counts. The first is the default, and an address with no build.dataset means it. Each is offered only where the build made it, and only the dimensions, values and conditions that dataset carries are offered with it. A text that differs by dataset (note, dimension_notes) is an object keyed by dataset id.",
     "cannot_cross": [

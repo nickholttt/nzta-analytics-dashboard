@@ -46,6 +46,8 @@
      "nz_assembled",
      "nzta_class",
      "seats_band",
+     "power_band",
+     "transmission",
      "model"
     ],
     "not_live": {
@@ -60,6 +62,19 @@
      "import_status__vehicle_type"
     ],
     "not_live_pairs": {},
+    "small_cells": {
+     "region": {
+      "minimum": 10,
+      "minimum_hidden_cells": 2,
+      "minimum_hidden_vehicles": 10,
+      "months": 17,
+      "cells_hidden_first_rule": 0,
+      "cells_hidden_second_rule": 0,
+      "vehicles_in_hidden_cells": 0,
+      "months_not_broken_down": 17,
+      "vehicles_in_months_not_broken_down": 56
+     }
+    },
     "facts": {
      "rows": 56,
      "dimensions": [
@@ -79,6 +94,8 @@
       "nz_assembled",
       "nzta_class",
       "seats_band",
+      "power_band",
+      "transmission",
       "model"
      ],
      "not_live": {}
@@ -102,6 +119,8 @@
      "nz_assembled": 0.0,
      "nzta_class": 0.0,
      "seats_band": 0.0,
+     "power_band": 0.0,
+     "transmission": 0.0,
      "model": 0.0
     },
     "unmapped_guard": {
@@ -194,6 +213,24 @@
        "abort_above": 0.02,
        "headroom_rows": 1
       }
+     },
+     "transmission": {
+      "whole_run": {
+       "rows": 59,
+       "unmapped": 0,
+       "rate": 0.0,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 52,
+       "unmapped": 0,
+       "rate": 0.0,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      }
      }
     },
     "mild_hybrid_identification_coverage": {
@@ -253,6 +290,7 @@
       "region": 0.9608,
       "nz_assembled": 0.9216,
       "nzta_class": 0.9608,
+      "transmission": 0.5686,
       "model": 1.0
      }
     },
@@ -283,6 +321,12 @@
        "source_sentinel": 2,
        "negative": 0,
        "out_of_bands": 2
+      },
+      "power_band": {
+       "source_missing": 3,
+       "source_sentinel": 23,
+       "negative": 0,
+       "out_of_bands": 4
       }
      },
      "fuel_consumption": {
@@ -365,7 +409,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 49625,
+  "payload_bytes": 53319,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -4478,6 +4522,373 @@
     ]
    ]
   },
+  "registrations_surviving/power_band.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "unknown",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "unknown",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "unknown",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "100-149 kW",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "unknown",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "300-499 kW",
+     1,
+     2,
+     null,
+     0,
+     1
+    ],
+    [
+     "2025-09-01",
+     "75-99 kW",
+     1,
+     2,
+     null,
+     0,
+     1
+    ],
+    [
+     "2025-10-01",
+     "unknown",
+     2,
+     2,
+     10.7,
+     2,
+     2
+    ],
+    [
+     "2025-11-01",
+     "150-199 kW",
+     1,
+     2,
+     9.1,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "unknown",
+     1,
+     2,
+     6.2,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "100-149 kW",
+     1,
+     2,
+     7.8,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "150-199 kW",
+     1,
+     2,
+     6.8,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "75-99 kW",
+     1,
+     2,
+     4.9,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "unknown",
+     1,
+     2,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "200-299 kW",
+     1,
+     3,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "500 kW and over",
+     1,
+     3,
+     6.0,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "unknown",
+     1,
+     3,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "500 kW and over",
+     1,
+     5,
+     10.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "75-99 kW",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Under 75 kW",
+     1,
+     5,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "unknown",
+     2,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "150-199 kW",
+     1,
+     5,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-04-01",
+     "75-99 kW",
+     1,
+     5,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "unknown",
+     3,
+     5,
+     11.8,
+     2,
+     3
+    ],
+    [
+     "2026-05-01",
+     "100-149 kW",
+     1,
+     6,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Under 75 kW",
+     2,
+     6,
+     13.8,
+     2,
+     2
+    ],
+    [
+     "2026-05-01",
+     "unknown",
+     3,
+     6,
+     16.2,
+     3,
+     3
+    ],
+    [
+     "2026-06-01",
+     "100-149 kW",
+     1,
+     6,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-06-01",
+     "300-499 kW",
+     1,
+     6,
+     6.9,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "unknown",
+     4,
+     6,
+     7.1,
+     2,
+     3
+    ],
+    [
+     "2026-07-01",
+     "Under 75 kW",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "unknown",
+     4,
+     5,
+     22.2,
+     4,
+     4
+    ],
+    [
+     "2026-08-01",
+     "100-149 kW",
+     2,
+     11,
+     12.6,
+     2,
+     2
+    ],
+    [
+     "2026-08-01",
+     "200-299 kW",
+     2,
+     11,
+     7.6,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "75-99 kW",
+     1,
+     11,
+     6.0,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "Under 75 kW",
+     1,
+     11,
+     4.5,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "unknown",
+     5,
+     11,
+     17.0,
+     4,
+     4
+    ]
+   ]
+  },
   "registrations_surviving/powertrain.parquet": {
    "schema": [
     [
@@ -5129,336 +5540,156 @@
    "rows": [
     [
      "1965-04-01",
-     "Canterbury",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
      null,
-     0,
-     1
+     null,
+     null
     ],
     [
      "1998-01-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
      null,
-     0,
-     1
+     null,
+     null
     ],
     [
      "2007-06-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
      null,
-     0,
-     1
+     null,
+     null
     ],
     [
      "2019-03-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
-     6.1,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2025-08-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      1,
      1,
-     5.0,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2025-09-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      2,
      2,
      null,
-     0,
-     2
+     null,
+     null
     ],
     [
      "2025-10-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      2,
      2,
-     10.7,
-     2,
-     2
+     null,
+     null,
+     null
     ],
     [
      "2025-11-01",
-     "Auckland",
-     1,
+     "__NOT_BROKEN_DOWN__",
      2,
-     9.1,
-     1,
-     1
-    ],
-    [
-     "2025-11-01",
-     "Bay of Plenty",
-     1,
      2,
-     6.2,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2025-12-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      2,
      2,
-     14.6,
-     2,
-     2
+     null,
+     null,
+     null
     ],
     [
      "2026-01-01",
-     "Auckland",
-     1,
+     "__NOT_BROKEN_DOWN__",
      2,
-     5.4,
-     1,
-     1
-    ],
-    [
-     "2026-01-01",
-     "__UNDEFINED__",
-     1,
      2,
-     4.9,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2026-02-01",
-     "Auckland",
+     "__NOT_BROKEN_DOWN__",
      3,
      3,
-     17.3,
-     3,
-     3
+     null,
+     null,
+     null
     ],
     [
      "2026-03-01",
-     "Auckland",
-     2,
+     "__NOT_BROKEN_DOWN__",
      5,
-     3.4,
-     1,
-     1
-    ],
-    [
-     "2026-03-01",
-     "Canterbury",
-     1,
      5,
-     10.1,
-     1,
-     1
-    ],
-    [
-     "2026-03-01",
-     "Nelson",
-     1,
-     5,
-     5.1,
-     1,
-     1
-    ],
-    [
-     "2026-03-01",
-     "Waikato",
-     1,
-     5,
-     5.1,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2026-04-01",
-     "Auckland",
-     3,
+     "__NOT_BROKEN_DOWN__",
      5,
-     5.0,
-     1,
-     2
-    ],
-    [
-     "2026-04-01",
-     "Bay of Plenty",
-     1,
      5,
-     7.2,
-     1,
-     1
-    ],
-    [
-     "2026-04-01",
-     "Wellington",
-     1,
-     5,
-     4.6,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2026-05-01",
-     "Auckland",
-     1,
+     "__NOT_BROKEN_DOWN__",
      6,
-     5.4,
-     1,
-     1
-    ],
-    [
-     "2026-05-01",
-     "Canterbury",
-     3,
-     6,
-     19.6,
-     3,
-     3
-    ],
-    [
-     "2026-05-01",
-     "Gisborne",
-     1,
-     6,
-     7.9,
-     1,
-     1
-    ],
-    [
-     "2026-05-01",
-     "Manawatū-Whanganui",
-     1,
-     6,
-     5.0,
-     1,
-     1
-    ],
-    [
-     "2026-06-01",
-     "Auckland",
-     3,
-     6,
-     7.1,
-     2,
-     2
-    ],
-    [
-     "2026-06-01",
-     "Southland",
-     1,
      6,
      null,
-     0,
-     1
+     null,
+     null
     ],
     [
      "2026-06-01",
-     "Wellington",
-     1,
+     "__NOT_BROKEN_DOWN__",
+     6,
      6,
      null,
-     0,
-     0
-    ],
-    [
-     "2026-06-01",
-     "__UNMAPPED__",
-     1,
-     6,
-     6.9,
-     1,
-     1
+     null,
+     null
     ],
     [
      "2026-07-01",
-     "Auckland",
-     2,
+     "__NOT_BROKEN_DOWN__",
      5,
-     13.5,
-     2,
-     2
-    ],
-    [
-     "2026-07-01",
-     "Northland",
-     1,
      5,
-     5.1,
-     1,
-     1
-    ],
-    [
-     "2026-07-01",
-     "Otago",
-     1,
-     5,
-     4.8,
-     1,
-     1
-    ],
-    [
-     "2026-07-01",
-     "Waikato",
-     1,
-     5,
-     3.9,
-     1,
-     1
+     null,
+     null,
+     null
     ],
     [
      "2026-08-01",
-     "Auckland",
-     6,
+     "__NOT_BROKEN_DOWN__",
      11,
-     23.9,
-     5,
-     5
-    ],
-    [
-     "2026-08-01",
-     "Canterbury",
-     1,
-     11,
-     7.4,
-     1,
-     1
-    ],
-    [
-     "2026-08-01",
-     "Hawke's Bay",
-     1,
-     11,
-     7.6,
-     1,
-     1
-    ],
-    [
-     "2026-08-01",
-     "Otago",
-     1,
      11,
      null,
-     0,
-     0
-    ],
-    [
-     "2026-08-01",
-     "Waikato",
-     2,
-     11,
-     8.8,
-     2,
-     2
+     null,
+     null
     ]
    ]
   },
@@ -6272,6 +6503,373 @@
      40.1,
      8,
      8
+    ]
+   ]
+  },
+  "registrations_surviving/transmission.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "__UNDEFINED__",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "__UNDEFINED__",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "__UNDEFINED__",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "Continuously variable",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "__UNDEFINED__",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "Automatic",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "__UNDEFINED__",
+     2,
+     2,
+     10.7,
+     2,
+     2
+    ],
+    [
+     "2025-11-01",
+     "Automatic",
+     1,
+     2,
+     9.1,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "__UNDEFINED__",
+     1,
+     2,
+     6.2,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "Automatic",
+     1,
+     2,
+     7.8,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "Manual",
+     1,
+     2,
+     6.8,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "Manual",
+     1,
+     2,
+     4.9,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "__UNDEFINED__",
+     1,
+     2,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "Continuously variable",
+     1,
+     3,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "Manual",
+     1,
+     3,
+     6.0,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "__UNDEFINED__",
+     1,
+     3,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Automatic",
+     1,
+     5,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Continuously variable",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Manual",
+     1,
+     5,
+     10.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "__UNDEFINED__",
+     2,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Manual",
+     1,
+     5,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Other",
+     1,
+     5,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-04-01",
+     "__UNDEFINED__",
+     3,
+     5,
+     11.8,
+     2,
+     3
+    ],
+    [
+     "2026-05-01",
+     "Automatic",
+     1,
+     6,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Continuously variable",
+     1,
+     6,
+     8.4,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Manual",
+     1,
+     6,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "__UNDEFINED__",
+     3,
+     6,
+     16.2,
+     3,
+     3
+    ],
+    [
+     "2026-06-01",
+     "Continuously variable",
+     1,
+     6,
+     6.9,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "Other",
+     2,
+     6,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-06-01",
+     "__UNDEFINED__",
+     3,
+     6,
+     7.1,
+     2,
+     3
+    ],
+    [
+     "2026-07-01",
+     "Automatic",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "Other",
+     1,
+     5,
+     4.8,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "__UNDEFINED__",
+     3,
+     5,
+     17.4,
+     3,
+     3
+    ],
+    [
+     "2026-08-01",
+     "Automatic",
+     5,
+     11,
+     30.7,
+     5,
+     5
+    ],
+    [
+     "2026-08-01",
+     "Continuously variable",
+     2,
+     11,
+     9.6,
+     2,
+     2
+    ],
+    [
+     "2026-08-01",
+     "Other",
+     1,
+     11,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-08-01",
+     "__UNDEFINED__",
+     3,
+     11,
+     7.4,
+     2,
+     2
     ]
    ]
   },
@@ -10301,6 +10899,184 @@
     ]
    ]
   },
+  "registrations_surviving/power_band.parquet": {
+   "schema": [
+    [
+     "power_band",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "100-149 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "300-499 kW"
+    ],
+    [
+     "75-99 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "150-199 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "150-199 kW"
+    ],
+    [
+     "100-149 kW"
+    ],
+    [
+     "75-99 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "200-299 kW"
+    ],
+    [
+     "500 kW and over"
+    ],
+    [
+     "500 kW and over"
+    ],
+    [
+     "75-99 kW"
+    ],
+    [
+     "Under 75 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "150-199 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "75-99 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "Under 75 kW"
+    ],
+    [
+     "100-149 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "Under 75 kW"
+    ],
+    [
+     "100-149 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "300-499 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "Under 75 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "200-299 kW"
+    ],
+    [
+     "200-299 kW"
+    ],
+    [
+     "100-149 kW"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "100-149 kW"
+    ],
+    [
+     "Under 75 kW"
+    ],
+    [
+     "75-99 kW"
+    ]
+   ]
+  },
   "registrations_surviving/powertrain.parquet": {
    "schema": [
     [
@@ -11188,6 +11964,184 @@
     ],
     [
      "Light passenger"
+    ]
+   ]
+  },
+  "registrations_surviving/transmission.parquet": {
+   "schema": [
+    [
+     "transmission",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Manual"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Other"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Automatic"
+    ],
+    [
+     "Automatic"
     ]
    ]
   },

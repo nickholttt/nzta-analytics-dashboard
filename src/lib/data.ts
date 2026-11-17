@@ -4,7 +4,7 @@ import { parquetRead, parquetReadObjects } from "hyparquet";
 import type { ColumnData } from "hyparquet";
 import { decompressZstd } from "hyparquet-compressors";
 import { builderSpec, unrecordedBand } from "./config";
-import { NOT_RECORDED_TOKEN } from "./sentences";
+import { NOT_BROKEN_DOWN_TOKEN, NOT_RECORDED_TOKEN } from "./sentences";
 import { monthKey } from "./monthkey";
 import { UNREADABLE_DATA, isUnreadableForm } from "./unreadable";
 import { crossPair, crossValue, narrowPair } from "./cross";
@@ -89,6 +89,17 @@ export type Manifest = {
   snapshot_archive?: { path: string; status: string };
   warnings: string[];
 };
+
+// The key of a manifest's dataset entry that lists the dimensions whose slices have small cells hidden, one entry for each (D-096, D-127;
+// docs/CUBE_SCHEMA.md). Held here, beside the manifest's type, because both the resolver and the kept-snapshot reader name it.
+export const SMALL_CELL_KEY = "small_cells";
+
+// The dimensions of a dataset whose slice hides small cells, as its manifest lists them: none where the entry is absent, `{}`, or not an object.
+// This site does not draw a hidden cell yet (D-130), so a question that names one of these is blocked before it loads.
+export function smallCellDimensions(manifest: Manifest, dataset: string | undefined): string[] {
+  const listed = (dataset ? (manifest.datasets[dataset] as unknown as Record<string, unknown> | undefined) : undefined)?.[SMALL_CELL_KEY];
+  return typeof listed === "object" && listed !== null && !Array.isArray(listed) ? Object.keys(listed) : [];
+}
 
 // Whether the build made this dataset: it has an entry, and the entry is not the one that says it was not built.
 export const isBuilt = (manifest: Manifest, dataset?: string): boolean => {
@@ -195,9 +206,12 @@ export const loadSlice = (dataset: string, dimension: string, snapshot?: string)
     const file = await (await fetchOk(path, snapshot)).arrayBuffer();
     const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "dim_value", "n", "denominator"] }));
     const recorded = asRecorded(dimension);
-    return rows.map(
-      (r): SliceRow => ({ month: monthKey(r.month), value: recorded(String(r.dim_value)), n: Number(r.n), denominator: Number(r.denominator) }),
-    );
+    // A hidden cell has no count (a NULL, never a zero), and a month that is not broken down has one row that is no value of the field. Neither is
+    // drawn as a number (D-130): the whole table is refused. Checked in the one pass that reads the rows, so a table without either costs nothing more.
+    return rows.map((r): SliceRow => {
+      if (r.n === null || r.n === undefined || r.dim_value === NOT_BROKEN_DOWN_TOKEN) throw new ServiceError(builderSpec.notices.small_cells_hidden, false);
+      return { month: monthKey(r.month), value: recorded(String(r.dim_value)), n: Number(r.n), denominator: Number(r.denominator) };
+    });
   });
 
 type PairRow = { month: string; a: string; b: string; n: number };
