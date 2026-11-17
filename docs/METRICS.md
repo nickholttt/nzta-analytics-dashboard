@@ -224,9 +224,10 @@ SUNLONG 1, VAUXHALL 1, WESTERN STAR 1, ZEMTEC 1.
 - **Hybrids.** The added types hold 33 vehicles recorded under a hybrid code all time and 1 in the trailing window. All
   but one have a row in `mild_hybrid_models.csv` (a Hino, model 500, has none). The wider dataset's trailing figures are
   the default scope's to the vehicle but one: 91,615 source hybrids against 91,614, identified at stated confidence
-  83.45%, and at high confidence 14,271 of 19,286 (74.0%) under D-110's count, so its mild split is published (the
-  level is 70%). 1,101 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
-  time the high-confidence figure is 46,102 of 71,434 (64.5%).
+  85.31%, and at high confidence 14,327 of 18,257 (78.47%) under D-110's count, so its mild split is published (the
+  level is 70%). 2,210 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
+  time the high-confidence figure is 46,158 of 68,281 (67.6%). (Measured again on 2026-11-17 with D-115's rows as
+  corrected in review; D-113 measured 83.45%, 14,271 of 19,286 and 46,102 of 71,434 before them.)
 - **Anything else.** Vehicle age at registration (the band's unknown), model (not recorded) and powertrain show no rate on
   the added types unlike the default scope's; the country built in is not recorded for 7 of the 16,767 new vehicles
   of the added types all time, as for 7 of 852,131 in the default scope.
@@ -794,9 +795,10 @@ powertrain values; the figure and what rests on it (the publish threshold and
 the warning level) are all it changes (D-110). Before D-110 every `full` row
 left the denominator at both levels; the figures below that predate it are
 marked. On the 2026-10 snapshot the trailing figure at high confidence is
-74.0% on the register and 74.0% on true registrations (79.3% and 79.2% under
-the earlier count; 1,272 and 1,275 vehicles are the difference) and the
-all-time figure 60.1% and 64.5% (63.6% and 68.5%). At the 2026-08 snapshot,
+78.5% on the register and 78.5% on true registrations (74.0% and 74.0% before
+D-115's rows, and 79.3% and 79.2% under the count before D-110) and the
+all-time figure 62.7% and 67.6% (60.1% and 64.5% before D-115's rows; 63.6%
+and 68.5% under the count before D-110). At the 2026-08 snapshot,
 under the earlier count, all-time coverage is 83.0% at stated confidence but
 62.8% at high confidence only, because 13,808 Honda IMA hybrids are classified
 at medium confidence. Over the trailing 12 months it is 84.1% and 79.5%.
@@ -814,14 +816,15 @@ publishes (both figures read null). A window with no identified mild and no
 unknown hybrid, only `full` calls below the high level, has those calls as its
 whole denominator at high confidence only: that figure reads 0% while the stated
 figure reads null, and the split is withheld (D-110). On the 2026-10
-snapshot both are above it (74.0% and 74.0%, after the rows below), so both
+snapshot both are above it (78.5% and 78.5%, after the rows below), so both
 publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
 same today) is a build warning for a dataset that still publishes. A dataset
 that crosses the threshold between one build and the next changes its whole
 history of the two values at once, so that build adds a warning naming the
 direction and both figures (`CUBE_SCHEMA.md`, Warnings; the margin on true
-registrations is 14,271 of 19,286 hybrids at high confidence on 2026-10: 1,101
-more unidentified hybrids in the window would cross 70%, so keeping
+registrations is 14,327 of 18,257 hybrids at high confidence on 2026-10: 2,210
+more unidentified hybrids in the window would cross 70%, and 2,217 on the
+register, 14,297 of 18,207; it was 1,101 and 1,111 before D-115, so keeping
 `mild_hybrid_models.csv` current matters). All-time mild hybrid
 history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
 vehicles) stay unresolved because sources disagree on them: never classify
@@ -854,8 +857,26 @@ from 83.0% and 78.9% to 83.5% and 79.3% on the register, and from 66.0%
 and 62.7% to 83.5% and 79.2% on true registrations. All-time, from 80.4%
 and 61.6% to 83.1% and 63.6%, and from 72.2% and 59.7% to 83.0% and 68.5%.
 The nameplates still matching no row number six or fewer each over the last
-12 months; the rows the file marks unresolved hold another 2,894 hybrids on
-the register and 2,905 on true registrations over the same months.
+12 months; the rows the file marked unresolved held another 2,894 hybrids on
+the register and 2,905 on true registrations over the same months (before D-115;
+the rows marked unresolved at low confidence hold 2,503 and 2,513 today).
+
+D-115 raised three rows to high confidence on a maker's or its New Zealand
+distributor's own page: the Chery Tiggo 4 Pro (New Zealand new, full), the
+Nissan X-Trail's petrol hybrid as a used import of vehicle year 2015 to 2021
+(full; 2022 holds both generations and is unresolved, with later years) and the
+Foton Tunland (mild). The BAIC B30 is full at medium, because the
+only page that says full hybrid is one dealership's stock listing for one
+vehicle. 1,085 vehicles on true registrations in the window were counting
+against the high-confidence figure and no longer do (1,029 left the denominator
+as full calls, 56 joined the numerator as mild calls); on the register 1,082
+(1,026 and 56). A used import Tiggo and the X-Trails of vehicle year 2022 or
+later now match no row or an unresolved one, and count against it. Nothing was raised for the
+Honda IMA hybrids, which the makers' own pages call neither mild nor full, nor
+for Subaru's e-Boxer, whose maker says the car runs on its electric motor up to
+40 km/h and assists the engine otherwise; both stay as they were. The rows left
+at medium or low confidence still hold 3,930 vehicles in the window on true
+registrations (and on the wider dataset) and 3,910 on the register.
 
 **Named models** — the model dimension names the 300 models with the most
 vehicles in the trailing 12 months and groups every other model as
