@@ -6,7 +6,7 @@ Last updated by claude on 2026-11-17
 
 - 2026-11-14 and 15, eighth session, the first of work order 1: #47 to #59 merged (D-082 to
   D-095). October was forced once; no second forced run is allowed (D-082).
-- 2026-11-16 and 17, ninth session. **Merged, #60 to #78** (#63 was closed unmerged). The
+- 2026-11-16 and 17, ninth session. **Merged, #60 to #79** (#63 was closed unmerged). The
   user's answers are D-096 and D-106. Figures set beside published ones: within 0.06% of the
   MIA's for October 2026 on the wider scope, older months about 1% lower, cause not
   established (D-105, D-113); equal to vstat's for October 2026 (D-118).
@@ -39,13 +39,13 @@ New Zealand sources.
      golden contract); a reader that refuses a malformed reference row.
 2. The untrimmed first version of the counts stays reachable on GitHub through the closed #63.
 3. **Package F**, each field checked against the data and published sources before Build
-   offers it. Done: ranked chosen values, conditions, CSV, the acceptance question on today's
-   fields (#71); true registrations on the wider scope as a dataset (#73, D-113); a second
-   breakdown in Build, drawn as the `matrix` grid (#75, #76; D-114); the wider scope on the
-   site, never on a chart with another dataset (#77, D-118). Next: assembled, class and seats,
-   then colour; power and transmission; owner fields last, unpublished until small cells are
-   hidden (D-096). Left: "My questions", the related-fields note, the question with a new
-   field, hybrids and mild hybrids as one figure (a roll-up dimension, D-118).
+   offers it. Done: ranking of chosen values, conditions, CSV (#71); the wider scope as a
+   dataset and on the site (#73, #77; D-113, D-118); the `matrix` grid (#75, #76; D-114);
+   three register fields as dimensions (#79, D-116). Next: offer them as breakdowns (class
+   never crossed with vehicle type), class labels from the Rule's table, colour in a narrower
+   table; power and transmission; owner fields last (D-096). Left: "My questions", the
+   related-fields note, the question with a new field, hybrids and mild hybrids as one figure
+   (D-118).
 4. **Package I, first slice** (#78, D-117): SUV or car for 169 nameplates, 90% of recent
    passenger vehicles; 77 of 110 rows only medium; nothing reads the file; no disagreement in
    98 comparisons with the FCAI's published sample (a private check). Next: primary sources
@@ -91,9 +91,9 @@ New Zealand sources.
 6. **CLAUDE.md still says `matrix`'s renderer "is planned" and that Plot draws all six
    shapes**; the grid is an HTML table (D-114). May Claude correct the two sentences? Recommend
    yes. With no answer they stay, and the table can become a Plot figure if you prefer.
-7. **What "mild hybrid" means for a car that can creep on its motor** (D-115; Subaru's
-   e-Boxer and Honda's older IMA cars): mild if the motor is not the main drive (recommended,
-   Claude's view), or full if it can move the car at all? With no answer Subaru stays unresolved.
+7. **Subaru's e-Boxer cars are to be classed as full hybrids** (next piece; Claude's decision,
+   unreviewed): the US Department of Energy and EPA, the UK's SMMT and Australia's Green Vehicle
+   Guide draw the line at whether the motor can move the car alone. Veto to keep them unresolved.
 8. **May a trade list (the FCAI's published sample, or one you can reach through work) be a
    source for a model's segment?** Today it is a private check only; recommend keeping that.
 9. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy

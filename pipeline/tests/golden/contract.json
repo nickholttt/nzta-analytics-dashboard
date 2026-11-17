@@ -42,6 +42,9 @@
      "vehicle_year_band",
      "engine_size_band",
      "age_at_registration_band",
+     "nz_assembled",
+     "nzta_class",
+     "seats_band",
      "model"
     ],
     "not_live": {
@@ -57,7 +60,7 @@
     ],
     "not_live_pairs": {},
     "facts": {
-     "rows": 55,
+     "rows": 56,
      "dimensions": [
       "powertrain",
       "make",
@@ -71,6 +74,9 @@
       "import_status",
       "engine_size_band",
       "age_at_registration_band",
+      "nz_assembled",
+      "nzta_class",
+      "seats_band",
       "model"
      ],
      "not_live": {}
@@ -90,6 +96,9 @@
      "vehicle_year_band": 0.0,
      "engine_size_band": 0.0,
      "age_at_registration_band": 0.0,
+     "nz_assembled": 0.0,
+     "nzta_class": 0.0,
+     "seats_band": 0.0,
      "model": 0.0
     },
     "unmapped_guard": {
@@ -127,6 +136,42 @@
        "warn_above": 0.005,
        "abort_above": 0.02,
        "headroom_rows": 0
+      }
+     },
+     "nz_assembled": {
+      "whole_run": {
+       "rows": 59,
+       "unmapped": 0,
+       "rate": 0.0,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 52,
+       "unmapped": 0,
+       "rate": 0.0,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      }
+     },
+     "nzta_class": {
+      "whole_run": {
+       "rows": 59,
+       "unmapped": 0,
+       "rate": 0.0,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 52,
+       "unmapped": 0,
+       "rate": 0.0,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 1
       }
      }
     },
@@ -184,6 +229,8 @@
       "vehicle_type": 1.0,
       "import_status": 1.0,
       "region": 0.9608,
+      "nz_assembled": 0.9216,
+      "nzta_class": 0.9608,
       "model": 1.0
      }
     },
@@ -208,6 +255,12 @@
        "source_sentinel": 1,
        "negative": 1,
        "out_of_bands": 0
+      },
+      "seats_band": {
+       "source_missing": 1,
+       "source_sentinel": 2,
+       "negative": 0,
+       "out_of_bands": 2
       }
      },
      "fuel_consumption": {
@@ -290,7 +343,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 41473,
+  "payload_bytes": 47280,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -3043,6 +3096,542 @@
     ]
    ]
   },
+  "registrations_surviving/nz_assembled.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "__UNDEFINED__",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "Imported built up",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "Imported built up",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "Imported built up",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "Imported built up",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "Imported built up",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "Imported built up",
+     2,
+     2,
+     10.7,
+     2,
+     2
+    ],
+    [
+     "2025-11-01",
+     "Imported built up",
+     2,
+     2,
+     15.3,
+     2,
+     2
+    ],
+    [
+     "2025-12-01",
+     "Imported built up",
+     2,
+     2,
+     14.6,
+     2,
+     2
+    ],
+    [
+     "2026-01-01",
+     "Imported built up",
+     2,
+     2,
+     10.3,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "Imported built up",
+     2,
+     3,
+     11.3,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "__UNDEFINED__",
+     1,
+     3,
+     6.0,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Imported built up",
+     4,
+     5,
+     13.6,
+     3,
+     3
+    ],
+    [
+     "2026-03-01",
+     "__UNDEFINED__",
+     1,
+     5,
+     10.1,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Imported built up",
+     5,
+     5,
+     16.8,
+     3,
+     4
+    ],
+    [
+     "2026-05-01",
+     "Imported built up",
+     5,
+     6,
+     29.5,
+     5,
+     5
+    ],
+    [
+     "2026-05-01",
+     "__UNDEFINED__",
+     1,
+     6,
+     8.4,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "Imported built up",
+     5,
+     6,
+     14.0,
+     3,
+     4
+    ],
+    [
+     "2026-06-01",
+     "__UNDEFINED__",
+     1,
+     6,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-07-01",
+     "Assembled or built in New Zealand",
+     1,
+     5,
+     4.8,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "Imported built up",
+     4,
+     5,
+     22.5,
+     4,
+     4
+    ],
+    [
+     "2026-08-01",
+     "Assembled or built in New Zealand",
+     2,
+     11,
+     9.6,
+     2,
+     2
+    ],
+    [
+     "2026-08-01",
+     "Imported built up",
+     9,
+     11,
+     38.1,
+     7,
+     7
+    ]
+   ]
+  },
+  "registrations_surviving/nzta_class.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "MA",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "MA",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "MA",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "MA",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "MA",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "MA",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "MC",
+     1,
+     2,
+     1.9,
+     1,
+     1
+    ],
+    [
+     "2025-10-01",
+     "NA",
+     1,
+     2,
+     8.8,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "MA",
+     2,
+     2,
+     15.3,
+     2,
+     2
+    ],
+    [
+     "2025-12-01",
+     "MA",
+     2,
+     2,
+     14.6,
+     2,
+     2
+    ],
+    [
+     "2026-01-01",
+     "MA",
+     1,
+     2,
+     4.9,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "MB",
+     1,
+     2,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "MA",
+     3,
+     3,
+     17.3,
+     3,
+     3
+    ],
+    [
+     "2026-03-01",
+     "MA",
+     3,
+     5,
+     8.5,
+     2,
+     2
+    ],
+    [
+     "2026-03-01",
+     "NA",
+     1,
+     5,
+     10.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "__UNDEFINED__",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "MA",
+     3,
+     5,
+     9.6,
+     2,
+     2
+    ],
+    [
+     "2026-04-01",
+     "NB",
+     1,
+     5,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-04-01",
+     "__UNDEFINED__",
+     1,
+     5,
+     7.2,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "MA",
+     4,
+     6,
+     22.4,
+     4,
+     4
+    ],
+    [
+     "2026-05-01",
+     "MC",
+     1,
+     6,
+     7.6,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "NA",
+     1,
+     6,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "MA",
+     5,
+     6,
+     14.0,
+     3,
+     3
+    ],
+    [
+     "2026-06-01",
+     "NA",
+     1,
+     6,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-07-01",
+     "MA",
+     4,
+     5,
+     18.4,
+     4,
+     4
+    ],
+    [
+     "2026-07-01",
+     "NA",
+     1,
+     5,
+     8.9,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "MA",
+     9,
+     11,
+     36.1,
+     7,
+     7
+    ],
+    [
+     "2026-08-01",
+     "MC",
+     1,
+     11,
+     4.0,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "NA",
+     1,
+     11,
+     7.6,
+     1,
+     1
+    ]
+   ]
+  },
   "registrations_surviving/owner_country.parquet": {
    "schema": [
     [
@@ -4562,6 +5151,319 @@
      8.8,
      2,
      2
+    ]
+   ]
+  },
+  "registrations_surviving/seats_band.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "5",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "5",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "5",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "5",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "unknown",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "5",
+     2,
+     2,
+     null,
+     0,
+     2
+    ],
+    [
+     "2025-10-01",
+     "1-2",
+     1,
+     2,
+     8.8,
+     1,
+     1
+    ],
+    [
+     "2025-10-01",
+     "5",
+     1,
+     2,
+     1.9,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "5",
+     1,
+     2,
+     9.1,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "8+",
+     1,
+     2,
+     6.2,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "5",
+     2,
+     2,
+     14.6,
+     2,
+     2
+    ],
+    [
+     "2026-01-01",
+     "5",
+     2,
+     2,
+     10.3,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "5",
+     2,
+     3,
+     13.9,
+     2,
+     2
+    ],
+    [
+     "2026-02-01",
+     "8+",
+     1,
+     3,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "5",
+     5,
+     5,
+     23.7,
+     4,
+     4
+    ],
+    [
+     "2026-04-01",
+     "5",
+     5,
+     5,
+     16.8,
+     3,
+     4
+    ],
+    [
+     "2026-05-01",
+     "1-2",
+     1,
+     6,
+     3.6,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "3-4",
+     1,
+     6,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "5",
+     3,
+     6,
+     21.4,
+     3,
+     3
+    ],
+    [
+     "2026-05-01",
+     "unknown",
+     1,
+     6,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "3-4",
+     1,
+     6,
+     3.2,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "5",
+     4,
+     6,
+     6.9,
+     1,
+     2
+    ],
+    [
+     "2026-06-01",
+     "unknown",
+     1,
+     6,
+     3.9,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "5",
+     2,
+     5,
+     14.0,
+     2,
+     2
+    ],
+    [
+     "2026-07-01",
+     "6-7",
+     1,
+     5,
+     3.9,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "unknown",
+     2,
+     5,
+     9.4,
+     2,
+     2
+    ],
+    [
+     "2026-08-01",
+     "1-2",
+     1,
+     11,
+     4.8,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "3-4",
+     2,
+     11,
+     11.0,
+     2,
+     2
+    ],
+    [
+     "2026-08-01",
+     "5",
+     6,
+     11,
+     27.1,
+     5,
+     5
+    ],
+    [
+     "2026-08-01",
+     "6-7",
+     1,
+     11,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-08-01",
+     "8+",
+     1,
+     11,
+     4.8,
+     1,
+     1
     ]
    ]
   },
@@ -6939,6 +7841,9 @@
      "0"
     ],
     [
+     "0"
+    ],
+    [
      "13"
     ],
     [
@@ -7106,6 +8011,9 @@
     ],
     [
      "CHINA"
+    ],
+    [
+     "JAPAN"
     ],
     [
      "JAPAN"
@@ -7289,6 +8197,9 @@
      "2.0-2.4 L"
     ],
     [
+     "2.0-2.4 L"
+    ],
+    [
      "1.0-1.4 L"
     ],
     [
@@ -7456,6 +8367,9 @@
     ],
     [
      "China"
+    ],
+    [
+     "Japan"
     ],
     [
      "Japan"
@@ -7639,6 +8553,9 @@
      "NZ New"
     ],
     [
+     "NZ New"
+    ],
+    [
      "Used Import"
     ],
     [
@@ -7809,6 +8726,9 @@
     ],
     [
      "HONDA"
+    ],
+    [
+     "TOYOTA"
     ],
     [
      "TOYOTA"
@@ -7989,6 +8909,9 @@
      "TOYOTA|RAV4"
     ],
     [
+     "TOYOTA|RAV4"
+    ],
+    [
      "TOYOTA|AQUA"
     ],
     [
@@ -8144,6 +9067,9 @@
     ],
     [
      "2026-07-01"
+    ],
+    [
+     "2026-08-01"
     ],
     [
      "2026-08-01"
@@ -8336,9 +9262,6 @@
      1
     ],
     [
-     2
-    ],
-    [
      1
     ],
     [
@@ -8349,6 +9272,368 @@
     ],
     [
      1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ]
+   ]
+  },
+  "registrations_surviving/nz_assembled.parquet": {
+   "schema": [
+    [
+     "nz_assembled",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Assembled or built in New Zealand"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Assembled or built in New Zealand"
+    ],
+    [
+     "Assembled or built in New Zealand"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ]
+   ]
+  },
+  "registrations_surviving/nzta_class.parquet": {
+   "schema": [
+    [
+     "nzta_class",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "NA"
+    ],
+    [
+     "MC"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MB"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "NA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "NB"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "NA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MC"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "NA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "NA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "NA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MC"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
+    ],
+    [
+     "MA"
     ]
    ]
   },
@@ -8506,6 +9791,9 @@
     ],
     [
      "China"
+    ],
+    [
+     "Japan"
     ],
     [
      "Japan"
@@ -8692,6 +9980,9 @@
      "Toyota Group"
     ],
     [
+     "Toyota Group"
+    ],
+    [
      "Hyundai Motor Group"
     ],
     [
@@ -8867,13 +10158,194 @@
      "Hybrid"
     ],
     [
-     "Petrol"
+     "Hybrid"
     ],
     [
      "Petrol"
     ],
     [
      "Petrol"
+    ],
+    [
+     "Petrol"
+    ]
+   ]
+  },
+  "registrations_surviving/seats_band.parquet": {
+   "schema": [
+    [
+     "seats_band",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "1-2"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "8+"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "8+"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "1-2"
+    ],
+    [
+     "5"
+    ],
+    [
+     "3-4"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "3-4"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "6-7"
+    ],
+    [
+     "unknown"
+    ],
+    [
+     "6-7"
+    ],
+    [
+     "5"
+    ],
+    [
+     "3-4"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "1-2"
+    ],
+    [
+     "8+"
+    ],
+    [
+     "3-4"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
+    ],
+    [
+     "5"
     ]
    ]
   },
@@ -9028,6 +10500,9 @@
     ],
     [
      "Ute"
+    ],
+    [
+     "Car"
     ],
     [
      "Car"
@@ -9224,6 +10699,9 @@
     ],
     [
      "Light passenger"
+    ],
+    [
+     "Light passenger"
     ]
    ]
   },
@@ -9378,6 +10856,9 @@
     ],
     [
      "Goods vans, trucks and utes"
+    ],
+    [
+     "Passenger cars and vans"
     ],
     [
      "Passenger cars and vans"

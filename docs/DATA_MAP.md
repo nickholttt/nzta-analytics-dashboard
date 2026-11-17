@@ -12,7 +12,9 @@ the user on 2026-11-16 (D-096):**
   the work order under D-078, stays as it is, with no minimum count;
 - postcode totals are not published for now, and nothing derived from `VIN11` is covered.
 
-Nothing here binds a field. Build still offers only what `config/dimensions.json` defines.
+The map itself binds nothing. A field is bound in `config/pipeline.json` and given a dimension in
+`config/dimensions.json`, in the order under "Order for binding" (package F); the summary table and each
+entry say which are. Build still offers only what `config/dimensions.json` defines.
 
 The same map in machine-readable form is `config/data_map.json`, kept true to the pipeline's config
 by `pipeline/tests/test_data_map.py`. That file holds no measured figure; the figures are here.
@@ -63,11 +65,11 @@ and a median). Values are S then W. Privacy is the class the user approved (D-09
 | `VEHICLE_YEAR` | number | 128; 136 | B (banded) F, count | public | `vehicle_year` |
 | `VEHICLE_TYPE` | category, few | 2; 14 | B F, count | public | `vehicle_type` |
 | `BODY_TYPE` | category, many | 13; 27 | B F, count | public | `body_type` |
-| `CLASS` | category, few | 7; 21 | B F, count | public | no |
+| `CLASS` | category, few | 7; 21 | B F, count (from March 2002) | public | `nzta_class` |
 | `MAKE` | category, many | 371; 1,030 | B F, count | public | `make` |
 | `MODEL` | category, many | 28,000; 175,398 | B (within make) F, count | public | `model` |
 | `BASIC_COLOUR` | category, many | 14; 14 | B F, count | public | no |
-| `NUMBER_OF_SEATS` | number | 172; 193 | B (banded) F, count, average, median | public | no |
+| `NUMBER_OF_SEATS` | number | 172; 193 | B (banded) F, count (average and median not built) | public | `seats` |
 | `NUMBER_OF_AXLES` | number | 10; 10 | F, count | public | no |
 | `TRANSMISSION_TYPE` | category, many | 28; 28 | B F, count (NZ-new only) | public | no |
 | `SYNTHETIC_GREENHOUSE_GAS` | category, many | 38; 39 | B F, count (from 2010) | public | no |
@@ -85,7 +87,7 @@ and a median). Values are S then W. Privacy is the class the user approved (D-09
 | `IMPORT_STATUS` | category, few | 2; 4 | B F, count | public | `import_status` |
 | `ORIGINAL_COUNTRY` | category, many | 46; 48 | B F, count | public | `original_country` |
 | `PREVIOUS_COUNTRY` | category, many | 45; 49 | B F, count (used imports) | public | `previous_country` |
-| `NZ_ASSEMBLED` | category, few | 3; 3 | B F, count (from 2000) | public | no |
+| `NZ_ASSEMBLED` | category, few | 3; 3 | B F, count (from December 1995) | public | `nz_assembled` |
 | `TLA` | place, many | 67; 67 | B F, count | owner rule | `tla` |
 | `POSTCODE` | place, many | not measured; 1,331 | B F, count | not published for now | no |
 | `VEHICLE_USAGE` | category, few | 7; 8 | B F, count | owner rule | no |
@@ -103,7 +105,7 @@ The dashboard's 13 columns are in "The dashboard's fields" below: each is as its
 except where that section says otherwise. Ten are public; `Owner Type`, `Territorial
 authority` and `Vehicle usage` fall under the owner rule.
 
-Counts. Register: 17 bound and 23 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
+Counts. Register: 20 bound and 20 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
 2 place, 1 free text. By class: 31 public, 5 under the owner rule, 2 never published,
 2 never pulled. Dashboard: 10 category, 1 time, 1 number, 1 place; 10 public, 3 under the owner rule.
 
@@ -255,21 +257,42 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   N goods vehicles, T trailers and L motorcycle-type vehicles. MA holds most cars; MC is the passenger
   class for off-road vehicles (402,266 of its 414,719 S vehicles are station wagons); MB holds light
   vans; NA, NB and NC are goods classes holding, in turn, utes and light vans, then trucks, then
-  heavier trucks.
-- **Kind and values.** Category. 7 values on S, 21 on W. S: MA 3,018,623; NA 701,639; MC 414,719;
-  NB 72,851; NC 68,051; MB 8,848; LE 1,702.
-- **Uses.** Break down from 2000, filter. Count only.
-- **Coverage.** S 94.8% (NEW 92.4%, USED 98.5%): before 1990 8.1%, 1990s 30.2%, 2000s 98.2%, and
-  100% from 2010. W 93.5%.
-- **Not recorded.** NULL (W 385,434; S 234,043), covered.
+  heavier trucks. **No definition of the codes could be read (D-116).** The Land Transport Rules'
+  table of vehicle classes is on legislation.govt.nz, which answered an automated reader with HTTP 403
+  on 2026-11-17, and NZTA's own site blocks automated readers, which is not worked around. So the
+  dimension's labels are the codes themselves (`class_map.csv`), and the meanings above stay inferred.
+- **Kind and values.** Category. 7 values on S, 21 on W (`class_map.csv` holds all 21, so a wider
+  scope does not trip the unmapped guard). S: MA 3,018,623; NA 701,639; MC 414,719; NB 72,851; NC
+  68,051; MB 8,848; LE 1,702.
+- **Uses.** Break down from March 2002, filter. Count only. **Bound** as the dimension `nzta_class`
+  ("NZTA class code"), a slice and a fact-table column of `registrations_surviving` (D-116).
+- **Coverage.** S 94.8% (NEW 92.4%, USED 98.5%), and it depends on the year and on new or used.
+  Not recorded, re-measured 2026-11-17 on the cube's 4,520,304 vehicles: NZ-new, 194,840 of 219,015
+  first registered before 2000 (89%), 11,673 of 45,479 in 2000 and 2001 (26%), 588 of 409,840 in 2002
+  to 2009, 25 of 2,057,836 from 2010; used imports, 26,849 of 60,661 before 2000 (44%), none of
+  22,471 in 2000 and 2001, 6 of 213,328 in 2002 to 2009, 62 of 1,491,674 from 2010. By month, all
+  vehicles: January 2000 54.3% not recorded (1,293 of 2,381), December 2000 10.8% (275 of 2,550),
+  December 2001 2.2% (77 of 3,540), March 2002 0.64% (25 of 3,934). The last month above 1% is
+  February 2002; from March 2002 on, 591 of 4,166,149 are not recorded. For NZ-new vehicles alone the
+  last month above 1% is July 2002. **A chart of class over time is honest from March 2002**; before
+  then the mix moves with what was recorded, not with what was registered (the earlier "from 2000"
+  and "100% from 2010" were both wrong).
+- **Not recorded.** NULL (W 385,434; S 234,043), covered. No other form occurs: the codes are 2 or 3
+  letters and digits.
 - **Traps.** **`NA` is a class, not "not applicable"**: 701,639 S goods vehicles. A rule that treats
-  `NA` as missing would remove nearly every light commercial. It must never become a sentinel. MC is
-  not an SUV marker on its own (`segment_map.csv`'s note). A chart over time starts in 2000.
+  `NA` as missing would remove nearly every light commercial. It must never become a sentinel, and
+  a test holds that it does not (D-116). MC is not an SUV marker on its own (`segment_map.csv`'s
+  note).
 - **Privacy.** Public.
-- **Relations.** Rolls up to vehicle type on S (1 vehicle of 4,286,433 with a class disagrees); not
-  on W (6 of 21 classes have two parents, 99,365 vehicles off). Moves together with: vehicle type
-  1.00, body type 0.71 and gross vehicle mass (banded) 0.57 (all by definition, inferred - confirm);
-  road transport code 0.44 on 57,020 vehicles.
+- **Relations.** Rolls up to vehicle type on S (MA, MB, MC and LE under passenger cars and vans; NA,
+  NB and NC under goods vans, trucks and utes; 1 vehicle of 4,286,433 with a class disagrees: an MA
+  registered as a goods vehicle); not on W (6 of 21 classes have two parents, 99,365 vehicles
+  off), so a question that crosses class with vehicle type should be refused on S. Near-collinear
+  with gross vehicle mass for goods vehicles: on the cube's goods vehicles NA is at or under 3.5 t
+  for 701,555 of 701,637 (9 above, 73 with no mass), NB between 3.5 and 12 t for 72,772 of 72,774, and
+  NC over 12 t for all 67,963. Moves together with: vehicle type 1.00, body type 0.71 and gross vehicle
+  mass (banded) 0.57 (all by definition, inferred - confirm); road transport code 0.44 on 57,020
+  vehicles.
 
 ### `MAKE`
 
@@ -326,14 +349,28 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 - **Meaning.** NZTA: "Records the number of seats in a vehicle".
 - **Kind and values.** Number. 172 values on S, 193 on W. Median 5.
-- **Uses.** Break down banded, filter; average and median inside the guard. Proposed bands, with the
-  S share inside the range: 1-2 (4.5%), 3-4 (8.1%), 5 (75.4%), 6-7 (9.8%), 8+ (2.2%).
+- **Uses.** Break down banded, filter; average and median inside the guard. **Bound as bands only**
+  (D-116): the dimension `seats_band` ("Seats"), a slice and a fact-table column of
+  `registrations_surviving`. On the cube's 4,520,304 vehicles the bands are 1-2: 201,636 (4.5%); 3-4:
+  364,527 (8.1%); 5: 3,402,655 (75.3%); 6-7: 441,525 (9.8%); 8+ (8 to 60): 101,346 (2.2%); unknown:
+  8,615 (0.2%). An average or a median needs a sum and a count per cell, as fuel consumption has, and
+  is not built.
 - **Coverage.** S 99.8% (NEW 99.7%, USED 100.0%); the 1990s 94.7%. W 79.8%: trailers and motorcycles
-  have none.
-- **Not recorded.** Zero (S 8,408, almost all NZ-new; W 1,200,405). **Not in `sentinels.csv`.**
-- **Traps.** 207 S vehicles have more than 60 seats (up to 999); 158 S vehicles with about 50 seats
-  are cars or goods vehicles. Proposed guard: 1 to 60. The mean moves little (S 5.011 over every
-  real value, 5.001 inside the guard).
+  have none. **The gap is in 1994 and 1995.** Of the 8,408 zeros on the cube, 8,368 are vehicles first
+  registered from January 1994 to December 1995, 34 were first registered before 1994 and 6 in 1998
+  to 2001. In 23 months, January 1994 to November 1995, more than 1% of the month's vehicles have no seats
+  recorded: between 27% and 37% of each month's vehicles from April 1994 to October 1995 (428 of 1,507
+  in August 1995). In December 1995 it is 2 of 1,388, and from January 1996 on 6 vehicles in all. So a chart of seats over
+  time is honest up to December 1993 and from December 1995, and the `unknown` band shows the gap in
+  between.
+- **Not recorded.** Zero (S 8,408, almost all NZ-new: 8,398 NZ-new and 10 used; W 1,200,405).
+  `0` is in `sentinels.csv` under this field since D-116, so it is counted as a source sentinel and
+  falls in `unknown`.
+- **Traps.** 207 S vehicles have more than 60 seats (up to 999; 174 passenger cars and vans, 33
+  goods vehicles); 158 S vehicles with about 50 seats are cars or goods vehicles. The guard is 1 to 60
+  (D-116): a count above it falls in `unknown`, counted apart from the zeros in the manifest
+  (`bands.seats_band.out_of_bands` 207, `source_sentinel` 8,408). The mean moves little (S 5.011 over
+  every real value, 5.001 inside the guard).
 - **Privacy.** Public.
 - **Relations.** Moves together with: vehicle type 0.49, road transport code 0.44 (57,219 vehicles),
   body type 0.43 (measured).
@@ -630,12 +667,28 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   built in New Zealand.
 - **Kind and values.** Category, 3 values. S: imported built-up 4,303,049; NZ assembled or built
   32,564; `UNKNOWN` 184,863.
-- **Uses.** Break down and filter from 2000. Count only.
+- **Uses.** Break down and filter, from December 1995. Count only. **Bound** as the dimension
+  `nz_assembled` ("Imported or assembled here"), a slice and a fact-table column of
+  `registrations_surviving` (D-116).
 - **Coverage.** S 95.9%: before 1990 0.0% (`UNKNOWN` on 119,994 of 120,012), 1990s 59.6%, 100% from
-  2000 (370 of 4.24 million unknown). W 94.1%.
-- **Not recorded.** `UNKNOWN` (W 350,980; S 184,863: 162,984 NZ-new, 21,879 used). **Not in
-  `sentinels.csv`.**
+  2000 (370 of 4.24 million unknown). W 94.1%. By month (re-measured 2026-11-17 on the cube's 4,520,304
+  vehicles): all but 24 of the 179,720 vehicles first registered up to July 1995 are `UNKNOWN`; recording
+  starts in August 1995 (10 of 1,507 recorded), reaches about two thirds in November (936 of 1,429 recorded)
+  and is nearly complete in December (1,379 of 1,388). From January 1996 no month has more than 1% unknown (7 vehicles in 1996 to 1999,
+  370 from 2000), so **it is honest to chart from December 1995** (0.6% unknown in that month). The
+  earlier "from 2000" was more cautious than the data.
+- **Not recorded.** `UNKNOWN` (W 350,980; S 184,863: 162,984 NZ-new, 21,879 used). NULL does not
+  occur on S. NULL is covered for every field and `UNKNOWN` is in `sentinels.csv` under this field only
+  (D-116), so both read "not recorded" in the cube.
 - **Traps.** The first pass counted it "100% filled" because it counted `UNKNOWN` as a value.
+  **It is a flag, not a place.** 28,721 of the 32,564 S vehicles marked assembled or built here (88%)
+  record Japan as where they were built: NZTA's guidance for where built is that a vehicle assembled
+  here from a kit records the kit's country (`docs/DATA_SOURCES.md`). Two small contradictions are
+  kept as recorded: 616 used imports are marked assembled here, and 238 vehicles marked imported
+  built up record New Zealand as where they were built. **Few vehicles are assembled here
+  now**: the S vehicles marked assembled here fall from 624 in 2010 to between 28 and 103 a
+  year from 2016 to 2025 (NZ-new alone, 17 to 70; 14 in 2026 to October), against 112,745 to 158,075
+  NZ-new vehicles first registered each year, so a month's share rests on a handful of vehicles.
 - **Privacy.** Public.
 - **Relations.** Moves together with: registration year (banded) 0.30, transmission 0.21 (measured).
 
@@ -1175,9 +1228,9 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | Field | Sentinels and guards before it is bound |
 |---|---|
 | `BASIC_COLOUR` | None new (NULL is covered). A raw dimension. Its label says "colour as recorded", since the moment is not known |
-| `NUMBER_OF_SEATS` | Add `0` to `sentinels.csv`. Bands 1-2, 3-4, 5, 6-7, 8+ and `unknown`; values above 60 fall to `unknown`. A mean only inside 1 to 60 |
-| `NZ_ASSEMBLED` | Add `UNKNOWN`. Charts over time start in 2000 |
-| `CLASS` | NULL is covered. **`NA` must never become a sentinel.** A label for each code needs a small reference file from NZTA's class definitions (inferred meanings until then). Charts start in 2000 |
+| `NUMBER_OF_SEATS` | **Bound as bands (D-116).** `0` added to `sentinels.csv`. Bands 1-2, 3-4, 5, 6-7, 8+ and `unknown`; values above 60 fall to `unknown`. A mean only inside 1 to 60: not built |
+| `NZ_ASSEMBLED` | **Bound (D-116).** `UNKNOWN` added to `sentinels.csv`. Charts over time start in December 1995 |
+| `CLASS` | **Bound (D-116).** NULL is covered. **`NA` must never become a sentinel**; a test holds it. `class_map.csv` gives each code a label; no definition could be read, so the label is the code and the meaning stays inferred. Charts start in March 2002 |
 
 **2. NZ-new only.** Each `applies_to` the NZ-new dataset, or is narrowed to it, and says so.
 

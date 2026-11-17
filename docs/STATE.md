@@ -23,7 +23,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **`registrations_cars_long_run`** (#57, D-094; Stats NZ's cars, 1961 on): the same.
 - **`registrations_flow_wider`** (#73, D-113): true registrations with buses, motor caravans
   and special purpose vehicles too. On the site (#77, D-118): Build's third choice, two charts.
-- **NZTA's vehicle type is a dimension** (#58, D-095); GitHub's next build writes it.
+- **NZTA's vehicle type is a dimension** (#58, D-095), and on the register dataset so are the
+  assembly flag, the class code and seats in bands (#79, D-116): conditions in Build so far.
 - **The site shows true registrations and the long run on a local build** (#56, #61; D-093,
   D-098): a group in Explore and a choice of what Build counts; cars first registered each
   month from 1961, and cars still registered set against Stats NZ's count (not a survival
@@ -57,9 +58,8 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**); D-103's draft scheme file
-  sits untracked in `nzta-segments`. `claude/bind-vehicle-fields` (D-116; this folder):
-  assembled, class and seats.
+- `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
+- D-103's draft scheme file sits untracked in `nzta-segments`.
 
 ## Raw files on this computer (gitignored)
 
@@ -82,8 +82,8 @@ E but for two pipeline items. Package F is in hand: CHECKPOINT, "Work in hand".
 3. Mild hybrids are identified for about 78.5% of each dataset's hybrids at high confidence
    over 12 months (D-110's count; 74% before #74, D-115). Under 70% a dataset shows its hybrids
    undivided and the build warns (#72): about 2,200 more unidentified hybrids would do it.
-4. **Half of the fact table's rows count one vehicle** (50.2% of rows, 7.1% of vehicles, on the
-   2026-10 dry run). It holds no owner field; the user's minimum of 10 is for owner fields (D-096).
+4. **Over half of the fact table's rows count one vehicle** (54.8% of rows, 9.2% of vehicles,
+   D-116); no owner field in it (D-096). It grew 28.7% with three fields; not re-timed on a phone.
 5. `/method`, `/caveats` and `/differences` are hand-written; the first two state figures and
    fall a month behind at each refresh until the narrative engine (package H; D-086).
 6. A share by model draws 300 lines; `/build/` skips a heading level; no dark theme (D-089).
