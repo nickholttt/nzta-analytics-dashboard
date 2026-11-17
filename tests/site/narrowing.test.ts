@@ -91,6 +91,21 @@ test("a removed condition is not put back: the removal is remembered, in the add
   assert.deepEqual(builder.settle(all, builder.noteRemoved(removed, { ...removed, by: second, values: [] })).where, {}, "nor for another field the map records for the class");
 });
 
+test("a removal holds while the visitor has opened a condition on that field and not yet picked a value, so a reload does not narrow the question again", () => {
+  const before = ask({});
+  const removed = builder.settle(all, builder.noteRemoved(before, { ...before, where: {} }));
+  // The visitor adds a condition on the field with no value yet (the page holds it as an empty list), then changes something else.
+  const other = vocabulary.filters.find((f) => f.id !== D && f.id !== first);
+  assert.ok(other, "a second field to put a condition on");
+  const held = builder.settle(all, builder.noteRemoved(removed, { ...removed, where: { [D]: [], [other.id]: ["x"] } }));
+  assert.deepEqual(held.where[other.id], ["x"], "the other condition is kept");
+  assert.equal(D in held.where, false, "an empty condition is not kept");
+  assert.deepEqual(held.widened, [D], "and the removal is");
+  const address = builder.questionParams(held).toString();
+  assert.ok(new URLSearchParams(address).getAll("build.widen").includes(D), "the address still says the condition was removed");
+  assert.equal(D in read(address).where, false, "so a reload does not put it back");
+});
+
 test("the removal survives the address, a reload, a saved question and a pin", () => {
   const before = ask({});
   const removed = builder.settle(all, builder.noteRemoved(before, { ...before, where: {} }));

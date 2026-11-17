@@ -334,7 +334,9 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   // cannot condition on cannot be narrowed.
   const narrowings = narrowingsFor(all, [by, by2]).filter((n) => n.dimension !== by && n.dimension !== by2 && vocabulary.filters.some((f) => f.id === n.dimension));
   const named = q.where ?? {};
-  const widened = [...new Set(q.widened ?? [])].filter((d) => narrowings.some((n) => n.dimension === d) && !(d in named)).sort(byText);
+  // A removal holds while the question holds no value for that field: a condition the visitor has opened and not yet filled (an empty list) is not
+  // a condition, and dropping the removal for it would put the starting condition back on the next reload.
+  const widened = [...new Set(q.widened ?? [])].filter((d) => narrowings.some((n) => n.dimension === d) && !named[d]?.length).sort(byText);
   for (const n of narrowings) if (!(n.dimension in named) && !widened.includes(n.dimension)) where[n.dimension] = [n.value];
   const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, ...(by2 ? { by2, values2 } : {}), where, ...(widened.length ? { widened } : {}), view: null, ...(pageValues ? { pageValues } : {}), ...(isMonthKey(q.snapshot) ? { snapshot: q.snapshot } : {}) };
   // A count with no values yet is waiting for the page's own, which come after the page has looked at the data; a view that needs
