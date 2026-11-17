@@ -76,3 +76,40 @@ test("a kept snapshot whose manifest lists a dimension cannot answer a question 
   assert.equal(blockedIn(question, listed), true);
   assert.equal(holds(question, listed, new Set([base.dimension as string])), "no");
 });
+
+// A ratio measure reads a second dataset. A question that names a listed field is blocked for every dataset it reads, so the check on the numerator's
+// dataset passes the same fields as the one on the chart's own: the second breakdown, the crossing and the conditions, not only the breakdown.
+const listedIn = (dataset: string, block: unknown): Manifest =>
+  ({ ...built, datasets: Object.fromEntries(Object.entries(built.datasets).map(([id, d]) => [id, id === dataset ? { ...d, [SMALL_CELL_KEY]: block } : d])) }) as unknown as Manifest;
+const ratioPreset = config.presets.find((p) => {
+  const m = p.derived ? config.findDerived(p.derived) : undefined;
+  return m?.numerator_dataset && m.denominator_dataset && m.numerator_dataset !== p.dataset && !m.numerator_narrowed_to && resolvePreset(p, built).preventsRender.length === 0;
+}) as Preset;
+const numeratorOf = (p: Preset) => config.findDerived(p.derived as string)?.numerator_dataset as string;
+
+test("the ratio preset these tests use reads a second dataset, and can be drawn", () => {
+  assert.ok(ratioPreset);
+  assert.notEqual(numeratorOf(ratioPreset), ratioPreset.dataset);
+  assert.deepEqual(hiddenReason(ratioPreset, built), []);
+});
+
+test("a ratio's numerator dataset blocks a second breakdown, a crossing and a condition on a field listed for that dataset", () => {
+  const numerator = numeratorOf(ratioPreset);
+  const [field] = config.dimensions.map((d) => d.id).filter((d) => d !== ratioPreset.dimension);
+  const listed = listedIn(numerator, { [field]: { minimum: 10 } });
+  const reason = `dimension "${field}" has small counts hidden in ${numerator}, and this site does not draw a table like that yet`;
+  assert.deepEqual(hiddenReason(ratioPreset, listed), [], "naming nothing listed blocks nothing");
+  assert.deepEqual(hiddenReason({ ...ratioPreset, dimension2: field }, listed), [reason], "second breakdown");
+  assert.deepEqual(hiddenReason({ ...ratioPreset, cross: field }, listed), [reason], "crossing");
+  assert.deepEqual(hiddenReason({ ...ratioPreset, where: { [field]: ["x"] } }, listed), [reason], "condition");
+  assert.deepEqual(hiddenReason({ ...ratioPreset, filters: [{ [field]: "x" }] }, listed), [reason], "a preset's own filter");
+  assert.deepEqual(hiddenReason({ ...ratioPreset, where: { [field]: [] } }, listed), [], "a condition with no value names nothing");
+});
+
+test("a ratio question over a field listed for every dataset it reads is blocked once for each dataset, not twice for one", () => {
+  const [field] = config.dimensions.map((d) => d.id).filter((d) => d !== ratioPreset.dimension);
+  const reasons = hiddenReason({ ...ratioPreset, where: { [field]: ["x"] } }, withBlock({ [field]: { minimum: 10 } }));
+  const datasets = new Set([ratioPreset.dataset, numeratorOf(ratioPreset), config.findDerived(ratioPreset.derived as string)?.denominator_dataset]);
+  assert.equal(reasons.length, datasets.size);
+  assert.equal(new Set(reasons).size, reasons.length);
+});

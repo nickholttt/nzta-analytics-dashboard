@@ -5978,3 +5978,11 @@ New entries use this template:
   998 kW (13 at 980, 2 at 959, all passenger cars) are in the data map's traps as not checked. Not changed: the reference file, the bands,
   the guard, the golden contract.
 - Status: decided by Claude (unreviewed)
+
+## D-133 2026-11-18 — Two follow-ups to D-130: the reserved-value test must compare, and a ratio's second dataset is checked for the same fields as the first
+- Agent: claude (a sub-agent, to the lead's brief)
+- Basis: D-130 items 3 and 6 and its Choices 6; the independent review of pull request #94, which agreed to D-130 and left these two follow-ups; `pipeline/contract.py` on `main` (`NOT_BROKEN_DOWN`).
+- Context: (1) D-130's test of the site's spelling of the not-broken-down value passed with a printed note while the pipeline had no such value, and would have gone on passing if the pipeline renamed it. (2) In `resolvePreset`, the check on a ratio measure's own dataset passed only the breakdown and the narrowing field, fewer than the check on the chart's own dataset passes (second breakdown, crossing, narrowing, conditions).
+- Decision: (1) The test in `tests/site/hidden-cells-loader.test.ts` has no early return. It fails unless `pipeline/contract.py` has exactly one assignment of `NOT_BROKEN_DOWN` (a type annotation, either quote style and a trailing comment are allowed) and its value equals `NOT_BROKEN_DOWN_TOKEN`. It was seen failing when the pipeline's value was changed, when its constant was renamed and when the site's constant was changed. (2) The ratio check in `src/lib/resolve.ts` passes the second breakdown, the crossing, the narrowing and the conditions as well, so a question that names a field listed under a dataset's `small_cells` is blocked for every dataset it reads. Two of the three new tests in `tests/site/hidden-cells-manifest.test.ts` fail when any one of those four is removed (the third checks the dataset is named once, not twice).
+- Consequences: D-130's Choices 6, which says the comparison prints a diagnostic and passes until the pipeline holds the value, no longer applies. No hidden cell could reach a chart by the ratio route before this: the rule changes one-field slices only and Build offers no such measure. This closes a gap in the check, not a live fault.
+- Status: decided by Claude (unreviewed)

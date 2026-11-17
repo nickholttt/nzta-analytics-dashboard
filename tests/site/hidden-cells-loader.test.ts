@@ -70,14 +70,15 @@ test("a kept snapshot's slice that hides cells is refused too: the pinned readin
   assert.equal((await loadSlice(DATASET, "ordinary", "2026-06")).length, 4, "an ordinary kept slice still loads");
 });
 
-// The pipeline writes this value (docs/CUBE_SCHEMA.md); the site must spell it the same way. #91 (D-127) adds it to pipeline/contract.py, which this branch
-// does not have yet, so until then there is nothing to compare with and this test says so in its output instead of passing as if it had compared. Once
-// contract.py carries a reserved value for the not-broken-down month, every such value it holds must equal the site's, and CI fails if it does not.
-test("the not-broken-down value equals the pipeline's once pipeline/contract.py defines it (until #91 merges there is nothing to compare, and this says so)", (t) => {
+// The pipeline writes this value (docs/CUBE_SCHEMA.md, D-127); the site must spell it the same way. This reads pipeline/contract.py and cannot pass without
+// comparing: it fails when it finds no assignment of the reserved value (a rename or a change to the file's shape would otherwise silence it), when it
+// finds more than one, and when the value differs from the site's. The pattern allows a type annotation and either quote style.
+test("pipeline/contract.py assigns the not-broken-down value exactly once, and it equals the site's constant", () => {
   assert.equal(NOT_BROKEN_DOWN_TOKEN, "__NOT_BROKEN_DOWN__");
   const contract = new URL("../../pipeline/contract.py", import.meta.url);
   assert.ok(existsSync(contract), "pipeline/contract.py is where the reserved values are defined");
-  const defined = [...readFileSync(contract, "utf8").matchAll(/^(\w+)\s*=\s*"(__\w+__)"/gm)].filter(([, name, value]) => /BROKEN|BREAKDOWN/i.test(`${name} ${value}`));
-  if (defined.length === 0) return t.diagnostic("pipeline/contract.py has no not-broken-down value yet (#91, D-127): the site's spelling is not compared with the pipeline's");
-  for (const [, name, value] of defined) assert.equal(value, NOT_BROKEN_DOWN_TOKEN, `pipeline/contract.py ${name}`);
+  const assignment = /^NOT_BROKEN_DOWN\s*(?::[^=\n]+)?=\s*(["'])(.*?)\1\s*(?:#.*)?$/gm;
+  const found = [...readFileSync(contract, "utf8").matchAll(assignment)];
+  assert.equal(found.length, 1, "pipeline/contract.py has exactly one assignment of NOT_BROKEN_DOWN");
+  assert.equal(found[0][2], NOT_BROKEN_DOWN_TOKEN, "the pipeline's value is the site's");
 });
