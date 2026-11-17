@@ -195,6 +195,9 @@ export type BuilderSpec = {
   id: string;
   // Pairs of fields that Build does not cross: each value of one sits under one value of the other.
   cannot_cross: string[][];
+  // For each class of vehicle the data map says a field is recorded for (its recorded_for), the condition that keeps that class: a question that
+  // breaks down by such a field starts with it (D-132). A class with no entry narrows nothing.
+  narrowings: Record<string, { dimension: string; value: string; kind: string }>;
   // What is counted when the address does not say; datasets lists every one the page can offer, in order, where built.
   dataset: string;
   datasets: string[];
@@ -205,7 +208,7 @@ export type BuilderSpec = {
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
-  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string };
+  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string; narrowed: string; narrowed_label: string };
   not_offered: NotOffered[];
 };
 

@@ -10,8 +10,12 @@ import type { Manifest } from "./data";
 import { monthLabel } from "./measures";
 import { drawnShapes, inferShape, questionFacts, resolvePreset } from "./resolve";
 import { nested, rollUps } from "./nesting";
+import { narrowingsOf } from "./narrowing";
+import type { Narrowing } from "./narrowing";
+import { fillTemplate, sayList } from "./sentences";
 import { ownerDimensions } from "./owner";
 import type { MapDimension, MapField } from "./nesting";
+import type { RecordedField } from "./narrowing";
 import { isChoosable } from "./reserved";
 import { needsBreakdown } from "./shapes";
 import { chartDefaults } from "./config";
@@ -28,6 +32,9 @@ export type Question = {
   by2?: string | null;
   values2?: string[];
   where: Record<string, string[]>;
+  // The conditions the question would start with, which the visitor removed: the fields they are on (D-132). Kept in the address, so a link
+  // shows the question its sender saw; present only while the field is not one of the question's conditions and a breakdown calls for it.
+  widened?: string[];
   view: string | null;
   // With the ranking view and values chosen: rank every value under the same conditions instead of the ones chosen. The choice is
   // kept, so one step takes the visitor back to it (D-111).
@@ -56,7 +63,9 @@ export type FilterOption = { id: string; label: string };
 export type DatasetVocabulary = { dataset: string; label: string; measures: BuilderOption[]; filters: FilterOption[] };
 // owner: the dimensions made from a field that describes the owner (src/lib/owner.ts), which a kept snapshot's table of is read only where it says its
 // small cells were hidden (src/lib/kept.ts).
-export type Vocabulary = { datasets: DatasetVocabulary[]; owner: string[] };
+// narrowings: for each dimension made from a field the register records for only a kind of vehicle, the conditions that keep that kind (src/lib/narrowing.ts),
+// worked out here from the data map so the island does not carry the map. Absent means none.
+export type Vocabulary = { datasets: DatasetVocabulary[]; owner: string[]; narrowings?: Record<string, Narrowing[]> };
 
 const findBuilderMeasure = (id: string) => builderSpec.measures.find((m) => m.id === id);
 const partsOf = (m: BuilderMeasure) => (m.parts ?? [m.id]).map(findBuilderMeasure).filter((x): x is BuilderMeasure => Boolean(x));
@@ -170,6 +179,8 @@ export function viewsFor(q: Question): string[] {
   return all.length > 1 ? all : [];
 }
 
+const dataMapFields = () => (dataMapDoc as unknown as { fields: RecordedField[] }).fields;
+
 // What rolls up to what, from the data map. Read when first asked, so a page that never asks does not carry the map.
 let rollUpsOfMap: ReturnType<typeof rollUps> | undefined;
 const rolledUp = (a: string, b: string): boolean => {
@@ -199,7 +210,13 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
     .filter((id) => isBuilt(manifest, id))
     .map((id) => datasetVocabulary(manifest, id))
     .filter((v) => v.measures.length > 0);
-  return { datasets, owner: ownerDimensions(dataMapDoc as unknown as Parameters<typeof ownerDimensions>[0], dimensions) };
+  const narrowings = Object.fromEntries(
+    dimensions.flatMap((d) => {
+      const found = narrowingsOf(d.id, dataMapFields(), dimensions as unknown as MapDimension[], builderSpec.narrowings);
+      return found.length ? [[d.id, found] as const] : [];
+    }),
+  );
+  return { datasets, owner: ownerDimensions(dataMapDoc as unknown as Parameters<typeof ownerDimensions>[0], dimensions), narrowings };
 }
 
 function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabulary {
@@ -251,6 +268,39 @@ export const MAX_VALUES = 8;
 // A pin names a month, written as the address writes every month.
 export const isMonthKey = (text: string | undefined): text is string => typeof text === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(text);
 
+// The conditions the fields a question breaks down by call for, from the vocabulary: the data map says which classes of vehicle each field is recorded
+// for, and config (builder.narrowings) which condition keeps a class. One per dimension; a field with no class config can express calls for none.
+const narrowingsFor = (all: Vocabulary, ids: (string | null | undefined)[]): Narrowing[] => {
+  const found = new Map<string, Narrowing>();
+  for (const id of ids) for (const n of (id && all.narrowings?.[id]) || []) if (!found.has(n.dimension)) found.set(n.dimension, n);
+  return [...found.values()];
+};
+
+// The sentences that say a question was narrowed to where its fields are recorded: one for each condition a breakdown calls for, while the
+// question still holds exactly that condition. A visitor who changed it is no longer told it is the starting one, and one who removed it is
+// told nothing: the chart then counts every vehicle and the field's note says what the gap is.
+export function narrowingNotes(all: Vocabulary, q: Question): string[] {
+  const kept = cleanWhere(q.where);
+  const groups = new Map<string, { kind: string; fields: string[] }>();
+  for (const id of q.by ? [q.by, ...(q.by2 ? [q.by2] : [])] : []) {
+    for (const n of all.narrowings?.[id] ?? []) {
+      const on = kept[n.dimension];
+      if (!(on?.length === 1 && on[0] === n.value)) continue;
+      const group = groups.get(n.dimension) ?? { kind: n.kind, fields: [] };
+      group.fields.push(lowerLabel(dimensionLabel(id) ?? id));
+      groups.set(n.dimension, group);
+    }
+  }
+  return [...groups.values()].map((g) => fillTemplate(builderSpec.notices.narrowed, { field: sayList(g.fields), kind: g.kind }).text);
+}
+
+// The question after the visitor changed it: a condition it had that the new one lacks was removed, and is remembered as removed so the
+// condition a breakdown calls for does not come back (settle keeps it only while a breakdown still calls for it).
+export function noteRemoved(before: Pick<Question, "where">, asked: Question): Question {
+  const removed = Object.keys(before.where).filter((d) => !(d in asked.where));
+  return removed.length ? { ...asked, widened: [...(asked.widened ?? []), ...removed] } : asked;
+}
+
 // A question from the address bar, kept only as far as the page offers it; otherwise the nearest one that is. A
 // condition on the breakdown itself becomes the values compared, where the breakdown takes values, so choosing to break
 // down by what was a condition never quietly widens the question. A condition the page cannot apply (a field the fact
@@ -279,7 +329,16 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   // Values the page chose: any question that names none, and one the page has filled in and the visitor has not touched. A grid chooses its own
   // lines in the window it shows, so it has no starting values to fill in.
   const pageValues = !by2 && takesValues && (values.length === 0 || q.pageValues === true);
-  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, ...(by2 ? { by2, values2 } : {}), where, view: null, ...(pageValues ? { pageValues } : {}), ...(isMonthKey(q.snapshot) ? { snapshot: q.snapshot } : {}) };
+  // A breakdown by a field recorded for only a kind of vehicle starts with the condition that keeps that kind (D-132), unless the link already
+  // has a condition on that field, or says it was removed. A condition on a breakdown itself is already the question, and a field this data
+  // cannot condition on cannot be narrowed.
+  const narrowings = narrowingsFor(all, [by, by2]).filter((n) => n.dimension !== by && n.dimension !== by2 && vocabulary.filters.some((f) => f.id === n.dimension));
+  const named = q.where ?? {};
+  // A removal holds while the question holds no value for that field: a condition the visitor has opened and not yet filled (an empty list) is not
+  // a condition, and dropping the removal for it would put the starting condition back on the next reload.
+  const widened = [...new Set(q.widened ?? [])].filter((d) => narrowings.some((n) => n.dimension === d) && !named[d]?.length).sort(byText);
+  for (const n of narrowings) if (!(n.dimension in named) && !widened.includes(n.dimension)) where[n.dimension] = [n.value];
+  const settled: Question = { dataset: vocabulary.dataset, measure: m.id, by, values, ...(by2 ? { by2, values2 } : {}), where, ...(widened.length ? { widened } : {}), view: null, ...(pageValues ? { pageValues } : {}), ...(isMonthKey(q.snapshot) ? { snapshot: q.snapshot } : {}) };
   // A count with no values yet is waiting for the page's own, which come after the page has looked at the data; a view that needs
   // two or more is judged as if they were there, so a link to the ranking of the page's values is kept.
   const waiting = pageValues && values.length === 0 && partsOf(findBuilderMeasure(m.id) as BuilderMeasure).some((p) => p.id === COUNT);
@@ -361,6 +420,7 @@ export function readQuestion(search: string): Partial<Question> {
     where,
     view: params.get(key("view")),
     snapshot: params.get(key("snapshot")) || undefined,
+    widened: params.getAll(key("widen")),
     rankAll: params.get(key("rank")) === "all",
   };
 }
@@ -376,6 +436,7 @@ export function questionParams(q: Question): URLSearchParams {
     params.set(key("by2"), q.by2);
     for (const v of q.values2 ?? []) params.append(key("value2"), v);
   }
+  for (const d of [...(q.widened ?? [])].sort(byText)) params.append(key("widen"), d);
   if (q.snapshot) params.set(key("snapshot"), q.snapshot);
   if (q.view) params.set(key("view"), q.view);
   if (q.view === RANKING && q.rankAll) params.set(key("rank"), "all");
