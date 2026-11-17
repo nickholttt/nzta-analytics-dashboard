@@ -183,7 +183,7 @@ a reference value.
 - A pinned question cannot show an older snapshot's figures: the site serves
   only the newest, and a past month's figures can change between snapshots. A
   pin holds the window, and the page says which snapshot the figures are from.
-  Charts that always run to the newest month (lines over time, bars, the map)
+  Charts that always run to the newest month (lines over time, the distribution, the map)
   cannot hold even the window, and say so.
 - A question on the Build page takes several seconds to answer on a phone.
   Most of the wait is the page's own code and fonts; the rest is the table of
