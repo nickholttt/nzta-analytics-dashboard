@@ -57,11 +57,12 @@ test("with the split withheld the chart shows the sentence about undivided hybri
 test("with the split published, or no flag in the manifest, the note and the coverage note are as before", () => {
   for (const block of [coverage({ mild_split_published: true, publish_split_at_trailing_high_confidence_coverage: 0.7 }), coverage(), undefined]) {
     const notes = notesUnder(block);
-    assert.equal(notes.dimension, carrying.public_note);
+    // A public chart reads the note's one-line form where it has one (D-137).
+    assert.equal(notes.dimension, carrying.public_line ?? carrying.public_note);
     assert.equal(notes.withheld, undefined);
     if (block) assert.match(notes.coverage ?? "", /at least 84\.1%/);
   }
-  assert.equal(notesUnder(coverage()).dimension, carrying.public_note);
+  assert.equal(notesUnder(coverage()).dimension, carrying.public_line ?? carrying.public_note);
   assert.equal(notesUnder(coverage(), true).dimension, carrying.note);
 });
 
