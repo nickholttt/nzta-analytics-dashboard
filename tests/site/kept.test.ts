@@ -5,11 +5,14 @@
 import "./support/register.mjs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { everythingBuilt } from "./support/observe.ts";
 
 const { builderVocabulary, readQuestion, settle } = await import("../../src/lib/builder.ts");
 const { dimensions } = await import("../../src/lib/config.ts");
-const { SMALL_CELL_KEY, hasValues, holds, keptMonth, ownerSliceReady, pinLine, readingFor, readsOwnerField } = await import("../../src/lib/kept.ts");
+const { SMALL_CELL_KEY, hasValues, holds, keptMonth, ownerSliceReady, pinLine, readingFor } = await import("../../src/lib/kept.ts");
+const { ownerDimensions } = await import("../../src/lib/owner.ts");
+const dataMap = JSON.parse(readFileSync(new URL("../../config/data_map.json", import.meta.url), "utf8"));
 const { fillTemplate } = await import("../../src/lib/sentences.ts");
 const { readIndex } = await import("../../src/lib/snapshotIndex.ts");
 const { pinNote } = await import("../../src/lib/pin.ts");
@@ -18,8 +21,9 @@ type Manifest = import("../../src/lib/data.ts").Manifest;
 const everything = everythingBuilt();
 const vocabulary = builderVocabulary(everything);
 const dataset = vocabulary.datasets[0].dataset;
-const long = dimensions.find((d) => d.kind === "category" && d.cardinality === "high" && !readsOwnerField(d.id))?.id as string;
-const owner = dimensions.find((d) => readsOwnerField(d.id))?.id as string;
+const ownerSet = new Set(vocabulary.owner);
+const long = dimensions.find((d) => d.kind === "category" && d.cardinality === "high" && !ownerSet.has(d.id))?.id as string;
+const owner = vocabulary.owner[0];
 const manifestOf = (snapshot: string, change: (id: string, entry: Record<string, unknown>) => Record<string, unknown> = (_id, e) => e): Manifest =>
   ({
     ...everything,
@@ -74,21 +78,21 @@ test("which folder a question reads from, in each case, and what is asked to dec
   // Not pinned, or pinned to the snapshot served or ahead: the newest, and nothing is asked.
   for (const q of [read(ranking), pinned("2026-11"), pinned("2026-12")]) {
     const l = loaders();
-    assert.deepEqual(await readingFor(q, served, l.load), { kind: "served" });
+    assert.deepEqual(await readingFor(q, served, l.load, ownerSet), { kind: "served" });
     assert.deepEqual(l.calls, []);
   }
   // Pinned to a kept month: that folder; its manifest and the values chosen are checked against it.
   const l = loaders();
-  const reading = await readingFor(pinned("2026-10"), served, l.load);
+  const reading = await readingFor(pinned("2026-10"), served, l.load, ownerSet);
   assert.equal(reading.kind, "kept");
   assert.equal(reading.kind === "kept" && reading.month, "2026-10");
   assert.equal(reading.kind === "kept" && reading.manifest, kept);
   assert.deepEqual(l.calls, ["index", "manifest 2026-10", `slice ${dataset}/${long} 2026-10`]);
   // Earlier and not kept; no index; an index that cannot be read: the newest, exactly as before.
-  assert.deepEqual(await readingFor(pinned("2026-08"), served, loaders().load), { kind: "served" });
-  assert.deepEqual(await readingFor(pinned("2026-10"), served, loaders({ index: null }).load), { kind: "served" });
+  assert.deepEqual(await readingFor(pinned("2026-08"), served, loaders().load, ownerSet), { kind: "served" });
+  assert.deepEqual(await readingFor(pinned("2026-10"), served, loaders({ index: null }).load, ownerSet), { kind: "served" });
   // Kept in the index but the folder cannot be read: not kept, and no claim is made.
-  assert.deepEqual(await readingFor(pinned("2026-10"), served, loaders({ manifests: {} }).load), { kind: "served" });
+  assert.deepEqual(await readingFor(pinned("2026-10"), served, loaders({ manifests: {} }).load, ownerSet), { kind: "served" });
 });
 
 test("a kept snapshot that did not build the dataset, or does not have the field live, cannot answer: the newest is shown and it is said", async () => {
@@ -96,20 +100,20 @@ test("a kept snapshot that did not build the dataset, or does not have the field
   assert.ok(second, "the build needs a second dataset");
   const without = manifestOf("2026-10-31", (id, e) => (id === second ? { not_built: "not built in this snapshot" } : e));
   const q = read(`build.dataset=${second}&${ranking}&build.snapshot=2026-10`);
-  const unbuilt = await readingFor(q, served, loaders({ manifests: { "2026-10": without } }).load);
+  const unbuilt = await readingFor(q, served, loaders({ manifests: { "2026-10": without } }).load, ownerSet);
   assert.equal(unbuilt.kind === "withheld" && unbuilt.why, "missing");
   const notLive = manifestOf("2026-10-31", (_id, e) => ({ ...e, live_dimensions: (e.live_dimensions as string[]).filter((d) => d !== long) }));
-  const dim = await readingFor(pinned("2026-10"), served, loaders({ manifests: { "2026-10": notLive } }).load);
+  const dim = await readingFor(pinned("2026-10"), served, loaders({ manifests: { "2026-10": notLive } }).load, ownerSet);
   assert.equal(dim.kind === "withheld" && dim.why, "missing");
-  assert.equal(holds(pinned("2026-10"), notLive), "no");
-  assert.equal(holds(pinned("2026-10"), kept), "yes");
+  assert.equal(holds(pinned("2026-10"), notLive, ownerSet), "no");
+  assert.equal(holds(pinned("2026-10"), kept, ownerSet), "yes");
 });
 
 test("a value the kept snapshot does not hold cannot be drawn from it, and neither can a snapshot whose table cannot be read", async () => {
-  const none = await readingFor(pinned("2026-10"), served, loaders({ held: ["a"] }).load);
+  const none = await readingFor(pinned("2026-10"), served, loaders({ held: ["a"] }).load, ownerSet);
   assert.equal(none.kind === "withheld" && none.why, "missing");
-  assert.equal((await readingFor(pinned("2026-10"), served, loaders({ held: ["a", "b"] }).load)).kind, "kept");
-  assert.equal((await readingFor(pinned("2026-10"), served, loaders({ sliceFails: true }).load)).kind, "withheld");
+  assert.equal((await readingFor(pinned("2026-10"), served, loaders({ held: ["a", "b"] }).load, ownerSet)).kind, "kept");
+  assert.equal((await readingFor(pinned("2026-10"), served, loaders({ sliceFails: true }).load, ownerSet)).kind, "withheld");
   assert.equal(hasValues([{ value: "a" }, { value: "b" }], ["a", "b"]), true);
   assert.equal(hasValues([{ value: "a" }], ["a", "b"]), false);
   assert.equal(hasValues([], []), true);
@@ -119,40 +123,40 @@ test("a question the newest snapshot cannot draw either is not blamed on the kep
   const second = vocabulary.datasets[1]?.dataset as string;
   const unbuilt = (id: string, e: Record<string, unknown>) => (id === second ? { not_built: "x" } : e);
   const q = read(`build.dataset=${second}&${ranking}&build.snapshot=2026-10`);
-  const reading = await readingFor(q, manifestOf("2026-11-30", unbuilt), loaders({ manifests: { "2026-10": manifestOf("2026-10-31", unbuilt) } }).load);
+  const reading = await readingFor(q, manifestOf("2026-11-30", unbuilt), loaders({ manifests: { "2026-10": manifestOf("2026-10-31", unbuilt) } }).load, ownerSet);
   assert.deepEqual(reading, { kind: "served" });
 });
 
 test("a field that describes the owner is read from a kept snapshot only where that snapshot says its small cells were hidden", async () => {
   assert.ok(owner, "the data map needs a field that describes the owner, with a dimension read from it");
-  assert.equal(readsOwnerField(long), false);
-  assert.equal(ownerSliceReady(kept, dataset, long), true, "a field that is not the owner's needs nothing");
-  assert.equal(ownerSliceReady(kept, dataset, owner), false, "a snapshot that does not say the rule was applied");
+  assert.equal(ownerSet.has(long), false);
+  assert.equal(ownerSliceReady(kept, dataset, long, ownerSet), true, "a field that is not the owner's needs nothing");
+  assert.equal(ownerSliceReady(kept, dataset, owner, ownerSet), false, "a snapshot that does not say the rule was applied");
   const says = (dimensionList: string[]) => manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: dimensionList }));
-  assert.equal(ownerSliceReady(says([owner]), dataset, owner), true);
-  assert.equal(ownerSliceReady(says([long]), dataset, owner), false, "it says so of another field only");
-  assert.equal(ownerSliceReady(says([]), dataset, owner), false);
-  assert.equal(ownerSliceReady(manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: owner })), dataset, owner), false, "the wrong shape says nothing");
+  assert.equal(ownerSliceReady(says([owner]), dataset, owner, ownerSet), true);
+  assert.equal(ownerSliceReady(says([long]), dataset, owner, ownerSet), false, "it says so of another field only");
+  assert.equal(ownerSliceReady(says([]), dataset, owner, ownerSet), false);
+  assert.equal(ownerSliceReady(manifestOf("2026-10-31", (_id, e) => ({ ...e, [SMALL_CELL_KEY]: owner })), dataset, owner, ownerSet), false, "the wrong shape says nothing");
 
   const byOwner = `build.measure=count&build.by=${owner}&build.view=league&build.snapshot=2026-10`;
-  const withheld = await readingFor(read(byOwner), served, loaders().load);
+  const withheld = await readingFor(read(byOwner), served, loaders().load, ownerSet);
   assert.equal(withheld.kind === "withheld" && withheld.why, "owner");
-  const allowed = await readingFor(read(byOwner), served, loaders({ manifests: { "2026-10": says([owner]) } }).load);
+  const allowed = await readingFor(read(byOwner), served, loaders({ manifests: { "2026-10": says([owner]) } }).load, ownerSet);
   assert.equal(allowed.kind, "kept");
   // The same field as a condition on a question that breaks down by another.
   const asCondition = read(`${ranking}&build.where.${owner}=x&build.snapshot=2026-10`);
   assert.equal(asCondition.where[owner]?.[0], "x", "the question carries the condition");
-  assert.equal((await readingFor(asCondition, served, loaders().load)).kind, "withheld");
+  assert.equal((await readingFor(asCondition, served, loaders().load, ownerSet)).kind, "withheld");
 });
 
 test("the line above the chart says which snapshot the figures are from, and never claims figures it does not show", async () => {
   const q = pinned("2026-10");
   const l = loaders();
-  const keptReading = await readingFor(q, served, l.load);
+  const keptReading = await readingFor(q, served, l.load, ownerSet);
   assert.equal(pinLine(q, served, keptReading)?.kind, "kept");
   assert.equal(pinLine(q, served, keptReading)?.text, "Pinned to Oct 2026. These are the figures of the snapshot of 31 October 2026, kept on this site.");
 
-  const missing = await readingFor(q, served, loaders({ held: ["a"] }).load);
+  const missing = await readingFor(q, served, loaders({ held: ["a"] }).load, ownerSet);
   const line = pinLine(q, served, missing);
   assert.equal(line?.kind, "withheld");
   assert.equal(
@@ -161,7 +165,7 @@ test("the line above the chart says which snapshot the figures are from, and nev
   );
 
   const byOwner = read(`build.measure=count&build.by=${owner}&build.view=league&build.snapshot=2026-10`);
-  const withheld = await readingFor(byOwner, served, loaders().load);
+  const withheld = await readingFor(byOwner, served, loaders().load, ownerSet);
   // Followed by the line the newest snapshot gets, whatever that is for this chart.
   assert.equal(
     pinLine(byOwner, served, withheld)?.text,
@@ -178,7 +182,7 @@ test("a kept snapshot whose dataset ends before it says so, as a pin on the newe
   const second = vocabulary.datasets[1]?.dataset as string;
   const behind = manifestOf("2026-10-31", (id, e) => (id === second ? { ...e, latest_month: "2026-09", supplied: { months: { first: "2021-01" } } } : e));
   const q = read(`build.dataset=${second}&${ranking}&build.snapshot=2026-10`);
-  const reading = await readingFor(q, served, loaders({ manifests: { "2026-10": behind } }).load);
+  const reading = await readingFor(q, served, loaders({ manifests: { "2026-10": behind } }).load, ownerSet);
   assert.equal(reading.kind, "kept");
   assert.equal(
     pinLine(q, served, reading)?.text,
@@ -191,4 +195,26 @@ test("the new sentences fill with nothing left over", async () => {
   for (const key of ["pin_kept", "pin_kept_missing", "pin_kept_withheld"] as const) {
     assert.deepEqual(fillTemplate(notices[key], { pinned: "2026-10", date: "2026-10-31" }).unresolved, [], key);
   }
+});
+
+test("the dimensions that read an owner field come from the data map and the dimensions' derive blocks, with no field named in code", () => {
+  const map = { owner_groups: ["who"], fields: [
+    { bound: "own", privacy: "owner_restricted" },
+    { bound: "grouped", group: "who", privacy: "public" },
+    { bound: "plain", group: "vehicle", privacy: "public" },
+    { bound: null, privacy: "owner_restricted" },
+  ] };
+  const dims = [
+    { id: "own" },
+    { id: "by_lookup", derive: { kind: "lookup", field: "own", reference: "x.csv" } },
+    { id: "by_group", derive: { kind: "copy", from: { field: "grouped" } } },
+    { id: "vehicle_thing", derive: { kind: "lookup", field: "plain" } },
+    { id: "unrelated", derive: { kind: "series" } },
+  ];
+  assert.deepEqual(ownerDimensions(map, dims), ["own", "by_lookup", "by_group"]);
+  assert.deepEqual(ownerDimensions({ owner_groups: [], fields: [] }, dims), []);
+  // The real map and the real dimensions: at least one dimension reads an owner field, and the vocabulary carries the same list.
+  const real = ownerDimensions(dataMap, dimensions);
+  assert.ok(real.length >= 1);
+  assert.deepEqual(real, vocabulary.owner);
 });

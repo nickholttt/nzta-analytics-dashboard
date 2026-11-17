@@ -5,8 +5,7 @@
 //   - that snapshot can answer the question: it built the dataset, the fields the question names are live in it, and it holds every value chosen;
 //   - no field the question names is one that describes the owner, unless that snapshot says the small-cell rule was applied to its tables.
 // Only the Build page imports this; the Explore page, which has no pins, does not download it.
-import dataMapDoc from "../../config/data_map.json";
-import { builderSpec, dimensions } from "./config";
+import { builderSpec } from "./config";
 import { builderPresets, isMonthKey } from "./builder";
 import type { Question } from "./builder";
 import type { Manifest } from "./data";
@@ -21,28 +20,13 @@ import type { KeptSnapshots } from "./snapshotIndex";
 // had small cells hidden). When that build names its own, change this constant and `appliedTo` below; nothing else reads the key.
 export const SMALL_CELL_KEY = "small_cell_rule";
 
-type MapField = { name: string; group?: string; privacy?: string; bound?: string | null };
-const mapDoc = dataMapDoc as unknown as { owner_groups: string[]; fields: MapField[] };
-
-// The names a dimension reads when it is one of these are owner fields': the bound names of the fields the map calls owner fields.
-const OWNER_BOUND: ReadonlySet<string> = new Set(
-  mapDoc.fields.filter((f) => f.bound && (f.privacy === "owner_restricted" || mapDoc.owner_groups.includes(f.group ?? ""))).map((f) => f.bound as string),
-);
-
-// Every string in a derive block: the field it reads, the reference it looks up in, and so on.
-const stringsIn = (value: unknown): string[] =>
-  typeof value === "string" ? [value] : value && typeof value === "object" ? Object.values(value).flatMap(stringsIn) : [];
-
-// Whether a dimension is made from an owner field, by what the data map says is one and what the dimension's derive block reads.
-export const readsOwnerField = (dimensionId: string): boolean => {
-  const dimension = dimensions.find((d) => d.id === dimensionId);
-  return Boolean(dimension) && (OWNER_BOUND.has(dimensionId) || stringsIn(dimension?.derive).some((s) => OWNER_BOUND.has(s)));
-};
+// The dimensions made from an owner field, as the vocabulary gives them (Vocabulary.owner).
+export type Owner = ReadonlySet<string>;
 
 // Whether a table of this dimension in this snapshot may be read: any dimension that reads no owner field, and an owner one only where the
 // snapshot's manifest says the small-cell rule was applied to it. A snapshot built before the rule says nothing, so its owner tables are not read.
-export function ownerSliceReady(manifest: Manifest, dataset: string, dimension: string): boolean {
-  if (!readsOwnerField(dimension)) return true;
+export function ownerSliceReady(manifest: Manifest, dataset: string, dimension: string, owner: Owner): boolean {
+  if (!owner.has(dimension)) return true;
   const applied = (manifest.datasets[dataset] as unknown as Record<string, unknown> | undefined)?.[SMALL_CELL_KEY];
   return Array.isArray(applied) && applied.includes(dimension);
 }
@@ -76,9 +60,9 @@ export const blockedIn = (q: Question, manifest: Manifest): boolean => {
 
 // Whether a snapshot's manifest lets it answer the question: every chart resolves against it, and no owner field is read from a table that the
 // small-cell rule has not been applied to.
-export function holds(q: Question, kept: Manifest): Holds {
+export function holds(q: Question, kept: Manifest, owner: Owner): Holds {
   if (blockedIn(q, kept)) return "no";
-  return asks(q, kept).every((a) => a.fields.every((f) => ownerSliceReady(kept, a.dataset, f.dimension))) ? "yes" : "owner";
+  return asks(q, kept).every((a) => a.fields.every((f) => ownerSliceReady(kept, a.dataset, f.dimension, owner))) ? "yes" : "owner";
 }
 
 // Whether a value chosen for a field is one the snapshot's own table of that field holds (a table lists only values with vehicles in them).
@@ -102,7 +86,7 @@ export type Loaders = {
 };
 
 // Decides where a question reads from. A kept snapshot whose files cannot be read is as if it were not kept: the page then does what D-125 did.
-export async function readingFor(q: Question, served: Manifest, load: Loaders): Promise<Reading> {
+export async function readingFor(q: Question, served: Manifest, load: Loaders, owner: Owner): Promise<Reading> {
   if (!isMonthKey(q.snapshot) || q.snapshot >= servedMonth(served)) return { kind: "served" };
   // A question the newest snapshot cannot draw either is not the kept one's fault: it is shown as it is shown today.
   if (blockedIn(q, served)) return { kind: "served" };
@@ -114,7 +98,7 @@ export async function readingFor(q: Question, served: Manifest, load: Loaders): 
   } catch {
     return { kind: "served" };
   }
-  const verdict = holds(q, manifest);
+  const verdict = holds(q, manifest, owner);
   if (verdict !== "yes") return { kind: "withheld", month, manifest, why: verdict === "owner" ? "owner" : "missing" };
   try {
     for (const a of asks(q, manifest)) {
