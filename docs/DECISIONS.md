@@ -6020,8 +6020,8 @@ New entries use this template:
     6 cells are hidden in the latest 12 months. D-126 reading 2 and D-127's limit "the release was published before
     the rule" no longer describe the release.
   - The private archive was not touched: its job said the month is already archived and a month's file is never
-    replaced. `Deploy` (44174921475) built the site and uploaded nothing. The bot committed the snapshot aggregate
-    and the state (8063146).
+    replaced. `Deploy` (44174921475) built the site and uploaded nothing. The bot committed the state (8063146);
+    the snapshot aggregate was unchanged.
   - **A consequence the lead had not foreseen.** `Checks` runs the query service prototype's tests against the newest
     cube release, so two of them began to fail on every pull request: the prototype refused a question naming all 19
     fact-table fields (its limit was 16, set when Build offered 12), and the total pinned for the acceptance question
@@ -6037,7 +6037,7 @@ New entries use this template:
      figures and screenshots go to the user before any pull request; its record will be D-135.
   2. Item 3: "the dashboard's own usage column" is the "Vehicle usage" column of NZTA's registrations dashboard
      export, which the supplied store drops. The matching needs November's archive file, which the archive job
-     writes after NZTA's December refresh, so it is queued for then (`docs/CHECKPOINT.md`). No table of usage by
+     writes after NZTA's December refresh, so it is to be queued for then in `docs/CHECKPOINT.md`. No table of usage by
      month or year of first registration is built before it is reported.
   3. Industry class and district are not built, profiled further or proposed until the user says.
 - Consequences: the parked question about the October release is closed. A link pinned to October reads a release
