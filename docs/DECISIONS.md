@@ -4861,4 +4861,17 @@ New entries use this template:
   6. The singular wording of the grid ("the one ... value you picked").
   7. The fixture `tests/site/fixtures/shape-defaults.json`: 486 entries added, 12 removed, none changed. Added: 410 for the wider dataset's Build questions, 16 for the two Explore charts (8 views each), 60 for `trade_group` on the other two datasets (the fixture's harness treats every dimension as live on every dataset, so these are not questions a real build offers). Removed: the 12 grids "whether new or used by vehicle type" on the three datasets' share, count and share-and-count questions; the harness crosses a field with the next one offered, which is now `trade_group`, so they are replaced by "whether new or used by passenger or commercial". The pair itself is still offered in Build; only the fixture's sample of it moved.
 - Consequences: a local build with the dataset shows it in Build and Explore; a build without it is unchanged except that the two Explore charts say the dataset's own words. The golden contract is not touched (only site-only keys of `config/dimensions.json` changed). For the lead's `docs/STATE.md` and `docs/CHECKPOINT.md`: the wider total is on the site (Build, Explore, `/differences`) so "Not on the site yet" for the dataset can go; the matrix wording follow-up of D-114 is done; known issue 8 (the gap against published totals) is now stated on `/differences`.
+- Follow-up, 2026-11-17 (the lead, after the independent review of #77): two sentences said more than was measured and are
+  changed. (1) The sentence under a chart that draws the mild line no longer speaks of what another source shows (measured
+  for one source, one month and one vehicle type): it now says that, added together, the two lines hold every vehicle NZTA
+  records under a code of that kind that does not plug in, which the powertrain map makes true by construction. (2)
+  `docs/METRICS.md` no longer says how the Motor Trade Association's site counts mild hybrids (no definition was read): it
+  says its figure for new passenger cars and vans in October 2026 equals the two lines here together, and that only that
+  vehicle type and month were compared. `/differences` now says which published total was read on its publisher's own page
+  and which are as quoted in trade press, says the other site "says it is built from" NZTA data, and no longer names utes
+  in a paragraph about passenger vehicles. A correction to choice 7 above: the 12 fixture entries removed are six grids of
+  whether new or used by vehicle type, two entries each, on the two existing datasets, not on three. Left for later: the
+  guard reads a filtered dataset as its base before it checks, so a list on a filtered dataset, or one that names a
+  filtered dataset, would not be read (no dataset is in that position today); the fixture's harness treats every field as
+  live on every dataset; one test names dataset ids where the others read them from config.
 - Status: decided by Claude (unreviewed)

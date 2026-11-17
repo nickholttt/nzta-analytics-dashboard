@@ -336,11 +336,12 @@ What is established, and what is not:
   The Motor Trade Association's vstat site (vstat.mta.org.nz), which says it is
   built from NZTA data, shows for October 2026 the same count of new passenger
   cars and vans as true registrations here (11,824) and the same top ten new
-  models. It counts mild hybrids, including 48-volt diesel utes, as hybrids,
-  where this site shows them as a line of their own. Its hybrid figure for new
-  passenger cars and vans in October 2026, 4,978, equals this site's hybrid line
-  and mild hybrid line together (4,472 and 506, recomputed from the fact table
-  on 2026-11-17). The comparison is of counts; no definition of the MTA's was read.
+  models. It shows one hybrid figure, where this site shows mild hybrids as a
+  line of their own. Its hybrid figure for new passenger cars and vans in
+  October 2026, 4,978, equals this site's hybrid line and mild hybrid line
+  together (4,472 and 506, recomputed from the fact table on 2026-11-17). Only
+  that vehicle type and month were compared. The comparison is of counts; no
+  definition of the MTA's was read.
 - **Not compared:** the Ministry of Transport's fleet statistics and the
   MIA's brand and model lists could not be read (the first refuses automated
   readers, the second is for members). AutoTalk's top ten brands and models
@@ -827,10 +828,11 @@ vehicles) stay unresolved because sources disagree on them: never classify
 a contested nameplate to raise coverage.
 
 **Hybrids as one figure (D-118).** NZTA records a hybrid as hybrid, not as mild or
-full, so a source that does not tell them apart shows one hybrid figure, which on
-this site is the Hybrid and Mild hybrid lines added together. On a chart that draws
-the mild line the site says so under it (`identification_together` in
-`config/presets.json`). Neither a ranking nor a share can be added in the browser. A
+full. Every hybrid code of NZTA's that does not plug in maps to Hybrid or to Mild
+hybrid (`powertrain_map.csv`), so the two lines added together hold every such
+vehicle. On a chart that draws the mild line the site says so under it
+(`identification_together` in `config/presets.json`); it says nothing about what
+another source shows. Neither a ranking nor a share can be added in the browser. A
 count can: in Build, a count of vehicles with a condition on the powertrain that
 keeps both values is one line of their sum (new passenger cars and vans in October
 2026 on true registrations: 4,978, against 4,472 Hybrid and 506 Mild hybrid). A

@@ -52,16 +52,16 @@ test("a dataset that publishes the split, or whose manifest has no flag, is as b
   assert.equal(ask(block(), { mildDrawn: false }).coverage, undefined);
 });
 
-test("where two lines are drawn the note says that, added together, they are what a source that does not divide hybrids shows as one, naming both from config", () => {
+test("where two lines are drawn the note says that, added together, they hold every vehicle recorded under the undivided value that does not plug in, naming both from config", () => {
   const notes = ask(block());
-  assert.match(notes.coverage ?? "", /The undiv and mild lines added together are what a source that does not tell them apart shows as one line\.$/);
+  assert.match(notes.coverage ?? "", /Added together, the undiv and mild lines hold every vehicle NZTA records as a undiv that does not plug in\.$/);
   // Said after the note that the coverage figures are the whole dataset's when the view is narrowed, and said once.
   const narrowed = ask(block(), { narrowed: true }).coverage ?? "";
-  assert.ok(narrowed.indexOf("every vehicle in the dataset") < narrowed.indexOf("added together"));
-  assert.equal(narrowed.split("added together").length, 2);
+  assert.ok(narrowed.indexOf("every vehicle in the dataset") < narrowed.indexOf("Added together"));
+  assert.equal(narrowed.split("Added together").length, 2);
   // A dataset that shows its hybrids undivided has no second line to add, so says nothing of it; nor does a chart without the mild line.
   const none = [ask(block({ mild_split_published: false })).withheld, ask(block(), { mildDrawn: false }).coverage];
-  for (const text of none) assert.ok(!text?.includes("added together"), String(text));
+  for (const text of none) assert.ok(!text?.includes("Added together"), String(text));
   // Both names are placeholders, filled from config; the template holds neither.
   assert.match(phrases.identification_together, /\{hybrid\}.*\{value\}/);
 });

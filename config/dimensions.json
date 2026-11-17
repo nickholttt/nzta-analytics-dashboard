@@ -79,7 +79,7 @@
         "none_recent": "Nothing was registered in the last {months} months, on the wider scope",
         "cap_count": "registrations on the wider scope"
       },
-      "help": "Every vehicle registered in NZ for the first time in a month, including those since scrapped, on a wider scope than true registrations: it also counts buses, motor caravans and special purpose vehicles. It holds new and used vehicles; keep New or used to New to count new vehicles. Neither scope is the right one: they answer different questions. Never shown on the same chart as registrations still on the road or as true registrations."
+      "help": "Every vehicle registered in NZ for the first time in a month, including those since scrapped, on a wider scope than true registrations: it also counts buses, motor caravans and special purpose vehicles. It holds new and used vehicles; keep New or used to NZ New to count new vehicles. Neither scope is the right one: they answer different questions. Never shown on the same chart as registrations still on the road or as true registrations."
     },
     {
       "id": "registrations_cars_long_run",
