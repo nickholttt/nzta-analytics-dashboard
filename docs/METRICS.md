@@ -552,8 +552,8 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
 - **Which values stand on a side.** The visitor's picks (up to the number of lines the side shows), or, with none, the values with the most
   vehicles in the window, ordered by their count with ties alphabetical by the name shown (the one rule, "Ranking and ties"). A side shows 10
   rows and 8 columns (`defaults.matrix` in `config/presets.json`). Every value not shown stands together in one line, **All other**, so the
-  totals are the conditions' totals and nothing is left out; the page says how many values it holds. A tie at the cut shows the alphabetically
-  first, and a sentence says how many more share the last count shown. An ordered band (an age, an engine size) is never cut or ranked, picked
+  totals are the conditions' totals and nothing is left out; the page says how many values it holds ("one further ... value" for a count of one, "3 further ... values" for more). A tie at the cut shows the alphabetically
+  first, and a sentence says how many more share the last count shown ("one not shown has as many ... and is counted in", or "2 not shown have as many ... and are counted in"). An ordered band (an age, an engine size) is never cut or ranked, picked
   or not: **every band from the first the data has under the conditions (in any month) to the last, in its own order, is a line**, the order
   being the one config gives the field's bands. So a band with no vehicles in the window, or one that the data never has but that lies between two
   that it does, is a line of zeros and not a gap (a gap in an ordered scale reads as a finding, and "with no value left out in between" would be

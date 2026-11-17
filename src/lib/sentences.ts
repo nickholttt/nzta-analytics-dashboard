@@ -441,9 +441,12 @@ export type MatrixPhrases = {
   matrix_columns_kept: string;
   matrix_rows_tie: string;
   matrix_columns_tie: string;
+  matrix_rows_tie_one: string;
+  matrix_columns_tie_one: string;
   matrix_rows_rest: string;
   matrix_columns_rest: string;
   matrix_rest_further: string;
+  matrix_rest_further_one: string;
   matrix_rest_unrecorded: string;
   matrix_rest_unmatched: string;
   matrix_rest_beyond: string;
@@ -501,7 +504,7 @@ export function matrixSentences(p: MatrixPhrases, f: MatrixFacts) {
     const key = (kind: string) => `matrix_${which}_${kind}` as keyof MatrixPhrases;
     const parts = s.rest
       ? present([
-          s.rest.values > 0 ? said(p.matrix_rest_further, { ...context, count: s.rest.values }) : undefined,
+          s.rest.values > 0 ? said(s.rest.values === 1 ? p.matrix_rest_further_one : p.matrix_rest_further, { ...context, count: s.rest.values }) : undefined,
           s.rest.notRecorded ? said(p.matrix_rest_unrecorded, context) : undefined,
           s.rest.unmatched ? said(p.matrix_rest_unmatched, context) : undefined,
           s.rest.beyondCap ? said(p.matrix_rest_beyond, context) : undefined,
@@ -509,7 +512,7 @@ export function matrixSentences(p: MatrixPhrases, f: MatrixFacts) {
       : [];
     return present([
       said(p[key(s.mode)], context),
-      s.tiedBeyond > 0 && s.mode === "largest" ? said(p[key("tie")], context) : undefined,
+      s.tiedBeyond > 0 && s.mode === "largest" ? said(p[key(s.tiedBeyond === 1 ? "tie_one" : "tie")], context) : undefined,
       s.kept ? said(p[key("kept")], context) : undefined,
       s.rest && parts.length ? said(p[key("rest")], { ...context, list: sayList(parts) }) : undefined,
     ]);

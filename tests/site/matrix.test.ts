@@ -419,6 +419,26 @@ test("where the visitor picked values the leader is the largest among those, and
   assert.ok(!/you picked/.test(plain));
 });
 
+test("a count of one is said in the singular, here and in the plural, for the rest line and for a tie at the cut", async () => {
+  const { phrases } = await import("../../src/lib/config.ts");
+  const { matrixSentences } = await import("../../src/lib/sentences.ts");
+  const facts = (restValues: number, tiedBeyond: number) => ({
+    basis: "count" as const, rowField: "thing", columnField: "kind", window: "in the window", total: 100, conditions: false, floor: 200, rest: "All other",
+    leaders: [], among: { rows: false, columns: false }, counted: (n: number) => String(n),
+    rows: { field: "thing", mode: "largest" as const, shown: 2, tiedBeyond, rest: { values: restValues, notRecorded: false, unmatched: false, beyondCap: false } },
+    columns: { field: "kind", mode: "all" as const, shown: 2, tiedBeyond: 0 },
+    thin: { whole: false, rows: 0, columns: 0 }, tiny: false,
+  });
+  const one = matrixSentences(phrases, facts(1, 1)).rows;
+  assert.ok(one.includes("Rows: one not shown has as many vehicles as the last row shown, and is counted in All other."), one.join(" | "));
+  assert.ok(one.includes("Rows: All other holds one further thing value."), one.join(" | "));
+  const many = matrixSentences(phrases, facts(3, 2)).rows;
+  assert.ok(many.includes("Rows: 2 not shown have as many vehicles as the last row shown, and are counted in All other."), many.join(" | "));
+  assert.ok(many.includes("Rows: All other holds 3 further thing values."), many.join(" | "));
+  const cols = matrixSentences(phrases, { ...facts(0, 0), columns: { field: "kind", mode: "largest" as const, shown: 2, tiedBeyond: 1 } }).columns;
+  assert.ok(cols.includes("Columns: one not shown has as many vehicles as the last column shown, and is counted in All other."), cols.join(" | "));
+});
+
 test("a sentence that cannot be filled is dropped, not shown with a gap", async () => {
   const { phrases } = await import("../../src/lib/config.ts");
   const { matrixSentences } = await import("../../src/lib/sentences.ts");
