@@ -26,21 +26,22 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **NZTA's vehicle type is a dimension** (#58, D-095), and on the register dataset so are the
   assembly flag, the class and seats in bands (#79, D-116): breakdowns in Build, and the
   acceptance question passes with one swapped in (#82, D-122). A class reads as NZTA's label
-  with its code, from the table the user supplied (#85, D-121).
+  with its code, from the table the user supplied (#85, D-121). **The powertrain rolls up to
+  five groups**, so hybrids, full or mild, can be asked for as one share (#87, D-124).
 - **The site shows true registrations and the long run on a local build** (#56, #61; D-093,
   D-098): a group in Explore and a choice of what Build counts; cars first registered each
   month from 1961, and cars still registered set against Stats NZ's count (not a survival
   rate). A build without a dataset says so in place of its charts.
 - **The site's code is on `main`**, with `/about` (a draft; two gaps left for the user, D-106),
   `/feedback` (a corrections log, empty) and `/differences` (#49). `Deploy` builds the public
-  site from the newest cube release and uploads nothing. **Nothing is deployed**: the
-  variable `CLOUDFLARE_PAGES_PROJECT` is unset (checked 2026-11-16).
-- **First load is trimmed** (#64, D-099): Explore fetches its first chart, then those near the
-  screen; the public build drops what no page reaches, and the deploy checks that first.
+  site and uploads nothing. **Nothing is deployed**: `CLOUDFLARE_PAGES_PROJECT` is unset.
+- **First load is trimmed** (#64, D-099); the public build drops what no page reaches.
 - **The engine was audited against the register's rows** (2026-11-16): of 34,693 figures one
   differed, a tie in a ranking. Fixed since (#67 to #69): ties, and a month with nothing counted.
 - **Build ranks the values a visitor picks**, labelled as among those picked, and every chart
   downloads its figures as CSV (#71, D-111). The owner's acceptance question passes.
+- **"My questions"** (#86, D-125): a Build question saved in the browser, redrawn on the newest
+  month, able to be pinned: a pin holds a window, never another snapshot's figures.
 - **Build crosses two fields**, drawn as the sixth shape, `matrix`: a shaded grid with totals,
   as vehicles or a share of all, of the row or of the column (#75, D-114). Two Explore grids.
 - **SUV or car per nameplate** is a reference file nothing reads yet (#78, #84; D-117, D-123):
@@ -58,13 +59,12 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Current step
 
 **Work order 1**, engine first (the user, D-104). A, B, C and G are done on a local build, and
-E but for two pipeline items. Packages F and I are in hand: CHECKPOINT, "The queue".
+E but for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPOINT.
 
 ## In progress (all claude; nothing by gemini)
 
-- Being built, not pushed: `claude/hybrid-rollup` (worktree `nzta-notes`; hybrids as one
-  figure, D-124; cut from the closed #83's branch, so its commits are re-made on `main` before
-  it is pushed). **#86** `claude/my-questions` (`nzta-firstload`; D-125): open, in review.
+- Nothing is being built. The worktrees `nzta-audit`, `nzta-notes` and `nzta-firstload` sit
+  detached at `main`; `nzta-audit` and `nzta-notes` hold local builds of the cube (gitignored).
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
   D-103's draft scheme file sits untracked in `nzta-segments`.
 
