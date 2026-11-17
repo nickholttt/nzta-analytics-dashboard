@@ -47,8 +47,8 @@ New Zealand sources.
    hidden (D-096). Left: "My questions", the related-fields note, the question with a new
    field, hybrids and mild hybrids as one figure (a roll-up dimension, D-118).
 4. **Package I, first slice** (#78, D-117): SUV or car for 169 nameplates, 90% of recent
-   passenger vehicles; 77 of 109 rows only medium; nothing reads the file; no disagreement in
-   100 comparisons with the FCAI's published sample (a private check). Next: primary sources
+   passenger vehicles; 77 of 110 rows only medium; nothing reads the file; no disagreement in
+   98 comparisons with the FCAI's published sample (a private check). Next: primary sources
    for the medium rows; three sizes from cited dimensions against the FCAI's footprint bands;
    people movers; a rule per dataset; then the wiring with its coverage guard.
 5. **Paused, half written, uncommitted, behind `main`:** package H's narrative spec (D-102;
