@@ -213,9 +213,10 @@ SUNLONG 1, VAUXHALL 1, WESTERN STAR 1, ZEMTEC 1.
 - **Hybrids.** The added types hold 33 vehicles recorded under a hybrid code all time and 1 in the trailing window. All
   but one have a row in `mild_hybrid_models.csv` (a Hino, model 500, has none). The wider dataset's trailing figures are
   the default scope's to the vehicle but one: 91,615 source hybrids against 91,614, identified at stated confidence
-  83.45%, and at high confidence 14,271 of 19,286 (74.0%) under D-110's count, so its mild split is published (the
-  level is 70%). 1,101 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
-  time the high-confidence figure is 46,102 of 71,434 (64.5%).
+  85.31%, and at high confidence 14,327 of 18,257 (78.47%) under D-110's count, so its mild split is published (the
+  level is 70%). 2,210 more unidentified hybrids in the window would withhold it, as for `registrations_flow`. All
+  time the high-confidence figure is 46,158 of 68,281 (67.6%). (Measured again on 2026-11-17 with D-115's rows as
+  corrected in review; D-113 measured 83.45%, 14,271 of 19,286 and 46,102 of 71,434 before them.)
 - **Anything else.** Vehicle age at registration (the band's unknown), model (not recorded) and powertrain show no rate on
   the added types unlike the default scope's; the country built in is not recorded for 7 of the 16,767 new vehicles
   of the added types all time, as for 7 of 852,131 in the default scope.
@@ -529,6 +530,79 @@ spreadsheet does not read it as a formula (a program that reads the file shows t
 from the rows the chart already holds. The table of a mix chart is its last-12-months summary; the monthly figures behind a line chart are the
 table behind the line chart.
 
+### A grid of two fields (D-114)
+
+Two fields crossed, neither of them time, looked at in one window (the last 12 months, or one month): one field down the side, one across the top,
+a figure in each cell. Build asks it as a second breakdown (`build.by2`); two Explore questions are drawn as one. It is the `matrix` shape.
+The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.test.ts`.
+
+- **What is counted.** Every vehicle the conditions keep, in the window's months, is in exactly one cell. The cells add up to the
+  grid's total, and the last row and column are that total's parts: they are **always whole numbers of vehicles**, whatever the cells hold
+  ("All" where the cells are vehicles, "Vehicles" where they are shares). The total of a grid is the total of the same question without
+  its second breakdown.
+- **What a cell holds** is the visitor's choice, in a row of four buttons headed "Each cell shows". It is **vehicles** where the question counts
+  vehicles and **a share of all** where it asks for a share. The default is the least misleadable: a count has no base, and a share of all uses
+  the site's one rule for a share's denominator (everything counted under the conditions in the window), so a grid of shares adds up to 100%.
+  The other two extend that rule on purpose, and say so on the page and in the file:
+  - **a share of its row** is a cell over the vehicles in its row, which is the share of a set the row's value narrows to (as a condition does,
+    "Share", above); it answers "which segment does each brand sell most in?";
+  - **a share of its column** is a cell over the vehicles in its column; it answers "which brand leads each segment?".
+  The base of a share (the grid, a row or a column) is always in the table: the last column or row holds the vehicles each share is a share of.
+  A preset may open on a row or column share (`cell_basis`, as the two Explore grids do); a visitor can change it, and it is in the address
+  (`<id>.cells`).
+- **Which values stand on a side.** The visitor's picks (up to the number of lines the side shows), or, with none, the values with the most
+  vehicles in the window, ordered by their count with ties alphabetical by the name shown (the one rule, "Ranking and ties"). A side shows 10
+  rows and 8 columns (`defaults.matrix` in `config/presets.json`). Every value not shown stands together in one line, **All other**, so the
+  totals are the conditions' totals and nothing is left out; the page says how many values it holds ("one further ... value" for a count of one, "3 further ... values" for more). A tie at the cut shows the alphabetically
+  first, and a sentence says how many more share the last count shown ("one not shown has as many ... and is counted in", or "2 not shown have as many ... and are counted in"). An ordered band (an age, an engine size) is never cut or ranked, picked
+  or not: **every band from the first the data has under the conditions (in any month) to the last, in its own order, is a line**, the order
+  being the one config gives the field's bands. So a band with no vehicles in the window, or one that the data never has but that lies between two
+  that it does, is a line of zeros and not a gap (a gap in an ordered scale reads as a finding, and "with no value left out in between" would be
+  untrue); a band before the first or after the last the data has is not a line. The first and the last are the first and last **real** band the data has: a band definition in config with no range (the flagged values
+  "unknown" and "none", which mean not recorded or not applicable) is not a place on the scale, takes no part in setting its ends, and follows the
+  bands as a reserved line does, so a few such vehicles do not pad a grid narrowed to low bands out to the last band. A value the order does not know follows the bands. Values picked on an ordered band are shown in the band's order, not by size. A value picked that has no vehicles in the window is a line of
+  zeros. Where the largest combination (below) has a row or column the cut would put in All other, that value is shown as well, out of its
+  place, and a sentence says so, so the answer can be found on the grid. This is done for **one** combination: where several are level, the
+  first (by the order of the rows, then of the columns) is kept; any of the others whose row or column is not a line of its own is counted in a
+  cell of All other, and the answer says how many ("One of these is counted in All other, not in a cell of its own"). Every level combination is
+  still named, none is dropped, and none is claimed to be where it is not. The sentence that says a side shows "the N values with the most vehicles" counts only the values chosen by size, not the one kept out of its place, so it and the sentence about the kept value agree (the count is `Side.shown` in `src/lib/matrix.ts`).
+- **Reserved values** are as in a ranking ("Ranking and ties"), with one difference of place. *Not recorded* and *no reference match* describe
+  real vehicles, so each is a line of its own (italic, after the named values, in that order) when it has vehicles in the window or is picked;
+  it takes no place and is never the largest combination. *Beyond the cap* is where a cap puts values, not a fact about any vehicle: it is never
+  its own line and is always in All other, which says so. The reserved values that are not shown (not picked) are in All other too.
+- **Guards.** A count has no floor. A share is read against the share measure's floor (200 vehicles, "A ranking and the precision floor")
+  on **its own base**: the whole grid's total for a share of all, the row's for a share of its row, the column's for a share of its column. A
+  share whose base is under the floor is **greyed**, not hidden: printed in slanted type on a hatched grey that is not on the scale
+  (told apart by its type and its hatch, not by colour alone, and said in the legend), with its reason in the file and a screen reader's "Greyed". A share whose base holds no vehicles (a picked row with none) **has no value**: a dash on the page, a blank cell with its reason
+  in the file, never 0%. A cell of no vehicles inside a base that holds some is **zero**, printed as 0 or 0.0%. A share that is more than
+  nothing but prints as 0.0% is told from it in the figure itself: it is printed **<0.1%** (and written `<0.1` in the file, with a note), and
+  is shaded in the lowest step. The reason for a less-than sign over a bare 0.0%: a zero and a tiny share are different facts, and the sign is
+  how any table says so; the file cannot hold a number that is both, so it holds the sign.
+- **One printed figure.** A share is printed once, to one decimal place (`pct`). The file's figure and the shade step are read from that
+  printed figure, never from the unrounded share, so a cell cannot print 0.1%, be written 0.2 and be stepped as 0.2 (3 of 2,000, and 23 of 80,
+  which prints 28.7%, were the cases that did).
+- **Shade.** Six steps, from the design system's tokens (`--scale-N` in `src/styles/site.css`, each with the ink printed on it, held to 4.5 to 1
+  by `tests/site/matrix-colour.test.ts`; the lowest is 5.25 to 1). A step is a fraction of the largest figure among the cells the grid shades
+  (config `step_fractions`: 2%, 6%, 15%, 35%, 65% and 100%), so **one shade means one figure everywhere in the grid**, in a row or column share
+  too: it is not set row by row. A cell of no vehicles, a greyed or valueless share, All other and the totals are not shaded. The legend gives
+  each step a cell is drawn in, with its range in the cell's own unit (a grid greyed throughout has none); a figure is stepped as it is printed,
+  so the legend and the grid agree. Every cell prints its
+  figure, so colour is never the only way to read it.
+- **The answer.** One sentence: the combination of two named values with the most vehicles in the window, with that count in the dataset's own
+  words for what it counts; every combination level with it where there are several, followed, where some of those are counted in All other, by a sentence saying how many. It is worked out over **every named pair in the window**,
+  whatever the cut, so it is true of the question and not of the lines shown. Where the visitor picked values on a side, it is the largest
+  **among the values picked** and the sentence says so ("Among the brand values you picked, ..."), since the leader of the whole window may be a
+  value they left out. It is the same fact whatever the cells show, so it is never a share of a thin row. Reserved values take no place in it, and a line of
+  a reserved value can hold more vehicles than the largest cell, so the sentence says what it is: "The largest combination **of two named
+  values** is ...", in each of its four forms, and is true beside such a line. It names no value or figure in the template, and says nothing about why.
+- **The table of figures and the file** are the grid itself, with its last row and column, cell for cell (a wide grid is rows by columns as
+  on the page). A column of shares is headed (%); the notes above the table say what a cell holds, how each side was chosen, what All other
+  holds, what is greyed, what a less-than sign means, and that the last row and column are vehicles. A sentence that cannot be filled is
+  dropped, not shown with a gap.
+- **The fact table answers it** (`docs/CUBE_SCHEMA.md`, Fact table): two fields it carries, under any conditions it carries. A field it does not
+  carry (the owner's region, the vehicle's age) cannot be crossed. Build offers no pair where each value of one sits under a single value of the
+  other (a model under its brand, a brand under its group; `builder.cannot_cross`), since its empty cells would be empty by construction.
+
 ### Two suppression guards
 
 A share is greyed or suppressed (below) when **either** guard trips. They
@@ -700,9 +774,10 @@ powertrain values; the figure and what rests on it (the publish threshold and
 the warning level) are all it changes (D-110). Before D-110 every `full` row
 left the denominator at both levels; the figures below that predate it are
 marked. On the 2026-10 snapshot the trailing figure at high confidence is
-74.0% on the register and 74.0% on true registrations (79.3% and 79.2% under
-the earlier count; 1,272 and 1,275 vehicles are the difference) and the
-all-time figure 60.1% and 64.5% (63.6% and 68.5%). At the 2026-08 snapshot,
+78.5% on the register and 78.5% on true registrations (74.0% and 74.0% before
+D-115's rows, and 79.3% and 79.2% under the count before D-110) and the
+all-time figure 62.7% and 67.6% (60.1% and 64.5% before D-115's rows; 63.6%
+and 68.5% under the count before D-110). At the 2026-08 snapshot,
 under the earlier count, all-time coverage is 83.0% at stated confidence but
 62.8% at high confidence only, because 13,808 Honda IMA hybrids are classified
 at medium confidence. Over the trailing 12 months it is 84.1% and 79.5%.
@@ -720,14 +795,15 @@ publishes (both figures read null). A window with no identified mild and no
 unknown hybrid, only `full` calls below the high level, has those calls as its
 whole denominator at high confidence only: that figure reads 0% while the stated
 figure reads null, and the split is withheld (D-110). On the 2026-10
-snapshot both are above it (74.0% and 74.0%, after the rows below), so both
+snapshot both are above it (78.5% and 78.5%, after the rows below), so both
 publish the split. A figure below `warn_below_trailing_high_confidence_coverage` (70%, the
 same today) is a build warning for a dataset that still publishes. A dataset
 that crosses the threshold between one build and the next changes its whole
 history of the two values at once, so that build adds a warning naming the
 direction and both figures (`CUBE_SCHEMA.md`, Warnings; the margin on true
-registrations is 14,271 of 19,286 hybrids at high confidence on 2026-10: 1,101
-more unidentified hybrids in the window would cross 70%, so keeping
+registrations is 14,327 of 18,257 hybrids at high confidence on 2026-10: 2,210
+more unidentified hybrids in the window would cross 70%, and 2,217 on the
+register, 14,297 of 18,207; it was 1,101 and 1,111 before D-115, so keeping
 `mild_hybrid_models.csv` current matters). All-time mild hybrid
 history rests on the Honda IMA call and should be read that way. Subaru e-Boxer and XV Hybrid (about 5,700
 vehicles) stay unresolved because sources disagree on them: never classify
@@ -748,8 +824,26 @@ from 83.0% and 78.9% to 83.5% and 79.3% on the register, and from 66.0%
 and 62.7% to 83.5% and 79.2% on true registrations. All-time, from 80.4%
 and 61.6% to 83.1% and 63.6%, and from 72.2% and 59.7% to 83.0% and 68.5%.
 The nameplates still matching no row number six or fewer each over the last
-12 months; the rows the file marks unresolved hold another 2,894 hybrids on
-the register and 2,905 on true registrations over the same months.
+12 months; the rows the file marked unresolved held another 2,894 hybrids on
+the register and 2,905 on true registrations over the same months (before D-115;
+the rows marked unresolved at low confidence hold 2,503 and 2,513 today).
+
+D-115 raised three rows to high confidence on a maker's or its New Zealand
+distributor's own page: the Chery Tiggo 4 Pro (New Zealand new, full), the
+Nissan X-Trail's petrol hybrid as a used import of vehicle year 2015 to 2021
+(full; 2022 holds both generations and is unresolved, with later years) and the
+Foton Tunland (mild). The BAIC B30 is full at medium, because the
+only page that says full hybrid is one dealership's stock listing for one
+vehicle. 1,085 vehicles on true registrations in the window were counting
+against the high-confidence figure and no longer do (1,029 left the denominator
+as full calls, 56 joined the numerator as mild calls); on the register 1,082
+(1,026 and 56). A used import Tiggo and the X-Trails of vehicle year 2022 or
+later now match no row or an unresolved one, and count against it. Nothing was raised for the
+Honda IMA hybrids, which the makers' own pages call neither mild nor full, nor
+for Subaru's e-Boxer, whose maker says the car runs on its electric motor up to
+40 km/h and assists the engine otherwise; both stay as they were. The rows left
+at medium or low confidence still hold 3,930 vehicles in the window on true
+registrations (and on the wider dataset) and 3,910 on the register.
 
 **Named models** — the model dimension names the 300 models with the most
 vehicles in the trailing 12 months and groups every other model as

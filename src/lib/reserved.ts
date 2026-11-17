@@ -8,3 +8,7 @@ export const BEYOND_CAP = "__OTHER__";
 
 // Whether a value is one Build offers to choose. Every value but the one the cap collapses to.
 export const isChoosable = (value: string): boolean => value !== BEYOND_CAP;
+
+// The name of the one line a grid keeps for every value it does not show. The mix chart's remainder has the same words. Here, with the other reserved words, so Build can name it without
+// loading the grid.
+export const REST_NAME = "All other";

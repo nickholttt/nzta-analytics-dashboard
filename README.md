@@ -19,7 +19,8 @@ From the data GitHub builds, which anyone can download (see "Run it"):
 - **Which brands lead** over the latest twelve months, and who is gaining or
   losing ground.
 - **Your own question**, on the Build page: choose what to count, break it
-  down, pick the brands or values to compare, add conditions, share the link.
+  down, pick the brands or values to compare, add conditions, cross two
+  fields in a grid, download the figures, share the link.
 
 These count vehicles that are still registered, so older months are missing
 the vehicles since scrapped.
@@ -164,8 +165,8 @@ a reference value.
 ## Not there yet
 
 - The website is not online. Its About page is a marked draft.
-- True registrations and the long-run car series are built only where their
-  hand-downloaded files are, not on GitHub.
+- True registrations and the long-run car series are not in the data GitHub
+  has released so far; its next monthly build holds them.
 - SUVs cannot be told apart from cars: the register records most as station
   wagons. A model-level classification is planned.
 - A question on the Build page takes several seconds to answer on a phone.

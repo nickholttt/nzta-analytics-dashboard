@@ -1291,7 +1291,7 @@ Notes for the work that follows. None of it is done here.
   kinds and never of a field. A dimension in `config/dimensions.json` states its own `kind` and
   `cardinality`, and a test holds each to this map where the dimension is a plain binding of one
   field; a number becomes an ordered band through its dimension's `bands`. Two fields crossed,
-  neither of them time, fit `matrix` (D-083), which has no renderer yet. A table of figures always
+  neither of them time, fit `matrix` (D-083), drawn as a grid since D-114. A table of figures always
   fits. Still to do: a field whose `uses.break_down` is false is never offered as a breakdown (Build
   offers only what `config/dimensions.json` defines today).
 - **Build reading the map.** Offer a field only if it is bound, its dimension is live, its privacy

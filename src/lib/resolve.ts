@@ -11,12 +11,12 @@ import type { Manifest, ViewSource } from "./data";
 import { datasetFirstMonth, isUnbuilt } from "./built";
 import type { Covers } from "./rolling";
 import { RENDERED_DERIVED, isRatioMeasure } from "./derived";
-import { shapesFor, valuesClass } from "./shapes";
+import { isWindowShape, shapesFor, valuesClass } from "./shapes";
 import type { Facts } from "./shapes";
 
-// The shapes this local reference tool draws: all five that have a renderer (CLAUDE.md §Shapes). The one place that
-// knows it. The chart rules (config/chart_rules.json) may name a shape with no renderer; it is never offered.
-export const RENDERED_SHAPES = new Set(["mix", "trend", "distribution", "league", "geo"]);
+// The shapes this local reference tool draws: all six (CLAUDE.md §Shapes). The one place that knows it, held to the panel's own branches by
+// tests/site/shapes.test.ts. The chart rules (config/chart_rules.json) may name a shape with no renderer; it is never offered.
+export const RENDERED_SHAPES = new Set(["mix", "trend", "distribution", "league", "geo", "matrix"]);
 
 export type Resolution = {
   invalid: string[];
@@ -46,7 +46,7 @@ export type Resolution = {
 
 // What the chart rules judge a question on (src/lib/shapes.ts): the kind of measure, the kind of the field it breaks
 // down by and how many values that has, whether it looks at one window or over time, how many values were chosen, and
-// the kind of a second field it crosses the first with (a preset's `cross`; Build has none yet). A ranking is of one
+// the kind of a second field it crosses the first with (a preset's `cross`, or the second breakdown of a question: `dimension2`). A ranking is of one
 // window, not a series over time.
 export function questionFacts(preset: Preset, dimension?: Dimension, measure?: Measure): Facts {
   const period = findPeriod(preset.period);
@@ -58,7 +58,7 @@ export function questionFacts(preset: Preset, dimension?: Dimension, measure?: M
     values: dimension ? valuesClass(dimension.cardinality) : "none",
     span: onePeriod ? "one_period" : "over_time",
     picked: picked === 0 ? "none" : picked === 1 ? "one" : "several",
-    crossed_with: findDimension(preset.cross)?.kind ?? "none",
+    crossed_with: findDimension(preset.dimension2 ?? preset.cross)?.kind ?? "none",
   };
 }
 
@@ -68,6 +68,11 @@ export function questionFacts(preset: Preset, dimension?: Dimension, measure?: M
 export const fitsPin = (preset: Preset, period: string): boolean =>
   !preset.shape_override ||
   shapesFor(questionFacts({ ...preset, period }, findDimension(preset.dimension), findMeasure(preset.measure))).includes(preset.shape_override);
+
+// Whether the renderer of a shape can draw this preset, beyond the shape fitting it. A grid draws the counts or shares of vehicles in two fields
+// of one dataset's fact table, so it needs a second breakdown and a plain measure: the ratio of two datasets that crosses two fields over time
+// (a preset's `cross`) is a line, and in one window it fits a grid that nothing draws.
+export const canDraw = (preset: Preset, shape: string): boolean => shape !== "matrix" || (Boolean(preset.dimension2) && !preset.derived && !preset.series);
 
 // The shapes that fit the question and have a renderer, best first. A visitor is offered these and no others.
 export const drawnShapes = (facts: Facts): string[] => shapesFor(facts).filter((s) => RENDERED_SHAPES.has(s));
@@ -89,7 +94,7 @@ export function rankingPeriods(view: Preset): string[] {
   const dimension = findDimension(view.dimension);
   const measure = findMeasure(view.measure);
   const own = [...new Set([view.period, view.ranking_period])].filter(
-    (id): id is string => Boolean(id) && inferShape({ ...view, period: id }, dimension, measure) === "league",
+    (id): id is string => Boolean(id) && isWindowShape(inferShape({ ...view, period: id }, dimension, measure)) && canDraw(view, inferShape({ ...view, period: id }, dimension, measure)),
   );
   // Only a view that is already a ranking, or offers one, gains the other windows: a chart that had no ranking keeps none.
   if (own.length === 0) return own;
@@ -208,16 +213,21 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   // dimension at once, so any number of filters applies. Without a fact table, or one that lacks a dimension the question
   // names, nothing is drawn: a chart quietly missing a filter would answer a different question.
   let keptBy: Resolution["keptBy"];
-  if (preset.values !== undefined || preset.where !== undefined) {
+  if (preset.values !== undefined || preset.where !== undefined || preset.dimension2 !== undefined) {
     const facts = entry?.facts;
     const where = Object.fromEntries(Object.entries(preset.where ?? {}).filter(([, kept]) => kept.length > 0));
-    const named = [...(preset.dimension ? [preset.dimension] : []), ...Object.keys(where)];
+    const named = [...(preset.dimension ? [preset.dimension] : []), ...(preset.dimension2 ? [preset.dimension2] : []), ...Object.keys(where)];
     // A dimension the config does not define has no name to show a visitor, so it is as missing as one the table lacks.
     const missing = named.filter((d) => !facts?.dimensions.includes(d) || !findDimension(d));
     if (!facts) add("blocked", "this build carries no fact table, so a question with chosen values or filters cannot be answered");
     else if (missing.length) add("blocked", `the fact table does not carry ${missing.join(", ")}`);
     else if (cubeDataset) {
-      source = { dataset: cubeDataset, dimension: preset.dimension ?? null, facts: { values: preset.values, where } };
+      source = {
+        dataset: cubeDataset,
+        dimension: preset.dimension ?? null,
+        facts: { values: preset.values, where },
+        ...(preset.dimension2 ? { cross: { dimension: preset.dimension2, grid: true } } : {}),
+      };
       keptBy = Object.entries(where).map(([d, values]) => ({ dimension: d, values }));
     }
   }
@@ -229,6 +239,14 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     add("invalid", `shape_override "${preset.shape_override}" does not fit this question: config/chart_rules.json gives ${fitting.join(", ") || "nothing"}`);
   }
   if (!RENDERED_SHAPES.has(shape)) add("blocked", `shape "${shape}" has no renderer in this tool`);
+  else if (!canDraw(preset, shape)) add("blocked", `shape "${shape}" is a grid of two fields of vehicles, and this chart is not one: ${preset.dimension2 ? "a ratio of two datasets has no grid" : "it has no second breakdown, or it is a ratio of two datasets"}`);
+  if (preset.dimension2) {
+    if (!findDimension(preset.dimension2)) add("invalid", `second breakdown "${preset.dimension2}" is not defined in config/dimensions.json`);
+    else if (!preset.dimension) add("invalid", "a second breakdown needs a first");
+    else if (preset.dimension2 === preset.dimension) add("invalid", "a field cannot be crossed with itself");
+    else if (shape !== "matrix") add("invalid", `a second breakdown is drawn as a grid, for one window; config/chart_rules.json gives ${shape || "nothing"} for this period`);
+    else if (!entry?.live_dimensions.includes(preset.dimension2)) add("blocked", `dimension "${preset.dimension2}" is not live in this build`);
+  }
   // A breakdown drawn frame by frame through time is a different picture from one period's distribution: nothing draws
   // it yet, and drawing the period's total instead would not answer the question.
   if (preset.animate_by) add("blocked", `"animate_by": "${preset.animate_by}" has no renderer in this tool: the ${shape} renderer draws one period at a time`);
