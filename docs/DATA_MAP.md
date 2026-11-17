@@ -867,7 +867,12 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   carries on the whole register a readable label and a note saying what the value itself says; a value
   is labelled by its words and not placed in a group, because the register defines none of them (`OTHER`
   is a recorded catch-all, not a blank, and `TAXI COMMERCIAL PASSENGER` runs its words together without
-  saying whether it is one group or two). Nothing reads the file yet: the field is not bound.
+  saying whether it is one group or two). The field is bound (D-135) as the dimension `vehicle_usage`, labelled "Used as, today", and
+  counted only over the vehicles registered today (the stock `fleet`), by vehicle type if asked, never by the month or year of first
+  registration: the data map marks it `stock_only`, so the build offers it to no other dataset. It reads as the latest usage the
+  register records; for rental that is shown to differ from the usage at first registration, and for the other values it is not
+  tested, so nothing is said of them beyond what the register records now. The slice and the pair are held to the small-cell rules
+  (`docs/CUBE_SCHEMA.md`); the first table was built privately and is shown to the owner before it is published (D-135).
 - **Coverage.** Every vehicle.
 - **Not recorded.** No form seen. `OTHER` (S 23,662) is a recorded catch-all.
 - **Traps.** The rental share differs widely between months: among NZ-new passenger cars on S it is
@@ -1380,7 +1385,8 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | `ALTERNATIVE_MOTIVE_POWER` as a filter | NULL must read "none", not `__UNDEFINED__`: a reference lookup or a sentinel exception, decided when bound |
 | `NUMBER_OF_AXLES` | Not bound for now (D-129). If bound with the heavy-vehicle topic: add `0`; keep 1 to 6 (a guard of 2 to 6 would drop the 304 one-axle class TD trailers); count 7 and over apart; heavy classes only |
 | `VDAM_WEIGHT`, `HEIGHT`, `WIDTH`, `ROAD_TRANSPORT_CODE` | With the heavy-vehicle topic (package I). Add `0` for the three numbers; guards 1,000 to 60,000, 1,000 to 4,600 and 1,200 to 2,600. The road transport code's NULL reads "none" once that reading is confirmed |
-| `VEHICLE_USAGE`, `INDUSTRY_CLASS` | Bound, and kept out of every published file until the owner has been shown the field's first table (D-120). Add `UNKNOWN` for industry class; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup once confirmed. Labels do not say "when first registered"; usage is shown to be current for rental only |
+| `VEHICLE_USAGE` | **Bound (D-135)** as `vehicle_usage` over the vehicles registered today only, kept out of every published file until the owner has been shown the field's first table (D-120). No sentinel: the register holds no blank. Labels are NZTA's own words; usage is shown to be current for rental only |
+| `INDUSTRY_CLASS` | Bound, and kept out of every published file until the owner has been shown the field's first table (D-120). Add `UNKNOWN`; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup once confirmed. Labels do not say "when first registered" |
 | `MODEL` (already bound) | Add the clear forms of nothing (`UNKNOWN`, `NOT KNOWN`, `UNK`, `N/A`, `-`, `.`, `0`, `000`); look at `X`, `XX`, `OTHER` and `NA` by make first. Trim stray spaces |
 
 **Not bound as fields:** `MVMA_MODEL_CODE` and `INDUSTRY_MODEL_CODE` (lookup keys for the model-level

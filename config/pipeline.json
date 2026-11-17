@@ -39,7 +39,8 @@
     "nzta_class": "CLASS",
     "seats": "NUMBER_OF_SEATS",
     "power": "POWER_RATING",
-    "transmission": "TRANSMISSION_TYPE"
+    "transmission": "TRANSMISSION_TYPE",
+    "vehicle_usage": "VEHICLE_USAGE"
   },
   "change_key_fields": ["registration_year", "registration_month", "import_status", "vehicle_type"],
   "trailing_window_months": 12,
@@ -143,6 +144,14 @@
       "$facts_comment": "The fact table: counts by month and every dimension listed here, one Parquet file per column under facts/{dataset}/, so the browser can answer any combination by downloading only the columns a question needs (docs/CUBE_SCHEMA.md, Fact table; D-058). region is left out on purpose (D-078), and the user's rule for owner fields allows them in a slice or a pair only (D-096): it is where the vehicle's owner lives, and with it two in three of the table's rows counted a single vehicle.",
       "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "vehicle_type", "import_status", "engine_size_band", "age_at_registration_band", "nz_assembled", "nzta_class", "seats_band", "power_band", "transmission", "model"]
     },
+    "fleet": {
+      "$comment": "A stock (D-135, docs/CUBE_SCHEMA.md, Stock datasets): every vehicle in the register at the snapshot, of every vehicle type and every import status, counted as at the snapshot date, with one period, the snapshot's month. It is not a series of first registrations: no vehicle's month or year of first registration is a dimension of it or a column of any of its files, and the build refuses a dimension of it that reads one (not_by). `dimensions` lists the only dimensions it is offered: how the register records the vehicle's usage now (an owner field, so its slice and its pair are held to the small-cell rules), and the type NZTA registers the vehicle under. No fact table: a field that describes the owner never reaches one.",
+      "stock": true,
+      "require": [],
+      "dimensions": ["vehicle_usage", "vehicle_type"],
+      "not_by": ["registration_year", "registration_month"],
+      "pairs": [["vehicle_usage", "vehicle_type"]]
+    },
     "registrations_flow": {
       "$comment": "Read from the supplied source nzta_dashboard (the `supplied` block), through the same normalise, derive and output code as the register. The same require as registrations_surviving, so the two count the same kinds of vehicle: the dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
       "source": "nzta_dashboard",
@@ -231,7 +240,7 @@
   "guardrails": {
     "max_in_scope_row_change": 0.02,
     "max_unmapped_rate": 0.02,
-    "abort_on_unmapped": ["make", "powertrain", "powertrain_group", "nz_assembled", "nzta_class", "transmission"],
+    "abort_on_unmapped": ["make", "powertrain", "powertrain_group", "nz_assembled", "nzta_class", "transmission", "vehicle_usage"],
     "max_unmapped_rate_trailing": 0.02,
     "warn_unmapped_rate_trailing": 0.005,
     "zero_row_min_previous_rows": 1000,

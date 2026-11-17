@@ -302,3 +302,21 @@ def test_a_hidden_value_whose_pair_line_is_left_visible_aborts_the_build(tmp_pat
     with pytest.raises(GuardrailError) as info:
         run(tmp_path, cfg, rows)
     assert "has a visible cell" in str(info.value) or "fewer than 2 hidden cells" in str(info.value), str(info.value)
+
+
+def test_a_pair_whose_one_field_slice_lacks_one_of_its_periods_aborts_the_build_with_a_message(tmp_path, workspace, monkeypatch):
+    """A fault that leaves a period out of a written slice is named, not left to fail as a missing key."""
+    from pipeline import small_cells
+
+    real = small_cells.write_protected_slice
+
+    def without_the_first_period(con, cfg, derived, ds, path, rule):
+        figures = real(con, cfg, derived, ds, path, rule)
+        con.execute(f"COPY (SELECT * FROM read_parquet('{path.as_posix()}') WHERE month > (SELECT min(month) FROM read_parquet('{path.as_posix()}'))) "
+                    f"TO '{path.with_name('shortened.parquet').as_posix()}' (FORMAT PARQUET)")
+        path.unlink()
+        path.with_name("shortened.parquet").rename(path)
+        return figures
+
+    monkeypatch.setattr(small_cells, "write_protected_slice", without_the_first_period)
+    aborts_with(tmp_path, workspace, "are not in the written one-field slices it stands on")

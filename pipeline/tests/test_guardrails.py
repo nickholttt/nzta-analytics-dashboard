@@ -159,7 +159,9 @@ def test_trailing_unmapped_warning_and_published_headroom(tmp_path, workspace):
     # the words this warning is written with, so a rewording that stops matching fails here.
     assert set(groups_of(cfg, [w for w in manifest["warnings"] if "warning level" in w])) == {1}
     guard = manifest["datasets"]["registrations_surviving"]["unmapped_guard"]
-    assert sorted(guard) == sorted(g["abort_on_unmapped"])
+    # Guarded where the dataset derives the dimension: a dimension only a stock is offered (D-135) is not this dataset's.
+    derived_here = {d["id"] for d in derive.applicable(cfg, "registrations_surviving")[0]}
+    assert sorted(guard) == sorted(d for d in g["abort_on_unmapped"] if d in derived_here)
     for figures in guard.values():
         assert 0 < figures["trailing"]["rows"] < figures["whole_run"]["rows"]
         for basis in (figures["whole_run"], figures["trailing"]):
@@ -193,7 +195,7 @@ def test_a_pair_waits_while_one_of_its_dimensions_is_not_live(tmp_path, workspac
     assert info["live_pairs"] == []
     assert info["not_live_pairs"] == {"import_status__segment": "dimensions not live: segment"}
     assert any("import_status__segment is not live" in w for w in manifest["warnings"]), manifest["warnings"]
-    assert not (workspace["staging"] / "build" / "pairs").exists()
+    assert not (workspace["staging"] / "build" / "pairs" / "registrations_surviving").exists()
 
 
 @pytest.mark.parametrize("pairs, fragment", [

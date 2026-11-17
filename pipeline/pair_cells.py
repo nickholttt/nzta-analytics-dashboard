@@ -33,6 +33,7 @@ from pathlib import Path
 
 from . import outputs
 from .contract import NOT_BROKEN_DOWN
+from .errors import GuardrailError
 from .normalise import lit
 from .privacy import SmallCellRule
 
@@ -320,6 +321,10 @@ def write_protected_pair(con, cfg, a, b, ds: str, path: Path, rule: SmallCellRul
     for month, a_value, b_value, n in con.execute("SELECT month, a_value, b_value, n FROM pair_raw ORDER BY month, a_value, b_value").fetchall():
         by_month.setdefault(month, {})[(a_value, b_value)] = n
     first_slice, second_slice = read_slice(con, slice_a), read_slice(con, slice_b)
+    absent = sorted(m for m in by_month if m not in first_slice or m not in second_slice)
+    if absent:
+        raise GuardrailError("pair", f"{path.name}: {len(absent):,} periods, first {absent[0].strftime('%Y-%m')}, are not in the written "
+                                     f"one-field slices it stands on ({slice_a.name}, {slice_b.name})")
 
     hidden_cells, unbroken = [], []
     stats = {

@@ -143,7 +143,7 @@ def test_a_stock_is_kept_apart_from_the_series_of_months_in_the_state(built):
     _, workspace, _, rows = built
     state = json.loads(workspace["state"].read_text(encoding="utf-8"))
     assert STOCK not in state["month_counts"]
-    assert state["stock_totals"] == {STOCK: {"snapshot": "2026-08-31", "vehicles": len(rows)}}
+    assert state["stock_totals"][STOCK] == {"snapshot": "2026-08-31", "vehicles": len(rows)}
     assert STOCK in state["live_dimensions"]
 
 
@@ -321,11 +321,13 @@ def rewrite_slices(monkeypatch, select: str):
 
     def plain(con, cfg, derived, ds, path):
         real_plain(con, cfg, derived, ds, path)
-        reselect(path)
+        if path.parent.name == STOCK:
+            reselect(path)
 
     def protected(con, cfg, derived, ds, path, rule):
         figures = real_protected(con, cfg, derived, ds, path, rule)
-        reselect(path)
+        if path.parent.name == STOCK:
+            reselect(path)
         return figures
 
     monkeypatch.setattr(outputs, "write_slice", plain)

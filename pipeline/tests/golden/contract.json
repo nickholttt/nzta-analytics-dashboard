@@ -54,7 +54,8 @@
      "imported_from": "does not apply to this dataset",
      "trade_group": "does not apply to this dataset",
      "car_origin": "does not apply to this dataset",
-     "car_engine_band": "does not apply to this dataset"
+     "car_engine_band": "does not apply to this dataset",
+     "vehicle_usage": "does not apply to this dataset"
     },
     "live_pairs": [
      "import_status__age_at_registration_band",
@@ -345,6 +346,119 @@
      }
     }
    },
+   "fleet": {
+    "definition": "Every vehicle on NZTA's Motor Vehicle Register at the snapshot date, of every vehicle type and every import status, counted as at that date. It has one period, the snapshot's month, and no month or year of first registration.",
+    "rows": 62,
+    "months": 1,
+    "latest_month": "2026-08",
+    "live_dimensions": [
+     "vehicle_type",
+     "vehicle_usage"
+    ],
+    "not_live": {
+     "powertrain": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "powertrain_group": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "make": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "parent_group": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "owner_country": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "heritage_country": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "built_in": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "imported_from": "does not apply to this dataset",
+     "segment": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "segment_group": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "trade_group": "does not apply to this dataset",
+     "import_status": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "car_origin": "does not apply to this dataset",
+     "car_engine_band": "does not apply to this dataset",
+     "region": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "vehicle_year_band": "does not apply to this dataset",
+     "engine_size_band": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "age_at_registration_band": "does not apply to this dataset",
+     "nz_assembled": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "nzta_class": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "seats_band": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "power_band": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "transmission": "not offered to this dataset (its dimensions in config/pipeline.json)",
+     "model": "not offered to this dataset (its dimensions in config/pipeline.json)"
+    },
+    "live_pairs": [
+     "vehicle_usage__vehicle_type"
+    ],
+    "not_live_pairs": {},
+    "small_cells": {
+     "vehicle_usage": {
+      "minimum": 10,
+      "minimum_hidden_cells": 2,
+      "minimum_hidden_vehicles": 10,
+      "months": 1,
+      "cells_hidden_first_rule": 2,
+      "cells_hidden_second_rule": 1,
+      "vehicles_in_hidden_cells": 16,
+      "months_not_broken_down": 0,
+      "vehicles_in_months_not_broken_down": 0
+     }
+    },
+    "small_cell_pairs": {
+     "vehicle_usage__vehicle_type": {
+      "minimum": 10,
+      "minimum_hidden_cells": 2,
+      "minimum_hidden_vehicles": 10,
+      "months": 1,
+      "cells_hidden_first_rule": 0,
+      "cells_hidden_by_slice": 0,
+      "cells_hidden_second_rule": 0,
+      "vehicles_in_hidden_cells": 0,
+      "months_not_broken_down": 1,
+      "vehicles_in_months_not_broken_down": 62,
+      "narrowest_range": null
+     }
+    },
+    "facts": null,
+    "unmapped_rates": {
+     "vehicle_type": 0.0,
+     "vehicle_usage": 0.0
+    },
+    "unmapped_guard": {
+     "vehicle_usage": {
+      "whole_run": {
+       "rows": 62,
+       "unmapped": 0,
+       "rate": 0.0,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 62,
+       "unmapped": 0,
+       "rate": 0.0,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      }
+     }
+    },
+    "coverage_trailing": {
+     "window_months": 12,
+     "fuel_consumption": 0.8182,
+     "dimensions": {
+      "vehicle_type": 1.0,
+      "vehicle_usage": 0.9677
+     }
+    },
+    "counts": {
+     "no_registration_month": 0,
+     "registration_after_snapshot": 0,
+     "bands": {},
+     "fuel_consumption": {
+      "parse_failures": 1,
+      "out_of_range": 1,
+      "on_no_engine": 1
+     },
+     "alternative_fuel_differs": 1
+    },
+    "model_cap": {}
+   },
    "registrations_flow": {
     "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register.",
     "not_built": "the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`"
@@ -409,7 +523,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 53319,
+  "payload_bytes": 56795,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -422,6 +536,155 @@
   ]
  },
  "slices": {
+  "fleet/vehicle_type.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "2026-08-01",
+     "Goods vans, trucks and utes",
+     7,
+     62,
+     43.3,
+     5,
+     7
+    ],
+    [
+     "2026-08-01",
+     "Motorcycles",
+     1,
+     62,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-08-01",
+     "Passenger cars and vans",
+     53,
+     62,
+     213.2,
+     40,
+     47
+    ],
+    [
+     "2026-08-01",
+     "Trailers and caravans",
+     1,
+     62,
+     null,
+     0,
+     0
+    ]
+   ]
+  },
+  "fleet/vehicle_usage.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "2026-08-01",
+     "Emergency",
+     null,
+     62,
+     null,
+     null,
+     null
+    ],
+    [
+     "2026-08-01",
+     "Other goods",
+     12,
+     62,
+     61.4,
+     8,
+     12
+    ],
+    [
+     "2026-08-01",
+     "Private passenger",
+     34,
+     62,
+     150.5,
+     29,
+     29
+    ],
+    [
+     "2026-08-01",
+     "Rental",
+     null,
+     62,
+     null,
+     null,
+     null
+    ],
+    [
+     "2026-08-01",
+     "__UNDEFINED__",
+     null,
+     62,
+     null,
+     null,
+     null
+    ]
+   ]
+  },
   "registrations_surviving/age_at_registration_band.parquet": {
    "schema": [
     [
@@ -7429,6 +7692,54 @@
   }
  },
  "pairs": {
+  "fleet/vehicle_usage__vehicle_type.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "a_value",
+     "VARCHAR"
+    ],
+    [
+     "b_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "2026-08-01",
+     "__NOT_BROKEN_DOWN__",
+     "__NOT_BROKEN_DOWN__",
+     62,
+     62,
+     null,
+     null,
+     null
+    ]
+   ]
+  },
   "registrations_surviving/import_status__age_at_registration_band.parquet": {
    "schema": [
     [

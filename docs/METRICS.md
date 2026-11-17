@@ -22,7 +22,8 @@ Three grains, never mixed in one series without an explicit label.
   with every snapshot as vehicles are scrapped. **Never put a survivors
   series and a flow series on the same chart.**
 - **Stock** — vehicles registered at month end. Denominator: all vehicles
-  in the fleet at that month end.
+  in the fleet at that month end. The dataset `fleet` (below, D-135) is the one built: the register as at its snapshot date,
+  with one period.
 
 ## Scope
 
@@ -422,6 +423,31 @@ Source and method: `docs/DATA_SOURCES.md` §C (D-065, D-094). Measured on
   with the parts as published and the total unadjusted. Where a cube
   has no entry for the dataset, the group says so in place of the
   charts.
+
+## Vehicles registered today: `fleet` (D-135)
+
+*Every vehicle on NZTA's Motor Vehicle Register at the snapshot date, of every vehicle type and every import status.*
+Render that sentence on every chart that uses this dataset. It is a **stock**, counted as at the snapshot date, and not a
+series of first registrations:
+
+- It has **one period**, the snapshot's month. A new build counts the register again; it does not add a month. Its figure for
+  a build is not comparable with another build's as a series, only as two stocks (the build compares a stock with the last
+  good build's total, `docs/CUBE_SCHEMA.md`, *Stock datasets*).
+- It counts **every row of the register**: trailers and caravans, motorcycles, mopeds, tractors, buses, machines and every
+  other vehicle type, whatever its import status (including re-registrations and home-built vehicles), and the vehicles whose
+  first registration month is not recorded. The datasets above count only the vehicle types and import statuses their scope
+  names, and only vehicles with a month of first registration; this one is not a subset of them and they are not subsets of it.
+- It is **never broken down by the month or year of first registration**, in any file. The fields it is built for describe the
+  vehicle as it is now (the register records the latest value, not the value at first registration), and a count of them by the
+  month a vehicle arrived would read as what the vehicle was then. The build refuses a dimension of this dataset that reads
+  either field, and its files hold one month, the snapshot's (`not_by` in `config/pipeline.json`).
+- Its dimensions are the ones `config/pipeline.json` lists for it: `vehicle_usage`, which reads the register's vehicle usage,
+  labelled "Used as, today" (the register's own words for each value, `vehicle_usage_map.csv`), and `vehicle_type`, the type
+  NZTA registers the vehicle under. The usage is an owner field (`config/data_map.json`, `VEHICLE_USAGE`), so its tables are
+  published only under the small-cell rule and the rule for a table of two fields (`docs/CUBE_SCHEMA.md`). For rental the
+  register's usage is shown to be the latest recorded, not the usage at first registration; for the other values this has not
+  been tested (`docs/DATA_MAP.md`), so a figure by usage says what the register records now and no more.
+- The denominator of a share is the whole fleet in the period. A share of a hidden cell is not computed (D-130).
 
 ## Core measures
 

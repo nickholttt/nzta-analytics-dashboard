@@ -39,7 +39,9 @@ No count of dimensions is fixed in this document or anywhere else; see
 
 Build step 1 emits `manifest.json`, `cube/registrations_surviving/`,
 `pairs/registrations_surviving/`, `facts/registrations_surviving/` and
-`events.json`.
+`events.json`. The same build also emits the stock `fleet` (*Stock datasets*): `cube/fleet/vehicle_usage.parquet`,
+`cube/fleet/vehicle_type.parquet`, `pairs/fleet/vehicle_usage__vehicle_type.parquet` and its block in `manifest.json`, and no
+fact table.
 
 When the supplied store for `registrations_flow` is present (*Supplied sources*), the build also emits
 `cube/registrations_flow/`, `facts/registrations_flow/` and its block in `manifest.json`; it configures
@@ -110,7 +112,8 @@ month's total.** The other exception is a slice of a dimension that describes th
 ### Slices of owner dimensions: small cells (D-127)
 
 A dimension that reads a field the data map puts in an owner group (`owner_groups` in `config/data_map.json`: today the
-owner's region, from the register's district, and only in `registrations_surviving`) is published under the user's rule
+owner's region, from the register's district, in `registrations_surviving`, and how the register records the vehicle's usage
+now, in the stock `fleet`) is published under the user's rule
 for owner fields (D-096, D-120). The rule, its numbers (`owner_rule` in the same file) and the dimensions it holds are
 data, not code; the manifest's `small_cells` block, below, says which slices it held and what it hid. A *cell* is one
 value of the dimension in one month.
@@ -731,6 +734,20 @@ How a stock passes through the build:
 - **What the build reads back.** The stock's vehicles are the register's rows (an abort if they differ), its counts have the
   one period (an abort if they have another), and every slice and pair file of it has the contract's columns and one month, the
   snapshot's (an abort otherwise).
+
+**The dataset `fleet`** ("Vehicles registered today", D-135) is the one stock today: every vehicle in the register at the
+snapshot, of every vehicle type and every import status, counted as at the snapshot date (`docs/METRICS.md`). It is offered
+two dimensions and no others: `vehicle_usage`, labelled "Used as, today" (the register's usage value through
+`data/reference/vehicle_usage_map.csv`), and `vehicle_type` (the type NZTA registers the vehicle under, every type rather than
+the two of the default scope). Its files are `cube/fleet/vehicle_usage.parquet`, written under the small-cell rule and read back
+(*Slices of owner dimensions*); `cube/fleet/vehicle_type.parquet`, which reads no owner field and is written as counted;
+and `pairs/fleet/vehicle_usage__vehicle_type.parquet`, written under the rule for a table of two fields (*Pairs with an owner
+dimension*). It has no fact table. Its manifest block has `small_cells` for the usage and `small_cell_pairs` for the pair, no
+mild hybrid block, and `facts: null`. `month` in every file is the snapshot's month, the first day, and nothing in any file says
+when a vehicle was first registered. A period that cannot be broken down is one reserved row (in the pair, with the reserved
+value in both columns), as everywhere. The usage field is recorded for every vehicle and has no form of not recorded; the build
+shows `__UNDEFINED__` if a blank ever appears, and aborts on a raw value the reference file does not hold (the unmapped guard,
+`abort_on_unmapped`).
 
 ## Supplied sources
 

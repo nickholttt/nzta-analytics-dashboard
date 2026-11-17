@@ -12,7 +12,7 @@ import json
 import duckdb
 import pytest
 
-from pipeline import config, outputs, privacy, reference, small_cells
+from pipeline import config, derive, outputs, privacy, reference, small_cells
 from pipeline.contract import NOT_BROKEN_DOWN
 from pipeline.errors import GuardrailError
 
@@ -22,11 +22,18 @@ from .test_guardrails import expect_abort, run
 DATASET = "registrations_surviving"
 
 
+def owner_dimensions_of_the_register_dataset(cfg) -> list[str]:
+    """The dimensions of the register dataset that read an owner field, from the data map. The map may name others, which
+    belong to a dataset that is not this one (a stock, D-135) and are tested in test_fleet.py."""
+    here = {d["id"] for d in derive.applicable(cfg, DATASET)[0]}
+    return sorted(d for d in privacy.owner_dimensions(cfg) if d in here)
+
+
 def owner_dimension() -> str:
     """The one dimension of the register dataset that reads an owner field, from the data map."""
-    found = privacy.owner_dimensions(config.load())
-    assert len(found) == 1, f"this module is written for one owner dimension, the map has {sorted(found)}"
-    return next(iter(found))
+    found = owner_dimensions_of_the_register_dataset(config.load())
+    assert len(found) == 1, f"this module is written for one owner dimension, the map has {found}"
+    return found[0]
 
 
 def districts_by_value() -> list[str]:
@@ -152,7 +159,7 @@ def test_the_manifest_says_what_was_hidden_and_agrees_with_the_file(built):
 def test_a_dimension_that_reads_no_owner_field_is_written_as_counted_and_has_no_figures(built):
     manifest, _, _, cfg = built
     entry = manifest["datasets"][DATASET]
-    assert sorted(entry["small_cells"]) == sorted(privacy.owner_dimensions(cfg))
+    assert sorted(entry["small_cells"]) == owner_dimensions_of_the_register_dataset(cfg)
     other = next(d for d in entry["live_dimensions"] if d not in entry["small_cells"])
     con = duckdb.connect()
     path = cfg.path("public") / "cube" / DATASET / f"{other}.parquet"

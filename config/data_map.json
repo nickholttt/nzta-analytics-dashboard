@@ -715,7 +715,11 @@
       "privacy": "owner_restricted",
       "privacy_reason": "Describes how the owner uses the vehicle (the work order's section 3 names it an owner field).",
       "after_review": "minimum_count",
-      "bound": null,
+      "stock_only": true,
+      "published_exceptions": [
+        { "dimension": "vehicle_usage", "outputs": ["slice", "pair"], "decision": "D-135", "decision_covers": ["slice", "pair"], "$comment": "The owner's instruction of 2026-11-18 (D-135): vehicle usage over every vehicle still registered, by usage and by vehicle type, labelled 'used as, today', never by month or year of first registration. Built privately first. The owner is shown the first table before this exception reaches main (D-096, D-120); the branch that holds it is not pushed until then. Published under the small-cell rule for the slice (D-127) and the rule for a table of two fields for the pair (D-135)." }
+      ],
+      "bound": "vehicle_usage",
       "relations": { "rolls_up_to": [], "derived_from": [], "follows_vehicle": "no" }
     },
     {
