@@ -12,7 +12,9 @@ the user on 2026-11-16 (D-096):**
   the work order under D-078, stays as it is, with no minimum count;
 - postcode totals are not published for now, and nothing derived from `VIN11` is covered.
 
-Nothing here binds a field. Build still offers only what `config/dimensions.json` defines.
+The map itself binds nothing. A field is bound in `config/pipeline.json` and given a dimension in
+`config/dimensions.json`, in the order under "Order for binding" (package F); the summary table and each
+entry say which are. Build still offers only what `config/dimensions.json` defines.
 
 The same map in machine-readable form is `config/data_map.json`, kept true to the pipeline's config
 by `pipeline/tests/test_data_map.py`. That file holds no measured figure; the figures are here.
@@ -85,7 +87,7 @@ and a median). Values are S then W. Privacy is the class the user approved (D-09
 | `IMPORT_STATUS` | category, few | 2; 4 | B F, count | public | `import_status` |
 | `ORIGINAL_COUNTRY` | category, many | 46; 48 | B F, count | public | `original_country` |
 | `PREVIOUS_COUNTRY` | category, many | 45; 49 | B F, count (used imports) | public | `previous_country` |
-| `NZ_ASSEMBLED` | category, few | 3; 3 | B F, count (from 2000) | public | no |
+| `NZ_ASSEMBLED` | category, few | 3; 3 | B F, count (from December 1995) | public | `nz_assembled` |
 | `TLA` | place, many | 67; 67 | B F, count | owner rule | `tla` |
 | `POSTCODE` | place, many | not measured; 1,331 | B F, count | not published for now | no |
 | `VEHICLE_USAGE` | category, few | 7; 8 | B F, count | owner rule | no |
@@ -103,7 +105,7 @@ The dashboard's 13 columns are in "The dashboard's fields" below: each is as its
 except where that section says otherwise. Ten are public; `Owner Type`, `Territorial
 authority` and `Vehicle usage` fall under the owner rule.
 
-Counts. Register: 17 bound and 23 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
+Counts. Register: 18 bound and 22 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
 2 place, 1 free text. By class: 31 public, 5 under the owner rule, 2 never published,
 2 never pulled. Dashboard: 10 category, 1 time, 1 number, 1 place; 10 public, 3 under the owner rule.
 
@@ -630,12 +632,28 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   built in New Zealand.
 - **Kind and values.** Category, 3 values. S: imported built-up 4,303,049; NZ assembled or built
   32,564; `UNKNOWN` 184,863.
-- **Uses.** Break down and filter from 2000. Count only.
+- **Uses.** Break down and filter, from December 1995. Count only. **Bound** as the dimension
+  `nz_assembled` ("Imported or assembled here"), a slice and a fact-table column of
+  `registrations_surviving` (D-116).
 - **Coverage.** S 95.9%: before 1990 0.0% (`UNKNOWN` on 119,994 of 120,012), 1990s 59.6%, 100% from
-  2000 (370 of 4.24 million unknown). W 94.1%.
-- **Not recorded.** `UNKNOWN` (W 350,980; S 184,863: 162,984 NZ-new, 21,879 used). **Not in
-  `sentinels.csv`.**
+  2000 (370 of 4.24 million unknown). W 94.1%. By month (re-measured 2026-11-17 on the cube's 4,520,304
+  vehicles): every vehicle first registered up to July 1995 is `UNKNOWN`; recording starts in August
+  1995 (10 of 1,507 recorded) and is nearly complete by November (936 of 1,429 recorded) and December
+  (1,379 of 1,388). From January 1996 no month has more than 1% unknown (7 vehicles in 1996 to 1999,
+  370 from 2000), so **it is honest to chart from December 1995** (0.6% unknown in that month). The
+  earlier "from 2000" was more cautious than the data.
+- **Not recorded.** `UNKNOWN` (W 350,980; S 184,863: 162,984 NZ-new, 21,879 used). NULL does not
+  occur on S. NULL is covered for every field and `UNKNOWN` is in `sentinels.csv` under this field only
+  (D-116), so both read "not recorded" in the cube.
 - **Traps.** The first pass counted it "100% filled" because it counted `UNKNOWN` as a value.
+  **It is a flag, not a place.** 28,721 of the 32,564 S vehicles marked assembled or built here (88%)
+  record Japan as where they were built: NZTA's guidance for where built is that a vehicle assembled
+  here from a kit records the kit's country (`docs/DATA_SOURCES.md`). Two small contradictions are
+  kept as recorded: 616 used imports are marked assembled here, and 238 vehicles marked imported
+  built up record New Zealand as where they were built. **Few vehicles are assembled here
+  now**: the S vehicles marked assembled here fall from 624 in 2010 to between 28 and 103 a
+  year from 2016 to 2025 (NZ-new alone, 17 to 70; 14 in 2026 to October), against 112,745 to 158,075
+  NZ-new vehicles first registered each year, so a month's share rests on a handful of vehicles.
 - **Privacy.** Public.
 - **Relations.** Moves together with: registration year (banded) 0.30, transmission 0.21 (measured).
 
@@ -1171,7 +1189,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 |---|---|
 | `BASIC_COLOUR` | None new (NULL is covered). A raw dimension. Its label says "colour as recorded", since the moment is not known |
 | `NUMBER_OF_SEATS` | Add `0` to `sentinels.csv`. Bands 1-2, 3-4, 5, 6-7, 8+ and `unknown`; values above 60 fall to `unknown`. A mean only inside 1 to 60 |
-| `NZ_ASSEMBLED` | Add `UNKNOWN`. Charts over time start in 2000 |
+| `NZ_ASSEMBLED` | **Bound (D-116).** `UNKNOWN` added to `sentinels.csv`. Charts over time start in December 1995 |
 | `CLASS` | NULL is covered. **`NA` must never become a sentinel.** A label for each code needs a small reference file from NZTA's class definitions (inferred meanings until then). Charts start in 2000 |
 
 **2. NZ-new only.** Each `applies_to` the NZ-new dataset, or is narrowed to it, and says so.

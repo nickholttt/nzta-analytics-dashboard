@@ -7,3 +7,4 @@ PREVIOUS_COUNTRY,NONE,"Expected on NZ New rows, where imported_from does not app
 PREVIOUS_COUNTRY,USED UN-REGIST,An import status leaking into a country field. 40 in-scope Used Import rows.
 VEHICLE_YEAR,0,"None in scope at 2026-08. Falls to the unknown age band, counted separately from a missing year and from a negative age."
 GROSS_VEHICLE_MASS,0,"Recorded as 0 when not captured (24% of in-scope saloons). Passenger segments ignore GVM; a goods vehicle with GVM 0 matches no segment_map row (89 in-scope rows)."
+NZ_ASSEMBLED,UNKNOWN,"NZTA writes UNKNOWN where it holds no answer: every vehicle first registered before August 1995, and almost none from December 1995 (docs/DATA_MAP.md). Means not recorded."

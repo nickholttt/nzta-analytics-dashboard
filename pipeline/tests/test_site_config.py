@@ -183,6 +183,7 @@ _NAME_COLUMNS = {
     "import_status_map.csv": ["import_status"],
     "tla_region.csv": ["region"],
     "statsnz_series.csv": ["label"],
+    "nz_assembled_map.csv": ["label"],
 }
 
 

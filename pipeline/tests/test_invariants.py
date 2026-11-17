@@ -26,6 +26,7 @@ VOCABULARY_COLUMNS = {
     "events.csv": ["id", "title", "scope_values"],
     "sentinels.csv": ["raw_value"],
     "statsnz_series.csv": ["header", "series_id", "label", "group"],
+    "nz_assembled_map.csv": ["nzta_nz_assembled", "label"],
 }
 
 

@@ -434,6 +434,17 @@
       ]
     },
     {
+      "id": "nz_assembled",
+      "label": "Imported or assembled here",
+      "public_note": "NZTA's flag for whether a vehicle was assembled or built in New Zealand or imported built up. It is a flag, not a place: a vehicle assembled here from an imported kit records the kit's country as where it was built. Recording starts in late 1995, so vehicles first registered before then show as not recorded, and the grey line near the top of the chart until then is that gap in the record. Very few vehicles first registered in recent years are marked as assembled here, so their figures rest on small counts.",
+      "source": "nzta:nz_assembled + reference:nz_assembled_map",
+      "derive": { "kind": "lookup", "field": "nz_assembled", "reference": "nz_assembled_map.csv", "key": "nzta_nz_assembled", "value": "label" },
+      "kind": "category",
+      "cardinality": "low",
+      "help": "Whether NZTA records the vehicle as imported built up or as assembled or built in New Zealand. Not where it was built: see Built in.",
+      "$comment": "UNKNOWN is a sentinel (sentinels.csv), so it reads as not recorded; a new raw value has no row in nz_assembled_map.csv and trips the unmapped guard (pipeline.json guardrails.abort_on_unmapped). A series source carries no register field, so the dimension is not live for registrations_cars_long_run, and the dashboard export has none, so it is not live for the two flow datasets (derive.applicable), with no applies_to."
+    },
+    {
       "id": "model",
       "label": "Model",
       "source": "nzta:make + nzta:model + reference:model_registry",

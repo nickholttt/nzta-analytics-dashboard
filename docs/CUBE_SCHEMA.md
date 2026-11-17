@@ -249,6 +249,13 @@ table grows from 129,103 rows and 345,774 bytes to 131,260 rows (+1.7%) and
 is not live for `registrations_cars_long_run`, which carries no register
 field (*Supplied sources*).
 
+`nz_assembled` (NZTA's flag for a vehicle assembled or built in New Zealand or imported built up,
+under the labels in `nz_assembled_map.csv`; D-116) is a column of `registrations_surviving`'s table and has a
+slice of its own. The dashboard export and the Stats NZ table carry no such field, so the dimension is not live for the
+three other datasets (`not_live`: "the source does not carry NZ_ASSEMBLED"), and none of their files changes. NZTA's
+`UNKNOWN` is a sentinel (`sentinels.csv`, under this field only), so it reads `__UNDEFINED__`, as NULL does; a raw
+value the map does not hold reads `__UNMAPPED__` and counts against the dimension's unmapped guard (below).
+
 A list that is empty or not distinct dimension ids, or names a dimension the
 dataset cannot derive (or `month`, `n` or `rid`), aborts the run. A listed dimension
 that is not live this run is left out of the table, with a warning, and listed
@@ -707,6 +714,8 @@ Mapping:
   in-scope row, or in-scope rows first registered in the trailing 12
   months. Both must pass.
 - Unmapped powertrain above 2% of in-scope rows, on the same two bases.
+- Unmapped `nz_assembled` above 2% of in-scope rows, on the same two bases (every dimension in
+  `abort_on_unmapped` in `config/pipeline.json` is guarded so, D-116).
 - A dimension that was live in the last good run exceeds its unmapped
   threshold or loses a reference file.
 
@@ -782,7 +791,7 @@ is worse than one that is visibly stale.
 
 ## Warnings — the build continues, recorded in `manifest.warnings`
 
-- Unmapped make or powertrain over the trailing 12 months is above 0.5% of
+- Unmapped make, powertrain or `nz_assembled` over the trailing 12 months is above 0.5% of
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
