@@ -5399,3 +5399,124 @@ New entries use this template:
   (1) the line that says a share is of all vehicles was judged on every month loaded, so it could name a not-recorded part the chart did not draw (the reviewer's case: a share by engine size for plug-in hybrids over the last 12 months, where the window holds none and all time holds 297). It is now judged on the window the chart draws (`notRecordedDrawn` in `src/lib/measures.ts`), with a test. (2) `seats_band`'s note said "unknown" twice where the page says "Not recorded"; it now says "not recorded" (one sentence of `config/dimensions.json`, no other change to the file).
   The reviewer's follow-ups, not done here: a link that names a band's old `unknown` value counts nothing and says nothing; a count by a banded field over all time leaves blank the months in which no vehicle has a value, one sentence per stretch; a count by a banded field drops the not-recorded vehicles without a line saying so, as other fields already do; the query service prototype does not make the same rewrite; the pair test checks names, not counts.
 - Status: decided by Claude (unreviewed)
+
+## D-123 2026-11-17 — SUV or car, per nameplate: the second slice of `model_segment.csv`, 25 rows raised to `high` on makers' own pages, ten nameplates added, three classes changed, nothing wired
+- Agent: claude (a sub-agent, to the lead's brief)
+- Basis: D-117 (the file's rule, its confidence levels, its list of what is left, its unresolved rows); D-120 item 1 (a row
+  rests only on a page anyone can open; no list reached through the user's work; a trade list never a basis); the owner's
+  rules on sources of 17 November 2026 as the lead's brief gives them (a URL and a read date for every page; nothing from
+  memory, from a sibling model, from a body type on the register, from size or from volume; a site that refuses an automated
+  reader stays refused; a search result's snippet is `medium` at best; where a maker's page and a row disagree, the page
+  wins). The pages are named in each row's `basis`, all read 2026-11-17. Files: `data/reference/model_segment.csv`,
+  `docs/METRICS.md` ("SUV or car, by nameplate").
+- Context: D-117 left 77 rows at `medium` (Wikipedia, a search listing, or a primary page covering under 80% of a
+  nameplate's vehicles) and named the ten largest nameplates with no row. This slice asks only what D-117 asked, SUV or car,
+  and raises a row only where a maker's or its distributor's own page can be read. The fetch tool used answers a question
+  about a page rather than returning it: every fragment quoted in a basis is as that tool returned it, and the Japanese
+  fragments are quoted untranslated. The FCAI's report was not opened.
+- Decision:
+  1. **Market cover is measured on the register.** The dashboard has no previous country, so a row's markets are measured in
+     `registrations_surviving`'s trailing window (November 2025 to October 2026, passenger vehicles): its NZ-new vehicles and
+     its used imports by `PREVIOUS_COUNTRY`. Japan is the previous country of 98.2% (88,089 of 89,733) of passenger used
+     imports in that window. A `high` row's note gives the shares it rests on.
+  2. **Pages counted as the maker's for used imports from Japan**: Toyota's catalogue of current and past models on its
+     Japanese site (`toyota.jp/ucar/catalog/`), Subaru Japan's lineup page, Honda Japan's SUV page, Lexus Japan's SUV and IS
+     pages, Porsche Japan's site and Land Rover Japan's large SUV page. A maker's current page is taken to speak for earlier
+     generations of the same name unless it says otherwise, as D-117 did for Mazda; where a page plainly covers only some
+     generations, the note says so.
+  3. **Raised to `high` (25 rows):** Toyota Harrier, Aqua and Vitz, Yaris, Camry, Alphard and Vellfire, Noah, Voxy and
+     Esquire, Sienta, Spade, Estima, Sai, 86; Subaru Forester, Impreza, WRX, Levorg; Honda Vezel and CR-V (the register's
+     used-import spelling); Lexus NX300H, IS300H; Porsche Macan and Cayenne; Land Rover Defender, Range Rover; Kia Sportage,
+     Seltos, Stonic, Sorento, EV3, EV5 (each model's own page calls it an SUV); Jaecoo J7; Omoda C5; XPENG G6. Four D-117 rows
+     were split so the part a page covers could be raised: Nissan (X-Trail, Kicks, Juke; Qashqai), Subaru (Forester;
+     Outback), Honda (Vezel, CR-V; HR-V, ZRV, CRV) and Lexus (NX, RX, UX, LBX; NX300H).
+  4. **Class changes (3):** Nissan Qashqai `suv` medium to `unresolved` low (Nissan New Zealand's page is titled and
+     tagged "Crossover" and does not call the car an SUV in the text a reader sees, which D-117's rule leaves unresolved); Jaecoo J5 `unresolved` low to `suv` high (Omoda & Jaecoo New Zealand,
+     unreachable in D-117, gives "All-Electric SUV" and "Super Hybrid SUV"); BAIC B30 `unresolved` low to `suv` medium (a
+     New Zealand dealer group's page, "B30 SUV").
+  5. **New rows (10), each at the confidence its source earns:** `high` on a maker's or distributor's page: Subaru BRZ
+     (`car`), Suzuki S-Cross, Omoda E5, Skoda Kodiaq, Land Rover Discovery (`suv`). `medium`: Suzuki Vitara (`suv`; Suzuki New
+     Zealand's `/vitara` page is the e VITARA's, and the dashboard spells VITARA and E VITARA apart), Suzuki Solio (`car`,
+     Wikipedia: a mini MPV; Suzuki Japan's pages give no class), BAIC X55 (`suv`, the dealer group's page), Volvo EX30
+     (`suv`, Wikipedia; Volvo's site refused), GAC GS3 Emzoom (`suv`, a New Zealand motoring press page; no GAC New Zealand
+     site found).
+  6. **Rows left `medium`** carry a note of what was tried in this slice, or that a site refusing in D-117 was not retried.
+     Where it stopped: every `medium` row down to about 200 trailing vehicles was tried, maker by maker, and the sources ran
+     dry before the rows did; the German makers' Japanese sites (BMW timed out, Mercedes-Benz refused) were the last tried,
+     and Audi Japan was not tried.
+- Options considered:
+  1. **The register's previous country for market cover (chosen).** The alternative, taking every used import to come from
+     Japan, is an inference; measured, it holds for 98.2% of recent used imports, and the share is shown row by row.
+  2. **Toyota's used-car catalogue on toyota.jp as the maker's page (chosen).** It is on Toyota's own domain and gives each
+     generation's own description. Toyota's current lineup page served no models to the reader, and its Aqua model page
+     names no class.
+  3. **A dealer group's page (Armstrong's, for BAIC) as `medium`, not `high` (chosen).** The page does not say Armstrong's is
+     BAIC's distributor, and the only statement that it is came from search listings.
+  4. **Qashqai unresolved (chosen)** against keeping it `suv` on Wikipedia: the maker's page wins, and D-117's rule names
+     "crossover without SUV" as unresolved. The Kia Stonic page says both "compact SUV" and "crossover", so it stays `suv`.
+  5. **Splitting rows (chosen)** against leaving a whole row `medium` when one of its models has a page covering its market:
+     a split changes no vehicle's class.
+- Measured (2026-11-17; the 2026-10 snapshot; the saved pull of the register and the committed dashboard store; passenger
+  vehicles; trailing is November 2025 to October 2026; `scripts/segment_coverage.py` before and after, and an independent
+  computation from both datasets' built rows that agrees with it to the vehicle):
+  - Rows: 110 for 171 entries (169 pairs) before; 124 for 181 entries (179 pairs) after. Rows by class and confidence before:
+    `suv` 14 high, 31 medium; `car` 2 high, 46 medium; `unresolved` 17 low. After: `suv` 30 high, 28 medium; `car` 17 high,
+    33 medium; `unresolved` 16 low.
+  - Vehicles with a row, trailing: `registrations_flow` 89.95% before, 182,710 of 201,088 (90.86%) after;
+    `registrations_surviving` 90.01% before, 182,212 of 200,387 (90.93%) after. Classified (`suv` or `car`): flow 83.20% to
+    84.59%, register 80.89% to 82.29%. All time with a row: flow 82.62% to 83.61%, register 61.27% to 62.00%. At `high`, by
+    trailing vehicles: flow 21.25% to 40.82%, register 18.28% to 37.82%.
+  - Beside the published figures (NZ-new, `registrations_flow`): April 2025, our `suv` rows 4,469 of 6,073 passenger
+    vehicles, 73.6% to 91.8% (the MIA's three SUV segments at least 79.1%); June 2026, 7,829 of 13,411 vehicles of all types,
+    58.4% to 69.1% (AfMA's at least 60.7%). The published figure is inside our range at both dates; nothing was adjusted.
+  - The rest (the register's `CLASS` cross-check, the largest nameplates still without a row) is in `docs/METRICS.md`.
+- Choices a reviewer could want reversed:
+  1. Toyota's used-car catalogue on toyota.jp counted as the maker's page for the eleven Toyota rows it raised.
+  2. A current page taken to speak for earlier generations of the same name (Subaru Impreza, WRX, Levorg; Lexus IS300H;
+     Land Rover Defender and Range Rover, whose earlier generations are on neither page; Honda Vezel and CR-V).
+  3. People movers (Alphard, Vellfire, Noah, Voxy, Esquire, Sienta, Estima) and sports cars (86, BRZ) raised to `high` as
+     `car`, under D-117's "car means not an SUV"; the Spade on "ハイトワゴン" (tall wagon).
+  4. Range Rover raised on Land Rover Japan's large SUV page, which lists it without calling it an SUV in its own text.
+  5. Nissan Qashqai unresolved on the word "Crossover".
+  6. BAIC X55 and B30 at `medium` on a dealer group's page; Suzuki Vitara at `medium` on the e VITARA's page.
+  7. Lexus NX300H split from the NZ-new Lexus row and raised, while the NZ-new row stays `medium` (Lexus New Zealand's model
+     page refused the reader).
+- Consequences:
+  - Nothing changes for a visitor or in any build: no build reads the file.
+  - `docs/STATE.md` ("169 nameplates") and `docs/CHECKPOINT.md` (queue item 3, "the 77 medium rows") describe the first
+    slice; the lead updates them (this piece may not).
+  - The Kia Picanto's own page (https://www.kia.co.nz/vehicles/picanto), read for this slice, lists it under "Small Cars" only
+    and calls it "our smallest car"; its row stays `unresolved` as D-117's review left it, for the lead to weigh.
+- What is left:
+  1. The `medium` rows whose makers' sites refused or timed out (Ford, MG, Tesla, Honda New Zealand, Mitsubishi New Zealand's
+     model pages, Audi, Mercedes-Benz, Volvo, Lexus New Zealand's model pages, BMW, MINI) and those whose Japanese pages gave
+     no class or no text (Nissan, Honda's non-SUV models, Suzuki, Mazda's former names, Toyota Prius, C-HR, Land Cruiser,
+     Avensis, Corolla to 2019).
+  2. The next nameplates without a row (trailing, flow): Toyota bZ4X Touring 173, Denza B5 172, Cupra Terramar 169, Toyota
+     Auris 169, Geely EX2 168, Omoda O9 168 (Omoda & Jaecoo New Zealand's page gives the "Omoda 9 SHS" "Super Hybrid SUV"),
+     Denza B8 166, Jeep Wrangler 165, Forthing Taikon 163, Toyota Porte 161; and Suzuki E VITARA (106), which Suzuki New
+     Zealand's SUV page names.
+  3. D-117's items 1 to 3 (size bands, people movers and sports cars as classes, the pipeline wiring) are unchanged.
+- Sources that could not be read: refused (HTTP 403): Audi New Zealand, Volvo New Zealand, Mercedes-Benz New Zealand and
+  Japan, Lexus New Zealand's model pages. Timed out: BMW New Zealand (twice), BMW Japan, MINI New Zealand (twice). No text
+  or no models served to the reader: Toyota's Japanese lineup page, Nissan Japan's lineup and model pages, Honda Japan's
+  lineup page, Volkswagen Japan's model list, Toyota's catalogue pages for the C-HR, Land Cruiser and Avensis. Not found:
+  a Mazda Japan CX-8 page (HTTP 404), a GAC New Zealand site (no such host), a Dongfeng New Zealand or BAIC site. Not retried,
+  having refused in D-117: Ford, MG, Tesla, Honda New Zealand and Mitsubishi New Zealand's model pages.
+- Tests: `pipeline/tests/test_model_segment.py` (21) passes. Nothing else was run.
+- Review of #84, 2026-11-17 (the lead, applying the reviewer's findings; this record is new in the pull request, so it is corrected in place):
+  (1) Suzuki Vitara rested on the e Vitara's page alone, which would class the earlier Vitara from a model that shares its name. Its
+  basis now also cites Wikipedia's "Suzuki Vitara" article, read 2026-11-17 by the reviewer and again by the lead through the fetch
+  tool (the short description and the overview's class list came back as page text), which gives every generation's class as an SUV.
+  The row stays `suv` at `medium`. (2) The Qashqai basis said the page "does not use the word SUV". As served it is titled "Crossover",
+  its structured data gives the body type "Crossover", its visible text does not call the car an SUV, and the alternative text of one
+  video in its source ends "Hybrid SUV". The basis says so. The row stays `unresolved`: the lead does not take a video's alternative
+  text as the maker's placement (reversible: counting it makes the row `suv`). (3) METRICS said the file "follows the makers" for seven
+  pairs; for the Nissan Juke and Kicks it follows Wikipedia, and says so. (4) Porsche New Zealand's and Porsche Japan's pages refused
+  the reviewer's reader (HTTP 403), so the Macan and Cayenne row rests on the author's one read; its note says so and it stays `high`.
+  No class or confidence changed, so no count or coverage figure moved.
+  The reviewer's other points, left for the next slice: whether the register records the Levorg Layback (which Subaru Japan lists
+  under SUVs) as LEVORG, and the 2010 to 2012 Impreza XV as IMPREZA; Toyota's catalogue pages hold class words for more generations
+  than the Toyota rows' notes say; Land Rover Japan's page does call the Range Rover's group SUVs in its own text, so that note
+  understates its evidence; the Aqua and the Yaris's Japanese half rest on "compact car", which is not a body word in the rule's list.
+- Status: decided by Claude (unreviewed)
