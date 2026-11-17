@@ -9,24 +9,25 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 ## Live now
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
-  - **The last build is the forced run 43637172195** (14 November 2026; snapshot 2026-10;
-    5,926,990 rows; no warning), the one forced run allowed. The release `cube-2026-10`
-    holds its cube, with the fact table and the `region` slice with no cell hidden.
-  - **The build is tried every day** at 06:17 UTC (D-064, D-070). The newest run listed on
-    17 November is the 16th's: nothing built (its deploy and archive jobs were skipped).
+  - **The last build is the forced run 44173471254** (17 November 2026, at the user's word,
+    D-134; snapshot 2026-10; 5,926,990 rows; one warning, the Stats NZ store ends at 2026-09).
+    The release `cube-2026-10` was replaced: all four datasets, the fact table of 19 fields,
+    and the `region` slice with small cells hidden (checked on the published file).
+  - **The build is tried every day** at 06:17 UTC (D-064, D-070). The daily run of 17 November
+    (44121658453) found the source unchanged before the forced run.
   - **The archive**: the private repository `nickholttt/nzta-register-archive` holds one
     release, `snapshot-2026-10`, two files (the second holds `VIN11` and `POSTCODE`).
 - **`registrations_flow`** (#55, D-092): true first registrations from the user's exports of
   NZTA's dashboard, January 2021 on. **Its counts are committed** in `data/supplied/` (#66,
-  D-097): no owner field, and a model name only for vehicle types a total counts. GitHub's
-  next build of a new month builds it; the release `cube-2026-10` does not hold it.
+  D-097): no owner field, and a model name only for vehicle types a total counts. In the
+  release `cube-2026-10` since the forced run of 17 November.
 - **`registrations_cars_long_run`** (#57, D-094; Stats NZ's cars, 1961 on): the same.
 - **`registrations_flow_wider`** (#73, D-113): true registrations with buses, motor caravans
   and special purpose vehicles too. On the site (#77, D-118): Build's third choice, two charts.
 - **NZTA's vehicle type is a dimension** (#58, D-095), and on the register dataset so are the
   assembly flag, the class (NZTA's label with its code, D-121) and seats in bands (#79, D-116):
   breakdowns in Build (#82, D-122). **Power in bands and the gearbox in four groups** too
-  (#93, D-128): conditions in Build; as breakdowns, being built. **The powertrain rolls up to
+  (#93, D-128): conditions in Build; as breakdowns, in review (#96). **The powertrain rolls up to
   five groups**, so hybrids, full or mild, can be asked for as one share (#87, D-124).
 - **The site shows true registrations and the long run on a local build** (#56, #61; D-093,
   D-098): a group in Explore and a choice of what Build counts; cars first registered each
@@ -51,11 +52,10 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
-  them. **The `region` slice is written under the small-cell rule from the next build**
-  (#91, D-126, D-127): a cell under 10 hidden and a second with it, a month with no visible
-  cell not broken down, the build aborting if a count could be worked out. The site refuses
-  a table with hidden counts and draws none yet (#94, D-130). Another owner field's first
-  table is shown to the user first (D-120). Axles have no use for now (#90, D-129).
+  them. **The `region` slice is published under the small-cell rule** (#91, D-127; in the
+  release since 17 November). The site refuses a table with hidden counts and draws none yet
+  (#94, D-130). Another owner field's first table is shown to the user first (D-120). Axles
+  have no use for now (#90, D-129).
 - **The query service** is proposed, not provisioned (#54, D-091). **Events**: 54 rows, 50
   verified; four are unverified on purpose. Don't guess dates.
 
@@ -66,9 +66,10 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/build-power-gearbox` (D-132; worktree `nzta-firstload`): power and the gearbox as
-  breakdowns in Build, narrowed by default to vehicles sold new. `claude/hidden-cells-followups`
-  (D-133; `nzta-audit`): two follow-ups from #94's review. Neither is pushed yet.
+- #97 `claude/prototype-follows-rebuild` (D-134; worktree `nzta-audit`) and #96
+  `claude/build-power-gearbox` (D-132; `nzta-firstload`): in review; #97 merges first.
+- `claude/fleet-usage-private` (D-135; `nzta-notes`): the first owner table, the fleet by
+  usage. **Local only, never pushed** until the user has seen its figures (D-120, D-134).
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
   D-103's draft scheme file sits untracked in `nzta-segments`.
 
@@ -120,7 +121,7 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 Nothing stops the work (CHECKPOINT, questions). Waiting on the user: the site's name and
 address; the retaken dashboard history; the query service, after the engine's audit (D-120).
-Waiting on a date: matching vehicles between two months' archive files needs November's file.
+Waiting on a date: what the dashboard's usage column records needs November's archive file.
 
 ## How to run
 

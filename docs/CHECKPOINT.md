@@ -1,48 +1,51 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-17
+Last updated by claude on 2026-11-18
 
 ## Where we left off
 
 - 2026-11-14 to 17, the eighth to tenth sessions of work order 1: #47 to #88 merged (D-082
-  to D-125). October was forced once; no second forced run is allowed (D-082), except after
-  a change to the committed counts (D-120).
+  to D-125). October was forced on 14 November, and again on 17 November at the user's word
+  (D-134); any further forced run is asked for each time, except after a change to the
+  committed counts (D-120).
 - **Figures set beside published ones.** New vehicles on the wider scope: within 0.06% of the
   MIA's for October 2026, older months about 1% lower, cause not established (D-105, D-113).
   vstat equals ours for October 2026 (D-118). Hybrids as one group, new passenger vehicles,
   October 2026: 4,978 of 11,824; Auto Trader has the same total and 4,859 "petrol hybrids";
   119 of our mild hybrids that month are one diesel nameplate; cause not claimed (D-124).
-- 2026-11-17 and 18, eleventh session. The user changed three things (D-126). **Merged: #90**
-  (D-126; D-129: `NUMBER_OF_AXLES` is a count only on heavy vehicles and is withdrawn from
-  every use) **and #92** (D-131: a link pinned to an earlier month reads that snapshot's own
-  cube, which the deploy keeps in the built site, less any owner table not written under the
-  small-cell rule). `Deploy` ran clean on `main` after #92 and uploaded nothing; with one
-  release, downloading a second is not yet proven on GitHub.
+- 2026-11-17 and 18, eleventh session (D-126, D-134). **Merged: #90 to #95.** Axles withdrawn
+  (D-129); a pinned link reads its own snapshot's cube (D-131); the `region` slice under the
+  small-cell rule (D-127); power and the gearbox bound (D-128); the site refuses a table with
+  hidden counts (D-130, D-133). **October forced again** (D-134): the release `cube-2026-10`
+  now holds all four datasets and the `region` slice with small cells hidden, checked on the
+  published file. It broke two prototype tests in `Checks`; #97 fixes them.
 - **Measured on 17 November for the next pieces** (a read-only profile of the saved 2026-10
   pull; restate each figure, re-measured, in the record of the piece that uses it):
   - Colour: 14 values, 5 blanks. A narrow table with make alone is about 276 KB; with make
     and segment group or import status about 370 KB; with make and powertrain 407 KB.
 
-## Open pull requests (each in independent review on 18 November)
+## Open pull requests
 
-- **#91** (D-127; `claude/small-cells`, worktree `nzta-audit`): the `region` slice under the
-  small-cell rule. The review found a month shape that gave hidden cells away; fixed (a month
-  with no visible cell is not broken down), re-measured, in re-check. **Merge this first.**
-- **#93** (D-128; `claude/power-transmission`, `nzta-notes`): power in bands, the gearbox in
-  four groups. Whichever of #91 and #93 merges second needs `main` merged in and the golden
-  file regenerated in that merge commit (both change `payload_bytes` and the manifest).
-- **#94** (D-130; `claude/hidden-cells-guard`, `nzta-firstload`): the site refuses a slice
-  with hidden counts and blocks a question over a protected dimension. After #91 merges, run
-  `node --test tests/site/hidden-cells-loader.test.ts`: its printed note must be gone.
+- **#97** (D-134; `claude/prototype-follows-rebuild`, worktree `nzta-audit`): the prototype's
+  limit and pinned total follow the rebuilt cube, and the user's answers. **Merge first**:
+  `Checks` fails on every other pull request until it is in.
+- **#96** (D-132; `claude/build-power-gearbox`, `nzta-firstload`): power and the gearbox as
+  Build breakdowns, starting with vehicles sold new. Review agreed after one fix; after #97,
+  merge `main` in and wait for green `Checks`.
+- **Not pushed, on purpose:** `claude/fleet-usage-private` (D-135; `nzta-notes`): the first
+  owner table. It is shown to the user before any push (D-120, D-134).
 
 ## The queue, in order
 
-1. **Power and transmission in Build** (package F): after #93, the two fields as breakdowns
-   (config phrases, the "recorded for NZ-new vehicles only" note, the shape fixture).
-2. **The first owner table** (D-096, D-120), after #91: built privately and shown to the
-   user, as figures and screenshots, before a pull request that would publish it merges.
-   Measured on 17 November: by month, 47.7% of district cells are under 10; over the latest
-   12 months as one window, one cell each for district, region and industry class.
+1. **The first owner table: the fleet by usage, "used as, today"** (the user, D-134): every
+   vehicle in the snapshot, by usage and by usage and vehicle type, never by first
+   registration; a one-period dataset with a two-field small-cell rule. Being built on the
+   unpushed branch above. Then: the figures and headless screenshots to the user, and no pull
+   request before the user's word. Industry class and district wait (D-134).
+2. **What the dashboard's "Vehicle usage" column records** (the user, D-134): match vehicles
+   between October's and November's archive files, privately, once the archive job stores
+   November after NZTA's December refresh; report it before any table of usage at first
+   registration.
 3. **Drawing a hidden cell** (D-130 lists what it needs), only when a chart by the owner's
    region is wanted. **The pinned link's leftovers** (D-131): the "newest cube" step reads one
    page of releases; the host's limits are unchecked (a kept snapshot adds about 3.2 MB).
@@ -87,16 +90,13 @@ Last updated by claude on 2026-11-17
    full engine is audited again (D-120). Nothing is provisioned or spent until then.
 3. **Later, by the user's word:** the Stats NZ hand export; going public; the privacy
    sentence; the retaken dashboard history (the user, 17 November: still to come).
-4. **The release `cube-2026-10` holds the `region` slice with no cell hidden** (D-126). (a)
-   Leave it. (b) "Force October" once the rule is on `main`, replacing the release.
-   Recommended (b): a pinned link will read it. No answer: (a), and a pin skips its regions.
 
 ## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
 
 D-082, D-085 to D-095 (the eighth session). The ninth: the readings in D-096, D-104 and D-106
 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119 (D-119's line is now the
 user's). The tenth: the readings in D-120, and D-121 to D-125. The eleventh: the readings in
-D-126, and D-127 to D-131. Not yet in a record: the three sizes in queue item 5.
+D-126 and D-134, and D-127 to D-133. Not yet in a record: the three sizes in queue item 5.
 
 ## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
 
