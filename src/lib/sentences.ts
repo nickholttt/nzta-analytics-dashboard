@@ -263,6 +263,10 @@ export const sayList = (names: readonly string[]): string =>
 // The cube's token for vehicles whose value the reference has no entry for (docs/CUBE_SCHEMA.md, Reserved tokens).
 export const NO_MATCH_TOKEN = "__UNMAPPED__";
 
+// The cube's value for a month of an owner-field slice that is not broken down at all, every cell of it hidden by the small-cell rule (D-127):
+// the one row of that month, with the month's total in `n`. It is no value of the field, so no chart may take it for one (src/lib/data.ts, D-130).
+export const NOT_BROKEN_DOWN_TOKEN = "__NOT_BROKEN_DOWN__";
+
 // The figure of the value in first place, said in the dataset's own words for what it counts: "3,513 vehicles first registered in the last 12
 // months that are still registered". template has {vehicles} and {window}; a dataset with none says the vehicles and the window.
 export const countedText = (template: string | undefined, n: number, window: string): string =>

@@ -4,7 +4,7 @@ import { parquetRead, parquetReadObjects } from "hyparquet";
 import type { ColumnData } from "hyparquet";
 import { decompressZstd } from "hyparquet-compressors";
 import { builderSpec, unrecordedBand } from "./config";
-import { NOT_RECORDED_TOKEN } from "./sentences";
+import { NOT_BROKEN_DOWN_TOKEN, NOT_RECORDED_TOKEN } from "./sentences";
 import { monthKey } from "./monthkey";
 import { UNREADABLE_DATA, isUnreadableForm } from "./unreadable";
 import { crossPair, crossValue, narrowPair } from "./cross";
@@ -195,9 +195,12 @@ export const loadSlice = (dataset: string, dimension: string, snapshot?: string)
     const file = await (await fetchOk(path, snapshot)).arrayBuffer();
     const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "dim_value", "n", "denominator"] }));
     const recorded = asRecorded(dimension);
-    return rows.map(
-      (r): SliceRow => ({ month: monthKey(r.month), value: recorded(String(r.dim_value)), n: Number(r.n), denominator: Number(r.denominator) }),
-    );
+    // A hidden cell has no count (a NULL, never a zero), and a month that is not broken down has one row that is no value of the field. Neither is
+    // drawn as a number (D-130): the whole table is refused. Checked in the one pass that reads the rows, so a table without either costs nothing more.
+    return rows.map((r): SliceRow => {
+      if (r.n === null || r.n === undefined || r.dim_value === NOT_BROKEN_DOWN_TOKEN) throw new ServiceError(builderSpec.notices.small_cells_hidden, false);
+      return { month: monthKey(r.month), value: recorded(String(r.dim_value)), n: Number(r.n), denominator: Number(r.denominator) };
+    });
   });
 
 type PairRow = { month: string; a: string; b: string; n: number };
