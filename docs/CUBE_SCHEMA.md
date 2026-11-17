@@ -152,7 +152,9 @@ Limits, stated and not solved (D-127). The project's owner accepts these knowing
 - Someone who knows the rule knows the second rule hides at most one cell of `minimum` or more, the smallest visible one.
   In a month with two hidden cells, one is therefore small and the other is the smallest visible, and the pair of values
   can be narrowed: the month's total less its visible counts is their sum, and the larger of the two is at least the
-  minimum. How far is measured in D-127 on the build it describes.
+  minimum. On the 2026-10 pull (D-127): 279 months have exactly two hidden cells; of the 166 that hold 19 or more, none
+  pins the smaller cell to one value, 2 narrow it to two values, 8 to five values or fewer, and 140 learn nothing; the
+  other 113 never narrow to one pair.
 - When the extra hidden cell is a large region whose count can be guessed from its neighbouring months, the small cell is
   known to within the error of that guess.
 - The fuel columns of a month's hidden cells, summed together, can be worked out from another slice's month total less
