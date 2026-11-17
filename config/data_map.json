@@ -434,7 +434,7 @@
       "recorded_for": ["nz_new"],
       "nothing_means": "not_recorded",
       "not_recorded": ["0"],
-      "sentinels_pending": ["0"],
+      "sentinels_pending": [],
       "privacy": "public",
       "privacy_reason": "Describes the vehicle.",
       "after_review": null,

@@ -528,8 +528,10 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   S share inside the range: under 75 (7.3%), 75-99 (13.0%), 100-149 (54.6%), 150-199 (16.0%),
   200-299 (6.9%), 300-499 (2.1%), 500 and over (0.1%).
 - **Coverage.** **NZ-new only**: NEW 92.7%, USED 0.0% (141 vehicles). Nothing before 1990. W 46.3%.
-- **Not recorded.** Zero (S 1,988,207: every used import and about 200,000 NZ-new vehicles). **Not in
-  `sentinels.csv`.**
+- **Not recorded.** Zero. S 1,988,207 on the map's own count; on the cube's 4,520,304 vehicles
+  1,988,072: 1,787,993 used imports (all but 141 of 1,788,134) and 200,079 NZ-new (7.3% of 2,732,170).
+  No value is empty. `0` is in `sentinels.csv` under this field since D-128, so it reads as not recorded
+  wherever the field is bound.
 - **Traps.** 999 on 118 S vehicles (107 of them Jaguar petrol) is a placeholder. 99 on 4,016
   (2,916 Mitsubishi petrol) may be real or a default: unverified. 59 S vehicles are below 5 kW.
   Proposed guard: 5 to 900 (192 S vehicles outside).
@@ -1270,7 +1272,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 
 | Field | Sentinels and guards before it is bound |
 |---|---|
-| `POWER_RATING` | Add `0`. Guard 5 to 900 (999 is a placeholder). Bands as above. A sum and a count per cell for the mean, as fuel consumption has |
+| `POWER_RATING` | **`0` added to `sentinels.csv` (D-128).** Guard 5 to 900 (999 is a placeholder). Bands as above. A sum and a count per cell for the mean, as fuel consumption has |
 | `TRANSMISSION_TYPE` | None new. `OTHER` stays a value. A grouping lookup (automatic, manual, continuously variable, other) is optional and a reference file of its own |
 
 **3. The rest.**
