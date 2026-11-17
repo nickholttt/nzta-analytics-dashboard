@@ -5430,8 +5430,8 @@ New entries use this template:
      Seltos, Stonic, Sorento, EV3, EV5 (each model's own page calls it an SUV); Jaecoo J7; Omoda C5; XPENG G6. Four D-117 rows
      were split so the part a page covers could be raised: Nissan (X-Trail, Kicks, Juke; Qashqai), Subaru (Forester;
      Outback), Honda (Vezel, CR-V; HR-V, ZRV, CRV) and Lexus (NX, RX, UX, LBX; NX300H).
-  4. **Class changes (3):** Nissan Qashqai `suv` medium to `unresolved` low (Nissan New Zealand's page says "Crossover" and
-     never SUV, which D-117's rule leaves unresolved); Jaecoo J5 `unresolved` low to `suv` high (Omoda & Jaecoo New Zealand,
+  4. **Class changes (3):** Nissan Qashqai `suv` medium to `unresolved` low (Nissan New Zealand's page is titled and
+     tagged "Crossover" and does not call the car an SUV in the text a reader sees, which D-117's rule leaves unresolved); Jaecoo J5 `unresolved` low to `suv` high (Omoda & Jaecoo New Zealand,
      unreachable in D-117, gives "All-Electric SUV" and "Super Hybrid SUV"); BAIC B30 `unresolved` low to `suv` medium (a
      New Zealand dealer group's page, "B30 SUV").
   5. **New rows (10), each at the confidence its source earns:** `high` on a maker's or distributor's page: Subaru BRZ
@@ -5504,4 +5504,19 @@ New entries use this template:
   a Mazda Japan CX-8 page (HTTP 404), a GAC New Zealand site (no such host), a Dongfeng New Zealand or BAIC site. Not retried,
   having refused in D-117: Ford, MG, Tesla, Honda New Zealand and Mitsubishi New Zealand's model pages.
 - Tests: `pipeline/tests/test_model_segment.py` (21) passes. Nothing else was run.
+- Review of #84, 2026-11-17 (the lead, applying the reviewer's findings; this record is new in the pull request, so it is corrected in place):
+  (1) Suzuki Vitara rested on the e Vitara's page alone, which would class the earlier Vitara from a model that shares its name. Its
+  basis now also cites Wikipedia's "Suzuki Vitara" article, read 2026-11-17 by the reviewer and again by the lead through the fetch
+  tool (the short description and the overview's class list came back as page text), which gives every generation's class as an SUV.
+  The row stays `suv` at `medium`. (2) The Qashqai basis said the page "does not use the word SUV". As served it is titled "Crossover",
+  its structured data gives the body type "Crossover", its visible text does not call the car an SUV, and the alternative text of one
+  video in its source ends "Hybrid SUV". The basis says so. The row stays `unresolved`: the lead does not take a video's alternative
+  text as the maker's placement (reversible: counting it makes the row `suv`). (3) METRICS said the file "follows the makers" for seven
+  pairs; for the Nissan Juke and Kicks it follows Wikipedia, and says so. (4) Porsche New Zealand's and Porsche Japan's pages refused
+  the reviewer's reader (HTTP 403), so the Macan and Cayenne row rests on the author's one read; its note says so and it stays `high`.
+  No class or confidence changed, so no count or coverage figure moved.
+  The reviewer's other points, left for the next slice: whether the register records the Levorg Layback (which Subaru Japan lists
+  under SUVs) as LEVORG, and the 2010 to 2012 Impreza XV as IMPREZA; Toyota's catalogue pages hold class words for more generations
+  than the Toyota rows' notes say; Land Rover Japan's page does call the Range Rover's group SUVs in its own text, so that note
+  understates its evidence; the Aqua and the Yaris's Japanese half rest on "compact car", which is not a body word in the rule's list.
 - Status: decided by Claude (unreviewed)

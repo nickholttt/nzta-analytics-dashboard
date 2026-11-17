@@ -1110,8 +1110,8 @@ among the `suv` pairs it runs from under 1% (Mazda CX-5, Mitsubishi ASX, BYD Att
 Pajero Sport). Among passenger vehicles first registered in the trailing window and still registered, 11.2% of NZ-new
 vehicles are `MC` and 1.7% of used imports, so it says little about recent used imports. The `suv` pairs with almost no `MC`
 that the register records mostly as hatchbacks: BAIC X55 (all 186), BAIC B30 (all 457), Jaecoo J5 (all 724), Chery Tiggo 9
-(all 289), Kia Stonic (85% hatchback), Nissan Juke (75%), Nissan Kicks (75%). The file follows the makers here, not the
-register's body type, which records a body shape and not a kind of vehicle.
+(all 289), Kia Stonic (85% hatchback), Nissan Juke (75%), Nissan Kicks (75%). The file follows the makers (for the Nissan
+Juke and Kicks, Wikipedia) here, not the register's body type, which records a body shape and not a kind of vehicle.
 
 **Set beside published figures** (true registrations of NZ-new passenger vehicles, `registrations_flow`; reported, nothing
 adjusted to match). The share is a range: the lowest counts only `suv` rows, the highest adds every `unresolved` and
