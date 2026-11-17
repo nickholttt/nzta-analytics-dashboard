@@ -7,7 +7,7 @@ export const STORAGE_KEY = "nzta.my_questions";
 const VERSION = 1;
 export const MAX_SAVED = 50;
 export const MAX_NAME = 120;
-const MAX_QUERY = 2000;
+export const MAX_QUERY = 2000;
 
 export type Saved = {
   id: string;

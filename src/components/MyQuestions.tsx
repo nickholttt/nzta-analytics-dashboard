@@ -65,7 +65,10 @@ export default function MyQuestions({ all, served, title, snapshot, pinnable, on
 
   const save = () => {
     const query = questionQuery(window.location.search);
-    if (query === undefined) return;
+    if (query === undefined) {
+      setStatus(words.status_too_long);
+      return;
+    }
     const entry: Saved = { id: newId(), name: title, query, saved: new Date().toISOString() };
     const outcome: { added?: ReturnType<typeof add> } = {};
     if (!change((items) => (outcome.added = add(items, entry)).items)) return;

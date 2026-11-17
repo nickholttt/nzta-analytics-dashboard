@@ -1,5 +1,5 @@
 {
-  "$comment": "The words of the controls that keep a question on the Build page: pin it, and save it to My questions (D-125). Interface words, not sentences about the data. A sentence that names a date or a month is a notice in config/presets.json (builder.notices), which the template lint holds to config/narrative/rules.json. Kept apart from presets.json so the Explore page, which reads that file, does not download them.",
+  "$comment": "The words of the controls that keep a question on the Build page: pin it, and save it to My questions (D-125). Interface words, not sentences about the data. Two of them carry a date, which is the site's own and not a figure: the snapshot a pin would be to (pin) and the day an entry was saved (saved_on). A sentence that says what a pin means for the figures, with a month or a date in it, is a notice in config/presets.json (builder.notices), which the template lint holds to config/narrative/rules.json. Kept apart from presets.json so the Explore page, which reads that file, does not download these words.",
   "pinned_label": "Pinned",
   "unpin": "Unpin",
   "heading": "My questions",
@@ -7,6 +7,7 @@
   "browser_only": "Saved in this browser only. Nothing is sent anywhere, and the list does not follow you to another browser or device.",
   "save": "Save this question",
   "pin_unavailable": "A pin is not offered for this question: its figures end in an earlier month than the snapshot month.",
+  "status_too_long": "This question is too long to save. Copy the link in the address bar to keep it.",
   "pin": "Pin to the snapshot of {date|date}",
   "pin_one": "Pin",
   "unpin_one": "Unpin",

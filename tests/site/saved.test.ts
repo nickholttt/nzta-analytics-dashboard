@@ -87,6 +87,9 @@ test("a question saved from the address keeps its settings but not the month a r
   const query = saved.questionQuery(`?build.measure=count&build.by=${long}&build.period=1y&build.month=2026-08&other=1#x`);
   assert.equal(query, `build.measure=count&build.by=${long}&build.period=1y`);
   assert.equal(saved.questionQuery("?other=1"), undefined);
+  // Over the length that is kept: nothing is saved, and the page says the question is too long.
+  assert.equal(saved.questionQuery(`?build.measure=count&build.value=${"x".repeat(saved.MAX_QUERY)}`), undefined);
+  assert.ok(saved.questionQuery(`?build.measure=count&build.value=${"x".repeat(100)}`));
   assert.equal(saved.questionQuery(""), undefined);
 });
 
