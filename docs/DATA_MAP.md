@@ -70,7 +70,7 @@ and a median). Values are S then W. Privacy is the class the user approved (D-09
 | `MODEL` | category, many | 28,000; 175,398 | B (within make) F, count | public | `model` |
 | `BASIC_COLOUR` | category, many | 14; 14 | B F, count | public | no |
 | `NUMBER_OF_SEATS` | number | 172; 193 | B (banded) F, count (average and median not built) | public | `seats` |
-| `NUMBER_OF_AXLES` | number | 10; 10 | F, count | public | no |
+| `NUMBER_OF_AXLES` | number | 10; 10 | none (a count only on heavy vehicles, D-129) | public | no |
 | `TRANSMISSION_TYPE` | category, many | 28; 28 | B F, count (NZ-new only) | public | `transmission` |
 | `SYNTHETIC_GREENHOUSE_GAS` | category, many | 38; 39 | B F, count (from 2010) | public | no |
 | `MOTIVE_POWER` | category, many | 15; 18 | B F, count | public | `motive_power` |
@@ -288,7 +288,8 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
     all 40,557.
   - Axles, TA (a single-axle trailer): of 543,275, 1,760 record one axle, 541,493 two and 22 three. The
     register's `NUMBER_OF_AXLES` does not agree with the definition for 99.7% of the class. The mismatch is
-    stated, not explained or corrected.
+    stated, not explained or corrected. What the field holds on these trailers is measured under
+    `NUMBER_OF_AXLES` (D-129).
   - Both seats and mass, MD1 to ME, vehicles with both recorded: the fit on both is MD1 23,311 of 23,870,
     MD2 260 of 361, MD3 1,440 of 1,535, MD4 793 of 876, ME 10,554 of 10,709. The mismatches are findings,
     not corrected here: the dimension reports the class NZTA recorded.
@@ -408,15 +409,41 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 ### `NUMBER_OF_AXLES`
 
-- **Meaning.** NZTA: "Records the number of axles the vehicle has".
-- **Kind and values.** Number, 10 values. 2 axles on 3,735,046 S vehicles, 98.5% of those inside the
-  range.
-- **Uses.** Filter only (three or more axles). Not a breakdown: nearly every vehicle has two.
+- **Meaning.** NZTA: "Records the number of axles the vehicle has". Measured on the whole 2026-10
+  pull (W, 5,926,990 vehicles; D-129): it behaves as a count of axles on heavy vehicles and not on
+  light ones.
+  - **Heavy vehicles, and buses: a count.** Gross vehicle mass rises with it. Class NC (74,475 vehicles):
+    median mass 15,000 kg at two axles (16,167 vehicles), 24,500 at three (32,937), 31,600 at four
+    (24,873), 35,000 at five (470). Class TD trailers (40,557): one axle 304, two 5,893, three
+    12,227, four 14,160, five 7,959. Buses: median mass 3,250 kg at two axles (34,549) and 21,350
+    at three (2,746). Zero is rare: 2 of class NC, 1 of class ME, none of class TD.
+  - **Light vehicles and light trailers: zero or two.** Passenger cars and vans (3,703,985): zero
+    on 687,152, two on 3,015,304, one on 1,153, three or more on 376. Motorcycles (192,024): zero
+    on 178,720, two on 13,246. Class TA, which NZTA defines as a single-axled trailer (543,275):
+    one axle on 1,760, two on 541,493, three on 22, never zero. Of the TA trailers first
+    registered before 1996 (334), 292 record one axle; of those from 1996 (542,941), 1,468 do.
+    The two goes with a mass that was not recorded: 517,911 of the 541,493 two-axle TA trailers
+    have no gross vehicle mass, against 158 of the 1,760 one-axle ones. Class TB (186,427): one
+    axle on 2,728, two on 183,563.
+  - **What that supports.** A two on a light vehicle or a light trailer cannot be told from a value
+    filled in without counting: on class TA it contradicts the class's own definition for 99.7% of
+    the class. Whether NZTA's system fills it in is not known; no public source that says how the
+    field is filled was found (NZTA's field descriptions give only the sentence above). It is not
+    a count of wheels: cars read two, and 13,246 motorcycles read two while 178,720 read zero.
+- **Kind and values.** Number, 10 values (0 to 9). W: zero 1,156,224; one 9,759; two 4,663,486;
+  three 49,551; four 39,257; five 8,646; six to nine 67. Never NULL. On S, two axles on 3,735,046
+  vehicles, 98.5% of those inside the range.
+- **Uses.** None for now (D-126, D-129): not a breakdown, a filter or a measure in any dataset.
+  It may be offered later only within heavy vehicle classes, as axles as recorded, with the heavy
+  vehicle topic (package I) and a record of its own. Across all vehicles, a share with two axles
+  would chart how the field was filled, not the vehicles.
 - **Coverage.** S 83.9% (NEW 87.8%, USED 77.9%): before 1990 11.5%, 1990s 38.9%, 2000s 65.5%, 2010s
-  88.8%, 2020 to 2026 95.6%; 2023 alone 86.8%. W 80.5%.
+  88.8%, 2020 to 2026 95.6%; 2023 alone 86.8%. W 80.5%. "Covered" here means only "not zero".
 - **Not recorded.** Zero (S 727,150). **Not in `sentinels.csv`.**
-- **Traps.** One axle (S 1,966) and seven to nine (S 15) are implausible for these vehicles. A zero
-  is common on cars too, so axles are not a clean heavy-vehicle marker.
+- **Traps.** One axle (S 1,966) and seven to nine (S 15; W 24) are implausible for S vehicles; one
+  axle is real on heavy trailers (class TD 304, class TC 314). A zero is common on cars, and a
+  two is nearly universal on light vehicles whatever they are, so axles are not a heavy-vehicle
+  marker and say nothing about a light vehicle.
 - **Privacy.** Public.
 - **Relations.** Not measured for moving together.
 
@@ -1285,7 +1312,8 @@ quoted in the field sections above where they bear on a meaning. Beyond those:
   town: the town where the registered owner is based" and "Owner Type: ... Individual, Company or
   Other"; neither is a field of the open data service.
 - **`MVMA_MODEL_CODE`**, power and axles: "Only recorded for NZ New vehicles". The data bears this
-  out for the code and for power; axles are recorded for 77.9% of S used imports.
+  out for the code and for power; axles are not zero for 77.9% of S used imports, though what a
+  two means on a light vehicle is not established (D-129).
 - **The dashboard is a different base from the register** (D-075): it shows vehicles "with a date of
   first ownership within the past five years", which "may differ from the vehicle's latest
   registration year or its first registration in New Zealand"; it "displays a subset of
@@ -1330,7 +1358,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | `GROSS_VEHICLE_MASS` as a measure | Guard 300 to 60,000 (the 1 kg placeholder falls out); a mean only within a vehicle type |
 | `CC_RATING` as a measure | Guard 50 to 20,000, engines only. Decide whether the top engine band should stop at 20,000 (a contract change) |
 | `ALTERNATIVE_MOTIVE_POWER` as a filter | NULL must read "none", not `__UNDEFINED__`: a reference lookup or a sentinel exception, decided when bound |
-| `NUMBER_OF_AXLES` as a filter | Add `0`. Guard 2 to 6 |
+| `NUMBER_OF_AXLES` | Not bound for now (D-129). If bound with the heavy-vehicle topic: add `0`; keep 1 to 6 (a guard of 2 to 6 would drop the 304 one-axle class TD trailers); count 7 and over apart; heavy classes only |
 | `VDAM_WEIGHT`, `HEIGHT`, `WIDTH`, `ROAD_TRANSPORT_CODE` | With the heavy-vehicle topic (package I). Add `0` for the three numbers; guards 1,000 to 60,000, 1,000 to 4,600 and 1,200 to 2,600. The road transport code's NULL reads "none" once that reading is confirmed |
 | `VEHICLE_USAGE`, `INDUSTRY_CLASS` | Bound, and kept out of every published file until the pipeline enforces the owner rule (D-096). Add `UNKNOWN` for industry class; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup once confirmed. Labels do not say "when first registered"; usage is shown to be current for rental only |
 | `MODEL` (already bound) | Add the clear forms of nothing (`UNKNOWN`, `NOT KNOWN`, `UNK`, `N/A`, `-`, `.`, `0`, `000`); look at `X`, `XX`, `OTHER` and `NA` by make first. Trim stray spaces |

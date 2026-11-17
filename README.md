@@ -28,8 +28,9 @@ From the data GitHub builds, which anyone can download (see "Run it"):
   your browser only (no account, nothing sent anywhere, and the list does not
   follow you to another device). A saved question opens on the newest month.
   Pin it to the snapshot being served and a ranking or a grid keeps its window
-  ending in that month; the page says whether the figures are those of the
-  snapshot pinned to or of a newer one.
+  ending in that month. Where the deploy has kept that snapshot's files, a
+  pinned link shows that snapshot's figures; where it has not, it shows the
+  newest snapshot's, and the page says which snapshot the figures are from.
 
 These count vehicles that are still registered, so older months are missing
 the vehicles since scrapped.
@@ -180,11 +181,15 @@ a reference value.
   has released so far; its next monthly build holds them.
 - SUVs cannot be told apart from cars: the register records most as station
   wagons. A model-level classification is planned.
-- A pinned question cannot show an older snapshot's figures: the site serves
-  only the newest, and a past month's figures can change between snapshots. A
-  pin holds the window, and the page says which snapshot the figures are from.
-  Charts that always run to the newest month (lines over time, the distribution, the map)
-  cannot hold even the window, and say so.
+- A pinned question shows an older snapshot's figures only where the deploy has
+  kept that snapshot (it unpacks every earlier cube release beside the newest;
+  a local build keeps none). Otherwise a pin holds the window and the figures
+  are the newest snapshot's, and the page says which snapshot the figures are
+  from. Then the charts that always run to the newest month (lines over time,
+  the distribution, the map) cannot hold even the window, and say so. A kept
+  snapshot is not used for a question it cannot answer, nor for a field that
+  describes the owner unless that snapshot says its small counts were hidden;
+  the page says so and shows the newest snapshot instead.
 - A question on the Build page takes several seconds to answer on a phone.
   Most of the wait is the page's own code and fonts; the rest is the table of
   counts the browser downloads and adds up itself.

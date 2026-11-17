@@ -57,8 +57,9 @@ compared against the fact table (D-122). No visitor has been given it.
 
 Also give the visitor "My questions" (D-125): ask them to keep the question they just answered so they can come back
 to it, and watch whether they find "Save this question" and "My questions" below the chart. Then ask what they expect
-a saved question to show next month, and whether they say a pinned one shows the figures they saw: the site says it shows
-the window, and the figures of the snapshot being served.
+a saved question to show next month, and whether they say a pinned one shows the figures they saw. Where the deploy has kept that snapshot, the site shows
+its figures and says so; where it has not (a local build, or a month with no release), it shows the window and the figures
+of the snapshot being served, and says that instead.
 
 After each question ask: "What is that figure counting?" (the site counts vehicles first registered in a month that
 are still registered today, not sales, unless the page says otherwise).
