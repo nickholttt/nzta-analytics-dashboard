@@ -737,7 +737,7 @@ How a stock passes through the build:
 
 **The dataset `fleet`** ("Vehicles registered today", D-135) is the one stock today: every vehicle in the register at the
 snapshot, of every vehicle type and every import status, counted as at the snapshot date (`docs/METRICS.md`). It is offered
-two dimensions and no others: `vehicle_usage`, labelled "Used as, today" (the register's usage value through
+two dimensions and no others: `vehicle_usage`, labelled "Current use" (the register's usage value through
 `data/reference/vehicle_usage_map.csv`), and `vehicle_type` (the type NZTA registers the vehicle under, every type rather than
 the two of the default scope). Its files are `cube/fleet/vehicle_usage.parquet`, written under the small-cell rule and read back
 (*Slices of owner dimensions*); `cube/fleet/vehicle_type.parquet`, which reads no owner field and is written as counted;

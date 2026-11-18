@@ -442,7 +442,7 @@ series of first registrations:
   month a vehicle arrived would read as what the vehicle was then. The build refuses a dimension of this dataset that reads
   either field, and its files hold one month, the snapshot's (`not_by` in `config/pipeline.json`).
 - Its dimensions are the ones `config/pipeline.json` lists for it: `vehicle_usage`, which reads the register's vehicle usage,
-  labelled "Used as, today" (the register's own words for each value, `vehicle_usage_map.csv`), and `vehicle_type`, the type
+  labelled "Current use" (the register's own words for each value, `vehicle_usage_map.csv`), and `vehicle_type`, the type
   NZTA registers the vehicle under. The usage is an owner field (`config/data_map.json`, `VEHICLE_USAGE`), so its tables are
   published only under the small-cell rule and the rule for a table of two fields (`docs/CUBE_SCHEMA.md`). For rental the
   register's usage is shown to be the latest recorded, not the usage at first registration; for the other values this has not

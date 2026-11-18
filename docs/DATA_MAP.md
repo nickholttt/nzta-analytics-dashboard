@@ -867,7 +867,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   carries on the whole register a readable label and a note saying what the value itself says; a value
   is labelled by its words and not placed in a group, because the register defines none of them (`OTHER`
   is a recorded catch-all, not a blank, and `TAXI COMMERCIAL PASSENGER` runs its words together without
-  saying whether it is one group or two). The field is bound (D-135) as the dimension `vehicle_usage`, labelled "Used as, today", and
+  saying whether it is one group or two). The field is bound (D-135) as the dimension `vehicle_usage`, labelled "Current use", and
   counted only over the vehicles registered today (the stock `fleet`), by vehicle type if asked, never by the month or year of first
   registration: the data map marks it `stock_only`, so the build offers it to no other dataset. It reads as the latest usage the
   register records; for rental that is shown to differ from the usage at first registration, and for the other values it is not
