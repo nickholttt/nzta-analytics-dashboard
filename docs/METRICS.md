@@ -1152,10 +1152,10 @@ dataset's own filter; the 2026-10 snapshot; trailing is November 2025 to October
 | `registrations_surviving` | trailing | 200,387 | 183,990 (91.82%) | 166,683 (83.18%) | 99,712 (49.76%) | 66,971 (33.42%) | 17,307 (8.64%) | 16,397 (8.18%) |
 | `registrations_surviving` | all time | 3,617,895 | 2,264,057 (62.58%) | 2,147,301 (59.35%) | 976,193 (26.98%) | 1,171,108 (32.37%) | 116,756 (3.23%) | 1,353,838 (37.42%) |
 
-The file has 134 rows for 192 entries (190 distinct make-and-model pairs; Corolla and Leaf have two rows each): 52 rows at
-`high` (34 `suv`, 18 `car`), 66 at `medium` (31 `suv`, 35 `car`) and 16 at `low`, all `unresolved`. By entries: `suv` 56 high
-and 52 medium, `car` 22 high and 42 medium, `unresolved` 20. By vehicles in the flow dataset's trailing window, `high` is
-35.26% and `medium` 50.22%; in the register's, 32.29% and 50.90%. The first slice's 169 pairs were the 150 largest passenger
+The file has 134 rows for 192 entries (190 distinct make-and-model pairs; Corolla and Leaf have two rows each): 54 rows at
+`high` (35 `suv`, 19 `car`), 64 at `medium` (30 `suv`, 34 `car`) and 16 at `low`, all `unresolved`. By entries: `suv` 58 high
+and 50 medium, `car` 23 high and 41 medium, `unresolved` 20. By vehicles in the flow dataset's trailing window, `high` is
+35.89% and `medium` 49.59%; in the register's, 32.91% and 50.27%. The first slice's 169 pairs were the 150 largest passenger
 nameplates of the two datasets' trailing windows combined and 19 more, to the rank where the register's cumulative share
 reached 90% (D-117); the second slice added the ten largest still without a row (D-123), and the third the next ten and the
 Suzuki e VITARA (D-148). The largest nameplates still without a row (trailing, flow): Mazda Biante 159, Audi A3 157, Honda e:N1
