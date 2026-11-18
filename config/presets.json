@@ -120,6 +120,9 @@
       "matrix_rest_unrecorded": "the vehicles with no {field} recorded",
       "matrix_rest_unmatched": "the vehicles whose {field} matches no entry in the reference",
       "matrix_rest_beyond": "the vehicles whose {field} falls beyond the cap on how many values it keeps",
+      "matrix_hidden_one": "One cell is hidden. Counts under {minimum}, and a few more beside them, are hidden so that no vehicle can be picked out. The last row and the last column are the complete totals, so they are more than the cells shown add up to.",
+      "matrix_hidden": "{count} cells are hidden. Counts under {minimum}, and a few more beside them, are hidden so that no vehicle can be picked out. The last row and the last column are the complete totals, so they are more than the cells shown add up to.",
+      "matrix_legend_hidden": "Hidden: a count under {minimum}, or one hidden beside it.",
       "matrix_tiny": "A share shown with a less-than sign is more than nothing and too small to show to one decimal place; a share of nothing is shown as zero.",
       "matrix_units": "In the table, each share is a percentage written as a plain number. The last row and the last column are whole numbers of vehicles.",
       "matrix_basis_head": "Each cell shows",
@@ -162,6 +165,15 @@
       "figures_withheld": "withheld",
       "figures_marked_column": "Greyed or withheld",
       "figures_not_recorded_cell": "The source does not record this breakdown in this month.",
+      "figures_hidden": "hidden",
+      "figures_marks_hidden": "Greyed, withheld or hidden: {list}. A blank cell has no figure; it is never a zero.",
+      "figures_marked_column_hidden": "Greyed, withheld or hidden",
+      "hidden_word": "hidden",
+      "hidden_reason": "Counts under {minimum} are not shown, and so are a few more beside them, so that no vehicle can be picked out.",
+      "hidden_ranking_note_one": "One value has a hidden count and no bar. Counts under {minimum}, and a few more beside them, are hidden so that no vehicle can be picked out. The shares shown are shares of every vehicle counted.",
+      "hidden_ranking_note": "{count} values have a hidden count and no bar. Counts under {minimum}, and a few more beside them, are hidden so that no vehicle can be picked out. The shares shown are shares of every vehicle counted.",
+      "hidden_link": "How counts are hidden",
+      "not_broken_down": "This table is not broken down {window}: the vehicles are counted, {vehicles} in all, but no cell of it could be shown without making a vehicle easy to pick out, so no cell is shown.",
       "figures_withheld_thin": "Fewer than {floor} vehicles behind this figure, so it is not shown.",
       "share_change_no_prior": "The earlier months hold no vehicles in what is counted, so there is no change in share.",
       "not_ranked_before": "Not ranked in the same months a year earlier.",
@@ -213,7 +225,7 @@
     "$comment": "The Build page: a question a visitor builds (what to measure, what to compare, which vehicles to keep, D-058), drawn through the same panel and resolver as Explore. Values and filters are summed from the fact table; without them a chart reads the slices. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
     "id": "build",
     "dataset": "registrations_surviving",
-    "datasets": ["registrations_surviving", "registrations_flow", "registrations_flow_wider"],
+    "datasets": ["registrations_surviving", "registrations_flow", "registrations_flow_wider", "fleet"],
     "notices": {
       "$comment": "What the page says when a link asks for something the page cannot give and shows the nearest question instead. The address is corrected as it is for a condition the page cannot apply; the words say so, so a link never quietly counts something else. Placeholders: config/narrative/rules.json.",
       "dataset": "This link asked to count {asked}, which this build does not have. It is counting {shown} instead.",
@@ -263,6 +275,8 @@
       "matrix": "latest_year"
     },
     "$period_by_shape_comment": "A distribution sums its whole period, so all time would mix decades whose records differ (docs/MODEL_AND_AGE.md, before 2007). A map opens on the last 12 months, the vehicles whose owners' addresses are most recent. A ranking of the values a visitor chose opens on the last 12 months, the window the ranking of every value opens on (D-111). The time row still offers all time, except where a chart pins its shape and the period would not fit it.",
+    "period_single": "latest_month",
+    "$period_single_comment": "A dataset with one period (dimensions.json, single_period) is drawn in its one month: a ranking of one field, or a grid of two. It has no time range to choose.",
     "ranking_period": "latest_year",
     "$ranking_period_comment": "The time row offers this period too wherever it makes the chart a league (a high-cardinality breakdown such as brand), so a visitor can rank the latest 12 months and switch back to the lines. Manufacturer group is high cardinality in config/dimensions.json, as brand is, so a 12-month window ranks it too (D-050).",
     "lead": "Show",
@@ -331,6 +345,13 @@
           "model": "model"
         },
         "$dimensions_comment": "A count by a breakdown draws one line per chosen value, so it needs the fact table; with no breakdown it is the total of the vehicles kept.",
+        "dataset_dimensions": {
+          "fleet": {
+            "vehicle_usage": "current use",
+            "vehicle_type": "vehicle type"
+          }
+        },
+        "$dataset_dimensions_comment": "What the vehicles registered today can be counted by, and nothing else (its manifest lists these two). It has one period and no fact table, so a count is a ranking of one field or a grid of the two, every value of both. vehicle_type is a condition only in every other dataset, so it is offered as a breakdown here and nowhere else.",
         "note": {
           "registrations_surviving": "Vehicles still registered today, not sales. Older months are thinned by scrappage, so a line that falls back in time partly measures how many have left the register since, and groups leave it at different rates."
         }

@@ -1227,5 +1227,6 @@ committee's placements; here a vehicle's class is its nameplate's, whole), so th
 - Never extrapolate beyond the latest snapshot.
 - Grey or suppress rather than round to zero: a figure under a guard is never
   drawn or printed as 0 (`What a tripped guard does`, above).
-- Any figure the user could mistake for official must carry the basis note:
+- Any figure the user could mistake for official must carry its dataset's basis note (`basis_note` in `config/dimensions.json`, one per
+  dataset, so a table of the register as it stands does not say it counts registrations). For the datasets that count registrations:
   *"Registrations recorded by NZTA. Not the same as vehicle sales."*

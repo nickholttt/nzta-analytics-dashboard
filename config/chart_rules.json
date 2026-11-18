@@ -7,9 +7,10 @@
     "values": ["none", "few", "some", "many"],
     "span": ["over_time", "one_period"],
     "picked": ["none", "one", "several"],
+    "periods": ["one", "several"],
     "crossed_with": ["none", "category", "ordered_band", "number", "time", "place", "identifier", "free_text"]
   },
-  "$facts_comment": "measure: from the kind of the measure (config/measures.json): a count is a number of vehicles; a share is one part of a whole, with one figure for each value of the breakdown and the figures together making the whole; an average is a typical value of a field; a ratio is one figure set against another that is not part of such a whole (a change on a year ago, the share still registered, the combined share of the largest few, which is one figure for the group and not a share of each value). by: from the kind of the dimension (config/dimensions.json), in the data map's words; none when there is no breakdown. values: from the dimension's cardinality through value_classes. span: one_period is a window of at most defaults.trailing_window_months (config/presets.json). picked: how many values the visitor chose. crossed_with: the kind of a second field crossed with the first (a preset's cross), none when it crosses nothing.",
+  "$facts_comment": "periods: whether the dataset has one period (a count as at the snapshot, with no series over time: dimensions.json, single_period) or several. measure: from the kind of the measure (config/measures.json): a count is a number of vehicles; a share is one part of a whole, with one figure for each value of the breakdown and the figures together making the whole; an average is a typical value of a field; a ratio is one figure set against another that is not part of such a whole (a change on a year ago, the share still registered, the combined share of the largest few, which is one figure for the group and not a share of each value). by: from the kind of the dimension (config/dimensions.json), in the data map's words; none when there is no breakdown. values: from the dimension's cardinality through value_classes. span: one_period is a window of at most defaults.trailing_window_months (config/presets.json). picked: how many values the visitor chose. crossed_with: the kind of a second field crossed with the first (a preset's cross), none when it crosses nothing.",
   "value_classes": {
     "low": "few",
     "medium": "some",
@@ -29,6 +30,17 @@
       },
       "shapes": ["matrix"],
       "note": "Two fields crossed, neither of them time, and looked at in one window: a grid with a shaded figure in each cell (D-083). Crossed over time the figures are a line for each combination, so the question falls through to the rules below."
+    },
+    {
+      "id": "one_period_dataset",
+      "when": {
+        "periods": "one",
+        "measure": ["count", "share"],
+        "by": "category",
+        "span": "one_period"
+      },
+      "shapes": ["league"],
+      "note": "A dataset with one period has no series over time, so a category counted in it is a ranking of its values, however few they are. With two fields crossed the rule above gives the grid first. A question that is left to the last rule (a total, an average) is a line over time, which such a dataset has none of, and the resolver blocks it."
     },
     {
       "id": "share_by_place",

@@ -178,6 +178,8 @@ export type RankingFacts = {
   span: number;
   end: string;
   latest: string;
+  // A dataset of one period names its window in its own words (its window_one) and not by the month it ends in.
+  once?: string;
   // The first and last month of the dataset the ranking is of (its supplied start or its earliest month with vehicles, and its
   // newest), never the months a narrowed view has rows for: under a condition a month with no vehicles has no rows, and that is
   // a month of zero, not a month the dataset lacks.
@@ -201,9 +203,10 @@ export function yearTooFewText(p: { year_too_few: string; year_too_few_window: s
 // What a ranking covers, and what it is compared with, and whether there is a comparison at all: it is only described when
 // the earlier window lies wholly inside the months the dataset covers. A ranking with none says so instead of describing one.
 // The words for the window a ranking ranks ("in the last 12 months") and the months it is compared with ("Nov 2024 to Oct 2025").
-export function rankingWords(p: RankingPhrases, f: Pick<RankingFacts, "span" | "end" | "latest">): { window: string; priorDates: string } {
+export function rankingWords(p: RankingPhrases, f: Pick<RankingFacts, "span" | "end" | "latest" | "once">): { window: string; priorDates: string } {
   const { priorFrom, priorTo } = rankingWindows(f.end, f.span);
   const span = { span: f.span, end: monthLabel(f.end) };
+  if (f.once) return { window: f.once, priorDates: dates(priorFrom, priorTo) };
   return { window: fillTemplate(f.span === 1 ? p.window_month : f.end === f.latest ? p.window_last : p.window_to, span).text, priorDates: dates(priorFrom, priorTo) };
 }
 
@@ -459,6 +462,8 @@ export type MatrixPhrases = {
   matrix_rest_unmatched: string;
   matrix_rest_beyond: string;
   matrix_tiny: string;
+  matrix_hidden: string;
+  matrix_hidden_one: string;
 };
 
 export type MatrixSideFacts = {
@@ -495,6 +500,8 @@ export type MatrixFacts = {
   thin: { whole: boolean; rows: number; columns: number };
   // Some share is above zero and prints as nothing.
   tiny: boolean;
+  // Cells with no count (D-139) and the least count a shown cell has: absent, or none hidden, for a grid of every cell.
+  hidden?: { cells: number; minimum?: number };
 };
 
 // A template filled, or nothing where it cannot be: a sentence with a gap is dropped.
@@ -560,5 +567,7 @@ export function matrixSentences(p: MatrixPhrases, f: MatrixFacts) {
         f.thin.rows > 0 ? said(f.thin.rows === 1 ? p.matrix_thin_rows_one : p.matrix_thin_rows, { ...base, count: f.thin.rows }) : undefined,
         f.thin.columns > 0 ? said(f.thin.columns === 1 ? p.matrix_thin_columns_one : p.matrix_thin_columns, { ...base, count: f.thin.columns }) : undefined,
       ]);
-  return { leader: leader && leaderRest ? `${leader} ${leaderRest}` : leader, cells, rows: side("rows", f.rows), columns: side("columns", f.columns), thin, tiny: f.tiny ? said(p.matrix_tiny, base) : undefined };
+  return { leader: leader && leaderRest ? `${leader} ${leaderRest}` : leader, cells, rows: side("rows", f.rows), columns: side("columns", f.columns), thin, tiny: f.tiny ? said(p.matrix_tiny, base) : undefined,
+    // A sentence that cannot be filled (no least count) is dropped, not written with a gap.
+    hidden: f.hidden && f.hidden.cells > 0 ? said(f.hidden.cells === 1 ? p.matrix_hidden_one : p.matrix_hidden, { ...base, count: f.hidden.cells, minimum: f.hidden.minimum }) : undefined };
 }

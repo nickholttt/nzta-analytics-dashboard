@@ -8,7 +8,9 @@ import type { RankingThinPhrases } from "./sentences";
 
 // The rows of a slice: one per month and value. Under a condition a month in which the condition keeps nothing has no rows, so
 // an absent month inside the dataset's months is a month of zero vehicles, never a missing one.
-export type LeagueSource = { month: string; value: string; n: number; denominator: number };
+// hidden: the value's count is hidden by the small-cell rule, so it has no number (D-139). notBrokenDown: the row stands for a period the field does not
+// break down: it is no value.
+export type LeagueSource = { month: string; value: string; n: number; denominator: number; hidden?: boolean; notBrokenDown?: boolean };
 
 export type LeagueRow = {
   rank: number;
@@ -60,8 +62,19 @@ export function leagueRows(input: LeagueInput) {
   const currentCounts = new Map<string, number>();
   const priorCounts = new Map<string, number>();
   const monthDenominators = new Map<string, number>();
+  // A hidden value is not counted and not ranked: it is kept apart, so a sum that forgot to ask would not turn it into a zero (D-139).
+  const hiddenValues = new Set<string>();
+  let notBrokenDown = false;
   for (const r of rows) {
     if (!monthDenominators.has(r.month)) monthDenominators.set(r.month, r.denominator);
+    if (r.notBrokenDown) {
+      notBrokenDown ||= r.month >= currentFrom && r.month <= end;
+      continue;
+    }
+    if (r.hidden) {
+      if (r.month >= currentFrom && r.month <= end) hiddenValues.add(r.value);
+      continue;
+    }
     if (r.month >= currentFrom && r.month <= end) currentCounts.set(r.value, (currentCounts.get(r.value) ?? 0) + r.n);
     else if (r.month >= priorFrom && r.month <= priorTo) priorCounts.set(r.value, (priorCounts.get(r.value) ?? 0) + r.n);
   }
@@ -96,8 +109,16 @@ export function leagueRows(input: LeagueInput) {
   // Entries beyond the cut that share the last shown rank: the list shows the alphabetically first of a tie and drops the rest.
   const lastRank = items.length ? items[items.length - 1].rank : undefined;
   const tiedBeyond = lastRank === undefined ? 0 : current.slice(topN).filter((e) => e.rank === lastRank).length;
-  return { items, currentDenom, priorDenom, tiedBeyond };
+  // The values whose count is hidden, in name order, and the most vehicles any one of them can hold: the window's total less every value shown. A
+  // sentence that names who leads says so only where the leader has more than that (leaderIsClear).
+  const hidden = [...hiddenValues].filter((v) => !isReserved(v)).map((value) => ({ value, name: nameOf(value) })).sort((a, b) => nameOrder(a.name, b.name));
+  const visible = [...currentCounts.values()].reduce((sum, n) => sum + n, 0);
+  return { items, currentDenom, priorDenom, tiedBeyond, hidden, hiddenAtMost: hidden.length ? currentDenom - visible : 0, notBrokenDown };
 }
+
+// Whether a value in first place is surely first: no hidden value can hold as many vehicles as it. A leader that a hidden count could equal or pass is
+// not named (invariant 8: a sentence resting on a hidden value is dropped).
+export const leaderIsClear = (leaderCount: number, hiddenAtMost: number): boolean => leaderCount > hiddenAtMost;
 
 // The table of a ranking: its columns and rows as the page shows them, which the file of figures writes (src/lib/figures.ts). One place builds
 // it, so the table on the page and the file are the same rows. The words and formatters come from the caller, which has the config.
@@ -111,6 +132,11 @@ export type LeagueTable = {
   // Headings that say the rank is among values chosen and what the share is a share of; absent for the ranking of every value.
   headings?: { rank: string; share: string; prior: string };
   words: { noYearAgo: string; yearTooFew: string; shareChangeNoPrior: string; notRankedBefore: string };
+  // A table of one period (a dataset that has no other) has no earlier window to move from: no move, no change in share, no rank before (default true).
+  compares?: boolean;
+  // The values whose count is hidden, listed after the ranked ones with no rank, no share and no count, each cell marked hidden with the reason.
+  hiddenValues?: readonly { name: string }[];
+  hiddenWords?: { text: string; reason: string };
   format: { count: (n: number) => string; pct: (x: number) => string; shareChange: (x: number) => string; yearChange: (x: number) => string };
 };
 
@@ -119,18 +145,20 @@ export const moveText = (rankDelta: number | null, hasPrior: boolean): string =>
 
 export function leagueTable(items: readonly LeagueRow[], t: LeagueTable): { columns: Column[]; rows: Cell[][]; notes: { column: string; reason: string }[] } {
   const { hasPrior, floor, words, format } = t;
+  const compares = t.compares !== false;
   const withheld = (reason: string): Cell => ({ text: "—", csv: null, mark: "withheld", reason });
   const count: Column = { key: "count", name: t.countHeading, unit: "count" };
   const year: Column = { key: "year", name: "Change on a year ago", unit: "percent" };
+  const yearFirst = t.showYear && compares;
   const columns: Column[] = [
     { key: "rank", name: "Rank", csvName: t.headings?.rank, unit: "count" },
-    { key: "move", name: "Move", text: true },
+    ...(compares ? [{ key: "move", name: "Move", text: true } as Column] : []),
     { key: "name", name: t.valueHeading, text: true },
-    ...(t.showYear ? [count, year] : []),
+    ...(yearFirst ? [count, year] : []),
     { key: "share", name: "Share", csvName: t.headings ? `${t.headings.share} (%)` : undefined, unit: "percent" },
-    { key: "change", name: "Change in share", unit: "points" },
-    ...(t.showYear ? [] : [count]),
-    { key: "before", name: "Rank a year before", csvName: t.headings?.prior, unit: "count" },
+    ...(compares ? [{ key: "change", name: "Change in share", unit: "points" } as Column] : []),
+    ...(yearFirst ? [] : [count]),
+    ...(compares ? [{ key: "before", name: "Rank a year before", csvName: t.headings?.prior, unit: "count" } as Column] : []),
   ];
   const rows = items.map((item): Cell[] => {
     const move: Cell = !hasPrior
@@ -150,15 +178,30 @@ export function leagueTable(items: readonly LeagueRow[], t: LeagueTable): { colu
     const n = format.count(item.n);
     return [
       { text: `#${item.rank}`, csv: item.rank },
-      move,
+      ...(compares ? [move] : []),
       item.name,
-      ...(t.showYear ? [n, yearChange] : []),
+      ...(yearFirst ? [n, yearChange] : []),
       share,
-      shareChange,
-      ...(t.showYear ? [] : [n]),
-      before,
+      ...(compares ? [shareChange] : []),
+      ...(yearFirst ? [] : [n]),
+      ...(compares ? [before] : []),
     ];
   });
+  // A value whose count is hidden has no rank, no share and no count: each of those cells says hidden and is blank in the file, never a zero.
+  if ((t.hiddenValues?.length ?? 0) > 0 && !t.hiddenWords) throw new Error("a table with hidden values needs the words for a hidden cell");
+  const hiddenCell = (): Cell => ({ text: t.hiddenWords?.text ?? "", csv: null, mark: "hidden", reason: t.hiddenWords?.reason });
+  for (const value of t.hiddenValues ?? []) {
+    rows.push([
+      hiddenCell(),
+      ...(compares ? [{ text: "—", csv: null } as Cell] : []),
+      value.name,
+      ...(yearFirst ? [hiddenCell(), withheld(words.noYearAgo)] : []),
+      hiddenCell(),
+      ...(compares ? [withheld(words.noYearAgo)] : []),
+      ...(yearFirst ? [] : [hiddenCell()]),
+      ...(compares ? [withheld(words.noYearAgo)] : []),
+    ]);
+  }
   // Why a dash stands where a figure would, for the reasons the page does not say elsewhere (a ranking with no year before says so once, in its
   // own sentence): the page gives each under the table and the file in its line on withheld figures.
   const seen = new Map<string, { column: string; reason: string }>();

@@ -1302,6 +1302,26 @@ section[id] {
   font-style: italic;
 }
 
+/* A count hidden by the small-cell rule is printed as the word, in slanted type on a hatch that slants the other way from a greyed share and has
+   wider stripes: a hidden count is not a thin one, and is never a blank or a zero. The type reaches 4.5 to 1 on the wash. */
+.matrix-cell.hidden {
+  background: repeating-linear-gradient(45deg, var(--thin-wash) 0 7px, var(--rule-strong) 7px 8px);
+  color: var(--ink-2);
+  font-style: italic;
+}
+
+/* Every value of both fields stands on a protected grid, so it is wide and scrolls: a column keeps room for a name rather than breaking it inside a word. */
+.matrix.protected .matrix-head {
+  min-width: 6.5rem;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+tr.hidden-row td {
+  color: var(--ink-2);
+  font-style: italic;
+}
+
 .matrix-legend {
   margin: var(--space-3) 0 0;
 }
@@ -1330,6 +1350,10 @@ section[id] {
   margin-right: var(--space-1);
   border: 1px solid var(--rule-strong);
   vertical-align: middle;
+}
+
+.matrix-swatch.hidden {
+  background: repeating-linear-gradient(45deg, var(--thin-wash) 0 6px, var(--rule-strong) 6px 7px);
 }
 
 .matrix-swatch.greyed {

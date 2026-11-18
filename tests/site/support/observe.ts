@@ -32,11 +32,12 @@ function offeredBy(m: Entry): string[] {
   return Object.keys(parts[0].dimensions).filter((d) => parts.every((p) => d in p.dimensions));
 }
 
-// Every question the Build page can form, on every dataset it offers: each measure, each breakdown it offers (and none,
+// Every question the Build page can form, on every dataset it offers that this build holds (a dataset of one period has its own tests,
+// tests/site/stock-dataset.test.ts, since the questions it forms are not these): each measure, each breakdown it offers (and none,
 // where the measure can be asked of all vehicles together), with no values chosen, one and two.
 export function buildQuestions(): BuildQuestion[] {
   const list: BuildQuestion[] = [];
-  for (const dataset of config.builderSpec.datasets) {
+  for (const dataset of config.builderSpec.datasets.filter((id) => id in everythingBuilt().datasets)) {
     for (const m of config.builderSpec.measures as unknown as Entry[]) {
       const measure = config.findMeasure(m.id) as unknown as Entry | undefined;
       const total = !m.parts && !m.derived && measure?.kind === "count";
@@ -48,7 +49,7 @@ export function buildQuestions(): BuildQuestion[] {
     }
   }
   // The same questions with a second breakdown: each breakdown crossed with the next one the measure offers that can be crossed with it, as a grid.
-  for (const dataset of config.builderSpec.datasets) {
+  for (const dataset of config.builderSpec.datasets.filter((id) => id in everythingBuilt().datasets)) {
     for (const m of config.builderSpec.measures as unknown as Entry[]) {
       if (m.derived) continue;
       const offered = offeredBy(m);
