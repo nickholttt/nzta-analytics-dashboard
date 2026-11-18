@@ -1147,15 +1147,15 @@ dataset's own filter; the 2026-10 snapshot; trailing is November 2025 to October
 
 | Dataset | Window | Vehicles | Has a row | Classified | `suv` | `car` | `unresolved` | no row |
 |---|---|---|---|---|---|---|---|---|
-| `registrations_flow` | trailing | 201,088 | 184,490 (91.75%) | 171,888 (85.48%) | 104,542 (51.99%) | 67,346 (33.49%) | 12,602 (6.27%) | 16,598 (8.25%) |
-| `registrations_flow` | all time | 1,218,768 | 1,025,279 (84.12%) | 967,803 (79.41%) | 528,355 (43.35%) | 439,448 (36.06%) | 57,476 (4.72%) | 193,489 (15.88%) |
-| `registrations_surviving` | trailing | 200,387 | 183,990 (91.82%) | 166,683 (83.18%) | 99,712 (49.76%) | 66,971 (33.42%) | 17,307 (8.64%) | 16,397 (8.18%) |
-| `registrations_surviving` | all time | 3,617,895 | 2,264,057 (62.58%) | 2,147,301 (59.35%) | 976,193 (26.98%) | 1,171,108 (32.37%) | 116,756 (3.23%) | 1,353,838 (37.42%) |
+| `registrations_flow` | trailing | 201,088 | 184,490 (91.75%) | 172,875 (85.97%) | 105,529 (52.48%) | 67,346 (33.49%) | 11,615 (5.78%) | 16,598 (8.25%) |
+| `registrations_flow` | all time | 1,218,768 | 1,025,279 (84.12%) | 968,889 (79.50%) | 529,441 (43.44%) | 439,448 (36.06%) | 56,390 (4.63%) | 193,489 (15.88%) |
+| `registrations_surviving` | trailing | 200,387 | 183,990 (91.82%) | 167,669 (83.67%) | 100,698 (50.25%) | 66,971 (33.42%) | 16,321 (8.14%) | 16,397 (8.18%) |
+| `registrations_surviving` | all time | 3,617,895 | 2,264,057 (62.58%) | 2,148,386 (59.38%) | 977,278 (27.01%) | 1,171,108 (32.37%) | 115,671 (3.20%) | 1,353,838 (37.42%) |
 
-The file has 134 rows for 192 entries (190 distinct make-and-model pairs; Corolla and Leaf have two rows each): 54 rows at
-`high` (35 `suv`, 19 `car`), 64 at `medium` (30 `suv`, 34 `car`) and 16 at `low`, all `unresolved`. By entries: `suv` 58 high
-and 50 medium, `car` 23 high and 41 medium, `unresolved` 20. By vehicles in the flow dataset's trailing window, `high` is
-35.89% and `medium` 49.59%; in the register's, 32.91% and 50.27%. The first slice's 169 pairs were the 150 largest passenger
+The file has 134 rows for 192 entries (190 distinct make-and-model pairs; Corolla and Leaf have two rows each): 55 rows at
+`high` (36 `suv`, 19 `car`), 64 at `medium` (30 `suv`, 34 `car`) and 15 at `low`, all `unresolved`. By entries: `suv` 60 high
+and 50 medium, `car` 23 high and 41 medium, `unresolved` 18. By vehicles in the flow dataset's trailing window, `high` is
+36.38% and `medium` 49.59%; in the register's, 33.41% and 50.27%. The first slice's 169 pairs were the 150 largest passenger
 nameplates of the two datasets' trailing windows combined and 19 more, to the rank where the register's cumulative share
 reached 90% (D-117); the second slice added the ten largest still without a row (D-123), and the third the next ten and the
 Suzuki e VITARA (D-148). The largest nameplates still without a row (trailing, flow): Mazda Biante 159, Audi A3 157, Honda e:N1
@@ -1185,14 +1185,14 @@ no-row passenger vehicle.
 
 | Month | Our NZ-new vehicles | Our SUV share | Published |
 |---|---|---|---|
-| April 2025 | 6,073 passenger (SUV 4,490; unresolved 358; no row 724) | 73.9% to 91.8% of passenger | MIA, light passenger vehicles: SUV Compact 34.3%, Medium 32.2%, Large 12.6%, at least 79.1% (its top five segments only) |
-| June 2026, whole market | 13,411 of all types (SUV 7,957, of which 51 are recorded as goods vehicles; passenger unresolved 704; passenger no row 607) | 59.3% to 69.1% of all | AfMA: Medium SUV 4,292, Compact SUV 2,787, Large SUV 1,083 of 13,438, at least 60.7% |
+| April 2025 | 6,073 passenger (SUV 4,501; unresolved 347; no row 724) | 74.1% to 91.8% of passenger | MIA, light passenger vehicles: SUV Compact 34.3%, Medium 32.2%, Large 12.6%, at least 79.1% (its top five segments only) |
+| June 2026, whole market | 13,411 of all types (SUV 8,007, of which 51 are recorded as goods vehicles; passenger unresolved 654; passenger no row 607) | 59.7% to 69.1% of all | AfMA: Medium SUV 4,292, Compact SUV 2,787, Large SUV 1,083 of 13,438, at least 60.7% |
 
-The published figure lies inside our range at both dates. The range is 18 points wide in April 2025 and 10 in June 2026, so
+The published figure lies inside our range at both dates. The range is 18 points wide in April 2025 and 9 in June 2026, so
 the comparison tests the file's coverage and nothing finer. In April 2025 the MIA's three SUV segments held 4,820 vehicles
 (2,087 + 1,963 + 770, read from a search result's quotation of the release; the PDF itself could not be read); our `suv` rows
-alone hold 4,490, 330 fewer, and our unresolved and no-row passenger vehicles number 1,082. In June 2026 AfMA's three held
-8,162 (read from the page); our `suv` rows hold 7,957, 205 fewer, against 1,311 unresolved and no-row passenger vehicles.
+alone hold 4,501, 319 fewer, and our unresolved and no-row passenger vehicles number 1,071. In June 2026 AfMA's three held
+8,162 (read from the page); our `suv` rows hold 8,007, 155 fewer, against 1,261 unresolved and no-row passenger vehicles.
 Our totals are within 0.2% of the published ones (6,073 passenger vehicles against about 6,085 light passenger vehicles,
 derived from the MIA's quoted counts and shares (2,087 at 34.3%), not read from the release; 13,411 against 13,438). These are different definitions (the MIA's and AfMA's segments are a
 committee's placements; here a vehicle's class is its nameplate's, whole), so the figures are not expected to match.
