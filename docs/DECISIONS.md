@@ -6211,3 +6211,47 @@ New entries use this template:
      queued. When UI or classification work begins (package H or a later stage), this record is raised first.
 - Consequences: a line in `docs/CHECKPOINT.md`; nothing built or changed.
 - Status: accepted (the user's direction); the readings above are decided by Claude (unreviewed)
+
+## D-140 2026-11-18 — Vehicle use in two forms: "Current use" over today's register, and "Registered as", the use at first registration, from the dashboard if it records it and from the archive from now on, with the changes between them tracked privately
+- Agent: user (the direction), claude (the design and the readings marked)
+- Basis: the user's messages of 2026-11-18, quoted below; D-134 (the fleet table and the check of the dashboard's usage
+  column); D-096 item 4 (vehicles may be matched privately between two months' archive files); D-076 (`VIN11` only in
+  the private archive); the work order's §3 (an owner field or anything derived from `VIN11` is published only on the
+  user's word); vstat's buyer-mix page, https://vstat.mta.org.nz/buyer-mix, read on 2026-11-18 ("Data snapshot: Oct
+  2026"): new light vehicles in the buyer categories "Companies (fleets, small businesses, rental operators), Private
+  buyers (individuals) ... and Government", with "Rental ... segmented into its own category", by powertrain, with top
+  models per buyer type; the page does not say how a buyer type is decided.
+- Decision (user), in the user's words: on the label, "yes, current use toggle, but also 'registered as' or registered
+  for"; and "Ideally we would have the option to see what cars are used for today. We don't have enough data to
+  confidently see the shifts, but we can build it in the background to silently track what they are registered for and
+  then what they change to if they do ... it could show interesting trends in the future." And: "Do what ever makes the
+  best sense to someone wanting to do analysis on the data set and look at what other people like vstat have published."
+- Claude's design (unreviewed):
+  1. **"Current use"** is the label of the use field over today's register (the fleet table, D-135). The fleet dataset
+     keeps its name, "Vehicles registered today".
+  2. **"Registered as"** is the use a vehicle had when it was first registered, shown over true registrations by month
+     (the dashboard's datasets), as the trade watches it: vstat publishes the share of new light vehicles bought by rental
+     operators, private buyers, companies and government each month. Two sources:
+     - **The dashboard's own columns.** Its export carries "Vehicle usage" and "Owner Type", which the supplied store
+       drops today (`private_columns`). If the private matching of October's and November's archive files (D-134, after
+       NZTA's December refresh) shows that the dashboard's usage is as at first registration, these give "Registered as"
+       for every month from January 2021, and with owner type a buyer mix close to vstat's. The check comes first; the
+       store would keep the two columns only with the user's word, since both are owner fields.
+     - **The archive, from now on.** Each month's archive file holds every vehicle's current use. A vehicle first seen in
+       a month carries the use it was registered with; matched against the next month's file, a change of use is seen
+       when it happens. A private ledger of first use and each change, built in the archive job and kept in the private
+       archive repository, starts with November against October. It is never published as rows: only counts, under the
+       small-cell rules, and only on the user's word.
+  3. **What the ledger can show later**, when it has months enough: how many vehicles registered as rental move to
+     private use and after how long (the rental fleet's run-out into the used market), and how use changes by age, make
+     or powertrain. Until a year or more is collected, it shows little; it is collected now so the series exists then.
+  4. **Not done now:** nothing is built for "Registered as" until the dashboard check is reported (D-134's third item).
+     The fleet table is relabelled now.
+- Options considered: (a) only "Current use" (simplest, but it cannot answer the trade's question, how much of this
+  month's new market went to rental fleets); (b) "Registered as" from the register alone (not possible: the register
+  holds only the current use); (c) the design above (chosen: it gives the trade's view from 2021 if the dashboard allows
+  it, and starts the history that nothing else holds).
+- Consequences: queue items in `docs/CHECKPOINT.md`: the label now; the dashboard check (December); then "Registered as"
+  from the dashboard; the ledger in the archive job (an architecture change to the Monthly build's archive job, with its
+  own record before it is built).
+- Status: accepted (the user's direction); the design above is decided by Claude (unreviewed)

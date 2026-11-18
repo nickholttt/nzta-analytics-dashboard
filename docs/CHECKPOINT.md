@@ -43,10 +43,11 @@ tells visitors what to look at. Nothing changes now; raise it first when UI work
    registration; a one-period dataset with a two-field small-cell rule. Being built on the
    unpushed branch above. Then: the figures and headless screenshots to the user, and no pull
    request before the user's word. Industry class and district wait (D-134).
-2. **What the dashboard's "Vehicle usage" column records** (the user, D-134): match vehicles
-   between October's and November's archive files, privately, once the archive job stores
-   November after NZTA's December refresh; report it before any table of usage at first
-   registration.
+2. **What the dashboard's "Vehicle usage" column records** (D-134), then **"Registered as"**
+   (D-140): match October's and November's archive files privately after NZTA's December
+   refresh and report. If the dashboard's usage is as at first registration, keep it and owner
+   type in the store (the user's word first) for a buyer mix like vstat's from 2021. Then a
+   private ledger of each vehicle's first use and its changes, in the archive job.
 3. **Drawing a hidden cell** (D-130 lists what it needs), only when a chart by the owner's
    region is wanted. **The pinned link's leftovers** (D-131): the "newest cube" step reads one
    page of releases; the host's limits are unchecked (a kept snapshot adds about 3.2 MB).
@@ -95,7 +96,7 @@ tells visitors what to look at. Nothing changes now; raise it first when UI work
 D-082, D-085 to D-095 (the eighth session). The ninth: the readings in D-096, D-104 and D-106
 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119 (D-119's line is now the
 user's). The tenth: the readings in D-120, and D-121 to D-125. The eleventh: the readings in
-D-126, D-134 and D-138, and D-127 to D-137. Not yet in a record: the three sizes in queue item 5.
+D-126, D-134, D-138 and D-140, and D-127 to D-137. Not yet in a record: the three sizes in queue item 5.
 
 ## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
 
