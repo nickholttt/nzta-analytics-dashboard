@@ -9,7 +9,8 @@ Last updated by claude on 2026-11-18
   forced run is asked for each time, except after a change to the committed counts (D-120).
 - **Figures set beside published ones**: D-105, D-113 (the MIA), D-118 (vstat), D-124 (Auto
   Trader's hybrids), D-123 and D-145 (SUV shares inside our range).
-- 2026-11-18, twelfth session. **Merged: #103, #104, #106, #107, #108.** A share against a
+- 2026-11-18, twelfth session. **Merged: #103, #104, #106 to #109.** The SUV file's third
+  slice (#109, D-145): eleven nameplates added, six rows lowered to `medium`. A share against a
   hidden line total says so, and a one-period ranking shows every value (#104, D-142). The
   deploy reads every page of releases and stops before the upload past the host's limits
   (#106, D-146). The build refuses an owner field in any fact table (#107). **Colour** is
@@ -20,10 +21,7 @@ Last updated by claude on 2026-11-18
 
 - **#105** the board proposal (D-143): parked for the user; questions below. Mergeable; its
   review agreed. Merge only on the user's word about the proposal.
-- **#109** the SUV file's third slice (D-145): its review asked for five fixes (Mazda2/3 and
-  the Impreza to `medium`, "sports car" written into the rule, the CLASS cross-check scoped,
-  main merged in); the builder was making them when this was written. Check the branch: if
-  the fixes are in, push, watch `Checks`, re-check the fixes narrowly, merge.
+- #110: these notes (docs only), if not yet merged.
 
 ## The queue, in order
 
@@ -43,7 +41,7 @@ first when UI or classification work starts.
    the store (the user's word first). Then a private ledger of each vehicle's first use.
 3. **Drawing a hidden cell** (D-130 lists what it needs), only when a chart by the owner's
    region is wanted.
-4. **The SUV file** after #109 (D-145 "What is left"): the next nameplates without a row
+4. **The SUV file** (D-145 "What is left"; whether the BRZ's "sports" heading reads as a body): the next nameplates without a row
    (Mazda Biante, Audi A3, Honda e:N1, VW Polo, Nissan Sylphy and others); the `medium` and
    `unresolved` rows (BYD Atto 2 and Sealion 5/6 have a readable NZ site not yet tried);
    D-117 items 1 to 3 (three sizes each for cars and SUVs against the FCAI's footprint bands,
@@ -89,7 +87,7 @@ first when UI or classification work starts.
 D-082, D-085 to D-095 (the eighth session). The ninth: the readings in D-096, D-104 and D-106,
 and D-097 to D-101, D-105 and D-107 to D-119. The tenth: the readings in D-120, and D-121 to
 D-125. The eleventh: the readings in D-126, D-134, D-138, D-140, D-127 to D-137 and D-139.
-The twelfth: D-142, D-144, D-145 (if #109 merges), D-146; #107's refusal reads every
+The twelfth: D-142, D-144, D-145, D-146; #107's refusal reads every
 dataset's `facts`, live or not (no record). D-143 is a proposal, not a decision.
 
 ## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
@@ -112,8 +110,8 @@ stop for questions; park what needs me and keep going. D-104 stands: the engine 
 right, no proposal to launch early, figures set beside published ones. Reviews: as above.
 
 Check first: `git worktree list` and `git status` in each (`nzta-screens` and `nzta-segments`
-hold uncommitted files: read before touching; `nzta-suv` may hold #109's fixes); open pull
-requests (#105 parked, #109); the `Monthly build` runs since 17 November (has NZTA refreshed:
+hold uncommitted files: read before touching); open pull requests (#105 parked); the
+`Monthly build` runs since 17 November (has NZTA refreshed:
 is a November build or archive there? The next build is the first to publish the fleet,
 colour and the narrow table); `CLOUDFLARE_PAGES_PROJECT` still unset. No local path in a doc
 or commit.

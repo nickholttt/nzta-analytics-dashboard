@@ -46,8 +46,8 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   cube** where the deploy has kept it (#92, D-131); where it has not, it holds a window.
 - **Build crosses two fields**, drawn as the sixth shape, `matrix`: a shaded grid with totals,
   as vehicles or a share of all, of the row or of the column (#75, D-114). Two Explore grids.
-- **SUV or car per nameplate**: a file nothing reads yet (#84, D-117, D-123), 179 nameplates;
-  a third slice is open as #109 (D-145).
+- **SUV or car per nameplate**: a file nothing reads yet (#84, #109; D-117, D-123, D-145), 190
+  pairs; 91.8% of the register's trailing passenger vehicles have a row, 31.3% at `high`.
 - **One rule table says which shapes fit a question** (#62, D-100, `config/chart_rules.json`).
   Each build writes how strongly every pair of public fields moves together (#99, D-136).
 - **Colour** (`colour`, "Colour as recorded") is a slice and sits in the first **narrow fact
@@ -72,9 +72,8 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 ## In progress (all claude; nothing by gemini)
 
-- #109 (`claude/suv-next-slice`, worktree `nzta-suv`): review fixes in progress or done; see
-  CHECKPOINT. #105 (`claude/canvas-proposal`, `nzta-notes`): parked for the user.
-- `nzta-audit` and `nzta-firstload` hold merged branches, nothing uncommitted.
+- Nothing is being built. #105 (`claude/canvas-proposal`, `nzta-notes`): parked for the user.
+- `nzta-audit`, `nzta-firstload` and `nzta-suv` hold merged branches, nothing uncommitted.
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
   D-103's draft scheme file sits untracked in `nzta-segments`.
 
