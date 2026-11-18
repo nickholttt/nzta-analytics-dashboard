@@ -73,7 +73,7 @@ def _templates() -> list[tuple[str, str, str]]:
         for key, text in (dataset.get("words") or {}).items():
             if not key.startswith("$"):
                 found.append(("words", f"dataset {dataset['id']} words.{key}", text))
-        for key in ("source_note", "not_built_message"):
+        for key in ("source_note", "not_built_message", "basis_note"):
             if key in dataset:
                 found.append(("note", f"dataset {dataset['id']} {key}", dataset[key]))
     for derived in measures["derived_measures"]:
@@ -216,6 +216,7 @@ _NAME_COLUMNS = {
     "nz_assembled_map.csv": ["label"],
     "class_map.csv": ["label"],
     "transmission_map.csv": ["group"],
+    "vehicle_usage_map.csv": ["label"],
 }
 
 

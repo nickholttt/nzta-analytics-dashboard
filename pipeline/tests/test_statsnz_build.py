@@ -212,7 +212,8 @@ def test_the_dataset_goes_into_the_state_with_the_stores_own_totals(built):
 
 def test_the_register_datasets_are_untouched_by_a_second_supplied_source(built):
     manifest = built["manifest"]
-    assert list(manifest["datasets"]) == [SURVIVING, "registrations_flow", "registrations_flow_wider", DATASET]
+    series = [d for d in manifest["datasets"] if not built["cfg"].pipeline["datasets"][d].get("stock")]
+    assert series == [SURVIVING, "registrations_flow", "registrations_flow_wider", DATASET]
     assert all("not_built" in manifest["datasets"][d] for d in ("registrations_flow", "registrations_flow_wider"))
     assert "not_built" not in manifest["datasets"][SURVIVING]
 

@@ -68,5 +68,5 @@ test("a long-run chart names the source's own statement, from the manifest, besi
   const dataset = JSON.parse(read("config/dimensions.json")).datasets.find((d: { id: string }) => d.id === "registrations_cars_long_run");
   assert.match(dataset.source_note, /\{dataset\.supplied\.attribution\}/);
   assert.ok(dataset.not_built_message, "a build without the dataset needs words to say so");
-  assert.match(read("src/components/PresetPanel.tsx"), /BASIS_NOTE/);
+  assert.match(read("src/components/PresetPanel.tsx"), /datasetBasisNote\(effectivePreset\.dataset\)/);
 });

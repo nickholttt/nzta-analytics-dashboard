@@ -12,7 +12,7 @@ import json
 import duckdb
 import pytest
 
-from pipeline import config, outputs, privacy, reference, small_cells
+from pipeline import config, derive, outputs, privacy, reference, small_cells
 from pipeline.contract import NOT_BROKEN_DOWN
 from pipeline.errors import GuardrailError
 
@@ -22,11 +22,18 @@ from .test_guardrails import expect_abort, run
 DATASET = "registrations_surviving"
 
 
+def owner_dimensions_of_the_register_dataset(cfg) -> list[str]:
+    """The dimensions of the register dataset that read an owner field, from the data map. The map may name others, which
+    belong to a dataset that is not this one (a stock, D-135) and are tested in test_fleet.py."""
+    here = {d["id"] for d in derive.applicable(cfg, DATASET)[0]}
+    return sorted(d for d in privacy.owner_dimensions(cfg) if d in here)
+
+
 def owner_dimension() -> str:
     """The one dimension of the register dataset that reads an owner field, from the data map."""
-    found = privacy.owner_dimensions(config.load())
-    assert len(found) == 1, f"this module is written for one owner dimension, the map has {sorted(found)}"
-    return next(iter(found))
+    found = owner_dimensions_of_the_register_dataset(config.load())
+    assert len(found) == 1, f"this module is written for one owner dimension, the map has {found}"
+    return found[0]
 
 
 def districts_by_value() -> list[str]:
@@ -152,7 +159,7 @@ def test_the_manifest_says_what_was_hidden_and_agrees_with_the_file(built):
 def test_a_dimension_that_reads_no_owner_field_is_written_as_counted_and_has_no_figures(built):
     manifest, _, _, cfg = built
     entry = manifest["datasets"][DATASET]
-    assert sorted(entry["small_cells"]) == sorted(privacy.owner_dimensions(cfg))
+    assert sorted(entry["small_cells"]) == owner_dimensions_of_the_register_dataset(cfg)
     other = next(d for d in entry["live_dimensions"] if d not in entry["small_cells"])
     con = duckdb.connect()
     path = cfg.path("public") / "cube" / DATASET / f"{other}.parquet"
@@ -167,29 +174,11 @@ def test_no_owner_dimension_is_in_the_fact_table_or_a_pair(built):
     assert not any(owners & set(pair.split("__")) for pair in entry["live_pairs"])
 
 
-# --- a pair with an owner dimension is refused ------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize("order", [0, 1])
-def test_a_pair_with_an_owner_dimension_aborts_in_either_order(tmp_path, workspace, order):
-    cfg = make_cfg(workspace)
-    pair = ["import_status", owner_dimension()]
-    cfg.pipeline["datasets"][DATASET]["pairs"] = [pair[::-1] if order else pair]
-    expect_abort(lambda: run(tmp_path, cfg, load_rows(), publish=False), "a pair with an owner dimension is not built")
-
-
-def test_the_refusal_names_the_owner_field_that_is_read(tmp_path, workspace):
-    cfg = make_cfg(workspace)
-    cfg.pipeline["datasets"][DATASET]["pairs"] = [["import_status", owner_dimension()]]
-    owner_field = privacy.owner_dimensions(cfg)[owner_dimension()][0]
-    expect_abort(lambda: run(tmp_path, cfg, load_rows(), publish=False), f"reads {owner_field}")
-
-
 # --- a slice that should be protected and is not never reaches public/data ----------------------------------------------
 
 
 def test_a_protected_slice_written_without_the_rule_aborts_the_build_and_publishes_nothing(tmp_path, workspace, monkeypatch):
-    def unprotected(con, cfg, derived, ds, path, rule):
+    def unprotected(con, cfg, derived, ds, path, rule, fuel=True):
         outputs.write_slice(con, cfg, derived, ds, path)
         return {"minimum": rule.minimum, "minimum_hidden_cells": rule.hidden_cells, "minimum_hidden_vehicles": rule.hidden_vehicles,
                 "months": 0, "cells_hidden_first_rule": 0, "cells_hidden_second_rule": 0, "vehicles_in_hidden_cells": 0,
@@ -244,6 +233,7 @@ def test_a_different_minimum_in_the_map_changes_what_is_hidden(tmp_path, workspa
     dmap = privacy.load_map(config.load())
     dmap["owner_rule"]["minimum_count"] = 30
     dmap["owner_rule"]["second_rule"]["minimum_hidden_vehicles"] = 30
+    dmap["owner_rule"]["pair_rule"]["minimum_hidden_vehicles_per_line"] = 30
     custom = tmp_path / "data_map.json"
     custom.write_text(json.dumps(dmap), encoding="utf-8")
     rows, names = extra_rows(load_rows())
@@ -270,6 +260,9 @@ def test_a_map_that_groups_no_field_as_the_owner_leaves_a_slice_unprotected(tmp_
 @pytest.mark.parametrize("damage", [
     lambda m: m["owner_rule"].pop("second_rule"),
     lambda m: m["owner_rule"]["second_rule"].update(minimum_hidden_vehicles=1),
+    lambda m: m["owner_rule"].pop("pair_rule"),
+    lambda m: m["owner_rule"]["pair_rule"].update(minimum_hidden_cells_per_line=1),
+    lambda m: m["owner_rule"]["pair_rule"].update(minimum_hidden_vehicles_per_line=9),
     lambda m: m.pop("derive_reads"),
 ])
 def test_a_data_map_the_build_cannot_use_aborts_before_anything_is_written(tmp_path, workspace, damage):

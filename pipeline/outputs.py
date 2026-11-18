@@ -17,8 +17,10 @@ def write_json(path: Path, obj) -> None:
     path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
 
-def write_slice(con, cfg, derived, ds: str, path: Path) -> None:
-    _write_counts(con, cfg, [(derived.column, "dim_value")], ds, path)
+def write_slice(con, cfg, derived, ds: str, path: Path, fuel: bool = True) -> None:
+    """A dimension's 1-D slice. `fuel` False writes the three fuel columns null on every row: a slice a protected pair stands
+    on carries none, since its fuel-eligible counts would bound the pair's hidden cells (D-135)."""
+    _write_counts(con, cfg, [(derived.column, "dim_value")], ds, path, fuel)
 
 
 def write_pair(con, cfg, a, b, ds: str, path: Path) -> None:
@@ -98,9 +100,14 @@ def counts_sql(cfg, keys: list[tuple[str, str]], ds: str) -> str:
         """
 
 
-def _write_counts(con, cfg, keys: list[tuple[str, str]], ds: str, path: Path) -> None:
+def _write_counts(con, cfg, keys: list[tuple[str, str]], ds: str, path: Path, fuel: bool = True) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    con.execute(f"COPY ({counts_sql(cfg, keys, ds)}) TO {lit(path.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)")
+    query = counts_sql(cfg, keys, ds)
+    if not fuel:
+        names = ", ".join(alias for _, alias in keys)
+        query = (f"SELECT month, {names}, n, denominator, CAST(NULL AS DOUBLE) AS fc_sum, CAST(NULL AS INTEGER) AS fc_n, "
+                 f"CAST(NULL AS INTEGER) AS fc_eligible_n FROM ({query}) ORDER BY month, {names}")
+    con.execute(f"COPY ({query}) TO {lit(path.as_posix())} (FORMAT PARQUET, COMPRESSION ZSTD)")
 
 
 def write_archive(con, cfg, path: Path) -> None:

@@ -64,3 +64,27 @@ def test_a_rule_too_weak_to_protect_a_cell_is_refused(change):
     change(dmap["owner_rule"])
     with pytest.raises(privacy.DataMapError):
         privacy.small_cell_rule(dmap)
+
+
+def test_the_pair_rule_is_read_from_the_map():
+    dmap = load_map()
+    rule = privacy.pair_cell_rule(dmap)
+    pair = dmap["owner_rule"]["pair_rule"]
+    assert rule.minimum == dmap["owner_rule"]["minimum_count"]
+    assert rule.hidden_cells == pair["minimum_hidden_cells_per_line"]
+    assert rule.hidden_vehicles == pair["minimum_hidden_vehicles_per_line"]
+
+
+@pytest.mark.parametrize("change", [
+    lambda r: r.pop("pair_rule"),
+    lambda r: r["pair_rule"].pop("minimum_hidden_cells_per_line"),
+    lambda r: r["pair_rule"].update(minimum_hidden_cells_per_line=1),
+    lambda r: r["pair_rule"].update(minimum_hidden_vehicles_per_line=r["minimum_count"] - 1),
+    lambda r: r["pair_rule"].update(minimum_hidden_vehicles_per_line="many"),
+    lambda r: r.update(minimum_count=1),
+])
+def test_a_pair_rule_too_weak_to_protect_a_cell_is_refused(change):
+    dmap = copy.deepcopy(load_map())
+    change(dmap["owner_rule"])
+    with pytest.raises(privacy.DataMapError):
+        privacy.pair_cell_rule(dmap)

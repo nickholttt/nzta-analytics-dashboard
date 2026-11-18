@@ -162,7 +162,8 @@ def test_a_form_of_not_recorded_reads_not_recorded_and_every_other_value_keeps_i
 @pytest.mark.parametrize("dim_id", LOOKUPS)
 def test_the_field_is_read_from_the_register_and_is_not_live_where_the_source_carries_none(dim_id):
     cfg = make_cfg({})
-    others = [d for d in cfg.pipeline["datasets"] if d != SURVIVING]
+    # The datasets that read a supplied source. A stock is offered only the dimensions it lists (test_stock.py).
+    others = [d for d, spec in cfg.pipeline["datasets"].items() if "source" in spec]
     assert len(others) >= 3
     field = spec_of(cfg, dim_id)["derive"]["field"]
     assert derive.needed_fields(cfg, spec_of(cfg, dim_id)["derive"]) == {field}
@@ -409,7 +410,7 @@ def test_the_bands_are_live_where_the_register_is_the_source_and_not_where_the_s
     assert derive.needed_fields(cfg, spec_of(cfg, dim_id)["derive"]) == {field}
     assert "applies_to" not in spec_of(cfg, dim_id)
     assert dim_id in {d["id"] for d in derive.applicable(cfg, SURVIVING)[0]}
-    for dataset in (d for d in cfg.pipeline["datasets"] if d != SURVIVING):
+    for dataset in (d for d, spec in cfg.pipeline["datasets"].items() if "source" in spec):
         live, not_live = derive.applicable(cfg, dataset)
         assert dim_id not in {d["id"] for d in live}, dataset
         assert not_live[dim_id] == "the source does not carry " + cfg.source_field(field), dataset

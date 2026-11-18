@@ -110,6 +110,8 @@ export type DatasetWords = {
   ranking_basis: string;
   // What the figure of the leading value counts, with {vehicles} and {window}; a dataset that has none says the vehicles and the window.
   leader_count?: string;
+  // How a dataset of one period names its window in a sentence ("counted {window}"), in place of the month it ends in.
+  window_one?: string;
   suggestion_recent: string;
   suggestion_total: string;
   none_recent: string;
@@ -121,6 +123,9 @@ export type Dataset = {
   // The name a visitor reads for what is counted (D-042); label is for maintainers.
   public_label?: string;
   grain?: string;
+  // The dataset has one period and no other (a count as at the snapshot): no series over time, no window, no change on a year ago. The chart rules read it
+  // as one period (config/chart_rules.json) and a question that would draw it over time is blocked (src/lib/resolve.ts).
+  single_period?: boolean;
   // Whether a count's change on a year ago is shown for this dataset (a ranking's column, the monthly answer's comparison).
   shows_year_change?: boolean;
   definition?: string;
@@ -132,6 +137,10 @@ export type Dataset = {
   attribution?: string;
   // What a chart says when a build did not make the dataset.
   not_built_message?: string;
+  // The last line under every chart of the dataset: what its figures are not, in plain words (it says nothing a visitor must take from the data).
+  basis_note?: string;
+  // The words this dataset uses for a field in place of the field's own label, keyed by dimension id.
+  dimension_labels?: Record<string, string>;
   words?: DatasetWords;
   // Datasets that count some of the same vehicles as this one, so no chart reads both (datasetClashes).
   never_charted_with?: string[];
@@ -177,6 +186,9 @@ export type BuilderMeasure = {
   phrase: string;
   joiner: string;
   dimensions: Record<string, string>;
+  // Breakdowns only one dataset offers, with the words the sentence uses, added to the list above for that dataset (a field only a dataset of one period
+  // carries, or one that is a condition everywhere else).
+  dataset_dimensions?: Record<string, Record<string, string>>;
   top_n?: Record<string, number>;
   // Words that say what the measure counts. One text for every dataset, or one for each dataset that needs its own.
   note?: PerDataset;
@@ -206,6 +218,8 @@ export type BuilderSpec = {
   period: string;
   period_when_comparing: string;
   period_by_shape: Record<string, string>;
+  // The period a dataset of one period is drawn in (dimensions.json, single_period).
+  period_single: string;
   ranking_period: string;
   lead: string;
   measures: BuilderMeasure[];
@@ -225,7 +239,7 @@ type PresetsDoc = {
       PickedRankingPhrases &
       FiguresPhrases & { figures_not_recorded_cell: string; figures_withheld_thin: string; share_change_no_prior: string; not_ranked_before: string; year_too_few_window: string; period_replaced: string } &
       YearPhrases &
-      MatrixPhrases & { identification_together: string; matrix_none: string; matrix_units: string; matrix_basis_head: string; matrix_basis_count: string; matrix_basis_all: string; matrix_basis_row: string; matrix_basis_column: string; matrix_total_count: string; matrix_total_share: string; matrix_legend_count: string; matrix_legend_share: string; matrix_legend_unshaded: string; matrix_legend_unshaded_plain: string; matrix_legend_up_to: string; matrix_legend_range: string; matrix_region: string; matrix_eyebrow: string; build_second_label: string; build_second_hint_ordered: string; chart_load_failed_label: string; chart_load_failed: string; chart_draw_failed_label: string; chart_draw_failed: string; matrix_legend_grey: string; matrix_window_pick: string; matrix_month_pick: string; matrix_scroll_hint: string; matrix_no_base_row: string; matrix_no_base_column: string; build_second_and: string; build_second_none: string; build_second_swap: string; build_second_remove: string; build_second_rows: string; build_second_columns: string; build_second_hint: string } & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; share_with_not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; field_note_link: string; grey_beyond_scale: string };
+      MatrixPhrases & { identification_together: string; matrix_none: string; matrix_units: string; matrix_basis_head: string; matrix_basis_count: string; matrix_basis_all: string; matrix_basis_row: string; matrix_basis_column: string; matrix_total_count: string; matrix_total_share: string; matrix_legend_count: string; matrix_legend_share: string; matrix_legend_unshaded: string; matrix_legend_unshaded_plain: string; matrix_legend_up_to: string; matrix_legend_range: string; matrix_region: string; matrix_eyebrow: string; build_second_label: string; build_second_hint_ordered: string; chart_load_failed_label: string; chart_load_failed: string; chart_draw_failed_label: string; chart_draw_failed: string; matrix_legend_grey: string; matrix_window_pick: string; matrix_month_pick: string; matrix_scroll_hint: string; matrix_no_base_row: string; matrix_no_base_column: string; build_second_and: string; build_second_none: string; build_second_swap: string; build_second_remove: string; build_second_rows: string; build_second_columns: string; build_second_hint: string } & { matrix_legend_hidden: string; hidden_word: string; hidden_reason: string; hidden_ranking_note: string; hidden_ranking_note_one: string; hidden_link: string; not_broken_down: string; field_note_link: string } & { bad_month: string; pick_month: string; month_off_chart: string; not_recorded: string; share_with_not_recorded: string; breakdown_starts: string; exceeds_total: string; identification_coverage: string; identification_coverage_internal: string; identification_coverage_whole: string; tie_beyond_cut: string; rolling_share_note: string; rolling_share_note_internal: string; window_outside_data: string; mild_split_withheld: string; mild_split_withheld_internal: string; mild_split_withheld_link: string; grey_beyond_scale: string };
     matrix: { rows: number; columns: number; step_fractions: number[]; cells: Record<string, string> };
     mix_smoothing: string;
     mix_smoothing_options: SmoothingOption[];
@@ -276,9 +290,10 @@ export const findDimension = (id?: string | null) => dimensions.find((d) => d.id
 // The band of a banded dimension that holds the vehicles with no usable value (a band config flags `unknown`), if it has one.
 export const unrecordedBand = (id?: string | null): string | undefined => findDimension(id)?.bands?.find((b) => b.unknown)?.label;
 // The words for a dimension: the visitor wording where config has it, unless the page is an internal one.
-export const dimensionLabel = (id: string, internal = false) => {
+// A dataset can name a field in words of its own (its dimension_labels), where the field's usual words would say something it does not mean there.
+export const dimensionLabel = (id: string, internal = false, dataset?: string) => {
   const d = findDimension(id);
-  return (!internal && d?.public_label) || d?.label;
+  return findDataset(dataset)?.dimension_labels?.[id] ?? ((!internal && d?.public_label) || d?.label);
 };
 // A value as a visitor reads it: a compound value (brand and model) has its dimension's separator replaced by a space. The
 // value itself, in addresses and in the data, is unchanged.
@@ -294,6 +309,11 @@ export const findDataset = (id?: string) => datasets.find((d) => d.id === id);
 export function datasetWords(id?: string): DatasetWords | undefined {
   const dataset = findDataset(id);
   return dataset?.words ?? (dataset?.base ? findDataset(dataset.base)?.words : undefined);
+}
+// A dataset's basis note: its own, or its base dataset's where it is another one filtered.
+export function datasetBasisNote(id?: string): string | undefined {
+  const dataset = findDataset(id);
+  return dataset?.basis_note ?? (dataset?.base ? findDataset(dataset.base)?.basis_note : undefined);
 }
 export const findMeasure = (id?: string) => measures.find((m) => m.id === id);
 export const findDerived = (id?: string) => derivedMeasures.find((m) => m.id === id);

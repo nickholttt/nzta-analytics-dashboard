@@ -82,6 +82,10 @@ def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):
     assert contract["slices"], "no slices were written"
     protected = {f"{dataset}/{dim}.parquet" for dataset, info in contract["manifest"]["datasets"].items()
                  for dim in info.get("small_cells", {})}
+    # The slices a protected pair stands on carry no fuel figure on any row (D-135), read from the manifest's pair names.
+    no_fuel = {f"{dataset}/{dim}.parquet" for dataset, info in contract["manifest"]["datasets"].items()
+               for pair in info.get("small_cell_pairs", {}) for dim in pair.split(PAIR_SEPARATOR)}
+    assert no_fuel, "no protected pair was built"
     for name, doc in contract["slices"].items():
         assert doc["schema"] == [list(c) for c in SLICE_COLUMNS], name
         keys = [(r[0], r[1]) for r in doc["rows"]]
@@ -93,6 +97,9 @@ def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):
                 assert fc_sum is None and fc_n is None and fc_eligible_n is None, (name, month, value)
                 continue
             totals.setdefault(month, [0, denominator])[0] += n
+            if name in no_fuel:
+                assert fc_sum is None and fc_n is None and fc_eligible_n is None, (name, month, value)
+                continue
             if name in protected and value == NOT_BROKEN_DOWN:
                 assert fc_sum is None and fc_n is None and fc_eligible_n is None, (name, month)
                 continue
@@ -109,12 +116,32 @@ def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):
 def test_every_pair_has_the_contract_schema_and_adds_up_to_both_of_its_slices(tmp_path, workspace):
     contract, extra = built_contract(tmp_path, workspace)
     assert contract["pairs"], "no pair slices were written"
+    protected = {f"{dataset}/{key}.parquet" for dataset, info in contract["manifest"]["datasets"].items()
+                 for key in info.get("small_cell_pairs", {})}
     for name, doc in contract["pairs"].items():
         assert doc["schema"] == [list(c) for c in PAIR_COLUMNS], name
         keys = [(r[0], r[1], r[2]) for r in doc["rows"]]
         assert keys == sorted(keys), f"{name} is not sorted by month, a_value, b_value"
         dataset, file = name.split("/")
         dims = file[: -len(".parquet")].split(PAIR_SEPARATOR)
+        if name in protected:
+            # A pair held to the rule for a table of two fields (D-135): a hidden cell has no counts, and a period that is not
+            # broken down is one row with the reserved value in both columns. What is visible never exceeds either slice's
+            # count for its value; the rule itself is held by test_pair_cells.py and by the build's own read-back.
+            for month, a_value, b_value, n, denominator, fc_sum, fc_n, fc_eligible_n in doc["rows"]:
+                assert fc_sum is None and fc_n is None and fc_eligible_n is None, (name, month, a_value, b_value)
+                if a_value == NOT_BROKEN_DOWN:
+                    assert b_value == NOT_BROKEN_DOWN and n == denominator, (name, month)
+                    assert sum(1 for r in doc["rows"] if r[0] == month) == 1, (name, month)
+            for side, dim in enumerate(dims):
+                single = {(r[0], r[1]): r for r in contract["slices"][f"{dataset}/{dim}.parquet"]["rows"]}
+                summed = {}
+                for month, a_value, b_value, n, denominator, *_rest in doc["rows"]:
+                    if (a_value, b_value)[side] != NOT_BROKEN_DOWN:
+                        summed[(month, (a_value, b_value)[side])] = summed.get((month, (a_value, b_value)[side]), 0) + (n or 0)
+                for key, visible in summed.items():
+                    assert single[key][2] is None or visible <= single[key][2], (name, key)
+            continue
         step = 10 ** -int(extra["cfg"].pipeline["fuel_consumption"]["sum_decimals"])
         for side, dim in enumerate(dims):
             summed = {}

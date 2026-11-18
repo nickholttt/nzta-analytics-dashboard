@@ -1,0 +1,52 @@
+{
+  "contract_version": 1,
+  "generated_at": "2026-11-17T00:00:00Z",
+  "latest_snapshot": "2026-10-31",
+  "datasets": {
+    "stock": {
+      "months": 1,
+      "latest_month": "2026-10",
+      "live_dimensions": [
+        "usage",
+        "kind",
+        "loose",
+        "unbroken"
+      ],
+      "live_pairs": [
+        "usage__kind",
+        "loose__kind",
+        "unbroken__kind"
+      ],
+      "small_cells": {
+        "usage": {
+          "minimum": 10,
+          "minimum_hidden_cells": 2,
+          "minimum_hidden_vehicles": 10,
+          "months": 1
+        },
+        "unbroken": {
+          "minimum": 10,
+          "minimum_hidden_cells": 2,
+          "minimum_hidden_vehicles": 10,
+          "months": 1
+        }
+      },
+      "small_cell_pairs": {
+        "usage__kind": {
+          "minimum": 10,
+          "minimum_hidden_cells": 2,
+          "minimum_hidden_vehicles": 10,
+          "months": 1
+        },
+        "unbroken__kind": {
+          "minimum": 10,
+          "minimum_hidden_cells": 2,
+          "minimum_hidden_vehicles": 10,
+          "months": 1
+        }
+      },
+      "facts": null
+    }
+  },
+  "warnings": []
+}

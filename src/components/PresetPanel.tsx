@@ -5,7 +5,7 @@ import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder"
 import { shownEnd } from "../lib/pin";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { figuresHeader } from "../lib/figuresHeader";
-import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
+import { compositeRules, phrases, valueWords, findDataset, datasetBasisNote, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { dimensionNote, fieldNoteAnchor } from "../lib/dimensionNote";
 import { conditionsSentence } from "../lib/scope";
@@ -50,8 +50,6 @@ class ChunkBoundary extends Component<{ children: ReactNode }, { failed: "load" 
     );
   }
 }
-
-const BASIS_NOTE = "Registrations recorded by NZTA. Not the same as vehicle sales.";
 
 // A value's own words where it is one of the reserved tokens, otherwise the value as it is. Asked with hasOwn, since a
 // value can be any text and a plain lookup would answer a built-in for one such as "constructor".
@@ -362,6 +360,7 @@ export default function PresetPanel({
   const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy, keptBy, notBuilt } = resolution;
   const notBuiltMessage = notBuilt ? findDataset(notBuilt)?.not_built_message : undefined;
   const dataset = findDataset(effectivePreset.dataset);
+  const basisNote = datasetBasisNote(effectivePreset.dataset);
   const derived = findDerived(effectivePreset.derived);
   const served = servedFrom(effectivePreset.dataset, manifest);
   const dsManifest = served ? manifest.datasets[served] : undefined;
@@ -413,7 +412,7 @@ export default function PresetPanel({
   // A share is a share of everything counted, so vehicles with no value of the breakdown are in the whole and drawn as a part of it. Said where the
   // chart has such a part in the window it draws, so a reader never takes a share to be of the vehicles recorded.
   if (measure?.kind === "share" && dimension && preventsRender.length === 0 && (shape === "mix" || shape === "distribution") && rows && notRecordedDrawn(rows, effectivePreset.period, latestMonthOf(effectivePreset, manifest))) {
-    const field = dimensionWords(dimension.id, internal) || dimension.id;
+    const field = dimensionWords(dimension.id, internal, effectivePreset.dataset) || dimension.id;
     notes.push({ key: "share-of-all", text: fillNote(phrases.share_with_not_recorded, { field, value: reservedLabel(NOT_RECORDED_TOKEN) }).text, unresolved: [] });
   }
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
@@ -421,7 +420,7 @@ export default function PresetPanel({
   // terms, is internal.
   const quoted = (values: string[], dimensionId?: string) => values.map((v) => `“${valueWords(dimensionId, reservedLabel(v))}”`).join(" or ");
   const nameOf = (id: string) => {
-    const words = dimensionWords(id, internal) || id;
+    const words = dimensionWords(id, internal, effectivePreset.dataset) || id;
     return lowerLabel(words);
   };
   const scope = keptBy?.length
@@ -459,11 +458,11 @@ export default function PresetPanel({
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
-  const dimensionLabel = dimension ? dimensionWords(dimension.id, internal) : undefined;
-  const dimensionLabel2 = dimension2 ? dimensionWords(dimension2.id, internal) : undefined;
+  const dimensionLabel = dimension ? dimensionWords(dimension.id, internal, effectivePreset.dataset) : undefined;
+  const dimensionLabel2 = dimension2 ? dimensionWords(dimension2.id, internal, effectivePreset.dataset) : undefined;
 
   // The answer comes straight under the question: a count's figure and sentence for a month, or who is first in a ranking.
-  const answerFirst = preventsRender.length === 0 && Boolean(rows?.length) && ((Boolean(preset.answer) && shape === "trend") || (shape === "league" && Boolean(effectivePreset.values?.length || effectivePreset.ranks_all)) || shape === "matrix");
+  const answerFirst = preventsRender.length === 0 && Boolean(rows?.length) && ((Boolean(preset.answer) && shape === "trend") || (shape === "league" && Boolean(effectivePreset.values?.length || effectivePreset.ranks_all || dataset?.single_period)) || shape === "matrix");
   const replacedNotice = periodReplaced ? (
     <p className="chart-unit" role="status">
       {fillNote(phrases.period_replaced, periodReplaced).text}
@@ -721,7 +720,8 @@ export default function PresetPanel({
         </div>
       ) : null}
 
-      {preventsRender.length === 0 ? (
+      {/* A dataset of one period has no range of time to choose (dimensions.json, single_period). */}
+      {preventsRender.length === 0 && !dataset?.single_period ? (
         <div className="toggle" role="radiogroup" aria-label="Time range">
           {rangeOptions.map((o) => (
             <label key={o.key}>
@@ -879,7 +879,7 @@ export default function PresetPanel({
             . Their shares are drawn in grey, not dropped and not zeroed. {phrases.grey_beyond_scale}
           </li>
         ) : null}
-        {notBuilt && !internal ? null : <li className="basis">{BASIS_NOTE}</li>}
+        {(notBuilt && !internal) || !basisNote ? null : <li className="basis">{basisNote}</li>}
       </ul>
 
       {internal ? (

@@ -1,12 +1,13 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { chartDefaults, dimensionLabel, dimensions, findDerived, findMeasure, hybrid } from "../lib/config";
+import { chartDefaults, datasets, dimensionLabel, dimensions, findDerived, findMeasure, hybrid } from "../lib/config";
 import { fieldNoteAnchor, fullNote } from "../lib/dimensionNote";
 import { TOP_N_SHARE } from "../lib/derived";
 import { MAX_MARKERS, MEASUREMENT_WARNING } from "../lib/events";
 import { SERIES } from "../lib/theme";
 import { ALL_OTHER } from "../components/MixChart";
 import { RESERVED_LABELS } from "../components/PresetPanel";
+import dataMap from "../../config/data_map.json";
 
 // Thresholds come from config so the page cannot drift from what the charts apply. Prose here
 // restates docs/METRICS.md for readers who are not analysts; METRICS.md is the source.
@@ -19,7 +20,11 @@ const topN = findDerived(TOP_N_SHARE)?.top_n;
 const completeAt = Math.round(hybrid.complete_at_coverage * 100);
 const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage * 100);
 const colourSlots = chartDefaults.colour_slots_by_trailing;
+// The least count a table of a field that describes the owner or the use of a vehicle shows (config/data_map.json, owner_rule).
+const hideBelow = dataMap.owner_rule.minimum_count;
 // The whole of each note a chart shows as one line, from the same config text, so the line and the note cannot drift apart (D-137).
+// Each dataset's own basis note, the last line under its charts (config/dimensions.json, basis_note).
+const basisNotes = datasets.flatMap((d) => (d.basis_note ? [{ label: d.public_label ?? d.label, note: d.basis_note }] : []));
 const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: dimensionLabel(d.id) ?? d.id, note: fullNote(d) as string }] : []));
 ---
 
@@ -55,7 +60,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       </li>
       <li>
         <strong>Stock (<code>fleet</code>)</strong>: every vehicle registered at a month end, whenever it was first
-        registered. No chart on this site uses it.
+        registered. Build counts it at the snapshot date only, as the vehicles registered today.
       </li>
     </ul>
 
@@ -192,6 +197,16 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       A month with fewer than {floor} registrations behind it, or far fewer than the months before, is left out, not
       drawn as zero. Completeness is a ratio of two counts, not a match of vehicles one by one, and it is never used to
       scale or adjust any other figure.
+    </p>
+
+    <h2 id="hidden-counts">Hidden Counts</h2>
+    <p>
+      A table of a field that describes how a vehicle is used, or who has it, never shows a count under {hideBelow}, so no
+      vehicle can be picked out from it. A hidden count is marked <em>hidden</em>, with no bar and no number, and is never
+      drawn as zero. A few counts beside a hidden one are hidden too: a total less the counts shown would otherwise give a
+      hidden one away. The totals of every row and column are complete and count every vehicle, so they can be more than
+      the counts shown beside them add up to. Where no cell of a table could be shown without giving a vehicle away, the
+      table is not broken down, and the page says so.
     </p>
 
     <h2 id="long-run-cars">Long-Run Car Registrations</h2>
@@ -400,7 +415,12 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       <li><strong>No extrapolation</strong>: charts end at the latest snapshot. Nothing is projected or forecast.</li>
       <li><strong>Greyed, not zeroed</strong>: a figure that trips a guard is greyed out, never shown as 0%.</li>
       <li>
-        <strong>Basis note</strong>: every chart states its dataset's definition and carries the note <em>“Registrations recorded by NZTA. Not the same as vehicle sales.”</em>
+        <strong>Basis note</strong>: every chart states its dataset's definition and ends with that dataset's own basis note, from the same configuration as the chart:
+        <ul>
+          {basisNotes.map((d) => (
+            <li>{d.label}: <em>“{d.note}”</em></li>
+          ))}
+        </ul>
       </li>
     </ul>
   </article>

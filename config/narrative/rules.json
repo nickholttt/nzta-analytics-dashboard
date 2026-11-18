@@ -32,7 +32,7 @@
   "placeholders": {
     "answer": ["month", "count", "prior_month", "prior_count", "change"],
     "words": ["months", "window", "vehicles"],
-    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to", "count", "label", "value", "months", "window", "trailing", "all_time", "trailing_high", "all_time_high", "hybrid", "vehicles", "floor", "threshold", "picked", "field", "leader", "leaders", "names", "list", "column", "mark", "reason", "counted", "row", "row_field", "column_field", "rest"],
+    "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to", "count", "label", "value", "months", "window", "trailing", "all_time", "trailing_high", "all_time_high", "hybrid", "vehicles", "floor", "threshold", "picked", "field", "leader", "leaders", "names", "list", "column", "mark", "reason", "counted", "row", "row_field", "column_field", "rest", "minimum"],
     "notices": ["asked", "shown", "dataset", "field", "pinned", "date", "latest", "kind"],
     "keeping": ["date", "count", "name", "max"],
     "line": [],

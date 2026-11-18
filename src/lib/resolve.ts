@@ -6,7 +6,7 @@
 // triage table that has quietly gone stale is worse than no triage table.
 import { COMPOSITE, chartDefaults, compositeRules, datasetClashes, datasetsRead, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, periods, presets } from "./config";
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
-import { PAIR_SEPARATOR, datasetLatestMonth, isBuilt, smallCellDimensions } from "./data";
+import { PAIR_SEPARATOR, SMALL_CELL_KEY, SMALL_CELL_PAIR_KEY, datasetLatestMonth, isBuilt, ruleMinimum, smallCellDimensions } from "./data";
 import type { Manifest, ViewSource } from "./data";
 import { datasetFirstMonth, isUnbuilt } from "./built";
 import type { Covers } from "./rolling";
@@ -50,13 +50,16 @@ export type Resolution = {
 // window, not a series over time.
 export function questionFacts(preset: Preset, dimension?: Dimension, measure?: Measure): Facts {
   const period = findPeriod(preset.period);
-  const onePeriod = period?.months !== undefined && period.months <= chartDefaults.trailing_window_months;
+  // A dataset with one period (a count as at the snapshot) is looked at in that one period, whatever range the question names.
+  const single = Boolean(findDataset(preset.dataset)?.single_period);
+  const onePeriod = single || (period?.months !== undefined && period.months <= chartDefaults.trailing_window_months);
   const picked = preset.values?.length ?? 0;
   return {
     measure: (measure ?? findDerived(preset.derived))?.kind,
     by: dimension?.kind ?? "none",
     values: dimension ? valuesClass(dimension.cardinality) : "none",
     span: onePeriod ? "one_period" : "over_time",
+    periods: single ? "one" : "several",
     picked: picked === 0 ? "none" : picked === 1 ? "one" : "several",
     crossed_with: findDimension(preset.dimension2 ?? preset.cross)?.kind ?? "none",
   };
@@ -219,18 +222,6 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     }
   });
 
-  // A table that hides its small counts is not drawn, whatever the question does with it: as a breakdown, a second one, a crossing or a condition
-  // (D-130). A field the manifest lists is blocked here, before anything loads; the loader refuses such a table too, in case a manifest is wrong or old.
-  const hidesCells = (dataset: string | undefined, fields: (string | null | undefined)[]) => {
-    const hidden = new Set(smallCellDimensions(manifest, dataset));
-    for (const d of new Set(fields)) {
-      const text = `dimension "${d}" has small counts hidden in ${dataset}, and this site does not draw a table like that yet`;
-      if (d && hidden.has(d) && !blocked.includes(text)) add("blocked", text);
-    }
-  };
-  const asked = Object.entries(preset.where ?? {}).filter(([, kept]) => kept.length > 0).map(([d]) => d);
-  hidesCells(cubeDataset, [breakdown, preset.dimension2, preset.cross, ...narrowing.map((n) => n.key), ...asked]);
-
   // A built question that names values or filters is summed from the fact table, which carries every configured
   // dimension at once, so any number of filters applies. Without a fact table, or one that lacks a dimension the question
   // names, nothing is drawn: a chart quietly missing a filter would answer a different question.
@@ -241,7 +232,13 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     const named = [...(preset.dimension ? [preset.dimension] : []), ...(preset.dimension2 ? [preset.dimension2] : []), ...Object.keys(where)];
     // A dimension the config does not define has no name to show a visitor, so it is as missing as one the table lacks.
     const missing = named.filter((d) => !facts?.dimensions.includes(d) || !findDimension(d));
-    if (!facts) add("blocked", "this build carries no fact table, so a question with chosen values or filters cannot be answered");
+    // A dataset with no fact table draws a grid of two fields from the pair slice of the two, every value of both, for the one period it holds (D-139).
+    const gridPair =
+      !facts && cubeDataset && entry && preset.dimension && preset.dimension2 && preset.values === undefined && preset.values2 === undefined && Object.keys(where).length === 0
+        ? findPair(entry.live_pairs ?? [], preset.dimension, preset.dimension2)
+        : undefined;
+    if (gridPair && cubeDataset && preset.dimension && preset.dimension2) source = { dataset: cubeDataset, dimension: preset.dimension, cross: { dimension: preset.dimension2, pair: gridPair, grid: true } };
+    else if (!facts) add("blocked", "this build carries no fact table, so a question with chosen values or filters cannot be answered");
     else if (missing.length) add("blocked", `the fact table does not carry ${missing.join(", ")}`);
     else if (cubeDataset) {
       source = {
@@ -272,6 +269,31 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
   // A breakdown drawn frame by frame through time is a different picture from one period's distribution: nothing draws
   // it yet, and drawing the period's total instead would not answer the question.
   if (preset.animate_by) add("blocked", `"animate_by": "${preset.animate_by}" has no renderer in this tool: the ${shape} renderer draws one period at a time`);
+
+  // A dataset with one period has no series over time: a question that would draw it as one is not drawn.
+  const onePeriodDataset = Boolean(findDataset(cubeDataset)?.single_period);
+  if (onePeriodDataset && shape && !isWindowShape(shape)) add("blocked", `shape "${shape}" is drawn over time, and dataset "${cubeDataset}" has one period`);
+
+  // A table that hides its small counts is not drawn, whatever the question does with it: as a breakdown, a second one, a crossing or a condition
+  // (D-130). A field the manifest lists is blocked here, before anything loads; the loader refuses such a table too, in case a manifest is wrong or old.
+  // One thing is drawn (D-139): a dataset of one period, with the field as the breakdown of a ranking or the pair of two fields as a grid, where the
+  // manifest's entry for that slice or pair says the rule was applied. The hidden cells are then drawn as hidden. A window over several months cannot
+  // be (a hidden month has no total for the value), and a narrowed or crossed use of a protected table is a sum of its cells.
+  const hidesCells = (dataset: string | undefined, fields: (string | null | undefined)[], drawn: ReadonlySet<string> = new Set()) => {
+    const hidden = new Set(smallCellDimensions(manifest, dataset));
+    for (const d of new Set(fields)) {
+      const text = `dimension "${d}" has small counts hidden in ${dataset}, and this site does not draw a table like that yet`;
+      if (d && hidden.has(d) && !drawn.has(d) && !blocked.includes(text)) add("blocked", text);
+    }
+  };
+  const asked = Object.entries(preset.where ?? {}).filter(([, kept]) => kept.length > 0).map(([d]) => d);
+  const drawnHidden = new Set<string>();
+  if (onePeriodDataset && cubeDataset && breakdown && narrowing.length === 0 && asked.length === 0 && preset.values === undefined && !preset.cross) {
+    if (shape === "league" && !preset.dimension2 && ruleMinimum(manifest, cubeDataset, SMALL_CELL_KEY, breakdown) !== undefined) drawnHidden.add(breakdown);
+    const pair = shape === "matrix" && preset.dimension2 ? findPair(entry?.live_pairs ?? [], breakdown, preset.dimension2) : undefined;
+    if (pair && preset.dimension2 && ruleMinimum(manifest, cubeDataset, SMALL_CELL_PAIR_KEY, pair.pair) !== undefined) [breakdown, preset.dimension2].forEach((d) => drawnHidden.add(d));
+  }
+  hidesCells(cubeDataset, [breakdown, preset.dimension2, preset.cross, ...narrowing.map((n) => n.key), ...asked], drawnHidden);
 
   // A measure that divides one dataset by another needs both built, and the breakdown live in both. The numerator's own
   // breakdown, where the measure names one, is the one it divides on, narrowed through a pair slice where the measure says so.

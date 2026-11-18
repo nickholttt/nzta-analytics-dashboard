@@ -46,6 +46,8 @@ async function valueOptions(dataset: string, dimension: string, where: Record<st
   const from = addMonths(latest, -(TRAILING_MONTHS - 1));
   const byValue = new Map<string, ValueOption>();
   for (const r of rows as SliceRow[]) {
+    // A hidden count has no number to add, and a period that is not broken down has no value (D-139).
+    if (r.hidden || r.notBrokenDown) continue;
     const o = byValue.get(r.value) ?? { value: r.value, recent: 0, total: 0 };
     o.total += r.n;
     if (r.month >= from && r.month <= latest) o.recent += r.n;
@@ -282,7 +284,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const views = useMemo(() => viewsFor(question), [question]);
   // Said while the question still holds the condition a breakdown's field calls for (D-132).
   const narrowed = useMemo(() => narrowingNotes(all, question), [all, question]);
-  const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
+  const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id, false, question.dataset) ?? id;
   // The other shapes a question may be drawn as are a choice of their own; the ranking is reached from the values, where it is about them.
   const otherViews = views.filter((v) => v !== RANKING);
   const noun = breakdown ? lowerLabel(filterLabel(breakdown.id)) : "";
@@ -513,7 +515,10 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
             {[
               { id: question.by, legend: phrases.build_second_rows, chosen: question.values, max: chartDefaults.matrix.rows, set: (values: string[]) => ask({ values }) },
               { id: question.by2, legend: phrases.build_second_columns, chosen: question.values2 ?? [], max: chartDefaults.matrix.columns, set: (values: string[]) => ask({ values2: values }) },
-            ].map((side) => (
+              // A field of a dataset with no fact table cannot have values picked: the grid shows every value of both, so there is nothing to choose.
+            ]
+              .filter((side) => measure.dimensions.find((d) => d.id === side.id)?.values)
+              .map((side) => (
               <fieldset className="question-part" key={side.legend}>
                 <legend>
                   {side.legend}: {lowerLabel(filterLabel(side.id))}

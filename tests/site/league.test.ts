@@ -138,7 +138,7 @@ test("a tie across the cut is counted: the entries beyond the list that share it
 
 test("LeagueChart draws what leagueRows returns, takes the comparison from rankingText, and holds no ranking of its own", () => {
   const league = read("src/components/LeagueChart.tsx");
-  assert.match(league, /leagueRows\(\{ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking\.hasPrior,/);
+  assert.match(league, /leagueRows\(\{ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking\.hasPrior( && !single)?,/);
   assert.match(league, /covers: \{ first: datasetFirstMonth\(manifest\.datasets\[/);
   assert.doesNotMatch(league, /monthsPresent|rankByCount|hasPrior\s*[:=]\s*true/);
 });
