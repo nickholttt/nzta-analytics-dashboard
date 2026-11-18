@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canvas mockup 3: adding a field without dragging</title>
+<link rel="stylesheet" href="canvas.css">
+<style>
+  .order { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-2); }
+  @media (min-width: 761px) {
+    .sheet-scrim { background: rgba(27, 28, 31, 0.18); }
+    .sheet { left: 17rem; right: auto; top: 15rem; bottom: auto; width: 27rem; border-radius: 6px; border: 1px solid var(--ink); max-height: none; }
+    .sheet .handle { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="mock-banner">Mockup for a proposal. Every chart is an illustration, not data.</div>
+<div class="page">
+  <div class="topline">
+    <span class="eyebrow">Snapshot 31 October 2026</span>
+    <nav class="site-nav" aria-label="Site">
+      <a href="#">Explore</a><a href="#" aria-current="page">Board</a><a href="#">Build</a><a href="#">Method</a>
+    </nav>
+  </div>
+  <header class="masthead">
+    <h1>Your board</h1>
+    <p class="standfirst">Every change has a button, so nothing needs dragging. On a phone the charts sit one above the other.</p>
+  </header>
+  <div class="toolbar">
+    <button class="btn primary">+ Add a chart</button>
+    <button class="btn">Fields</button>
+    <button class="btn">Copy link</button>
+  </div>
+
+  <div class="workspace">
+    <aside class="fields hide-phone" aria-label="Fields you can use">
+      <h2>Categories</h2>
+      <div class="chips">
+        <span class="chip"><span class="grip">⋮⋮</span>Powertrain</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Brand</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Built in</span>
+        <span class="chip"><span class="grip">⋮⋮</span>New or used</span>
+      </div>
+    </aside>
+    <main class="board">
+      <article class="tile">
+        <div class="tile-head">
+          <h3>1. What share of vehicles does each powertrain have?</h3>
+        </div>
+        <div class="wells">
+          <span class="well"><b>Show</b><span class="chip">the share</span></span>
+          <span class="well"><b>By</b><span class="chip">Powertrain</span></span>
+        </div>
+        <div class="chart" data-illus="mix" data-h="150"></div>
+        <div class="order" aria-label="Arrange chart 1">
+          <button class="btn small">Add a field</button>
+          <button class="btn small">Move down</button>
+          <button class="btn small hide-phone">Wider</button>
+          <button class="btn small">Remove</button>
+        </div>
+      </article>
+      <article class="tile editing">
+        <div class="tile-head">
+          <h3>2. How many vehicles were first registered in the last 12 months?</h3>
+        </div>
+        <div class="wells">
+          <span class="well"><b>Show</b><span class="chip">the number</span></span>
+          <span class="well"><b>When</b><span class="chip">last 12 months</span></span>
+        </div>
+        <div class="chart" data-illus="trend" data-h="130"></div>
+        <div class="order" aria-label="Arrange chart 2">
+          <button class="btn small focus">Add a field</button>
+          <button class="btn small">Move up</button>
+          <button class="btn small">Remove</button>
+        </div>
+      </article>
+    </main>
+  </div>
+</div>
+
+<div class="sheet-scrim"></div>
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <div class="handle"></div>
+  <h2 id="sheet-title">Add a field to chart 2</h2>
+  <div class="steps"><span>1. Brand</span><span>›</span><span class="now">2. Where it goes</span></div>
+  <ul class="radio-list" role="radiogroup" aria-label="Where Brand goes">
+    <li><span>Break the figures down by Brand<span class="sub">Draws a ranking of every brand.</span></span><span class="radio on" role="radio" aria-checked="true"></span></li>
+    <li><span>Count the brands you choose<span class="sub">Pick them by name; the chart keeps its shape.</span></span><span class="radio" role="radio" aria-checked="false"></span></li>
+    <li class="off"><span>Cross it with another field<span class="sub">Needs a breakdown first.</span></span><span class="radio" role="radio" aria-checked="false" aria-disabled="true"></span></li>
+  </ul>
+  <div class="sheet-actions">
+    <button class="btn primary">Add Brand</button>
+    <button class="btn">Back</button>
+    <button class="btn quiet">Cancel</button>
+  </div>
+  <p class="live" aria-live="polite">Read aloud when added: “Brand added to chart 2. It is now a ranking.”</p>
+</section>
+<script src="illus.js"></script>
+</body>
+</html>

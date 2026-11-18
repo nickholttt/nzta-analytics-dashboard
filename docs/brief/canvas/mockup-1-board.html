@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canvas mockup 1: a board</title>
+<link rel="stylesheet" href="canvas.css">
+</head>
+<body>
+<div class="mock-banner">Mockup for a proposal. Every chart is an illustration, not data. Grey chips such as <span class="ph">month</span> are where a template fills a figure.</div>
+<div class="page">
+  <div class="topline">
+    <span class="eyebrow">Snapshot 31 October 2026</span>
+    <nav class="site-nav" aria-label="Site">
+      <a href="#">Explore</a><a href="#" aria-current="page">Board</a><a href="#">Build a chart</a><a href="#">Methodology</a><a href="#">Data Caveats</a>
+    </nav>
+  </div>
+  <header class="masthead">
+    <h1>Your board</h1>
+    <p class="standfirst">Four questions, each answered by its own chart. Drag a field onto a chart to change its question, or use “Add a field” on any chart. The board redraws on the newest month each time it opens.</p>
+  </header>
+
+  <div class="toolbar" role="toolbar" aria-label="Board">
+    <div class="group"><span class="label">Every chart</span>
+      <button class="btn">Period: last 10 years ▾</button>
+      <button class="btn">Only where: no condition ▾</button>
+    </div>
+    <div class="group">
+      <button class="btn primary">+ Add a chart</button>
+      <button class="btn hide-desktop">Fields</button>
+      <button class="btn">Copy link to this board</button>
+      <button class="btn">Save to My questions</button>
+      <button class="btn">Pin to this snapshot</button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <aside class="fields" aria-label="Fields you can use">
+      <h2>What is counted</h2>
+      <div class="chips"><span class="chip">Vehicles still registered ▾</span></div>
+      <p class="kind-note">Changes the fields listed below.</p>
+      <h2>Find a field</h2>
+      <div class="find">Search fields and values</div>
+      <h2>Measures</h2>
+      <div class="chips">
+        <span class="chip measure"><span class="grip">⋮⋮</span>the number</span>
+        <span class="chip measure"><span class="grip">⋮⋮</span>the share</span>
+        <span class="chip measure"><span class="grip">⋮⋮</span>the change on a year ago</span>
+        <span class="chip measure"><span class="grip">⋮⋮</span>the 12-month running total</span>
+      </div>
+      <h2>Categories</h2>
+      <div class="chips">
+        <span class="chip"><span class="grip">⋮⋮</span>Powertrain</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Brand</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Manufacturer group</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Model</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Built in</span>
+        <span class="chip"><span class="grip">⋮⋮</span>New or used</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Vehicle type</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Gearbox</span>
+      </div>
+      <h2>Ordered bands</h2>
+      <div class="chips">
+        <span class="chip"><span class="grip">⋮⋮</span>Engine size</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Age when first registered here</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Seats</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Power</span>
+      </div>
+      <h2>Places</h2>
+      <div class="chips"><span class="chip owner"><span class="grip">⋮⋮</span>Owner's region</span></div>
+      <p class="kind-note">An owner field: alone or with one other field, small counts hidden. <a href="#">Why</a></p>
+      <h2>Time</h2>
+      <div class="chips"><span class="chip"><span class="grip">⋮⋮</span>Period</span></div>
+    </aside>
+
+    <main class="board" aria-label="Charts on this board">
+      <article class="tile">
+        <div class="tile-head">
+          <h3>What share of vehicles does each powertrain have?</h3>
+          <div class="tile-menu"><button class="icon-btn" aria-label="Chart settings">⋯</button></div>
+        </div>
+        <div class="wells">
+          <span class="well"><b>Show</b><span class="chip">the share</span></span>
+          <span class="well"><b>By</b><span class="chip">Powertrain</span></span>
+          <span class="well empty"><b>Across</b><span class="slot">drop a field</span></span>
+          <span class="well"><b>When</b><span class="chip">board's period</span></span>
+        </div>
+        <p class="answer">In <span class="ph">month</span>, <span class="ph">value</span> had the largest share, <span class="ph">share</span>, up from <span class="ph">share</span> in <span class="ph">month</span>.</p>
+        <div class="chart" data-illus="mix" data-h="170"></div>
+        <div class="shapes" aria-label="Ways to draw this question">
+          <span class="shape on" data-icon="mix">Share over time</span>
+          <span class="shape" data-icon="table">Table</span>
+        </div>
+        <div class="tile-foot"><a href="#">What this counts</a><a href="#">Source and snapshot</a><a href="#">Open on its own</a></div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-head">
+          <h3>Which brands had the most vehicles first registered in the last 12 months?</h3>
+          <div class="tile-menu"><button class="icon-btn" aria-label="Chart settings">⋯</button></div>
+        </div>
+        <div class="wells">
+          <span class="well"><b>Show</b><span class="chip">the number</span></span>
+          <span class="well"><b>By</b><span class="chip">Brand</span></span>
+          <span class="well"><b>When</b><span class="chip">last 12 months</span></span>
+        </div>
+        <p class="answer"><span class="ph">value</span> had the most, <span class="ph">count</span>, followed by <span class="ph">value</span> with <span class="ph">count</span>.</p>
+        <div class="chart" data-illus="league" data-h="170"></div>
+        <div class="shapes">
+          <span class="shape on" data-icon="league">Ranking</span>
+          <span class="shape" data-icon="table">Table</span>
+        </div>
+        <div class="tile-foot"><a href="#">What this counts</a><a href="#">Source and snapshot</a><a href="#">Open on its own</a></div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-head">
+          <h3>How many vehicles were first registered each month?</h3>
+          <div class="tile-menu"><button class="icon-btn" aria-label="Chart settings">⋯</button></div>
+        </div>
+        <div class="wells">
+          <span class="well"><b>Counting</b><span class="chip">True registrations</span></span>
+          <span class="well"><b>Show</b><span class="chip">the number</span></span>
+          <span class="well empty"><b>By</b><span class="slot">drop a field</span></span>
+        </div>
+        <p class="answer">In <span class="ph">month</span>, <span class="ph">count</span> vehicles were registered, up <span class="ph">change</span> on <span class="ph">month</span>.</p>
+        <div class="chart" data-illus="trend" data-h="150"></div>
+        <div class="shapes">
+          <span class="shape on" data-icon="trend">Line over time</span>
+          <span class="shape" data-icon="table">Table</span>
+        </div>
+        <p class="note-line">Each chart says what it counts. Two charts on one board may count different things; they are never drawn on one axis.</p>
+        <div class="tile-foot"><a href="#">What this counts</a><a href="#">Source and snapshot</a><a href="#">Open on its own</a></div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-head">
+          <h3>Current use, by type registered as, of vehicles registered today</h3>
+          <div class="tile-menu"><button class="icon-btn" aria-label="Chart settings">⋯</button></div>
+        </div>
+        <div class="wells">
+          <span class="well"><b>Counting</b><span class="chip">Vehicles registered today</span></span>
+          <span class="well"><b>By</b><span class="chip owner">Current use</span></span>
+          <span class="well"><b>Across</b><span class="chip">Registered as</span></span>
+        </div>
+        <p class="answer"><span class="ph">value</span> holds the most vehicles, <span class="ph">count</span> of <span class="ph">count</span>.</p>
+        <div class="chart" data-illus="matrix" data-h="170" data-hidden></div>
+        <p class="note-line">Small counts are hidden in a table of an owner field, and this chart holds its two fields. <a href="#">Why</a></p>
+        <div class="shapes">
+          <span class="shape on" data-icon="matrix">Grid</span>
+          <span class="shape" data-icon="table">Table</span>
+        </div>
+        <div class="tile-foot"><a href="#">What this counts</a><a href="#">Source and snapshot</a><a href="#">Open on its own</a></div>
+      </article>
+    </main>
+  </div>
+</div>
+<script src="illus.js"></script>
+</body>
+</html>

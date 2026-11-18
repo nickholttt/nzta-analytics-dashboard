@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canvas mockup 2: a field held over a chart</title>
+<link rel="stylesheet" href="canvas.css">
+<style>
+  .stage { position: relative; }
+  .ghost-wrap { position: absolute; left: 13.5rem; top: 4.6rem; }
+  @media (max-width: 760px) { .ghost-wrap { left: 8rem; top: 7.2rem; } }
+</style>
+</head>
+<body>
+<div class="mock-banner">Mockup for a proposal. Every chart is an illustration, not data. Grey chips such as <span class="ph">month</span> are where a template fills a figure.</div>
+<div class="page">
+  <div class="topline">
+    <span class="eyebrow">Snapshot 31 October 2026</span>
+    <nav class="site-nav" aria-label="Site">
+      <a href="#">Explore</a><a href="#" aria-current="page">Board</a><a href="#">Build a chart</a><a href="#">Methodology</a><a href="#">Data Caveats</a>
+    </nav>
+  </div>
+  <header class="masthead">
+    <h1>Your board</h1>
+  </header>
+
+  <div class="workspace">
+    <aside class="fields" aria-label="Fields you can use">
+      <h2>Measures</h2>
+      <div class="chips">
+        <span class="chip measure"><span class="grip">⋮⋮</span>the number</span>
+        <span class="chip measure"><span class="grip">⋮⋮</span>the share</span>
+        <span class="chip measure"><span class="grip">⋮⋮</span>the change on a year ago</span>
+      </div>
+      <h2>Categories</h2>
+      <div class="chips">
+        <span class="chip"><span class="grip">⋮⋮</span>Powertrain</span>
+        <span class="chip dragging"><span class="grip">⋮⋮</span>Brand</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Manufacturer group</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Model</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Built in</span>
+        <span class="chip"><span class="grip">⋮⋮</span>New or used</span>
+      </div>
+      <h2>Ordered bands</h2>
+      <div class="chips">
+        <span class="chip"><span class="grip">⋮⋮</span>Engine size</span>
+        <span class="chip"><span class="grip">⋮⋮</span>Age when first registered here</span>
+      </div>
+      <h2>Places</h2>
+      <div class="chips"><span class="chip owner"><span class="grip">⋮⋮</span>Owner's region</span></div>
+    </aside>
+
+    <main class="board">
+      <article class="tile wide editing stage" aria-describedby="drop-help">
+        <div class="tile-head">
+          <h3>What share of vehicles does each <span class="ph">field</span> have?</h3>
+          <div class="tile-menu"><button class="btn small">Add a field</button><button class="icon-btn" aria-label="Chart settings">⋯</button></div>
+        </div>
+        <div class="wells">
+          <span class="well"><b>Show</b><span class="chip">the share</span></span>
+          <span class="well target"><b>By</b><span class="slot">release to add</span></span>
+          <span class="well empty"><b>Across</b><span class="slot">drop a field</span></span>
+          <span class="well empty"><b>Only where</b><span class="slot">drop a field</span></span>
+          <span class="well"><b>When</b><span class="chip">last 10 years</span></span>
+        </div>
+        <div class="ghost-wrap"><span class="chip ghost"><span class="grip">⋮⋮</span>Brand</span></div>
+
+        <div class="picker" id="drop-help" aria-live="polite">
+          <h4>If Brand goes in “By”, this question can be drawn as</h4>
+          <ul>
+            <li><span class="shape on" data-icon="mix"></span><span class="name">Share over time <span class="badge best">best fit</span></span><span class="why">Each brand's share, month by month. The largest are drawn and the rest are shown together as All other.</span></li>
+            <li><span class="shape" data-icon="table"></span><span class="name">Table <span class="badge fits">always</span></span><span class="why">The figures behind the chart, and a file of them.</span></li>
+            <li class="off"><span class="shape off" data-icon="league"></span><span class="name">Ranking</span><span class="why">A ranking looks at one window, and this question runs over time. <a href="#">Rank the last 12 months instead</a></span></li>
+            <li class="off"><span class="shape off" data-icon="matrix"></span><span class="name">Grid</span><span class="why">A grid crosses two fields. Drop a second field on “Across”.</span></li>
+            <li class="off"><span class="shape off" data-icon="distribution"></span><span class="name">Distribution</span><span class="why">A distribution needs a field whose values run in order, such as a band.</span></li>
+            <li class="off"><span class="shape off" data-icon="geo"></span><span class="name">Map</span><span class="why">A map needs a place in “By”.</span></li>
+            <li class="off"><span class="shape off" data-icon="trend"></span><span class="name">Line over time</span><span class="why">Lines of a count need “the number” in “Show”. <a href="#">Show the number instead</a></span></li>
+          </ul>
+        </div>
+        <div class="chart" data-illus="mix" data-h="120"></div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-head">
+          <h3>Which brands had the most vehicles first registered in the last 12 months?</h3>
+        </div>
+        <div class="wells">
+          <span class="well"><b>Show</b><span class="chip">the number</span></span>
+          <span class="well"><b>By</b><span class="chip">Brand</span></span>
+          <span class="well refuse"><b>Across</b><span class="slot">Manufacturer group</span></span>
+        </div>
+        <div class="callout blocked" role="status"><strong>Not added.</strong> Each value of Brand sits under one value of Manufacturer group, so a grid of the two would be empty off one line. A field that is not a roll-up of Brand can go across the top.</div>
+        <div class="chart" data-illus="league" data-h="130"></div>
+      </article>
+
+      <article class="tile">
+        <div class="tile-head">
+          <h3>What share of new vehicles does each powertrain have?</h3>
+        </div>
+        <div class="wells">
+          <span class="well"><b>By</b><span class="chip">Powertrain</span></span>
+          <span class="well"><b>Only where</b><span class="chip">New or used: 1 value</span></span>
+          <span class="well refuse"><b>Across</b><span class="slot">Owner's region</span></span>
+        </div>
+        <div class="callout blocked" role="status"><strong>Not added.</strong> Owner's region describes a vehicle's owner, so a chart can show it alone or with one other field, and this chart already names two. <a href="#">Start a new chart of Owner's region by Powertrain</a></div>
+        <div class="chart" data-illus="mix" data-h="130"></div>
+      </article>
+    </main>
+  </div>
+</div>
+<script src="illus.js"></script>
+</body>
+</html>

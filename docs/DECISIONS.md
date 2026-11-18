@@ -6361,3 +6361,37 @@ New entries use this template:
   from the dashboard; the ledger in the archive job (an architecture change to the Monthly build's archive job, with its
   own record before it is built).
 - Status: accepted (the user's direction); the design above is decided by Claude (unreviewed)
+
+## D-142 2026-11-18 — A board of charts the visitor builds: a design proposal for the user's end state (D-138), parked for the user
+- Agent: claude
+- Basis: D-138 (the user's end state, in their words: "a watered-down Power BI-style visual analytics page which is fully
+  customisable with the measures from the data set where the user can build their own charts by dragging and dropping and
+  choose different ways of visualising the data"); CLAUDE.md ("The goal", "How every page reads", the invariants, Shapes,
+  the non-goals); AGENTS.md hard rule 1; `docs/brief/WORK_ORDER.md` §3 and package H; `config/chart_rules.json` and
+  `src/lib/shapes.ts` (D-100); D-058, D-091, D-096, D-099, D-114, D-125, D-127, D-130, D-131, D-135, D-139. Measured on
+  2026-11-18: the fact-table column files of the local build of the 2026-10 snapshot (`registrations_surviving`, 641,618
+  rows): the count column 378,842 bytes, the whole table 1,768,391; the Explore and Build pages, screenshotted headless.
+  The proposal is `docs/brief/CANVAS_PROPOSAL.md`, with mockups in `docs/brief/canvas/`.
+- Context: D-138 noted the end state and asked for nothing to change until UI work starts. This record is the design
+  for the user to decide on then: what a board is, how the rule table, saved questions, pins, templates, the small-cell
+  rules, the first-load budget and the query service carry over, and which lines of CLAUDE.md would be reworded.
+- Options considered:
+  - (A) A board replaces Build: one surface at once, but the largest change first, and every Build link and saved
+    question has to be carried over in one step. Not recommended as the start.
+  - (B) A board beside Build, each chart on it a Build question, Build kept as the one-chart view, Explore's sections as
+    starting boards in config. Links, saved questions, pins, the rule table and the resolver's checks carry over
+    unchanged, and it can be built in small steps. Recommended.
+  - (C) "Add to board" first: a button on every chart and a board page to arrange them, with no field dragging. The
+    smallest step, and the first step of (B). Recommended as the start of (B).
+  - Shapes that do not fit: hidden (today), listed greyed with the reason and a one-click nearest question and never
+    drawn (recommended), or drawable with a warning (breaks "they never get a shape that does not fit"; not recommended).
+  - A seventh shape (the scatter): not proposed. Variants inside the six (small multiples, stacked count columns, a
+    single figure, a slope) are proposed for the user to choose from, each its own decision when built.
+- Decision: proposed, parked for the user. Recommended: (B) reached through (C), in nine pull requests listed in the
+  proposal, after the narrative engine (package H) and with the first-load speed addressed. The CLAUDE.md wording in the
+  proposal's section 4 is proposed, not applied: changing CLAUDE.md needs the user's approval (work order §3). The eight
+  invariants, the six shapes and the non-goals hold unchanged. Visitor-typed names never travel in a board's link, so a
+  link to this site cannot show someone's sentence as a heading over real charts.
+- Consequences: nothing on the site changes. Three questions for the user are in the proposal's section 7 and in the
+  pull request. When UI work starts, D-138 and this record are raised first.
+- Status: proposed
