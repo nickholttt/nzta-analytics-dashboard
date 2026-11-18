@@ -119,7 +119,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
         format: { count: (n) => n.toLocaleString("en-NZ"), pct },
         thin: markReason("thin", floor),
         noBase: { row: phrases.matrix_no_base_row, column: phrases.matrix_no_base_column },
-        hidden: { text: phrases.hidden_word, reason: fillTemplate(phrases.hidden_reason, { minimum }).text },
+        hidden: { text: phrases.hidden_word, reason: fillTemplate(phrases.hidden_reason, { minimum }).text, noShare: { row: phrases.matrix_no_share_row_hidden, column: phrases.matrix_no_share_column_hidden } },
       }),
     [grid, rowHeading, floor, minimum],
   );
@@ -267,7 +267,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
               {stepLabel(step.from, step.to)}
             </li>
           ))}
-          {hiddenCells > 0 || grid.rowTotals.some((t) => t === null) ? (
+          {hiddenCells > 0 || grid.rowTotals.some((t) => t === null) || grid.columnTotals.some((t) => t === null) ? (
             <li>
               <span className="matrix-swatch hidden" aria-hidden="true" />
               {fillTemplate(phrases.matrix_legend_hidden, { minimum }).text}
@@ -319,7 +319,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
             <tr>
               <th scope="row" className="matrix-side total">{table.rows[table.rows.length - 1].head}</th>
               {table.rows[table.rows.length - 1].cells.map((c, j) => (
-                <td key={j} className="matrix-cell step-0 total">{c.text}</td>
+                <td key={j} className={`matrix-cell step-0${c.mark ? ` ${c.mark}` : ""} total`}>{c.text}</td>
               ))}
             </tr>
           </tfoot>

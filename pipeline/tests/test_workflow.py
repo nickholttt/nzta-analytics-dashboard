@@ -161,6 +161,18 @@ def test_the_public_build_refuses_a_link_to_an_internal_page_however_it_is_quote
     assert sorted(Path(f).name for f in found) == sorted(cases)
 
 
+def test_the_newest_cube_and_the_earlier_ones_read_every_page_of_releases():
+    """D-146: both steps that read the releases read every page, so a release past the first hundred is neither missed as
+    the newest nor dropped as a kept snapshot; the newest is sorted once every page is read. The host's limits are checked by
+    the public-build check, and the workflow reruns when they change."""
+    lines = [line.strip() for line in (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()]
+    reads = [line for line in lines if "releases?per_page=" in line]
+    assert len(reads) == 2 and all("--paginate" in line for line in reads), reads
+    newest = lines[lines.index("- name: The newest cube"):lines.index("- name: The earlier snapshots")]
+    assert "tag=$(printf '%s\\n' $tags | sort | tail -n 1)" in newest
+    assert '- "scripts/host-limits.mjs"' in lines
+
+
 def test_a_rerun_of_the_whole_deploy_replaces_the_site_artifact():
     lines = [line.strip() for line in (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()]
     step = lines[lines.index("name: site"):]

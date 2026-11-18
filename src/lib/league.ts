@@ -57,6 +57,10 @@ const months = (from: string, to: string) => {
   return out;
 };
 
+// How many places a ranking draws. Values a visitor chose are all ranked. A dataset of one period ranks every value it has: its cut would drop the rest with no
+// line to say so, and a line that held them ("All other") would add hidden counts to shown ones. A ranking over time keeps the visitor's cut, which its control shows.
+export const rankingLimit = (o: { single: boolean; picked: readonly string[] | undefined; topN: number }): number => (o.picked ? o.picked.length : o.single ? Infinity : o.topN);
+
 export function leagueRows(input: LeagueInput) {
   const { rows, currentFrom, end, priorFrom, priorTo, hasPrior, topN, nameOf, yearFloor } = input;
   const currentCounts = new Map<string, number>();

@@ -122,6 +122,8 @@
       "matrix_rest_beyond": "the vehicles whose {field} falls beyond the cap on how many values it keeps",
       "matrix_hidden_one": "One cell is hidden. Counts under {minimum}, and a few more beside them, are hidden so that no vehicle can be picked out. The last row and the last column are the complete totals, so they are more than the cells shown add up to.",
       "matrix_hidden": "{count} cells are hidden. Counts under {minimum}, and a few more beside them, are hidden so that no vehicle can be picked out. The last row and the last column are the complete totals, so they are more than the cells shown add up to.",
+      "matrix_no_share_row_hidden": "This row's total is hidden, so a share of it cannot be shown.",
+      "matrix_no_share_column_hidden": "This column's total is hidden, so a share of it cannot be shown.",
       "matrix_legend_hidden": "Hidden: a count under {minimum}, or one hidden beside it.",
       "matrix_tiny": "A share shown with a less-than sign is more than nothing and too small to show to one decimal place; a share of nothing is shown as zero.",
       "matrix_units": "In the table, each share is a percentage written as a plain number. The last row and the last column are whole numbers of vehicles.",

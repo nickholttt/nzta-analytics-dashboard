@@ -27,7 +27,7 @@ import {
   tipStyle,
 } from "../lib/theme";
 import { cellAt, cellText } from "../lib/figures";
-import { leaderIsClear, leagueRows, leagueTable, pickedSummary, rankingGuard } from "../lib/league";
+import { leaderIsClear, leagueRows, leagueTable, pickedSummary, rankingGuard, rankingLimit } from "../lib/league";
 import { useFigures } from "./FiguresContext";
 import type { LeagueRow } from "../lib/league";
 import { PlotFigure } from "./PlotFigure";
@@ -112,7 +112,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   // (docs/METRICS.md, "A ranking and the precision floor").
   const floor = floorOf("share");
   const model = useMemo(() => {
-    const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior && !single, topN: picked ? picked.length : topN, nameOf: label, yearFloor });
+    const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior && !single, topN: rankingLimit({ single, picked, topN }), nameOf: label, yearFloor });
     const items: LeagueItem[] = result.items.map((item, idx) => ({ ...item, colour: seriesColour(idx), isRemainder: false }));
     const guard = rankingGuard({
       floor,
