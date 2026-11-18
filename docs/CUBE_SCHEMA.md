@@ -479,9 +479,10 @@ owner lives, and it is left out of `facts` (D-078; the user's rule for owner
 fields allows them in a slice or a pair only, D-096): with it, two in three of the table's rows counted a single vehicle
 (64.8% on the 2026-10 pull), each with the owner's region beside the model
 and the month. The `region` slice is not affected by that (it takes the small-cell rule, above), and a question that only
-breaks down by region is still answered from it. Putting `region` back would
-need the user to change that rule first; it is then a one-word change to
-`facts`, and a contract change shown to the user.
+breaks down by region is still answered from it. The build holds to this: a dataset whose `facts` names a dimension that
+reads an owner field (worked out from `config/data_map.json`, as for the slices) aborts before anything is read or written
+(*Guardrails*, below). Putting `region` back would need the user to change that rule first, and the guard with it; it is then
+a contract change shown to the user.
 
 The table's total is checked against the vehicles themselves: the counts are
 read back from the written `n.parquet` and must equal the dataset's vehicles
@@ -1153,6 +1154,12 @@ Stock datasets, found before anything is read (*Stock datasets*):
   `not_by` that names a field `config/pipeline.json` does not have, or a dimension that reads a field in `not_by`.
 - A dimension that reads a field the data map marks `stock_only` has no `applies_to`, names a dataset that is not a stock in it,
   or is listed in the `dimensions`, `pairs` or `facts` of a dataset that is not a stock.
+
+Fact tables, found before anything is read:
+
+- A dataset's `facts` names a dimension that reads an owner field (the data map's owner groups and `derive_reads`, worked out by
+  `pipeline/privacy.py`; D-096, D-078). The message names the dataset, the dimension and the owner field, and says to remove the
+  dimension from that dataset's `facts`. A data map the build cannot read aborts the same check.
 
 Pairs:
 

@@ -7,12 +7,13 @@ in this module except as the config names it (design invariant 1).
 
 from __future__ import annotations
 
+import copy
 import json
 
 import duckdb
 import pytest
 
-from pipeline import config, derive, outputs, privacy, reference, small_cells
+from pipeline import build, config, derive, outputs, privacy, reference, small_cells
 from pipeline.contract import NOT_BROKEN_DOWN
 from pipeline.errors import GuardrailError
 
@@ -277,3 +278,38 @@ def test_a_data_map_the_build_cannot_use_aborts_before_anything_is_written(tmp_p
 def test_a_missing_data_map_aborts(tmp_path, workspace):
     cfg = make_cfg(workspace, data_map=tmp_path / "absent.json")
     expect_abort(lambda: run(tmp_path, cfg, load_rows(), publish=False), "config/data_map.json cannot be used")
+
+
+# --- an owner dimension is never a column of a fact table ------------------------------------------------------------
+
+
+def datasets_with_facts(cfg) -> list[str]:
+    return sorted(name for name, spec in cfg.pipeline["datasets"].items() if "facts" in spec)
+
+
+def listing_owner_dimension(cfg, dataset: str):
+    """A copy of the config in which the dataset's facts also name the owner dimension of the register dataset."""
+    cfg.pipeline = copy.deepcopy(cfg.pipeline)
+    cfg.pipeline["datasets"][dataset]["facts"] = cfg.pipeline["datasets"][dataset]["facts"] + [owner_dimension()]
+    return cfg
+
+
+def test_the_committed_config_lists_no_owner_dimension_in_any_fact_table():
+    cfg = config.load()
+    assert datasets_with_facts(cfg), "no dataset has a fact table, so the guard would prove nothing"
+    assert build.fact_table_owner_problems(cfg) == []
+
+
+@pytest.mark.parametrize("dataset", datasets_with_facts(config.load()))
+def test_a_fact_table_that_names_an_owner_dimension_aborts_before_anything_is_written(tmp_path, workspace, dataset):
+    cfg = listing_owner_dimension(make_cfg(workspace), dataset)
+    dimension = owner_dimension()
+    fields = privacy.owner_dimensions(cfg)[dimension]
+    with pytest.raises(GuardrailError) as info:
+        run(tmp_path, cfg, load_rows(), publish=False)
+    message = str(info.value)
+    for named in (dataset, dimension, *fields):
+        assert named in message, (named, message)
+    assert "Remove" in message and "facts" in message, message
+    assert not (workspace["staging"] / "build").exists(), "the abort comes before the build writes a file"
+    assert not workspace["public"].exists() and not workspace["state"].exists()

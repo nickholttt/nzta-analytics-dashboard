@@ -202,6 +202,28 @@ def stock_configuration_problems(cfg) -> list[str]:
     return problems
 
 
+def fact_table_owner_problems(cfg) -> list[str]:
+    """Each dataset whose `facts` names a dimension that reads an owner field, found before anything is read or written.
+
+    The user's rule for an owner field allows it in a slice of its own or in a pair, never in a table that crosses many
+    fields (D-096, D-078): with the owner's region beside the model and the month, most rows of the table counted one
+    vehicle. Which dimensions read an owner field is worked out from config/data_map.json (privacy.owner_dimensions), so
+    no dimension is named here. tests/test_data_map.py holds the committed config to the same rule; this holds the build."""
+    try:
+        owner = privacy.owner_dimensions(cfg)
+    except (privacy.DataMapError, OSError, KeyError) as exc:
+        raise GuardrailError("data map", f"config/data_map.json cannot be used to protect owner fields: {exc!r}") from exc
+    problems = []
+    for dataset, spec in cfg.pipeline["datasets"].items():
+        listed = spec.get("facts")
+        for dim_id in (listed if isinstance(listed, list) else []):
+            if dim_id in owner:
+                problems.append(f"{dataset}: facts names {dim_id}, which reads {', '.join(owner[dim_id])}, an owner field in "
+                                f"config/data_map.json; a fact table crosses many fields and the owner rule allows an owner field "
+                                f"in a slice or a pair only (D-096). Remove {dim_id} from the facts of {dataset} in config/pipeline.json")
+    return problems
+
+
 def stock_problems(con, staging, dataset: str, snapshot_month: date, counts: dict[str, int]) -> list[str]:
     """What a stock's written files break: it counts every vehicle the register holds, it has the one period, the snapshot's
     month, and every slice and pair file has the contract's columns and that month alone, so that no vehicle's own month or
@@ -470,7 +492,8 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     now = now or datetime.now(timezone.utc)
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
     # Before anything is read: a series dimension that would be offered to a register dataset cannot be derived there.
-    misconfigured = derive.series_dimension_problems(cfg) + stock_configuration_problems(cfg)
+    misconfigured = (derive.series_dimension_problems(cfg) + stock_configuration_problems(cfg)
+                     + fact_table_owner_problems(cfg))
     if misconfigured:
         raise GuardrailError("build", "\n  - " + "\n  - ".join(misconfigured))
     aborts: list[str] = []
