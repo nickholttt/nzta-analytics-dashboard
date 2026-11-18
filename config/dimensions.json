@@ -135,10 +135,13 @@
     },
     {
       "id": "fleet",
-      "label": "Vehicles on the road",
-      "attribution": "Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe registrations recorded by NZTA, not sales.",
+      "label": "Vehicles registered today",
+      "public_label": "Vehicles registered today",
+      "attribution": "Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe the vehicles on NZTA's register at the snapshot date, not sales.",
       "grain": "stock",
-      "help": "All vehicles registered in NZ at month end."
+      "definition": "Every vehicle on NZTA's Motor Vehicle Register at the snapshot date, of every vehicle type and every import status, counted as at that date. It has one period, the snapshot's month, and no month or year of first registration.",
+      "public_definition": "Counts every vehicle on New Zealand's motor vehicle register at the snapshot date, of every vehicle type, as it is recorded now. It does not say when a vehicle was first registered.",
+      "help": "All vehicles registered in NZ at the snapshot date, of every vehicle type. Never shown by the month or year a vehicle was first registered, and never on the same chart as a dataset that counts first registrations."
     }
   ],
   "dimensions": [
@@ -269,13 +272,13 @@
     {
       "id": "vehicle_type",
       "label": "Registered as",
-      "public_note": "The type NZTA registers the vehicle under. It is a different thing from Vehicle type, which sorts vehicles into cars, utes, vans and trucks from the body and weight as well: a ute can be registered as a passenger vehicle. Only the types this site counts are shown.",
+      "public_note": "The type NZTA registers the vehicle under. It is a different thing from Vehicle type, which sorts vehicles into cars, utes, vans and trucks from the body and weight as well: a ute can be registered as a passenger vehicle. Only the types a dataset counts are shown: the two types of the default scope in most datasets, the types of the wider scope in the wider one, and every type in the vehicles registered today.",
       "source": "nzta:vehicle_type + reference:vehicle_scope",
       "derive": { "kind": "lookup", "field": "vehicle_type", "reference": "vehicle_scope.csv", "key": "vehicle_type", "value": "label" },
       "kind": "category",
       "cardinality": "low",
       "help": "The type NZTA registers the vehicle under, such as passenger cars and vans. It is not the car, ute, van and truck split of Vehicle type, which also reads the body type and weight.",
-      "$comment": "The lookup reads the same vehicle_scope.csv key that decides which vehicles are in scope, so it cannot meet a type that scope does not know (the build aborts on one). Only in-scope types reach a slice; a type brought into scope later appears under its label with no other change. A series source carries no register field, so the dimension is not live for registrations_cars_long_run (derive.applicable), with no applies_to."
+      "$comment": "The lookup reads the same vehicle_scope.csv key that decides which vehicles are in scope, so it cannot meet a type that scope does not know (the build aborts on one). Only the types a dataset's scope counts reach its slice (every type reaches the slice of the stock, fleet, which has no scope); a type brought into scope later appears under its label with no other change. A series source carries no register field, so the dimension is not live for registrations_cars_long_run (derive.applicable), with no applies_to."
     },
     {
       "id": "trade_group",
@@ -354,6 +357,20 @@
       "kind": "place",
       "cardinality": "medium",
       "help": "The region where the registered owner lives now, from their most recent address. Not where the vehicle is used, and not necessarily where the owner lived when it was first registered."
+    },
+    {
+      "id": "vehicle_usage",
+      "label": "Current use",
+      "public_note": "How the register records the vehicle as used now, in NZTA's own broad groups, each shown by its words. It is the latest usage recorded, not the usage when the vehicle was first registered: for rental this is shown to differ, and for the other groups it has not been tested. Counts under 10 are hidden, and so are other counts that would give a hidden one away.",
+      "source": "nzta:vehicle_usage + reference:vehicle_usage_map",
+      "derive": { "kind": "lookup", "field": "vehicle_usage", "reference": "vehicle_usage_map.csv", "key": "nzta_vehicle_usage", "value": "label" },
+      "kind": "category",
+      "cardinality": "low",
+      "applies_to": [
+        "fleet"
+      ],
+      "help": "How NZTA records the vehicle as used now: private passenger, rental, taxi or commercial passenger, goods groups, agricultural, emergency and other. Counted over the vehicles registered today and never by when a vehicle was first registered.",
+      "$comment": "An owner field (config/data_map.json, VEHICLE_USAGE): its slice is written under the small-cell rule, and its pair with vehicle type under the rule for a table of two fields (D-127, D-135). It describes the vehicle as at the snapshot, so the data map marks the field stock_only and only a stock dataset (fleet) is offered it; applies_to names that dataset and the build aborts if it names another. The labels are NZTA's own words (vehicle_usage_map.csv). A new raw value has no row in the file, reads __UNMAPPED__ and trips the unmapped guard (pipeline.json guardrails.abort_on_unmapped)."
     },
     {
       "id": "vehicle_year_band",

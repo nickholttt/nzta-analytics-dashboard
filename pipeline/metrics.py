@@ -197,7 +197,7 @@ def coverage(con, derived, ds: str, start: date, end: date, window: int) -> dict
 
 
 def quality_counts(con, derived, require: list[str], snapshot_month: date) -> dict:
-    member = " AND ".join(quote(c) for c in require)
+    member = " AND ".join(quote(c) for c in require) or "TRUE"
     ds = dataset_filter(require, snapshot_month)
     no_month, after = con.execute(
         f"SELECT count(*) FILTER (WHERE reg_month IS NULL), count(*) FILTER (WHERE reg_month > {date_sql(snapshot_month)}) "

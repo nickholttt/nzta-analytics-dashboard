@@ -82,9 +82,14 @@ def scope_columns(cfg) -> dict[str, str]:
     return {"in_scope": vehicle["in_scope"], **vehicle.get("also", {})}
 
 
-def scope_flag(cfg, dataset: str, require: list[str]) -> str:
+def scope_flag(cfg, dataset: str, require: list[str], stock: bool = False) -> str | None:
     """The one flag in a dataset's `require` that decides which vehicle types it counts. Which `rows` the dataset's table
-    `dims` holds follows from it, so a dataset naming none, or two, has no scope to build."""
+    `dims` holds follows from it, so a dataset naming none, or two, has no scope to build. A stock (D-135) counts every
+    vehicle of the register, so it has no scope: it names no flag, and None says every row is counted."""
+    if stock:
+        if require:
+            raise GuardrailError("build", f"{dataset}: a stock counts every vehicle, so its require must be empty; it names {require}")
+        return None
     named = [f for f in require if f in scope_columns(cfg)]
     if len(named) != 1:
         raise GuardrailError("build", f"{dataset}: require must name exactly one of the scope flags {sorted(scope_columns(cfg))} "

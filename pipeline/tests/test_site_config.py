@@ -216,6 +216,7 @@ _NAME_COLUMNS = {
     "nz_assembled_map.csv": ["label"],
     "class_map.csv": ["label"],
     "transmission_map.csv": ["group"],
+    "vehicle_usage_map.csv": ["label"],
 }
 
 
