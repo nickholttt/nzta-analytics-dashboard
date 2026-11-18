@@ -10,7 +10,7 @@ Last updated by claude on 2026-11-18
 - **Figures set beside published ones**: D-105, D-113 (the MIA), D-118 (vstat), D-124 (Auto
   Trader's hybrids), D-123 and D-145 (SUV shares inside our range).
 - 2026-11-18, twelfth session. **Merged: #103, #104, #106 to #109.** The SUV file's third
-  slice (#109, D-145): eleven nameplates added, six rows lowered to `medium`. A share against a
+  slice (#109, D-145): eleven nameplates added, four rows (six nameplates) lowered to `medium`. A share against a
   hidden line total says so, and a one-period ranking shows every value (#104, D-142). The
   deploy reads every page of releases and stops before the upload past the host's limits
   (#106, D-146). The build refuses an owner field in any fact table (#107). **Colour** is

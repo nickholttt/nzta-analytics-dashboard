@@ -10,7 +10,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
 
 - **Pipeline, build step 1** (`registrations_surviving`) runs on `main` in GitHub Actions.
   - **The last build is the forced run 44173471254** (17 Nov, D-134; snapshot 2026-10; one
-    warning). Its release `cube-2026-10` (99 files) has no fleet, associations, colour or
+    warning). Its release `cube-2026-10` (a tarball of 99 files) has no fleet, associations, colour or
     narrow table: those arrive with the next build.
   - **Tried every day** at 06:17 UTC (D-064, D-070); the last daily run listed, 17 November,
     found the source unchanged. None for 18 November had started when this was written.
