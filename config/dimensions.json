@@ -357,8 +357,8 @@
     },
     {
       "id": "vehicle_usage",
-      "label": "Used as, today",
-      "public_note": "How the register records the vehicle as used now, in NZTA's own broad groups, each shown by its words. It is the latest usage recorded, not the usage when the vehicle was first registered: for rental this is shown to differ, and for the other groups it has not been tested. Counts under 10 are hidden, and so are other counts that would give a hidden one away.",
+      "label": "Current use",
+      "public_note": "What NZTA records each vehicle as being used for at the snapshot date, which can change over a vehicle's life.",
       "source": "nzta:vehicle_usage + reference:vehicle_usage_map",
       "derive": { "kind": "lookup", "field": "vehicle_usage", "reference": "vehicle_usage_map.csv", "key": "nzta_vehicle_usage", "value": "label" },
       "kind": "category",
