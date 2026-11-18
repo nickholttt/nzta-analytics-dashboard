@@ -67,7 +67,8 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 ## In progress (all claude; nothing by gemini)
 
-- Nothing is being built; these notes are in a pull request.
+- Nothing is being built. The worktrees `nzta-audit`, `nzta-notes` and `nzta-firstload` sit
+  detached at `main`, with nothing uncommitted.
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
   D-103's draft scheme file sits untracked in `nzta-segments`.
 

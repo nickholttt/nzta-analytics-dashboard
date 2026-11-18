@@ -13,7 +13,7 @@ Last updated by claude on 2026-11-18
   vstat equals ours for October 2026 (D-118). Hybrids as one group, new passenger vehicles,
   October 2026: 4,978 of 11,824; Auto Trader has the same total and 4,859 "petrol hybrids";
   119 of our mild hybrids that month are one diesel nameplate; cause not claimed (D-124).
-- 2026-11-17 and 18, eleventh session (D-126, D-134). **Merged: #90 to #101.** Axles withdrawn
+- 2026-11-17 and 18, eleventh session (D-126, D-134). **Merged: #90 to #102.** Axles withdrawn
   (D-129); a pinned link reads its own snapshot's cube (D-131); the `region` slice under the
   small-cell rule (D-127); power and the gearbox bound (D-128); the site refuses a table with
   hidden counts (D-130, D-133). **October forced again** (D-134): the release `cube-2026-10`
@@ -26,24 +26,20 @@ Last updated by claude on 2026-11-18
   a two-field small-cell rule, approved by the user after seeing it (#100, #101; D-135,
   D-139, D-141): published from the next build. The user's end state noted (D-138); vehicle
   use in two forms planned (D-140).
-- **Measured on 17 November for the next pieces** (a read-only profile of the saved 2026-10
-  pull; restate each figure, re-measured, in the record of the piece that uses it):
-  - Colour: 14 values, 5 blanks. A narrow table with make alone is about 276 KB; with make
-    and segment group or import status about 370 KB; with make and powertrain 407 KB.
 
 ## Open pull requests
 
-- These notes (docs only), with D-138 and D-140.
+- #103: these notes (docs only), if not yet merged when the next session starts.
 
 ## The queue, in order
 
 **The user's end state (D-138):** a self-serve, drag-and-drop chart canvas, not a page that
 tells visitors what to look at. Nothing changes now; raise it first when UI work starts.
 
-1. **Colour**, in a narrow table of its own (a contract change; costs above), **and the
-   engine's small fixes** (item 5, and the build itself refusing an owner field in a fact
-   table: today only `test_data_map` does, #99's review). Site leftovers of #101's review: a
-   hidden line total read as "no vehicles"; a one-period ranking cut at 15 values.
+1. **Colour** in a narrow table (a contract change; about 276 KB with make, measured 17 Nov),
+   **and the engine's small fixes** (item 5; the build itself refusing an owner field in a
+   fact table, today only `test_data_map` does). Site leftovers of #101's review: a hidden
+   line total read as "no vehicles"; a one-period ranking cut at 15 values.
 2. **What the dashboard's "Vehicle usage" column records** (D-134), then **"Registered as"**
    (D-140): match October's and November's archive files privately after NZTA's December
    refresh and report. If the dashboard's usage is as at first registration, keep it and owner
@@ -104,7 +100,10 @@ One fresh reviewer per pull request. The builder's brief carries a checklist of 
 kept finding; the reviewer gets the evidence and three to five things to test; a mechanical
 fix is checked by the lead against the reviewer's stated remedy; a fix that is new code gets a
 narrow re-check of the finding and the fix alone. Three sub-agents at once. A branch stacked
-on an open pull request is re-made on `main` if that pull request is closed.
+on an open pull request is re-made on `main` if that pull request is closed. Speed (the user,
+18 November): builders run only the tests that cover their change, `Checks` runs the full
+suite (except on a branch that cannot be pushed); one dry run or local full suite at a time;
+no background loop left running when an agent reports.
 
 ## Prompt for the next session
 
@@ -116,4 +115,5 @@ right, no proposal to launch early, figures set beside published ones. Reviews: 
 
 Check first: `git worktree list` and `git status` in each (`nzta-screens` and `nzta-segments`
 hold uncommitted files: read before touching); open pull requests; the `Monthly build` runs
-since 16 November; `CLOUDFLARE_PAGES_PROJECT` still unset. No local path in a doc or commit.
+since 17 November (has NZTA refreshed: is a November build or archive there?);
+`CLOUDFLARE_PAGES_PROJECT` still unset. No local path in a doc or commit.
