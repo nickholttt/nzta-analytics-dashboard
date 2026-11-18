@@ -7,7 +7,7 @@ import "./support/register.mjs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { leaderIsClear, leagueRows, leagueTable } = await import("../../src/lib/league.ts");
+const { leaderIsClear, leagueRows, leagueTable, rankingLimit } = await import("../../src/lib/league.ts");
 const { cellText, figuresCsv } = await import("../../src/lib/figures.ts");
 const { fillTemplate } = await import("../../src/lib/sentences.ts");
 const { phrases } = await import("../../src/lib/config.ts");
@@ -126,4 +126,19 @@ test("the words about hidden counts are in config, fill from the least count, an
     assert.doesNotMatch(text.text, /\b0\b|zero/i, key);
   }
   assert.match(fillTemplate(phrases.hidden_ranking_note, { minimum: 10, count: 2 }).text, /^2 values have a hidden count and no bar\. Counts under 10/);
+});
+
+// A ranking of one period shows every value: the cut at 15 that a ranking over time starts from would drop the rest without a word, and "All other" is not a line of it
+// (a line that held the rest would add hidden counts to shown ones).
+const many = Array.from({ length: 20 }, (_, i) => row(`value-${String(i).padStart(2, "0")}`, 400 - i * 10, { denominator: 5000 }));
+
+test("a ranking of a dataset of one period asks for every value, and shows all 20 of 20; a ranking over time keeps its cut", () => {
+  const rows20 = [...many, row("hidden-one", undefined, { denominator: 5000 })];
+  const all = leagueRows({ ...input, rows: rows20, topN: rankingLimit({ single: true, picked: undefined, topN: 15 }) });
+  assert.equal(all.items.length, 20, "no value is dropped");
+  assert.equal(all.tiedBeyond, 0);
+  assert.deepEqual(all.hidden.map((h) => h.name), ["hidden-one"], "a hidden value still stands after the ranked ones");
+  const cut = leagueRows({ ...input, rows: rows20, topN: rankingLimit({ single: false, picked: undefined, topN: 15 }) });
+  assert.equal(cut.items.length, 15, "over time the visitor's cut stands, and the control says so");
+  assert.equal(rankingLimit({ single: true, picked: ["a", "b"], topN: 15 }), 2, "values the visitor chose are all ranked");
 });
