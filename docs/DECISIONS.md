@@ -6296,8 +6296,8 @@ New entries use this template:
   would have built a watered-down Power BI-style visual analytics page which is fully customisable with the measures from
   the data set where the user can build their own charts by dragging and dropping and choose different ways of
   visualising the data. We could eventually pull and build new data sets into the site, but the page we have at the
-  moment (in terms of UI) doesn't fit the bill from what I've seen (correct me if im wrong)." And: "Don't change what you
-  are currently working on, just note it down for when we eventually get to it."
+  moment (in terms of UI) doesn't fit the bill from what I've seen (correct me if im wrong)". And: "Don't change what you
+  are currently working on, just note it down for when we eventually get to it".
 - Claude's readings (unreviewed):
   1. **The user is right about today's page.** Build already lets a visitor choose any measure, any breakdown and a
      second one, any number of conditions and the period, saves questions as links, and offers every shape the rule table
@@ -6331,7 +6331,7 @@ New entries use this template:
   for"; and "Ideally we would have the option to see what cars are used for today. We don't have enough data to
   confidently see the shifts, but we can build it in the background to silently track what they are registered for and
   then what they change to if they do ... it could show interesting trends in the future." And: "Do what ever makes the
-  best sense to someone wanting to do analysis on the data set and look at what other people like vstat have published."
+  best sense to someone wanting to do analysis on the data set and look at what other people like vstat have published".
 - Claude's design (unreviewed):
   1. **"Current use"** is the label of the use field over today's register (the fleet table, D-135). The fleet dataset
      keeps its name, "Vehicles registered today".
@@ -6352,12 +6352,12 @@ New entries use this template:
      private use and after how long (the rental fleet's run-out into the used market), and how use changes by age, make
      or powertrain. Until a year or more is collected, it shows little; it is collected now so the series exists then.
   4. **Not done now:** nothing is built for "Registered as" until the dashboard check is reported (D-134's third item).
-     The fleet table is relabelled now.
+     The fleet table was relabelled "Current use" in #101 (D-141).
 - Options considered: (a) only "Current use" (simplest, but it cannot answer the trade's question, how much of this
   month's new market went to rental fleets); (b) "Registered as" from the register alone (not possible: the register
   holds only the current use); (c) the design above (chosen: it gives the trade's view from 2021 if the dashboard allows
   it, and starts the history that nothing else holds).
-- Consequences: queue items in `docs/CHECKPOINT.md`: the label now; the dashboard check (December); then "Registered as"
+- Consequences: queue items in `docs/CHECKPOINT.md`: the dashboard check (December); then "Registered as"
   from the dashboard; the ledger in the archive job (an architecture change to the Monthly build's archive job, with its
   own record before it is built).
 - Status: accepted (the user's direction); the design above is decided by Claude (unreviewed)
