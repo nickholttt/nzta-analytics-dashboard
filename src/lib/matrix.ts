@@ -473,8 +473,9 @@ export type TableWords = {
   // Why a share is greyed, and why it has no value, in the words of the file and of the page.
   thin: string;
   noBase: { row: string; column: string };
-  // The word for a hidden count and the reason, where the grid has any (D-139).
-  hidden?: { text: string; reason: string };
+  // The word for a hidden count and the reason, where the grid has any (D-139). noShare: why a share of a line whose total is hidden has no value; that is not a line
+  // of no vehicles, which noBase says.
+  hidden?: { text: string; reason: string; noShare: { row: string; column: string } };
 };
 
 // csv is a number, or "<" and a number for a share that is more than nothing and prints as 0.0 (the file says so in a note), or nothing.
@@ -510,7 +511,8 @@ export function gridTable(grid: Grid, w: TableWords): Table {
         if (c.hidden) return hiddenCell();
         if (!shares) return { text: w.format.count(c.n), csv: c.n, step: c.step };
         if (c.figure === null) {
-          const reason = grid.basis === "row" ? w.noBase.row : w.noBase.column;
+          const totalHidden = grid.basis === "row" ? grid.rowTotals[i] === null : grid.columnTotals[j] === null;
+          const reason = totalHidden && w.hidden ? (grid.basis === "row" ? w.hidden.noShare.row : w.hidden.noShare.column) : grid.basis === "row" ? w.noBase.row : w.noBase.column;
           return { text: "—", csv: null, step: 0, mark: "withheld", reason };
         }
         const s = shareCell(c.n, c.figure);
