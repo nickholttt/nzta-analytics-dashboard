@@ -82,6 +82,10 @@ def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):
     assert contract["slices"], "no slices were written"
     protected = {f"{dataset}/{dim}.parquet" for dataset, info in contract["manifest"]["datasets"].items()
                  for dim in info.get("small_cells", {})}
+    # The slices a protected pair stands on carry no fuel figure on any row (D-135), read from the manifest's pair names.
+    no_fuel = {f"{dataset}/{dim}.parquet" for dataset, info in contract["manifest"]["datasets"].items()
+               for pair in info.get("small_cell_pairs", {}) for dim in pair.split(PAIR_SEPARATOR)}
+    assert no_fuel, "no protected pair was built"
     for name, doc in contract["slices"].items():
         assert doc["schema"] == [list(c) for c in SLICE_COLUMNS], name
         keys = [(r[0], r[1]) for r in doc["rows"]]
@@ -93,6 +97,9 @@ def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):
                 assert fc_sum is None and fc_n is None and fc_eligible_n is None, (name, month, value)
                 continue
             totals.setdefault(month, [0, denominator])[0] += n
+            if name in no_fuel:
+                assert fc_sum is None and fc_n is None and fc_eligible_n is None, (name, month, value)
+                continue
             if name in protected and value == NOT_BROKEN_DOWN:
                 assert fc_sum is None and fc_n is None and fc_eligible_n is None, (name, month)
                 continue

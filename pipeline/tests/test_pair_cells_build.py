@@ -12,7 +12,7 @@ import json
 import duckdb
 import pytest
 
-from pipeline import config, derive, outputs, pair_cells, privacy, reference
+from pipeline import build, config, derive, outputs, pair_cells, privacy, reference, small_cells
 from pipeline.contract import NOT_BROKEN_DOWN
 from pipeline.errors import GuardrailError
 
@@ -310,8 +310,8 @@ def test_a_pair_whose_one_field_slice_lacks_one_of_its_periods_aborts_the_build_
 
     real = small_cells.write_protected_slice
 
-    def without_the_first_period(con, cfg, derived, ds, path, rule):
-        figures = real(con, cfg, derived, ds, path, rule)
+    def without_the_first_period(con, cfg, derived, ds, path, rule, **kw):
+        figures = real(con, cfg, derived, ds, path, rule, **kw)
         con.execute(f"COPY (SELECT * FROM read_parquet('{path.as_posix()}') WHERE month > (SELECT min(month) FROM read_parquet('{path.as_posix()}'))) "
                     f"TO '{path.with_name('shortened.parquet').as_posix()}' (FORMAT PARQUET)")
         path.unlink()
@@ -320,3 +320,74 @@ def test_a_pair_whose_one_field_slice_lacks_one_of_its_periods_aborts_the_build_
 
     monkeypatch.setattr(small_cells, "write_protected_slice", without_the_first_period)
     aborts_with(tmp_path, workspace, "are not in the written one-field slices it stands on")
+
+
+# --- the one-field slices a protected pair stands on carry no fuel figure ------------------------------------------------
+
+
+FUEL = "fc_sum IS NOT NULL OR fc_n IS NOT NULL OR fc_eligible_n IS NOT NULL"
+
+
+def rows_with_fuel(workspace, dimension) -> int:
+    path = workspace["public"] / "cube" / DATASET / f"{dimension}.parquet"
+    return duckdb.connect().execute(f"SELECT count(*) FROM read_parquet('{path.as_posix()}') WHERE {FUEL}").fetchone()[0]
+
+
+def test_the_one_field_slices_of_a_protected_pair_are_written_without_a_fuel_figure(tmp_path, workspace):
+    """Both sides: the owner dimension (written under the small-cell rule) and the other (written as counted). Their
+    fuel-eligible counts would bound the pair's hidden cells, which the audit does not see (D-135)."""
+    cfg, _ = with_pair(make_cfg(workspace))
+    run(tmp_path, cfg, fixture_rows())
+    assert rows_with_fuel(workspace, owner_dimension()) == 0
+    assert rows_with_fuel(workspace, other_dimension()) == 0
+
+
+def test_a_slice_no_protected_pair_stands_on_keeps_its_fuel_figures(tmp_path, workspace):
+    """So the test above is not passing because the fixture has no fuel figure to remove."""
+    cfg = make_cfg(workspace)
+    manifest = run(tmp_path, cfg, fixture_rows())
+    assert "small_cell_pairs" not in manifest["datasets"][DATASET]
+    assert rows_with_fuel(workspace, other_dimension()) > 0
+    assert rows_with_fuel(workspace, owner_dimension()) > 0
+
+
+def test_a_dimension_outside_the_protected_pair_keeps_its_fuel_figures_in_the_same_build(tmp_path, workspace):
+    cfg, _ = with_pair(make_cfg(workspace))
+    manifest = run(tmp_path, cfg, fixture_rows())
+    outside = [d for d in manifest["datasets"][DATASET]["live_dimensions"] if d not in (owner_dimension(), other_dimension())]
+    assert outside and any(rows_with_fuel(workspace, d) > 0 for d in outside)
+
+
+def test_the_dimensions_whose_slices_carry_no_fuel_figure_are_read_from_the_dataset_s_pairs_and_the_protection():
+    protected = {"owner": ["a_field"]}
+    assert build.pair_slice_dimensions({"pairs": [["x", "owner"], ["y", "z"]]}, protected) == {"x", "owner"}
+    assert build.pair_slice_dimensions({"pairs": [["y", "z"]]}, protected) == set()
+    assert build.pair_slice_dimensions({}, protected) == set()
+    assert build.pair_slice_dimensions({"pairs": [["owner"], "owner", ["owner", 3]]}, protected) == set()
+
+
+def keep_the_fuel_figures(monkeypatch):
+    """The writers of the two kinds of slice ignore the instruction to null the fuel columns, as a writer with a fault would."""
+    real_plain, real_protected = outputs.write_slice, small_cells.write_protected_slice
+    monkeypatch.setattr(outputs, "write_slice", lambda con, cfg, derived, ds, path, fuel=True: real_plain(con, cfg, derived, ds, path))
+    monkeypatch.setattr(small_cells, "write_protected_slice",
+                        lambda con, cfg, derived, ds, path, rule, fuel=True: real_protected(con, cfg, derived, ds, path, rule))
+
+
+def test_a_slice_of_a_protected_pair_that_still_carries_a_fuel_figure_aborts_the_build_and_publishes_nothing(tmp_path, workspace, monkeypatch):
+    keep_the_fuel_figures(monkeypatch)
+    aborts_with(tmp_path, workspace, "carries a fuel figure, which would bound a hidden cell of the pair")
+
+
+@pytest.mark.parametrize("side", ["owner", "other"])
+def test_each_side_of_the_pair_is_read_back_for_a_fuel_figure(tmp_path, workspace, monkeypatch, side):
+    """Only one side's writer is at fault: the abort names that side's slice."""
+    real_plain, real_protected = outputs.write_slice, small_cells.write_protected_slice
+    if side == "owner":
+        monkeypatch.setattr(small_cells, "write_protected_slice",
+                            lambda con, cfg, derived, ds, path, rule, fuel=True: real_protected(con, cfg, derived, ds, path, rule))
+        named = owner_dimension()
+    else:
+        monkeypatch.setattr(outputs, "write_slice", lambda con, cfg, derived, ds, path, fuel=True: real_plain(con, cfg, derived, ds, path))
+        named = other_dimension()
+    aborts_with(tmp_path, workspace, f"the one-field slice {named} carries a fuel figure")

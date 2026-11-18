@@ -178,7 +178,7 @@ def test_no_owner_dimension_is_in_the_fact_table_or_a_pair(built):
 
 
 def test_a_protected_slice_written_without_the_rule_aborts_the_build_and_publishes_nothing(tmp_path, workspace, monkeypatch):
-    def unprotected(con, cfg, derived, ds, path, rule):
+    def unprotected(con, cfg, derived, ds, path, rule, fuel=True):
         outputs.write_slice(con, cfg, derived, ds, path)
         return {"minimum": rule.minimum, "minimum_hidden_cells": rule.hidden_cells, "minimum_hidden_vehicles": rule.hidden_vehicles,
                 "months": 0, "cells_hidden_first_rule": 0, "cells_hidden_second_rule": 0, "vehicles_in_hidden_cells": 0,

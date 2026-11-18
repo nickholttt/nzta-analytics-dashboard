@@ -319,13 +319,13 @@ def rewrite_slices(monkeypatch, select: str):
         path.unlink()
         out.rename(path)
 
-    def plain(con, cfg, derived, ds, path):
-        real_plain(con, cfg, derived, ds, path)
+    def plain(con, cfg, derived, ds, path, **kw):
+        real_plain(con, cfg, derived, ds, path, **kw)
         if path.parent.name == STOCK:
             reselect(path)
 
-    def protected(con, cfg, derived, ds, path, rule):
-        figures = real_protected(con, cfg, derived, ds, path, rule)
+    def protected(con, cfg, derived, ds, path, rule, **kw):
+        figures = real_protected(con, cfg, derived, ds, path, rule, **kw)
         if path.parent.name == STOCK:
             reselect(path)
         return figures

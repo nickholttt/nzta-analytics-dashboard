@@ -31,6 +31,17 @@ def owner_protection(cfg) -> tuple[dict[str, list[str]], privacy.SmallCellRule, 
         raise GuardrailError("data map", f"config/data_map.json cannot be used to protect owner fields: {exc!r}") from exc
 
 
+def pair_slice_dimensions(dataset_cfg: dict, protected: dict[str, list[str]]) -> set[str]:
+    """The dimensions on either side of a pair of this dataset that has a dimension reading an owner field: their one-field
+    slices carry no fuel figure (D-135). Read from config and the data map's protection; a pair that is not two dimension
+    ids is left to write_pairs to refuse."""
+    found: set[str] = set()
+    for pair in dataset_cfg.get("pairs") or []:
+        if isinstance(pair, list) and len(pair) == 2 and all(isinstance(d, str) for d in pair) and any(d in protected for d in pair):
+            found.update(pair)
+    return found
+
+
 def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, staging, aborts: list[str],
                 warnings: list[str], protected: dict[str, list[str]], pair_rule: privacy.SmallCellRule
                 ) -> tuple[list[str], dict[str, str], dict[str, dict]]:
@@ -269,14 +280,15 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
             exclude(d.dim_id, f"unmapped rate {rates[d.dim_id]:.2%} is above {g['max_unmapped_rate']:.0%} of in-scope rows")
     protected, small_rule, pair_rule = owner_protection(cfg)
     small_cell_figures = {}
+    no_fuel = pair_slice_dimensions(dataset_cfg, protected)
     for d in live:
         path = staging / "cube" / dataset / f"{d.dim_id}.parquet"
         if d.dim_id not in protected:
-            outputs.write_slice(con, cfg, d, ds, path)
+            outputs.write_slice(con, cfg, d, ds, path, fuel=d.dim_id not in no_fuel)
             continue
         # A slice of an owner dimension is written under the small-cell rule and then read back from the file: one that
         # breaks the rule aborts the run, so it never reaches public/data (D-127).
-        figures = small_cells.write_protected_slice(con, cfg, d, ds, path, small_rule)
+        figures = small_cells.write_protected_slice(con, cfg, d, ds, path, small_rule, fuel=d.dim_id not in no_fuel)
         aborts += [f"{dataset}.{d.dim_id}: {problem}" for problem in small_cells.check_slice(con, path, small_rule, figures)]
         small_cell_figures[d.dim_id] = figures
     live_pairs, not_live_pairs, pair_figures = write_pairs(con, cfg, dataset, dataset_cfg, live, ds, staging, aborts, warnings,

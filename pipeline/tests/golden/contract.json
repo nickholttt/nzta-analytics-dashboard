@@ -531,7 +531,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 114108,
+  "payload_bytes": 113814,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -581,9 +581,9 @@
      "Goods vans, trucks and utes",
      7,
      62,
-     43.3,
-     5,
-     7
+     null,
+     null,
+     null
     ],
     [
      "2026-08-01",
@@ -591,17 +591,17 @@
      1,
      62,
      null,
-     0,
-     1
+     null,
+     null
     ],
     [
      "2026-08-01",
      "Passenger cars and vans",
      53,
      62,
-     213.2,
-     40,
-     47
+     null,
+     null,
+     null
     ],
     [
      "2026-08-01",
@@ -609,8 +609,8 @@
      1,
      62,
      null,
-     0,
-     0
+     null,
+     null
     ]
    ]
   },
@@ -660,18 +660,18 @@
      "Other goods",
      12,
      62,
-     61.4,
-     8,
-     12
+     null,
+     null,
+     null
     ],
     [
      "2026-08-01",
      "Private passenger",
      34,
      62,
-     150.5,
-     29,
-     29
+     null,
+     null,
+     null
     ],
     [
      "2026-08-01",
