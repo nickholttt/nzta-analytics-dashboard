@@ -574,6 +574,18 @@
       "$comment": "A group, not the number of gears: transmission_map.csv gives each of NZTA's 28 values one group and a label of its own, and the dimension publishes the group. A blank is the only form of not recorded and sentinels.csv lists none for the field. A new raw value has no row in the file and trips the unmapped guard (pipeline.json guardrails.abort_on_unmapped). The field is recorded for NZ-new vehicles only (docs/DATA_MAP.md): the pipeline does not look at the import status, so the few used imports that have a value keep it. Not live for the datasets whose source carries no gearbox (derive.applicable), with no applies_to."
     },
     {
+      "id": "colour",
+      "label": "Colour as recorded",
+      "public_note": "The vehicle's main colour, in NZTA's colour words. The register does not say when the colour was recorded, so it may be the colour the vehicle had when first registered or a later one. A vehicle with no colour recorded shows as not recorded.",
+      "public_line": "The vehicle's main colour in NZTA's colour words. The register does not say when the colour was recorded, so it may not be the colour at first registration.",
+      "source": "nzta:basic_colour",
+      "derive": { "kind": "raw", "field": "basic_colour" },
+      "kind": "category",
+      "cardinality": "medium",
+      "help": "The vehicle's main colour as NZTA records it, in NZTA's words. Whether it is the colour at first registration or today's is not shown by the register.",
+      "$comment": "A raw dimension: the values are NZTA's own colour words, published as the register holds them, with no reference file. NULL reads __UNDEFINED__ (sentinels.csv lists no form for the field). A colour NZTA adds later is a new value, not an unmapped one, so the dimension is not in abort_on_unmapped. Not live for the datasets whose source carries no colour (derive.applicable), with no applies_to: the dashboard export and the Stats NZ table have none, and the fleet lists the dimensions it is offered."
+    },
+    {
       "id": "model",
       "label": "Model",
       "source": "nzta:make + nzta:model + reference:model_registry",

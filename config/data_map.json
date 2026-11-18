@@ -298,7 +298,7 @@
       "privacy": "public",
       "privacy_reason": "Describes the vehicle.",
       "after_review": null,
-      "bound": null,
+      "bound": "basic_colour",
       "relations": { "rolls_up_to": [], "derived_from": [], "follows_vehicle": "combined" }
     },
     {

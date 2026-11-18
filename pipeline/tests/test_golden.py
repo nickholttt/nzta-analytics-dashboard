@@ -17,7 +17,7 @@ import shutil
 import duckdb
 
 from pipeline import build, config
-from pipeline.contract import (ASSOCIATIONS_DIR, FACT_COUNT, FACT_DIMENSION_TYPE, FACT_MONTH, FACTS_DIR, NOT_BROKEN_DOWN, PAIR_COLUMNS,
+from pipeline.contract import (ASSOCIATIONS_DIR, FACT_COUNT, FACT_DIMENSION_TYPE, FACT_MONTH, FACTS_DIR, NARROW_DIR, NOT_BROKEN_DOWN, PAIR_COLUMNS,
                                PAIR_SEPARATOR, SLICE_COLUMNS)
 
 from .conftest import FIXTURES, GOLDEN, NOW, load_rows, make_cfg, source_for, write_pages
@@ -185,30 +185,46 @@ def test_live_dimensions_match_files_and_events_are_verified_only(tmp_path, work
     assert all(column not in x for x in extra["events"] for column in e["unpublished_columns"])
 
 
+def check_fact_table(contract, dataset, info, prefix, table) -> None:
+    """One fact table's files (`prefix` is the folder in the contract's file names) against its manifest entry `table`: one
+    column per file, the same rows in the same order, the dataset's totals, and every slice when summed over the others."""
+    files = {k[len(prefix):-len(".parquet")]: doc for k, doc in contract["facts"].items()
+             if k.startswith(prefix) and "/" not in k[len(prefix):]}
+    names = [FACT_MONTH[0], *table["dimensions"], FACT_COUNT[0]]
+    assert sorted(files) == sorted(names), prefix
+    types = {FACT_MONTH[0]: FACT_MONTH[1], FACT_COUNT[0]: FACT_COUNT[1]}
+    for name, doc in files.items():
+        assert doc["schema"] == [[name, types.get(name, FACT_DIMENSION_TYPE)]], name
+        assert len(doc["rows"]) == table["rows"], name
+    rows = list(zip(*([r[0] for r in files[name]["rows"]] for name in names)))
+    keys = [row[:-1] for row in rows]
+    assert keys == sorted(keys) and len(set(keys)) == len(keys), f"{prefix}: rows are not unique and in order"
+    assert sum(row[-1] for row in rows) == info["rows"]
+    for position, dim in enumerate(table["dimensions"], start=1):
+        summed = {}
+        for row in rows:
+            summed[(row[0], row[position])] = summed.get((row[0], row[position]), 0) + row[-1]
+        single = {(r[0], r[1]): r[2] for r in contract["slices"][f"{dataset}/{dim}.parquet"]["rows"]}
+        assert summed == single, f"{prefix}: the fact table summed over {dim} differs from its slice"
+
+
 def test_the_fact_table_is_one_column_per_file_and_adds_up_to_every_slice(tmp_path, workspace):
     contract, _ = built_contract(tmp_path, workspace)
     assert contract["facts"], "no fact table was written"
+    narrow_seen = 0
     for dataset, info in contract["manifest"]["datasets"].items():
         if "not_built" in info:
             continue
         facts = info["facts"]
-        files = {k.split("/")[1][: -len(".parquet")]: doc for k, doc in contract["facts"].items() if k.startswith(f"{dataset}/")}
         if facts is None:
-            assert not files, f"{dataset} has fact table files but no facts in its manifest entry"
+            assert not [k for k in contract["facts"] if k.startswith(f"{dataset}/")], f"{dataset} has fact table files but no facts in its manifest entry"
             continue
-        names = [FACT_MONTH[0], *facts["dimensions"], FACT_COUNT[0]]
-        assert sorted(files) == sorted(names), dataset
-        types = {FACT_MONTH[0]: FACT_MONTH[1], FACT_COUNT[0]: FACT_COUNT[1]}
-        for name, doc in files.items():
-            assert doc["schema"] == [[name, types.get(name, FACT_DIMENSION_TYPE)]], name
-            assert len(doc["rows"]) == facts["rows"], name
-        rows = list(zip(*([r[0] for r in files[name]["rows"]] for name in names)))
-        keys = [row[:-1] for row in rows]
-        assert keys == sorted(keys) and len(set(keys)) == len(keys), f"{dataset}: rows are not unique and in order"
-        assert sum(row[-1] for row in rows) == info["rows"]
-        for position, dim in enumerate(facts["dimensions"], start=1):
-            summed = {}
-            for row in rows:
-                summed[(row[0], row[position])] = summed.get((row[0], row[position]), 0) + row[-1]
-            single = {(r[0], r[1]): r[2] for r in contract["slices"][f"{dataset}/{dim}.parquet"]["rows"]}
-            assert summed == single, f"{dataset}: the fact table summed over {dim} differs from its slice"
+        check_fact_table(contract, dataset, info, f"{dataset}/", facts)
+        # A narrow table (D-144) is held to the same rules, and only the tables the manifest lists exist.
+        listed = facts.get("narrow", {})
+        on_disk = {k.split("/")[2] for k in contract["facts"] if k.startswith(f"{dataset}/{NARROW_DIR}/")}
+        assert on_disk == set(listed), dataset
+        for table_id, table in listed.items():
+            check_fact_table(contract, dataset, info, f"{dataset}/{NARROW_DIR}/{table_id}/", table)
+            narrow_seen += 1
+    assert narrow_seen, "no narrow table was written, so the check proved nothing"

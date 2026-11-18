@@ -75,7 +75,7 @@ and a median). Values are S then W. Privacy is the class the user approved (D-09
 | `CLASS` | category, few | 7; 21 | B F, count (from March 2002) | public | `nzta_class` |
 | `MAKE` | category, many | 371; 1,030 | B F, count | public | `make` |
 | `MODEL` | category, many | 28,000; 175,398 | B (within make) F, count | public | `model` |
-| `BASIC_COLOUR` | category, many | 14; 14 | B F, count | public | no |
+| `BASIC_COLOUR` | category, many | 14; 14 | B F, count | public | `basic_colour` |
 | `NUMBER_OF_SEATS` | number | 172; 193 | B (banded) F, count (average and median not built) | public | `seats` |
 | `NUMBER_OF_AXLES` | number | 10; 10 | none (a count only on heavy vehicles, D-129) | public | no |
 | `TRANSMISSION_TYPE` | category, many | 28; 28 | B F, count (NZ-new only) | public | `transmission` |
@@ -378,9 +378,15 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   registration or today is not shown by the data; read as today's (inferred - confirm).
 - **Kind and values.** Category, 14 values (W and S). S: white 1,194,221; silver 787,901; black
   567,210; blue 564,009; grey 537,023.
-- **Uses.** Break down, filter. Count only.
+- **Uses.** Break down, filter. Count only. **Bound** as the dimension `colour` ("Colour as recorded"), a slice of
+  `registrations_surviving` with NZTA's colour words as they stand and no reference file. It is not a column of the wide fact
+  table: as one it was measured at 1,324,975 bytes, +75% of the table (D-116 item 6). It is a column of a narrower table of its own,
+  `colour`, beside the wide one, with make and the powertrain in five groups (D-144, `docs/CUBE_SCHEMA.md`, *Narrow fact tables*).
 - **Coverage.** S 100.0% in every period; W all but 6.
-- **Not recorded.** NULL (W 6, S 5), covered.
+- **Not recorded.** NULL (W 6, S 5), covered. Re-checked on 2026-11-18 on the whole 2026-10 pull (5,926,990 rows): 14
+  values and 6 NULLs, no other form, so `sentinels.csv` lists none for the field. Of the values: white 1,426,254; silver
+  1,213,510; grey 733,886; black 708,568; blue 671,428; red 542,164; green 231,807; orange 86,118; brown 84,313; yellow
+  83,035; gold 71,647; purple 38,110; cream 28,668; pink 7,476.
 - **Traps.** None found.
 - **Privacy.** Public.
 - **Relations.** Picks out a vehicle in combination. Moves together with nothing strongly: vehicle
@@ -1404,7 +1410,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 
 | Field | Sentinels and guards before it is bound |
 |---|---|
-| `BASIC_COLOUR` | None new (NULL is covered). A raw dimension. Its label says "colour as recorded", since the moment is not known |
+| `BASIC_COLOUR` | **Bound (D-144).** None new (NULL is covered). A raw dimension on `registrations_surviving`, a slice and a column of its narrow table `colour`. Its label says "colour as recorded", since the moment is not known |
 | `NUMBER_OF_SEATS` | **Bound as bands (D-116).** `0` added to `sentinels.csv`. Bands 1-2, 3-4, 5, 6-7, 8+ and `unknown`; values above 60 fall to `unknown`. A mean only inside 1 to 60: not built |
 | `NZ_ASSEMBLED` | **Bound (D-116).** `UNKNOWN` added to `sentinels.csv`. Charts over time start in December 1995 |
 | `CLASS` | **Bound (D-116); labelled (D-121).** NULL is covered. **`NA` must never become a sentinel**; a test holds it. `class_map.csv` gives each code NZTA's label with the code in brackets, from the table the maintainer supplied on 2026-11-17; `OTH` is not in that table and keeps its code as its label. Charts start in March 2002 |
