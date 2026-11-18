@@ -38,7 +38,7 @@ Last updated by claude on 2026-11-18
 **The user's end state (D-138):** a self-serve, drag-and-drop chart canvas, not a page that
 tells visitors what to look at. Nothing changes now; raise it first when UI work starts.
 
-1. **The first owner table: the fleet by usage, "used as, today"** (the user, D-134): every
+1. **The first owner table: the fleet by "Current use"** (the user, D-134, D-140): every
    vehicle in the snapshot, by usage and by usage and vehicle type, never by first
    registration; a one-period dataset with a two-field small-cell rule. Being built on the
    unpushed branch above. Then: the figures and headless screenshots to the user, and no pull
