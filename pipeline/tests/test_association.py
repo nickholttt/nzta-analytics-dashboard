@@ -320,7 +320,9 @@ def test_check_names_a_missing_a_repeated_and_a_foreign_pair_and_passes_a_small_
 
 def test_a_dimension_that_reads_an_owner_field_is_in_no_pair_even_when_the_fact_table_lists_it(tmp_path, workspace):
     cfg = make_cfg(workspace)
-    owners = sorted(privacy.owner_dimensions(cfg))
+    # An owner dimension that only a stock may count (D-135) is refused in this dataset before anything is built, which another
+    # test holds; the ones left are those a fact-table list could name by mistake.
+    owners = sorted(set(privacy.owner_dimensions(cfg)) - set(privacy.stock_only_dimensions(cfg)))
     assert owners, "the data map has no owner dimension: the test proves nothing"
     facts = cfg.pipeline["datasets"][DATASET]["facts"]
     cfg.pipeline["datasets"][DATASET]["facts"] = facts + [o for o in owners if o not in facts]
