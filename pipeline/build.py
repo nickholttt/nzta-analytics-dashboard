@@ -155,7 +155,7 @@ def narrow_table_problems(dataset: str, tables) -> list[str]:
 def write_narrow_tables(con, cfg, dataset: str, tables, live: list, ds: str, staging, aborts: list[str], warnings: list[str]) -> dict:
     """The narrow fact tables config/pipeline.json names for this dataset (D-144), each under facts/{dataset}/narrow/{id}/ with the
     wide table's rows, order, validation and total check. A table of owner dimensions is refused before anything is read
-    (fact_table_owner_problems). A table that is misconfigured aborts and the others are still checked."""
+    (fact_table_owner_problems). A misconfigured table aborts the run; a bad id stops the check before any table's dimensions are read."""
     problems = narrow_table_problems(dataset, tables)
     aborts.extend(problems)
     if problems:

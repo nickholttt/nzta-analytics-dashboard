@@ -1207,10 +1207,6 @@ Fact tables, found before anything is read:
   dimension from that dataset's `facts`. A data map the build cannot read aborts the same check.
 - The same, for a dimension a dataset's `narrow_facts` table lists (*Narrow fact tables*): the message names the table and says to
   remove the dimension from it.
-- A dataset has `narrow_facts` and no `facts`; `narrow_facts` is not a list of tables; a table has no id, an id that is not lower
-  case letters, digits and underscores, or an id another table of the dataset has; a table's `dimensions` is empty, not distinct
-  dimension ids, names a dimension the dataset cannot derive or a name the table reserves; a table's counts do not total the
-  dataset's vehicles.
 
 Pairs:
 
@@ -1245,6 +1241,10 @@ Fact table:
   dimension the dataset cannot derive.
 - The table's counts, read back from `n.parquet`, do not total the dataset's
   vehicles as counted before the dimension lookups are joined on.
+- A dataset has `narrow_facts` and no `facts`; `narrow_facts` is not a list of tables; a table has no id, an id that is not lower
+  case letters, digits and underscores, or an id another table of the dataset has; a table's `dimensions` is empty, not distinct
+  dimension ids, names a dimension the dataset cannot derive or a name the table reserves; a table's counts do not total the
+  dataset's vehicles. These are found when the tables are written, after the source is read, like the wide table's.
 
 Events:
 
@@ -1372,4 +1372,4 @@ files): the `colour` slice is 87,187 bytes, and the narrow table `colour` is 224
 2,530,064 bytes over 21 files. The whole payload is 5,759,161 bytes, 72.0% of the 8,000,000 byte budget; 441,163 of those are the
 slice and the table together, so without them it would be 5,317,998 (arithmetic, not a separate build). Against the release
 `cube-2026-10` (99 files), 98 files are byte-identical and `manifest.json` differs; the files only in the dry run are the associations
-files, the fleet's three files, and the two colour files above, of which only the colour files are this change.
+files, the fleet's three files, the `colour` slice and the five files of the narrow table, of which only those six are this change.
