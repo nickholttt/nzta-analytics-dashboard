@@ -143,8 +143,8 @@ test("the sentence about hidden cells is filled from the count and the least cou
   assert.equal(matrixSentences(phrases, facts(undefined)).hidden, undefined);
 });
 
-// A line's total can be hidden while some of its cells are shown (a few counts beside the small ones are hidden too). A share of that line has no base:
-// it is not a share of a line that holds no vehicles.
+// A guard: the pipeline hides every cell on a line whose total is hidden (pair_cells.py rule 2), so this table is one it never writes. If a
+// shown cell ever sat on such a line, its share would have no base: it is not a share of a line that holds no vehicles.
 const hiddenRowTotal = cells.map((c) => (c.value === "alpha" ? { ...c, totals: { ...c.totals, row: null } } : c));
 const hiddenColumnTotal = cells.map((c) => (c.other === "x" ? { ...c, totals: { ...c.totals, column: null } } : c));
 
