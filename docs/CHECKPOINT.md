@@ -13,14 +13,19 @@ Last updated by claude on 2026-11-18
   vstat equals ours for October 2026 (D-118). Hybrids as one group, new passenger vehicles,
   October 2026: 4,978 of 11,824; Auto Trader has the same total and 4,859 "petrol hybrids";
   119 of our mild hybrids that month are one diesel nameplate; cause not claimed (D-124).
-- 2026-11-17 and 18, eleventh session (D-126, D-134). **Merged: #90 to #99.** Axles withdrawn
+- 2026-11-17 and 18, eleventh session (D-126, D-134). **Merged: #90 to #101.** Axles withdrawn
   (D-129); a pinned link reads its own snapshot's cube (D-131); the `region` slice under the
   small-cell rule (D-127); power and the gearbox bound (D-128); the site refuses a table with
   hidden counts (D-130, D-133). **October forced again** (D-134): the release `cube-2026-10`
   now holds all four datasets and the `region` slice with small cells hidden, checked on the
   published file. It broke two prototype tests in `Checks`; #97 fixed them. Build offers
   power and the gearbox, starting with vehicles sold new (#96, D-132). The site follow-ups
-  (#98, D-137): a link's absent value is told and dropped; field notes are one line.
+  (#98, D-137): a link's absent value is told and dropped; field notes are one line. Each
+  build writes how strongly every pair of public fields moves together (#99, D-136). **The
+  first owner table, "Current use"** over today's register, alone and by vehicle type, under
+  a two-field small-cell rule, approved by the user after seeing it (#100, #101; D-135,
+  D-139, D-141): published from the next build. The user's end state noted (D-138); vehicle
+  use in two forms planned (D-140).
 - **Measured on 17 November for the next pieces** (a read-only profile of the saved 2026-10
   pull; restate each figure, re-measured, in the record of the piece that uses it):
   - Colour: 14 values, 5 blanks. A narrow table with make alone is about 276 KB; with make
@@ -28,21 +33,17 @@ Last updated by claude on 2026-11-18
 
 ## Open pull requests
 
-- None. #99 (D-136): each build writes how strongly every pair of public fields moves together.
-- **Not pushed, on purpose:** `claude/fleet-usage-private` (D-135; `nzta-notes`), the first
-  owner table, built; `claude/fleet-usage-private-site` (D-139; `nzta-firstload`), drawing it
-  with hidden cells. Shown to the user before any push (D-120, D-134).
+- These notes (docs only), with D-138 and D-140.
 
 ## The queue, in order
 
 **The user's end state (D-138):** a self-serve, drag-and-drop chart canvas, not a page that
 tells visitors what to look at. Nothing changes now; raise it first when UI work starts.
 
-1. **The first owner table: the fleet by "Current use"** (the user, D-134, D-140): every
-   vehicle in the snapshot, by usage and by usage and vehicle type, never by first
-   registration; a one-period dataset with a two-field small-cell rule. Being built on the
-   unpushed branch above. Then: the figures and headless screenshots to the user, and no pull
-   request before the user's word. Industry class and district wait (D-134).
+1. **Colour**, in a narrow table of its own (a contract change; costs above), **and the
+   engine's small fixes** (item 5, and the build itself refusing an owner field in a fact
+   table: today only `test_data_map` does, #99's review). Site leftovers of #101's review: a
+   hidden line total read as "no vehicles"; a one-period ranking cut at 15 values.
 2. **What the dashboard's "Vehicle usage" column records** (D-134), then **"Registered as"**
    (D-140): match October's and November's archive files privately after NZTA's December
    refresh and report. If the dashboard's usage is as at first registration, keep it and owner
@@ -51,19 +52,18 @@ tells visitors what to look at. Nothing changes now; raise it first when UI work
 3. **Drawing a hidden cell** (D-130 lists what it needs), only when a chart by the owner's
    region is wanted. **The pinned link's leftovers** (D-131): the "newest cube" step reads one
    page of releases; the host's limits are unchecked (a kept snapshot adds about 3.2 MB).
-4. **Colour**, in a narrow table of counts of its own (a contract change; costs above).
-5. **The SUV file's next slice** (D-123, "left"): people movers and sports cars; whether the
+4. **The SUV file's next slice** (D-123, "left"): people movers and sports cars; whether the
    register holds the Levorg Layback as LEVORG and the Impreza XV as IMPREZA; three sizes each
    for cars and SUVs from cited length and width against the FCAI's footprint bands; a rule
    per dataset; then the wiring and its guard. 61 rows are still `medium`: the sites refuse.
-6. **Small follow-ups.** Engine: Tank to unresolved (a golden change); a reader that refuses
+5. **Small follow-ups.** Engine: Tank to unresolved (a golden change); a reader that refuses
    a malformed reference row; the X-Trail row's basis; the dataset guard on a filtered
    dataset (D-118); the fixture harness's fields; a seats average. Site: class with segment
    group recorded in the data map; the query service prototype's `unknown`, `build.snapshot`
    and `public_line` (D-137's follow-ups).
-7. **The related-fields note** from the data map, in Build (package F's last site item),
+6. **The related-fields note** from the data map, in Build (package F's last site item),
    reading the figures D-136 writes.
-8. **Paused, uncommitted, behind `main`:** package H's narrative spec (D-102; worktree
+7. **Paused, uncommitted, behind `main`:** package H's narrative spec (D-102; worktree
    `nzta-screens`). D-103's draft scheme file is untracked in `nzta-segments`.
 
 ## Left in the packages
@@ -96,7 +96,7 @@ tells visitors what to look at. Nothing changes now; raise it first when UI work
 D-082, D-085 to D-095 (the eighth session). The ninth: the readings in D-096, D-104 and D-106
 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119 (D-119's line is now the
 user's). The tenth: the readings in D-120, and D-121 to D-125. The eleventh: the readings in
-D-126, D-134, D-138 and D-140, and D-127 to D-137. Not in a record: queue item 5's three sizes.
+D-126, D-134, D-138, D-140, D-127 to D-137 and D-139. Not recorded: item 4's three sizes.
 
 ## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
 

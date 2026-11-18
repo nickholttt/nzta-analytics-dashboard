@@ -48,13 +48,15 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the work queue is 
   as vehicles or a share of all, of the row or of the column (#75, D-114). Two Explore grids.
 - **SUV or car per nameplate**: a file nothing reads yet (#84, D-117, D-123), 179 nameplates.
 - **One rule table says which shapes fit a question** (#62, D-100, `config/chart_rules.json`).
+  Each build writes how strongly every pair of public fields moves together (#99, D-136).
 - **The data map is finished** (#53, D-090), and **its privacy classes are approved** (the
   user, 2026-11-16, D-096): vehicle fields are public; an owner field only in a table of one
   or two fields with cells under 10 vehicles hidden, and none until the pipeline can hide
-  them. **The `region` slice is published under the small-cell rule** (#91, D-127; in the
-  release since 17 November). The site refuses a table with hidden counts and draws none yet
-  (#94, D-130). Another owner field's first table is shown to the user first (D-120). Axles
-  have no use for now (#90, D-129).
+  them. **The `region` slice is published under the small-cell rule** (#91, D-127). **"Current
+  use"** (vehicle usage) over today's register, alone and by vehicle type, is approved and on
+  `main` (#100, #101; D-135, D-139, D-141): a stock dataset `fleet`, a two-field rule with an
+  exact audit, hidden cells drawn as hidden; published from the next build. Every other
+  owner field waits on the user. Axles have no use for now (#90, D-129).
 - **The query service** is proposed, not provisioned (#54, D-091). **Events**: 54 rows, 50
   verified; four are unverified on purpose. Don't guess dates.
 
@@ -65,9 +67,7 @@ for two pipeline items. F's done-when is met (#82); the rest of F and I: CHECKPO
 
 ## In progress (all claude; nothing by gemini)
 
-- `claude/moves-together` (D-136; worktree `nzta-audit`): being built, not pushed yet.
-- `claude/fleet-usage-private` (D-135; `nzta-notes`): the first owner table, the fleet by
-  usage. **Local only, never pushed** until the user has seen its figures (D-120, D-134).
+- Nothing is being built; these notes are in a pull request.
 - `claude/narrative-spec` (D-102; `nzta-screens`, **uncommitted**): `config/narrative/`.
   D-103's draft scheme file sits untracked in `nzta-segments`.
 
