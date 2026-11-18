@@ -23,6 +23,12 @@ In each period:
 file back and says what breaks the rule, so a pair that should be protected and is not fails the build instead of reaching
 `public/data` (design invariant 5). `bounds` is the audit both use: for every hidden cell, the smallest and largest value that
 every line total and every visible cell leave it.
+
+The audit knows the line totals and the visible cells. Anything else published that bounds a cell is a channel it cannot see,
+so none is published. The fuel columns are one: in a cell the fuel-eligible count is at most the cell's count, and a line that
+is wholly fuel-eligible caps each of its cells by the other line's eligible total. So the pair carries no fuel figure on any
+row, and neither do the two one-field slices it stands on (they are written with the fuel columns null, build.py), and
+`check_pair` reads all three files back for one. The limits that remain are in docs/CUBE_SCHEMA.md.
 """
 
 from __future__ import annotations
@@ -409,7 +415,7 @@ def check_pair(con, path: Path, rule: SmallCellRule, slice_a: Path, slice_b: Pat
     - a line holding a hidden cell holds at least `hidden_cells` of them, which together count (the slice's count less the
       line's visible cells) at least `hidden_vehicles` and more than there are of them, and keeps a visible cell;
     - no hidden cell is pinned to one value by the totals (`bounds`), and the totals are consistent;
-    - no row carries a fuel figure.
+    - no row carries a fuel figure, and neither does a row of either one-field slice.
 
     `expected` (the writer's own figures) adds a comparison of the file's months, hidden rows and reserved rows with what the
     writer meant to write."""
@@ -425,6 +431,11 @@ def check_pair(con, path: Path, rule: SmallCellRule, slice_a: Path, slice_b: Pat
     def flag(problem: str, month) -> None:
         found.setdefault(problem, []).append(month)
 
+    for source in (slice_a, slice_b):
+        for (month,) in con.execute(
+                f"SELECT DISTINCT month FROM read_parquet({lit(source.as_posix())}) "
+                f"WHERE fc_sum IS NOT NULL OR fc_n IS NOT NULL OR fc_eligible_n IS NOT NULL ORDER BY month").fetchall():
+            flag(f"a row of the one-field slice {source.stem} carries a fuel figure, which would bound a hidden cell of the pair", month)
     hidden_total = reserved_total = 0
     for month, rows in by_month.items():
         sa, sb = first_slice.get(month), second_slice.get(month)

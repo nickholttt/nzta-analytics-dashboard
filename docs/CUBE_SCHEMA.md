@@ -147,7 +147,7 @@ nothing, unless in every month: no visible `n` is under the minimum (a row with 
 is hidden and the visible counts add up to the `denominator`, or at least `minimum_hidden_cells` cells are hidden, at least
 one row is visible, and the `denominator` less the visible counts is at least `minimum_hidden_vehicles` and larger than the
 number of hidden cells, or the month is one reserved row whose `n` is the `denominator`; and no hidden or reserved row
-carries a fuel figure. A pair with such a dimension is held to its own rule (*Pairs with an owner dimension*, below), and
+carries a fuel figure. A slice that a protected pair stands on carries none on any row (*Pairs with an owner dimension*). A pair with such a dimension is held to its own rule (*Pairs with an owner dimension*, below), and
 neither the fact table nor the committed snapshot aggregate holds an owner field (D-078, D-096).
 
 Limits, stated and not solved (D-127). The project's owner accepts these knowingly:
@@ -297,9 +297,11 @@ In each period, in this order:
 
 1. **First rule.** A cell counting fewer than `minimum` (10) vehicles is hidden: its row stays, with `n` null, and the
    `denominator`, the period's total, stays. The three fuel columns are null on **every** row of a protected pair, not only on
-   a hidden one: a visible cell's fuel-eligible count (`fc_eligible_n`) is a lower bound on the count of every cell in its
-   line, and set beside the one-field slices' fuel counts it narrows what the totals leave a hidden cell (measured on the
-   first real table, D-135), so a protected pair carries counts alone.
+   a hidden one, and on **every** row of both one-field slices it stands on (below): a fuel-eligible count is at most the
+   count of its cell, so a visible cell's `fc_eligible_n` is a lower bound on the count of every cell in its line; a
+   slice's `fc_eligible_n` per value is an upper bound on the cells of that value's line, and a line that is wholly
+   fuel-eligible caps each of its cells by the other line's eligible total. The audit below knows none of these, so none is
+   published (the first was measured to narrow the first real table, D-135), and a protected pair carries counts alone.
 2. **A value hidden in its one-field slice.** If a dimension's slice hides a value in the period, every cell on that value's
    line is hidden in the pair too, since the line's total is not public. If either slice is not broken down in the period (it
    is one reserved row), neither is the pair (4, below).
@@ -316,6 +318,14 @@ In each period, in this order:
    cannot meet the line rule (it has no visible cell left to hide), in which a line with hidden cells would keep no visible
    cell, in which every cell would be hidden, in which the audit (below) finds a hidden cell pinned to one value, or in which
    either one-field slice is not broken down. Which cells had vehicles is not shown for it.
+
+**The one-field slices of a protected pair carry no fuel figure.** In a dataset with a protected pair, the slice of each of
+the pair's two dimensions (the owner dimension's, and the other's, which reads no owner field) is written with `fc_sum`,
+`fc_n` and `fc_eligible_n` null on every row, hidden or visible. Which slices is decided from `pairs` in
+`config/pipeline.json` and the data map's protection (`pair_slice_dimensions` in `pipeline/build.py`); no dataset or
+dimension id is in code. Today that is both slices of the stock `fleet`. A one-field slice of an owner dimension that no
+pair stands on keeps the fuel columns of its visible cells (*Slices of owner dimensions*). Leaving the fuel columns off costs a figure
+nothing asked for: no measure in `config/measures.json` is a fuel measure.
 
 **The audit.** For every hidden cell, the build works out the smallest and largest count that every public line total, the
 period's total and every visible cell leave it, with each hidden cell holding at least one vehicle. The values the totals
@@ -335,8 +345,8 @@ line hidden in its slice is hidden; and, for every hidden cell, the public total
 each such pair back from the written file and from the written one-field slices, and aborts, publishing nothing, unless in
 every period those hold, a period either slice does not break down is one reserved row, the visible counts of a line with no
 hidden cell add up to the line's total in its slice, every value in the pair is a value of its slice, the `denominator` is the
-same on every row and is the slice's, no row carries a fuel figure, and the file's periods, hidden rows and reserved rows
-equal what the writer meant to write. Summed over `b_value`, a protected pair no longer gives `dim_a`'s slice, since hidden
+same on every row and is the slice's, no row of the pair or of either one-field slice carries a fuel figure, and the file's
+periods, hidden rows and reserved rows equal what the writer meant to write. Summed over `b_value`, a protected pair no longer gives `dim_a`'s slice, since hidden
 cells have no `n`.
 
 Limits, stated and not solved (D-135). The project's owner accepts these knowingly:
@@ -347,6 +357,13 @@ Limits, stated and not solved (D-135). The project's owner accepts these knowing
   same owner dimension with different second dimensions, the one-field slices, and the same table in the neighbouring snapshot
   are each published, and a reader who combines them can know more than any one table shows. Nothing in the build compares
   them.
+- The audit refuses only a hidden cell pinned to one value. A cell the totals narrow to a few values is published. On the
+  2026-10 register the narrowest of the four hidden cells of the fleet's pair has a spread of 15 (largest less smallest: 16
+  possible values), and the four are narrowed to 1 to 16, 93 to 108, 1 to 16 and 12 to 27.
+- The manifest's counts narrow the ranges a little more. `cells_hidden_first_rule`, `cells_hidden_by_slice` and
+  `cells_hidden_second_rule` say how many hidden cells each step hid, so a block with `cells_hidden_first_rule: 1` says that
+  exactly one hidden cell is under 10 and the others are not known to be. The audit does not use them. The other figures
+  there (`vehicles_in_hidden_cells`) are the sum of the hidden cells, which the totals already give.
 - A range wide enough to pass the audit can still be narrow in practice: the manifest gives, for each protected pair,
   `narrowest_range`, the smallest spread (largest less smallest) that any hidden cell has in any period, so how close the
   closest cell comes is visible. A spread of 0 never publishes.
@@ -836,9 +853,10 @@ snapshot, of every vehicle type and every import status, counted as at the snaps
 two dimensions and no others: `vehicle_usage`, labelled "Current use" (the register's usage value through
 `data/reference/vehicle_usage_map.csv`), and `vehicle_type` (the type NZTA registers the vehicle under, every type rather than
 the two of the default scope). Its files are `cube/fleet/vehicle_usage.parquet`, written under the small-cell rule and read back
-(*Slices of owner dimensions*); `cube/fleet/vehicle_type.parquet`, which reads no owner field and is written as counted;
+(*Slices of owner dimensions*); `cube/fleet/vehicle_type.parquet`, which reads no owner field and is written as counted, but for the fuel columns;
 and `pairs/fleet/vehicle_usage__vehicle_type.parquet`, written under the rule for a table of two fields (*Pairs with an owner
-dimension*). It has no fact table. Its manifest block has `small_cells` for the usage and `small_cell_pairs` for the pair, no
+dimension*). Both slices carry no fuel figure on any row, since the pair stands on them (*Pairs with an owner dimension*). It has
+no fact table. Its manifest block has `small_cells` for the usage and `small_cell_pairs` for the pair, no
 mild hybrid block, and `facts: null`. `month` in every file is the snapshot's month, the first day, and nothing in any file says
 when a vehicle was first registered. A period that cannot be broken down is one reserved row (in the pair, with the reserved
 value in both columns), as everywhere. The usage field is recorded for every vehicle and has no form of not recorded; the build
@@ -1148,8 +1166,8 @@ Pairs:
   `minimum_hidden_cells_per_line` hidden cells or with hidden cells holding too few vehicles or no more than there are of them;
   a line with hidden cells and no visible cell; a value hidden in its slice that has a visible cell; visible counts that do not
   add up to their line's total; a value that is not in its slice; a period either slice does not break down that is not one
-  reserved row; a total that is not the slices'; a fuel figure on any row; a hidden cell the totals pin to one value, or
-  totals that leave no values), or its periods, hidden rows or reserved rows differ from what the writer meant to write
+  reserved row; a total that is not the slices'; a fuel figure on any row of the pair or of either one-field slice; a hidden
+  cell the totals pin to one value, or totals that leave no values), or its periods, hidden rows or reserved rows differ from what the writer meant to write
   (*Pairs with an owner dimension* above).
 
 Owner fields (D-127):

@@ -155,6 +155,16 @@ def test_the_usage_slice_and_the_pair_are_held_to_their_rules_and_the_manifest_s
     assert any(n is None for _, _, n, *_ in slice_) or any(value == NOT_BROKEN_DOWN for _, value, *_ in slice_)
 
 
+def test_neither_slice_of_the_fleet_nor_its_pair_carries_a_fuel_figure(built):
+    """The fuel-eligible counts of the slices would bound the pair's hidden cells, which the audit does not see (D-135)."""
+    _, _, _, workspace = built
+    for path in (workspace["public"] / "cube" / FLEET / f"{USAGE}.parquet", workspace["public"] / "cube" / FLEET / f"{TYPE}.parquet",
+                 workspace["public"] / "pairs" / FLEET / f"{PAIR}.parquet"):
+        rows = read(path)
+        assert rows, path.name
+        assert all(r[-3:] == (None, None, None) for r in rows), path.name
+
+
 def test_no_file_of_the_fleet_has_a_month_other_than_the_snapshots(built):
     cfg, rows, manifest, workspace = built
     snapshot = manifest["latest_snapshot"][:8] + "01"

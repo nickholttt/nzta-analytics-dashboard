@@ -480,6 +480,24 @@ def test_a_fuel_figure_on_any_row_of_a_protected_pair_is_found(tmp_path, where):
     assert any("fuel figure" in p for p in pair_cells.check_pair(con, leaked, RULE, a, b))
 
 
+@pytest.mark.parametrize("side", ["a", "b"])
+def test_a_fuel_figure_on_a_row_of_either_one_field_slice_is_found(tmp_path, side):
+    """The slices' fuel-eligible counts bound the pair's hidden cells and the audit does not use them, so a slice that
+    carries one fails the read-back of the pair."""
+    counts = grid([5, 30, 60], [20, 25, 70], [40, 50, 80])
+    result = decide(counts)
+    a, b = slices_of(tmp_path, counts)
+    path = write_pair(tmp_path, hide(counts, hidden_set(result)), denominator=sum(counts.values()))
+    assert pair_cells.check_pair(duckdb.connect(), path, RULE, a, b) == []
+    target = a if side == "a" else b
+    leaked = tmp_path / "leaked.parquet"
+    duckdb.connect().execute(
+        f"COPY (SELECT month, dim_value, n, denominator, fc_sum, fc_n, CASE WHEN dim_value = (SELECT min(dim_value) FROM read_parquet('{target.as_posix()}')) THEN 3 END AS fc_eligible_n "
+        f"FROM read_parquet('{target.as_posix()}')) TO '{leaked.as_posix()}' (FORMAT PARQUET)")
+    problems = pair_cells.check_pair(duckdb.connect(), path, RULE, leaked if side == "a" else a, leaked if side == "b" else b)
+    assert any("one-field slice leaked carries a fuel figure" in p for p in problems), problems
+
+
 def test_the_writers_figures_are_compared_with_the_file(tmp_path):
     counts = grid([5, 30, 60], [20, 25, 70], [40, 50, 80])
     result = decide(counts)

@@ -61,12 +61,13 @@ def decide_month(cells: list[tuple[str, int]], rule: SmallCellRule) -> Hidden | 
     return Hidden(tuple(first), tuple(second))
 
 
-def write_protected_slice(con, cfg, derived, ds: str, path: Path, rule: SmallCellRule) -> dict:
+def write_protected_slice(con, cfg, derived, ds: str, path: Path, rule: SmallCellRule, fuel: bool = True) -> dict:
     """The dimension's 1-D slice with the rule applied, written to `path`; returns what was hidden, for the manifest.
 
     A hidden cell keeps its row, with `n` and the three fuel columns null (they bound `n`) and the month's
     `denominator`, which every slice publishes. A month that is not broken down is one row with the reserved value,
-    `n` and `denominator` both the month's total, and null fuel columns."""
+    `n` and `denominator` both the month's total, and null fuel columns. `fuel` False nulls them on every row, as a slice that
+    a protected pair stands on is written (pair_cells.py): its fuel-eligible counts would bound the pair's hidden cells."""
     path.parent.mkdir(parents=True, exist_ok=True)
     con.execute(f"CREATE OR REPLACE TEMP TABLE cells_raw AS {outputs.counts_sql(cfg, [(derived.column, 'dim_value')], ds)}")
     by_month: dict = {}
@@ -105,15 +106,16 @@ def write_protected_slice(con, cfg, derived, ds: str, path: Path, rule: SmallCel
         con.executemany("INSERT INTO cells_hidden VALUES (?, ?)", hidden_cells)
     if not_broken_down:
         con.executemany("INSERT INTO cells_unbroken VALUES (?)", not_broken_down)
+    keep = "TRUE" if fuel else "FALSE"
     con.execute(f"""
         COPY (
             SELECT * FROM (
                 SELECT r.month AS month, r.dim_value AS dim_value,
                        CASE WHEN h.month IS NULL THEN r.n END AS n,
                        r.denominator AS denominator,
-                       CASE WHEN h.month IS NULL THEN r.fc_sum END AS fc_sum,
-                       CASE WHEN h.month IS NULL THEN r.fc_n END AS fc_n,
-                       CASE WHEN h.month IS NULL THEN r.fc_eligible_n END AS fc_eligible_n
+                       CASE WHEN h.month IS NULL AND {keep} THEN r.fc_sum END AS fc_sum,
+                       CASE WHEN h.month IS NULL AND {keep} THEN r.fc_n END AS fc_n,
+                       CASE WHEN h.month IS NULL AND {keep} THEN r.fc_eligible_n END AS fc_eligible_n
                 FROM cells_raw r LEFT JOIN cells_hidden h ON r.month = h.month AND r.dim_value = h.dim_value
                 WHERE r.month NOT IN (SELECT month FROM cells_unbroken)
                 UNION ALL
