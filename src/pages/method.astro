@@ -6,6 +6,7 @@ import { MAX_MARKERS, MEASUREMENT_WARNING } from "../lib/events";
 import { SERIES } from "../lib/theme";
 import { ALL_OTHER } from "../components/MixChart";
 import { RESERVED_LABELS } from "../components/PresetPanel";
+import dataMap from "../../config/data_map.json";
 
 // Thresholds come from config so the page cannot drift from what the charts apply. Prose here
 // restates docs/METRICS.md for readers who are not analysts; METRICS.md is the source.
@@ -18,6 +19,8 @@ const topN = findDerived(TOP_N_SHARE)?.top_n;
 const completeAt = Math.round(hybrid.complete_at_coverage * 100);
 const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage * 100);
 const colourSlots = chartDefaults.colour_slots_by_trailing;
+// The least count a table of a field that describes the owner or the use of a vehicle shows (config/data_map.json, owner_rule).
+const hideBelow = dataMap.owner_rule.minimum_count;
 ---
 
 <Layout title="Methodology" activeNav="method">
@@ -178,6 +181,16 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
       A month with fewer than {floor} registrations behind it, or far fewer than the months before, is left out, not
       drawn as zero. Completeness is a ratio of two counts, not a match of vehicles one by one, and it is never used to
       scale or adjust any other figure.
+    </p>
+
+    <h2 id="hidden-counts">Hidden Counts</h2>
+    <p>
+      A table of a field that describes how a vehicle is used, or who has it, never shows a count under {hideBelow}, so no
+      vehicle can be picked out from it. A hidden count is marked <em>hidden</em>, with no bar and no number, and is never
+      drawn as zero. A few counts beside a hidden one are hidden too: a total less the counts shown would otherwise give a
+      hidden one away. The totals of every row and column are complete and count every vehicle, so they can be more than
+      the counts shown beside them add up to. Where no cell of a table could be shown without giving a vehicle away, the
+      table is not broken down, and the page says so.
     </p>
 
     <h2 id="long-run-cars">Long-Run Car Registrations</h2>

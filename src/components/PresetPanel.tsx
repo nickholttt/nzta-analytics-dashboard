@@ -456,7 +456,7 @@ export default function PresetPanel({
   const dimensionLabel2 = dimension2 ? dimensionWords(dimension2.id, internal) : undefined;
 
   // The answer comes straight under the question: a count's figure and sentence for a month, or who is first in a ranking.
-  const answerFirst = preventsRender.length === 0 && Boolean(rows?.length) && ((Boolean(preset.answer) && shape === "trend") || (shape === "league" && Boolean(effectivePreset.values?.length || effectivePreset.ranks_all)) || shape === "matrix");
+  const answerFirst = preventsRender.length === 0 && Boolean(rows?.length) && ((Boolean(preset.answer) && shape === "trend") || (shape === "league" && Boolean(effectivePreset.values?.length || effectivePreset.ranks_all || dataset?.single_period)) || shape === "matrix");
   const replacedNotice = periodReplaced ? (
     <p className="chart-unit" role="status">
       {fillNote(phrases.period_replaced, periodReplaced).text}
@@ -714,7 +714,8 @@ export default function PresetPanel({
         </div>
       ) : null}
 
-      {preventsRender.length === 0 ? (
+      {/* A dataset of one period has no range of time to choose (dimensions.json, single_period). */}
+      {preventsRender.length === 0 && !dataset?.single_period ? (
         <div className="toggle" role="radiogroup" aria-label="Time range">
           {rangeOptions.map((o) => (
             <label key={o.key}>

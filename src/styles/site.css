@@ -1310,6 +1310,13 @@ section[id] {
   font-style: italic;
 }
 
+/* Every value of both fields stands on a protected grid, so it is wide and scrolls: a column keeps room for a name rather than breaking it inside a word. */
+.matrix.protected .matrix-head {
+  min-width: 6.5rem;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 tr.hidden-row td {
   color: var(--ink-2);
   font-style: italic;

@@ -3,7 +3,7 @@
 // knows no measure, field or value: a question is six facts, each a word from the table's own vocabulary.
 import rulesDoc from "../../config/chart_rules.json";
 
-export type FactName = "measure" | "by" | "values" | "span" | "picked" | "crossed_with";
+export type FactName = "measure" | "by" | "values" | "span" | "picked" | "crossed_with" | "periods";
 // A fact the question cannot state is left out, and matches only a rule that does not mention it.
 export type Facts = Partial<Record<FactName, string>>;
 export type Rule = { id: string; when: Partial<Record<FactName, string | string[]>>; shapes: string[]; note?: string };

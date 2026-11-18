@@ -284,7 +284,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
       </div>
 
       <div ref={box} className="table-scroll matrix-scroll" role="region" aria-label={fillTemplate(phrases.matrix_region, { row_field: rowHeading, column_field: columnHeading }).text} tabIndex={0}>
-        <table className="matrix">
+        <table className={grid.protected ? "matrix protected" : "matrix"}>
           <caption className="visually-hidden">{[preset.question, sentences.cells].filter(Boolean).join(" ")}</caption>
           <thead>
             <tr>

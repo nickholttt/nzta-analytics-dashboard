@@ -139,6 +139,20 @@
       "public_label": "Vehicles registered today",
       "attribution": "Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe the vehicles on NZTA's register at the snapshot date, not sales.",
       "grain": "stock",
+      "single_period": true,
+      "$single_period_comment": "The dataset has one period, the snapshot's month (docs/CUBE_SCHEMA.md, Stock datasets). The chart rules read it as one period (chart_rules.json, facts.periods), so a category counted in it is a ranking and two fields crossed are a grid; a question that would draw it over time is blocked; and a chart of it has no time range, no month to choose, no move, no change on a year ago.",
+      "words": {
+        "count_heading": "Vehicles",
+        "month_unit": "Vehicles on the register at the snapshot",
+        "window_unit": "Vehicles on the register at the snapshot",
+        "recent_figure": "on the register at the snapshot",
+        "ranking_basis": "Ranked by vehicles on the register at the snapshot",
+        "leader_count": "{vehicles} on the register at the snapshot",
+        "suggestion_recent": "on the register",
+        "suggestion_total": "on the register",
+        "none_recent": "Nothing is on the register",
+        "cap_count": "vehicles on the register"
+      },
       "definition": "Every vehicle on NZTA's Motor Vehicle Register at the snapshot date, of every vehicle type and every import status, counted as at that date. It has one period, the snapshot's month, and no month or year of first registration.",
       "public_definition": "Counts every vehicle on New Zealand's motor vehicle register at the snapshot date, of every vehicle type, as it is recorded now. It does not say when a vehicle was first registered.",
       "help": "All vehicles registered in NZ at the snapshot date, of every vehicle type. Never shown by the month or year a vehicle was first registered, and never on the same chart as a dataset that counts first registrations."

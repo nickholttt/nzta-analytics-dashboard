@@ -8,7 +8,7 @@ import type { BuilderMeasure, Preset } from "./config";
 import { isBuilt } from "./data";
 import type { Manifest } from "./data";
 import { monthLabel } from "./measures";
-import { drawnShapes, inferShape, questionFacts, resolvePreset } from "./resolve";
+import { drawnShapes, findPair, inferShape, questionFacts, resolvePreset } from "./resolve";
 import { nested, rollUps } from "./nesting";
 import { ownerDimensions } from "./owner";
 import type { MapDimension, MapField } from "./nesting";
@@ -64,12 +64,18 @@ const partsOf = (m: BuilderMeasure) => (m.parts ?? [m.id]).map(findBuilderMeasur
 // A derived measure's size comes from its definition, so the words cannot disagree with the line.
 const measurePhrase = (m: BuilderMeasure) => m.phrase.replace("{top_n}", String(findDerived(m.id)?.top_n ?? ""));
 
+// The breakdowns a measure's own list offers, with those only a dataset offers (dataset_dimensions) added for that dataset.
+const ownDimensions = (m: BuilderMeasure, dataset?: string): Record<string, string> => ({ ...m.dimensions, ...(dataset ? m.dataset_dimensions?.[dataset] : undefined) });
+
 // The breakdowns a measure offers, each with its words. A measure made of parts offers what every part offers.
-function dimensionsOf(m: BuilderMeasure): Record<string, string> {
-  if (!m.parts) return m.dimensions;
+function dimensionsOf(m: BuilderMeasure, dataset?: string): Record<string, string> {
+  if (!m.parts) return ownDimensions(m, dataset);
   const parts = partsOf(m);
-  return Object.fromEntries(Object.entries(parts[0]?.dimensions ?? {}).filter(([id]) => parts.every((p) => id in p.dimensions)));
+  return Object.fromEntries(Object.entries(ownDimensions(parts[0] ?? m, dataset)).filter(([id]) => parts.every((p) => id in ownDimensions(p, dataset))));
 }
+
+// Whether the dataset has one period and no other (dimensions.json, single_period): it has no series over time.
+const hasOnePeriod = (dataset: string): boolean => Boolean(findDataset(dataset)?.single_period);
 
 // The conditions that keep something, in one order whatever order they were added in (fields by id, each field's values by
 // text), so one question has one address and one sentence. The page lists a visitor's conditions in the order they were added.
@@ -86,8 +92,8 @@ const joined = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(
 export function questionText(q: Question, measureId: string, label: (value: string) => string = (v) => v): string {
   const m = findBuilderMeasure(measureId);
   if (!m) return "";
-  const by = q.by ? dimensionsOf(m)[q.by] : undefined;
-  const by2 = q.by && q.by2 && !m.derived ? dimensionsOf(m)[q.by2] : undefined;
+  const by = q.by ? dimensionsOf(m, q.dataset)[q.by] : undefined;
+  const by2 = q.by && q.by2 && !m.derived ? dimensionsOf(m, q.dataset)[q.by2] : undefined;
   const words = [measurePhrase(m), by ? m.joiner : "", by, by2 ? phrases.build_second_and : "", by2].filter(Boolean).join(" ");
   const named = !m.derived && !by2 && q.by && q.values.length ? `: ${q.values.map(label).join(", ")}` : "";
   return words.charAt(0).toUpperCase() + words.slice(1) + named;
@@ -117,7 +123,9 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
   );
   // A count by a breakdown is lines unless the visitor asked for the ranking; a view the visitor chose among the shapes that fit
   // applies to the rest. The resolver reports a view that does not fit the question.
-  const view = crossed ? MATRIX : measureId === COUNT && q.by ? (q.view === RANKING ? RANKING : TREND) : q.view;
+  // A dataset of one period has no lines over time: a count by a breakdown is its ranking, whatever the view says.
+  const single = hasOnePeriod(q.dataset);
+  const view = crossed ? MATRIX : single && q.by ? RANKING : measureId === COUNT && q.by ? (q.view === RANKING ? RANKING : TREND) : q.view;
   const preset: Preset = {
     id,
     question: questionText(asked, measureId, label) + (q.dataset === builderSpec.dataset ? "" : ` (${datasetName(q.dataset)})`),
@@ -127,7 +135,7 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
     period: builderSpec.period,
     // Chosen values reach their ranking through the view, not through the time row: the time row of a lines chart offers no ranking
     // window, so there is one way in and the page says which view is on (D-111).
-    ranking_period: values || crossed ? undefined : builderSpec.ranking_period,
+    ranking_period: values || crossed || single ? undefined : builderSpec.ranking_period,
     events: true,
     note: joined(forDataset(m?.note, q.dataset), dimensionNote),
     note_template: m?.note_template ? joined(m.note_template, dimensionNote) : undefined,
@@ -143,7 +151,8 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
   };
   const shape = inferShape(preset, findDimension(q.by), findMeasure(preset.measure));
   const opening = values ? builderSpec.period_when_comparing : builderSpec.period;
-  return { ...preset, period: builderSpec.period_by_shape[shape] ?? opening };
+  // The one period of a dataset that has one is the window of its charts.
+  return { ...preset, period: single ? builderSpec.period_single : (builderSpec.period_by_shape[shape] ?? opening) };
 }
 
 // The question's charts: one, or one per part. The first takes the builder's id, which scopes its settings in the
@@ -208,14 +217,18 @@ function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabula
   const measures = builderSpec.measures
     .map((m): BuilderOption => {
       const probe = (by: string | null, values: string[] = []) => draws({ ...blank, measure: m.id, by, values }, manifest);
-      const offered = Object.entries(dimensionsOf(m)).flatMap(([id, phrase]) => {
+      const offered = Object.entries(dimensionsOf(m, dataset)).flatMap(([id, phrase]) => {
         const values = !m.derived && Boolean(facts?.dimensions.includes(id)) && probe(id, ["?"]);
-        // A count by a breakdown draws a line per chosen value, so without values it has nothing to draw.
-        const needsValues = partsOf(m).some((p) => p.id === COUNT);
+        // A count by a breakdown draws a line per chosen value, so without values it has nothing to draw. In a dataset of one period it is a ranking of
+        // every value, which needs none.
+        const needsValues = partsOf(m).some((p) => p.id === COUNT) && !hasOnePeriod(dataset);
         return values || (!needsValues && probe(id)) ? [{ id, phrase, values }] : [];
       });
       // A grid needs the fact table to carry both fields, and a plain measure of vehicles.
-      const dimensions = offered.map((d) => ({ ...d, with: m.derived || !d.values ? [] : offered.filter((o) => o.values && canCross(d.id, o.id)).map((o) => o.id) }));
+      // Where the fact table carries both fields they are crossed from it; where it does not, from the pair slice of the two, if the question draws.
+      const crosses = (d: { id: string; values: boolean }, o: { id: string; values: boolean }) =>
+        canCross(d.id, o.id) && (d.values && o.values ? true : !facts && Boolean(findPair(manifest.datasets[dataset]?.live_pairs ?? [], d.id, o.id)) && draws({ ...blank, measure: m.id, by: d.id, by2: o.id }, manifest));
+      const dimensions = offered.map((d) => ({ ...d, with: m.derived ? [] : offered.filter((o) => o.id !== d.id && crosses(d, o)).map((o) => o.id) }));
       return {
         id: m.id,
         phrase: measurePhrase(m),
@@ -388,7 +401,8 @@ export function questionParams(q: Question): URLSearchParams {
 export function builderQuestionFor(view: Preset): Question | null {
   if (view.id.startsWith(builderSpec.id) || view.series || !view.dataset || !builderSpec.datasets.includes(view.dataset) || !view.dimension) return null;
   const m = builderSpec.measures.find((x) => !x.parts && (x.derived ? x.id === view.derived : !view.derived && x.id === view.measure));
-  if (!m || !(view.dimension in m.dimensions) || (view.dimension2 ? !(view.dimension2 in m.dimensions) : m.top_n?.[view.dimension] !== view.top_n)) return null;
+  const offered = m ? ownDimensions(m, view.dataset) : {};
+  if (!m || !(view.dimension in offered) || (view.dimension2 ? !(view.dimension2 in offered) : m.top_n?.[view.dimension] !== view.top_n)) return null;
   const where = noConditions();
   for (const filter of view.filters ?? []) for (const [d, v] of Object.entries(filter)) (where[d] ??= []).push(v);
   return { dataset: view.dataset, measure: m.id, by: view.dimension, values: [], ...(view.dimension2 ? { by2: view.dimension2, values2: [] } : {}), where, view: null };

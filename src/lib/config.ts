@@ -178,6 +178,9 @@ export type BuilderMeasure = {
   phrase: string;
   joiner: string;
   dimensions: Record<string, string>;
+  // Breakdowns only one dataset offers, with the words the sentence uses, added to the list above for that dataset (a field only a dataset of one period
+  // carries, or one that is a condition everywhere else).
+  dataset_dimensions?: Record<string, Record<string, string>>;
   top_n?: Record<string, number>;
   // Words that say what the measure counts. One text for every dataset, or one for each dataset that needs its own.
   note?: PerDataset;
@@ -204,6 +207,8 @@ export type BuilderSpec = {
   period: string;
   period_when_comparing: string;
   period_by_shape: Record<string, string>;
+  // The period a dataset of one period is drawn in (dimensions.json, single_period).
+  period_single: string;
   ranking_period: string;
   lead: string;
   measures: BuilderMeasure[];
