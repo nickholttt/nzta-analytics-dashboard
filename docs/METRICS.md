@@ -506,6 +506,7 @@ A ranking orders the values of one dimension by their count in one window: a sin
 month. Reserved values take no place: every value the cube writes between double underscores (not recorded, no reference
 match, beyond the cap, and any other the cube reserves). A value with no vehicles in the window is not ranked.
 
+- **A ranking of a dataset of one period shows every value it has** (D-139): it has no top-N control, and no line stands for the rest, since a line that held the rest would add hidden counts to shown ones. A ranking over time keeps the visitor's cut (top 10, 15 or 25).
 - **Equal counts share a rank**, the rank of the first of them: 1, 2, 2, 4 (the usual competition ranking). The next rank
   after a tie skips the places the tie used.
 - **Equal counts are listed in alphabetical order of the name a reader sees** (for a model, the make and model as words).
