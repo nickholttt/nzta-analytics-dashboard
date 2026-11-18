@@ -643,7 +643,7 @@ The code is `src/lib/matrix.ts`, tested without a browser in `tests/site/matrix.
   on **its own base**: the whole grid's total for a share of all, the row's for a share of its row, the column's for a share of its column. A
   share whose base is under the floor is **greyed**, not hidden: printed in slanted type on a hatched grey that is not on the scale
   (told apart by its type and its hatch, not by colour alone, and said in the legend), with its reason in the file and a screen reader's "Greyed". A share whose base holds no vehicles (a picked row with none) **has no value**: a dash on the page, a blank cell with its reason
-  in the file, never 0%. A cell of no vehicles inside a base that holds some is **zero**, printed as 0 or 0.0%. A share that is more than
+  in the file, never 0%. A share whose base is a line total **hidden** by the small-cell rule (D-139) has no value either, and says so: its reason is that the total is hidden, never that the line holds no vehicles. A cell of no vehicles inside a base that holds some is **zero**, printed as 0 or 0.0%. A share that is more than
   nothing but prints as 0.0% is told from it in the figure itself: it is printed **<0.1%** (and written `<0.1` in the file, with a note), and
   is shaded in the lowest step. The reason for a less-than sign over a bare 0.0%: a zero and a tiny share are different facts, and the sign is
   how any table says so; the file cannot hold a number that is both, so it holds the sign.

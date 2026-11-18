@@ -33,7 +33,8 @@ const input = (rows = cells, basis: "count" | "all" | "row" | "column" = "count"
 });
 const words = {
   rowHead: "Field", totalCount: "All", totalShare: "Vehicles", format: { count: (n: number) => n.toLocaleString("en-NZ"), pct }, thin: "thin",
-  noBase: { row: "no row", column: "no column" }, hidden: { text: "hidden", reason: "Counts under 10 are not shown." },
+  noBase: { row: "no row", column: "no column" },
+  hidden: { text: "hidden", reason: "Counts under 10 are not shown.", noShare: { row: "row total hidden", column: "column total hidden" } },
 };
 
 test("every value stands on the grid, ranked by its published total, a value whose total is hidden after them; nothing is folded into a rest line", () => {
@@ -140,4 +141,34 @@ test("the sentence about hidden cells is filled from the count and the least cou
   assert.equal(matrixSentences(phrases, facts({ cells: 4 })).hidden, undefined, "no least count to say: dropped");
   assert.equal(matrixSentences(phrases, facts({ cells: 0, minimum: 10 })).hidden, undefined);
   assert.equal(matrixSentences(phrases, facts(undefined)).hidden, undefined);
+});
+
+// A line's total can be hidden while some of its cells are shown (a few counts beside the small ones are hidden too). A share of that line has no base:
+// it is not a share of a line that holds no vehicles.
+const hiddenRowTotal = cells.map((c) => (c.value === "alpha" ? { ...c, totals: { ...c.totals, row: null } } : c));
+const hiddenColumnTotal = cells.map((c) => (c.other === "x" ? { ...c, totals: { ...c.totals, column: null } } : c));
+
+test("a share of a line whose total is hidden is withheld because the total is hidden, never as a line of no vehicles", () => {
+  for (const [basis, rows, reason, noBase] of [["row", hiddenRowTotal, "row total hidden", "no row"], ["column", hiddenColumnTotal, "column total hidden", "no column"]] as const) {
+    const withheld = gridTable(hiddenGridOf(input(rows, basis)), words).rows.flatMap((r) => r.cells).filter((c) => c.mark === "withheld");
+    assert.ok(withheld.length > 0, `${basis}: a share of a hidden total is withheld`);
+    for (const c of withheld) {
+      assert.equal(c.csv, null);
+      assert.equal(c.reason, reason, `${basis}: the reason is that the total is hidden`);
+      assert.notEqual(c.reason, noBase);
+    }
+    // A published total of nothing still says the line holds no vehicles: that one is true.
+    const empty = rows.map((c) => ({ ...c, totals: { row: c.value === "beta" ? 0 : c.totals.row, column: c.other === "y" ? 0 : c.totals.column } }));
+    const zeroBase = gridTable(hiddenGridOf(input(empty, basis)), words).rows.flatMap((r) => r.cells).filter((c) => c.reason === noBase);
+    assert.ok(zeroBase.length > 0, `${basis}: a total of nothing keeps its reason`);
+  }
+});
+
+test("the file writes those shares blank with the hidden-total reason, and not the no-vehicles one", () => {
+  const t = gridTable(hiddenGridOf(input(hiddenRowTotal, "row")), words);
+  const header = { question: "Q", datasets: ["D"], snapshot: "2026-10-31", sources: [], attributions: [], address: "a" };
+  const csv = figuresCsv(header, tableFigures(t, "row", "Oct 2026", []), phrases);
+  const alpha = csv.trim().split("\r\n").find((l) => l.startsWith("alpha,")) as string;
+  assert.match(alpha, /row total hidden/);
+  assert.doesNotMatch(csv, /no row/);
 });
