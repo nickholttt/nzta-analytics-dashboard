@@ -459,6 +459,8 @@ export type MatrixPhrases = {
   matrix_rest_unmatched: string;
   matrix_rest_beyond: string;
   matrix_tiny: string;
+  matrix_hidden: string;
+  matrix_hidden_one: string;
 };
 
 export type MatrixSideFacts = {
@@ -495,6 +497,8 @@ export type MatrixFacts = {
   thin: { whole: boolean; rows: number; columns: number };
   // Some share is above zero and prints as nothing.
   tiny: boolean;
+  // Cells with no count (D-139) and the least count a shown cell has: absent, or none hidden, for a grid of every cell.
+  hidden?: { cells: number; minimum?: number };
 };
 
 // A template filled, or nothing where it cannot be: a sentence with a gap is dropped.
@@ -560,5 +564,7 @@ export function matrixSentences(p: MatrixPhrases, f: MatrixFacts) {
         f.thin.rows > 0 ? said(f.thin.rows === 1 ? p.matrix_thin_rows_one : p.matrix_thin_rows, { ...base, count: f.thin.rows }) : undefined,
         f.thin.columns > 0 ? said(f.thin.columns === 1 ? p.matrix_thin_columns_one : p.matrix_thin_columns, { ...base, count: f.thin.columns }) : undefined,
       ]);
-  return { leader: leader && leaderRest ? `${leader} ${leaderRest}` : leader, cells, rows: side("rows", f.rows), columns: side("columns", f.columns), thin, tiny: f.tiny ? said(p.matrix_tiny, base) : undefined };
+  return { leader: leader && leaderRest ? `${leader} ${leaderRest}` : leader, cells, rows: side("rows", f.rows), columns: side("columns", f.columns), thin, tiny: f.tiny ? said(p.matrix_tiny, base) : undefined,
+    // A sentence that cannot be filled (no least count) is dropped, not written with a gap.
+    hidden: f.hidden && f.hidden.cells > 0 ? said(f.hidden.cells === 1 ? p.matrix_hidden_one : p.matrix_hidden, { ...base, count: f.hidden.cells, minimum: f.hidden.minimum }) : undefined };
 }

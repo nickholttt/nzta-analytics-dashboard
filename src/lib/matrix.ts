@@ -37,7 +37,17 @@ export const printedPercent = (figure: number): string => (figure * 100).toFixed
 export const printedTenths = (figure: number): number => Math.round(Number(printedPercent(figure)) * 10);
 
 // The rows of the fact table summed to a pair of values: one row for each month and combination that has vehicles.
-export type CellSource = { month: string; value: string; other: string; n: number };
+// hidden: the cell's count is hidden by the small-cell rule, so it has no number (D-139). totals: on a cell of a protected table, the published total of its row
+// and of its column (null where hidden), which the cells do not add up to when some are hidden. denominator: the period's total, which is complete.
+export type CellSource = {
+  month: string;
+  value: string;
+  other: string;
+  n: number;
+  hidden?: boolean;
+  totals?: { row: number | null; column: number | null };
+  denominator?: number;
+};
 
 export type SideSpec = {
   // How many lines to show when nothing is picked.
@@ -53,7 +63,8 @@ export type SideSpec = {
 };
 
 export type LineKind = "value" | "reserved" | "rest";
-export type Line = { key: string; name: string; kind: LineKind; total: number };
+// total is null for a line whose total is hidden (a value hidden in its own table), never zero.
+export type Line = { key: string; name: string; kind: LineKind; total: number | null };
 
 export type Side = {
   lines: Line[];
@@ -71,7 +82,10 @@ export type Side = {
 };
 
 export type GridCell = {
+  // NaN where the cell is hidden: there is no count, and it is not zero.
   n: number;
+  // The count is hidden by the small-cell rule: no figure, no shade, and a share of it is hidden too.
+  hidden?: true;
   // The figure the cell shows, in its basis: the vehicles, or a proportion; null where its base holds no vehicles (a share of nothing).
   figure: number | null;
   // 0: no shade (no vehicles, a figure with no value, a greyed figure, "All other"). 1 to the number of steps: darker is more.
@@ -87,9 +101,12 @@ export type Grid = {
   rows: Side;
   columns: Side;
   cells: GridCell[][];
-  rowTotals: number[];
-  columnTotals: number[];
+  // null where the line's total is hidden.
+  rowTotals: (number | null)[];
+  columnTotals: (number | null)[];
   total: number;
+  // The cells of a table written under the small-cell rule: the totals are the published ones, and the cells that are hidden say so.
+  protected?: true;
   // The shade steps some cell is drawn in, each as the range of whole units (vehicles, or tenths of a percent) it covers.
   legend: { step: number; from: number; to: number }[];
   // The shares are greyed everywhere (the base is the whole grid and it is under the floor), or in these rows and columns (their own bases are).
@@ -260,16 +277,47 @@ export function gridOf(input: GridInput): Grid {
   const columnTotals = columns.lines.map((_, j) => counts.reduce((sum, line) => sum + line[j], 0));
   const total = rowTotals.reduce((a, b) => a + b, 0);
 
-  const base = (i: number, j: number) => (basis === "all" ? total : basis === "row" ? rowTotals[i] : basis === "column" ? columnTotals[j] : Infinity);
+  const name = (side: SideSpec, value: string) => ({ key: value, name: side.nameOf(value) });
+  // Only the first of several level leaders has its row and column kept on the grid, so a later one can sit in the rest line; the sentence says so.
+  const stands = (side: Side, value: string) => side.lines.some((l) => l.kind !== "rest" && l.key === value);
+  const leaders = led.found.map(
+    (l): Leader => ({ row: name(input.rowSide, l.value), column: name(input.columnSide, l.other), n: l.n, inRest: !stands(rows, l.value) || !stands(columns, l.other) }),
+  );
+  return shapeGrid({ basis, floor, stepFractions, rows, columns, counts, rowTotals, columnTotals, total, leaders, leadersAmong: { rows: led.rowPicked, columns: led.columnPicked } });
+}
+
+type Shaped = {
+  basis: Basis;
+  floor: number;
+  stepFractions: readonly number[];
+  rows: Side;
+  columns: Side;
+  counts: number[][];
+  // The cells with no count. Absent: none is hidden.
+  hidden?: boolean[][];
+  rowTotals: (number | null)[];
+  columnTotals: (number | null)[];
+  total: number;
+  leaders: Leader[];
+  leadersAmong: Grid["leadersAmong"];
+};
+
+// What a grid shows for its counts: each cell's figure in the basis chosen, whether it is greyed, its shade, the legend and what is thin. The counts and
+// totals are given, whether they were summed from the cells or published (a protected table), and a hidden cell has no figure and no shade.
+function shapeGrid(g: Shaped): Grid {
+  const { basis, floor, stepFractions, rows, columns, counts, rowTotals, columnTotals, total, leaders } = g;
+  const hiddenAt = (i: number, j: number) => Boolean(g.hidden?.[i][j]);
+  const base = (i: number, j: number): number | null => (basis === "all" ? total : basis === "row" ? rowTotals[i] : basis === "column" ? columnTotals[j] : Infinity);
   const figureOf = (i: number, j: number): number | null => {
+    if (hiddenAt(i, j)) return null;
     if (basis === "count") return counts[i][j];
     const b = base(i, j);
-    return b > 0 ? counts[i][j] / b : null;
+    return b !== null && b > 0 ? counts[i][j] / b : null;
   };
   const greyedAt = (i: number, j: number) => {
-    if (basis === "count") return false;
+    if (basis === "count" || hiddenAt(i, j)) return false;
     const b = base(i, j);
-    return b > 0 && b < floor;
+    return b !== null && b > 0 && b < floor;
   };
   // A unit is a whole number of vehicles, or of tenths of a percent as printed, so a threshold and the figure printed are the same figure.
   const unitOf = (i: number, j: number) => {
@@ -288,6 +336,7 @@ export function gridOf(input: GridInput): Grid {
 
   const cells = counts.map((line, i) =>
     line.map((n, j): GridCell => {
+      if (hiddenAt(i, j)) return { n: Number.NaN, hidden: true, figure: null, step: 0, greyed: false };
       const shaded = shades(i, j);
       return { n, figure: figureOf(i, j), step: shaded ? stepOf(unitOf(i, j)) : 0, greyed: greyedAt(i, j) };
     }),
@@ -301,19 +350,112 @@ export function gridOf(input: GridInput): Grid {
   });
 
   const wholeGreyed = basis !== "count" && total > 0 && total < floor;
-  const greyedRows = basis === "row" ? rowTotals.flatMap((t, i) => (t > 0 && t < floor ? [i] : [])) : [];
-  const greyedColumns = basis === "column" ? columnTotals.flatMap((t, j) => (t > 0 && t < floor ? [j] : [])) : [];
+  const greyedRows = basis === "row" ? rowTotals.flatMap((t, i) => (t !== null && t > 0 && t < floor ? [i] : [])) : [];
+  const greyedColumns = basis === "column" ? columnTotals.flatMap((t, j) => (t !== null && t > 0 && t < floor ? [j] : [])) : [];
 
-  const name = (side: SideSpec, value: string) => ({ key: value, name: side.nameOf(value) });
-  // Only the first of several level leaders has its row and column kept on the grid, so a later one can sit in the rest line; the sentence says so.
-  const stands = (side: Side, value: string) => side.lines.some((l) => l.kind !== "rest" && l.key === value);
-  const leaders = led.found.map(
-    (l): Leader => ({ row: name(input.rowSide, l.value), column: name(input.columnSide, l.other), n: l.n, inRest: !stands(rows, l.value) || !stands(columns, l.other) }),
-  );
   return {
     basis, rows, columns, cells, rowTotals, columnTotals, total, legend, wholeGreyed, greyedRows, greyedColumns, leaders,
-    leadersAmong: { rows: led.rowPicked, columns: led.columnPicked },
+    leadersAmong: g.leadersAmong,
+    ...(g.hidden ? { protected: true as const } : {}),
   };
+}
+
+// ---- A table written under the small-cell rule (D-139) ----
+//
+// A table of two fields whose manifest says the rule was applied: some cells have no count. Its row and column totals are the published totals of the
+// one-field tables, which are complete, so they are not the sums of the cells, and a hidden cell is neither zero nor blank. Every value of both fields stands
+// on the grid, ranked by its published total, and none is cut: a line that held the rest would add hidden cells to shown ones, a number nobody published.
+// It is one period, so the grid is of the month the window ends in.
+
+const hiddenSide = (totals: ReadonlyMap<string, number | null>, spec: SideSpec): Side => {
+  const at = new Map((spec.order ?? []).map((v, i) => [v, i]));
+  const entries = [...totals].map(([value, total]) => ({ value, total, name: spec.nameOf(value) }));
+  const named = entries.filter((e) => !isReserved(e.value));
+  const reserved = entries.filter((e) => isReserved(e.value));
+  // An ordered field keeps its own order. Any other is ranked by its published total, a value whose total is hidden after those that have one.
+  const byOrder = (a: { value: string; name: string }, b: { value: string; name: string }) => (at.get(a.value) ?? Infinity) - (at.get(b.value) ?? Infinity) || nameOrder(a.name, b.name);
+  const byTotal = (a: { total: number | null; name: string }, b: { total: number | null; name: string }) =>
+    a.total === null || b.total === null ? Number(a.total === null) - Number(b.total === null) || nameOrder(a.name, b.name) : b.total - a.total || nameOrder(a.name, b.name);
+  const shown = [...named].sort(spec.order ? byOrder : byTotal);
+  const lines: Line[] = [
+    ...shown.map((e): Line => ({ key: e.value, name: e.name, kind: "value", total: e.total })),
+    ...[...reserved].sort(byTotal).map((e): Line => ({ key: e.value, name: e.name, kind: "reserved", total: e.total })),
+  ];
+  return { lines, mode: spec.order ? "ordered" : "all", shown: shown.length, tiedBeyond: 0 };
+};
+
+export function hiddenGridOf(input: GridInput): Grid {
+  const { to, basis, floor, stepFractions } = input;
+  const cells = input.rows.filter((r) => r.month === to);
+  const rowTotals = new Map<string, number | null>();
+  const columnTotals = new Map<string, number | null>();
+  for (const r of cells) {
+    rowTotals.set(r.value, r.totals?.row ?? null);
+    columnTotals.set(r.other, r.totals?.column ?? null);
+  }
+  const rows = hiddenSide(rowTotals, input.rowSide);
+  const columns = hiddenSide(columnTotals, input.columnSide);
+  const rowAt = new Map(rows.lines.map((l, i) => [l.key, i]));
+  const columnAt = new Map(columns.lines.map((l, j) => [l.key, j]));
+  // A combination the table holds no row for has no vehicles (a pair lists the cells that have some): a true zero, and not hidden.
+  const counts = rows.lines.map(() => columns.lines.map(() => 0));
+  const hidden = rows.lines.map(() => columns.lines.map(() => false));
+  const seen = new Map<string, number>();
+  for (const r of cells) {
+    const i = rowAt.get(r.value) as number;
+    const j = columnAt.get(r.other) as number;
+    if (r.hidden) hidden[i][j] = true;
+    else counts[i][j] += r.n;
+    seen.set(r.month, r.denominator ?? Number.NaN);
+  }
+  const total = [...seen.values()].find(Number.isFinite) ?? 0;
+  const shownLeaders = protectedLeaders(counts, hidden, rows, columns, rowTotals, columnTotals, total);
+  return shapeGrid({
+    basis, floor, stepFractions, rows, columns, counts, hidden,
+    rowTotals: rows.lines.map((l) => l.total),
+    columnTotals: columns.lines.map((l) => l.total),
+    total,
+    leaders: shownLeaders,
+    leadersAmong: { rows: false, columns: false },
+  });
+}
+
+// The combinations of two named values with the most vehicles among the cells that have a count, where no hidden cell could hold as many. A hidden cell
+// holds at most what its row's total and its column's total leave it after their shown cells (and, if a total is hidden, at most what the period's total
+// leaves after every shown cell), so a leader that does not beat that bound is not named: a sentence resting on a hidden count is dropped (invariant 8).
+function protectedLeaders(
+
+  counts: number[][],
+  hidden: boolean[][],
+  rows: Side,
+  columns: Side,
+  rowTotals: ReadonlyMap<string, number | null>,
+  columnTotals: ReadonlyMap<string, number | null>,
+  total: number,
+
+): Leader[] {
+  const shownIn = (line: (i: number, j: number) => boolean) => counts.reduce((sum, r, i) => sum + r.reduce((s, n, j) => s + (line(i, j) ? n : 0), 0), 0);
+  const allShown = shownIn(() => true);
+  const bound = (i: number, j: number): number => {
+    const room = (t: number | null | undefined, within: number) => (t === null || t === undefined ? total - allShown : t - within);
+    return Math.min(room(rowTotals.get(rows.lines[i].key), shownIn((a) => a === i)), room(columnTotals.get(columns.lines[j].key), shownIn((_, b) => b === j)));
+  };
+  let atMost = 0;
+  hidden.forEach((line, i) => line.forEach((isHidden, j) => isHidden && (atMost = Math.max(atMost, bound(i, j)))));
+  let best = 0;
+  let found: { i: number; j: number }[] = [];
+  counts.forEach((line, i) => {
+    if (rows.lines[i].kind !== "value") return;
+    line.forEach((n, j) => {
+      if (hidden[i][j] || columns.lines[j].kind !== "value" || n === 0 || n < best) return;
+      if (n > best) found = [];
+      best = n;
+      found.push({ i, j });
+    });
+  });
+  if (best <= atMost) return [];
+
+  return found.map(({ i, j }): Leader => ({ row: { key: rows.lines[i].key, name: rows.lines[i].name }, column: { key: columns.lines[j].key, name: columns.lines[j].name }, n: best, inRest: false }));
 }
 
 // ---- The table ----
@@ -331,10 +473,12 @@ export type TableWords = {
   // Why a share is greyed, and why it has no value, in the words of the file and of the page.
   thin: string;
   noBase: { row: string; column: string };
+  // The word for a hidden count and the reason, where the grid has any (D-139).
+  hidden?: { text: string; reason: string };
 };
 
 // csv is a number, or "<" and a number for a share that is more than nothing and prints as 0.0 (the file says so in a note), or nothing.
-export type TableCell = { text: string; csv: number | string | null; step: number; mark?: "greyed" | "withheld"; reason?: string; tiny?: boolean };
+export type TableCell = { text: string; csv: number | string | null; step: number; mark?: "greyed" | "withheld" | "hidden"; reason?: string; tiny?: boolean };
 export type TableRow = { head: string; kind: LineKind | "total"; cells: TableCell[] };
 export type Table = { rowHead: string; columns: { name: string; kind: LineKind | "total" }[]; rows: TableRow[]; hasTiny: boolean };
 
@@ -344,7 +488,11 @@ const figureOfText = (text: string): number => Number(text.replace("%", ""));
 export function gridTable(grid: Grid, w: TableWords): Table {
   const shares = grid.basis !== "count";
   const totalHead = shares ? w.totalShare : w.totalCount;
-  const count = (n: number): TableCell => ({ text: w.format.count(n), csv: n, step: 0 });
+  if (!w.hidden && (grid.cells.some((line) => line.some((c) => c.hidden)) || grid.rowTotals.some((t) => t === null) || grid.columnTotals.some((t) => t === null)))
+    throw new Error("a grid with hidden counts needs the words for a hidden cell");
+  // A count that is hidden is the word, blank in the file, marked with the reason: never a zero.
+  const hiddenCell = (): TableCell => ({ text: w.hidden?.text ?? "", csv: null, step: 0, mark: "hidden", reason: w.hidden?.reason });
+  const count = (n: number | null): TableCell => (n === null ? hiddenCell() : { text: w.format.count(n), csv: n, step: 0 });
   // A share above zero that prints as nothing is told from a true zero by a less-than sign, here and in the file.
   const least = w.format.pct(1 / 1000);
   const shareCell = (n: number, figure: number): { text: string; csv: number | string; tiny: boolean } => {
@@ -359,6 +507,7 @@ export function gridTable(grid: Grid, w: TableWords): Table {
     cells: [
       ...grid.columns.lines.map((_, j): TableCell => {
         const c = grid.cells[i][j];
+        if (c.hidden) return hiddenCell();
         if (!shares) return { text: w.format.count(c.n), csv: c.n, step: c.step };
         if (c.figure === null) {
           const reason = grid.basis === "row" ? w.noBase.row : w.noBase.column;

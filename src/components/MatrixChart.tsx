@@ -7,9 +7,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { chartDefaults, datasetWords, findDataset, findPeriod, lowerLabel, phrases } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
+import { PAIR_SEPARATOR, SMALL_CELL_PAIR_KEY, ruleMinimum, smallCellPairs } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, monthRange, pct } from "../lib/measures";
-import { BASES, bandScale, gridOf, gridTable, isBasis, tableFigures } from "../lib/matrix";
+import { BASES, bandScale, gridOf, gridTable, hiddenGridOf, isBasis, tableFigures } from "../lib/matrix";
 import type { Basis, CellSource, Grid, SideSpec } from "../lib/matrix";
 import { count, spanPeriod } from "../lib/readout";
 import { latestMonthOf } from "../lib/resolve";
@@ -73,10 +74,28 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
   const floor = floorOf("share");
   const conditions = Object.values(preset.where ?? {}).some((kept) => kept.length > 0);
 
-  const cells = useMemo<CellSource[]>(() => rows.flatMap((r) => (r.other === undefined ? [] : [{ month: r.month, value: r.value, other: r.other, n: r.n }])), [rows]);
+  const cells = useMemo<CellSource[]>(
+    () =>
+      rows.flatMap((r) =>
+        r.other === undefined || r.notBrokenDown
+          ? []
+          : [{ month: r.month, value: r.value, other: r.other, n: r.n, ...(r.hidden ? { hidden: true } : {}), ...(r.lineTotals ? { totals: r.lineTotals, denominator: r.denominator } : {}) }],
+      ),
+    [rows],
+  );
+  // A table written under the small-cell rule carries the published total of each line with its cells (src/lib/data.ts, pairGrid); a period it does not
+  // break down is one row that stands for the period. Neither is a grid of vehicles summed from cells.
+  const protectedTable = rows.some((r) => r.lineTotals !== undefined);
+  const notBrokenDown = rows.some((r) => r.notBrokenDown && r.month === end);
+  const hiddenCells = cells.filter((c) => c.hidden && c.month === end).length;
+  // The least count a visible cell has in this table, as its manifest entry says it applied the rule.
+  const minimum = useMemo(() => {
+    const pair = smallCellPairs(manifest, preset.dataset).find((p) => p.split(PAIR_SEPARATOR).sort().join() === [dimension.id, dimension2.id].sort().join());
+    return pair ? ruleMinimum(manifest, preset.dataset, SMALL_CELL_PAIR_KEY, pair) : undefined;
+  }, [manifest, preset.dataset, dimension.id, dimension2.id]);
   const grid: Grid = useMemo(() => {
     const side = (limit: number, picked: string[] | undefined, d: Dimension, nameOf: (v: string) => string): SideSpec => ({ limit, picked, order: scaleOf(d)?.order, unplaced: scaleOf(d)?.unplaced, nameOf });
-    return gridOf({
+    return (protectedTable ? hiddenGridOf : gridOf)({
       rows: cells,
       from: currentFrom,
       to: end,
@@ -86,7 +105,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
       floor,
       stepFractions: chartDefaults.matrix.step_fractions,
     });
-  }, [cells, currentFrom, end, preset.values, preset.values2, dimension, dimension2, label, label2, basis, floor]);
+  }, [cells, currentFrom, end, preset.values, preset.values2, dimension, dimension2, label, label2, basis, floor, protectedTable]);
 
   const windowWords = rankingWords(phrases, { span, end, latest }).window;
   const rowField = lower(rowHeading);
@@ -100,8 +119,9 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
         format: { count: (n) => n.toLocaleString("en-NZ"), pct },
         thin: markReason("thin", floor),
         noBase: { row: phrases.matrix_no_base_row, column: phrases.matrix_no_base_column },
+        hidden: { text: phrases.hidden_word, reason: fillTemplate(phrases.hidden_reason, { minimum }).text },
       }),
-    [grid, rowHeading, floor],
+    [grid, rowHeading, floor, minimum],
   );
   const sentences = useMemo(() => {
     const side = (s: Grid["rows"], field: string) => ({ field, mode: s.mode, shown: s.shown, tiedBeyond: s.tiedBeyond, kept: s.kept, rest: s.rest });
@@ -121,12 +141,13 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
       rows: side(grid.rows, rowField),
       columns: side(grid.columns, columnField),
       thin: { whole: grid.wholeGreyed, rows: grid.greyedRows.length, columns: grid.greyedColumns.length },
+      hidden: { cells: hiddenCells, minimum },
     });
-  }, [grid, table, basis, rowField, columnField, windowWords, conditions, floor, words]);
+  }, [grid, table, basis, rowField, columnField, windowWords, conditions, floor, words, hiddenCells, minimum]);
 
   // The notes the file carries above the table are the sentences under the grid on the page, so the file says what the page does.
   const notes = useMemo(
-    () => [...(sentences.cells ? [sentences.cells] : []), ...(basis === "count" ? [] : [phrases.matrix_units]), ...(sentences.tiny ? [sentences.tiny] : []), ...sentences.rows, ...sentences.columns, ...sentences.thin],
+    () => [...(sentences.cells ? [sentences.cells] : []), ...(basis === "count" ? [] : [phrases.matrix_units]), ...(sentences.tiny ? [sentences.tiny] : []), ...(sentences.hidden ? [sentences.hidden] : []), ...sentences.rows, ...sentences.columns, ...sentences.thin],
     [sentences, basis],
   );
   const figures = useCallback(() => tableFigures(table, basis, spanPeriod(currentFrom, end), notes), [table, basis, currentFrom, end, notes]);
@@ -187,6 +208,18 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
     </div>
   );
 
+  if (notBrokenDown) {
+    const total = rows.find((r) => r.notBrokenDown && r.month === end)?.n ?? 0;
+    return (
+      <>
+        {after?.()}
+        {controls}
+        <p className="chart-unit">{fillTemplate(phrases.not_broken_down, { window: windowWords, vehicles: vehiclesText(total) }).text}</p>
+        <p className="chart-unit"><a href="/method#hidden-counts">{phrases.hidden_link}</a></p>
+      </>
+    );
+  }
+
   if (grid.total === 0) {
     return (
       <>
@@ -213,6 +246,11 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
       {sentences.cells ? <p className="chart-unit">{sentences.cells}</p> : null}
       {sentences.tiny ? <p className="chart-unit">{sentences.tiny}</p> : null}
+      {sentences.hidden ? (
+        <p className="chart-unit">
+          {sentences.hidden} <a href="/method#hidden-counts">{phrases.hidden_link}</a>
+        </p>
+      ) : null}
       {[...sentences.rows, ...sentences.columns].map((sentence) => (
         <p key={sentence} className="chart-unit">{sentence}</p>
       ))}
@@ -229,6 +267,12 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
               {stepLabel(step.from, step.to)}
             </li>
           ))}
+          {hiddenCells > 0 || grid.rowTotals.some((t) => t === null) ? (
+            <li>
+              <span className="matrix-swatch hidden" aria-hidden="true" />
+              {fillTemplate(phrases.matrix_legend_hidden, { minimum }).text}
+            </li>
+          ) : null}
           {anyGreyed ? (
             <li>
               <span className="matrix-swatch greyed" aria-hidden="true" />
