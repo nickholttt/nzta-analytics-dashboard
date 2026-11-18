@@ -153,6 +153,7 @@
         "recent_figure": "on the register at the snapshot",
         "ranking_basis": "Ranked by vehicles on the register at the snapshot",
         "leader_count": "{vehicles} on the register at the snapshot",
+        "window_one": "at the snapshot",
         "suggestion_recent": "on the register",
         "suggestion_total": "on the register",
         "none_recent": "Nothing is on the register",

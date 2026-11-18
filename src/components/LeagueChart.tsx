@@ -95,10 +95,11 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   const end = month && available.includes(month) ? month : latest;
   const { currentFrom, priorFrom, priorTo } = rankingWindows(end, span);
   const words = datasetWords(preset.dataset);
+  const once = findDataset(preset.dataset)?.single_period ? words?.window_one : undefined;
   // What the ranking covers and whether there are figures a year earlier: decided from the rows, in one place.
   const ranking = useMemo(
-    () => rankingText(phrases, { basis: words?.ranking_basis ?? "Ranked by vehicles {window}", span, end, latest, covers: { first: datasetFirstMonth(manifest.datasets[servedFrom(preset.dataset, manifest) ?? ""], firstMonth), last: latest } }),
-    [words, span, end, latest, manifest, preset.dataset, firstMonth],
+    () => rankingText(phrases, { basis: words?.ranking_basis ?? "Ranked by vehicles {window}", span, end, latest, once, covers: { first: datasetFirstMonth(manifest.datasets[servedFrom(preset.dataset, manifest) ?? ""], firstMonth), last: latest } }),
+    [words, span, end, latest, once, manifest, preset.dataset, firstMonth],
   );
   // A dataset with one period has no earlier window: no move, no change on a year ago, no rank before, and no series (src/lib/league.ts).
   const single = Boolean(findDataset(preset.dataset)?.single_period);
@@ -118,15 +119,15 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       currentDenom: result.currentDenom,
       priorDenom: result.priorDenom,
       hasPrior: ranking.hasPrior,
-      ...rankingWords(phrases, { span, end, latest }),
+      ...rankingWords(phrases, { span, end, latest, once }),
       single: span === 1,
       phrases,
     });
     return { items, hidden: result.hidden, hiddenAtMost: result.hiddenAtMost, notBrokenDown: result.notBrokenDown, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior && !single, tiedBeyond: result.tiedBeyond, guard: items.length > 0 ? guard : { shares: false, changes: false, sentence: undefined } };
-  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor, picked, single]);
+  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor, picked, single, once]);
 
   // What the page says about the choice: how it is ranked, who leads, who is not ranked and what a share is a share of.
-  const windowWords = rankingWords(phrases, { span, end, latest }).window;
+  const windowWords = rankingWords(phrases, { span, end, latest, once }).window;
   const about = useMemo(() => {
     if (!picked) return undefined;
     const summary = pickedSummary(picked, model.items, label);

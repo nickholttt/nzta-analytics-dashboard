@@ -110,6 +110,8 @@ export type DatasetWords = {
   ranking_basis: string;
   // What the figure of the leading value counts, with {vehicles} and {window}; a dataset that has none says the vehicles and the window.
   leader_count?: string;
+  // How a dataset of one period names its window in a sentence ("counted {window}"), in place of the month it ends in.
+  window_one?: string;
   suggestion_recent: string;
   suggestion_total: string;
   none_recent: string;

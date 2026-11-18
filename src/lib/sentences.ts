@@ -178,6 +178,8 @@ export type RankingFacts = {
   span: number;
   end: string;
   latest: string;
+  // A dataset of one period names its window in its own words (its window_one) and not by the month it ends in.
+  once?: string;
   // The first and last month of the dataset the ranking is of (its supplied start or its earliest month with vehicles, and its
   // newest), never the months a narrowed view has rows for: under a condition a month with no vehicles has no rows, and that is
   // a month of zero, not a month the dataset lacks.
@@ -201,9 +203,10 @@ export function yearTooFewText(p: { year_too_few: string; year_too_few_window: s
 // What a ranking covers, and what it is compared with, and whether there is a comparison at all: it is only described when
 // the earlier window lies wholly inside the months the dataset covers. A ranking with none says so instead of describing one.
 // The words for the window a ranking ranks ("in the last 12 months") and the months it is compared with ("Nov 2024 to Oct 2025").
-export function rankingWords(p: RankingPhrases, f: Pick<RankingFacts, "span" | "end" | "latest">): { window: string; priorDates: string } {
+export function rankingWords(p: RankingPhrases, f: Pick<RankingFacts, "span" | "end" | "latest" | "once">): { window: string; priorDates: string } {
   const { priorFrom, priorTo } = rankingWindows(f.end, f.span);
   const span = { span: f.span, end: monthLabel(f.end) };
+  if (f.once) return { window: f.once, priorDates: dates(priorFrom, priorTo) };
   return { window: fillTemplate(f.span === 1 ? p.window_month : f.end === f.latest ? p.window_last : p.window_to, span).text, priorDates: dates(priorFrom, priorTo) };
 }
 

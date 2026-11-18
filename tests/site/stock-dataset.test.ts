@@ -141,3 +141,18 @@ test("a link that names the dataset and a field settles to the question it names
   const alone = settle(vocabulary, { dataset: D, measure: "share", by: owner });
   assert.equal(alone.measure, "count", "a measure the dataset does not offer becomes the one it does");
 });
+
+test("a dataset of one period names its window in its own words, never by the month it ends in", async () => {
+  const { rankingWords, rankingText } = await import("../../src/lib/sentences.ts");
+  const words = config.datasetWords(D);
+  assert.ok(words?.window_one, "config gives the dataset its own words for the window");
+  assert.doesNotMatch(words.window_one, /\d/);
+  const facts = { span: 1, end: "2026-10", latest: "2026-10" };
+  assert.equal(rankingWords(config.phrases, { ...facts, once: words.window_one }).window, words.window_one);
+  assert.match(rankingWords(config.phrases, facts).window, /2026/, "a dataset with several months still names the month");
+  const basis = rankingText(config.phrases, { basis: "Counted {window}", ...facts, once: words.window_one, covers: { first: "2026-10", last: "2026-10" } }).text;
+  assert.match(basis, new RegExp(`Counted ${words.window_one}`));
+  // The sentences that carry {window} are the ones a grid and a ranking of this dataset fill with it.
+  const sentence = config.phrases.matrix_rows_all.replace("{field}", "x").replace("{window}", words.window_one);
+  assert.doesNotMatch(sentence, /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/);
+});

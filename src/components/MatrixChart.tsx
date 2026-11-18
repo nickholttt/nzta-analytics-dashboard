@@ -107,7 +107,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
     });
   }, [cells, currentFrom, end, preset.values, preset.values2, dimension, dimension2, label, label2, basis, floor, protectedTable]);
 
-  const windowWords = rankingWords(phrases, { span, end, latest }).window;
+  const windowWords = rankingWords(phrases, { span, end, latest, once: findDataset(preset.dataset)?.single_period ? words?.window_one : undefined }).window;
   const rowField = lower(rowHeading);
   const columnField = lower(columnHeading);
   const table = useMemo(
