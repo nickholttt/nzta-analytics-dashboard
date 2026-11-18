@@ -348,7 +348,7 @@
         "dataset_dimensions": {
           "fleet": {
             "vehicle_usage": "current use",
-            "vehicle_type": "type registered as"
+            "vehicle_type": "vehicle type"
           }
         },
         "$dataset_dimensions_comment": "What the vehicles registered today can be counted by, and nothing else (its manifest lists these two). It has one period and no fact table, so a count is a ranking of one field or a grid of the two, every value of both. vehicle_type is a condition only in every other dataset, so it is offered as a breakdown here and nowhere else.",
