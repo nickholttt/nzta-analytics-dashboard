@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from datetime import date, datetime, timezone
 from typing import NamedTuple
@@ -10,10 +11,15 @@ from typing import NamedTuple
 import duckdb
 
 from . import association, derive, events, guardrails, metrics, normalise, outputs, pair_cells, privacy, schema, series, small_cells, supplied
-from .contract import FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, PAIR_COLUMNS, PAIR_SEPARATOR, SLICE_COLUMNS
+from .contract import (FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, NARROW_DIR, PAIR_COLUMNS, PAIR_SEPARATOR,
+                       SLICE_COLUMNS)
 from .normalise import lit
 from .errors import GuardrailError
 from .reference import quote
+
+
+# A narrow fact table's id is a folder name under facts/{dataset}/narrow/.
+NARROW_ID = re.compile(r"[a-z][a-z0-9_]*")
 
 
 def iso_utc(moment: datetime) -> str:
@@ -90,44 +96,103 @@ def write_pairs(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, 
     return written, waiting, figures
 
 
-def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, staging,
-                     aborts: list[str], warnings: list[str]) -> dict | None:
-    """The fact table config/pipeline.json names for this dataset. A list that is not distinct dimension ids, or names a
-    dimension the dataset cannot derive, aborts; a dimension not live this run waits, with a warning, and the table is
-    written without it. Its counts must total the dataset's vehicles, or the run aborts."""
-    configured = dataset_cfg.get("facts")
-    if configured is None:
-        return None
-    known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
+def listed_dimensions_problem(dataset: str, label: str, configured, known: set[str]) -> str | None:
+    """What is wrong with a list of dimension ids a fact table is to carry, or None. `label` says which list it is."""
     reserved = {FACT_MONTH[0], FACT_COUNT[0], FACT_ROW_ORDER}
     if (
         not (isinstance(configured, list) and configured and all(isinstance(d, str) for d in configured))
         or len(set(configured)) != len(configured)
     ):
-        aborts.append(f"{dataset}: facts must list distinct dimension ids, at least one")
-        return None
+        return f"{dataset}: {label} must list distinct dimension ids, at least one"
     taken = [d for d in configured if d in reserved]
     if taken:
         # A dimension may well be derivable; its id is the problem, because the id becomes a column and file name.
-        aborts.append(f"{dataset}: facts names {', '.join(taken)}, a name the fact table reserves for its own columns "
-                      f"({', '.join(sorted(reserved))}); a dimension cannot take it, so rename its id in dimensions.json")
-        return None
+        return (f"{dataset}: {label} names {', '.join(taken)}, a name the fact table reserves for its own columns "
+                f"({', '.join(sorted(reserved))}); a dimension cannot take it, so rename its id in dimensions.json")
     problems = [d for d in configured if d not in known]
     if problems:
-        aborts.append(f"{dataset}: facts names {', '.join(problems)}, not a derivable dimension of this dataset in dimensions.json")
-        return None
+        return f"{dataset}: {label} names {', '.join(problems)}, not a derivable dimension of this dataset in dimensions.json"
+    return None
+
+
+def write_listed_table(con, dataset: str, noun: str, configured: list[str], live: list, ds: str, directory, aborts: list[str],
+                       warnings: list[str]) -> dict:
+    """One fact table of the listed dimensions that are live, written to `directory`, and its manifest entry. A dimension not
+    live this run waits, with a warning, and the table is written without it. Its counts must total the dataset's vehicles."""
     by_id = {d.dim_id: d for d in live}
     waiting = {d: "dimension not live" for d in configured if d not in by_id}
     for dim_id in waiting:
-        warnings.append(f"{dataset}: the fact table is written without {dim_id}, which is not live")
+        warnings.append(f"{dataset}: {noun} is written without {dim_id}, which is not live")
     columns = [by_id[d] for d in configured if d in by_id]
-    fact_rows, total = outputs.write_facts(con, columns, ds, staging / FACTS_DIR / dataset)
+    fact_rows, total = outputs.write_facts(con, columns, ds, directory)
     # Counted from rows, the vehicles before the dimension lookups are joined on. The table is grouped from dims, so a
     # count of dims would agree with it even where one of those joins had repeated or lost a vehicle.
     vehicles = con.execute(f"SELECT count(*) FROM rows WHERE {ds}").fetchone()[0]
     if total != vehicles:
-        aborts.append(f"{dataset}: the fact table counts {total:,} vehicles, but the dataset has {vehicles:,}")
+        aborts.append(f"{dataset}: {noun} counts {total:,} vehicles, but the dataset has {vehicles:,}")
     return {"rows": fact_rows, "dimensions": [d.dim_id for d in columns], "not_live": waiting}
+
+
+def narrow_table_problems(dataset: str, tables) -> list[str]:
+    """What is wrong with a dataset's `narrow_facts` apart from the dimensions each table lists: the list, and each table's id,
+    which becomes a folder name under facts/{dataset}/narrow/."""
+    if not isinstance(tables, list):
+        return [f"{dataset}: narrow_facts must be a list of tables, each with an id and the dimensions it carries"]
+    problems, seen = [], set()
+    for table in tables:
+        table_id = table.get("id") if isinstance(table, dict) else None
+        if not isinstance(table_id, str) or not table_id:
+            problems.append(f"{dataset}: a narrow_facts table must have an id")
+        elif not NARROW_ID.fullmatch(table_id):
+            problems.append(f"{dataset}: a narrow_facts table id {table_id!r} must be lower case letters, digits and underscores")
+        elif table_id in seen:
+            problems.append(f"{dataset}: narrow_facts lists the id {table_id} twice")
+        else:
+            seen.add(table_id)
+    return problems
+
+
+def write_narrow_tables(con, cfg, dataset: str, tables, live: list, ds: str, staging, aborts: list[str], warnings: list[str]) -> dict:
+    """The narrow fact tables config/pipeline.json names for this dataset (D-144), each under facts/{dataset}/narrow/{id}/ with the
+    wide table's rows, order, validation and total check. A table of owner dimensions is refused before anything is read
+    (fact_table_owner_problems). A misconfigured table aborts the run; a bad id stops the check before any table's dimensions are read."""
+    problems = narrow_table_problems(dataset, tables)
+    aborts.extend(problems)
+    if problems:
+        return {}
+    known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
+    written = {}
+    for table in tables:
+        problem = listed_dimensions_problem(dataset, f"narrow_facts '{table['id']}'", table.get("dimensions"), known)
+        if problem:
+            aborts.append(problem)
+            continue
+        directory = staging / FACTS_DIR / dataset / NARROW_DIR / table["id"]
+        written[table["id"]] = write_listed_table(con, dataset, f"the narrow table {table['id']}", table["dimensions"], live, ds,
+                                                  directory, aborts, warnings)
+    return written
+
+
+def write_fact_table(con, cfg, dataset: str, dataset_cfg: dict, live: list, ds: str, staging,
+                     aborts: list[str], warnings: list[str]) -> dict | None:
+    """The fact table config/pipeline.json names for this dataset, and its narrow tables. A list that is not distinct dimension
+    ids, or names a dimension the dataset cannot derive, aborts; a dimension not live this run waits, with a warning, and the
+    table is written without it. Its counts must total the dataset's vehicles, or the run aborts."""
+    configured = dataset_cfg.get("facts")
+    narrow = dataset_cfg.get("narrow_facts")
+    if configured is None:
+        if narrow is not None:
+            aborts.append(f"{dataset}: narrow_facts needs the dataset's facts: a narrow table is read beside the wide one")
+        return None
+    known = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
+    problem = listed_dimensions_problem(dataset, "facts", configured, known)
+    if problem:
+        aborts.append(problem)
+        return None
+    entry = write_listed_table(con, dataset, "the fact table", configured, live, ds, staging / FACTS_DIR / dataset, aborts, warnings)
+    if narrow is not None:
+        entry["narrow"] = write_narrow_tables(con, cfg, dataset, narrow, live, ds, staging, aborts, warnings)
+    return entry
 
 
 class Built(NamedTuple):
@@ -203,24 +268,31 @@ def stock_configuration_problems(cfg) -> list[str]:
 
 
 def fact_table_owner_problems(cfg) -> list[str]:
-    """Each dataset whose `facts` names a dimension that reads an owner field, found before anything is read or written.
+    """Each dataset whose `facts`, or a table of its `narrow_facts`, names a dimension that reads an owner field, found before
+    anything is read or written.
 
     The user's rule for an owner field allows it in a slice of its own or in a pair, never in a table that crosses many
-    fields (D-096, D-078): with the owner's region beside the model and the month, most rows of the table counted one
-    vehicle. Which dimensions read an owner field is worked out from config/data_map.json (privacy.owner_dimensions), so
-    no dimension is named here. tests/test_data_map.py holds the committed config to the same rule; this holds the build."""
+    fields (D-096, D-078): with the owner's region beside the model and the month, most rows of the wide table counted one
+    vehicle, and a narrow table crosses fields all the same. Which dimensions read an owner field is worked out from
+    config/data_map.json (privacy.owner_dimensions), so no dimension is named here. tests/test_data_map.py holds the committed
+    config to the same rule; this holds the build."""
     try:
         owner = privacy.owner_dimensions(cfg)
     except (privacy.DataMapError, OSError, KeyError) as exc:
         raise GuardrailError("data map", f"config/data_map.json cannot be used to protect owner fields: {exc!r}") from exc
-    problems = []
+    lists = []
     for dataset, spec in cfg.pipeline["datasets"].items():
-        listed = spec.get("facts")
+        lists.append((dataset, "facts", spec.get("facts")))
+        for table in spec.get("narrow_facts") if isinstance(spec.get("narrow_facts"), list) else []:
+            if isinstance(table, dict):
+                lists.append((dataset, f"narrow_facts '{table.get('id')}'", table.get("dimensions")))
+    problems = []
+    for dataset, label, listed in lists:
         for dim_id in (listed if isinstance(listed, list) else []):
             if dim_id in owner:
-                problems.append(f"{dataset}: facts names {dim_id}, which reads {', '.join(owner[dim_id])}, an owner field in "
+                problems.append(f"{dataset}: {label} names {dim_id}, which reads {', '.join(owner[dim_id])}, an owner field in "
                                 f"config/data_map.json; a fact table crosses many fields and the owner rule allows an owner field "
-                                f"in a slice or a pair only (D-096). Remove {dim_id} from the facts of {dataset} in config/pipeline.json")
+                                f"in a slice or a pair only (D-096). Remove {dim_id} from {label} of {dataset} in config/pipeline.json")
     return problems
 
 

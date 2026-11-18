@@ -441,3 +441,42 @@ def test_the_power_bands_are_the_data_maps_and_a_value_either_side_of_the_guard_
     assert label[500] == label[899] == label[900]
     edges = [label[n] for n in (5, 75, 100, 150, 200, 300, 500)]
     assert len(set(edges)) == 7 and unknown not in edges
+
+
+# --- a raw category: the register's own words, with no reference file -----------------------------------------------------
+
+RAW_FIELD = "basic_colour"
+
+
+def raw_dimension(cfg) -> str:
+    """The one dimension that publishes the field's values as the register holds them."""
+    found = [d["id"] for d in cfg.dimensions["dimensions"]
+             if d.get("derive", {}).get("kind") == "raw" and d["derive"]["field"] == RAW_FIELD]
+    assert len(found) == 1, found
+    return found[0]
+
+
+def test_a_raw_category_publishes_the_register_words_and_reads_a_blank_as_not_recorded(tmp_path, workspace):
+    cfg, rows, manifest = build_fixture(tmp_path, workspace)
+    dim_id = raw_dimension(cfg)
+    entry = manifest["datasets"][SURVIVING]
+    assert dim_id in entry["live_dimensions"] and dim_id not in entry["not_live"]
+    column = cfg.pipeline["fields"][RAW_FIELD]
+    expected = Counter(UNDEFINED if r.get(column) in (None, "") else r[column] for r in counted(cfg, rows, entry["latest_month"]))
+    assert expected[UNDEFINED] > 0 and len(expected) > 3, "the fixture must hold a blank and several values"
+    assert slice_counts(workspace["public"], dim_id) == expected
+    assert entry["unmapped_rates"][dim_id] == 0.0
+    assert dim_id not in cfg.pipeline["guardrails"]["abort_on_unmapped"], "a raw value is never unmapped"
+
+
+def test_a_raw_category_has_no_sentinel_and_is_not_live_where_the_source_carries_none():
+    cfg = make_cfg({})
+    dim_id = raw_dimension(cfg)
+    assert not sentinel_forms(cfg, cfg.pipeline["fields"][RAW_FIELD]), "the field has no form of not recorded but a blank"
+    assert "reference" not in spec_of(cfg, dim_id)["derive"]
+    others = [d for d, spec in cfg.pipeline["datasets"].items() if "source" in spec]
+    assert len(others) >= 3
+    for dataset in others:
+        live, not_live = derive.applicable(cfg, dataset)
+        assert dim_id not in {d["id"] for d in live}, dataset
+        assert not_live[dim_id] == "the source does not carry " + cfg.source_field(RAW_FIELD), dataset

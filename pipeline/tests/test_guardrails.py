@@ -235,7 +235,7 @@ def test_the_fact_table_is_written_without_a_dimension_that_is_not_live(tmp_path
     assert facts["dimensions"] == ["import_status"]
     assert facts["not_live"] == {"region": "dimension not live"}
     assert any("fact table is written without region" in w for w in manifest["warnings"]), manifest["warnings"]
-    written = sorted(p.name for p in (workspace["staging"] / "build" / "facts" / "registrations_surviving").iterdir())
+    written = sorted(p.name for p in (workspace["staging"] / "build" / "facts" / "registrations_surviving").iterdir() if p.is_file())
     assert written == ["import_status.parquet", "month.parquet", "n.parquet"]
 
 
@@ -264,7 +264,7 @@ def test_a_fact_table_whose_dimensions_are_all_waiting_holds_the_month_totals(tm
     manifest = run(tmp_path, cfg, rows + extra, publish=False)
     facts = manifest["datasets"]["registrations_surviving"]["facts"]
     assert facts["dimensions"] == [] and facts["not_live"] == {"region": "dimension not live"}
-    written = sorted(p.name for p in (workspace["staging"] / "build" / "facts" / "registrations_surviving").iterdir())
+    written = sorted(p.name for p in (workspace["staging"] / "build" / "facts" / "registrations_surviving").iterdir() if p.is_file())
     assert written == ["month.parquet", "n.parquet"]
     assert facts["rows"] == manifest["datasets"]["registrations_surviving"]["months"]
 
