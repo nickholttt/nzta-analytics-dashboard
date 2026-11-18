@@ -1162,17 +1162,18 @@ nameplates of the two datasets' trailing windows combined and 19 more, to the ra
 reached 90% (D-117); the second slice added the ten largest still without a row (D-123), and the third the next ten and the
 Suzuki e VITARA (D-145). The largest nameplates still without a row (trailing, flow): Mazda Biante 159, Audi A3 157, Honda e:N1
 156, Volkswagen Polo 156, Nissan Sylphy 152, Mitsubishi Mirage 151, Audi A5 147, MINI Aceman 147, Toyota Hiace 145, Lexus LX
-144. The register's all-time figure is low
-because the file lists current nameplates, not the many that were registered earlier and have since gone.
+144. The register's all-time figure is low because the file lists current nameplates, not the many that were registered
+earlier and have since gone.
 `scripts/segment_coverage.py` prints these figures for either dataset.
 
 **Set beside the trade's own placement, privately.** The file's first slice was set beside the FCAI's published sample of its
 VFACTS report as a private check (D-117). Nothing from that report is in the file or in this repository, and no row's class,
-basis or confidence rests on it. The check was not repeated for the second slice (D-120, D-123).
+basis or confidence rests on it. The check was not repeated for the second or third slice (D-120, D-123, D-145).
 
 **The register's `CLASS` as a cross-check, not an input.** `MC` is the register's off-road passenger class. Measured on every
-passenger vehicle in the register (all time, the 2026-10 snapshot), for each make-and-model pair in the file with at least 30
-of them: no `car` pair has a majority `MC`; one has over a quarter (Mitsubishi Delica, 29%). `MC` is weak evidence for an SUV:
+passenger vehicle in the register (all time, the 2026-10 snapshot), for each make-and-model pair of the first two slices
+(D-117, D-123) with at least 30 of them; not re-measured for D-145: no `car` pair has a majority `MC`; one has over a
+quarter (Mitsubishi Delica, 29%). `MC` is weak evidence for an SUV:
 among the `suv` pairs it runs from under 1% (Mazda CX-5, Mitsubishi ASX, BYD Atto 3) to 99% or more (Ford Everest, Mitsubishi
 Pajero Sport). Among passenger vehicles first registered in the trailing window and still registered, 11.2% of NZ-new
 vehicles are `MC` and 1.7% of used imports, so it says little about recent used imports. The `suv` pairs with almost no `MC`
