@@ -11,7 +11,8 @@
 // right. That is accepted over a quoted line, which no comment-skipping reader would recognise. A line never holds a line break.
 import { fillTemplate } from "./sentences";
 
-export type Mark = "greyed" | "withheld";
+// hidden: the count is hidden by the small-cell rule (D-139). The cell is blank in the file, with the mark and the reason, never a zero.
+export type Mark = "greyed" | "withheld" | "hidden";
 // How a column's figures are written in the file. count: whole vehicles; percent: a percentage as a plain number; points: a change in
 // share in percentage points; month: a month as year-month; text: as shown.
 export type Unit = "text" | "count" | "percent" | "points" | "month";
@@ -72,6 +73,10 @@ export type FiguresPhrases = {
   figures_mark_item: string;
   figures_greyed: string;
   figures_withheld: string;
+  // The words for a file that holds a hidden cell: the mark, the line on marks and the column of reasons. A file without one uses the words above.
+  figures_hidden: string;
+  figures_marks_hidden: string;
+  figures_marked_column_hidden: string;
   figures_marked_column: string;
 };
 
@@ -118,6 +123,9 @@ function value(cell: Cell, unit: Unit | undefined): string {
 const heading = (c: Column) => c.csvName ?? (c.unit === "percent" ? `${c.name} (%)` : c.unit === "points" ? `${c.name} (percentage points)` : c.name);
 
 // The cells the file marks, by column and kind, with each distinct reason: the one line that says which figures are greyed or withheld.
+const markWord = (mark: Mark, phrases: FiguresPhrases): string => (mark === "greyed" ? phrases.figures_greyed : mark === "hidden" ? phrases.figures_hidden : phrases.figures_withheld);
+const anyHidden = (figures: Figures): boolean => figures.rows.some((row) => row.some((c) => typeof c !== "string" && c.mark === "hidden"));
+
 function marksLine(figures: Figures, phrases: FiguresPhrases): string {
   const seen = new Map<string, string>();
   for (const row of figures.rows) {
@@ -127,12 +135,12 @@ function marksLine(figures: Figures, phrases: FiguresPhrases): string {
       const name = column ? heading(column) : "";
       const key = `${name}|${cell.mark}|${cell.reason ?? ""}`;
       if (!seen.has(key)) {
-        const mark = cell.mark === "greyed" ? phrases.figures_greyed : phrases.figures_withheld;
+        const mark = markWord(cell.mark, phrases);
         seen.set(key, fillTemplate(phrases.figures_mark_item, { column: name, mark, reason: clause(cell.reason) }).text);
       }
     });
   }
-  return seen.size === 0 ? phrases.figures_marks_none : fillTemplate(phrases.figures_marks, { list: [...seen.values()].join("; ") }).text;
+  return seen.size === 0 ? phrases.figures_marks_none : fillTemplate(anyHidden(figures) ? phrases.figures_marks_hidden : phrases.figures_marks, { list: [...seen.values()].join("; ") }).text;
 }
 
 // The whole file as text, without the byte order mark, which the download adds.
@@ -154,11 +162,11 @@ export function figuresCsv(header: FiguresHeader, figures: Figures, phrases: Fig
   note("Address", header.address);
   lines.push(noteLine(phrases.figures_units));
   lines.push(noteLine(marksLine(figures, phrases)));
-  lines.push(csvLine([...figures.columns.map(heading), ...(extra ? [phrases.figures_marked_column] : [])]));
+  lines.push(csvLine([...figures.columns.map(heading), ...(extra ? [anyHidden(figures) ? phrases.figures_marked_column_hidden : phrases.figures_marked_column] : [])]));
   for (const row of figures.rows) {
     const fields = row.map((cell, i) => value(cell, figures.columns[i]?.unit));
     if (extra) {
-      const why = row.flatMap((cell, i) => (typeof cell === "string" || !cell.mark ? [] : [`${figures.columns[i] ? heading(figures.columns[i]) : ""}: ${cell.mark === "greyed" ? phrases.figures_greyed : phrases.figures_withheld}, ${clause(cell.reason)}`]));
+      const why = row.flatMap((cell, i) => (typeof cell === "string" || !cell.mark ? [] : [`${figures.columns[i] ? heading(figures.columns[i]) : ""}: ${markWord(cell.mark, phrases)}, ${clause(cell.reason)}`]));
       fields.push(safeText(why.join("; ")));
     }
     lines.push(csvLine(fields));

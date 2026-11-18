@@ -5,9 +5,10 @@ import type { ReactNode } from "react";
 import { datasetWords, findDataset, findPeriod, phrases, yearChangeFloor } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import { datasetFirstMonth } from "../lib/built";
+import { SMALL_CELL_KEY, ruleMinimum } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, monthRange, pct, shareChange } from "../lib/measures";
-import { countedText, fillTemplate, pickedRankingSentences, rankingLeaderSentence, rankingText, rankingWindows, rankingWords, sayBadMonth, yearTooFewText } from "../lib/sentences";
+import { countedText, fillTemplate, pickedRankingSentences, rankingLeaderSentence, rankingText, rankingWindows, rankingWords, sayBadMonth, vehiclesText, yearTooFewText } from "../lib/sentences";
 import { count, greyedReason, readout, spanPeriod } from "../lib/readout";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
 import {
@@ -26,7 +27,7 @@ import {
   tipStyle,
 } from "../lib/theme";
 import { cellAt, cellText } from "../lib/figures";
-import { leagueRows, leagueTable, pickedSummary, rankingGuard } from "../lib/league";
+import { leaderIsClear, leagueRows, leagueTable, pickedSummary, rankingGuard } from "../lib/league";
 import { useFigures } from "./FiguresContext";
 import type { LeagueRow } from "../lib/league";
 import { PlotFigure } from "./PlotFigure";
@@ -99,14 +100,18 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
     () => rankingText(phrases, { basis: words?.ranking_basis ?? "Ranked by vehicles {window}", span, end, latest, covers: { first: datasetFirstMonth(manifest.datasets[servedFrom(preset.dataset, manifest) ?? ""], firstMonth), last: latest } }),
     [words, span, end, latest, manifest, preset.dataset, firstMonth],
   );
-  const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
+  // A dataset with one period has no earlier window: no move, no change on a year ago, no rank before, and no series (src/lib/league.ts).
+  const single = Boolean(findDataset(preset.dataset)?.single_period);
+  const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change) && !single;
+  // The least count a table shows, as its manifest entry says it applied the rule, for the words about hidden counts.
+  const minimum = ruleMinimum(manifest, preset.dataset, SMALL_CELL_KEY, dimension.id);
   const yearFloor = yearChangeFloor();
 
   // The floor a share is read against: the share measure's own, whatever the preset counts, since a ranking prints shares
   // (docs/METRICS.md, "A ranking and the precision floor").
   const floor = floorOf("share");
   const model = useMemo(() => {
-    const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior, topN: picked ? picked.length : topN, nameOf: label, yearFloor });
+    const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior && !single, topN: picked ? picked.length : topN, nameOf: label, yearFloor });
     const items: LeagueItem[] = result.items.map((item, idx) => ({ ...item, colour: seriesColour(idx), isRemainder: false }));
     const guard = rankingGuard({
       floor,
@@ -117,8 +122,8 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       single: span === 1,
       phrases,
     });
-    return { items, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior, tiedBeyond: result.tiedBeyond, guard: items.length > 0 ? guard : { shares: false, changes: false, sentence: undefined } };
-  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor, picked]);
+    return { items, hidden: result.hidden, hiddenAtMost: result.hiddenAtMost, notBrokenDown: result.notBrokenDown, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior && !single, tiedBeyond: result.tiedBeyond, guard: items.length > 0 ? guard : { shares: false, changes: false, sentence: undefined } };
+  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor, picked, single]);
 
   // What the page says about the choice: how it is ranked, who leads, who is not ranked and what a share is a share of.
   const windowWords = rankingWords(phrases, { span, end, latest }).window;
@@ -140,18 +145,30 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   }, [picked, own, model, label, valueHeading, windowWords, words, preset.where]);
   // The answer of a ranking of every value: who is first, with how many.
   const leaderAnswer = useMemo(() => {
-    if (picked || !preset.ranks_all || model.items.length === 0) return undefined;
+    if (picked || !(preset.ranks_all || single) || model.items.length === 0) return undefined;
     const first = model.items.filter((i) => i.rank === 1);
+    // A hidden count could be as large as the leader's: then nobody is named.
+    if (!leaderIsClear(first[0].n, model.hiddenAtMost)) return undefined;
     return rankingLeaderSentence(phrases, first.map((i) => i.name), countedText(words?.leader_count, first[0].n, windowWords));
-  }, [picked, preset.ranks_all, model, words, windowWords]);
+  }, [picked, preset.ranks_all, single, model, words, windowWords]);
   // The earlier window in the words of the window ranked, so a ranking of twelve months does not speak of a month.
   const yearTooFew = yearTooFewText(phrases, span, end);
 
-  const basis = ranking.text;
+  const basis = single ? `${fillTemplate(words?.ranking_basis ?? "{window}", { window: windowWords }).text}.` : ranking.text;
+  const hiddenWords = useMemo(
+    () => ({ text: phrases.hidden_word, reason: fillTemplate(phrases.hidden_reason, { minimum }).text }),
+    [minimum],
+  );
+  const hiddenNote = model.hidden.length
+    ? fillTemplate(model.hidden.length === 1 ? phrases.hidden_ranking_note_one : phrases.hidden_ranking_note, { count: model.hidden.length, minimum })
+    : undefined;
   // The table of the ranking, built once: the page draws it and the file of figures writes it (src/lib/figures.ts).
   const table = useMemo(
     () =>
       leagueTable(model.items, {
+        compares: !single,
+        hiddenValues: model.hidden,
+        hiddenWords,
         hasPrior: model.hasPrior,
         showYear,
         guard: model.guard,
@@ -167,7 +184,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         },
         format: { count: (n) => n.toLocaleString(), pct, shareChange, yearChange: signed },
       }),
-    [model, showYear, floor, valueHeading, words, about, yearTooFew],
+    [model, showYear, floor, valueHeading, words, about, yearTooFew, single, hiddenWords],
   );
   const figures = useCallback(() => ({ period: spanPeriod(currentFrom, end), columns: table.columns, rows: table.rows }), [table, currentFrom, end]);
   useFigures(figures);
@@ -204,7 +221,8 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
 
   const render = useCallback(
     (width: number) => {
-      const height = Math.max(340, model.items.length * 24 + 60);
+      const shown = [...model.items.map((d) => d.name), ...model.hidden.map((d) => d.name)];
+      const height = Math.max(single ? 120 : 340, shown.length * 24 + 60);
       const isShare = displayMode === "share";
       const maxVal = Math.max(0.01, ...model.items.map((d) => (isShare ? d.share : d.n)));
       const xMax = maxVal * 1.18;
@@ -222,7 +240,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         marginTop: 20,
         marginBottom: 30,
         y: {
-          domain: model.items.map((d) => d.name),
+          domain: shown,
           label: null,
           tickSize: 0,
           tickFormat: fit,
@@ -252,6 +270,8 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
             fontSize: 11,
             fontWeight: 500,
           }),
+          // A hidden value has no bar: its name stands on the axis with the word at the start of the row, never a bar of zero length that reads as zero.
+          Plot.text(model.hidden, { y: "name", x: 0, text: () => phrases.hidden_word, dx: 6, textAnchor: "start", fill: INK_3, fontSize: 11, fontStyle: "italic" }),
           Plot.tip(
             model.items,
             Plot.pointerY({
@@ -288,7 +308,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         ],
       });
     },
-    [model, displayMode, currentFrom, end, showYear, floor],
+    [model, displayMode, currentFrom, end, showYear, floor, single],
   );
 
   const countHead = (
@@ -325,6 +345,17 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       </label>
     ) : null;
 
+  // The field does not break this period down: no value, no bar and no rank, only the total and a sentence that says so.
+  if (model.notBrokenDown) {
+    return (
+      <>
+        {after?.()}
+        <p className="chart-unit">{fillTemplate(phrases.not_broken_down, { window: windowWords, vehicles: vehiclesText(model.currentDenom) }).text}</p>
+        <p className="chart-unit"><a href="/method#hidden-counts">{phrases.hidden_link}</a></p>
+      </>
+    );
+  }
+
   // None of the values has a vehicle in the window: one sentence, in place of an empty chart and table.
   if (picked && model.items.length === 0) {
     return (
@@ -342,7 +373,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       {answer}
       {after?.()}
       <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
-        {picked ? null : (
+        {picked || single ? null : (
         <div className="toggle" role="radiogroup" aria-label="How many to show">
           {[10, 15, 25].map((n) => (
             <label key={n}>
@@ -388,10 +419,15 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       <p className="chart-unit">{basis}</p>
       {about?.share ? <p className="chart-unit">{about.share}</p> : null}
       {model.guard.sentence ? <p className="chart-unit">{model.guard.sentence}</p> : null}
+      {hiddenNote ? (
+        <p className="chart-unit">
+          {hiddenNote.text} <a href="/method#hidden-counts">{phrases.hidden_link}</a>
+        </p>
+      ) : null}
 
       <PlotFigure
         render={render}
-        label={`Ranked bar chart, ${spanPeriod(currentFrom, end)}: the ${model.items.length} largest by ${displayMode === "share" ? "share" : "number of vehicles"}. The table below the chart lists each place, its move and its change.`}
+        label={`Ranked bar chart, ${spanPeriod(currentFrom, end)}: the ${model.items.length} ${single ? "values" : "largest"}${model.hidden.length ? ` and ${model.hidden.length} with a hidden count` : ""} by ${displayMode === "share" ? "share" : "number of vehicles"}. The table below the chart lists each place, its move and its change.`}
       />
 
       {/* On a phone the table scrolls sideways in its own box, so the box takes keyboard focus and a name. The
@@ -403,16 +439,18 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
           <thead>
             <tr>
               <th scope="col" style={about ? { whiteSpace: "nowrap" } : { width: "45px" }}>{about ? about.rankHead : "Rank"}</th>
-              <th scope="col" style={{ width: "56px" }}>Move</th>
+              {single ? null : <th scope="col" style={{ width: "56px" }}>Move</th>}
               <th scope="col">{valueHeading}</th>
               {showYear ? countHead : null}
               {showYear ? yearHead : null}
               <th scope="col" data-hint="the share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{about ? about.shareHead : "Share"}</th>
-              <th scope="col" data-hint="the change in share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>
+              {single ? null : <th scope="col" data-hint="the change in share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>}
               {showYear ? null : countHead}
-              <th scope="col" data-hint="the rank a year earlier" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                {about ? about.priorHead : <>Rank <span className="visually-hidden">a year </span>before</>}
-              </th>
+              {single ? null : (
+                <th scope="col" data-hint="the rank a year earlier" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                  {about ? about.priorHead : <>Rank <span className="visually-hidden">a year </span>before</>}
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -426,7 +464,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
                   <td style={{ fontWeight: 700, color: item.rank <= 3 ? "var(--ink)" : "var(--ink-2)" }}>
                     #{item.rank}
                   </td>
-                  <td>
+                  {single ? null : <td>
                     {!model.hasPrior ? (
                       <span style={{ color: "var(--ink-3)", fontSize: "12px" }}>
                         <span aria-hidden="true">—</span>
@@ -450,7 +488,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
                         <span className="visually-hidden">Same place</span>
                       </span>
                     )}
-                  </td>
+                  </td>}
                   <td>
                     <span className="swatch" style={{ background: item.colour }} aria-hidden="true" />
                     <strong>{item.name}</strong>
@@ -465,7 +503,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
                     {model.guard.shares ? <span className="visually-hidden">Greyed: </span> : null}
                     {cellText(cellAt(table, at, "share"))}
                   </td>
-                  <td className={model.guard.changes && item.shareDelta !== undefined ? "change greyed" : "change"} style={{ textAlign: "right" }}>
+                  {single ? null : <td className={model.guard.changes && item.shareDelta !== undefined ? "change greyed" : "change"} style={{ textAlign: "right" }}>
                     {item.shareDelta === undefined ? (
                       cellText(cellAt(table, at, "change"))
                     ) : (
@@ -474,14 +512,24 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
                         {cellText(cellAt(table, at, "change"))}
                       </>
                     )}
-                  </td>
+                  </td>}
                   {showYear ? null : <td className="figure">{cellText(cellAt(table, at, "count"))}</td>}
-                  <td style={{ textAlign: "right", color: "var(--ink-3)" }}>
+                  {single ? null : <td style={{ textAlign: "right", color: "var(--ink-3)" }}>
                     {cellText(cellAt(table, at, "before"))}
-                  </td>
+                  </td>}
                 </tr>
               );
             })}
+            {/* A value whose count is hidden stands after the ranked ones: its rank, share and count each say hidden, in the word config gives. */}
+            {model.hidden.map((item, at) => (
+              <tr key={item.value} className="hidden-row">
+                {table.columns.map((column, c) => (
+                  <td key={column.key} className={column.key === "name" ? undefined : "figure"} style={column.key === "name" ? undefined : { textAlign: "right" }}>
+                    {column.key === "name" ? <strong>{item.name}</strong> : cellText(table.rows[model.items.length + at][c])}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
