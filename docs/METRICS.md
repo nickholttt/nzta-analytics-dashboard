@@ -1089,7 +1089,7 @@ a line can move with how each source classes a car.
 subnational population estimates. Population is a separate reference file
 with its own vintage; label the estimate year on the chart.
 
-## SUV or car, by nameplate: `model_segment.csv` (D-117, D-123)
+## SUV or car, by nameplate: `model_segment.csv` (D-117, D-123, D-148)
 
 The register records most SUVs as station wagons (`BODY_TYPE`), so no register field says whether a vehicle is an SUV. A
 nameplate does: the class of a make and model is a lookup, not a measurement (invariant 4). `data/reference/model_segment.csv`
@@ -1101,7 +1101,9 @@ dimension, no build uses it, and no figure on the site depends on it. A maintain
 - A nameplate is `suv` when its maker, or its maker's New Zealand distributor, places it in its SUV range or calls it an SUV on
   its own page, for the market the vehicles come from: the New Zealand site for NZ-new vehicles, the maker's Japanese or global
   site for used imports. It is `car` when the maker's own page places it among its hatchbacks, sedans, wagons, coupes,
-  convertibles or people movers and does not call it an SUV.
+  convertibles or people movers and does not call it an SUV. A maker's word that names no body, such as "compact car"
+  (コンパクトカー), does not place a nameplate: such a page is not the row's `high` source, and the body comes from another
+  source at the confidence it earns (D-148).
 - **`car` means "not an SUV" in this file so far.** It includes people movers (a minivan or wagon body for more than five
   seats) and sports cars (coupes, convertibles and roadsters), which the FCAI's criteria put in their Passenger class beside
   hatchbacks and sedans, not in SUV. A finer class for them is a later piece. Utes, vans, trucks and buses are not in the file:
@@ -1150,10 +1152,10 @@ dataset's own filter; the 2026-10 snapshot; trailing is November 2025 to October
 | `registrations_surviving` | trailing | 200,387 | 182,212 (90.93%) | 164,905 (82.29%) | 98,431 (49.12%) | 66,474 (33.17%) | 17,307 (8.64%) | 18,175 (9.07%) |
 | `registrations_surviving` | all time | 3,617,895 | 2,243,153 (62.00%) | 2,126,397 (58.77%) | 971,073 (26.84%) | 1,155,324 (31.93%) | 116,756 (3.23%) | 1,374,742 (38.00%) |
 
-The file has 124 rows for 181 entries (179 distinct make-and-model pairs; Corolla and Leaf have two rows each): 47 rows at
-`high` (30 `suv`, 17 `car`), 61 at `medium` (28 `suv`, 33 `car`) and 16 at `low`, all `unresolved`. By entries: `suv` 52 high
-and 48 medium, `car` 22 high and 39 medium, `unresolved` 20. By vehicles in the flow dataset's trailing window, `high` is
-40.82% and `medium` 43.77%; in the register's, 37.82% and 44.47%. The first slice's 169 pairs were the 150 largest passenger
+The file has 124 rows for 181 entries (179 distinct make-and-model pairs; Corolla and Leaf have two rows each): 45 rows at
+`high` (30 `suv`, 15 `car`), 63 at `medium` (28 `suv`, 35 `car`) and 16 at `low`, all `unresolved`. By entries: `suv` 52 high
+and 48 medium, `car` 19 high and 42 medium, `unresolved` 20. By vehicles in the flow dataset's trailing window, `high` is
+34.71% and `medium` 49.89%; in the register's, 31.73% and 50.56%. The first slice's 169 pairs were the 150 largest passenger
 nameplates of the two datasets' trailing windows combined and 19 more, to the rank where the register's cumulative share
 reached 90% (D-117); the second slice added the ten largest still without a row (D-123). The largest nameplates still
 without a row (trailing, flow): Toyota bZ4X Touring 173, Denza B5 172, Cupra Terramar 169, Toyota Auris 169, Geely EX2 168,
