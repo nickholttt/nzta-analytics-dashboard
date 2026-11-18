@@ -284,7 +284,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const views = useMemo(() => viewsFor(question), [question]);
   // Said while the question still holds the condition a breakdown's field calls for (D-132).
   const narrowed = useMemo(() => narrowingNotes(all, question), [all, question]);
-  const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
+  const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id, false, question.dataset) ?? id;
   // The other shapes a question may be drawn as are a choice of their own; the ranking is reached from the values, where it is about them.
   const otherViews = views.filter((v) => v !== RANKING);
   const noun = breakdown ? lowerLabel(filterLabel(breakdown.id)) : "";

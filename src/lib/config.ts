@@ -139,6 +139,8 @@ export type Dataset = {
   not_built_message?: string;
   // The last line under every chart of the dataset: what its figures are not, in plain words (it says nothing a visitor must take from the data).
   basis_note?: string;
+  // The words this dataset uses for a field in place of the field's own label, keyed by dimension id.
+  dimension_labels?: Record<string, string>;
   words?: DatasetWords;
   // Datasets that count some of the same vehicles as this one, so no chart reads both (datasetClashes).
   never_charted_with?: string[];
@@ -288,9 +290,10 @@ export const findDimension = (id?: string | null) => dimensions.find((d) => d.id
 // The band of a banded dimension that holds the vehicles with no usable value (a band config flags `unknown`), if it has one.
 export const unrecordedBand = (id?: string | null): string | undefined => findDimension(id)?.bands?.find((b) => b.unknown)?.label;
 // The words for a dimension: the visitor wording where config has it, unless the page is an internal one.
-export const dimensionLabel = (id: string, internal = false) => {
+// A dataset can name a field in words of its own (its dimension_labels), where the field's usual words would say something it does not mean there.
+export const dimensionLabel = (id: string, internal = false, dataset?: string) => {
   const d = findDimension(id);
-  return (!internal && d?.public_label) || d?.label;
+  return findDataset(dataset)?.dimension_labels?.[id] ?? ((!internal && d?.public_label) || d?.label);
 };
 // A value as a visitor reads it: a compound value (brand and model) has its dimension's separator replaced by a space. The
 // value itself, in addresses and in the data, is unchanged.

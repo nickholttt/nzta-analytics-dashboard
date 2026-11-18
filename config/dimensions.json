@@ -144,6 +144,8 @@
       "attribution": "Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe the vehicles on NZTA's register at the snapshot date, not sales.",
       "basis_note": "Vehicles on NZTA's register at the snapshot date. Not the same as vehicles on the road.",
       "grain": "stock",
+      "dimension_labels": { "vehicle_type": "Vehicle type" },
+      "$dimension_labels_comment": "Registered as is the type NZTA registers a vehicle under, said of a vehicle when it is registered; this dataset counts the register as it stands, where the same field reads as the vehicle's type (D-141).",
       "single_period": true,
       "$single_period_comment": "The dataset has one period, the snapshot's month (docs/CUBE_SCHEMA.md, Stock datasets). The chart rules read it as one period (chart_rules.json, facts.periods), so a category counted in it is a ranking and two fields crossed are a grid; a question that would draw it over time is blocked; and a chart of it has no time range, no month to choose, no move, no change on a year ago.",
       "words": {

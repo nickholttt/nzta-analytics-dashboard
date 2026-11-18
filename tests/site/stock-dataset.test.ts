@@ -156,3 +156,18 @@ test("a dataset of one period names its window in its own words, never by the mo
   const sentence = config.phrases.matrix_rows_all.replace("{field}", "x").replace("{window}", words.window_one);
   assert.doesNotMatch(sentence, /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/);
 });
+
+test("the dataset's vehicle-type breakdown is not called \"registered as\" anywhere a page names it, while other datasets keep the field's own label", () => {
+  const field = "vehicle_type";
+  assert.ok(offered.includes(field));
+  const own = config.dimensionLabel(field);
+  assert.ok(own);
+  const here = config.dimensionLabel(field, false, D);
+  assert.ok(here && here !== own, "the dataset has words of its own for the field");
+  assert.match(config.builderSpec.measures.find((m) => m.id === "count")?.dataset_dimensions?.[D]?.[field] ?? "", /^vehicle type$/);
+  for (const text of [here, config.builderSpec.measures.find((m) => m.id === "count")?.dataset_dimensions?.[D]?.[field] ?? ""]) assert.doesNotMatch(text, /registered as/i);
+  assert.equal(config.dimensionLabel(field, false, "registrations_surviving"), own, "a dataset with no words of its own keeps the field's label");
+  const vocabulary = builderVocabulary(manifest()).datasets.find((v) => v.dataset === D);
+  assert.ok(vocabulary);
+  for (const f of vocabulary.filters) assert.doesNotMatch(f.label, /registered as/i);
+});

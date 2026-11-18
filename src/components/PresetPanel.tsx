@@ -412,7 +412,7 @@ export default function PresetPanel({
   // A share is a share of everything counted, so vehicles with no value of the breakdown are in the whole and drawn as a part of it. Said where the
   // chart has such a part in the window it draws, so a reader never takes a share to be of the vehicles recorded.
   if (measure?.kind === "share" && dimension && preventsRender.length === 0 && (shape === "mix" || shape === "distribution") && rows && notRecordedDrawn(rows, effectivePreset.period, latestMonthOf(effectivePreset, manifest))) {
-    const field = dimensionWords(dimension.id, internal) || dimension.id;
+    const field = dimensionWords(dimension.id, internal, effectivePreset.dataset) || dimension.id;
     notes.push({ key: "share-of-all", text: fillNote(phrases.share_with_not_recorded, { field, value: reservedLabel(NOT_RECORDED_TOKEN) }).text, unresolved: [] });
   }
   // A filter the chart applies is said under its definition, so a narrowed chart never reads as every vehicle. One it
@@ -420,7 +420,7 @@ export default function PresetPanel({
   // terms, is internal.
   const quoted = (values: string[], dimensionId?: string) => values.map((v) => `“${valueWords(dimensionId, reservedLabel(v))}”`).join(" or ");
   const nameOf = (id: string) => {
-    const words = dimensionWords(id, internal) || id;
+    const words = dimensionWords(id, internal, effectivePreset.dataset) || id;
     return lowerLabel(words);
   };
   const scope = keptBy?.length
@@ -458,8 +458,8 @@ export default function PresetPanel({
   const driftingNotes = [effectivePreset.note, dimension?.note].filter((n): n is string => Boolean(n) && noteStatesAFigure(n as string));
 
   // Visitor wording from the dimension's public_label, where its label is written for maintainers (D-042).
-  const dimensionLabel = dimension ? dimensionWords(dimension.id, internal) : undefined;
-  const dimensionLabel2 = dimension2 ? dimensionWords(dimension2.id, internal) : undefined;
+  const dimensionLabel = dimension ? dimensionWords(dimension.id, internal, effectivePreset.dataset) : undefined;
+  const dimensionLabel2 = dimension2 ? dimensionWords(dimension2.id, internal, effectivePreset.dataset) : undefined;
 
   // The answer comes straight under the question: a count's figure and sentence for a month, or who is first in a ranking.
   const answerFirst = preventsRender.length === 0 && Boolean(rows?.length) && ((Boolean(preset.answer) && shape === "trend") || (shape === "league" && Boolean(effectivePreset.values?.length || effectivePreset.ranks_all || dataset?.single_period)) || shape === "matrix");

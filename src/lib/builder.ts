@@ -258,7 +258,7 @@ function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabula
     .filter((m) => m.dimensions.length > 0 || m.allowsTotal);
   const filters = (facts?.dimensions ?? [])
     .filter((id) => findDimension(id))
-    .map((id) => ({ id, label: dimensionLabel(id) ?? id }));
+    .map((id) => ({ id, label: dimensionLabel(id, false, dataset) ?? id }));
   return { dataset, label: datasetName(dataset, manifest), measures, filters };
 }
 
@@ -397,7 +397,7 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
       const key = `${d}|${v}`;
       if (seen.has(key)) return [];
       seen.add(key);
-      return [{ asked: label(v, d), field: lowerFirst(dimensionLabel(d) ?? d) }];
+      return [{ asked: label(v, d), field: lowerFirst(dimensionLabel(d, false, settled.dataset) ?? d) }];
     });
   }
   if (asked.dataset && asked.dataset !== settled.dataset) {
@@ -406,9 +406,9 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
   if (typeof asked.by === "string" && asked.by !== "" && asked.by !== settled.by) {
     const offered = all.datasets.find((v) => v.dataset === settled.dataset)?.measures.find((m) => m.id === settled.measure);
     const shown = settled.by ? offered?.dimensions.find((d) => d.id === settled.by)?.phrase : undefined;
-    note.by = { asked: lowerFirst(dimensionLabel(asked.by) ?? asked.by), dataset: lowerFirst(datasetName(settled.dataset)), shown: shown ?? "all of them together" };
+    note.by = { asked: lowerFirst(dimensionLabel(asked.by, false, settled.dataset) ?? asked.by), dataset: lowerFirst(datasetName(settled.dataset)), shown: shown ?? "all of them together" };
   }
-  if (typeof asked.by2 === "string" && asked.by2 !== "" && asked.by2 !== settled.by2) note.by2 = { asked: lowerFirst(dimensionLabel(asked.by2) ?? asked.by2) };
+  if (typeof asked.by2 === "string" && asked.by2 !== "" && asked.by2 !== settled.by2) note.by2 = { asked: lowerFirst(dimensionLabel(asked.by2, false, settled.dataset) ?? asked.by2) };
   if (!asked.by2 && (asked.values2 ?? []).length > 0) note.value2 = true;
   if (asked.snapshot && !settled.snapshot) note.snapshot = { asked: asked.snapshot };
   return note;
@@ -465,7 +465,7 @@ export function withoutValues(q: Question, absent: NamedValue[]): Pick<Question,
 // One sentence for each value a link named that the data does not hold.
 export function absentNotes(dataset: string, absent: NamedValue[], label: (value: string, dimension: string) => string = (v) => v): string[] {
   return absent.map(({ dimension, value }) =>
-    fillTemplate(builderSpec.notices.absent, { asked: label(value, dimension), field: lowerFirst(dimensionLabel(dimension) ?? dimension), dataset: lowerFirst(datasetName(dataset)) }).text,
+    fillTemplate(builderSpec.notices.absent, { asked: label(value, dimension), field: lowerFirst(dimensionLabel(dimension, false, dataset) ?? dimension), dataset: lowerFirst(datasetName(dataset)) }).text,
   );
 }
 
