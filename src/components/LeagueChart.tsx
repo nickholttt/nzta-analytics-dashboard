@@ -428,7 +428,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
 
       <PlotFigure
         render={render}
-        label={`Ranked bar chart, ${spanPeriod(currentFrom, end)}: the ${model.items.length} ${single ? "values" : "largest"}${model.hidden.length ? ` and ${model.hidden.length} with a hidden count` : ""} by ${displayMode === "share" ? "share" : "number of vehicles"}. The table below the chart lists each place, its move and its change.`}
+        label={`Ranked bar chart, ${single ? windowWords : spanPeriod(currentFrom, end)}: the ${model.items.length} ${single ? "values" : "largest"}${model.hidden.length ? ` and ${model.hidden.length} with a hidden count` : ""} by ${displayMode === "share" ? "share" : "number of vehicles"}. ${single ? "The table below the chart lists each place." : "The table below the chart lists each place, its move and its change."}`}
       />
 
       {/* On a phone the table scrolls sideways in its own box, so the box takes keyboard focus and a name. The
