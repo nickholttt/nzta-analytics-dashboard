@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { chartDefaults, findDerived, findMeasure, hybrid } from "../lib/config";
+import { chartDefaults, dimensionLabel, dimensions, findDerived, findMeasure, hybrid } from "../lib/config";
+import { fieldNoteAnchor, fullNote } from "../lib/dimensionNote";
 import { TOP_N_SHARE } from "../lib/derived";
 import { MAX_MARKERS, MEASUREMENT_WARNING } from "../lib/events";
 import { SERIES } from "../lib/theme";
@@ -21,6 +22,8 @@ const warnBelow = Math.round(hybrid.warn_below_trailing_high_confidence_coverage
 const colourSlots = chartDefaults.colour_slots_by_trailing;
 // The least count a table of a field that describes the owner or the use of a vehicle shows (config/data_map.json, owner_rule).
 const hideBelow = dataMap.owner_rule.minimum_count;
+// The whole of each note a chart shows as one line, from the same config text, so the line and the note cannot drift apart (D-137).
+const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: dimensionLabel(d.id) ?? d.id, note: fullNote(d) as string }] : []));
 ---
 
 <Layout title="Methodology" activeNav="method">
@@ -77,6 +80,17 @@ const hideBelow = dataMap.owner_rule.minimum_count;
         everywhere.
       </li>
     </ul>
+
+    <h2 id="fields">What Each Field Means</h2>
+    <p>
+      A chart shows one line about the field it breaks down by. Where that line has more behind it, the whole note is here.
+    </p>
+    {fieldNotes.map((f) => (
+      <>
+        <h3 id={fieldNoteAnchor(f.id)}>{f.label}</h3>
+        <p>{f.note}</p>
+      </>
+    ))}
 
     <h2 id="core-measures">Core Measures</h2>
     <table>

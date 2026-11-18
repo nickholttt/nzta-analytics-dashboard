@@ -7,7 +7,7 @@ import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { figuresHeader } from "../lib/figuresHeader";
 import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
 import { compositionStart } from "../lib/composition";
-import { dimensionNote } from "../lib/dimensionNote";
+import { dimensionNote, fieldNoteAnchor } from "../lib/dimensionNote";
 import { conditionsSentence } from "../lib/scope";
 import { hybridNotes, splitPublished } from "../lib/hybrid";
 import { ServiceError, loadEvents, loadFirstMonth, loadManifest, loadView } from "../lib/data";
@@ -103,12 +103,15 @@ export default function PresetPanel({
   anchored = true,
   defer = false,
   snapshot,
+  onFirstMonth,
 }: {
   presetId?: string;
   preset?: Preset;
   anchored?: boolean;
   // A kept snapshot (a month) to read every figure of the chart from, instead of the newest (src/lib/kept.ts, D-131).
   snapshot?: string;
+  // Told the first month the dataset has vehicles in, when the chart's rows arrive: the Build page's pinned line needs it (src/lib/pin.ts).
+  onFirstMonth?: (month: string | undefined) => void;
   // Draw nothing from the cube until the page's first chart is drawn and this panel is within a screen of the visible
   // part of the page, so the charts below the first add no downloads before it draws (src/lib/loadGate.ts).
   defer?: boolean;
@@ -164,6 +167,8 @@ export default function PresetPanel({
   const [rows, setRows] = useState<SliceRow[] | null>(null);
   // The first month the dataset has vehicles in, loaded with the rows: a ranking needs it to know whether a year before exists.
   const [firstMonth, setFirstMonth] = useState<string | undefined>(undefined);
+  const tell = useRef(onFirstMonth);
+  tell.current = onFirstMonth;
   // For a measure that divides one dataset by another: the numerator's rows, beside `rows`, the denominator's.
   const [companion, setCompanion] = useState<SliceRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -289,6 +294,7 @@ export default function PresetPanel({
         if (!current) return;
         setCompanion(second);
         setFirstMonth(first);
+        tell.current?.(first);
         setRows(loaded);
       },
       (e) => {
@@ -381,14 +387,14 @@ export default function PresetPanel({
   // not among them: it is the sentence every chart on this dataset must carry, so it sits under the
   // question rather than in the footnotes.
   const context = noteContext(effectivePreset, manifest);
-  const notes: { key: string; text: string; unresolved: string[] }[] = [];
+  const notes: { key: string; text: string; unresolved: string[]; href?: string }[] = [];
   // On a chart that can't be drawn, a missing value is expected (its dataset may not exist yet), so the
   // note is left out instead of shown with gaps. On a drawn chart a gap is a build fault and stays visible.
-  const addNote = (key: string, plain?: string, template?: string) => {
+  const addNote = (key: string, plain?: string, template?: string, href?: string) => {
     if (template) {
       const filled = fillNote(template, context);
       if (filled.unresolved.length === 0 || preventsRender.length === 0) notes.push({ key, ...filled });
-    } else if (plain) notes.push({ key, text: plain, unresolved: [] });
+    } else if (plain) notes.push({ key, text: plain, unresolved: [], href });
   };
   addNote("preset", effectivePreset.note, effectivePreset.note_template);
   addNote("measure", undefined, derived?.note_template);
@@ -402,7 +408,8 @@ export default function PresetPanel({
   if (sourceNote && !notBuilt) addNote("source", undefined, sourceNote);
   // The dimension's note may depend on the state of the dataset (a mild line only where the split is published): src/lib/dimensionNote.ts.
   const dimensionText = dimensionNote(dimension, internal, { splitPublished: splitPublished(coverage) });
-  addNote("dimension", dimensionText.plain, dimensionText.template);
+  // A note cut to a line links to the field's section of the method page, where the whole of it is (D-137).
+  addNote("dimension", dimensionText.plain, dimensionText.template, dimensionText.more && dimension ? `/method#${fieldNoteAnchor(dimension.id)}` : undefined);
   // A share is a share of everything counted, so vehicles with no value of the breakdown are in the whole and drawn as a part of it. Said where the
   // chart has such a part in the window it draws, so a reader never takes a share to be of the vehicles recorded.
   if (measure?.kind === "share" && dimension && preventsRender.length === 0 && (shape === "mix" || shape === "distribution") && rows && notRecordedDrawn(rows, effectivePreset.period, latestMonthOf(effectivePreset, manifest))) {
@@ -842,6 +849,12 @@ export default function PresetPanel({
         {notes.filter((n) => (internal || n.unresolved.length === 0) && (internal || !notBuilt)).map((n) => (
           <li key={n.key}>
             {n.text}
+            {n.href ? (
+              <>
+                {" "}
+                <a href={n.href}>{phrases.field_note_link}</a>
+              </>
+            ) : null}
             {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
           </li>
         ))}

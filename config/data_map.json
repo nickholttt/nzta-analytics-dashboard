@@ -88,7 +88,7 @@
     }
   },
   "moves_together": {
-    "$comment": "How strongly two fields move together is measured each build and is not stored here (docs/DATA_MAP.md, Moves together with). Listed here are the pairs that move together because of how they are defined or built, so the site never offers them as a finding. A field and any dimension derived from it are always such a pair and are not listed. basis: by_construction where the data shows the rule (docs/MODEL_AND_AGE.md section 1, or the site's own derivation); by_definition_inferred where it rests on NZTA's codes and is marked inferred - confirm in the doc. a and b are register field names or dimension ids.",
+    "$comment": "How strongly two fields move together is measured each build and is not stored here: it is written to public/data/associations/{dataset}.json, for every pair of a dataset's fact-table dimensions (docs/CUBE_SCHEMA.md, Associations; method and the first hand-measured figures in docs/DATA_MAP.md, Moves together with). Listed here are the pairs that move together because of how they are defined or built, so the site never offers them as a finding; the build marks each such pair in that file. A pair of a field and a dimension derived from it, and a dimension that rolls up to another (relations.rolls_up_to), are marked from the map without being listed. basis: by_construction where the data shows the rule (docs/MODEL_AND_AGE.md section 1, or the site's own derivation); by_definition_inferred where it rests on NZTA's codes and is marked inferred - confirm in the doc. a and b are register field names or dimension ids; a dimension answers to its own id and to the register fields its derive block names.",
     "basis": ["by_construction", "by_definition_inferred"],
     "true_by_definition": [
       { "a": "CLASS", "b": "VEHICLE_TYPE", "basis": "by_definition_inferred" },
@@ -100,7 +100,8 @@
       { "a": "age_at_registration_band", "b": "IMPORT_STATUS", "basis": "by_construction" },
       { "a": "age_at_registration_band", "b": "VEHICLE_YEAR", "basis": "by_construction" },
       { "a": "FIRST_NZ_REGISTRATION_YEAR", "b": "VEHICLE_YEAR", "basis": "by_construction" },
-      { "a": "IMPORT_STATUS", "b": "VEHICLE_YEAR", "basis": "by_construction" }
+      { "a": "IMPORT_STATUS", "b": "VEHICLE_YEAR", "basis": "by_construction" },
+      { "a": "parent_group", "b": "owner_country", "basis": "by_construction" }
     ]
   },
   "fields": [
@@ -253,7 +254,8 @@
       "relations": {
         "rolls_up_to": [
           { "to": "parent_group", "via": "brand_registry.csv", "holds_on": "by_construction" },
-          { "to": "owner_country", "via": "brand_registry.csv", "holds_on": "by_construction" }
+          { "to": "owner_country", "via": "brand_registry.csv", "holds_on": "by_construction" },
+          { "to": "heritage_country", "via": "brand_registry.csv", "holds_on": "by_construction" }
         ],
         "derived_from": [],
         "follows_vehicle": "combined"
@@ -717,7 +719,7 @@
       "after_review": "minimum_count",
       "stock_only": true,
       "published_exceptions": [
-        { "dimension": "vehicle_usage", "outputs": ["slice", "pair"], "decision": "D-135", "decision_covers": ["slice", "pair"], "$comment": "The owner's instruction of 2026-11-18 (D-135): vehicle usage over every vehicle still registered, by usage and by vehicle type, labelled 'used as, today', never by month or year of first registration. Built privately first. The owner is shown the first table before this exception reaches main (D-096, D-120); the branch that holds it is not pushed until then. Published under the small-cell rule for the slice (D-127) and the rule for a table of two fields for the pair (D-135)." }
+        { "dimension": "vehicle_usage", "outputs": ["slice", "pair"], "decision": "D-141", "decision_covers": ["slice", "pair"], "$comment": "The owner's instruction of 2026-11-18 (D-134, D-135): vehicle usage over every vehicle still registered, by usage and by vehicle type, labelled Current use (D-140), never by month or year of first registration. Built privately and shown to the owner, as figures and screenshots, who approved publishing both tables (D-141). Published under the small-cell rule for the slice (D-127) and the rule for a table of two fields for the pair (D-135)." }
       ],
       "bound": "vehicle_usage",
       "relations": { "rolls_up_to": [], "derived_from": [], "follows_vehicle": "no" }
@@ -975,7 +977,8 @@
       "relations": {
         "rolls_up_to": [
           { "to": "parent_group", "via": "brand_registry.csv", "holds_on": "by_construction" },
-          { "to": "owner_country", "via": "brand_registry.csv", "holds_on": "by_construction" }
+          { "to": "owner_country", "via": "brand_registry.csv", "holds_on": "by_construction" },
+          { "to": "heritage_country", "via": "brand_registry.csv", "holds_on": "by_construction" }
         ],
         "derived_from": [],
         "follows_vehicle": "combined"

@@ -62,6 +62,13 @@ def _templates() -> list[tuple[str, str, str]]:
     for key, text in presets["builder"]["notices"].items():
         if not key.startswith("$"):
             found.append(("notices", f"builder.notices.{key}", text))
+    # The words of the controls that keep a question (config/my_questions.json, D-125), and the one-line form of a field's note (D-137).
+    for key, text in _json("config/my_questions.json").items():
+        if not key.startswith("$"):
+            found.append(("keeping", f"my_questions.{key}", text))
+    for dimension in dimensions["dimensions"]:
+        if "public_line" in dimension:
+            found.append(("line", f"dimension {dimension['id']} public_line", dimension["public_line"]))
     for dataset in dimensions["datasets"]:
         for key, text in (dataset.get("words") or {}).items():
             if not key.startswith("$"):
@@ -95,6 +102,17 @@ def _id(value):
 
 def test_there_are_templates_to_check():
     assert len(_templates()) >= 10, "the sentence config has gone missing: this test would pass without checking anything"
+
+
+def test_the_lint_reads_every_interface_word_and_every_one_line_note():
+    """The words of My questions (config/my_questions.json) and the one-line form of a field's note are held to the same rules as the rest."""
+    found = _templates()
+    keeping = {where for kind, where, _ in found if kind == "keeping"}
+    words = {k for k, v in _json("config/my_questions.json").items() if not k.startswith("$") and isinstance(v, str)}
+    assert words and keeping == {f"my_questions.{k}" for k in words}, "a word in config/my_questions.json is not linted"
+    lines = {where for kind, where, _ in found if kind == "line"}
+    noted = {f"dimension {d['id']} public_line" for d in _json("config/dimensions.json")["dimensions"] if "public_line" in d}
+    assert noted and lines == noted, "a one-line note in config/dimensions.json is not linted"
 
 
 @pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)

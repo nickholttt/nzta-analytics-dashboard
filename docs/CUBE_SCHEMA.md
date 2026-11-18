@@ -31,6 +31,8 @@ No count of dimensions is fixed in this document or anywhere else; see
     {dataset}/{dim_a}__{dim_b}.parquet  # 2-D slices: only the pairs config/pipeline.json names
   facts/
     {dataset}/{column}.parquet          # the fact table, one column per file: month, each dimension, n
+  associations/
+    {dataset}.json                      # how strongly each pair of the fact table's dimensions moves together (D-136)
   presets/
     {preset_id}.json                    # later build step: fully resolved, for first paint
   reference/
@@ -38,10 +40,11 @@ No count of dimensions is fixed in this document or anywhere else; see
 ```
 
 Build step 1 emits `manifest.json`, `cube/registrations_surviving/`,
-`pairs/registrations_surviving/`, `facts/registrations_surviving/` and
-`events.json`. The same build also emits the stock `fleet` (*Stock datasets*): `cube/fleet/vehicle_usage.parquet`,
-`cube/fleet/vehicle_type.parquet`, `pairs/fleet/vehicle_usage__vehicle_type.parquet` and its block in `manifest.json`, and no
-fact table.
+`pairs/registrations_surviving/`, `facts/registrations_surviving/`,
+`associations/registrations_surviving.json` and `events.json`. Every dataset that has a fact table gets an
+associations file beside it (*Associations*, below). The same build also emits the stock `fleet` (*Stock datasets*):
+`cube/fleet/vehicle_usage.parquet`, `cube/fleet/vehicle_type.parquet`, `pairs/fleet/vehicle_usage__vehicle_type.parquet`
+and its block in `manifest.json`, and no fact table, so no associations file.
 
 When the supplied store for `registrations_flow` is present (*Supplied sources*), the build also emits
 `cube/registrations_flow/`, `facts/registrations_flow/` and its block in `manifest.json`; it configures
@@ -471,6 +474,98 @@ The lookups joined on before that count (scope, import status, brand, the
 model and hybrid exceptions, engine) each abort on a key defined twice or on
 two rows that match the same vehicle (Aborts, below).
 
+## Associations
+
+Each dataset that has a fact table has one more file, `associations/{dataset}.json`: how strongly each pair of the fact
+table's dimensions moves together (the data map's "moves together with", `docs/DATA_MAP.md`; D-136). It is one file for each
+dataset, written in that dataset's build beside its slices, and not one for the cube, so a question about a dataset
+downloads that dataset's file alone, as it downloads that dataset's columns of the fact table. A dataset with no fact table
+(`registrations_cars_long_run`) has none and its manifest entry says `associations: null`.
+
+**Where the counts come from.** A pair's table is the fact table's counts summed over every dimension but the two: the
+dataset's vehicles grouped by month and the two values. No vehicle row is needed, and the browser could rebuild any figure
+from the published fact table (a test does, from the published files, by a longer route than the pipeline's).
+
+**The measure** is the bias-corrected Cramér's V of Bergsma (2013), from 0 (no association) to 1 (one decides the other). For a
+table of N vehicles with r rows and c columns: phi2 = chi2 / N, with chi2 Pearson's; phi2c = max(0, phi2 - (r - 1)(c - 1) / (N - 1));
+r~ = r - (r - 1)^2 / (N - 1) and c~ = c - (c - 1)^2 / (N - 1); V = sqrt(phi2c / min(r~ - 1, c~ - 1)). The test file holds it to
+two tables worked by hand: [[30, 10], [10, 30]] gives the square root of 25/104, 0.4903; [[6, 2, 2], [2, 6, 2]] gives the
+square root of 1/10. It says how far knowing one value tells the other and nothing about why. V is rounded to
+`associations.decimals` (4) places in `config/pipeline.json`; it is null where it is not defined (a side with one value,
+fewer than two vehicles, or min(r~, c~) not above 1), and the pair keeps its counts.
+
+**Which vehicles count.** Those with both values recorded. Left out of a pair: the reserved `__UNDEFINED__` (not recorded),
+`__UNMAPPED__` and `__OTHER__` (the model dimension's lump of nameplates beyond its cap, which is many values and not one), and a
+banded dimension's `unknown` band (`dimensions.json`). So `vehicles` can be below the dataset's. A band that means something
+(the engine band for no engine) counts. `values_a` and `values_b` are the distinct values among the vehicles counted.
+
+**Windows.** `all` is the whole dataset, from its first month with vehicles to its latest month; `trailing` is the
+`trailing_window_months` (12) months of first registration ending at the latest month, the same window as the unmapped guard.
+
+**What is marked.** A pair that is not a finding carries `relation`, a list (empty for a finding) of entries `{ "kind", "basis" }`:
+
+- `rolls_up`: the data map says one dimension rolls up to the other (`relations.rolls_up_to` of `config/data_map.json`), directly or
+  through other dimensions (a model under its make under its parent group). A dimension stands for a map field when it has
+  the field's bound name or is a lookup, a copy or a banding of that field alone, the rule the site's `src/lib/nesting.ts`
+  uses; `basis` is the map's `holds_on`.
+- `true_by_definition`: the pair is in `moves_together.true_by_definition`, matched on a dimension's id or on a register
+  field its derive block names, in either order; `basis` is the entry's (`by_construction` or `by_definition_inferred`).
+  A dimension derived from several fields answers to each of them, so a pair that the map lists for one of its fields is
+  marked for the dimension too.
+- `same_field`: both dimensions are derived from the same register field (a field and what is derived from it); `basis` is null.
+
+Nothing here names a dimension or a field; the marks are read from the two config files and the dimensions.
+
+**Owner fields.** A dimension that reads an owner field (`pipeline/privacy.py`, from the data map) is in no pair, even if it is
+listed in `facts`: it is left out of `dimensions` and named in the manifest entry's `left_out`. None is in a fact table today
+(D-078, D-096), and a test lists one to hold this.
+
+**Faults.** The build reads the file back, and aborts on a V outside 0 to 1, or on a pair missing, written twice or not of
+the dataset's dimensions. A pair on few vehicles is not a fault: its count is written so a reader can judge it.
+
+```json
+{
+  "dataset": "registrations_surviving",
+  "measure": "cramers_v_bias_corrected",
+  "decimals": 4,
+  "windows": { "all": { "from": "1912-01", "to": "2026-10" }, "trailing": { "from": "2025-11", "to": "2026-10" } },
+  "dimensions": ["age_at_registration_band", "built_in", "engine_size_band", "..."],
+  "pairs": [
+    {
+      "a": "age_at_registration_band",
+      "b": "import_status",
+      "all": { "v": 0.9864, "vehicles": 4516548, "values_a": 22, "values_b": 2 },
+      "trailing": { "v": 0.9971, "vehicles": 240656, "values_a": 22, "values_b": 2 },
+      "relation": [ { "kind": "true_by_definition", "basis": "by_construction" } ]
+    }
+  ]
+}
+```
+
+Dimensions are listed in id order and each pair once, `a` before `b` in that order, sorted by `a` then `b`, so n dimensions
+give n(n-1)/2 pairs. The file is written with `\n` (LF) line endings and counts towards `payload_bytes`.
+
+The manifest entry is `associations`: `{ "file": "associations/{dataset}.json", "dimensions": 19, "pairs": 171,
+"not_findings": 16, "left_out": {} }`, where `not_findings` counts the pairs that carry a `relation`.
+
+**Measured** on a dry run of 2026-11-18 on the saved pull of the 2026-10 snapshot (exit 0, 702.6 s in all), before the data
+map recorded that the make rolls up to heritage country and that a manufacturer group has one owner country (D-136's
+follow-up). Under the config as it now stands the marked pairs are 16, 10 and 11 (counted from config with
+`association.relations`, not rebuilt), and each file is a few hundred bytes larger than the table says:
+
+| dataset | dimensions | pairs | marked | bytes | gzipped |
+|---|---|---|---|---|---|
+| `registrations_surviving` | 19 | 171 | 13 | 58,988 | 4,700 |
+| `registrations_flow` | 11 | 55 | 7 | 19,579 | 1,791 |
+| `registrations_flow_wider` | 12 | 66 | 8 | 23,318 | 1,965 |
+
+The three files are 101,885 bytes, 1.9% of the payload of 5,312,692 bytes (66.4% of the 8,000,000 byte budget). The step took
+26.0 s for the three datasets (21.5, 1.7 and 2.8 s), timed inside the build; an earlier run of the same measure took 26.2 s and
+wrote the same V for every pair. No whole-dataset V is null; two trailing-window V of `registrations_surviving` are (the
+NZ-assembled flag has one value among the 144,827 and 144,829 vehicles that record a power or a gearbox in the window). The
+fewest vehicles any pair of `registrations_surviving` rests on is 140,149 (the model with the power band, in the trailing
+window).
+
 ## manifest.json
 
 ```json
@@ -508,6 +603,7 @@ two rows that match the same vehicle (Aborts, below).
                     "months_not_broken_down": 20, "vehicles_in_months_not_broken_down": 60 }
       },
       "facts": { "rows": 643414, "dimensions": ["powertrain", "make", "..."], "not_live": {} },
+      "associations": { "file": "associations/registrations_surviving.json", "dimensions": 19, "pairs": 171, "not_findings": 16, "left_out": {} },
       "unmapped_rates": { "make": 0.0062, "powertrain": 0.0 },
       "unmapped_guard": {
         "make": {
@@ -586,7 +682,7 @@ the files were taken. A supplied dataset with no store is `{ "definition": ..., 
 
 A dataset built from a source of kind `series` (`registrations_cars_long_run`) has `definition`, `rows` (the sum of
 its months' totals), `months`, `latest_month`, `live_dimensions`, `not_live`, `live_pairs` (empty),
-`not_live_pairs` (empty), `facts` (null) and these, where the register's datasets have the unmapped, coverage and
+`not_live_pairs` (empty), `facts` (null), `associations` (null) and these, where the register's datasets have the unmapped, coverage and
 fuel counts:
 
 - `undefined`: for each live dimension, `{ "months": n, "vehicles": n }`, the months that have vehicles
@@ -737,7 +833,7 @@ How a stock passes through the build:
 
 **The dataset `fleet`** ("Vehicles registered today", D-135) is the one stock today: every vehicle in the register at the
 snapshot, of every vehicle type and every import status, counted as at the snapshot date (`docs/METRICS.md`). It is offered
-two dimensions and no others: `vehicle_usage`, labelled "Used as, today" (the register's usage value through
+two dimensions and no others: `vehicle_usage`, labelled "Current use" (the register's usage value through
 `data/reference/vehicle_usage_map.csv`), and `vehicle_type` (the type NZTA registers the vehicle under, every type rather than
 the two of the default scope). Its files are `cube/fleet/vehicle_usage.parquet`, written under the small-cell rule and read back
 (*Slices of owner dimensions*); `cube/fleet/vehicle_type.parquet`, which reads no owner field and is written as counted;

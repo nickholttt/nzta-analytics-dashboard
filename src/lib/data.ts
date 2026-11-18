@@ -340,6 +340,19 @@ const loadFactColumn = (dataset: string, column: string, snapshot?: string) =>
     return out;
   });
 
+// The values a dataset's own table of one field holds, read as the page reads them (a banded field's unknown band is the reserved not-recorded value).
+// It takes the file the field's picker reads in the same question, so the check adds no download: the fact table's column when the picker is counted
+// among conditions, the field's slice when it is not. The cube writes both from the same rows, so they hold the same values (D-137).
+export async function fieldValues(dataset: string, dimension: string, viaFacts: boolean, snapshot?: string): Promise<ReadonlySet<string>> {
+  if (viaFacts && (!QUERY_SERVICE || snapshot !== undefined)) {
+    const column = await loadFactColumn(dataset, dimension, snapshot);
+    const held = new Set<string>();
+    for (let i = 0; i < column.length; i++) held.add(String(column[i]));
+    return held;
+  }
+  return new Set((await loadSlice(dataset, dimension, snapshot)).map((r) => r.value));
+}
+
 // The month column as "YYYY-MM" keys. The table is sorted by month, so the same value repeats in runs and one
 // conversion per distinct month serves them all.
 const loadFactMonths = (dataset: string, snapshot?: string) =>

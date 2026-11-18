@@ -61,6 +61,14 @@ previous cube. With the user's go-ahead, a forced run on `main` (`& $gh workflow
 the register since), commits its state again (for the same snapshot only `generated_at` changes, as in
 the forced run of 11 September 2026) and publishes the release.
 
+A forced run replaces the cube release, and `Checks` runs the query service prototype's tests against
+the newest release on every pull request. So after a forced run, start `Checks` on any open pull
+request, or run `python -m pytest scripts/query_service_prototype -q` over the new cube: where the
+code or the reference data changed since the last build, the totals pinned in
+`scripts/query_service_prototype/cases.json` and the limits in its `settings.json` may no longer hold
+(after the forced run of 17 November 2026 two tests failed until both were brought up to the new
+cube, D-134). Measure a changed total again from the cube's fact table, not from the service.
+
 ## A warning in the build
 
 A warning does not stop a build. The ones a person must act on are the first two groups, in the order
