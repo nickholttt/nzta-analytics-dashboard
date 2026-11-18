@@ -96,7 +96,7 @@ tells visitors what to look at. Nothing changes now; raise it first when UI work
 D-082, D-085 to D-095 (the eighth session). The ninth: the readings in D-096, D-104 and D-106
 (with the MIT licence), and D-097 to D-101, D-105 and D-107 to D-119 (D-119's line is now the
 user's). The tenth: the readings in D-120, and D-121 to D-125. The eleventh: the readings in
-D-126, D-134, D-138 and D-140, and D-127 to D-137. Not yet in a record: the three sizes in queue item 5.
+D-126, D-134, D-138 and D-140, and D-127 to D-137. Not in a record: queue item 5's three sizes.
 
 ## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
 
