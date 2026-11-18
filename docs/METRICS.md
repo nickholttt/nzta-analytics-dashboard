@@ -1089,7 +1089,7 @@ a line can move with how each source classes a car.
 subnational population estimates. Population is a separate reference file
 with its own vintage; label the estimate year on the chart.
 
-## SUV or car, by nameplate: `model_segment.csv` (D-117, D-123, D-148)
+## SUV or car, by nameplate: `model_segment.csv` (D-117, D-123, D-145)
 
 The register records most SUVs as station wagons (`BODY_TYPE`), so no register field says whether a vehicle is an SUV. A
 nameplate does: the class of a make and model is a lookup, not a measurement (invariant 4). `data/reference/model_segment.csv`
@@ -1103,7 +1103,7 @@ dimension, no build uses it, and no figure on the site depends on it. A maintain
   site for used imports. It is `car` when the maker's own page places it among its hatchbacks, sedans, wagons, coupes,
   convertibles or people movers and does not call it an SUV. A maker's word that names no body, such as "compact car"
   (コンパクトカー), does not place a nameplate: such a page is not the row's `high` source, and the body comes from another
-  source at the confidence it earns (D-148).
+  source at the confidence it earns (D-145).
 - **`car` means "not an SUV" in this file so far.** It includes people movers (a minivan or wagon body for more than five
   seats) and sports cars (coupes, convertibles and roadsters), which the FCAI's criteria put in their Passenger class beside
   hatchbacks and sedans, not in SUV. A finer class for them is a later piece. Utes, vans, trucks and buses are not in the file:
@@ -1158,7 +1158,7 @@ and 50 medium, `car` 23 high and 41 medium, `unresolved` 18. By vehicles in the 
 36.38% and `medium` 49.59%; in the register's, 33.41% and 50.27%. The first slice's 169 pairs were the 150 largest passenger
 nameplates of the two datasets' trailing windows combined and 19 more, to the rank where the register's cumulative share
 reached 90% (D-117); the second slice added the ten largest still without a row (D-123), and the third the next ten and the
-Suzuki e VITARA (D-148). The largest nameplates still without a row (trailing, flow): Mazda Biante 159, Audi A3 157, Honda e:N1
+Suzuki e VITARA (D-145). The largest nameplates still without a row (trailing, flow): Mazda Biante 159, Audi A3 157, Honda e:N1
 156, Volkswagen Polo 156, Nissan Sylphy 152, Mitsubishi Mirage 151, Audi A5 147, MINI Aceman 147, Toyota Hiace 145, Lexus LX
 144. The register's all-time figure is low
 because the file lists current nameplates, not the many that were registered earlier and have since gone.
