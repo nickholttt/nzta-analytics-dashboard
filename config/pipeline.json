@@ -37,6 +37,7 @@
     "fuel_consumption": "FC_COMBINED",
     "nz_assembled": "NZ_ASSEMBLED",
     "nzta_class": "CLASS",
+    "basic_colour": "BASIC_COLOUR",
     "seats": "NUMBER_OF_SEATS",
     "power": "POWER_RATING",
     "transmission": "TRANSMISSION_TYPE",

@@ -454,6 +454,14 @@ hold reads `__UNMAPPED__` and counts against the dimension's unmapped guard (bel
 sold new here only, and the pipeline does not look at the import status: the 116 used imports with a gearbox keep it, and the
 other 1,788,018 read `__UNDEFINED__`. `public_note` says so, and from which month the gearbox is well recorded.
 
+`colour` (NZTA's main colour for the vehicle, in NZTA's own words, published as the register holds them; no reference file) is a
+slice of `registrations_surviving` and not a column of its fact table. A column of the wide table was measured at 1,324,975
+bytes, +75% of it, and made an existing brand-by-powertrain question 40% heavier (D-116 item 6), so it is kept out of the wide
+table. A blank is the only form of not recorded (`__UNDEFINED__`); `sentinels.csv` lists none, because the 14 values the 2026-10
+pull holds are all colours. The dimension is not in `abort_on_unmapped`: a colour NZTA adds is a new value, not an unmapped one.
+The other register-shaped datasets read a source that carries no colour, so it is not live for them (`not_live`: "the source
+does not carry BASIC_COLOUR"), and none of their files changes.
+
 `powertrain_group` (the powertrain in five groups, under the names in the `powertrain_group_label` column of
 `powertrain_map.csv`; D-124) is a column of the table of every dataset whose `facts` list the powertrain (the three that
 have a fact table), and has a slice of each. It is read from the same final motive power as the powertrain, and the file
