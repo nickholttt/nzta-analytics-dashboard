@@ -135,6 +135,8 @@ export type Dataset = {
   attribution?: string;
   // What a chart says when a build did not make the dataset.
   not_built_message?: string;
+  // The last line under every chart of the dataset: what its figures are not, in plain words (it says nothing a visitor must take from the data).
+  basis_note?: string;
   words?: DatasetWords;
   // Datasets that count some of the same vehicles as this one, so no chart reads both (datasetClashes).
   never_charted_with?: string[];
@@ -302,6 +304,11 @@ export const findDataset = (id?: string) => datasets.find((d) => d.id === id);
 export function datasetWords(id?: string): DatasetWords | undefined {
   const dataset = findDataset(id);
   return dataset?.words ?? (dataset?.base ? findDataset(dataset.base)?.words : undefined);
+}
+// A dataset's basis note: its own, or its base dataset's where it is another one filtered.
+export function datasetBasisNote(id?: string): string | undefined {
+  const dataset = findDataset(id);
+  return dataset?.basis_note ?? (dataset?.base ? findDataset(dataset.base)?.basis_note : undefined);
 }
 export const findMeasure = (id?: string) => measures.find((m) => m.id === id);
 export const findDerived = (id?: string) => derivedMeasures.find((m) => m.id === id);

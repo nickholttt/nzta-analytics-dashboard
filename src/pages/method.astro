@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { chartDefaults, dimensionLabel, dimensions, findDerived, findMeasure, hybrid } from "../lib/config";
+import { chartDefaults, datasets, dimensionLabel, dimensions, findDerived, findMeasure, hybrid } from "../lib/config";
 import { fieldNoteAnchor, fullNote } from "../lib/dimensionNote";
 import { TOP_N_SHARE } from "../lib/derived";
 import { MAX_MARKERS, MEASUREMENT_WARNING } from "../lib/events";
@@ -23,6 +23,8 @@ const colourSlots = chartDefaults.colour_slots_by_trailing;
 // The least count a table of a field that describes the owner or the use of a vehicle shows (config/data_map.json, owner_rule).
 const hideBelow = dataMap.owner_rule.minimum_count;
 // The whole of each note a chart shows as one line, from the same config text, so the line and the note cannot drift apart (D-137).
+// Each dataset's own basis note, the last line under its charts (config/dimensions.json, basis_note).
+const basisNotes = datasets.flatMap((d) => (d.basis_note ? [{ label: d.public_label ?? d.label, note: d.basis_note }] : []));
 const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: dimensionLabel(d.id) ?? d.id, note: fullNote(d) as string }] : []));
 ---
 
@@ -413,7 +415,12 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       <li><strong>No extrapolation</strong>: charts end at the latest snapshot. Nothing is projected or forecast.</li>
       <li><strong>Greyed, not zeroed</strong>: a figure that trips a guard is greyed out, never shown as 0%.</li>
       <li>
-        <strong>Basis note</strong>: every chart states its dataset's definition and carries the note <em>“Registrations recorded by NZTA. Not the same as vehicle sales.”</em>
+        <strong>Basis note</strong>: every chart states its dataset's definition and ends with that dataset's own basis note, from the same configuration as the chart:
+        <ul>
+          {basisNotes.map((d) => (
+            <li>{d.label}: <em>“{d.note}”</em></li>
+          ))}
+        </ul>
       </li>
     </ul>
   </article>

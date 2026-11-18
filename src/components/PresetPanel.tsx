@@ -5,7 +5,7 @@ import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder"
 import { shownEnd } from "../lib/pin";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { figuresHeader } from "../lib/figuresHeader";
-import { compositeRules, phrases, valueWords, findDataset, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
+import { compositeRules, phrases, valueWords, findDataset, datasetBasisNote, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { dimensionNote, fieldNoteAnchor } from "../lib/dimensionNote";
 import { conditionsSentence } from "../lib/scope";
@@ -50,8 +50,6 @@ class ChunkBoundary extends Component<{ children: ReactNode }, { failed: "load" 
     );
   }
 }
-
-const BASIS_NOTE = "Registrations recorded by NZTA. Not the same as vehicle sales.";
 
 // A value's own words where it is one of the reserved tokens, otherwise the value as it is. Asked with hasOwn, since a
 // value can be any text and a plain lookup would answer a built-in for one such as "constructor".
@@ -362,6 +360,7 @@ export default function PresetPanel({
   const { blocking, preventsRender, notApplied, status, statusDisagreement, shape, dimension, measure, narrowedBy, keptBy, notBuilt } = resolution;
   const notBuiltMessage = notBuilt ? findDataset(notBuilt)?.not_built_message : undefined;
   const dataset = findDataset(effectivePreset.dataset);
+  const basisNote = datasetBasisNote(effectivePreset.dataset);
   const derived = findDerived(effectivePreset.derived);
   const served = servedFrom(effectivePreset.dataset, manifest);
   const dsManifest = served ? manifest.datasets[served] : undefined;
@@ -880,7 +879,7 @@ export default function PresetPanel({
             . Their shares are drawn in grey, not dropped and not zeroed. {phrases.grey_beyond_scale}
           </li>
         ) : null}
-        {notBuilt && !internal ? null : <li className="basis">{BASIS_NOTE}</li>}
+        {(notBuilt && !internal) || !basisNote ? null : <li className="basis">{basisNote}</li>}
       </ul>
 
       {internal ? (
