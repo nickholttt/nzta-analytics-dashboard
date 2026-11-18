@@ -89,7 +89,7 @@
       "label": "Cars registered since 1961",
       "public_label": "Cars registered for the first time, long run",
       "attribution": "Data source: Stats NZ, table of new and ex-overseas motor vehicles registered. {dataset.supplied.attribution}",
-      "basis_note": "Registrations recorded by NZTA. Not the same as vehicle sales.",
+      "basis_note": "Registrations counted by Stats NZ. Not the same as vehicle sales.",
       "grain": "flow",
       "shows_year_change": true,
       "source": "Stats NZ, new and ex-overseas motor vehicles registered by type (monthly), supplied by hand (supplied.statsnz_tpt in config/pipeline.json)",
