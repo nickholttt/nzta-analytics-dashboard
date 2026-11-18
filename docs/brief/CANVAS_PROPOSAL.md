@@ -242,7 +242,10 @@ A board loads more than one question, so it needs more data than Build. The plan
 
 **What a board downloads (an estimate).** The fact table is published as one file per column, and a
 question downloads the columns it names (D-058). I measured the column files of the local build of the
-2026-10 snapshot (`registrations_surviving`, 641,618 rows, built 2026-11-14):
+2026-10 snapshot (`registrations_surviving`, 641,618 rows, built 2026-11-14). The count column and the
+whole table are also in `docs/CUBE_SCHEMA.md`; the other six sizes were measured once, on 2026-11-18, and
+are recorded only here (the local build has been rebuilt since, so they cannot be read again from it). The
+mockups' HTML reads its fonts from `node_modules`, so open them after `npm install`.
 
 | Column | Bytes |
 |---|---|
