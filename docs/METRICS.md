@@ -1103,7 +1103,9 @@ dimension, no build uses it, and no figure on the site depends on it. A maintain
   site for used imports. It is `car` when the maker's own page places it among its hatchbacks, sedans, wagons, coupes,
   convertibles or people movers and does not call it an SUV. A maker's word that names no body, such as "compact car"
   (コンパクトカー), does not place a nameplate: such a page is not the row's `high` source, and the body comes from another
-  source at the confidence it earns (D-145).
+  source at the confidence it earns (D-145). "Sports car" (スポーツカー), and a maker's "sports" heading, is read as naming
+  the coupe and convertible bodies that the file will group as sports cars (D-117's planned class); it differs from "compact
+  car" because a sports car is never an SUV body, while a compact car can be either (D-145).
 - **`car` means "not an SUV" in this file so far.** It includes people movers (a minivan or wagon body for more than five
   seats) and sports cars (coupes, convertibles and roadsters), which the FCAI's criteria put in their Passenger class beside
   hatchbacks and sedans, not in SUV. A finer class for them is a later piece. Utes, vans, trucks and buses are not in the file:
