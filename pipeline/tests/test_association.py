@@ -18,7 +18,7 @@ from types import SimpleNamespace
 import duckdb
 import pytest
 
-from pipeline import association, config, privacy
+from pipeline import association, build, config, privacy
 from pipeline.contract import ASSOCIATIONS_DIR, FACT_COUNT, FACT_MONTH, FACTS_DIR, OTHER, UNDEFINED, UNMAPPED
 
 from .conftest import load_rows, make_cfg, source_for
@@ -318,7 +318,10 @@ def test_check_names_a_missing_a_repeated_and_a_foreign_pair_and_passes_a_small_
     assert any("not of the dataset" in p for p in association.check(good, ["x", "z"]))
 
 
-def test_a_dimension_that_reads_an_owner_field_is_in_no_pair_even_when_the_fact_table_lists_it(tmp_path, workspace):
+def test_a_dimension_that_reads_an_owner_field_is_in_no_pair_even_when_the_fact_table_lists_it(tmp_path, workspace, monkeypatch):
+    # The build refuses such a fact table before it reads anything (build.fact_table_owner_problems); this holds the second
+    # layer, the association file's own refusal, so the first is switched off.
+    monkeypatch.setattr(build, "fact_table_owner_problems", lambda cfg: [])
     cfg = make_cfg(workspace)
     # An owner dimension that only a stock may count (D-135) is refused in this dataset before anything is built, which another
     # test holds; the ones left are those a fact-table list could name by mistake.

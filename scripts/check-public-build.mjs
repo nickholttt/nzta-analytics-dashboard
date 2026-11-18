@@ -4,9 +4,11 @@
 // script the output does not hold, or a script that names a chunk (in any quote form, or in Vite's dependency map) the output does not hold.
 // Known issue 7 was the second: the status page's script shipped, unlinked, in a build without the status page. Exit 0 when the output is clean.
 // It also fails when a kept snapshot (data/snapshots/<YYYY-MM>, D-131) is malformed, the index the page reads disagrees with the folders, or a
-// kept folder still holds a table of an owner field that its manifest does not say the small-cell rule was applied to.
+// kept folder still holds a table of an owner field that its manifest does not say the small-cell rule was applied to. And it fails when the
+// output holds more files, or a larger file, than the host serves (host-limits.mjs, D-146).
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { hostLimitProblems } from "./host-limits.mjs";
 import { indexProblems, ownerTableProblems } from "./kept-snapshots.mjs";
 
 const root = resolve(process.argv[2] ?? "dist");
@@ -20,6 +22,7 @@ if (!existsSync(join(root, "_astro"))) {
 for (const folder of INTERNAL_PAGE_FOLDERS) if (existsSync(join(root, folder))) problems.push(`${folder}/ is in the public output`);
 
 for (const problem of [...indexProblems(join(root, "data")), ...ownerTableProblems(join(root, "data"))]) problems.push(problem);
+for (const problem of hostLimitProblems(root)) problems.push(problem);
 
 const reached = new Set();
 const reach = (url, from) => {

@@ -216,7 +216,15 @@ def test_a_misconfigured_pair_aborts(tmp_path, workspace, pairs, fragment):
     expect_abort(lambda: run(tmp_path, cfg, load_rows()), fragment)
 
 
-def test_the_fact_table_is_written_without_a_dimension_that_is_not_live(tmp_path, workspace):
+def allow_owner_dimension_in_facts(monkeypatch):
+    """These tests hold what happens to a listed dimension that is not live. The one that is not live in their fixture reads an
+    owner field, which the build refuses up front (build.fact_table_owner_problems, held by test_small_cells_build.py), so the
+    refusal is switched off to reach the code under test."""
+    monkeypatch.setattr(build, "fact_table_owner_problems", lambda cfg: [])
+
+
+def test_the_fact_table_is_written_without_a_dimension_that_is_not_live(tmp_path, workspace, monkeypatch):
+    allow_owner_dimension_in_facts(monkeypatch)
     rows = load_rows()
     template = next(r for r in rows if r["OBJECTID"] == 62)
     extra = [dict(template, OBJECTID=2000 + i, TLA=f"UNKNOWN DISTRICT {i}") for i in range(5)]
@@ -246,7 +254,8 @@ def test_the_fact_table_counts_vehicles_that_share_every_value_in_one_row(tmp_pa
     assert sum(counts) == info["rows"] and len(counts) == info["facts"]["rows"]
 
 
-def test_a_fact_table_whose_dimensions_are_all_waiting_holds_the_month_totals(tmp_path, workspace):
+def test_a_fact_table_whose_dimensions_are_all_waiting_holds_the_month_totals(tmp_path, workspace, monkeypatch):
+    allow_owner_dimension_in_facts(monkeypatch)
     rows = load_rows()
     template = next(r for r in rows if r["OBJECTID"] == 62)
     extra = [dict(template, OBJECTID=2000 + i, TLA=f"UNKNOWN DISTRICT {i}") for i in range(5)]

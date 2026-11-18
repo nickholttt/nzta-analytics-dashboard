@@ -4,7 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { closeSync, ftruncateSync, mkdirSync, mkdtempSync, openSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -30,6 +30,23 @@ const importing = (names: string[]) => names.map((n) => `import "./${n}";`).join
 test("a clean output passes", () => {
   const run = check(importing, { "react.Zz9Yy8Xx.js": "export const a = 1;" });
   assert.equal(run.status, 0, run.out);
+});
+
+test("a file larger than the host serves fails the check, naming the file (D-146)", () => {
+  const dir = mkdtempSync(join(tmpdir(), "public-build-"));
+  try {
+    mkdirSync(join(dir, "_astro"));
+    mkdirSync(join(dir, "data"));
+    writeFileSync(join(dir, "index.html"), "<html></html>");
+    const fd = openSync(join(dir, "data", "too-big.parquet"), "w");
+    ftruncateSync(fd, 25 * 1024 * 1024 + 1);
+    closeSync(fd);
+    const run = spawnSync(process.execPath, [script, dir], { encoding: "utf8" });
+    assert.equal(run.status, 1, run.stdout + run.stderr);
+    assert.match(run.stderr, /too-big\.parquet/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("a file whose name holds a dot passes when it exists, even when a script lists it in a map of plain strings", () => {
