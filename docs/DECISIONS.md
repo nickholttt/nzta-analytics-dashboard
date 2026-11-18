@@ -6362,7 +6362,7 @@ New entries use this template:
   own record before it is built).
 - Status: accepted (the user's direction); the design above is decided by Claude (unreviewed)
 
-## D-142 2026-11-18 — A board of charts the visitor builds: a design proposal for the user's end state (D-138), parked for the user
+## D-143 2026-11-18 — A board of charts the visitor builds: a design proposal for the user's end state (D-138), parked for the user
 - Agent: claude
 - Basis: D-138 (the user's end state, in their words: "a watered-down Power BI-style visual analytics page which is fully
   customisable with the measures from the data set where the user can build their own charts by dragging and dropping and
