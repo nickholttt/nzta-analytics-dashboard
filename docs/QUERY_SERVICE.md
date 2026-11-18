@@ -113,10 +113,10 @@ In this order, and it answers nothing until every check passes:
    anything derived from `VIN11` is in the fact table (D-076, D-078), so none can be on the list.
 3. **The question makes sense.** A second breakdown needs a first, and differs from it; a field is
    not both a breakdown and a condition; values need their breakdown; a snapshot is `YYYY-MM`.
-4. **The question is not too big.** At most 16 fields named, 8 values per breakdown (Build's own
+4. **The question is not too big.** At most 24 fields named, 8 values per breakdown (Build's own
    cap, the palette's eight colours), 500 values per condition, 32,768 bytes of question, and
-   200,000 cells in one answer. These are set at or above what Build can ask today (it offers all 12
-   fact-table fields as conditions, and a condition may keep every value of a field, about 300 for
+   200,000 cells in one answer. These are set at or above what Build can ask today (it offers every
+   fact-table field as a condition, 19 in the register's cube built on 17 November 2026, and a condition may keep every value of a field, about 300 for
    model), so the service answers every question the page answers from the static table; when Build
    gains fields, it and the limits are raised together. A question over a limit is refused with the
    limit named, never cut short: a chart quietly missing part of its question answers a different

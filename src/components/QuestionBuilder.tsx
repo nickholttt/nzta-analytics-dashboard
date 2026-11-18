@@ -5,9 +5,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases, valueWords } from "../lib/config";
 import { REST_NAME, isChoosable } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, addressParams, builderPresets, isMonthKey, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, isMonthKey, narrowingNotes, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, settleChange, viewsFor, withValues, withoutValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
-import { ServiceError, datasetLatestMonth, factView, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
+import { ServiceError, datasetLatestMonth, factView, fieldValues, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
 import type { Manifest, SliceRow } from "../lib/data";
 import { canPin, servedMonth } from "../lib/pin";
 import { pickerMonth, pinLine, readingFor } from "../lib/kept";
@@ -280,7 +280,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const countsLines = measure.id === "count" || builderSpec.measures.find((m) => m.id === measure.id)?.parts?.includes("count");
   const presets = useMemo(() => builderPresets(question, (v) => valueLabel(v, question.by ?? undefined)), [question]);
   const views = useMemo(() => viewsFor(question), [question]);
-  const pin = served && reading ? pinLine(question, served, reading) : undefined;
+  // Said while the question still holds the condition a breakdown's field calls for (D-132).
+  const narrowed = useMemo(() => narrowingNotes(all, question), [all, question]);
   const filterLabel = (id: string) => vocabulary.filters.find((f) => f.id === id)?.label ?? dimensionLabel(id) ?? id;
   // The other shapes a question may be drawn as are a choice of their own; the ranking is reached from the values, where it is about them.
   const otherViews = views.filter((v) => v !== RANKING);
@@ -312,7 +313,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   // link was told.
   // keepChart: the chart's own settings stay in the address (the window a ranking is of), as when a ranking of the values chosen
   // becomes the ranking of every value and back.
-  const ask = (next: Partial<Question>, fromVisitor = true, keepChart = false) => {
+  const ask = (next: Partial<Question>, fromVisitor = true, keepChart = false, removal = true) => {
     const asked = { ...latest.current, ...next };
     // Ranking every value is a state of the ranking view only.
     if (next.view !== undefined && next.view !== RANKING) asked.rankAll = false;
@@ -329,7 +330,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     // A condition with no value yet keeps every vehicle and has no place in the address, so settle drops it. It stays
     // on the page while the visitor changes something else, and goes only when they remove it.
     const held = Object.entries(asked.where ?? {}).filter(([d, kept]) => kept.length === 0 && canApply(d));
-    const settled = settle(all, asked);
+    // A condition the question had and the visitor took away stays away, though a breakdown would start the question with it (D-132).
+    const settled = settleChange(all, latest.current, asked, removal);
     for (const [d] of held) if (d !== settled.by && !(d in settled.where)) settled.where[d] = [];
     latest.current = settled;
     if (fromVisitor) setNotices([]);
@@ -342,6 +344,12 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const whereKey = JSON.stringify(applicable(question.where));
   // A question read from a kept snapshot starts on that snapshot's largest values, not the newest's, so it shows what it showed when it was pinned.
   const keptFolder = reading?.kind === "kept" ? reading.month : undefined;
+  // The first month the chart's dataset has vehicles in, told by the chart once its rows arrive, for the pinned line: a dataset whose manifest does not
+  // state it (the register) is then known to have a window for a month it covers. Taken only from the question's own chart, until it changes.
+  const panelKey = (id: string) => `${id}:${String(questionParams(question))}:${question.values.join("|")}:${keptFolder ?? ""}`;
+  const [firstSeen, setFirstSeen] = useState<{ key: string; month: string | undefined } | null>(null);
+  const firstKey = presets[0] ? panelKey(presets[0].id) : "";
+  const pin = served && reading ? pinLine(question, served, reading, firstSeen?.key === firstKey ? firstSeen.month : undefined) : undefined;
   // The suggestions under each picker are counted in the kept snapshot too, so they agree with the line above the chart; for a field the kept snapshot
   // cannot give them for, they stay the newest's.
   const pickAt = (dimension: string, where: Record<string, string[]>) => pickerMonth(reading, dataset, dimension, where, ownerFields);
@@ -372,6 +380,24 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
     // ask reads the latest question through its ref; these are what decide whether starting values are needed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [awaitingValues, question.by, dataset, whereKey, reading === undefined, keptFolder]);
+  // A link can name a value its dataset's own table of that field does not hold, which would match no vehicle and say nothing. Checked once, when
+  // the page knows where its figures come from, against the files the pickers read in the same question; the value is left out and the page says so.
+  const checkedNames = useRef(false);
+  useEffect(() => {
+    if (reading === undefined || checkedNames.current) return;
+    checkedNames.current = true;
+    const asked = latest.current;
+    const readTable = (from: string, field: string, others: Record<string, string[]>) =>
+      fieldValues(from, field, Object.values(others).some((kept) => kept.length > 0), pickAt(field, others)).catch(() => undefined);
+    absentValues(asked, canApply, readTable).then((absent) => {
+      const now = latest.current;
+      if (absent.length === 0 || now.dataset !== asked.dataset) return;
+      ask(withoutValues(now, absent), false, true, false);
+      setNotices((before) => [...before, ...absentNotes(asked.dataset, absent, valueLabel)]);
+    });
+    // Once per page, when the reading is first known; ask and the closures read the latest question through its ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reading === undefined]);
   const words = datasetWords(dataset);
 
   const datasetInfo = findDataset(dataset);
@@ -674,6 +700,13 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
         ) : null}
       </form>
 
+      {narrowed.map((text) => (
+        <div className="callout curated" role="status" key={text}>
+          <span className="callout-label">{builderSpec.notices.narrowed_label}</span>
+          {text}
+        </div>
+      ))}
+
       {pin ? (
         <div className={pin.kind === "same" || pin.kind === "kept" ? "callout curated" : "callout warning"} id="pin-line">
           <span className="callout-label">{keepWords.pinned_label}</span>
@@ -700,7 +733,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
           </p>
         </section>
       ) : null}
-      {reading === undefined ? null : presets.map((p) =>
+      {reading === undefined ? null : presets.map((p, i) =>
         // A number by a breakdown is one line per chosen value. With none chosen there is no such chart to draw, and
         // the total alone would sit under a title that promises a breakdown.
         awaitingValues && p.measure === "count" ? (
@@ -726,7 +759,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
             )}
           </section>
         ) : (
-          <PresetPanel key={`${p.id}:${String(questionParams(question))}:${question.values.join("|")}:${keptFolder ?? ""}`} preset={p} audience="public" anchored={false} snapshot={keptFolder} />
+          <PresetPanel key={panelKey(p.id)} preset={p} audience="public" anchored={false} snapshot={keptFolder} onFirstMonth={i === 0 ? (month) => setFirstSeen({ key: panelKey(p.id), month }) : undefined} />
         ),
       )}
 

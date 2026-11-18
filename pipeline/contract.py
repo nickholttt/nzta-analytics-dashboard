@@ -38,3 +38,6 @@ FACT_COUNT = ("n", "INTEGER")
 # The working column that fixes the fact table's row order across its files. A dimension may not take the name.
 FACT_ROW_ORDER = "rid"
 FACT_DIMENSION_TYPE = "VARCHAR"
+
+# How strongly each pair of a dataset's dimensions moves together: one JSON file per dataset (docs/CUBE_SCHEMA.md, Associations).
+ASSOCIATIONS_DIR = "associations"
