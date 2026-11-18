@@ -6,9 +6,11 @@ the user on 2026-11-16 (D-096):**
 - the 31 register fields and 10 dashboard columns that describe the vehicle are public;
 - an owner field (district, region, usage, industry class, road transport code, owner type) may be
   published only in a table of one or two fields, with any cell counting fewer than 10 vehicles
-  hidden. **None is published yet** other than the `region` slice below: the pipeline hides small
-  cells in a slice since D-127, but the user asked to be shown the first table of an owner field
-  before a build publishes it (D-120), so every other owner field stays out of every published file;
+  hidden. **None is published yet** other than the `region` slice below and the usage tables of the
+  stock `fleet` (the register's current usage alone and by vehicle type, approved on 2026-11-18, D-141):
+  the pipeline hides small cells in a slice since D-127, but the user asked to be shown the first
+  table of an owner field before a build publishes it (D-120), so every other owner field, and every
+  other table of usage, stays out of every published file;
 - the `region` slice (share of vehicles by the owner's region, by month), published since before
   the work order under D-078, stays, and since D-127 takes the minimum of 10 (the user's ruling of
   2026-11-17, D-120 item 4) with a second rule that limits what a total gives away of a hidden cell
@@ -875,7 +877,9 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   registration: the data map marks it `stock_only`, so the build offers it to no other dataset. It reads as the latest usage the
   register records; for rental that is shown to differ from the usage at first registration, and for the other values it is not
   tested, so nothing is said of them beyond what the register records now. The slice and the pair are held to the small-cell rules
-  (`docs/CUBE_SCHEMA.md`); the first table was built privately and is shown to the owner before it is published (D-135).
+  (`docs/CUBE_SCHEMA.md`). The first table was shown to the owner, who approved publishing the slice and the pair since D-141, with
+  the figures in that record. That covers these two tables only: usage by month or year of first registration, and every other
+  owner field, stay unpublished.
 - **Coverage.** Every vehicle.
 - **Not recorded.** No form seen. `OTHER` (S 23,662) is a recorded catch-all.
 - **Traps.** The rental share differs widely between months: among NZ-new passenger cars on S it is
@@ -1423,7 +1427,7 @@ then the rest. Each is bound with its sentinels and guards in the same commit as
 | `ALTERNATIVE_MOTIVE_POWER` as a filter | NULL must read "none", not `__UNDEFINED__`: a reference lookup or a sentinel exception, decided when bound |
 | `NUMBER_OF_AXLES` | Not bound for now (D-129). If bound with the heavy-vehicle topic: add `0`; keep 1 to 6 (a guard of 2 to 6 would drop the 304 one-axle class TD trailers); count 7 and over apart; heavy classes only |
 | `VDAM_WEIGHT`, `HEIGHT`, `WIDTH`, `ROAD_TRANSPORT_CODE` | With the heavy-vehicle topic (package I). Add `0` for the three numbers; guards 1,000 to 60,000, 1,000 to 4,600 and 1,200 to 2,600. The road transport code's NULL reads "none" once that reading is confirmed |
-| `VEHICLE_USAGE` | **Bound (D-135)** as `vehicle_usage` over the vehicles registered today only, kept out of every published file until the owner has been shown the field's first table (D-120). No sentinel: the register holds no blank. Labels are NZTA's own words; usage is shown to be current for rental only |
+| `VEHICLE_USAGE` | **Bound (D-135)** as `vehicle_usage` over the vehicles registered today only. Published since D-141 as the fleet's slice and its pair by vehicle type (the owner was shown the first table, D-120); usage by month or year of first registration stays unpublished, as does every other owner field. No sentinel: the register holds no blank. Labels are NZTA's own words; usage is shown to be current for rental only |
 | `INDUSTRY_CLASS` | Bound, and kept out of every published file until the owner has been shown the field's first table (D-120). Add `UNKNOWN`; join `VEHICLE DEALER` to `VEHICLE TRADER` by lookup once confirmed. Labels do not say "when first registered" |
 | `MODEL` (already bound) | Add the clear forms of nothing (`UNKNOWN`, `NOT KNOWN`, `UNK`, `N/A`, `-`, `.`, `0`, `000`); look at `X`, `XX`, `OTHER` and `NA` by make first. Trim stray spaces |
 
