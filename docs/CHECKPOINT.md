@@ -29,7 +29,7 @@ Last updated by claude on 2026-11-18
 
 ## Open pull requests
 
-- #103: these notes (docs only), if not yet merged when the next session starts.
+- #103 these notes; #104 the two site leftovers of #101's review; #105 the board proposal (D-143), parked for the user. Check which are merged.
 
 ## The queue, in order
 
