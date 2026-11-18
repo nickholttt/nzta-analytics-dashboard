@@ -60,7 +60,8 @@ test("a refused slice is not kept: asked again, the file is read again and refus
   asked.length = 0;
   await assert.rejects(() => loadSlice(DATASET, "hidden_cell"), refused);
   await assert.rejects(() => loadSlice(DATASET, "hidden_cell"), refused);
-  assert.equal(asked.length, 2);
+  // The manifest is asked too, to see whether the table is one written under the rule (D-139); this folder has none, so it is not.
+  assert.equal(asked.filter((url) => url.endsWith(".parquet")).length, 2);
 });
 
 test("a kept snapshot's slice that hides cells is refused too: the pinned reading goes through the same loader", async () => {

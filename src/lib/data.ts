@@ -28,8 +28,22 @@ const compressors = { ZSTD: (input: Uint8Array) => (decompressZstd as (input: Ui
 // A pair's file is pairs/{dataset}/{dim_a}__{dim_b}.parquet (docs/CUBE_SCHEMA.md, Pair slices).
 export const PAIR_SEPARATOR = "__";
 
-// other: on the rows of a grid (two fields crossed), the value of the second field; value is the first
-export type SliceRow = { month: string; value: string; n: number; denominator: number; other?: string };
+// other: on the rows of a grid (two fields crossed), the value of the second field; value is the first.
+// hidden: the count is hidden by the small-cell rule (D-127, D-135). It has no count: n is NaN, never a zero, so a sum or a comparison that forgets
+// the flag gives NaN and is seen. Only a table whose manifest says it was written under the rule is read this way (loadSlice, loadPair).
+// notBrokenDown: the row stands for a period that is not broken down by the field: it is no value of the field, and n is the period's total.
+// lineTotals: on a cell of a protected table, the published total of its row and of its column from the one-field slices (null where that total is
+// hidden), which the cells do not add up to when some are hidden.
+export type SliceRow = {
+  month: string;
+  value: string;
+  n: number;
+  denominator: number;
+  other?: string;
+  hidden?: true;
+  notBrokenDown?: true;
+  lineTotals?: { row: number | null; column: number | null };
+};
 
 // Where a view's rows come from: a 1-D slice, a pair slice narrowed to some values of its other dimension (side says
 // which of the pair's two dimensions is the view's breakdown), or the fact table, summed to the chosen values of the
@@ -78,6 +92,9 @@ export type DatasetManifest = {
   exceeds_total?: Record<string, string[]>;
   // Absent from a manifest built before pair slices existed.
   live_pairs?: string[];
+  // The slices and pairs the build wrote under the small-cell rule, each with the rule it applied (smallCellDimensions, smallCellPairs).
+  small_cells?: Record<string, unknown>;
+  small_cell_pairs?: Record<string, unknown>;
   facts?: FactsManifest | null;
   mild_hybrid_identification_coverage?: HybridCoverage;
 };
@@ -94,11 +111,31 @@ export type Manifest = {
 // docs/CUBE_SCHEMA.md). Held here, beside the manifest's type, because both the resolver and the kept-snapshot reader name it.
 export const SMALL_CELL_KEY = "small_cells";
 
+// The key that lists the tables of two fields written under the same rule (D-135).
+export const SMALL_CELL_PAIR_KEY = "small_cell_pairs";
+
+type RuleKey = typeof SMALL_CELL_KEY | typeof SMALL_CELL_PAIR_KEY;
+
+// What a dataset's manifest lists under one of the two keys: nothing where the entry is absent, or not an object.
+function listedUnder(manifest: Manifest, dataset: string | undefined, key: RuleKey): Record<string, unknown> {
+  const listed = (dataset ? (manifest.datasets[dataset] as unknown as Record<string, unknown> | undefined) : undefined)?.[key];
+  return typeof listed === "object" && listed !== null && !Array.isArray(listed) ? (listed as Record<string, unknown>) : {};
+}
+
 // The dimensions of a dataset whose slice hides small cells, as its manifest lists them: none where the entry is absent, `{}`, or not an object.
-// This site does not draw a hidden cell yet (D-130), so a question that names one of these is blocked before it loads.
-export function smallCellDimensions(manifest: Manifest, dataset: string | undefined): string[] {
-  const listed = (dataset ? (manifest.datasets[dataset] as unknown as Record<string, unknown> | undefined) : undefined)?.[SMALL_CELL_KEY];
-  return typeof listed === "object" && listed !== null && !Array.isArray(listed) ? Object.keys(listed) : [];
+// A question that names one of these is blocked before it loads, unless it is drawn as the one thing this site can draw a hidden cell in (D-139).
+export const smallCellDimensions = (manifest: Manifest, dataset: string | undefined): string[] => Object.keys(listedUnder(manifest, dataset, SMALL_CELL_KEY));
+
+// The pairs of a dataset written under the rule for a table of two fields (D-135), as its manifest lists them.
+export const smallCellPairs = (manifest: Manifest, dataset: string | undefined): string[] => Object.keys(listedUnder(manifest, dataset, SMALL_CELL_PAIR_KEY));
+
+// The least count a visible cell has, as the manifest's entry for this table says it applied the rule: undefined unless the entry is an object that
+// states one. A table is read as one that hides cells only where the manifest says so, not because its file holds a NULL.
+export function ruleMinimum(manifest: Manifest | undefined, dataset: string | undefined, key: RuleKey, name: string): number | undefined {
+  if (!manifest) return undefined;
+  const entry = listedUnder(manifest, dataset, key)[name];
+  const minimum = typeof entry === "object" && entry !== null && !Array.isArray(entry) ? (entry as Record<string, unknown>).minimum : undefined;
+  return typeof minimum === "number" && minimum > 0 ? minimum : undefined;
 }
 
 // Whether the build made this dataset: it has an entry, and the entry is not the one that says it was not built.
@@ -200,30 +237,90 @@ const asRecorded = (dimension: string): ((value: string) => string) => {
   return band === undefined ? (value) => value : (value) => (value === band ? NOT_RECORDED_TOKEN : value);
 };
 
+// Whether the manifest of this folder says the table was written under the small-cell rule. A manifest that cannot be read says nothing, so the table
+// is not one: a hidden cell in it is refused.
+const writtenUnderRule = async (snapshot: string | undefined, dataset: string, key: RuleKey, name: string): Promise<boolean> =>
+  ruleMinimum(await loadManifest(snapshot).catch(() => undefined), dataset, key, name) !== undefined;
+
+const refusal = () => new ServiceError(builderSpec.notices.small_cells_hidden, false);
+
 export const loadSlice = (dataset: string, dimension: string, snapshot?: string) =>
   once(inFolder(snapshot, `slice:${dataset}/${dimension}`), async () => {
     const path = `cube/${dataset}/${dimension}.parquet`;
     const file = await (await fetchOk(path, snapshot)).arrayBuffer();
     const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "dim_value", "n", "denominator"] }));
     const recorded = asRecorded(dimension);
-    // A hidden cell has no count (a NULL, never a zero), and a month that is not broken down has one row that is no value of the field. Neither is
-    // drawn as a number (D-130): the whole table is refused. Checked in the one pass that reads the rows, so a table without either costs nothing more.
+    // A hidden cell has no count (a NULL, never a zero), and a period that is not broken down has one row that is no value of the field. They are read
+    // as such only for a table the manifest says was written under the rule (D-139); any other table that holds one is refused whole (D-130). The
+    // manifest is asked only when a row needs it, so a table without either costs nothing more.
+    const hides = (r: (typeof rows)[number]) => r.n === null || r.n === undefined || r.dim_value === NOT_BROKEN_DOWN_TOKEN;
+    if (rows.some(hides) && !(await writtenUnderRule(snapshot, dataset, SMALL_CELL_KEY, dimension))) throw refusal();
     return rows.map((r): SliceRow => {
-      if (r.n === null || r.n === undefined || r.dim_value === NOT_BROKEN_DOWN_TOKEN) throw new ServiceError(builderSpec.notices.small_cells_hidden, false);
-      return { month: monthKey(r.month), value: recorded(String(r.dim_value)), n: Number(r.n), denominator: Number(r.denominator) };
+      const month = monthKey(r.month);
+      const denominator = Number(r.denominator);
+      if (r.dim_value === NOT_BROKEN_DOWN_TOKEN) return { month, value: NOT_BROKEN_DOWN_TOKEN, n: Number(r.n), denominator, notBrokenDown: true };
+      if (r.n === null || r.n === undefined) return { month, value: recorded(String(r.dim_value)), n: Number.NaN, denominator, hidden: true };
+      return { month, value: recorded(String(r.dim_value)), n: Number(r.n), denominator };
     });
   });
 
-type PairRow = { month: string; a: string; b: string; n: number };
+type PairRow = { month: string; a: string; b: string; n: number; hidden?: true; notBrokenDown?: true };
 
-const loadPair = (dataset: string, pair: string, snapshot?: string) =>
-  once(inFolder(snapshot, `pair:${dataset}/${pair}`), async () => {
+// A pair's rows. Hidden cells and the period that is not broken down are read as such (allowHidden) only for the grid of a table the manifest says was
+// written under the rule; for any other use of a pair, and any other table, one is refused, so the cell is never summed as zero.
+const loadPair = (dataset: string, pair: string, snapshot?: string, allowHidden = false) =>
+  once(inFolder(snapshot, `pair:${dataset}/${pair}${allowHidden ? ":grid" : ""}`), async () => {
     const file = await (await fetchOk(`pairs/${dataset}/${pair}.parquet`, snapshot)).arrayBuffer();
     const rows = await decoded(() => parquetReadObjects({ file, compressors, columns: ["month", "a_value", "b_value", "n"] }));
     const [first, second] = pair.split(PAIR_SEPARATOR);
     const [recordedA, recordedB] = [asRecorded(first), asRecorded(second)];
-    return rows.map((r): PairRow => ({ month: monthKey(r.month), a: recordedA(String(r.a_value)), b: recordedB(String(r.b_value)), n: Number(r.n) }));
+    const reserved = (r: (typeof rows)[number]) => r.a_value === NOT_BROKEN_DOWN_TOKEN && r.b_value === NOT_BROKEN_DOWN_TOKEN;
+    const hides = (r: (typeof rows)[number]) => r.n === null || r.n === undefined || reserved(r);
+    if (rows.some(hides) && !(allowHidden && (await writtenUnderRule(snapshot, dataset, SMALL_CELL_PAIR_KEY, pair)))) throw refusal();
+    return rows.map((r): PairRow => {
+      const month = monthKey(r.month);
+      if (reserved(r)) return { month, a: NOT_BROKEN_DOWN_TOKEN, b: NOT_BROKEN_DOWN_TOKEN, n: Number(r.n), notBrokenDown: true };
+      const a = recordedA(String(r.a_value));
+      const b = recordedB(String(r.b_value));
+      return r.n === null || r.n === undefined ? { month, a, b, n: Number.NaN, hidden: true } : { month, a, b, n: Number(r.n) };
+    });
   });
+
+// The grid of a table of two fields written under the rule: one row for each cell the pair holds (a hidden cell is flagged, with no count), each carrying
+// the published total of its row and of its column from the two one-field slices, because the cells of a table with hidden cells do not add up to them
+// (D-139). A period that is not broken down, in the pair or in either slice, is one row that stands for the period, not a cell.
+async function pairGrid(dataset: string, pair: { pair: string; side: "a" | "b" }, snapshot?: string): Promise<SliceRow[]> {
+  const [firstDimension, secondDimension] = pair.pair.split(PAIR_SEPARATOR);
+  const [cells, firstSlice, secondSlice] = await Promise.all([
+    loadPair(dataset, pair.pair, snapshot, true),
+    loadSlice(dataset, firstDimension, snapshot),
+    loadSlice(dataset, secondDimension, snapshot),
+  ]);
+  const totalsOf = (slice: readonly SliceRow[]) => {
+    const byMonth = new Map<string, Map<string, number | null>>();
+    for (const r of slice) {
+      if (r.notBrokenDown) continue;
+      if (!byMonth.has(r.month)) byMonth.set(r.month, new Map());
+      (byMonth.get(r.month) as Map<string, number | null>).set(r.value, r.hidden ? null : r.n);
+    }
+    return byMonth;
+  };
+  const [firstTotals, secondTotals] = [totalsOf(firstSlice), totalsOf(secondSlice)];
+  const unbroken = new Map<string, number>();
+  for (const r of cells) if (r.notBrokenDown) unbroken.set(r.month, r.n);
+  for (const r of [...firstSlice, ...secondSlice]) if (r.notBrokenDown && !unbroken.has(r.month)) unbroken.set(r.month, r.n);
+  const out: SliceRow[] = [...unbroken].map(([month, total]) => ({ month, value: NOT_BROKEN_DOWN_TOKEN, other: NOT_BROKEN_DOWN_TOKEN, n: total, denominator: total, notBrokenDown: true }));
+  const denominators = new Map<string, number>();
+  for (const r of [...firstSlice, ...secondSlice]) if (!denominators.has(r.month)) denominators.set(r.month, r.denominator);
+  for (const r of cells) {
+    if (r.notBrokenDown || unbroken.has(r.month)) continue;
+    const [value, other] = pair.side === "a" ? [r.a, r.b] : [r.b, r.a];
+    const [rowTotals, columnTotals] = pair.side === "a" ? [firstTotals, secondTotals] : [secondTotals, firstTotals];
+    const lineTotals = { row: rowTotals.get(r.month)?.get(value) ?? null, column: columnTotals.get(r.month)?.get(other) ?? null };
+    out.push({ month: r.month, value, other, n: r.n, denominator: denominators.get(r.month) ?? Number.NaN, lineTotals, ...(r.hidden ? { hidden: true as const } : {}) });
+  }
+  return out;
+}
 
 // One column of the fact table, as an array in the table's row order. Every column file holds the same rows in the same
 // order, so a question downloads only the columns it names and lines them up by position.
@@ -453,6 +550,7 @@ export async function loadFirstMonth(source: ViewSource, rows: readonly SliceRow
 export const loadView = async (source: ViewSource): Promise<SliceRow[]> => {
   const { dataset, dimension, filter, facts, cross, snapshot } = source;
   if (facts && cross?.grid && dimension) return factGrid(dataset, dimension, cross.dimension, facts.where, snapshot);
+  if (!facts && cross?.grid && cross.pair && dimension) return pairGrid(dataset, cross.pair, snapshot);
   if (cross?.pair) return crossPair(await loadPair(dataset, cross.pair.pair, snapshot), cross.pair.side);
   if (facts) return factView(dataset, dimension, facts.values, facts.where, cross?.dimension, snapshot);
   if (!dimension) throw new Error("a view from the cube's slices needs a breakdown");
