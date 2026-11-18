@@ -31,6 +31,7 @@ No count of dimensions is fixed in this document or anywhere else; see
     {dataset}/{dim_a}__{dim_b}.parquet  # 2-D slices: only the pairs config/pipeline.json names
   facts/
     {dataset}/{column}.parquet          # the fact table, one column per file: month, each dimension, n
+    {dataset}/narrow/{id}/{column}.parquet  # a narrow fact table, for a field the wide one leaves out (D-144)
   associations/
     {dataset}.json                      # how strongly each pair of the fact table's dimensions moves together (D-136)
   presets/
@@ -489,7 +490,7 @@ fields allows them in a slice or a pair only, D-096): with it, two in three of t
 and the month. The `region` slice is not affected by that (it takes the small-cell rule, above), and a question that only
 breaks down by region is still answered from it. The build holds to this: a dataset whose `facts` names a dimension that
 reads an owner field (worked out from `config/data_map.json`, as for the slices) aborts before anything is read or written
-(*Guardrails*, below). Putting `region` back would need the user to change that rule first, and the guard with it; it is then
+(*Guardrails*, below), and so does a table of the dataset's `narrow_facts`. Putting `region` back would need the user to change that rule first, and the guard with it; it is then
 a contract change shown to the user.
 
 The table's total is checked against the vehicles themselves: the counts are
@@ -499,6 +500,42 @@ dimension lookup that matched a vehicle twice, or lost one, is caught here.
 The lookups joined on before that count (scope, import status, brand, the
 model and hybrid exceptions, engine) each abort on a key defined twice or on
 two rows that match the same vehicle (Aborts, below).
+
+### Narrow fact tables (D-144)
+
+A field that would make every question heavier as a column of the wide table goes in a second, narrower one. A column of the
+wide table splits its rows, so every question reads more rows (`colour` was measured at 1,324,975 bytes, +75% of the table, and
+made an existing question 40% heavier, D-116 item 6). A dataset's `narrow_facts` in `config/pipeline.json` lists the tables, each
+`{ "id": ..., "dimensions": [...] }`, and a build writes each to `facts/{dataset}/narrow/{id}/`: `month.parquet`, one
+`{dimension}.parquet` per live dimension and `n.parquet`, with the wide table's types, one column per file, rows unique on
+`month` and the dimension values, sorted by `month` and then each dimension in the order configured, and every file holding the
+same rows in the same order. Summed over every dimension but one it gives that dimension's 1-D slice, and summed over all of them
+the dataset's month totals, as the wide table does. A question that names a dimension of the narrow table, and nothing outside it,
+is answered from it. A field only the wide table has cannot be crossed with one only the narrow table has: neither table holds
+both. The site does not read narrow tables yet.
+
+The manifest lists each in the dataset's `facts` block, under `narrow`, by id: `{ "rows": n, "dimensions": [...], "not_live": {} }`.
+A dataset that configures none has no `narrow` key and no `narrow/` folder, so its files and manifest are as they were.
+
+The same checks as the wide table apply to each, under the list's own name in the message (`narrow_facts 'id'`): a list that is empty or
+not distinct dimension ids, a dimension the dataset cannot derive, or a name the table reserves (`month`, `n`, `rid`) aborts; a
+dimension not live this run is left out, with a warning, and listed under `not_live`; the counts are read back from the written
+`n.parquet` and must equal the dataset's vehicles, or the run aborts. A table needs the dataset's `facts` (the wide table), a table's
+id is lower case letters, digits and underscores, and an id listed twice aborts. A dimension that reads an owner field is
+refused, exactly as for `facts` (above): the build aborts before anything is written.
+
+`narrow_facts` of `registrations_surviving` holds one table, `colour`, of the dimensions `colour`, `make` and `powertrain_group`
+(D-144). Measured on the saved 2026-10 pull (4,520,304 vehicles), by writing each set with the build's own code:
+
+| dimensions | rows | bytes |
+|---|---|---|
+| `colour` | 13,111 | 34,438 |
+| `colour`, `make` | 195,877 | 294,287 |
+| `colour`, `make`, `vehicle_type` | 238,971 | 368,985 |
+| `colour`, `make`, `powertrain_group` (chosen) | 224,388 | 353,976 |
+| `colour`, `make`, `import_status` | 259,377 | 395,915 |
+| `colour`, `make`, `powertrain` | 278,443 | 441,723 |
+| `colour`, `make`, `vehicle_type`, `import_status` | 309,915 | 483,990 |
 
 ## Associations
 
@@ -1168,6 +1205,12 @@ Fact tables, found before anything is read:
 - A dataset's `facts` names a dimension that reads an owner field (the data map's owner groups and `derive_reads`, worked out by
   `pipeline/privacy.py`; D-096, D-078). The message names the dataset, the dimension and the owner field, and says to remove the
   dimension from that dataset's `facts`. A data map the build cannot read aborts the same check.
+- The same, for a dimension a dataset's `narrow_facts` table lists (*Narrow fact tables*): the message names the table and says to
+  remove the dimension from it.
+- A dataset has `narrow_facts` and no `facts`; `narrow_facts` is not a list of tables; a table has no id, an id that is not lower
+  case letters, digits and underscores, or an id another table of the dataset has; a table's `dimensions` is empty, not distinct
+  dimension ids, names a dimension the dataset cannot derive or a name the table reserves; a table's counts do not total the
+  dataset's vehicles.
 
 Pairs:
 
@@ -1252,7 +1295,8 @@ is worse than one that is visibly stale.
 - A configured pair waits because one of its dimensions is not live this
   run. It is listed under `not_live_pairs`.
 - A dimension listed in `facts` is not live this run, so the fact table is
-  written without it. It is listed under `facts.not_live`.
+  written without it. It is listed under `facts.not_live`; one listed in a `narrow_facts` table likewise, under
+  `facts.narrow.{id}.not_live`.
 - `data/snapshots/YYYY-MM.parquet` already exists with different content.
   The first observation is kept.
 - The payload exceeds the size budget.
@@ -1321,3 +1365,11 @@ whole payload is 5,218,968 bytes (was 4,912,275, +306,693 or +6.2%; +165,705 for
 the 8,000,000 byte budget. Mapped back, with the two new columns summed out, the table's 755,586 rows are the same rows as before.
 The other 75 files, which are every other slice and pair of this dataset and every file of the other three datasets, are
 byte-identical; the 19 fact-table files that were there and the manifest differ.
+
+With `colour` as a slice and a narrow table (D-144), measured on a dry run of 2026-11-18 on the 2026-10 pull (exit 0, 111 staged
+files): the `colour` slice is 87,187 bytes, and the narrow table `colour` is 224,388 rows in 353,976 bytes over five files (`n`
+179,514, `make` 123,997, `powertrain_group` 23,349, `colour` 16,917, `month` 10,199). The wide table is as it was: 799,057 rows in
+2,530,064 bytes over 21 files. The whole payload is 5,759,161 bytes, 72.0% of the 8,000,000 byte budget; 441,163 of those are the
+slice and the table together, so without them it would be 5,317,998 (arithmetic, not a separate build). Against the release
+`cube-2026-10` (99 files), 98 files are byte-identical and `manifest.json` differs; the files only in the dry run are the associations
+files, the fleet's three files, and the two colour files above, of which only the colour files are this change.

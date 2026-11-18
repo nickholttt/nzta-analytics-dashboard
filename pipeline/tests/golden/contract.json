@@ -100,7 +100,18 @@
       "transmission",
       "model"
      ],
-     "not_live": {}
+     "not_live": {},
+     "narrow": {
+      "colour": {
+       "rows": 54,
+       "dimensions": [
+        "colour",
+        "make",
+        "powertrain_group"
+       ],
+       "not_live": {}
+      }
+     }
     },
     "associations": {
      "file": "associations/registrations_surviving.json",
@@ -535,7 +546,7 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 115582,
+  "payload_bytes": 117467,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -10910,6 +10921,866 @@
     ],
     [
      1
+    ]
+   ]
+  },
+  "registrations_surviving/narrow/colour/colour.parquet": {
+   "schema": [
+    [
+     "colour",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "SILVER"
+    ],
+    [
+     "WHITE"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "WHITE"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "WHITE"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "WHITE"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "WHITE"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "WHITE"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "WHITE"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "BLACK"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "BLUE"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "SILVER"
+    ],
+    [
+     "WHITE"
+    ],
+    [
+     "WHITE"
+    ],
+    [
+     "WHITE"
+    ]
+   ]
+  },
+  "registrations_surviving/narrow/colour/make.parquet": {
+   "schema": [
+    [
+     "make",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "MORRIS"
+    ],
+    [
+     "HOLDEN"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "FORD"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "MITSUBISHI"
+    ],
+    [
+     "KGM"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "FORD"
+    ],
+    [
+     "HAVAL"
+    ],
+    [
+     "HYUNDAI"
+    ],
+    [
+     "SUZUKI"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "__UNMAPPED__"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "MINI"
+    ],
+    [
+     "HONDA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "MG"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "SKODA"
+    ],
+    [
+     "BYD"
+    ],
+    [
+     "ISUZU"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "SUBARU"
+    ],
+    [
+     "HONDA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "VOLKSWAGEN"
+    ],
+    [
+     "TANK"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "ORA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "HINO"
+    ],
+    [
+     "MAZDA"
+    ],
+    [
+     "TESLA"
+    ],
+    [
+     "FIAT"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "HAVAL"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "HAVAL"
+    ],
+    [
+     "TESLA"
+    ],
+    [
+     "HONDA"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "NISSAN"
+    ],
+    [
+     "SUZUKI"
+    ],
+    [
+     "TOYOTA"
+    ],
+    [
+     "FORD"
+    ],
+    [
+     "KIA"
+    ],
+    [
+     "TOYOTA"
+    ]
+   ]
+  },
+  "registrations_surviving/narrow/colour/month.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01"
+    ],
+    [
+     "1998-01-01"
+    ],
+    [
+     "2007-06-01"
+    ],
+    [
+     "2019-03-01"
+    ],
+    [
+     "2025-08-01"
+    ],
+    [
+     "2025-09-01"
+    ],
+    [
+     "2025-09-01"
+    ],
+    [
+     "2025-10-01"
+    ],
+    [
+     "2025-10-01"
+    ],
+    [
+     "2025-11-01"
+    ],
+    [
+     "2025-11-01"
+    ],
+    [
+     "2025-12-01"
+    ],
+    [
+     "2025-12-01"
+    ],
+    [
+     "2026-01-01"
+    ],
+    [
+     "2026-01-01"
+    ],
+    [
+     "2026-02-01"
+    ],
+    [
+     "2026-02-01"
+    ],
+    [
+     "2026-02-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-03-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-04-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-05-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-06-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-07-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ],
+    [
+     "2026-08-01"
+    ]
+   ]
+  },
+  "registrations_surviving/narrow/colour/n.parquet": {
+   "schema": [
+    [
+     "n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     2
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     1
+    ],
+    [
+     2
+    ]
+   ]
+  },
+  "registrations_surviving/narrow/colour/powertrain_group.parquet": {
+   "schema": [
+    [
+     "powertrain_group",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Plug-in hybrid"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "__UNDEFINED__"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Hybrid, full or mild"
+    ],
+    [
+     "Battery electric"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Combustion engine only"
+    ],
+    [
+     "Hybrid, full or mild"
     ]
    ]
   },

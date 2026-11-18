@@ -33,6 +33,8 @@ PAIR_COLUMNS = [
 # The fact table: counts by month and every configured dimension. Each column is its own one-column file in the same
 # row order, because the host serves whole files only, so a question downloads just the columns it names.
 FACTS_DIR = "facts"
+# A narrow fact table, beside the wide one, for a field that would make every question heavier: facts/{dataset}/narrow/{id}/{column}.parquet.
+NARROW_DIR = "narrow"
 FACT_MONTH = ("month", "DATE")
 FACT_COUNT = ("n", "INTEGER")
 # The working column that fixes the fact table's row order across its files. A dimension may not take the name.
