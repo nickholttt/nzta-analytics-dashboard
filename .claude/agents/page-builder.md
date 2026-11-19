@@ -30,8 +30,8 @@ Rules that bind you:
 - Files are written with LF line endings. No path from the user's computer in a doc, a commit
   message or a pull request.
 - Work only on the branch you were given. Commit with the subject prefix `claude: `. Do not push,
-  merge, open pull requests or touch `docs/STATE.md`, `docs/CHECKPOINT.md` or `docs/DECISIONS.md`:
-  report what belongs there to the lead.
+  merge, open pull requests or touch `docs/STATE.md`, `docs/CHECKPOINT.md`, `docs/DECISIONS.md` or
+  its archive under `docs/decisions/`: report what belongs there to the lead.
 
 Report in plain words: what you built, what you measured (real numbers only), what you checked
 and at which widths, every choice you made that a reviewer could want to reverse, and anything
