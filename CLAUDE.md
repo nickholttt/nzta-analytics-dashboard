@@ -26,7 +26,8 @@ not bear on the question (D-062).
 How every page reads:
 
 1. **The answer first.** A sentence and a figure, then one chart.
-2. **One question per view.**
+2. **One question per view.** On a canvas page each chart is a view (see
+   "The canvas page" below).
 3. **Only what bears on the question.** Events scoped to it, a few
    generated statements chosen by a published rule, a few related
    questions. The limits are config.
@@ -49,6 +50,26 @@ How every page reads:
 The order of work for this stage is the user's work order 2,
 `docs/brief/WORK_ORDER.md` (2026-11-20, D-147), which sits over
 `docs/brief/MASTER_BRIEF.md`.
+
+### The canvas page
+
+The user's rules for the canvas page, in the user's words (2026-11-20,
+work order 2 §5; D-138, D-147):
+
+- A canvas page may hold several charts the visitor adds, arranges and
+  removes. "One question per view" applies to each chart, not the page.
+- The visitor chooses the chart type, from the types the rule table says
+  fit. A chart that does not fit is shown greyed with a one-line reason,
+  never drawn.
+- These still hold:
+  - the browser never sees a vehicle row;
+  - the small-cell rules;
+  - every sentence about the data comes from a template;
+  - every figure is one step from its definition, source and snapshot;
+  - a flow series never shares a chart with survivors.
+
+(Planned: the canvas page is being built under work order 2, milestone 1.
+Where it has got to is in `docs/STATE.md`.)
 
 ---
 
@@ -135,7 +156,9 @@ Violating any of them is a bug, not a shortcut.
 The only six renderers. Every preset and every builder output maps to one.
 Shape is **inferred** from measure + dimension. Where more than one shape
 fits the question, the visitor may switch among those that fit; they never
-get a shape that does not fit, and there is no seventh. The sixth, `matrix`,
+get a shape that does not fit, and there is no seventh. On a canvas page a
+chart type that does not fit is shown greyed with a one-line reason, never
+drawn (see "The canvas page"). The sixth, `matrix`,
 was approved by the user on 2026-11-14 (D-083); its renderer is an HTML
 table drawn from the design tokens, not a Plot figure (D-114).
 
