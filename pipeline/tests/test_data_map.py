@@ -22,6 +22,8 @@ from pipeline.privacy import fields_read, resolve as _resolve, strings as _strin
 ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_MAP = ROOT / "config" / "data_map.json"
 DECISIONS = ROOT / "docs" / "DECISIONS.md"
+# Records D-001 to D-140 were moved, unchanged, out of DECISIONS.md into a file under this folder (D-147).
+DECISION_ARCHIVES = ROOT / "docs" / "decisions"
 
 REGISTER = "register"
 DASHBOARD = "dashboard"
@@ -40,6 +42,13 @@ ALWAYS_MANY = {"number", "identifier", "free_text"}
 
 def load_map() -> dict:
     return json.loads(DATA_MAP.read_text(encoding="utf-8"))
+
+
+def recorded_decisions(files: list[Path] | None = None) -> set[str]:
+    """The decisions that have a record: a heading of their own in DECISIONS.md or in an archive beside it. A line of
+    the index in DECISIONS.md is a list item, not a heading, so a number that is only indexed does not count."""
+    files = [DECISIONS, *sorted(DECISION_ARCHIVES.glob("*.md"))] if files is None else files
+    return {d for f in files for d in re.findall(r"^## (D-\d{3})\b", f.read_text(encoding="utf-8"), flags=re.MULTILINE)}
 
 
 def entries(dmap: dict, source: str) -> list[dict]:
@@ -305,12 +314,21 @@ def test_the_check_catches_a_slice_without_its_recorded_exception():
 
 def test_every_exception_names_a_decision_record_and_a_real_dimension():
     cfg, dmap = config.load(), load_map()
-    recorded = set(re.findall(r"^## (D-\d{3})\b", DECISIONS.read_text(encoding="utf-8"), flags=re.MULTILINE))
+    recorded = recorded_decisions()
     dims = {d["id"] for d in cfg.dimensions["dimensions"]}
     for entry in dmap["fields"]:
         for exception in entry.get("published_exceptions", []):
             assert exception["decision"] in recorded, f"{entry['name']}: {exception['decision']} is not in DECISIONS.md"
             assert exception["dimension"] in dims, f"{entry['name']}: {exception['dimension']} is not a dimension"
+
+
+def test_a_decision_counts_only_where_it_has_a_record(tmp_path: Path):
+    """D-147: the records up to D-140 live in an archive and DECISIONS.md lists them in an index. A number counts as
+    recorded where it heads a record, in either file, and not where it is only a line of the index."""
+    current, archive = tmp_path / "DECISIONS.md", tmp_path / "archive.md"
+    current.write_text("# Decisions\n\n- D-001 2026-01-01 — indexed only\n\n## D-150 2026-01-02 — a record\n", encoding="utf-8", newline="\n")
+    archive.write_text("# Archive\n\n## D-002 2026-01-01 — an archived record\n", encoding="utf-8", newline="\n")
+    assert recorded_decisions([current, archive]) == {"D-150", "D-002"}
 
 
 def test_derive_reads_resolve():
@@ -360,7 +378,7 @@ def test_approval_names_its_decision():
     if approval["privacy_classes"] == states[0]:
         assert approval["decision"] is None, "the classes are proposed, so no decision approves them yet"
     else:
-        recorded = set(re.findall(r"^## (D-\d{3})\b", DECISIONS.read_text(encoding="utf-8"), flags=re.MULTILINE))
+        recorded = recorded_decisions()
         assert approval["decision"] in recorded, "approved classes must name the decision record that approved them"
 
 
@@ -368,7 +386,7 @@ def test_the_owner_rule_is_the_users_and_never_reaches_the_fact_table():
     """D-096: owner fields only in tables of one or two fields, with small cells hidden."""
     dmap = load_map()
     rule = dmap["owner_rule"]
-    recorded = set(re.findall(r"^## (D-\d{3})\b", DECISIONS.read_text(encoding="utf-8"), flags=re.MULTILINE))
+    recorded = recorded_decisions()
     assert rule["decision"] in recorded, "the owner rule must name the decision record that holds the user's word"
     assert rule["outputs"] and set(rule["outputs"]) <= set(dmap["enums"]["output"])
     assert "facts" not in rule["outputs"], "the fact table crosses many fields; the rule allows one or two"
