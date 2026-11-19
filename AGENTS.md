@@ -1,14 +1,20 @@
 # AGENTS.md: NZ Vehicle Registration Analytics
 
-For any coding agent (Claude Code, Gemini) arriving with no context. Read in this order:
+For any coding agent (Claude Code, Gemini) arriving with no context. Read in this order, and no
+more of each than the next step touches (work order 2, §2 rule 7):
 
 1. This file.
-2. `docs/STATE.md`: what's done, what's in progress and who owns it, what's blocked.
-3. `CLAUDE.md`: the project brief (design invariants, the six chart shapes, build order, field
-   traps). It is named for Claude but is **the brief for every agent**.
-4. `docs/DECISIONS.md` before any change of direction, and `docs/playbooks/` for how to do things.
-5. `docs/brief/WORK_ORDER.md`: the user's standing work order of 2026-11-14 (packages A to I, what
-   may be done without asking, what never is). `docs/CHECKPOINT.md` says where it has got to.
+2. `docs/STATE.md` and `docs/CHECKPOINT.md`: what is live, what is in progress and who owns it,
+   the queue, what is parked for the user.
+3. `docs/brief/WORK_ORDER.md`: the user's standing work order 2 of 2026-11-20 (the engine frozen
+   for features, the process rules, what may be done without asking, what never is, the canvas
+   and the go-public milestones). `docs/CHECKPOINT.md` says where it has got to.
+4. `CLAUDE.md`: the project brief (design invariants, the six chart shapes, the canvas page's
+   rules, how the work is done, field traps). It is named for Claude but is **the brief for
+   every agent**.
+5. `docs/DECISIONS.md`: its index. Open a record of D-001 to D-140, in
+   `docs/decisions/archive-001-140.md`, only when the work touches it (search for `## D-NNN`).
+   `docs/playbooks/` for how to do things.
 
 Everything below was checked on 2026-09-13 unless marked "inferred — confirm".
 
@@ -133,6 +139,13 @@ Setup, **not re-run this session** (the environment already existed):
   question looks at one window or over time (`src/lib/shapes.ts`, `inferShape` and `viewsFor`; D-100). A preset may pin
   a shape only to one the table says fits. Dimensions and measures state their `kind`, never a chart.
 
+## How the work is done
+
+The seven process rules of work order 2 are in `CLAUDE.md`, "How the work is done" (D-147): when
+a decision record is written, reviews by risk, which tests are added, the notes once a session,
+the decisions index, which model does which work, and short sessions. They bind every agent, and
+hard rules 7 and 8 below carry the merge rule and the steps that go with them.
+
 ## Hard rules: changing any of these needs the user's explicit approval
 
 1. **CLAUDE.md's eight design invariants** and **the six shapes** (mix, trend, league, distribution,
@@ -150,15 +163,15 @@ Setup, **not re-run this session** (the environment already existed):
 3. **Never hand-edit `data/snapshots/` or `data/state/`.** Only the monthly Action writes them.
 4. **Golden changes are contract changes.** Regenerate `pipeline/tests/golden/contract.json` only
    deliberately, in the same commit as the change that causes it (one cube change per commit,
-   `POST_GATE.md`), with the diff shown to the user. During work order 1 the diff is shown in the
-   pull request's description and listed in the order's final report (D-082).
+   `POST_GATE.md`), with the diff shown to the user in the pull request's description (D-082,
+   D-147).
 5. **One commit per reference file**, with the docs that describe it changed in the same commit.
    Every commit must build, not just the branch tip.
 6. **Resolve field meanings empirically** against the data before rewriting a doc. Surface counts
    for edge cases; never silently bucket.
 7. **Don't push to `main` or merge into it** without the user's word in that session, naming the
-   pull request ("merge N"). A merge into `main` also needs green checks and a reviewer sub-agent
-   that has not seen the author's reasoning. A forced Monthly build, and anything that makes
+   pull request ("merge N"). A merge into `main` also needs green, finished checks and the review
+   its risk calls for (below). A forced Monthly build, and anything that makes
    something public, is asked for each time (user, 2026-11-14, D-081); the one exception is a
    forced build of the month already built after the committed counts in `data/supplied/` have
    changed on `main` (user, 2026-11-17, D-120). An agent may push its own
@@ -166,21 +179,40 @@ Setup, **not re-run this session** (the environment already existed):
    API access goes through `gh` only (full path above; not on the Git Bash PATH), never the Git
    Credential Manager token.
 
-   **Amended for the life of work order 1, and only for it** (`docs/brief/WORK_ORDER.md` §2 and
-   §3; user, 2026-11-14, D-082). When the order closes, this paragraph is removed and the rule
-   above stands as written.
-   - claude may merge a pull request of that work order into `main`, as a merge commit, when its
-     checks are green, an independent reviewer agrees, it is inside the order's packages and it
-     touches nothing on the order's "never without asking" list.
-   - If Claude Code's own permission check refuses a merge, it is not worked around: the pull
-     request stays open, the next package is stacked on it, and the user is given one batch line.
-   - One forced run of October is allowed, once, only if the most recent daily run reports the
-     source unchanged; a second is not (except the supplied-counts case in this rule, D-120).
-   - Making anything public is still asked for.
-8. **Don't build ahead of the current step.** The user works in gated steps with a stop-and-report
-   after each; the current step is in `docs/STATE.md`. During work order 1 the steps are its
-   packages A to I, worked down the list, the ones marked (parallel) beside the one before, with
-   one report at the end, not a stop after each (D-082).
+   **Review by risk** (user, 2026-11-20, D-147; `CLAUDE.md`, How the work is done, rule 2):
+   - High risk (pipeline code, the data contract, published files, privacy, workflows, anything
+     touching `main`'s data): one independent reviewer who has not seen the author's reasoning,
+     briefed with the change and three to five things to test. One round; a fix gets a narrow
+     re-check of that finding only.
+   - Low risk (site, canvas, copy, docs): no reviewer agent. The checks must pass: typecheck,
+     build, the tests that exist, an axe scan with nothing found, and screenshots at 390 and
+     1280 px that the lead looks at.
+   - Docs only: merge when the checks pass.
+
+   **Under work order 2, and only for it** (`docs/brief/WORK_ORDER.md` §3 and §4; user,
+   2026-11-20, D-147), in a session where the user says so, with the order itself or with its
+   "continue" message (§8):
+   - claude may merge a pull request of the order into `main`, as a merge commit, when its
+     checks are green and finished, the review rule above is met for its risk, it is inside the
+     order, and it touches nothing on the order's "never without asking" list.
+   - If Claude Code's own permission check refuses a merge, it is not worked around: the next
+     work is stacked on top, and the user is given one line, such as "merge 104, 105".
+   - claude may create and delete its own branches and pull requests, and run anything
+     read-only against NZTA's open data service, Stats NZ's Infoshare and the private archive.
+   - One forced run of November is allowed, once, only if the December refresh's build fails
+     for a reason that has been fixed.
+   - **Never without asking** (the order's §4): anything public (the Cloudflare switch, the
+     repository's visibility, a new kind of data in a release); anything that costs money or
+     creates an account; anything that cannot be undone (deleting data, rewriting history,
+     replacing an archived file); publishing an owner field beyond the "Current use" table,
+     postcode, or anything derived from `VIN11`; changing CLAUDE.md's invariants beyond what
+     the order's §5 approves.
+8. **Don't build ahead of the current step.** The user works in gated steps; the current step is
+   in `docs/STATE.md`. Under work order 2 the steps are its two milestones, in order: the canvas
+   (its build order, one to six, merged as it goes), then ready to go public, stopping before
+   the switch. **The engine is frozen for features**: the order's §1 lists the only engine work
+   allowed and what is parked (D-147). A session ends with five lines at most; a milestone ends
+   with a report (the order's §7).
    Exception (user, 2026-10-21, D-041): the
    visitor-facing site (`src/`, `config/presets.json` and the docs that describe them) may be built
    ahead of the build order. The gate that kept it a local build passed on 13 November 2026

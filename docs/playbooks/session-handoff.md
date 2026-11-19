@@ -11,8 +11,11 @@ git status --short
 git log --oneline -10
 ```
 
-1. Read `AGENTS.md`, then `docs/STATE.md`, then `CLAUDE.md` (the project brief; it applies to every
-   agent despite the name).
+1. Read `AGENTS.md`, then `docs/STATE.md` and `docs/CHECKPOINT.md`, then the work order
+   (`docs/brief/WORK_ORDER.md`) and `CLAUDE.md` (the project brief; it applies to every agent
+   despite the name). Read only what the next step touches, not whole docs (`CLAUDE.md`, How the
+   work is done, rule 7). Of `docs/DECISIONS.md` read the index; open an archived record only
+   when the work touches it.
 2. Uncommitted changes you didn't make belong to someone else. Leave them alone: no staging,
    stashing, reverting or reformatting.
 3. Files under STATE.md "In progress" that belong to the other agent are read-only for you.
@@ -28,12 +31,16 @@ git log --oneline -10
   began in July 2026`.
 - Stage explicit paths (`git add <path> ...`), never `git add -A`, because other people's work may
   be in the tree.
-- Architectural change → append to `docs/DECISIONS.md` first.
+- A decision record goes into `docs/DECISIONS.md` only when an invariant, the data contract, a
+  published figure or privacy changes, or when the user needs to see the choice. Anything else is
+  one line in the pull request description (`CLAUDE.md`, How the work is done, rule 1).
 - Docs contradict code → stop and ask the user; record it under Blocked.
 
 ## End (non-negotiable)
 
-Update `docs/STATE.md`:
+Once, at the end of the session and not after each pull request, update `docs/STATE.md` (under
+100 lines) and `docs/CHECKPOINT.md` (under 80: where we left off, open pull requests, the queue,
+what is parked, questions for the user, the prompt for the next session). In `docs/STATE.md`:
 
 - **Done**: what landed, with commit hashes.
 - **In progress**: what is unfinished, **with every file touched**, and who owns it.
