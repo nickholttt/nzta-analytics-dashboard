@@ -166,7 +166,7 @@ a reference value.
 |---|---|
 | `docs/STATE.md` | What is true right now: what runs, what is in progress, known issues |
 | `docs/CHECKPOINT.md` | The work queue and the questions waiting on the owner |
-| `docs/DECISIONS.md` | Why things are the way they are, one record per decision |
+| `docs/DECISIONS.md` | Why things are the way they are: an index of D-001 to D-140 (their records are in `docs/decisions/archive-001-140.md`) and every record since |
 | `CLAUDE.md` | The project brief: the goal, the design rules, the chart shapes, the field traps |
 | `AGENTS.md` | For anyone (or any coding agent) working on the repository: commands and hard rules |
 | `docs/METRICS.md` | The exact definition of every figure |
