@@ -318,7 +318,7 @@ def test_every_exception_names_a_decision_record_and_a_real_dimension():
     dims = {d["id"] for d in cfg.dimensions["dimensions"]}
     for entry in dmap["fields"]:
         for exception in entry.get("published_exceptions", []):
-            assert exception["decision"] in recorded, f"{entry['name']}: {exception['decision']} is not in DECISIONS.md"
+            assert exception["decision"] in recorded, f"{entry['name']}: {exception['decision']} has no record in DECISIONS.md or docs/decisions/"
             assert exception["dimension"] in dims, f"{entry['name']}: {exception['dimension']} is not a dimension"
 
 
