@@ -165,14 +165,17 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
 }
 
 // The question's charts: one, or one per part. The first takes the builder's id, which scopes its settings in the
-// address bar; a later part takes the builder's id and its own.
-export function builderPresets(q: Question, label?: (value: string) => string): Preset[] {
+// address bar; a later part takes the builder's id and its own. A page that holds several questions (the canvas) gives each its own id.
+export function builderPresets(q: Question, label?: (value: string) => string, id: string = builderSpec.id): Preset[] {
   const m = findBuilderMeasure(q.measure);
   if (!m) return [];
   // A ranking has the share and the number of vehicles in one table, so a measure of two parts is one chart in this view.
   const parts = q.view === RANKING || (q.by2 && q.by) ? partsOf(m).slice(0, 1) : partsOf(m);
-  return parts.map((part, i) => presetFor(q, part.id, i === 0 ? builderSpec.id : `${builderSpec.id}-${part.id}`, label));
+  return parts.map((part, i) => presetFor(q, part.id, i === 0 ? id : `${id}-${part.id}`, label));
 }
+
+// Whether a measure the builder offers is drawn as one chart: a measure made of parts is one chart for each part.
+export const isOneChart = (measureId: string): boolean => !findBuilderMeasure(measureId)?.parts;
 
 // The shapes a question may be drawn as: those the chart rules say fit it and that have a renderer, best first, so the
 // first is the one drawn. A visitor switches only among shapes that fit (D-059), and there is nothing to switch where
@@ -319,6 +322,33 @@ export function noteRemoved(before: Pick<Question, "where">, asked: Question): Q
 // the same link without that condition would, with the condition its breakdown calls for (D-137).
 export function settleChange(all: Vocabulary, before: Pick<Question, "where">, asked: Question, byVisitor: boolean): Question {
   return settle(all, byVisitor ? noteRemoved(before, asked) : asked);
+}
+
+// The question after part of it changes: what the change sets aside, then the nearest question the data can answer (settleChange). One
+// rule for every page that holds a question, so a chart on the canvas changes exactly as the Build page's does.
+// canApply: whether the question's data can condition on a field. removal: the change is the visitor's, so a condition it takes away
+// stays away (noteRemoved).
+export function changeQuestion(all: Vocabulary, current: Question, next: Partial<Question>, canApply: (dimension: string) => boolean, removal = true): Question {
+  const asked = { ...current, ...next };
+  // Ranking every value is a state of the ranking view only.
+  if (next.view !== undefined && next.view !== RANKING) asked.rankAll = false;
+  // Values the page chose follow the question: a new condition or measure sets them aside, and the page looks again.
+  if (current.pageValues && next.values === undefined && (next.where !== undefined || next.measure !== undefined)) asked.values = [];
+  // A grid chooses its own lines, so the values the page filled in for the lines of a chart are set aside when the second breakdown is added.
+  if (current.pageValues && next.by2 && next.values === undefined) asked.values = [];
+  // Another dataset carries other conditions and other values: the ones it does not carry go, and the chosen values start over.
+  if (next.dataset && next.dataset !== current.dataset) {
+    const carried = all.datasets.find((v) => v.dataset === next.dataset)?.filters ?? [];
+    asked.where = Object.fromEntries(Object.entries(asked.where).filter(([d]) => carried.some((f) => f.id === d)));
+    asked.values = [];
+  }
+  // A condition with no value yet keeps every vehicle and has no place in the address, so settle drops it. It stays
+  // on the page while the visitor changes something else, and goes only when they remove it.
+  const held = Object.entries(asked.where ?? {}).filter(([d, kept]) => kept.length === 0 && canApply(d));
+  // A condition the question had and the visitor took away stays away, though a breakdown would start the question with it (D-132).
+  const settled = settleChange(all, current, asked, removal);
+  for (const [d] of held) if (d !== settled.by && !(d in settled.where)) settled.where[d] = [];
+  return settled;
 }
 
 // A question from the address bar, kept only as far as the page offers it; otherwise the nearest one that is. A
@@ -469,16 +499,16 @@ export function absentNotes(dataset: string, absent: NamedValue[], label: (value
   );
 }
 
-// The address-bar form of a question, scoped by the builder's id. Values repeat a key rather than join with a
-// separator, since a value may contain any character.
-const key = (name: string) => `${builderSpec.id}.${name}`;
+// The address-bar form of a question, scoped by the builder's id, or by the id a page that holds several questions gives each one (the
+// canvas). Values repeat a key rather than join with a separator, since a value may contain any character.
 const WHERE = "where.";
 
 // Conditions are keyed by text from the address bar or from config. An object with no prototype holds any key as its
 // own, where a plain one would hand back a built-in for a key such as "constructor" and the page would fail on it.
 const noConditions = (): Record<string, string[]> => Object.create(null);
 
-export function readQuestion(search: string): Partial<Question> {
+export function readQuestion(search: string, scope: string = builderSpec.id): Partial<Question> {
+  const key = (name: string) => `${scope}.${name}`;
   const params = new URLSearchParams(search);
   const where = noConditions();
   for (const [k, v] of params) {
@@ -500,7 +530,8 @@ export function readQuestion(search: string): Partial<Question> {
   };
 }
 
-export function questionParams(q: Question): URLSearchParams {
+export function questionParams(q: Question, scope: string = builderSpec.id): URLSearchParams {
+  const key = (name: string) => `${scope}.${name}`;
   const params = new URLSearchParams({ [key("measure")]: q.measure, [key("by")]: q.by ?? "" });
   // An address with no dataset means the default one, so an older link keeps its meaning and the default adds nothing.
   if (q.dataset !== builderSpec.dataset) params.set(key("dataset"), q.dataset);
@@ -532,7 +563,8 @@ export function builderQuestionFor(view: Preset): Question | null {
 }
 
 // The chart's own settings in the address (the first chart's are scoped by the builder's id, a later part's by its own id and a dash).
-const CHART_PARAMS = ["period", "range", "smoothing", "month", "cells"];
+export const CHART_PARAMS = ["period", "range", "smoothing", "month", "cells"];
+const builderKey = (name: string) => `${builderSpec.id}.${name}`;
 
 // An address with the builder's settings replaced by the question's. A new question clears the chart's settings; the first read keeps them. A
 // pinned question has no month of its own to look at (its window is the pin's), so a month the visitor had picked goes when they pin.
@@ -541,7 +573,7 @@ export function addressParams(search: string, q: Question, keepChart: boolean): 
   for (const k of [...params.keys()]) {
     const chartSetting = k.startsWith(`${builderSpec.id}-`) || CHART_PARAMS.some((p) => k === `${builderSpec.id}.${p}`);
     const ours = k.startsWith(`${builderSpec.id}.`) || k.startsWith(`${builderSpec.id}-`);
-    if (ours && (!(keepChart && chartSetting) || (q.snapshot && k === key("month")))) params.delete(k);
+    if (ours && (!(keepChart && chartSetting) || (q.snapshot && k === builderKey("month")))) params.delete(k);
   }
   for (const [k, v] of questionParams(q)) params.append(k, v);
   return params;
@@ -552,8 +584,8 @@ export function addressParams(search: string, q: Question, keepChart: boolean): 
 export function builderHref(q: Question, period?: string, fullHistory = false, cells?: string): string {
   const params = questionParams(q);
   const [first] = builderPresets(q);
-  if (period && first && period !== first.period) params.set(key("period"), period);
-  if (fullHistory) params.set(key("range"), "all");
-  if (cells) params.set(key("cells"), cells);
+  if (period && first && period !== first.period) params.set(builderKey("period"), period);
+  if (fullHistory) params.set(builderKey("range"), "all");
+  if (cells) params.set(builderKey("cells"), cells);
   return `/build?${params}`;
 }

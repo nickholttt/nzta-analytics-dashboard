@@ -28,5 +28,5 @@ test("a dimension without a separator, or none at all, leaves the value as it is
 test("the panel, the picker and the sentences use it, so the table of figures, the chips and the conditions agree", () => {
   assert.match(read("src/components/PresetPanel.tsx"), /valueWords\(dimensionId, reservedLabel\(v\)\)/);
   assert.match(read("src/components/PresetPanel.tsx"), /conditionsSentence\(keptBy, nameOf, \(d, v\) => valueWords\(d, reservedLabel\(v\)\)\)/);
-  assert.match(read("src/components/QuestionBuilder.tsx"), /valueWords\(dimension, reservedLabel\(v\)\)/);
+  assert.match(read("src/components/ValuePicker.tsx"), /valueWords\(dimension, reservedLabel\(v\)\)/);
 });
