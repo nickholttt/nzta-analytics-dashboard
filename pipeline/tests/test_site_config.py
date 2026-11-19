@@ -66,6 +66,7 @@ def _templates() -> list[tuple[str, str, str]]:
     for key, text in _json("config/my_questions.json").items():
         if not key.startswith("$"):
             found.append(("keeping", f"my_questions.{key}", text))
+    found.extend(_canvas_templates())
     for dimension in dimensions["dimensions"]:
         if "public_line" in dimension:
             found.append(("line", f"dimension {dimension['id']} public_line", dimension["public_line"]))
@@ -84,6 +85,21 @@ def _templates() -> list[tuple[str, str, str]]:
                 found.append(("note" if key == "note_template" else key, f"derived {derived['id']} {key}", derived[key]))
         if "caveat" in derived:
             found.append(("caveat", f"derived {derived['id']} caveat.text", derived["caveat"]["text"]))
+    return found
+
+
+def _canvas_templates() -> list[tuple[str, str, str]]:
+    """The canvas's words (config/canvas.json, D-147): its interface words and the reasons it gives, and the names of its
+    chart types, measures, kinds, groups and time field. Its definitions are not among them: a definition says what a field
+    holds and may name it, as the data map's does."""
+    canvas = _json("config/canvas.json")
+    found = [("canvas", f"canvas.words.{key}", text) for key, text in canvas["words"].items() if not key.startswith("$")]
+    for block in ("measures", "measure_kinds", "kinds"):
+        found += [("canvas", f"canvas.{block}.{key}", text) for key, text in canvas[block].items() if not key.startswith("$")]
+    for entry in [*canvas["chart_types"], canvas["table"]]:
+        found += [("canvas", f"canvas.chart_types.{entry['id']}.{key}", entry[key]) for key in ("label", "help")]
+    found += [("canvas", f"canvas.groups.{group['id']}.label", group["label"]) for group in canvas["groups"]]
+    found.append(("canvas", "canvas.time_field.label", canvas["time_field"]["label"]))
     return found
 
 
@@ -113,6 +129,14 @@ def test_the_lint_reads_every_interface_word_and_every_one_line_note():
     lines = {where for kind, where, _ in found if kind == "line"}
     noted = {f"dimension {d['id']} public_line" for d in _json("config/dimensions.json")["dimensions"] if "public_line" in d}
     assert noted and lines == noted, "a one-line note in config/dimensions.json is not linted"
+    # The canvas's words (config/canvas.json): every one, and every name the canvas gives a chart type, a measure, a kind and a group.
+    canvas = _json("config/canvas.json")
+    said = {where for kind, where, _ in found if kind == "canvas"}
+    held = {k for k, v in canvas["words"].items() if not k.startswith("$") and isinstance(v, str)}
+    assert held and {f"canvas.words.{k}" for k in held} <= said, "a word in config/canvas.json is not linted"
+    named = [t["id"] for t in canvas["chart_types"]] + [canvas["table"]["id"]]
+    assert {f"canvas.chart_types.{t}.{key}" for t in named for key in ("label", "help")} <= said, "a chart type's name or help line is not linted"
+    assert all(not where.startswith("canvas.definitions") for where in said), "a field's definition is not a template"
 
 
 @pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)
