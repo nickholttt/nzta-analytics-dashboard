@@ -46,7 +46,9 @@ How every page reads:
    newest month with no work from the visitor, or stays pinned to a
    snapshot when a figure is being quoted.
 
-The order of work for this stage is in `docs/brief/MASTER_BRIEF.md`.
+The order of work for this stage is the user's work order 2,
+`docs/brief/WORK_ORDER.md` (2026-11-20, D-147), which sits over
+`docs/brief/MASTER_BRIEF.md`.
 
 ---
 
@@ -217,6 +219,8 @@ docs/
   NARRATIVE.md        # planned (D-062): facts, phrase sets, neutrality rules, tests
   DATA_MAP.md         # every source field: meaning, coverage, uses, privacy class, relations (D-090)
   brief/MASTER_BRIEF.md  # direction and order of work for the current stage
+  brief/WORK_ORDER.md  # the user's standing work order (work order 2, D-147); earlier ones in brief/archive/
+  DECISIONS.md        # an index of D-001 to D-140 and every record since; decisions/ holds the archive
 data/snapshots/        # committed: one small aggregate per snapshot, never raw rows
 data/state/            # committed: last_good.json, what the next run's guardrails compare against
 data/supplied/         # committed: counts from the maintainer's hand exports (NZTA's dashboard, Stats NZ), each with a ledger (D-097)
@@ -294,7 +298,48 @@ transform. The short version:
 
 ---
 
-## Sub-agents (Claude Code)
+## How the work is done
+
+The user's process rules of 2026-11-20 (work order 2 §2, D-147). They bind
+every agent. `AGENTS.md` holds the hard rules and the merge rule that go
+with them.
+
+1. **Decision records** are written only when an invariant, the data
+   contract, a published figure or privacy changes, or when the user needs
+   to see the choice. Everything else is one line in the pull request
+   description.
+2. **Reviews go by risk.**
+   - High risk (pipeline code, the data contract, published files, privacy,
+     workflows, anything touching `main`'s data): one independent reviewer,
+     briefed with the change and three to five things to test. One round. A
+     fix gets a narrow re-check of that finding only.
+   - Low risk (site, canvas, copy, docs): no reviewer agent. The checks
+     must pass: typecheck, build, the tests that exist, axe clean, and
+     screenshots at 390 and 1280 px that the lead looks at.
+   - Docs only: merge when the checks pass.
+3. **Tests** are added only for data correctness, privacy, the data
+   contract, and the canvas's own logic (field to chart-type mapping, a
+   saved canvas link loading back exactly). No golden or snapshot tests of
+   UI defaults, colours or layouts. An existing test that only pins a
+   cosmetic default may be deleted when it blocks canvas work; the pull
+   request says so.
+4. **Notes, once per session.** `docs/STATE.md` (under 100 lines) and
+   `docs/CHECKPOINT.md` (under 80) are updated at the end of a session
+   only, never after each pull request. The session report is the summary;
+   there are no stage report files.
+5. **The decisions file** opens with an index of D-001 to D-140, whose
+   records are in `docs/decisions/archive-001-140.md`. A session reads the
+   index, and opens an archived record only when the work touches it.
+6. **Models.** The lead runs on Opus at high effort. Sub-agents default to
+   sonnet; haiku for bulk, rule-like work; opus only for the high-risk
+   reviews and the canvas's interaction design. At most three sub-agents at
+   once.
+7. **Sessions are short.** `/wrap` after about two milestone steps, or
+   when the session is long. A session does not re-read whole docs at the
+   start: it reads STATE, CHECKPOINT, the work order and only what the next
+   step touches.
+
+### Sub-agents (Claude Code)
 
 - Every definition in `.claude/agents/` names its model in `model:` (an
   alias or a full model id) and, where Claude Code supports it, its
@@ -302,7 +347,7 @@ transform. The short version:
   test checks this (D-062): `pipeline/tests/test_agents.py`, run on every
   pull request (D-085).
 - A sub-agent spawned without a definition is given its model explicitly.
-- Reviews stay independent (D-057, D-061). The reviewer gets the work and
+- A review stays independent (D-057, D-061). The reviewer gets the work and
   the spec, never the author's reasoning.
 
 ---

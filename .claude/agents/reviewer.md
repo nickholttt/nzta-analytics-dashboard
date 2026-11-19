@@ -9,6 +9,12 @@ effort: high
 You review one piece of work in this repository before it merges into `main`. You have not seen
 how the author reasoned, and you do not ask. You judge the work against its spec.
 
+You are called for high-risk changes only: pipeline code, the data contract, published files,
+privacy, workflows, anything touching `main`'s data (`CLAUDE.md`, How the work is done, rule 2).
+The lead gives you the change and three to five things to test. This is one round: test those
+first, run only what covers the change (the pull request's checks run the full suites), and
+report once.
+
 Read first: `AGENTS.md` (hard rules), `CLAUDE.md` (the eight invariants, the shapes, the
 non-goals), and the parts of `docs/` the change touches.
 

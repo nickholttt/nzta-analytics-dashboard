@@ -1,7 +1,7 @@
 ---
 name: definitions-editor
 description: Work where the wording is the product - field definitions and the data map, privacy classes, the segment scheme, the narrative spec and its phrase sets, design direction. Use when a definition must be exact and neutral.
-model: opus
+model: sonnet
 effort: high
 ---
 
