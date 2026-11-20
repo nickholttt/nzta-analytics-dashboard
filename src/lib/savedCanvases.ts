@@ -2,7 +2,10 @@
 // D-125): no account, nothing sent, read defensively. A saved canvas is a canvas link, so it opens through the same validation as any
 // link and a canvas has one spelling. What is kept is that link's query, a name the visitor can edit and when it was saved. The name is
 // never in a link.
-import { canvasSpec, readCanvas } from "./canvas";
+import { isMonthKey } from "./builder";
+import type { Vocabulary } from "./builder";
+import { canvasAddress, canvasSpec, pinCanvas, readCanvas, settleCanvas } from "./canvas";
+import type { Manifest } from "./data";
 import type { Kind, Saved } from "./saved";
 
 const STORAGE_KEY = "nzta.my_canvases";
@@ -17,10 +20,15 @@ export function canvasQuery(search: string): string | undefined {
   const ids = readCanvas(search).map((chart) => chart.id);
   if (ids.length === 0) return undefined;
   const kept = new URLSearchParams({ [`${canvasSpec.id}.charts`]: ids.join(",") });
-  for (const [k, v] of new URLSearchParams(search)) {
+  const own = [...new URLSearchParams(search)].filter(([k]) => {
     const [scope, ...rest] = k.split(".");
-    if (ids.includes(scope) && rest.length > 0 && rest.join(".") !== MONTH) kept.append(k, v);
-  }
+    return ids.includes(scope) && rest.length > 0 && rest.join(".") !== MONTH;
+  });
+  // One order whatever order the address has them in, so the same canvas is the same text: chart by chart, each chart's parameters by
+  // name, and a name that repeats (a value) in the order it came.
+  const chartOf = (k: string) => ids.indexOf(k.split(".")[0]);
+  own.sort(([a], [b]) => chartOf(a) - chartOf(b) || (a < b ? -1 : a > b ? 1 : 0));
+  for (const [k, v] of own) kept.append(k, v);
   const text = kept.toString();
   return text.length <= MAX_QUERY ? text : undefined;
 }
@@ -32,3 +40,17 @@ export const canvasHref = (entry: Pick<Saved, "query">): string => `/canvas/?${e
 
 // The list as plain text a visitor can paste anywhere: each name, then its link, in the order listed.
 export const canvasLinks = (items: Saved[], origin: string): string => items.map((i) => `${i.name}\n${origin}${canvasHref(i)}`).join("\n\n");
+
+// The month a saved canvas is pinned to: its first pinned chart's. Undefined for a canvas with no pin.
+export function savedPin(query: string): string | undefined {
+  const params = new URLSearchParams(query);
+  return readCanvas(`?${query}`).map((chart) => params.get(`${chart.id}.snapshot`) ?? undefined).find(isMonthKey);
+}
+
+// A saved canvas pinned to a month, or with its pins taken off (null), as the text that is kept. Each chart keeps its own settings. The
+// same text where nothing changes: no chart of it can be pinned.
+export function pinSavedCanvas(all: Vocabulary, manifest: Manifest, query: string, month: string | null): string {
+  const search = `?${query}`;
+  const pinned = pinCanvas(settleCanvas(all, readCanvas(search)), manifest, month);
+  return canvasQuery(`?${canvasAddress(search, pinned)}`) ?? query;
+}

@@ -1,11 +1,14 @@
 // My canvases: save the canvas on screen, copy its link, list the saved ones, open, rename, remove, export as links, clear. The face
 // of src/lib/savedCanvases.ts over the rules of My questions (src/lib/saved.ts, D-125): nothing is sent anywhere, the list lives in this
 // browser's storage, and where that is blocked the page says so and the canvas works as it does without it. A name is never in a link.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { Vocabulary } from "../../lib/builder";
 import { say } from "../../lib/canvas";
+import type { Manifest } from "../../lib/data";
+import { servedMonth } from "../../lib/pin";
 import { MAX_NAME, MAX_SAVED, add, browserStorage, load, persist, remove, rename } from "../../lib/saved";
 import type { Loaded, Saved } from "../../lib/saved";
-import { CANVASES, canvasHref, canvasLinks, canvasQuery } from "../../lib/savedCanvases";
+import { CANVASES, canvasHref, canvasLinks, canvasQuery, pinSavedCanvas, savedPin } from "../../lib/savedCanvases";
 import { focusSoon } from "../ValuePicker";
 
 const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`);
@@ -15,8 +18,19 @@ const read = () => load(browserStorage(), CANVASES);
 const copyText = (text: string): Promise<boolean> =>
   typeof navigator !== "undefined" && navigator.clipboard ? navigator.clipboard.writeText(text).then(() => true, () => false) : Promise.resolve(false);
 
-// name: what the canvas on screen is called until the visitor renames its entry.
-export default function MyCanvases({ name }: { name: string }) {
+type Props = {
+  all: Vocabulary;
+  // The snapshot this page serves; null until its manifest has loaded.
+  served: Manifest | null;
+  // What the canvas on screen is called until the visitor renames its entry.
+  name: string;
+  // Whether a chart of the canvas on screen is pinned, and whether one can be (src/lib/canvas.ts, canPinCanvas).
+  pinned: boolean;
+  pinnable: boolean;
+  onPin: (on: boolean) => void;
+};
+
+export default function MyCanvases({ all, served, name, pinned, pinnable, onPin }: Props) {
   const [loaded, setLoaded] = useState<Loaded>(read);
   // What the last action did, in a live region so a screen reader hears it.
   const [status, setStatus] = useState("");
@@ -72,6 +86,29 @@ export default function MyCanvases({ name }: { name: string }) {
       setStatus(ok ? say("status_list_copied") : say("status_list_not_copied"));
     });
 
+  const pinHere = () => {
+    onPin(!pinned);
+    setStatus(pinned ? say("status_unpinned", { name }) : say("status_pinned", { name }));
+  };
+
+  const pinOne = (item: Saved, on: boolean) => {
+    if (!served) return;
+    const query = pinSavedCanvas(all, served, item.query, on ? servedMonth(served) : null);
+    if (change((items) => items.map((i) => (i.id === item.id ? { ...i, query } : i)))) setStatus(on ? say("status_pinned", { name: item.name }) : say("status_unpinned", { name: item.name }));
+  };
+
+  // Each entry's pin: the month it is pinned to, and whether it could be pinned to the snapshot served now.
+  const info = useMemo(
+    () =>
+      new Map(
+        loaded.items.map((item) => {
+          const month = savedPin(item.query);
+          return [item.id, { month, pinnable: Boolean(served) && !month && pinSavedCanvas(all, served as Manifest, item.query, servedMonth(served as Manifest)) !== item.query }] as const;
+        }),
+      ),
+    [loaded.items, all, served],
+  );
+
   const removeOne = (item: Saved) => {
     if (!change((items) => remove(items, item.id))) return;
     setStatus(say("status_saved_removed", { name: item.name }));
@@ -109,7 +146,13 @@ export default function MyCanvases({ name }: { name: string }) {
         <button type="button" className="button-quiet" onClick={copyLink}>
           {say("saved_copy_link")}
         </button>
+        {served && (pinnable || pinned) ? (
+          <button type="button" id="canvas-pin-toggle" className="button-quiet" onClick={pinHere}>
+            {pinned ? say("unpin_canvas") : say("pin_canvas", { date: served.latest_snapshot })}
+          </button>
+        ) : null}
       </div>
+      {served && !pinnable && !pinned ? <p className="meta">{say("pin_unavailable")}</p> : null}
       <p className="meta saved-status" role="status">
         {status}
       </p>
@@ -156,6 +199,7 @@ export default function MyCanvases({ name }: { name: string }) {
                           {item.name}
                         </a>
                         <p className="meta">{say("saved_on", { date: item.saved.slice(0, 10) })}</p>
+                        {info.get(item.id)?.month ? <p className="meta saved-pin">{say("saved_pinned", { date: info.get(item.id)?.month })}</p> : null}
                         <div className="saved-actions">
                           <button
                             type="button"
@@ -169,6 +213,16 @@ export default function MyCanvases({ name }: { name: string }) {
                           >
                             {say("saved_rename")}
                           </button>
+                          {info.get(item.id)?.month || info.get(item.id)?.pinnable ? (
+                            <button
+                              type="button"
+                              className="button-quiet"
+                              aria-label={`${info.get(item.id)?.month ? say("saved_unpin") : say("saved_pin")}: ${item.name}`}
+                              onClick={() => pinOne(item, !info.get(item.id)?.month)}
+                            >
+                              {info.get(item.id)?.month ? say("saved_unpin") : say("saved_pin")}
+                            </button>
+                          ) : null}
                           <button type="button" className="button-quiet" aria-label={`${say("saved_remove")}: ${item.name}`} onClick={() => removeOne(item)}>
                             {say("saved_remove")}
                           </button>

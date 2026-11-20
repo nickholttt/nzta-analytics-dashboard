@@ -530,6 +530,35 @@ test("canvases are kept in a list of their own, read back defensively, and never
   assert.equal(savedCanvases.canvasHref(entry).includes("page"), false);
 });
 
+// ---- A pin ----
+
+test("a canvas is pinned chart by chart, loads back pinned from its link, and unpins to the canvas it was; a saved one keeps its settings", async () => {
+  const pin = await import("../../src/lib/pin.ts");
+  const served = { ...manifest, latest_snapshot: (everything as { latest_snapshot?: string }).latest_snapshot ?? "2026-10-31" } as typeof manifest;
+  const month = pin.servedMonth(served);
+  const start = { charts: sample().slice(0, 5) };
+  const pinned = canvas.pinCanvas(start, served, month);
+  const can = start.charts.map((chart) => pin.canPin(canvas.chartQuestion(chart), served));
+  assert.ok(can.some(Boolean), "no chart of the sample can be pinned");
+  assert.deepEqual(pinned.charts.map((chart) => chart.question.snapshot), can.map((ok) => (ok ? month : undefined)));
+  assert.equal(canvas.canPinCanvas(start, served), true);
+  assert.equal(canvas.isPinned(pinned), true);
+  assert.equal(canvas.isPinned(start), false);
+  assert.deepEqual(reopened(pinned), pinned);
+  // Unpinned, it is the canvas it was: nothing but the pin changed.
+  assert.equal(String(canvas.canvasParams(canvas.pinCanvas(pinned, served, null))), String(canvas.canvasParams(start)));
+
+  const [a] = start.charts;
+  const query = savedCanvases.canvasQuery(`?${canvas.canvasParams(start)}&${a.id}.period=5y`) as string;
+  assert.equal(savedCanvases.savedPin(query), undefined);
+  const kept = savedCanvases.pinSavedCanvas(all, served, query, month);
+  assert.equal(savedCanvases.savedPin(kept), month);
+  assert.equal(new URLSearchParams(kept).get(`${a.id}.period`), "5y");
+  assert.equal(savedCanvases.pinSavedCanvas(all, served, kept, null), query);
+  // A month that is not one is no pin.
+  assert.equal(savedCanvases.savedPin(`${query}&${a.id}.snapshot=soon`), undefined);
+});
+
 // ---- The words ----
 
 test("every word the canvas says is in config, and config holds no word the canvas does not say", () => {

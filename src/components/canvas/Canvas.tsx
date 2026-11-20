@@ -2,11 +2,12 @@
 // chart is a Build question drawn by the same panel as every other chart on the site; what a field may do in a zone, which chart types
 // fit, how charts are added, copied, removed and moved, and the address are src/lib/canvas.ts. The whole canvas lives in the address
 // bar, so the link is the page.
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { absentNotes, absentValues, linkNotices, settle, withoutValues } from "../../lib/builder";
 import type { Question, Vocabulary } from "../../lib/builder";
 import {
   addChart,
+  canPinCanvas,
   canvasAddress,
   canvasSpec,
   changeChart,
@@ -15,7 +16,9 @@ import {
   duplicateChart,
   fieldLabel,
   isFull,
+  isPinned,
   moveChart,
+  pinCanvas,
   readCanvas,
   removeChart,
   restoreChart,
@@ -29,6 +32,7 @@ import {
 import type { Canvas as CanvasState, CanvasChart, CanvasField, CanvasFieldGroup, ChartSettings, Zone } from "../../lib/canvas";
 import { fieldValues, loadManifest } from "../../lib/data";
 import type { Manifest } from "../../lib/data";
+import { servedMonth } from "../../lib/pin";
 import { focusSoon, valueLabel } from "../ValuePicker";
 import AddMenu from "./AddMenu";
 import ChartCard, { cardId } from "./ChartCard";
@@ -98,6 +102,8 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
   const built = manifest ?? undefined;
   const latestBuilt = useRef(built);
   latestBuilt.current = built;
+  // The fields made from an owner field, for a pinned chart read from a kept snapshot (src/lib/kept.ts).
+  const owner = useMemo(() => new Set(all.owner), [all]);
 
   const write = useCallback((next: CanvasState, changed: ReadonlySet<string>, search = window.location.search) => {
     const address = `${window.location.pathname}?${canvasAddress(search, next, changed)}${window.location.hash}`;
@@ -219,6 +225,35 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ---- A pin ----
+
+  // The canvas pinned to the snapshot served, or every pin taken off. A pinned chart ends in the pinned month, so the month the visitor
+  // had picked for it goes; its other settings stay, as they do on the Build page.
+  const pin = useCallback(
+    (on: boolean) => {
+      const served = latestBuilt.current;
+      if (!served) return;
+      const next = pinCanvas(latest.current, served, on ? servedMonth(served) : null);
+      const search = new URLSearchParams(window.location.search);
+      for (const chart of next.charts) if (chart.question.snapshot) search.delete(`${chart.id}.month`);
+      moveOn();
+      commit(next, new Set(), `?${search}`);
+    },
+    [commit, moveOn],
+  );
+
+  const unpinChart = useCallback(
+    (id: string) => {
+      const chart = chartOf(id);
+      if (!chart) return;
+      const { snapshot: _was, ...open } = chart.question;
+      moveOn();
+      replace({ ...chart, question: open }, false);
+      toCard(id);
+    },
+    [replace, moveOn],
+  );
+
   // ---- The page's own changes: a chart added, copied, removed, put back or moved ----
 
   // A chart that has just joined the canvas is the one being edited, and has the focus.
@@ -313,6 +348,8 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
         of={canvas.charts.length}
         full={isFull(canvas)}
         manifest={built}
+        served={manifest}
+        owner={owner}
         dragging={dragging}
         refusal={refusal?.chart === current.id ? refusal : null}
         onAsk={(next) => ask(current.id, next)}
@@ -359,6 +396,9 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
               periodSlot={chart.id === current?.id && editorShown ? periodSlot : null}
               moving={moving}
               notices={notices[chart.id] ?? []}
+              served={manifest}
+              owner={owner}
+              onUnpin={() => unpinChart(chart.id)}
               onEdit={() => {
                 setSelected(chart.id);
                 setOpen(chart.id === current?.id ? !open : true);
@@ -395,7 +435,7 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
             </p>
           ) : null}
         </div>
-        <MyCanvases name={name} />
+        <MyCanvases all={all} served={manifest ?? null} name={name} pinned={isPinned(canvas)} pinnable={built ? canPinCanvas(canvas, built) : false} onPin={pin} />
       </div>
       {wide ? editor : null}
       {adding && current ? (

@@ -6,11 +6,14 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { MAX_VALUES, RANKING, questionParams, withValues } from "../../lib/builder";
 import type { Question, Vocabulary } from "../../lib/builder";
-import { TABLE, WIDTHS, bestType, canvasSpec, chartTypes, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
+import { TABLE, WIDTHS, bestType, canvasSpec, chartQuestion, chartTypes, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
 import type { CanvasChart, CanvasField, Width, Zone } from "../../lib/canvas";
 import { chartDefaults, findDataset, lowerLabel } from "../../lib/config";
 import type { Manifest } from "../../lib/data";
+import { pickerMonth } from "../../lib/kept";
+import type { Owner } from "../../lib/kept";
 import { ValuePicker, focusSoon, valueLabel } from "../ValuePicker";
+import { useReading } from "../useReading";
 import type { Refusal } from "./Canvas";
 
 const without = (where: Record<string, string[]>, dimension: string) => Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
@@ -215,6 +218,10 @@ type Props = {
   // The canvas holds as many charts as it may.
   full: boolean;
   manifest: Manifest | undefined;
+  // The snapshot this page serves and the fields made from an owner field: a pinned chart's lists of values are counted in the kept
+  // snapshot it reads from, where that snapshot can give them (src/lib/kept.ts, pickerMonth).
+  served: Manifest | null | undefined;
+  owner: Owner;
   dragging: CanvasField | null;
   refusal: Refusal | null;
   onAsk: (next: Partial<Question>) => void;
@@ -229,7 +236,7 @@ type Props = {
   onMove: (by: number) => void;
 };
 
-export default function ChartPane({ all, chart, number, of, full, manifest, dragging, refusal, onAsk, onSet, onPut, onRemoved, onPeriodSlot, onStatus, onDuplicate, onRemove, onMove }: Props) {
+export default function ChartPane({ all, chart, number, of, full, manifest, served, owner, dragging, refusal, onAsk, onSet, onPut, onRemoved, onPeriodSlot, onStatus, onDuplicate, onRemove, onMove }: Props) {
   const q = chart.question;
   const v = all.datasets.find((d) => d.dataset === q.dataset) ?? all.datasets[0];
   const m = v.measures.find((o) => o.id === q.measure) ?? v.measures[0];
@@ -237,6 +244,8 @@ export default function ChartPane({ all, chart, number, of, full, manifest, drag
   const second = m.dimensions.find((d) => d.id === q.by2);
   const canApply = (id: string) => v.filters.some((f) => f.id === id);
   const applicable = (where: Record<string, string[]>) => Object.fromEntries(Object.entries(where).filter(([d]) => canApply(d)));
+  const reading = useReading(chartQuestion(chart), served, owner);
+  const pickAt = (dimension: string, where: Record<string, string[]>) => pickerMonth(reading, q.dataset, dimension, where, owner);
   // Which list of values is open: a zone's, or a filter's by its field.
   const [openValues, setOpenValues] = useState<string | null>(null);
   const best = bestType(q);
@@ -369,6 +378,7 @@ export default function ChartPane({ all, chart, number, of, full, manifest, drag
                     // The page's own starting values are not the visitor's: the list starts empty, and the first value chosen replaces them.
                     chosen={q.pageValues ? [] : q.values}
                     where={applicable(q.where)}
+                    snapshot={pickAt(q.by, applicable(q.where))}
                     max={q.by2 ? chartDefaults.matrix.rows : MAX_VALUES}
                     onChange={(next) => onAsk({ values: next, pageValues: false })}
                     idPrefix={`${chart.id}-by`}
@@ -406,6 +416,7 @@ export default function ChartPane({ all, chart, number, of, full, manifest, drag
                     noun={lowerLabel(fieldLabel(q.by2))}
                     chosen={q.values2 ?? []}
                     where={applicable(q.where)}
+                    snapshot={pickAt(q.by2, applicable(q.where))}
                     max={chartDefaults.matrix.columns}
                     onChange={(next) => onAsk({ values2: next })}
                     idPrefix={`${chart.id}-by2`}
@@ -446,6 +457,7 @@ export default function ChartPane({ all, chart, number, of, full, manifest, drag
                     noun={lowerLabel(fieldLabel(d))}
                     chosen={kept}
                     where={applicable(without(q.where, d))}
+                    snapshot={pickAt(d, applicable(without(q.where, d)))}
                     onChange={(next) => {
                       onAsk({ where: withValues(q.where, d, next) });
                       // The last value taken away takes the filter with it.
