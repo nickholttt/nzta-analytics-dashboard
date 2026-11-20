@@ -9,10 +9,9 @@ order 2, `docs/brief/WORK_ORDER.md` (D-147): a lean process, the canvas, then re
 ## Live now
 
 - **The pipeline** runs on `main` in GitHub Actions, tried every day (D-064). The last build
-  is the forced run of 17 November (snapshot 2026-10; release `cube-2026-10`, a tarball of 99
-  files). The daily runs to 19 November were green and built nothing (no release after
-  `cube-2026-10`), so there is no November build yet. The next build is the first to publish
-  the current fleet, colour and the narrow table.
+  is the forced run of 17 November (snapshot 2026-10; release `cube-2026-10`, 99 files). The
+  daily runs to 19 November were green and built nothing, so there is no November build yet.
+  The next build is the first to publish the current fleet, colour and the narrow table.
 - **The archive** (private, `nickholttt/nzta-register-archive`): one release, `snapshot-2026-10`.
 - **Datasets**: `registrations_surviving` (vehicles still registered); `registrations_flow`
   and `registrations_flow_wider` (true registrations from January 2021, from the user's
@@ -22,12 +21,13 @@ order 2, `docs/brief/WORK_ORDER.md` (D-147): a lean process, the canvas, then re
 - **The site's code is on `main`; nothing is deployed** (`CLOUDFLARE_PAGES_PROJECT` is
   unset). Pages: Explore, Canvas, Build, Method, Caveats, About (a draft; its gaps are the
   user's), Feedback, Differences.
-- **The canvas** (`/canvas`; work order 2 milestone 1; #113, #114): one chart, built by
-  dragging a field onto its zones (what is counted, the measure, the breakdown, a second
-  field for a grid, the filters, the period) or by choosing a field and saying where it goes.
-  A zone that cannot take a field says why. The chart type is chosen among those the rule
-  table says fit; the others are greyed with a reason and never drawn; the figures can be
-  shown as a table. The chart is in the address. Build steps 1 and 2 of 6 are done.
+- **The canvas** (`/canvas`; work order 2 milestone 1; #113 to #116): a page of up to 12
+  charts, all of it in the address. A chart is built by dragging a field onto its zones or
+  by choosing a field and saying where it goes; a zone that cannot take it says why. The
+  chart type is chosen among those that fit; the rest are greyed with a reason. Charts are
+  added, copied, removed, moved (buttons or dragging) and set to half or full width. **My
+  canvases** keeps and pins canvases in the browser, under Build's rules. A chart says what
+  its link asked for and did not get. Build steps 1 to 4 of 6 are done.
 - **Build** asks one question (a measure, values, filters, a second field as a grid), with
   "My questions" kept in the browser and pinnable (D-125, D-131). **Explore** shows the canon.
   One rule table says which of the six shapes fit a question (D-100). The data map is
@@ -35,8 +35,9 @@ order 2, `docs/brief/WORK_ORDER.md` (D-147): a lean process, the canvas, then re
 
 ## Current step
 
-Work order 2, milestone 1 (the canvas). Steps 1 and 2 are merged; step 3 (several charts) is
-next. The engine is frozen for features (the order's §1).
+Work order 2, milestone 1 (the canvas). Steps 1 to 4 are merged; step 5 (starter canvases)
+is next, then step 6 (polish), with the user's condition: a generated sentence under every
+chart before milestone 1 is called done. The engine is frozen for features (the order's §1).
 
 ## In progress (all claude; nothing by gemini)
 
@@ -57,8 +58,9 @@ next. The engine is frozen for features (the order's §1).
 1. First load on the throttled phone profile (2026-11-20, median of five): the canvas's first
    chart 3.93 s; the acceptance question 7.32 s on the canvas and 7.49 s on Build; the target
    is 3 s. A cold canvas downloads 514 KB, of which code is 306 KB and fonts 169 KB.
-2. The canvas holds one chart, has no dark theme, and has no sentence under a lines, bands or
-   map chart. A link that names a value the data does not hold is told so on Build only.
+2. The canvas has no dark theme, and no sentence under a lines, bands or map chart. A chart
+   pinned to a kept snapshot has not been seen in a browser (no earlier cube release exists).
+   Cards are tall, so dragging one past another scrolls the page; the Move buttons do the same.
 3. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
 4. Mild hybrids are identified for about 80% of hybrids at high confidence (D-110, D-119).
 5. `/method`, `/caveats` and `/differences` are hand-written and fall behind at each refresh.
@@ -83,16 +85,15 @@ December refresh (November's build and archive, then the dashboard usage-column 
 
 ## How to run
 
-`AGENTS.md` §Commands has the verified commands. `Checks` runs both suites in about six minutes.
+`AGENTS.md` §Commands has the verified commands. `Checks` took 12 to 13 minutes on 20 November.
 
 - NZTA's website and its registrations dashboard block automated readers: the dashboard is
   read only from files the user supplies. NZTA's open data service and Stats NZ's Infoshare
   answer. After supplying a month, build with `--dry-run` (hard rule 3).
 - Headless screenshots and the axe scan: `playwright-core` and `axe-core` in a scratch folder,
   with `chrome-headless-shell` from `%LOCALAPPDATA%\ms-playwright`. Serve a build with
-  `npx astro preview --port N`; stop it with `npx astro preview stop`. To drag in a headless
-  browser, move the mouse in steps and scroll the field into view first. A canvas link:
-  `/canvas/?canvas.charts=c1&c1.measure=count&c1.by=make`.
+  `npx astro preview --port N`; stop it with `npx astro preview stop`. In a headless drag,
+  move the mouse in steps and keep both ends on screen; a button greyed with a reason needs
+  `click({ force: true })`. A canvas link: `/canvas/?canvas.charts=c1&c1.measure=count&c1.by=make`.
 - Before a merge: wait for `Checks` on the pull request's newest commit, in a command of its
-  own; never merge while a Monthly build is running. If Claude Code's permission check refuses
-  a merge, say so and do not work around it.
+  own; never merge while a Monthly build is running; never work around a refused merge.

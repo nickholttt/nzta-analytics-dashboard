@@ -4,14 +4,14 @@ Last updated by claude on 2026-11-20
 
 ## Where we left off
 
-- 2026-11-20, the first session of work order 2 (`docs/brief/WORK_ORDER.md`, D-147), which
-  replaces work order 1. **Merged: #111, #112, #113, #114.**
-  - #112: the order saved; its process rules and the canvas page's rules in `CLAUDE.md` and
-    `AGENTS.md`. #111: D-001 to D-140 archived, an index in `docs/DECISIONS.md`, and D-147.
-  - #113, #114: the canvas, build steps 1 and 2 (one chart with drop zones; the chart-type
-    picker), its words in `config/canvas.json` and held to the template lint.
-- #105 (the board proposal) is closed without merging: the order's §5 answers it. Its branch
-  is kept for the mockups.
+- 2026-11-20, the second session of work order 2 (`docs/brief/WORK_ORDER.md`, D-147).
+  **Merged: #115, #116.**
+  - #115: the canvas holds several charts (step 3): add, duplicate, remove and put back,
+    move by buttons or by dragging, half or full width; the editor follows the chart.
+  - #116: save and share (step 4): My canvases in the browser, a pin chart by chart under
+    Build's rules, and what a link asked for and did not get said on its chart.
+- The first session merged #111 to #114 (the order saved, the decisions archived, canvas
+  steps 1 and 2). #105 (the board proposal) is closed; its branch is kept for the mockups.
 
 ## Open pull requests
 
@@ -21,19 +21,17 @@ None waiting on the user.
 
 **Milestone 1, the canvas** (§5). Done when the user can open it on a phone and a desktop,
 build the acceptance question by dragging, add two more charts beside it, save the page as a
-link and see the same page from that link in a new window; screenshots in the report.
+link and see the same page from that link in a new window. Then the milestone report (the
+order's §7): screenshots, and the done-when checked line by line.
 
-3. **Several charts.** Add, duplicate, remove, reorder (by dragging and by buttons), half or
-   full width. The editor follows the chart being edited; under 1024 px it opens below that
-   chart. `src/lib/canvas.ts` already reads and writes several charts, their order and widths.
-4. **Save and share.** "My canvases" in the browser (as `src/lib/saved.ts` keeps questions),
-   each pinnable to a snapshot; a name never in a link. What a link asked for and did not get
-   (a value the data does not hold, a field the dataset lacks) said as Build says it.
-5. **Starter canvases.** Explore's groups as three or four canvases in config; Explore's page
-   becomes the list of them.
-6. **Polish.** One generated sentence under every chart (lines, bands and the map have none;
-   a ranking and a grid keep theirs above the chart for now); light and dark (check the chart
-   colours on a dark surface first); first load (3.93 s against 3 s).
+5. **Starter canvases.** Explore's groups as three or four canvases in config; Explore's
+   page becomes the list of them. A starter is a canvas link, so it opens like any other.
+6. **Polish.**
+   - **One generated sentence under every chart** (the user, 2026-11-20: milestone 1 is not
+     called done without it). Lines, bands and the map have none; a ranking and a grid
+     keep theirs above the chart for now. From phrase templates only (invariant 8).
+   - Light and dark (check the chart colours on a dark surface first).
+   - First load (3.93 s against 3 s).
 
 **Milestone 2, ready to go public** (§6): About, differences and feedback linked from the
 canvas; `docs/playbooks/go-public.md` reduced to numbered clicks; a private dry run.
@@ -44,8 +42,7 @@ check (D-134), then "Registered as" (D-140); fix what the refresh breaks.
 ## Parked until the user says otherwise (the order's §1)
 
 - Colour's own table on the site (the narrow fact table, D-144).
-- More SUV slices and sizes (D-145, D-117).
-- Further hybrid work (D-110, D-119).
+- More SUV slices and sizes (D-145, D-117); further hybrid work (D-110, D-119).
 - New segment schemes (D-103's draft, untracked in `nzta-segments`).
 - New fields, new datasets and new privacy tables; drawing a hidden cell over time (D-130).
 - The query service (D-091).
@@ -67,9 +64,13 @@ check (D-134), then "Registered as" (D-140); fix what the refresh breaks.
 - The canvas (listed in #114): no new dependency (no shadcn/ui, no drag library); the
   layout; the zone names; the six chart types by name and a table; the answer stays above a
   ranking and a grid for now; a drop is always taken so that a refusal is said; light only.
-- `public/data` was refreshed from a dry run without asking, though the playbook says to ask:
-  the canvas needed the newer fields and the current fleet. The old copy is
-  `public/data.previous`.
+- Several charts (listed in #115): the arrange buttons are in the chart's editor, not on
+  every card; a dragged chart takes the place of the card it is dropped on; a removal can
+  be undone once; under 1024 px every chart is full width.
+- Save and share (listed in #116): My canvases sits under the charts; an entry is named
+  after its first chart "and N more"; pinning pins each chart that can be pinned.
+- `public/data` was refreshed from a dry run without asking (the playbook says to ask): the
+  canvas needed the newer fields. The old copy is `public/data.previous`.
 
 ## Prompt for the next session
 

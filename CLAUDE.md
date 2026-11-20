@@ -68,10 +68,11 @@ work order 2 §5; D-138, D-147):
   - every figure is one step from its definition, source and snapshot;
   - a flow series never shares a chart with survivors.
 
-(Being built under work order 2, milestone 1: `/canvas` holds one chart
-with its zones and the chart-type picker on a local build; several charts,
-saving and the starter canvases are planned. Where it has got to is in
-`docs/STATE.md`.)
+(Being built under work order 2, milestone 1: on a local build `/canvas`
+holds several charts, each with its zones and the chart-type picker, and
+canvases are saved and pinned in the browser; the starter canvases and a
+generated sentence under every chart are planned. Where it has got to is
+in `docs/STATE.md`.)
 
 ---
 
