@@ -144,7 +144,10 @@ test("the page runs the check once, against the question's own dataset, and says
   assert.match(page, /absentValues\(asked, canApply, readTable\)/);
   assert.match(page, /fieldValues\(from, field, /);
   assert.match(page, /ask\(withoutValues\(now, absent\), false, true, false\)/);
-  assert.match(page, /settleChange\(all, latest\.current, asked, removal\)/);
+  // The page hands "not the visitor's" on to the rule every page that holds a question shares, which hands it to settleChange.
+  assert.match(page, /changeQuestion\(all, latest\.current, next, canApply, removal\)/);
+  const shared = readFileSync(new URL("../../src/lib/builder.ts", import.meta.url), "utf8");
+  assert.match(shared, /settleChange\(all, current, asked, removal\)/);
   assert.match(page, /\.\.\.absentNotes\(asked\.dataset, absent, valueLabel\)/);
 });
 

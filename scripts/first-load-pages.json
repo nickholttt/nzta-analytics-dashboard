@@ -1,6 +1,16 @@
 {
-  "$comment": "The pages scripts/measure-first-load.mjs visits. The Build links are the work order's acceptance question (3 fields) and the 8-field question of docs/QUERY_SERVICE.md; the values are data, kept here and not in code. 'expected' is how many charts must be drawn for the answer to count as drawn; left out, it is the number an unthrottled first visit draws on its own. The Explore page is judged on its first chart, since the charts below it load later. 'target' is the id of a chart's panel: the page is then judged on when that panel's own figure is drawn.",
+  "$comment": "The pages scripts/measure-first-load.mjs visits. The Build links are the work order's acceptance question (3 fields) and the 8-field question of docs/QUERY_SERVICE.md; the values are data, kept here and not in code. 'expected' is how many charts must be drawn for the answer to count as drawn; left out, it is the number an unthrottled first visit draws on its own. The Explore page is judged on its first chart, since the charts below it load later. 'target' is the id of a chart's panel: the page is then judged on when that panel's own figure is drawn. The canvas is visited twice: as it opens with nothing asked (one chart, read from a slice), and at a link to work order 2's acceptance question as a ranking (three brands, one powertrain, one vehicle type, read from five columns of the fact table).",
   "pages": [
+    {
+      "id": "canvas",
+      "path": "/canvas/",
+      "expected": 1
+    },
+    {
+      "id": "canvas-q3",
+      "path": "/canvas/?canvas.charts=c1&c1.measure=count&c1.by=make&c1.value=TOYOTA&c1.value=FORD&c1.value=BYD&c1.where.powertrain=Petrol&c1.where.segment=Car&c1.type=league&c1.size=full",
+      "expected": 1
+    },
     {
       "id": "home",
       "path": "/",

@@ -1,10 +1,11 @@
 // One preset: resolve it against the cube, pick the renderer its shape needs, and state every note.
 import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
 import { shownEnd } from "../lib/pin";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
-import { figuresHeader } from "../lib/figuresHeader";
+import { datasetAttribution, datasetsOf, figuresHeader } from "../lib/figuresHeader";
 import { compositeRules, phrases, valueWords, findDataset, datasetBasisNote, findDerived, dimensionLabel as dimensionWords, findDimension, findPeriod, findPreset, hybrid, isComposite, lowerLabel } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import { dimensionNote, fieldNoteAnchor } from "../lib/dimensionNote";
@@ -21,8 +22,9 @@ import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
-import { FiguresContext } from "./FiguresContext";
+import { FiguresContext, TableOnlyContext } from "./FiguresContext";
 import type { FiguresGetter } from "./FiguresContext";
+import { FiguresView } from "./FiguresView";
 import { LeagueChart } from "./LeagueChart";
 import { MixChart } from "./MixChart";
 import { TrendChart } from "./TrendChart";
@@ -93,6 +95,20 @@ const spanLabel = (months: number) => (months >= 24 && months % 12 === 0 ? `${mo
 // what blocks the preset, drifting notes and the preset's spec line (D-041).
 // preset: a preset built outside presets.json (the sentence builder), drawn exactly as a canon one is.
 // anchored: the copied link jumps to this panel. Off where the controls that made the chart sit above it.
+// frame: "panel" is a section of a page that holds one chart after another (Explore, Build). "card" is a chart on a canvas: the heading
+// row holds the canvas's own controls, the time row is drawn in the canvas's Period zone, the notes sit behind one disclosure, and the
+// links that belong to a page of one chart are left out. What is drawn, and every note, is the same in both.
+export type CardWords = {
+  // The disclosure that holds what the figures count and every note.
+  about: string;
+  // The snapshot's date, a template over {date}.
+  snapshot: string;
+  // Names the table of figures for a screen reader, and what to say until it is there.
+  table: string;
+  tableLoading: string;
+  download: string;
+};
+
 export default function PresetPanel({
   presetId: requestedId,
   preset: supplied,
@@ -102,10 +118,24 @@ export default function PresetPanel({
   defer = false,
   snapshot,
   onFirstMonth,
+  frame = "panel",
+  controlsSlot,
+  tableOnly = false,
+  headerEnd,
+  cardWords,
 }: {
   presetId?: string;
   preset?: Preset;
   anchored?: boolean;
+  frame?: "panel" | "card";
+  // card: where the time row is drawn (the Period zone of the chart being edited). Without one it is not drawn.
+  controlsSlot?: HTMLElement | null;
+  // card: the chart's figures as a table, in place of its picture.
+  tableOnly?: boolean;
+  // card: the canvas's controls for this chart, at the end of the heading row.
+  headerEnd?: ReactNode;
+  // card: the canvas's words for the parts of a card this panel draws.
+  cardWords?: CardWords;
   // A kept snapshot (a month) to read every figure of the chart from, instead of the newest (src/lib/kept.ts, D-131).
   snapshot?: string;
   // Told the first month the dataset has vehicles in, when the chart's rows arrive: the Build page's pinned line needs it (src/lib/pin.ts).
@@ -117,6 +147,7 @@ export default function PresetPanel({
   audience?: "public" | "internal";
 }) {
   const internal = audience === "internal";
+  const card = frame === "card";
   const preset = supplied ?? findPreset(requestedId ?? "");
   const presetId = preset?.id ?? requestedId ?? "";
   const defaultGranularityId = preset?.granularity_options?.[0]?.id ?? null;
@@ -325,7 +356,7 @@ export default function PresetPanel({
     };
   }, [defer, rows, error, resolution, sentinel]);
 
-  const panelClass = `panel${lead ? " lead" : ""}${wanted ? "" : " loading"}`;
+  const panelClass = `${card ? "chart-card-body" : `panel${lead ? " lead" : ""}`}${wanted ? "" : " loading"}`;
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     if (!linked || scrolled || !rows || !sentinel) return;
@@ -561,18 +592,7 @@ export default function PresetPanel({
           lead={lead}
           month={shownMonth}
           onMonth={chooseMonth}
-          after={
-            answerFirst
-              ? () => (
-                  <>
-                    {definitionBlock}
-                    {actionsBlock}
-                    {controlsBlock}
-                    {replacedNotice}
-                  </>
-                )
-              : undefined
-          }
+          after={answerFirst ? () => afterBlocks : undefined}
         />
       );
     } else if (shape === "matrix" && dimension && dimension2) {
@@ -591,14 +611,7 @@ export default function PresetPanel({
             columnHeading={dimensionLabel2 ?? dimension2.label}
             month={shownMonth}
             onMonth={chooseMonth}
-            after={() => (
-              <>
-                {definitionBlock}
-                {actionsBlock}
-                {controlsBlock}
-                {replacedNotice}
-              </>
-            )}
+            after={() => afterBlocks}
           />
         </Suspense>
         </ChunkBoundary>
@@ -738,6 +751,129 @@ export default function PresetPanel({
       ) : null}
     </div>
   );
+  // Every note under the chart: the same list whichever way the chart is framed.
+  const notesList = (
+    <ul className="notes">
+      {derived?.caveat && !notBuilt && preventsRender.length === 0 ? (
+        <li className="caveat">
+          {derived.caveat.text} <a href={derived.caveat.href}>{derived.caveat.link_label}</a>
+        </li>
+      ) : null}
+      {notes.filter((n) => (internal || n.unresolved.length === 0) && (internal || !notBuilt)).map((n) => (
+        <li key={n.key}>
+          {n.text}
+          {n.href ? (
+            <>
+              {" "}
+              <a href={n.href}>{phrases.field_note_link}</a>
+            </>
+          ) : null}
+          {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
+        </li>
+      ))}
+      {coverageNote ? <li>{coverageNote}</li> : null}
+      {hybridText.withheld ? (
+        <li>
+          {hybridText.withheld} <a href="/caveats#mild-hybrid-limits">{phrases.mild_split_withheld_link}</a>
+        </li>
+      ) : null}
+      {greyNote && !internal ? (
+        <li>
+          Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably
+          {collapseFraction > 0 ? ", and months with far fewer vehicles than the months before them, which may not describe a normal month" : ""}.
+          They are drawn in grey, not dropped. {phrases.grey_beyond_scale} <a href="/method">How the figures are made</a>.
+        </li>
+      ) : null}
+      {greyNote && internal ? (
+        <li>
+          Grey: months with fewer than {guard} vehicles behind the figure drawn
+          {collapseFraction > 0
+            ? `, and months whose total collapsed below ${Math.round(collapseFraction * 100)}% of the median of the ${TRAILING_MONTHS} months before them. The second guard is not the first: a month can be precisely measured and still describe a different population, which is what a nationwide shutdown does to a month of registrations`
+            : ""}
+          . Their shares are drawn in grey, not dropped and not zeroed. {phrases.grey_beyond_scale}
+        </li>
+      ) : null}
+      {(notBuilt && !internal) || !basisNote ? null : <li className="basis">{basisNote}</li>}
+    </ul>
+  );
+  // What a chart that opens with its answer draws after it. On a card the definition, the links and the time row have places of their own.
+  const afterBlocks = card ? (
+    replacedNotice
+  ) : (
+    <>
+      {definitionBlock}
+      {actionsBlock}
+      {controlsBlock}
+      {replacedNotice}
+    </>
+  );
+
+  // The same checks and the same notes as the panel below, framed as a card of a canvas (the canvas's own stylesheet draws it).
+  if (card) {
+    const activeRange = rangeOptions.find((o) => activePeriod === o.id && (o.id !== "all" || fullHistory === o.full || !start));
+    const counted = dataset?.public_label ?? dataset?.label;
+    const attributions = [...new Set(datasetsOf(effectivePreset).flatMap((id) => datasetAttribution(id, manifest, effectivePreset) ?? []))];
+    return (
+      <FiguresContext.Provider value={registerFigures}>
+        <TableOnlyContext.Provider value={tableOnly}>
+          <div className={panelClass} id={preset.id} ref={setSentinel}>
+            <header className="chart-card-head">
+              <div className="chart-card-heading">
+                {/* A card's title is a heading of the page's second level: the canvas has no section heading above its charts. */}
+                <h2 className="chart-card-title" id={questionId}>
+                  {preset.question}
+                </h2>
+                <p className="chart-card-description">{[counted, dataset?.single_period ? undefined : activeRange?.label].filter(Boolean).join(" · ")}</p>
+              </div>
+              {headerEnd}
+            </header>
+            {controlsSlot ? createPortal(controlsBlock, controlsSlot) : null}
+            {preventsRender.length > 0 ? (
+              <div className="callout blocked">
+                <span className="callout-label">Not available</span>
+                {notBuiltMessage ?? "This view can't be drawn from the data yet. Choose another option."}
+              </div>
+            ) : null}
+            {publicLimits.map((w) => (
+              <div key={w} className="callout warning">
+                <span className="callout-label">What this chart includes</span>
+                {w}
+              </div>
+            ))}
+            {preventsRender.length === 0 && wanted ? (
+              <p className={rows ? "visually-hidden" : "meta"} role="status" aria-labelledby={questionId}>
+                {rows ? (rows.length > 0 ? "The chart has loaded." : "") : "Loading the chart…"}
+              </p>
+            ) : null}
+            {answerFirst && shape === "league" ? null : replacedNotice}
+            {tableOnly && chart ? (
+              <>
+                <div hidden>{chart}</div>
+                <FiguresView getter={hasFigures ? figuresGetter.current : null} label={`${cardWords?.table ?? ""}: ${preset.question}`} loading={cardWords?.tableLoading ?? ""} />
+              </>
+            ) : (
+              chart
+            )}
+            <footer className="chart-card-foot">
+              <p className="chart-card-source">
+                {[...attributions, cardWords ? fillNote(cardWords.snapshot, { date: manifest.latest_snapshot }).text : ""].filter(Boolean).join(" ")}
+              </p>
+              <details className="chart-card-about">
+                <summary>{cardWords?.about}</summary>
+                {definitionBlock}
+                {notesList}
+              </details>
+              {hasFigures && preventsRender.length === 0 ? (
+                <button type="button" className="button-quiet" onClick={handleDownload}>
+                  {cardWords?.download}
+                </button>
+              ) : null}
+            </footer>
+          </div>
+        </TableOnlyContext.Provider>
+      </FiguresContext.Provider>
+    );
+  }
 
   return (
     <FiguresContext.Provider value={registerFigures}>
@@ -839,48 +975,7 @@ export default function PresetPanel({
       {answerFirst && shape === "league" ? null : replacedNotice}
       {chart}
 
-      <ul className="notes">
-        {derived?.caveat && !notBuilt && preventsRender.length === 0 ? (
-          <li className="caveat">
-            {derived.caveat.text} <a href={derived.caveat.href}>{derived.caveat.link_label}</a>
-          </li>
-        ) : null}
-        {notes.filter((n) => (internal || n.unresolved.length === 0) && (internal || !notBuilt)).map((n) => (
-          <li key={n.key}>
-            {n.text}
-            {n.href ? (
-              <>
-                {" "}
-                <a href={n.href}>{phrases.field_note_link}</a>
-              </>
-            ) : null}
-            {n.unresolved.length > 0 ? <em> (the build supplied no value for {n.unresolved.join(", ")})</em> : null}
-          </li>
-        ))}
-        {coverageNote ? <li>{coverageNote}</li> : null}
-        {hybridText.withheld ? (
-          <li>
-            {hybridText.withheld} <a href="/caveats#mild-hybrid-limits">{phrases.mild_split_withheld_link}</a>
-          </li>
-        ) : null}
-        {greyNote && !internal ? (
-          <li>
-            Grey: months with fewer than {guard} vehicles behind the figure, too few to read reliably
-            {collapseFraction > 0 ? ", and months with far fewer vehicles than the months before them, which may not describe a normal month" : ""}.
-            They are drawn in grey, not dropped. {phrases.grey_beyond_scale} <a href="/method">How the figures are made</a>.
-          </li>
-        ) : null}
-        {greyNote && internal ? (
-          <li>
-            Grey: months with fewer than {guard} vehicles behind the figure drawn
-            {collapseFraction > 0
-              ? `, and months whose total collapsed below ${Math.round(collapseFraction * 100)}% of the median of the ${TRAILING_MONTHS} months before them. The second guard is not the first: a month can be precisely measured and still describe a different population, which is what a nationwide shutdown does to a month of registrations`
-              : ""}
-            . Their shares are drawn in grey, not dropped and not zeroed. {phrases.grey_beyond_scale}
-          </li>
-        ) : null}
-        {(notBuilt && !internal) || !basisNote ? null : <li className="basis">{basisNote}</li>}
-      </ul>
+      {notesList}
 
       {internal ? (
         <p className="spec">

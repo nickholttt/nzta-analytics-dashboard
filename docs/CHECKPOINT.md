@@ -1,117 +1,78 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-18
+Last updated by claude on 2026-11-20
 
 ## Where we left off
 
-- 2026-11-14 to 18, the eighth to eleventh sessions of work order 1: #47 to #102 merged (D-082
-  to D-141). October was forced on 14 and 17 November at the user's word (D-134); any further
-  forced run is asked for each time, except after a change to the committed counts (D-120).
-- **Figures set beside published ones**: D-105, D-113 (the MIA), D-118 (vstat), D-124 (Auto
-  Trader's hybrids), D-123 and D-145 (SUV shares inside our range).
-- 2026-11-18, twelfth session. **Merged: #103, #104, #106 to #109.** The SUV file's third
-  slice (#109, D-145): eleven nameplates added, four rows (six nameplates) lowered to `medium`. A share against a
-  hidden line total says so, and a one-period ranking shows every value (#104, D-142). The
-  deploy reads every page of releases and stops before the upload past the host's limits
-  (#106, D-146). The build refuses an owner field in any fact table (#107). **Colour** is
-  bound, in a narrow fact table of colour, make and powertrain group (#108, D-144, a contract
-  change). **The board proposal** for D-138 is written with mockups (#105, D-143) and parked.
+- 2026-11-20, the first session of work order 2 (`docs/brief/WORK_ORDER.md`, D-147), which
+  replaces work order 1. **Merged: #111, #112, #113, #114.**
+  - #112: the order saved; its process rules and the canvas page's rules in `CLAUDE.md` and
+    `AGENTS.md`. #111: D-001 to D-140 archived, an index in `docs/DECISIONS.md`, and D-147.
+  - #113, #114: the canvas, build steps 1 and 2 (one chart with drop zones; the chart-type
+    picker), its words in `config/canvas.json` and held to the template lint.
+- #105 (the board proposal) is closed without merging: the order's §5 answers it. Its branch
+  is kept for the mockups.
 
 ## Open pull requests
 
-- **#105** the board proposal (D-143): parked for the user; questions below. Mergeable; its
-  review agreed. Merge only on the user's word about the proposal.
-- #110: these notes (docs only), if not yet merged.
+None waiting on the user.
 
-## The queue, in order
+## The queue, in order (work order 2)
 
-**The user's end state (D-138):** a self-serve board of charts. #105 proposes how; raise it
-first when UI or classification work starts.
+**Milestone 1, the canvas** (§5). Done when the user can open it on a phone and a desktop,
+build the acceptance question by dragging, add two more charts beside it, save the page as a
+link and see the same page from that link in a new window; screenshots in the report.
 
-1. **The site reads the narrow table** (D-144): Build answers a question from
-   `facts.narrow` when every field it names is in one narrow table, and offers colour.
-   Engine leftovers from the reviews of #107 and #108: `stock_configuration_problems` to read
-   `narrow_facts`; `kept-snapshots.mjs`'s owner scan to cover `narrow/`; a `facts` entry that
-   is not a string gives a TypeError, not the build's message; the manifest example in
-   `docs/CUBE_SCHEMA.md` to show `facts.narrow`; `AGENTS.md`'s dry-run row (14 min 17 s,
-   111 files, payload 5,759,161 bytes); the deploy's artifact fallback reads one page.
-2. **What the dashboard's "Vehicle usage" column records** (D-134), then **"Registered as"**
-   (D-140): match October's and November's archive files privately after NZTA's December
-   refresh and report. If the usage is as at first registration, keep it and owner type in
-   the store (the user's word first). Then a private ledger of each vehicle's first use.
-3. **Drawing a hidden cell** (D-130 lists what it needs), only when a chart by the owner's
-   region is wanted.
-4. **The SUV file** (D-145 "What is left"; whether the BRZ's "sports" heading reads as a body): the next nameplates without a row
-   (Mazda Biante, Audi A3, Honda e:N1, VW Polo, Nissan Sylphy and others); the `medium` and
-   `unresolved` rows (BYD Atto 2 and Sealion 5/6 have a readable NZ site not yet tried);
-   D-117 items 1 to 3 (three sizes each for cars and SUVs against the FCAI's footprint bands,
-   people movers and sports cars as classes, the wiring and its guard); a rule for COROLLA.
-5. **Small follow-ups.** Engine: Tank to unresolved (a golden change); a reader that refuses
-   a malformed reference row; the X-Trail row's basis; the dataset guard on a filtered
-   dataset (D-118); the fixture harness's fields; a seats average. Site: class with segment
-   group recorded in the data map; the query service prototype's `unknown`, `build.snapshot`
-   and `public_line` (D-137's follow-ups); the moderate axe `heading-order` on Build's
-   `h3.panel-question`.
-6. **The related-fields note** from the data map, in Build (package F's last site item),
-   reading the figures D-136 writes.
-7. **Paused, uncommitted, behind `main`:** package H's narrative spec (D-102; worktree
-   `nzta-screens`). D-103's draft scheme file is untracked in `nzta-segments`.
+3. **Several charts.** Add, duplicate, remove, reorder (by dragging and by buttons), half or
+   full width. The editor follows the chart being edited; under 1024 px it opens below that
+   chart. `src/lib/canvas.ts` already reads and writes several charts, their order and widths.
+4. **Save and share.** "My canvases" in the browser (as `src/lib/saved.ts` keeps questions),
+   each pinnable to a snapshot; a name never in a link. What a link asked for and did not get
+   (a value the data does not hold, a field the dataset lacks) said as Build says it.
+5. **Starter canvases.** Explore's groups as three or four canvases in config; Explore's page
+   becomes the list of them.
+6. **Polish.** One generated sentence under every chart (lines, bands and the map have none;
+   a ranking and a grid keep theirs above the chart for now); light and dark (check the chart
+   colours on a dark surface first); first load (3.93 s against 3 s).
 
-## Left in the packages
+**Milestone 2, ready to go public** (§6): About, differences and feedback linked from the
+canvas; `docs/playbooks/go-public.md` reduced to numbered clicks; a private dry run.
 
-- **A.** Follow-ups (D-088, D-089): a digest of the rows the archive job pulls; dependencies
-  pinned by hash and a draft-then-publish release step (after December's build); admin bypass
-  on `production` (the user's); a second scope for events; a lookup refusing a blank value.
-- **B.** Each month: the user's export, `pipeline supply`, a `--dry-run` build, a pull request
-  with the store's two files (D-097), one forced build if the month was built (D-120). **C.**
-  The user's Stats NZ export. **D.** First load (D-099): 4.6 s and 6.6 s against 3 s; not
-  timed since the table grew.
-- **E.** `sentinels.csv` gaining the map's forms; the rule table checking `uses.break_down`.
-- **The final report** (the order §6), with `docs/brief/MASTER_BRIEF.md` §4 and §12 updated.
-  Keep `README.md`'s "What it can answer today" and "Not there yet" lists true as work lands.
+**When NZTA refreshes (December):** November's build and archive; the dashboard usage-column
+check (D-134), then "Registered as" (D-140); fix what the refresh breaks.
+
+## Parked until the user says otherwise (the order's §1)
+
+- Colour's own table on the site (the narrow fact table, D-144).
+- More SUV slices and sizes (D-145, D-117).
+- Further hybrid work (D-110, D-119).
+- New segment schemes (D-103's draft, untracked in `nzta-segments`).
+- New fields, new datasets and new privacy tables; drawing a hidden cell over time (D-130).
+- The query service (D-091).
+- The narrative engine beyond the canvas's sentences (D-102's drafts, in `nzta-screens`).
+- Work order 1's small engine follow-ups (listed in this file as it was at commit `b2ef24d`).
 
 ## Questions for the user (parked; none stops the work)
 
-1. **The board proposal (#105, `docs/brief/CANVAS_PROPOSAL.md`)**, three questions in it:
-   which path (recommended: a board beside Build, starting with "Add to board"); shapes that
-   do not fit a question (recommended: listed greyed with the reason, never drawn, which adds
-   one sentence to CLAUDE.md's Shapes); which visual variants first (recommended: small
-   multiples and a single figure). With no answer, nothing is built before package H is done.
-2. **The site's name and web address** (`config/site.json`, search `TO DECIDE`): parked by
-   the user. The About page stays a marked draft until both are filled.
-3. **Later, by the user's word:** the query service (after the engine's audit, D-120); the
-   Stats NZ hand export; going public; the privacy sentence; the retaken dashboard history.
+1. **The site's name and web address** (`config/site.json`, search `TO DECIDE`). The About
+   page stays a marked draft until both are filled. They are yours; there is no default.
+2. **The Build page, once the canvas is done.** Keep both, or fold Build into the canvas (a
+   Build link then opens as a canvas of one chart). Recommended: fold it in at the end of
+   milestone 1. With no answer, both stay.
 
-## Decided for the user (unreviewed records in `docs/DECISIONS.md`)
+## Decided for the user (unreviewed)
 
-D-082, D-085 to D-095 (the eighth session). The ninth: the readings in D-096, D-104 and D-106,
-and D-097 to D-101, D-105 and D-107 to D-119. The tenth: the readings in D-120, and D-121 to
-D-125. The eleventh: the readings in D-126, D-134, D-138, D-140, D-127 to D-137 and D-139.
-The twelfth: D-142, D-144, D-145, D-146; #107's refusal reads every
-dataset's `facts`, live or not (no record). D-143 is a proposal, not a decision.
-
-## How reviews run (the user, 17 November: reviews were costing 500K tokens and more)
-
-One fresh reviewer per pull request (sonnet for docs only). The builder's brief carries a
-checklist of what reviewers kept finding; the reviewer gets the evidence and three to five
-things to test; a mechanical fix is checked by the lead against the reviewer's stated remedy;
-a fix that is new code gets a narrow re-check of the finding and the fix alone. Three
-sub-agents at once, at most two on opus. Builders commit locally; the lead pushes and opens
-the pull request (a builder told to push was refused by Claude Code's permission check on
-18 November). Builders run only the tests that cover their change; `Checks` runs the rest.
-Parallel branches each take a decision number the lead hands out, to avoid clashes.
+- In D-147: how the order reads onto hard rules 4, 7 and 8; no final report of work order 1;
+  #105 closed; the `definitions-editor` sub-agent on sonnet.
+- The canvas (listed in #114): no new dependency (no shadcn/ui, no drag library); the
+  layout; the zone names; the six chart types by name and a table; the answer stays above a
+  ranking and a grid for now; a drop is always taken so that a refusal is said; light only.
+- `public/data` was refreshed from a dry run without asking, though the playbook says to ask:
+  the canvas needed the newer fields and the current fleet. The old copy is
+  `public/data.previous`.
 
 ## Prompt for the next session
 
-/start. Continue `docs/brief/WORK_ORDER.md` from CHECKPOINT's queue, in its order. Its §2
-still stands: you may merge this work order's pull requests into `main` in this session when
-checks are green and an independent reviewer agrees, and nothing in its §3 is touched. Do not
-stop for questions; park what needs me and keep going. D-104 stands: the engine first and
-right, no proposal to launch early, figures set beside published ones. Reviews: as above.
-
-Check first: `git worktree list` and `git status` in each (`nzta-screens` and `nzta-segments`
-hold uncommitted files: read before touching); open pull requests (#105 parked); the
-`Monthly build` runs since 17 November (has NZTA refreshed:
-is a November build or archive there? The next build is the first to publish the fleet,
-colour and the narrow table); `CLOUDFLARE_PAGES_PROJECT` still unset. No local path in a doc
-or commit.
+/start. Continue `docs/brief/WORK_ORDER.md` (work order 2) from CHECKPOINT. Its §3 still
+stands: you may merge its pull requests into `main` in this session under its §2 and §3, and
+nothing in its §4 is touched. Do not stop for questions; park what needs me and keep going.

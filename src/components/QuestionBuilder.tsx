@@ -2,216 +2,24 @@
 // among which vehicles, and the charts that answer it are drawn by the same panel as Explore (D-058, D-059). The
 // question lives in the address bar, so the panel's "Copy link" shares it.
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
-import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases, valueWords } from "../lib/config";
-import { REST_NAME, isChoosable } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, isMonthKey, narrowingNotes, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, settleChange, viewsFor, withValues, withoutValues } from "../lib/builder";
+import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases } from "../lib/config";
+import { REST_NAME } from "../lib/reserved";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, changeQuestion, isMonthKey, narrowingNotes, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues, withoutValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
-import { ServiceError, datasetLatestMonth, factView, fieldValues, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
-import type { Manifest, SliceRow } from "../lib/data";
+import { fieldValues, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
+import type { Manifest } from "../lib/data";
 import { canPin, servedMonth } from "../lib/pin";
 import { pickerMonth, pinLine, readingFor } from "../lib/kept";
 import type { Loaders, Owner, Reading } from "../lib/kept";
-import { TRAILING_MONTHS, addMonths } from "../lib/measures";
+import { TRAILING_MONTHS } from "../lib/measures";
 import { fillNote } from "../lib/notes";
-import { count } from "../lib/readout";
 import { fillTemplate, pickedBuilderSentences } from "../lib/sentences";
 import keepWords from "../../config/my_questions.json";
 import MyQuestions from "./MyQuestions";
-import PresetPanel, { reservedLabel } from "./PresetPanel";
+import PresetPanel from "./PresetPanel";
+import { ValuePicker, focusSoon, say, startingValues, valueLabel, valueOptions } from "./ValuePicker";
 
-// Values filled in when a count is broken down and none are chosen yet: a count draws one line per value.
-const STARTING_VALUES = 5;
-const SUGGESTIONS = 8;
 const VIEW_LABELS: Record<string, string> = { mix: "Lines over time", geo: "Map", distribution: "Bars by band", league: "Ranking", trend: "Line" };
-
-// A value as the page reads it: a reserved value in its own words, a compound value (a model) as words.
-const valueLabel = (v: string, dimension?: string) => valueWords(dimension, reservedLabel(v));
-const isReserved = (v: string) => v.startsWith("__") && v.endsWith("__");
-// Focus moves after React has drawn the change, so the element it moves to exists.
-const focusSoon = (find: () => HTMLElement | null | undefined) => requestAnimationFrame(() => find()?.focus());
-
-type ValueOption = { value: string; recent: number; total: number };
-
-// Every value of a breakdown, largest in the last 12 months first, then largest over all time: what a visitor most
-// likely wants is at the top, and a value that has gone (a brand no longer sold) is still there to find. Counted
-// among the vehicles the question's other conditions keep, so the list matches what the chart will show.
-async function valueOptions(dataset: string, dimension: string, where: Record<string, string[]>, snapshot?: string): Promise<ValueOption[]> {
-  const filtered = Object.values(where).some((kept) => kept.length > 0);
-  const [rows, manifest] = await Promise.all([
-    filtered ? factView(dataset, dimension, undefined, where, undefined, snapshot) : loadSlice(dataset, dimension, snapshot),
-    loadManifest(snapshot),
-  ]);
-  const latest = datasetLatestMonth(manifest, dataset);
-  const from = addMonths(latest, -(TRAILING_MONTHS - 1));
-  const byValue = new Map<string, ValueOption>();
-  for (const r of rows as SliceRow[]) {
-    // A hidden count has no number to add, and a period that is not broken down has no value (D-139).
-    if (r.hidden || r.notBrokenDown) continue;
-    const o = byValue.get(r.value) ?? { value: r.value, recent: 0, total: 0 };
-    o.total += r.n;
-    if (r.month >= from && r.month <= latest) o.recent += r.n;
-    byValue.set(r.value, o);
-  }
-  return [...byValue.values()].filter((o) => o.total > 0 && isChoosable(o.value)).sort((a, b) => b.recent - a.recent || b.total - a.total || a.value.localeCompare(b.value));
-}
-
-function failureHint(e: unknown): string {
-  if (!(e instanceof ServiceError)) return "The values to choose from did not load. Reload the page to try again.";
-  return e.down ? "The question service is not answering, so the values to choose from did not load. Try again in a few minutes." : e.message;
-}
-
-function useValueOptions(dataset: string, dimension: string, where: Record<string, string[]>, snapshot?: string) {
-  const [options, setOptions] = useState<ValueOption[] | null>(null);
-  // What the hint says when the list did not load: a file that failed, the query service not answering, or the
-  // service's own sentence when it refused the question (trying again would not help).
-  const [failed, setFailed] = useState<string | null>(null);
-  const whereKey = JSON.stringify(where);
-  useEffect(() => {
-    let current = true;
-    setOptions(null);
-    setFailed(null);
-    valueOptions(dataset, dimension, JSON.parse(whereKey), snapshot).then(
-      (o) => current && setOptions(o),
-      (e) => current && setFailed(failureHint(e)),
-    );
-    return () => {
-      current = false;
-    };
-  }, [dataset, dimension, whereKey, snapshot]);
-  return { options, failed };
-}
-
-function ValuePicker({
-  dataset,
-  dimension,
-  snapshot,
-  noun,
-  chosen,
-  where,
-  onChange,
-  max,
-  emptyHint,
-  note,
-  aside,
-  chosenLabel,
-}: {
-  dataset: string;
-  dimension: string;
-  // The kept snapshot (a month) the suggestions are counted in, where the question reads from one and it can answer for this field (pickerMonth).
-  snapshot?: string;
-  noun: string;
-  chosen: string[];
-  where: Record<string, string[]>;
-  onChange: (values: string[]) => void;
-  max?: number;
-  emptyHint?: string;
-  // A sentence under the chosen values (where they are the page's own), and controls beside the search box's label, which take no row of
-  // their own.
-  note?: string;
-  aside?: ReactNode;
-  // The name of the list of chosen values, where "chosen" would not be true of them.
-  chosenLabel?: string;
-}) {
-  const { options, failed } = useValueOptions(dataset, dimension, where, snapshot);
-  const [query, setQuery] = useState("");
-  const input = useRef<HTMLInputElement>(null);
-  const box = useRef<HTMLDivElement>(null);
-  const inputId = `find-${dimension}`;
-  const full = max !== undefined && chosen.length >= max;
-  const filtered = Object.values(where).some((kept) => kept.length > 0);
-  const words = datasetWords(dataset);
-  const matches = useMemo(() => {
-    if (!options) return [];
-    const q = query.trim().toLowerCase();
-    return options.filter((o) => !chosen.includes(o.value) && (!q || valueLabel(o.value, dimension).toLowerCase().includes(q))).slice(0, SUGGESTIONS);
-  }, [options, query, chosen, dimension]);
-  // The search box, or the picker itself once it is full and the box has gone, so focus is never dropped to the page.
-  const refocus = () => focusSoon(() => input.current ?? box.current);
-
-  return (
-    <div className="picker" ref={box} tabIndex={-1}>
-      {chosen.length > 0 ? (
-        <ul className="chips" aria-label={chosenLabel ?? `Chosen ${noun} values`}>
-          {chosen.map((v) => (
-            <li key={v}>
-              {valueLabel(v, dimension)}
-              <button
-                type="button"
-                aria-label={`Remove ${valueLabel(v, dimension)}`}
-                onClick={() => {
-                  onChange(chosen.filter((x) => x !== v));
-                  refocus();
-                }}
-              >
-                <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
-                  <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                </svg>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : emptyHint ? (
-        <p className="picker-hint">{emptyHint}</p>
-      ) : null}
-      {note ? <p className="picker-hint">{note}</p> : null}
-      {failed ? (
-        <p className="picker-hint">{failed}</p>
-      ) : full ? (
-        <>
-          <p className="picker-hint">Up to {max} can be compared at once. Remove one to add another.</p>
-          {aside ? <div className="picker-aside">{aside}</div> : null}
-        </>
-      ) : (
-        <>
-          <div className="picker-find-row">
-            <label className="picker-find" htmlFor={inputId}>
-              Search {noun}
-            </label>
-            {aside ? <div className="picker-aside">{aside}</div> : null}
-          </div>
-          <input id={inputId} ref={input} type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
-          {options === null ? (
-            <p className="picker-hint">Loading…</p>
-          ) : matches.length === 0 ? (
-            <p className="picker-hint">
-              {query.trim()
-                ? `Nothing matches “${query.trim()}”${filtered ? " among the vehicles the conditions keep" : ""}.`
-                : options.length === 0
-                  ? filtered
-                    ? "The other conditions keep no vehicles, so there is nothing to choose from."
-                    : "There is nothing to choose from."
-                  : "Every value is chosen."}
-            </p>
-          ) : (
-            <ul className="suggestions" aria-label={query.trim() ? `Matching “${query.trim()}”` : "The largest in the last 12 months"}>
-              {matches.map((o) => (
-                <li key={o.value}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onChange([...chosen, o.value]);
-                      setQuery("");
-                      refocus();
-                    }}
-                  >
-                    <span className="suggestion-name">{valueLabel(o.value, dimension)}</span>
-                    <span className="suggestion-figure">
-                      {o.recent > 0 ? `${count(o.recent)} ${say(words?.suggestion_recent)}` : `${count(o.total)} ${say(words?.suggestion_total)}`}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-// A dataset's words, with the trailing window filled in.
-const say = (template?: string) => fillNote(template ?? "", { months: TRAILING_MONTHS }).text;
 
 const without = (where: Record<string, string[]>, dimension: string) => Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
 
@@ -316,25 +124,8 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   // keepChart: the chart's own settings stay in the address (the window a ranking is of), as when a ranking of the values chosen
   // becomes the ranking of every value and back.
   const ask = (next: Partial<Question>, fromVisitor = true, keepChart = false, removal = true) => {
-    const asked = { ...latest.current, ...next };
-    // Ranking every value is a state of the ranking view only.
-    if (next.view !== undefined && next.view !== RANKING) asked.rankAll = false;
-    // Values the page chose follow the question: a new condition or measure sets them aside, and the page looks again.
-    if (latest.current.pageValues && next.values === undefined && (next.where !== undefined || next.measure !== undefined)) asked.values = [];
-    // A grid chooses its own lines, so the values the page filled in for the lines of a chart are set aside when the second breakdown is added.
-    if (latest.current.pageValues && next.by2 && next.values === undefined) asked.values = [];
-    // Another dataset carries other conditions and other values: the ones it does not carry go, and the chosen values start over.
-    if (next.dataset && next.dataset !== latest.current.dataset) {
-      const carried = all.datasets.find((v) => v.dataset === next.dataset)?.filters ?? [];
-      asked.where = Object.fromEntries(Object.entries(asked.where).filter(([d]) => carried.some((f) => f.id === d)));
-      asked.values = [];
-    }
-    // A condition with no value yet keeps every vehicle and has no place in the address, so settle drops it. It stays
-    // on the page while the visitor changes something else, and goes only when they remove it.
-    const held = Object.entries(asked.where ?? {}).filter(([d, kept]) => kept.length === 0 && canApply(d));
-    // A condition the question had and the visitor took away stays away, though a breakdown would start the question with it (D-132).
-    const settled = settleChange(all, latest.current, asked, removal);
-    for (const [d] of held) if (d !== settled.by && !(d in settled.where)) settled.where[d] = [];
+    // What a change sets aside, and the conditions it holds, are one rule shared with the canvas (src/lib/builder.ts, changeQuestion).
+    const settled = changeQuestion(all, latest.current, next, canApply, removal);
     latest.current = settled;
     if (fromVisitor) setNotices([]);
     setQuestion(settled);
@@ -370,7 +161,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
       (options) => {
         const now = latest.current;
         if (!current || now.by !== by || now.values.length > 0) return;
-        const top = options.filter((o) => !isReserved(o.value) && o.recent > 0).slice(0, STARTING_VALUES).map((o) => o.value);
+        const top = startingValues(options);
         if (top.length) ask({ values: top, pageValues: true }, false, true);
         else setNoStartFor(startKey);
       },

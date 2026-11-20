@@ -1,13 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { TableOnlyContext } from "./FiguresContext";
 
 // Renders a Plot figure at the width of its container, and again whenever that width changes.
 // onWidth tells the parent that width, for anything outside the figure that depends on it.
 // label: what the chart draws, for a screen reader. The chart is one image to assistive technology: Plot names each of
 // its mark groups ("rect", "rule"), which says nothing to a listener and is not allowed on an element with no role, so
 // those names are dropped and the image, or the figure holding it and its legend, carries the label.
+// Where the panel shows the figures as a table (TableOnlyContext), nothing is drawn: the element is not there to measure.
 export function PlotFigure({ render, onWidth, label }: { render: (width: number) => Element; onWidth?: (width: number) => void; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const tableOnly = useContext(TableOnlyContext);
 
   useEffect(() => {
     const el = ref.current;
@@ -19,17 +22,17 @@ export function PlotFigure({ render, onWidth, label }: { render: (width: number)
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [onWidth]);
+  }, [onWidth, tableOnly]);
 
   useEffect(() => {
-    if (!width) return;
+    if (!width || tableOnly) return;
     const figure = render(width);
     figure.setAttribute("role", "img");
     figure.setAttribute("aria-label", label);
     for (const named of figure.querySelectorAll("[aria-label]")) named.removeAttribute("aria-label");
     ref.current?.replaceChildren(figure);
     return () => figure.remove();
-  }, [render, width, label]);
+  }, [render, width, label, tableOnly]);
 
-  return <div ref={ref} className="chart" />;
+  return tableOnly ? null : <div ref={ref} className="chart" />;
 }

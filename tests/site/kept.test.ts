@@ -284,6 +284,8 @@ test("every list of values on the Build page is asked of the snapshot the questi
   const pickers = count("<ValuePicker");
   assert.equal(pickers, 3, "the page has three lists of values; if that changed, this test must follow");
   assert.equal(count("snapshot={pickAt("), pickers, "each picker is given its snapshot");
-  assert.ok(source.includes("valueOptions(dataset, dimension, JSON.parse(whereKey), snapshot)"), "the picker's list is read from it");
-  assert.ok(source.includes("[dataset, dimension, whereKey, snapshot]"), "and read again when it changes");
+  // The picker itself is shared with the canvas (src/components/ValuePicker.tsx).
+  const picker = readFileSync(new URL("../../src/components/ValuePicker.tsx", import.meta.url), "utf8");
+  assert.ok(picker.includes("valueOptions(dataset, dimension, JSON.parse(whereKey), snapshot)"), "the picker's list is read from it");
+  assert.ok(picker.includes("[dataset, dimension, whereKey, snapshot]"), "and read again when it changes");
 });

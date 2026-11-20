@@ -1,5 +1,5 @@
 {
-  "$comment": "The canvas: a page of charts a visitor builds by putting fields into each chart's zones (work order 2 section 5, D-138, D-147). Each chart is a Build question (config/presets.json, builder), so this file holds no measure, dataset or rule of its own: it holds the canvas's interface words, which fields sit in which group of the field list, a shorter one-line definition for the few fields that need one, and the names of the chart types. Every text under words, chart_types, measures, groups, kinds, measure_kinds and the time field's label is a template the lint holds to config/narrative/rules.json (pipeline/tests/test_site_config.py): no digit, no causal or judgement word, no value or label of a reference file; a name comes in as a placeholder. definitions and the time field's definition are not templates: like the data map's, a definition says what a field holds and may name what it holds.",
+  "$comment": "The canvas: a page of charts a visitor builds by putting fields into each chart's zones (work order 2 section 5, D-138, D-147). Each chart is a Build question (config/presets.json, builder), so this file holds no measure, dataset or rule of its own: it holds the canvas's interface words, which fields sit in which group of the field list, a shorter one-line definition for the few fields that need one, and the names of the chart types. Read by src/lib/canvas.ts (what a field may do in a zone, which chart types fit, the address) and src/lib/canvasFields.ts (the field list). Every text under words, chart_types, measures, groups, kinds, measure_kinds and the time field's label is a template the lint holds to config/narrative/rules.json (pipeline/tests/test_site_config.py): no digit, no causal or judgement word, no value or label of a reference file; a name comes in as a placeholder. definitions and the time field's definition are not templates: like the data map's, a definition says what a field holds and may name what it holds.",
   "id": "canvas",
   "chart_prefix": "c",
   "max_charts": 12,
@@ -21,7 +21,7 @@
     { "id": "place", "label": "Place", "map_groups": ["who_has_it"], "kinds": ["place"] },
     { "id": "current_use", "label": "Current use", "map_groups": ["who_has_it"] }
   ],
-  "$groups_comment": "The field list's groups, in order. A field goes to the first group that lists the data map group of the register field it is made from (config/data_map.json, group) and, where the group names kinds, whose kinds include the field's own. A field made from a reference file about that register field, and not from the field itself, can be placed by hand in group_of.",
+  "$groups_comment": "The field list's groups, in order. A field goes to the first group that lists the data map group of the register field it is made from (config/data_map.json, group) and, where the group names kinds, whose kinds include the field's own. A field made from a reference file about that register field, and not from the field itself, can be placed by hand in group_of. tests/site/canvas.test.ts holds every field the canvas lists to exactly one group and to a definition of one line.",
   "group_of": {
     "owner_country": "origin",
     "heritage_country": "origin"
@@ -117,6 +117,7 @@
     "status_replaced": "{field} replaces {other} in {zone}.",
     "status_removed": "{field} removed from {zone}.",
     "status_refused": "Not added. {reason}",
+    "status_period": "The month of first registration is the period. Choose how much of it is drawn here.",
     "status_type": "{type} chosen.",
     "refuse_same": "{field} is already in {zone}.",
     "refuse_not_in_dataset": "{dataset} does not hold {field}.",

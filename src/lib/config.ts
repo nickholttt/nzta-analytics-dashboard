@@ -75,6 +75,8 @@ export type Band = { label: string; min?: number; max?: number | null; unknown?:
 export type Dimension = {
   id: string;
   label: string;
+  // The field in one line, for a visitor choosing what to ask about (the canvas's field list reads it, src/lib/canvasFields.ts).
+  help?: string;
   note?: string;
   note_template?: string;
   // What the field is (category, ordered band, place ...), in the data map's words, and how long its list of values is.

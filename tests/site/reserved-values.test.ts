@@ -63,7 +63,7 @@ test("not recorded and no reference match are still choosable, as a value and as
 });
 
 test("the picker does not list the beyond-the-cap value, among the values to compare or the values of a condition", () => {
-  const builder = read("src/components/QuestionBuilder.tsx");
-  assert.match(builder, /o\.total > 0 && isChoosable\(o\.value\)/);
-  assert.match(builder, /fillNote\(builderSpec\.notices\.left_out, left\)/);
+  // The picker is shared by the Build page and the canvas (src/components/ValuePicker.tsx); the page says what a link named that it left out.
+  assert.match(read("src/components/ValuePicker.tsx"), /o\.total > 0 && isChoosable\(o\.value\)/);
+  assert.match(read("src/components/QuestionBuilder.tsx"), /fillNote\(builderSpec\.notices\.left_out, left\)/);
 });

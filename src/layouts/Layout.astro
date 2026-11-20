@@ -6,12 +6,14 @@ import { attribution } from "../lib/siteCopy";
 
 interface Props {
   title: string;
-  activeNav?: "explore" | "build" | "method" | "caveats" | "about" | "feedback" | "differences";
+  activeNav?: "explore" | "canvas" | "build" | "method" | "caveats" | "about" | "feedback" | "differences";
   // Internal pages (D-028) stay out of search engines and out of the main navigation.
   noindex?: boolean;
+  // The canvas page: wider than a reading page, with its own tokens (src/styles/canvas.css).
+  wide?: boolean;
 }
 
-const { title, activeNav, noindex = false } = Astro.props;
+const { title, activeNav, noindex = false, wide = false } = Astro.props;
 
 const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
   new Date(`${manifest.latest_snapshot}T00:00:00Z`),
@@ -26,7 +28,7 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
     {noindex && <meta name="robots" content="noindex" />}
   </head>
   <body>
-    <main class="page">
+    <main class:list={["page", { "page-canvas": wide }]}>
       <header class="masthead">
         <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
           <p class="eyebrow" style="margin: 0;">Snapshot {snapshot}</p>
@@ -37,6 +39,13 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
               style={`text-decoration: none; font-weight: ${activeNav === "explore" ? "600" : "400"}; border-bottom: ${activeNav === "explore" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "explore" ? "var(--ink)" : "var(--ink-2)"};`}
             >
               Explore
+            </a>
+            <a
+              href="/canvas"
+              class="meta"
+              style={`text-decoration: none; font-weight: ${activeNav === "canvas" ? "600" : "400"}; border-bottom: ${activeNav === "canvas" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "canvas" ? "var(--ink)" : "var(--ink-2)"};`}
+            >
+              Canvas
             </a>
             <a
               href="/build"

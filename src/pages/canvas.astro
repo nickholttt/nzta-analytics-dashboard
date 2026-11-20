@@ -1,0 +1,34 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Canvas from "../components/canvas/Canvas";
+import "../styles/canvas.css";
+import { builderVocabulary } from "../lib/builder";
+import { canvasVocabulary, say } from "../lib/canvas";
+import { canvasFields } from "../lib/canvasFields";
+import manifest from "../../public/data/manifest.json";
+import type { Manifest } from "../lib/data";
+
+// What a chart on the canvas may ask is decided here, at build time, against the cube as built, as it is for the Build page (D-044,
+// D-058): the datasets, their measures drawn as one chart, and the fields each offers. The field list is made here too, from the data
+// map, so the browser is handed plain data and does not read the map for it.
+const vocabulary = canvasVocabulary(builderVocabulary(manifest as Manifest));
+const groups = vocabulary.datasets.length > 0 ? canvasFields(vocabulary, manifest as Manifest) : [];
+---
+
+<Layout title={say("page_title")} activeNav="canvas" wide>
+  <Fragment slot="masthead">
+    <h1>{say("page_title")}</h1>
+    <p class="standfirst">{say("page_lead")}</p>
+  </Fragment>
+
+  {
+    vocabulary.datasets.length > 0 ? (
+      <Canvas client:only="react" vocabulary={vocabulary} groups={groups} />
+    ) : (
+      <div class="callout blocked">
+        <span class="callout-label">{say("not_available_label")}</span>
+        {say("not_available")}
+      </div>
+    )
+  }
+</Layout>
