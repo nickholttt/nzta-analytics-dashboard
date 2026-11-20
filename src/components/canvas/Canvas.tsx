@@ -3,12 +3,14 @@
 // fit, how charts are added, copied, removed and moved, and the address are src/lib/canvas.ts. The whole canvas lives in the address
 // bar, so the link is the page.
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { absentNotes, absentValues, linkNotices, settle, withoutValues } from "../../lib/builder";
 import type { Question, Vocabulary } from "../../lib/builder";
 import {
   addChart,
   canvasAddress,
   canvasSpec,
   changeChart,
+  chartPreset,
   chartSettings,
   duplicateChart,
   fieldLabel,
@@ -25,13 +27,14 @@ import {
   zoneLabel,
 } from "../../lib/canvas";
 import type { Canvas as CanvasState, CanvasChart, CanvasField, CanvasFieldGroup, ChartSettings, Zone } from "../../lib/canvas";
-import { loadManifest } from "../../lib/data";
+import { fieldValues, loadManifest } from "../../lib/data";
 import type { Manifest } from "../../lib/data";
-import { focusSoon } from "../ValuePicker";
+import { focusSoon, valueLabel } from "../ValuePicker";
 import AddMenu from "./AddMenu";
 import ChartCard, { cardId } from "./ChartCard";
 import ChartPane from "./ChartPane";
 import FieldList from "./FieldList";
+import MyCanvases from "./MyCanvases";
 
 // At this width and over, the chart's zones and the field list sit beside the charts; under it they open below the chart being edited.
 const WIDE = "(min-width: 64rem)";
@@ -83,9 +86,18 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
   // Why the last chart asked for was not added, until the canvas changes.
   const [addRefused, setAddRefused] = useState(false);
 
+  // What the link asked of each chart that the page could not give, said on the chart until the visitor changes it.
+  const [notices, setNotices] = useState<Record<string, string[]>>(() => {
+    if (typeof window === "undefined") return {};
+    const told = readCanvas(window.location.search).map((a): [string, string[]] => [a.id, linkNotices(all, a.asked, settle(all, a.asked), valueLabel)]);
+    return Object.fromEntries(told.filter(([, lines]) => lines.length > 0));
+  });
+
   const latest = useRef(canvas);
   latest.current = canvas;
   const built = manifest ?? undefined;
+  const latestBuilt = useRef(built);
+  latestBuilt.current = built;
 
   const write = useCallback((next: CanvasState, changed: ReadonlySet<string>, search = window.location.search) => {
     const address = `${window.location.pathname}?${canvasAddress(search, next, changed)}${window.location.hash}`;
@@ -143,7 +155,9 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
       const chart = chartOf(id);
       if (!chart) return;
       replace(changeChart(all, chart, next, built), byVisitor);
-      if (byVisitor) moveOn();
+      if (!byVisitor) return;
+      moveOn();
+      setNotices(({ [id]: _told, ...others }) => others);
     },
     [all, built, replace, moveOn],
   );
@@ -185,6 +199,25 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
   );
 
   const fieldRemoved = useCallback((field: string, zone: Zone) => setStatus(say("status_removed", { field: fieldLabel(field), zone: zoneLabel(zone) })), []);
+
+  // A link can name a value its dataset's own table of that field does not hold, which would match no vehicle and say nothing. Checked
+  // once for each chart the link opened, as the Build page checks its question; the value is left out and the chart says so.
+  useEffect(() => {
+    for (const { id, question: asked } of latest.current.charts) {
+      const filters = all.datasets.find((v) => v.dataset === asked.dataset)?.filters ?? [];
+      const canApply = (d: string) => filters.some((f) => f.id === d);
+      const readTable = (from: string, field: string, others: Record<string, string[]>) =>
+        fieldValues(from, field, Object.values(others).some((kept) => kept.length > 0)).catch(() => undefined);
+      absentValues(asked, canApply, readTable).then((absent) => {
+        const now = chartOf(id);
+        if (absent.length === 0 || !now || now.question.dataset !== asked.dataset) return;
+        replace(changeChart(all, now, withoutValues(now.question, absent), latestBuilt.current, false), false);
+        setNotices((before) => ({ ...before, [id]: [...(before[id] ?? []), ...absentNotes(asked.dataset, absent, valueLabel)] }));
+      });
+    }
+    // Once, for the charts the link opened: replace and the closures read the latest canvas through its ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ---- The page's own changes: a chart added, copied, removed, put back or moved ----
 
@@ -265,6 +298,10 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
   const current = canvas.charts.find((c) => c.id === selected) ?? canvas.charts[0];
   const editorShown = wide || open;
   const place = current ? canvas.charts.indexOf(current) : -1;
+  // What the canvas is called when it is saved, until the visitor renames it: its first chart's title, and how many more it holds.
+  const [first] = canvas.charts;
+  const title = (first && chartPreset(first, (value) => valueLabel(value, first.question.by ?? undefined))?.question) || say("page_title");
+  const name = canvas.charts.length > 1 ? say("default_name_more", { name: title, number: canvas.charts.length - 1 }) : title;
 
   const editor = current ? (
     <div className="canvas-editor" id="canvas-editor">
@@ -321,6 +358,7 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
               editorOpen={chart.id === current?.id && editorShown}
               periodSlot={chart.id === current?.id && editorShown ? periodSlot : null}
               moving={moving}
+              notices={notices[chart.id] ?? []}
               onEdit={() => {
                 setSelected(chart.id);
                 setOpen(chart.id === current?.id ? !open : true);
@@ -357,6 +395,7 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
             </p>
           ) : null}
         </div>
+        <MyCanvases name={name} />
       </div>
       {wide ? editor : null}
       {adding && current ? (

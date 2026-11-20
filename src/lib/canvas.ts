@@ -284,9 +284,11 @@ export function typeReason(all: Vocabulary, q: Question, type: string): string {
 
 // A chart after part of its question changes: the question settles as it does on the Build page (changeQuestion), and a chart type the
 // new question does not fit gives way to the best fit. Without a manifest the type is kept, and checked when the build is known.
-export function changeChart(all: Vocabulary, chart: CanvasChart, next: Partial<Question>, manifest?: Manifest): CanvasChart {
+// removal: false where the page takes something out itself (a value a link named that the data does not hold), which is not the visitor
+// removing it (changeQuestion).
+export function changeChart(all: Vocabulary, chart: CanvasChart, next: Partial<Question>, manifest?: Manifest, removal = true): CanvasChart {
   const v = datasetOf(all, chart.question.dataset);
-  const settled = changeQuestion(all, chart.question, { ...next, view: null }, (d) => v.filters.some((f) => f.id === d));
+  const settled = changeQuestion(all, chart.question, { ...next, view: null }, (d) => v.filters.some((f) => f.id === d), removal);
   const question = { ...settled, view: null };
   return { ...chart, question, type: keptType(question, chart.type, manifest) };
 }

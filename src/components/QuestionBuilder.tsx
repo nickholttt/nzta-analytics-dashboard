@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases } from "../lib/config";
 import { REST_NAME } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, changeQuestion, isMonthKey, narrowingNotes, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues, withoutValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, changeQuestion, isMonthKey, linkNotices, narrowingNotes, questionParams, readQuestion, removeConditionLabel, settle, viewsFor, withValues, withoutValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
 import { fieldValues, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
 import type { Manifest } from "../lib/data";
@@ -12,7 +12,6 @@ import { canPin, servedMonth } from "../lib/pin";
 import { pickerMonth, pinLine, readingFor } from "../lib/kept";
 import type { Loaders, Owner, Reading } from "../lib/kept";
 import { TRAILING_MONTHS } from "../lib/measures";
-import { fillNote } from "../lib/notes";
 import { fillTemplate, pickedBuilderSentences } from "../lib/sentences";
 import keepWords from "../../config/my_questions.json";
 import MyQuestions from "./MyQuestions";
@@ -59,15 +58,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const [notices, setNotices] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     const asked = readQuestion(window.location.search);
-    const note = readingNotes(all, asked, settle(all, asked), valueLabel);
-    return [
-      ...(note.dataset ? [fillNote(builderSpec.notices.dataset, note.dataset).text] : []),
-      ...(note.by ? [fillNote(builderSpec.notices.by, note.by).text] : []),
-      ...(note.by2 ? [fillNote(builderSpec.notices.by2, note.by2).text] : []),
-      ...(note.value2 ? [builderSpec.notices.value2] : []),
-      ...(note.snapshot ? [fillNote(builderSpec.notices.snapshot, note.snapshot).text] : []),
-      ...(note.left_out ?? []).map((left) => fillNote(builderSpec.notices.left_out, left).text),
-    ];
+    return linkNotices(all, asked, settle(all, asked), valueLabel);
   });
   // The snapshot this page serves, to say what a pinned question is pinned to (src/lib/pin.ts).
   const [served, setServed] = useState<Manifest | null | undefined>(undefined);

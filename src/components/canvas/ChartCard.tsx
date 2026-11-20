@@ -37,6 +37,8 @@ type Props = {
   periodSlot: HTMLElement | null;
   // The chart being dragged to another place, if one is.
   moving: string | null;
+  // What the link asked of this chart that the page could not give.
+  notices: string[];
   onEdit: () => void;
   // The page's own starting values for a count with none chosen.
   onPageValues: (values: string[]) => void;
@@ -46,7 +48,7 @@ type Props = {
   onMoveHere: () => void;
 };
 
-export default function ChartCard({ all, chart, number, of, selected, wide, editorOpen, periodSlot, moving, onEdit, onPageValues, onMoveStart, onMoveEnd, onMoveHere }: Props) {
+export default function ChartCard({ all, chart, number, of, selected, wide, editorOpen, periodSlot, moving, notices, onEdit, onPageValues, onMoveStart, onMoveEnd, onMoveHere }: Props) {
   const q = chart.question;
   const card = useRef<HTMLElement>(null);
   const [over, setOver] = useState(false);
@@ -166,6 +168,12 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
           {over ? <span>{say("move_here")}</span> : null}
         </div>
       ) : null}
+      {notices.map((text) => (
+        <div className="callout warning" role="status" key={text}>
+          <span className="callout-label">{say("link_changed_label")}</span>
+          {text}
+        </div>
+      ))}
       {awaiting ? (
         <div className="chart-card-body">
           <header className="chart-card-head">
