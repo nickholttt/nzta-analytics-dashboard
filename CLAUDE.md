@@ -68,8 +68,10 @@ work order 2 §5; D-138, D-147):
   - every figure is one step from its definition, source and snapshot;
   - a flow series never shares a chart with survivors.
 
-(Planned: the canvas page is being built under work order 2, milestone 1.
-Where it has got to is in `docs/STATE.md`.)
+(Being built under work order 2, milestone 1: `/canvas` holds one chart
+with its zones and the chart-type picker on a local build; several charts,
+saving and the starter canvases are planned. Where it has got to is in
+`docs/STATE.md`.)
 
 ---
 
@@ -213,6 +215,7 @@ config/
   presets.json        # the Explore canon, as data
   chart_rules.json    # which shapes fit a question: the one rule table (D-100)
   my_questions.json   # the interface words of Build's saved questions (D-125)
+  canvas.json         # the canvas page's words, field groups and one-line field definitions (D-147)
   data_map.json       # the data map in machine-readable form (D-090)
   pipeline.json       # source field bindings, thresholds, detection rules
   narrative/          # planned (D-062): phrase templates, verb bands, banned words

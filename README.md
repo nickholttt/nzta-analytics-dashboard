@@ -27,6 +27,13 @@ From the data GitHub builds, which anyone can download (see "Run it"):
 - **Your own question**, on the Build page: choose what to count, break it
   down, pick the brands or values to compare, add conditions, cross two
   fields in a grid, download the figures, share the link.
+- **Your own chart by dragging**, on the Canvas page: drag a field from the
+  list onto a chart's zones (what it is broken down by, a second field for a
+  grid, the filters), or choose a field and say where it goes. A zone that
+  cannot take a field says why. Choose the chart type from those that fit the
+  question; the others are greyed and say what they need. The figures can be
+  shown as a table. One chart so far, and the link in the address bar is the
+  chart.
 - **Your saved questions**, under "My questions" on the Build page: save the
   question on screen, rename it, list and export them as links. They are kept in
   your browser only (no account, nothing sent anywhere, and the list does not
@@ -194,6 +201,8 @@ a reference value.
   snapshot is not used for a question it cannot answer, nor for a field that
   describes the owner unless that snapshot says its small counts were hidden;
   the page says so and shows the newest snapshot instead.
+- The Canvas page holds one chart. Several charts on a page, saving a page,
+  ready-made pages to start from and a dark theme are being built.
 - A question on the Build page takes several seconds to answer on a phone.
   Most of the wait is the page's own code and fonts; the rest is the table of
   counts the browser downloads and adds up itself.
