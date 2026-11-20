@@ -66,6 +66,7 @@ def _templates() -> list[tuple[str, str, str]]:
     for key, text in _json("config/my_questions.json").items():
         if not key.startswith("$"):
             found.append(("keeping", f"my_questions.{key}", text))
+    found.extend(_canvas_templates())
     for dimension in dimensions["dimensions"]:
         if "public_line" in dimension:
             found.append(("line", f"dimension {dimension['id']} public_line", dimension["public_line"]))
@@ -85,6 +86,45 @@ def _templates() -> list[tuple[str, str, str]]:
         if "caveat" in derived:
             found.append(("caveat", f"derived {derived['id']} caveat.text", derived["caveat"]["text"]))
     return found
+
+
+def _canvas_templates() -> list[tuple[str, str, str]]:
+    """The canvas's words (config/canvas.json, D-147): its interface words and the reasons it gives, and the names of its
+    chart types, measures, kinds, groups and time field. Its definitions are not among them: a definition says what a field
+    holds and may name it, as the data map's does."""
+    canvas = _json("config/canvas.json")
+    found = [("canvas", f"canvas.words.{key}", text) for key, text in canvas["words"].items() if not key.startswith("$")]
+    for block in ("measures", "measure_kinds", "kinds"):
+        found += [("canvas", f"canvas.{block}.{key}", text) for key, text in canvas[block].items() if not key.startswith("$")]
+    for entry in [*canvas["chart_types"], canvas["table"]]:
+        found += [("canvas", f"canvas.chart_types.{entry['id']}.{key}", entry[key]) for key in ("label", "help")]
+    found += [("canvas", f"canvas.groups.{group['id']}.label", group["label"]) for group in canvas["groups"]]
+    found.append(("canvas", "canvas.time_field.label", canvas["time_field"]["label"]))
+    return found
+
+
+# What in config/canvas.json is not a template: the ids the code reads (of the page, a chart, a group, a chart type, a field, a
+# data map group, a kind) and the definitions, which say what a field holds and may name it.
+_CANVAS_NOT_A_TEMPLATE = re.compile(
+    r"^(id|chart_prefix"
+    r"|time_field\.(id|group|kind|definition|map_fields\[\d+\])"
+    r"|groups\[\d+\]\.(id|map_groups\[\d+\]|kinds\[\d+\])"
+    r"|group_of\..+|definitions\..+"
+    r"|chart_types\[\d+\]\.id|table\.id)$"
+)
+
+
+def _strings(node, path: str = ""):
+    """Every text in a config document with where it sits, comments (keys that start with $) left out."""
+    if isinstance(node, str):
+        yield path, node
+    elif isinstance(node, dict):
+        for key, value in node.items():
+            if not key.startswith("$"):
+                yield from _strings(value, f"{path}.{key}" if path else key)
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            yield from _strings(value, f"{path}[{index}]")
 
 
 def _allowed(rules: dict, kind: str, path: str) -> bool:
@@ -113,6 +153,14 @@ def test_the_lint_reads_every_interface_word_and_every_one_line_note():
     lines = {where for kind, where, _ in found if kind == "line"}
     noted = {f"dimension {d['id']} public_line" for d in _json("config/dimensions.json")["dimensions"] if "public_line" in d}
     assert noted and lines == noted, "a one-line note in config/dimensions.json is not linted"
+    # The canvas's words (config/canvas.json): every text in the file is linted unless it is an id or a definition, so a block or
+    # a key added to it later is linted too, or is named here as one of those.
+    linted = {text for kind, _, text in found if kind == "canvas"}
+    texts = [(path, text) for path, text in _strings(_json("config/canvas.json")) if not _CANVAS_NOT_A_TEMPLATE.match(path)]
+    assert len(texts) >= 50, "the canvas's words have gone missing: this test would pass without checking anything"
+    for path, text in texts:
+        assert text in linted, f"config/canvas.json {path} is a text the lint does not read"
+    assert all(not where.startswith("canvas.definitions") for kind, where, _ in found if kind == "canvas"), "a field's definition is not a template"
 
 
 @pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)
