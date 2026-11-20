@@ -103,6 +103,30 @@ def _canvas_templates() -> list[tuple[str, str, str]]:
     return found
 
 
+# What in config/canvas.json is not a template: the ids the code reads (of the page, a chart, a group, a chart type, a field, a
+# data map group, a kind) and the definitions, which say what a field holds and may name it.
+_CANVAS_NOT_A_TEMPLATE = re.compile(
+    r"^(id|chart_prefix"
+    r"|time_field\.(id|group|kind|definition|map_fields\[\d+\])"
+    r"|groups\[\d+\]\.(id|map_groups\[\d+\]|kinds\[\d+\])"
+    r"|group_of\..+|definitions\..+"
+    r"|chart_types\[\d+\]\.id|table\.id)$"
+)
+
+
+def _strings(node, path: str = ""):
+    """Every text in a config document with where it sits, comments (keys that start with $) left out."""
+    if isinstance(node, str):
+        yield path, node
+    elif isinstance(node, dict):
+        for key, value in node.items():
+            if not key.startswith("$"):
+                yield from _strings(value, f"{path}.{key}" if path else key)
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            yield from _strings(value, f"{path}[{index}]")
+
+
 def _allowed(rules: dict, kind: str, path: str) -> bool:
     for allowed in rules["placeholders"][kind]:
         if allowed.endswith(".*") and path.startswith(allowed[:-1]):
@@ -129,14 +153,14 @@ def test_the_lint_reads_every_interface_word_and_every_one_line_note():
     lines = {where for kind, where, _ in found if kind == "line"}
     noted = {f"dimension {d['id']} public_line" for d in _json("config/dimensions.json")["dimensions"] if "public_line" in d}
     assert noted and lines == noted, "a one-line note in config/dimensions.json is not linted"
-    # The canvas's words (config/canvas.json): every one, and every name the canvas gives a chart type, a measure, a kind and a group.
-    canvas = _json("config/canvas.json")
-    said = {where for kind, where, _ in found if kind == "canvas"}
-    held = {k for k, v in canvas["words"].items() if not k.startswith("$") and isinstance(v, str)}
-    assert held and {f"canvas.words.{k}" for k in held} <= said, "a word in config/canvas.json is not linted"
-    named = [t["id"] for t in canvas["chart_types"]] + [canvas["table"]["id"]]
-    assert {f"canvas.chart_types.{t}.{key}" for t in named for key in ("label", "help")} <= said, "a chart type's name or help line is not linted"
-    assert all(not where.startswith("canvas.definitions") for where in said), "a field's definition is not a template"
+    # The canvas's words (config/canvas.json): every text in the file is linted unless it is an id or a definition, so a block or
+    # a key added to it later is linted too, or is named here as one of those.
+    linted = {text for kind, _, text in found if kind == "canvas"}
+    texts = [(path, text) for path, text in _strings(_json("config/canvas.json")) if not _CANVAS_NOT_A_TEMPLATE.match(path)]
+    assert len(texts) >= 50, "the canvas's words have gone missing: this test would pass without checking anything"
+    for path, text in texts:
+        assert text in linted, f"config/canvas.json {path} is a text the lint does not read"
+    assert all(not where.startswith("canvas.definitions") for kind, where, _ in found if kind == "canvas"), "a field's definition is not a template"
 
 
 @pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)

@@ -1,13 +1,13 @@
 {
-  "$comment": "The canvas: a page of charts a visitor builds by putting fields into each chart's zones (work order 2 section 5, D-138, D-147). Each chart is a Build question (config/presets.json, builder), so this file holds no measure, dataset or rule of its own: it holds the canvas's interface words, which fields sit in which group of the field list, each field's one-line definition, and the names of the chart types. Read by src/lib/canvas.ts and src/lib/canvasFields.ts. Every text under words, chart_types, measures, groups, kinds, measure_kinds and the time field's label is a template the lint holds to config/narrative/rules.json (pipeline/tests/test_site_config.py): no digit, no causal or judgement word, no value or label of a reference file; a name comes in as a placeholder. definitions and the time field's definition are not templates: like the data map's, a definition says what a field holds and may name what it holds.",
+  "$comment": "The canvas: a page of charts a visitor builds by putting fields into each chart's zones (work order 2 section 5, D-138, D-147). Each chart is a Build question (config/presets.json, builder), so this file holds no measure, dataset or rule of its own: it holds the canvas's interface words, which fields sit in which group of the field list, a shorter one-line definition for the few fields that need one, and the names of the chart types. Every text under words, chart_types, measures, groups, kinds, measure_kinds and the time field's label is a template the lint holds to config/narrative/rules.json (pipeline/tests/test_site_config.py): no digit, no causal or judgement word, no value or label of a reference file; a name comes in as a placeholder. definitions and the time field's definition are not templates: like the data map's, a definition says what a field holds and may name what it holds.",
   "id": "canvas",
   "chart_prefix": "c",
   "max_charts": 12,
   "$max_charts_comment": "How many charts one canvas holds. A link that names more keeps the first ones.",
   "time_field": {
-    "$comment": "The month of first registration is the horizontal axis of every chart over time and is set through the period, so it is not a dimension in config/dimensions.json. It is listed among the fields so a visitor can find it, and it can be put in the Period zone and nowhere else. map_field names its entry in config/data_map.json.",
+    "$comment": "The month of first registration is the horizontal axis of every chart over time and is set through the period, so it is not a dimension in config/dimensions.json. It is listed among the fields so a visitor can find it, and it can be put in the Period zone and nowhere else. map_fields names the two register fields it is read from, the year and the month of the year, as config/data_map.json has them.",
     "id": "month",
-    "map_field": "FIRST_NZ_REGISTRATION_MONTH",
+    "map_fields": ["FIRST_NZ_REGISTRATION_YEAR", "FIRST_NZ_REGISTRATION_MONTH"],
     "group": "time",
     "kind": "time",
     "label": "Month of first registration",
@@ -21,37 +21,18 @@
     { "id": "place", "label": "Place", "map_groups": ["who_has_it"], "kinds": ["place"] },
     { "id": "current_use", "label": "Current use", "map_groups": ["who_has_it"] }
   ],
-  "$groups_comment": "The field list's groups, in order. A field goes to the first group that lists the data map group of the register field it is made from (config/data_map.json, group) and, where the group names kinds, whose kinds include the field's own. A field made from a reference file about that register field, and not from the field itself, can be placed by hand in group_of. A test holds every field the canvas lists to exactly one group.",
+  "$groups_comment": "The field list's groups, in order. A field goes to the first group that lists the data map group of the register field it is made from (config/data_map.json, group) and, where the group names kinds, whose kinds include the field's own. A field made from a reference file about that register field, and not from the field itself, can be placed by hand in group_of.",
   "group_of": {
     "owner_country": "origin",
     "heritage_country": "origin"
   },
   "definitions": {
-    "$comment": "One line for each field, shown when a visitor hovers over, focuses or taps it. Each says what the data map (config/data_map.json, docs/DATA_MAP.md) and the field's own note (config/dimensions.json) already say, shortened; none adds a claim. A field with no line here falls back to its one-line note, then to its register field's definition.",
-    "powertrain": "What powers the vehicle, as NZTA records it. NZTA does not say whether a hybrid is mild or full, so mild hybrids are picked out by model name.",
-    "powertrain_group": "Powertrain values put into broader groups. Hybrids, full or mild, are one group.",
-    "make": "The brand, from the make NZTA records, matched to a list of brands.",
-    "parent_group": "The manufacturer group that owns the brand today, not when the vehicle was registered.",
-    "owner_country": "The country of the group that owns the brand today. Not where the vehicle was built.",
-    "heritage_country": "The country the brand began in, whoever owns it now.",
-    "built_in": "The country where the vehicle was manufactured. Not recorded for almost every vehicle first registered before late 1985.",
-    "segment": "The kind of vehicle, worked out from NZTA's vehicle type, body type and weight. Most SUVs are recorded as station wagons, so they count as cars.",
-    "segment_group": "A broader class for each vehicle type: light passenger, light commercial, heavy commercial or other.",
-    "vehicle_type": "The type NZTA registers the vehicle under. A different thing from Vehicle type, which also reads the body and the weight.",
-    "trade_group": "Passenger or commercial, by the type NZTA registers the vehicle under.",
-    "import_status": "Whether the vehicle was new or used when it was first registered in New Zealand.",
-    "nz_assembled": "NZTA's flag for whether the vehicle was assembled in New Zealand or arrived already built. Not recorded for older vehicles.",
-    "nzta_class": "NZTA's vehicle equipment standard class, as NZTA recorded it and not checked against the vehicle.",
-    "seats_band": "The number of seats NZTA records, in bands.",
-    "transmission": "The kind of gearbox NZTA records, in four groups. Recorded for most vehicles sold new here and almost never for used imports.",
-    "colour": "The vehicle's main colour, in NZTA's colour words. The register does not say when the colour was recorded.",
-    "model": "The model name NZTA records, shown with its brand.",
-    "engine_size_band": "Engine capacity in litres, in bands. Vehicles with no engine have a band of their own.",
-    "power_band": "Engine or motor power in kilowatts, in bands. Recorded for most vehicles sold new here and almost never for used imports.",
-    "vehicle_year_band": "The vehicle's age on the snapshot date, counted from the year NZTA records for it, so an age can be out by a year.",
-    "age_at_registration_band": "The vehicle's age when first registered in New Zealand. A vehicle sold new here in recent years is zero by definition.",
-    "region": "The region where the registered owner lives now. Not where the vehicle is driven, and not where it was first registered.",
-    "vehicle_usage": "What NZTA records the vehicle as being used for at the snapshot date. It can change over a vehicle's life."
+    "$comment": "A field's one-line definition, shown when a visitor hovers over, focuses or taps it, is its dimension's own help line (config/dimensions.json, help), so it is written once. This block holds a line for the few fields whose help line is longer than a line of the list or is written for a maintainer. Each is that help line shortened: none says anything it does not.",
+    "make": "The badge on the car, matched to a list of brands.",
+    "model": "The nameplate, as brand and model. The models with the most vehicles in the last 12 months keep their name; the rest are grouped together.",
+    "vehicle_usage": "How NZTA records the vehicle as used now, in a few broad groups. Counted over the vehicles registered today, never by when a vehicle was first registered.",
+    "vehicle_year_band": "Years since the vehicle year: for a vehicle sold new here from 2007, since first registration; for a used import, since the vehicle's year overseas.",
+    "nzta_class": "NZTA's vehicle equipment standard class: NZTA's label with the code in brackets."
   },
   "measures": {
     "$comment": "How the Measure zone names each measure the builder offers as one chart (config/presets.json, builder.measures). A measure drawn as two charts is not offered on a canvas: a visitor adds a chart for each.",
@@ -63,7 +44,7 @@
     "$comment": "A kind of measure (config/measures.json, kind) as a chart type's reason names it.",
     "count": "a number of vehicles",
     "share": "a share",
-    "ratio": "a combined share",
+    "ratio": "a ratio of two figures",
     "average": "an average"
   },
   "kinds": {
@@ -75,7 +56,7 @@
     "time": "the month"
   },
   "chart_types": [
-    { "id": "trend", "label": "Lines", "help": "A count, month by month." },
+    { "id": "trend", "label": "Lines", "help": "A figure, month by month." },
     { "id": "mix", "label": "Shares over time", "help": "Each value's share, month by month." },
     { "id": "league", "label": "Ranking", "help": "Values ranked for one window." },
     { "id": "distribution", "label": "Bands", "help": "Shares across ordered bands." },
@@ -85,7 +66,7 @@
   "$chart_types_comment": "The six shapes (config/chart_rules.json), in the order the picker lists those that do not fit. Which fit a question is the rule table's to say, never this file's. table is the seventh choice: the figures of the chart as a table, always available (CLAUDE.md, Shapes).",
   "table": { "id": "table", "label": "Table", "help": "The figures behind the chart, as a table." },
   "words": {
-    "$comment": "Interface words and the reasons the canvas gives. Placeholders: {field} and {other} are field names; {dataset} a dataset's public name; {measure} a measure's name as the Measure zone says it; {zone} a zone's name; {type} a chart type's name; {wanted} what a chart type needs, in words from kinds or measure_kinds; {number}, {count} whole numbers; {query} what a visitor typed; {values} a list of values; {reason} another template, filled.",
+    "$comment": "Interface words and the reasons the canvas gives. Placeholders: {field} and {other} are field names; {dataset} a dataset's public name; {measure} a measure's name as the Measure zone says it; {zone} a zone's name; {type} a chart type's name; {wanted} what a chart type needs, as the names of measures or in words from kinds or measure_kinds; {number} and {months} whole numbers; {top_n} how many values a measure gathers; {date} the snapshot's date; {query} what a visitor typed; {reason} another template, filled. config/narrative/rules.json lists them for the lint.",
     "page_title": "Canvas",
     "page_lead": "Build your own page of charts. Drag a field onto a zone of a chart, or choose a field and say where it goes, and the chart redraws.",
     "not_available_label": "Not available",
@@ -143,10 +124,10 @@
     "refuse_filter_field": "{dataset} does not break its figures down by {field}. It can filter a chart.",
     "refuse_no_values": "{dataset} cannot filter by {field}: its table holds the field on its own.",
     "refuse_no_filters": "{dataset} is published as small tables and takes no filters.",
-    "refuse_hidden_cells": "{field} describes the owner, so its small counts are hidden, and this site does not draw a table like that over time yet.",
+    "refuse_hidden_cells": "{field} is published with small counts hidden, and this site does not draw a table like that yet.",
     "refuse_not_offered": "{field} is not offered as a breakdown or a filter yet.",
     "refuse_needs_by": "Put a field in {zone} first.",
-    "refuse_nested": "Each {field} sits under one {other}, or the reverse, so a grid of the two would be empty off one line.",
+    "refuse_nested": "{field} and {other} nest, so a grid of the two would be empty off one line.",
     "refuse_not_crossed": "{dataset} does not hold {field} together with {other}.",
     "refuse_measure_one_field": "{measure} takes one field.",
     "refuse_is_breakdown": "{field} is in {zone}. Choose its values there.",
