@@ -300,6 +300,45 @@ export const withFittingTypes = (canvas: Canvas, manifest: Manifest): Canvas => 
   charts: canvas.charts.map((chart) => ({ ...chart, type: keptType(chart.question, chart.type, manifest) })),
 });
 
+// ---- The page: adding, copying, removing and moving charts ----
+
+// Whether the canvas holds as many charts as one may.
+export const isFull = (canvas: Canvas): boolean => canvas.charts.length >= canvasSpec.max_charts;
+
+// The canvas with a chart at a place, and that chart's id; null where the canvas is full or the id is taken.
+function withChart(canvas: Canvas, chart: CanvasChart, index: number): { canvas: Canvas; id: string } | null {
+  if (isFull(canvas) || canvas.charts.some((c) => c.id === chart.id)) return null;
+  const at = Math.max(0, Math.min(index, canvas.charts.length));
+  return { canvas: { charts: [...canvas.charts.slice(0, at), chart, ...canvas.charts.slice(at)] }, id: chart.id };
+}
+
+// A new chart after the last: the question the data answers when nothing is asked, at half width, so two added charts share a row.
+export const addChart = (all: Vocabulary, canvas: Canvas): { canvas: Canvas; id: string } | null =>
+  withChart(canvas, settleChart(all, { id: nextChartId(canvas.charts), asked: {}, type: null, table: false, width: "half" }), canvas.charts.length);
+
+// A copy of a chart, under an id of its own, straight after the chart it copies.
+export function duplicateChart(canvas: Canvas, id: string): { canvas: Canvas; id: string } | null {
+  const index = canvas.charts.findIndex((c) => c.id === id);
+  if (index < 0) return null;
+  return withChart(canvas, { ...canvas.charts[index], id: nextChartId(canvas.charts) }, index + 1);
+}
+
+// A chart put back where it was taken from. Null where its id has been given to another chart since.
+export const restoreChart = (canvas: Canvas, chart: CanvasChart, index: number): Canvas | null => withChart(canvas, chart, index)?.canvas ?? null;
+
+// The canvas without a chart. A canvas keeps one chart: a link with none opens one anyway (settleCanvas).
+export const removeChart = (canvas: Canvas, id: string): Canvas =>
+  canvas.charts.length > 1 && canvas.charts.some((c) => c.id === id) ? { charts: canvas.charts.filter((c) => c.id !== id) } : canvas;
+
+// The canvas with a chart moved to a place, counted from none, the others keeping their order.
+export function moveChart(canvas: Canvas, id: string, to: number): Canvas {
+  const from = canvas.charts.findIndex((c) => c.id === id);
+  const at = Math.max(0, Math.min(to, canvas.charts.length - 1));
+  if (from < 0 || from === at) return canvas;
+  const rest = canvas.charts.filter((c) => c.id !== id);
+  return { charts: [...rest.slice(0, at), canvas.charts[from], ...rest.slice(at)] };
+}
+
 // ---- The address ----
 //
 // The whole canvas is in the address: the charts in order, then each chart's question under its id, written as the Build page writes one
@@ -374,4 +413,20 @@ export function canvasAddress(search: string, canvas: Canvas, changed: ReadonlyS
   }
   for (const [k, v] of canvasParams(canvas)) params.append(k, v);
   return params;
+}
+
+// A chart's own settings as an address holds them (its time range, a month), by name.
+export type ChartSettings = [name: string, value: string][];
+export function chartSettings(search: string, id: string): ChartSettings {
+  const params = new URLSearchParams(search);
+  return CHART_PARAMS.flatMap((name) => params.getAll(`${id}.${name}`).map((value): [string, string] => [name, value]));
+}
+
+// An address in which a chart has the settings given, in place of any it had: what a copy of a chart starts with, and what a chart
+// put back gets back. Written before the canvas is (canvasAddress), which keeps them for a chart that did not change.
+export function withChartSettings(search: string, id: string, settings: ChartSettings): string {
+  const params = new URLSearchParams(search);
+  for (const name of CHART_PARAMS) params.delete(`${id}.${name}`);
+  for (const [name, value] of settings) if (CHART_PARAMS.includes(name)) params.append(`${id}.${name}`, value);
+  return `?${params}`;
 }

@@ -401,6 +401,90 @@ test("nothing a visitor types is in the address: a canvas's parameters are its c
   }
 });
 
+// ---- The page: charts added, copied, removed and moved ----
+
+const ids = (c: { charts: CanvasChart[] }) => c.charts.map((chart) => chart.id);
+// What a link to a canvas opens: the canvas itself, whatever was done to it.
+const reopened = (c: { charts: CanvasChart[] }) => canvas.withFittingTypes(canvas.settleCanvas(all, canvas.readCanvas(`?${canvas.canvasParams(c)}`)), manifest);
+
+test("a chart is added after the last and copied after the one it copies, each under an id no chart has; a full canvas takes neither", () => {
+  const start = { charts: sample().slice(0, 3) };
+  const added = canvas.addChart(all, start);
+  assert.ok(added);
+  assert.deepEqual(ids(added.canvas), [...ids(start), added.id]);
+  assert.ok(!ids(start).includes(added.id));
+  const made = added.canvas.charts[3];
+  assert.deepEqual({ question: made.question, type: made.type, table: made.table, width: made.width }, { question: ask({}), type: null, table: false, width: "half" });
+
+  const copied = canvas.duplicateChart(start, start.charts[1].id);
+  assert.ok(copied);
+  assert.deepEqual(ids(copied.canvas), [start.charts[0].id, start.charts[1].id, copied.id, start.charts[2].id]);
+  assert.ok(!ids(start).includes(copied.id));
+  assert.deepEqual({ ...copied.canvas.charts[2], id: start.charts[1].id }, start.charts[1]);
+  assert.equal(canvas.duplicateChart(start, "c999"), null);
+  assert.deepEqual(reopened(added.canvas), added.canvas);
+  assert.deepEqual(reopened(copied.canvas), copied.canvas);
+
+  let full = start;
+  while (!canvas.isFull(full)) full = canvas.addChart(all, full)?.canvas as typeof full;
+  assert.equal(full.charts.length, canvas.canvasSpec.max_charts);
+  assert.equal(canvas.addChart(all, full), null);
+  assert.equal(canvas.duplicateChart(full, full.charts[0].id), null);
+  assert.deepEqual(reopened(full), full);
+});
+
+test("a chart removed can be put back where it was; a canvas keeps its one chart; an id given away since is not put back", () => {
+  const start = { charts: sample().slice(0, 3) };
+  const [, middle] = start.charts;
+  const without = canvas.removeChart(start, middle.id);
+  assert.deepEqual(ids(without), [start.charts[0].id, start.charts[2].id]);
+  assert.deepEqual(canvas.restoreChart(without, middle, 1), start);
+  assert.equal(canvas.removeChart(start, "c999"), start);
+  const one = { charts: [middle] };
+  assert.equal(canvas.removeChart(one, middle.id), one);
+  assert.equal(canvas.restoreChart(start, middle, 0), null);
+});
+
+test("a chart moved takes the place it is moved to and the others keep their order, in the link too", () => {
+  const start = { charts: sample().slice(0, 4) };
+  const [a, b, c, d] = ids(start);
+  assert.deepEqual(ids(canvas.moveChart(start, a, 2)), [b, c, a, d]);
+  assert.deepEqual(ids(canvas.moveChart(start, d, 0)), [d, a, b, c]);
+  assert.deepEqual(ids(canvas.moveChart(start, c, 1)), [a, c, b, d]);
+  // Past either end is the end; a chart moved to its own place, or one that is not there, leaves the canvas as it was.
+  assert.deepEqual(ids(canvas.moveChart(start, b, 99)), [a, c, d, b]);
+  assert.deepEqual(ids(canvas.moveChart(start, b, -5)), [b, a, c, d]);
+  assert.equal(canvas.moveChart(start, b, 1), start);
+  assert.equal(canvas.moveChart(start, "c999", 0), start);
+  const moved = canvas.moveChart(start, a, 3);
+  assert.deepEqual(reopened(moved), moved);
+});
+
+test("a copy starts with the chart's own settings, and a chart put back gets its own back; neither touches another chart's", () => {
+  const start = { charts: sample().slice(0, 2) };
+  const [a, b] = start.charts;
+  const before = `?utm=x&${canvas.canvasParams(start)}&${a.id}.period=5y&${a.id}.month=2020-01&${b.id}.period=3y`;
+  const copied = canvas.duplicateChart(start, a.id);
+  assert.ok(copied);
+  const settings = canvas.chartSettings(before, a.id);
+  assert.deepEqual(settings, [["period", "5y"], ["month", "2020-01"]]);
+  const after = canvas.canvasAddress(canvas.withChartSettings(before, copied.id, settings), copied.canvas);
+  assert.equal(after.get(`${copied.id}.period`), "5y");
+  assert.equal(after.get(`${copied.id}.month`), "2020-01");
+  assert.equal(after.get(`${a.id}.period`), "5y");
+  assert.equal(after.get(`${b.id}.period`), "3y");
+  assert.equal(after.get("utm"), "x");
+
+  // Removed, the chart's settings leave the address with it; put back, they are the ones it had, whatever the address holds by then.
+  const gone = canvas.canvasAddress(before, canvas.removeChart(start, a.id));
+  assert.equal([...gone.keys()].some((k) => k.startsWith(`${a.id}.`)), false);
+  const back = canvas.canvasAddress(canvas.withChartSettings(`?${gone}&${a.id}.period=1y`, a.id, settings), start);
+  assert.deepEqual(back.getAll(`${a.id}.period`), ["5y"]);
+  assert.equal(back.get(`${a.id}.month`), "2020-01");
+  // A setting that is not a chart's own is not written.
+  assert.equal(new URLSearchParams(canvas.withChartSettings("", a.id, [["measure", "share"]])).has(`${a.id}.measure`), false);
+});
+
 // ---- The words ----
 
 test("every word the canvas says is in config, and config holds no word the canvas does not say", () => {
@@ -415,6 +499,7 @@ test("every word the canvas says is in config, and config holds no word the canv
   // Keys made from a zone's own id: its name, and what a drop on it would do where it takes a field.
   for (const zone of canvas.ZONES) said.add(`zone_${zone}`);
   for (const zone of [...canvas.FIELD_ZONES, "period"]) said.add(`drop_${zone}`);
+  for (const width of canvas.WIDTHS) said.add(`width_${width}`);
   for (const key of [...sources.matchAll(/"((?:refuse|why|status)_[a-z0-9_]+)"/g)].map((m) => m[1])) said.add(key);
   const held = Object.keys(words).filter((k) => !k.startsWith("$"));
   for (const key of said) assert.ok(key in words, `${key} is said and is not in config/canvas.json`);

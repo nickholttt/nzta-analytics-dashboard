@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { MAX_VALUES, RANKING, questionParams, withValues } from "../../lib/builder";
 import type { Question, Vocabulary } from "../../lib/builder";
-import { TABLE, bestType, canvasSpec, chartTypes, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
-import type { CanvasChart, CanvasField, Zone } from "../../lib/canvas";
+import { TABLE, WIDTHS, bestType, canvasSpec, chartTypes, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
+import type { CanvasChart, CanvasField, Width, Zone } from "../../lib/canvas";
 import { chartDefaults, findDataset, lowerLabel } from "../../lib/config";
 import type { Manifest } from "../../lib/data";
 import { ValuePicker, focusSoon, valueLabel } from "../ValuePicker";
@@ -167,9 +167,53 @@ function FieldChip({ field, zone, onRemove }: { field: string; zone: Zone; onRem
   );
 }
 
+// stays: the chart is still the one being edited afterwards, so the button keeps the focus; otherwise the page sends focus to a card.
+type Action = { id: string; label: string; reason?: string; stays?: boolean; run: () => void };
+
+// What is done to the chart as one of the page's charts: moved, copied, removed. An action that cannot be done stays in place, greyed,
+// and says why when it is tried, so the button a visitor is on never goes from under them.
+function Actions({ actions }: { actions: Action[] }) {
+  const [why, setWhy] = useState<string | null>(null);
+  const refused = actions.find((a) => a.id === why && a.reason);
+  return (
+    <>
+      <div className="chart-actions" role="group" aria-label={say("chart_actions")}>
+        {actions.map((a) => (
+          <button
+            key={a.id}
+            type="button"
+            className="button-quiet"
+            data-action={a.id}
+            aria-disabled={a.reason ? "true" : undefined}
+            onClick={() => {
+              setWhy(a.reason ? a.id : null);
+              if (a.reason) return;
+              a.run();
+              // The pane moves with its chart where it sits below it, so the button is given the focus back.
+              if (a.stays) focusSoon(() => document.querySelector<HTMLElement>(`.chart-actions [data-action="${a.id}"]`));
+            }}
+          >
+            {a.label}
+          </button>
+        ))}
+      </div>
+      {refused ? (
+        <p className="zone-message refuses" role="status">
+          {refused.reason}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
 type Props = {
   all: Vocabulary;
   chart: CanvasChart;
+  // The chart's place on the canvas, from one, and how many charts the canvas holds.
+  number: number;
+  of: number;
+  // The canvas holds as many charts as it may.
+  full: boolean;
   manifest: Manifest | undefined;
   dragging: CanvasField | null;
   refusal: Refusal | null;
@@ -179,9 +223,13 @@ type Props = {
   onRemoved: (field: string, zone: Zone) => void;
   onPeriodSlot: (element: HTMLElement | null) => void;
   onStatus: (text: string) => void;
+  onDuplicate: () => void;
+  onRemove: () => void;
+  // by: how many places, earlier (below none) or later.
+  onMove: (by: number) => void;
 };
 
-export default function ChartPane({ all, chart, manifest, dragging, refusal, onAsk, onSet, onPut, onRemoved, onPeriodSlot, onStatus }: Props) {
+export default function ChartPane({ all, chart, number, of, full, manifest, dragging, refusal, onAsk, onSet, onPut, onRemoved, onPeriodSlot, onStatus, onDuplicate, onRemove, onMove }: Props) {
   const q = chart.question;
   const v = all.datasets.find((d) => d.dataset === q.dataset) ?? all.datasets[0];
   const m = v.measures.find((o) => o.id === q.measure) ?? v.measures[0];
@@ -232,8 +280,22 @@ export default function ChartPane({ all, chart, manifest, dragging, refusal, onA
   return (
     <section className="chart-pane" aria-labelledby="canvas-pane-title">
       <h2 className="pane-title" id="canvas-pane-title">
-        {say("pane_chart")}
+        {of > 1 ? say("card_label", { number }) : say("pane_chart")}
       </h2>
+
+      <Actions
+        // A canvas of one chart has nowhere to move it and keeps it: it can be copied.
+        actions={[
+          ...(of > 1
+            ? [
+                { id: "earlier", label: say("move_earlier"), stays: true, run: () => onMove(-1), ...(number === 1 ? { reason: say("cannot_move_earlier") } : {}) },
+                { id: "later", label: say("move_later"), stays: true, run: () => onMove(1), ...(number === of ? { reason: say("cannot_move_later") } : {}) },
+              ]
+            : []),
+          { id: "duplicate", label: say("duplicate_chart"), run: onDuplicate, ...(full ? { reason: say("canvas_full", { number: canvasSpec.max_charts }) } : {}) },
+          ...(of > 1 ? [{ id: "remove", label: say("remove_chart"), run: onRemove }] : []),
+        ]}
+      />
 
       {types.length > 0 ? (
         <section className="zone" aria-labelledby="canvas-zone-type">
@@ -409,6 +471,20 @@ export default function ChartPane({ all, chart, manifest, dragging, refusal, onA
           <div className="period-slot" ref={onPeriodSlot} />
         </>,
       )}
+
+      <section className="zone" aria-labelledby="canvas-zone-width">
+        <h3 className="zone-label" id="canvas-zone-width">
+          {say("width_label")}
+        </h3>
+        <Choices
+          label={say("width_label")}
+          choices={WIDTHS.map((width) => ({ id: width, label: say(`width_${width}`) }))}
+          value={chart.width}
+          question={asked}
+          help={say("width_help")}
+          onChoose={(id) => onSet({ width: id as Width })}
+        />
+      </section>
     </section>
   );
 }
