@@ -86,7 +86,8 @@
 
 /* ---------- Cards ---------- */
 
-/* Two cards to a row where the row is wide enough for two; a full-width card takes the row. */
+/* Two cards to a row where the row is wide enough for two, which it is beside the two panes from a window of about 1200 px; a
+   full-width card takes the row. */
 .canvas-charts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -104,14 +105,149 @@
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
 }
 
-.chart-card[data-width="full"] {
+.chart-card[data-width="full"],
+.chart-removed {
   grid-column: 1 / -1;
 }
 
-@container (max-width: 44rem) {
-  .chart-card {
+@container (max-width: 38rem) {
+  .chart-card,
+  .chart-add {
     grid-column: 1 / -1;
   }
+}
+
+/* Under the wide layout the charts are one column, and the editor opens in that column below the chart being edited. */
+.canvas:not(.wide) .chart-card,
+.canvas:not(.wide) .chart-add,
+.canvas-charts > .canvas-editor {
+  grid-column: 1 / -1;
+}
+
+/* ---------- Arranging: the grip, the place a dragged chart is dropped, a chart added or put back ---------- */
+
+.chart-card {
+  position: relative;
+}
+
+.chart-card[data-moving] {
+  opacity: 0.45;
+}
+
+.chart-card-ends {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chart-card-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 28px;
+  color: var(--ink-3);
+  border-radius: var(--radius-control);
+  cursor: grab;
+}
+
+.chart-card-grip:hover {
+  color: var(--ink);
+  background: var(--card-muted);
+}
+
+/* Laid over every other card while one is dragged: a dashed edge says a chart can be dropped there, and the card under the pointer
+   says what the drop does. */
+.chart-card-drop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--accent);
+  border-radius: inherit;
+}
+
+.chart-card-drop[data-over] {
+  border-style: solid;
+  background: rgb(238 240 250 / 0.9);
+}
+
+.chart-card-drop > span {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--card);
+  border-radius: var(--radius-control);
+  pointer-events: none;
+}
+
+.chart-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.chart-actions > .button-quiet {
+  min-height: 24px;
+  margin-top: 0;
+  font-size: var(--text-note);
+}
+
+/* An action that cannot be done: greyed, no underline, and its reason said when it is tried. */
+.chart-actions > .button-quiet[aria-disabled="true"] {
+  color: var(--ink-3);
+  text-decoration: none;
+  cursor: help;
+}
+
+.chart-add-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 5.5rem;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--accent);
+  background: transparent;
+  border: 1px dashed var(--control);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+}
+
+.chart-add-button:hover {
+  background: var(--card);
+  border-color: var(--accent);
+}
+
+.chart-add-button[aria-disabled="true"] {
+  color: var(--ink-3);
+  cursor: help;
+}
+
+.chart-add > .zone-message {
+  margin: var(--space-2) 0 0;
+}
+
+.chart-removed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2);
+  font-size: var(--text-note);
+  color: var(--ink-2);
+}
+
+.chart-removed > .button-quiet {
+  min-height: 24px;
+  margin-top: 0;
+  font-size: var(--text-note);
 }
 
 /* The chart being edited, where the canvas holds more than one: an outline and the word "Editing", never the outline alone. */
@@ -679,6 +815,8 @@
 }
 
 .canvas:not(.wide) .zone-values > .button-quiet,
+.canvas:not(.wide) .chart-actions > .button-quiet,
+.canvas:not(.wide) .chart-removed > .button-quiet,
 .canvas:not(.wide) .chart-card-foot > .button-quiet,
 .canvas:not(.wide) .chart-card-about > summary {
   min-height: 44px;

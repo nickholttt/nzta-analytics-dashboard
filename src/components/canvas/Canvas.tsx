@@ -1,15 +1,35 @@
 // The canvas page: charts a visitor builds by putting fields into each chart's zones (work order 2 section 5; D-138, D-147). Each
 // chart is a Build question drawn by the same panel as every other chart on the site; what a field may do in a zone, which chart types
-// fit, and the address are src/lib/canvas.ts. The whole canvas lives in the address bar, so the link is the page.
-import { useCallback, useEffect, useRef, useState } from "react";
+// fit, how charts are added, copied, removed and moved, and the address are src/lib/canvas.ts. The whole canvas lives in the address
+// bar, so the link is the page.
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import type { Question, Vocabulary } from "../../lib/builder";
-import { canvasAddress, changeChart, fieldLabel, readCanvas, say, settleCanvas, verdict, withFittingTypes, zoneLabel } from "../../lib/canvas";
-import type { Canvas as CanvasState, CanvasChart, CanvasField, CanvasFieldGroup, Zone } from "../../lib/canvas";
+import {
+  addChart,
+  canvasAddress,
+  canvasSpec,
+  changeChart,
+  chartSettings,
+  duplicateChart,
+  fieldLabel,
+  isFull,
+  moveChart,
+  readCanvas,
+  removeChart,
+  restoreChart,
+  say,
+  settleCanvas,
+  verdict,
+  withChartSettings,
+  withFittingTypes,
+  zoneLabel,
+} from "../../lib/canvas";
+import type { Canvas as CanvasState, CanvasChart, CanvasField, CanvasFieldGroup, ChartSettings, Zone } from "../../lib/canvas";
 import { loadManifest } from "../../lib/data";
 import type { Manifest } from "../../lib/data";
 import { focusSoon } from "../ValuePicker";
 import AddMenu from "./AddMenu";
-import ChartCard from "./ChartCard";
+import ChartCard, { cardId } from "./ChartCard";
 import ChartPane from "./ChartPane";
 import FieldList from "./FieldList";
 
@@ -30,6 +50,17 @@ function useWide(): boolean {
 // A refused drop, kept in the zone it was refused by until the visitor does something else.
 export type Refusal = { chart: string; zone: Zone; reason: string };
 
+// A chart just removed, with its place and its own settings, so that it can be put back until the canvas next changes.
+type Removed = { chart: CanvasChart; index: number; settings: ChartSettings };
+
+// Focus goes to a card when what had it has gone: a chart added, removed or put back.
+const toCard = (chart: string) =>
+  focusSoon(() => {
+    const card = document.getElementById(cardId(chart));
+    card?.scrollIntoView({ block: "nearest" });
+    return card;
+  });
+
 export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabulary; groups: CanvasFieldGroup[] }) {
   const [canvas, setCanvas] = useState<CanvasState>(() => settleCanvas(all, typeof window === "undefined" ? [] : readCanvas(window.location.search)));
   const [selected, setSelected] = useState<string>(() => canvas.charts[0]?.id ?? "");
@@ -46,13 +77,18 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
   const wide = useWide();
   // Under the wide layout the editor opens below the chart when asked for.
   const [open, setOpen] = useState(false);
+  // The chart being dragged to another place, by its id.
+  const [moving, setMoving] = useState<string | null>(null);
+  const [removed, setRemoved] = useState<Removed | null>(null);
+  // Why the last chart asked for was not added, until the canvas changes.
+  const [addRefused, setAddRefused] = useState(false);
 
   const latest = useRef(canvas);
   latest.current = canvas;
   const built = manifest ?? undefined;
 
-  const write = useCallback((next: CanvasState, changed: ReadonlySet<string>) => {
-    const address = `${window.location.pathname}?${canvasAddress(window.location.search, next, changed)}${window.location.hash}`;
+  const write = useCallback((next: CanvasState, changed: ReadonlySet<string>, search = window.location.search) => {
+    const address = `${window.location.pathname}?${canvasAddress(search, next, changed)}${window.location.hash}`;
     if (address !== `${window.location.pathname}${window.location.search}${window.location.hash}`) window.history.replaceState(null, "", address);
   }, []);
 
@@ -73,18 +109,32 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
     );
   }, [write]);
 
-  // One chart changed. reset: the change makes it another chart (its question or its type), so its own settings in the address go.
-  const replace = useCallback(
-    (chart: CanvasChart, reset: boolean) => {
-      const next = { charts: latest.current.charts.map((c) => (c.id === chart.id ? chart : c)) };
+  // The canvas changed. changed: the charts that became other charts, whose own settings in the address go. search: the address to
+  // write over, where it is not the page's own (a copy's settings, a chart put back).
+  const commit = useCallback(
+    (next: CanvasState, changed: ReadonlySet<string> = new Set(), search?: string) => {
       latest.current = next;
       setCanvas(next);
-      write(next, new Set(reset ? [chart.id] : []));
+      write(next, changed, search);
     },
     [write],
   );
 
+  // What the visitor did last no longer stands once they do something else: a refused drop, a chart that could be put back.
+  const moveOn = useCallback(() => {
+    setRefusal(null);
+    setRemoved(null);
+    setAddRefused(false);
+  }, []);
+
+  // One chart changed. reset: the change makes it another chart (its question or its type), so its own settings in the address go.
+  const replace = useCallback(
+    (chart: CanvasChart, reset: boolean) => commit({ charts: latest.current.charts.map((c) => (c.id === chart.id ? chart : c)) }, new Set(reset ? [chart.id] : [])),
+    [commit],
+  );
+
   const chartOf = (id: string) => latest.current.charts.find((c) => c.id === id);
+  const placeOf = (id: string) => latest.current.charts.findIndex((c) => c.id === id) + 1;
 
   // The visitor changed a chart's question. A change the page makes itself (its starting values arriving) keeps the chart's settings and
   // what the page last said.
@@ -93,9 +143,9 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
       const chart = chartOf(id);
       if (!chart) return;
       replace(changeChart(all, chart, next, built), byVisitor);
-      if (byVisitor) setRefusal(null);
+      if (byVisitor) moveOn();
     },
-    [all, built, replace],
+    [all, built, replace, moveOn],
   );
 
   const set = useCallback(
@@ -103,9 +153,9 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
       const chart = chartOf(id);
       if (!chart) return;
       replace({ ...chart, ...next }, next.type !== undefined && next.type !== chart.type);
-      setRefusal(null);
+      moveOn();
     },
-    [replace],
+    [replace, moveOn],
   );
 
   // A field put into a zone of a chart, by a drop or from the menu: the question changes where the zone takes the field, and the page
@@ -134,25 +184,109 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
     [all, ask],
   );
 
-  const removed = useCallback((field: string, zone: Zone) => setStatus(say("status_removed", { field: fieldLabel(field), zone: zoneLabel(zone) })), []);
+  const fieldRemoved = useCallback((field: string, zone: Zone) => setStatus(say("status_removed", { field: fieldLabel(field), zone: zoneLabel(zone) })), []);
+
+  // ---- The page's own changes: a chart added, copied, removed, put back or moved ----
+
+  // A chart that has just joined the canvas is the one being edited, and has the focus.
+  const joined = useCallback((id: string) => {
+    setSelected(id);
+    setOpen(true);
+    toCard(id);
+  }, []);
+
+  const add = useCallback(() => {
+    const made = addChart(all, latest.current);
+    moveOn();
+    if (!made) {
+      setAddRefused(true);
+      setStatus(say("canvas_full", { number: canvasSpec.max_charts }));
+      return;
+    }
+    commit(made.canvas);
+    joined(made.id);
+    setStatus(say("status_chart_added", { number: placeOf(made.id) }));
+  }, [all, commit, joined, moveOn]);
+
+  const duplicate = useCallback(
+    (id: string) => {
+      const made = duplicateChart(latest.current, id);
+      if (!made) return;
+      moveOn();
+      // The copy starts with the chart's own settings too: the same time range, the same month.
+      commit(made.canvas, new Set(), withChartSettings(window.location.search, made.id, chartSettings(window.location.search, id)));
+      joined(made.id);
+      setStatus(say("status_chart_duplicated", { number: placeOf(made.id) }));
+    },
+    [commit, joined, moveOn],
+  );
+
+  const remove = useCallback(
+    (id: string) => {
+      const index = placeOf(id) - 1;
+      const chart = chartOf(id);
+      const next = removeChart(latest.current, id);
+      if (!chart || next === latest.current) return;
+      moveOn();
+      setRemoved({ chart, index, settings: chartSettings(window.location.search, id) });
+      commit(next);
+      const neighbour = next.charts[Math.min(index, next.charts.length - 1)].id;
+      setSelected(neighbour);
+      setOpen(false);
+      toCard(neighbour);
+      setStatus(say("status_chart_removed", { number: index + 1 }));
+    },
+    [commit, moveOn],
+  );
+
+  const putBack = useCallback(() => {
+    if (!removed) return;
+    const next = restoreChart(latest.current, removed.chart, removed.index);
+    moveOn();
+    if (!next) return;
+    commit(next, new Set(), withChartSettings(window.location.search, removed.chart.id, removed.settings));
+    setSelected(removed.chart.id);
+    toCard(removed.chart.id);
+    setStatus(say("status_chart_restored", { number: placeOf(removed.chart.id) }));
+  }, [commit, moveOn, removed]);
+
+  // to: the place the chart is moved to, counted from none.
+  const move = useCallback(
+    (id: string, to: number) => {
+      const next = moveChart(latest.current, id, to);
+      if (next === latest.current) return;
+      moveOn();
+      commit(next);
+      setStatus(say("status_chart_moved", { number: placeOf(id) }));
+    },
+    [commit, moveOn],
+  );
 
   const current = canvas.charts.find((c) => c.id === selected) ?? canvas.charts[0];
   const editorShown = wide || open;
+  const place = current ? canvas.charts.indexOf(current) : -1;
 
   const editor = current ? (
     <div className="canvas-editor" id="canvas-editor">
       <ChartPane
+        key={current.id}
         all={all}
         chart={current}
+        number={place + 1}
+        of={canvas.charts.length}
+        full={isFull(canvas)}
         manifest={built}
         dragging={dragging}
         refusal={refusal?.chart === current.id ? refusal : null}
         onAsk={(next) => ask(current.id, next)}
         onSet={(next) => set(current.id, next)}
         onPut={(zone, field) => put(current.id, zone, field)}
-        onRemoved={removed}
+        onRemoved={fieldRemoved}
         onPeriodSlot={setPeriodSlot}
         onStatus={setStatus}
+        onDuplicate={() => duplicate(current.id)}
+        onRemove={() => remove(current.id)}
+        onMove={(by) => move(current.id, place + by)}
       />
       <FieldList
         all={all}
@@ -176,25 +310,55 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
       </p>
       <div className="canvas-charts">
         {canvas.charts.map((chart, i) => (
-          <ChartCard
-            key={chart.id}
-            all={all}
-            chart={chart}
-            number={i + 1}
-            of={canvas.charts.length}
-            selected={chart.id === current?.id}
-            wide={wide}
-            editorOpen={chart.id === current?.id && editorShown}
-            periodSlot={chart.id === current?.id && editorShown ? periodSlot : null}
-            onEdit={() => {
-              setSelected(chart.id);
-              setOpen(chart.id === current?.id ? !open : true);
-            }}
-            onPageValues={(values) => ask(chart.id, { values, pageValues: true }, false)}
-          />
+          <Fragment key={chart.id}>
+            <ChartCard
+              all={all}
+              chart={chart}
+              number={i + 1}
+              of={canvas.charts.length}
+              selected={chart.id === current?.id}
+              wide={wide}
+              editorOpen={chart.id === current?.id && editorShown}
+              periodSlot={chart.id === current?.id && editorShown ? periodSlot : null}
+              moving={moving}
+              onEdit={() => {
+                setSelected(chart.id);
+                setOpen(chart.id === current?.id ? !open : true);
+              }}
+              onPageValues={(values) => ask(chart.id, { values, pageValues: true }, false)}
+              onMoveStart={() => setMoving(chart.id)}
+              onMoveEnd={() => setMoving(null)}
+              onMoveHere={() => {
+                if (moving) move(moving, i);
+                setMoving(null);
+              }}
+            />
+            {!wide && open && chart.id === current?.id ? editor : null}
+          </Fragment>
         ))}
+        {removed ? (
+          <p className="chart-removed">
+            {say("removed_note")}{" "}
+            <button type="button" className="button-quiet" onClick={putBack}>
+              {say("put_back")}
+            </button>
+          </p>
+        ) : null}
+        <div className="chart-add">
+          <button type="button" className="chart-add-button" aria-disabled={isFull(canvas) ? "true" : undefined} aria-describedby={addRefused ? "canvas-add-refused" : undefined} onClick={add}>
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            {say("add_chart")}
+          </button>
+          {addRefused ? (
+            <p className="zone-message refuses" id="canvas-add-refused">
+              {say("canvas_full", { number: canvasSpec.max_charts })}
+            </p>
+          ) : null}
+        </div>
       </div>
-      {editorShown ? editor : null}
+      {wide ? editor : null}
       {adding && current ? (
         <AddMenu
           all={all}
