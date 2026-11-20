@@ -4,52 +4,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { builderSpec, chartDefaults, datasetWords, dimensionLabel, findDataset, findDimension, lowerLabel, phrases } from "../lib/config";
 import { REST_NAME } from "../lib/reserved";
-import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, changeQuestion, isMonthKey, narrowingNotes, questionParams, readQuestion, readingNotes, removeConditionLabel, settle, viewsFor, withValues, withoutValues } from "../lib/builder";
+import { MAX_VALUES, RANKING, REMOVE_CONDITION, absentNotes, absentValues, addressParams, builderPresets, changeQuestion, isMonthKey, linkNotices, narrowingNotes, questionParams, readQuestion, removeConditionLabel, settle, viewsFor, withValues, withoutValues } from "../lib/builder";
 import type { Question, Vocabulary } from "../lib/builder";
-import { fieldValues, loadKeptSnapshots, loadManifest, loadSlice } from "../lib/data";
+import { fieldValues, loadManifest } from "../lib/data";
 import type { Manifest } from "../lib/data";
 import { canPin, servedMonth } from "../lib/pin";
-import { pickerMonth, pinLine, readingFor } from "../lib/kept";
-import type { Loaders, Owner, Reading } from "../lib/kept";
+import { pickerMonth, pinLine } from "../lib/kept";
 import { TRAILING_MONTHS } from "../lib/measures";
-import { fillNote } from "../lib/notes";
 import { fillTemplate, pickedBuilderSentences } from "../lib/sentences";
 import keepWords from "../../config/my_questions.json";
 import MyQuestions from "./MyQuestions";
 import PresetPanel from "./PresetPanel";
+import { useReading } from "./useReading";
 import { ValuePicker, focusSoon, say, startingValues, valueLabel, valueOptions } from "./ValuePicker";
 
 const VIEW_LABELS: Record<string, string> = { mix: "Lines over time", geo: "Map", distribution: "Bars by band", league: "Ranking", trend: "Line" };
 
 const without = (where: Record<string, string[]>, dimension: string) => Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
-
-const loaders: Loaders = { index: loadKeptSnapshots, manifest: loadManifest, slice: loadSlice };
-const FROM_NEWEST: Reading = { kind: "served" };
-
-// Where the question reads its figures from (src/lib/kept.ts): the newest snapshot at once for a question that is not pinned or is pinned to the
-// snapshot served or ahead of it, and for one pinned to an earlier month once the index, that snapshot's manifest and the values chosen have been
-// read. Undefined until then, and for a new question until it is read, so a chart is never drawn from one snapshot and then another.
-function useReading(q: Question, served: Manifest | null | undefined, owner: Owner): Reading | undefined {
-  const key = `${String(questionParams(q))}|${q.values.join("|")}|${q.values2?.join("|") ?? ""}`;
-  const [decided, setDecided] = useState<{ key: string; reading: Reading } | null>(null);
-  const latestQuestion = useRef(q);
-  latestQuestion.current = q;
-  const earlier = Boolean(served && isMonthKey(q.snapshot) && q.snapshot < servedMonth(served));
-  useEffect(() => {
-    if (!earlier || !served) return;
-    let current = true;
-    readingFor(latestQuestion.current, served, loaders, owner).then((reading) => current && setDecided({ key, reading }));
-    return () => {
-      current = false;
-    };
-    // The question is read through its key.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, earlier, served, owner]);
-  if (!isMonthKey(q.snapshot) || served === null) return FROM_NEWEST;
-  if (served === undefined) return undefined;
-  if (!earlier) return FROM_NEWEST;
-  return decided?.key === key ? decided.reading : undefined;
-}
 
 export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocabulary }) {
   const [question, setQuestion] = useState<Question>(() =>
@@ -59,15 +30,7 @@ export default function QuestionBuilder({ vocabulary: all }: { vocabulary: Vocab
   const [notices, setNotices] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     const asked = readQuestion(window.location.search);
-    const note = readingNotes(all, asked, settle(all, asked), valueLabel);
-    return [
-      ...(note.dataset ? [fillNote(builderSpec.notices.dataset, note.dataset).text] : []),
-      ...(note.by ? [fillNote(builderSpec.notices.by, note.by).text] : []),
-      ...(note.by2 ? [fillNote(builderSpec.notices.by2, note.by2).text] : []),
-      ...(note.value2 ? [builderSpec.notices.value2] : []),
-      ...(note.snapshot ? [fillNote(builderSpec.notices.snapshot, note.snapshot).text] : []),
-      ...(note.left_out ?? []).map((left) => fillNote(builderSpec.notices.left_out, left).text),
-    ];
+    return linkNotices(all, asked, settle(all, asked), valueLabel);
   });
   // The snapshot this page serves, to say what a pinned question is pinned to (src/lib/pin.ts).
   const [served, setServed] = useState<Manifest | null | undefined>(undefined);

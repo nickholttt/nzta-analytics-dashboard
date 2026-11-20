@@ -485,6 +485,80 @@ test("a copy starts with the chart's own settings, and a chart put back gets its
   assert.equal(new URLSearchParams(canvas.withChartSettings("", a.id, [["measure", "share"]])).has(`${a.id}.measure`), false);
 });
 
+// ---- My canvases ----
+
+const savedLib = await import("../../src/lib/saved.ts");
+const savedCanvases = await import("../../src/lib/savedCanvases.ts");
+const memory = () => {
+  const held = new Map<string, string>();
+  return { getItem: (k: string) => held.get(k) ?? null, setItem: (k: string, v: string) => void held.set(k, v), held };
+};
+
+test("what is kept of a canvas is its charts, their questions and their settings, and a saved canvas link loads back exactly", () => {
+  const built = { charts: sample() };
+  const [a, b] = built.charts;
+  const address = `?utm=x&build.measure=share&${canvas.canvasParams(built)}&${a.id}.period=5y&${a.id}.month=2020-01&${b.id}-x.period=3y&c77.measure=share`;
+  const query = savedCanvases.canvasQuery(address) as string;
+  const kept = new URLSearchParams(query);
+  assert.equal(kept.get(`${a.id}.period`), "5y");
+  // Not the month a ranking ends in, another page's parameters, a chart that is not on the canvas, or anything else in the address.
+  for (const gone of [`${a.id}.month`, "utm", "build.measure", "c77.measure", `${b.id}-x.period`]) assert.equal(kept.has(gone), false, gone);
+  const opened = canvas.withFittingTypes(canvas.settleCanvas(all, canvas.readCanvas(savedCanvases.canvasHref({ query }).split("?")[1])), manifest);
+  assert.deepEqual(opened, built);
+  // Kept again, it is the same text: one canvas has one saved form.
+  assert.equal(savedCanvases.canvasQuery(`?${query}`), query);
+  assert.equal(savedCanvases.canvasQuery("?utm=x"), undefined);
+  assert.equal(savedCanvases.canvasQuery(`?canvas.charts=c1&c1.by=${"x".repeat(20000)}`), undefined);
+});
+
+test("canvases are kept in a list of their own, read back defensively, and never mixed with saved questions", () => {
+  const store = memory();
+  const query = savedCanvases.canvasQuery(`?${canvas.canvasParams({ charts: sample().slice(0, 2) })}`) as string;
+  const entry = { id: "one", name: "  A page of charts  ", query, saved: "2026-11-20T00:00:00.000Z" };
+  assert.equal(savedLib.persist(store, [entry], savedCanvases.CANVASES), true);
+  assert.deepEqual([...store.held.keys()], [savedCanvases.CANVASES.key]);
+  assert.notEqual(savedCanvases.CANVASES.key, savedLib.STORAGE_KEY);
+  assert.deepEqual(savedLib.load(store, savedCanvases.CANVASES), { state: "ok", items: [{ ...entry, name: "A page of charts" }], unreadable: 0 });
+  assert.deepEqual(savedLib.load(store).items, []);
+  // An entry that is not a canvas, and one whose text holds more than a canvas, are dropped and trimmed.
+  store.setItem(savedCanvases.CANVASES.key, JSON.stringify({ v: 1, items: [{ ...entry, id: "two", query: "build.measure=share" }, { ...entry, id: "three", query: `${query}&utm=x` }] }));
+  const read = savedLib.load(store, savedCanvases.CANVASES);
+  assert.equal(read.unreadable, 1);
+  assert.deepEqual(read.items.map((i) => [i.id, i.query]), [["three", query]]);
+  // The name is in the list and never in the link.
+  assert.equal(savedCanvases.canvasLinks(read.items, "https://example.test"), `A page of charts\nhttps://example.test/canvas/?${query}`);
+  assert.equal(savedCanvases.canvasHref(entry).includes("page"), false);
+});
+
+// ---- A pin ----
+
+test("a canvas is pinned chart by chart, loads back pinned from its link, and unpins to the canvas it was; a saved one keeps its settings", async () => {
+  const pin = await import("../../src/lib/pin.ts");
+  const served = { ...manifest, latest_snapshot: (everything as { latest_snapshot?: string }).latest_snapshot ?? "2026-10-31" } as typeof manifest;
+  const month = pin.servedMonth(served);
+  const start = { charts: sample().slice(0, 5) };
+  const pinned = canvas.pinCanvas(start, served, month);
+  const can = start.charts.map((chart) => pin.canPin(canvas.chartQuestion(chart), served));
+  assert.ok(can.some(Boolean), "no chart of the sample can be pinned");
+  assert.deepEqual(pinned.charts.map((chart) => chart.question.snapshot), can.map((ok) => (ok ? month : undefined)));
+  assert.equal(canvas.canPinCanvas(start, served), true);
+  assert.equal(canvas.isPinned(pinned), true);
+  assert.equal(canvas.isPinned(start), false);
+  assert.deepEqual(reopened(pinned), pinned);
+  // Unpinned, it is the canvas it was: nothing but the pin changed.
+  assert.equal(String(canvas.canvasParams(canvas.pinCanvas(pinned, served, null))), String(canvas.canvasParams(start)));
+
+  const [a] = start.charts;
+  const query = savedCanvases.canvasQuery(`?${canvas.canvasParams(start)}&${a.id}.period=5y`) as string;
+  assert.equal(savedCanvases.savedPin(query), undefined);
+  const kept = savedCanvases.pinSavedCanvas(all, served, query, month);
+  assert.equal(savedCanvases.savedPin(kept), month);
+  assert.equal(new URLSearchParams(kept).get(`${a.id}.period`), "5y");
+  assert.equal(savedCanvases.pinSavedCanvas(all, served, kept, null), query);
+  // A month that is not one is no pin.
+  assert.equal(savedCanvases.savedPin(`${query}&${a.id}.snapshot=soon`), undefined);
+});
+
 // ---- The words ----
 
 test("every word the canvas says is in config, and config holds no word the canvas does not say", () => {

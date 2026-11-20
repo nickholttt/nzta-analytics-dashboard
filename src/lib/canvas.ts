@@ -10,6 +10,7 @@ import type { Preset } from "./config";
 import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCross, changeQuestion, isOneChart, questionParams, readQuestion, settle } from "./builder";
 import type { BuilderOption, DatasetVocabulary, Question, Vocabulary } from "./builder";
 import type { Manifest } from "./data";
+import { canPin } from "./pin";
 import { inferShape, questionFacts, resolvePreset } from "./resolve";
 import { isWindowShape, ruleTable, shapesFor } from "./shapes";
 import type { FactName, Facts } from "./shapes";
@@ -284,9 +285,11 @@ export function typeReason(all: Vocabulary, q: Question, type: string): string {
 
 // A chart after part of its question changes: the question settles as it does on the Build page (changeQuestion), and a chart type the
 // new question does not fit gives way to the best fit. Without a manifest the type is kept, and checked when the build is known.
-export function changeChart(all: Vocabulary, chart: CanvasChart, next: Partial<Question>, manifest?: Manifest): CanvasChart {
+// removal: false where the page takes something out itself (a value a link named that the data does not hold), which is not the visitor
+// removing it (changeQuestion).
+export function changeChart(all: Vocabulary, chart: CanvasChart, next: Partial<Question>, manifest?: Manifest, removal = true): CanvasChart {
   const v = datasetOf(all, chart.question.dataset);
-  const settled = changeQuestion(all, chart.question, { ...next, view: null }, (d) => v.filters.some((f) => f.id === d));
+  const settled = changeQuestion(all, chart.question, { ...next, view: null }, (d) => v.filters.some((f) => f.id === d), removal);
   const question = { ...settled, view: null };
   return { ...chart, question, type: keptType(question, chart.type, manifest) };
 }
@@ -337,6 +340,30 @@ export function moveChart(canvas: Canvas, id: string, to: number): Canvas {
   if (from < 0 || from === at) return canvas;
   const rest = canvas.charts.filter((c) => c.id !== id);
   return { charts: [...rest.slice(0, at), canvas.charts[from], ...rest.slice(at)] };
+}
+
+// ---- A pin ----
+//
+// A canvas is pinned chart by chart, as a question is on the Build page (src/lib/pin.ts): a pinned chart's window keeps ending in the
+// pinned month where its chart can hold one, and its figures are a kept snapshot's where the site has kept that month.
+
+// The question of a chart as its chart type asks it: what a pin, and the snapshot a chart reads from, are judged by.
+export const chartQuestion = (chart: Pick<CanvasChart, "question" | "type">): Question => asked(chart.question, chart.type ?? bestType(chart.question));
+
+export const isPinned = (canvas: Canvas): boolean => canvas.charts.some((c) => Boolean(c.question.snapshot));
+
+// Whether any chart of the canvas can be pinned now: its figures reach the snapshot's own month (canPin).
+export const canPinCanvas = (canvas: Canvas, manifest: Manifest): boolean => canvas.charts.some((c) => canPin(chartQuestion(c), manifest));
+
+// The canvas pinned to a month: every chart that can be pinned is, and one that cannot is left following the newest month. With no
+// month, the canvas with every pin taken off.
+export function pinCanvas(canvas: Canvas, manifest: Manifest, month: string | null): Canvas {
+  const pinned = (chart: CanvasChart): CanvasChart => {
+    const { snapshot: _was, ...open } = chart.question;
+    if (month === null) return chart.question.snapshot ? { ...chart, question: open } : chart;
+    return canPin(chartQuestion(chart), manifest) ? { ...chart, question: { ...open, snapshot: month } } : chart;
+  };
+  return { charts: canvas.charts.map(pinned) };
 }
 
 // ---- The address ----

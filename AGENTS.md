@@ -50,7 +50,7 @@ Run from the repo root.
 |---|---|---|
 | Pipeline tests (as CI) | `.venv/Scripts/python.exe -m pytest pipeline/tests -q -p no:cacheprovider` | 1,267 passed in 27 min 12 s (2026-11-18, on the small-cell branch before it and the power and gearbox branch merged; not run locally on `main` since); `Checks` runs it on every pull request in about five minutes |
 | Typecheck site | `npx -y -p typescript tsc --noEmit` | exit 0. TypeScript isn't a dependency, so plain `npx tsc` fails |
-| Site tests | `node --test "tests/site/*.test.ts"` | 477 passed in about 9 s (2026-11-20, with the canvas's tests); also run on every pull request (D-101) |
+| Site tests | `node --test "tests/site/*.test.ts"` | 484 passed (2026-11-20, with the canvas's tests; about 9 s when last timed); also run on every pull request (D-101) |
 | Build site | `npx astro build` | 11 pages built to `dist/`, `/canvas` among them (2026-11-20). No npm `build` script exists |
 | Build the public site, as the deploy does (D-056) | Git Bash: `INTERNAL_PAGES=false npx astro build && rm -rf dist/status dist/sense-check` | 2026-10-22, against the 2026-08 cube: 5 pages left, none linking to `/status` or `/sense-check`; in a preview those two and any unknown address return 404. Since D-099 the build itself drops those two folders and every script no remaining page reaches (`astro.config.mjs`), so the `rm` is a no-op kept for safety; the next row checks it |
 | Check the public build's output | `node scripts/check-public-build.mjs` (after the public build) | exit 0 and "10 scripts" on 2026-11-20, with the canvas (7 on 2026-11-17; 6 on 2026-11-16, before the grid's script); on the build as it was before D-099 it exits 1 naming `_astro/PresetTriage.*.js` (known issue 7), and on a build with the internal pages it names both folders |
@@ -128,8 +128,10 @@ Setup, **not re-run this session** (the environment already existed):
 - `src/pages/canvas.astro` hosts the canvas (work order 2, milestone 1; D-147): a page of charts a visitor builds by putting
   fields into each chart's zones. A chart on it is a Build question under an id of its own, drawn by `PresetPanel` with
   `frame="card"`. `src/lib/canvas.ts` is its logic, pure and tested (`tests/site/canvas.test.ts`): what a field may do in a zone
-  and why not, which chart types fit a question and why the others do not (read off `config/chart_rules.json`), and the address a
-  canvas is written to and read back from. `src/lib/canvasFields.ts` makes the field list from the data map where the page is built.
+  and why not, which chart types fit a question and why the others do not (read off `config/chart_rules.json`), how charts are added,
+  copied, removed and moved, a pin chart by chart (under `src/lib/pin.ts`), and the address a canvas is written to and read back from.
+  `src/lib/savedCanvases.ts` is My canvases, kept in the browser under the rules of `src/lib/saved.ts`; `src/components/useReading.ts`
+  decides which snapshot a pinned question reads from, for Build and for each chart of a canvas. `src/lib/canvasFields.ts` makes the field list from the data map where the page is built.
   `src/components/canvas/` is the screen; `config/canvas.json` holds its words, held to the template lint.
 - `scripts/unmatched_hybrids.py` lists, for one dataset, the hybrids that count against its mild hybrid coverage at high
   confidence, by make and model. Run by hand when a build warns that the split flipped (`docs/playbooks/check-monthly-run.md`,

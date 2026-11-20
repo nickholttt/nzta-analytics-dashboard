@@ -4,12 +4,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { questionParams } from "../../lib/builder";
 import type { Vocabulary } from "../../lib/builder";
-import { awaitsValues, canvasSpec, chartPreset, fieldLabel, say } from "../../lib/canvas";
+import { awaitsValues, canvasSpec, chartPreset, chartQuestion, fieldLabel, say } from "../../lib/canvas";
 import type { CanvasChart } from "../../lib/canvas";
+import type { Manifest } from "../../lib/data";
+import { pinLine } from "../../lib/kept";
+import type { Owner } from "../../lib/kept";
 import { TRAILING_MONTHS } from "../../lib/measures";
 import PresetPanel from "../PresetPanel";
 import type { CardWords } from "../PresetPanel";
 import { startingValues, valueLabel, valueOptions } from "../ValuePicker";
+import { useReading } from "../useReading";
 
 // A card's id on the page: where focus goes when a chart is added, put back, or left standing beside one removed.
 export const cardId = (chart: string) => `canvas-chart-${chart}`;
@@ -37,6 +41,13 @@ type Props = {
   periodSlot: HTMLElement | null;
   // The chart being dragged to another place, if one is.
   moving: string | null;
+  // What the link asked of this chart that the page could not give.
+  notices: string[];
+  // The snapshot this page serves (null: it could not be read; undefined: not yet), and the fields made from an owner field: what a
+  // pinned chart needs to know where its figures come from.
+  served: Manifest | null | undefined;
+  owner: Owner;
+  onUnpin: () => void;
   onEdit: () => void;
   // The page's own starting values for a count with none chosen.
   onPageValues: (values: string[]) => void;
@@ -46,7 +57,7 @@ type Props = {
   onMoveHere: () => void;
 };
 
-export default function ChartCard({ all, chart, number, of, selected, wide, editorOpen, periodSlot, moving, onEdit, onPageValues, onMoveStart, onMoveEnd, onMoveHere }: Props) {
+export default function ChartCard({ all, chart, number, of, selected, wide, editorOpen, periodSlot, moving, notices, served, owner, onUnpin, onEdit, onPageValues, onMoveStart, onMoveEnd, onMoveHere }: Props) {
   const q = chart.question;
   const card = useRef<HTMLElement>(null);
   const [over, setOver] = useState(false);
@@ -55,6 +66,11 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
   }, [moving]);
   const preset = useMemo(() => chartPreset(chart, (v) => valueLabel(v, chart.question.by ?? undefined)), [chart]);
   const awaiting = awaitsValues(all, chart);
+  // Where the chart reads its figures from: the newest snapshot, or the kept one it is pinned to (src/lib/kept.ts). Undefined until that
+  // is known, so a pinned chart is never drawn from one snapshot and then another.
+  const pinnedQuestion = useMemo(() => chartQuestion(chart), [chart]);
+  const reading = useReading(pinnedQuestion, served, owner);
+  const keptFolder = reading?.kind === "kept" ? reading.month : undefined;
   // The starting values are counted among the vehicles the chart's filters keep, as the list a visitor chooses from is.
   const filters = all.datasets.find((v) => v.dataset === q.dataset)?.filters ?? [];
   const whereKey = JSON.stringify(Object.fromEntries(Object.entries(q.where).filter(([d]) => filters.some((f) => f.id === d))));
@@ -62,9 +78,10 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
   const [start, setStart] = useState<{ key: string; state: "none" | "failed" } | null>(null);
   useEffect(() => {
     const by = q.by;
-    if (!awaiting || !by) return;
+    if (!awaiting || !by || reading === undefined) return;
     let current = true;
-    valueOptions(q.dataset, by, JSON.parse(whereKey)).then(
+    // A chart read from a kept snapshot starts on that snapshot's largest values, so it shows what it showed when it was pinned.
+    valueOptions(q.dataset, by, JSON.parse(whereKey), keptFolder).then(
       (options) => {
         if (!current) return;
         const top = startingValues(options);
@@ -78,11 +95,14 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
     };
     // onPageValues reads the latest canvas itself; these are what decide whether starting values are needed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [awaiting, q.dataset, q.by, whereKey]);
+  }, [awaiting, q.dataset, q.by, whereKey, reading === undefined, keptFolder]);
 
   // Keyed by the question and the type, so a changed chart is a new panel that reads its cleared settings from the address. Showing the
   // figures as a table is the same chart, and keeps them.
-  const panelKey = `${chart.id}:${String(questionParams(q, chart.id))}:${q.values.join("|")}:${chart.type ?? ""}`;
+  const panelKey = `${chart.id}:${String(questionParams(q, chart.id))}:${q.values.join("|")}:${chart.type ?? ""}:${keptFolder ?? ""}`;
+  // The first month the chart's dataset has vehicles in, told by the chart once its rows arrive, for the pinned line (src/lib/pin.ts).
+  const [firstSeen, setFirstSeen] = useState<{ key: string; month: string | undefined } | null>(null);
+  const pin = served && reading ? pinLine(pinnedQuestion, served, reading, firstSeen?.key === panelKey ? firstSeen.month : undefined) : undefined;
 
   let edit: ReactNode = null;
   if (!wide) {
@@ -166,7 +186,26 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
           {over ? <span>{say("move_here")}</span> : null}
         </div>
       ) : null}
-      {awaiting ? (
+      {notices.map((text) => (
+        <div className="callout warning" role="status" key={text}>
+          <span className="callout-label">{say("link_changed_label")}</span>
+          {text}
+        </div>
+      ))}
+      {pin ? (
+        <div className={pin.kind === "same" || pin.kind === "kept" ? "callout curated" : "callout warning"}>
+          <span className="callout-label">{say("pinned_label")}</span>
+          {pin.text}{" "}
+          <button type="button" className="button-quiet" onClick={onUnpin}>
+            {say("unpin")}
+          </button>
+        </div>
+      ) : null}
+      {reading === undefined ? (
+        <p className="meta" role="status">
+          {say("pin_reading")}
+        </p>
+      ) : awaiting ? (
         <div className="chart-card-body">
           <header className="chart-card-head">
             <div className="chart-card-heading">
@@ -186,7 +225,7 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
           )}
         </div>
       ) : preset ? (
-        <PresetPanel key={panelKey} preset={preset} frame="card" audience="public" anchored={false} controlsSlot={periodSlot} tableOnly={chart.table} headerEnd={headerEnd} cardWords={cardWords} />
+        <PresetPanel key={panelKey} preset={preset} frame="card" audience="public" anchored={false} controlsSlot={periodSlot} tableOnly={chart.table} headerEnd={headerEnd} cardWords={cardWords} snapshot={keptFolder} onFirstMonth={(month) => setFirstSeen({ key: panelKey, month })} />
       ) : null}
     </article>
   );

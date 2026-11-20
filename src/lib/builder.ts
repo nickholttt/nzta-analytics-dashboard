@@ -444,6 +444,22 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
   return note;
 }
 
+// What a link asked for that the page did not give, as the sentences the page says: one rule for the Build page and for each chart of
+// a canvas, so a link is told the same thing wherever it opens.
+export function linkNotices(all: Vocabulary, asked: Partial<Question>, settled: Question, label: (value: string, dimension: string) => string = (v) => v): string[] {
+  const note = readingNotes(all, asked, settled, label);
+  const notices = builderSpec.notices;
+  const fill = (template: string, context: Record<string, unknown>) => fillTemplate(template, context).text;
+  return [
+    ...(note.dataset ? [fill(notices.dataset, note.dataset)] : []),
+    ...(note.by ? [fill(notices.by, note.by)] : []),
+    ...(note.by2 ? [fill(notices.by2, note.by2)] : []),
+    ...(note.value2 ? [notices.value2] : []),
+    ...(note.snapshot ? [fill(notices.snapshot, note.snapshot)] : []),
+    ...(note.left_out ?? []).map((left) => fill(notices.left_out, left)),
+  ];
+}
+
 // A value a question names for a field, as a breakdown's value or a condition's. The page's own starting values are not named by the visitor and are
 // read from the field's table, so they are not listed.
 export type NamedValue = { dimension: string; value: string };

@@ -18,6 +18,10 @@ export type Saved = {
   saved: string;
 };
 
+// A kind of thing a visitor saves: where its list is kept, and what of an address is the thing itself. Questions are the kind this file
+// defaults to; a canvas is another (src/lib/savedCanvases.ts), kept in a list of its own under the same rules.
+export type Kind = { key: string; keep: (search: string) => string | undefined; maxQuery: number };
+
 // The two methods of the browser's storage this file uses, so a test can hold a stand-in.
 export type Store = Pick<Storage, "getItem" | "setItem">;
 export type Loaded = {
@@ -46,15 +50,17 @@ export function questionQuery(search: string): string | undefined {
   return text !== "" && text.length <= MAX_QUERY ? text : undefined;
 }
 
-const clean = (raw: unknown): Saved | undefined => {
+export const QUESTIONS: Kind = { key: STORAGE_KEY, keep: questionQuery, maxQuery: MAX_QUERY };
+
+const clean = (raw: unknown, kind: Kind): Saved | undefined => {
   if (typeof raw !== "object" || raw === null) return undefined;
   const r = raw as Record<string, unknown>;
   if (typeof r.id !== "string" || r.id === "" || r.id.length > 64) return undefined;
   if (typeof r.name !== "string" || r.name.trim() === "") return undefined;
-  if (typeof r.query !== "string" || r.query.length > MAX_QUERY) return undefined;
+  if (typeof r.query !== "string" || r.query.length > kind.maxQuery) return undefined;
   if (typeof r.saved !== "string" || Number.isNaN(Date.parse(r.saved))) return undefined;
-  // Whatever else the stored text holds, only Build's parameters are kept.
-  const query = questionQuery(`?${r.query}`);
+  // Whatever else the stored text holds, only the parameters of its kind are kept.
+  const query = kind.keep(`?${r.query}`);
   if (query === undefined) return undefined;
   return {
     id: r.id,
@@ -64,11 +70,11 @@ const clean = (raw: unknown): Saved | undefined => {
   };
 };
 
-export function load(storage: Store | null | undefined): Loaded {
+export function load(storage: Store | null | undefined, kind: Kind = QUESTIONS): Loaded {
   if (!storage) return { state: "unavailable", items: [], unreadable: 0 };
   let text: string | null;
   try {
-    text = storage.getItem(STORAGE_KEY);
+    text = storage.getItem(kind.key);
   } catch {
     return { state: "unavailable", items: [], unreadable: 0 };
   }
@@ -85,7 +91,7 @@ export function load(storage: Store | null | undefined): Loaded {
   const items: Saved[] = [];
   let unreadable = 0;
   for (const raw of list) {
-    const item = clean(raw);
+    const item = clean(raw, kind);
     if (!item || seen.has(item.id)) unreadable += 1;
     else {
       seen.add(item.id);
@@ -96,10 +102,10 @@ export function load(storage: Store | null | undefined): Loaded {
 }
 
 // False where the browser would not keep the list.
-export function persist(storage: Store | null | undefined, items: Saved[]): boolean {
+export function persist(storage: Store | null | undefined, items: Saved[], kind: Kind = QUESTIONS): boolean {
   if (!storage) return false;
   try {
-    storage.setItem(STORAGE_KEY, JSON.stringify({ v: VERSION, items }));
+    storage.setItem(kind.key, JSON.stringify({ v: VERSION, items }));
     return true;
   } catch {
     return false;
