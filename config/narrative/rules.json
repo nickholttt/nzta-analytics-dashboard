@@ -31,7 +31,7 @@
   "filters": ["pct", "month", "date"],
   "placeholders": {
     "answer": ["month", "count", "prior_month", "prior_count", "change"],
-    "words": ["months", "window", "vehicles"],
+    "words": ["months", "window", "vehicles", "count"],
     "phrases": ["change", "prior_month", "prior_count", "span", "end", "current", "prior_window", "prior", "asked", "shown", "month", "from", "to", "count", "label", "value", "months", "window", "trailing", "all_time", "trailing_high", "all_time_high", "hybrid", "vehicles", "floor", "threshold", "picked", "field", "leader", "leaders", "names", "list", "column", "mark", "reason", "counted", "row", "row_field", "column_field", "rest", "minimum"],
     "notices": ["asked", "shown", "dataset", "field", "pinned", "date", "latest", "kind"],
     "keeping": ["date", "count", "name", "max"],
@@ -40,6 +40,7 @@
     "unit_note": ["base"],
     "caveat": [],
     "table_label": ["from", "to"],
+    "chart_sentence": ["counted", "change", "prior_count", "prior", "name", "names", "label", "share", "points", "prior_share", "month", "prior_month", "recent", "months", "field", "period", "from", "to", "sentence"],
     "note": ["manifest.*", "dataset.*", "measure.*", "dimension.*", "words.*"]
   }
 }

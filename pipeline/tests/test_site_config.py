@@ -68,6 +68,7 @@ def _templates() -> list[tuple[str, str, str]]:
             found.append(("keeping", f"my_questions.{key}", text))
     found.extend(_canvas_templates())
     found.extend(_starter_templates())
+    found.extend(_chart_sentence_templates())
     for dimension in dimensions["dimensions"]:
         if "public_line" in dimension:
             found.append(("line", f"dimension {dimension['id']} public_line", dimension["public_line"]))
@@ -109,6 +110,11 @@ def _starter_templates() -> list[tuple[str, str, str]]:
     canvas's words. The charts of a starter are questions in config's own terms (ids and the values a condition keeps), not words."""
     starters = _json("config/starter_canvases.json")["starters"]
     return [("canvas", f"starters.{starter['id']}.{key}", starter[key]) for starter in starters for key in ("title", "description")]
+
+
+def _chart_sentence_templates() -> list[tuple[str, str, str]]:
+    """The sentence under every chart (config/narrative/chart_sentences.json, work order 3 lane A): every text in the file is a template."""
+    return [("chart_sentence", f"chart_sentences.{key}", text) for key, text in _json("config/narrative/chart_sentences.json").items() if not key.startswith("$")]
 
 
 # What in config/canvas.json is not a template: the ids the code reads (of the page, a chart, a group, a chart type, a field, a
@@ -169,6 +175,16 @@ def test_the_lint_reads_every_interface_word_and_every_one_line_note():
     for path, text in texts:
         assert text in linted, f"config/canvas.json {path} is a text the lint does not read"
     assert all(not where.startswith("canvas.definitions") for kind, where, _ in found if kind == "canvas"), "a field's definition is not a template"
+
+
+def test_the_lint_reads_every_sentence_under_a_chart():
+    """Every text in config/narrative/chart_sentences.json is linted, so a sentence added to it later is too. Each comparison template has
+    its sentence without the comparison, which is what a chart says where it cannot compare."""
+    linted = {where for kind, where, _ in _templates() if kind == "chart_sentence"}
+    keys = {key for key, text in _json("config/narrative/chart_sentences.json").items() if not key.startswith("$")}
+    assert len(keys) >= 20 and linted == {f"chart_sentences.{key}" for key in keys}, "a sentence under a chart is not linted"
+    for family in {key.rsplit("_", 1)[0] for key in keys if key.endswith(("_up", "_down", "_same"))}:
+        assert {f"{family}_up", f"{family}_down", f"{family}_same", f"{family}_alone"} <= keys, f"{family} has a comparison with no sentence for it, or none without"
 
 
 def test_the_lint_reads_every_word_of_the_starter_canvases():
