@@ -291,6 +291,12 @@ def parse_figures(cfg, c: dict, sources: dict[str, Source]) -> tuple[list[Figure
             if unknown:
                 bad.append(f"{dataset} cannot be filtered by {', '.join(unknown)}: not a dimension it can derive "
                            f"(config/dimensions.json, and its dimensions in config/pipeline.json)")
+            elif len(filters) > 1 and not {d for d, _ in filters} <= set(datasets[dataset].get("facts") or []):
+                held = set(datasets[dataset].get("facts") or [])
+                why = (f"its fact table (facts in config/pipeline.json) lacks {', '.join(d for d, _ in filters if d not in held)}"
+                       if held else "it has no fact table")
+                bad.append(f"{dataset} has no published table holding {', '.join(d for d, _ in filters)} together: {why}, and a slice "
+                           "holds one dimension only")
         problems += [f"{where}: {b}" for b in bad]
         if bad:
             continue

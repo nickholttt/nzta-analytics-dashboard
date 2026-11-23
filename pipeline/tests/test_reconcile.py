@@ -227,6 +227,19 @@ def test_a_repeated_figure_is_refused_however_its_filters_are_spelled(tmp_path):
                                   figure_row(measure_as_published="Measure two", filters=one["filters"]), figure_row(filters="")]) == []
 
 
+def test_two_dimensions_that_no_published_table_holds_are_found_before_the_build_reads_anything(tmp_path):
+    # registrations_surviving's fact table (config/pipeline.json) does not carry the owner's region, and a slice holds one dimension.
+    problems = problems_of(tmp_path, [figure_row(dataset=SURVIVING, filters='{"import_status": ["a"], "region": ["b"]}')])
+    assert len(problems) == 1 and "registrations_surviving has no published table holding import_status, region together" in problems[0]
+    assert "its fact table (facts in config/pipeline.json) lacks region" in problems[0] and "published_figures.csv line 2" in problems[0]
+    # A dataset with no fact table holds no pair of dimensions at all.
+    stock = problems_of(tmp_path, [figure_row(dataset=FLEET, filters='{"vehicle_usage": ["a"], "vehicle_type": ["b"]}')])
+    assert len(stock) == 1 and "fleet has no published table holding vehicle_type, vehicle_usage together: it has no fact table" in stock[0]
+    # Two dimensions the fact table does carry, and one dimension a slice answers, are fine.
+    assert problems_of(tmp_path, [figure_row(dataset=SURVIVING, filters='{"import_status": ["a"], "make": ["b"]}'),
+                                  figure_row(dataset=SURVIVING, measure_as_published="Two", filters='{"region": ["b"]}')]) == []
+
+
 def test_every_problem_is_reported_at_once(tmp_path):
     problems = problems_of(tmp_path, [figure_row(month="x"), figure_row(measure_as_published="two", figure="x")])
     assert len(problems) == 2

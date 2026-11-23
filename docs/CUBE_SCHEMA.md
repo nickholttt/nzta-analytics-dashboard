@@ -653,8 +653,9 @@ Both files are read and checked at the start of the build, before the register i
 the columns; a cell is malformed (a month not `YYYY-MM`, a figure that is not a whole number above zero, an address that is
 not `https://`, a date that is not `YYYY-MM-DD`, a tolerance above `reconciliation.max_tolerance_pct`); a source is not in
 `published_sources.csv`; the dataset is not one of `config/pipeline.json`; a filter names a dimension the dataset cannot
-derive, one that is not live in this build, or two dimensions that no one published table holds together; or two rows have the
-same source, month, measure and filters. What the configuration can prove wrong aborts. What depends on which values this
+derive, one that is not live in this build, or two dimensions that no one published table holds together (the second is found from
+the `facts` lists of `config/pipeline.json` before the register is read, and checked again against the staged files); or two rows have
+the same source, month, measure and filters. What the configuration can prove wrong aborts. What depends on which values this
 month's files happen to hold does not: a filter value that the published files do not hold (the model dimension keeps only the
 largest models of the trailing year, so a model that was large in an old month can be gone from a later build) makes the row
 `not_compared`, with `reason_kind` `value_not_held`, never a zero and never an abort.
