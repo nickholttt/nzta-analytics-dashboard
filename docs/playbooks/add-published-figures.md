@@ -50,15 +50,19 @@ explained, not a way to quiet a warning.
    ```
 
 4. Run the new rows against the saved pull of the snapshot they are for, which publishes nothing (about 12 minutes). It stops
-   with exit 2 if a filter names a value or dimension the published files do not have, or if three independent sources are each
-   more than twice their tolerance from ours in one month, in the same direction:
+   with exit 2 if a filter names a dimension the dataset cannot derive or that is not live, or if three independent sources are
+   each more than twice their tolerance from ours in one month, in the same direction. A filter value the published files do not
+   hold does not stop it: the row is `not_compared` with `reason_kind` `value_not_held`, and the build's warnings say how many
+   figures of each source did that:
 
    ```
    .venv/Scripts/python.exe -m pipeline build data/raw/YYYY-MM/<timestamp> --dry-run
    ```
 
    Then read `data/staging/build/reconciliation.json`: every new row should be `pass`, `warn` or `not_compared`, and each
-   `not_compared` should have the reason you expect (the newest month before its export is supplied is `month_not_held`).
+   `not_compared` should have the reason you expect (the newest month before its export is supplied is `month_not_held`). Read
+   it for `value_not_held` in particular, because a typing mistake in a model or a label looks the same as a model that has
+   dropped out of the capped list: look the value up in the published files, and correct the row if it is a typo.
 5. If a row warns, look at ours before theirs: which of the two is wrong? A known and explained difference goes in
    `known_difference`; an unexplained one is reported to the lead, not hidden, and the Differences page shows it.
 6. If the build stopped on the hard limit, our data is the likelier fault: report it to the lead, do not change the rows.

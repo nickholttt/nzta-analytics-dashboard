@@ -321,11 +321,39 @@ def test_an_answer_that_rests_on_a_hidden_cell_is_not_compared_and_ours_is_not_p
     ([figure_row(dataset=FLEET, filters='{"vehicle_usage": ["fixture_none"]}')], "vehicle_usage has no value 'fixture_none'"),
     ([figure_row(dataset=FLEET, filters='{"vehicle_usage": ["__NOT_BROKEN_DOWN__"]}')], "has no value '__NOT_BROKEN_DOWN__'"),
 ])
-def test_a_value_the_files_do_not_hold_aborts_naming_the_row_and_is_never_a_zero(tmp_path, figures, fragment):
+def test_a_value_the_files_do_not_hold_is_said_not_compared_never_a_zero_and_never_an_abort(tmp_path, figures, fragment):
     result = reconcile_figures(tmp_path, figures)
-    assert len(result.aborts) == 1 and fragment in result.aborts[0]
-    assert "published_figures.csv line 2 (source_a, 2026-02, 'Measure one')" in result.aborts[0]
-    assert result.document["rows"] == []
+    assert result.aborts == []
+    row = only_row(result)
+    assert (row["status"], row["ours"], row["gap"], row["gap_pct"], row["reason_kind"]) == ("not_compared", None, None, None, "value_not_held")
+    assert fragment in row["reason"] and "so it is not compared" in row["reason"]
+
+
+def test_a_value_that_dropped_out_of_a_later_build_names_the_dimension_and_value_in_one_warning_per_source(tmp_path):
+    figures = [figure_row(month=m, measure_as_published=f"Measure {m}", filters='{"vehicle_type": ["fixture_gone"]}') for m in ("2026-01", "2026-03")]
+    figures += [figure_row(source="source_b", filters='{"vehicle_type": ["fixture_gone"]}'), figure_row(source="source_c")]
+    result = reconcile_figures(tmp_path, figures)
+    assert result.aborts == []
+    assert result.warnings == [
+        "reconciliation: Source A: 2 figures name a value the published files do not hold, in 2026-01 to 2026-03, so they were not compared",
+        "reconciliation: Source B: 1 figure names a value the published files do not hold, in 2026-02, so it was not compared",
+    ]
+    assert result.document["summary"]["by_status"] == {"pass": 1, "warn": 0, "fail": 0, "not_compared": 3}
+
+
+def test_a_value_not_held_never_counts_towards_the_hard_limit(tmp_path):
+    # Three independent sources whose every row for the month names a value that is gone: nothing is compared, nobody breaches.
+    gone = figures_from(["source_a", "source_b", "source_c"], [1, 1, 1], filters='{"vehicle_type": ["fixture_gone"]}')
+    result = fails(tmp_path, gone)
+    assert result.aborts == []
+    assert {r["status"] for r in result.document["rows"]} == {"not_compared"}
+    # Two sources past the bound, and a third whose rows for the month are all not compared: still two, so the build goes on.
+    mixed = figures_from(["source_a", "source_b"], [950, 960]) + figures_from(["source_c"], [1], filters='{"vehicle_type": ["fixture_gone"]}')
+    assert fails(tmp_path, mixed).aborts == []
+    # A third source with one row past the bound and others not compared is judged on the compared rows alone, like the others.
+    third = figures_from(["source_a", "source_b", "source_c"], [950, 960, 970]) + [
+        figure_row(source="source_c", measure_as_published="Measure two", filters='{"vehicle_type": ["fixture_gone"]}')]
+    assert len(fails(tmp_path, third).aborts) == 1
 
 
 def test_a_dimension_the_dataset_publishes_no_file_for_aborts(tmp_path):
@@ -565,9 +593,16 @@ def test_a_build_stops_when_three_independent_sources_disagree_with_it_the_same_
     assert not (workspace["public"] / "manifest.json").exists(), "nothing is published"
 
 
-def test_a_row_that_cannot_be_answered_stops_the_build_naming_it(tmp_path, workspace):
+def test_a_value_the_build_does_not_hold_does_not_stop_it(tmp_path, workspace):
     figures = [figure_row(dataset=SURVIVING, month="2026-08", figure="1", filters='{"import_status": ["fixture_new"]}')]
-    with pytest.raises(GuardrailError, match=r"published_figures.csv line 2 \(source_a, 2026-08, 'Measure one'\): import_status has no value 'fixture_new'"):
+    cfg, manifest = build_with(tmp_path, workspace, figures, SOURCES)
+    assert manifest["reconciliation"]["by_status"] == {"pass": 0, "warn": 0, "fail": 0, "not_compared": 1}
+    assert "reconciliation: Source A: 1 figure names a value the published files do not hold, in 2026-08, so it was not compared" in manifest["warnings"]
+
+
+def test_a_row_the_configuration_cannot_answer_stops_the_build_naming_it(tmp_path, workspace):
+    figures = [figure_row(dataset=SURVIVING, month="2026-08", figure="1", filters='{"no_such_dimension": ["fixture_new"]}')]
+    with pytest.raises(GuardrailError, match=r"published_figures.csv line 2 \(source_a, 2026-08, 'Measure one'\): .*cannot be filtered by no_such_dimension"):
         build_with(tmp_path, workspace, figures, SOURCES)
 
 

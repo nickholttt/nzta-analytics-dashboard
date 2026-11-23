@@ -383,9 +383,12 @@ of one dimension are alternatives. A value is written as the published files hol
 model as `MAKE|MODEL`, which is the model dimension's own value. JSON is used because a model's name can hold any character a
 plainer encoding would split on. A blank cell means no filter, and `{}` is refused so that there is one way to say it. Every
 filter must be answerable from the files the build is about to publish: the dimension must be one the dataset can derive, live
-in this build, and in the dataset's fact table (or, when it is the row's only dimension, have a one-field slice), and every
-value must be a value of that dimension in the published files. Anything else aborts the build and names the row: an unknown
-dataset, dimension or value is never answered with zero.
+in this build, and in the dataset's fact table (or, when it is the row's only dimension, have a one-field slice). Anything the
+configuration can prove wrong aborts the build and names the row: an unknown dataset or dimension, a dimension that is not live,
+two dimensions no one table holds. A value is different: which values a build holds depends on the month (the model dimension
+keeps only the largest models of the trailing year, so a model that was large in an old month can be gone from a later build),
+so a value the published files do not hold makes the row `not_compared` (`value_not_held`), with a warning for the source, and
+never a zero and never a stopped build.
 
 Two rows are the same figure when their source, month, measure and filters are the same; the second aborts the build.
 

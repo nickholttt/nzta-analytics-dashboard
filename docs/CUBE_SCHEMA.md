@@ -653,9 +653,11 @@ Both files are read and checked at the start of the build, before the register i
 the columns; a cell is malformed (a month not `YYYY-MM`, a figure that is not a whole number above zero, an address that is
 not `https://`, a date that is not `YYYY-MM-DD`, a tolerance above `reconciliation.max_tolerance_pct`); a source is not in
 `published_sources.csv`; the dataset is not one of `config/pipeline.json`; a filter names a dimension the dataset cannot
-derive, one that is not live in this build, or two dimensions that no one published table holds together; a filter value is
-not a value of its dimension in the published files (an unknown value is never answered with zero); or two rows have the same
-source, month, measure and filters.
+derive, one that is not live in this build, or two dimensions that no one published table holds together; or two rows have the
+same source, month, measure and filters. What the configuration can prove wrong aborts. What depends on which values this
+month's files happen to hold does not: a filter value that the published files do not hold (the model dimension keeps only the
+largest models of the trailing year, so a model that was large in an old month can be gone from a later build) makes the row
+`not_compared`, with `reason_kind` `value_not_held`, never a zero and never an abort.
 
 **Each row ends as one of four statuses.**
 
@@ -664,7 +666,7 @@ source, month, measure and filters.
 | `pass` | ours is within the row's `tolerance_pct` of theirs (a gap of exactly the tolerance is inside) |
 | `warn` | past the tolerance. The build adds one warning line for each source, not one for each row |
 | `fail` | past the hard bound, and one of the rows that stop the build (below) |
-| `not_compared` | `reason_kind` and `reason` say why: `month_not_held` (our data for the dataset starts later or ends earlier, as for the newest month before its export is supplied), `dataset_not_built` (a supplied store is absent), `hidden_cell` (the answer rests on a cell the small-cell rule hides, so ours is not published) or `no_published_table`. Never dropped, never a pass, and never counted towards the hard limit |
+| `not_compared` | `reason_kind` and `reason` say why: `month_not_held` (our data for the dataset starts later or ends earlier, as for the newest month before its export is supplied), `dataset_not_built` (a supplied store is absent), `value_not_held` (a filter value that this build's published files do not hold; the reason names the dimension and the value), `hidden_cell` (the answer rests on a cell the small-cell rule hides, so ours is not published) or `no_published_table`. Never dropped, never a pass, and never counted towards the hard limit |
 
 The gap is ours less theirs, so a positive gap is ours above theirs, and `gap_pct` is the gap as a percentage of theirs,
 rounded to `reconciliation.pct_decimals` places. A row with `not_compared` has `ours`, `gap` and `gap_pct` null.
@@ -1351,8 +1353,8 @@ Published figures (`reconciliation.json`, above):
 
 - `published_figures.csv` or `published_sources.csv` is missing, has a header that is not exactly its columns, has a row that
   breaks a rule above, repeats a figure, names a source or dataset that does not exist, or asks a question the staged files
-  cannot answer (a dimension not live, two dimensions no one table holds, a value the files do not hold). The abort names the
-  file, the line, the source, the month and the measure.
+  cannot answer (a dimension not live, two dimensions no one table holds). The abort names the file, the line, the source, the
+  month and the measure. A filter value the files do not hold is not an abort: the row is `not_compared` (`value_not_held`).
 - The hard limit: `min_sources` independent sources are each past the hard bound in the same month, on the same side.
 
 Events:
@@ -1411,8 +1413,9 @@ is worse than one that is visibly stale.
 - The payload exceeds the size budget.
 - A supplied dataset was not built because its store is absent.
 - A source has figures past their tolerance (`reconciliation: <name>: <k> of <m> compared figures are past their tolerance, in
-  <months>; the largest gap is <pct> (<month>)`), one line for each source however many rows. Or published figures exist and
-  none could be compared.
+  <months>; the largest gap is <pct> (<month>)`), one line for each source however many rows. A source has figures that name a
+  value the published files do not hold (`reconciliation: <name>: <k> figures name a value the published files do not hold, in
+  <months>, so they were not compared`), one line for each source. Or published figures exist and none could be compared.
 - A supplied store ends before the register's snapshot month: the export is missing the months after it.
 - A dataset of a source of kind `series` has a dimension whose reference file is missing and was not live
   before: it stays out, and the warning names the file.

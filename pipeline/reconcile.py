@@ -13,8 +13,9 @@ A row ends as one of:
 - `pass`: ours is within the row's tolerance of theirs;
 - `warn`: past the tolerance (one warning line for each source, not for each row);
 - `fail`: past the hard bound, and one of the rows that make the build stop (below);
-- `not_compared`, with a reason: our data does not hold that month, the dataset was not built in this run, or the answer rests
-  on a cell the small-cell rule hides. A row that cannot be compared is said, never dropped and never counted as a pass.
+- `not_compared`, with a reason: our data does not hold that month, the dataset was not built in this run, a filter value is not one
+  this build's files hold (the model dimension keeps only the largest models, so a value can drop out), or the answer rests on a
+  cell the small-cell rule hides. A row that cannot be compared is said, never dropped and never counted as a pass.
 
 The hard limit (numbers in config/pipeline.json, `reconciliation.hard_limit`): a source breaches in a month when at least
 `source_row_share` of its compared rows for that month are further from ours than `max(tolerance_multiple x the row's
@@ -51,6 +52,7 @@ STATUSES = (PASS, WARN, FAIL, NOT_COMPARED)
 
 # Why a row was not compared: a code the site can group by, and a sentence for a reader.
 MONTH_NOT_HELD, DATASET_NOT_BUILT, HIDDEN_CELL, NO_TABLE = "month_not_held", "dataset_not_built", "hidden_cell", "no_published_table"
+VALUE_NOT_HELD = "value_not_held"
 
 ID = re.compile(r"[a-z][a-z0-9_]*")
 MONTH = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])")
@@ -384,13 +386,19 @@ class Staged:
             self.values[key] = {r[0] for r in self.con.execute(f"SELECT DISTINCT {quote(column)} FROM {table}").fetchall()}
         return self.values[key]
 
-    def check_values(self, fig: Figure, table: str, column_of) -> None:
-        """Every value a row names is a value of its dimension in the published files: an unknown one is a typing mistake, and
-        answering it with zero would hide that."""
+    def missing_values(self, fig: Figure, table: str, column_of) -> Answer | None:
+        """None when every value a row names is a value of its dimension in this build's published files. Otherwise the answer
+        that says it is not compared, naming the dimension and the values: which values a build holds depends on the month (the
+        model dimension keeps only the largest models of the trailing year), so a row about a value that has dropped out is said,
+        not answered with zero and not allowed to stop the build."""
         for dimension, wanted in fig.filters:
-            unknown = [v for v in wanted if v not in self.known_values(table, column_of(dimension)) - {NOT_BROKEN_DOWN}]
+            held = self.known_values(table, column_of(dimension)) - {NOT_BROKEN_DOWN}
+            unknown = [v for v in wanted if v not in held]
             if unknown:
-                raise Unanswerable(f"{dimension} has no value {', '.join(repr(v) for v in unknown)} in the published files of {fig.dataset}")
+                names = ", ".join(repr(v) for v in unknown)
+                return Answer(None, VALUE_NOT_HELD, f"{dimension} has no value {names} in the published files of {fig.dataset} in this build, "
+                                                    "so it is not compared.")
+        return None
 
     def held(self, fig: Figure, table: str) -> Answer | None:
         """None when the table holds the row's month, otherwise the answer that says it does not."""
@@ -411,8 +419,7 @@ class Staged:
         wanted = date(year, month, 1)
         if route[0] == "facts":
             table = self.load_facts(fig.dataset, set(route[1]))
-            self.check_values(fig, table, lambda d: d)
-            missing = self.held(fig, table)
+            missing = self.missing_values(fig, table, lambda d: d) or self.held(fig, table)
             if missing:
                 return missing
             clauses = [f"{quote(dimension)} IN ({sql_list(wanted_values)})" for dimension, wanted_values in fig.filters] or ["TRUE"]
@@ -421,8 +428,7 @@ class Staged:
             return Answer(int(total)) if rows else self.empty_month(fig)
         if route[0] == "slice":
             table = self.load_slice(fig.dataset, route[1])
-            self.check_values(fig, table, lambda d: "dim_value")
-            missing = self.held(fig, table)
+            missing = self.missing_values(fig, table, lambda d: "dim_value") or self.held(fig, table)
             if missing:
                 return missing
             cells = dict(self.con.execute(f"SELECT dim_value, n FROM {table} WHERE month = ?", [wanted]).fetchall())
@@ -536,6 +542,12 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
     h = c["hard_limit"]
     sources = prepared.sources
     warnings = hard_limit(sources, judged, c, aborts)
+    for source in sources.values():
+        unheld = sorted(r["month"] for r in judged if r["source"] == source.id and r["reason_kind"] == VALUE_NOT_HELD)
+        if unheld:
+            one = len(unheld) == 1
+            warnings.append(f"reconciliation: {source.name}: {len(unheld)} {'figure names' if one else 'figures name'} a value the published "
+                            f"files do not hold, in {span(unheld)}, so {'it was' if one else 'they were'} not compared")
     for row in judged:
         row.pop("_hard", None)
     judged.sort(key=lambda r: (r["month"], r["source"], r["measure_as_published"], json.dumps(r["filters"], sort_keys=True)))
