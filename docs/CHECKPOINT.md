@@ -1,6 +1,18 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-20
+Last updated by claude on 2026-11-23
+
+## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2)
+
+Take only a lane that is free or your own. Write your line here, on `main`, before you start.
+A session on the web takes only A, B or C.
+
+| Lane | Branch | Held by | Status |
+|---|---|---|---|
+| A: finish the canvas | `claude/a-starter-canvases` | the computer session of 2026-11-23 | step 1 of 5 (starter canvases) being built |
+| B: the accuracy guard | `claude/b-reconciliation` | the computer session of 2026-11-23 | steps 1 and 2 (the published figures and the reconciliation step) being built |
+| C: public readiness | `claude/c-quality-bar` | the computer session of 2026-11-23 | step 2 (the quality bar's lint, tests and budget) being built |
+| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 22 November built nothing |
 
 ## Where we left off
 
@@ -74,6 +86,7 @@ check (D-134), then "Registered as" (D-140); fix what the refresh breaks.
 
 ## Prompt for the next session
 
-/start. Continue `docs/brief/WORK_ORDER.md` (work order 2) from CHECKPOINT. Its §3 still
-stands: you may merge its pull requests into `main` in this session under its §2 and §3, and
-nothing in its §4 is touched. Do not stop for questions; park what needs me and keep going.
+/start. Continue `docs/brief/WORK_ORDER.md` (work order 3) from CHECKPOINT. Take a free lane
+from its Lanes table (on the web: only A, B or C). Its §1 carries work order 2's §3: you may
+merge into `main` in this session under those rules, and nothing in work order 2's §4 is
+touched. Do not stop for questions; park what needs me and keep going.
