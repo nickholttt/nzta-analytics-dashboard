@@ -271,9 +271,10 @@ export const NO_MATCH_TOKEN = "__UNMAPPED__";
 export const NOT_BROKEN_DOWN_TOKEN = "__NOT_BROKEN_DOWN__";
 
 // The figure of the value in first place, said in the dataset's own words for what it counts: "3,513 vehicles first registered in the last 12
-// months that are still registered". template has {vehicles} and {window}; a dataset with none says the vehicles and the window.
+// months that are still registered". template has {vehicles} (the figure and its unit) or {count} (the bare figure, for a dataset that
+// names its own unit) and {window}; a dataset with none says the vehicles and the window.
 export const countedText = (template: string | undefined, n: number, window: string): string =>
-  fillTemplate(template ?? "{vehicles} {window}", { vehicles: vehiclesText(n), window }).text;
+  fillTemplate(template ?? "{vehicles} {window}", { vehicles: vehiclesText(n), count: count(n), window }).text;
 
 export type PickedRankingFacts = {
   // Whether the values are the visitor's own choice (false: the page's starting values).

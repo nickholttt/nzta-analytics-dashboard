@@ -28,6 +28,7 @@ import {
 } from "../lib/theme";
 import { cellAt, cellText } from "../lib/figures";
 import { leaderIsClear, leagueRows, leagueTable, pickedSummary, rankingGuard, rankingLimit } from "../lib/league";
+import { ChartSentence } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
 import type { LeagueRow } from "../lib/league";
 import { PlotFigure } from "./PlotFigure";
@@ -144,14 +145,14 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       conditions: Object.values(preset.where ?? {}).some((kept) => kept.length > 0),
     });
   }, [picked, own, model, label, valueHeading, windowWords, words, preset.where]);
-  // The answer of a ranking of every value: who is first, with how many.
-  const leaderAnswer = useMemo(() => {
-    if (picked || !(preset.ranks_all || single) || model.items.length === 0) return undefined;
+  // The sentence under the chart: who is first, with how many (of the values picked, where some were). A hidden count could be as large as the
+  // leader's: then nobody is named. Where none of the values picked has a vehicle, the sentence says that, as there is nothing to name.
+  const sentence = useMemo(() => {
+    if (model.items.length === 0) return about?.leader;
     const first = model.items.filter((i) => i.rank === 1);
-    // A hidden count could be as large as the leader's: then nobody is named.
     if (!leaderIsClear(first[0].n, model.hiddenAtMost)) return undefined;
-    return rankingLeaderSentence(phrases, first.map((i) => i.name), countedText(words?.leader_count, first[0].n, windowWords));
-  }, [picked, preset.ranks_all, single, model, words, windowWords]);
+    return about ? about.leader : rankingLeaderSentence(phrases, first.map((i) => i.name), countedText(words?.leader_count, first[0].n, windowWords));
+  }, [about, model, words, windowWords]);
   // The earlier window in the words of the window ranked, so a ranking of twelve months does not speak of a month.
   const yearTooFew = yearTooFewText(phrases, span, end);
 
@@ -323,14 +324,17 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
     </th>
   );
 
-  const answer =
-    about || leaderAnswer ? (
-      <div className="answer">
-        {model.items.length > 0 ? <p className="answer-figure" aria-hidden="true">{count(model.items[0].n)}</p> : null}
-        <p className="answer-sentence">{about ? about.leader : leaderAnswer}</p>
-        {about && model.items.length > 0 ? <p className="chart-unit">{about.label}</p> : null}
-        {about && model.items.length > 0 ? about.unranked.map((sentence) => <p key={sentence} className="chart-unit">{sentence}</p>) : null}
-      </div>
+  // What the page says about a choice of values, above the chart: how the values are ranked and which of them take no place.
+  const aboutChoice =
+    about && model.items.length > 0 ? (
+      <>
+        <p className="chart-unit">{about.label}</p>
+        {about.unranked.map((text) => (
+          <p key={text} className="chart-unit">
+            {text}
+          </p>
+        ))}
+      </>
     ) : null;
   const monthPick =
     onMonth && available.length > 1 ? (
@@ -361,17 +365,17 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   if (picked && model.items.length === 0) {
     return (
       <>
-        {answer}
         {after?.()}
         {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
         {monthPick ? <div className="controls" style={{ marginBottom: "var(--space-3)" }}>{monthPick}</div> : null}
+        <ChartSentence text={sentence} />
       </>
     );
   }
 
   return (
     <>
-      {answer}
+      {aboutChoice}
       {after?.()}
       <div className="controls" style={{ marginBottom: "var(--space-3)", display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
         {picked || single ? null : (
@@ -430,6 +434,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         render={render}
         label={`Ranked bar chart, ${single ? windowWords : spanPeriod(currentFrom, end)}: the ${model.items.length} ${single ? "values" : "largest"}${model.hidden.length ? ` and ${model.hidden.length} with a hidden count` : ""} by ${displayMode === "share" ? "share" : "number of vehicles"}. ${single ? "The table below the chart lists each place." : "The table below the chart lists each place, its move and its change."}`}
       />
+      <ChartSentence text={sentence} />
 
       {/* On a phone the table scrolls sideways in its own box, so the box takes keyboard focus and a name. The
           share and its change come before the count and the earlier rank, so what a phone shows without scrolling
