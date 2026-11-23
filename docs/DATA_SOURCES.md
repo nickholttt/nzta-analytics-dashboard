@@ -357,6 +357,38 @@ The Differences page states each source's definition from this file. A source wi
 The file is read at the start of every build, before the register is read: a row that breaks any rule above, a repeated
 `id`, or a header that is not exactly these columns in this order aborts the build and names the row.
 
+`data/reference/published_figures.csv` has one row for each figure a source publishes for one month:
+
+| column | meaning |
+|---|---|
+| `source` | the `id` of a row of `published_sources.csv` |
+| `source_url` | the page the figure was read on, `https://` |
+| `date_read` | the day it was read, `YYYY-MM-DD` |
+| `month` | the month the figure is for, `YYYY-MM` |
+| `measure_as_published` | the measure exactly as the source defines and names it |
+| `figure` | the source's figure, a whole number above zero (a figure of zero cannot be set against as a percentage) |
+| `dataset` | one of the datasets of `config/pipeline.json` |
+| `filters` | the question put to that dataset (below); blank for the dataset's whole total |
+| `tolerance_pct` | how far ours may be from theirs, as a percentage of theirs, before the row warns; 0 up to `reconciliation.max_tolerance_pct` in `config/pipeline.json` |
+| `known_difference` | a short note where a difference is known and explained; blank otherwise. It is shown beside the row and never used to hide it |
+
+**Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
+datasets (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it counts first
+registrations or vehicles still registered (`registrations_surviving`: survivors are not registrations). A row is set
+against that dataset's counts, narrowed by its filters, and nothing else.
+
+**Filters** are one JSON object in the cell, each key a dimension id and each value a list of the values wanted:
+`{"import_status": ["<value>"], "vehicle_type": ["<value>", "<value>"]}`. The dimensions are all required at once; the values
+of one dimension are alternatives. A value is written as the published files hold it (the label, never NZTA's raw code), and a
+model as `MAKE|MODEL`, which is the model dimension's own value. JSON is used because a model's name can hold any character a
+plainer encoding would split on. A blank cell means no filter, and `{}` is refused so that there is one way to say it. Every
+filter must be answerable from the files the build is about to publish: the dimension must be one the dataset can derive, live
+in this build, and in the dataset's fact table (or, when it is the row's only dimension, have a one-field slice), and every
+value must be a value of that dimension in the published files. Anything else aborts the build and names the row: an unknown
+dataset, dimension or value is never answered with zero.
+
+Two rows are the same figure when their source, month, measure and filters are the same; the second aborts the build.
+
 ---
 
 ## Field notes that will bite you
