@@ -1,0 +1,61 @@
+---
+// One table of a measure's figures: their figure, this site's, the gap, and where it was read. A figure that was not set beside this site's has
+// the sentence that says so across the three columns it leaves empty. Static HTML; every word comes from config/comparison.json through
+// src/lib/comparison.ts. A table wider than the screen scrolls inside its own labelled, focusable region.
+import type { FigureRowView } from "../lib/comparison";
+import type { Words } from "../lib/comparison";
+
+interface Props {
+  caption: string;
+  rows: FigureRowView[];
+  columns: Words["columns"];
+}
+const { caption, rows, columns } = Astro.props;
+---
+
+<div class="table-scroll" role="region" aria-label={caption} tabindex="0">
+  <table>
+    <caption class="visually-hidden">{caption}</caption>
+    <thead>
+      <tr>
+        <th scope="col">{columns.month}</th>
+        <th scope="col" class="num">{columns.theirs}</th>
+        <th scope="col" class="num">{columns.ours}</th>
+        <th scope="col" class="num">{columns.gap}</th>
+        <th scope="col" class="num">{columns.gap_pct}</th>
+        <th scope="col">{columns.read}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((row) => (
+          <>
+          <tr class:list={{ "has-notes": row.notes.length > 0 }}>
+            <th scope="row">{row.monthLabel}</th>
+            <td class="num">{row.theirs}</td>
+            {row.notCompared !== undefined ? (
+              <td colspan="3">{row.notCompared}</td>
+            ) : (
+              <>
+                <td class="num">{row.ours}</td>
+                <td class="num">{row.gap}</td>
+                <td class="num">{row.gapPct}</td>
+              </>
+            )}
+            <td class="read">{row.readLabel !== null ? <a href={row.readUrl}>{row.readLabel}</a> : null}</td>
+          </tr>
+          {row.notes.length > 0 && (
+            <tr class="row-notes">
+              <td colspan="6">
+                {row.notes.map((note) => (
+                  <span>{note}</span>
+                ))}
+              </td>
+            </tr>
+          )}
+          </>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

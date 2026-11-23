@@ -51,7 +51,7 @@ const file = (rows: Row[], over: Partial<Reconciliation> = {}): Reconciliation =
 
 const labels = {
   dataset: (id: string) => ({ set_one: "Dataset One", set_two: "Dataset Two" })[id],
-  dimension: (id: string) => ({ field_x: "field x", field_y: "field y" })[id],
+  dimension: (id: string) => ({ field_x: "Field X", field_y: "Field Y" })[id],
   value: (_dimension: string, value: string) => value.replace("|", " "),
 };
 
@@ -133,8 +133,8 @@ test("figures are grouped by what was measured, kinds in config's order, and the
     row({ month: "2026-08", ours: 900, theirs: 1000, gap: -100, gap_pct: -10 }),
     row({ month: "2026-10", ours: 1100, theirs: 1000, gap: 100, gap_pct: 10 }),
     row({ month: "2026-09" }),
-    row({ measure_as_published: "Measure B", figure_kind: "total", month: "2026-10" }),
-    row({ measure_as_published: "Measure C", figure_kind: "commercial", month: "2026-10" }),
+    row({ measure_as_published: "Measure B", figure_kind: "total", month: "2026-10", filters: {} }),
+    row({ measure_as_published: "Measure C", figure_kind: "commercial", month: "2026-10", filters: { field_y: ["Value Q"] } }),
   ];
   const view = figures(comparison.comparisonView(file(rows), labels));
   const series = view.sources[0].series;
@@ -152,12 +152,69 @@ test("figures are grouped by what was measured, kinds in config's order, and the
   assert.equal(series[1].every, null, "a figure for one month needs no list of months");
   assert.equal(a.latest[0].monthLabel, monthLabel("2026-10"));
   assert.equal(a.latest[0].readUrl, "https://alpha.example/page");
-  assert.equal(a.latest[0].readLabel, "Source page, read 20 November 2026");
+  assert.equal(a.latest[0].readLabel, "alpha.example, read 20 November 2026");
 });
 
 test("the same measure asked of two datasets, or with two conditions, is two groups", () => {
   const view = figures(comparison.comparisonView(file([row({}), row({ dataset: "set_two" }), row({ filters: { field_y: ["Value Q"] } })]), labels));
   assert.equal(view.sources[0].series.length, 3);
+});
+
+test("rows are grouped by what this site's figure is, not by the organisation's wording of it", () => {
+  const view = figures(
+    comparison.comparisonView(
+      file([
+        row({ month: "2026-08", measure_as_published: "Measure A (two figures, added here)" }),
+        row({ month: "2026-09", measure_as_published: "Measure A (two figures of the table, added here)" }),
+        row({ month: "2026-10", measure_as_published: "Measure A (two figures of the table, added here)" }),
+        row({ month: "2026-07", measure_as_published: "Measure A (two figures of the table, added here), given in a later release" }),
+      ]),
+      labels,
+    ),
+  );
+  const series = view.sources[0].series;
+  assert.equal(series.length, 1, "one table for one question");
+  assert.equal(series[0].measure, "Measure A (two figures of the table, added here)", "the heading is the wording most rows share");
+  assert.deepEqual(series[0].all.map((r) => r.month), ["2026-10", "2026-09", "2026-08", "2026-07"]);
+  assert.deepEqual(series[0].all.map((r) => r.notes), [[], [], ["As the source words it: Measure A (two figures, added here)"], ["As the source words it: Measure A (two figures of the table, added here), given in a later release"]], "a row worded otherwise says so itself");
+  assert.equal(series[0].captionLatest, "Alpha Association: Measure A (two figures of the table, added here), newest month compared");
+  // The tie goes to the wording the newest row has.
+  const tied = figures(comparison.comparisonView(file([row({ month: "2026-08", measure_as_published: "Old words" }), row({ month: "2026-09", measure_as_published: "New words" })]), labels));
+  assert.equal(tied.sources[0].series[0].measure, "New words");
+  // Another organisation's figure for the same question is its own group.
+  const two = figures(comparison.comparisonView(file([row({}), row({ source: "beta" })]), labels));
+  assert.deepEqual(two.sources.map((s) => s.series.length), [1, 1]);
+});
+
+test("two rows of one month, as first released and as restated, are both shown, each with its wording and its link", () => {
+  const view = figures(
+    comparison.comparisonView(
+      file([
+        row({ month: "2026-10", measure_as_published: "Measure A", theirs: 1000, ours: 1010, gap: 10, gap_pct: 1, source_url: "https://www.alpha.example/release", date_read: "2026-11-20" }),
+        row({ month: "2026-10", measure_as_published: "Measure A, restated", theirs: 1005, ours: 1010, gap: 5, gap_pct: 0.4975, source_url: "https://news.example/report", date_read: "2026-11-22" }),
+        row({ month: "2026-09" }),
+      ]),
+      labels,
+    ),
+  );
+  const a = view.sources[0].series[0];
+  assert.equal(a.latest.length, 2, "both rows of the newest month");
+  assert.deepEqual(a.latest.map((r) => [r.month, r.theirs, r.readUrl, r.readLabel]), [
+    ["2026-10", "1,000", "https://www.alpha.example/release", "alpha.example, read 20 November 2026"],
+    ["2026-10", "1,005", "https://news.example/report", "news.example, read 22 November 2026"],
+  ]);
+  assert.deepEqual(a.latest.map((r) => r.notes.length), [0, 1], "the row worded otherwise carries its wording");
+  assert.equal(a.all.length, 3);
+  assert.equal(a.every, `Every month, ${monthLabel("2026-09")} to ${monthLabel("2026-10")}`, "two rows of one month make a longer list than the first table");
+});
+
+test("the link's text is the page's host name without www, then the day read; a page with no host has no link text", () => {
+  assert.equal(comparison.hostOf("https://www.example.org/a/b?c=1"), "example.org");
+  assert.equal(comparison.hostOf("https://vstat.example.org:8443/new"), "vstat.example.org");
+  assert.equal(comparison.hostOf("https://WWW.Example.org/"), "example.org");
+  assert.equal(comparison.hostOf("not a url"), undefined);
+  const view = figures(comparison.comparisonView(file([row({ source_url: "not a url" })]), labels));
+  assert.equal(view.sources[0].series[0].latest[0].readLabel, null);
 });
 
 test("a month newer than the newest compared one stays visible, with the sentence that says it is not compared", () => {
@@ -186,34 +243,47 @@ test("every kind of reason has its own sentence, and an unknown one has the gene
 });
 
 test("a figure added up is labelled with the organisation's name and what it was added up from", () => {
-  const view = figures(comparison.comparisonView(file([row({ added_up_from: "chart" }), row({ measure_as_published: "Measure B", added_up_from: null })]), labels));
-  const [a, b] = view.sources[0].series;
+  const view = figures(comparison.comparisonView(file([row({ added_up_from: "chart" }), row({ filters: {}, added_up_from: null })]), labels));
+  const [a, b] = view.sources[0].series.sort((x, y) => Number(Boolean(y.addedUp)) - Number(Boolean(x.addedUp)));
   assert.equal(a.addedUp, "Added up from Alpha Association's published chart.");
   assert.equal(b.addedUp, null);
   assert.equal(comparison.addedUpLabel({ added_up_from: "table" }, "Beta Board"), "Added up from Beta Board's published table.");
 });
 
+test("the added-up label is said once for a group where every row has it, and beside the rows that have it where they differ", () => {
+  const every = figures(comparison.comparisonView(file([row({ month: "2026-09", added_up_from: "table" }), row({ month: "2026-10", added_up_from: "table" })]), labels)).sources[0].series[0];
+  assert.equal(every.addedUp, "Added up from Alpha Association's published table.");
+  assert.deepEqual(every.all.map((r) => r.notes), [[], []]);
+  const some = figures(comparison.comparisonView(file([row({ month: "2026-09" }), row({ month: "2026-10", added_up_from: "table" })]), labels)).sources[0].series[0];
+  assert.equal(some.addedUp, null);
+  assert.deepEqual(some.all.map((r) => r.notes), [["Added up from Alpha Association's published table."], []]);
+  const kinds = figures(comparison.comparisonView(file([row({ month: "2026-09", added_up_from: "chart" }), row({ month: "2026-10", added_up_from: "table" })]), labels)).sources[0].series[0];
+  assert.equal(kinds.addedUp, null, "two different words are not one label");
+  assert.deepEqual(kinds.all.map((r) => r.notes), [["Added up from Alpha Association's published table."], ["Added up from Alpha Association's published chart."]]);
+});
+
 test("what this site's figure counts is said in the labels visitors read, and never in an id", () => {
   const ours = (filters: Record<string, string[]>, dataset = "set_one") => comparison.oursSentence({ dataset, filters }, labels);
-  assert.equal(ours({}), "This site's figure: Dataset One, with no further condition.");
-  assert.equal(ours({ field_x: ["Value P"] }), "This site's figure: Dataset One, where field x is Value P.");
-  assert.equal(ours({ field_x: ["Value P", "Value Q"], field_y: ["Some|Thing"] }), "This site's figure: Dataset One, where field x is Value P or Value Q and field y is Some Thing.");
-  assert.equal(ours({ field_x: [] }), "This site's figure: Dataset One, with no further condition.", "a condition with no value keeps everything");
+  assert.equal(ours({}), "This site's figure: Dataset One, with no conditions.");
+  assert.equal(ours({ field_x: ["Value P"] }), "This site's figure: Dataset One. Conditions: Field X: Value P.");
+  assert.equal(ours({ field_x: ["Value P", "Value Q"], field_y: ["Some|Thing"] }), "This site's figure: Dataset One. Conditions: Field X: Value P or Value Q; Field Y: Some Thing.");
+  assert.equal(ours({ field_x: [] }), "This site's figure: Dataset One, with no conditions.", "a condition with no value keeps everything");
   assert.equal(ours({}, "no_such_set"), null, "a dataset the page cannot name leaves the sentence out");
   assert.equal(ours({ no_such_field: ["v"] }), null, "a field the page cannot name leaves the sentence out");
   const view = figures(comparison.comparisonView(file([row({})]), labels));
   assert.ok(!view.sources[0].series[0].ours?.includes("set_one") && !view.sources[0].series[0].ours?.includes("field_x"));
 });
 
-test("a known difference is shown once however many months share it, and each different one is kept", () => {
-  const view = figures(
-    comparison.comparisonView(
-      file([row({ month: "2026-08", known_difference: "Same note" }), row({ month: "2026-09", known_difference: "Same note" }), row({ month: "2026-10", known_difference: "Newer note" })]),
-      labels,
-    ),
-  );
-  assert.deepEqual(view.sources[0].series[0].knownDifferences, ["Known difference: Newer note", "Known difference: Same note"]);
-  assert.deepEqual(figures(comparison.comparisonView(file([row({})]), labels)).sources[0].series[0].knownDifferences, []);
+test("a known difference is said once where every row has it, and beside the rows that have it where they differ", () => {
+  const same = figures(comparison.comparisonView(file([row({ month: "2026-08", known_difference: "Same note" }), row({ month: "2026-09", known_difference: "Same note" })]), labels)).sources[0].series[0];
+  assert.equal(same.knownDifference, "Known difference: Same note");
+  assert.deepEqual(same.all.map((r) => r.notes), [[], []]);
+  const differ = figures(
+    comparison.comparisonView(file([row({ month: "2026-08", known_difference: "Same note" }), row({ month: "2026-09" }), row({ month: "2026-10", known_difference: "Newer note" })]), labels),
+  ).sources[0].series[0];
+  assert.equal(differ.knownDifference, null);
+  assert.deepEqual(differ.all.map((r) => r.notes), [["Known difference: Newer note"], [], ["Known difference: Same note"]]);
+  assert.equal(figures(comparison.comparisonView(file([row({})]), labels)).sources[0].series[0].knownDifference, null);
 });
 
 test("the internal table puts the figures that need a look first, each newest month first", () => {

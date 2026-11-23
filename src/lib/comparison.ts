@@ -9,7 +9,7 @@ import type { Reconciliation, ReconciliationRow, ReconciliationSource, Reconcili
 export type Words = typeof wordsDoc;
 export const words: Words = wordsDoc;
 
-// How the page says a dataset, a field (as it reads inside a sentence) and a value in a visitor's words. A lookup that finds none says so, and the sentence that needed it is left
+// How the page says a dataset, a field and a value in a visitor's words. A lookup that finds none says so, and the sentence that needed it is left
 // out: an id is never shown in its place.
 export type Labels = {
   dataset: (id: string) => string | undefined;
@@ -66,8 +66,7 @@ export function oursSentence(row: Pick<ReconciliationRow, "dataset" | "filters">
   const dataset = labels.dataset(row.dataset);
   if (dataset === undefined) return null;
   const either = new Intl.ListFormat("en-NZ", { style: "long", type: "disjunction" });
-  const both = new Intl.ListFormat("en-NZ", { style: "long", type: "conjunction" });
-  const conditions: string[] = [];
+    const conditions: string[] = [];
   for (const [dimension, values] of Object.entries(row.filters ?? {})) {
     if (values.length === 0) continue;
     const field = labels.dimension(dimension, row.dataset);
@@ -76,7 +75,7 @@ export function oursSentence(row: Pick<ReconciliationRow, "dataset" | "filters">
     if (text === null) return null;
     conditions.push(text);
   }
-  return conditions.length === 0 ? say(w.ours.all, { dataset }) : say(w.ours.where, { dataset, conditions: both.format(conditions) });
+  return conditions.length === 0 ? say(w.ours.all, { dataset }) : say(w.ours.where, { dataset, conditions: conditions.join(w.ours.join) });
 }
 
 // "Jan 2025 to Oct 2026", or one month alone.
@@ -96,19 +95,25 @@ export type FigureRowView = {
   gapPct?: string;
   notCompared?: string;
   readUrl: string;
+  // The page's host name and the day it was read, as the link's text.
   readLabel: string | null;
+  // What this row says that its group does not say for every row: its own wording where it differs from the group's, an added-up label or a known
+  // difference that not every row of the group has.
+  notes: string[];
 };
 
 export type SeriesView = {
+  // The wording most of the group's rows share.
   measure: string;
   kind: string;
+  // Said once for the group where every row says the same; otherwise it is in the notes of the rows that have it.
   addedUp: string | null;
   ours: string | null;
-  knownDifferences: string[];
+  knownDifference: string | null;
   captionLatest: string | null;
   captionAll: string | null;
   // The newest month compared, and any month after it that is not compared; and every month. `every` is the heading of the second, and is
-  // null when the first already holds every month.
+  // null when the first already holds every month. A month can have two rows, a figure as first released and as restated.
   latest: FigureRowView[];
   all: FigureRowView[];
   every: string | null;
@@ -137,6 +142,7 @@ export type ComparisonView =
     };
 
 const byMonthDescending = (a: { month: string }, b: { month: string }) => (a.month < b.month ? 1 : a.month > b.month ? -1 : 0);
+const alphabetical = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 // The month of the newest figure that was set beside this site's, or undefined where none was.
 export function newestCompared(rows: readonly ReconciliationRow[]): string | undefined {
@@ -145,8 +151,38 @@ export function newestCompared(rows: readonly ReconciliationRow[]): string | und
   return newest;
 }
 
-function figureRow(row: ReconciliationRow, w: Words): FigureRowView {
+// The host name of the page a figure was read on, without "www.": the organisation's own release and a news report of it are told apart by it.
+export function hostOf(url: string): string | undefined {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./i, "");
+    return host === "" ? undefined : host;
+  } catch {
+    return undefined;
+  }
+}
+
+// The value most rows of a group share; of those tied, the one the newest row has. `rows` is newest first.
+function mostCommon(rows: readonly ReconciliationRow[], of: (row: ReconciliationRow) => string): string {
+  const counts = new Map<string, number>();
+  for (const row of rows) counts.set(of(row), (counts.get(of(row)) ?? 0) + 1);
+  let best = of(rows[0]);
+  for (const [value, count] of counts) if (count > (counts.get(best) ?? 0)) best = value;
+  return best;
+}
+
+// The one value every row of a group has (null where every row has none), or undefined where they differ.
+function sharedBy(rows: readonly ReconciliationRow[], of: (row: ReconciliationRow) => string | null): string | null | undefined {
+  const first = of(rows[0]);
+  return rows.every((row) => of(row) === first) ? first : undefined;
+}
+
+// The group's key is what this site's figure is, not how the organisation words it: the same question worded a little differently from one row to
+// the next stays in one table.
+const seriesKey = (row: ReconciliationRow): string => JSON.stringify([row.source, row.dataset, row.filters]);
+
+function figureRow(row: ReconciliationRow, notes: string[], w: Words): FigureRowView {
   const compared = row.status !== "not_compared" && row.ours !== null && row.gap !== null && row.gap_pct !== null;
+  const host = hostOf(row.source_url);
   return {
     month: row.month,
     monthLabel: monthLabel(row.month),
@@ -155,35 +191,48 @@ function figureRow(row: ReconciliationRow, w: Words): FigureRowView {
       ? { ours: figure(row.ours as number), gap: signedCount(row.gap as number), gapPct: signedPercent(row.gap_pct as number) }
       : { notCompared: notComparedSentence(row.reason_kind, w) }),
     readUrl: row.source_url,
-    readLabel: say(w.read_link, { date: row.date_read }),
+    readLabel: host === undefined ? null : say(w.read_link, { host, date: row.date_read }),
+    notes,
   };
 }
 
-const seriesKey = (row: ReconciliationRow): string => JSON.stringify([row.source, row.measure_as_published, row.dataset, row.filters, row.figure_kind, row.added_up_from]);
-
 function seriesView(rows: ReconciliationRow[], source: ReconciliationSource, labels: Labels, w: Words): SeriesView {
-  const newestFirst = [...rows].sort(byMonthDescending);
+  // Newest month first. Two rows of one month (a figure as first released and as restated) both stay, ordered by their wording and the day read.
+  const newestFirst = [...rows].sort((a, b) => byMonthDescending(a, b) || alphabetical(a.measure_as_published, b.measure_as_published) || alphabetical(a.date_read, b.date_read));
   const first = newestFirst[0];
+  const measure = mostCommon(newestFirst, (row) => row.measure_as_published);
   const headline = newestCompared(newestFirst) ?? first.month;
   const shown = newestFirst.filter((row) => row.month >= headline);
   const oldest = newestFirst[newestFirst.length - 1].month;
-  const known: string[] = [];
-  for (const row of newestFirst) if (row.known_difference && !known.includes(row.known_difference)) known.push(row.known_difference);
+
+  const addedUpShared = sharedBy(newestFirst, (row) => row.added_up_from);
+  const knownShared = sharedBy(newestFirst, (row) => row.known_difference);
+  const addedUp = (row: ReconciliationRow) => (row.added_up_from ? addedUpLabel(row, source.name, w) : null);
+  const known = (row: ReconciliationRow) => (row.known_difference ? say(w.known_difference, { note: row.known_difference }) : null);
+  const view = (row: ReconciliationRow): FigureRowView => {
+    const notes = [
+      row.measure_as_published === measure ? null : say(w.wording, { measure: row.measure_as_published }),
+      addedUpShared === undefined ? addedUp(row) : null,
+      knownShared === undefined ? known(row) : null,
+    ].filter((note): note is string => note !== null);
+    return figureRow(row, notes, w);
+  };
+
   return {
-    measure: first.measure_as_published,
+    measure,
     kind: first.figure_kind,
-    addedUp: addedUpLabel(first, source.name, w),
+    addedUp: addedUpShared ? addedUp(first) : null,
     ours: oursSentence(first, labels, w),
-    knownDifferences: known.map((note) => say(w.known_difference, { note })).filter((text): text is string => text !== null),
-    captionLatest: say(w.caption.latest, { source: source.name, measure: first.measure_as_published }),
-    captionAll: say(w.caption.all, { source: source.name, measure: first.measure_as_published }),
-    latest: shown.map((row) => figureRow(row, w)),
-    all: newestFirst.map((row) => figureRow(row, w)),
+    knownDifference: knownShared ? known(first) : null,
+    captionLatest: say(w.caption.latest, { source: source.name, measure }),
+    captionAll: say(w.caption.all, { source: source.name, measure }),
+    latest: shown.map(view),
+    all: newestFirst.map(view),
     every: shown.length < newestFirst.length ? say(w.every_month, { from: oldest, to: first.month }) : null,
   };
 }
 
-// The public section: the file's sources in its order, each with its figures of the kinds config lists, grouped by what the organisation measured.
+// The public section: the file's sources in its order, each with its figures of the kinds config lists, grouped by what this site's figure is (dataset and conditions).
 // A figure of any other kind is only counted in the closing sentence.
 export function comparisonView(reconciliation: Reconciliation | undefined | null, labels: Labels, w: Words = words): ComparisonView {
   const heading = w.heading;
@@ -209,7 +258,7 @@ export function comparisonView(reconciliation: Reconciliation | undefined | null
     }
     const series = [...groups.values()]
       .map((rows) => seriesView(rows, source, labels, w))
-      .sort((a, b) => kindOrder(a.kind) - kindOrder(b.kind) || (a.measure < b.measure ? -1 : a.measure > b.measure ? 1 : 0));
+      .sort((a, b) => kindOrder(a.kind) - kindOrder(b.kind) || alphabetical(a.measure, b.measure));
     return {
       id,
       name: source.name,

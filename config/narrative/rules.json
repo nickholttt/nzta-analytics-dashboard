@@ -36,7 +36,7 @@
     "notices": ["asked", "shown", "dataset", "field", "pinned", "date", "latest", "kind"],
     "keeping": ["date", "count", "name", "max"],
     "canvas": ["field", "other", "dataset", "measure", "zone", "type", "wanted", "reason", "query", "number", "months", "date", "top_n", "name"],
-    "comparison": ["count", "span", "from", "to", "date", "definition", "source", "added_up_from", "dataset", "conditions", "note", "field", "values", "measure"],
+    "comparison": ["count", "span", "from", "to", "date", "definition", "source", "added_up_from", "dataset", "conditions", "note", "field", "values", "measure", "host"],
     "line": [],
     "unit_note": ["base"],
     "caveat": [],

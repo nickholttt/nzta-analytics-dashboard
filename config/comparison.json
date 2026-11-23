@@ -13,9 +13,10 @@
   "definition": "“{definition}” Read on {date|date}.",
   "added_up": "Added up from {source}'s published {added_up_from}.",
   "ours": {
-    "where": "This site's figure: {dataset}, where {conditions}.",
-    "all": "This site's figure: {dataset}, with no further condition.",
-    "condition": "{field} is {values}"
+    "where": "This site's figure: {dataset}. Conditions: {conditions}.",
+    "all": "This site's figure: {dataset}, with no conditions.",
+    "condition": "{field}: {values}",
+    "join": "; "
   },
   "known_difference": "Known difference: {note}",
   "columns": {
@@ -26,7 +27,8 @@
     "gap_pct": "Gap as a share of theirs",
     "read": "Where it was read"
   },
-  "read_link": "Source page, read {date|date}",
+  "read_link": "{host}, read {date|date}",
+  "wording": "As the source words it: {measure}",
   "caption": {
     "latest": "{source}: {measure}, newest month compared",
     "all": "{source}: {measure}, every month"
