@@ -1,0 +1,14 @@
+{
+  "$comment": "The most each public page may ship on its first load, in bytes, compressed (gzip for text; fonts as served), by kind and in total. scripts/check-performance-budget.mjs measures the built output against it on every pull request (Checks, 'Public site checks'), from the files a page's own HTML names, not from a timed run, and fails naming the page and the kind. scripts/performance-budget.mjs says what counts as first load. Each limit was set on 2026-11-23 from what the build then shipped, plus 5%, rounded up to 100 bytes: a budget holds a page where it is, it does not say the page is light enough (lane A makes the heavy ones lighter, and lowers the limits as it does). To raise a limit, say why in the pull request. node scripts/check-performance-budget.mjs --propose prints the numbers for the build in front of it.",
+  "pages": {
+    "/": { "html": 4200, "scripts": 289200, "styles": 5300, "fonts": 176500, "data": 5000, "total": 480100 },
+    "/404.html": { "html": 1300, "scripts": 0, "styles": 5300, "fonts": 176500, "data": 0, "total": 183000 },
+    "/about/": { "html": 1800, "scripts": 0, "styles": 5300, "fonts": 176500, "data": 0, "total": 183600 },
+    "/build/": { "html": 5600, "scripts": 300000, "styles": 5300, "fonts": 176500, "data": 5000, "total": 492300 },
+    "/canvas/": { "html": 7000, "scripts": 310700, "styles": 8500, "fonts": 176500, "data": 5000, "total": 507500 },
+    "/caveats/": { "html": 4400, "scripts": 0, "styles": 5300, "fonts": 176500, "data": 0, "total": 186200 },
+    "/differences/": { "html": 3000, "scripts": 0, "styles": 5300, "fonts": 176500, "data": 0, "total": 184800 },
+    "/feedback/": { "html": 1600, "scripts": 0, "styles": 5300, "fonts": 176500, "data": 0, "total": 183400 },
+    "/method/": { "html": 10100, "scripts": 0, "styles": 5300, "fonts": 176500, "data": 0, "total": 191900 }
+  }
+}
