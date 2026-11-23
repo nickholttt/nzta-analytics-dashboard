@@ -336,6 +336,27 @@ to; how far apart they are, and what is known about why, was
 measured on 2026-11-16 and is in `docs/METRICS.md`, "Set beside published
 figures" (D-105).
 
+## F. Published sources our figures are set beside (D-149)
+
+Every build sets some of its own figures beside figures other organisations publish, and writes the result to
+`reconciliation.json` (`docs/CUBE_SCHEMA.md`, `reconciliation.json`). What is compared, and against whom, is data, in two
+reference files that a maintainer edits; no source, measure or vehicle type is named in code.
+
+`data/reference/published_sources.csv` has one row for each organisation whose figures are compared:
+
+| column | meaning |
+|---|---|
+| `id` | a short key of lower case letters, digits and underscores, which the `source` column of `published_figures.csv` uses |
+| `name` | the organisation's name as the site shows it |
+| `home_url` | the organisation's own address, `https://` |
+| `independent` | `true` if the source counts the vehicles separately from the data our datasets are built from; `false` for a copy of the same export (the dashboard export feeds `registrations_flow`, so its totals should match to the vehicle and prove nothing about whether ours are right). A source that is not independent is compared and shown, and does not count towards the hard limit |
+| `definition` | what the source says it counts, in its own words, copied from the page it was read on; blank until read |
+| `definition_date_read` | the day that page was read, `YYYY-MM-DD`; blank exactly when `definition` is |
+
+The Differences page states each source's definition from this file. A source with no row here cannot have figures.
+The file is read at the start of every build, before the register is read: a row that breaks any rule above, a repeated
+`id`, or a header that is not exactly these columns in this order aborts the build and names the row.
+
 ---
 
 ## Field notes that will bite you

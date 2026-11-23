@@ -238,6 +238,7 @@ data/reference/
   vehicle_usage_map.csv  # NZTA's vehicle usage value -> readable label; an owner field, read only by the stock dataset fleet (D-135)
   statsnz_series.csv  # Stats NZ's table headers -> series, group and role (D-094)
   model_segment.csv   # canonical make + model -> SUV or car, with basis and confidence: two slices, and nothing reads it yet (D-117, D-123)
+  published_sources.csv  # the organisations whose published figures every build is set beside: name, address, what each says it counts (D-149)
 docs/
   DATA_SOURCES.md     # endpoints, cadence, field traps, licence
   METRICS.md          # exact measure definitions
