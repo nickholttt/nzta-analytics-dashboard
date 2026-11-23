@@ -207,7 +207,7 @@ test("the same figures on the same snapshot give the same sentence", () => {
 });
 
 test("a chart that counts only the vehicles its conditions keep says so at the end of its sentence, and never drops the sentence's own full stop", () => {
-  assert.equal(sentences.narrowedSentence(t, "1,120 vehicles first registered in Oct 2026, up 12% on the 1,000 in Oct 2025."), "1,120 vehicles first registered in Oct 2026, up 12% on the 1,000 in Oct 2025, among the vehicles the chart's conditions keep.");
+  assert.equal(sentences.narrowedSentence(t, "1,120 vehicles first registered in Oct 2026, up 12% on the 1,000 in Oct 2025."), "1,120 vehicles first registered in Oct 2026, up 12% on the 1,000 in Oct 2025, among the vehicles this chart's filters keep.");
   assert.equal(sentences.narrowedSentence({}, "A sentence."), undefined);
 });
 

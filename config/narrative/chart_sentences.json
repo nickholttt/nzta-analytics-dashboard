@@ -22,7 +22,7 @@
   "parts_count": "By {field}, {name} is the largest group: {counted}.",
   "parts_share_tied": "By {field}, {names} are level as the largest groups: {share} each of the vehicles counted {period}.",
   "parts_count_tied": "By {field}, {names} are level as the largest groups: each {counted}.",
-  "narrowed": "{sentence}, among the vehicles the chart's conditions keep.",
+  "narrowed": "{sentence}, among the vehicles this chart's filters keep.",
   "period_month": "in {month}",
   "period_span": "from {from} to {to}"
 }
