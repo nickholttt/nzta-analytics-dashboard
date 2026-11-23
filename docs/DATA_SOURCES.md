@@ -439,7 +439,7 @@ How each was read, and what that means for a row:
 Left out, because our figures have no matching question: vstat's used import commercial vehicles (a few hundred a month,
 light only) and the MIA's and vstat's year-to-date and whole-market totals. A tolerance was set from the gaps measured on
 2026-11-23 against the build of the October 2026 snapshot, with room above the largest: passenger figures were within
-0.7% of every source in every month. One row was past its tolerance that day and is left as it is: one model in
+0.71% of every source in every month. One row was past its tolerance that day and is left as it is: one model in
 November 2025, 283 against 302.
 
 ---

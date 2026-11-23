@@ -724,7 +724,7 @@ What size of error stops a build. On the 336 rows committed on 2026-11-23, measu
     { "source": "source_a", "month": "2026-11", "measure_as_published": "Measure as the source words it",
       "dataset": "registrations_flow", "filters": {}, "ours": null, "theirs": 1100, "gap": null, "gap_pct": null,
       "tolerance_pct": 2.0, "hard_bound_pct": 4.0, "known_difference": null, "status": "not_compared",
-      "reason_kind": "month_not_held", "reason": "Our registrations_flow data holds 2021-01 to 2026-10 in this build, so 2026-11 cannot be compared yet.",
+      "reason_kind": "month_not_held", "reason": "Our registrations_flow data holds 2021-01 to 2026-10 in this build, so 2026-11 is outside it and is not compared.",
       "source_url": "https://a.example/page", "date_read": "2026-11-20" }
   ]
 }
