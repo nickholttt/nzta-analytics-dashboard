@@ -1,5 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { builderVocabulary } from "../lib/builder";
+import { canvasVocabulary } from "../lib/canvas";
+import { starterViews } from "../lib/starters";
+import manifest from "../../public/data/manifest.json";
+import type { Manifest } from "../lib/data";
+
+// The link to the starter canvas of true registrations is made from the starter's config, so it follows the charts it holds; the front page where
+// this build holds none of them.
+const registrations = starterViews(canvasVocabulary(builderVocabulary(manifest as Manifest)), manifest as Manifest, "/canvas/").find((s) => s.id === "registrations")?.href ?? "/";
 ---
 
 <Layout title="Why these figures differ from others" activeNav="differences">
@@ -60,7 +69,7 @@ import Layout from "../layouts/Layout.astro";
     <p>
       The wider total sits beside the default one. In Explore it is under True registrations. In Build, choose
       True registrations, wider scope under Counting and keep New or used to NZ New.{" "}
-      <a href="/#true-registrations">True registrations in Explore</a>.{" "}
+      <a href={registrations}>True registrations in Explore</a>.{" "}
       <a href="/build/">Build a chart</a>.
     </p>
 
