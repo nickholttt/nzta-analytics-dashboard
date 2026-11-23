@@ -1,4 +1,4 @@
-id,name,home_url,independent,definition,definition_date_read
-mia,Motor Industry Association (MIA),https://www.mia.org.nz/,true,Monthly and year to date new vehicle registration figures across all vehicle categories,2026-11-23
-mta_vstat,"Motor Trade Association (MTA), vstat",https://vstat.mta.org.nz/,true,Data sourced from NZ Transport Agency Waka Kotahi (NZTA). Figures reflect NZTA's records at the time of publishing,2026-11-23
-statsnz,Stats NZ,https://www.stats.govt.nz/,true,New and Ex-Oseas Motor Vehicles Registered by Type,2026-11-23
+id,name,home_url,independent,definition,definition_date_read,data_basis
+mia,Motor Industry Association (MIA),https://www.mia.org.nz/,true,Monthly and year to date new vehicle registration figures across all vehicle categories,2026-11-23,
+mta_vstat,"Motor Trade Association (MTA), vstat",https://vstat.mta.org.nz/,true,Data sourced from NZ Transport Agency Waka Kotahi (NZTA). Figures reflect NZTA's records at the time of publishing,2026-11-23,"same NZTA data, processed separately"
+statsnz,Stats NZ,https://www.stats.govt.nz/,true,New and Ex-Oseas Motor Vehicles Registered by Type,2026-11-23,

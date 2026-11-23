@@ -560,7 +560,7 @@
     "last": "2026-09"
    }
   },
-  "payload_bytes": 122712,
+  "payload_bytes": 122818,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -17079,21 +17079,24 @@
     "home_url": "https://fixture.example/a",
     "independent": true,
     "definition": "A made-up definition for the golden fixture.",
-    "definition_date_read": "2026-11-01"
+    "definition_date_read": "2026-11-01",
+    "data_basis": "a made-up basis"
    },
    "fixture_b": {
     "name": "Fixture source B",
     "home_url": "https://fixture.example/b",
     "independent": true,
     "definition": null,
-    "definition_date_read": null
+    "definition_date_read": null,
+    "data_basis": null
    },
    "fixture_c": {
     "name": "Fixture source C (a copy of our own export)",
     "home_url": "https://fixture.example/c",
     "independent": false,
     "definition": null,
-    "definition_date_read": null
+    "definition_date_read": null,
+    "data_basis": "same fixture data"
    }
   },
   "summary": {

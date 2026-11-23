@@ -48,7 +48,7 @@ CUBE_DIR = "cube"
 
 FIGURE_COLUMNS = ["source", "source_url", "date_read", "month", "measure_as_published", "figure", "dataset", "filters",
                   "tolerance_pct", "known_difference"]
-SOURCE_COLUMNS = ["id", "name", "home_url", "independent", "definition", "definition_date_read"]
+SOURCE_COLUMNS = ["id", "name", "home_url", "independent", "definition", "definition_date_read", "data_basis"]
 
 PASS, WARN, FAIL, NOT_COMPARED = "pass", "warn", "fail", "not_compared"
 STATUSES = (PASS, WARN, FAIL, NOT_COMPARED)
@@ -96,6 +96,7 @@ class Source(NamedTuple):
     independent: bool
     definition: str
     definition_date_read: str
+    data_basis: str
 
 
 class Prepared(NamedTuple):
@@ -232,7 +233,7 @@ def parse_sources(cfg, c: dict) -> tuple[dict[str, Source], list[str]]:
         problems += [f"{where}: {b}" for b in bad]
         if not bad:
             sources[row["id"]] = Source(row["id"], row["name"], row["home_url"], row["independent"] == TRUE, row["definition"],
-                                        row["definition_date_read"])
+                                        row["definition_date_read"], row["data_basis"])
     return sources, problems
 
 
@@ -588,7 +589,8 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
     document = {
         "latest_snapshot": latest_snapshot,
         "sources": {s.id: {"name": s.name, "home_url": s.home_url, "independent": s.independent,
-                           "definition": s.definition or None, "definition_date_read": s.definition_date_read or None}
+                           "definition": s.definition or None, "definition_date_read": s.definition_date_read or None,
+                           "data_basis": s.data_basis or None}
                     for s in sources.values()},
         "summary": {
             "rows": len(judged),

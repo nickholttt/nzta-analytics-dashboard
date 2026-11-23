@@ -38,11 +38,14 @@ FACT_ROWS = [
 TOTAL = {"2026-01": 520, "2026-02": 1040, "2026-03": 1560}
 
 SOURCES = [
-    {"id": "source_a", "name": "Source A", "home_url": "https://a.example", "independent": "true", "definition": "", "definition_date_read": ""},
+    {"id": "source_a", "name": "Source A", "home_url": "https://a.example", "independent": "true", "definition": "", "definition_date_read": "",
+     "data_basis": ""},
     {"id": "source_b", "name": "Source B", "home_url": "https://b.example", "independent": "true", "definition": "B counts what B counts.",
-     "definition_date_read": "2026-11-01"},
-    {"id": "source_c", "name": "Source C", "home_url": "https://c.example", "independent": "true", "definition": "", "definition_date_read": ""},
-    {"id": "source_d", "name": "Source D", "home_url": "https://d.example", "independent": "false", "definition": "", "definition_date_read": ""},
+     "definition_date_read": "2026-11-01", "data_basis": "its own count"},
+    {"id": "source_c", "name": "Source C", "home_url": "https://c.example", "independent": "true", "definition": "", "definition_date_read": "",
+     "data_basis": ""},
+    {"id": "source_d", "name": "Source D", "home_url": "https://d.example", "independent": "false", "definition": "", "definition_date_read": "",
+     "data_basis": ""},
 ]
 
 
@@ -744,8 +747,11 @@ def test_the_document_gives_the_site_everything_it_needs(tmp_path):
     assert list(doc) == ["latest_snapshot", "sources", "summary", "rows"]
     assert doc["latest_snapshot"] == "2026-03-31"
     assert doc["sources"]["source_b"] == {"name": "Source B", "home_url": "https://b.example", "independent": True,
-                                          "definition": "B counts what B counts.", "definition_date_read": "2026-11-01"}
+                                          "definition": "B counts what B counts.", "definition_date_read": "2026-11-01",
+                                          "data_basis": "its own count"}
     assert doc["sources"]["source_a"]["definition"] is None and doc["sources"]["source_d"]["independent"] is False
+    # A basis nobody stated is null, not an empty string.
+    assert doc["sources"]["source_a"]["data_basis"] is None
     summary = doc["summary"]
     assert summary["rows"] == 3 and summary["months"] == {"first": "2026-02", "last": "2027-01"}
     assert summary["by_status"] == {"pass": 1, "warn": 1, "fail": 0, "not_compared": 1}

@@ -712,7 +712,8 @@ What size of error stops a build. On the 336 rows committed on 2026-11-23, measu
   "latest_snapshot": "2026-10-31",
   "sources": {
     "source_a": { "name": "Source A", "home_url": "https://a.example", "independent": true,
-                  "definition": "What the source says it counts.", "definition_date_read": "2026-11-20" }
+                  "definition": "What the source says it counts.", "definition_date_read": "2026-11-20",
+                  "data_basis": "same data, processed separately" }
   },
   "summary": {
     "rows": 2,
@@ -739,7 +740,8 @@ What size of error stops a build. On the 336 rows committed on 2026-11-23, measu
 
 (The values are made up, to show the shape.) Rows are sorted by month, then source, measure and filters, so the file does not
 depend on the order of the CSV; `sources` holds every source of `published_sources.csv` in file order, so a page can state a
-definition without knowing a source by name; `summary.by_source` lists every source, with zeros for one that has no rows. The
+definition without knowing a source by name (`data_basis` is the few words the source's row states about what its figures are
+made from, or null when the cell is blank, `definition` and `definition_date_read` likewise); `summary.by_source` lists every source, with zeros for one that has no rows. The
 file has no time in it: the same cube and the same two reference files always write the same bytes. It is written with `\n`
 line endings and counts towards `payload_bytes`. With no rows in `published_figures.csv` the file is the same shape with
 `rows: []`, null months and all counts zero. The manifest's `reconciliation` entry is `{ "file", "rows", "by_status", "months" }`,

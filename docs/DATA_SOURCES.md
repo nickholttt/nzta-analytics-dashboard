@@ -352,6 +352,7 @@ reference files that a maintainer edits; no source, measure or vehicle type is n
 | `independent` | `true` if the source counts the vehicles separately from the data our datasets are built from; `false` for a copy of the same export (the dashboard export feeds `registrations_flow`, so its totals should match to the vehicle and prove nothing about whether ours are right). A source that is not independent is compared and shown, and does not count towards the hard limit |
 | `definition` | what the source says it counts, in its own words, copied from the page it was read on; blank until read |
 | `definition_date_read` | the day that page was read, `YYYY-MM-DD`; blank exactly when `definition` is |
+| `data_basis` | a few words saying what data the source's figures are made from, shown beside its name on the site; free text; blank when nothing has been stated |
 
 The Differences page states each source's definition from this file. A source with no row here cannot have figures.
 The file is read at the start of every build, before the register is read: a row that breaks any rule above, a repeated
@@ -359,11 +360,11 @@ The file is read at the start of every build, before the register is read: a row
 
 What it holds (read on 2026-11-23): three organisations, each counted as independent.
 
-| `id` | Where its definition was read | What could be read |
-|---|---|---|
-| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | one month's table and its year-earlier column; earlier months are for members only |
-| `mta_vstat` | its About page | 22 months; the page says its figures are NZTA's records as they were when it published |
-| `statsnz` | the group title of its monthly release file, Transport vehicle registrations | 22 months, each marked final |
+| `id` | Where its definition was read | What could be read | `data_basis` |
+|---|---|---|---|
+| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | one month's table and its year-earlier column; earlier months are for members only | blank |
+| `mta_vstat` | its About page | 22 months; the page says its figures are NZTA's records as they were when it published | `same NZTA data, processed separately` |
+| `statsnz` | the group title of its monthly release file, Transport vehicle registrations | 22 months, each marked final | blank |
 
 The MIA publishes no figure for used imports. NZTA's registrations dashboard has no row: it cannot be read automatically,
 and our true registrations are its export, so it would not be independent.
