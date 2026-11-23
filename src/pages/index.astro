@@ -1,29 +1,17 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import PresetPanel from "../components/PresetPanel";
-import { findDataset, presetGroups } from "../lib/config";
-import { presetView, resolvePreset } from "../lib/resolve";
+import "../styles/starters.css";
+import { builderVocabulary } from "../lib/builder";
+import { canvasVocabulary, say } from "../lib/canvas";
+import { starterViews } from "../lib/starters";
 import manifest from "../../public/data/manifest.json";
 import type { Manifest } from "../lib/data";
 
-// The Explore page shows what a visitor can read: each group from config/presets.json, holding only
-// the presets whose opening view draws against this build. A chart that cannot be drawn, and a group left with none,
-// is not shown here; /status lists every preset and what it waits on (D-041). The exception is a chart whose dataset
-// this build did not make: the group says so once, in the dataset's own words, so a missing dataset is never just missing.
-const groups = presetGroups
-  .map((g) => {
-    const resolved = g.presets.map((p) => ({ p, resolution: resolvePreset(presetView(p), manifest as Manifest) }));
-    const unbuilt = [...new Set(resolved.flatMap((r) => (r.resolution.notBuilt ? [r.resolution.notBuilt] : [])))];
-    return {
-      ...g,
-      presets: resolved.filter((r) => r.resolution.preventsRender.length === 0).map((r) => r.p),
-      messages: unbuilt.flatMap((id) => findDataset(id)?.not_built_message ?? []),
-    };
-  })
-  .filter((g) => g.presets.length > 0 || g.messages.length > 0);
-// Only the page's first chart is fetched on load; every other waits for it and for the visitor to come near it
-// (src/lib/loadGate.ts), so the first answer is not slowed by charts below it. A group's own `defer` is therefore met already.
-const firstPresetId = groups.flatMap((g) => g.presets)[0]?.id;
+// The front page is the list of the starter canvases (config/starter_canvases.json). Each is a canvas link the canvas page reads like any
+// shared one; the list holds only the charts this build can draw, as the canvas will draw them, so no starter opens to an error.
+const CANVAS = "/canvas/";
+const all = canvasVocabulary(builderVocabulary(manifest as Manifest));
+const starters = all.datasets.length > 0 ? starterViews(all, manifest as Manifest, CANVAS) : [];
 ---
 
 <Layout title="Explore" activeNav="explore">
@@ -33,32 +21,56 @@ const firstPresetId = groups.flatMap((g) => g.presets)[0]?.id;
       Where the vehicles we register come from, what powers them, and whether they arrived new. Every figure is drawn from
       NZTA's open data: the Motor Vehicle Register and, where a chart says so, its registrations dashboard.
     </p>
-    <nav class="tier-nav" aria-label="Sections on this page" style="margin-top: var(--space-4); display: flex; gap: var(--space-4); flex-wrap: wrap;">
-      {groups.map((g) => (
-        <a href={`#${g.id}`} class="meta" style="color: var(--ink-2); text-decoration: none; border-bottom: 1px dashed var(--rule-strong);">
-          {g.label}
-        </a>
-      ))}
-    </nav>
   </Fragment>
 
-  {
-    groups.map((g) => (
-      <section id={g.id}>
-        <div class="section-head">
-          <p class="eyebrow">{g.label}</p>
-          <h2 class="section-title">{g.title}</h2>
+  <section aria-labelledby="starters-heading">
+    <div class="section-head">
+      <h2 class="section-title" id="starters-heading">{say("starters_heading")}</h2>
+    </div>
+    {
+      starters.length > 0 ? (
+        <>
+          <p class="meta" style="margin-bottom: var(--space-5); max-width: var(--measure);">{say("starters_intro")}</p>
+          <ul class="starters">
+            {starters.map((s) => (
+              <li>
+                <article class="starter" aria-labelledby={`starter-${s.id}`}>
+                  <h3 class="starter-title" id={`starter-${s.id}`}>
+                    <a href={s.href}>{s.title}</a>
+                  </h3>
+                  <p class="starter-description">{s.description}</p>
+                  <div class="starter-holds">
+                    <p class="eyebrow" id={`holds-${s.id}`}>{say("starter_holds")}</p>
+                    <ul class="starter-charts" aria-labelledby={`holds-${s.id}`}>
+                      {s.charts.map((title) => (
+                        <li>{title}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <a class="starter-open" href={s.href} aria-label={say("starter_open_named", { name: s.title })}>
+                    {say("starter_open")}
+                  </a>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <div class="callout blocked">
+          <span class="callout-label">{say("starters_none_label")}</span>
+          {say("starters_none")}
         </div>
-        {g.presets.map((p) => (
-          <PresetPanel client:only="react" presetId={p.id} lead={g.lead ?? false} defer={p.id !== firstPresetId} audience="public" />
-        ))}
-        {g.messages.map((m) => (
-          <div class="callout blocked">
-            <span class="callout-label">Not in this build</span>
-            {m}
-          </div>
-        ))}
-      </section>
-    ))
-  }
+      )
+    }
+  </section>
+
+  <section aria-labelledby="empty-heading">
+    <div class="section-head">
+      <h2 class="section-title" id="empty-heading">{say("starter_empty_heading")}</h2>
+    </div>
+    <div class="starters-empty">
+      <a class="starters-empty-link" href={CANVAS}>{say("starter_empty")}</a>
+      <p>{say("starter_empty_help")}</p>
+    </div>
+  </section>
 </Layout>

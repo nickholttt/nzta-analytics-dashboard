@@ -198,7 +198,7 @@ export function awaitsValues(all: Vocabulary, chart: Pick<CanvasChart, "question
 }
 
 // Whether the engine draws the question as this shape: the rule table says the shape fits, and nothing in the build stops the chart.
-function draws(q: Question, type: string, manifest: Manifest): boolean {
+export function draws(q: Question, type: string, manifest: Manifest): boolean {
   const [preset] = builderPresets(asked(q, type), undefined, canvasSpec.chart_prefix);
   if (!preset) return false;
   const resolution = resolvePreset(preset, manifest);
