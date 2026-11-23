@@ -5,14 +5,14 @@
 import "./support/register.mjs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { everythingBuilt } from "./support/observe.ts";
+import { realisticBuilt } from "./support/observe.ts";
 
 const builder = await import("../../src/lib/builder.ts");
 const canvas = await import("../../src/lib/canvas.ts");
 const { starters, startCanvas, startParams } = await import("../../src/lib/starters.ts");
 const { presetQuestion, standsFor, findPreset } = await import("../../src/lib/presetTitles.ts");
 
-const manifest = everythingBuilt();
+const manifest = realisticBuilt();
 const all = canvas.canvasVocabulary(builder.builderVocabulary(manifest));
 const reopen = (search: string) => canvas.withFittingTypes(canvas.settleCanvas(all, canvas.readCanvas(search)), manifest);
 const [first] = starters;

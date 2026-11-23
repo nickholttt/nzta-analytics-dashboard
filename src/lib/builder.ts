@@ -240,8 +240,8 @@ function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabula
       const offered = Object.entries(dimensionsOf(m, dataset)).flatMap(([id, phrase]) => {
         const values = !m.derived && Boolean(facts?.dimensions.includes(id)) && probe(id, ["?"]);
         // A count by a breakdown draws a line per chosen value, so without values it has nothing to draw. In a dataset of one period it is a ranking of
-        // every value, which needs none.
-        const needsValues = partsOf(m).some((p) => p.id === COUNT) && !hasOnePeriod(dataset);
+        // every value, which needs none. A short list of a dataset with no fact table (a published series) has no values to choose: its slice holds every value.
+        const needsValues = partsOf(m).some((p) => p.id === COUNT) && !hasOnePeriod(dataset) && (Boolean(facts) || findDimension(id)?.cardinality !== "low");
         return values || (!needsValues && probe(id)) ? [{ id, phrase, values }] : [];
       });
       // A grid needs the fact table to carry both fields, and a plain measure of vehicles.

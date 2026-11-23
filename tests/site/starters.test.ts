@@ -6,7 +6,7 @@ import "./support/register.mjs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { everythingBuilt } from "./support/observe.ts";
+import { realisticBuilt } from "./support/observe.ts";
 
 const config = await import("../../src/lib/config.ts");
 const builder = await import("../../src/lib/builder.ts");
@@ -15,7 +15,7 @@ const canvas = await import("../../src/lib/canvas.ts");
 const { starters, startCanvas, startParams, holds, starterViews } = await import("../../src/lib/starters.ts");
 const { presetAsks, presetQuestion } = await import("../../src/lib/presetTitles.ts");
 
-const manifest = everythingBuilt();
+const manifest = realisticBuilt();
 const all = canvas.canvasVocabulary(builder.builderVocabulary(manifest));
 const entries = (params: URLSearchParams) => [...params].map(([k, v]) => `${k}=${v}`).sort();
 const sorted = (where: Record<string, string[]>) =>
@@ -86,6 +86,17 @@ test("a chart's own settings are ones the panel reads, and every chart is on one
       for (const name of Object.keys(chart.settings ?? {})) assert.ok(builder.CHART_PARAMS.includes(name), `${s.id}/${chart.from}: ${name} is not a setting of a chart`);
       assert.ok(all.datasets.some((v) => v.dataset === chart.dataset), `${chart.from}: the canvas does not offer ${chart.dataset}`);
     }
+});
+
+test("every chart reads one dataset, so a true-registrations series never shares a chart with the vehicles still registered, and no marked pair is read", () => {
+  for (const starter of starters) {
+    const charts = startCanvas(all, starter.charts).charts;
+    charts.forEach((chart, i) => {
+      const [preset] = builder.builderPresets(canvas.chartQuestion(chart), undefined, chart.id);
+      assert.deepEqual(config.datasetsRead(preset), [starter.charts[i].dataset], `${starter.id} chart ${i + 1}`);
+      assert.deepEqual(config.datasetClashes(config.datasetsRead(preset)), []);
+    });
+  }
 });
 
 test("each chart is the Explore preset it stands for: its question, its shape and its period", () => {

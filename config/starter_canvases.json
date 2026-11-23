@@ -1,5 +1,5 @@
 {
-  "$comment": "The starter canvases: Explore's groups, as ready-made canvases a visitor opens and changes (work order 3, lane A). A starter is a canvas link: src/lib/starters.ts writes each one's charts into the address the canvas page reads (src/lib/canvas.ts), so it opens through the same reading code as any shared canvas and a visitor changes it like one. Each chart is a Build question (config/presets.json, builder) with a chart type (null draws the best fit), a width, and the chart's own settings in the address (settings: a time range, how a grid's cells are counted). title and description are interface words: the lint holds them to config/narrative/rules.json as it does the words of config/canvas.json (no figure, no year, no causal word, no value or label of a reference file). from names the Explore preset a chart stands for, which tests/site/starters.test.ts holds the chart to. A chart a canvas cannot draw as Explore did is left out and its preset stays in config/presets.json.",
+  "$comment": "The starter canvases: Explore's groups, as ready-made canvases a visitor opens and changes (work order 3, lane A). A starter is a canvas link: src/lib/starters.ts writes each one's charts into the address the canvas page reads (src/lib/canvas.ts), so it opens through the same reading code as any shared canvas and a visitor changes it like one. Each chart is a Build question (config/presets.json, builder) with a chart type (null draws the best fit), a width, and the chart's own settings in the address (settings: a time range, how a grid's cells are counted). title and description are interface words: the lint holds them to config/narrative/rules.json as it does the words of config/canvas.json (no figure, no year, no causal word, no value or label of a reference file). from names the Explore preset a chart stands for, which tests/site/starters.test.ts holds the chart to. A chart a canvas cannot draw as Explore did is left out and its preset stays in config/presets.json. A preset on a dataset that is another one filtered (used_imports) is asked as its base with the filter as a condition (src/lib/presetTitles.ts).",
   "id": "starter_canvases",
   "starters": [
     {
@@ -9,7 +9,8 @@
       "charts": [
         { "from": "brand-owner-origin", "dataset": "registrations_surviving", "measure": "share", "by": "owner_country", "type": null, "width": "full" },
         { "from": "powertrain-mix", "dataset": "registrations_surviving", "measure": "share", "by": "powertrain", "where": { "segment_group": ["Light passenger"] }, "type": null, "width": "half" },
-        { "from": "new-vs-used", "dataset": "registrations_surviving", "measure": "share", "by": "import_status", "type": null, "width": "half" }
+        { "from": "new-vs-used", "dataset": "registrations_surviving", "measure": "share", "by": "import_status", "type": null, "width": "half" },
+        { "from": "used-import-age", "dataset": "registrations_surviving", "measure": "share", "by": "age_at_registration_band", "where": { "import_status": ["Used Import"] }, "type": null, "width": "full", "settings": { "period": "latest_year" } }
       ]
     },
     {
@@ -34,6 +35,15 @@
         { "from": "model-leaderboard", "dataset": "registrations_flow", "measure": "count", "by": "make", "type": "league", "width": "full" },
         { "from": "registrations-powertrain-mix", "dataset": "registrations_flow", "measure": "share", "by": "powertrain", "type": null, "width": "full" },
         { "from": "registrations-powertrain-by-new-or-used", "dataset": "registrations_flow", "measure": "share", "by": "powertrain", "by2": "import_status", "type": null, "width": "full", "settings": { "cells": "column" } }
+      ]
+    },
+    {
+      "id": "long-run",
+      "title": "How have cars registered for the first time changed over the long run?",
+      "description": "Cars registered for the first time each month, as far back as the records go, and whether they were new or already registered overseas.",
+      "charts": [
+        { "from": "cars-registered-monthly", "dataset": "registrations_cars_long_run", "measure": "count", "by": null, "type": null, "width": "full" },
+        { "from": "cars-new-or-ex-overseas", "dataset": "registrations_cars_long_run", "measure": "count", "by": "car_origin", "type": null, "width": "full" }
       ]
     }
   ]

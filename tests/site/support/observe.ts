@@ -25,6 +25,21 @@ export function everythingBuilt() {
   return { datasets: Object.fromEntries(held.map((d) => [d.id, entry])) } as unknown as import("../../../src/lib/data.ts").Manifest;
 }
 
+// A published series: a dataset one of whose fields is read from a series and not from the register. Its fields are the few made for it, read from
+// slices with no fact table, so the questions the register's datasets form are not its questions: like the vehicles registered today
+// (tests/site/stock-dataset.test.ts) it is left out of these and has tests of its own (tests/site/starters.test.ts).
+export const isSeries = (id: string): boolean => config.dimensions.some((d) => d.applies_to?.includes(id) && d.derive?.kind === "series");
+
+// The build as it really is: the register's datasets with every field live, and a published series with the few fields made for it, as slices
+// with no fact table and no pairs.
+export function realisticBuilt() {
+  const everything = everythingBuilt();
+  const series = config.datasets.filter((d) => isSeries(d.id) && d.id in everything.datasets);
+  const own = (id: string) => config.dimensions.filter((d) => d.applies_to?.includes(id)).map((d) => d.id);
+  const real = Object.fromEntries(series.map((d) => [d.id, { live_dimensions: own(d.id), live_pairs: [] }]));
+  return { datasets: { ...everything.datasets, ...real } } as unknown as import("../../../src/lib/data.ts").Manifest;
+}
+
 // The breakdowns a built measure offers: its own, or for a measure made of parts the ones every part offers.
 function offeredBy(m: Entry): string[] {
   if (!m.parts) return Object.keys(m.dimensions);
@@ -37,7 +52,7 @@ function offeredBy(m: Entry): string[] {
 // where the measure can be asked of all vehicles together), with no values chosen, one and two.
 export function buildQuestions(): BuildQuestion[] {
   const list: BuildQuestion[] = [];
-  for (const dataset of config.builderSpec.datasets.filter((id) => id in everythingBuilt().datasets)) {
+  for (const dataset of config.builderSpec.datasets.filter((id) => id in everythingBuilt().datasets && !isSeries(id))) {
     for (const m of config.builderSpec.measures as unknown as Entry[]) {
       const measure = config.findMeasure(m.id) as unknown as Entry | undefined;
       const total = !m.parts && !m.derived && measure?.kind === "count";
@@ -49,7 +64,7 @@ export function buildQuestions(): BuildQuestion[] {
     }
   }
   // The same questions with a second breakdown: each breakdown crossed with the next one the measure offers that can be crossed with it, as a grid.
-  for (const dataset of config.builderSpec.datasets.filter((id) => id in everythingBuilt().datasets)) {
+  for (const dataset of config.builderSpec.datasets.filter((id) => id in everythingBuilt().datasets && !isSeries(id))) {
     for (const m of config.builderSpec.measures as unknown as Entry[]) {
       if (m.derived) continue;
       const offered = offeredBy(m);

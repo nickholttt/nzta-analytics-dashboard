@@ -227,7 +227,7 @@
     "$comment": "The Build page: a question a visitor builds (what to measure, what to compare, which vehicles to keep, D-058), drawn through the same panel and resolver as Explore. Values and filters are summed from the fact table; without them a chart reads the slices. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
     "id": "build",
     "dataset": "registrations_surviving",
-    "datasets": ["registrations_surviving", "registrations_flow", "registrations_flow_wider", "fleet"],
+    "datasets": ["registrations_surviving", "registrations_flow", "registrations_flow_wider", "registrations_cars_long_run", "fleet"],
     "notices": {
       "$comment": "What the page says when a link asks for something the page cannot give and shows the nearest question instead. The address is corrected as it is for a condition the page cannot apply; the words say so, so a link never quietly counts something else. Placeholders: config/narrative/rules.json.",
       "dataset": "This link asked to count {asked}, which this build does not have. It is counting {shown} instead.",
@@ -348,6 +348,9 @@
         },
         "$dimensions_comment": "A count by a breakdown draws one line per chosen value, so it needs the fact table; with no breakdown it is the total of the vehicles kept.",
         "dataset_dimensions": {
+          "registrations_cars_long_run": {
+            "car_origin": "whether new or ex-overseas"
+          },
           "fleet": {
             "vehicle_usage": "current use",
             "vehicle_type": "vehicle type"

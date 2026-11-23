@@ -1,7 +1,7 @@
 // The Explore question a canvas chart may be titled with. A chart carries the id of the preset it stands for (config/presets.json); the id
 // keys into config, so no title text is ever in an address. The chart keeps the title while its question is the preset's, and loses it the
 // moment the question changes. This module is pure and names no field, measure, dataset or value.
-import { presets } from "./config";
+import { findDataset, presets } from "./config";
 import type { Preset } from "./config";
 import { builderQuestionFor } from "./builder";
 import type { Question } from "./builder";
@@ -16,16 +16,19 @@ export type Asks = { dataset: string; measure: string | undefined; by: string | 
 
 // What a preset asks, in a Build question's terms: the question the builder reads off it, with its where added (the builder reads a preset's
 // filters and not its where). A preset with no breakdown, a count of all vehicles, is read from its own fields.
+// A dataset that is another one filtered (config/dimensions.json, base and filter) is asked as its base with that filter as a condition.
 export function presetAsks(preset: Preset): Asks {
   const view = presetView(preset);
   const asks = builderQuestionFor(view);
   const filters = Object.fromEntries((preset.filters ?? []).flatMap((f) => Object.entries(f)).map(([d, v]): [string, string[]] => [d, [v]]));
+  const named = asks?.dataset ?? (preset.dataset as string);
+  const dataset = findDataset(named);
   return {
-    dataset: asks?.dataset ?? (preset.dataset as string),
+    dataset: dataset?.base ?? named,
     measure: asks?.measure ?? preset.measure ?? preset.derived,
     by: asks ? asks.by : (preset.dimension ?? null),
     by2: asks?.by2 ?? null,
-    where: { ...(asks?.where ?? filters), ...(preset.where ?? {}) },
+    where: { ...(dataset?.base ? dataset.filter : {}), ...(asks?.where ?? filters), ...(preset.where ?? {}) },
   };
 }
 
