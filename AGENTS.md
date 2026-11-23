@@ -104,7 +104,7 @@ Setup, **not re-run this session** (the environment already existed):
   `public/data/` only if every guardrail passes. Exit codes: 2 guardrail, 3 source, 4 DuckDB.
 - `pipeline/reconcile.py` (D-149): every build sets figures other organisations publish (`data/reference/published_figures.csv`, one row a figure, each with
   the dataset and filters it is set beside and a tolerance) beside the same figures read from the files it is about to publish, and writes
-  `reconciliation.json`. A row past its tolerance warns; three independent sources each well past theirs in one month, on the same side, stop the build.
+  `reconciliation.json`. A row past its tolerance warns; two independent sources each well past theirs in one month, on the same side, and more than half of those compared that month, stop the build.
   Adding a month's rows is a high-risk pull request (`docs/playbooks/add-published-figures.md`).
 - `pipeline/supplied.py` and `pipeline/series.py`: `python -m pipeline supply`, by hand only, checks one CSV a maintainer exports and adds its
   months to the store `data/supplied/<id>/` (counts and a ledger), which is committed to the repository (D-097), so GitHub reads the same
