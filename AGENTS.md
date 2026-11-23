@@ -1,14 +1,17 @@
 # AGENTS.md: NZ Vehicle Registration Analytics
 
 For any coding agent (Claude Code, Gemini) arriving with no context. Read in this order, and no
-more of each than the next step touches (work order 2, §2 rule 7):
+more of each than the next step touches (work order 2, §2 rule 7, kept by work order 3):
 
 1. This file.
 2. `docs/STATE.md` and `docs/CHECKPOINT.md`: what is live, what is in progress and who owns it,
    the queue, what is parked for the user.
-3. `docs/brief/WORK_ORDER.md`: the user's standing work order 2 of 2026-11-20 (the engine frozen
-   for features, the process rules, what may be done without asking, what never is, the canvas
-   and the go-public milestones). `docs/CHECKPOINT.md` says where it has got to.
+3. `docs/brief/WORK_ORDER.md`: the user's standing work order 3 of 2026-11-23 (four lanes worked
+   in parallel: finish the canvas, the accuracy guard, public readiness, the December refresh;
+   D-148). It keeps work order 2's process rules, what may be done without asking and what
+   never is; those are in `docs/brief/archive/WORK_ORDER_2.md` §1 to §4. `docs/CHECKPOINT.md`
+   opens with the Lanes table: **take only a lane that is free or your own, and write your
+   line in the table before you start.**
 4. `CLAUDE.md`: the project brief (design invariants, the six chart shapes, the canvas page's
    rules, how the work is done, field traps). It is named for Claude but is **the brief for
    every agent**.
@@ -149,7 +152,7 @@ Setup, **not re-run this session** (the environment already existed):
 
 ## How the work is done
 
-The seven process rules of work order 2 are in `CLAUDE.md`, "How the work is done" (D-147): when
+The seven process rules of work order 2, which work order 3 keeps, are in `CLAUDE.md`, "How the work is done" (D-147, D-148): when
 a decision record is written, reviews by risk, which tests are added, the notes once a session,
 the decisions index, which model does which work, and short sessions. They bind every agent, and
 hard rules 7 and 8 below carry the merge rule and the steps that go with them.
@@ -197,9 +200,10 @@ hard rules 7 and 8 below carry the merge rule and the steps that go with them.
      1280 px that the lead looks at.
    - Docs only: merge when the checks pass.
 
-   **Under work order 2, and only for it** (`docs/brief/WORK_ORDER.md` §3 and §4; user,
-   2026-11-20, D-147), in a session where the user says so, with the order itself or with its
-   "continue" message (§8):
+   **Under work order 3, and only for it** (`docs/brief/WORK_ORDER.md` §1, which carries
+   work order 2's §3 and §4, `docs/brief/archive/WORK_ORDER_2.md`; user, 2026-11-23, D-148),
+   in a session where the user says so, with the order itself or with its "continue"
+   message (§5):
    - claude may merge a pull request of the order into `main`, as a merge commit, when its
      checks are green and finished, the review rule above is met for its risk, it is inside the
      order, and it touches nothing on the order's "never without asking" list.
@@ -216,11 +220,16 @@ hard rules 7 and 8 below carry the merge rule and the steps that go with them.
      postcode, or anything derived from `VIN11`; changing CLAUDE.md's invariants beyond what
      the order's §5 approves.
 8. **Don't build ahead of the current step.** The user works in gated steps; the current step is
-   in `docs/STATE.md`. Under work order 2 the steps are its two milestones, in order: the canvas
-   (its build order, one to six, merged as it goes), then ready to go public, stopping before
-   the switch. **The engine is frozen for features**: the order's §1 lists the only engine work
-   allowed and what is parked (D-147). A session ends with five lines at most; a milestone ends
-   with a report (the order's §7).
+   in `docs/STATE.md`. Under work order 3 the steps are its four lanes, worked in parallel, each
+   on a branch and worktree of its own: A, finish the canvas; B, the accuracy guard; C, public
+   readiness, stopping before the switch; D, the December refresh. No two lanes edit the same
+   file in the same session, and the lead is the integrator: it merges and resolves conflicts.
+   A session started on the web takes only A, B or C, reads its site data from the newest
+   public cube release or the test fixtures, and never builds from raw data, touches the
+   private archive or needs a secret (the order's §3). **The engine is frozen for features**:
+   work order 2's §1 lists the only engine work allowed and what is parked, and lane B's
+   reconciliation is the one addition (D-147, D-148). A session ends with five lines at most,
+   one per lane touched, and the Lanes table; a lane ends with a report (the order's §4).
    Exception (user, 2026-10-21, D-041): the
    visitor-facing site (`src/`, `config/presets.json` and the docs that describe them) may be built
    ahead of the build order. The gate that kept it a local build passed on 13 November 2026

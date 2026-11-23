@@ -47,9 +47,10 @@ How every page reads:
    newest month with no work from the visitor, or stays pinned to a
    snapshot when a figure is being quoted.
 
-The order of work for this stage is the user's work order 2,
-`docs/brief/WORK_ORDER.md` (2026-11-20, D-147), which sits over
-`docs/brief/MASTER_BRIEF.md`.
+The order of work for this stage is the user's work order 3,
+`docs/brief/WORK_ORDER.md` (2026-11-23, D-148), which sits over
+`docs/brief/MASTER_BRIEF.md`. It keeps the process rules of work order 2
+(`docs/brief/archive/WORK_ORDER_2.md`, D-147).
 
 ### The canvas page
 
@@ -246,7 +247,7 @@ docs/
   NARRATIVE.md        # planned (D-062): facts, phrase sets, neutrality rules, tests
   DATA_MAP.md         # every source field: meaning, coverage, uses, privacy class, relations (D-090)
   brief/MASTER_BRIEF.md  # direction and order of work for the current stage
-  brief/WORK_ORDER.md  # the user's standing work order (work order 2, D-147); earlier ones in brief/archive/
+  brief/WORK_ORDER.md  # the user's standing work order (work order 3, D-148); earlier ones in brief/archive/
   DECISIONS.md        # an index of D-001 to D-140 and every record since; decisions/ holds the archive
 data/snapshots/        # committed: one small aggregate per snapshot, never raw rows
 data/state/            # committed: last_good.json, what the next run's guardrails compare against
@@ -327,9 +328,15 @@ transform. The short version:
 
 ## How the work is done
 
-The user's process rules of 2026-11-20 (work order 2 §2, D-147). They bind
-every agent. `AGENTS.md` holds the hard rules and the merge rule that go
-with them.
+The user's process rules of 2026-11-20 (work order 2 §2, D-147), kept by
+work order 3 (2026-11-23, D-148). They bind every agent. `AGENTS.md` holds
+the hard rules and the merge rule that go with them.
+
+Work order 3 adds lanes: up to four pieces of work at once, each on its own
+branch and worktree. No two lanes edit the same file in the same session.
+`docs/CHECKPOINT.md` opens with the Lanes table (lane, branch, who holds
+it, status); a session takes only a lane that is free or its own, and
+writes its line before it starts.
 
 1. **Decision records** are written only when an invariant, the data
    contract, a published figure or privacy changes, or when the user needs

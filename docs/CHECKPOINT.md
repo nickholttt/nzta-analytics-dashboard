@@ -1,79 +1,80 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-20
+Last updated by claude on 2026-11-23
+
+## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2)
+
+Take only a lane that is free or your own. Write your line here, on `main`, before you start.
+A session on the web takes only A, B or C.
+
+| Lane | Branch | Held by | Status |
+|---|---|---|---|
+| A: finish the canvas | `claude/a-starter-canvases` | the computer session of 2026-11-23 | step 1 of 5 (starter canvases) being built |
+| B: the accuracy guard | `claude/b-reconciliation` | the computer session of 2026-11-23 | steps 1 and 2 (the published figures and the reconciliation step) being built |
+| C: public readiness | `claude/c-quality-bar` | the computer session of 2026-11-23 | the visitor-test kit is committed; the quality bar's checks are next |
+| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 22 November built nothing |
 
 ## Where we left off
 
-- 2026-11-20, the second session of work order 2 (`docs/brief/WORK_ORDER.md`, D-147).
-  **Merged: #115, #116.**
-  - #115: the canvas holds several charts (step 3): add, duplicate, remove and put back,
-    move by buttons or by dragging, half or full width; the editor follows the chart.
-  - #116: save and share (step 4): My canvases in the browser, a pin chart by chart under
-    Build's rules, and what a link asked for and did not get said on its chart.
-- The first session merged #111 to #114 (the order saved, the decisions archived, canvas
-  steps 1 and 2). #105 (the board proposal) is closed; its branch is kept for the mockups.
+- 2026-11-23, the first session of work order 3 (D-148). #117 saves the order and adds this
+  table. Work order 2 merged #111 to #116: the canvas's build steps 1 to 4.
 
 ## Open pull requests
 
-None waiting on the user.
+#117 (work order 3 saved; docs only), merging when its checks are green.
 
-## The queue, in order (work order 2)
+## The queue, lane by lane (the order's §2 has each lane's "done when")
 
-**Milestone 1, the canvas** (§5). Done when the user can open it on a phone and a desktop,
-build the acceptance question by dragging, add two more charts beside it, save the page as a
-link and see the same page from that link in a new window. Then the milestone report (the
-order's §7): screenshots, and the done-when checked line by line.
+**A, finish the canvas.**
+1. Starter canvases: Explore's groups as three or four canvases in config; Explore's page
+   becomes the list of them.
+2. One generated sentence under every chart, lines, bands and the map among them; a ranking
+   and a grid move theirs under the chart.
+3. Build folded into the canvas, old links kept working; CLAUDE.md's "Two surfaces"
+   opening changes in that pull request.
+4. Dark mode, checked on real chart colours.
+5. First load under 3 s (3.93 s on 20 November): fonts, and the editor split from the chart.
 
-5. **Starter canvases.** Explore's groups as three or four canvases in config; Explore's
-   page becomes the list of them. A starter is a canvas link, so it opens like any other.
-6. **Polish.**
-   - **One generated sentence under every chart** (the user, 2026-11-20: milestone 1 is not
-     called done without it). Lines, bands and the map have none; a ranking and a grid
-     keep theirs above the chart for now. From phrase templates only (invariant 8).
-   - Light and dark (check the chart colours on a dark surface first).
-   - First load (3.93 s against 3 s).
+**B, the accuracy guard.**
+1. `data/reference/published_figures.csv`, January 2025 to October 2026, from the MIA, vstat
+   and Stats NZ: only figures read on the source's own page.
+2. The reconciliation step in every build, writing `reconciliation.json` (a contract
+   change: its own record, D-149).
+3. Shown on `/status` in full and on the Differences page in short.
+4. Each month, one pull request adding the new month's rows (high risk).
+5. The open gap to the MIA measured by scope, vehicle type and month.
 
-**Milestone 2, ready to go public** (§6): About, differences and feedback linked from the
-canvas; `docs/playbooks/go-public.md` reduced to numbered clicks; a private dry run.
+**C, public readiness.**
+1. Milestone 2: the pages linked from the canvas; `go-public.md` as clicks; a dry run.
+2. The quality bar on every page, with its lint, its no-tracking test and a budget in CI.
+3. One design pass by an opus sub-agent that has not seen the work.
+4. The visitor-test kit: written (`docs/visitor-test/`), on the lane's branch.
 
-**When NZTA refreshes (December):** November's build and archive; the dashboard usage-column
-check (D-134), then "Registered as" (D-140); fix what the refresh breaks.
+**D, the December refresh.** November's build and archive; its published figures; the
+usage-column check (D-134). True registrations need the user's dashboard export.
 
-## Parked until the user says otherwise (the order's §1)
+## Parked until the user says otherwise
 
-- Colour's own table on the site (the narrow fact table, D-144).
-- More SUV slices and sizes (D-145, D-117); further hybrid work (D-110, D-119).
-- New segment schemes (D-103's draft, untracked in `nzta-segments`).
-- New fields, new datasets and new privacy tables; drawing a hidden cell over time (D-130).
-- The query service (D-091).
-- The narrative engine beyond the canvas's sentences (D-102's drafts, in `nzta-screens`).
-- Work order 1's small engine follow-ups (listed in this file as it was at commit `b2ef24d`).
+Colour's own table (D-144); more SUV slices (D-145, D-117); further hybrid work (D-110,
+D-119); new segment schemes (D-103); new fields, datasets and privacy tables; drawing a
+hidden cell over time (D-130); the query service (D-091); the narrative engine beyond the
+canvas's sentences (D-102).
 
 ## Questions for the user (parked; none stops the work)
 
-1. **The site's name and web address** (`config/site.json`, search `TO DECIDE`). The About
-   page stays a marked draft until both are filled. They are yours; there is no default.
-2. **The Build page, once the canvas is done.** Keep both, or fold Build into the canvas (a
-   Build link then opens as a canvas of one chart). Recommended: fold it in at the end of
-   milestone 1. With no answer, both stay.
+1. **The site's name and web address** and the About page's gaps (`config/site.json`).
 
 ## Decided for the user (unreviewed)
 
-- In D-147: how the order reads onto hard rules 4, 7 and 8; no final report of work order 1;
-  #105 closed; the `definitions-editor` sub-agent on sonnet.
-- The canvas (listed in #114): no new dependency (no shadcn/ui, no drag library); the
-  layout; the zone names; the six chart types by name and a table; the answer stays above a
-  ranking and a grid for now; a drop is always taken so that a refusal is said; light only.
-- Several charts (listed in #115): the arrange buttons are in the chart's editor, not on
-  every card; a dragged chart takes the place of the card it is dropped on; a removal can
-  be undone once; under 1024 px every chart is full width.
-- Save and share (listed in #116): My canvases sits under the charts; an entry is named
-  after its first chart "and N more"; pinning pins each chart that can be pinned.
-- `public/data` was refreshed from a dry run without asking (the playbook says to ask): the
-  canvas needed the newer fields. The old copy is `public/data.previous`.
+- D-148: how the order reads onto hard rules 7 and 8; three sub-agents at once with lane D
+  the lead's own; `reconciliation.json` read as approved for a cube release.
+- The visitor-test kit's five tasks are starter questions 1, 2, 4 and 9 and the acceptance
+  question.
+- Carried from work order 2: the choices listed in #114 to #116 and D-147.
 
 ## Prompt for the next session
 
-/start. Continue `docs/brief/WORK_ORDER.md` (work order 2) from CHECKPOINT. Its §3 still
-stands: you may merge its pull requests into `main` in this session under its §2 and §3, and
-nothing in its §4 is touched. Do not stop for questions; park what needs me and keep going.
+/start. Continue `docs/brief/WORK_ORDER.md` (work order 3) from CHECKPOINT. Take a free lane
+from its Lanes table (on the web: only A, B or C). Its §1 carries work order 2's §3: you may
+merge into `main` in this session under those rules, and nothing in work order 2's §4 is
+touched. Do not stop for questions; park what needs me and keep going.
