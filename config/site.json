@@ -1,5 +1,5 @@
 {
-  "$comment": "Words and addresses the public pages share, kept here so each is written once. attribution is the footer's line on every page and the About page's licence statement. The About page's gaps are the user's to fill: each is the text [TO DECIDE: ...], and one search for TO DECIDE finds every one. Replace a value with the real text and the page shows it with no marker; src/pages/about.astro states the page is a draft only while any marker is left.",
+  "$comment": "Words and addresses the public pages share, kept here so each is written once. attribution is the footer's line on every page and the About page's licence statement. The About page's gaps are the user's to fill: each is the text [TO DECIDE: ...], and one search for TO DECIDE finds every one. Replace a value with the real text and the page shows it with no marker; src/pages/about.astro states the page is a draft only while any marker is left. The meta block is what Layout.astro writes into each page's head: a specific title, a one-sentence description and the social card tags. A page's title and description say what the page is, name no figure or year and claim nothing causal. The social card image is emitted only once about.site_address is set, because a card image must be an absolute address; the pictures themselves are public/cards/<page>.png, made by scripts/make-social-cards.mjs from these same titles.",
   "attribution": "Data sources: NZ Transport Agency (NZTA) Motor Vehicle Register and, where a chart says so, NZTA's registrations dashboard, both released under CC BY 4.0. Figures describe registrations recorded by NZTA, not sales.",
   "issues_url": "https://github.com/nickholttt/nzta-analytics-dashboard/issues",
   "about": {
@@ -9,5 +9,51 @@
     "contact": "through nickholt.co.nz",
     "industry_connection": "the author works at the Colonial Motor Company as a Systems Analyst",
     "privacy": "Today it carries no advertising, sets no cookies and does not track its visitors."
+  },
+  "meta": {
+    "title_suffix": "NZ vehicle registrations",
+    "locale": "en_NZ",
+    "card_folder": "/cards",
+    "card_width": 1200,
+    "card_height": 630,
+    "card_foot": "Built on NZTA open data",
+    "pages": {
+      "explore": {
+        "title": "Start from a question",
+        "description": "Charts that answer common questions about the vehicles registered in New Zealand, each with its definition, its source and its snapshot date."
+      },
+      "canvas": {
+        "title": "Canvas: build your own charts",
+        "description": "Build a page of charts from New Zealand's vehicle register: choose what to count, what to compare and which vehicles to include."
+      },
+      "build": {
+        "title": "Build a chart from the register",
+        "description": "Ask your own question of New Zealand's vehicle register: what to show, what to compare and which vehicles to count."
+      },
+      "method": {
+        "title": "Methodology and metric definitions",
+        "description": "What each figure on this site counts, how it is worked out, and the rules that stop a chart from misleading."
+      },
+      "caveats": {
+        "title": "Data caveats and limits",
+        "description": "What the vehicle register records and what it leaves out, and what to bear in mind when reading a chart."
+      },
+      "about": {
+        "title": "About this site",
+        "description": "Who runs this site, what it is built from, and how its data is licensed."
+      },
+      "feedback": {
+        "title": "Feedback and corrections",
+        "description": "How to report a figure that looks wrong or suggest a change, and the corrections made so far."
+      },
+      "differences": {
+        "title": "Why these figures differ from others",
+        "description": "Why the figures here can differ from other published counts of New Zealand's vehicles, and how to compare like with like."
+      },
+      "not_found": {
+        "title": "Page not found",
+        "description": "There is no page at this address. The canvas is the place to start a chart of your own."
+      }
+    }
   }
 }

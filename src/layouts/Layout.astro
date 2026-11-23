@@ -3,17 +3,25 @@ import "../styles/site.css";
 import manifest from "../../public/data/manifest.json";
 import { INTERNAL_PAGES } from "../lib/site";
 import { attribution } from "../lib/siteCopy";
+import { pageMeta, withSuffix, type PageId } from "./pageMeta";
 
 interface Props {
   title: string;
-  activeNav?: "explore" | "canvas" | "build" | "method" | "caveats" | "about" | "feedback" | "differences";
+  activeNav?: Exclude<PageId, "not_found">;
+  // The page's words for the head (config/site.json, meta.pages) when it is not one of the navigation's pages, such as the page-not-found page.
+  meta?: PageId;
   // Internal pages (D-028) stay out of search engines and out of the main navigation.
   noindex?: boolean;
   // The canvas page: wider than a reading page, with its own tokens (src/styles/canvas.css).
   wide?: boolean;
 }
 
-const { title, activeNav, noindex = false, wide = false } = Astro.props;
+const { title, activeNav, meta, noindex = false, wide = false } = Astro.props;
+
+// The head's words come from config, keyed by the page. A page that is searched for and has none is a build error, not a page with no description.
+const id = meta ?? activeNav;
+if (!id && !noindex) throw new Error(`The page "${title}" names no entry of config/site.json meta.pages (activeNav or meta), so it would have no description or social card.`);
+const head = id ? pageMeta(id, { pathname: Astro.url.pathname, noindex }) : undefined;
 
 const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
   new Date(`${manifest.latest_snapshot}T00:00:00Z`),
@@ -24,8 +32,10 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · NZ vehicle registrations</title>
+    <title>{head?.title ?? withSuffix(title)}</title>
     {noindex && <meta name="robots" content="noindex" />}
+    {head && head.tags.map((tag) => (tag.attribute === "name" ? <meta name={tag.key} content={tag.content} /> : <meta property={tag.key} content={tag.content} />))}
+    {head?.canonical && <link rel="canonical" href={head.canonical} />}
   </head>
   <body>
     <main class:list={["page", { "page-canvas": wide }]}>
