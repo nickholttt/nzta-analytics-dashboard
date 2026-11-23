@@ -135,8 +135,13 @@ def problems_of(tmp_path, figures, sources=SOURCES) -> list[str]:
 
 # --- the two files: parsing and strict checks ------------------------------------------------------------------------------
 
-def test_the_committed_files_are_valid_and_the_step_runs_with_no_rows(tmp_path):
-    cfg = config.load()
+def test_the_committed_files_are_valid():
+    # Whatever rows the live files hold, every cell, source, dataset and filter dimension must pass the build's early checks.
+    assert reconcile.prepare(config.load())[1] == []
+
+
+def test_the_step_runs_with_no_rows(tmp_path):
+    cfg = cfg_for(tmp_path, [])
     prepared, problems = reconcile.prepare(cfg)
     assert problems == []
     staging, datasets = stage(tmp_path)
