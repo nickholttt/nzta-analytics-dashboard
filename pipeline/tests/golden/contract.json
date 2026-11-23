@@ -546,7 +546,21 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 117467,
+  "reconciliation": {
+   "file": "reconciliation.json",
+   "rows": 6,
+   "by_status": {
+    "pass": 1,
+    "warn": 2,
+    "fail": 0,
+    "not_compared": 3
+   },
+   "months": {
+    "first": "2026-06",
+    "last": "2026-09"
+   }
+  },
+  "payload_bytes": 122712,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -555,7 +569,10 @@
    "registrations_flow was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
    "registrations_flow_wider was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
    "registrations_cars_long_run was not built: the supplied store for statsnz_tpt is absent (data/supplied/statsnz_tpt); add a file with `python -m pipeline supply statsnz_tpt <csv>`",
-   "no last good state: first run, so previous-run comparisons were skipped"
+   "no last good state: first run, so previous-run comparisons were skipped",
+   "reconciliation: Fixture source A: 1 of 2 compared figures are past their tolerance, in 2026-07; the largest gap is -25.00% (2026-07)",
+   "reconciliation: Fixture source B: 1 of 1 compared figures are past their tolerance, in 2026-06; the largest gap is -14.29% (2026-06)",
+   "reconciliation: Fixture source C (a copy of our own export): 1 figure names a value the published files do not hold, in 2026-08, so it was not compared"
   ]
  },
  "slices": {
@@ -17053,5 +17070,198 @@
    "confidence": "documented",
    "source_url": "https://www.1news.co.nz/2025/11/17/clean-car-standard-under-review-import-charges-lowered/"
   }
- ]
+ ],
+ "reconciliation": {
+  "latest_snapshot": "2026-08-31",
+  "sources": {
+   "fixture_a": {
+    "name": "Fixture source A",
+    "home_url": "https://fixture.example/a",
+    "independent": true,
+    "definition": "A made-up definition for the golden fixture.",
+    "definition_date_read": "2026-11-01"
+   },
+   "fixture_b": {
+    "name": "Fixture source B",
+    "home_url": "https://fixture.example/b",
+    "independent": true,
+    "definition": null,
+    "definition_date_read": null
+   },
+   "fixture_c": {
+    "name": "Fixture source C (a copy of our own export)",
+    "home_url": "https://fixture.example/c",
+    "independent": false,
+    "definition": null,
+    "definition_date_read": null
+   }
+  },
+  "summary": {
+   "rows": 6,
+   "by_status": {
+    "pass": 1,
+    "warn": 2,
+    "fail": 0,
+    "not_compared": 3
+   },
+   "by_source": {
+    "fixture_a": {
+     "rows": 2,
+     "pass": 1,
+     "warn": 1,
+     "fail": 0,
+     "not_compared": 0
+    },
+    "fixture_b": {
+     "rows": 2,
+     "pass": 0,
+     "warn": 1,
+     "fail": 0,
+     "not_compared": 1
+    },
+    "fixture_c": {
+     "rows": 2,
+     "pass": 0,
+     "warn": 0,
+     "fail": 0,
+     "not_compared": 2
+    }
+   },
+   "months": {
+    "first": "2026-06",
+    "last": "2026-09"
+   },
+   "thresholds": {
+    "max_tolerance_pct": 20,
+    "hard_limit_tolerance_multiple": 2,
+    "hard_limit_floor_pct": 2,
+    "hard_limit_min_sources": 2,
+    "hard_limit_source_vehicle_share": 0.5
+   }
+  },
+  "rows": [
+   {
+    "source": "fixture_b",
+    "month": "2026-06",
+    "measure_as_published": "Fixture measure: all vehicles",
+    "dataset": "registrations_surviving",
+    "filters": {},
+    "ours": 6,
+    "theirs": 7,
+    "gap": -1,
+    "gap_pct": -14.2857,
+    "tolerance_pct": 5.0,
+    "hard_bound_pct": 10.0,
+    "known_difference": null,
+    "status": "warn",
+    "reason_kind": null,
+    "reason": null,
+    "source_url": "https://fixture.example/b/total",
+    "date_read": "2026-11-01"
+   },
+   {
+    "source": "fixture_a",
+    "month": "2026-07",
+    "measure_as_published": "Fixture measure: new vehicles",
+    "dataset": "registrations_surviving",
+    "filters": {
+     "import_status": [
+      "NZ New"
+     ]
+    },
+    "ours": 3,
+    "theirs": 4,
+    "gap": -1,
+    "gap_pct": -25.0,
+    "tolerance_pct": 5.0,
+    "hard_bound_pct": 10.0,
+    "known_difference": "A made-up known difference.",
+    "status": "warn",
+    "reason_kind": null,
+    "reason": null,
+    "source_url": "https://fixture.example/a/new",
+    "date_read": "2026-11-01"
+   },
+   {
+    "source": "fixture_a",
+    "month": "2026-08",
+    "measure_as_published": "Fixture measure: all vehicles",
+    "dataset": "registrations_surviving",
+    "filters": {},
+    "ours": 11,
+    "theirs": 11,
+    "gap": 0,
+    "gap_pct": 0.0,
+    "tolerance_pct": 2.0,
+    "hard_bound_pct": 4.0,
+    "known_difference": null,
+    "status": "pass",
+    "reason_kind": null,
+    "reason": null,
+    "source_url": "https://fixture.example/a/total",
+    "date_read": "2026-11-01"
+   },
+   {
+    "source": "fixture_c",
+    "month": "2026-08",
+    "measure_as_published": "Fixture measure: all vehicles",
+    "dataset": "registrations_flow",
+    "filters": {},
+    "ours": null,
+    "theirs": 100,
+    "gap": null,
+    "gap_pct": null,
+    "tolerance_pct": 2.0,
+    "hard_bound_pct": 4.0,
+    "known_difference": null,
+    "status": "not_compared",
+    "reason_kind": "dataset_not_built",
+    "reason": "registrations_flow was not built in this run.",
+    "source_url": "https://fixture.example/c/total",
+    "date_read": "2026-11-01"
+   },
+   {
+    "source": "fixture_c",
+    "month": "2026-08",
+    "measure_as_published": "Fixture measure: one value",
+    "dataset": "registrations_surviving",
+    "filters": {
+     "import_status": [
+      "Fixture value not held"
+     ]
+    },
+    "ours": null,
+    "theirs": 5,
+    "gap": null,
+    "gap_pct": null,
+    "tolerance_pct": 2.0,
+    "hard_bound_pct": 4.0,
+    "known_difference": null,
+    "status": "not_compared",
+    "reason_kind": "value_not_held",
+    "reason": "import_status has no value 'Fixture value not held' in the published files of registrations_surviving in this build, so it is not compared.",
+    "source_url": "https://fixture.example/c/value",
+    "date_read": "2026-11-01"
+   },
+   {
+    "source": "fixture_b",
+    "month": "2026-09",
+    "measure_as_published": "Fixture measure: all vehicles",
+    "dataset": "registrations_surviving",
+    "filters": {},
+    "ours": null,
+    "theirs": 12,
+    "gap": null,
+    "gap_pct": null,
+    "tolerance_pct": 2.0,
+    "hard_bound_pct": 4.0,
+    "known_difference": null,
+    "status": "not_compared",
+    "reason_kind": "month_not_held",
+    "reason": "Our registrations_surviving data holds 1965-04 to 2026-08 in this build, so 2026-09 is outside it and is not compared.",
+    "source_url": "https://fixture.example/b/total",
+    "date_read": "2026-11-01"
+   }
+  ]
+ }
 }

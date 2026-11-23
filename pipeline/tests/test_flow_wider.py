@@ -186,7 +186,13 @@ def test_adding_the_dataset_changes_no_byte_of_the_others(built, tmp_path):
     the same, and so is each one's manifest entry: widening the scope of one dataset moves no other's rows or guards."""
     cfg = built["cfg"]
     workspace = workspace_for(tmp_path)
-    narrow = make_cfg(workspace)
+    # A reference folder whose published figures are header-only: the live rows name the wider dataset, and a build that does not
+    # have the dataset must stop on them (test_reconcile.py), which is not what this test is about.
+    reference = tmp_path / "reference_without_figures"
+    shutil.copytree(cfg.reference("x").parent, reference)
+    live = cfg.reference(cfg.pipeline["reconciliation"]["figures_file"])
+    (reference / live.name).write_text(live.read_text(encoding="utf-8").splitlines()[0] + "\n", encoding="utf-8", newline="\n")
+    narrow = make_cfg(workspace, reference_dir=reference)
     del narrow.pipeline["datasets"][WIDER]
     shutil.copytree(cfg.supplied_store(SOURCE), narrow.supplied_store(SOURCE))
     manifest = run(tmp_path, narrow, name="narrow")

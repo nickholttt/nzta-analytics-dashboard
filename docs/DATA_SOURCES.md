@@ -336,6 +336,115 @@ to; how far apart they are, and what is known about why, was
 measured on 2026-11-16 and is in `docs/METRICS.md`, "Set beside published
 figures" (D-105).
 
+## F. Published sources our figures are set beside (D-149)
+
+Every build sets some of its own figures beside figures other organisations publish, and writes the result to
+`reconciliation.json` (`docs/CUBE_SCHEMA.md`, `reconciliation.json`). What is compared, and against whom, is data, in two
+reference files that a maintainer edits; no source, measure or vehicle type is named in code.
+
+`data/reference/published_sources.csv` has one row for each organisation whose figures are compared:
+
+| column | meaning |
+|---|---|
+| `id` | a short key of lower case letters, digits and underscores, which the `source` column of `published_figures.csv` uses |
+| `name` | the organisation's name as the site shows it |
+| `home_url` | the organisation's own address, `https://` |
+| `independent` | `true` if the source counts the vehicles separately from the data our datasets are built from; `false` for a copy of the same export (the dashboard export feeds `registrations_flow`, so its totals should match to the vehicle and prove nothing about whether ours are right). A source that is not independent is compared and shown, and does not count towards the hard limit |
+| `definition` | what the source says it counts, in its own words, copied from the page it was read on; blank until read |
+| `definition_date_read` | the day that page was read, `YYYY-MM-DD`; blank exactly when `definition` is |
+
+The Differences page states each source's definition from this file. A source with no row here cannot have figures.
+The file is read at the start of every build, before the register is read: a row that breaks any rule above, a repeated
+`id`, or a header that is not exactly these columns in this order aborts the build and names the row.
+
+What it holds (read on 2026-11-23): three organisations, each counted as independent.
+
+| `id` | Where its definition was read | What could be read |
+|---|---|---|
+| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | one month's table and its year-earlier column; earlier months are for members only |
+| `mta_vstat` | its About page | 22 months; the page says its figures are NZTA's records as they were when it published |
+| `statsnz` | the group title of its monthly release file, Transport vehicle registrations | 22 months, each marked final |
+
+The MIA publishes no figure for used imports. NZTA's registrations dashboard has no row: it cannot be read automatically,
+and our true registrations are its export, so it would not be independent.
+
+`data/reference/published_figures.csv` has one row for each figure a source publishes for one month:
+
+| column | meaning |
+|---|---|
+| `source` | the `id` of a row of `published_sources.csv` |
+| `source_url` | the page the figure was read on, `https://` |
+| `date_read` | the day it was read, `YYYY-MM-DD` |
+| `month` | the month the figure is for, `YYYY-MM` |
+| `measure_as_published` | the measure exactly as the source defines and names it |
+| `figure` | the source's figure, a whole number above zero (a figure of zero cannot be set against as a percentage) |
+| `dataset` | one of the datasets of `config/pipeline.json` |
+| `filters` | the question put to that dataset (below); blank for the dataset's whole total |
+| `tolerance_pct` | how far ours may be from theirs, as a percentage of theirs, before the row warns; 0 up to `reconciliation.max_tolerance_pct` in `config/pipeline.json` |
+| `known_difference` | a short note where a difference is known and explained; blank otherwise. It is shown beside the row and never used to hide it |
+
+**Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
+datasets (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it counts first
+registrations or vehicles still registered (`registrations_surviving`: survivors are not registrations). A row is set
+against that dataset's counts, narrowed by its filters, and nothing else.
+
+**Filters** are one JSON object in the cell, each key a dimension id and each value a list of the values wanted:
+`{"import_status": ["<value>"], "vehicle_type": ["<value>", "<value>"]}`. The dimensions are all required at once; the values
+of one dimension are alternatives. A value is written as the published files hold it (the label, never NZTA's raw code), and a
+model as `MAKE|MODEL`, which is the model dimension's own value. JSON is used because a model's name can hold any character a
+plainer encoding would split on. A blank cell means no filter, and `{}` is refused so that there is one way to say it. Every
+filter must be answerable from the files the build is about to publish: the dimension must be one the dataset can derive, live
+in this build, and in the dataset's fact table (or, when it is the row's only dimension, have a one-field slice). Anything the
+configuration can prove wrong aborts the build and names the row: an unknown dataset or dimension, a dimension that is not live,
+two dimensions no one table holds. A value is different: which values a build holds depends on the month (the model dimension
+keeps only the largest models of the trailing year, so a model that was large in an old month can be gone from a later build),
+so a value the published files do not hold makes the row `not_compared` (`value_not_held`), with a warning for the source, and
+never a zero and never a stopped build.
+
+Two rows are the same figure when their source, month, measure and filters are the same; the second aborts the build.
+
+**When rows stop a build.** A row past its tolerance only warns. The build stops (exit 2) when separate counts agree with each
+other and not with ours: in one month, at least two independent sources, and more than half of the independent sources that
+have a compared row that month, each have half or more of what they published (the weight of a row is its figure, so a total
+and its parts both count) in rows further from ours than twice their tolerance, never less than 2%, on the same side. A month
+with compared rows from fewer than two independent sources cannot stop a build. The numbers are in `config/pipeline.json`
+(`reconciliation.hard_limit`); the whole rule is in `docs/CUBE_SCHEMA.md`. On the 336 rows
+committed on 2026-11-23, an error of 3% or more in all of our figures, either way, stops the build in every month, and a
+fault confined to one kind of figure (new passenger vehicles counted as commercial, at any size tried) only warns; the
+measured sizes are in `docs/CUBE_SCHEMA.md`, "What size of error stops a build".
+
+What it holds (read on 2026-11-23, for January 2025 to October 2026): 336 rows.
+
+| Source | Measure | Months | Set beside | Tolerance |
+|---|---|---|---|---|
+| `statsnz` | New Cars and Station Wagons Total (series TPTM.S22IZ) | 22 | true registrations, passenger cars and vans, new and used | 1% |
+| `statsnz` | New Cars/Stat'n Wags Prev Reg'd Ovrseas (series TPTM.S22JZ) | 22 | the same, used imports only | 1% |
+| `mta_vstat` | new passenger cars | 22 | true registrations, new passenger cars and vans | 1% |
+| `mta_vstat` | used import passenger cars | 22 | the same, used imports | 1% |
+| `mta_vstat` | new light commercial vehicles | 22 | true registrations, new goods vans, trucks and utes | 12%, with a known difference |
+| `mta_vstat` | each of the ten largest new models of the month | 22, ten rows each | true registrations on the wider scope, new, that model | 3% |
+| `mia` | Total Industry | 2 | true registrations on the wider scope, new | 1% |
+| `mia` | Light Passenger (incl. SUV) | 2 | true registrations, new passenger cars and vans | 1% |
+| `mia` | Light Commercial plus Heavy Commercial | 2 | true registrations on the wider scope, new, commercial | 2% |
+
+How each was read, and what that means for a row:
+
+- Stats NZ: the file of its October 2026 release (the row's `source_url`), every value marked final. All 44 were read
+  again from a second download of that file on the same day and agree.
+- vstat: its page for new vehicles carries the data its charts draw, by month, powertrain and model. A total is that
+  data added across powertrains, and the ten largest models of a month are the ten largest sums: vstat prints neither as
+  text for a past month. For October 2026 the page's own text gives the same four figures. A model is set beside the wider
+  scope because vstat's count of a van takes in its minibus and camper versions, which the default scope leaves out.
+- The MIA: one table, published as an image, read by eye by two readers. Its two commercial figures are added, and the
+  row's measure says so, because our figures cannot separate light from heavy commercial vehicles. Its months before
+  October 2026 are not public: the two October 2025 rows are the year-earlier column of the October 2026 table.
+
+Left out, because our figures have no matching question: vstat's used import commercial vehicles (a few hundred a month,
+light only) and the MIA's and vstat's year-to-date and whole-market totals. A tolerance was set from the gaps measured on
+2026-11-23 against the build of the October 2026 snapshot, with room above the largest: passenger figures were within
+0.71% of every source in every month. One row was past its tolerance that day and is left as it is: one model in
+November 2025, 283 against 302.
+
 ---
 
 ## Field notes that will bite you
