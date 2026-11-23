@@ -115,3 +115,42 @@ test("an allow entry that matches nothing fails the check", () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// ---- Holes found by the review of the pull request ----
+
+test("a lone id handed to an island as a label is a leak; the same id under id or dimension is not", () => {
+  const id = [...rules.ids].find((i: string) => i.includes("_"));
+  const props = (value: object) => JSON.stringify(value).replace(/"/g, "&quot;");
+  const leak = lintPage(`<astro-island props="${props({ label: [0, id] })}"></astro-island>`);
+  assert.equal(leak.status, 1, leak.out);
+  assert.match(leak.out, /island props label/);
+  const nested = lintPage(`<astro-island props="${props({ fields: [1, [[0, { id: [0, id], label: [0, id] }]]] })}"></astro-island>`);
+  assert.equal(nested.status, 1, nested.out);
+  assert.doesNotMatch(nested.out, /island props fields\[0\]\.id/);
+  for (const key of ["id", "dimension", "dataset", "measure"]) {
+    const fine = lintPage(`<astro-island props="${props({ [key]: [0, id] })}"></astro-island>`);
+    assert.equal(fine.status, 0, `${key}: ${fine.out}`);
+  }
+});
+
+test("the value of a field or button, and a placeholder, are read; the value of a checkbox, radio or hidden field is an id and is not", () => {
+  const bad = lintPage(`<input type="submit" value="Show the cube"><input placeholder="Search the manifest"><input value="Preset name">`);
+  assert.equal(bad.status, 1, bad.out);
+  for (const w of ["cube", "manifest", "preset"]) assert.match(bad.out, new RegExp(w, "i"));
+  const fine = lintPage(`<input type="checkbox" value="fact_table"><input type="radio" value="slice"><input type="hidden" value="cube">`);
+  assert.equal(fine.status, 0, fine.out);
+});
+
+test("a tag whose attribute holds a '>' is still read", () => {
+  const found = lintPage(`<img alt="a > b, from the cube" src="/x.png">`);
+  assert.equal(found.status, 1, found.out);
+  assert.match(found.out, /alt/);
+});
+
+test("a decision number is found whichever hyphen it is written with", () => {
+  for (const hyphen of ["-", "\u2010", "\u2011", "\u2013", "\u2212"]) {
+    const found = lintPage(`<p>Decided in D${hyphen}058 and kept.</p>`);
+    assert.equal(found.status, 1, JSON.stringify(hyphen) + found.out);
+    assert.match(found.out, /decision number/);
+  }
+});

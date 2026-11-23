@@ -19,7 +19,7 @@
     { "term": "todo", "say_instead": "write the real text, or leave it out" }
   ],
   "banned_patterns": [
-    { "name": "decision number", "pattern": "\\bD-\\d{2,4}\\b", "say_instead": "leave out the number; say what was decided" },
+    { "name": "decision number", "pattern": "\\bD[-\\u2010-\\u2015\\u2212]\\d{2,4}\\b", "say_instead": "leave out the number; say what was decided" },
     { "name": "unfilled placeholder", "pages_only": true, "pattern": "\\{[a-z_][a-z0-9_.]*(\\|[a-z]+)?\\}", "say_instead": "the template was not filled: fix where it is drawn" },
     { "name": "file name", "pattern": "\\b[a-z][a-z0-9_]*\\.(csv|json|parquet|py|mjs|ts|tsx|astro|md)\\b", "say_instead": "say what it holds, not the file it is kept in" },
     { "name": "unfilled gap", "pattern": "TO DECIDE", "say_instead": "write the real text" },
@@ -37,6 +37,8 @@
     "config/site.json"
   ],
   "$config_files_comment": "The files whose words a page loads or is built from. config/pipeline.json is left out: it holds the monthly update's own settings and no sentence a visitor reads (it is read here only for its dataset ids). A key beginning with $ is a note to the maintainer and is never read.",
+  "word_keys": ["label", "title", "name", "phrase", "text", "heading", "description", "definition", "help", "note", "caption", "legend", "question", "reason", "message", "summary", "unit", "placeholder"],
+  "$word_keys_comment": "The names of the props an island is handed that hold words a visitor reads. A prop value that is exactly one of the ids read from config, under one of these keys, is a leak: the code drew an id where a label belonged. Under any other key (id, dimension, dataset, measure, field, by, value, kind, and the like) an id is an id doing its job and is not read. Chosen by key, because the value alone cannot tell the two apart; add a key here when an island is given a new kind of words.",
   "skip_keys": ["formula", "coverage_formula", "pattern", "source", "derive", "basis", "enum_doc"],
   "$skip_keys_comment": "Keys whose strings are code or the maintainer's own notes, however many spaces they hold, and are never shown to a visitor.",
   "allow": [

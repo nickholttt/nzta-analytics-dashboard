@@ -43,7 +43,7 @@ export function loadRules(repoRoot) {
       words: true,
     });
   }
-  return { checks, allow: config.allow ?? [], configFiles: config.config_files.map((f) => (typeof f === "string" ? { file: f } : f)), skipKeys: new Set(config.skip_keys ?? []), ids };
+  return { checks, allow: config.allow ?? [], configFiles: config.config_files.map((f) => (typeof f === "string" ? { file: f } : f)), skipKeys: new Set(config.skip_keys ?? []), wordKeys: new Set(config.word_keys ?? []), ids };
 }
 
 // The hits in one piece of text a visitor reads. `isWords` is true when the text is a sentence or a phrase and false for a lone token;
@@ -95,7 +95,9 @@ export const decodeEntities = (s) =>
 // words, the text a screen reader or a sighted visitor meets, the words in alt, aria-label and similar attributes, and the words
 // handed to an island as props (an island draws its own text in the browser, so its props are the nearest the page's file holds).
 const WORD_ATTRIBUTES = ["alt", "aria-label", "title", "placeholder", "aria-description", "aria-roledescription", "aria-valuetext"];
-export function pageWords(html) {
+// `wordKeys` are the prop names that hold words a visitor reads: a lone id under one of them is a leak, where under any other key (id,
+// dimension, dataset, measure) it is an id doing its job.
+export function pageWords(html, wordKeys = new Set()) {
   const found = [];
   const add = (source, text, isWords = true) => {
     const clean = decodeEntities(text).replace(/\s+/g, " ").trim();
@@ -119,21 +121,28 @@ export function pageWords(html) {
     } catch {
       continue;
     }
-    const walk = (node, path) => {
-      if (typeof node === "string") add(`island props ${path}`, node, /\s/.test(node));
-      else if (Array.isArray(node)) node.forEach((item, i) => walk(item, `${path}[${i}]`));
-      else if (node && typeof node === "object") for (const [key, value] of Object.entries(node)) walk(value, path ? `${path}.${key}` : key);
+    const walk = (node, path, key) => {
+      if (typeof node === "string") add(`island props ${path}`, node, /\s/.test(node) || wordKeys.has(key));
+      else if (Array.isArray(node)) node.forEach((item, i) => walk(item, `${path}[${i}]`, key));
+      else if (node && typeof node === "object") for (const [k, value] of Object.entries(node)) walk(value, path ? `${path}.${k}` : k, k);
     };
-    walk(props, "");
+    walk(props, "", "");
   }
 
   const body = html
     .replace(/<!--[\s\S]*?-->/g, " ")
     .replace(/<(script|style|template|head)\b[\s\S]*?<\/\1>/gi, " ");
-  for (const [tag] of body.matchAll(/<[a-z][^>]*>/gi)) {
+  // A tag is read with its quotes in mind: an attribute value may hold ">".
+  for (const [tag, name] of body.matchAll(/<([a-z][a-z0-9-]*)\b(?:"[^"]*"|'[^']*'|[^'">])*>/gi)) {
     for (const attribute of WORD_ATTRIBUTES) {
-      const m = new RegExp(`\\s${attribute}="([^"]*)"`, "i").exec(tag);
-      if (m) add(attribute, m[1]);
+      const m = new RegExp(`\\s${attribute}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag);
+      if (m) add(attribute, m[1] ?? m[2]);
+    }
+    // The text a field or a button shows is its value, unless the field is a choice whose value is an id (a checkbox, a radio, a hidden field).
+    if (name.toLowerCase() === "input") {
+      const kind = /\stype\s*=\s*["']?([a-z]+)/i.exec(tag)?.[1]?.toLowerCase() ?? "text";
+      const m = /\svalue\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(tag);
+      if (m && !["checkbox", "radio", "hidden"].includes(kind)) add("input value", m[1] ?? m[2]);
     }
   }
   add("page text", body.replace(/<[^>]*>/g, " "));

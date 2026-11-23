@@ -32,7 +32,7 @@ const pages = readdirSync(root, { recursive: true, encoding: "utf8" })
   .filter((f) => f.endsWith(".html") && !f.startsWith("data") && !f.startsWith("geo"))
   .map((f) => f.replace(/\\/g, "/"));
 for (const page of pages) {
-  for (const w of pageWords(readFileSync(join(root, page), "utf8"))) for (const hit of findHits(rules, `${page} > ${w.source}`, w.text, w.isWords)) record(hit, page);
+  for (const w of pageWords(readFileSync(join(root, page), "utf8"), rules.wordKeys)) for (const hit of findHits(rules, `${page} > ${w.source}`, w.text, w.isWords)) record(hit, page);
 }
 for (const w of configWords(rules, repoRoot)) for (const hit of findHits(rules, w.source, w.text, /\s/.test(w.text), true)) record(hit, w.source);
 
