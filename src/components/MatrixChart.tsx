@@ -3,7 +3,7 @@
 // not an Observable Plot figure: a table has row and column headers a screen reader reads, a first column that stays put when the grid scrolls
 // on a phone, text that reflows with the reader's type size, and it is the table of figures itself, so nothing is said twice. The pure grid is
 // src/lib/matrix.ts; every sentence is a template in config.
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { chartDefaults, datasetWords, findDataset, findPeriod, lowerLabel, phrases } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
@@ -16,6 +16,7 @@ import { count, spanPeriod } from "../lib/readout";
 import { latestMonthOf } from "../lib/resolve";
 import { countedText, fillTemplate, markReason, matrixSentences, vehiclesText, rankingWindows, rankingWords, sayBadMonth } from "../lib/sentences";
 import { getParam, setParam } from "../lib/url";
+import { ChartSentence, SentenceContext } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
 
 type Props = {
@@ -50,6 +51,7 @@ export const defaultBasis = (preset: Preset): Basis => {
 };
 
 export function MatrixChart({ preset, dimension, dimension2, rows, manifest, label, label2, rowHeading, columnHeading, month, onMonth, after }: Props) {
+  const sentenceApi = useContext(SentenceContext);
   const fallback = defaultBasis(preset);
   const [basis, setBasis] = useState<Basis>(() => {
     const asked = typeof window === "undefined" ? fallback : getParam(preset.id, "cells", fallback);
@@ -182,13 +184,6 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
   }, [grid]);
 
   const shares = basis !== "count";
-  const leaderCount = grid.leaders[0]?.n;
-  const answer = sentences.leader ? (
-    <div className="answer">
-      <p className="answer-figure" aria-hidden="true">{count(leaderCount as number)}</p>
-      <p className="answer-sentence">{sentences.leader}</p>
-    </div>
-  ) : null;
   const basisLabels: Record<Basis, string> = {
     count: phrases.matrix_basis_count,
     all: phrases.matrix_basis_all,
@@ -240,7 +235,6 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
 
   return (
     <>
-      {answer}
       {after?.()}
       {controls}
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
@@ -283,7 +277,7 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
         <p className="chart-unit">{restName ? fillTemplate(phrases.matrix_legend_unshaded, { rest: restName }).text : phrases.matrix_legend_unshaded_plain}</p>
       </div>
 
-      <div ref={box} className="table-scroll matrix-scroll" role="region" aria-label={fillTemplate(phrases.matrix_region, { row_field: rowHeading, column_field: columnHeading }).text} tabIndex={0}>
+      <div ref={box} className="table-scroll matrix-scroll" role="region" aria-label={fillTemplate(phrases.matrix_region, { row_field: rowHeading, column_field: columnHeading }).text} aria-describedby={sentenceApi?.text ? sentenceApi.id : undefined} tabIndex={0}>
         <table className={grid.protected ? "matrix protected" : "matrix"}>
           <caption className="visually-hidden">{[preset.question, sentences.cells].filter(Boolean).join(" ")}</caption>
           <thead>
@@ -326,6 +320,8 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
         </table>
       </div>
       {scrolls ? <p className="scroll-hint">{phrases.matrix_scroll_hint}</p> : null}
+      {/* The largest combination, under the grid: left out where a hidden cell could hold as many (src/lib/matrix.ts, protectedLeaders). */}
+      <ChartSentence text={sentences.leader} />
     </>
   );
 }

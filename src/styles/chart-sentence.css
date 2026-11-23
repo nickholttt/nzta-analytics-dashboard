@@ -1,0 +1,8 @@
+/* The one sentence under a chart (src/components/ChartSentence.tsx). It carries its own rules so a chart on any page, canvas or not, reads alike. */
+.chart-sentence {
+  margin-top: var(--space-3);
+  max-width: var(--measure);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}

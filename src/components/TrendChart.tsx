@@ -11,7 +11,9 @@ import { useCallback, useMemo } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { datasetWords, findDataset, findDerived, findDimension, phrases, yearChangeFloor } from "../lib/config";
 import type { Preset } from "../lib/config";
-import { answerLine, fillTemplate, hoverLine, monthRuns, monthsOf, sayBadMonth, sayExceedsTotal, sayNotRecorded, sayOffChart, sayStarts, unrecordedMonths } from "../lib/sentences";
+import { answerLine, countedText, fillTemplate, hoverLine, monthRuns, monthsOf, sayBadMonth, sayExceedsTotal, sayNotRecorded, sayOffChart, sayStarts, unrecordedMonths } from "../lib/sentences";
+import { countFact, countSentence, shareFact, shareSentence, valuesSentence } from "../lib/chartSentence";
+import { chartSentences } from "../lib/chartWords";
 import { NOT_RECORDED_TOKEN, percent } from "../lib/sentences";
 import type { Manifest, SliceRow } from "../lib/data";
 import { nameOrder } from "../lib/ranking";
@@ -22,7 +24,7 @@ import { zeroInside } from "../lib/rolling";
 import type { Covers } from "../lib/rolling";
 import type { RatioPoint, RatioSeries } from "../lib/derived";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
-import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, counted, monthDate, monthLabel, monthRange, pct, periodWindow, windowTotal } from "../lib/measures";
+import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, counted, monthDate, monthLabel, monthRange, pct, periodWindow, shareChange, windowTotal } from "../lib/measures";
 import { fillNote } from "../lib/notes";
 import { count, greyedReason, markReason, monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
@@ -41,6 +43,7 @@ import {
   tipStyle,
   xTicks,
 } from "../lib/theme";
+import { ChartSentence, useComparable } from "./ChartSentence";
 import { FiguresTable } from "./FiguresTable";
 import type { Cell } from "../lib/figures";
 import { PlotFigure } from "./PlotFigure";
@@ -239,7 +242,7 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
     const exceeding = (preset.dimension ? manifest.datasets[served ?? ""]?.exceeds_total?.[preset.dimension] : undefined)?.filter(
       (m) => m >= win.from && m <= win.to,
     );
-    return { win, points, totals, unrecorded, runs, exceeding };
+    return { win, points, totals, unrecorded, runs, exceeding, reader };
   }, [rows, preset, manifest, values, rolling, covers]);
 
   const colour = useCallback(
@@ -296,6 +299,22 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
   const words = datasetWords(preset.dataset);
   const trailing = { months: TRAILING_MONTHS };
   const recent = fillNote(words?.recent_figure ?? "in the last {months} months", trailing).text;
+  // The sentence under the chart: the line with the most in the newest month, and its change on the same month a year earlier (OneTrend).
+  const comparable = useComparable();
+  const latestMonth = model.win.to;
+  const sentence = (() => {
+    const earliest = addMonths(latestMonth, -12 - (rolling ? TRAILING_MONTHS - 1 : 0));
+    const sameBasis = comparable(earliest, latestMonth, { dimension: preset.dimension ?? undefined, values: new Set(values) });
+    const windowOf = (m: string) => fillTemplate(rolling ? phrases.window_to : phrases.window_month, { span: TRAILING_MONTHS, end: monthLabel(m) }).text;
+    const lines = values.map((s) => ({ name: label(s), at: rolling ? (m: string) => windowTotal(m, model.reader(s)) : model.reader(s) }));
+    return valuesSentence(
+      chartSentences,
+      lines,
+      latestMonth,
+      { floor: yearChangeFloor(), comparable: sameBasis && Boolean(findDataset(preset.dataset)?.shows_year_change) },
+      { counted: (n, m) => countedText(words?.leader_count, n, windowOf(m)), window: windowOf },
+    );
+  })();
   return (
     <>
       <ul className="series-key" aria-label={`Lines on this chart, with vehicles ${recent}`}>
@@ -321,6 +340,7 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
           model.runs.length ? ` ${sayNotRecorded(phrases.not_recorded, model.runs).join(" ")}` : ""
         }`}
       />
+      <ChartSentence text={sentence} />
       <FiguresTable
         label={`Vehicles for ${names}: figures, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
         period={`${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
@@ -386,7 +406,9 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
     // A count over a month inside the dataset's months with no rows is zero; a share of no vehicles has no value, so a derived
     // series keeps the months it has a figure for.
     const countAt = counted((m) => byMonth.has(m), series ? undefined : covers, () => false, (m) => byMonth.get(m));
-    for (const m of monthRange(win.from, win.to)) {
+    // One month's point, whether or not the month is drawn: the sentence under the chart reads the month a year before the latest, which a short
+    // range does not draw.
+    const pointAt = (m: string): Point => {
       // A running total needs all 12 months; a missing month leaves a gap, never an interpolation.
       const y = preset.measure === "rolling_12m" ? windowTotal(m, countAt) : countAt(m);
       // A share carries both guards; a count is a count and carries neither.
@@ -399,16 +421,20 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
             : collapsedAgainstTrailingMedian(m, windowed, collapseFraction)
               ? "collapsed"
               : undefined;
-      const suppressed = greyed !== undefined;
+      return { month: m, date: monthDate(m), y, n: counts.get(m), denominator: den, suppressed: greyed !== undefined, greyed, members: detail.get(m) };
+    };
+    for (const m of monthRange(win.from, win.to)) {
+      const point = pointAt(m);
+      const suppressed = point.suppressed;
       if (suppressed && runStart === null) runStart = m;
       if (!suppressed && runStart !== null) {
         bands.push({ x1: monthDate(runStart), x2: monthDate(m) });
         runStart = null;
       }
-      points.push({ month: m, date: monthDate(m), y, n: counts.get(m), denominator: den, suppressed, greyed, members: detail.get(m) });
+      points.push(point);
     }
     if (runStart !== null) bands.push({ x1: monthDate(runStart), x2: monthDate(addMonths(win.to, 1)) });
-    return { win, points, bands, byMonth };
+    return { win, points, bands, byMonth, countAt, pointAt };
   }, [rows, preset, manifest, share, minDenominator, collapseFraction, covers]);
 
   // The answer: the count for one month, against the same month a year earlier. Months come from the points that have a
@@ -422,6 +448,34 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
   const offChart = chosen && preset.answer ? sayOffChart(phrases.month_off_chart, chosen, model.win.from, model.win.to) : undefined;
   const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
   const yearLine = (m: string) => [hoverLine(phrases, rows, m, yearChangeFloor())];
+
+  // The sentence under the chart (src/lib/chartSentence.ts): the newest month the chart draws, its figure and, where the two can be compared,
+  // its change on the same month a year earlier. Read from the dataset's own months, so the range drawn does not change it. A chart that
+  // opens with its own answer says this already, and a share is said only where the chart does not grey the month.
+  const comparable = useComparable();
+  const latestMonth = model.win.to;
+  const rollingTotal = preset.measure === "rolling_12m";
+  const sentence = (() => {
+    if (preset.answer && answer) return undefined;
+    const scope = { dimension: preset.dimension ?? undefined, values: preset.filter_value === undefined ? undefined : new Set([preset.filter_value]) };
+    const earliest = addMonths(latestMonth, -12 - (rollingTotal ? TRAILING_MONTHS - 1 : 0));
+    const sameBasis = comparable(earliest, latestMonth, scope);
+    if (derived) {
+      if (!share) return undefined;
+      const at = (m: string) => {
+        const p = model.pointAt(m);
+        return p.suppressed ? undefined : p.y;
+      };
+      return shareSentence(chartSentences, shareFact(at, latestMonth, sameBasis), derived.label, { share: pct, points: shareChange });
+    }
+    const windowOf = (m: string) =>
+      fillTemplate(rollingTotal ? phrases.window_to : phrases.window_month, { span: TRAILING_MONTHS, end: monthLabel(m) }).text;
+    const at = rollingTotal ? (m: string) => windowTotal(m, model.countAt) : model.countAt;
+    return countSentence(chartSentences, countFact(at, latestMonth, { floor: yearChangeFloor(), comparable: sameBasis && showYear }), {
+      counted: (n, m) => countedText(words?.leader_count, n, windowOf(m)),
+      window: windowOf,
+    });
+  })();
 
   const render = useCallback(
     (width: number) => {
@@ -534,6 +588,7 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
           label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: ${derived ? derived.label : name.toLowerCase()}, month by month.`}
         />
       </div>
+      <ChartSentence text={sentence} />
       <FiguresTable
         label={`${name}: figures, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}
         period={`${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}`}

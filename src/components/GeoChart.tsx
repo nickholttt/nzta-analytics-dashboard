@@ -3,16 +3,20 @@
 // (public/geo/nz-regions.json, D-054); a region in the cube with no outline appears in the table only.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { datasetWords } from "../lib/config";
+import { datasetWords, findDataset, lowerLabel } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import { loadRegions } from "../lib/data";
 import type { Manifest, RegionOutlines, SliceRow } from "../lib/data";
 import { pct, periodWindow } from "../lib/measures";
+import { groupsSentence, isReservedValue, periodPhrase } from "../lib/chartSentence";
+import { chartSentences } from "../lib/chartWords";
+import { countedText } from "../lib/sentences";
 import { byCountThenName } from "../lib/ranking";
 import { latestMonthOf } from "../lib/resolve";
 import { readout, spanPeriod, withheldThin } from "../lib/readout";
 import { cellText } from "../lib/figures";
 import type { Cell, Column } from "../lib/figures";
+import { ChartSentence } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
 import { INK_3, PAPER, SERIES, SUPPRESSED_LINE, plotStyle } from "../lib/theme";
 import { PlotFigure } from "./PlotFigure";
@@ -133,6 +137,20 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
   useFigures(getter);
   const shown = tableRows();
 
+  // The sentence under the map: the place with the most vehicles and its share, as the table beside the map gives them. Shares the table
+  // withholds (too few vehicles behind them) are not stated.
+  const words = datasetWords(preset.dataset);
+  const period = findDataset(preset.dataset)?.single_period && words?.window_one ? words.window_one : periodPhrase(chartSentences, model.win.from, model.win.to);
+  const sentence = period
+    ? groupsSentence(
+        chartSentences,
+        model.regions.map((r) => ({ name: label(r.value), n: r.n, share: model.suppressed ? undefined : r.share, skip: isReservedValue(r.value) })),
+        "share",
+        { field: lowerLabel(heading), period, counted: (n) => countedText(words?.leader_count, n, period) },
+        { share: pct },
+      )
+    : undefined;
+
   const mapped = new Set(outlines?.features.map((f) => f.properties.region) ?? []);
   const unmapped = model.regions.filter((r) => !mapped.has(r.value)).map((r) => label(r.value));
   const unshaded = [...mapped].filter((region) => !model.known.has(region)).map(label);
@@ -155,6 +173,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
           ) : (
             <p className="meta">Loading the map…</p>
           )}
+          <ChartSentence text={sentence} />
           {/* CC BY 4.0 asks for the licence's address and a note that the outlines were changed. */}
           {outlines ? (
             <p className="geo-credit">
