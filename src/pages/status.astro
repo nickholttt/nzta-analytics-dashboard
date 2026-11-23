@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PresetPanel from "../components/PresetPanel";
+import ReconciliationStatus from "../components/ReconciliationStatus.astro";
 import PresetTriage, { BuildWarnings } from "../components/PresetTriage";
 import { presetGroups } from "../lib/config";
 
@@ -27,6 +28,8 @@ import { presetGroups } from "../lib/config";
     </p>
     <BuildWarnings client:only="react" />
   </section>
+
+  <ReconciliationStatus />
 
   <section id="triage">
     <div class="section-head">
