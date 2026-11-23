@@ -1,6 +1,7 @@
 # Pull request checks: the pipeline's tests on the runner the monthly build uses, so a change to the pipeline is tested
-# on Linux before it merges, and the site's own tests, so a change to the site is too (D-101). Tests only: this workflow
-# never pulls from NZTA or Stats NZ and holds no write permission.
+# on Linux before it merges, and the site's own tests, so a change to the site is too (D-101), and the public build with its readiness
+# checks (plain English, no tracking, page metadata, a performance budget). Tests only: this workflow never pulls from NZTA or Stats NZ
+# and holds no write permission.
 name: Checks
 
 on:
@@ -102,3 +103,68 @@ jobs:
 
       - name: Site tests
         run: node --test "tests/site/*.test.ts"
+
+  # The public build and what a visitor would meet in it: the same build the deploy makes (INTERNAL_PAGES=false), held to the quality bar of
+  # work order 3's lane C. None of it needs a secret, and nothing here writes: the job's own read-only token reads a published release.
+  # It runs beside the other jobs, so it adds no waiting.
+  public-site-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      # The newest published cube release, taken as deploy.yml takes it (every page of releases is read, D-146; its steps explain the
+      # filter), read only. No release is a failure, not a skip: the pages these checks read are built from it.
+      - name: The newest cube
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release='[.[] | select((.draft | not) and (.tag_name | test("^cube-[0-9]{4}-[0-9]{2}$")) and any(.assets[]; .name == "public-data.tar.gz")) | .tag_name] | .[]'
+          tags=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate --jq "$release")
+          tag=$(printf '%s\n' $tags | sort | tail -n 1)
+          if [ -z "$tag" ]; then
+            echo "No cube release to build the public site from." >&2
+            exit 1
+          fi
+          mkdir -p public/data
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern public-data.tar.gz --dir "$RUNNER_TEMP"
+          tar -xzf "$RUNNER_TEMP/public-data.tar.gz" -C public/data
+          echo "Cube: release $tag" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # The public build, as deploy.yml makes it. PUBLIC_QUERY_SERVICE is not set: a build that sent questions to another address would fail
+      # the no-tracking check below.
+      - name: Build the public site
+        env:
+          INTERNAL_PAGES: "false"
+        run: |
+          npx astro build
+          node scripts/check-public-build.mjs
+
+      # Nothing a visitor reads holds a decision number, a dataset id or another word of the project's workings (config/narrative/plain_english.json).
+      - name: Plain English
+        run: node scripts/check-plain-english.mjs
+
+      # No tracker, no cookie, no request to another origin (config/public_privacy.json).
+      - name: No tracking
+        run: node scripts/check-no-tracking.mjs
+
+      # A title, a description and a card for every page, and each card image in place (config/site.json, meta).
+      - name: Page titles, descriptions and cards
+        run: node scripts/check-page-metadata.mjs
+
+      # No page ships more on first load than its budget (config/performance_budget.json). --report lists every page's bytes in the log.
+      - name: Performance budget
+        run: node scripts/check-performance-budget.mjs --report

@@ -1,0 +1,86 @@
+{
+  "$comment": "What a visitor must never read: the words of the project's own workings (a decision number, a dataset id, 'fact table', 'cube'). scripts/check-plain-english.mjs holds the built public pages and the visitor-facing words of config to it, on every pull request (Checks, 'Public site checks'), and tests/site/plain-english.test.ts holds the rules themselves to account. banned_terms match whole words, any case, with a plural; banned_patterns are regular expressions (one marked pages_only is not read in config, where a template holds its placeholders by design). say_instead is what to write. ids are never listed here: every 'id' in config/*.json that holds an underscore or two hyphens, and every key of pipeline.json's 'datasets', is read as a banned id. A string in config is read as words when it holds a space; a lone token is an id or a value, not a sentence, and is checked only against banned_terms and banned_patterns.",
+  "banned_terms": [
+    { "term": "fact table", "say_instead": "the figures, or the counts" },
+    { "term": "cube", "say_instead": "the data, or the snapshot" },
+    { "term": "slice", "say_instead": "the figures, or the table" },
+    { "term": "preset", "say_instead": "chart, or question" },
+    { "term": "manifest", "say_instead": "leave it out" },
+    { "term": "pipeline", "say_instead": "the monthly update, or how the figures are made" },
+    { "term": "guardrail", "say_instead": "check" },
+    { "term": "parquet", "say_instead": "leave it out" },
+    { "term": "duckdb", "say_instead": "leave it out" },
+    { "term": "schema", "say_instead": "layout, or leave it out" },
+    { "term": "invariant", "say_instead": "rule" },
+    { "term": "work order", "say_instead": "leave it out" },
+    { "term": "milestone", "say_instead": "leave it out" },
+    { "term": "hydrate", "say_instead": "leave it out" },
+    { "term": "lorem ipsum", "say_instead": "write the real text" },
+    { "term": "todo", "say_instead": "write the real text, or leave it out" }
+  ],
+  "banned_patterns": [
+    { "name": "decision number", "pattern": "\\bD[-\\u2010-\\u2015\\u2212]\\d{2,4}\\b", "say_instead": "leave out the number; say what was decided" },
+    { "name": "unfilled placeholder", "pages_only": true, "pattern": "\\{[a-z_][a-z0-9_.]*(\\|[a-z]+)?\\}", "say_instead": "the template was not filled: fix where it is drawn" },
+    { "name": "file name", "pattern": "\\b[a-z][a-z0-9_]*\\.(csv|json|parquet|py|mjs|ts|tsx|astro|md)\\b", "say_instead": "say what it holds, not the file it is kept in" },
+    { "name": "unfilled gap", "pattern": "TO DECIDE", "say_instead": "write the real text" },
+    { "name": "code value shown", "pattern": "\\b(undefined|NaN)\\b|\\[object ", "say_instead": "a value was not checked before it was drawn" }
+  ],
+  "config_files": [
+    "config/canvas.json",
+    { "file": "config/chart_rules.json", "skip_keys": ["note"], "reason": "A rule's note is the maintainer's (the Rule type in src/lib/shapes.ts declares it and nothing draws it)." },
+    "config/corrections.json",
+    { "file": "config/data_map.json", "only_keys": ["name", "definition"] },
+    "config/dimensions.json",
+    { "file": "config/measures.json", "skip_keys": ["requires_reference"], "reason": "The name of a reference file the code reads, not a sentence." },
+    "config/my_questions.json",
+    { "file": "config/presets.json", "skip_keys": ["requires"], "reason": "What a blocked chart waits on is listed on the internal status page, which the public build leaves out." },
+    "config/site.json",
+    "config/starter_canvases.json",
+    "config/narrative/chart_sentences.json"
+  ],
+  "$config_files_comment": "The files whose words a page loads or is built from. config/pipeline.json is left out: it holds the monthly update's own settings and no sentence a visitor reads (it is read here only for its dataset ids). A key beginning with $ is a note to the maintainer and is never read.",
+  "word_keys": ["label", "title", "name", "phrase", "text", "heading", "description", "definition", "help", "note", "caption", "legend", "question", "reason", "message", "summary", "unit", "placeholder"],
+  "$word_keys_comment": "The names of the props an island is handed that hold words a visitor reads. A prop value that is exactly one of the ids read from config, under one of these keys, is a leak: the code drew an id where a label belonged. Under any other key (id, dimension, dataset, measure, field, by, value, kind, and the like) an id is an id doing its job and is not read. Chosen by key, because the value alone cannot tell the two apart; add a key here when an island is given a new kind of words.",
+  "skip_keys": ["formula", "coverage_formula", "pattern", "source", "derive", "basis", "enum_doc"],
+  "$skip_keys_comment": "Keys whose strings are code or the maintainer's own notes, however many spaces they hold, and are never shown to a visitor.",
+  "allow": [
+    {
+      "rule": "internal id",
+      "in": "config/dimensions.json > datasets[registrations_flow_wider].definition",
+      "reason": "The dataset's maintainer wording. A public page draws its public_definition instead (PresetPanel.tsx, QuestionBuilder.tsx). Reword it and remove this entry."
+    },
+    {
+      "rule": "manifest",
+      "in": "config/dimensions.json > dimensions[powertrain].note",
+      "reason": "The internal note. A public page draws public_note or public_line (src/lib/dimensionNote.ts). Reword it and remove this entry."
+    },
+    {
+      "rule": "decision number",
+      "in": "config/data_map.json > fields[11].definition",
+      "text": "(D-129)",
+      "reason": "NUMBER_OF_AXLES is not offered as a breakdown or a filter, so no page draws its definition. Delete the reference and remove this entry."
+    },
+    {
+      "rule": "file name",
+      "in": "config/data_map.json > fields[6].definition",
+      "text": "class_map.csv",
+      "reason": "Every dimension carries its own help line, which the canvas draws before this definition (src/lib/canvasFields.ts), so this one is not shown. Reword it and remove this entry."
+    },
+    {
+      "rule": "file name",
+      "in": "config/measures.json > derived_measures[mean_fuel_consumption].note",
+      "text": "docs/METRICS.md",
+      "reason": "A derived measure no public chart draws today. Reword it (see the Methodology page) before one does, and remove this entry."
+    },
+    {
+      "rule": "unfilled gap",
+      "in": "config/site.json",
+      "reason": "The About page's gaps are the user's to fill (the site's name and address). The page tells the visitor it is a draft while any is left. Delete this entry, and the next, when the user has filled them: until then the site must not go public."
+    },
+    {
+      "rule": "unfilled gap",
+      "in": "about/index.html",
+      "reason": "The same gaps, as the About page shows them, highlighted, under a notice that the page is a draft."
+    }
+  ]
+}

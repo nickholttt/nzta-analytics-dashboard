@@ -45,7 +45,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
     </p>
     <ul>
       <li>
-        <strong>Survivors (<code>registrations_surviving</code>)</strong>: vehicles first registered in month <em>M</em> that
+        <strong>Survivors</strong>: vehicles first registered in month <em>M</em> that
         are still registered as at the snapshot date. Most charts on this site use this dataset, and each one
         says so. Older months shrink with every snapshot as vehicles are scrapped, so a share for an older month
         describes the vehicles still registered, not everything registered then: if one group is scrapped faster than
@@ -53,13 +53,13 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
         go on the same chart.</em>
       </li>
       <li>
-        <strong>Flow (<code>registrations_flow</code>)</strong>: every first registration in month <em>M</em>,
+        <strong>Flow</strong>: every first registration in month <em>M</em>,
         including vehicles since removed from the register, from NZTA's registrations dashboard. This is the dataset
         for how many vehicles entered the fleet. The charts under “True registrations” use it, and
         <a href="#true-registrations">the section below</a> says what it counts.
       </li>
       <li>
-        <strong>Stock (<code>fleet</code>)</strong>: every vehicle registered at a month end, whenever it was first
+        <strong>Stock</strong>: every vehicle registered at a month end, whenever it was first
         registered. Build counts it at the snapshot date only, as the vehicles registered today.
       </li>
     </ul>
@@ -71,13 +71,13 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
     </p>
     <ul>
       <li>
-        <strong>Vehicle types</strong>: passenger cars and vans, and goods vans, utes and trucks (per <code>vehicle_scope.csv</code>).
+        <strong>Vehicle types</strong>: passenger cars and vans, and goods vans, utes and trucks (the scope is set once, in a list kept with the site's reference data).
         Every other type is out, including motorcycles, mopeds, buses, motorhomes,
         trailers and caravans, and tractors and other machinery.
       </li>
       <li>
         <strong>Entering the fleet</strong>: survivors and flow count only vehicles registered in New Zealand for the
-        first time, whether new or used imports (per <code>import_status_map.csv</code>). Re-registered vehicles, which
+        first time, whether new or used imports (the import statuses that count are set once, in a list kept with the site's reference data). Re-registered vehicles, which
         are returning to the register, are left out of both and count only in stock. Scratch-built vehicles are left out
         everywhere.
       </li>
@@ -394,7 +394,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
     <h3>Mild Hybrid Identification Coverage</h3>
     <p>
       The main hybrid code in NZTA's records does not say whether a hybrid is mild (MHEV) or full (FHEV). We classify
-      hybrid nameplates as mild or full from manufacturer specifications in <code>mild_hybrid_models.csv</code>.
+      hybrid nameplates as mild or full from manufacturer specifications, nameplate by nameplate, in a list kept with the site's reference data.
       Nameplates that the sources disagree on, or that the records cannot separate, stay unresolved rather than
       guessed. One diesel hybrid code is counted as mild by default, because since February 2024 almost all of it is
       Toyota Hilux and Land Cruiser diesels with a 48-volt mild-hybrid system; the full hybrids recorded under it are

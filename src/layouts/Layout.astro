@@ -2,18 +2,27 @@
 import "../styles/site.css";
 import manifest from "../../public/data/manifest.json";
 import { INTERNAL_PAGES } from "../lib/site";
+import siteDoc from "../../config/site.json";
 import { attribution } from "../lib/siteCopy";
+import { pageMeta, withSuffix, type PageId } from "./pageMeta";
 
 interface Props {
   title: string;
-  activeNav?: "explore" | "canvas" | "build" | "method" | "caveats" | "about" | "feedback" | "differences";
+  activeNav?: Exclude<PageId, "not_found">;
+  // The page's words for the head (config/site.json, meta.pages) when it is not one of the navigation's pages, such as the page-not-found page.
+  meta?: PageId;
   // Internal pages (D-028) stay out of search engines and out of the main navigation.
   noindex?: boolean;
   // The canvas page: wider than a reading page, with its own tokens (src/styles/canvas.css).
   wide?: boolean;
 }
 
-const { title, activeNav, noindex = false, wide = false } = Astro.props;
+const { title, activeNav, meta, noindex = false, wide = false } = Astro.props;
+
+// The head's words come from config, keyed by the page. A page that is searched for and has none is a build error, not a page with no description.
+const id = meta ?? activeNav;
+if (!id && !noindex) throw new Error(`The page "${title}" names no entry of config/site.json meta.pages (activeNav or meta), so it would have no description or social card.`);
+const head = id ? pageMeta(id, { pathname: Astro.url.pathname, noindex }) : undefined;
 
 const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
   new Date(`${manifest.latest_snapshot}T00:00:00Z`),
@@ -24,67 +33,51 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} · NZ vehicle registrations</title>
+    <title>{head?.title ?? withSuffix(title)}</title>
     {noindex && <meta name="robots" content="noindex" />}
+    {head && head.tags.map((tag) => (tag.attribute === "name" ? <meta name={tag.key} content={tag.content} /> : <meta property={tag.key} content={tag.content} />))}
+    {head?.canonical && <link rel="canonical" href={head.canonical} />}
   </head>
   <body>
-    <main class:list={["page", { "page-canvas": wide }]}>
-      <header class="masthead">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4);">
-          <p class="eyebrow" style="margin: 0;">Snapshot {snapshot}</p>
-          <nav class="site-nav" aria-label="Main navigation" style="display: flex; gap: var(--space-4); flex-wrap: wrap;">
-            <a
-              href="/"
-              class="meta"
-              style={`text-decoration: none; font-weight: ${activeNav === "explore" ? "600" : "400"}; border-bottom: ${activeNav === "explore" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "explore" ? "var(--ink)" : "var(--ink-2)"};`}
-            >
-              Explore
-            </a>
-            <a
-              href="/canvas"
-              class="meta"
-              style={`text-decoration: none; font-weight: ${activeNav === "canvas" ? "600" : "400"}; border-bottom: ${activeNav === "canvas" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "canvas" ? "var(--ink)" : "var(--ink-2)"};`}
-            >
-              Canvas
-            </a>
-            <a
-              href="/build"
-              class="meta"
-              style={`text-decoration: none; font-weight: ${activeNav === "build" ? "600" : "400"}; border-bottom: ${activeNav === "build" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "build" ? "var(--ink)" : "var(--ink-2)"};`}
-            >
-              Build a chart
-            </a>
-            <a
-              href="/method"
-              class="meta"
-              style={`text-decoration: none; font-weight: ${activeNav === "method" ? "600" : "400"}; border-bottom: ${activeNav === "method" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "method" ? "var(--ink)" : "var(--ink-2)"};`}
-            >
-              Methodology
-            </a>
-            <a
-              href="/caveats"
-              class="meta"
-              style={`text-decoration: none; font-weight: ${activeNav === "caveats" ? "600" : "400"}; border-bottom: ${activeNav === "caveats" ? "2px solid var(--ink)" : "1px dashed var(--rule-strong)"}; color: ${activeNav === "caveats" ? "var(--ink)" : "var(--ink-2)"};`}
-            >
-              Data Caveats
-            </a>
-          </nav>
-        </div>
-        <slot name="masthead" />
+    <a class="skip-link" href="#main">{siteDoc.skip_link}</a>
+    <div class:list={["page", { "page-canvas": wide }]}>
+      <header class="site-bar">
+        <p class="eyebrow">Snapshot {snapshot}</p>
+        <nav class="site-nav" aria-label="Main navigation">
+          {
+            siteDoc.nav.map((link) => (
+              <a href={link.href} aria-current={activeNav === link.id ? "page" : undefined}>
+                {link.label}
+              </a>
+            ))
+          }
+        </nav>
       </header>
 
-      <slot />
+      <main id="main">
+        <header class="masthead">
+          <slot name="masthead" />
+        </header>
+        {
+          head?.needsScript && (
+            <noscript>
+              <div class="callout warning" role="note">
+                <span class="callout-label">Scripts are off</span>
+                {siteDoc.meta.noscript}
+              </div>
+            </noscript>
+          )
+        }
 
-      <footer style="margin-top: var(--space-8); padding-top: var(--space-5); border-top: 1px solid var(--rule-strong); font-size: var(--text-xs); color: var(--ink-3); line-height: 1.5;">
+        <slot />
+      </main>
+
+      <footer class="site-footer">
         <p>{attribution}</p>
-        <nav aria-label="About this site" style="display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin-top: var(--space-2);">
+        <nav aria-label="About this site">
           {
-            [
-              { id: "about", href: "/about", label: "About" },
-              { id: "differences", href: "/differences", label: "Why these figures differ from others" },
-              { id: "feedback", href: "/feedback", label: "Feedback and corrections" },
-            ].map((link) => (
-              <a href={link.href} aria-current={activeNav === link.id ? "page" : undefined} style="color: var(--ink-2);">
+            siteDoc.footer_links.map((link) => (
+              <a href={link.href} aria-current={activeNav === link.id ? "page" : undefined}>
                 {link.label}
               </a>
             ))
@@ -92,13 +85,12 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
         </nav>
         {
           INTERNAL_PAGES && (
-            <p style="margin-top: var(--space-2);">
-              Internal: <a href="/status" style="color: var(--ink-3);">Chart status</a> ·
-              <a href="/sense-check" style="color: var(--ink-3);">Sense-check tables</a> (not kept up to date)
+            <p class="site-footer-internal">
+              Internal: <a href="/status">Chart status</a> · <a href="/sense-check">Sense-check tables</a> (not kept up to date)
             </p>
           )
         }
       </footer>
-    </main>
+    </div>
   </body>
 </html>
