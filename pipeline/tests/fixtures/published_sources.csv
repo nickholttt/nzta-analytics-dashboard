@@ -1,0 +1,4 @@
+id,name,home_url,independent,definition,definition_date_read
+fixture_a,Fixture source A,https://fixture.example/a,true,A made-up definition for the golden fixture.,2026-11-01
+fixture_b,Fixture source B,https://fixture.example/b,true,,
+fixture_c,Fixture source C (a copy of our own export),https://fixture.example/c,false,,

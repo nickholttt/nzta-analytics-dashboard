@@ -5,6 +5,12 @@ Regenerate deliberately with UPDATE_GOLDEN=1 and review the diff: a golden chang
 The build reads a frozen events file (fixtures/events.csv), not data/reference/events.csv. Adding an event is a one-row
 data edit (design invariant 3), but events.json counts towards payload_bytes, so building from the live file would make
 every new event a contract change. The live file is still validated by every guardrail test's build.
+
+The same holds for the two published-figures files (D-149): the build reads frozen copies (fixtures/published_sources.csv and
+fixtures/published_figures.csv, made-up rows the fixture cube can answer), not data/reference/. reconciliation.json holds a
+row for every published figure, so building from the live files would make each month's new rows a contract change, and the
+live rows name months, models and datasets this small cube does not have. The live files are still read and validated by every
+other test's build, and test_reconcile.py holds the step's own behaviour.
 """
 
 from __future__ import annotations
@@ -26,11 +32,13 @@ GOLDEN_FILE = GOLDEN / "contract.json"
 
 
 def frozen_reference(tmp_path):
-    """The reference files with events.csv replaced by the frozen fixture."""
+    """The reference files with events.csv and the two published-figures files replaced by the frozen fixtures."""
     live = config.load()
     reference = tmp_path / "reference"
     shutil.copytree(live.reference("x").parent, reference)
     shutil.copyfile(FIXTURES / "events.csv", reference / live.pipeline["events"]["file"])
+    for key in ("figures_file", "sources_file"):
+        shutil.copyfile(FIXTURES / live.pipeline["reconciliation"][key], reference / live.pipeline["reconciliation"][key])
     return reference
 
 
@@ -78,6 +86,10 @@ def test_cube_matches_golden(tmp_path, workspace):
             assert contract[kind][name] == doc, name
     assert contract["associations"] == expected["associations"]
     assert contract["reconciliation"] == expected["reconciliation"]
+    # The fixture rows are there so the golden locks the shape of a row of each status this cube can produce.
+    rows = contract["reconciliation"]["rows"]
+    assert {r["status"] for r in rows} >= {"pass", "warn", "not_compared"}
+    assert {r["reason_kind"] for r in rows if r["status"] == "not_compared"} >= {"month_not_held", "dataset_not_built", "value_not_held"}
 
 
 def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):
