@@ -1,16 +1,17 @@
 # State
 
-Last updated by claude on 2026-11-20
+Last updated by claude on 2026-11-23
 
 A snapshot of now. History is in git and `docs/DECISIONS.md` (an index of D-001 to D-140, then
-the records since); the queue is in `docs/CHECKPOINT.md`. The direction is the user's work
-order 2, `docs/brief/WORK_ORDER.md` (D-147): a lean process, the canvas, then ready to go public.
+the records since); the queue and the Lanes table are in `docs/CHECKPOINT.md`. The direction is the user's work
+order 3, `docs/brief/WORK_ORDER.md` (D-148): four lanes at once, public-ready by 12 December 2026.
+It keeps work order 2's process rules (D-147).
 
 ## Live now
 
 - **The pipeline** runs on `main` in GitHub Actions, tried every day (D-064). The last build
   is the forced run of 17 November (snapshot 2026-10; release `cube-2026-10`, 99 files). The
-  daily runs to 19 November were green and built nothing, so there is no November build yet.
+  daily runs to 22 November were green and built nothing, so there is no November build yet.
   The next build is the first to publish the current fleet, colour and the narrow table.
 - **The archive** (private, `nickholttt/nzta-register-archive`): one release, `snapshot-2026-10`.
 - **Datasets**: `registrations_surviving` (vehicles still registered); `registrations_flow`
@@ -35,13 +36,16 @@ order 2, `docs/brief/WORK_ORDER.md` (D-147): a lean process, the canvas, then re
 
 ## Current step
 
-Work order 2, milestone 1 (the canvas). Steps 1 to 4 are merged; step 5 (starter canvases)
-is next, then step 6 (polish), with the user's condition: a generated sentence under every
-chart before milestone 1 is called done. The engine is frozen for features (the order's §1).
+Work order 3, four lanes in parallel (CHECKPOINT has the table and each lane's queue): A,
+finish the canvas; B, the accuracy guard; C, public readiness; D, the December refresh. The
+engine is frozen for features, lane B's reconciliation apart (D-148).
 
 ## In progress (all claude; nothing by gemini)
 
-- Nothing is being built, and the main folder holds nothing uncommitted.
+- Started 2026-11-23, a worktree and branch per lane, none merged: `nzta-lane-a` (starter
+  canvases), `nzta-lane-b` (the reference files and the reconciliation step), `nzta-lane-c`
+  (the visitor-test kit). Branches are in CHECKPOINT's Lanes table. The main folder holds
+  nothing uncommitted.
 - Worktrees with work that is not on `main`: `nzta-screens` (package H's narrative drafts,
   **uncommitted**: `config/narrative/`, D-102); `nzta-segments` (an untracked draft scheme
   file, D-103); `nzta-notes` (the closed board proposal's branch and its mockups).
@@ -70,8 +74,8 @@ chart before milestone 1 is called done. The engine is frozen for features (the 
 
 ## Where docs and code disagree (noted, not changed)
 
-- `docs/brief/MASTER_BRIEF.md` predates work order 2 and knows no canvas; the order wins.
-  `CLAUDE.md` opens with "Two surfaces"; the canvas is a third, in a section of its own.
+- `docs/brief/MASTER_BRIEF.md` knows no canvas; the order wins. `CLAUDE.md` opens with "Two
+  surfaces"; it changes when Build is folded into the canvas (D-148).
 - `docs/DATA_MAP.md` lists ten places where it disagrees with other files; each is fixed when
   its field is next touched.
 - `docs/playbooks/refresh-public-data.md` says to ask before replacing `public/data`; on 20
