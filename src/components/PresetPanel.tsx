@@ -123,6 +123,7 @@ export default function PresetPanel({
   tableOnly = false,
   headerEnd,
   cardWords,
+  heading,
 }: {
   presetId?: string;
   preset?: Preset;
@@ -136,6 +137,8 @@ export default function PresetPanel({
   headerEnd?: ReactNode;
   // card: the canvas's words for the parts of a card this panel draws.
   cardWords?: CardWords;
+  // card: a title to head the card with in place of the preset's own question, which is then drawn as the line under it.
+  heading?: string;
   // A kept snapshot (a month) to read every figure of the chart from, instead of the newest (src/lib/kept.ts, D-131).
   snapshot?: string;
   // Told the first month the dataset has vehicles in, when the chart's rows arrive: the Build page's pinned line needs it (src/lib/pin.ts).
@@ -821,8 +824,9 @@ export default function PresetPanel({
               <div className="chart-card-heading">
                 {/* A card's title is a heading of the page's second level: the canvas has no section heading above its charts. */}
                 <h2 className="chart-card-title" id={questionId}>
-                  {preset.question}
+                  {heading ?? preset.question}
                 </h2>
+                {heading ? <p className="chart-card-line">{preset.question}</p> : null}
                 <p className="chart-card-description">{[counted, dataset?.single_period ? undefined : activeRange?.label].filter(Boolean).join(" · ")}</p>
               </div>
               {headerEnd}

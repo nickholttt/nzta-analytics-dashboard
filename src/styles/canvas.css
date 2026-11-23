@@ -284,6 +284,13 @@
   line-height: var(--leading-snug);
 }
 
+/* The title the question generates, under the Explore question a chart stands for. */
+.chart-card-line {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
 .chart-card-description {
   margin-top: var(--space-1);
   font-size: var(--text-note);

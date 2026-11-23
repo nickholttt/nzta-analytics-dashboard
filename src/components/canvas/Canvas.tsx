@@ -18,12 +18,14 @@ import {
   isFull,
   isPinned,
   moveChart,
+  presetNotice,
   pinCanvas,
   readCanvas,
   removeChart,
   restoreChart,
   say,
   settleCanvas,
+  settleChart,
   verdict,
   withChartSettings,
   withFittingTypes,
@@ -93,7 +95,7 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
   // What the link asked of each chart that the page could not give, said on the chart until the visitor changes it.
   const [notices, setNotices] = useState<Record<string, string[]>>(() => {
     if (typeof window === "undefined") return {};
-    const told = readCanvas(window.location.search).map((a): [string, string[]] => [a.id, linkNotices(all, a.asked, settle(all, a.asked), valueLabel)]);
+    const told = readCanvas(window.location.search).map((a): [string, string[]] => [a.id, [...linkNotices(all, a.asked, settle(all, a.asked), valueLabel), ...presetNotice(a, settleChart(all, a))]]);
     return Object.fromEntries(told.filter(([, lines]) => lines.length > 0));
   });
 

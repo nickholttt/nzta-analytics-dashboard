@@ -35,6 +35,15 @@
         { "from": "registrations-powertrain-mix", "dataset": "registrations_flow", "measure": "share", "by": "powertrain", "type": null, "width": "full" },
         { "from": "registrations-powertrain-by-new-or-used", "dataset": "registrations_flow", "measure": "share", "by": "powertrain", "by2": "import_status", "type": null, "width": "full", "settings": { "cells": "column" } }
       ]
+    },
+    {
+      "id": "long-run",
+      "title": "How have cars registered for the first time changed over the long run?",
+      "description": "Cars registered for the first time each month, as far back as the records go, and whether they were new or already registered overseas.",
+      "charts": [
+        { "from": "cars-registered-monthly", "dataset": "registrations_cars_long_run", "measure": "count", "by": null, "type": null, "width": "full" },
+        { "from": "cars-new-or-ex-overseas", "dataset": "registrations_cars_long_run", "measure": "count", "by": "car_origin", "type": null, "width": "full" }
+      ]
     }
   ]
 }

@@ -5,7 +5,7 @@
 import startersDoc from "../../config/starter_canvases.json";
 import { CHART_PARAMS } from "./builder";
 import type { Question, Vocabulary } from "./builder";
-import { bestType, canvasParams, chartPreset, draws, nextChartId, settleCanvas } from "./canvas";
+import { bestType, canvasParams, chartHeading, chartPreset, draws, nextChartId, settleCanvas } from "./canvas";
 import type { AskedChart, Canvas, Width } from "./canvas";
 import type { Manifest } from "./data";
 
@@ -33,6 +33,7 @@ const asked = (chart: StarterChart, id: string): AskedChart => ({
   type: chart.type,
   table: false,
   width: chart.width,
+  preset: chart.from,
 });
 
 const idsOf = (count: number): string[] => {
@@ -66,7 +67,7 @@ export function holds(all: Vocabulary, chart: StarterChart, manifest: Manifest):
   return same && draws(q, made.type ?? bestType(q), manifest);
 }
 
-// A starter as the list shows it: its words, the title of each chart it holds, and its link. A chart this build cannot draw is left out of
+// A starter as the list shows it: its words, the heading of each chart it holds (the Explore question it stands for), and its link. A chart this build cannot draw is left out of
 // it, and a starter left with no chart is not listed.
 export type StarterView = { id: string; title: string; description: string; charts: string[]; href: string };
 export function starterViews(all: Vocabulary, manifest: Manifest, path: string): StarterView[] {
@@ -74,6 +75,6 @@ export function starterViews(all: Vocabulary, manifest: Manifest, path: string):
     const charts = starter.charts.filter((c) => holds(all, c, manifest));
     if (charts.length === 0) return [];
     const canvas = startCanvas(all, charts);
-    return [{ id: starter.id, title: starter.title, description: starter.description, charts: canvas.charts.map((c) => chartPreset(c)?.question ?? ""), href: `${path}?${startParams(all, charts)}` }];
+    return [{ id: starter.id, title: starter.title, description: starter.description, charts: canvas.charts.map((c) => chartHeading(c) ?? chartPreset(c)?.question ?? ""), href: `${path}?${startParams(all, charts)}` }];
   });
 }

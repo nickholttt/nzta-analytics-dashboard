@@ -6,15 +6,16 @@ import "./support/register.mjs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { everythingBuilt } from "./support/observe.ts";
+import { realisticBuilt } from "./support/observe.ts";
 
 const config = await import("../../src/lib/config.ts");
 const builder = await import("../../src/lib/builder.ts");
 const resolve = await import("../../src/lib/resolve.ts");
 const canvas = await import("../../src/lib/canvas.ts");
 const { starters, startCanvas, startParams, holds, starterViews } = await import("../../src/lib/starters.ts");
+const { presetAsks, presetQuestion } = await import("../../src/lib/presetTitles.ts");
 
-const manifest = everythingBuilt();
+const manifest = realisticBuilt();
 const all = canvas.canvasVocabulary(builder.builderVocabulary(manifest));
 const entries = (params: URLSearchParams) => [...params].map(([k, v]) => `${k}=${v}`).sort();
 const sorted = (where: Record<string, string[]>) =>
@@ -87,6 +88,17 @@ test("a chart's own settings are ones the panel reads, and every chart is on one
     }
 });
 
+test("every chart reads one dataset, so a true-registrations series never shares a chart with the vehicles still registered, and no marked pair is read", () => {
+  for (const starter of starters) {
+    const charts = startCanvas(all, starter.charts).charts;
+    charts.forEach((chart, i) => {
+      const [preset] = builder.builderPresets(canvas.chartQuestion(chart), undefined, chart.id);
+      assert.deepEqual(config.datasetsRead(preset), [starter.charts[i].dataset], `${starter.id} chart ${i + 1}`);
+      assert.deepEqual(config.datasetClashes(config.datasetsRead(preset)), []);
+    });
+  }
+});
+
 test("each chart is the Explore preset it stands for: its question, its shape and its period", () => {
   const seen = new Set<string>();
   for (const s of starters)
@@ -97,23 +109,14 @@ test("each chart is the Explore preset it stands for: its question, its shape an
       assert.ok(!seen.has(spec.from), `${spec.from} is on two starters`);
       seen.add(spec.from);
       const view = resolve.presetView(preset);
-      // The question the builder reads off the preset, where it can (a count of all vehicles has no breakdown for it to read from). It reads a
-      // preset's filters and not its where, so the where is added here.
-      const asks = builder.builderQuestionFor(view);
+      const asks = presetAsks(preset);
       const [made] = startCanvas(all, [spec]).charts;
-      if (asks) {
-        assert.equal(made.question.dataset, asks.dataset, `${spec.from}: dataset`);
-        assert.equal(made.question.measure, asks.measure, `${spec.from}: measure`);
-        assert.equal(made.question.by, asks.by, `${spec.from}: breakdown`);
-        assert.equal(made.question.by2 ?? null, asks.by2 ?? null, `${spec.from}: second breakdown`);
-        assert.equal(sorted(made.question.where), sorted({ ...asks.where, ...(preset.where ?? {}) }), `${spec.from}: conditions`);
-      } else {
-        const filters = Object.fromEntries((preset.filters ?? []).flatMap((f) => Object.entries(f)).map(([d, v]) => [d, [v]]));
-        assert.equal(made.question.dataset, preset.dataset, `${spec.from}: dataset`);
-        assert.equal(made.question.measure, preset.measure, `${spec.from}: measure`);
-        assert.equal(made.question.by, preset.dimension ?? null, `${spec.from}: breakdown`);
-        assert.equal(sorted(made.question.where), sorted({ ...filters, ...(preset.where ?? {}) }), `${spec.from}: conditions`);
-      }
+      assert.equal(made.question.dataset, asks.dataset, `${spec.from}: dataset`);
+      assert.equal(made.question.measure, asks.measure, `${spec.from}: measure`);
+      assert.equal(made.question.by, asks.by, `${spec.from}: breakdown`);
+      assert.equal(made.question.by2 ?? null, asks.by2, `${spec.from}: second breakdown`);
+      assert.equal(sorted(made.question.where), sorted(asks.where), `${spec.from}: conditions`);
+      assert.equal(made.preset, spec.from, `${spec.from}: the chart is titled by the preset`);
       const opens = canvas.chartPreset(made);
       assert.ok(opens, `${spec.from}: no chart`);
       assert.equal(spec.settings?.period ?? opens.period, preset.period ?? "all", `${spec.from}: period`);
@@ -131,7 +134,11 @@ test("the list on the front page holds each starter as a link to the canvas, wit
     const starter = starters.find((s) => s.id === v.id)!;
     assert.equal(v.href, `/canvas/?${startParams(all, starter.charts)}`);
     assert.equal(v.charts.length, starter.charts.length);
-    assert.ok(v.charts.every((t) => t.length > 0));
+    assert.deepEqual(
+      v.charts,
+      starter.charts.map((c) => presetQuestion(c.from)),
+      "the list shows the question each chart stands for",
+    );
   }
   // A build with only one dataset leaves out the charts of the others, and a starter with none.
   const only = "registrations_surviving";
