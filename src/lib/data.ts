@@ -99,12 +99,63 @@ export type DatasetManifest = {
   mild_hybrid_identification_coverage?: HybridCoverage;
 };
 
+// The figures other organisations publish, set beside this site's, as the build wrote them (docs/CUBE_SCHEMA.md, reconciliation.json). Absent from a
+// cube built before it existed, and then so is the manifest's `reconciliation` entry.
+export type ReconciliationStatus = "pass" | "warn" | "fail" | "not_compared";
+export type ReconciliationSource = {
+  name: string;
+  home_url: string;
+  independent: boolean;
+  definition: string;
+  definition_date_read: string;
+  // A short label for how the source's figures relate to the data this site is built from, or null.
+  data_basis: string | null;
+};
+export type ReconciliationRow = {
+  source: string;
+  month: string;
+  measure_as_published: string;
+  dataset: string;
+  filters: Record<string, string[]>;
+  ours: number | null;
+  theirs: number;
+  gap: number | null;
+  gap_pct: number | null;
+  tolerance_pct: number;
+  hard_bound_pct: number;
+  known_difference: string | null;
+  status: ReconciliationStatus;
+  reason_kind: string | null;
+  reason: string | null;
+  source_url: string;
+  date_read: string;
+  // An open list of kinds ("passenger", "commercial", "total", "model"); config/comparison.json says which are shown on the public page.
+  figure_kind: string;
+  // Null, or a word for what the source's own figures were added up from ("chart", "table").
+  added_up_from: string | null;
+  stops_alone_pct: number | null;
+};
+export type Reconciliation = {
+  latest_snapshot: string;
+  sources: Record<string, ReconciliationSource>;
+  summary: {
+    rows: number;
+    by_status: Record<ReconciliationStatus, number>;
+    by_source: Record<string, { rows: number } & Record<ReconciliationStatus, number>>;
+    months: { first: string | null; last: string | null };
+    thresholds: Record<string, number | string[]>;
+  };
+  rows: ReconciliationRow[];
+};
+
 export type Manifest = {
   generated_at: string;
   latest_snapshot: string;
   datasets: Record<string, DatasetManifest>;
   snapshot_archive?: { path: string; status: string };
   warnings: string[];
+  // Present when the build wrote the reconciliation file.
+  reconciliation?: { file: string; rows: number; by_status: Record<ReconciliationStatus, number>; months: { first: string | null; last: string | null } };
 };
 
 // The key of a manifest's dataset entry that lists the dimensions whose slices have small cells hidden, one entry for each (D-096, D-127;

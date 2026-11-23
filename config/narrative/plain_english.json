@@ -27,6 +27,7 @@
   ],
   "config_files": [
     "config/canvas.json",
+    "config/comparison.json",
     { "file": "config/chart_rules.json", "skip_keys": ["note"], "reason": "A rule's note is the maintainer's (the Rule type in src/lib/shapes.ts declares it and nothing draws it)." },
     "config/corrections.json",
     { "file": "config/data_map.json", "only_keys": ["name", "definition"] },
