@@ -60,8 +60,16 @@ test("a page kept out of search engines carries a title and a description but no
 });
 
 test("a page whose charts are drawn by a script says so, for a visitor with scripts off; a page of plain text does not", () => {
-  for (const id of ["explore", "canvas", "build"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, true, id);
-  for (const id of ["method", "caveats", "about", "feedback", "differences", "not_found"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, false, id);
+  for (const id of ["canvas", "build"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, true, id);
+  for (const id of ["explore", "method", "caveats", "about", "feedback", "differences", "not_found"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, false, id);
+});
+
+test("the notice for scripts being off is true: a page that ships a script has it, a page that ships none does not (the front page ships none)", () => {
+  const notice = `<noscript><div class="callout warning"><span class="callout-label">Scripts are off</span>x</div></noscript>`;
+  const withScript = (extra: string) => full("canvas", { extra: `<script type="module" src="/_astro/x.js"></script>${extra}` });
+  assert.deepEqual(check({ "canvas/index.html": withScript(notice), "_astro/x.js": "export {};" }), []);
+  assert.match(check({ "canvas/index.html": withScript(""), "_astro/x.js": "export {};" }).join("\n"), /canvas\/index\.html: ships a script but has no notice/);
+  assert.match(check({ "about/index.html": full("about", { extra: notice }) }).join("\n"), /about\/index\.html: says scripts are off and needed, but ships no script/);
 });
 
 test("the site's name is written only once it is decided", () => {

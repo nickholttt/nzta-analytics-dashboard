@@ -8,6 +8,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { ownOrigin } from "./check-no-tracking.mjs";
+import { pageFiles } from "./performance-budget.mjs";
 
 const decode = (s) => s.replace(/&(amp|lt|gt|quot|#39|#x27);/g, (all, n) => ({ amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", "#x27": "'" })[n]);
 
@@ -52,6 +53,11 @@ export function metadataProblems(root, repoRoot) {
       if (seenDescription.has(description)) here(`the description is the one ${seenDescription.get(description)} has`);
       seenDescription.set(description, file);
     }
+    // The notice for a visitor with scripts off must be true: a page that ships a script gives it, and a page that ships none does not.
+    const ships = pageFiles(root, html).scripts.length > 0;
+    const says = /<noscript>[\s\S]*?Scripts are off[\s\S]*?<\/noscript>/.test(html);
+    if (ships && !says) here("ships a script but has no notice for a visitor with scripts off (config/site.json meta.pages needs_script)");
+    if (!ships && says) here("says scripts are off and needed, but ships no script (remove needs_script from its entry in config/site.json meta.pages)");
     if (noindex) continue;
 
     for (const key of ["og:type", "og:title", "og:description", "twitter:card", "twitter:title", "twitter:description"]) if (!tags[key]) here(`has no ${key}`);
