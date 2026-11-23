@@ -53,7 +53,12 @@
   ],
   "$tracker_signatures_comment": "Analytics and tag products named by the address they load from or the call they make, so that an ordinary word (a plausible value, a double click) does not match. A product not listed is still caught where it matters: by the rule that a page or a script may not name another origin.",
   "allowed_urls_in_code": [
-    { "prefix": "http://www.w3.org/", "reason": "XML namespace names, which React and the chart library set on elements. They identify a kind of element and are never requested." },
+    { "exact": "http://www.w3.org/2000/svg", "reason": "An XML namespace name, which React and the chart library set on elements. It names a kind of element and is never requested." },
+    { "exact": "http://www.w3.org/1999/xlink", "reason": "An XML namespace name (as the one above)." },
+    { "exact": "http://www.w3.org/1999/xhtml", "reason": "An XML namespace name (as the one above)." },
+    { "exact": "http://www.w3.org/1998/Math/MathML", "reason": "An XML namespace name (as the one above)." },
+    { "exact": "http://www.w3.org/XML/1998/namespace", "reason": "An XML namespace name (as the one above)." },
+    { "exact": "http://www.w3.org/2000/xmlns/", "reason": "An XML namespace name (as the one above)." },
     { "prefix": "https://react.dev/errors", "reason": "Part of a message in React's production error text. Nothing requests it." },
     { "prefix": "https://www.arcgis.com/sharing/rest", "reason": "The monthly update's source address, from config/pipeline.json, which the site's code imports for its field list. The browser never requests it. (Importing less of that file would remove this line.)" },
     { "prefix": "https://creativecommons.org/licenses/by/", "reason": "The licence link under a chart: an anchor a visitor may follow, not a request." }

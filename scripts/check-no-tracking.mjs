@@ -13,6 +13,12 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { decodeEntities } from "./plain-english.mjs";
+
+// A tag's opening, read as a browser reads it: a quoted attribute value may hold ">" (Astro escapes only "&" and the quote in an attribute).
+const TAG = /<([a-z][a-z0-9-]*)\b((?:"[^"]*"|'[^']*'|[^'">])*)>/gi;
+// An element whose body is code or style, with its body.
+const element = (name) => new RegExp(`<${name}\\b(?:"[^"]*"|'[^']*'|[^'">])*>([\\s\\S]*?)</${name}>`, "gi");
 
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -41,19 +47,24 @@ const FETCHING = {
 };
 const LINK_NOT_A_REQUEST = new Set(["canonical", "alternate", "author", "license", "help", "next", "prev", "search", "bookmark"]);
 
+// The attributes of a tag, their values decoded as a browser decodes them (&quot; and &#39; are quotes, not text).
 function attributes(tag) {
   const found = {};
-  for (const m of tag.matchAll(/([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) found[m[1].toLowerCase()] = m[2] ?? m[3] ?? "";
+  for (const m of tag.matchAll(/([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) found[m[1].toLowerCase()] = decodeEntities(m[2] ?? m[3] ?? "");
   return found;
 }
 
-export function trackingProblems(root, rules, { repoRoot, env = process.env, publicHeaders } = {}) {
+// The addresses named in a redirect rule or a header.
+const urlsIn = (text) => [...text.matchAll(/(?:https?:)?\/\/[^\s"'<>;,)]+/g)].map((m) => m[0]);
+
+export function trackingProblems(root, rules, { repoRoot, env = process.env, publicHeaders, publicRedirects } = {}) {
   const problems = [];
   const origin = repoRoot ? ownOrigin(repoRoot) : undefined;
   const files = readdirSync(root, { recursive: true, encoding: "utf8" }).map((f) => f.replace(/\\/g, "/"));
   const signatures = rules.tracker_signatures.map((s) => new RegExp(s, "i"));
   const apis = rules.forbidden_apis.map((a) => ({ re: new RegExp(a.pattern), say: a.say }));
-  const allowedUrl = (url) => rules.allowed_urls_in_code.some((a) => url.startsWith(a.prefix)) || (origin && (url === origin || url.startsWith(`${origin}/`)));
+  // An allowed address is named exactly ("exact") or by its beginning ("prefix"), each with its reason.
+  const allowedUrl = (url) => rules.allowed_urls_in_code.some((a) => (a.exact ? url === a.exact : url.startsWith(a.prefix))) || (origin && (url === origin || url.startsWith(`${origin}/`)));
 
   for (const name of rules.forbidden_files) if (existsSync(join(root, name))) problems.push(`${name} is in the output: the site is static files, with no code that runs for a visitor's request`);
   for (const name of rules.forbidden_env) if (env[name]) problems.push(`${name} is set in the environment of this build: it would send every question to another address`);
@@ -61,9 +72,10 @@ export function trackingProblems(root, rules, { repoRoot, env = process.env, pub
   const scanCode = (file, source) => {
     for (const re of signatures) if (re.test(source)) problems.push(`${file} holds ${re.source}, the mark of a tracking or tag product`);
     for (const { re, say } of apis) if (re.test(source)) problems.push(`${file}: ${say}`);
-    for (const m of source.matchAll(/(?:https?:)?\/\/[A-Za-z0-9.-]+\.[A-Za-z]{2,}[^\s"'`)<>\\]*/g)) {
+    // An address with a scheme (any host, an IP address included), or a protocol-relative one that opens a string: "//" in a comment or a
+    // regular expression is not an address, and a string that begins with "//host.tld" is.
+    for (const m of source.matchAll(/https?:\/\/[A-Za-z0-9.-]+[^\s"'`)<>\\]*|(?<=["'`])\/\/(?:[A-Za-z0-9-]+\.)+[A-Za-z0-9-]+[^\s"'`)<>\\]*/g)) {
       const url = m[0];
-      if (!/^https?:/.test(url)) continue; // "//" in a comment or a regular expression is not an address; an address starts with a scheme
       if (!allowedUrl(url)) problems.push(`${file} names ${url}, which the config does not allow in code`);
     }
     for (const m of source.matchAll(/\bfetch\s*\(\s*["'`]\s*((?:https?:)?\/\/[^"'`]+)/g)) if (isForeign(m[1], origin)) problems.push(`${file} fetches ${m[1]}, an address on another origin`);
@@ -74,13 +86,17 @@ export function trackingProblems(root, rules, { repoRoot, env = process.env, pub
     const path = join(root, file);
     if (file.endsWith(".html")) {
       let html = readFileSync(path, "utf8");
-      for (const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) scanCode(`${file} (inline script)`, m[1]);
-      for (const m of html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)) scanCss(`${file} (inline style)`, m[1], problems, origin);
-      html = html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, (all) => all.slice(0, all.indexOf(">") + 1));
+      for (const m of html.matchAll(element("script"))) scanCode(`${file} (inline script)`, m[1]);
+      for (const m of html.matchAll(element("style"))) scanCss(`${file} (inline style)`, m[1], problems, origin);
+      // Their bodies are read above; what is left is each element's opening tag, whose attributes are read with the others.
+      html = html.replace(/(<(script|style)\b(?:"[^"]*"|'[^']*'|[^'">])*>)[\s\S]*?<\/\2>/gi, "$1");
       for (const re of signatures) if (re.test(html)) problems.push(`${file} holds ${re.source}, the mark of a tracking or tag product`);
-      for (const m of html.matchAll(/<([a-z][a-z0-9-]*)\b[^>]*>/gi)) {
+      for (const m of html.matchAll(TAG)) {
         const tag = m[1].toLowerCase();
-        const attrs = attributes(m[0]);
+        const attrs = attributes(m[2]);
+        // An inline handler is script: it may send the visitor or a request anywhere.
+        for (const [name, value] of Object.entries(attrs)) if (name.startsWith("on")) scanCode(`${file} (${name} attribute of <${tag}>)`, value);
+        if ((tag === "a" || tag === "area") && attrs.ping) for (const address of attrs.ping.split(/\s+/)) if (address && isForeign(address, origin)) problems.push(`${file}: <${tag} ping="${address}"> sends a ping to another origin`);
         if (tag === "link" && LINK_NOT_A_REQUEST.has((attrs.rel ?? "").toLowerCase())) continue;
         for (const name of FETCHING[tag] ?? []) {
           for (const value of (attrs[name] ?? "").split(",")) {
@@ -91,13 +107,14 @@ export function trackingProblems(root, rules, { repoRoot, env = process.env, pub
         if ("style" in attrs) scanCss(`${file} (style attribute)`, attrs.style, problems, origin);
         if (tag === "link" && /^(preconnect|dns-prefetch)$/i.test(attrs.rel ?? "") && attrs.href) problems.push(`${file}: <link rel="${attrs.rel}"> opens a connection to ${attrs.href} before any request`);
         if (tag === "meta") {
-          if (/^refresh$/i.test(attrs["http-equiv"] ?? "") && /url\s*=\s*(?:https?:)?\/\//i.test(attrs.content ?? "") && isForeign((attrs.content ?? "").replace(/^.*url\s*=\s*/i, ""), origin)) problems.push(`${file}: a meta refresh sends the visitor to another origin`);
+          // The address of a refresh may be quoted: content="0; url='https://...'".
+          const target = /url\s*=\s*["']?([^"'\s]+)/i.exec(attrs.content ?? "")?.[1];
+          if (/^refresh$/i.test(attrs["http-equiv"] ?? "") && target && isForeign(target, origin)) problems.push(`${file}: a meta refresh sends the visitor to another origin`);
           const name = (attrs.property ?? attrs.name ?? "").toLowerCase();
           if (/^(og:(image|url|video|audio)|twitter:(image|url|player))(:|$)/.test(name) && isForeign(attrs.content ?? "", origin)) problems.push(`${file}: <meta ${name}> names ${attrs.content}, which is not this site's own address`);
         }
       }
     } else if (file.endsWith(".js") || file.endsWith(".mjs")) {
-      if (file.startsWith("data/") || file.startsWith("geo/")) continue;
       scanCode(file, readFileSync(path, "utf8"));
     } else if (file.endsWith(".css")) {
       const css = readFileSync(path, "utf8");
@@ -110,6 +127,14 @@ export function trackingProblems(root, rules, { repoRoot, env = process.env, pub
   for (const line of headers.split(/\r?\n/)) {
     const name = line.trim().split(":")[0].toLowerCase();
     if (rules.forbidden_headers.includes(name)) problems.push(`_headers sets ${name}: the site sets no cookie`);
+    // A Link header makes the browser preload or connect to what it names.
+    if (name === "link") for (const url of urlsIn(line)) if (isForeign(url, origin)) problems.push(`_headers sends a Link header naming ${url}, an address on another origin`);
+  }
+  // A redirect rule is "from to [status]": the site's own paths must not be sent to another origin.
+  const redirects = publicRedirects ?? (existsSync(join(root, "_redirects")) ? readFileSync(join(root, "_redirects"), "utf8") : "");
+  for (const line of redirects.split(/\r?\n/)) {
+    if (!line.trim() || line.trim().startsWith("#")) continue;
+    for (const url of urlsIn(line)) if (isForeign(url, origin)) problems.push(`_redirects sends "${line.trim()}" to ${url}, an address on another origin`);
   }
   return [...new Set(problems)];
 }
@@ -141,7 +166,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const rules = JSON.parse(readFileSync(join(repoRoot, "config/public_privacy.json"), "utf8"));
   // The headers file the host applies is public/_headers (copied to the output); both are read.
   const sourceHeaders = existsSync(join(repoRoot, "public/_headers")) ? readFileSync(join(repoRoot, "public/_headers"), "utf8") : "";
-  const problems = trackingProblems(root, rules, { repoRoot, publicHeaders: `${sourceHeaders}\n${existsSync(join(root, "_headers")) ? readFileSync(join(root, "_headers"), "utf8") : ""}` });
+  const sourceRedirects = existsSync(join(repoRoot, "public/_redirects")) ? readFileSync(join(repoRoot, "public/_redirects"), "utf8") : "";
+  const problems = trackingProblems(root, rules, {
+    repoRoot,
+    publicHeaders: `${sourceHeaders}\n${existsSync(join(root, "_headers")) ? readFileSync(join(root, "_headers"), "utf8") : ""}`,
+    publicRedirects: `${sourceRedirects}\n${existsSync(join(root, "_redirects")) ? readFileSync(join(root, "_redirects"), "utf8") : ""}`,
+  });
   if (problems.length) {
     console.error(problems.map((p) => `- ${p}`).join("\n"));
     console.error(`\n${problems.length} problem${problems.length === 1 ? "" : "s"}: the public site must load nothing from another origin and set nothing on a visitor's device but what the config allows.`);

@@ -127,3 +127,62 @@ test("the command exits 1 on a planted third-party script and 0 on the clean out
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// ---- Holes found by the review of the pull request: each case below was missed before and is planted here. ----
+
+test("an attribute value is read as a browser reads it: a quoted address in an escaped style attribute, and a '>' inside an earlier attribute", () => {
+  const style = problems({ "index.html": page("", `<div style="background:url(&quot;https://evil.example/a.png&quot;)"></div>`) });
+  assert.match(style.join("\n"), /evil\.example\/a\.png/);
+  const gt = problems({ "index.html": page("", `<img alt="a > b" src="https://evil.example/p.gif">`) });
+  assert.match(gt.join("\n"), /<img src="https:\/\/evil\.example\/p\.gif">/);
+  const entity = problems({ "index.html": page("", `<img src="https:&#47;&#47;evil.example/p.gif">`) });
+  assert.match(entity.join("\n"), /evil\.example/);
+});
+
+test("a protocol-relative address that opens a string in a script fails; a comment that holds '//' does not", () => {
+  const found = problems({ "_astro/a.js": `new Image().src="//evil.example/p.gif"; const s = document.createElement("script"); s.src='//evil.example/t.js';` }).join("\n");
+  assert.match(found, /\/\/evil\.example\/p\.gif/);
+  assert.match(found, /\/\/evil\.example\/t\.js/);
+  assert.deepEqual(problems({ "_astro/a.js": `// see //example.org/notes for why\nconst x = 1; // a.b //c.d` }), []);
+});
+
+test("a ping on a link or an area fails", () => {
+  const found = problems({ "index.html": page("", `<a href="/x" ping="https://evil.example/p">x</a><area href="/y" ping="//evil.example/q">`) }).join("\n");
+  assert.match(found, /<a ping="https:\/\/evil\.example\/p">/);
+  assert.match(found, /<area ping="\/\/evil\.example\/q">/);
+});
+
+test("a redirect to another origin, and a Link header naming one, fail; a redirect inside the site does not", () => {
+  const found = problems({ "_redirects": "# a comment\n/old /new 301\n/canvas https://evil.example/canvas 302\n", "_headers": "/*\n  Link: <https://evil.example/f.css>; rel=preload; as=style\n" }).join("\n");
+  assert.match(found, /_redirects sends "\/canvas https:\/\/evil\.example\/canvas 302"/);
+  assert.match(found, /Link header naming https:\/\/evil\.example\/f\.css/);
+  assert.deepEqual(problems({ "_redirects": "/old /new 301\n", "_headers": "/*\n  Link: </_astro/a.css>; rel=preload; as=style\n" }), []);
+});
+
+test("an inline handler is read as script", () => {
+  const found = problems({ "index.html": page("", `<img src="/x.png" onerror="this.src='https://evil.example/e.gif'"><button onclick="document.cookie='a=b'">x</button>`) }).join("\n");
+  assert.match(found, /onerror attribute of <img>\) names https:\/\/evil\.example\/e\.gif/);
+  assert.match(found, /onclick attribute of <button>\): a cookie/);
+});
+
+test("an IP address as the host in a script fails", () => {
+  assert.match(problems({ "_astro/a.js": `new Image().src = "https://203.0.113.9/p.gif";` }).join("\n"), /203\.0\.113\.9/);
+});
+
+test("a quoted meta refresh to another origin fails", () => {
+  for (const content of [`0; url='https://evil.example/'`, `0; url=https://evil.example/`, `0;URL="//evil.example/"`]) {
+    const found = problems({ "index.html": page(`<meta http-equiv="refresh" content="${content.replace(/"/g, "&quot;")}">`) });
+    assert.match(found.join("\n"), /meta refresh/, content);
+  }
+  assert.deepEqual(problems({ "index.html": page(`<meta http-equiv="refresh" content="0; url=/canvas/">`) }), []);
+});
+
+test("a script under data/ or geo/ is read like any other", () => {
+  assert.match(problems({ "data/a.js": `fetch("https://evil.example/x")`, "geo/b.js": `document.cookie = "a=b"` }).join("\n"), /data\/a\.js fetches/);
+  assert.match(problems({ "geo/b.js": `document.cookie = "a=b"` }).join("\n"), /geo\/b\.js: a cookie/);
+});
+
+test("only the exact XML namespace names are allowed from w3.org, not any other address on that host", () => {
+  assert.deepEqual(problems({ "_astro/a.js": `const a = "http://www.w3.org/2000/svg", b = "http://www.w3.org/1999/xlink";` }), []);
+  assert.match(problems({ "_astro/a.js": `new Image().src = "http://www.w3.org/evil/track.gif";` }).join("\n"), /w3\.org\/evil\/track\.gif/);
+});
