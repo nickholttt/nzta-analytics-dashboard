@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-23
+Last updated by claude on 2026-11-24
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2)
 
@@ -10,7 +10,7 @@ A session on the web takes only A, B or C.
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
 | A: finish the canvas | none | free | steps 1 and 2 of 5 merged (#118, #119, #121); next is step 3, Build folded in |
-| B: the accuracy guard | none | free | items 1 and 2 of 5 merged (#122, D-149); next is item 3, the site half |
+| B: the accuracy guard | `claude/b-single-figure-limit`, then `claude/b-site-half` and `claude/b-mia-public` | claude, the session on the computer of 2026-11-24 | held: the user's four answers of 2026-11-24 (a 5% stop on one figure, added-up rows labelled, the MIA from its public releases only, vstat's label), then item 3 |
 | C: public readiness | none | free | item 4 and the checks of item 2 merged (#120); next is item 1, the playbook |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 22 November built nothing |
 
