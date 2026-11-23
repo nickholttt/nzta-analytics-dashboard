@@ -35,7 +35,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import NamedTuple
 
-from . import derive
+from . import derive, privacy
 from .contract import FACT_COUNT, FACT_MONTH, FACTS_DIR, NOT_BROKEN_DOWN
 from .errors import GuardrailError
 from .normalise import lit
@@ -120,19 +120,27 @@ def read_table(path: Path, columns: list[str]) -> tuple[list[tuple[int, list[str
     not exactly the columns, in order, leaves no rows: nothing below it can be trusted."""
     if not path.exists():
         raise GuardrailError("reference", f"{path.name} is missing")
-    with path.open(encoding="utf-8", newline="") as fh:
-        reader = csv.reader(fh)
-        header = next(reader, None)
-        if header != columns:
-            return [], [f"{path.name}: the header must be exactly {','.join(columns)}"]
-        rows, problems = [], []
-        for row in reader:
-            if not row:
-                continue
-            if len(row) != len(columns):
-                problems.append(f"{path.name} line {reader.line_num}: {len(row)} cells, but the header has {len(columns)}")
-            else:
-                rows.append((reader.line_num, row))
+    rows, problems = [], []
+    try:
+        # utf-8-sig: a spreadsheet saves a CSV with a byte-order mark, which is not part of the first column's name.
+        with path.open(encoding="utf-8-sig", newline="") as fh:
+            reader = csv.reader(fh)
+            header = next(reader, None)
+            if header != columns:
+                if header is None:
+                    return [], [f"{path.name} is empty: its first line must be the header {','.join(columns)}"]
+                return [], [f"{path.name}: the header must be exactly {','.join(columns)}"]
+            for row in reader:
+                if not row:
+                    continue
+                if len(row) != len(columns):
+                    problems.append(f"{path.name} line {reader.line_num}: {len(row)} cells, but the header has {len(columns)}")
+                else:
+                    rows.append((reader.line_num, row))
+    except UnicodeDecodeError as exc:
+        return [], [f"{path.name} is not UTF-8 text ({exc.reason} at byte {exc.start}); save it as CSV UTF-8"]
+    except csv.Error as exc:
+        return [], [f"{path.name} cannot be read as CSV: {exc}"]
     return rows, problems
 
 
@@ -272,7 +280,10 @@ def parse_figures(cfg, c: dict, sources: dict[str, Source]) -> tuple[list[Figure
             bad.append(f"dataset {dataset!r} is not a dataset of config/pipeline.json")
         else:
             if dataset not in derivable:
-                derivable[dataset] = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
+                try:
+                    derivable[dataset] = {d["id"] for d in derive.applicable(cfg, dataset)[0]}
+                except (privacy.DataMapError, OSError, KeyError) as exc:
+                    raise GuardrailError("data map", f"config/data_map.json cannot be used to protect owner fields: {exc!r}") from exc
             unknown = [d for d, _ in filters if d not in derivable[dataset]]
             if unknown:
                 bad.append(f"{dataset} cannot be filtered by {', '.join(unknown)}: not a dimension it can derive "

@@ -565,11 +565,15 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     now = now or datetime.now(timezone.utc)
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
     # Before anything is read: a series dimension that would be offered to a register dataset cannot be derived there.
-    published, reconciliation_problems = reconcile.prepare(cfg)
     misconfigured = (derive.series_dimension_problems(cfg) + stock_configuration_problems(cfg)
-                     + fact_table_owner_problems(cfg) + reconciliation_problems)
+                     + fact_table_owner_problems(cfg))
     if misconfigured:
         raise GuardrailError("build", "\n  - " + "\n  - ".join(misconfigured))
+    # After those, which read the data map and the dimensions: the two published-figures files are checked against them, so a
+    # configuration they cannot be checked against stops the run with its own message first.
+    published, reconciliation_problems = reconcile.prepare(cfg)
+    if reconciliation_problems:
+        raise GuardrailError("build", "\n  - " + "\n  - ".join(reconciliation_problems))
     aborts: list[str] = []
     warnings: list[str] = list(source.get("warnings", []))
 

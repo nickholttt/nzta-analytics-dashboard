@@ -160,6 +160,22 @@ def test_a_header_that_is_not_exactly_the_columns_is_refused(tmp_path, name):
     assert any("the header must be exactly" in p and name in p for p in reconcile.prepare(cfg)[1])
 
 
+def test_a_file_a_spreadsheet_saved_is_read_and_one_that_cannot_be_read_is_a_problem_not_a_crash(tmp_path):
+    cfg = cfg_for(tmp_path, [figure_row()])
+    figures, sources = (cfg.reference(n) for n in ("published_figures.csv", "published_sources.csv"))
+    # A byte-order mark, as Excel writes at the start of a CSV, is not part of the first column's name.
+    figures.write_bytes(b"\xef\xbb\xbf" + figures.read_bytes())
+    assert reconcile.prepare(cfg)[1] == []
+    figures.write_bytes(b"")
+    problems = reconcile.prepare(cfg)[1]
+    assert problems == ["published_figures.csv is empty: its first line must be the header " + ",".join(reconcile.FIGURE_COLUMNS)]
+    sources.write_bytes(b"id,name\n\xff\xfe broken\n")
+    problems = reconcile.prepare(cfg)[1]
+    assert any("published_sources.csv" in p and ("is not UTF-8 text" in p or "header must be exactly" in p) for p in problems), problems
+    sources.write_bytes(b"\xff\xfe not text at all\n")
+    assert any("is not UTF-8 text" in p for p in reconcile.prepare(cfg)[1])
+
+
 def test_a_missing_file_aborts_loudly(tmp_path):
     cfg = cfg_for(tmp_path, [])
     cfg.reference("published_sources.csv").unlink()
