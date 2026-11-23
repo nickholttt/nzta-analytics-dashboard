@@ -67,6 +67,7 @@ def _templates() -> list[tuple[str, str, str]]:
         if not key.startswith("$"):
             found.append(("keeping", f"my_questions.{key}", text))
     found.extend(_canvas_templates())
+    found.extend(_starter_templates())
     for dimension in dimensions["dimensions"]:
         if "public_line" in dimension:
             found.append(("line", f"dimension {dimension['id']} public_line", dimension["public_line"]))
@@ -101,6 +102,13 @@ def _canvas_templates() -> list[tuple[str, str, str]]:
     found += [("canvas", f"canvas.groups.{group['id']}.label", group["label"]) for group in canvas["groups"]]
     found.append(("canvas", "canvas.time_field.label", canvas["time_field"]["label"]))
     return found
+
+
+def _starter_templates() -> list[tuple[str, str, str]]:
+    """The starter canvases' words (config/starter_canvases.json): each starter's title and description, held to the same rules as the
+    canvas's words. The charts of a starter are questions in config's own terms (ids and the values a condition keeps), not words."""
+    starters = _json("config/starter_canvases.json")["starters"]
+    return [("canvas", f"starters.{starter['id']}.{key}", starter[key]) for starter in starters for key in ("title", "description")]
 
 
 # What in config/canvas.json is not a template: the ids the code reads (of the page, a chart, a group, a chart type, a field, a
@@ -161,6 +169,20 @@ def test_the_lint_reads_every_interface_word_and_every_one_line_note():
     for path, text in texts:
         assert text in linted, f"config/canvas.json {path} is a text the lint does not read"
     assert all(not where.startswith("canvas.definitions") for kind, where, _ in found if kind == "canvas"), "a field's definition is not a template"
+
+
+def test_the_lint_reads_every_word_of_the_starter_canvases():
+    """Every text in config/starter_canvases.json is linted unless it is an id, a chart's question in config's terms, or a setting, so a
+    word added to a starter later is linted too, or is named here as one of those."""
+    linted = {text for kind, where, text in _templates() if where.startswith("starters.")}
+    words = re.compile(r"^starters\[\d+\]\.(title|description)$")
+    not_words = re.compile(r"^(id|starters\[\d+\]\.(id|charts\[\d+\]\..+))$")
+    texts = [(path, text) for path, text in _strings(_json("config/starter_canvases.json"))]
+    assert len(texts) >= 6 and linted, "the starters' words have gone missing: this test would pass without checking anything"
+    for path, text in texts:
+        assert words.match(path) or not_words.match(path), f"config/starter_canvases.json {path} is a text this test does not place"
+        if words.match(path):
+            assert text in linted, f"config/starter_canvases.json {path} is a text the lint does not read"
 
 
 @pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)
