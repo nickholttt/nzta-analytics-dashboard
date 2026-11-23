@@ -140,6 +140,10 @@ Setup, **not re-run this session** (the environment already existed):
   `src/lib/savedCanvases.ts` is My canvases, kept in the browser under the rules of `src/lib/saved.ts`; `src/components/useReading.ts`
   decides which snapshot a pinned question reads from, for Build and for each chart of a canvas. `src/lib/canvasFields.ts` makes the field list from the data map where the page is built.
   `src/components/canvas/` is the screen; `config/canvas.json` holds its words, held to the template lint.
+- `src/lib/comparison.ts` (pure, tested in `tests/site/comparison.test.ts`) reads `reconciliation.json` where the site is built and
+  groups each organisation's published figures by what this site's figure is. `src/components/ComparisonSection.astro` draws
+  "How our figures compare" on the Differences page from it, in the words of `config/comparison.json` (held to the template lint), with no
+  script; `ReconciliationStatus.astro` lists every row on the internal status page. A build whose data has no such file says so in one sentence (D-150).
 - `scripts/unmatched_hybrids.py` lists, for one dataset, the hybrids that count against its mild hybrid coverage at high
   confidence, by make and model. Run by hand when a build warns that the split flipped (`docs/playbooks/check-monthly-run.md`,
   D-112); it reads the repository and a saved pull and writes nothing.

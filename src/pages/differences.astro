@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import ComparisonSection from "../components/ComparisonSection.astro";
 import { builderVocabulary } from "../lib/builder";
 import { canvasVocabulary } from "../lib/canvas";
 import { starterViews } from "../lib/starters";
@@ -46,6 +47,8 @@ const registrations = starterViews(canvasVocabulary(builderVocabulary(manifest a
       scope that takes those three in, as the next section says.{" "}
       <a href="/method#vehicle-scope">Which vehicles are counted</a>.
     </p>
+
+    <ComparisonSection />
 
     <h2>The Motor Industry Association's figures</h2>
     <p>

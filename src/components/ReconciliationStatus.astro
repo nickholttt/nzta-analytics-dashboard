@@ -1,0 +1,179 @@
+---
+// Internal (the status page only): every row of the build's reconciliation file, of every kind, with the thresholds and the counts. The public page
+// shows the figures of the kinds config/comparison.json lists and never a status; this is where a gap past its tolerance, or a figure that could not be
+// set beside ours, is found. Rows are ordered so those come first: fail, warn, not compared, then pass, each newest month first. Static HTML.
+import { figure, filtersText, signedCount, signedPercent, statusRows, STATUS_ORDER } from "../lib/comparison";
+import type { Reconciliation } from "../lib/data";
+
+// import.meta.glob finds nothing, and does not fail the build, where the file is not there (a cube released before it was written).
+const found = import.meta.glob<Reconciliation>("../../public/data/reconciliation.json", { eager: true, import: "default" });
+const reconciliation = Object.values(found)[0];
+const present = Boolean(reconciliation && Array.isArray(reconciliation.rows) && reconciliation.sources && reconciliation.summary);
+const rows = present ? statusRows(reconciliation.rows) : [];
+const summary = present ? reconciliation.summary : undefined;
+const sources = present ? reconciliation.sources : {};
+const thresholds = Object.entries(summary?.thresholds ?? {});
+const label = (status: string) => status.replace("_", " ");
+const percent = (n: number | null | undefined) => (n === null || n === undefined ? "" : `${n}%`);
+---
+
+<section id="reconciliation" aria-labelledby="reconciliation-title">
+  <div class="section-head">
+    <p class="eyebrow">Published figures</p>
+    <h2 class="section-title" id="reconciliation-title">Our figures beside the figures other organisations publish</h2>
+  </div>
+  {
+    !present ? (
+      <p class="panel-definition">
+        This build has no <code>reconciliation.json</code>: the cube it reads was made before the file existed. The public Differences page says so in one sentence.
+      </p>
+    ) : (
+      <>
+        <p class="panel-definition">
+          From <code>reconciliation.json</code>, snapshot {reconciliation.latest_snapshot}, {summary?.rows} rows, {summary?.months.first} to {summary?.months.last}. The
+          Differences page shows only the kinds in <code>config/comparison.json</code> and no status; every row is here. A row past its tolerance warns; a row
+          past its hard bound that makes the build stop is a fail.
+        </p>
+
+        <div class="table-scroll" role="region" aria-label="Counts by status and by source" tabindex="0">
+          <table class="triage recon-counts">
+            <caption class="visually-hidden">Rows by source and status</caption>
+            <thead>
+              <tr>
+                <th scope="col">Source</th>
+                <th scope="col">Rows</th>
+                {STATUS_ORDER.map((status) => <th scope="col">{label(status)}</th>)}
+                <th scope="col">Independent</th>
+                <th scope="col">Data basis</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(summary?.by_source ?? {}).map(([id, counts]) => (
+                <tr>
+                  <th scope="row">{sources[id]?.name ?? id} <span class="meta">({id})</span></th>
+                  <td>{counts.rows}</td>
+                  {STATUS_ORDER.map((status) => <td>{counts[status]}</td>)}
+                  <td>{sources[id]?.independent ? "yes" : "no"}</td>
+                  <td>{sources[id]?.data_basis ?? ""}</td>
+                </tr>
+              ))}
+              <tr>
+                <th scope="row">All</th>
+                <td>{summary?.rows}</td>
+                {STATUS_ORDER.map((status) => <td>{summary?.by_status[status]}</td>)}
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="panel-definition">
+          Thresholds:
+          {thresholds.map(([name, value], i) => (
+            <>
+              {i > 0 ? "; " : " "}<code>{name}</code> {Array.isArray(value) ? value.join(", ") : value}
+            </>
+          ))}.
+          A row's tolerance and hard bound are in percent of their figure. "Stops alone" is the gap, in percent, past which that figure by itself can stop a build; empty means it cannot.
+        </p>
+
+        <div class="table-scroll" role="region" aria-label="Every row of the comparison" tabindex="0">
+          <table class="triage recon-rows">
+            <caption class="visually-hidden">Every row, those past tolerance and not compared first</caption>
+            <thead>
+              <tr>
+                <th scope="col">Status</th>
+                <th scope="col">Month</th>
+                <th scope="col">Source</th>
+                <th scope="col">Measure as published</th>
+                <th scope="col">Kind</th>
+                <th scope="col" class="num">Ours</th>
+                <th scope="col" class="num">Theirs</th>
+                <th scope="col" class="num">Gap</th>
+                <th scope="col" class="num">Gap %</th>
+                <th scope="col" class="num">Tolerance</th>
+                <th scope="col" class="num">Hard bound</th>
+                <th scope="col" class="num">Stops alone</th>
+                <th scope="col">Why not compared</th>
+                <th scope="col">Known difference</th>
+                <th scope="col">Dataset and conditions</th>
+                <th scope="col">Read</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr class:list={[`recon-${row.status}`]}>
+                  <th scope="row" class="status">{label(row.status)}</th>
+                  <td class="nowrap">{row.month}</td>
+                  <td>{sources[row.source]?.name ?? row.source}</td>
+                  <td class="measure">
+                    {row.measure_as_published}
+                    {row.added_up_from && <span class="meta"> (added up from the source's {row.added_up_from})</span>}
+                  </td>
+                  <td>{row.figure_kind}</td>
+                  <td class="num">{row.ours === null ? "" : figure(row.ours)}</td>
+                  <td class="num">{figure(row.theirs)}</td>
+                  <td class="num">{row.gap === null ? "" : signedCount(row.gap)}</td>
+                  <td class="num">{row.gap_pct === null ? "" : signedPercent(row.gap_pct)}</td>
+                  <td class="num">{percent(row.tolerance_pct)}</td>
+                  <td class="num">{percent(row.hard_bound_pct)}</td>
+                  <td class="num">{percent(row.stops_alone_pct)}</td>
+                  <td class="measure">{row.status === "not_compared" ? `${row.reason_kind ?? ""}: ${row.reason ?? ""}` : ""}</td>
+                  <td class="measure">{row.known_difference ?? ""}</td>
+                  <td class="measure"><code>{row.dataset}</code> {filtersText(row.filters)}</td>
+                  <td class="nowrap"><a href={row.source_url}>page</a> {row.date_read}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>
+    )
+  }
+</section>
+
+<style>
+  .recon-rows th,
+  .recon-rows td,
+  .recon-counts th,
+  .recon-counts td {
+    font-size: var(--text-xs);
+  }
+  .recon-rows th.num,
+  .recon-rows td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .recon-rows .nowrap {
+    white-space: nowrap;
+  }
+  .recon-rows .measure {
+    min-width: 14rem;
+  }
+  .recon-rows th.status {
+    text-align: left;
+    vertical-align: top;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .recon-rows tr.recon-fail th.status,
+  .recon-rows tr.recon-fail td {
+    background: var(--block-wash);
+  }
+  .recon-rows tr.recon-fail th.status {
+    color: var(--block-ink);
+  }
+  .recon-rows tr.recon-warn th.status,
+  .recon-rows tr.recon-warn td,
+  .recon-rows tr.recon-not_compared th.status,
+  .recon-rows tr.recon-not_compared td {
+    background: var(--warn-wash);
+  }
+  .recon-rows tr.recon-warn th.status,
+  .recon-rows tr.recon-not_compared th.status {
+    color: var(--warn-ink);
+  }
+</style>

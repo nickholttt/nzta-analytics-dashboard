@@ -1,0 +1,67 @@
+---
+// "How our figures compare": this site's figures set beside the figures other organisations publish, from the build's reconciliation file. Rendered
+// at build time as static HTML, with no script: the site is rebuilt at every data refresh. Every word comes from config/comparison.json through
+// src/lib/comparison.ts, and the page says what the figures show, never which is right or why they differ. Where the build has no such file, one
+// sentence says so and nothing else is drawn.
+import "../styles/comparison.css";
+import ComparisonTable from "./ComparisonTable.astro";
+import { datasetName } from "../lib/builder";
+import { comparisonView } from "../lib/comparison";
+import { dimensionLabel, valueWords } from "../lib/config";
+import type { Reconciliation } from "../lib/data";
+
+// import.meta.glob finds nothing, and does not fail the build, where the file is not there (a cube released before it was written).
+const found = import.meta.glob<Reconciliation>("../../public/data/reconciliation.json", { eager: true, import: "default" });
+const reconciliation = Object.values(found)[0];
+
+const view = comparisonView(reconciliation, {
+  dataset: (id) => datasetName(id),
+  dimension: (id, dataset) => dimensionLabel(id, false, dataset),
+  value: (dimension, value) => valueWords(dimension, value),
+});
+---
+
+<section class="comparison" aria-labelledby="how-our-figures-compare">
+  <h2 id="how-our-figures-compare">{view.heading}</h2>
+  {
+    view.kind !== "figures" ? (
+      <p>{view.text}</p>
+    ) : (
+      <>
+        {view.opening && <p>{view.opening}</p>}
+        <p>{view.gapNote}</p>
+        {view.sources.map((source) => (
+          <div class="source">
+            <h3>
+              <a href={source.homeUrl}>{source.name}</a>
+              {source.basis && <span class="basis">{source.basis}</span>}
+            </h3>
+            {source.definition && (
+              <p>
+                <span class="label">{source.says}.</span> {source.definition}
+              </p>
+            )}
+            {source.series.map((series) => (
+              <div class="measure">
+                <h4>{series.measure}</h4>
+                <ul class="notes">
+                  {series.addedUp && <li>{series.addedUp}</li>}
+                  {series.ours && <li>{series.ours}</li>}
+                  {series.knownDifference && <li>{series.knownDifference}</li>}
+                </ul>
+                {series.captionLatest && <ComparisonTable caption={series.captionLatest} rows={series.latest} columns={view.columns} />}
+                {series.every && series.captionAll && (
+                  <details>
+                    <summary>{series.every}</summary>
+                    <ComparisonTable caption={series.captionAll} rows={series.all} columns={view.columns} />
+                  </details>
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
+        {view.closing && <p>{view.closing}</p>}
+      </>
+    )
+  }
+</section>

@@ -1,0 +1,51 @@
+{
+  "$comment": "The words of the section 'How our figures compare' on the Differences page: this site's figures set beside the figures other organisations publish, as the build's reconciliation file holds them. Read by src/lib/comparison.ts. Every text below is a template the lint holds to config/narrative/rules.json (kind 'comparison'): no digit, no causal or judgement word, no value or label of a reference file, and a name, a figure or a date comes in as a placeholder. A template says what the figures show and never why (CLAUDE.md invariant 8). The text of a measure, a definition and a known difference is the organisation's or the reference file's own and comes in as a placeholder or as it stands. public_kinds is the list of kinds of figure shown on the public page (a row's figure_kind); every other kind is counted in the closing sentence and listed on the internal status page. A sentence that cannot be filled is left out, not softened.",
+  "public_kinds": ["passenger", "commercial", "total"],
+  "heading": "How our figures compare",
+  "opening": {
+    "many": "{count} organisations publish figures that this site's can be set beside. The figures below are for {span}. This site's figures are as at the snapshot of {date|date}.",
+    "one": "One organisation publishes figures that this site's can be set beside. The figures below are for {span}. This site's figures are as at the snapshot of {date|date}.",
+    "span": "{from|month} to {to|month}",
+    "span_one": "{from|month}"
+  },
+  "gap_note": "A gap is this site's figure less theirs. A plus sign means this site's figure is higher and a minus sign means it is lower. The gap as a share is taken of their figure.",
+  "says_it_counts": "What it says it counts",
+  "definition": "“{definition}” Read on {date|date}.",
+  "added_up": "Added up from {source}'s published {added_up_from}.",
+  "ours": {
+    "where": "This site's figure: {dataset}. Conditions: {conditions}.",
+    "all": "This site's figure: {dataset}, with no conditions.",
+    "condition": "{field}: {values}",
+    "join": "; "
+  },
+  "known_difference": "Known difference: {note}",
+  "columns": {
+    "month": "Month",
+    "theirs": "Their figure",
+    "ours": "This site's figure",
+    "gap": "Gap in vehicles",
+    "gap_pct": "Gap as a share of theirs",
+    "read": "Where it was read"
+  },
+  "read_link": "{host}, read {date|date}",
+  "wording": "As the source words it: {measure}",
+  "caption": {
+    "latest": "{source}: {measure}, newest month compared",
+    "all": "{source}: {measure}, every month"
+  },
+  "every_month": "Every month, {from|month} to {to|month}",
+  "not_compared": {
+    "month_not_held": "This site does not hold this month yet, so the two figures are not set side by side.",
+    "dataset_not_built": "This site does not hold this count yet, so the two figures are not set side by side.",
+    "hidden_cell": "This site hides figures that rest on a small count, and this is one, so the two are not set side by side.",
+    "no_published_table": "This site publishes no table of this count, so the two figures are not set side by side.",
+    "value_not_held": "This site does not hold a figure for this one in this build, so the two are not set side by side.",
+    "other": "The two figures are not set side by side in this build."
+  },
+  "closing": {
+    "many": "{count} further figures are checked the same way in every build. They are not shown here.",
+    "one": "One further figure is checked the same way in every build. It is not shown here."
+  },
+  "absent": "The comparison with figures that organisations beyond this site publish is not in this build of the site yet. It arrives with the next monthly refresh.",
+  "empty": "No published figures have been set beside this site's in this build."
+}

@@ -69,6 +69,7 @@ def _templates() -> list[tuple[str, str, str]]:
     found.extend(_canvas_templates())
     found.extend(_starter_templates())
     found.extend(_chart_sentence_templates())
+    found.extend(_comparison_templates())
     for dimension in dimensions["dimensions"]:
         if "public_line" in dimension:
             found.append(("line", f"dimension {dimension['id']} public_line", dimension["public_line"]))
@@ -110,6 +111,17 @@ def _starter_templates() -> list[tuple[str, str, str]]:
     canvas's words. The charts of a starter are questions in config's own terms (ids and the values a condition keeps), not words."""
     starters = _json("config/starter_canvases.json")["starters"]
     return [("canvas", f"starters.{starter['id']}.{key}", starter[key]) for starter in starters for key in ("title", "description")]
+
+
+# What in config/comparison.json is not a template: the kinds of figure the public section lists, which are ids the build writes.
+_COMPARISON_NOT_A_TEMPLATE = re.compile(r"^public_kinds\[\d+\]$")
+
+
+def _comparison_templates() -> list[tuple[str, str, str]]:
+    """The words of "How our figures compare" on the Differences page (config/comparison.json, D-150): every text in the file but
+    the kinds of figure it lists, so a word added later is linted without being named here."""
+    return [("comparison", f"comparison.{path}", text) for path, text in _strings(_json("config/comparison.json"))
+            if not _COMPARISON_NOT_A_TEMPLATE.match(path)]
 
 
 def _chart_sentence_templates() -> list[tuple[str, str, str]]:
@@ -199,6 +211,12 @@ def test_the_lint_reads_every_word_of_the_starter_canvases():
         assert words.match(path) or not_words.match(path), f"config/starter_canvases.json {path} is a text this test does not place"
         if words.match(path):
             assert text in linted, f"config/starter_canvases.json {path} is a text the lint does not read"
+
+
+def test_the_lint_reads_the_words_of_the_comparison_with_published_figures():
+    linted = [where for kind, where, _ in _templates() if kind == "comparison"]
+    assert len(linted) >= 20, "the comparison's words have gone missing: this test would pass without checking anything"
+    assert not any(where.startswith("comparison.public_kinds") for where in linted), "a kind of figure is an id, not a template"
 
 
 @pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)

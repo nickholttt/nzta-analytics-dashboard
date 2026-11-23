@@ -1,0 +1,82 @@
+/* "How our figures compare" on the Differences page (config/comparison.json). It sits inside .prose, so the table, heading and link styles of the
+   reading pages apply; this adds only what a table of figures needs. */
+.comparison h3 .basis {
+  display: block;
+  margin-top: var(--space-1);
+  font-family: var(--font-text);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+.comparison h4 {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: var(--text-md);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  color: var(--ink);
+}
+
+.comparison .label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.comparison .notes {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  font-size: var(--text-sm);
+}
+
+.comparison .table-scroll table {
+  margin: var(--space-2) 0 var(--space-4);
+}
+
+.comparison tbody th {
+  font-weight: 400;
+  color: var(--ink);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--rule);
+}
+
+.comparison td.num {
+  white-space: nowrap;
+}
+
+.comparison th,
+.comparison td {
+  padding-inline: var(--space-2);
+}
+
+.comparison td.read {
+  min-width: 7rem;
+  font-size: var(--text-xs);
+}
+
+.comparison details {
+  margin: 0 0 var(--space-5);
+}
+
+.comparison summary {
+  cursor: pointer;
+  padding-block: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+/* What one row says that its group does not: its own wording, an added-up label, a known difference. Under the row, across the table. */
+.comparison tr.has-notes th,
+.comparison tr.has-notes td {
+  border-bottom: 0;
+}
+
+.comparison tr.row-notes td {
+  padding-top: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.comparison tr.row-notes span {
+  display: block;
+}
