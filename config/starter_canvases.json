@@ -1,0 +1,40 @@
+{
+  "$comment": "The starter canvases: Explore's groups, as ready-made canvases a visitor opens and changes (work order 3, lane A). A starter is a canvas link: src/lib/starters.ts writes each one's charts into the address the canvas page reads (src/lib/canvas.ts), so it opens through the same reading code as any shared canvas and a visitor changes it like one. Each chart is a Build question (config/presets.json, builder) with a chart type (null draws the best fit), a width, and the chart's own settings in the address (settings: a time range, how a grid's cells are counted). title and description are interface words: the lint holds them to config/narrative/rules.json as it does the words of config/canvas.json (no figure, no year, no causal word, no value or label of a reference file). from names the Explore preset a chart stands for, which tests/site/starters.test.ts holds the chart to. A chart a canvas cannot draw as Explore did is left out and its preset stays in config/presets.json.",
+  "id": "starter_canvases",
+  "starters": [
+    {
+      "id": "origin-and-power",
+      "title": "Where do our vehicles come from, and what powers them?",
+      "description": "Who owns the brands we register, how each powertrain's share has moved, and the balance of new and used vehicles.",
+      "charts": [
+        { "from": "brand-owner-origin", "dataset": "registrations_surviving", "measure": "share", "by": "owner_country", "type": null, "width": "full" },
+        { "from": "powertrain-mix", "dataset": "registrations_surviving", "measure": "share", "by": "powertrain", "where": { "segment_group": ["Light passenger"] }, "type": null, "width": "half" },
+        { "from": "new-vs-used", "dataset": "registrations_surviving", "measure": "share", "by": "import_status", "type": null, "width": "half" }
+      ]
+    },
+    {
+      "id": "market-structure",
+      "title": "Which brands lead, and how crowded is the market?",
+      "description": "Brand shares over time, how much the largest brands hold between them, and the mix of vehicle types.",
+      "charts": [
+        { "from": "brand-share", "dataset": "registrations_surviving", "measure": "share", "by": "make", "type": null, "width": "full", "settings": { "period": "10y" } },
+        { "from": "concentration", "dataset": "registrations_surviving", "measure": "top_5_share", "by": "make", "type": null, "width": "half" },
+        { "from": "segment-mix", "dataset": "registrations_surviving", "measure": "share", "by": "segment", "type": null, "width": "half" },
+        { "from": "powertrain-by-vehicle-type", "dataset": "registrations_surviving", "measure": "share", "by": "powertrain", "by2": "segment", "type": null, "width": "full", "settings": { "cells": "column" } }
+      ]
+    },
+    {
+      "id": "registrations",
+      "title": "How many vehicles are registered each month, and which ones?",
+      "description": "Vehicles registered month by month: how many, of which kinds, the largest brands, and what powers them.",
+      "charts": [
+        { "from": "registrations-monthly", "dataset": "registrations_flow", "measure": "count", "by": null, "type": null, "width": "full" },
+        { "from": "registrations-new-wider-monthly", "dataset": "registrations_flow_wider", "measure": "count", "by": null, "where": { "import_status": ["NZ New"] }, "type": null, "width": "half" },
+        { "from": "registrations-new-wider-passenger-or-commercial", "dataset": "registrations_flow_wider", "measure": "share", "by": "trade_group", "where": { "import_status": ["NZ New"] }, "type": null, "width": "half" },
+        { "from": "model-leaderboard", "dataset": "registrations_flow", "measure": "count", "by": "make", "type": "league", "width": "full" },
+        { "from": "registrations-powertrain-mix", "dataset": "registrations_flow", "measure": "share", "by": "powertrain", "type": null, "width": "full" },
+        { "from": "registrations-powertrain-by-new-or-used", "dataset": "registrations_flow", "measure": "share", "by": "powertrain", "by2": "import_status", "type": null, "width": "full", "settings": { "cells": "column" } }
+      ]
+    }
+  ]
+}
