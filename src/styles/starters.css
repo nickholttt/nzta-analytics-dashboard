@@ -1,0 +1,116 @@
+/* The front page: the list of starter canvases, and the way to an empty one. It uses the site's tokens and adds nothing to another page. */
+
+.starters {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+@media (min-width: 52rem) {
+  .starters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.starter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-5);
+  background: #ffffff;
+  border: 1px solid var(--rule-strong);
+  border-radius: 10px;
+}
+
+.starter-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.starter-title a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.starter-title a:hover {
+  text-decoration: underline;
+}
+
+.starter-description {
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+
+.starter-holds {
+  margin-top: var(--space-2);
+}
+
+.starter-charts {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.starter-charts li {
+  padding-left: var(--space-4);
+  position: relative;
+}
+
+.starter-charts li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--rule-strong);
+}
+
+.starter-open,
+.starters-empty-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+}
+
+.starter-open {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.starter-open:hover,
+.starters-empty-link:hover {
+  background: #eef0fa;
+}
+
+.starters-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  padding-top: var(--space-4);
+}
+
+.starters-empty p {
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  max-width: var(--measure);
+}

@@ -567,6 +567,8 @@ test("every word the canvas says is in config, and config holds no word the canv
     readFileSync(new URL("../../src/lib/canvas.ts", import.meta.url), "utf8"),
     readFileSync(new URL("../../src/lib/canvasFields.ts", import.meta.url), "utf8"),
     readFileSync(new URL("../../src/pages/canvas.astro", import.meta.url), "utf8"),
+    // The front page says the starters' words, and the way to an empty canvas.
+    readFileSync(new URL("../../src/pages/index.astro", import.meta.url), "utf8"),
     ...readdirSync(dir).filter((f) => /\.tsx?$/.test(f)).map((f) => readFileSync(new URL(f, dir), "utf8")),
   ].join("\n");
   const said = new Set([...sources.matchAll(/\b(?:say|refuse)\(\s*["`]([a-z0-9_]+)["`]/g), ...sources.matchAll(/canvasSpec\.words\.([a-z0-9_]+)/g)].map((m) => m[1]));
