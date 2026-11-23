@@ -678,18 +678,26 @@ in several separate counts, which means our data is wrong, not theirs. The numbe
 1. A row is past the **hard bound** when its gap is more than `max(tolerance_multiple x the row's own tolerance, floor_pct)`
    of theirs: 2 times the tolerance, and never under 2%, so a tolerance of a tenth of a percent cannot turn a few vehicles
    into a breach.
-2. A source **breaches** in a month when at least `source_row_share` (one half) of its compared rows for that month are past
-   the hard bound, all on the same side of ours.
-3. The build stops when at least `min_sources` (3) sources that are **independent** (the `independent` column of
-   `published_sources.csv`: a source that counts separately from the data our datasets are built from) breach in the same
-   month with ours on the same side of theirs. The rows past the hard bound of those sources are marked `fail`, and one abort
-   line per month and side names each source, how many of its figures are past the bound and the largest gap.
+2. A source is judged for a month **by vehicles, not rows**. The weight of a compared row is its published figure. The source
+   **breaches on the low side** (ours below theirs) when its rows past the hard bound with ours below theirs hold at least
+   `source_vehicle_share` (one half) of the weight of all its compared rows for that month, and **on the high side** likewise.
+   A row past the bound on the other side does not cancel it. A total and its parts both count: the share is of what the source
+   published, not a count of vehicles.
+3. The build stops when, in one month, at least `min_sources` (2) sources that are **independent** (the `independent` column of
+   `published_sources.csv`: a source that counts separately from the data our datasets are built from) breach on the same side,
+   and they are more than half of the independent sources that have any compared row that month: two of two, two of three,
+   three of four. The rows past the hard bound of those sources are marked `fail`, and one abort line per month and side names
+   each source, how many of its figures are past the bound, its share of what it published, and the largest gap.
 
-It does not stop on: one source restating its history, whatever its gaps (one source is never three); a source that cannot be
-read this month (it has no rows, and the rest must still make three); two sources alone; three sources that disagree with ours
-in different directions, or in different months; a gap exactly on the bound; a source of which fewer than half the rows are
-past it; a source that is a copy of our own export (`independent` false: compared and shown, never counted); a month or a
-dataset we do not hold, or a hidden cell (all `not_compared`). `pipeline/tests/test_reconcile.py` has a test for each.
+It does not stop on: one source restating its history, whatever its gaps (one source is never enough); a month with compared
+rows from fewer than two independent sources, however far they are from ours, because there is nothing to agree with; a source
+that cannot be read this month (it has no rows, so it is not one of the sources that have anything to say); two of four sources;
+sources that disagree with ours on opposite sides, or in different months; a gap exactly on the bound; a source of which less
+than half of what it published is past the bound; a source that is a copy of our own export (`independent` false: compared and
+shown, never counted); a month or a dataset we do not hold, a value we do not hold, or a hidden cell (all `not_compared`).
+`pipeline/tests/test_reconcile.py` has a test for each.
+
+What size of error stops a build. On the 336 rows committed on 2026-11-23, measured by putting our figure beside each row's, scaled, through the real functions (`test_reconcile.py`, "live rows"): an error that moves every one of our figures by 2.1%, either way, stops the build in each of the 22 months (2.0% only where rounding tips it, 1.5% in none); 3%, 5% and 6% stop it in a month where three sources have rows and in a month where two do; 5% of the passenger vehicles counted as commercial stops it in all 22 months, on the low side; and a source restating its history 10% higher or lower, in every month, never does.
 
 ```json
 {
@@ -704,7 +712,7 @@ dataset we do not hold, or a hidden cell (all `not_compared`). `pipeline/tests/t
     "by_source": { "source_a": { "rows": 2, "pass": 1, "warn": 0, "fail": 0, "not_compared": 1 } },
     "months": { "first": "2026-09", "last": "2026-11" },
     "thresholds": { "max_tolerance_pct": 20, "hard_limit_tolerance_multiple": 2, "hard_limit_floor_pct": 2,
-                    "hard_limit_min_sources": 3, "hard_limit_source_row_share": 0.5 }
+                    "hard_limit_min_sources": 2, "hard_limit_source_vehicle_share": 0.5 }
   },
   "rows": [
     { "source": "source_a", "month": "2026-09", "measure_as_published": "Measure as the source words it",
@@ -1355,7 +1363,8 @@ Published figures (`reconciliation.json`, above):
   breaks a rule above, repeats a figure, names a source or dataset that does not exist, or asks a question the staged files
   cannot answer (a dimension not live, two dimensions no one table holds). The abort names the file, the line, the source, the
   month and the measure. A filter value the files do not hold is not an abort: the row is `not_compared` (`value_not_held`).
-- The hard limit: `min_sources` independent sources are each past the hard bound in the same month, on the same side.
+- The hard limit: in one month, at least `min_sources` independent sources, and more than half of those compared that month, each
+  have at least `source_vehicle_share` of what they published in rows past the hard bound on the same side.
 
 Events:
 

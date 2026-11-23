@@ -560,7 +560,7 @@
     "last": "2026-09"
    }
   },
-  "payload_bytes": 122708,
+  "payload_bytes": 122712,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -17135,8 +17135,8 @@
     "max_tolerance_pct": 20,
     "hard_limit_tolerance_multiple": 2,
     "hard_limit_floor_pct": 2,
-    "hard_limit_min_sources": 3,
-    "hard_limit_source_row_share": 0.5
+    "hard_limit_min_sources": 2,
+    "hard_limit_source_vehicle_share": 0.5
    }
   },
   "rows": [

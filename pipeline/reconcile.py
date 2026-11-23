@@ -17,11 +17,13 @@ A row ends as one of:
   this build's files hold (the model dimension keeps only the largest models, so a value can drop out), or the answer rests on a
   cell the small-cell rule hides. A row that cannot be compared is said, never dropped and never counted as a pass.
 
-The hard limit (numbers in config/pipeline.json, `reconciliation.hard_limit`): a source breaches in a month when at least
-`source_row_share` of its compared rows for that month are further from ours than `max(tolerance_multiple x the row's
-tolerance, floor_pct)`, all on the same side. The build stops when at least `min_sources` independent sources breach in one
-month with ours on the same side of theirs. A source that restates its history, one that cannot be read, a month we do not
-hold, or two sources alone, never stop a build.
+The hard limit (numbers in config/pipeline.json, `reconciliation.hard_limit`). A row is past its hard bound when ours is further
+from theirs than `max(tolerance_multiple x the row's tolerance, floor_pct)`. A source is judged for a month by vehicles, not rows:
+a compared row weighs its published figure, and the source breaches on one side (ours below theirs, or above) when its rows past
+the bound on that side hold at least `source_vehicle_share` of the weight of all its compared rows that month; rows on the other
+side do not cancel it. The build stops when, in one month, at least `min_sources` independent sources breach on the same side and
+they are more than half of the independent sources with any compared row that month. A source that restates its history, one
+that cannot be read, a month we do not hold, or a month with compared rows from fewer than two independent sources, never stop it.
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ import json
 import re
 from collections import defaultdict
 from datetime import date
+from fractions import Fraction
 from decimal import Decimal
 from pathlib import Path
 from typing import NamedTuple
@@ -160,11 +163,11 @@ def settings(cfg) -> tuple[dict, list[str]]:
     for key, low in (("tolerance_multiple", 1), ("floor_pct", 0)):
         if isinstance(h.get(key), bool) or not isinstance(h.get(key), (int, float)) or h[key] < low:
             problems.append(f"reconciliation.hard_limit.{key} must be a number of at least {low}")
-    if isinstance(h.get("min_sources"), bool) or not isinstance(h.get("min_sources"), int) or h["min_sources"] < 1:
-        problems.append("reconciliation.hard_limit.min_sources must be a whole number of at least 1")
-    share = h.get("source_row_share")
+    if isinstance(h.get("min_sources"), bool) or not isinstance(h.get("min_sources"), int) or h["min_sources"] < 2:
+        problems.append("reconciliation.hard_limit.min_sources must be a whole number of at least 2: one source is never enough")
+    share = h.get("source_vehicle_share")
     if isinstance(share, bool) or not isinstance(share, (int, float)) or not 0 < share <= 1:
-        problems.append("reconciliation.hard_limit.source_row_share must be above 0 and at most 1")
+        problems.append("reconciliation.hard_limit.source_vehicle_share must be above 0 and at most 1")
     return c, problems
 
 
@@ -590,7 +593,7 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
                 "hard_limit_tolerance_multiple": h["tolerance_multiple"],
                 "hard_limit_floor_pct": h["floor_pct"],
                 "hard_limit_min_sources": h["min_sources"],
-                "hard_limit_source_row_share": h["source_row_share"],
+                "hard_limit_source_vehicle_share": h["source_vehicle_share"],
             },
         },
         "rows": judged,
@@ -600,36 +603,43 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
 
 
 def hard_limit(sources: dict[str, Source], judged: list[dict], c: dict, aborts: list[str]) -> list[str]:
-    """Marks the rows that stop the build `fail`, adds the abort for each month that does, and returns the warning line for
-    each source with rows past their tolerance."""
+    """Marks the rows that stop the build `fail`, adds the abort for each month and side that does, and returns the warning line
+    for each source with rows past their tolerance. The rule is in the module's docstring; its numbers are config."""
     h = c["hard_limit"]
+    share = Fraction(str(h["source_vehicle_share"]))
     groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    compared: dict[str, set[str]] = defaultdict(set)
     for r in judged:
         if r["status"] != NOT_COMPARED and sources[r["source"]].independent:
             groups[(r["month"], r["source"])].append(r)
-    breaching: dict[str, dict[str, list[tuple[str, list[dict], int]]]] = defaultdict(lambda: {"above": [], "below": []})
+            compared[r["month"]].add(r["source"])
+    breaching: dict[str, dict[str, list[tuple[str, list[dict], int, Fraction]]]] = defaultdict(lambda: {"above": [], "below": []})
     for (month, source), rows in sorted(groups.items()):
-        past = [r for r in rows if r["_hard"]]
-        if not past or len(past) < h["source_row_share"] * len(rows):
-            continue
-        sides = {r["gap"] > 0 for r in past}
-        if len(sides) == 1:
-            breaching[month]["above" if True in sides else "below"].append((source, past, len(rows)))
+        weight = sum(r["theirs"] for r in rows)
+        for side in ("above", "below"):
+            past = [r for r in rows if r["_hard"] and (r["gap"] > 0) == (side == "above")]
+            held = sum(r["theirs"] for r in past)
+            if past and held >= share * weight:
+                breaching[month][side].append((source, past, len(rows), Fraction(held, weight)))
     for month in sorted(breaching):
+        counted = len(compared[month])
         for side, entries in breaching[month].items():
-            if len(entries) < h["min_sources"]:
+            # Enough sources, and more than half of the independent sources that have anything to say about this month.
+            if len(entries) < h["min_sources"] or 2 * len(entries) <= counted:
                 continue
-            for _, past, _ in entries:
+            for _, past, _, _ in entries:
                 for r in past:
                     r["status"] = FAIL
             named = "; ".join(
-                f"{sources[s].name} ({len(past)} of {total} figures, the largest {max(past, key=lambda r: abs(r['gap_pct']))['gap_pct']:+.2f}%)"
-                for s, past, total in entries)
+                f"{sources[s].name} ({len(past)} of {total} figures, {float(held):.0%} of what it published for the month, "
+                f"the largest {max(past, key=lambda r: abs(r['gap_pct']))['gap_pct']:+.2f}%)"
+                for s, past, total, held in entries)
             aborts.append(
-                f"reconciliation: {month}: {len(entries)} independent sources each differ from our figures by more than "
-                f"{h['tolerance_multiple']} times their tolerance (at least {h['floor_pct']}%), and ours is {side} theirs in every one: "
-                f"{named}. Several separate counts agreeing with each other and not with ours means our data is wrong, so the build stops; "
-                f"reconciliation.json in the staged files has every row")
+                f"reconciliation: {month}: {len(entries)} of the {counted} independent sources compared each have at least "
+                f"{float(share):.0%} of what they published for the month in figures more than {h['tolerance_multiple']} times their "
+                f"tolerance (at least {h['floor_pct']}%) from ours, and ours is {side} theirs in every one: {named}. Separate counts "
+                f"agreeing with each other and not with ours means our data is wrong, so the build stops; reconciliation.json in the "
+                f"staged files has every row")
     warnings = []
     for source in sources.values():
         rows = [r for r in judged if r["source"] == source.id and r["status"] != NOT_COMPARED]

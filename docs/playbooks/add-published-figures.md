@@ -12,7 +12,8 @@ that month. One pull request adds that month's rows and nothing else.
 stop a build or, worse, make a wrong figure look checked. It gets one independent reviewer, briefed with the rows and these
 checks, and one round: for each new row, that the figure is the one on the page at `source_url` on `date_read`; that
 `measure_as_published` is the source's own wording; that the dataset and filters ask for the same thing the source counts; that
-the tolerance is no wider than the source's own rounding needs; and that `known_difference` is a difference that is known and
+each tolerance is the gap measured when the row was added, with room above it (a wide one, such as 12%, must carry a
+known difference that says why); and that `known_difference` is a difference that is known and
 explained, not a way to quiet a warning.
 
 ## Rules
@@ -49,9 +50,11 @@ explained, not a way to quiet a warning.
    .venv/Scripts/python.exe -c "from pipeline import config, reconcile; print(reconcile.prepare(config.load())[1])"
    ```
 
-4. Run the new rows against the saved pull of the snapshot they are for, which publishes nothing (about 12 minutes). It stops
-   with exit 2 if a filter names a dimension the dataset cannot derive or that is not live, or if three independent sources are
-   each more than twice their tolerance from ours in one month, in the same direction. A filter value the published files do not
+4. Run the new rows against the saved pull of the snapshot they are for, which publishes nothing (12 to 16 minutes). It stops
+   with exit 2 if a filter names a dimension the dataset cannot derive or that is not live, or if, in one month, at least two
+   independent sources, and more than half of those with a compared row that month, each have half or more of what they published
+   in rows more than twice their tolerance (never under 2%) from ours, on the same side (the hard limit, `docs/CUBE_SCHEMA.md`).
+   A month in which only one independent source has a compared row cannot stop a build; it is checked for warnings only. A filter value the published files do not
    hold does not stop it: the row is `not_compared` with `reason_kind` `value_not_held`, and the build's warnings say how many
    figures of each source did that:
 

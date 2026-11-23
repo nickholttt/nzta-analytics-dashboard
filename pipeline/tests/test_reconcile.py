@@ -12,11 +12,12 @@ import csv
 import json
 import shutil
 from datetime import date
+from decimal import Decimal
 
 import duckdb
 import pytest
 
-from pipeline import build, config, reconcile
+from pipeline import build, config, reconcile, reference
 from pipeline.contract import NOT_BROKEN_DOWN
 from pipeline.errors import GuardrailError
 
@@ -248,7 +249,7 @@ def test_a_bad_source_row_is_refused_and_named(tmp_path, change, fragment):
 
 
 def test_config_numbers_are_checked(tmp_path):
-    cfg = cfg_for(tmp_path, [], min_sources=0, source_row_share=0, tolerance_multiple=0.5)
+    cfg = cfg_for(tmp_path, [], min_sources=1, source_vehicle_share=0, tolerance_multiple=0.5)
     problems = reconcile.prepare(cfg)[1]
     assert len(problems) == 3 and all(p.startswith("reconciliation.hard_limit.") for p in problems)
 
@@ -368,9 +369,13 @@ def test_a_value_not_held_never_counts_towards_the_hard_limit(tmp_path):
     result = fails(tmp_path, gone)
     assert result.aborts == []
     assert {r["status"] for r in result.document["rows"]} == {"not_compared"}
-    # Two sources past the bound, and a third whose rows for the month are all not compared: still two, so the build goes on.
+    # Two sources past the bound, and a third whose rows for the month are all not compared: the third is not counted, so it is
+    # two of the two sources that have anything to say, and the build stops on them.
     mixed = figures_from(["source_a", "source_b"], [950, 960]) + figures_from(["source_c"], [1], filters='{"vehicle_type": ["fixture_gone"]}')
-    assert fails(tmp_path, mixed).aborts == []
+    assert "2 of the 2 independent sources compared" in fails(tmp_path, mixed).aborts[0]
+    # One source past the bound, and the other two only value-not-held: one compared source cannot stop a build.
+    alone = figures_from(["source_a"], [950]) + figures_from(["source_b", "source_c"], [1, 1], filters='{"vehicle_type": ["fixture_gone"]}')
+    assert fails(tmp_path, alone).aborts == []
     # A third source with one row past the bound and others not compared is judged on the compared rows alone, like the others.
     third = figures_from(["source_a", "source_b", "source_c"], [950, 960, 970]) + [
         figure_row(source="source_c", measure_as_published="Measure two", filters='{"vehicle_type": ["fixture_gone"]}')]
@@ -428,7 +433,8 @@ def test_a_build_where_nothing_could_be_compared_says_so(tmp_path):
 
 
 # --- the hard limit --------------------------------------------------------------------------------------------------------
-# Ours for 2026-02 is 1040 and each row's tolerance is 2%, so its hard bound is 4%: 1000 is exactly on it (inside), 999 is past it.
+# Ours for 2026-02 is 1040 (new 800: car 600, truck 200; used 240: car 160, truck 80) and each row's tolerance is 2%, so its hard
+# bound is 4%: 1000 is exactly on it (inside), 999 is past it. A source is judged by the weight of its rows, which is their figure.
 
 def figures_from(sources, theirs, month="2026-02", **given):
     return [figure_row(source=s, figure=str(t), month=month, **given) for s, t in zip(sources, theirs)]
@@ -438,63 +444,123 @@ def fails(tmp_path, figures, sources=SOURCES, **hard_limit):
     return reconcile_figures(tmp_path, figures, sources, **hard_limit)
 
 
-def test_three_independent_sources_past_the_hard_bound_the_same_way_in_one_month_fail_the_build(tmp_path):
-    result = fails(tmp_path, figures_from(["source_a", "source_b", "source_c"], [950, 960, 970]))
+def by_source(result) -> dict[str, list[str]]:
+    found: dict[str, list[str]] = {}
+    for r in result.document["rows"]:
+        found.setdefault(r["source"], []).append(r["status"])
+    return found
+
+
+E_SOURCES = SOURCES + [{**SOURCES[0], "id": "source_e", "name": "Source E"}]
+CARS, TRUCKS, USED = '{"vehicle_type": ["fixture_car"]}', '{"vehicle_type": ["fixture_truck"]}', '{"import_status": ["fixture_used"]}'
+
+
+def test_two_sources_past_the_hard_bound_the_same_way_fail_the_build_when_only_two_are_compared(tmp_path):
+    result = fails(tmp_path, figures_from(["source_a", "source_b"], [950, 960]))
     assert len(result.aborts) == 1
     abort = result.aborts[0]
-    assert abort.startswith("reconciliation: 2026-02: 3 independent sources each differ from our figures by more than 2 times their tolerance")
-    assert "ours is above theirs in every one" in abort and "Source A (1 of 1 figures, the largest +9.47%)" in abort
+    assert abort.startswith("reconciliation: 2026-02: 2 of the 2 independent sources compared each have at least 50% of what they published")
+    assert "more than 2 times their tolerance (at least 2%) from ours, and ours is above theirs in every one" in abort
+    assert "Source A (1 of 1 figures, 100% of what it published for the month, the largest +9.47%)" in abort
     assert {r["status"] for r in result.document["rows"]} == {"fail"}
-    assert result.document["summary"]["by_status"] == {"pass": 0, "warn": 0, "fail": 3, "not_compared": 0}
+    assert result.document["summary"]["by_status"] == {"pass": 0, "warn": 0, "fail": 2, "not_compared": 0}
 
 
-def test_the_same_in_the_other_direction_fails_too(tmp_path):
+def test_three_sources_past_the_bound_below_theirs_fail_too(tmp_path):
     result = fails(tmp_path, figures_from(["source_a", "source_b", "source_c"], [1100, 1110, 1120]))
     assert len(result.aborts) == 1 and "ours is below theirs in every one" in result.aborts[0]
+    assert result.aborts[0].startswith("reconciliation: 2026-02: 3 of the 3 independent sources compared")
 
 
-def test_a_fourth_source_the_other_way_does_not_save_the_build(tmp_path):
-    sources = SOURCES + [{**SOURCES[0], "id": "source_e", "name": "Source E"}]
-    figures = figures_from(["source_a", "source_b", "source_c", "source_e"], [950, 960, 970, 1200])
-    result = fails(tmp_path, figures, sources)
+def test_two_of_three_compared_sources_are_enough_and_the_third_stays_a_pass(tmp_path):
+    result = fails(tmp_path, figures_from(["source_a", "source_b", "source_c"], [950, 960, 1040]))
+    assert len(result.aborts) == 1 and result.aborts[0].startswith("reconciliation: 2026-02: 2 of the 3 independent sources compared")
+    assert by_source(result) == {"source_a": ["fail"], "source_b": ["fail"], "source_c": ["pass"]}
+
+
+def test_three_of_four_compared_sources_are_enough_and_two_of_four_are_not(tmp_path):
+    three = fails(tmp_path, figures_from(["source_a", "source_b", "source_c", "source_e"], [950, 960, 970, 1040]), E_SOURCES)
+    assert len(three.aborts) == 1 and "3 of the 4 independent sources" in three.aborts[0]
+    two = fails(tmp_path, figures_from(["source_a", "source_b", "source_c", "source_e"], [950, 960, 1040, 1040]), E_SOURCES)
+    assert two.aborts == [], "half of the sources compared is not more than half"
+
+
+def test_a_row_past_the_bound_on_the_other_side_does_not_cancel_a_source(tmp_path):
+    # Source A: its total is 9.5% over (weight 900) and its used-vehicles row 20% under (weight 300), so 75% of what it published
+    # is past the bound on the high side. The old rule needed every past row on one side and so lost the source.
+    figures = [figure_row(source="source_a", figure="900"), figure_row(source="source_a", figure="300", filters=USED, measure_as_published="Measure two"),
+               figure_row(source="source_b", figure="950")]
+    result = fails(tmp_path, figures)
     assert len(result.aborts) == 1 and "ours is above theirs in every one" in result.aborts[0]
-    # The source that disagrees the other way is one source on its own side: it warns and does not fail.
-    assert {r["source"]: r["status"] for r in result.document["rows"]} == {
-        "source_a": "fail", "source_b": "fail", "source_c": "fail", "source_e": "warn"}
+    assert by_source(result) == {"source_a": ["fail", "warn"], "source_b": ["fail"]}
 
 
-@pytest.mark.parametrize("name, figures, sources, hard_limit", [
-    ("two sources are not enough", figures_from(["source_a", "source_b"], [950, 960]), SOURCES, {}),
-    ("three sources, one the other way", figures_from(["source_a", "source_b", "source_c"], [950, 960, 1100]), SOURCES, {}),
-    ("three sources, each exactly on the hard bound", figures_from(["source_a", "source_b", "source_c"], [1000, 1000, 1000]), SOURCES, {}),
-    ("three sources, each just inside the bound", figures_from(["source_a", "source_b", "source_c"], [1001, 1002, 1003]), SOURCES, {}),
-    ("three sources, three different months",
+def test_a_fault_that_moves_vehicles_between_two_rows_is_caught_on_the_side_that_holds_most_of_the_weight(tmp_path):
+    # A fifth of the cars counted as trucks: ours is 5% under the published car figure and 12% over the truck figure. Cars hold 76%
+    # of what each source published, so each source breaches on the low side, and the trucks do not cancel it.
+    figures = [figure_row(source=s, figure=f, filters=filt, measure_as_published=m)
+               for s in ("source_a", "source_b") for f, filt, m in (("800", CARS, "Cars"), ("250", TRUCKS, "Trucks"))]
+    result = fails(tmp_path, figures)
+    assert len(result.aborts) == 1 and "ours is below theirs in every one" in result.aborts[0]
+    assert by_source(result) == {"source_a": ["fail", "warn"], "source_b": ["fail", "warn"]}
+
+
+def test_a_source_is_judged_by_the_weight_of_its_rows_not_their_number(tmp_path):
+    exact = [("600", '{"import_status": ["fixture_new"], "vehicle_type": ["fixture_car"]}'), ("200", '{"import_status": ["fixture_new"], "vehicle_type": ["fixture_truck"]}')]
+    rest = [("160", '{"import_status": ["fixture_used"], "vehicle_type": ["fixture_car"]}'), ("80", '{"import_status": ["fixture_used"], "vehicle_type": ["fixture_truck"]}')]
+
+    def parts(source, pairs):
+        return [figure_row(source=source, figure=f, filters=filt, measure_as_published=f"Part {i}") for i, (f, filt) in enumerate(pairs)]
+
+    other = figures_from(["source_b"], [960])
+    # One total past the bound (950) and two exact parts: 950 of 1,750 is 54%, so Source A breaches although two of its rows pass.
+    heavy = figures_from(["source_a"], [950]) + parts("source_a", exact) + other
+    assert len(fails(tmp_path, heavy).aborts) == 1
+    # With the other two parts as well, 950 of 1,990 is 48%: it does not.
+    light = figures_from(["source_a"], [950]) + parts("source_a", exact + rest) + other
+    assert fails(tmp_path, light).aborts == []
+    # The share is config.
+    assert fails(tmp_path, heavy, source_vehicle_share=0.6).aborts == []
+
+
+@pytest.mark.parametrize("name, figures, sources", [
+    ("one source on its own is never enough", figures_from(["source_a"], [950]), SOURCES),
+    ("one source past the bound and two exact", figures_from(["source_a", "source_b", "source_c"], [950, 1040, 1040]), SOURCES),
+    ("two sources the opposite way", figures_from(["source_a", "source_b"], [950, 1100]), SOURCES),
+    ("each exactly on the hard bound", figures_from(["source_a", "source_b", "source_c"], [1000, 1000, 1000]), SOURCES),
+    ("each just inside the bound", figures_from(["source_a", "source_b", "source_c"], [1001, 1002, 1003]), SOURCES),
+    ("different months",
      [figure_row(source="source_a", figure="950", month="2026-02"), figure_row(source="source_b", figure="1400", month="2026-03"),
-      figure_row(source="source_c", figure="480", month="2026-01")], SOURCES, {}),
-    ("the third source is a copy of our own export",
-     figures_from(["source_a", "source_b", "source_d"], [950, 960, 970]), SOURCES, {}),
-    ("one source past the bound in every month of its history",
-     [figure_row(source="source_a", figure=str(t), month=m) for m, t in (("2026-01", 400), ("2026-02", 800), ("2026-03", 1200))], SOURCES, {}),
-    ("one source restating many figures at once",
-     [figure_row(source="source_a", figure="950", measure_as_published=f"Measure {i}") for i in range(6)], SOURCES, {}),
+      figure_row(source="source_c", figure="480", month="2026-01")], SOURCES),
+    ("a copy of our own export is not counted", figures_from(["source_a", "source_d"], [950, 970]), SOURCES),
+    ("one source restating every month of its history, the others exact",
+     [figure_row(source="source_a", figure=str(t), month=m) for m, t in (("2026-01", 400), ("2026-02", 800), ("2026-03", 1200))]
+     + [figure_row(source=s, figure=str(TOTAL[m]), month=m) for s in ("source_b", "source_c") for m in TOTAL], SOURCES),
+    ("one source restating many figures at once", [figure_row(source="source_a", figure="950", measure_as_published=f"Measure {i}") for i in range(6)], SOURCES),
 ])
-def test_cases_that_must_not_fail_the_build(tmp_path, name, figures, sources, hard_limit):
-    result = fails(tmp_path, figures, sources, **hard_limit)
+def test_cases_that_must_not_fail_the_build(tmp_path, name, figures, sources):
+    result = fails(tmp_path, figures, sources)
     assert result.aborts == [], name
     assert "fail" not in {r["status"] for r in result.document["rows"]}, name
 
 
-def test_a_month_our_data_does_not_hold_cannot_count_towards_the_limit(tmp_path):
+def test_a_month_with_compared_rows_from_fewer_than_two_independent_sources_cannot_stop_a_build(tmp_path):
+    # Source B's row for the month is a hidden cell, and Source C's names a month we do not hold: only Source A is compared.
+    figures = [figure_row(source="source_a", month="2026-03", figure="1000"),
+               figure_row(source="source_b", month="2026-03", dataset=FLEET, figure="1", filters='{"vehicle_usage": ["fixture_y"]}'),
+               figure_row(source="source_c", month="2026-06", figure="970")]
+    result = fails(tmp_path, figures)
+    assert result.aborts == []
+    assert by_source(result) == {"source_a": ["warn"], "source_b": ["not_compared"], "source_c": ["not_compared"]}
+
+
+def test_sources_that_are_not_compared_do_not_count_either_way(tmp_path):
+    # Two sources past the bound and a third that is not compared: the third is not one of the sources that have anything to say.
     held = figures_from(["source_a", "source_b"], [950, 960])
     unheld = figures_from(["source_c"], [970], month="2026-06")
     result = fails(tmp_path, held + unheld)
-    assert result.aborts == []
+    assert len(result.aborts) == 1 and "2 of the 2 independent sources compared" in result.aborts[0]
     assert [r["status"] for r in result.document["rows"] if r["month"] == "2026-06"] == ["not_compared"]
-
-
-def test_an_unreadable_source_is_simply_missing_and_the_others_alone_do_not_fail(tmp_path):
-    # Source C has no rows (it could not be read this month): two sources past the bound are not enough.
-    assert fails(tmp_path, figures_from(["source_a", "source_b"], [950, 960])).aborts == []
 
 
 def test_a_hidden_cell_is_not_a_breach(tmp_path):
@@ -504,23 +570,10 @@ def test_a_hidden_cell_is_not_a_breach(tmp_path):
     assert result.aborts == [] and {r["status"] for r in result.document["rows"]} == {"not_compared"}
 
 
-def test_a_source_counts_when_most_of_its_rows_breach_and_not_when_few_do(tmp_path):
-    def rows(source, theirs):
-        return [figure_row(source=source, figure=str(t), measure_as_published=f"Measure {i}") for i, t in enumerate(theirs)]
-    # Source C: 1 of 3 rows past the bound, so it is not breaching and the three do not make the limit.
-    few = rows("source_a", [950]) + rows("source_b", [960]) + rows("source_c", [950, 1040, 1040])
-    assert fails(tmp_path, few).aborts == []
-    # Source C: 2 of 3 rows past the bound, so it is.
-    many = rows("source_a", [950]) + rows("source_b", [960]) + rows("source_c", [950, 960, 1040])
-    result = fails(tmp_path, many)
-    assert len(result.aborts) == 1
-    # Only the rows past the bound are marked fail; the row that matched stays a pass.
-    assert sorted(r["status"] for r in result.document["rows"] if r["source"] == "source_c") == ["fail", "fail", "pass"]
-
-
 def test_the_numbers_of_the_rule_are_config(tmp_path):
     figures = figures_from(["source_a", "source_b", "source_c"], [950, 960, 970])
     assert len(fails(tmp_path, figures).aborts) == 1
+    assert len(fails(tmp_path, figures, min_sources=3).aborts) == 1
     assert fails(tmp_path, figures, min_sources=4).aborts == []
     assert fails(tmp_path, figures, tolerance_multiple=5).aborts == []
     assert fails(tmp_path, figures, floor_pct=15).aborts == []
@@ -533,6 +586,117 @@ def test_a_tight_tolerance_cannot_make_a_small_gap_a_breach(tmp_path):
     assert result.aborts == []
     assert {r["status"] for r in result.document["rows"]} == {"warn"}
     assert result.document["rows"][0]["hard_bound_pct"] == 2.0
+
+
+# --- the hard limit over the live published figures -------------------------------------------------------------------------
+# These read the real data/reference/published_figures.csv and put our figure beside each row's, scaled, through the real judge,
+# finish and hard_limit, to show what size of error stops a build on the rows that are committed. No source is named here:
+# the sources are whatever published_sources.csv holds. A month's sources are the sources that have a row for it.
+
+def live_setup():
+    cfg = config.load()
+    prepared, problems = reconcile.prepare(cfg)
+    assert problems == []
+    c, _ = reconcile.settings(cfg)
+    h = c["hard_limit"]
+    months: dict[str, set[str]] = {}
+    for f in prepared.figures:
+        months.setdefault(f.month, set()).add(f.source)
+    return cfg, prepared, c, (Decimal(str(h["tolerance_multiple"])), Decimal(str(h["floor_pct"])), int(c["pct_decimals"])), months
+
+
+def live_aborts(ours) -> list[str]:
+    """The aborts the real step raises when our figure for each live row is ours(figure)."""
+    cfg, prepared, c, (multiple, floor, decimals), _ = live_setup()
+    judged = [reconcile.judge(f, reconcile.Answer(int(round(ours(f)))), multiple, floor, decimals) for f in prepared.figures]
+    return reconcile.finish(prepared, judged, c, [], "fixture").aborts
+
+
+def live_month_with(count: int) -> str:
+    months = live_setup()[4]
+    found = sorted(m for m, sources in months.items() if len(sources) == count)
+    assert found, f"no month of the live rows has exactly {count} sources, so this test proves nothing"
+    return found[0]
+
+
+@pytest.mark.parametrize("count", [3, 2])
+@pytest.mark.parametrize("scale", [1.05, 0.94, 1.03, 0.97])
+def test_live_rows_a_few_percent_error_in_a_month_stops_the_build_when_two_or_three_sources_have_rows(count, scale):
+    month = live_month_with(count)
+    assert len(live_aborts(lambda f: f.figure * scale if f.month == month else f.figure)) == 1
+
+
+def test_live_rows_the_smallest_uniform_error_that_stops_every_month_is_about_two_percent_either_way():
+    months = live_setup()[4]
+    assert len(months) >= 20
+    for scale in (1.021, 0.979):
+        assert len(live_aborts(lambda f: f.figure * scale)) == len(months), scale
+    for scale in (1.015, 0.985):
+        assert live_aborts(lambda f: f.figure * scale) == [], scale
+
+
+def test_live_rows_a_source_restated_ten_percent_either_way_in_every_month_does_not_stop_a_build():
+    sources = live_setup()[1].sources
+    assert len(sources) >= 3
+    for source in sources:
+        for restated in (1.10, 0.90):
+            # Their figure is 10% higher (or lower) than before and ours is what it was.
+            assert live_aborts(lambda f: f.figure / restated if f.source == source else f.figure) == [], (source, restated)
+
+
+def test_live_rows_five_percent_of_the_passenger_vehicles_counted_as_commercial_stops_a_build_in_every_month():
+    cfg, prepared, _, _, months = live_setup()
+    scope = cfg.pipeline["scope"]["vehicle"]
+    true = cfg.pipeline["boolean_true"]
+    types = [r for r in reference.read(cfg.reference(scope["file"])) if r[scope["in_scope"]] == true]
+    # The first two in-scope types of the scope file: the register's passenger vehicles, and the goods vehicles they are mistaken for.
+    passenger, commercial = types[0], types[1]
+    assert passenger["trade_group"] != commercial["trade_group"]
+
+    def kind(f):
+        held = dict(f.filters)
+        if held.get("vehicle_type") == (passenger["label"],):
+            return "first"
+        if held.get("vehicle_type") == (commercial["label"],) or held.get("trade_group") == (commercial["trade_group"],):
+            return "second"
+        return None
+
+    weight: dict[tuple[str, str], int] = {}
+    for f in prepared.figures:
+        if kind(f) == "first":
+            weight[(f.source, f.month)] = weight.get((f.source, f.month), 0) + f.figure
+    assert {k for k in map(kind, prepared.figures)} == {"first", "second", None}, "the live rows must hold both kinds"
+
+    def moved(f):
+        k = kind(f)
+        if k == "first":
+            return f.figure * 0.95
+        if k == "second":
+            return f.figure + 0.05 * weight.get((f.source, f.month), 0)
+        return f.figure
+
+    three = live_month_with(3)
+    assert len(live_aborts(lambda f: moved(f) if f.month == three else f.figure)) == 1
+    assert "ours is below theirs" in live_aborts(lambda f: moved(f) if f.month == three else f.figure)[0]
+    assert len(live_aborts(moved)) == len(months)
+
+
+STAGED = config.ROOT / "data" / "staging" / "build" / "reconciliation.json"
+
+
+@pytest.mark.skipif(not STAGED.exists(), reason="needs the reconciliation.json of a dry-run build of the saved pull (data/staging, not committed)")
+def test_live_rows_against_the_figures_of_a_dry_run_build_do_not_stop_it():
+    cfg, prepared, c, (multiple, floor, decimals), _ = live_setup()
+    staged = {(r["source"], r["month"], r["measure_as_published"], json.dumps(r["filters"], sort_keys=True)): r
+              for r in json.loads(STAGED.read_text(encoding="utf-8"))["rows"]}
+    judged = []
+    for f in prepared.figures:
+        row = staged.get((f.source, f.month, f.measure, json.dumps({d: list(v) for d, v in f.filters}, sort_keys=True)))
+        if row is None or row["ours"] is None:
+            continue
+        judged.append(reconcile.judge(f, reconcile.Answer(row["ours"]), multiple, floor, decimals))
+    assert len(judged) > 300, "the staged file does not hold the live rows"
+    assert reconcile.finish(prepared, judged, c, [], "fixture").aborts == []
 
 
 # --- the document ----------------------------------------------------------------------------------------------------------
@@ -553,7 +717,7 @@ def test_the_document_gives_the_site_everything_it_needs(tmp_path):
     assert summary["by_source"]["source_a"] == {"rows": 2, "pass": 1, "warn": 0, "fail": 0, "not_compared": 1}
     assert summary["by_source"]["source_c"] == {"rows": 0, "pass": 0, "warn": 0, "fail": 0, "not_compared": 0}
     assert summary["thresholds"] == {"max_tolerance_pct": 20, "hard_limit_tolerance_multiple": 2, "hard_limit_floor_pct": 2,
-                                     "hard_limit_min_sources": 3, "hard_limit_source_row_share": 0.5}
+                                     "hard_limit_min_sources": 2, "hard_limit_source_vehicle_share": 0.5}
     assert [(r["month"], r["source"]) for r in doc["rows"]] == [("2026-02", "source_a"), ("2026-03", "source_b"), ("2027-01", "source_a")]
     assert set(doc["rows"][0]) == {"source", "month", "measure_as_published", "dataset", "filters", "ours", "theirs", "gap", "gap_pct",
                                    "tolerance_pct", "hard_bound_pct", "known_difference", "status", "reason_kind", "reason",
@@ -610,7 +774,7 @@ def test_a_build_stops_when_three_independent_sources_disagree_with_it_the_same_
     figures = [figure_row(dataset=SURVIVING, month="2026-08", figure="1", source=s) for s in ("source_a", "source_b", "source_c")]
     with pytest.raises(GuardrailError) as stopped:
         build_with(tmp_path, workspace, figures, SOURCES)
-    assert "reconciliation: 2026-08: 3 independent sources" in str(stopped.value)
+    assert "reconciliation: 2026-08: 3 of the 3 independent sources compared" in str(stopped.value)
     assert not (workspace["public"] / "manifest.json").exists(), "nothing is published"
 
 
