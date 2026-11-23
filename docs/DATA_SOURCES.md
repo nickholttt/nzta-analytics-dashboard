@@ -403,6 +403,38 @@ never a zero and never a stopped build.
 
 Two rows are the same figure when their source, month, measure and filters are the same; the second aborts the build.
 
+What it holds (read on 2026-11-23, for January 2025 to October 2026): 336 rows.
+
+| Source | Measure | Months | Set beside | Tolerance |
+|---|---|---|---|---|
+| `statsnz` | New Cars and Station Wagons Total (series TPTM.S22IZ) | 22 | true registrations, passenger cars and vans, new and used | 1% |
+| `statsnz` | New Cars/Stat'n Wags Prev Reg'd Ovrseas (series TPTM.S22JZ) | 22 | the same, used imports only | 1% |
+| `mta_vstat` | new passenger cars | 22 | true registrations, new passenger cars and vans | 1% |
+| `mta_vstat` | used import passenger cars | 22 | the same, used imports | 1% |
+| `mta_vstat` | new light commercial vehicles | 22 | true registrations, new goods vans, trucks and utes | 12%, with a known difference |
+| `mta_vstat` | each of the ten largest new models of the month | 22, ten rows each | true registrations on the wider scope, new, that model | 3% |
+| `mia` | Total Industry | 2 | true registrations on the wider scope, new | 1% |
+| `mia` | Light Passenger (incl. SUV) | 2 | true registrations, new passenger cars and vans | 1% |
+| `mia` | Light Commercial plus Heavy Commercial | 2 | true registrations on the wider scope, new, commercial | 2% |
+
+How each was read, and what that means for a row:
+
+- Stats NZ: the file of its October 2026 release (the row's `source_url`), every value marked final. All 44 were read
+  again from a second download of that file on the same day and agree.
+- vstat: its page for new vehicles carries the data its charts draw, by month, powertrain and model. A total is that
+  data added across powertrains, and the ten largest models of a month are the ten largest sums: vstat prints neither as
+  text for a past month. For October 2026 the page's own text gives the same four figures. A model is set beside the wider
+  scope because vstat's count of a van takes in its minibus and camper versions, which the default scope leaves out.
+- The MIA: one table, published as an image, read by eye by two readers. Its two commercial figures are added, and the
+  row's measure says so, because our figures cannot separate light from heavy commercial vehicles. Its months before
+  October 2026 are not public: the two October 2025 rows are the year-earlier column of the October 2026 table.
+
+Left out, because our figures have no matching question: vstat's used import commercial vehicles (a few hundred a month,
+light only) and the MIA's and vstat's year-to-date and whole-market totals. A tolerance was set from the gaps measured on
+2026-11-23 against the build of the October 2026 snapshot, with room above the largest: passenger figures were within
+0.7% of every source in every month. One row was past its tolerance that day and is left as it is: one model in
+November 2025, 283 against 302.
+
 ---
 
 ## Field notes that will bite you
