@@ -357,6 +357,17 @@ The Differences page states each source's definition from this file. A source wi
 The file is read at the start of every build, before the register is read: a row that breaks any rule above, a repeated
 `id`, or a header that is not exactly these columns in this order aborts the build and names the row.
 
+What it holds (read on 2026-11-23): three organisations, each counted as independent.
+
+| `id` | Where its definition was read | What could be read |
+|---|---|---|
+| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | one month's table and its year-earlier column; earlier months are for members only |
+| `mta_vstat` | its About page | 22 months; the page says its figures are NZTA's records as they were when it published |
+| `statsnz` | the group title of its monthly release file, Transport vehicle registrations | 22 months, each marked final |
+
+The MIA publishes no figure for used imports. NZTA's registrations dashboard has no row: it cannot be read automatically,
+and our true registrations are its export, so it would not be independent.
+
 `data/reference/published_figures.csv` has one row for each figure a source publishes for one month:
 
 | column | meaning |
