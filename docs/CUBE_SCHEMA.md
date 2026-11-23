@@ -1425,7 +1425,9 @@ is worse than one that is visibly stale.
 - A source has figures past their tolerance (`reconciliation: <name>: <k> of <m> compared figures are past their tolerance, in
   <months>; the largest gap is <pct> (<month>)`), one line for each source however many rows. A source has figures that name a
   value the published files do not hold (`reconciliation: <name>: <k> figures name a value the published files do not hold, in
-  <months>, so they were not compared`), one line for each source. Or published figures exist and none could be compared.
+  <months>, so they were not compared`), one line for each source. When every figure of a source does so, or more than half of
+  all the figures, one more line says that a label in a reference file may have been renamed (a renamed status or vehicle
+  type turns every row that names it into this, and it is a warning, not an abort). Or published figures exist and none could be compared.
 - A supplied store ends before the register's snapshot month: the export is missing the months after it.
 - A dataset of a source of kind `series` has a dimension whose reference file is missing and was not live
   before: it stays out, and the warning names the file.

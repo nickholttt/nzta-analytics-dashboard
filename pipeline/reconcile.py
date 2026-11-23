@@ -568,6 +568,7 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
             one = len(unheld) == 1
             warnings.append(f"reconciliation: {source.name}: {len(unheld)} {'figure names' if one else 'figures name'} a value the published "
                             f"files do not hold, in {span(unheld)}, so {'it was' if one else 'they were'} not compared")
+    warnings += renamed_label_warnings(sources, judged)
     for row in judged:
         row.pop("_hard", None)
     judged.sort(key=lambda r: (r["month"], r["source"], r["measure_as_published"], json.dumps(r["filters"], sort_keys=True)))
@@ -606,6 +607,23 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
     }
     entry = {"file": c["output_file"], "rows": len(judged), "by_status": by_status, "months": span_of}
     return Result(document, entry, warnings, aborts)
+
+
+def renamed_label_warnings(sources: dict[str, Source], judged: list[dict]) -> list[str]:
+    """One line for each source all of whose rows name a value the published files do not hold, and one when more than half of
+    all the rows do: a label in a reference file (a renamed status or vehicle type) turns every row that names it into
+    value_not_held, which is a warning and not an abort, so it must not pass as the ordinary drift of a capped dimension."""
+    lines = []
+    for source in sources.values():
+        mine = [r for r in judged if r["source"] == source.id]
+        if mine and all(r["reason_kind"] == VALUE_NOT_HELD for r in mine):
+            lines.append(f"reconciliation: every one of the {len(mine)} figures of {source.name} names a value the published files do not "
+                         "hold: a label in a reference file may have been renamed, so nothing of this source was checked")
+    held = sum(1 for r in judged if r["reason_kind"] == VALUE_NOT_HELD)
+    if judged and 2 * held > len(judged):
+        lines.append(f"reconciliation: {held} of the {len(judged)} published figures name a value the published files do not hold: a label "
+                     "in a reference file may have been renamed, so most of the figures were not checked")
+    return lines
 
 
 def hard_limit(sources: dict[str, Source], judged: list[dict], c: dict, aborts: list[str]) -> list[str]:

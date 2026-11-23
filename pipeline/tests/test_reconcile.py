@@ -367,13 +367,35 @@ def test_a_value_the_files_do_not_hold_is_said_not_compared_never_a_zero_and_nev
 def test_a_value_that_dropped_out_of_a_later_build_names_the_dimension_and_value_in_one_warning_per_source(tmp_path):
     figures = [figure_row(month=m, measure_as_published=f"Measure {m}", filters='{"vehicle_type": ["fixture_gone"]}') for m in ("2026-01", "2026-03")]
     figures += [figure_row(source="source_b", filters='{"vehicle_type": ["fixture_gone"]}'), figure_row(source="source_c")]
+    # Each source also has a row that is answered, so that this is the drift of one value and not a renamed label.
+    figures += [figure_row(source="source_a", measure_as_published="Measure ok"), figure_row(source="source_b", month="2026-03", figure="1560"),
+                figure_row(source="source_c", month="2026-03", figure="1560"), figure_row(source="source_c", month="2026-01", figure="520")]
     result = reconcile_figures(tmp_path, figures)
     assert result.aborts == []
     assert result.warnings == [
         "reconciliation: Source A: 2 figures name a value the published files do not hold, in 2026-01 to 2026-03, so they were not compared",
         "reconciliation: Source B: 1 figure names a value the published files do not hold, in 2026-02, so it was not compared",
     ]
-    assert result.document["summary"]["by_status"] == {"pass": 1, "warn": 0, "fail": 0, "not_compared": 3}
+    assert result.document["summary"]["by_status"] == {"pass": 5, "warn": 0, "fail": 0, "not_compared": 3}
+
+
+def test_a_renamed_label_that_turns_every_row_of_a_source_or_most_rows_into_value_not_held_has_a_line_of_its_own(tmp_path):
+    gone = '{"vehicle_type": ["fixture_gone"]}'
+    # Every row of Source A, and one of Source B's two: A has the line, and so has the build, since 3 of 4 rows is more than half.
+    figures = [figure_row(filters=gone), figure_row(month="2026-03", filters=gone, measure_as_published="Two"),
+               figure_row(source="source_b", filters=gone), figure_row(source="source_b", month="2026-03")]
+    lines = [w for w in reconcile_figures(tmp_path, figures).warnings if "renamed" in w]
+    assert lines == [
+        "reconciliation: every one of the 2 figures of Source A names a value the published files do not hold: a label in a reference "
+        "file may have been renamed, so nothing of this source was checked",
+        "reconciliation: 3 of the 4 published figures name a value the published files do not hold: a label in a reference file may "
+        "have been renamed, so most of the figures were not checked",
+    ]
+    # Half is not more than half, and a source with one good row has no line: only the per-figure warning is raised.
+    half = [figure_row(filters=gone), figure_row(month="2026-03")]
+    assert [w for w in reconcile_figures(tmp_path / "half", half).warnings if "renamed" in w] == []
+    # It is a warning and not an abort.
+    assert reconcile_figures(tmp_path / "all", [figure_row(filters=gone)]).aborts == []
 
 
 def test_a_value_not_held_never_counts_towards_the_hard_limit(tmp_path):
