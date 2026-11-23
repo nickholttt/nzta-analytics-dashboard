@@ -10,7 +10,8 @@ from typing import NamedTuple
 
 import duckdb
 
-from . import association, derive, events, guardrails, metrics, normalise, outputs, pair_cells, privacy, schema, series, small_cells, supplied
+from . import (association, derive, events, guardrails, metrics, normalise, outputs, pair_cells, privacy, reconcile, schema, series,
+               small_cells, supplied)
 from .contract import (FACT_COUNT, FACT_MONTH, FACT_ROW_ORDER, FACTS_DIR, NARROW_DIR, PAIR_COLUMNS, PAIR_SEPARATOR,
                        SLICE_COLUMNS)
 from .normalise import lit
@@ -564,8 +565,9 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     now = now or datetime.now(timezone.utc)
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
     # Before anything is read: a series dimension that would be offered to a register dataset cannot be derived there.
+    published, reconciliation_problems = reconcile.prepare(cfg)
     misconfigured = (derive.series_dimension_problems(cfg) + stock_configuration_problems(cfg)
-                     + fact_table_owner_problems(cfg))
+                     + fact_table_owner_problems(cfg) + reconciliation_problems)
     if misconfigured:
         raise GuardrailError("build", "\n  - " + "\n  - ".join(misconfigured))
     aborts: list[str] = []
@@ -666,6 +668,13 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
             archive_status = "kept_first_observation"
             warnings.append(f"{archive_path.name} already exists with different content; the first observation is kept")
 
+    # After every dataset is staged and before the payload is counted: each published figure is answered from the files a visitor
+    # would read, so what is checked is what is about to be published (D-149).
+    reconciled = reconcile.run(con, cfg, published, datasets, staging, latest_snapshot)
+    aborts += reconciled.aborts
+    warnings += reconciled.warnings
+    outputs.write_json(staging / reconciled.entry["file"], reconciled.document)
+
     outputs.write_json(staging / "events.json", event_rows)
     size = outputs.payload_bytes(staging)
     if size > g["size_budget_bytes"]:
@@ -694,6 +703,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
         "moving_cutoff_age": moving["age"],
         "used_import_age_trailing": age_report,
         "snapshot_archive": {"path": f"{p['snapshot_archive']['dir']}/{archive_path.name}", "status": archive_status},
+        "reconciliation": reconciled.entry,
         "payload_bytes": size,
         "warnings": warnings,
     }

@@ -27,6 +27,7 @@ No count of dimensions is fixed in this document or anywhere else; see
   cube/
     {dataset}/{dimension}.parquet       # 1-D slices: one file per live dimension
   events.json                           # verified events only
+  reconciliation.json                   # our figures beside figures other organisations publish (D-149)
   pairs/
     {dataset}/{dim_a}__{dim_b}.parquet  # 2-D slices: only the pairs config/pipeline.json names
   facts/
@@ -42,7 +43,8 @@ No count of dimensions is fixed in this document or anywhere else; see
 
 Build step 1 emits `manifest.json`, `cube/registrations_surviving/`,
 `pairs/registrations_surviving/`, `facts/registrations_surviving/`,
-`associations/registrations_surviving.json` and `events.json`. Every dataset that has a fact table gets an
+`associations/registrations_surviving.json`, `events.json` and `reconciliation.json` (one file for the cube, whatever the
+datasets built; *reconciliation.json*, below). Every dataset that has a fact table gets an
 associations file beside it (*Associations*, below). The same build also emits the stock `fleet` (*Stock datasets*):
 `cube/fleet/vehicle_usage.parquet`, `cube/fleet/vehicle_type.parquet`, `pairs/fleet/vehicle_usage__vehicle_type.parquet`
 and its block in `manifest.json`, and no fact table, so no associations file.
@@ -629,6 +631,102 @@ NZ-assembled flag has one value among the 144,827 and 144,829 vehicles that reco
 fewest vehicles any pair of `registrations_surviving` rests on is 140,149 (the model with the power band, in the trailing
 window).
 
+## reconciliation.json (D-149)
+
+Every build sets some of its own figures beside figures other organisations publish, and writes the result beside the
+manifest. The point is that a gap is caught before a visitor sees it, and that the gaps are shown, not hidden. What is
+compared is data and nothing in the code names it: `data/reference/published_figures.csv` has one row for each published
+figure (the source, the month, the measure as the source defines it, the figure, the question to put to our own files as a
+dataset and a set of dimension filters, a tolerance and a note on any known difference), and
+`data/reference/published_sources.csv` one row for each organisation (`docs/DATA_SOURCES.md`, section F, has both files'
+columns and the filter encoding). Scope is carried by the dataset: the default scope and the trade's wider scope are two
+datasets, so a row says which total it is set against by its dataset and filters, and there is no scope column.
+
+**What is checked is what is published.** After every dataset is staged and before the build is promoted, each row is
+answered from the staged files a visitor's browser would read, not from an internal table: from the dataset's fact table
+(summed over the rows that match the filters and the month), or, for a dataset with no fact table or a single filter on a
+dimension the fact table does not carry, from the dimension's one-field slice; a row with no filter on a dataset with no fact
+table is the month's `denominator`, which every slice repeats. The fact table's row count read back must be the manifest's.
+Both files are read and checked at the start of the build, before the register is read.
+
+**A row is a fault, and the build aborts naming the row (file, line, source, month, measure), when** the header is not exactly
+the columns; a cell is malformed (a month not `YYYY-MM`, a figure that is not a whole number above zero, an address that is
+not `https://`, a date that is not `YYYY-MM-DD`, a tolerance above `reconciliation.max_tolerance_pct`); a source is not in
+`published_sources.csv`; the dataset is not one of `config/pipeline.json`; a filter names a dimension the dataset cannot
+derive, one that is not live in this build, or two dimensions that no one published table holds together; a filter value is
+not a value of its dimension in the published files (an unknown value is never answered with zero); or two rows have the same
+source, month, measure and filters.
+
+**Each row ends as one of four statuses.**
+
+| status | meaning |
+|---|---|
+| `pass` | ours is within the row's `tolerance_pct` of theirs (a gap of exactly the tolerance is inside) |
+| `warn` | past the tolerance. The build adds one warning line for each source, not one for each row |
+| `fail` | past the hard bound, and one of the rows that stop the build (below) |
+| `not_compared` | `reason_kind` and `reason` say why: `month_not_held` (our data for the dataset starts later or ends earlier, as for the newest month before its export is supplied), `dataset_not_built` (a supplied store is absent), `hidden_cell` (the answer rests on a cell the small-cell rule hides, so ours is not published) or `no_published_table`. Never dropped, never a pass, and never counted towards the hard limit |
+
+The gap is ours less theirs, so a positive gap is ours above theirs, and `gap_pct` is the gap as a percentage of theirs,
+rounded to `reconciliation.pct_decimals` places. A row with `not_compared` has `ours`, `gap` and `gap_pct` null.
+
+**The hard limit** stops the build (a guardrail abort, exit 2, the last good build stays) when the same month is far from ours
+in several separate counts, which means our data is wrong, not theirs. The numbers are `reconciliation.hard_limit` in
+`config/pipeline.json`; the values here are the ones it holds today.
+
+1. A row is past the **hard bound** when its gap is more than `max(tolerance_multiple x the row's own tolerance, floor_pct)`
+   of theirs: 2 times the tolerance, and never under 2%, so a tolerance of a tenth of a percent cannot turn a few vehicles
+   into a breach.
+2. A source **breaches** in a month when at least `source_row_share` (one half) of its compared rows for that month are past
+   the hard bound, all on the same side of ours.
+3. The build stops when at least `min_sources` (3) sources that are **independent** (the `independent` column of
+   `published_sources.csv`: a source that counts separately from the data our datasets are built from) breach in the same
+   month with ours on the same side of theirs. The rows past the hard bound of those sources are marked `fail`, and one abort
+   line per month and side names each source, how many of its figures are past the bound and the largest gap.
+
+It does not stop on: one source restating its history, whatever its gaps (one source is never three); a source that cannot be
+read this month (it has no rows, and the rest must still make three); two sources alone; three sources that disagree with ours
+in different directions, or in different months; a gap exactly on the bound; a source of which fewer than half the rows are
+past it; a source that is a copy of our own export (`independent` false: compared and shown, never counted); a month or a
+dataset we do not hold, or a hidden cell (all `not_compared`). `pipeline/tests/test_reconcile.py` has a test for each.
+
+```json
+{
+  "latest_snapshot": "2026-10-31",
+  "sources": {
+    "source_a": { "name": "Source A", "home_url": "https://a.example", "independent": true,
+                  "definition": "What the source says it counts.", "definition_date_read": "2026-11-20" }
+  },
+  "summary": {
+    "rows": 2,
+    "by_status": { "pass": 1, "warn": 0, "fail": 0, "not_compared": 1 },
+    "by_source": { "source_a": { "rows": 2, "pass": 1, "warn": 0, "fail": 0, "not_compared": 1 } },
+    "months": { "first": "2026-09", "last": "2026-11" },
+    "thresholds": { "max_tolerance_pct": 20, "hard_limit_tolerance_multiple": 2, "hard_limit_floor_pct": 2,
+                    "hard_limit_min_sources": 3, "hard_limit_source_row_share": 0.5 }
+  },
+  "rows": [
+    { "source": "source_a", "month": "2026-09", "measure_as_published": "Measure as the source words it",
+      "dataset": "registrations_flow", "filters": { "import_status": ["a value"] },
+      "ours": 1040, "theirs": 1020, "gap": 20, "gap_pct": 1.9608, "tolerance_pct": 2.0, "hard_bound_pct": 4.0,
+      "known_difference": null, "status": "pass", "reason_kind": null, "reason": null,
+      "source_url": "https://a.example/page", "date_read": "2026-11-20" },
+    { "source": "source_a", "month": "2026-11", "measure_as_published": "Measure as the source words it",
+      "dataset": "registrations_flow", "filters": {}, "ours": null, "theirs": 1100, "gap": null, "gap_pct": null,
+      "tolerance_pct": 2.0, "hard_bound_pct": 4.0, "known_difference": null, "status": "not_compared",
+      "reason_kind": "month_not_held", "reason": "Our registrations_flow data holds 2021-01 to 2026-10 in this build, so 2026-11 cannot be compared yet.",
+      "source_url": "https://a.example/page", "date_read": "2026-11-20" }
+  ]
+}
+```
+
+(The values are made up, to show the shape.) Rows are sorted by month, then source, measure and filters, so the file does not
+depend on the order of the CSV; `sources` holds every source of `published_sources.csv` in file order, so a page can state a
+definition without knowing a source by name; `summary.by_source` lists every source, with zeros for one that has no rows. The
+file has no time in it: the same cube and the same two reference files always write the same bytes. It is written with `\n`
+line endings and counts towards `payload_bytes`. With no rows in `published_figures.csv` the file is the same shape with
+`rows: []`, null months and all counts zero. The manifest's `reconciliation` entry is `{ "file", "rows", "by_status", "months" }`,
+the same four figures, so a page that only needs the headline need not fetch the file.
+
 ## manifest.json
 
 ```json
@@ -712,6 +810,9 @@ window).
     "cluster": [9, 13], "share_cluster": 0.60, "shares": { "0": 0.003, "31+": 0.001 }
   },
   "snapshot_archive": { "path": "data/snapshots/2026-08.parquet", "status": "new" },
+  "reconciliation": { "file": "reconciliation.json", "rows": 0,
+                      "by_status": { "pass": 0, "warn": 0, "fail": 0, "not_compared": 0 },
+                      "months": { "first": null, "last": null } },
   "payload_bytes": 3158670,
   "warnings": []
 }
@@ -1246,6 +1347,14 @@ Fact table:
   dimension ids, names a dimension the dataset cannot derive or a name the table reserves; a table's counts do not total the
   dataset's vehicles. These are found when the tables are written, after the source is read, like the wide table's.
 
+Published figures (`reconciliation.json`, above):
+
+- `published_figures.csv` or `published_sources.csv` is missing, has a header that is not exactly its columns, has a row that
+  breaks a rule above, repeats a figure, names a source or dataset that does not exist, or asks a question the staged files
+  cannot answer (a dimension not live, two dimensions no one table holds, a value the files do not hold). The abort names the
+  file, the line, the source, the month and the measure.
+- The hard limit: `min_sources` independent sources are each past the hard bound in the same month, on the same side.
+
 Events:
 
 - A verified event has a scope outside the enum in `EVENTS_LAYER.md`, a
@@ -1301,6 +1410,9 @@ is worse than one that is visibly stale.
   The first observation is kept.
 - The payload exceeds the size budget.
 - A supplied dataset was not built because its store is absent.
+- A source has figures past their tolerance (`reconciliation: <name>: <k> of <m> compared figures are past their tolerance, in
+  <months>; the largest gap is <pct> (<month>)`), one line for each source however many rows. Or published figures exist and
+  none could be compared.
 - A supplied store ends before the register's snapshot month: the export is missing the months after it.
 - A dataset of a source of kind `series` has a dimension whose reference file is missing and was not live
   before: it stays out, and the warning names the file.

@@ -546,7 +546,21 @@
    "path": "data/snapshots/2026-08.parquet",
    "status": "new"
   },
-  "payload_bytes": 117467,
+  "reconciliation": {
+   "file": "reconciliation.json",
+   "rows": 0,
+   "by_status": {
+    "pass": 0,
+    "warn": 0,
+    "fail": 0,
+    "not_compared": 0
+   },
+   "months": {
+    "first": null,
+    "last": null
+   }
+  },
+  "payload_bytes": 117964,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -17053,5 +17067,31 @@
    "confidence": "documented",
    "source_url": "https://www.1news.co.nz/2025/11/17/clean-car-standard-under-review-import-charges-lowered/"
   }
- ]
+ ],
+ "reconciliation": {
+  "latest_snapshot": "2026-08-31",
+  "sources": {},
+  "summary": {
+   "rows": 0,
+   "by_status": {
+    "pass": 0,
+    "warn": 0,
+    "fail": 0,
+    "not_compared": 0
+   },
+   "by_source": {},
+   "months": {
+    "first": null,
+    "last": null
+   },
+   "thresholds": {
+    "max_tolerance_pct": 20,
+    "hard_limit_tolerance_multiple": 2,
+    "hard_limit_floor_pct": 2,
+    "hard_limit_min_sources": 3,
+    "hard_limit_source_row_share": 0.5
+   }
+  },
+  "rows": []
+ }
 }

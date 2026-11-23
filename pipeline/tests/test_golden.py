@@ -1,4 +1,4 @@
-"""Locks the cube contract (docs/CUBE_SCHEMA.md): slice schemas, slice contents, the manifest and events.json.
+"""Locks the cube contract (docs/CUBE_SCHEMA.md): slice schemas, slice contents, the manifest, events.json and reconciliation.json.
 
 Regenerate deliberately with UPDATE_GOLDEN=1 and review the diff: a golden change is a contract change.
 
@@ -53,7 +53,9 @@ def built_contract(tmp_path, workspace) -> tuple[dict, dict]:
     # update, and a change in what the site downloads never passes unnoticed.
     manifest = json.loads((public / "manifest.json").read_text(encoding="utf-8"))
     events = json.loads((public / "events.json").read_text(encoding="utf-8"))
-    contract = {"manifest": manifest, "slices": {}, "pairs": {}, "facts": {}, "associations": {}, "events": events}
+    reconciliation = json.loads((public / manifest["reconciliation"]["file"]).read_text(encoding="utf-8"))
+    contract = {"manifest": manifest, "slices": {}, "pairs": {}, "facts": {}, "associations": {}, "events": events,
+                "reconciliation": reconciliation}
     for kind, folder in (("slices", "cube"), ("pairs", "pairs"), ("facts", FACTS_DIR)):
         for path in sorted((public / folder).rglob("*.parquet")):
             contract[kind][path.relative_to(public / folder).as_posix()] = read_slice(path)
@@ -75,6 +77,7 @@ def test_cube_matches_golden(tmp_path, workspace):
         for name, doc in expected[kind].items():
             assert contract[kind][name] == doc, name
     assert contract["associations"] == expected["associations"]
+    assert contract["reconciliation"] == expected["reconciliation"]
 
 
 def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):
