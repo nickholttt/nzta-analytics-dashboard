@@ -698,7 +698,14 @@ than half of what it published is past the bound; a source that is a copy of our
 shown, never counted); a month or a dataset we do not hold, a value we do not hold, or a hidden cell (all `not_compared`).
 `pipeline/tests/test_reconcile.py` has a test for each.
 
-What size of error stops a build. On the 336 rows committed on 2026-11-23, measured by putting our figure beside each row's, scaled, through the real functions (`test_reconcile.py`, "live rows"): an error that moves every one of our figures by 2.1%, either way, stops the build in each of the 22 months (2.0% only where rounding tips it, 1.5% in none); 3%, 5% and 6% stop it in a month where three sources have rows and in a month where two do; 5% of the passenger vehicles counted as commercial stops it in all 22 months, on the low side; and a source restating its history 10% higher or lower, in every month, never does.
+What size of error stops a build. On the 336 rows committed on 2026-11-23, measured through the real functions (`test_reconcile.py`, "live rows", and the review of 2026-11-23):
+
+- Starting from figures equal to each source's: an error that moves every one of our figures by 2.1%, either way, stops the build in each of the 22 months (2.0% only where rounding tips it, 1.5% in none).
+- Starting from the October 2026 build's own figures, which sit up to 0.7% under the sources': 2.1% lower stops it in every month; higher, 2.5% stops 21 of the 22 months and 2.8% all of them.
+- 3%, 5% and 6%, either way, stop it in every month, and in one month alone whether three sources have rows there or two.
+- 5% of the passenger vehicles, new and used alike, counted as commercial stops it in all 22 months, on the low side.
+- **What it does not stop.** The same fault among new vehicles only, at 5%, 10% and 20%: the new passenger figure is under half of what vstat and the MIA publish for a month, so only Stats NZ breaches. It warns on 71 rows and the build goes on. A fault confined to one kind of figure is a warning to read, not a stop.
+- A source restating its history 10% higher or lower, in every month, never stops a build.
 
 ```json
 {

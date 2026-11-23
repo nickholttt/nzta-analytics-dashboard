@@ -408,7 +408,10 @@ other and not with ours: in one month, at least two independent sources, and mor
 have a compared row that month, each have half or more of what they published (the weight of a row is its figure, so a total
 and its parts both count) in rows further from ours than twice their tolerance, never less than 2%, on the same side. A month
 with compared rows from fewer than two independent sources cannot stop a build. The numbers are in `config/pipeline.json`
-(`reconciliation.hard_limit`); the whole rule is in `docs/CUBE_SCHEMA.md`. On the 336 rows committed on 2026-11-23, measured by putting our figure beside each row's, scaled, through the real functions (`test_reconcile.py`, "live rows"): an error that moves every one of our figures by 2.1%, either way, stops the build in each of the 22 months (2.0% only where rounding tips it, 1.5% in none); 3%, 5% and 6% stop it in a month where three sources have rows and in a month where two do; 5% of the passenger vehicles counted as commercial stops it in all 22 months, on the low side; and a source restating its history 10% higher or lower, in every month, never does.
+(`reconciliation.hard_limit`); the whole rule is in `docs/CUBE_SCHEMA.md`. On the 336 rows
+committed on 2026-11-23, an error of 3% or more in all of our figures, either way, stops the build in every month, and a
+fault confined to one kind of figure (new passenger vehicles counted as commercial, at any size tried) only warns; the
+measured sizes are in `docs/CUBE_SCHEMA.md`, "What size of error stops a build".
 
 What it holds (read on 2026-11-23, for January 2025 to October 2026): 336 rows.
 
