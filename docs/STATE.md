@@ -68,9 +68,8 @@ engine is frozen for features, lane B's reconciliation apart (D-148).
 3. "Area Outside Region" (the Chatham Islands) reaches visitors as is.
 4. Mild hybrids are identified for about 80% of hybrids at high confidence (D-110, D-119).
 5. `/method`, `/caveats` and `/differences` are hand-written and fall behind at each refresh.
-6. A share by model draws 300 lines; `/build/` skips a heading level.
-7. New vehicles read 1.4% to 3.9% under published totals on the default scope and 0.06% to
-   1.3% under on the wider one, cause not established (D-105, D-113).
+6. A share by model draws 300 lines; `/build/` skips a heading level. New vehicles read 1.4%
+   to 3.9% under published totals on the default scope, 0.06% to 1.3% on the wider (D-113).
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -78,8 +77,6 @@ engine is frozen for features, lane B's reconciliation apart (D-148).
   surfaces"; it changes when Build is folded into the canvas (D-148).
 - `docs/DATA_MAP.md` lists ten places where it disagrees with other files; each is fixed when
   its field is next touched.
-- `docs/playbooks/refresh-public-data.md` says to ask before replacing `public/data`; on 20
-  November it was replaced without asking, the old copy kept (CHECKPOINT, decided for the user).
 
 ## Blocked or waiting on the user
 
