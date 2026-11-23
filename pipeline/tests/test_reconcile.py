@@ -96,7 +96,7 @@ def stage(tmp_path):
 def figure_row(**given) -> dict:
     row = {"source": "source_a", "source_url": "https://a.example/page", "date_read": "2026-11-20", "month": "2026-02",
            "measure_as_published": "Measure one", "figure": "1040", "dataset": FLOW, "filters": "", "tolerance_pct": "2",
-           "known_difference": ""}
+           "known_difference": "", "added_up_from": ""}
     row.update(given)
     return row
 
@@ -212,6 +212,10 @@ def test_a_missing_file_aborts_loudly(tmp_path):
     ({"filters": '{"import_status": ["a"], "import_status": ["b"]}'}, "names ['import_status'] more than once"),
     ({"filters": '{"no_such_dimension": ["a"]}'}, "cannot be filtered by no_such_dimension"),
     ({"dataset": SERIES, "filters": '{"import_status": ["a"]}'}, "cannot be filtered by import_status"),
+    ({"added_up_from": "Chart"}, "added_up_from must be blank, or lower case words"),
+    ({"added_up_from": "chart_data"}, "added_up_from must be blank, or lower case words"),
+    ({"added_up_from": "two  words"}, "added_up_from must be blank, or lower case words"),
+    ({"added_up_from": "page 2"}, "added_up_from must be blank, or lower case words"),
 ])
 def test_a_bad_figure_row_is_refused_and_named(tmp_path, change, fragment):
     problems = problems_of(tmp_path, [figure_row(), figure_row(**{"measure_as_published": "Measure two", **change})])
@@ -241,6 +245,11 @@ def test_two_dimensions_that_no_published_table_holds_are_found_before_the_build
     # Two dimensions the fact table does carry, and one dimension a slice answers, are fine.
     assert problems_of(tmp_path, [figure_row(dataset=SURVIVING, filters='{"import_status": ["a"], "make": ["b"]}'),
                                   figure_row(dataset=SURVIVING, measure_as_published="Two", filters='{"region": ["b"]}')]) == []
+
+
+def test_what_a_figure_was_added_up_from_is_one_or_more_lower_case_words_or_blank(tmp_path):
+    ok = [figure_row(added_up_from=words, measure_as_published=words or "blank") for words in ("", "chart", "made up table")]
+    assert problems_of(tmp_path, ok) == []
 
 
 def test_every_problem_is_reported_at_once(tmp_path):
@@ -740,7 +749,8 @@ def test_live_rows_against_the_figures_of_a_dry_run_build_do_not_stop_it():
 # --- the document ----------------------------------------------------------------------------------------------------------
 
 def test_the_document_gives_the_site_everything_it_needs(tmp_path):
-    figures = [figure_row(source="source_b", month="2026-03", figure="1500", filters='{"import_status": ["fixture_new"]}'),
+    figures = [figure_row(source="source_b", month="2026-03", figure="1500", filters='{"import_status": ["fixture_new"]}',
+                          added_up_from="made up table"),
                figure_row(source="source_a", month="2026-02", figure="1040"), figure_row(source="source_a", month="2027-01")]
     result = reconcile_figures(tmp_path, figures)
     doc = json.loads(json.dumps(result.document))
@@ -752,6 +762,8 @@ def test_the_document_gives_the_site_everything_it_needs(tmp_path):
     assert doc["sources"]["source_a"]["definition"] is None and doc["sources"]["source_d"]["independent"] is False
     # A basis nobody stated is null, not an empty string.
     assert doc["sources"]["source_a"]["data_basis"] is None
+    # What a figure was added up from is a string, or null for a figure the source prints itself.
+    assert [r["added_up_from"] for r in doc["rows"]] == [None, "made up table", None]
     summary = doc["summary"]
     assert summary["rows"] == 3 and summary["months"] == {"first": "2026-02", "last": "2027-01"}
     assert summary["by_status"] == {"pass": 1, "warn": 1, "fail": 0, "not_compared": 1}
@@ -761,8 +773,8 @@ def test_the_document_gives_the_site_everything_it_needs(tmp_path):
                                      "hard_limit_min_sources": 2, "hard_limit_source_vehicle_share": 0.5}
     assert [(r["month"], r["source"]) for r in doc["rows"]] == [("2026-02", "source_a"), ("2026-03", "source_b"), ("2027-01", "source_a")]
     assert set(doc["rows"][0]) == {"source", "month", "measure_as_published", "dataset", "filters", "ours", "theirs", "gap", "gap_pct",
-                                   "tolerance_pct", "hard_bound_pct", "known_difference", "status", "reason_kind", "reason",
-                                   "source_url", "date_read"}
+                                   "tolerance_pct", "hard_bound_pct", "known_difference", "added_up_from", "status",
+                                   "reason_kind", "reason", "source_url", "date_read"}
     assert not any(k.startswith("_") for r in doc["rows"] for k in r)
     assert result.entry == {"file": "reconciliation.json", "rows": 3, "by_status": summary["by_status"], "months": summary["months"]}
 

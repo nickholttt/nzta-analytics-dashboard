@@ -47,7 +47,7 @@ from .reference import quote
 CUBE_DIR = "cube"
 
 FIGURE_COLUMNS = ["source", "source_url", "date_read", "month", "measure_as_published", "figure", "dataset", "filters",
-                  "tolerance_pct", "known_difference"]
+                  "tolerance_pct", "known_difference", "added_up_from"]
 SOURCE_COLUMNS = ["id", "name", "home_url", "independent", "definition", "definition_date_read", "data_basis"]
 
 PASS, WARN, FAIL, NOT_COMPARED = "pass", "warn", "fail", "not_compared"
@@ -62,6 +62,7 @@ MONTH = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])")
 DAY = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 WHOLE = re.compile(r"[0-9]+")
 DECIMAL = re.compile(r"[0-9]+(\.[0-9]+)?")
+WORDS = re.compile(r"[a-z]+( [a-z]+)*")
 TRUE, FALSE = "true", "false"
 
 Filters = tuple[tuple[str, tuple[str, ...]], ...]
@@ -79,6 +80,7 @@ class Figure(NamedTuple):
     filters: Filters
     tolerance: Decimal
     known_difference: str
+    added_up_from: str
 
     @property
     def label(self) -> str:
@@ -298,11 +300,13 @@ def parse_figures(cfg, c: dict, sources: dict[str, Source]) -> tuple[list[Figure
                        if held else "it has no fact table")
                 bad.append(f"{dataset} has no published table holding {', '.join(d for d, _ in filters)} together: {why}, and a slice "
                            "holds one dimension only")
+        if row["added_up_from"] and not WORDS.fullmatch(row["added_up_from"]):
+            bad.append("added_up_from must be blank, or lower case words saying what of the source's the figure was added up from")
         problems += [f"{where}: {b}" for b in bad]
         if bad:
             continue
         figure_row = Figure(line, row["source"], row["source_url"], row["date_read"], row["month"], row["measure_as_published"],
-                            figure, dataset, filters, tolerance, row["known_difference"])
+                            figure, dataset, filters, tolerance, row["known_difference"], row["added_up_from"])
         if figure_row.key in seen:
             problems.append(f"{where}: the same source, month, measure and filters as line {seen[figure_row.key]}")
             continue
@@ -544,6 +548,7 @@ def judge(fig: Figure, answer: Answer, multiple: Decimal, floor: Decimal, decima
         "tolerance_pct": float(fig.tolerance),
         "hard_bound_pct": float(bound),
         "known_difference": fig.known_difference or None,
+        "added_up_from": fig.added_up_from or None,
         "status": NOT_COMPARED,
         "reason_kind": answer.kind,
         "reason": answer.reason,

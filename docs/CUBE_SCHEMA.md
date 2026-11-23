@@ -727,11 +727,11 @@ What size of error stops a build. On the 336 rows committed on 2026-11-23, measu
     { "source": "source_a", "month": "2026-09", "measure_as_published": "Measure as the source words it",
       "dataset": "registrations_flow", "filters": { "import_status": ["a value"] },
       "ours": 1040, "theirs": 1020, "gap": 20, "gap_pct": 1.9608, "tolerance_pct": 2.0, "hard_bound_pct": 4.0,
-      "known_difference": null, "status": "pass", "reason_kind": null, "reason": null,
+      "known_difference": null, "added_up_from": null, "status": "pass", "reason_kind": null, "reason": null,
       "source_url": "https://a.example/page", "date_read": "2026-11-20" },
     { "source": "source_a", "month": "2026-11", "measure_as_published": "Measure as the source words it",
       "dataset": "registrations_flow", "filters": {}, "ours": null, "theirs": 1100, "gap": null, "gap_pct": null,
-      "tolerance_pct": 2.0, "hard_bound_pct": 4.0, "known_difference": null, "status": "not_compared",
+      "tolerance_pct": 2.0, "hard_bound_pct": 4.0, "known_difference": null, "added_up_from": "chart", "status": "not_compared",
       "reason_kind": "month_not_held", "reason": "Our registrations_flow data holds 2021-01 to 2026-10 in this build, so 2026-11 is outside it and is not compared.",
       "source_url": "https://a.example/page", "date_read": "2026-11-20" }
   ]
@@ -741,7 +741,9 @@ What size of error stops a build. On the 336 rows committed on 2026-11-23, measu
 (The values are made up, to show the shape.) Rows are sorted by month, then source, measure and filters, so the file does not
 depend on the order of the CSV; `sources` holds every source of `published_sources.csv` in file order, so a page can state a
 definition without knowing a source by name (`data_basis` is the few words the source's row states about what its figures are
-made from, or null when the cell is blank, `definition` and `definition_date_read` likewise); `summary.by_source` lists every source, with zeros for one that has no rows. The
+made from, or null when the cell is blank, `definition` and `definition_date_read` likewise); a row's `added_up_from` is the
+lower case words its row states about what of the source's the figure was added up from, or null for a figure the source
+prints itself, so a page can say "added up from <the source's name>'s published <those words>"; `summary.by_source` lists every source, with zeros for one that has no rows. The
 file has no time in it: the same cube and the same two reference files always write the same bytes. It is written with `\n`
 line endings and counts towards `payload_bytes`. With no rows in `published_figures.csv` the file is the same shape with
 `rows: []`, null months and all counts zero. The manifest's `reconciliation` entry is `{ "file", "rows", "by_status", "months" }`,

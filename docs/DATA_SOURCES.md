@@ -383,6 +383,7 @@ and our true registrations are its export, so it would not be independent.
 | `filters` | the question put to that dataset (below); blank for the dataset's whole total |
 | `tolerance_pct` | how far ours may be from theirs, as a percentage of theirs, before the row warns; 0 up to `reconciliation.max_tolerance_pct` in `config/pipeline.json` |
 | `known_difference` | a short note where a difference is known and explained; blank otherwise. It is shown beside the row and never used to hide it |
+| `added_up_from` | blank when the figure is one the source prints itself. Otherwise one or more lower case words (letters and single spaces, refused otherwise) saying what of the source's the figure was added up from, such as `chart` or `table`; the site writes "added up from <the source's name>'s published <these words>" beside the figure |
 
 **Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
 datasets (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it counts first
@@ -434,10 +435,11 @@ How each was read, and what that means for a row:
   again from a second download of that file on the same day and agree.
 - vstat: its page for new vehicles carries the data its charts draw, by month, powertrain and model. A total is that
   data added across powertrains, and the ten largest models of a month are the ten largest sums: vstat prints neither as
-  text for a past month. For October 2026 the page's own text gives the same four figures. A model is set beside the wider
+  text for a past month. Every one of its 286 rows says so in its measure and has `added_up_from` `chart`. For October 2026 the page's own text gives the same four figures. A model is set beside the wider
   scope because vstat's count of a van takes in its minibus and camper versions, which the default scope leaves out.
 - The MIA: one table, published as an image, read by eye by two readers. Its two commercial figures are added, and the
-  row's measure says so, because our figures cannot separate light from heavy commercial vehicles. Its months before
+  row's measure says so (and `added_up_from` is `table` on those two rows, the only ones of the MIA that have it), because our
+  figures cannot separate light from heavy commercial vehicles. Its months before
   October 2026 are not public: the two October 2025 rows are the year-earlier column of the October 2026 table.
 
 Left out, because our figures have no matching question: vstat's used import commercial vehicles (a few hundred a month,

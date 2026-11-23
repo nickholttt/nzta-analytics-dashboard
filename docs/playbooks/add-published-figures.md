@@ -24,6 +24,10 @@ explained, not a way to quiet a warning.
   and from which page, and park the rows until they are supplied.
 - The figure is a whole number as the source prints it, with no thousands separator and no unit. A source that gives a rounded
   figure ("about 12,400") gives a wide tolerance, and the row says so in `known_difference`.
+- A figure the source does not print, and that was worked out from what its page does show (a total added across the page's
+  chart data, two lines of a table added together), states what it was added up from in `added_up_from` (a few lower case
+  words, such as `chart` or `table`), and the public page labels it so: "added up from <the source's name>'s published
+  <those words>". A figure the source prints itself leaves the column blank.
 - `measure_as_published` is the source's wording, so the page can say what was compared. The rows of one source, one month and
   one measure are told apart by their filters (a "top ten models" figure is one row per model, each with its `MAKE|MODEL`).
 - Choose the dataset by what the source counts: first registrations are `registrations_flow` (the default scope) or
