@@ -24,7 +24,7 @@ import pytest
 from pipeline import build, config, metrics, supplied
 from pipeline.errors import GuardrailError
 
-from .conftest import FIXTURES, NOW, load_rows, make_cfg, source_for, write_pages
+from .conftest import FIXTURES, NOW, frozen_published_reference, load_rows, make_cfg, source_for, write_pages
 from .test_statsnz_supply import EXPORT, FIRST_DATA_LINE, MONTHS, TAKEN, edited
 
 ROOT = Path(__file__).resolve().parent.parent.parent
@@ -553,7 +553,8 @@ def with_scope_file(tmp_path, workspace, name: str, edit):
     """A configuration whose vehicle scope file is the real one after `edit(rows)`; the stores are the workspace's."""
     vehicle = REAL.pipeline["scope"]["vehicle"]
     reference_dir = tmp_path / name
-    shutil.copytree(REAL.reference("x").parent, reference_dir)
+    # The frozen copy: the live published figures are real figures, which a fixture history of a few vehicles would stop (D-149).
+    shutil.copytree(frozen_published_reference(), reference_dir)
     path = reference_dir / vehicle["file"]
     with path.open(encoding="utf-8", newline="") as fh:
         reader = csv.DictReader(fh)
