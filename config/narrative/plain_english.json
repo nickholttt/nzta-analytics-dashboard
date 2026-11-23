@@ -34,7 +34,9 @@
     { "file": "config/measures.json", "skip_keys": ["requires_reference"], "reason": "The name of a reference file the code reads, not a sentence." },
     "config/my_questions.json",
     { "file": "config/presets.json", "skip_keys": ["requires"], "reason": "What a blocked chart waits on is listed on the internal status page, which the public build leaves out." },
-    "config/site.json"
+    "config/site.json",
+    "config/starter_canvases.json",
+    "config/narrative/chart_sentences.json"
   ],
   "$config_files_comment": "The files whose words a page loads or is built from. config/pipeline.json is left out: it holds the monthly update's own settings and no sentence a visitor reads (it is read here only for its dataset ids). A key beginning with $ is a note to the maintainer and is never read.",
   "word_keys": ["label", "title", "name", "phrase", "text", "heading", "description", "definition", "help", "note", "caption", "legend", "question", "reason", "message", "summary", "unit", "placeholder"],

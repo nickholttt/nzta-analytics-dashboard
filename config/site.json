@@ -66,7 +66,7 @@
     "pages": {
       "explore": {
         "title": "Start from a question",
-        "description": "Charts that answer common questions about the vehicles registered in New Zealand, each with its definition, its source and its snapshot date."
+        "description": "Ready-made pages of charts that answer common questions about the vehicles registered in New Zealand. Change any chart, or start an empty page of your own."
       },
       "canvas": {
         "title": "Canvas: build your own charts",
