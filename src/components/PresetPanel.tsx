@@ -19,7 +19,10 @@ import { fillNote, noteContext, noteStatesAFigure } from "../lib/notes";
 import { NOT_RECORDED_TOKEN } from "../lib/sentences";
 import { datasetCovers, fitsPin, latestMonthOf, presetView, rankingPeriods, resolvePreset, servedFrom } from "../lib/resolve";
 import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
+import { recordingChange } from "../lib/recordingChange";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
+import { SentenceContext } from "./ChartSentence";
+import type { SentenceApi } from "./ChartSentence";
 import { DistributionChart } from "./DistributionChart";
 import { GeoChart } from "./GeoChart";
 import { FiguresContext, TableOnlyContext } from "./FiguresContext";
@@ -252,7 +255,6 @@ export default function PresetPanel({
   }, [near, wanted, sentinel]);
   // What a visitor is told when the query service fails: its own sentence, not the reload advice for a file.
   const [serviceError, setServiceError] = useState<string | null>(null);
-
   const handleGranularityChange = (newId: string) => {
     setActiveGranularityId(newId);
     if (defaultGranularityId) {
@@ -303,6 +305,15 @@ export default function PresetPanel({
   }, [snapshot]);
 
   const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
+  // The one sentence under the chart on show (src/components/ChartSentence.tsx): the chart works it out and registers it here, so the chart's
+  // figure, or the table that stands for it, can point at it. It also tells a chart whether a change in how the data is recorded lies between
+  // two months it would compare (invariant 7).
+  const [sentence, setSentence] = useState<string | undefined>(undefined);
+  const narrowedChart = Boolean(resolution?.narrowedBy || resolution?.keptBy?.some((k) => k.values.length > 0));
+  const sentenceApi = useMemo<SentenceApi>(
+    () => ({ id: `${presetId}-sentence`, text: sentence, narrowed: narrowedChart, set: setSentence, recording: (from, to, scope) => recordingChange(events, from, to, scope) }),
+    [presetId, sentence, narrowedChart, events],
+  );
   // The months the dataset covers, for every figure that sums a window: a month inside them in which a condition keeps nothing has no
   // rows and holds no vehicles (docs/METRICS.md, "Months in which nothing is counted"). One object until the preset, the build or the
   // first month changes, so the charts that read it do not recompute on every render of the panel.
@@ -819,6 +830,7 @@ export default function PresetPanel({
     return (
       <FiguresContext.Provider value={registerFigures}>
         <TableOnlyContext.Provider value={tableOnly}>
+          <SentenceContext.Provider value={sentenceApi}>
           <div className={panelClass} id={preset.id} ref={setSentinel}>
             <header className="chart-card-head">
               <div className="chart-card-heading">
@@ -853,7 +865,12 @@ export default function PresetPanel({
             {tableOnly && chart ? (
               <>
                 <div hidden>{chart}</div>
-                <FiguresView getter={hasFigures ? figuresGetter.current : null} label={`${cardWords?.table ?? ""}: ${preset.question}`} loading={cardWords?.tableLoading ?? ""} />
+                <FiguresView getter={hasFigures ? figuresGetter.current : null} label={`${cardWords?.table ?? ""}: ${preset.question}`} loading={cardWords?.tableLoading ?? ""} describedBy={sentence ? sentenceApi.id : undefined} />
+                {sentence ? (
+                  <p className="chart-sentence" id={sentenceApi.id}>
+                    {sentence}
+                  </p>
+                ) : null}
               </>
             ) : (
               chart
@@ -874,6 +891,7 @@ export default function PresetPanel({
               ) : null}
             </footer>
           </div>
+          </SentenceContext.Provider>
         </TableOnlyContext.Provider>
       </FiguresContext.Provider>
     );
@@ -881,6 +899,7 @@ export default function PresetPanel({
 
   return (
     <FiguresContext.Provider value={registerFigures}>
+    <SentenceContext.Provider value={sentenceApi}>
     <section className={panelClass} id={preset.id} ref={setSentinel}>
       <header className="panel-head">
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
@@ -989,6 +1008,7 @@ export default function PresetPanel({
         </p>
       ) : null}
     </section>
+    </SentenceContext.Provider>
     </FiguresContext.Provider>
   );
 }

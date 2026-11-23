@@ -1,8 +1,10 @@
 // mix: share of each value over time, as lines. Months under the share guard are greyed, not hidden.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo, useState } from "react";
-import { chartDefaults, phrases } from "../lib/config";
+import { chartDefaults, datasetWords, phrases } from "../lib/config";
 import { fillTemplate } from "../lib/sentences";
+import { mixSentence } from "../lib/chartSentence";
+import { chartSentences } from "../lib/chartWords";
 import type { Dimension, Preset } from "../lib/config";
 import { compositionStart } from "../lib/composition";
 import type { Event, Manifest, SliceRow } from "../lib/data";
@@ -24,6 +26,7 @@ import { axisTop, countIn, figureAt, greyedAt, keyWindow, shareLine } from "../l
 import { monthPeriod, readout, withheldThin } from "../lib/readout";
 import { cellText } from "../lib/figures";
 import type { Cell, Column } from "../lib/figures";
+import { ChartSentence, useComparable } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
 import type { Greyed } from "../lib/readout";
 import {
@@ -461,6 +464,21 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
   );
   useFigures(figuresGetter);
 
+  // The sentence under the chart: the largest share over the last 12 months and how it moved on the 12 months before, as the table gives them. The
+  // comparison is left out where the table withholds it or a change in how the data is recorded lies in the 24 months compared.
+  const comparable = useComparable();
+  const sentence = (() => {
+    const sameBasis = comparable(addMonths(latest, -(2 * TRAILING_MONTHS - 1)), latest, { dimension: dimension.id, values: new Set(model.series) });
+    const parts = model.summary.map(({ series, before, shown, remainder }, i) => ({
+      name: label(series),
+      share: shown,
+      delta: sameBasis && shown !== undefined && summaryRows[i].changeShown ? shown - before.n / before.denominator : undefined,
+      skip: remainder || isReserved(series),
+    }));
+    const recent = fillTemplate(datasetWords(preset.dataset)?.recent_figure ?? "in the last {months} months", { months: TRAILING_MONTHS }).text;
+    return mixSentence(chartSentences, parts, { recent, months: TRAILING_MONTHS }, { share: pct, points: shareChange });
+  })();
+
   return (
     <>
       <div className="controls">
@@ -484,6 +502,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
         onWidth={setFigureWidth}
         label={`Line chart, ${monthLabel(model.win.from)} to ${monthLabel(model.win.to)}: ${(smoothingOption?.axis ?? "share").toLowerCase()}, one line per group. The table below the chart gives each group's share over the last ${TRAILING_MONTHS} months.`}
       />
+      <ChartSentence text={sentence} />
       <table className="key">
         <thead>
           <tr>

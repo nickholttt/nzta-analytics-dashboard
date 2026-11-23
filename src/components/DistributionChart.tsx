@@ -1,14 +1,18 @@
 // distribution: an ordered band dimension over the preset's period, in band order from dimensions.json.
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo } from "react";
-import { datasetWords, lowerLabel } from "../lib/config";
+import { datasetWords, findDataset, lowerLabel } from "../lib/config";
 import type { Dimension, Preset } from "../lib/config";
 import type { Manifest, SliceRow } from "../lib/data";
 import { monthLabel, pct, periodWindow } from "../lib/measures";
+import { groupsSentence, isReservedValue, periodPhrase } from "../lib/chartSentence";
+import { chartSentences } from "../lib/chartWords";
+import { countedText } from "../lib/sentences";
 import { latestMonthOf } from "../lib/resolve";
 import { count, readout, spanPeriod, withheldThin } from "../lib/readout";
 import type { Cell } from "../lib/figures";
 import { RULE, RULE_STRONG, SERIES, SUPPRESSED_LINE, chartHeight, plotStyle, tipStyle } from "../lib/theme";
+import { ChartSentence } from "./ChartSentence";
 import { FiguresTable } from "./FiguresTable";
 import { PlotFigure } from "./PlotFigure";
 
@@ -100,6 +104,25 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
     [model, label, lead, heading, minDenominator],
   );
 
+  // The sentence under the chart: the band that holds the most vehicles, and its share or count as the chart gives it. A share the chart withholds
+  // (too few vehicles behind it) is not stated, and a band that stands for vehicles with no value is no competitor for first.
+  const words = datasetWords(preset.dataset);
+  const period = findDataset(preset.dataset)?.single_period && words?.window_one ? words.window_one : periodPhrase(chartSentences, model.win.from, model.win.to);
+  const sentence = period
+    ? groupsSentence(
+        chartSentences,
+        model.bars.map((b) => ({
+          name: label(b.value),
+          n: b.n,
+          share: model.share && !model.suppressed ? b.y : undefined,
+          skip: isReservedValue(b.value) || Boolean(dimension.bands?.find((band) => band.label === b.value)?.unknown),
+        })),
+        model.share ? "share" : "count",
+        { field: lowerLabel(heading), period, counted: (n) => countedText(words?.leader_count, n, period) },
+        { share: pct },
+      )
+    : undefined;
+
   return (
     <>
       <p className="chart-unit">
@@ -110,6 +133,7 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
         render={render}
         label={`Bar chart, ${spanPeriod(model.win.from, model.win.to)}: the ${model.share ? "share" : "number"} of vehicles by ${lowerLabel(heading)}, one bar for each band.`}
       />
+      <ChartSentence text={sentence} />
       <FiguresTable
         label={`${heading}: figures, ${spanPeriod(model.win.from, model.win.to)}`}
         period={spanPeriod(model.win.from, model.win.to)}

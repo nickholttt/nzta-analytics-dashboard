@@ -11,14 +11,16 @@ type Props = {
   label: string;
   // What to say until the chart has its figures.
   loading: string;
+  // The id of the sentence that describes the figures, once the chart has one.
+  describedBy?: string;
 };
 
-export function FiguresView({ getter, label, loading }: Props) {
+export function FiguresView({ getter, label, loading, describedBy }: Props) {
   if (!getter) return <p className="meta">{loading}</p>;
   const { period, columns, rows } = getter();
   const side = (i: number) => (i === 0 || columns[i]?.text ? "text" : "figure");
   return (
-    <div className="table-scroll figures-view" role="region" aria-label={label} tabIndex={0}>
+    <div className="table-scroll figures-view" role="region" aria-label={label} aria-describedby={describedBy} tabIndex={0}>
       <table className="key">
         <caption className="visually-hidden">{period}</caption>
         <thead>
