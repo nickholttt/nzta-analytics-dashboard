@@ -7,9 +7,11 @@
 //   styles  each stylesheet the page links, gzipped
 //   scripts each script the page names (a script tag, a modulepreload, an island's component or renderer) and every script those import
 //           statically, gzipped. A script loaded later on a visitor's action (a lazy import) is not first load and is not counted
-//   fonts   each @font-face whose unicode-range covers a character of the page's own text, and the Latin face of each family, which the
-//           charts and the canvas draw their text in; as served (woff2 is already compressed)
-//   data    each file the page asks the browser to preload (the manifest), gzipped
+//   fonts   for every page, the Latin and the Latin Extended face of each family the stylesheets declare (a page of New Zealand English
+//           and te reo Maori, with its macrons, can load both, and the charts and the canvas draw their text in them), and any other face
+//           whose unicode-range covers a character of the page's own text; as served (woff2 is already compressed)
+//   data    each file the page asks the browser to preload (the manifest), gzipped. Data a script asks for after it starts (the events
+//           file, a table of figures) is not named by the page's HTML and is not counted
 //   total   the sum of the five
 // gzip stands in for the host's compression (as scripts/measure-first-load.mjs does); a browser that accepts Brotli is sent less.
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -48,7 +50,8 @@ export function pageFiles(root, html) {
 
   const data = [...html.matchAll(/<link\b[^>]*\brel="preload"[^>]*>/gi)].flatMap((m) => (/\bas="fetch"/i.test(m[0]) ? (/\bhref="([^"]+)"/i.exec(m[0])?.[1] ?? []) : [])).map(local).filter(Boolean);
 
-  // The page's own text decides which faces of a family it draws; the Latin face of each family is always counted.
+  // The Latin face of each family (it covers A) and the Latin Extended face (it covers a, o and u with a macron: U+0101, U+014D, U+016B) are
+  // always counted: a page of New Zealand text can draw both. Any other face counts when the page's own text needs it.
   const text = decode(html.replace(/<(script|style|template|head)\b[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]*>/g, " "));
   const codes = new Set([...text].map((c) => c.codePointAt(0)));
   const fonts = new Set();
@@ -59,7 +62,8 @@ export function pageFiles(root, html) {
       const range = /unicode-range\s*:\s*([^;}]+)/i.exec(face)?.[1];
       if (!url) continue;
       const span = range ? ranges(range) : [[0, 0x10ffff]];
-      if (span.some(([a, b]) => 0x41 >= a && 0x41 <= b) || [...codes].some((c) => span.some(([a, b]) => c >= a && c <= b))) fonts.add(url);
+      const covers = (c) => span.some(([a, b]) => c >= a && c <= b);
+      if ([0x41, 0x101, 0x14d, 0x16b].some(covers) || [...codes].some(covers)) fonts.add(url);
     }
   }
   return { styles: [...new Set(styles)], scripts: [...scripts], fonts: [...fonts], data: [...new Set(data)] };
@@ -96,7 +100,7 @@ export function budgetProblems(measured, budget) {
       if (typeof limit !== "number") problems.push(`${page}: the budget names no limit for ${kind}`);
       else if (measured[page][kind] > limit) {
         const over = measured[page][kind] - limit;
-        problems.push(`${page}: ${kind} are ${n(measured[page][kind])} B compressed, over the budget of ${n(limit)} B by ${n(over)} B (${((over / limit) * 100).toFixed(1)}%)`);
+        problems.push(`${page}: ${kind} are ${n(measured[page][kind])} B compressed, over the budget of ${n(limit)} B by ${n(over)} B${limit > 0 ? ` (${((over / limit) * 100).toFixed(1)}%)` : ""}`);
       }
     }
   }

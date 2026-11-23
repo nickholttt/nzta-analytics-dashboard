@@ -14,12 +14,13 @@ import { budgetProblems, measurePages, propose } from "../../scripts/performance
 
 const script = fileURLToPath(new URL("../../scripts/check-performance-budget.mjs", import.meta.url));
 
-// An output with one page, `/`, a stylesheet with two font faces (Latin and Greek), and the scripts given: name -> bytes of text.
+// An output with one page, `/`, a stylesheet with three font faces (Latin, Latin Extended and Greek), and the scripts given: name -> bytes of text.
 function output(scripts: Record<string, string>, page: (links: string) => string, text = "Plain text") {
   const dir = mkdtempSync(join(tmpdir(), "perf-"));
   mkdirSync(join(dir, "_astro"));
-  writeFileSync(join(dir, "_astro", "a.css"), `@font-face{src:url(/_astro/latin.woff2);unicode-range:U+0000-00FF}@font-face{src:url(/_astro/greek.woff2);unicode-range:U+370-3FF}body{color:#000}`);
+  writeFileSync(join(dir, "_astro", "a.css"), `@font-face{src:url(/_astro/latin.woff2);unicode-range:U+0000-00FF}@font-face{src:url(/_astro/latin-ext.woff2);unicode-range:U+100-2BA}@font-face{src:url(/_astro/greek.woff2);unicode-range:U+370-3FF}body{color:#000}`);
   writeFileSync(join(dir, "_astro", "latin.woff2"), randomBytes(1000));
+  writeFileSync(join(dir, "_astro", "latin-ext.woff2"), randomBytes(500));
   writeFileSync(join(dir, "_astro", "greek.woff2"), randomBytes(700));
   for (const [name, source] of Object.entries(scripts)) writeFileSync(join(dir, "_astro", name), source);
   const links = `<link rel="stylesheet" href="/_astro/a.css">${Object.keys(scripts).filter((n) => n.startsWith("entry")).map((n) => `<link rel="modulepreload" href="/_astro/${n}">`).join("")}`;
@@ -40,17 +41,28 @@ test("a page's first load is its HTML, its stylesheets, the scripts it names and
   try {
     const m = measurePages(dir)["/"];
     assert.ok(m.scripts > 300 && m.scripts < 1200, `entry and its static import counted, the lazy one not: ${m.scripts}`);
-    assert.equal(m.fonts, 1000, "Latin text needs the Latin face only");
+    assert.equal(m.fonts, 1500, "plain English text: the Latin and Latin Extended faces, the most a page of New Zealand text can load, and not Greek");
     assert.equal(m.total, m.html + m.scripts + m.styles + m.fonts + m.data);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
+test("a macron costs nothing: a page with one and a page without load the same fonts", () => {
+  const plain = output({}, page, "Taupo");
+  const macron = output({}, page, "Taupō");
+  try {
+    assert.equal(measurePages(plain)["/"].fonts, measurePages(macron)["/"].fonts);
+  } finally {
+    rmSync(plain, { recursive: true, force: true });
+    rmSync(macron, { recursive: true, force: true });
+  }
+});
+
 test("text that needs another face counts that face", () => {
   const dir = output({}, page, "Alpha is α");
   try {
-    assert.equal(measurePages(dir)["/"].fonts, 1700);
+    assert.equal(measurePages(dir)["/"].fonts, 2200, "a face outside Latin and Latin Extended still counts when the text needs it");
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -64,6 +76,12 @@ test("a page over its budget fails, naming the page and the kind; a page within 
   const found = budgetProblems(measured, over) as string[];
   assert.equal(found.length, 1);
   assert.match(found[0], /^\/: scripts are 5,000 B compressed, over the budget of 4,000 B by 1,000 B \(25\.0%\)/);
+});
+
+test("a limit of 0 prints the bytes over, with no percentage", () => {
+  const found = budgetProblems({ "/": { html: 1, scripts: 40, styles: 1, fonts: 1, data: 0, total: 43 } }, { pages: { "/": { html: 1, scripts: 0, styles: 1, fonts: 1, data: 0, total: 43 } } }) as string[];
+  assert.equal(found.length, 1);
+  assert.match(found[0], /scripts are 40 B compressed, over the budget of 0 B by 40 B$/);
 });
 
 test("a built page with no budget, and a budget with no page, both fail", () => {

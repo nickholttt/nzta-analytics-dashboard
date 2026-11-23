@@ -37,4 +37,4 @@ if (problems.length) {
   console.error(`\n${problems.length} problem${problems.length === 1 ? "" : "s"}: a page is over its budget. Make it lighter, or, if the weight is wanted, raise the limit in config/performance_budget.json and say why in the pull request.`);
   process.exit(1);
 }
-console.log(`${root}: ${Object.keys(measured).length} pages, each within its budget (bytes compressed, from the built files).`);
+console.log(`${root}: ${Object.keys(measured).length} pages, each within its budget (bytes compressed, from the built files). The budget counts what a page's own HTML names; data a script asks for after it starts (the events file, a table of figures) is not counted.`);
