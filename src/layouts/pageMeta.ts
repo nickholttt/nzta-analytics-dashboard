@@ -8,7 +8,7 @@ import { PLACEHOLDER_MARK } from "../lib/siteCopy";
 
 export type PageId = keyof typeof siteDoc.meta.pages;
 export type MetaTag = { attribute: "name" | "property"; key: string; content: string };
-export type PageMeta = { title: string; description: string; tags: MetaTag[]; canonical?: string };
+export type PageMeta = { title: string; description: string; tags: MetaTag[]; canonical?: string; needsScript: boolean };
 
 const { meta } = siteDoc;
 
@@ -63,5 +63,5 @@ export function pageMeta(
       );
     }
   }
-  return { title, description: page.description, tags, canonical };
+  return { title, description: page.description, tags, canonical, needsScript: "needs_script" in page && page.needs_script === true };
 }

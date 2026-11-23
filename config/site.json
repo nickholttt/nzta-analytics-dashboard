@@ -1,7 +1,52 @@
 {
-  "$comment": "Words and addresses the public pages share, kept here so each is written once. attribution is the footer's line on every page and the About page's licence statement. The About page's gaps are the user's to fill: each is the text [TO DECIDE: ...], and one search for TO DECIDE finds every one. Replace a value with the real text and the page shows it with no marker; src/pages/about.astro states the page is a draft only while any marker is left. The meta block is what Layout.astro writes into each page's head: a specific title, a one-sentence description and the social card tags. A page's title and description say what the page is, name no figure or year and claim nothing causal. The social card image is emitted only once about.site_address is set, because a card image must be an absolute address; the pictures themselves are public/cards/<page>.png, made by scripts/make-social-cards.mjs from these same titles.",
+  "$comment": "Words and addresses the public pages share, kept here so each is written once. attribution is the footer's line on every page and the About page's licence statement. The About page's gaps are the user's to fill: each is the text [TO DECIDE: ...], and one search for TO DECIDE finds every one. Replace a value with the real text and the page shows it with no marker; src/pages/about.astro states the page is a draft only while any marker is left. The meta block is what Layout.astro writes into each page's head: a specific title, a one-sentence description and the social card tags. A page's title and description say what the page is, name no figure or year and claim nothing causal. The social card image is emitted only once about.site_address is set, because a card image must be an absolute address; the pictures themselves are public/cards/<page>.png, made by scripts/make-social-cards.mjs from these same titles. nav and footer_links are the links every page carries, in order (each id is the page's activeNav); skip_link is the first thing a keyboard visitor reaches.",
   "attribution": "Data sources: NZ Transport Agency (NZTA) Motor Vehicle Register and, where a chart says so, NZTA's registrations dashboard, both released under CC BY 4.0. Figures describe registrations recorded by NZTA, not sales.",
   "issues_url": "https://github.com/nickholttt/nzta-analytics-dashboard/issues",
+  "nav": [
+    {
+      "id": "explore",
+      "href": "/",
+      "label": "Explore"
+    },
+    {
+      "id": "canvas",
+      "href": "/canvas",
+      "label": "Canvas"
+    },
+    {
+      "id": "build",
+      "href": "/build",
+      "label": "Build a chart"
+    },
+    {
+      "id": "method",
+      "href": "/method",
+      "label": "Methodology"
+    },
+    {
+      "id": "caveats",
+      "href": "/caveats",
+      "label": "Data Caveats"
+    }
+  ],
+  "footer_links": [
+    {
+      "id": "about",
+      "href": "/about",
+      "label": "About"
+    },
+    {
+      "id": "differences",
+      "href": "/differences",
+      "label": "Why these figures differ from others"
+    },
+    {
+      "id": "feedback",
+      "href": "/feedback",
+      "label": "Feedback and corrections"
+    }
+  ],
+  "skip_link": "Skip to the content",
   "about": {
     "site_name": "[TO DECIDE: the site's name]",
     "site_address": "[TO DECIDE: the site's web address]",
@@ -17,18 +62,22 @@
     "card_width": 1200,
     "card_height": 630,
     "card_foot": "Built on NZTA open data",
+    "noscript": "The charts on this page are drawn by a script, and scripts are switched off in this browser. Turn them on to see the charts. The Methodology page says what each figure counts and needs no script.",
     "pages": {
       "explore": {
         "title": "Start from a question",
-        "description": "Charts that answer common questions about the vehicles registered in New Zealand, each with its definition, its source and its snapshot date."
+        "description": "Charts that answer common questions about the vehicles registered in New Zealand, each with its definition, its source and its snapshot date.",
+        "needs_script": true
       },
       "canvas": {
         "title": "Canvas: build your own charts",
-        "description": "Build a page of charts from New Zealand's vehicle register: choose what to count, what to compare and which vehicles to include."
+        "description": "Build a page of charts from New Zealand's vehicle register: choose what to count, what to compare and which vehicles to include.",
+        "needs_script": true
       },
       "build": {
         "title": "Build a chart from the register",
-        "description": "Ask your own question of New Zealand's vehicle register: what to show, what to compare and which vehicles to count."
+        "description": "Ask your own question of New Zealand's vehicle register: what to show, what to compare and which vehicles to count.",
+        "needs_script": true
       },
       "method": {
         "title": "Methodology and metric definitions",

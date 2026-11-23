@@ -59,6 +59,11 @@ test("a page kept out of search engines carries a title and a description but no
   assert.equal(meta.canonical, undefined);
 });
 
+test("a page whose charts are drawn by a script says so, for a visitor with scripts off; a page of plain text does not", () => {
+  for (const id of ["explore", "canvas", "build"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, true, id);
+  for (const id of ["method", "caveats", "about", "feedback", "differences", "not_found"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, false, id);
+});
+
 test("the site's name is written only once it is decided", () => {
   assert.equal(tag(pageMeta("about", { pathname: "/about/", siteName: "[TO DECIDE: the site's name]" }).tags, "og:site_name"), undefined);
   assert.equal(tag(pageMeta("about", { pathname: "/about/", siteName: "A name" }).tags, "og:site_name"), "A name");
