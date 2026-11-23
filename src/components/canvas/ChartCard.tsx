@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { questionParams } from "../../lib/builder";
 import type { Vocabulary } from "../../lib/builder";
-import { awaitsValues, canvasSpec, chartPreset, chartQuestion, fieldLabel, say } from "../../lib/canvas";
+import { awaitsValues, canvasSpec, chartHeading, chartPreset, chartQuestion, fieldLabel, say } from "../../lib/canvas";
 import type { CanvasChart } from "../../lib/canvas";
 import type { Manifest } from "../../lib/data";
 import { pinLine } from "../../lib/kept";
@@ -65,6 +65,8 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
     if (!moving) setOver(false);
   }, [moving]);
   const preset = useMemo(() => chartPreset(chart, (v) => valueLabel(v, chart.question.by ?? undefined)), [chart]);
+  // The Explore question the chart stands for, if its question is still that one; the generated title is then the line under it.
+  const heading = chartHeading(chart);
   const awaiting = awaitsValues(all, chart);
   // Where the chart reads its figures from: the newest snapshot, or the kept one it is pinned to (src/lib/kept.ts). Undefined until that
   // is known, so a pinned chart is never drawn from one snapshot and then another.
@@ -209,7 +211,8 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
         <div className="chart-card-body">
           <header className="chart-card-head">
             <div className="chart-card-heading">
-              <h2 className="chart-card-title">{preset?.question}</h2>
+              <h2 className="chart-card-title">{heading ?? preset?.question}</h2>
+              {heading ? <p className="chart-card-line">{preset?.question}</p> : null}
             </div>
             {headerEnd}
           </header>
@@ -225,7 +228,7 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
           )}
         </div>
       ) : preset ? (
-        <PresetPanel key={panelKey} preset={preset} frame="card" audience="public" anchored={false} controlsSlot={periodSlot} tableOnly={chart.table} headerEnd={headerEnd} cardWords={cardWords} snapshot={keptFolder} onFirstMonth={(month) => setFirstSeen({ key: panelKey, month })} />
+        <PresetPanel key={panelKey} preset={preset} heading={heading} frame="card" audience="public" anchored={false} controlsSlot={periodSlot} tableOnly={chart.table} headerEnd={headerEnd} cardWords={cardWords} snapshot={keptFolder} onFirstMonth={(month) => setFirstSeen({ key: panelKey, month })} />
       ) : null}
     </article>
   );

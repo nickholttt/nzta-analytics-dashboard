@@ -14,6 +14,7 @@ import { canPin } from "./pin";
 import { inferShape, questionFacts, resolvePreset } from "./resolve";
 import { isWindowShape, ruleTable, shapesFor } from "./shapes";
 import type { FactName, Facts } from "./shapes";
+import { presetQuestion, standsFor } from "./presetTitles";
 import { fillTemplate } from "./sentences";
 
 export type FieldGroupSpec = { id: string; label: string; map_groups: string[]; kinds?: string[] };
@@ -57,6 +58,9 @@ export type CanvasChart = {
   // The figures as a table, in place of the picture.
   table: boolean;
   width: Width;
+  // The id of the Explore preset (config/presets.json) the chart stands for, while its question is still that preset's: the card then takes the
+  // preset's question as its heading. An id that keys into config, never title text. Absent once the question has changed.
+  preset?: string;
 };
 export type Canvas = { charts: CanvasChart[] };
 
@@ -291,7 +295,8 @@ export function changeChart(all: Vocabulary, chart: CanvasChart, next: Partial<Q
   const v = datasetOf(all, chart.question.dataset);
   const settled = changeQuestion(all, chart.question, { ...next, view: null }, (d) => v.filters.some((f) => f.id === d), removal);
   const question = { ...settled, view: null };
-  return { ...chart, question, type: keptType(question, chart.type, manifest) };
+  const { preset: _was, ...rest } = chart;
+  return { ...rest, question, type: keptType(question, chart.type, manifest), ...(chart.preset && standsFor(question, chart.preset) ? { preset: chart.preset } : {}) };
 }
 
 const isShape = (type: string | null): type is string => Boolean(type && canvasSpec.chart_types.some((t) => t.id === type));
@@ -377,6 +382,7 @@ const CHARTS = "charts";
 const TYPE = "type";
 const SHOW = "show";
 const SIZE = "size";
+const FROM = "from";
 const ID = new RegExp(`^${canvasSpec.chart_prefix}[1-9][0-9]{0,2}$`);
 export const isChartId = (text: string): boolean => ID.test(text);
 
@@ -386,7 +392,7 @@ export function nextChartId(charts: readonly Pick<CanvasChart, "id">[]): string 
   return `${canvasSpec.chart_prefix}${Math.max(0, ...taken) + 1}`;
 }
 
-export type AskedChart = { id: string; asked: Partial<Question>; type: string | null; table: boolean; width: Width };
+export type AskedChart = { id: string; asked: Partial<Question>; type: string | null; table: boolean; width: Width; preset?: string };
 
 export function readCanvas(search: string): AskedChart[] {
   const params = new URLSearchParams(search);
@@ -397,18 +403,23 @@ export function readCanvas(search: string): AskedChart[] {
     type: params.get(`${id}.${TYPE}`),
     table: params.get(`${id}.${SHOW}`) === TABLE,
     width: params.get(`${id}.${SIZE}`) === "full" ? "full" : "half",
+    ...(params.get(`${id}.${FROM}`) ? { preset: params.get(`${id}.${FROM}`) as string } : {}),
   }));
 }
 
 // A chart from what a link asked for, kept as far as the data can answer it: the nearest question (settle), and a type that is one of
 // the six. Whether the build draws that type is checked once the manifest is known (withFittingTypes).
-export const settleChart = (all: Vocabulary, a: AskedChart): CanvasChart => ({
-  id: a.id,
-  question: { ...settle(all, a.asked), view: null },
-  type: isShape(a.type) ? a.type : null,
-  table: a.table,
-  width: a.width,
-});
+export function settleChart(all: Vocabulary, a: AskedChart): CanvasChart {
+  const question: Question = { ...settle(all, a.asked), view: null };
+  // The preset a link names is kept only while the question is the preset's: an id config does not have, or a question that has since changed, is left out.
+  return { id: a.id, question, type: isShape(a.type) ? a.type : null, table: a.table, width: a.width, ...(a.preset && standsFor(question, a.preset) ? { preset: a.preset } : {}) };
+}
+
+// What a link asked of a chart's title that the page did not give, said as the canvas says the rest of what a link asked and did not get.
+export const presetNotice = (a: AskedChart, chart: CanvasChart): string[] => (a.preset && !chart.preset ? [say("link_preset_dropped")] : []);
+
+// The heading of a chart: the Explore question it stands for, else the title its question generates (chartPreset).
+export const chartHeading = (chart: Pick<CanvasChart, "preset">): string | undefined => (chart.preset ? presetQuestion(chart.preset) : undefined);
 
 // The canvas a link opens. A link with no chart opens one: the question the data answers when nothing is asked, at full width.
 export function settleCanvas(all: Vocabulary, asked: readonly AskedChart[]): Canvas {
@@ -423,6 +434,7 @@ export function canvasParams(canvas: Canvas): URLSearchParams {
     if (chart.type) params.set(`${chart.id}.${TYPE}`, chart.type);
     if (chart.table) params.set(`${chart.id}.${SHOW}`, TABLE);
     if (chart.width === "full") params.set(`${chart.id}.${SIZE}`, "full");
+    if (chart.preset) params.set(`${chart.id}.${FROM}`, chart.preset);
   }
   return params;
 }

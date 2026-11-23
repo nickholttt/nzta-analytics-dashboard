@@ -108,6 +108,7 @@
     "status_chart_restored": "Chart {number} put back.",
     "status_chart_moved": "The chart is now chart {number}.",
     "link_changed_label": "This link was changed",
+    "link_preset_dropped": "This link named a ready-made question that does not match this chart, so the chart is titled by what it shows.",
     "pinned_label": "Pinned",
     "pin_reading": "Checking which snapshot this chart is pinned to…",
     "unpin": "Unpin",
