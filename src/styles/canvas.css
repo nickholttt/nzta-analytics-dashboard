@@ -68,6 +68,9 @@
   top: var(--space-4);
   max-height: calc(100vh - 2 * var(--space-4));
   overflow-y: auto;
+  /* Thin, in the control edge colour on no track: these two panes scroll on their own, and the system bar is heavier than what it moves. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--control) transparent;
 }
 
 /* Held while the editing tools are fetched, after the first chart is drawn: the panes are as tall as they will be, so nothing beside or under them
