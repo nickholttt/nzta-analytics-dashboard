@@ -60,9 +60,8 @@ test("a page kept out of search engines carries a title and a description but no
 });
 
 test("a page whose charts are drawn by a script says so, for a visitor with scripts off; a page of plain text does not", () => {
-  for (const id of ["canvas"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, true, id);
-  // The page that sends a visitor on from the old Build address reads in full without a script: its words and a link to the canvas.
-  for (const id of ["explore", "method", "caveats", "about", "feedback", "differences", "not_found", "build"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, false, id);
+  for (const id of ["canvas", "build"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, true, id);
+  for (const id of ["explore", "method", "caveats", "about", "feedback", "differences", "not_found"] as const) assert.equal(pageMeta(id, { pathname: "/" }).needsScript, false, id);
 });
 
 test("the notice for scripts being off is true: a page that ships a script has it, a page that ships none does not (the front page ships none)", () => {
