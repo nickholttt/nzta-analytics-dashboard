@@ -34,6 +34,10 @@ function fitter(room: number) {
   };
 }
 
+// The space above the bars and below them, which holds the axis; the plot's height is this and the bars' rows.
+const RANK_MARGIN_TOP = 20;
+const RANK_MARGINS = RANK_MARGIN_TOP + 30;
+
 export type LeagueItem = LeagueRow & { colour: string; isRemainder: boolean };
 
 type Props = {
@@ -213,9 +217,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
     (width: number) => {
       const shown = [...model.items.map((d) => d.name), ...model.hidden.map((d) => d.name)];
       // Each bar takes its thickness plus a gap (src/lib/theme.ts), and the margins hold the axis.
-      const marginTop = 20;
-      const marginBottom = 30;
-      const height = marginTop + barRows(shown.length) + marginBottom;
+      const height = RANK_MARGINS + barRows(shown.length);
       const isShare = displayMode === "share";
       const maxVal = Math.max(0.01, ...model.items.map((d) => (isShare ? d.share : d.n)));
       const xMax = maxVal * 1.18;
@@ -230,8 +232,8 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         style: plotStyle(pal),
         marginLeft,
         marginRight: 45,
-        marginTop,
-        marginBottom,
+        marginTop: RANK_MARGIN_TOP,
+        marginBottom: RANK_MARGINS - RANK_MARGIN_TOP,
         y: {
           domain: shown,
           paddingInner: BAR_GAP / (BAR_THICKNESS + BAR_GAP),
@@ -423,6 +425,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
 
       <PlotFigure
         render={render}
+        reserve={RANK_MARGINS + barRows(model.items.length + model.hidden.length)}
         label={`Ranked bar chart, ${single ? windowWords : spanPeriod(currentFrom, end)}: the ${model.items.length} ${single ? "values" : "largest"}${model.hidden.length ? ` and ${model.hidden.length} with a hidden count` : ""} by ${displayMode === "share" ? "share" : "number of vehicles"}. ${single ? "The table below the chart lists each place." : "The table below the chart lists each place, its move and its change."}`}
       />
       <ChartSentence text={sentence} />

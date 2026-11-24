@@ -578,6 +578,11 @@ section[id] {
   margin: var(--space-2) 0 0;
 }
 
+/* The room a figure holds until it is drawn: the narrow height of src/lib/theme.ts, chartHeight. A card wide enough for the wide one says so in canvas.css. */
+.chart-reserved {
+  min-height: 280px;
+}
+
 .chart svg {
   display: block;
   overflow: visible;

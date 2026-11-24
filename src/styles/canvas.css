@@ -124,6 +124,7 @@
 }
 
 .chart-card {
+  container: chart-card / inline-size;
   min-width: 0;
   padding: var(--space-5);
   background: var(--card);
@@ -141,6 +142,23 @@
   .chart-card,
   .chart-add {
     grid-column: 1 / -1;
+  }
+}
+
+/* A card whose figure is wide enough for the wide height (WIDE_CHART_FROM in src/lib/theme.ts, 520 px) holds that height before it is drawn, and its
+   loading rooms are 5 rem taller, the 80 px the wide figure has over the old 240 px one (measured: layout shift on a default canvas at 1280 px 0.0606 before, 0.0366 after). */
+@container chart-card (min-width: 520px) {
+  .chart-card .chart-reserved {
+    min-height: 360px;
+  }
+
+  .chart-card-body.loading,
+  .chart-card-body.awaiting {
+    min-height: 41rem;
+  }
+
+  .chart-card-body .chart-pending {
+    min-height: 33rem;
   }
 }
 

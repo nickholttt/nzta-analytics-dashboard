@@ -119,12 +119,16 @@ export const plotStyle = (pal: Palette) => ({
 
 export const tipStyle = (pal: Palette) => ({ fill: pal.tipFill, stroke: pal.tipStroke, fontSize: 12, textPadding: 8 });
 
-// Lead charts carry the page, so they are taller for the same width. Heights are clamped so a wide
-// screen does not produce a letterbox and a narrow one keeps a readable plot.
-export const MIN_CHART_HEIGHT = 240;
+// A chart that is not a lead has one of two heights: the narrow one up to WIDE_CHART_FROM px of width, the wide one from there. They leave a plot
+// of about 220 px (phone) and 300 px (a full card) between the margins. The canvas reserves the same two heights before a figure is drawn
+// (src/styles/canvas.css, .chart-reserved), so the page does not move when it arrives: change the numbers there with these.
+// Lead charts carry the page, so they are taller for the same width, clamped so a wide screen does not produce a letterbox.
+export const MIN_CHART_HEIGHT = 280;
+export const WIDE_CHART_HEIGHT = 360;
+export const WIDE_CHART_FROM = 520;
 export function chartHeight(width: number, lead = false) {
-  const [ratio, min, max] = lead ? [0.44, 300, 500] : [0.34, MIN_CHART_HEIGHT, 380];
-  return Math.round(Math.max(min, Math.min(max, width * ratio)));
+  if (!lead) return width >= WIDE_CHART_FROM ? WIDE_CHART_HEIGHT : MIN_CHART_HEIGHT;
+  return Math.round(Math.max(300, Math.min(500, width * 0.44)));
 }
 
 // A ranked bar is a fixed thickness with a fixed gap, so the plot grows with the number of bars and a few bars are never stretched to fill a
