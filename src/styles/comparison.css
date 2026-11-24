@@ -9,9 +9,15 @@
 .comparison h3 {
   margin-top: calc(var(--space-5) - var(--slack));
   margin-bottom: var(--space-2);
+  font-family: var(--font-display);
 }
 
+/* An organisation's name is a link, set in the heading serif and the ink so it does not outshout the section headings; it stays underlined. */
 .comparison h3 a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
   display: inline-flex;
   /* The text sits at the foot of the box, so what a one-line heading gains goes above it and the line under it (the data basis) always starts below the last line of text, however many lines the name takes. */
   align-items: flex-end;

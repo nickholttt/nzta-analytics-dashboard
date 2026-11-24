@@ -16,7 +16,7 @@ const ownerLabel = chartLabel("owner_country");
 
 <Layout title="Data Caveats" activeNav="caveats">
   <Fragment slot="masthead">
-    <h1>Data Caveats & Field Traps</h1>
+    <h1>Data caveats and field traps</h1>
     <p class="standfirst">
       Administrative register data is collected to license vehicles, not to measure economic trends.
       Understanding these measurement artefacts prevents mistaking data collection rules for market behaviour.
@@ -24,7 +24,7 @@ const ownerLabel = chartLabel("owner_country");
   </Fragment>
 
   <article class="prose">
-    <h2>1. A Registration is Not a Sale</h2>
+    <h2>1. A registration is not a sale</h2>
     <p>
       Unless a chart says it shows true registrations, the charts count <strong>vehicles first registered in a month that are still registered at the latest snapshot</strong>. This is not a count of sales, and it is not every vehicle ever first registered: vehicles scrapped since have dropped out (section 2). The charts of true registrations count every vehicle first registered, including those since removed from the register (<a href="/method#true-registrations">what they count</a>); they are registrations too, not sales. Registrations and sales also differ in timing and basis:
     </p>
@@ -40,12 +40,12 @@ const ownerLabel = chartLabel("owner_country");
       </li>
     </ul>
 
-    <h2>2. Survivors Bias</h2>
+    <h2>2. Survivors bias</h2>
     <p>
       The open Motor Vehicle Register contains records of vehicles <em>currently registered</em>.
     </p>
-    <div class="callout warning">
-      <span class="callout-label">Important Limitation</span>
+    <div class="callout aside">
+      <span class="callout-label">Limitation</span>
       <p>
         When grouping the register by first-registration month, you are counting <strong>vehicles first registered in that month that are still alive today</strong>. Older cohorts have been naturally thinned by decades of crashes, mechanical failures, and scrappage.
       </p>
@@ -57,7 +57,7 @@ const ownerLabel = chartLabel("owner_country");
       Shares are skewed too, because vehicles do not leave the register at the same rate. Take passenger cars and vans first registered in 2015. Between the August and September 2026 snapshots, the number of used imports still registered fell by 0.72%, and the number of NZ New vehicles by 0.17%. Among the ten most-registered makes, the fall ran from 0.22% (Holden) to 0.75% (Nissan). The gap is not the same in every cohort: for cars first registered in the 1990s, NZ New fell faster than used imports. So an older month's shares lean towards whichever vehicles from that month stay registered longer, and do not show exactly what was bought at the time. How large that lean is for a given month is not yet known. For new against used, and for each of NZTA's vehicle types, <a href="/method#completeness">completeness</a> shows how much of a month's first registrations are still on the register, for the months true registrations cover, where a build has them. It is not shown by make or model. For make or model, no source we use counts what was first registered before true registrations begin, so the monthly snapshots we keep can only track how makes leave the register from now on.
     </p>
 
-    <h2>3. The 2007 Break in <code>vehicle_year</code></h2>
+    <h2>3. The 2007 break in <code>vehicle_year</code></h2>
     <p>
       The field <code>vehicle_year</code> in the NZTA register is <strong>not model year</strong>.
     </p>
@@ -76,7 +76,7 @@ const ownerLabel = chartLabel("owner_country");
       Because of this structural break, age-at-registration measures are scoped strictly to used imports.
     </p>
 
-    <h2>4. What a Territorial Authority (TLA) Means</h2>
+    <h2>4. What a territorial authority (TLA) means</h2>
     <p>
       The register records a Territorial Authority code (<code>TLA</code>) representing the <strong>current residential address of the registered owner as at the snapshot date</strong>.
     </p>
@@ -91,7 +91,7 @@ const ownerLabel = chartLabel("owner_country");
       Because regional registration counts reflect corporate head-office locations rather than local buying decisions, Explore has no regional charts. The map on the canvas shows each region's share of vehicles, with this caveat under it.
     </p>
 
-    <h2>5. "Built In" vs "Brand Nationality"</h2>
+    <h2>5. "Built in" vs "brand nationality"</h2>
     <p>
       NZTA's <code>ORIGINAL_COUNTRY</code> field records the country where the vehicle was <strong>principally manufactured</strong>, not the nationality of the brand:
     </p>
@@ -104,12 +104,12 @@ const ownerLabel = chartLabel("owner_country");
       Brand nationality (e.g. Toyota as Japanese, Audi as German, Tesla as American) is maintained separately in our curated brand registry. On our charts the two are labelled <strong>“{builtInLabel}”</strong> and <strong>“{ownerLabel}”</strong>, so one is not read as the other.
     </p>
 
-    <h2 id="mild-hybrid-limits">6. Mild Hybrid Identification Limits</h2>
+    <h2 id="mild-hybrid-limits">6. Mild hybrid identification limits</h2>
     <p>
       NZTA motive power codes do not distinguish between mild hybrids (MHEVs, which cannot drive on electric power alone) and full hybrids (FHEVs). We classify hybrids by nameplate matching. A hybrid is counted as full when its electric motor can move the vehicle on its own, however briefly, and as mild when it cannot. Each classification rests on the sources read and carries a confidence level; a nameplate with no source, or whose sources disagree, remains unclassified rather than guessed, and identification coverage is openly published alongside all hybrid figures.
     </p>
 
-    <h2>7. Why There Is No SUV Category</h2>
+    <h2>7. Why there is no SUV category</h2>
     <p>
       The open NZTA register has no <code>SUV</code> body type. Its 27 body types do not include one, and <strong>none</strong> of the 5,926,990 vehicles, trailers and machines on it at 31 October 2026 is recorded as an SUV.
     </p>

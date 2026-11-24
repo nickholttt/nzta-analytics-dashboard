@@ -11,7 +11,7 @@ import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, mont
 import { countedText, fillTemplate, pickedRankingSentences, rankingLeaderSentence, rankingText, rankingWindows, rankingWords, sayBadMonth, vehiclesText, yearTooFewText } from "../lib/sentences";
 import { count, greyedReason, readout, spanPeriod } from "../lib/readout";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
-import { FONT_TEXT, chartHeight, PLOT_FONT_SIZE, plotStyle, seriesColour, tipStyle } from "../lib/theme";
+import { BAR_GAP, BAR_RADIUS, BAR_THICKNESS, FONT_TEXT, PLOT_FONT_SIZE, barRows, plotStyle, seriesColour, tipStyle } from "../lib/theme";
 import { usePalette } from "../lib/useTheme";
 import { cellAt, cellText } from "../lib/figures";
 import { leaderIsClear, leagueRows, leagueTable, pickedSummary, rankingGuard, rankingLimit } from "../lib/league";
@@ -33,6 +33,10 @@ function fitter(room: number) {
     return `${name.slice(0, end)}…`;
   };
 }
+
+// The space above the bars and below them, which holds the axis; the plot's height is this and the bars' rows.
+const RANK_MARGIN_TOP = 20;
+const RANK_MARGINS = RANK_MARGIN_TOP + 30;
 
 export type LeagueItem = LeagueRow & { colour: string; isRemainder: boolean };
 
@@ -212,7 +216,8 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   const render = useCallback(
     (width: number) => {
       const shown = [...model.items.map((d) => d.name), ...model.hidden.map((d) => d.name)];
-      const height = Math.max(single ? 120 : 340, shown.length * 24 + 60);
+      // Each bar takes its thickness plus a gap (src/lib/theme.ts), and the margins hold the axis.
+      const height = RANK_MARGINS + barRows(shown.length);
       const isShare = displayMode === "share";
       const maxVal = Math.max(0.01, ...model.items.map((d) => (isShare ? d.share : d.n)));
       const xMax = maxVal * 1.18;
@@ -227,10 +232,12 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         style: plotStyle(pal),
         marginLeft,
         marginRight: 45,
-        marginTop: 20,
-        marginBottom: 30,
+        marginTop: RANK_MARGIN_TOP,
+        marginBottom: RANK_MARGINS - RANK_MARGIN_TOP,
         y: {
           domain: shown,
+          paddingInner: BAR_GAP / (BAR_THICKNESS + BAR_GAP),
+          paddingOuter: BAR_GAP / (BAR_THICKNESS + BAR_GAP) / 2,
           label: null,
           tickSize: 0,
           tickFormat: fit,
@@ -246,9 +253,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
             y: "name",
             x: isShare ? "share" : "n",
             fill: isShare && model.guard.shares ? pal.suppressedLine : "colour",
-            insetTop: 2,
-            insetBottom: 2,
-            rx: 2,
+            rx: BAR_RADIUS,
           }),
           Plot.text(model.items, {
             y: "name",
@@ -302,12 +307,12 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   );
 
   const countHead = (
-    <th scope="col" data-hint="the number of vehicles" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+    <th scope="col" data-hint="the number of vehicles" style={{ textAlign: "right" }}>
       {words?.count_heading ?? "Vehicles"}
     </th>
   );
   const yearHead = (
-    <th scope="col" data-hint="the change on a year ago" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+    <th scope="col" data-hint="the change on a year ago" style={{ textAlign: "right" }}>
       Change on a year ago
     </th>
   );
@@ -420,6 +425,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
 
       <PlotFigure
         render={render}
+        reserve={RANK_MARGINS + barRows(model.items.length + model.hidden.length)}
         label={`Ranked bar chart, ${single ? windowWords : spanPeriod(currentFrom, end)}: the ${model.items.length} ${single ? "values" : "largest"}${model.hidden.length ? ` and ${model.hidden.length} with a hidden count` : ""} by ${displayMode === "share" ? "share" : "number of vehicles"}. ${single ? "The table below the chart lists each place." : "The table below the chart lists each place, its move and its change."}`}
       />
       <ChartSentence text={sentence} />
@@ -429,19 +435,19 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
           is the ranking itself. Headings stay on one line: a heading that wraps in a narrow column makes the whole
           header row tall, which read as a blank gap under the chart. */}
       <div ref={tableBox} className="table-scroll" role="region" aria-label="Ranking table" tabIndex={0} style={{ marginTop: "var(--space-4)" }}>
-        <table className="key" style={{ width: "100%", fontSize: "13px" }}>
+        <table className="key ranking" style={{ width: "100%", fontSize: "13px" }}>
           <thead>
             <tr>
-              <th scope="col" style={about ? { whiteSpace: "nowrap" } : { width: "45px" }}>{about ? about.rankHead : "Rank"}</th>
+              <th scope="col" style={about ? undefined : { width: "45px" }}>{about ? about.rankHead : "Rank"}</th>
               {single ? null : <th scope="col" style={{ width: "56px" }}>Move</th>}
               <th scope="col">{valueHeading}</th>
               {showYear ? countHead : null}
               {showYear ? yearHead : null}
-              <th scope="col" data-hint="the share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{about ? about.shareHead : "Share"}</th>
-              {single ? null : <th scope="col" data-hint="the change in share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>}
+              <th scope="col" data-hint="the share" style={{ textAlign: "right" }}>{about ? about.shareHead : "Share"}</th>
+              {single ? null : <th scope="col" data-hint="the change in share" style={{ textAlign: "right" }}>Change in share</th>}
               {showYear ? null : countHead}
               {single ? null : (
-                <th scope="col" data-hint="the rank a year earlier" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                <th scope="col" data-hint="the rank a year earlier" style={{ textAlign: "right" }}>
                   {about ? about.priorHead : <>Rank <span className="visually-hidden">a year </span>before</>}
                 </th>
               )}

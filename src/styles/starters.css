@@ -9,10 +9,25 @@
   gap: var(--space-5);
 }
 
+/* Two by two where there is room for two: three across left a short card standing beside a tall one with its button pushed to the bottom. */
 @media (min-width: 52rem) {
   .starters {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* The masthead already ends in a rule, so the first section does not begin with a second one; the caption under its heading sits close to it. */
+[aria-labelledby="starters-heading"] > .section-head {
+  margin-top: 0;
+  padding-top: 0;
+  margin-bottom: var(--space-2);
+  border-top: 0;
+}
+
+.starters-intro {
+  margin-bottom: var(--space-5);
+  max-width: var(--measure);
+  font-size: var(--text-sm);
 }
 
 .starter {
@@ -92,7 +107,7 @@
 }
 
 .starter-open {
-  margin-top: auto;
+  margin-top: var(--space-2);
   align-self: flex-start;
 }
 

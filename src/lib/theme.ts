@@ -48,7 +48,7 @@ export interface Palette {
   // Months under a suppression guard: a quiet line over a quiet band, drawn rather than dropped.
   suppressedLine: string;
   suppressedBand: string;
-  // A windowed event's active period (drawn at 0.55 opacity).
+  // A windowed event's active period: the ink, drawn at EVENT_WINDOW_OPACITY over the surface, so the band is a neutral in either theme.
   eventWindow: string;
   // The tooltip's surface and edge.
   tipFill: string;
@@ -71,7 +71,7 @@ const LIGHT: Palette = {
   context: "#bdb9ae",
   suppressedLine: "#cfcbc1",
   suppressedBand: "#ecebe6",
-  eventWindow: "#eee3c6",
+  eventWindow: "#1b1c1f",
   tipFill: "#f8f7f3",
   tipStroke: "#c9c5ba",
   scaleLow: "#e3e6f3",
@@ -91,7 +91,7 @@ const DARK: Palette = {
   context: "#6b6e76",
   suppressedLine: "#686b73",
   suppressedBand: "#212328",
-  eventWindow: "#524516",
+  eventWindow: "#ececea",
   tipFill: "#1f2024",
   tipStroke: "#41444b",
   scaleLow: "#262d4d",
@@ -104,6 +104,7 @@ export const SERIES_COUNT = SERIES_LIGHT.length;
 
 export const FONT_TEXT = "'NZVR Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
 
+export const EVENT_WINDOW_OPACITY = 0.06;
 export const LINE_WIDTH = 2;
 export const THIN_LINE_WIDTH = 1.25;
 
@@ -119,13 +120,24 @@ export const plotStyle = (pal: Palette) => ({
 
 export const tipStyle = (pal: Palette) => ({ fill: pal.tipFill, stroke: pal.tipStroke, fontSize: 12, textPadding: 8 });
 
-// Lead charts carry the page, so they are taller for the same width. Heights are clamped so a wide
-// screen does not produce a letterbox and a narrow one keeps a readable plot.
-export const MIN_CHART_HEIGHT = 240;
+// A chart that is not a lead has one of two heights: the narrow one up to WIDE_CHART_FROM px of width, the wide one from there. They leave a plot
+// of about 220 px (phone) and 300 px (a full card) between the margins. The canvas reserves the same two heights before a figure is drawn
+// (src/styles/canvas.css, .chart-reserved), so the page does not move when it arrives: change the numbers there with these.
+// Lead charts carry the page, so they are taller for the same width, clamped so a wide screen does not produce a letterbox.
+export const MIN_CHART_HEIGHT = 280;
+export const WIDE_CHART_HEIGHT = 360;
+export const WIDE_CHART_FROM = 520;
 export function chartHeight(width: number, lead = false) {
-  const [ratio, min, max] = lead ? [0.44, 300, 500] : [0.34, MIN_CHART_HEIGHT, 380];
-  return Math.round(Math.max(min, Math.min(max, width * ratio)));
+  if (!lead) return width >= WIDE_CHART_FROM ? WIDE_CHART_HEIGHT : MIN_CHART_HEIGHT;
+  return Math.round(Math.max(300, Math.min(500, width * 0.44)));
 }
+
+// A ranked bar is a fixed thickness with a fixed gap, so the plot grows with the number of bars and a few bars are never stretched to fill a
+// height meant for many. The ends of bars (ranked, bands) are rounded by the same radius.
+export const BAR_THICKNESS = 28;
+export const BAR_GAP = 12;
+export const BAR_RADIUS = 4;
+export const barRows = (bars: number) => bars * (BAR_THICKNESS + BAR_GAP);
 
 export const xTicks = (width: number) => Math.max(3, Math.floor(width / 110));
 

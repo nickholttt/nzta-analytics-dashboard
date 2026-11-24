@@ -1,6 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { SentenceContext } from "./ChartSentence";
-import { MIN_CHART_HEIGHT } from "../lib/theme";
 import { TableOnlyContext } from "./FiguresContext";
 
 // Renders a Plot figure at the width of its container, and again whenever that width changes.
@@ -10,10 +9,12 @@ import { TableOnlyContext } from "./FiguresContext";
 // those names are dropped and the image, or the figure holding it and its legend, carries the label.
 // Where the panel shows the figures as a table (TableOnlyContext), nothing is drawn: the element is not there to measure.
 // The chart's sentence, once it has one, describes the figure to assistive technology (aria-describedby), so a screen reader reads it with the chart.
-export function PlotFigure({ render, onWidth, label }: { render: (width: number) => Element; onWidth?: (width: number) => void; label: string }) {
+// reserve: the height a figure will have, where the chart knows it before it draws (a ranking's follows its bars); otherwise the two heights of
+// src/lib/theme.ts, chosen by the card's width in src/styles/canvas.css.
+export function PlotFigure({ render, onWidth, label, reserve }: { render: (width: number) => Element; onWidth?: (width: number) => void; label: string; reserve?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
-  // Whether a figure is in the element yet. Until it is, the element holds the least height a figure has (src/lib/theme.ts, chartHeight), so the
+  // Whether a figure is in the element yet. Until it is, the element holds the height a figure has (src/lib/theme.ts, chartHeight), so the
   // sentence and the table under it do not jump down when the figure arrives a frame after the width is known.
   const [drawn, setDrawn] = useState(false);
   const tableOnly = useContext(TableOnlyContext);
@@ -51,5 +52,6 @@ export function PlotFigure({ render, onWidth, label }: { render: (width: number)
     else figure.removeAttribute("aria-describedby");
   }, [describedBy, render, width, label, tableOnly]);
 
-  return tableOnly ? null : <div ref={ref} className="chart" style={drawn ? undefined : { minHeight: MIN_CHART_HEIGHT }} />;
+  const waiting = !drawn;
+  return tableOnly ? null : <div ref={ref} className={waiting && reserve === undefined ? "chart chart-reserved" : "chart"} style={waiting && reserve !== undefined ? { minHeight: reserve } : undefined} />;
 }

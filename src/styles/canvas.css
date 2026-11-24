@@ -68,6 +68,9 @@
   top: var(--space-4);
   max-height: calc(100vh - 2 * var(--space-4));
   overflow-y: auto;
+  /* Thin, in the control edge colour on no track: these two panes scroll on their own, and the system bar is heavier than what it moves. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--control) transparent;
 }
 
 /* Held while the editing tools are fetched, after the first chart is drawn: the panes are as tall as they will be, so nothing beside or under them
@@ -124,6 +127,7 @@
 }
 
 .chart-card {
+  container: chart-card / inline-size;
   min-width: 0;
   padding: var(--space-5);
   background: var(--card);
@@ -141,6 +145,45 @@
   .chart-card,
   .chart-add {
     grid-column: 1 / -1;
+  }
+}
+
+/* The ranking table: headings stay on one line, and the table scrolls sideways, where the card is narrow. In a card wide enough for the wide figure the
+   headings wrap onto two lines and the cells are closer, so all seven columns fit with no scrolling. */
+.key.ranking th {
+  white-space: nowrap;
+}
+
+@container chart-card (min-width: 520px) {
+  .key.ranking th {
+    white-space: normal;
+  }
+
+  .key.ranking th,
+  .key.ranking td {
+    padding-left: var(--space-3);
+  }
+
+  .key.ranking th:first-child,
+  .key.ranking td:first-child {
+    padding-left: 0;
+  }
+}
+
+/* A card whose figure is wide enough for the wide height (WIDE_CHART_FROM in src/lib/theme.ts, 520 px) holds that height before it is drawn, and its
+   loading rooms are 5 rem taller, the 80 px the wide figure has over the old 240 px one (measured: layout shift on a default canvas at 1280 px 0.0606 before, 0.0366 after). */
+@container chart-card (min-width: 520px) {
+  .chart-card .chart-reserved {
+    min-height: 360px;
+  }
+
+  .chart-card-body.loading,
+  .chart-card-body.awaiting {
+    min-height: 41rem;
+  }
+
+  .chart-card-body .chart-pending {
+    min-height: 33rem;
   }
 }
 
@@ -338,17 +381,26 @@
   border-radius: 4px;
 }
 
+/* The source line, then "About these figures" and the download on one row; an opened "About" takes the row to itself and the download wraps below it. */
 .chart-card-foot {
-  display: grid;
-  gap: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-1) var(--space-5);
   margin-top: var(--space-4);
   padding-top: var(--space-3);
   border-top: 1px solid var(--border);
 }
 
 .chart-card-source {
+  flex: 1 0 100%;
+  margin: 0;
   font-size: var(--text-note);
   color: var(--ink-3);
+}
+
+.chart-card-about[open] {
+  flex: 1 0 100%;
 }
 
 .chart-card-about > summary {
@@ -367,7 +419,6 @@
 }
 
 .chart-card-foot > .button-quiet {
-  justify-self: start;
   margin-top: 0;
   font-size: var(--text-note);
 }
@@ -514,23 +565,26 @@
   background: var(--card-muted);
 }
 
+/* The one chosen style (see .toggle in site.css). */
 .choice[aria-pressed="true"] {
-  color: var(--on-accent);
-  background: var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--accent-wash);
   border-color: var(--accent);
 }
 
-/* A choice that cannot be made: greyed, a dotted edge, and its reason said when it is tried. */
+/* A choice that cannot be made: no fill, a hairline edge and the lightest ink allowed for text, so it is quieter than one that can; it stays in
+   the tab order and its reason is said when it is tried. */
 .choice[aria-disabled="true"] {
   color: var(--ink-3);
-  background: var(--card-muted);
-  border-style: dotted;
+  background: transparent;
+  border: 1px solid var(--rule);
   cursor: help;
 }
 
+/* Full ink: dimmed, the tag fell under 4.5:1 on the chosen button's fill in the dark theme. Its size sets it apart. */
 .choice-tag {
   font-size: 0.6875rem;
-  opacity: 0.85;
 }
 
 .chip {

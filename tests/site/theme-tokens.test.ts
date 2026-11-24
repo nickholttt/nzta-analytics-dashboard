@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { darkChosen, darkDevice, light, over, ratio } from "./support/tokens.ts";
 
-const { PALETTES } = await import("../../src/lib/theme.ts");
+const { PALETTES, EVENT_WINDOW_OPACITY } = await import("../../src/lib/theme.ts");
 
 const token = (set: Map<string, string>, name: string): string => {
   const value = set.get(`--${name}`);
@@ -43,6 +43,14 @@ test("the chart palettes mirror the stylesheet's surface, ink and rule tokens in
   }
 });
 
+test("a chosen option is ink on the accent wash with an accent edge: 4.5 to 1 for its text and 3 to 1 for its edge against what it sits among, in both themes", () => {
+  for (const [name, tokens] of [["light", light], ["dark", darkChosen]] as const) {
+    const t = (key: string) => tokens.get(`--${key}`) as string;
+    assert.ok(ratio(t("ink"), t("accent-wash")) >= 4.5, `${name}: text on the chosen fill`);
+    for (const ground of ["card", "card-muted", "paper"]) assert.ok(ratio(t("accent"), t(ground)) >= 3, `${name}: the edge against ${ground}`);
+  }
+});
+
 test("in the dark theme, text reaches 4.5 to 1 on the paper and the raised paper, and the accent and the status inks on theirs", () => {
   const t = (name: string) => token(darkChosen, name);
   for (const ground of ["paper", "paper-2", "card", "card-muted"]) for (const ink of ["ink", "ink-2", "ink-3"]) assert.ok(ratio(t(ink), t(ground)) >= 4.5, `${ink} on ${ground}`);
@@ -64,7 +72,10 @@ test("in the dark theme, every line and mark a chart draws reaches 3 to 1 on the
   for (const ground of [pal.paper, pal.paper2]) {
     for (const colour of [...pal.series, pal.remainder, pal.context, pal.suppressedLine]) assert.ok(ratio(colour, ground) >= 3, `${colour} on ${ground}: ${ratio(colour, ground).toFixed(2)}`);
   }
-  assert.ok(ratio(pal.ink3, over(pal.eventWindow, 0.55, pal.paper)) >= 4.5, "axis text over an event window");
+  // A chart is drawn on a card, so that is the ground a window lies on; in the dark theme the paper is checked too.
+  assert.ok(ratio(pal.ink3, over(pal.eventWindow, EVENT_WINDOW_OPACITY, pal.paper)) >= 4.5, "axis text over an event window, on the paper");
+  assert.ok(ratio(pal.ink3, over(pal.eventWindow, EVENT_WINDOW_OPACITY, darkChosen.get("--card") as string)) >= 4.5, "axis text over an event window, on a card");
+  assert.ok(ratio(PALETTES.light.ink3, over(PALETTES.light.eventWindow, EVENT_WINDOW_OPACITY, light.get("--card") as string)) >= 4.5, "axis text over an event window, light theme, on a card");
   assert.ok(ratio(pal.ink3, pal.suppressedBand) >= 4.5, "axis text over a suppressed band");
   assert.ok(ratio(pal.ink2, pal.tipFill) >= 4.5, "a tooltip's text");
   assert.ok(ratio(pal.scaleLow, pal.paper) < ratio(pal.series[0], pal.paper), "the map's scale runs from the quiet end to the first series colour");
