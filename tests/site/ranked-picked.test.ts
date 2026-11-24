@@ -12,7 +12,7 @@ const { builderVocabulary, builderPresets, questionParams, readQuestion, settle,
 const { shapesFor } = await import("../../src/lib/shapes.ts");
 const { fitsPin, inferShape, resolvePreset, rankingPeriods } = await import("../../src/lib/resolve.ts");
 const { leagueRows, pickedSummary, rankingGuard } = await import("../../src/lib/league.ts");
-const { countedText, pickedBuilderSentences, pickedRankingSentences, rankingLeaderSentence, rankingText, rankingWindows, rankingWords, sayList } = await import("../../src/lib/sentences.ts");
+const { countedText, pickedRankingSentences, rankingLeaderSentence, rankingText, rankingWindows, rankingWords, sayList } = await import("../../src/lib/sentences.ts");
 const { builderSpec, datasetWords, dimensions, phrases, findDimension, findMeasure } = await import("../../src/lib/config.ts");
 
 const manifest = everythingBuilt();
@@ -151,19 +151,6 @@ test("values the page chose are called shown and never picked, in every sentence
   for (const conditions of [false, true]) assert.match(pickedRankingSentences(phrases, facts({ own: false, conditions })).share as string, /not of the 3 shown, so those shares/);
   const texts = [s.label, s.leader, s.share ?? "", pickedRankingSentences(phrases, facts({ own: false, conditions: true })).share ?? ""];
   for (const text of texts) assert.doesNotMatch(text, /picked|your/i, text);
-  const names = ["A", "B", "C"];
-  const page = pickedBuilderSentences(phrases, { own: false, picked: 3, field: "brand", months: 12, names });
-  const own = pickedBuilderSentences(phrases, { own: true, picked: 3, field: "brand", months: 12, names });
-  assert.equal(page.toRanking, "Rank the 3 shown");
-  assert.equal(page.back, "Back to the 3 shown");
-  assert.equal(page.allNote, "Ranking every brand, not the 3 shown: A, B and C.");
-  assert.equal(page.pickerNote, "the page's choice");
-  for (const text of [page.toRanking, page.back, page.allNote]) assert.doesNotMatch(text, /picked|your/i, text);
-  assert.equal(own.toRanking, "Rank the 3 you picked");
-  assert.equal(own.back, "Back to the 3 you picked");
-  assert.equal(own.allNote, "Ranking every brand, not the 3 you picked: A, B and C. Your picks are kept.");
-  assert.equal(own.pickerNote, undefined, "the visitor's own choice needs no note");
-  assert.equal(own.toLines, page.toLines);
 });
 
 test("the leader is said in the dataset's own words for what it counts", () => {

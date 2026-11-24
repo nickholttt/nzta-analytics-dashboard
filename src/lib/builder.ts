@@ -1,7 +1,7 @@
-// The Build page's questions. A question is what to measure, what to break the vehicles down by, which values of that
-// breakdown to compare, which vehicles to keep, and, where more than one shape fits, which to draw (D-058, D-059). Each
-// becomes a preset like any in the canon, two for share and number, so the resolver and the panel treat a built chart
-// exactly as they treat an Explore one.
+// A chart's question: what to measure, what to break the vehicles down by, which values of that breakdown to compare, which vehicles to keep,
+// and, where more than one shape fits, which to draw (D-058, D-059). Each becomes a preset like any in the canon, two for share and number, so
+// the resolver and the panel treat a built chart exactly as they treat an Explore one. A chart on the canvas holds one (src/lib/canvas.ts); the
+// Build page it began on only sends a link on (src/lib/buildLink.ts).
 import dataMapDoc from "../../config/data_map.json";
 import { builderSpec, dimensions, lowerLabel, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
 import type { BuilderMeasure, Preset } from "./config";
@@ -272,11 +272,6 @@ export function withValues(where: Record<string, string[]>, dimension: string, v
   if (values.length > 0) return { ...where, [dimension]: values };
   return Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
 }
-
-// The words on a condition's remove button, and the name a screen reader or a voice user gets for it: the same words, then the field, so
-// the visible label is part of the name (WCAG 2.5.3).
-export const REMOVE_CONDITION = "Remove this condition";
-export const removeConditionLabel = (field: string): string => `${REMOVE_CONDITION}: ${lowerLabel(field)}`;
 
 // As many values as the palette has colours: past that, lines can no longer be told apart (src/lib/theme.ts).
 export const MAX_VALUES = 8;
@@ -580,28 +575,3 @@ export function builderQuestionFor(view: Preset): Question | null {
 
 // The chart's own settings in the address (the first chart's are scoped by the builder's id, a later part's by its own id and a dash).
 export const CHART_PARAMS = ["period", "range", "smoothing", "month", "cells"];
-const builderKey = (name: string) => `${builderSpec.id}.${name}`;
-
-// An address with the builder's settings replaced by the question's. A new question clears the chart's settings; the first read keeps them. A
-// pinned question has no month of its own to look at (its window is the pin's), so a month the visitor had picked goes when they pin.
-export function addressParams(search: string, q: Question, keepChart: boolean): URLSearchParams {
-  const params = new URLSearchParams(search);
-  for (const k of [...params.keys()]) {
-    const chartSetting = k.startsWith(`${builderSpec.id}-`) || CHART_PARAMS.some((p) => k === `${builderSpec.id}.${p}`);
-    const ours = k.startsWith(`${builderSpec.id}.`) || k.startsWith(`${builderSpec.id}-`);
-    if (ours && (!(keepChart && chartSetting) || (q.snapshot && k === builderKey("month")))) params.delete(k);
-  }
-  for (const [k, v] of questionParams(q)) params.append(k, v);
-  return params;
-}
-
-// The Build page's address for a question. It carries the time range the chart was showing, where that differs from
-// the question's own default, so the chart opens as the reader left it.
-export function builderHref(q: Question, period?: string, fullHistory = false, cells?: string): string {
-  const params = questionParams(q);
-  const [first] = builderPresets(q);
-  if (period && first && period !== first.period) params.set(builderKey("period"), period);
-  if (fullHistory) params.set(builderKey("range"), "all");
-  if (cells) params.set(builderKey("cells"), cells);
-  return `/build?${params}`;
-}

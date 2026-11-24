@@ -140,7 +140,6 @@ test("a label reads in a sentence with its first letter lower, and an acronym at
   // The field's own label starts with an acronym, whatever else config calls it.
   const classLabel = config.dimensionLabel("nzta_class") as string;
   assert.equal(config.lowerLabel(classLabel), classLabel);
-  assert.equal(builder.removeConditionLabel(classLabel), `Remove this condition: ${classLabel}`);
   // The sentence a link that names a second breakdown the question cannot have is answered with.
   const asked = { dataset: vocabulary.dataset, measure: "share", by: "powertrain", by2: "nzta_class", values: [], where: {}, view: null };
   const note = builder.readingNotes({ datasets: [{ ...vocabulary, measures: [{ ...measure("share"), dimensions: measure("share").dimensions.map((d) => ({ ...d, with: [] })) }] }] }, asked, builder.settle(all, { ...asked, by2: null }));
