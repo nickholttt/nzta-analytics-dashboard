@@ -32,6 +32,14 @@ of an independent source, stops the build alone when ours is `gap_pct` percent o
 either side, however few other sources or rows there are. A row whose own tolerance is `gap_pct` or more is exempt, because the row
 itself says ours cannot come that close; `parse_figures` refuses such a row of a listed kind unless it states why in
 `known_difference`.
+
+A source can restate a figure it published earlier (D-153). The row then holds the new figure in `figure` and the old one in
+`restated_from`, and `reconciliation.restatement_warn_pct` says how large a restatement is worth a warning (inclusive, as a share
+of the earlier figure). A restatement that size or larger makes the build print a warning and the row never better than `warn`;
+it does not stop the build. On such a row the single-figure limit stops the build only when ours is `gap_pct` or more from both
+the current figure and the earlier one: a build never reads a source's page, so a restatement is known only from the file, and a
+row whose ours still sits at the earlier figure is a source restating, not our data wrong. The hard limit judges the current figure
+alone, as before. A gap between a source's figure and ours stops the build as it always did.
 """
 
 from __future__ import annotations
@@ -55,7 +63,7 @@ from .reference import quote
 CUBE_DIR = "cube"
 
 FIGURE_COLUMNS = ["source", "source_url", "date_read", "month", "measure_as_published", "figure", "dataset", "filters",
-                  "tolerance_pct", "known_difference", "added_up_from", "figure_kind"]
+                  "tolerance_pct", "known_difference", "added_up_from", "figure_kind", "restated_from"]
 SOURCE_COLUMNS = ["id", "name", "home_url", "independent", "definition", "definition_date_read", "data_basis"]
 
 PASS, WARN, FAIL, NOT_COMPARED = "pass", "warn", "fail", "not_compared"
@@ -90,6 +98,7 @@ class Figure(NamedTuple):
     known_difference: str
     added_up_from: str
     figure_kind: str
+    restated_from: int | None
 
     @property
     def label(self) -> str:
@@ -187,6 +196,10 @@ def settings(cfg) -> tuple[dict, list[str]]:
     if not ids(known) or not known:
         problems.append("reconciliation.figure_kinds must be a list of distinct ids (lower case letters, digits and underscores, "
                         "starting with a letter): every kind a row of figures_file may state")
+    warn = c.get("restatement_warn_pct")
+    if isinstance(warn, bool) or not isinstance(warn, (int, float)) or not 0 < warn <= 100:
+        problems.append("reconciliation.restatement_warn_pct must be a number above 0 and at most 100: the size, as a percentage of the "
+                        "figure a source published earlier, from which a restatement of it is warned about")
     s = c.get("single_figure_limit")
     if not isinstance(s, dict):
         problems.append("reconciliation.single_figure_limit must be an object with gap_pct and kinds")
@@ -304,6 +317,15 @@ def parse_figures(cfg, c: dict, sources: dict[str, Source]) -> tuple[list[Figure
             bad.append("figure is 0, which a gap cannot be shown against as a percentage; leave the figure out")
         else:
             figure = int(row["figure"])
+        restated = None
+        if row["restated_from"]:
+            if not WHOLE.fullmatch(row["restated_from"]) or int(row["restated_from"]) == 0:
+                bad.append("restated_from must be blank, or a positive whole number: the figure the same source published earlier for "
+                           "this month and measure, with no separators or units")
+            elif figure is not None and int(row["restated_from"]) == figure:
+                bad.append("restated_from is the same as figure: a figure the source has not changed is not a restatement, so leave it blank")
+            else:
+                restated = int(row["restated_from"])
         tolerance = None
         if not DECIMAL.fullmatch(row["tolerance_pct"]):
             bad.append("tolerance_pct must be a number, as a percentage of the published figure")
@@ -349,7 +371,7 @@ def parse_figures(cfg, c: dict, sources: dict[str, Source]) -> tuple[list[Figure
             continue
         figure_row = Figure(line, row["source"], row["source_url"], row["date_read"], row["month"], row["measure_as_published"],
                             figure, dataset, filters, tolerance, row["known_difference"], row["added_up_from"],
-                            row["figure_kind"])
+                            row["figure_kind"], restated)
         if figure_row.key in seen:
             problems.append(f"{where}: the same source, month, measure and filters as line {seen[figure_row.key]}")
             continue
@@ -601,6 +623,10 @@ def judge(fig: Figure, answer: Answer, multiple: Decimal, floor: Decimal, decima
         "figure_kind": fig.figure_kind,
         # Filled in by single_figure_limit: the limit as a number when the rule applies to this row, otherwise null.
         "stops_alone_pct": None,
+        "restated_from": fig.restated_from,
+        "restated_pct": percent(fig.figure - fig.restated_from, fig.restated_from, decimals) if fig.restated_from else None,
+        # Filled in by finish: whether the restatement is the size config says to warn about.
+        "restated_past_warning": False,
         "status": NOT_COMPARED,
         "reason_kind": answer.kind,
         "reason": answer.reason,
@@ -619,8 +645,12 @@ def judge(fig: Figure, answer: Answer, multiple: Decimal, floor: Decimal, decima
 def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], latest_snapshot: str) -> Result:
     h = c["hard_limit"]
     sources = prepared.sources
+    warn = Decimal(str(c["restatement_warn_pct"]))
+    for r in judged:
+        r["restated_past_warning"] = restated_past_warning(r, warn)
     warnings = hard_limit(sources, judged, c, aborts)
     single_figure_limit(sources, judged, c, aborts)
+    warnings += restatement_warnings(sources, judged, c)
     for source in sources.values():
         unheld = sorted(r["month"] for r in judged if r["source"] == source.id and r["reason_kind"] == VALUE_NOT_HELD)
         if unheld:
@@ -630,6 +660,7 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
     warnings += renamed_label_warnings(sources, judged)
     for row in judged:
         row.pop("_hard", None)
+        row.pop("_excused", None)
     judged.sort(key=lambda r: (r["month"], r["source"], r["measure_as_published"], json.dumps(r["filters"], sort_keys=True)))
 
     by_status = {s: sum(1 for r in judged if r["status"] == s) for s in STATUSES}
@@ -663,6 +694,7 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
                 "hard_limit_source_vehicle_share": h["source_vehicle_share"],
                 "single_figure_gap_pct": c["single_figure_limit"]["gap_pct"],
                 "single_figure_kinds": list(c["single_figure_limit"]["kinds"]),
+                "restatement_warn_pct": c["restatement_warn_pct"],
             },
         },
         "rows": judged,
@@ -748,8 +780,16 @@ def single_figure_limit(sources: dict[str, Source], judged: list[dict], c: dict,
     for r in judged:
         if r["figure_kind"] in kinds and sources[r["source"]].independent and Decimal(str(r["tolerance_pct"])) < limit:
             r["stops_alone_pct"] = s["gap_pct"]
-    stopping = [r for r in judged if r["stops_alone_pct"] is not None and r["status"] != NOT_COMPARED
-                and Decimal(abs(r["gap"])) * 100 >= limit * r["theirs"]]
+    stopping = []
+    for r in judged:
+        if r["stops_alone_pct"] is None or r["status"] == NOT_COMPARED or Decimal(abs(r["gap"])) * 100 < limit * r["theirs"]:
+            continue
+        # A source that restated this figure by the warning size or more: ours near the figure it published before is a source
+        # changing its count, which is warned about and not a fault in our data. Ours that far from both stops the build.
+        if r["restated_past_warning"] and Decimal(abs(r["ours"] - r["restated_from"])) * 100 < limit * r["restated_from"]:
+            r["_excused"] = True
+            continue
+        stopping.append(r)
     for r in sorted(stopping, key=lambda r: (r["month"], r["source"], r["measure_as_published"], json.dumps(r["filters"], sort_keys=True))):
         r["status"] = FAIL
         aborts.append(
@@ -757,3 +797,31 @@ def single_figure_limit(sources: dict[str, Source], judged: list[dict], c: dict,
             f"{r['theirs']:,}, a gap of {r['gap_pct']:+.2f}%, which is {float(limit):g}% or more on a figure of kind {r['figure_kind']!r}: "
             f"one such figure from an independent source stops the build, whatever else is compared; reconciliation.json in the staged "
             f"files has every row")
+
+
+def restated_past_warning(r: dict, warn: Decimal) -> bool:
+    """Whether the source's restatement of this figure is `warn` percent or more of the figure it published earlier. Exact, and
+    inclusive: exactly the warning size counts."""
+    earlier = r["restated_from"]
+    return earlier is not None and Decimal(abs(r["theirs"] - earlier)) * 100 >= warn * earlier
+
+
+def restatement_warnings(sources: dict[str, Source], judged: list[dict], c: dict) -> list[str]:
+    """One warning line for each figure a source restated by the warning size or more, and the row never better than `warn` (a row
+    that was not compared stays so: there is nothing of ours to set beside it). Run after the two limits, so that the source's
+    line for figures past their tolerance counts only figures that are."""
+    decimals = int(c["pct_decimals"])
+    lines = []
+    for r in sorted((r for r in judged if r["restated_past_warning"]),
+                    key=lambda r: (r["month"], r["source"], r["measure_as_published"], json.dumps(r["filters"], sort_keys=True))):
+        if r["status"] == PASS:
+            r["status"] = WARN
+        line = (f"reconciliation: {r['month']}: {sources[r['source']].name}: {r['measure_as_published']!r}: the source restated this figure "
+                f"from {r['restated_from']:,} to {r['theirs']:,}, {r['restated_pct']:+.2f}% (a restatement of {c['restatement_warn_pct']:g}% "
+                "or more is warned about and does not stop the build)")
+        if r.get("_excused"):
+            line += (f"; ours is {r['ours']:,}, {r['gap_pct']:+.2f}% from the new figure and "
+                     f"{percent(r['ours'] - r['restated_from'], r['restated_from'], decimals):+.2f}% from the earlier one, so the "
+                     "single-figure limit did not stop the build")
+        lines.append(line)
+    return lines

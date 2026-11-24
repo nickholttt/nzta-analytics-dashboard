@@ -560,7 +560,7 @@
     "last": "2026-09"
    }
   },
-  "payload_bytes": 123508,
+  "payload_bytes": 124110,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -572,6 +572,7 @@
    "no last good state: first run, so previous-run comparisons were skipped",
    "reconciliation: Fixture source A: 1 of 2 compared figures are past their tolerance, in 2026-07; the largest gap is -25.00% (2026-07)",
    "reconciliation: Fixture source B: 1 of 1 compared figures are past their tolerance, in 2026-06; the largest gap is -14.29% (2026-06)",
+   "reconciliation: 2026-06: Fixture source B: 'Fixture measure: all vehicles': the source restated this figure from 8 to 7, -12.50% (a restatement of 5% or more is warned about and does not stop the build)",
    "reconciliation: Fixture source C (a copy of our own export): 1 figure names a value the published files do not hold, in 2026-08, so it was not compared"
   ]
  },
@@ -17145,7 +17146,8 @@
      "passenger",
      "commercial",
      "total"
-    ]
+    ],
+    "restatement_warn_pct": 5
    }
   },
   "rows": [
@@ -17165,6 +17167,9 @@
     "added_up_from": null,
     "figure_kind": "model",
     "stops_alone_pct": null,
+    "restated_from": 8,
+    "restated_pct": -12.5,
+    "restated_past_warning": true,
     "status": "warn",
     "reason_kind": null,
     "reason": null,
@@ -17191,6 +17196,9 @@
     "added_up_from": null,
     "figure_kind": "passenger",
     "stops_alone_pct": null,
+    "restated_from": null,
+    "restated_pct": null,
+    "restated_past_warning": false,
     "status": "warn",
     "reason_kind": null,
     "reason": null,
@@ -17213,6 +17221,9 @@
     "added_up_from": null,
     "figure_kind": "model",
     "stops_alone_pct": null,
+    "restated_from": null,
+    "restated_pct": null,
+    "restated_past_warning": false,
     "status": "pass",
     "reason_kind": null,
     "reason": null,
@@ -17235,6 +17246,9 @@
     "added_up_from": null,
     "figure_kind": "total",
     "stops_alone_pct": null,
+    "restated_from": 102,
+    "restated_pct": -1.9608,
+    "restated_past_warning": false,
     "status": "not_compared",
     "reason_kind": "dataset_not_built",
     "reason": "registrations_flow was not built in this run.",
@@ -17261,6 +17275,9 @@
     "added_up_from": null,
     "figure_kind": "model",
     "stops_alone_pct": null,
+    "restated_from": null,
+    "restated_pct": null,
+    "restated_past_warning": false,
     "status": "not_compared",
     "reason_kind": "value_not_held",
     "reason": "import_status has no value 'Fixture value not held' in the published files of registrations_surviving in this build, so it is not compared.",
@@ -17283,6 +17300,9 @@
     "added_up_from": "made up table",
     "figure_kind": "commercial",
     "stops_alone_pct": 5,
+    "restated_from": null,
+    "restated_pct": null,
+    "restated_past_warning": false,
     "status": "not_compared",
     "reason_kind": "month_not_held",
     "reason": "Our registrations_surviving data holds 1965-04 to 2026-08 in this build, so 2026-09 is outside it and is not compared.",

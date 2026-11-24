@@ -275,6 +275,48 @@ export function comparisonView(reconciliation: Reconciliation | undefined | null
   return { kind: "figures", heading, opening, gapNote: w.gap_note, columns: w.columns, sources, closing };
 }
 
+// ---- The internal list of restated figures ----
+
+export type RestatedFigure = { month: string; status: ReconciliationStatus; source: string; measure: string; earlier: string; current: string; change: string; ours: string | null };
+
+export type RestatedView = {
+  heading: string;
+  intro: string | null;
+  caption: string;
+  columns: Words["restated"]["columns"];
+  rows: RestatedFigure[];
+};
+
+// The rows a source restated by the size the build warns about (the file says which, so this names no size), newest month first. Null where none
+// was: the status page shows nothing for it.
+export function restatedView(reconciliation: Reconciliation | undefined | null, w: Words = words): RestatedView | null {
+  if (!reconciliation || !Array.isArray(reconciliation.rows)) return null;
+  const sources = reconciliation.sources ?? {};
+  const restated = reconciliation.rows
+    .filter((row) => row.restated_past_warning === true && typeof row.restated_from === "number" && typeof row.restated_pct === "number")
+    .sort(
+      (a, b) =>
+        byMonthDescending(a, b) || alphabetical(a.source, b.source) || alphabetical(a.measure_as_published, b.measure_as_published) || alphabetical(JSON.stringify(a.filters), JSON.stringify(b.filters)),
+    );
+  if (restated.length === 0) return null;
+  return {
+    heading: w.restated.heading,
+    intro: say(w.restated.intro, { count: figure(restated.length) }),
+    caption: w.restated.caption,
+    columns: w.restated.columns,
+    rows: restated.map((row) => ({
+      month: row.month,
+      status: row.status,
+      source: sources[row.source]?.name ?? row.source,
+      measure: row.measure_as_published,
+      earlier: figure(row.restated_from as number),
+      current: figure(row.theirs),
+      change: signedPercent(row.restated_pct as number),
+      ours: row.ours === null ? null : figure(row.ours),
+    })),
+  };
+}
+
 // ---- The internal table ----
 
 export const STATUS_ORDER: readonly ReconciliationStatus[] = ["fail", "warn", "not_compared", "pass"];

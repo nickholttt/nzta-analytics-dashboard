@@ -100,7 +100,7 @@ def stage(tmp_path):
 def figure_row(**given) -> dict:
     row = {"source": "source_a", "source_url": "https://a.example/page", "date_read": "2026-11-20", "month": "2026-02",
            "measure_as_published": "Measure one", "figure": "1040", "dataset": FLOW, "filters": "", "tolerance_pct": "2",
-           "known_difference": "", "added_up_from": "", "figure_kind": "fixture_other"}
+           "known_difference": "", "added_up_from": "", "figure_kind": "fixture_other", "restated_from": ""}
     row.update(given)
     return row
 
@@ -227,6 +227,13 @@ def test_a_missing_file_aborts_loudly(tmp_path):
     ({"added_up_from": "chart_data"}, "added_up_from must be blank, or lower case words"),
     ({"added_up_from": "two  words"}, "added_up_from must be blank, or lower case words"),
     ({"added_up_from": "page 2"}, "added_up_from must be blank, or lower case words"),
+    ({"restated_from": "0"}, "restated_from must be blank, or a positive whole number"),
+    ({"restated_from": "-900"}, "restated_from must be blank, or a positive whole number"),
+    ({"restated_from": "1,000"}, "restated_from must be blank, or a positive whole number"),
+    ({"restated_from": "1000.5"}, "restated_from must be blank, or a positive whole number"),
+    ({"restated_from": "about 1000"}, "restated_from must be blank, or a positive whole number"),
+    ({"restated_from": "1040"}, "restated_from is the same as figure"),
+    ({"restated_from": "01040"}, "restated_from is the same as figure"),
 ])
 def test_a_bad_figure_row_is_refused_and_named(tmp_path, change, fragment):
     problems = problems_of(tmp_path, [figure_row(), figure_row(**{"measure_as_published": "Measure two", **change})])
@@ -832,6 +839,159 @@ def test_the_hard_limit_is_unchanged_by_the_single_figure_limit(tmp_path):
     assert {r["status"] for r in both.document["rows"]} == {"fail"}
 
 
+# --- a source restating its own figure (D-153) ------------------------------------------------------------------------------
+# The row holds the new figure in `figure` and the figure the same source published earlier in `restated_from`. A restatement of
+# `reconciliation.restatement_warn_pct` percent (of the earlier figure) or more warns and never stops the build; a gap between a
+# source's figure and ours still does, except that on such a row ours must be `gap_pct` or more from both figures of the source.
+
+def restated_run(tmp_path, ours, figures, warn=None, single=None):
+    """As `exact`, with the size of restatement that warns set to `warn` when given."""
+    staging, datasets = stage(tmp_path)
+    con = duckdb.connect()
+    write_slice(con, staging / "cube" / SERIES / "car_origin.parquet", [("2026-02", "fixture_x", ours, ours + 100)])
+    con.close()
+    cfg = cfg_for(tmp_path, figures, SOURCES, single)
+    if warn is not None:
+        cfg.pipeline["reconciliation"]["restatement_warn_pct"] = warn
+    prepared, problems = reconcile.prepare(cfg)
+    assert problems == []
+    return reconcile.run(duckdb.connect(), cfg, prepared, datasets, staging, "2026-03-31")
+
+
+@pytest.mark.parametrize("theirs, earlier, pct, flagged", [
+    (1050, 1000, 5.0, True),      # exactly 5% of the earlier figure: the size is inclusive
+    (950, 1000, -5.0, True),      # and either way
+    (1049, 1000, 4.9, False),     # one vehicle less is recorded and not flagged
+    (951, 1000, -4.9, False),
+    (1000, 1100, -9.0909, True),  # a share of the earlier figure, not the new one: 100 of 1,100 is 9.09%, and of 1,000 would be 10%
+])
+def test_a_restatement_of_the_warning_size_warns_and_is_flagged_and_a_smaller_one_is_only_recorded(tmp_path, theirs, earlier, pct, flagged):
+    # Ours equals the source's current figure, so nothing else is wrong: only the restatement can be said.
+    result = restated_run(tmp_path, theirs, [one_value(theirs, restated_from=str(earlier))])
+    row = only_row(result)
+    assert (row["restated_from"], row["restated_pct"], row["restated_past_warning"]) == (earlier, pct, flagged)
+    assert result.aborts == []
+    if flagged:
+        # A row that is within its tolerance is still never better than a warning.
+        assert row["gap"] == 0 and row["status"] == "warn"
+        assert len(result.warnings) == 1
+        line = result.warnings[0]
+        assert line.startswith("reconciliation: 2026-02: Source A: 'Measure one': the source restated this figure ")
+        assert f"from {earlier:,} to {theirs:,}, {pct:+.2f}%" in line and "does not stop the build" in line
+    else:
+        assert (row["status"], result.warnings) == ("pass", [])
+
+
+def test_the_size_that_warns_is_config_and_a_blank_restated_from_claims_nothing(tmp_path):
+    figures = [one_value(1050, restated_from="1000")]
+    assert only_row(restated_run(tmp_path / "a", 1050, figures))["restated_past_warning"] is True
+    wide = restated_run(tmp_path / "b", 1050, figures, warn=5.01)
+    assert (only_row(wide)["restated_past_warning"], wide.warnings) == (False, [])
+    assert only_row(wide)["restated_pct"] == 5.0, "the percentage is recorded whatever the size"
+    assert only_row(restated_run(tmp_path / "c", 1050, figures, warn=5))["restated_past_warning"] is True
+    assert wide.document["summary"]["thresholds"]["restatement_warn_pct"] == 5.01
+    blank = only_row(restated_run(tmp_path / "d", 1050, [one_value(1050)]))
+    assert (blank["restated_from"], blank["restated_pct"], blank["restated_past_warning"], blank["status"]) == (None, None, False, "pass")
+
+
+@pytest.mark.parametrize("value", [0, -5, 101, True, "5", None, float("nan"), 10 ** 400])
+def test_the_size_of_restatement_that_warns_is_checked_with_a_message_not_a_traceback(tmp_path, value):
+    cfg = cfg_for(tmp_path, [])
+    cfg.pipeline["reconciliation"]["restatement_warn_pct"] = value
+    problems = reconcile.prepare(cfg)[1]
+    assert len(problems) == 1 and problems[0].startswith("reconciliation.restatement_warn_pct must be a number above 0 and at most 100"), problems
+    del cfg.pipeline["reconciliation"]["restatement_warn_pct"]
+    assert len(reconcile.prepare(cfg)[1]) == 1
+
+
+def test_a_restated_row_with_ours_near_the_earlier_figure_does_not_stop_the_build_and_without_the_earlier_figure_it_does(tmp_path):
+    # The source now says 1,060 and said 1,000 before; ours is 1,000: 5.66% under the new figure, and exactly the old one.
+    restated = restated_run(tmp_path / "a", 1000, [one_value(1060, restated_from="1000")])
+    row = only_row(restated)
+    assert (row["gap_pct"], row["restated_pct"], row["stops_alone_pct"]) == (-5.6604, 6.0, 5)
+    assert restated.aborts == [] and row["status"] == "warn"
+    line = next(w for w in restated.warnings if "restated" in w)
+    assert "from 1,000 to 1,060, +6.00%" in line
+    assert "ours is 1,000, -5.66% from the new figure and +0.00% from the earlier one, so the single-figure limit did not stop the build" in line
+    # The same row with the earlier figure blank is judged as it always was.
+    plain = restated_run(tmp_path / "b", 1000, [one_value(1060)])
+    assert len(plain.aborts) == 1 and only_row(plain)["status"] == "fail" and plain.warnings[0].startswith("reconciliation: Source A: 1 of 1")
+    assert not any("restated" in w for w in plain.warnings)
+
+
+@pytest.mark.parametrize("ours, stops, excused", [
+    (1176, True, False),    # exactly 5% over the new figure (inclusive), and 17.6% over the earlier one
+    (900, True, False),     # under both
+    (1050, True, False),    # exactly 5% over the earlier figure (inclusive), and 6.25% under the new one
+    (950, True, False),     # exactly 5% under the earlier figure
+    (1049, False, True),    # one vehicle less: within the limit of the earlier figure
+    (1000, False, True),    # exactly the earlier figure
+    (960, False, True),     # 4% under the earlier figure, 14.3% under the new one
+    (951, False, True),
+    (1130, False, False),   # within the limit of the new figure: nothing to excuse
+])
+def test_a_restated_row_stops_the_build_only_when_ours_is_the_limit_or_more_from_both_figures(tmp_path, ours, stops, excused):
+    result = restated_run(tmp_path, ours, [one_value(1120, restated_from="1000")])
+    row = only_row(result)
+    assert row["restated_past_warning"] is True
+    assert (row["status"], len(result.aborts)) == (("fail", 1) if stops else ("warn", 0)), (ours, result.aborts)
+    # The restatement is warned about either way.
+    assert any("the source restated this figure from 1,000 to 1,120, +12.00%" in w for w in result.warnings)
+    assert any("so the single-figure limit did not stop the build" in w for w in result.warnings) == excused
+    if stops:
+        assert "one such figure from an independent source stops the build" in result.aborts[0]
+
+
+def test_a_restatement_smaller_than_the_warning_size_does_not_excuse_the_row(tmp_path):
+    # 4.31% of the earlier figure: recorded and not flagged, so ours (1,000, 6.02% under the new figure) is judged as before.
+    result = restated_run(tmp_path, 1000, [one_value(1064, restated_from="1020")])
+    row = only_row(result)
+    assert (row["restated_pct"], row["restated_past_warning"], row["status"], len(result.aborts)) == (4.3137, False, "fail", 1)
+
+
+def test_a_restated_row_of_a_kind_the_limit_does_not_cover_is_still_only_a_warning(tmp_path):
+    result = restated_run(tmp_path, 1000, [figure_row(dataset=SERIES, filters='{"car_origin": ["fixture_x"]}', figure="1064",
+                                                      restated_from="1000", tolerance_pct="2")])
+    row = only_row(result)
+    assert (row["stops_alone_pct"], row["status"], result.aborts) == (None, "warn", [])
+    assert len(result.warnings) == 2, "its tolerance warning and its restatement"
+
+
+def test_a_restated_figure_that_was_not_compared_is_warned_about_and_stays_not_compared(tmp_path):
+    result = fails(tmp_path, [one_value(1064, month="2026-06", restated_from="1000")])
+    row = only_row(result)
+    assert (row["status"], row["restated_past_warning"], result.aborts) == ("not_compared", True, [])
+    lines = [w for w in result.warnings if "restated" in w]
+    assert len(lines) == 1 and "from 1,000 to 1,064" in lines[0] and "ours is" not in lines[0]
+
+
+def test_the_hard_limit_still_counts_a_restated_row_against_its_current_figure(tmp_path):
+    # Two sources 9.5% and 8.3% under ours, each having restated to that figure from ours: the hard limit stops the build as before,
+    # and the single-figure limit is excused on both rows (ours is exactly the earlier figure), so the month's line is the only one.
+    both = figures_from(["source_a", "source_b"], [950, 960], figure_kind=LISTED, restated_from="1040")
+    result = fails(tmp_path, both)
+    assert len(result.aborts) == 1 and "2 of the 2 independent sources compared" in result.aborts[0]
+    assert {r["status"] for r in result.document["rows"]} == {"fail"}
+    assert sum("the source restated this figure" in w for w in result.warnings) == 2
+    # Without the earlier figures the same rows give the month's line and one for each figure.
+    plain = fails(tmp_path / "plain", figures_from(["source_a", "source_b"], [950, 960], figure_kind=LISTED))
+    assert len(plain.aborts) == 3
+
+
+def test_the_restatement_and_the_source_s_own_warning_line_are_kept_apart(tmp_path):
+    # Within its tolerance, a restated row is a warn status but not one of the figures "past their tolerance".
+    result = restated_run(tmp_path, 1050, [one_value(1050, restated_from="1000", tolerance_pct="2")])
+    assert only_row(result)["status"] == "warn"
+    assert len(result.warnings) == 1 and "restated" in result.warnings[0] and "past their tolerance" not in result.warnings[0]
+    assert result.document["summary"]["by_status"] == {"pass": 0, "warn": 1, "fail": 0, "not_compared": 0}
+
+
+def test_a_build_prints_the_restatement_and_goes_on(tmp_path, workspace):
+    figures = [figure_row(dataset=SURVIVING, month="2026-08", figure="9", restated_from="10", tolerance_pct="20")]
+    cfg, manifest = build_with(tmp_path, workspace, figures, SOURCES)
+    assert any("the source restated this figure from 10 to 9, -10.00%" in w for w in manifest["warnings"]), manifest["warnings"]
+
+
 # --- the hard limit over the live published figures -------------------------------------------------------------------------
 # These read the real data/reference/published_figures.csv and put our figure beside each row's, scaled, through the real judge,
 # finish and hard_limit, to show what size of error stops a build on the rows that are committed. No source is named here:
@@ -1081,7 +1241,11 @@ def test_live_rows_against_the_figures_of_a_dry_run_build_do_not_stop_it():
             continue
         judged.append(reconcile.judge(f, reconcile.Answer(row["ours"]), multiple, floor, decimals))
     assert len(judged) > 300, "the staged file does not hold the live rows"
-    assert reconcile.finish(prepared, judged, c, [], "fixture").aborts == []
+    again = reconcile.finish(prepared, judged, c, [], "fixture")
+    assert again.aborts == []
+    # Run again over the answers the build read, the step judges every compared row as the build did.
+    built = json.loads(STAGED.read_text(encoding="utf-8"))["summary"]["by_status"]
+    assert {k: again.entry["by_status"][k] for k in ("pass", "warn", "fail")} == {k: built[k] for k in ("pass", "warn", "fail")}
 
 
 # --- the document ----------------------------------------------------------------------------------------------------------
@@ -1109,13 +1273,17 @@ def test_the_document_gives_the_site_everything_it_needs(tmp_path):
     assert summary["by_source"]["source_c"] == {"rows": 0, "pass": 0, "warn": 0, "fail": 0, "not_compared": 0}
     assert summary["thresholds"] == {"max_tolerance_pct": 20, "hard_limit_tolerance_multiple": 2, "hard_limit_floor_pct": 2,
                                      "hard_limit_min_sources": 2, "hard_limit_source_vehicle_share": 0.5,
-                                     "single_figure_gap_pct": 5, "single_figure_kinds": [LISTED, SECOND_LISTED]}
+                                     "single_figure_gap_pct": 5, "single_figure_kinds": [LISTED, SECOND_LISTED],
+                                     "restatement_warn_pct": 5}
     # The kind is on every row, and the limit on the rows it applies to: a listed kind of an independent source.
     assert [(r["figure_kind"], r["stops_alone_pct"]) for r in doc["rows"]] == [("fixture_other", None), (LISTED, 5), ("fixture_other", None)]
     assert [(r["month"], r["source"]) for r in doc["rows"]] == [("2026-02", "source_a"), ("2026-03", "source_b"), ("2027-01", "source_a")]
     assert set(doc["rows"][0]) == {"source", "month", "measure_as_published", "dataset", "filters", "ours", "theirs", "gap", "gap_pct",
-                                   "tolerance_pct", "hard_bound_pct", "known_difference", "added_up_from", "figure_kind", "stops_alone_pct", "status",
-                                   "reason_kind", "reason", "source_url", "date_read"}
+                                   "tolerance_pct", "hard_bound_pct", "known_difference", "added_up_from", "figure_kind", "stops_alone_pct",
+                                   "restated_from", "restated_pct", "restated_past_warning", "status", "reason_kind", "reason", "source_url",
+                                   "date_read"}
+    # No figure was restated: nothing is claimed about one.
+    assert [(r["restated_from"], r["restated_pct"], r["restated_past_warning"]) for r in doc["rows"]] == [(None, None, False)] * 3
     assert not any(k.startswith("_") for r in doc["rows"] for k in r)
     assert result.entry == {"file": "reconciliation.json", "rows": 3, "by_status": summary["by_status"], "months": summary["months"]}
 

@@ -46,6 +46,20 @@
     "many": "{count} further figures are checked the same way in every build. They are not shown here.",
     "one": "One further figure is checked the same way in every build. It is not shown here."
   },
+  "restated": {
+    "heading": "Figures a source has restated",
+    "intro": "{count} of the figures below were published earlier by their source, which now publishes another figure for the same month and measure, by the size the build warns about or more. Each is shown with the figure it published before and the one it publishes now. The build warns about each one. On those of these rows that the single-figure limit covers, it stops the build when this site's figure is that limit or more from both of the source's figures, and not when it is within the limit of either. A row the limit does not cover cannot stop a build alone, restated or not. The limit that takes more than one source counts each row against its current figure, as it does any row.",
+    "caption": "Figures a source has restated, newest month first",
+    "columns": {
+      "month": "Month",
+      "source": "Source",
+      "measure": "Measure as published",
+      "earlier": "Earlier figure",
+      "current": "Current figure",
+      "change": "Change",
+      "ours": "This site's figure"
+    }
+  },
   "absent": "The comparison with figures that organisations beyond this site publish is not in this build of the site yet. It arrives with the next monthly refresh.",
   "empty": "No published figures have been set beside this site's in this build."
 }
