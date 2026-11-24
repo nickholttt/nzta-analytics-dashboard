@@ -1,83 +1,75 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-24
+Last updated by claude on 2026-11-24 (second session of the day)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2)
 
-Take only a lane that is free or your own. Write your line here, on `main`, before you start.
-A session on the web takes only A, B or C.
+Take only a lane that is free or your own. Write your line here, on `main`, before you start. On the web: A, B or C.
 
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
-| A: finish the canvas | `claude/a-*` | the session on the computer of 2026-11-24 (its second) | steps 1 and 2 of 5 merged (#118, #119, #121); steps 3 to 5 and the milestone 1 report under way |
-| B: the accuracy guard | `claude/b-*` | the same session, for the user's three answers below only | items 1 to 3 merged (#125, #126, #127); after the answers, next is item 5, the write-up |
-| C: public readiness | `claude/c-*` | the session on the computer of 2026-11-24 (its second) | item 4 and the checks of item 2 merged (#120); items 1 to 3 and the dry run under way |
-| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 22 November built nothing |
+| A: finish the canvas | none | free | all five steps merged (#132, #133, #138); milestone 1's "done when" met; what is left is the user's design choices (question 3) |
+| B: the accuracy guard | none | free | items 1 to 3 and the user's answers of 2026-11-24 merged (#134, #135); next is item 5, the write-up |
+| C: public readiness | none | free | items 1 to 3 merged (#130, #131, #136, #137) and the private dry run done; the design pass's cheap fixes are on `claude/c-last-fixes`, unfinished and not yet a pull request: finish and merge them first; after that only the user's four items are left |
+| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 23 November built nothing |
 
 ## Where we left off
 
-- 2026-11-24, lane B only: #124 to #127 merged. No pull request is open.
+- 2026-11-24, second session (lanes A and C, the user's answers on B): #129 to #138 merged; none open.
 
 ## The queue, lane by lane (the order's §2 has each lane's "done when")
 
-**A, finish the canvas.**
-3. Build folded into the canvas: a Build link opens as a one-chart canvas, "My questions" become canvases,
-   old links keep working, then Build's page goes. CLAUDE.md's "Two surfaces" changes with it (D-148).
-4. Dark mode, checked on real chart colours.
-5. First load under 3 s (3.93 s on 20 November). Seen on 23 November: the whole of `config/pipeline.json`
-   is in the browser's code, and a macron pulls in a second font file. Lower the budgets afterwards.
-- Also A's, from lane C's audit: controls under 44 px on the canvas at 1280 px (`src/styles/canvas.css`);
-  a link with an unknown measure or month draws a default chart and says nothing (`src/lib/canvas.ts`);
-  "This chart could not be drawn." gives no next step; the heading level `/build/` skips.
+**A, finish the canvas.** Nothing is queued until the user answers question 3. Small and safe: drop three
+unused decompressors from the Parquet reader (about 5 KB); remove the old Build screen's words (STATE 8).
 
 **B, the accuracy guard.**
 4. Each month, one pull request adding the month's rows (high risk; `docs/playbooks/add-published-figures.md`).
-   The MIA's come from its media release or a report that credits it (D-151). November's go with lane D.
+   The MIA's come from its media release or a report that credits it (D-151, D-152). November's go with lane D.
 5. Write up the measured gap on the Differences page: its hand-written MIA section gives 16 November's
-   figures; the month-by-month ones are STATE known issue 7. Say what is measured, not why.
-- Follow-ups: vstat's October 2026 totals are printed on its page but labelled "added up" (STATE);
-  September 2025's MIA total ("14,000", perhaps exact) has no row; rows for `registrations_surviving`.
+   figures; the month-by-month ones are in the comparison beside it. Say what is measured, not why.
+- Follow-ups: a check that a filled `restated_from` is what the row's figure was before the change
+  (STATE 7); vstat's October 2026 totals labelled "added up"; September 2025's MIA total has no row.
 
-**C, public readiness.**
-1. Milestone 2: `docs/playbooks/go-public.md` as numbered clicks; a private dry run; the refresh notice.
-2. What the audit still fails (the canvas's are in A's list); the no-tracking check's miss (STATE 8).
-3. One design pass by an opus sub-agent that has not seen the work, after A's dark mode.
-- After the user names the site: redraw the social cards (`scripts/make-social-cards.mjs`).
+**C, public readiness.** The user's four items: the name, the address, the About page's gaps, the
+Cloudflare clicks (`docs/playbooks/go-public.md`). After the name: redraw the social cards
+(`scripts/make-social-cards.mjs`). When wanted: say so when a page left open draws a newer month than it
+was built for (STATE 3); close the tracking check's old gaps and hold `localStorage` to named keys (STATE 6).
 
-**D, the December refresh.** November's build and archive; its published figures; the
-usage-column check (D-134). True registrations need the user's dashboard export.
+**D, the December refresh.** November's build and archive; its published figures (lane B, item 4); the
+usage-column check (D-134). When NZTA publishes November the user gives `DASHBOARD_EXPORT_METHOD.md`:
+use it to retake the dashboard history with "GVM group" and "CC grouping - vehicle", then guard light
+commercial against vstat with a real tolerance in place of the 22 exempt rows (user, 2026-11-24).
 
 ## Parked until the user says otherwise
 
 Colour's own table (D-144); more SUV slices (D-145, D-117); further hybrid work (D-110, D-119); new
 segment schemes (D-103); new fields, datasets and privacy tables; drawing a hidden cell over time
-(D-130); the query service (D-091); the narrative engine beyond the canvas's sentences (D-102); a
-measure worked out from two others on the canvas (three Explore charts wait on it, STATE 4).
+(D-130); the query service (D-091), which a 3 s first chart on a fact-table link needs; the narrative
+engine beyond the canvas's sentences (D-102); a measure worked out from two others (STATE 4).
 
 ## Questions for the user (parked; none stops the work)
 
 1. **The site's name and web address** and the About page's gaps (`config/site.json`).
-
-## The user's answers of 2026-11-24 (second session), being done
-
-1. **Scoop:** keep the figures. Where the MIA's own site or a news outlet has the same release, link to
-   that; keep a Scoop link only where nothing else exists.
-2. **Swap `public/data`** for the dry-run build holding `reconciliation.json`: yes, then check the
-   Differences page and `/status` in the browser with the real figures.
-3. **A source restating its own figure by 5% or more** warns and is listed on `/status`; it does not
-   stop the build. A gap between a source's figure and ours still stops it.
-4. **Lane D:** when NZTA publishes November the user gives `DASHBOARD_EXPORT_METHOD.md`. Use it to retake
-   the history with "GVM group" and "CC grouping - vehicle", then guard light commercial against vstat
-   with a real tolerance.
+2. **D-153's reading of the restatement rule.** A restated row stops the build only when our figure is
+   5% or more from both the source's new figure and its earlier one; "gaps between a source's figure and
+   ours still stop it" could be read as the new figure alone. Recommended: keep it as built (the other
+   reading stops the build on every large restatement). It stays unless the user says otherwise.
+3. **The design pass's larger findings** (the session's report lists all). The three that matter most:
+   a value keeps one colour across a page of charts (today colour follows rank); the editing panels take
+   nearly half the desktop width; the sentence sits under the chart with method notes above it (the
+   order of 2026-11-23 put it under). Recommended: do the first, fold the field list into the chart
+   panel for the second, leave the third. None is started until the user says.
 
 ## Decided for the user (unreviewed)
 
-- D-150: a row with a tolerance of 5% or more and a stated reason is exempt from the 5% stop (vstat's
-  22 light commercial rows); totals are covered too; vstat still counts as independent.
-- D-151: Scoop's copies and reports that credit the MIA count as its public releases; later-release
-  figures for March and June 2025; no row for a figure that may be rounded.
-- #125: the public comparison shows passenger, commercial and total figures; models are on `/status`.
-- D-148, D-149 and the canvas choices of 2026-11-23 are still unreviewed (their records say which).
+- D-152: GoAuto's credit line counts as crediting the MIA; Autotrader NZ carries one row. D-153: the
+  "both figures" rule (question 2); the earlier figure is entered by hand.
+- #132: a Build link for "share and number" opens as two charts. #133: the theme choice is kept in the
+  browser only when it differs from the device. #137: "being refreshed" means a month is due and not
+  here yet. #138: the fonts are cut-down files in the repository, renamed inside ("NZVR Sans", "NZVR
+  Serif") as their licence requires; charts after the first wait until the first is drawn.
+- `claude/c-last-fixes` (unfinished): one quiet "selected" style for toggles and chips, and the design pass's other cheap fixes.
+  D-148 to D-151 and the canvas choices of 2026-11-23 are still unreviewed (their records say which).
 
 ## Prompt for the next session
 
