@@ -30,7 +30,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
 
 <Layout title="Methodology" activeNav="method">
   <Fragment slot="masthead">
-    <h1>Methodology & Metric Definitions</h1>
+    <h1>Methodology and metric definitions</h1>
     <p class="standfirst">
       Every figure on this site comes from a definition on this page. Nothing is forecast, and a missing month is
       left blank rather than filled in.
@@ -38,7 +38,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
   </Fragment>
 
   <article class="prose">
-    <h2 id="data-grains">Data Grains</h2>
+    <h2 id="data-grains">Data grains</h2>
     <p>
       The register can be counted in three different ways. They answer different questions, and putting two of them
       on one axis gives misleading figures.
@@ -56,7 +56,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
         <strong>Flow</strong>: every first registration in month <em>M</em>,
         including vehicles since removed from the register, from NZTA's registrations dashboard. This is the dataset
         for how many vehicles entered the fleet. The charts under “True registrations” use it, and
-        <a href="#true-registrations">the section below</a> says what it counts.
+        {" "}<a href="#true-registrations">the section below</a> says what it counts.
       </li>
       <li>
         <strong>Stock</strong>: every vehicle registered at a month end, whenever it was first
@@ -64,7 +64,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       </li>
     </ul>
 
-    <h2 id="vehicle-scope">Vehicle Scope</h2>
+    <h2 id="vehicle-scope">Vehicle scope</h2>
     <p>
       Every dataset counts <strong>in-scope vehicles only</strong>. Out-of-scope vehicles stay in the archived
       monthly snapshot totals, marked as out of scope, but never reach the charts.
@@ -83,7 +83,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       </li>
     </ul>
 
-    <h2 id="fields">What Each Field Means</h2>
+    <h2 id="fields">What each field means</h2>
     <p>
       A chart shows one line about the field it breaks down by. Where that line has more behind it, the whole note is here.
     </p>
@@ -94,7 +94,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       </>
     ))}
 
-    <h2 id="core-measures">Core Measures</h2>
+    <h2 id="core-measures">Core measures</h2>
     <table>
       <thead>
         <tr>
@@ -154,7 +154,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       year ago, as well as shares. The running total is defined here because the configuration allows it.
     </p>
 
-    <h2 id="true-registrations">True Registrations</h2>
+    <h2 id="true-registrations">True registrations</h2>
     <p>
       A true registration is a vehicle's first registration in New Zealand, counted in the month it happened, including
       vehicles that have since been removed from the register. These counts come from NZTA's registrations
@@ -199,7 +199,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       scale or adjust any other figure.
     </p>
 
-    <h2 id="hidden-counts">Hidden Counts</h2>
+    <h2 id="hidden-counts">Hidden counts</h2>
     <p>
       A table of a field that describes how a vehicle is used, or who has it, never shows a count under {hideBelow}, so no
       vehicle can be picked out from it. A hidden count is marked <em>hidden</em>, with no bar and no number, and is never
@@ -209,7 +209,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       table is not broken down, and the page says so.
     </p>
 
-    <h2 id="long-run-cars">Long-Run Car Registrations</h2>
+    <h2 id="long-run-cars">Long-run car registrations</h2>
     <p>
       Stats NZ publishes a monthly count of the cars and station wagons registered in New Zealand for the first time,
       from NZTA's records, back much further than the registrations dashboard goes. Each chart that uses it carries
@@ -238,7 +238,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       </li>
     </ul>
 
-    <h2 id="cars-still-registered">Cars Still Registered Against the Long-Run Count</h2>
+    <h2 id="cars-still-registered">Cars still registered against the long-run count</h2>
     <p>
       Before the registrations dashboard begins there is no count of true registrations by vehicle. For cars, the
       register's passenger cars and vans still registered are set against Stats NZ's count of cars registered for the
@@ -259,7 +259,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       </li>
     </ul>
 
-    <h2>The Two Suppression Guards</h2>
+    <h2>The two suppression guards</h2>
     <p>
       On any share chart, a figure is greyed out when <strong>either</strong> of two guards trips. Greyed figures are
       drawn as a thin grey line over a shaded band, and marked “suppressed” in the tables under a chart, not dropped
@@ -267,14 +267,14 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       problems, so one cannot stand in for the other.
     </p>
 
-    <h3>1. The Precision Floor (Fewer Than {floor} Vehicles)</h3>
+    <h3>1. The precision floor (fewer than {floor} vehicles)</h3>
     <p>
       When fewer than {floor} vehicles sit behind a share, each vehicle moves the percentage visibly, so the figure is
       too rough to read. For a {trailing}-month share, the floor applies to the {trailing} months' total. This is the
       guard that covers the sparse early record: every month under {floor} vehicles is before 1990.
     </p>
 
-    <h3>2. The Representativeness Floor (A Collapse Against Recent Months)</h3>
+    <h3>2. The representativeness floor (a collapse against recent months)</h3>
     <p>
       A month can clear the precision floor comfortably and still describe a different population from the months
       around it. This guard trips when a month's total is below <strong>{collapsePct}% of the median</strong> of the
@@ -298,13 +298,13 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       </p>
     </div>
 
-    <h2>Reading a Mix Chart</h2>
+    <h2>Reading a mix chart</h2>
     <p>
       A mix chart shows how a total splits into groups: each line is one group's share of the month's vehicles. These
       are the only charts that carry event markers, though not every one of them does.
     </p>
 
-    <h3>Lines and the Key</h3>
+    <h3>Lines and the key</h3>
     <p>
       Up to {SERIES_COUNT} lines get their own colour. The first {colourSlots} go to the largest groups over the
       last {trailing} months; the rest go to the groups with the highest {trailing}-month share at any point in the chart's
@@ -323,7 +323,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       small now sits inside {ALL_OTHER} in every year, including the years it was large.
     </p>
 
-    <h3>Values With No Name</h3>
+    <h3>Values with no name</h3>
     <p>Three labels mark vehicles that cannot be put in a named group. They mean different things and are never merged.</p>
     <ul>
       <li>
@@ -349,7 +349,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       few dozen shows as a spike.
     </p>
 
-    <h3>Event Markers</h3>
+    <h3>Event markers</h3>
     <p>
       A marker places a dated event next to the line. It says when something happened, not that it caused what the
       line does.
@@ -380,8 +380,8 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       and none dated after the latest snapshot.
     </p>
 
-    <h2>Derived Measures</h2>
-    <h3>Market Concentration (Top-{topN} Share)</h3>
+    <h2>Derived measures</h2>
+    <h3>Market concentration (top-{topN} share)</h3>
     <p>
       The combined share of the {topN} largest groups in the chart's breakdown that month, for example
       the {topN} largest makes. Which {topN} they are is worked out again every month, so the line tracks concentration rather
@@ -391,7 +391,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       carries both suppression guards.
     </p>
 
-    <h3>Mild Hybrid Identification Coverage</h3>
+    <h3>Mild hybrid identification coverage</h3>
     <p>
       The main hybrid code in NZTA's records does not say whether a hybrid is mild (MHEV) or full (FHEV). We classify
       hybrid nameplates as mild or full from manufacturer specifications, nameplate by nameplate, in a list kept with the site's reference data.
@@ -409,7 +409,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       charts split out mild hybrids.
     </p>
 
-    <h2>Estimation Principles</h2>
+    <h2>Estimation principles</h2>
     <ul>
       <li><strong>No interpolation</strong>: a missing month is never filled in; the line breaks.</li>
       <li><strong>No extrapolation</strong>: charts end at the latest snapshot. Nothing is projected or forecast.</li>
