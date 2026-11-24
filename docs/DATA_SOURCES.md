@@ -328,7 +328,9 @@ step-by-step is `docs/playbooks/supply-dashboard-month.md`.
 Not open data. Do not scrape. The MIA's own page shows the latest month only,
 as images: "New vehicle registrations", in total and for light passenger
 (including SUVs), light commercial and heavy commercial (read 2026-11-16;
-its statistics pages are for members). An earlier line here said the MIA
+its statistics pages are for members). Its monthly media releases are public,
+and are the only other place its figures are taken from (section F, D-151):
+never its members' data. An earlier line here said the MIA
 "counts vehicles delivered to buyers"; nothing read supports that, and its
 page calls the figures registrations, in a table whose columns are headed
 "Sales". Our numbers do not match theirs exactly and are never adjusted
@@ -362,7 +364,7 @@ What it holds (read on 2026-11-23): three organisations, each counted as indepen
 
 | `id` | Where its definition was read | What could be read | `data_basis` |
 |---|---|---|---|
-| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | one month's table and its year-earlier column; earlier months are for members only | blank |
+| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | on its own site, one month's table and its year-earlier column. Earlier months come from what it releases publicly: its monthly media releases, as published by Scoop, and news reports that credit it for the figure (D-151). Its statistics pages are for members and are not used | blank |
 | `mta_vstat` | its About page | 22 months; the page says its figures are NZTA's records as they were when it published | `same NZTA data, processed separately` |
 | `statsnz` | the group title of its monthly release file, Transport vehicle registrations | 22 months, each marked final | blank |
 
@@ -419,13 +421,13 @@ never stop it. (D-150; the whole rule, with the sizes it was measured at, is in 
 have a compared row that month, each have half or more of what they published (the weight of a row is its figure, so a total
 and its parts both count) in rows further from ours than twice their tolerance, never less than 2%, on the same side. A month
 with compared rows from fewer than two independent sources cannot stop a build. The numbers are in `config/pipeline.json`
-(`reconciliation.hard_limit`); the whole rule is in `docs/CUBE_SCHEMA.md`. On the 336 rows
-committed on 2026-11-23, an error of 3% or more in all of our figures, either way, stops the build in every month. A fault
-confined to one kind of figure (new passenger vehicles counted as commercial) is not stopped by this rule at any size tried, and
-is stopped by the one-figure rule at 2% in 2 months, at 5% in 13, and from 10% in all 22; the measured sizes are in
-`docs/CUBE_SCHEMA.md`, "What size of error stops a build".
+(`reconciliation.hard_limit`); the whole rule is in `docs/CUBE_SCHEMA.md`. On the 389 rows
+committed on 2026-11-24, an error of 3% or more in all of our figures, either way, stops the build in every month. A fault
+confined to one kind of figure (new passenger vehicles counted as commercial) is stopped by this rule in one month of the 22,
+from 5%, and by the one-figure rule at 2% in 10 months and from 5% in all 22; the measured sizes, and those on the 336 rows of
+2026-11-23, are in `docs/CUBE_SCHEMA.md`, "What size of error stops a build".
 
-What it holds (read on 2026-11-23, for January 2025 to October 2026): 336 rows.
+What it holds (for January 2025 to October 2026): 389 rows, 336 read on 2026-11-23 and 53 of the MIA's read on 2026-11-24.
 
 | Source | Measure | `figure_kind` | Months | Set beside | Tolerance |
 |---|---|---|---|---|---|
@@ -435,13 +437,13 @@ What it holds (read on 2026-11-23, for January 2025 to October 2026): 336 rows.
 | `mta_vstat` | used import passenger cars | `passenger` | 22 | the same, used imports | 1% |
 | `mta_vstat` | new light commercial vehicles | `commercial` | 22 | true registrations, new goods vans, trucks and utes | 12%, with a known difference (exempt from the one-figure rule) |
 | `mta_vstat` | each of the ten largest new models of the month | `model` | 22, ten rows each | true registrations on the wider scope, new, that model | 3% |
-| `mia` | Total Industry | `total` | 2 | true registrations on the wider scope, new | 1% |
-| `mia` | Light Passenger (incl. SUV) | `passenger` | 2 | true registrations, new passenger cars and vans | 1% |
-| `mia` | Light Commercial plus Heavy Commercial | `commercial` | 2 | true registrations on the wider scope, new, commercial | 2% |
+| `mia` | total new vehicle registrations | `total` | 21 | true registrations on the wider scope, new | 1% |
+| `mia` | light passenger registrations, including SUVs | `passenger` | 19 | true registrations, new passenger cars and vans | 1% |
+| `mia` | light commercial plus heavy commercial registrations | `commercial` | 19 | true registrations on the wider scope, new, commercial | 2% |
 
-The config lists `passenger`, `commercial` and `total` for the one-figure rule, so it applies to 94 of the 336 rows (a count
-made with the real functions on the committed rows); the 220 `model` rows and the 22 exempt light commercial rows are not
-subject to it.
+The config lists `passenger`, `commercial` and `total` for the one-figure rule, so it applies to 147 of the 389 rows (a count
+made with the real functions on the committed rows: 59 of the MIA's, 44 of vstat's, 44 of Stats NZ's); the 220 `model` rows
+and the 22 exempt light commercial rows are not subject to it.
 
 How each was read, and what that means for a row:
 
@@ -451,16 +453,29 @@ How each was read, and what that means for a row:
   data added across powertrains, and the ten largest models of a month are the ten largest sums: vstat prints neither as
   text for a past month. Every one of its 286 rows says so in its measure and has `added_up_from` `chart`. For October 2026 the page's own text gives the same four figures. A model is set beside the wider
   scope because vstat's count of a van takes in its minibus and camper versions, which the default scope leaves out.
-- The MIA: one table, published as an image, read by eye by two readers. Its two commercial figures are added, and the
-  row's measure says so (and `added_up_from` is `table` on those two rows, the only ones of the MIA that have it), because our
-  figures cannot separate light from heavy commercial vehicles. Its months before
-  October 2026 are not public: the two October 2025 rows are the year-earlier column of the October 2026 table.
+- The MIA, October 2026 and October 2025 (6 rows): one table on its own site, published as an image, read by eye by two
+  readers. The October 2025 rows are the year-earlier column of that table.
+- The MIA, January 2025 to September 2026 (53 rows, D-151): only figures it releases publicly. 41 are from its monthly media
+  releases as published by Scoop, 11 from GoAuto's monthly reports and one from Autofile's, each of which credits the MIA for
+  the figure on the page. Its own site carries no past month, and its statistics pages are for members and were not read.
+  Every figure was read on the page at the row's `source_url` on 2026-11-24, twice: by a reader, and then by a script that
+  fetched each page again and found the figure and its sentence in the page's text. A row's measure is this file's
+  one wording for the figure (the releases give each in a sentence), followed in brackets by where it was read. Where no
+  count was released for a month at the time (March and June 2025), the row is the figure a later release or report gives
+  for that month, and its measure says so. A figure that may be rounded, or that is on a page that does not credit the MIA, has no row.
+  The months with a figure missing: September 2025 has no total; January, April and May 2026 have a total only.
+- In every MIA month its two commercial figures are added, and the row's measure says so, because our figures cannot
+  separate light from heavy commercial vehicles: `added_up_from` is `table` on the two rows from its table and `figures` on
+  the 17 from its releases.
 
 Left out, because our figures have no matching question: vstat's used import commercial vehicles (a few hundred a month,
 light only) and the MIA's and vstat's year-to-date and whole-market totals. A tolerance was set from the gaps measured on
 2026-11-23 against the build of the October 2026 snapshot, with room above the largest: passenger figures were within
 0.71% of every source in every month. One row was past its tolerance that day and is left as it is: one model in
-November 2025, 283 against 302.
+November 2025, 283 against 302. The 53 MIA rows of 2026-11-24 were measured the same way and keep the tolerances of its
+October rows: ours is below the MIA's in all 53, by 0.11% to 0.56% of its total (13 to 56 vehicles, 19 months), 0.01% to
+0.65% of its light passenger figure (1 to 42 vehicles, 17 months) and 0.09% to 0.77% of its two commercial figures added
+(3 to 28 vehicles, 17 months).
 
 ---
 

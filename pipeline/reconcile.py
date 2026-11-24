@@ -38,7 +38,6 @@ from __future__ import annotations
 
 import csv
 import json
-import math
 import re
 from collections import defaultdict
 from datetime import date
@@ -193,7 +192,8 @@ def settings(cfg) -> tuple[dict, list[str]]:
         problems.append("reconciliation.single_figure_limit must be an object with gap_pct and kinds")
     else:
         gap = s.get("gap_pct")
-        if isinstance(gap, bool) or not isinstance(gap, (int, float)) or not math.isfinite(gap) or not 0 < gap <= 100:
+        # The range also refuses what is not finite, and a whole number too long for a float, without converting it.
+        if isinstance(gap, bool) or not isinstance(gap, (int, float)) or not 0 < gap <= 100:
             problems.append("reconciliation.single_figure_limit.gap_pct must be a number above 0 and at most 100")
         kinds = s.get("kinds")
         if not ids(kinds):
