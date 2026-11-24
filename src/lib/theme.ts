@@ -1,9 +1,11 @@
-// Chart colours and chart chrome. Plot writes colours into SVG attributes, which cannot read CSS custom
-// properties, so they live here. The surface, ink and rule values mirror src/styles/site.css and must
-// change with it. Nothing here names a domain value: each renderer decides which series takes which
-// slot (the mix chart: colour_slots_by_trailing in config/presets.json).
+// Chart colours and chart chrome, for each theme. Plot writes colours into SVG attributes and interpolates
+// a colour scale in script, neither of which can read CSS custom properties, so they live here. The surface, ink
+// and rule values of both palettes mirror src/styles/site.css, its light tokens and its two dark blocks, and
+// tests/site/theme-tokens.test.ts fails if they drift. Nothing here names a domain value: each renderer decides
+// which series takes which slot (the mix chart: colour_slots_by_trailing in config/presets.json). A renderer
+// takes the palette of the theme that applies from usePalette (src/lib/useTheme.ts) and redraws when it changes.
 
-// Eight line colours, validated with the dataviz skill's validate_palette.js on the paper surface with
+// LIGHT. Eight line colours, validated with the dataviz skill's validate_palette.js on the paper surface with
 // --pairs all, because lines cross and any two can meet: worst colour-blind separation dE 8.9 (target 8),
 // worst normal-vision dE 16.7 (floor 15), every colour at least 3:1 against paper. The order is part of
 // the validation: every prefix is as distinct as it can be, so a two-series chart gets the two most
@@ -13,40 +15,109 @@
 // colour in the lightness band finds at most nine that stay distinguishable under colour blindness when
 // all pairs count; at fourteen the best achievable separation is dE 6.6 colour-blind and 12.8 normal.
 // Series past the eighth are drawn as grey context lines, named in the key and the tooltip.
-export const SERIES = ["#3049ba", "#ec5a79", "#a37f03", "#872884", "#236e43", "#8b6ec2", "#089f99", "#b82e02"];
+//
+// DARK. The same eight slots, chosen again for the dark paper (#16171a), because a colour that holds on light paper
+// does not hold on dark. Slot 1 stays the accent family (the accent is #6f86ee in dark too); the rest were found by a
+// search over every in-gamut colour with lightness 0.50 to 0.74 and chroma 0.11 to 0.19 that reaches 3:1 on the raised
+// paper, scored on all pairs, then ordered so every prefix is as distinct as it can be. Validated with the dataviz
+// skill's validate_palette.js, --mode dark --surface #16171a --pairs all (the same method and measure as the light set,
+// OKLab dE x100, Machado 2009 simulation): worst colour-blind separation dE 8.1 (target 8), worst normal-vision dE 15.2
+// (floor 15), lowest contrast 3.77:1 on paper and 3.42:1 on the raised paper (floor 3). One thing differs from the
+// validator's own dark defaults: its lightness band is 0.48 to 0.67, and inside it the best set found for all pairs
+// reached only dE 7.7 colour-blind and 14.4 normal, so the band is widened to 0.74 and the validator's band line fails
+// for four colours by design. Re-run the validator before changing any value or the order.
+const SERIES_LIGHT = ["#3049ba", "#ec5a79", "#a37f03", "#872884", "#236e43", "#8b6ec2", "#089f99", "#b82e02"];
+const SERIES_DARK = ["#6f86ee", "#f98a20", "#248860", "#ae48b8", "#e18db0", "#b46220", "#25bce5", "#75b96a"];
 
-export const PAPER = "#f8f7f3";
-export const PAPER_2 = "#f0eee8";
-export const INK = "#1b1c1f";
-export const INK_2 = "#4b4d53";
-export const INK_3 = "#6b6d73";
-export const RULE = "#e2dfd6";
-export const RULE_STRONG = "#c9c5ba";
+export type ThemeName = "light" | "dark";
 
-// The remainder is what is left over, not a competitor: neutral ink, never a palette colour.
-export const REMAINDER = INK_3;
-// Series beyond the palette: present, named on hover and in the key, but recessive.
-export const CONTEXT = "#bdb9ae";
-// Months under a suppression guard: a quiet line over a quiet band, drawn rather than dropped.
-export const SUPPRESSED_LINE = "#cfcbc1";
-export const SUPPRESSED_BAND = "#ecebe6";
-// A windowed event's active period.
-export const EVENT_WINDOW = "#eee3c6";
+export interface Palette {
+  theme: ThemeName;
+  series: readonly string[];
+  paper: string;
+  paper2: string;
+  ink: string;
+  ink2: string;
+  ink3: string;
+  rule: string;
+  ruleStrong: string;
+  // The remainder is what is left over, not a competitor: neutral ink, never a palette colour.
+  remainder: string;
+  // Series beyond the palette: present, named on hover and in the key, but recessive.
+  context: string;
+  // Months under a suppression guard: a quiet line over a quiet band, drawn rather than dropped.
+  suppressedLine: string;
+  suppressedBand: string;
+  // A windowed event's active period (drawn at 0.55 opacity).
+  eventWindow: string;
+  // The tooltip's surface and edge.
+  tipFill: string;
+  tipStroke: string;
+  // The lowest end of a map's colour scale; the highest end is the first series colour.
+  scaleLow: string;
+}
+
+const LIGHT: Palette = {
+  theme: "light",
+  series: SERIES_LIGHT,
+  paper: "#f8f7f3",
+  paper2: "#f0eee8",
+  ink: "#1b1c1f",
+  ink2: "#4b4d53",
+  ink3: "#6b6d73",
+  rule: "#e2dfd6",
+  ruleStrong: "#c9c5ba",
+  remainder: "#6b6d73",
+  context: "#bdb9ae",
+  suppressedLine: "#cfcbc1",
+  suppressedBand: "#ecebe6",
+  eventWindow: "#eee3c6",
+  tipFill: "#f8f7f3",
+  tipStroke: "#c9c5ba",
+  scaleLow: "#e3e6f3",
+};
+
+const DARK: Palette = {
+  theme: "dark",
+  series: SERIES_DARK,
+  paper: "#16171a",
+  paper2: "#1f2024",
+  ink: "#ececea",
+  ink2: "#c1c2c7",
+  ink3: "#9a9ca3",
+  rule: "#2b2d32",
+  ruleStrong: "#41444b",
+  remainder: "#9a9ca3",
+  context: "#6b6e76",
+  suppressedLine: "#686b73",
+  suppressedBand: "#212328",
+  eventWindow: "#524516",
+  tipFill: "#1f2024",
+  tipStroke: "#41444b",
+  scaleLow: "#262d4d",
+};
+
+export const PALETTES: Record<ThemeName, Palette> = { light: LIGHT, dark: DARK };
+
+// How many series get a colour of their own, in either theme.
+export const SERIES_COUNT = SERIES_LIGHT.length;
 
 export const FONT_TEXT = "'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
 
 export const LINE_WIDTH = 2;
 export const THIN_LINE_WIDTH = 1.25;
 
-export const plotStyle = {
+export const PLOT_FONT_SIZE = "12px";
+
+export const plotStyle = (pal: Palette) => ({
   fontFamily: FONT_TEXT,
-  fontSize: "12px",
-  color: INK_3,
+  fontSize: PLOT_FONT_SIZE,
+  color: pal.ink3,
   background: "transparent",
   overflow: "visible",
-};
+});
 
-export const tipStyle = { fill: PAPER, stroke: RULE_STRONG, fontSize: 12, textPadding: 8 };
+export const tipStyle = (pal: Palette) => ({ fill: pal.tipFill, stroke: pal.tipStroke, fontSize: 12, textPadding: 8 });
 
 // Lead charts carry the page, so they are taller for the same width. Heights are clamped so a wide
 // screen does not produce a letterbox and a narrow one keeps a readable plot.
@@ -57,5 +128,5 @@ export function chartHeight(width: number, lead = false) {
 
 export const xTicks = (width: number) => Math.max(3, Math.floor(width / 110));
 
-export const seriesColour = (index: number) => (index < SERIES.length ? SERIES[index] : CONTEXT);
-export const hasOwnColour = (index: number) => index < SERIES.length;
+export const seriesColour = (pal: Palette, index: number) => (index < SERIES_COUNT ? pal.series[index] : pal.context);
+export const hasOwnColour = (index: number) => index < SERIES_COUNT;

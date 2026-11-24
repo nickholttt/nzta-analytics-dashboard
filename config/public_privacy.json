@@ -2,13 +2,13 @@
   "$comment": "What the public site must never do (the quality bar of work order 3, lane C): no tracking, no cookies, no request to another origin. scripts/check-no-tracking.mjs holds the built public output to it on every pull request (Checks, 'Public site checks'). The site's own address, once the user sets it in config/site.json, is the only other address a page may name outside a link. A link a visitor chooses to follow (an <a> or an <area>) is not a request and is not checked.",
   "storage": {
     "allowed": ["localStorage"],
-    "reason": "A visitor's own saved questions and canvases are kept in their browser's localStorage (src/lib/saved.ts). It is read and written by the page on the visitor's own device and is never sent anywhere: the page makes no request that carries it. It is not a cookie, which every request would send to the server. Nothing else may keep anything on the visitor's device."
+    "reason": "Two things a visitor chooses are kept in their browser's localStorage: their own saved questions and canvases (src/lib/saved.ts), and their choice of the light or dark theme, one word under one key (src/lib/themeChoice.ts, read by a short script in every page's head so the page is drawn in the theme chosen). Each is read and written by the page on the visitor's own device and is never sent anywhere: the page makes no request that carries it. Neither is a cookie, which every request would send to the server. Nothing else may keep anything on the visitor's device."
   },
   "forbidden_apis": [
     { "pattern": "document\\s*\\.\\s*cookie", "say": "a cookie is written or read" },
     { "pattern": "cookieStore", "say": "the cookie store is used" },
-    { "pattern": "sessionStorage", "say": "session storage is used; only localStorage is allowed, for saved questions and canvases" },
-    { "pattern": "indexedDB", "say": "IndexedDB is used; only localStorage is allowed, for saved questions and canvases" },
+    { "pattern": "sessionStorage", "say": "session storage is used; only localStorage is allowed, for saved questions and canvases and the choice of theme" },
+    { "pattern": "indexedDB", "say": "IndexedDB is used; only localStorage is allowed, for saved questions and canvases and the choice of theme" },
     { "pattern": "navigator\\s*\\.\\s*sendBeacon", "say": "a beacon is sent" },
     { "pattern": "XMLHttpRequest", "say": "XMLHttpRequest is used; the site reads its files with fetch from its own address" },
     { "pattern": "new\\s+WebSocket", "say": "a WebSocket is opened" },

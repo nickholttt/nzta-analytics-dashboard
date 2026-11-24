@@ -18,11 +18,10 @@ import { cellText } from "../lib/figures";
 import type { Cell, Column } from "../lib/figures";
 import { ChartSentence } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
-import { INK_3, PAPER, SERIES, SUPPRESSED_LINE, plotStyle } from "../lib/theme";
+import { plotStyle } from "../lib/theme";
+import { usePalette } from "../lib/useTheme";
 import { PlotFigure } from "./PlotFigure";
 
-// The lightest shade, for a share of zero: a pale wash of the darkest, which is the palette's first colour.
-const LOWEST = "#e3e6f3";
 const MAP_MAX_WIDTH = 420;
 
 type Props = {
@@ -39,6 +38,7 @@ type Props = {
 type Region = { value: string; n: number; share: number };
 
 export function GeoChart({ preset, dimension, rows, manifest, minDenominator, label, dimensionLabel }: Props) {
+  const pal = usePalette();
   const heading = dimensionLabel ?? dimension.label;
   const [outlines, setOutlines] = useState<RegionOutlines | null>(null);
   const [failed, setFailed] = useState(false);
@@ -78,7 +78,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
       const inData = (f: (typeof features)[number]) => model.known.has(f.properties.region);
       return Plot.plot({
         width: Math.min(width, MAP_MAX_WIDTH),
-        style: plotStyle,
+        style: plotStyle(pal),
         // New Zealand's own projection (NZTM2000) is a transverse Mercator on 173°E.
         projection: { type: "transverse-mercator", rotate: [-173, 0], domain: outlines ?? undefined },
         // A square-root scale: one region can hold close to half the vehicles, and on a linear scale every other region
@@ -86,7 +86,7 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
         color: {
           type: "sqrt",
           domain: [0, model.max],
-          range: [LOWEST, SERIES[0]],
+          range: [pal.scaleLow, pal.series[0]],
           legend: true,
           label: "Share of vehicles",
           tickFormat: (d: number) => `${Math.round(d * 100)}%`,
@@ -96,8 +96,8 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
           // readout as a title, shown while the pointer is over that shape: a pointer that snaps to the nearest region's
           // centre would name a neighbour across much of a large region.
           Plot.geo(features.filter(inData), {
-            fill: model.suppressed ? SUPPRESSED_LINE : shareOf,
-            stroke: INK_3,
+            fill: model.suppressed ? pal.suppressedLine : shareOf,
+            stroke: pal.ink3,
             strokeWidth: 0.5,
             title: (f: (typeof features)[number]) => {
               const region = model.byValue.get(f.properties.region);
@@ -113,15 +113,15 @@ export function GeoChart({ preset, dimension, rows, manifest, minDenominator, la
             },
           }),
           Plot.geo(features.filter((f) => !inData(f)), {
-            fill: PAPER,
-            stroke: INK_3,
+            fill: pal.paper,
+            stroke: pal.ink3,
             strokeWidth: 0.5,
             title: (f: (typeof features)[number]) => `${label(f.properties.region)}\nNo figures in the data for this region`,
           }),
         ],
       });
     },
-    [outlines, model, label, minDenominator],
+    [outlines, model, label, minDenominator, pal],
   );
 
   // The table beside the map, as the page shows it and as the file of figures writes it.

@@ -11,7 +11,8 @@ import { countedText } from "../lib/sentences";
 import { latestMonthOf } from "../lib/resolve";
 import { count, readout, spanPeriod, withheldThin } from "../lib/readout";
 import type { Cell } from "../lib/figures";
-import { RULE, RULE_STRONG, SERIES, SUPPRESSED_LINE, chartHeight, plotStyle, tipStyle } from "../lib/theme";
+import { chartHeight, plotStyle, tipStyle } from "../lib/theme";
+import { usePalette } from "../lib/useTheme";
 import { ChartSentence } from "./ChartSentence";
 import { FiguresTable } from "./FiguresTable";
 import { PlotFigure } from "./PlotFigure";
@@ -31,6 +32,7 @@ type Props = {
 type Bar = { value: string; y: number; n: number };
 
 export function DistributionChart({ preset, dimension, rows, manifest, minDenominator, label, dimensionLabel, lead = false }: Props) {
+  const pal = usePalette();
   const heading = dimensionLabel ?? dimension.label;
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
@@ -73,21 +75,21 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
         marginLeft,
         marginRight: 16,
         marginBottom: 36,
-        style: plotStyle,
+        style: plotStyle(pal),
         x: { domain: model.order, label: null, padding: 0.3 },
         y: { label: null },
         marks: [
-          Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
+          Plot.gridY({ ticks: 5, stroke: pal.rule, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: format }),
           Plot.axisX({ ticks: model.order.filter((_, i) => i % step === 0), tickSize: 0, tickPadding: 8, label: null, tickFormat: label }),
-          Plot.barY(model.bars, { x: "value", y: "y", fill: model.suppressed ? SUPPRESSED_LINE : SERIES[0], ry2: 3 }),
-          Plot.ruleY([0], { stroke: RULE_STRONG }),
+          Plot.barY(model.bars, { x: "value", y: "y", fill: model.suppressed ? pal.suppressedLine : pal.series[0], ry2: 3 }),
+          Plot.ruleY([0], { stroke: pal.ruleStrong }),
           Plot.tip(
             model.bars,
             Plot.pointerX({
               x: "value",
               y: "y",
-              ...tipStyle,
+              ...tipStyle(pal),
               title: (b: Bar) =>
                 readout({
                   name: `${heading}: ${label(b.value)}`,
@@ -101,7 +103,7 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
         ],
       });
     },
-    [model, label, lead, heading, minDenominator],
+    [model, label, lead, heading, minDenominator, pal],
   );
 
   // The sentence under the chart: the band that holds the most vehicles, and its share or count as the chart gives it. A share the chart withholds
