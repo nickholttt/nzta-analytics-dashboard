@@ -140,6 +140,7 @@ Setup, **not re-run this session** (the environment already existed):
   `src/lib/savedCanvases.ts` is My canvases, kept in the browser under the rules of `src/lib/saved.ts`; `src/components/useReading.ts`
   decides which snapshot a pinned question reads from, for each chart of a canvas. `src/lib/canvasFields.ts` makes the field list from the data map where the page is built.
   `src/components/canvas/` is the screen; `config/canvas.json` holds its words, held to the template lint.
+  On a card (`frame="card"`) the chart's generated sentence is the card's headline: the panel draws it once, above the chart, for every shape and for the table, and a renderer's `ChartSentence` only registers it (`SentenceApi.drawnByPanel`); a renderer's method notes are `Caveat`s (`src/components/Caveat.tsx`), gathered into one list under the chart and its table, while the axis caption, the controls and `role="status"` notices stay above it. On `/status` both are drawn where the renderer puts them.
 - Build, the earlier question builder, is folded into the canvas (work order 3, lane A; D-148). `src/pages/build.astro` only sends an
   old Build link on: `src/lib/buildLink.ts` (pure, tested by `tests/site/build-link.test.ts`: a Build link loads the same chart) turns
   its address into the canvas's, and a measure Build drew as two charts becomes a canvas of two. Questions saved on the old page are

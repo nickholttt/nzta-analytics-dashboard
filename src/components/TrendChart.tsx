@@ -30,6 +30,7 @@ import { count, greyedReason, markReason, monthPeriod, readout } from "../lib/re
 import type { Greyed } from "../lib/readout";
 import { LINE_WIDTH, THIN_LINE_WIDTH, chartHeight, plotStyle, seriesColour, tipStyle, xTicks } from "../lib/theme";
 import { usePalette } from "../lib/useTheme";
+import { Caveat } from "./Caveat";
 import { ChartSentence, useComparable } from "./ChartSentence";
 import { FiguresTable } from "./FiguresTable";
 import type { Cell } from "../lib/figures";
@@ -173,7 +174,7 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = a
         ))}
       </ul>
       <p className="chart-unit">{fillTemplate(derived?.unit_note ?? "", { base: percent(model.base) }).text}</p>
-      {starts ? <p className="chart-unit">{starts}</p> : null}
+      {starts ? <Caveat>{starts}</Caveat> : null}
       <PlotFigure
         render={render}
         label={`Line chart, ${monthLabel(model.from)} to ${monthLabel(model.to)}: ${series.map(name).join(", ")}, month by month.`}
@@ -288,7 +289,7 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
   const words = datasetWords(preset.dataset);
   const trailing = { months: TRAILING_MONTHS };
   const recent = fillNote(words?.recent_figure ?? "in the last {months} months", trailing).text;
-  // The sentence under the chart: the line with the most in the newest month, and its change on the same month a year earlier (OneTrend).
+  // The chart's sentence: the line with the most in the newest month, and its change on the same month a year earlier (OneTrend).
   const comparable = useComparable();
   const latestMonth = model.win.to;
   const sentence = (() => {
@@ -319,9 +320,7 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
         {fillNote((rolling ? words?.window_unit : words?.month_unit) ?? "Vehicles", trailing).text}
       </p>
       {[...sayNotRecorded(phrases.not_recorded, model.runs), ...sayExceedsTotal(phrases.exceeds_total, model.exceeding)].map((sentence) => (
-        <p key={sentence} className="chart-unit">
-          {sentence}
-        </p>
+        <Caveat key={sentence}>{sentence}</Caveat>
       ))}
       <PlotFigure
         render={render}
@@ -396,7 +395,7 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
     // A count over a month inside the dataset's months with no rows is zero; a share of no vehicles has no value, so a derived
     // series keeps the months it has a figure for.
     const countAt = counted((m) => byMonth.has(m), series ? undefined : covers, () => false, (m) => byMonth.get(m));
-    // One month's point, whether or not the month is drawn: the sentence under the chart reads the month a year before the latest, which a short
+    // One month's point, whether or not the month is drawn: the chart's sentence reads the month a year before the latest, which a short
     // range does not draw.
     const pointAt = (m: string): Point => {
       // A running total needs all 12 months; a missing month leaves a gap, never an interpolation.
@@ -439,7 +438,7 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
   const showYear = Boolean(findDataset(preset.dataset)?.shows_year_change);
   const yearLine = (m: string) => [hoverLine(phrases, rows, m, yearChangeFloor())];
 
-  // The sentence under the chart (src/lib/chartSentence.ts): the newest month the chart draws, its figure and, where the two can be compared,
+  // The chart's sentence (src/lib/chartSentence.ts): the newest month the chart draws, its figure and, where the two can be compared,
   // its change on the same month a year earlier. Read from the dataset's own months, so the range drawn does not change it. A chart that
   // opens with its own answer says this already, and a share is said only where the chart does not grey the month.
   const comparable = useComparable();

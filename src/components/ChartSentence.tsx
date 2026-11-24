@@ -1,5 +1,6 @@
-// The one sentence under a chart. The chart works the sentence out from the figures it draws (src/lib/chartSentence.ts) and hands it here;
-// the panel keeps it, so the chart's figure can point at it (aria-describedby) and a chart shown as a table is followed by it too.
+// The one sentence of a chart. The chart works the sentence out from the figures it draws (src/lib/chartSentence.ts) and hands it here. On a card of
+// the canvas the panel draws it, once, as the card's headline above the chart; on the internal status page the chart draws it under itself. Either way
+// the panel keeps it, so the chart's figure can point at it (aria-describedby) and a chart shown as a table is described by it too.
 import { createContext, useContext, useEffect } from "react";
 import "../styles/chart-sentence.css";
 import type { RecordingScope } from "../lib/recordingChange";
@@ -12,6 +13,11 @@ export type SentenceApi = {
   id: string;
   // The sentence the chart on show has registered, if it has one.
   text: string | undefined;
+  // The chart on show has been drawn (its code has arrived and it has mounted): until then a card holds the room its headline will take.
+  settled: boolean;
+  settle: (drawn: boolean) => void;
+  // The panel draws the sentence itself (a card of the canvas); the chart only registers it.
+  drawnByPanel: boolean;
   // The chart counts only some of the vehicles: a condition the visitor set, or one its field implies. Its sentence then says so.
   narrowed: boolean;
   set: (text: string | undefined) => void;
@@ -27,7 +33,7 @@ export function useComparable(): (from: string, to: string, scope?: RecordingSco
   return (from, to, scope) => api?.recording(from, to, scope) === false;
 }
 
-// Registers the chart's sentence with the panel and draws it, unless the chart is shown as a table: the panel then draws it under the table.
+// Registers the chart's sentence with the panel and, where the panel does not draw it, draws it under the chart.
 export function ChartSentence({ text }: { text: string | undefined }) {
   const api = useContext(SentenceContext);
   const tableOnly = useContext(TableOnlyContext);
@@ -38,10 +44,21 @@ export function ChartSentence({ text }: { text: string | undefined }) {
     set?.(shown);
     return () => set?.(undefined);
   }, [shown, set]);
-  if (!shown || tableOnly) return null;
+  if (!shown || tableOnly || api?.drawnByPanel) return null;
   return (
     <p className="chart-sentence" id={api?.id}>
       {shown}
     </p>
   );
+}
+
+// Told by the panel's renderer boundary once the chart's code has arrived and the chart is on show, so the room held for the headline is let go
+// whether or not the chart has a sentence to put in it.
+export function Drawn() {
+  const settle = useContext(SentenceContext)?.settle;
+  useEffect(() => {
+    settle?.(true);
+    return () => settle?.(false);
+  }, [settle]);
+  return null;
 }

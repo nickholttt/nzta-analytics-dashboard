@@ -343,26 +343,86 @@
   margin-bottom: var(--space-4);
 }
 
+/* The title names the chart, as a small label: the card's headline is the chart's sentence (below). The description sits beside it where there is room,
+   so at most two short lines stand above the headline. */
 .chart-card-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
   min-width: 0;
 }
 
 .chart-card-title {
-  font-size: 1.125rem;
+  font-family: var(--font-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
   line-height: var(--leading-snug);
+  letter-spacing: 0;
+  text-wrap: pretty;
+  color: var(--ink-2);
 }
 
 /* The title the question generates, under the Explore question a chart stands for. */
 .chart-card-line {
-  margin-top: var(--space-1);
-  font-size: var(--text-sm);
+  font-size: var(--text-note);
   color: var(--ink-2);
 }
 
 .chart-card-description {
-  margin-top: var(--space-1);
   font-size: var(--text-note);
   color: var(--ink-3);
+}
+
+/* The chart's generated sentence, as the card's headline: the serif of the site's headings, a paragraph and not a heading. Until the chart is drawn
+   its room is held (two lines of it on a wide card, three on a narrow one), so the chart does not jump down when the sentence arrives; a chart with
+   no sentence leaves no gap once drawn. */
+.chart-card-headline,
+.chart-card-headline-hold {
+  margin: 0 0 var(--space-4);
+  max-width: var(--measure);
+}
+
+.chart-card-headline {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.chart-card-headline-hold {
+  min-height: calc(3 * 1.35 * 1.125rem);
+}
+
+@container chart-card (min-width: 520px) {
+  .chart-card-headline {
+    font-size: 1.25rem;
+  }
+
+  .chart-card-headline-hold {
+    min-height: calc(2 * 1.35 * 1.25rem);
+  }
+}
+
+/* The method notes a chart owes its reader, one line each, under the chart and its table (src/components/Caveat.tsx). Empty, the list takes no room. */
+.chart-card-caveats {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  max-width: var(--measure);
+  font-size: var(--text-note);
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+.chart-card-caveats:empty {
+  display: none;
+}
+
+.chart-card-caveat + .chart-card-caveat {
+  margin-top: var(--space-1);
 }
 
 .chart-card-edit.button-quiet {

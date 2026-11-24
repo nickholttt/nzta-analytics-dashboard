@@ -22,7 +22,8 @@ import { datasetCovers, fitsPin, latestMonthOf, presetView, rankingPeriods, reso
 import { isNearScreen, openGate, whenGateOpens } from "../lib/loadGate";
 import { recordingChange } from "../lib/recordingChange";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
-import { SentenceContext } from "./ChartSentence";
+import { CaveatSlotContext } from "./Caveat";
+import { Drawn, SentenceContext } from "./ChartSentence";
 import type { SentenceApi } from "./ChartSentence";
 import { FiguresContext, TableOnlyContext } from "./FiguresContext";
 import type { FiguresGetter } from "./FiguresContext";
@@ -79,6 +80,7 @@ function Renderer({ children }: { children: ReactNode }) {
         }
       >
         {children}
+        <Drawn />
       </Suspense>
     </ChunkBoundary>
   );
@@ -338,14 +340,18 @@ export default function PresetPanel({
   useEffect(() => {
     if (wantedShape && wantedShape in loaders) void loaders[wantedShape as keyof typeof loaders]().catch(() => undefined);
   }, [wantedShape]);
-  // The one sentence under the chart on show (src/components/ChartSentence.tsx): the chart works it out and registers it here, so the chart's
-  // figure, or the table that stands for it, can point at it. It also tells a chart whether a change in how the data is recorded lies between
-  // two months it would compare (invariant 7).
+  // The one sentence of the chart on show (src/components/ChartSentence.tsx): the chart works it out and registers it here, so the chart's
+  // figure, or the table that stands for it, can point at it, and a card can draw it as its headline. It also tells a chart whether a change in
+  // how the data is recorded lies between two months it would compare (invariant 7).
   const [sentence, setSentence] = useState<string | undefined>(undefined);
+  // Whether the chart on show has been drawn: a card holds the room its headline will take until then, so the chart does not jump down as the sentence arrives.
+  const [drawn, setDrawn] = useState(false);
+  // The list a card gathers its charts' method notes into, under the chart (src/components/Caveat.tsx). Null until it is on the page.
+  const [caveatSlot, setCaveatSlot] = useState<HTMLElement | null>(null);
   const narrowedChart = Boolean(resolution?.narrowedBy || resolution?.keptBy?.some((k) => k.values.length > 0));
   const sentenceApi = useMemo<SentenceApi>(
-    () => ({ id: `${presetId}-sentence`, text: sentence, narrowed: narrowedChart, set: setSentence, recording: (from, to, scope) => recordingChange(events, from, to, scope) }),
-    [presetId, sentence, narrowedChart, events],
+    () => ({ id: `${presetId}-sentence`, text: sentence, settled: drawn, settle: setDrawn, drawnByPanel: card, narrowed: narrowedChart, set: setSentence, recording: (from, to, scope) => recordingChange(events, from, to, scope) }),
+    [presetId, sentence, drawn, card, narrowedChart, events],
   );
   // The months the dataset covers, for every figure that sums a window: a month inside them in which a condition keeps nothing has no
   // rows and holds no vehicles (docs/METRICS.md, "Months in which nothing is counted"). One object until the preset, the build or the
@@ -869,11 +875,13 @@ export default function PresetPanel({
   if (card) {
     const activeRange = rangeOptions.find((o) => activePeriod === o.id && (o.id !== "all" || fullHistory === o.full || !start));
     const counted = dataset?.public_label ?? dataset?.label;
+    const holdHeadline = !drawn && preventsRender.length === 0 && !(rows && rows.length === 0);
     const attributions = [...new Set(datasetsOf(effectivePreset).flatMap((id) => datasetAttribution(id, manifest, effectivePreset) ?? []))];
     return (
       <FiguresContext.Provider value={registerFigures}>
         <TableOnlyContext.Provider value={tableOnly}>
           <SentenceContext.Provider value={sentenceApi}>
+          <CaveatSlotContext.Provider value={caveatSlot}>
           <div className={panelClass} id={preset.id} ref={setSentinel}>
             <header className="chart-card-head">
               <div className="chart-card-heading">
@@ -886,6 +894,16 @@ export default function PresetPanel({
               </div>
               {headerEnd}
             </header>
+            {/* The chart's sentence is the card's headline: said once here for every shape and for the table, ahead of the chart. The figure and the table
+                point at it (aria-describedby). Until the chart is drawn its room is held, so the chart does not jump down when the sentence arrives; a
+                chart with no sentence (one that cannot be filled is dropped, invariant 8) leaves no gap once drawn. */}
+            {sentence ? (
+              <p className="chart-card-headline" id={sentenceApi.id}>
+                {sentence}
+              </p>
+            ) : holdHeadline ? (
+              <div className="chart-card-headline-hold" aria-hidden="true" />
+            ) : null}
             {controlsSlot ? createPortal(controlsBlock, controlsSlot) : null}
             {preventsRender.length > 0 ? (
               <div className="callout blocked">
@@ -910,15 +928,12 @@ export default function PresetPanel({
               <>
                 <div hidden>{chart}</div>
                 <FiguresView getter={hasFigures ? figuresGetter.current : null} label={`${cardWords?.table ?? ""}: ${preset.question}`} loading={cardWords?.tableLoading ?? ""} describedBy={sentence ? sentenceApi.id : undefined} />
-                {sentence ? (
-                  <p className="chart-sentence" id={sentenceApi.id}>
-                    {sentence}
-                  </p>
-                ) : null}
               </>
             ) : (
               chart
             )}
+            {/* The method notes the chart draws, one line each, under the chart and its table (src/components/Caveat.tsx). Empty, it takes no room. */}
+            <ul className="chart-card-caveats" ref={setCaveatSlot} />
             <footer className="chart-card-foot">
               <p className="chart-card-source">
                 {[...attributions, cardWords ? fillNote(cardWords.snapshot, { date: manifest.latest_snapshot }).text : ""].filter(Boolean).join(" ")}
@@ -935,6 +950,7 @@ export default function PresetPanel({
               ) : null}
             </footer>
           </div>
+          </CaveatSlotContext.Provider>
           </SentenceContext.Provider>
         </TableOnlyContext.Provider>
       </FiguresContext.Provider>
