@@ -1206,7 +1206,7 @@ A vehicle's market type says what kind of vehicle it is in the way the published
 mass, not from the type NZTA registers it under. It has six values, decided by `data/reference/market_type_map.csv`,
 fifteen ordered rules of which the first that matches a vehicle wins (so the order is part of the definition). A rule can
 test the vehicle type, the body, NZTA's class (`nzta_classes`, values of `class_map.csv`), the GVM and the SUV file's class
-for the model. The five definitions below are the user's, an industry convention for which no source is cited; D-155 adds
+for the model. The definitions below are the user's, an industry convention for which no source is cited; D-155 adds
 Not yet classified and settles motor caravans and special purpose vehicles:
 
 - **Heavy commercial**: a goods vehicle, bus, motor caravan or special purpose vehicle over 3,500 kg GVM, whatever its body.
