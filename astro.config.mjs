@@ -8,6 +8,8 @@ import react from "@astrojs/react";
 // script then names the ones it imports: a chain of requests, each waiting a round trip for the one before it. This
 // reads the built pages, finds every island's scripts and everything they import, and tells the browser about all of
 // them in the page's head, along with the manifest the island's first act is to read. No dependency; it only adds links.
+// The drawing library (the chunk named "plot", below) is not imported by the island itself but by the renderer it loads once it knows a
+// chart's shape; a page whose island mentions it gets it in the same breath, so it comes down beside the island's own code and not after it.
 function preloadIslands() {
   const importsOf = (root, url, seen) => {
     if (seen.has(url)) return;
@@ -27,6 +29,8 @@ function preloadIslands() {
           if (entries.length === 0) continue;
           const scripts = new Set();
           for (const url of entries) importsOf(root, url, scripts);
+          const drawing = readdirSync(join(root, "_astro")).filter((name) => /^plot\.[\w-]+\.js$/.test(name));
+          if (drawing.some((name) => [...scripts].some((url) => readFileSync(join(root, url), "utf8").includes(name)))) for (const name of drawing) importsOf(root, `/_astro/${name}`, scripts);
           const links = [
             ...[...scripts].map((url) => `<link rel="modulepreload" href="${url}">`),
             `<link rel="preload" href="/data/manifest.json" as="fetch" crossorigin="anonymous">`,
@@ -71,9 +75,21 @@ function prunePublicBuild() {
 export default defineConfig({
   integrations: [react(), preloadIslands(), prunePublicBuild()],
   server: { host: "127.0.0.1", port: 4321 },
-  // A font file is never folded into the stylesheet as text, however small: the stylesheet blocks the first paint, and a face the page
-  // does not need would be in it all the same. Each is its own file, asked for only by a page whose text uses it.
-  vite: { build: { assetsInlineLimit: (file) => (file.endsWith(".woff2") ? false : undefined) } },
+  vite: {
+    build: {
+      // A font file is never folded into the stylesheet as text, however small: the stylesheet blocks the first paint, and a face the page
+      // does not need would be in it all the same. Each is its own file, asked for only by a page whose text uses it.
+      assetsInlineLimit: (file) => (file.endsWith(".woff2") ? false : undefined),
+      rollupOptions: {
+        output: {
+          // The drawing library and the parts of d3 it uses are one file, named for what it is: the renderers of five shapes
+          // (src/components/PresetPanel.tsx) import it, and a page whose first chart is one of them fetches it beside the page's own code.
+          // The grid and every page without a chart never ask for it.
+          manualChunks: (id) => (/node_modules\/(@observablehq\/plot|d3-[^/]+|internmap|delaunator|robust-predicates)\//.test(id) ? "plot" : undefined),
+        },
+      },
+    },
+  },
   // The dev toolbar overlays the page and lands in every screenshot.
   devToolbar: { enabled: false },
 });

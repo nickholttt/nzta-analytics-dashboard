@@ -24,17 +24,27 @@ import { recordingChange } from "../lib/recordingChange";
 import { getParam, getShareableUrl, setParam } from "../lib/url";
 import { SentenceContext } from "./ChartSentence";
 import type { SentenceApi } from "./ChartSentence";
-import { DistributionChart } from "./DistributionChart";
-import { GeoChart } from "./GeoChart";
 import { FiguresContext, TableOnlyContext } from "./FiguresContext";
 import type { FiguresGetter } from "./FiguresContext";
 import { FiguresView } from "./FiguresView";
-import { LeagueChart } from "./LeagueChart";
-import { MixChart } from "./MixChart";
-import { TrendChart } from "./TrendChart";
 
-// The grid is loaded when a grid is drawn, so a page that draws none does not download it.
-const MatrixChart = lazy(() => import("./MatrixChart").then((m) => ({ default: m.MatrixChart })));
+// Each renderer is a file of its own, loaded when a chart of its shape is drawn, so a page downloads the drawing code of the shapes it shows and no
+// other; the grid is a table and needs none of the drawing library. The panel asks for its renderer as soon as it knows the shape, while the rows
+// are still on their way (the loaders below are what both the ask and the lazy component call, so the browser fetches each file once).
+const loaders = {
+  mix: () => import("./MixChart").then((m) => ({ default: m.MixChart })),
+  trend: () => import("./TrendChart").then((m) => ({ default: m.TrendChart })),
+  league: () => import("./LeagueChart").then((m) => ({ default: m.LeagueChart })),
+  distribution: () => import("./DistributionChart").then((m) => ({ default: m.DistributionChart })),
+  geo: () => import("./GeoChart").then((m) => ({ default: m.GeoChart })),
+  matrix: () => import("./MatrixChart").then((m) => ({ default: m.MatrixChart })),
+};
+const MixChart = lazy(loaders.mix);
+const TrendChart = lazy(loaders.trend);
+const LeagueChart = lazy(loaders.league);
+const DistributionChart = lazy(loaders.distribution);
+const GeoChart = lazy(loaders.geo);
+const MatrixChart = lazy(loaders.matrix);
 
 // A chunk that cannot be fetched (the visitor went offline, or a deploy replaced it) throws where it is drawn. Without this the panel would vanish.
 // A failed fetch is told from any other error: reloading helps the first, and says nothing useful for the second.
@@ -55,6 +65,15 @@ class ChunkBoundary extends Component<{ children: ReactNode }, { failed: "load" 
       this.props.children
     );
   }
+}
+
+// A renderer's file arriving: the panel's own line until it does, and the same notice as any chunk that cannot be fetched if it never does.
+function Renderer({ children }: { children: ReactNode }) {
+  return (
+    <ChunkBoundary>
+      <Suspense fallback={<p className="meta">Loading the chart…</p>}>{children}</Suspense>
+    </ChunkBoundary>
+  );
 }
 
 // A value's own words where it is one of the reserved tokens, otherwise the value as it is. Asked with hasOwn, since a
@@ -306,6 +325,11 @@ export default function PresetPanel({
   }, [snapshot]);
 
   const resolution = useMemo(() => (effectivePreset && manifest ? resolvePreset(effectivePreset, manifest) : null), [effectivePreset, manifest]);
+  // The renderer for the shape the view takes is asked for now, in step with the rows and not after them. A failure is left to the lazy component, which says so.
+  const wantedShape = resolution?.preventsRender.length === 0 ? resolution.shape : undefined;
+  useEffect(() => {
+    if (wantedShape && wantedShape in loaders) void loaders[wantedShape as keyof typeof loaders]().catch(() => undefined);
+  }, [wantedShape]);
   // The one sentence under the chart on show (src/components/ChartSentence.tsx): the chart works it out and registers it here, so the chart's
   // figure, or the table that stands for it, can point at it. It also tells a chart whether a change in how the data is recorded lies between
   // two months it would compare (invariant 7).
@@ -538,82 +562,89 @@ export default function PresetPanel({
       );
     } else if (shape === "mix" && dimension) {
       chart = (
-        <MixChart
-          preset={effectivePreset}
-          dimension={dimension}
-          rows={rows}
-          manifest={manifest}
-          events={events}
-          covers={covers}
-          minDenominator={guard}
-          collapseFraction={collapseFraction}
-          label={label}
-          lead={lead}
-          fullHistory={fullHistory}
-          internal={internal}
-        />
+        <Renderer>
+          <MixChart
+            preset={effectivePreset}
+            dimension={dimension}
+            rows={rows}
+            manifest={manifest}
+            events={events}
+            covers={covers}
+            minDenominator={guard}
+            collapseFraction={collapseFraction}
+            label={label}
+            lead={lead}
+            fullHistory={fullHistory}
+            internal={internal}
+          />
+        </Renderer>
       );
     } else if (shape === "distribution" && dimension) {
       chart = (
-        <DistributionChart
-          preset={effectivePreset}
-          dimension={dimension}
-          rows={rows}
-          manifest={manifest}
-          minDenominator={guard}
-          label={label}
-          dimensionLabel={dimensionLabel}
-          lead={lead}
-        />
+        <Renderer>
+          <DistributionChart
+            preset={effectivePreset}
+            dimension={dimension}
+            rows={rows}
+            manifest={manifest}
+            minDenominator={guard}
+            label={label}
+            dimensionLabel={dimensionLabel}
+            lead={lead}
+          />
+        </Renderer>
       );
     } else if (shape === "trend") {
       chart = (
-        <TrendChart
-          preset={effectivePreset}
-          rows={rows}
-          manifest={manifest}
-          covers={covers}
-          minDenominator={guard}
-          collapseFraction={collapseFraction}
-          lead={lead}
-          label={label}
-          companion={companion}
-          after={
-            preset.answer
-              ? () => (
-                  <>
-                    {definitionBlock}
-                    {actionsBlock}
-                    {controlsBlock}
-                  </>
-                )
-              : undefined
-          }
-          month={shownMonth}
-          onMonth={chooseMonth}
-        />
+        <Renderer>
+          <TrendChart
+            preset={effectivePreset}
+            rows={rows}
+            manifest={manifest}
+            covers={covers}
+            minDenominator={guard}
+            collapseFraction={collapseFraction}
+            lead={lead}
+            label={label}
+            companion={companion}
+            after={
+              preset.answer
+                ? () => (
+                    <>
+                      {definitionBlock}
+                      {actionsBlock}
+                      {controlsBlock}
+                    </>
+                  )
+                : undefined
+            }
+            month={shownMonth}
+            onMonth={chooseMonth}
+          />
+        </Renderer>
       );
     } else if (shape === "league" && dimension) {
       chart = (
-        <LeagueChart
-          preset={effectivePreset}
-          dimension={dimension}
-          rows={rows}
-          firstMonth={firstMonth}
-          manifest={manifest}
-          minDenominator={guard}
-          label={label}
-          valueHeading={dimensionLabel ?? dimension.label}
-          lead={lead}
-          month={shownMonth}
-          onMonth={chooseMonth}
-          after={answerFirst ? () => afterBlocks : undefined}
-        />
+        <Renderer>
+          <LeagueChart
+            preset={effectivePreset}
+            dimension={dimension}
+            rows={rows}
+            firstMonth={firstMonth}
+            manifest={manifest}
+            minDenominator={guard}
+            label={label}
+            valueHeading={dimensionLabel ?? dimension.label}
+            lead={lead}
+            month={shownMonth}
+            onMonth={chooseMonth}
+            after={answerFirst ? () => afterBlocks : undefined}
+          />
+        </Renderer>
       );
     } else if (shape === "matrix" && dimension && dimension2) {
       chart = (
-        <ChunkBoundary>
-        <Suspense fallback={<p className="meta">Loading the chart…</p>}>
+        <Renderer>
           <MatrixChart
             preset={effectivePreset}
             dimension={dimension}
@@ -628,20 +659,21 @@ export default function PresetPanel({
             onMonth={chooseMonth}
             after={() => afterBlocks}
           />
-        </Suspense>
-        </ChunkBoundary>
+        </Renderer>
       );
     } else if (shape === "geo" && dimension) {
       chart = (
-        <GeoChart
-          preset={effectivePreset}
-          dimension={dimension}
-          rows={rows}
-          manifest={manifest}
-          minDenominator={guard}
-          label={label}
-          dimensionLabel={dimensionLabel}
-        />
+        <Renderer>
+          <GeoChart
+            preset={effectivePreset}
+            dimension={dimension}
+            rows={rows}
+            manifest={manifest}
+            minDenominator={guard}
+            label={label}
+            dimensionLabel={dimensionLabel}
+          />
+        </Renderer>
       );
     }
   }

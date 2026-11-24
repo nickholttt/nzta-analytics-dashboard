@@ -39,7 +39,7 @@ import { EventList } from "./EventList";
 import { PlotFigure } from "./PlotFigure";
 
 // One name for the line that holds every value not shown, here and in the grid (src/lib/reserved.ts).
-export const ALL_OTHER = REST_NAME;
+const ALL_OTHER = REST_NAME;
 const LANE_HEIGHT = 15;
 const LABEL_LINE_HEIGHT = 15;
 const LEADER_PX = 14;
