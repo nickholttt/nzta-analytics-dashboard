@@ -23,7 +23,9 @@ const groups = vocabulary.datasets.length > 0 ? canvasFields(vocabulary, manifes
 
   {
     vocabulary.datasets.length > 0 ? (
-      <Canvas client:only="react" vocabulary={vocabulary} groups={groups} />
+      <div class="canvas-slot">
+        <Canvas client:only="react" vocabulary={vocabulary} groups={groups} />
+      </div>
     ) : (
       <div class="callout blocked">
         <span class="callout-label">{say("not_available_label")}</span>

@@ -71,7 +71,15 @@ class ChunkBoundary extends Component<{ children: ReactNode }, { failed: "load" 
 function Renderer({ children }: { children: ReactNode }) {
   return (
     <ChunkBoundary>
-      <Suspense fallback={<p className="meta">Loading the chart…</p>}>{children}</Suspense>
+      <Suspense
+        fallback={
+          <div className="chart-pending">
+            <p className="meta">Loading the chart…</p>
+          </div>
+        }
+      >
+        {children}
+      </Suspense>
     </ChunkBoundary>
   );
 }
@@ -395,7 +403,9 @@ export default function PresetPanel({
     };
   }, [defer, rows, error, resolution, sentinel]);
 
-  const panelClass = `${card ? "chart-card-body" : `panel${lead ? " lead" : ""}`}${wanted ? "" : " loading"}`;
+  // A card on the canvas that is waiting for its rows holds the room a drawn one takes (src/styles/canvas.css), so what is under it does not jump.
+  const awaitingRows = card && wanted && !rows && !error && !(resolution && resolution.preventsRender.length > 0);
+  const panelClass = `${card ? "chart-card-body" : `panel${lead ? " lead" : ""}`}${wanted ? "" : " loading"}${awaitingRows ? " awaiting" : ""}`;
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     if (!linked || scrolled || !rows || !sentinel) return;

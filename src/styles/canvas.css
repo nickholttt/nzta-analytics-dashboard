@@ -94,6 +94,23 @@
   letter-spacing: 0;
 }
 
+/* The canvas is drawn by script, so before it arrives the page has nothing where it goes. This holds a screen of room for it, and a card that is waiting
+   for its figures holds about what a drawn one takes, so the footer and what is under a chart do not jump as the page fills in. */
+.canvas-slot {
+  min-height: 40rem;
+}
+
+/* (a drawn card is 700 to 1,650 px high, with its table: a screen of it, here, keeps what is under it out of sight until the figure is in) */
+.chart-card-body.loading,
+.chart-card-body.awaiting {
+  min-height: 36rem;
+}
+
+/* The same while the drawing code for the chart is on its way, once the rows are in. */
+.chart-card-body .chart-pending {
+  min-height: 28rem;
+}
+
 /* ---------- Cards ---------- */
 
 /* Two cards to a row where the row is wide enough for two, which it is beside the two panes from a window of about 1200 px; a
