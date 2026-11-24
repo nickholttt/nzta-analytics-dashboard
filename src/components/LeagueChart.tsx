@@ -11,7 +11,7 @@ import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, mont
 import { countedText, fillTemplate, pickedRankingSentences, rankingLeaderSentence, rankingText, rankingWindows, rankingWords, sayBadMonth, vehiclesText, yearTooFewText } from "../lib/sentences";
 import { count, greyedReason, readout, spanPeriod } from "../lib/readout";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
-import { FONT_TEXT, chartHeight, PLOT_FONT_SIZE, plotStyle, seriesColour, tipStyle } from "../lib/theme";
+import { BAR_GAP, BAR_RADIUS, BAR_THICKNESS, FONT_TEXT, PLOT_FONT_SIZE, barRows, plotStyle, seriesColour, tipStyle } from "../lib/theme";
 import { usePalette } from "../lib/useTheme";
 import { cellAt, cellText } from "../lib/figures";
 import { leaderIsClear, leagueRows, leagueTable, pickedSummary, rankingGuard, rankingLimit } from "../lib/league";
@@ -212,7 +212,10 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   const render = useCallback(
     (width: number) => {
       const shown = [...model.items.map((d) => d.name), ...model.hidden.map((d) => d.name)];
-      const height = Math.max(single ? 120 : 340, shown.length * 24 + 60);
+      // Each bar takes its thickness plus a gap (src/lib/theme.ts), and the margins hold the axis.
+      const marginTop = 20;
+      const marginBottom = 30;
+      const height = marginTop + barRows(shown.length) + marginBottom;
       const isShare = displayMode === "share";
       const maxVal = Math.max(0.01, ...model.items.map((d) => (isShare ? d.share : d.n)));
       const xMax = maxVal * 1.18;
@@ -227,10 +230,12 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         style: plotStyle(pal),
         marginLeft,
         marginRight: 45,
-        marginTop: 20,
-        marginBottom: 30,
+        marginTop,
+        marginBottom,
         y: {
           domain: shown,
+          paddingInner: BAR_GAP / (BAR_THICKNESS + BAR_GAP),
+          paddingOuter: BAR_GAP / (BAR_THICKNESS + BAR_GAP) / 2,
           label: null,
           tickSize: 0,
           tickFormat: fit,
@@ -246,9 +251,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
             y: "name",
             x: isShare ? "share" : "n",
             fill: isShare && model.guard.shares ? pal.suppressedLine : "colour",
-            insetTop: 2,
-            insetBottom: 2,
-            rx: 2,
+            rx: BAR_RADIUS,
           }),
           Plot.text(model.items, {
             y: "name",

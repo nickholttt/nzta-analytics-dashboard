@@ -127,6 +127,13 @@ export function chartHeight(width: number, lead = false) {
   return Math.round(Math.max(min, Math.min(max, width * ratio)));
 }
 
+// A ranked bar is a fixed thickness with a fixed gap, so the plot grows with the number of bars and a few bars are never stretched to fill a
+// height meant for many. The ends of bars (ranked, bands) are rounded by the same radius.
+export const BAR_THICKNESS = 28;
+export const BAR_GAP = 12;
+export const BAR_RADIUS = 4;
+export const barRows = (bars: number) => bars * (BAR_THICKNESS + BAR_GAP);
+
 export const xTicks = (width: number) => Math.max(3, Math.floor(width / 110));
 
 export const seriesColour = (pal: Palette, index: number) => (index < SERIES_COUNT ? pal.series[index] : pal.context);
