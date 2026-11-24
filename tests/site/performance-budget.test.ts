@@ -163,3 +163,25 @@ test("the page the budget times is a page the measuring script visits, and has a
     assert.equal(typeof limits.first_chart_bytes, "number", `${page} has a time limit and no limit on the bytes that give it`);
   }
 });
+
+test("a page with a first-chart figure fails, naming the page, when its HTML does not name the drawing library the build holds", () => {
+  const withReads = (script: string) => (links: string) => `<!DOCTYPE html><html><head>${links}${script}</head><body><script>(function(){const reads = ["/data/events.json"];})()</script><p>TEXT</p></body></html>`;
+  const files = { "entry.js": "export const a = 1;", "plot.abc123.js": randomBytes(3000).toString("base64") };
+  const missing = output(files, withReads(""));
+  const named = output(files, withReads(`<script>Promise.all([import("/_astro/entry.js")]).then(()=>{for(const href of ["/_astro/plot.abc123.js"]){}})</script>`));
+  try {
+    for (const dir of [missing, named]) {
+      mkdirSync(join(dir, "data"), { recursive: true });
+      writeFileSync(join(dir, "data/events.json"), "{}");
+    }
+    const lost = measurePages(missing)["/"];
+    const problems = budgetProblems({ "/": lost }, { pages: { "/": { html: 1e6, scripts: 1e6, styles: 1e6, fonts: 1e6, data: 1e6, total: 1e6, first_chart_bytes: 1e6 } } }) as string[];
+    assert.equal(problems.length, 1);
+    assert.match(problems[0], /^\/: the page's HTML does not name the drawing library \(\/_astro\/plot\.abc123\.js, [\d,]+ B\)/);
+    assert.equal(measurePages(named)["/"].unnamed_drawing, undefined);
+    assert.ok(measurePages(named)["/"].scripts > measurePages(missing)["/"].scripts, "named, the library is in the scripts figure");
+  } finally {
+    rmSync(missing, { recursive: true, force: true });
+    rmSync(named, { recursive: true, force: true });
+  }
+});

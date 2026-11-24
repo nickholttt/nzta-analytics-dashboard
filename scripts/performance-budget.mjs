@@ -83,6 +83,9 @@ export function pageFiles(root, html) {
   return { styles: [...new Set(styles)], scripts: [...scripts], fonts: [...fonts], data: [...new Set(data)], reads: [...new Set(reads)] };
 }
 
+// The drawing library's chunks in a build (the chunk named "plot", astro.config.mjs).
+const drawingChunks = (root) => (existsSync(join(root, "_astro")) ? readdirSync(join(root, "_astro")).filter((f) => /^plot\.[\w-]+\.js$/.test(f)).map((f) => `/_astro/${f}`) : []);
+
 // The bytes of every built page, by kind: { "/": { html, scripts, styles, fonts, data, total }, ... }
 export function measurePages(root) {
   const pages = {};
@@ -96,7 +99,10 @@ export function measurePages(root) {
     const total = KINDS.reduce((n, k) => n + m[k], 0);
     // Only Parquet is sent as it is; text is compressed, as the host does.
     const reads = sum(f.reads, (p) => (p.endsWith(".parquet") ? statSync(p).size : gz(p)));
-    pages[key] = { ...m, total, ...(f.reads.length ? { [FIRST_CHART]: total + reads } : {}) };
+    // The drawing library is named by a script the build writes into the page (astro.config.mjs, preloadIslands). If that script is lost the library
+    // (about 90 KB) drops out of every figure above while the chart still needs it, so a page with a first-chart figure must name every one in the build.
+    const unnamed = f.reads.length ? drawingChunks(root).filter((url) => !f.scripts.includes(url)) : [];
+    pages[key] = { ...m, total, ...(f.reads.length ? { [FIRST_CHART]: total + reads } : {}), ...(unnamed.length ? { unnamed_drawing: unnamed.map((url) => ({ url, bytes: gz(join(root, url)) })) } : {}) };
   }
   return Object.fromEntries(Object.entries(pages).sort(([a], [b]) => a.localeCompare(b)));
 }
@@ -112,6 +118,7 @@ export function budgetProblems(measured, budget) {
       problems.push(`${page} has a budget but is not in the build: remove it from config/performance_budget.json`);
       continue;
     }
+    for (const { url, bytes } of measured[page].unnamed_drawing ?? []) problems.push(`${page}: the page's HTML does not name the drawing library (${url}, ${n(bytes)} B): the script that asks for it is missing, so those bytes are in no figure and the chart slows`);
     if (measured[page][FIRST_CHART] !== undefined && typeof limits[FIRST_CHART] !== "number") problems.push(`${page}: the budget names no limit for ${FIRST_CHART}`);
     for (const kind of [...KINDS, "total", ...(typeof limits[FIRST_CHART] === "number" ? [FIRST_CHART] : [])]) {
       const limit = limits[kind];
