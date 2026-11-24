@@ -62,9 +62,9 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
           {siteDoc.theme.toggle}
         </button>
       </header>
-      <RefreshNotice snapshot={manifest.latest_snapshot} />
 
       <main id="main">
+        <RefreshNotice snapshot={manifest.latest_snapshot} />
         <header class="masthead">
           <slot name="masthead" />
         </header>
