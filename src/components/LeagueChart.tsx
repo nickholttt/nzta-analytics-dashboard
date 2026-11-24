@@ -11,10 +11,12 @@ import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, mont
 import { countedText, fillTemplate, pickedRankingSentences, rankingLeaderSentence, rankingText, rankingWindows, rankingWords, sayBadMonth, vehiclesText, yearTooFewText } from "../lib/sentences";
 import { count, greyedReason, readout, spanPeriod } from "../lib/readout";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
-import { BAR_GAP, BAR_RADIUS, BAR_THICKNESS, FONT_TEXT, PLOT_FONT_SIZE, barRows, plotStyle, seriesColour, tipStyle } from "../lib/theme";
+import { BAR_GAP, BAR_RADIUS, BAR_THICKNESS, FONT_TEXT, PLOT_FONT_SIZE, SERIES_COUNT, barRows, plotStyle, seriesColour, tipStyle } from "../lib/theme";
+import { usePageColours } from "../lib/usePageColours";
 import { usePalette } from "../lib/useTheme";
 import { cellAt, cellText } from "../lib/figures";
 import { leaderIsClear, leagueRows, leagueTable, pickedSummary, rankingGuard, rankingLimit } from "../lib/league";
+import { isReservedValue } from "../lib/chartSentence";
 import { Caveat } from "./Caveat";
 import { ChartSentence } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
@@ -105,9 +107,9 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   // The floor a share is read against: the share measure's own, whatever the preset counts, since a ranking prints shares
   // (docs/METRICS.md, "A ranking and the precision floor").
   const floor = floorOf("share");
-  const model = useMemo(() => {
+  const ranked = useMemo(() => {
     const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior && !single, topN: rankingLimit({ single, picked, topN }), nameOf: label, yearFloor });
-    const items: LeagueItem[] = result.items.map((item, idx) => ({ ...item, colour: seriesColour(pal, idx), isRemainder: false }));
+    const items = result.items;
     const guard = rankingGuard({
       floor,
       currentDenom: result.currentDenom,
@@ -118,7 +120,16 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       phrases,
     });
     return { items, hidden: result.hidden, hiddenAtMost: result.hiddenAtMost, notBrokenDown: result.notBrokenDown, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior && !single, tiedBeyond: result.tiedBeyond, guard: items.length > 0 ? guard : { shares: false, changes: false, sentence: undefined } };
-  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor, picked, single, once, pal]);
+  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor, picked, single, once]);
+
+  // Each bar wears the colour its value has on the page, so a value is one colour on every chart of a canvas (src/lib/pageColours.ts); where the chart
+  // is not on a card, the colour of its rank. A value with no slot, or a reserved token, is drawn in the grey of a series beyond the palette.
+  const colourOrder = useMemo(() => ranked.items.map((i) => i.value).filter((v) => !isReservedValue(v)).slice(0, SERIES_COUNT), [ranked.items]);
+  const pageSlot = usePageColours(dimension.id, colourOrder);
+  const model = useMemo(
+    () => ({ ...ranked, items: ranked.items.map((item, idx): LeagueItem => ({ ...item, colour: seriesColour(pal, pageSlot ? (pageSlot(item.value) ?? Number.POSITIVE_INFINITY) : idx), isRemainder: false })) }),
+    [ranked, pageSlot, pal],
+  );
 
   // What the page says about the choice: how it is ranked, who leads, who is not ranked and what a share is a share of.
   const windowWords = rankingWords(phrases, { span, end, latest, once }).window;

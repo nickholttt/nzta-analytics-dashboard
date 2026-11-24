@@ -29,7 +29,8 @@ import type { Cell, Column } from "../lib/figures";
 import { ChartSentence, useComparable } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
 import type { Greyed } from "../lib/readout";
-import { EVENT_WINDOW_OPACITY, LINE_WIDTH, THIN_LINE_WIDTH, chartHeight, hasOwnColour, plotStyle, seriesColour, tipStyle, xTicks } from "../lib/theme";
+import { EVENT_WINDOW_OPACITY, LINE_WIDTH, SERIES_COUNT, THIN_LINE_WIDTH, chartHeight, hasOwnColour, plotStyle, seriesColour, tipStyle, xTicks } from "../lib/theme";
+import { usePageColours } from "../lib/usePageColours";
 import { usePalette } from "../lib/useTheme";
 import { latestMonthOf } from "../lib/resolve";
 import { nameOrder, rankByCount } from "../lib/ranking";
@@ -102,7 +103,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
   const rolling = smoothing === ROLLING;
   const smoothingOption = chartDefaults.mix_smoothing_options.find((o) => o.id === smoothing);
 
-  const model = useMemo(() => {
+  const base = useMemo(() => {
     // By value, then month: a figure is looked up many thousands of times per draw, and one key built from both would be
     // a new string each time.
     const cell = new Map<string, Map<string, number>>();
@@ -196,8 +197,8 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
     const byTrailing = ranked.filter((v) => peak.has(v)).slice(0, chartDefaults.colour_slots_by_trailing);
     const byPeak = candidates.filter((s) => !byTrailing.includes(s)).sort((a, b) => (peak.get(b) ?? 0) - (peak.get(a) ?? 0) || nameOrder(label(a), label(b)));
     const colourRank = new Map([...byTrailing, ...byPeak].map((s, i) => [s, i]));
-    const colourOf = (s: string) => (s === ALL_OTHER ? pal.remainder : seriesColour(pal, colourRank.get(s) ?? Number.POSITIVE_INFINITY));
-    const ownColour = (s: string) => s !== ALL_OTHER && hasOwnColour(colourRank.get(s) ?? Number.POSITIVE_INFINITY);
+    // The values that take a colour of the palette, in that order: what the page is told, to give each value one colour on every chart (src/lib/pageColours.ts).
+    const colourOrder = [...colourRank.keys()].filter((s) => s !== ALL_OTHER && !isReserved(s)).slice(0, SERIES_COUNT);
 
     // Rolling is computed here from n and denominator, never read from the cube: the cube carries
     // counts only, so the window and the suppression guard stay changeable without a rebuild. The guards apply to
@@ -233,15 +234,30 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
         const before = keyWindow(line, addMonths(latest, -(2 * TRAILING_MONTHS - 1)), addMonths(latest, -TRAILING_MONTHS), (m) => nFor(m, s));
         // A window that reaches outside the dataset's months has no figure, and the key says so rather than suppress it.
         const shown = now.missing === 0 && now.denominator >= minDenominator ? now.n / now.denominator : undefined;
-        return { series: s, before, shown, nowOutside: now.missing > 0, colour: colourOf(s), remainder: s === ALL_OTHER };
+        return { series: s, before, shown, nowOutside: now.missing > 0, remainder: s === ALL_OTHER };
       })
       // Ordered by the figure it shows, largest first. The remainder is pinned last whatever its
       // size: it is what is left over, not a competitor, and sorting it among the named values
       // invites a reader to read it as one.
       .sort((a, b) => Number(a.remainder) - Number(b.remainder) || (b.shown ?? -1) - (a.shown ?? -1) || nameOrder(label(a.series), label(b.series)));
 
-    return { win, full, rankWin, series, points, bands, summary, categories, defaultStart, colourOf, ownColour };
-  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, fullHistory, label, covers, pal]);
+    return { win, full, rankWin, series, points, bands, summary, categories, defaultStart, colourRank, colourOrder };
+  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, fullHistory, label, covers]);
+
+  // Which slot of the palette a series wears: the page's, so a value is one colour on every chart of a canvas, or, where the chart is not on a card,
+  // its own rank. A series with no slot (the remainder, a reserved token, one beyond the palette or one the page has no colour left for) is drawn in
+  // grey.
+  const pageSlot = usePageColours(dimension.id, base.colourOrder);
+  const model = useMemo(() => {
+    const slotOf = (s: string) => {
+      const rank = s === ALL_OTHER ? undefined : base.colourRank.get(s);
+      if (rank === undefined || !hasOwnColour(rank)) return undefined;
+      return pageSlot ? pageSlot(s) : rank;
+    };
+    const colourOf = (s: string) => (s === ALL_OTHER ? pal.remainder : seriesColour(pal, slotOf(s) ?? Number.POSITIVE_INFINITY));
+    const ownColour = (s: string) => slotOf(s) !== undefined;
+    return { ...base, colourOf, ownColour, summary: base.summary.map((row) => ({ ...row, colour: colourOf(row.series) })) };
+  }, [base, pageSlot, pal]);
 
   const selected = useMemo(
     () => (preset.events && events ? selectEvents(events, dimension.id, model.categories, `${model.win.from}-01`, manifest.latest_snapshot) : null),
