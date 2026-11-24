@@ -11,6 +11,7 @@ import { pinLine } from "../../lib/kept";
 import { openGate } from "../../lib/loadGate";
 import type { Owner } from "../../lib/kept";
 import { TRAILING_MONTHS } from "../../lib/measures";
+import { PageChartContext } from "../../lib/usePageColours";
 import PresetPanel from "../PresetPanel";
 import type { CardWords } from "../PresetPanel";
 import { startingValues, valueLabel, valueOptions } from "../ValuePicker";
@@ -238,7 +239,10 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
           )}
         </div>
       ) : preset ? (
-        <PresetPanel key={panelKey} defer={defer} preset={preset} heading={heading} frame="card" audience="public" anchored={false} controlsSlot={periodSlot} tableOnly={chart.table} headerEnd={headerEnd} cardWords={cardWords} snapshot={keptFolder} onFirstMonth={(month) => setFirstSeen({ key: panelKey, month })} />
+        // A value is one colour on every chart of the page: the chart tells the page what it draws, and which place it has, through this (src/lib/usePageColours.ts).
+        <PageChartContext.Provider value={{ chart: chart.id, place: number }}>
+          <PresetPanel key={panelKey} defer={defer} preset={preset} heading={heading} frame="card" audience="public" anchored={false} controlsSlot={periodSlot} tableOnly={chart.table} headerEnd={headerEnd} cardWords={cardWords} snapshot={keptFolder} onFirstMonth={(month) => setFirstSeen({ key: panelKey, month })} />
+        </PageChartContext.Provider>
       ) : null}
     </article>
   );

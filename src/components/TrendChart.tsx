@@ -12,7 +12,7 @@ import type { MouseEvent, ReactNode } from "react";
 import { datasetWords, findDataset, findDerived, findDimension, phrases, yearChangeFloor } from "../lib/config";
 import type { Preset } from "../lib/config";
 import { answerLine, countedText, fillTemplate, hoverLine, monthRuns, monthsOf, sayBadMonth, sayExceedsTotal, sayNotRecorded, sayOffChart, sayStarts, unrecordedMonths } from "../lib/sentences";
-import { countFact, countSentence, shareFact, shareSentence, valuesSentence } from "../lib/chartSentence";
+import { countFact, countSentence, isReservedValue, shareFact, shareSentence, valuesSentence } from "../lib/chartSentence";
 import { chartSentences } from "../lib/chartWords";
 import { NOT_RECORDED_TOKEN, percent } from "../lib/sentences";
 import type { Manifest, SliceRow } from "../lib/data";
@@ -28,7 +28,8 @@ import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, counted, mo
 import { fillNote } from "../lib/notes";
 import { count, greyedReason, markReason, monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
-import { LINE_WIDTH, THIN_LINE_WIDTH, chartHeight, plotStyle, seriesColour, tipStyle, xTicks } from "../lib/theme";
+import { LINE_WIDTH, SERIES_COUNT, THIN_LINE_WIDTH, chartHeight, plotStyle, seriesColour, tipStyle, xTicks } from "../lib/theme";
+import { usePageColours } from "../lib/usePageColours";
 import { usePalette } from "../lib/useTheme";
 import { Caveat } from "./Caveat";
 import { ChartSentence, useComparable } from "./ChartSentence";
@@ -235,9 +236,16 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
     return { win, points, totals, unrecorded, runs, exceeding, reader };
   }, [rows, preset, manifest, values, rolling, covers]);
 
+  // The lines in the order they take colours: the most vehicles in the last 12 months first.
+  const byTotal = useMemo(() => [...model.totals].sort((a, b) => (b.n ?? -1) - (a.n ?? -1) || nameOrder(label(a.series), label(b.series))).map((t) => t.series), [model.totals, label]);
+  // The values that take a colour of the palette, which the page is told, to give each value one colour on every chart (src/lib/pageColours.ts). A
+  // value with no slot, or one that is not a value of the field (a reserved token), is drawn in the grey of a series beyond the palette. Where the
+  // chart is not on a card the slot is its own rank.
+  const colourOrder = useMemo(() => byTotal.filter((s) => !isReservedValue(s)).slice(0, SERIES_COUNT), [byTotal]);
+  const pageSlot = usePageColours(preset.dimension ?? undefined, colourOrder);
   const colour = useCallback(
-    (s: string) => seriesColour(pal, [...model.totals].sort((a, b) => (b.n ?? -1) - (a.n ?? -1) || nameOrder(label(a.series), label(b.series))).findIndex((t) => t.series === s)),
-    [model.totals, label, pal],
+    (s: string) => seriesColour(pal, pageSlot ? (pageSlot(s) ?? Number.POSITIVE_INFINITY) : byTotal.indexOf(s)),
+    [byTotal, pageSlot, pal],
   );
 
   const render = useCallback(
