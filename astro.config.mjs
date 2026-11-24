@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
+import { BROWSER_PARTS, cutConfig } from "./scripts/browser-config.mjs";
 
 // A page whose chart is an island fetches the island's script only when the page's own inline script runs, and each
 // script then names the ones it imports: a chain of requests, each waiting a round trip for the one before it. This
@@ -71,11 +72,34 @@ function prunePublicBuild() {
   };
 }
 
+// A config file the browser reads only in part reaches the client build as the part (scripts/browser-config.mjs). The pages are made from the whole
+// file, which this leaves alone: it acts only where the browser's own code asks for the file.
+function browserConfig() {
+  const prefix = "\0browser-config:";
+  return {
+    name: "browser-config",
+    enforce: "pre",
+    async resolveId(source, importer, options) {
+      if (options?.ssr) return null;
+      const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
+      const file = resolved && Object.keys(BROWSER_PARTS).find((path) => resolved.id.replaceAll("\\", "/").endsWith(`/${path}`));
+      return file ? `${prefix}${file}:cut` : null;
+    },
+    load(id) {
+      if (!id.startsWith(prefix)) return null;
+      const file = id.slice(prefix.length, -":cut".length);
+      const doc = JSON.parse(readFileSync(fileURLToPath(new URL(`./${file}`, import.meta.url)), "utf8"));
+      return `export default ${JSON.stringify(cutConfig(doc, BROWSER_PARTS[file], file))};`;
+    },
+  };
+}
+
 // Local reference tool only: the dev server serves public/data as the pipeline built it.
 export default defineConfig({
   integrations: [react(), preloadIslands(), prunePublicBuild()],
   server: { host: "127.0.0.1", port: 4321 },
   vite: {
+    plugins: [browserConfig()],
     build: {
       // A font file is never folded into the stylesheet as text, however small: the stylesheet blocks the first paint, and a face the page
       // does not need would be in it all the same. Each is its own file, asked for only by a page whose text uses it.
