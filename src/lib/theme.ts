@@ -48,7 +48,7 @@ export interface Palette {
   // Months under a suppression guard: a quiet line over a quiet band, drawn rather than dropped.
   suppressedLine: string;
   suppressedBand: string;
-  // A windowed event's active period (drawn at 0.55 opacity).
+  // A windowed event's active period: the ink, drawn at EVENT_WINDOW_OPACITY over the surface, so the band is a neutral in either theme.
   eventWindow: string;
   // The tooltip's surface and edge.
   tipFill: string;
@@ -71,7 +71,7 @@ const LIGHT: Palette = {
   context: "#bdb9ae",
   suppressedLine: "#cfcbc1",
   suppressedBand: "#ecebe6",
-  eventWindow: "#eee3c6",
+  eventWindow: "#1b1c1f",
   tipFill: "#f8f7f3",
   tipStroke: "#c9c5ba",
   scaleLow: "#e3e6f3",
@@ -91,7 +91,7 @@ const DARK: Palette = {
   context: "#6b6e76",
   suppressedLine: "#686b73",
   suppressedBand: "#212328",
-  eventWindow: "#524516",
+  eventWindow: "#ececea",
   tipFill: "#1f2024",
   tipStroke: "#41444b",
   scaleLow: "#262d4d",
@@ -104,6 +104,7 @@ export const SERIES_COUNT = SERIES_LIGHT.length;
 
 export const FONT_TEXT = "'NZVR Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
 
+export const EVENT_WINDOW_OPACITY = 0.06;
 export const LINE_WIDTH = 2;
 export const THIN_LINE_WIDTH = 1.25;
 

@@ -29,7 +29,7 @@ import type { Cell, Column } from "../lib/figures";
 import { ChartSentence, useComparable } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
 import type { Greyed } from "../lib/readout";
-import { LINE_WIDTH, THIN_LINE_WIDTH, chartHeight, hasOwnColour, plotStyle, seriesColour, tipStyle, xTicks } from "../lib/theme";
+import { EVENT_WINDOW_OPACITY, LINE_WIDTH, THIN_LINE_WIDTH, chartHeight, hasOwnColour, plotStyle, seriesColour, tipStyle, xTicks } from "../lib/theme";
 import { usePalette } from "../lib/useTheme";
 import { latestMonthOf } from "../lib/resolve";
 import { nameOrder, rankByCount } from "../lib/ranking";
@@ -354,16 +354,16 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
           Plot.rect(bands, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: pal.suppressedBand }),
           // A window can run past the latest snapshot (a policy in force until 2029); it stops at the
           // frame rather than shading the end labels.
-          Plot.rect(windowed, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: pal.eventWindow, fillOpacity: 0.55, clip: true }),
+          Plot.rect(windowed, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: pal.eventWindow, fillOpacity: EVENT_WINDOW_OPACITY, clip: true }),
           Plot.gridY({ ticks: 5, stroke: pal.rule, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => `${Math.round(d * 100)}%` }),
           Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: pal.ruleStrong, label: null }),
           Plot.ruleY([0], { stroke: pal.ruleStrong }),
           // An event that straddles the chart's start, or was announced before it, would otherwise draw
           // its rule in the left margin over the axis labels.
-          Plot.ruleX(announced, { x: "x", stroke: pal.ink3, strokeOpacity: 0.4, strokeDasharray: "1,3", clip: true }),
-          Plot.ruleX(rules.filter((r) => !r.measurement), { x: "x", stroke: pal.ink2, strokeOpacity: 0.45, clip: true }),
-          Plot.ruleX(rules.filter((r) => r.measurement), { x: "x", stroke: pal.ink2, strokeOpacity: 0.8, strokeDasharray: "4,3", clip: true }),
+          Plot.ruleX(announced, { x: "x", stroke: pal.ruleStrong, strokeWidth: 1, strokeDasharray: "1,3", clip: true }),
+          Plot.ruleX(rules.filter((r) => !r.measurement), { x: "x", stroke: pal.ruleStrong, strokeWidth: 1, clip: true }),
+          Plot.ruleX(rules.filter((r) => r.measurement), { x: "x", stroke: pal.ruleStrong, strokeWidth: 1, strokeDasharray: "4,3", clip: true }),
           // Lane 0 sits just above the frame and each further lane above that, so markers that would
           // print on top of each other are read as a column instead of a smear. dy is a constant
           // offset in Plot, not a channel, so each lane needs its own mark.
@@ -373,8 +373,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
               y: yMax,
               text: "label",
               dy: -10 - lane * LANE_HEIGHT,
-              fill: pal.ink2,
-              fontWeight: 600,
+              fill: pal.ink3,
               fontSize: 11,
             }),
           ),
