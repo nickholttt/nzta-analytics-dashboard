@@ -133,6 +133,7 @@
     "saved_unavailable": "This browser is not letting the page keep a list, so canvases cannot be saved or listed here. The canvas works as usual. Copy its link to keep it.",
     "saved_failed": "The browser would not keep the list, so nothing was saved. Copy the link to this canvas to keep it.",
     "saved_unreadable": "Saved canvases that could not be read were left out of the list: {number}.",
+    "saved_carried": "Questions you saved before were added to this list as canvases: {number}.",
     "saved_too_long": "This canvas is too long to save. Copy its link to keep it.",
     "saved_on": "Saved {date|date}",
     "saved_rename": "Rename",
