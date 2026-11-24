@@ -25,6 +25,9 @@ from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
 
 FLOW, FLEET, SERIES, SURVIVING = "registrations_flow", "fleet", "registrations_cars_long_run", "registrations_surviving"
 STATUS, TYPE = "import_status", "vehicle_type"
+LISTED, SECOND_LISTED = "fixture_listed", "fixture_second_listed"
+# Every kind a fixture row may state (reconciliation.figure_kinds in these tests).
+KNOWN_KINDS = (LISTED, SECOND_LISTED, "fixture_other", "fixture_unlisted")
 
 # (month, import status, vehicle type, vehicles). The month totals are 520, 1040 and 1560.
 FACT_ROWS = [
@@ -38,11 +41,14 @@ FACT_ROWS = [
 TOTAL = {"2026-01": 520, "2026-02": 1040, "2026-03": 1560}
 
 SOURCES = [
-    {"id": "source_a", "name": "Source A", "home_url": "https://a.example", "independent": "true", "definition": "", "definition_date_read": ""},
+    {"id": "source_a", "name": "Source A", "home_url": "https://a.example", "independent": "true", "definition": "", "definition_date_read": "",
+     "data_basis": ""},
     {"id": "source_b", "name": "Source B", "home_url": "https://b.example", "independent": "true", "definition": "B counts what B counts.",
-     "definition_date_read": "2026-11-01"},
-    {"id": "source_c", "name": "Source C", "home_url": "https://c.example", "independent": "true", "definition": "", "definition_date_read": ""},
-    {"id": "source_d", "name": "Source D", "home_url": "https://d.example", "independent": "false", "definition": "", "definition_date_read": ""},
+     "definition_date_read": "2026-11-01", "data_basis": "its own count"},
+    {"id": "source_c", "name": "Source C", "home_url": "https://c.example", "independent": "true", "definition": "", "definition_date_read": "",
+     "data_basis": ""},
+    {"id": "source_d", "name": "Source D", "home_url": "https://d.example", "independent": "false", "definition": "", "definition_date_read": "",
+     "data_basis": ""},
 ]
 
 
@@ -93,7 +99,7 @@ def stage(tmp_path):
 def figure_row(**given) -> dict:
     row = {"source": "source_a", "source_url": "https://a.example/page", "date_read": "2026-11-20", "month": "2026-02",
            "measure_as_published": "Measure one", "figure": "1040", "dataset": FLOW, "filters": "", "tolerance_pct": "2",
-           "known_difference": ""}
+           "known_difference": "", "added_up_from": "", "figure_kind": "fixture_other"}
     row.update(given)
     return row
 
@@ -110,16 +116,20 @@ def write_reference(tmp_path, figures, sources=SOURCES):
     return reference
 
 
-def cfg_for(tmp_path, figures, sources=SOURCES, **hard_limit):
+def cfg_for(tmp_path, figures, sources=SOURCES, single=None, known=None, **hard_limit):
+    """The live configuration with the hard limit's numbers changed by `hard_limit`, and the single-figure limit set to the
+    fixture's own (5%, two fixture kinds) unless `single` gives other numbers: the live kinds are real ones, which no test names."""
     cfg = config.load(overrides={"reference_dir": str(write_reference(tmp_path, figures, sources))})
     cfg.pipeline = copy.deepcopy(cfg.pipeline)
     cfg.pipeline["reconciliation"]["hard_limit"].update(hard_limit)
+    cfg.pipeline["reconciliation"]["single_figure_limit"] = {"gap_pct": 5, "kinds": [LISTED, SECOND_LISTED], **(single or {})}
+    cfg.pipeline["reconciliation"]["figure_kinds"] = list(KNOWN_KINDS if known is None else known)
     return cfg
 
 
-def reconcile_figures(tmp_path, figures, sources=SOURCES, datasets=None, **hard_limit):
+def reconcile_figures(tmp_path, figures, sources=SOURCES, datasets=None, single=None, **hard_limit):
     staging, staged = stage(tmp_path)
-    cfg = cfg_for(tmp_path, figures, sources, **hard_limit)
+    cfg = cfg_for(tmp_path, figures, sources, single, **hard_limit)
     prepared, problems = reconcile.prepare(cfg)
     assert problems == []
     return reconcile.run(duckdb.connect(), cfg, prepared, datasets or staged, staging, "2026-03-31")
@@ -209,6 +219,13 @@ def test_a_missing_file_aborts_loudly(tmp_path):
     ({"filters": '{"import_status": ["a"], "import_status": ["b"]}'}, "names ['import_status'] more than once"),
     ({"filters": '{"no_such_dimension": ["a"]}'}, "cannot be filtered by no_such_dimension"),
     ({"dataset": SERIES, "filters": '{"import_status": ["a"]}'}, "cannot be filtered by import_status"),
+    ({"figure_kind": ""}, "figure_kind must be lower case letters, digits and underscores"),
+    ({"figure_kind": "Fixture Kind"}, "figure_kind must be lower case letters, digits and underscores"),
+    ({"figure_kind": "1kind"}, "figure_kind must be lower case letters, digits and underscores"),
+    ({"added_up_from": "Chart"}, "added_up_from must be blank, or lower case words"),
+    ({"added_up_from": "chart_data"}, "added_up_from must be blank, or lower case words"),
+    ({"added_up_from": "two  words"}, "added_up_from must be blank, or lower case words"),
+    ({"added_up_from": "page 2"}, "added_up_from must be blank, or lower case words"),
 ])
 def test_a_bad_figure_row_is_refused_and_named(tmp_path, change, fragment):
     problems = problems_of(tmp_path, [figure_row(), figure_row(**{"measure_as_published": "Measure two", **change})])
@@ -240,6 +257,11 @@ def test_two_dimensions_that_no_published_table_holds_are_found_before_the_build
                                   figure_row(dataset=SURVIVING, measure_as_published="Two", filters='{"region": ["b"]}')]) == []
 
 
+def test_what_a_figure_was_added_up_from_is_one_or_more_lower_case_words_or_blank(tmp_path):
+    ok = [figure_row(added_up_from=words, measure_as_published=words or "blank") for words in ("", "chart", "made up table")]
+    assert problems_of(tmp_path, ok) == []
+
+
 def test_every_problem_is_reported_at_once(tmp_path):
     problems = problems_of(tmp_path, [figure_row(month="x"), figure_row(measure_as_published="two", figure="x")])
     assert len(problems) == 2
@@ -265,6 +287,32 @@ def test_config_numbers_are_checked(tmp_path):
     cfg = cfg_for(tmp_path, [], min_sources=1, source_vehicle_share=0, tolerance_multiple=0.5)
     problems = reconcile.prepare(cfg)[1]
     assert len(problems) == 3 and all(p.startswith("reconciliation.hard_limit.") for p in problems)
+
+
+@pytest.mark.parametrize("single, fragment", [
+    ({"gap_pct": 0}, "gap_pct must be a number above 0"),
+    ({"gap_pct": -5}, "gap_pct must be a number above 0"),
+    ({"gap_pct": True}, "gap_pct must be a number above 0"),
+    ({"gap_pct": "5"}, "gap_pct must be a number above 0"),
+    ({"gap_pct": float("inf")}, "gap_pct must be a number above 0 and at most 100"),
+    ({"gap_pct": float("nan")}, "gap_pct must be a number above 0 and at most 100"),
+    ({"gap_pct": 1e308}, "gap_pct must be a number above 0 and at most 100"),
+    ({"kinds": ["fixture_nobody_listed"]}, "which reconciliation.figure_kinds does not list"),
+    ({"kinds": LISTED}, "kinds must be a list of distinct ids"),
+    ({"kinds": [LISTED, LISTED]}, "kinds must be a list of distinct ids"),
+    ({"kinds": ["Fixture Kind"]}, "kinds must be a list of distinct ids"),
+    ({"kinds": [1]}, "kinds must be a list of distinct ids"),
+])
+def test_the_single_figure_limits_numbers_are_checked(tmp_path, single, fragment):
+    problems = reconcile.prepare(cfg_for(tmp_path, [], single=single))[1]
+    assert len(problems) == 1 and problems[0].startswith("reconciliation.single_figure_limit.") and fragment in problems[0], problems
+
+
+def test_a_configuration_with_no_single_figure_limit_is_refused_and_an_empty_list_of_kinds_is_not(tmp_path):
+    cfg = cfg_for(tmp_path, [])
+    del cfg.pipeline["reconciliation"]["single_figure_limit"]
+    assert reconcile.prepare(cfg)[1] == ["reconciliation.single_figure_limit must be an object with gap_pct and kinds"]
+    assert reconcile.prepare(cfg_for(tmp_path, [], single={"kinds": []}))[1] == []
 
 
 # --- answering from the staged files ---------------------------------------------------------------------------------------
@@ -475,8 +523,8 @@ def figures_from(sources, theirs, month="2026-02", **given):
     return [figure_row(source=s, figure=str(t), month=month, **given) for s, t in zip(sources, theirs)]
 
 
-def fails(tmp_path, figures, sources=SOURCES, **hard_limit):
-    return reconcile_figures(tmp_path, figures, sources, **hard_limit)
+def fails(tmp_path, figures, sources=SOURCES, single=None, **hard_limit):
+    return reconcile_figures(tmp_path, figures, sources, single=single, **hard_limit)
 
 
 def by_source(result) -> dict[str, list[str]]:
@@ -623,10 +671,170 @@ def test_a_tight_tolerance_cannot_make_a_small_gap_a_breach(tmp_path):
     assert result.document["rows"][0]["hard_bound_pct"] == 2.0
 
 
+# --- the single-figure limit -----------------------------------------------------------------------------------------------
+# One compared row of a listed kind, of an independent source, stops the build when ours is 5% or more from theirs (config:
+# single_figure_limit). The fixtures' own kinds are listed in cfg_for, so no test names a real one.
+
+def exact(tmp_path, ours, figures, sources=SOURCES, single=None):
+    """Our figure for one value of the series in 2026-02 is `ours`, so a test can put the gap exactly where it wants it."""
+    staging, datasets = stage(tmp_path)
+    con = duckdb.connect()
+    write_slice(con, staging / "cube" / SERIES / "car_origin.parquet", [("2026-02", "fixture_x", ours, ours + 100)])
+    con.close()
+    cfg = cfg_for(tmp_path, figures, sources, single)
+    prepared, problems = reconcile.prepare(cfg)
+    assert problems == []
+    return reconcile.run(duckdb.connect(), cfg, prepared, datasets, staging, "2026-03-31")
+
+
+def one_value(theirs, **given):
+    return figure_row(dataset=SERIES, filters='{"car_origin": ["fixture_x"]}', figure=str(theirs), figure_kind=LISTED, **given)
+
+
+@pytest.mark.parametrize("ours, theirs, stops", [
+    (1050, 1000, True),     # exactly 5% above theirs: the limit is inclusive
+    (1049, 1000, False),    # one vehicle less
+    (950, 1000, True),      # exactly 5% below theirs
+    (951, 1000, False),
+])
+def test_exactly_the_limit_stops_the_build_and_one_vehicle_less_does_not_either_side(tmp_path, ours, theirs, stops):
+    result = exact(tmp_path, ours, [one_value(theirs)])
+    row = only_row(result)
+    assert row["stops_alone_pct"] == 5
+    assert (row["status"], len(result.aborts)) == (("fail", 1) if stops else ("warn", 0))
+    if stops:
+        side = "+" if ours > theirs else "-"
+        assert result.aborts[0].startswith(
+            f"reconciliation: 2026-02: Source A: 'Measure one': ours is {ours:,} and theirs {theirs:,}, a gap of {side}5.00%, which is 5% or "
+            f"more on a figure of kind 'fixture_listed':")
+        assert result.aborts[0].endswith("reconciliation.json in the staged files has every row")
+        # The source's warning line counts a failed row as past its tolerance, as it counts a warned one.
+        assert result.warnings == [f"reconciliation: Source A: 1 of 1 compared figures are past their tolerance, in 2026-02; "
+                                   f"the largest gap is {side}5.00% (2026-02)"]
+
+
+def test_one_source_alone_in_a_month_is_enough_whatever_the_others_say(tmp_path):
+    # Source A is 5.05% under ours, on its own; Sources B and C are exact. The hard limit would need two of the three.
+    result = fails(tmp_path, [figure_row(source="source_a", figure="990", figure_kind=LISTED),
+                              figure_row(source="source_b", figure="1040", figure_kind=LISTED),
+                              figure_row(source="source_c", figure="1040", figure_kind=LISTED)])
+    assert len(result.aborts) == 1 and "Source A" in result.aborts[0] and "independent sources compared" not in result.aborts[0]
+    assert by_source(result) == {"source_a": ["fail"], "source_b": ["pass"], "source_c": ["pass"]}
+    # The same on its own in its month, and with nothing else in the file.
+    assert len(fails(tmp_path / "alone", [figure_row(figure="990", figure_kind=LISTED)]).aborts) == 1
+    # Each of two rows of one source is a line of its own; the second kind the config lists counts as well.
+    two = fails(tmp_path / "two", [figure_row(figure="990", figure_kind=LISTED),
+                                   figure_row(figure="800", figure_kind=SECOND_LISTED, measure_as_published="Measure two",
+                                              filters='{"import_status": ["fixture_new"]}', month="2026-02")])
+    assert len(two.aborts) == 1, "800 is ours, exactly: only the first row is 5% or more out"
+    both = fails(tmp_path / "both", [figure_row(figure="990", figure_kind=LISTED),
+                                     figure_row(figure="700", figure_kind=SECOND_LISTED, measure_as_published="Measure two",
+                                                filters='{"import_status": ["fixture_new"]}')])
+    assert len(both.aborts) == 2 and "Measure one" in both.aborts[0] and "Measure two" in both.aborts[1]
+    assert by_source(both) == {"source_a": ["fail", "fail"]}
+
+
+def test_a_kind_the_config_does_not_list_never_stops_a_build_at_any_gap(tmp_path):
+    for theirs in ("990", "100", "100000"):
+        result = fails(tmp_path / theirs, [figure_row(figure=theirs, figure_kind="fixture_unlisted")])
+        assert result.aborts == []
+        row = only_row(result)
+        assert (row["status"], row["stops_alone_pct"], row["figure_kind"]) == ("warn", None, "fixture_unlisted")
+
+
+@pytest.mark.parametrize("tolerance", ["5", "5.0", "12", "15"])
+def test_a_row_whose_own_tolerance_is_the_limit_or_more_is_exempt_and_must_say_why(tmp_path, tolerance):
+    exempt = figure_row(figure="900", figure_kind=LISTED, tolerance_pct=tolerance, known_difference="Counts a van differently.")
+    result = fails(tmp_path, [exempt])
+    assert result.aborts == []
+    row = only_row(result)
+    assert (row["status"], row["stops_alone_pct"], row["gap_pct"]) == ("warn", None, 15.5556)
+    # The same row with no known difference is refused before the register is read, and the message says what to add.
+    problems = problems_of(tmp_path, [{**exempt, "known_difference": ""}])
+    assert len(problems) == 1 and "published_figures.csv line 2 (" in problems[0], problems
+    assert "single_figure_limit" in problems[0] and "known_difference must say why" in problems[0]
+    # A kind the limit does not cover is not asked to say why.
+    assert problems_of(tmp_path, [{**exempt, "known_difference": "", "figure_kind": "fixture_unlisted"}]) == []
+
+
+def test_a_tolerance_just_under_the_limit_is_not_exempt(tmp_path):
+    result = fails(tmp_path, [figure_row(figure="990", figure_kind=LISTED, tolerance_pct="4.99")])
+    assert len(result.aborts) == 1 and only_row(result)["stops_alone_pct"] == 5
+
+
+def test_a_source_that_is_not_independent_never_stops_a_build_alone(tmp_path):
+    result = fails(tmp_path, [figure_row(source="source_d", figure="990", figure_kind=LISTED)])
+    assert result.aborts == []
+    row = only_row(result)
+    assert (row["status"], row["stops_alone_pct"]) == ("warn", None)
+
+
+def test_a_row_that_was_not_compared_never_stops_a_build_but_the_rule_still_applies_to_it(tmp_path):
+    result = fails(tmp_path, [figure_row(month="2026-06", figure="1", figure_kind=LISTED),
+                              figure_row(dataset=SURVIVING, measure_as_published="Measure two", figure="1", figure_kind=LISTED),
+                              figure_row(dataset=FLEET, month="2026-03", figure="1", measure_as_published="Measure three",
+                                         filters='{"vehicle_usage": ["fixture_y"]}', figure_kind=LISTED)])
+    assert result.aborts == []
+    assert [(r["status"], r["stops_alone_pct"], r["gap"]) for r in result.document["rows"]] == [("not_compared", 5, None)] * 3
+
+
+def test_a_kind_nobody_listed_is_refused_so_a_misspelling_cannot_fall_out_of_the_limit(tmp_path):
+    # One letter off a covered kind, on a row the limit would cover: before this check it was read, and never stopped a build.
+    misspelt = [figure_row(figure="900", figure_kind=LISTED + "s")]
+    problems = problems_of(tmp_path / "a", misspelt)
+    assert len(problems) == 1 and "is not one of reconciliation.figure_kinds" in problems[0] and "line 2" in problems[0]
+    assert reconcile.prepare(cfg_for(tmp_path / "b", misspelt, known=[*KNOWN_KINDS, LISTED + "s"]))[1] == []
+    for n, known in enumerate(([], "fixture_other", [LISTED, LISTED], ["Fixture Kind"], None)):
+        cfg = cfg_for(tmp_path / f"c{n}", [])
+        cfg.pipeline["reconciliation"]["figure_kinds"] = known
+        assert any("reconciliation.figure_kinds must be a list of distinct ids" in p for p in reconcile.prepare(cfg)[1]), known
+
+
+def test_a_tolerance_with_more_digits_than_the_file_states_is_read_the_same_way_by_the_check_and_the_rule(tmp_path):
+    # 4.99...9 is below 5 exactly and is 5.0 as reconciliation.json states it, where the row is exempt: so it needs a known difference.
+    row = figure_row(figure="900", figure_kind=LISTED, tolerance_pct="4.9999999999999999999")
+    assert len(problems_of(tmp_path / "a", [row])) == 1
+    assert problems_of(tmp_path / "b", [{**row, "known_difference": "A made-up known difference."}]) == []
+
+
+def test_the_numbers_of_the_single_figure_limit_are_config(tmp_path):
+    figures = [figure_row(figure="990", figure_kind=LISTED)]                      # 5.05% under
+    wide = [figure_row(figure="900", figure_kind=LISTED)]                         # 15.6% under
+    assert len(fails(tmp_path / "a", figures).aborts) == 1
+    assert fails(tmp_path / "b", figures, single={"gap_pct": 6}).aborts == []
+    assert len(fails(tmp_path / "c", wide, single={"gap_pct": 6}).aborts) == 1
+    assert fails(tmp_path / "d", wide, single={"gap_pct": 16}).aborts == []
+    assert len(fails(tmp_path / "e", figures, single={"gap_pct": 5.05}).aborts) == 1, "5.05% of 990 is 49.995 vehicles: 50 is more"
+    # The limit is also the tolerance at which a row is exempt: 5 is exempt at 5 and not at 6.
+    five = [figure_row(figure="900", figure_kind=LISTED, tolerance_pct="5")]
+    assert problems_of(tmp_path / "f", five)[0].startswith("published_figures.csv line 2")
+    assert reconcile.prepare(cfg_for(tmp_path / "g", five, single={"gap_pct": 6}))[1] == []
+    assert len(fails(tmp_path / "h", five, single={"gap_pct": 6}).aborts) == 1
+    # Which kinds are covered is config: another kind, and none (an empty list switches the rule off).
+    assert fails(tmp_path / "i", figures, single={"kinds": ["fixture_other"]}).aborts == []
+    other = [figure_row(figure="990", figure_kind="fixture_other")]
+    assert len(fails(tmp_path / "j", other, single={"kinds": ["fixture_other"]}).aborts) == 1
+    off = fails(tmp_path / "k", figures, single={"kinds": []})
+    assert off.aborts == [] and only_row(off)["stops_alone_pct"] is None
+    assert problems_of(tmp_path / "l", [figure_row(figure="900", figure_kind=LISTED, tolerance_pct="12")]) != []
+    assert reconcile.prepare(cfg_for(tmp_path / "m", [figure_row(figure="900", figure_kind=LISTED, tolerance_pct="12")], single={"kinds": []}))[1] == []
+
+
+def test_the_hard_limit_is_unchanged_by_the_single_figure_limit(tmp_path):
+    # Two sources 9.5% and 8.3% over, of an unlisted kind: the hard limit stops the build exactly as before.
+    result = fails(tmp_path, figures_from(["source_a", "source_b"], [950, 960]))
+    assert len(result.aborts) == 1 and "2 of the 2 independent sources compared" in result.aborts[0]
+    # And a listed kind past both limits has the month's line and its own.
+    both = fails(tmp_path / "both", figures_from(["source_a", "source_b"], [950, 960], figure_kind=LISTED))
+    assert len(both.aborts) == 3 and "2 of the 2 independent sources compared" in both.aborts[0]
+    assert {r["status"] for r in both.document["rows"]} == {"fail"}
+
+
 # --- the hard limit over the live published figures -------------------------------------------------------------------------
 # These read the real data/reference/published_figures.csv and put our figure beside each row's, scaled, through the real judge,
 # finish and hard_limit, to show what size of error stops a build on the rows that are committed. No source is named here:
-# the sources are whatever published_sources.csv holds. A month's sources are the sources that have a row for it.
+# the sources are whatever published_sources.csv holds. A month's sources are the sources that have a row for it. Two rules stop a
+# build and each writes its own kind of line: the hard limit one line for a month, the single-figure limit one for a figure.
 
 def live_setup():
     cfg = config.load()
@@ -640,11 +848,37 @@ def live_setup():
     return cfg, prepared, c, (Decimal(str(h["tolerance_multiple"])), Decimal(str(h["floor_pct"])), int(c["pct_decimals"])), months
 
 
-def live_aborts(ours) -> list[str]:
-    """The aborts the real step raises when our figure for each live row is ours(figure)."""
+def live_aborts(ours, kinds=None) -> list[str]:
+    """The aborts the real step raises when our figure for each live row is ours(figure). `kinds` replaces the kinds the
+    single-figure limit covers: [] shows what the hard limit alone does."""
     cfg, prepared, c, (multiple, floor, decimals), _ = live_setup()
+    if kinds is not None:
+        c = copy.deepcopy(c)
+        c["single_figure_limit"]["kinds"] = kinds
     judged = [reconcile.judge(f, reconcile.Answer(int(round(ours(f)))), multiple, floor, decimals) for f in prepared.figures]
     return reconcile.finish(prepared, judged, c, [], "fixture").aborts
+
+
+def month_lines(aborts) -> list[str]:
+    """The lines of the hard limit: one for each month and side."""
+    return [a for a in aborts if "independent sources compared" in a]
+
+
+def figure_lines(aborts) -> list[str]:
+    """The lines of the single-figure limit: one for each figure."""
+    return [a for a in aborts if "one such figure from an independent source" in a]
+
+
+def stopped_months(aborts) -> set[str]:
+    return {a.split(": ")[1] for a in aborts}
+
+
+def rows_the_single_figure_limit_covers(source=None) -> list:
+    """The live rows it applies to: a listed kind, an independent source, a tolerance below the limit."""
+    _, prepared, c, _, _ = live_setup()
+    limit, kinds = Decimal(str(c["single_figure_limit"]["gap_pct"])), set(c["single_figure_limit"]["kinds"])
+    return [f for f in prepared.figures if f.figure_kind in kinds and prepared.sources[f.source].independent and f.tolerance < limit
+            and source in (None, f.source)]
 
 
 def live_month_with(count: int) -> str:
@@ -658,25 +892,55 @@ def live_month_with(count: int) -> str:
 @pytest.mark.parametrize("scale", [1.05, 0.94, 1.03, 0.97])
 def test_live_rows_a_few_percent_error_in_a_month_stops_the_build_when_two_or_three_sources_have_rows(count, scale):
     month = live_month_with(count)
-    assert len(live_aborts(lambda f: f.figure * scale if f.month == month else f.figure)) == 1
+    # The hard limit's line for the month is one, at 5% as at 3%; at 5% some figures also stop the build alone.
+    assert len(month_lines(live_aborts(lambda f: f.figure * scale if f.month == month else f.figure))) == 1
 
 
 def test_live_rows_the_smallest_uniform_error_that_stops_every_month_is_about_two_percent_either_way():
     months = live_setup()[4]
     assert len(months) >= 20
     for scale in (1.021, 0.979):
-        assert len(live_aborts(lambda f: f.figure * scale)) == len(months), scale
+        assert len(month_lines(live_aborts(lambda f: f.figure * scale))) == len(months), scale
     for scale in (1.015, 0.985):
         assert live_aborts(lambda f: f.figure * scale) == [], scale
 
 
-def test_live_rows_a_source_restated_ten_percent_either_way_in_every_month_does_not_stop_a_build():
+def test_live_rows_an_error_in_every_figure_stops_figures_alone_from_five_percent_and_all_of_them_by_six():
+    months = live_setup()[4]
+    covered = rows_the_single_figure_limit_covers()
+    assert len(covered) > 50
+    for scale in (1.049, 0.96):
+        assert figure_lines(live_aborts(lambda f: f.figure * scale)) == [], scale
+    for scale in (1.05, 0.95):
+        # On the edge, our figure's rounding decides which figures are 5% or more away.
+        lines = figure_lines(live_aborts(lambda f: f.figure * scale))
+        assert 0 < len(lines) < len(covered) and stopped_months(lines) == set(months), scale
+    for scale in (1.06, 0.94):
+        lines = figure_lines(live_aborts(lambda f: f.figure * scale))
+        assert len(lines) == len(covered) and stopped_months(lines) == set(months), scale
+
+
+def test_live_rows_a_source_restated_ten_percent_either_way_in_every_month_does_not_stop_a_build_by_the_hard_limit():
     sources = live_setup()[1].sources
     assert len(sources) >= 3
     for source in sources:
         for restated in (1.10, 0.90):
             # Their figure is 10% higher (or lower) than before and ours is what it was.
-            assert live_aborts(lambda f: f.figure / restated if f.source == source else f.figure) == [], (source, restated)
+            assert live_aborts(lambda f: f.figure / restated if f.source == source else f.figure, kinds=[]) == [], (source, restated)
+            assert month_lines(live_aborts(lambda f: f.figure / restated if f.source == source else f.figure)) == [], (source, restated)
+
+
+def test_live_rows_a_source_restated_ten_percent_either_way_stops_a_build_through_the_single_figure_limit_in_each_month_it_has_a_row_it_covers():
+    # Before D-150 this did not stop a build: one source is never enough for the hard limit. Now each of its figures of a covered kind
+    # stops the build alone, so the months stopped are exactly the months in which the source has such a row.
+    sources = live_setup()[1].sources
+    for source in sources:
+        covered = rows_the_single_figure_limit_covers(source)
+        assert covered, f"{source} has no row the limit covers, so this proves nothing about it"
+        for restated in (1.10, 0.90):
+            aborts = live_aborts(lambda f: f.figure / restated if f.source == source else f.figure)
+            assert len(figure_lines(aborts)) == len(covered) == len(aborts), (source, restated)
+            assert stopped_months(aborts) == {f.month for f in covered}, (source, restated)
 
 
 def test_live_rows_five_percent_of_the_passenger_vehicles_counted_as_commercial_stops_a_build_in_every_month():
@@ -711,9 +975,58 @@ def test_live_rows_five_percent_of_the_passenger_vehicles_counted_as_commercial_
         return f.figure
 
     three = live_month_with(3)
-    assert len(live_aborts(lambda f: moved(f) if f.month == three else f.figure)) == 1
-    assert "ours is below theirs" in live_aborts(lambda f: moved(f) if f.month == three else f.figure)[0]
-    assert len(live_aborts(moved)) == len(months)
+    assert len(month_lines(live_aborts(lambda f: moved(f) if f.month == three else f.figure))) == 1
+    assert "ours is below theirs" in month_lines(live_aborts(lambda f: moved(f) if f.month == three else f.figure))[0]
+    assert len(month_lines(live_aborts(moved))) == len(months)
+    # The same fault is also 5% of a passenger figure, so it stops the build alone wherever rounding leaves it at 5% or more.
+    assert stopped_months(live_aborts(moved)) == set(months)
+
+
+def live_new_vehicles_only(share):
+    """Our figure for each live row when `share` of the first import status's passenger vehicles are counted as commercial, and the
+    other import statuses are right. How many that is in a month is the figure of the first live row of that month that asks for
+    exactly those vehicles. A row that does not ask for the first status (or any status) is not moved."""
+    cfg, prepared, _, _, months = live_setup()
+    scope, status = cfg.pipeline["scope"]["vehicle"], cfg.pipeline["scope"]["status"]
+    true = cfg.pipeline["boolean_true"]
+    types = [r for r in reference.read(cfg.reference(scope["file"])) if r[scope["in_scope"]] == true]
+    passenger, commercial = types[0], types[1]
+    first = reference.read(cfg.reference(status["file"]))[0][status["field"]]
+    wanted = {"import_status": (first,), "vehicle_type": (passenger["label"],)}
+    moved_in: dict[str, int] = {}
+    for f in prepared.figures:
+        if dict(f.filters) == wanted:
+            moved_in.setdefault(f.month, f.figure)
+    assert set(moved_in) == set(months), "every live month needs a row for the first status's passenger vehicles"
+
+    def ours(f):
+        held = dict(f.filters)
+        if "import_status" in held and first not in held["import_status"]:
+            return f.figure
+        if held.get("vehicle_type") == (passenger["label"],):
+            return f.figure - share * moved_in[f.month]
+        if held.get("vehicle_type") == (commercial["label"],) or held.get("trade_group") == (commercial["trade_group"],):
+            return f.figure + share * moved_in[f.month]
+        return f.figure
+    return ours
+
+
+def test_live_rows_a_fault_among_new_vehicles_only_never_stops_a_build_by_the_hard_limit_and_stops_it_alone_from_five_percent_up():
+    # Replaces the review of 2026-11-23, which found that this fault only warned: only one source's figure that takes in the new
+    # vehicles breached, and one source is never enough for the hard limit. That still holds for the hard limit. The single-figure
+    # limit (D-150) stops it where a figure of a covered kind is 5% or more from ours.
+    months = live_setup()[4]
+    stopped = {}
+    for share in (0.02, 0.05, 0.10, 0.20):
+        ours = live_new_vehicles_only(share)
+        assert live_aborts(ours, kinds=[]) == [], share
+        aborts = live_aborts(ours)
+        assert month_lines(aborts) == [] and len(figure_lines(aborts)) == len(aborts), share
+        stopped[share] = stopped_months(aborts)
+    assert stopped[0.10] == stopped[0.20] == set(months)
+    assert 0 < len(stopped[0.05]) < len(months), "5% is on the edge: rounding decides in which months"
+    assert stopped[0.02] <= stopped[0.05]
+    assert len(stopped[0.02]) < len(stopped[0.05])
 
 
 STAGED = config.ROOT / "data" / "staging" / "build" / "reconciliation.json"
@@ -737,26 +1050,35 @@ def test_live_rows_against_the_figures_of_a_dry_run_build_do_not_stop_it():
 # --- the document ----------------------------------------------------------------------------------------------------------
 
 def test_the_document_gives_the_site_everything_it_needs(tmp_path):
-    figures = [figure_row(source="source_b", month="2026-03", figure="1500", filters='{"import_status": ["fixture_new"]}'),
+    figures = [figure_row(source="source_b", month="2026-03", figure="1250", filters='{"import_status": ["fixture_new"]}',
+                          added_up_from="made up table", figure_kind=LISTED),
                figure_row(source="source_a", month="2026-02", figure="1040"), figure_row(source="source_a", month="2027-01")]
     result = reconcile_figures(tmp_path, figures)
     doc = json.loads(json.dumps(result.document))
     assert list(doc) == ["latest_snapshot", "sources", "summary", "rows"]
     assert doc["latest_snapshot"] == "2026-03-31"
     assert doc["sources"]["source_b"] == {"name": "Source B", "home_url": "https://b.example", "independent": True,
-                                          "definition": "B counts what B counts.", "definition_date_read": "2026-11-01"}
+                                          "definition": "B counts what B counts.", "definition_date_read": "2026-11-01",
+                                          "data_basis": "its own count"}
     assert doc["sources"]["source_a"]["definition"] is None and doc["sources"]["source_d"]["independent"] is False
+    # A basis nobody stated is null, not an empty string.
+    assert doc["sources"]["source_a"]["data_basis"] is None
+    # What a figure was added up from is a string, or null for a figure the source prints itself.
+    assert [r["added_up_from"] for r in doc["rows"]] == [None, "made up table", None]
     summary = doc["summary"]
     assert summary["rows"] == 3 and summary["months"] == {"first": "2026-02", "last": "2027-01"}
     assert summary["by_status"] == {"pass": 1, "warn": 1, "fail": 0, "not_compared": 1}
     assert summary["by_source"]["source_a"] == {"rows": 2, "pass": 1, "warn": 0, "fail": 0, "not_compared": 1}
     assert summary["by_source"]["source_c"] == {"rows": 0, "pass": 0, "warn": 0, "fail": 0, "not_compared": 0}
     assert summary["thresholds"] == {"max_tolerance_pct": 20, "hard_limit_tolerance_multiple": 2, "hard_limit_floor_pct": 2,
-                                     "hard_limit_min_sources": 2, "hard_limit_source_vehicle_share": 0.5}
+                                     "hard_limit_min_sources": 2, "hard_limit_source_vehicle_share": 0.5,
+                                     "single_figure_gap_pct": 5, "single_figure_kinds": [LISTED, SECOND_LISTED]}
+    # The kind is on every row, and the limit on the rows it applies to: a listed kind of an independent source.
+    assert [(r["figure_kind"], r["stops_alone_pct"]) for r in doc["rows"]] == [("fixture_other", None), (LISTED, 5), ("fixture_other", None)]
     assert [(r["month"], r["source"]) for r in doc["rows"]] == [("2026-02", "source_a"), ("2026-03", "source_b"), ("2027-01", "source_a")]
     assert set(doc["rows"][0]) == {"source", "month", "measure_as_published", "dataset", "filters", "ours", "theirs", "gap", "gap_pct",
-                                   "tolerance_pct", "hard_bound_pct", "known_difference", "status", "reason_kind", "reason",
-                                   "source_url", "date_read"}
+                                   "tolerance_pct", "hard_bound_pct", "known_difference", "added_up_from", "figure_kind", "stops_alone_pct", "status",
+                                   "reason_kind", "reason", "source_url", "date_read"}
     assert not any(k.startswith("_") for r in doc["rows"] for k in r)
     assert result.entry == {"file": "reconciliation.json", "rows": 3, "by_status": summary["by_status"], "months": summary["months"]}
 
@@ -777,6 +1099,10 @@ def build_with(tmp_path, workspace, figures, sources):
     write_reference(tmp_path, figures, sources)
     rows = load_rows()
     cfg = make_cfg(workspace, reference_dir=reference)
+    # The fixture rows state fixture kinds, as in cfg_for.
+    cfg.pipeline = copy.deepcopy(cfg.pipeline)
+    cfg.pipeline["reconciliation"]["single_figure_limit"]["kinds"] = [LISTED, SECOND_LISTED]
+    cfg.pipeline["reconciliation"]["figure_kinds"] = list(KNOWN_KINDS)
     return cfg, build.build(cfg, source_for(rows), write_pages(tmp_path / "pages", rows), None, NOW)
 
 
@@ -810,6 +1136,16 @@ def test_a_build_stops_when_three_independent_sources_disagree_with_it_the_same_
     with pytest.raises(GuardrailError) as stopped:
         build_with(tmp_path, workspace, figures, SOURCES)
     assert "reconciliation: 2026-08: 3 of the 3 independent sources compared" in str(stopped.value)
+    assert not (workspace["public"] / "manifest.json").exists(), "nothing is published"
+
+
+def test_a_build_stops_on_one_figure_of_a_kind_the_single_figure_limit_covers(tmp_path, workspace):
+    kind = LISTED
+    figures = [figure_row(dataset=SURVIVING, month="2026-08", figure="1", figure_kind=kind)]
+    with pytest.raises(GuardrailError) as stopped:
+        build_with(tmp_path, workspace, figures, SOURCES)
+    assert "reconciliation: 2026-08: Source A: 'Measure one': ours is" in str(stopped.value)
+    assert f"or more on a figure of kind {kind!r}: one such figure from an independent source stops the build" in str(stopped.value)
     assert not (workspace["public"] / "manifest.json").exists(), "nothing is published"
 
 

@@ -560,7 +560,7 @@
     "last": "2026-09"
    }
   },
-  "payload_bytes": 122712,
+  "payload_bytes": 123508,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -17079,21 +17079,24 @@
     "home_url": "https://fixture.example/a",
     "independent": true,
     "definition": "A made-up definition for the golden fixture.",
-    "definition_date_read": "2026-11-01"
+    "definition_date_read": "2026-11-01",
+    "data_basis": "a made-up basis"
    },
    "fixture_b": {
     "name": "Fixture source B",
     "home_url": "https://fixture.example/b",
     "independent": true,
     "definition": null,
-    "definition_date_read": null
+    "definition_date_read": null,
+    "data_basis": null
    },
    "fixture_c": {
     "name": "Fixture source C (a copy of our own export)",
     "home_url": "https://fixture.example/c",
     "independent": false,
     "definition": null,
-    "definition_date_read": null
+    "definition_date_read": null,
+    "data_basis": "same fixture data"
    }
   },
   "summary": {
@@ -17136,7 +17139,13 @@
     "hard_limit_tolerance_multiple": 2,
     "hard_limit_floor_pct": 2,
     "hard_limit_min_sources": 2,
-    "hard_limit_source_vehicle_share": 0.5
+    "hard_limit_source_vehicle_share": 0.5,
+    "single_figure_gap_pct": 5,
+    "single_figure_kinds": [
+     "passenger",
+     "commercial",
+     "total"
+    ]
    }
   },
   "rows": [
@@ -17153,6 +17162,9 @@
     "tolerance_pct": 5.0,
     "hard_bound_pct": 10.0,
     "known_difference": null,
+    "added_up_from": null,
+    "figure_kind": "model",
+    "stops_alone_pct": null,
     "status": "warn",
     "reason_kind": null,
     "reason": null,
@@ -17176,6 +17188,9 @@
     "tolerance_pct": 5.0,
     "hard_bound_pct": 10.0,
     "known_difference": "A made-up known difference.",
+    "added_up_from": null,
+    "figure_kind": "passenger",
+    "stops_alone_pct": null,
     "status": "warn",
     "reason_kind": null,
     "reason": null,
@@ -17195,6 +17210,9 @@
     "tolerance_pct": 2.0,
     "hard_bound_pct": 4.0,
     "known_difference": null,
+    "added_up_from": null,
+    "figure_kind": "model",
+    "stops_alone_pct": null,
     "status": "pass",
     "reason_kind": null,
     "reason": null,
@@ -17214,6 +17232,9 @@
     "tolerance_pct": 2.0,
     "hard_bound_pct": 4.0,
     "known_difference": null,
+    "added_up_from": null,
+    "figure_kind": "total",
+    "stops_alone_pct": null,
     "status": "not_compared",
     "reason_kind": "dataset_not_built",
     "reason": "registrations_flow was not built in this run.",
@@ -17237,6 +17258,9 @@
     "tolerance_pct": 2.0,
     "hard_bound_pct": 4.0,
     "known_difference": null,
+    "added_up_from": null,
+    "figure_kind": "model",
+    "stops_alone_pct": null,
     "status": "not_compared",
     "reason_kind": "value_not_held",
     "reason": "import_status has no value 'Fixture value not held' in the published files of registrations_surviving in this build, so it is not compared.",
@@ -17256,6 +17280,9 @@
     "tolerance_pct": 2.0,
     "hard_bound_pct": 4.0,
     "known_difference": null,
+    "added_up_from": "made up table",
+    "figure_kind": "commercial",
+    "stops_alone_pct": 5,
     "status": "not_compared",
     "reason_kind": "month_not_held",
     "reason": "Our registrations_surviving data holds 1965-04 to 2026-08 in this build, so 2026-09 is outside it and is not compared.",

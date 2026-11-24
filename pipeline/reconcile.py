@@ -12,7 +12,8 @@ A row ends as one of:
 
 - `pass`: ours is within the row's tolerance of theirs;
 - `warn`: past the tolerance (one warning line for each source, not for each row);
-- `fail`: past the hard bound, and one of the rows that make the build stop (below);
+- `fail`: one of the rows that make the build stop (below): past the hard bound, or a single figure of a kind the single-figure
+  limit covers that is five percent or more (the number is config) from ours;
 - `not_compared`, with a reason: our data does not hold that month, the dataset was not built in this run, a filter value is not one
   this build's files hold (the model dimension keeps only the largest models, so a value can drop out), or the answer rests on a
   cell the small-cell rule hides. A row that cannot be compared is said, never dropped and never counted as a pass.
@@ -24,12 +25,20 @@ the bound on that side hold at least `source_vehicle_share` of the weight of all
 side do not cancel it. The build stops when, in one month, at least `min_sources` independent sources breach on the same side and
 they are more than half of the independent sources with any compared row that month. A source that restates its history, one
 that cannot be read, a month we do not hold, or a month with compared rows from fewer than two independent sources, never stop it.
+
+The single-figure limit (`reconciliation.single_figure_limit`, D-150) is added to that, and the hard limit is unchanged. A figure
+has a `figure_kind` (an id; the code names none), and the config lists the kinds the limit covers. A compared row of a listed kind,
+of an independent source, stops the build alone when ours is `gap_pct` percent or more from theirs (exactly that stops it), on
+either side, however few other sources or rows there are. A row whose own tolerance is `gap_pct` or more is exempt, because the row
+itself says ours cannot come that close; `parse_figures` refuses such a row of a listed kind unless it states why in
+`known_difference`.
 """
 
 from __future__ import annotations
 
 import csv
 import json
+import math
 import re
 from collections import defaultdict
 from datetime import date
@@ -47,8 +56,8 @@ from .reference import quote
 CUBE_DIR = "cube"
 
 FIGURE_COLUMNS = ["source", "source_url", "date_read", "month", "measure_as_published", "figure", "dataset", "filters",
-                  "tolerance_pct", "known_difference"]
-SOURCE_COLUMNS = ["id", "name", "home_url", "independent", "definition", "definition_date_read"]
+                  "tolerance_pct", "known_difference", "added_up_from", "figure_kind"]
+SOURCE_COLUMNS = ["id", "name", "home_url", "independent", "definition", "definition_date_read", "data_basis"]
 
 PASS, WARN, FAIL, NOT_COMPARED = "pass", "warn", "fail", "not_compared"
 STATUSES = (PASS, WARN, FAIL, NOT_COMPARED)
@@ -62,6 +71,7 @@ MONTH = re.compile(r"[0-9]{4}-(0[1-9]|1[0-2])")
 DAY = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 WHOLE = re.compile(r"[0-9]+")
 DECIMAL = re.compile(r"[0-9]+(\.[0-9]+)?")
+WORDS = re.compile(r"[a-z]+( [a-z]+)*")
 TRUE, FALSE = "true", "false"
 
 Filters = tuple[tuple[str, tuple[str, ...]], ...]
@@ -79,6 +89,8 @@ class Figure(NamedTuple):
     filters: Filters
     tolerance: Decimal
     known_difference: str
+    added_up_from: str
+    figure_kind: str
 
     @property
     def label(self) -> str:
@@ -96,6 +108,7 @@ class Source(NamedTuple):
     independent: bool
     definition: str
     definition_date_read: str
+    data_basis: str
 
 
 class Prepared(NamedTuple):
@@ -168,6 +181,27 @@ def settings(cfg) -> tuple[dict, list[str]]:
     share = h.get("source_vehicle_share")
     if isinstance(share, bool) or not isinstance(share, (int, float)) or not 0 < share <= 1:
         problems.append("reconciliation.hard_limit.source_vehicle_share must be above 0 and at most 1")
+    def ids(value) -> bool:
+        return isinstance(value, list) and all(isinstance(k, str) and ID.fullmatch(k) for k in value) and len(set(value)) == len(value)
+
+    known = c.get("figure_kinds")
+    if not ids(known) or not known:
+        problems.append("reconciliation.figure_kinds must be a list of distinct ids (lower case letters, digits and underscores, "
+                        "starting with a letter): every kind a row of figures_file may state")
+    s = c.get("single_figure_limit")
+    if not isinstance(s, dict):
+        problems.append("reconciliation.single_figure_limit must be an object with gap_pct and kinds")
+    else:
+        gap = s.get("gap_pct")
+        if isinstance(gap, bool) or not isinstance(gap, (int, float)) or not math.isfinite(gap) or not 0 < gap <= 100:
+            problems.append("reconciliation.single_figure_limit.gap_pct must be a number above 0 and at most 100")
+        kinds = s.get("kinds")
+        if not ids(kinds):
+            problems.append("reconciliation.single_figure_limit.kinds must be a list of distinct ids (lower case letters, digits and "
+                            "underscores, starting with a letter); an empty list switches the rule off")
+        elif ids(known) and set(kinds) - set(known):
+            problems.append(f"reconciliation.single_figure_limit.kinds names {sorted(set(kinds) - set(known))}, which "
+                            "reconciliation.figure_kinds does not list: a kind no row may state would cover nothing")
     return c, problems
 
 
@@ -232,7 +266,7 @@ def parse_sources(cfg, c: dict) -> tuple[dict[str, Source], list[str]]:
         problems += [f"{where}: {b}" for b in bad]
         if not bad:
             sources[row["id"]] = Source(row["id"], row["name"], row["home_url"], row["independent"] == TRUE, row["definition"],
-                                        row["definition_date_read"])
+                                        row["definition_date_read"], row["data_basis"])
     return sources, problems
 
 
@@ -243,6 +277,8 @@ def parse_figures(cfg, c: dict, sources: dict[str, Source]) -> tuple[list[Figure
     figures: list[Figure] = []
     seen: dict[tuple, int] = {}
     maximum = Decimal(str(c["max_tolerance_pct"]))
+    limit, kinds = Decimal(str(c["single_figure_limit"]["gap_pct"])), set(c["single_figure_limit"]["kinds"])
+    known = set(c["figure_kinds"])
     for line, cells in rows:
         row = dict(zip(FIGURE_COLUMNS, (x.strip() for x in cells)))
         where = f"{c['figures_file']} line {line} ({row['source'] or 'no source'}, {row['month'] or 'no month'}, {row['measure_as_published']!r})"
@@ -297,11 +333,23 @@ def parse_figures(cfg, c: dict, sources: dict[str, Source]) -> tuple[list[Figure
                        if held else "it has no fact table")
                 bad.append(f"{dataset} has no published table holding {', '.join(d for d, _ in filters)} together: {why}, and a slice "
                            "holds one dimension only")
+        if not ID.fullmatch(row["figure_kind"]):
+            bad.append("figure_kind must be lower case letters, digits and underscores, starting with a letter")
+        elif row["figure_kind"] not in known:
+            # A kind nobody listed would fall out of the single-figure limit without a word: a misspelling must stop the build.
+            bad.append(f"figure_kind {row['figure_kind']!r} is not one of reconciliation.figure_kinds ({', '.join(sorted(known))})")
+        elif tolerance is not None and not row["known_difference"] and published(tolerance) >= limit and row["figure_kind"] in kinds:
+            bad.append(f"figure_kind {row['figure_kind']!r} is covered by reconciliation.single_figure_limit and tolerance_pct "
+                       f"{row['tolerance_pct']} is {c['single_figure_limit']['gap_pct']} or more, which exempts the row from it: "
+                       "known_difference must say why ours cannot come that close")
+        if row["added_up_from"] and not WORDS.fullmatch(row["added_up_from"]):
+            bad.append("added_up_from must be blank, or lower case words saying what of the source's the figure was added up from")
         problems += [f"{where}: {b}" for b in bad]
         if bad:
             continue
         figure_row = Figure(line, row["source"], row["source_url"], row["date_read"], row["month"], row["measure_as_published"],
-                            figure, dataset, filters, tolerance, row["known_difference"])
+                            figure, dataset, filters, tolerance, row["known_difference"], row["added_up_from"],
+                            row["figure_kind"])
         if figure_row.key in seen:
             problems.append(f"{where}: the same source, month, measure and filters as line {seen[figure_row.key]}")
             continue
@@ -476,6 +524,12 @@ def percent(gap: int, theirs: int, decimals: int) -> float:
     return float((Decimal(gap) * 100 / Decimal(theirs)).quantize(Decimal(1).scaleb(-decimals)))
 
 
+def published(tolerance: Decimal) -> Decimal:
+    """A row's tolerance as reconciliation.json states it (a float), which is the number the single-figure limit reads: the check
+    made when the file is read and the rule itself must not disagree about a tolerance with more digits than a float holds."""
+    return Decimal(str(float(tolerance)))
+
+
 def outside(gap: int, theirs: int, pct: Decimal) -> bool:
     """Whether a gap is further than `pct` percent of the published figure. Exact: a gap of exactly the tolerance is inside."""
     return Decimal(abs(gap)) * 100 > pct * theirs
@@ -543,6 +597,10 @@ def judge(fig: Figure, answer: Answer, multiple: Decimal, floor: Decimal, decima
         "tolerance_pct": float(fig.tolerance),
         "hard_bound_pct": float(bound),
         "known_difference": fig.known_difference or None,
+        "added_up_from": fig.added_up_from or None,
+        "figure_kind": fig.figure_kind,
+        # Filled in by single_figure_limit: the limit as a number when the rule applies to this row, otherwise null.
+        "stops_alone_pct": None,
         "status": NOT_COMPARED,
         "reason_kind": answer.kind,
         "reason": answer.reason,
@@ -562,6 +620,7 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
     h = c["hard_limit"]
     sources = prepared.sources
     warnings = hard_limit(sources, judged, c, aborts)
+    single_figure_limit(sources, judged, c, aborts)
     for source in sources.values():
         unheld = sorted(r["month"] for r in judged if r["source"] == source.id and r["reason_kind"] == VALUE_NOT_HELD)
         if unheld:
@@ -588,7 +647,8 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
     document = {
         "latest_snapshot": latest_snapshot,
         "sources": {s.id: {"name": s.name, "home_url": s.home_url, "independent": s.independent,
-                           "definition": s.definition or None, "definition_date_read": s.definition_date_read or None}
+                           "definition": s.definition or None, "definition_date_read": s.definition_date_read or None,
+                           "data_basis": s.data_basis or None}
                     for s in sources.values()},
         "summary": {
             "rows": len(judged),
@@ -601,6 +661,8 @@ def finish(prepared: Prepared, judged: list[dict], c: dict, aborts: list[str], l
                 "hard_limit_floor_pct": h["floor_pct"],
                 "hard_limit_min_sources": h["min_sources"],
                 "hard_limit_source_vehicle_share": h["source_vehicle_share"],
+                "single_figure_gap_pct": c["single_figure_limit"]["gap_pct"],
+                "single_figure_kinds": list(c["single_figure_limit"]["kinds"]),
             },
         },
         "rows": judged,
@@ -675,3 +737,23 @@ def hard_limit(sources: dict[str, Source], judged: list[dict], c: dict, aborts: 
             f"reconciliation: {source.name}: {len(late)} of {len(rows)} compared figures are past their tolerance, "
             f"in {span(sorted({r['month'] for r in late}))}; the largest gap is {worst['gap_pct']:+.2f}% ({worst['month']})")
     return warnings
+
+
+def single_figure_limit(sources: dict[str, Source], judged: list[dict], c: dict, aborts: list[str]) -> None:
+    """Sets `stops_alone_pct` on every row the single-figure limit applies to (a listed kind, an independent source, a tolerance below
+    the limit), marks `fail` each compared one of them that is `gap_pct` percent or more from theirs, and adds one abort line for each.
+    Exact, and inclusive: a gap of exactly the limit stops the build. Its numbers and kinds are config."""
+    s = c["single_figure_limit"]
+    limit, kinds = Decimal(str(s["gap_pct"])), set(s["kinds"])
+    for r in judged:
+        if r["figure_kind"] in kinds and sources[r["source"]].independent and Decimal(str(r["tolerance_pct"])) < limit:
+            r["stops_alone_pct"] = s["gap_pct"]
+    stopping = [r for r in judged if r["stops_alone_pct"] is not None and r["status"] != NOT_COMPARED
+                and Decimal(abs(r["gap"])) * 100 >= limit * r["theirs"]]
+    for r in sorted(stopping, key=lambda r: (r["month"], r["source"], r["measure_as_published"], json.dumps(r["filters"], sort_keys=True))):
+        r["status"] = FAIL
+        aborts.append(
+            f"reconciliation: {r['month']}: {sources[r['source']].name}: {r['measure_as_published']!r}: ours is {r['ours']:,} and theirs "
+            f"{r['theirs']:,}, a gap of {r['gap_pct']:+.2f}%, which is {float(limit):g}% or more on a figure of kind {r['figure_kind']!r}: "
+            f"one such figure from an independent source stops the build, whatever else is compared; reconciliation.json in the staged "
+            f"files has every row")

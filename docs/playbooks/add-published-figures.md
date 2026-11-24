@@ -13,7 +13,8 @@ stop a build or, worse, make a wrong figure look checked. It gets one independen
 checks, and one round: for each new row, that the figure is the one on the page at `source_url` on `date_read`; that
 `measure_as_published` is the source's own wording; that the dataset and filters ask for the same thing the source counts; that
 each tolerance is the gap measured when the row was added, with room above it (a wide one, such as 12%, must carry a
-known difference that says why); and that `known_difference` is a difference that is known and
+known difference that says why); that each `figure_kind` is the figure's kind, and that a tolerance of 5% or more
+(`reconciliation.single_figure_limit.gap_pct`) on a listed kind has a known difference that says why; and that `known_difference` is a difference that is known and
 explained, not a way to quiet a warning.
 
 ## Rules
@@ -24,6 +25,16 @@ explained, not a way to quiet a warning.
   and from which page, and park the rows until they are supplied.
 - The figure is a whole number as the source prints it, with no thousands separator and no unit. A source that gives a rounded
   figure ("about 12,400") gives a wide tolerance, and the row says so in `known_difference`.
+- A figure the source does not print, and that was worked out from what its page does show (a total added across the page's
+  chart data, two lines of a table added together), states what it was added up from in `added_up_from` (a few lower case
+  words, such as `chart` or `table`), and the public page labels it so: "added up from <the source's name>'s published
+  <those words>". A figure the source prints itself leaves the column blank.
+- Every row has a `figure_kind`, an id that says what sort of figure it is (`docs/DATA_SOURCES.md`, section F, lists the kinds in use;
+  a kind must be one of `reconciliation.figure_kinds` in `config/pipeline.json`, or the row is refused when the files are read, so
+  a misspelt kind stops the build; a new kind is added to that list first, and is not covered by the one-figure rule until
+  `reconciliation.single_figure_limit.kinds` lists it too). A
+  row of a listed kind needs a tolerance below the limit's `gap_pct`, or, at `gap_pct` or more, a `known_difference` that says why
+  ours cannot come that close: a row without one is refused when the files are read.
 - `measure_as_published` is the source's wording, so the page can say what was compared. The rows of one source, one month and
   one measure are told apart by their filters (a "top ten models" figure is one row per model, each with its `MAKE|MODEL`).
 - Choose the dataset by what the source counts: first registrations are `registrations_flow` (the default scope) or
@@ -51,10 +62,12 @@ explained, not a way to quiet a warning.
    ```
 
 4. Run the new rows against the saved pull of the snapshot they are for, which publishes nothing (12 to 16 minutes). It stops
-   with exit 2 if a filter names a dimension the dataset cannot derive or that is not live, or if, in one month, at least two
+   with exit 2 if a filter names a dimension the dataset cannot derive or that is not live; if, in one month, at least two
    independent sources, and more than half of those with a compared row that month, each have half or more of what they published
-   in rows more than twice their tolerance (never under 2%) from ours, on the same side (the hard limit, `docs/CUBE_SCHEMA.md`).
-   A month in which only one independent source has a compared row cannot stop a build; it is checked for warnings only. A filter value the published files do not
+   in rows more than twice their tolerance (never under 2%) from ours, on the same side (the hard limit, `docs/CUBE_SCHEMA.md`);
+   or if one compared row of a listed `figure_kind` of an independent source, with a tolerance below 5%, is 5% or more from ours,
+   on either side (the single-figure limit, D-150), whatever else is compared. A month in which only one independent source has a
+   compared row cannot stop a build by the hard limit, but its rows are still subject to the single-figure limit. A filter value the published files do not
    hold does not stop it: the row is `not_compared` with `reason_kind` `value_not_held`, and the build's warnings say how many
    figures of each source did that:
 

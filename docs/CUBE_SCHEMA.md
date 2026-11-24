@@ -637,7 +637,8 @@ Every build sets some of its own figures beside figures other organisations publ
 manifest. The point is that a gap is caught before a visitor sees it, and that the gaps are shown, not hidden. What is
 compared is data and nothing in the code names it: `data/reference/published_figures.csv` has one row for each published
 figure (the source, the month, the measure as the source defines it, the figure, the question to put to our own files as a
-dataset and a set of dimension filters, a tolerance and a note on any known difference), and
+dataset and a set of dimension filters, a tolerance, a note on any known difference, what of the source's it was added up from,
+and the figure's kind), and
 `data/reference/published_sources.csv` one row for each organisation (`docs/DATA_SOURCES.md`, section F, has both files'
 columns and the filter encoding). Scope is carried by the dataset: the default scope and the trade's wider scope are two
 datasets, so a row says which total it is set against by its dataset and filters, and there is no scope column.
@@ -651,7 +652,9 @@ Both files are read and checked at the start of the build, before the register i
 
 **A row is a fault, and the build aborts naming the row (file, line, source, month, measure), when** the header is not exactly
 the columns; a cell is malformed (a month not `YYYY-MM`, a figure that is not a whole number above zero, an address that is
-not `https://`, a date that is not `YYYY-MM-DD`, a tolerance above `reconciliation.max_tolerance_pct`); a source is not in
+not `https://`, a date that is not `YYYY-MM-DD`, a tolerance above `reconciliation.max_tolerance_pct`, a `figure_kind` that is
+not an id or is not one of `reconciliation.figure_kinds`, an `added_up_from` that is not blank or lower case words); a row of a kind the single-figure limit covers whose
+tolerance is that limit or more and whose `known_difference` is blank (below); a source is not in
 `published_sources.csv`; the dataset is not one of `config/pipeline.json`; a filter names a dimension the dataset cannot
 derive, one that is not live in this build, or two dimensions that no one published table holds together (the second is found from
 the `facts` lists of `config/pipeline.json` before the register is read, and checked again against the staged files); or two rows have
@@ -666,7 +669,7 @@ largest models of the trailing year, so a model that was large in an old month c
 |---|---|
 | `pass` | ours is within the row's `tolerance_pct` of theirs (a gap of exactly the tolerance is inside) |
 | `warn` | past the tolerance. The build adds one warning line for each source, not one for each row |
-| `fail` | past the hard bound, and one of the rows that stop the build (below) |
+| `fail` | one of the rows that stop the build (below): past the hard bound in a month the hard limit stops, or alone past the single-figure limit |
 | `not_compared` | `reason_kind` and `reason` say why: `month_not_held` (our data for the dataset starts later or ends earlier, as for the newest month before its export is supplied), `dataset_not_built` (a supplied store is absent), `value_not_held` (a filter value that this build's published files do not hold; the reason names the dimension and the value), `hidden_cell` (the answer rests on a cell the small-cell rule hides, so ours is not published) or `no_published_table`. Never dropped, never a pass, and never counted towards the hard limit |
 
 The gap is ours less theirs, so a positive gap is ours above theirs, and `gap_pct` is the gap as a percentage of theirs,
@@ -690,7 +693,8 @@ in several separate counts, which means our data is wrong, not theirs. The numbe
    three of four. The rows past the hard bound of those sources are marked `fail`, and one abort line per month and side names
    each source, how many of its figures are past the bound, its share of what it published, and the largest gap.
 
-It does not stop on: one source restating its history, whatever its gaps (one source is never enough); a month with compared
+The hard limit does not stop on: one source restating its history, whatever its gaps (one source is never enough, and the
+single-figure limit below is the rule that can stop on one source); a month with compared
 rows from fewer than two independent sources, however far they are from ours, because there is nothing to agree with; a source
 that cannot be read this month (it has no rows, so it is not one of the sources that have anything to say); two of four sources;
 sources that disagree with ours on opposite sides, or in different months; a gap exactly on the bound; a source of which less
@@ -698,21 +702,45 @@ than half of what it published is past the bound; a source that is a copy of our
 shown, never counted); a month or a dataset we do not hold, a value we do not hold, or a hidden cell (all `not_compared`).
 `pipeline/tests/test_reconcile.py` has a test for each.
 
-What size of error stops a build. On the 336 rows committed on 2026-11-23, measured through the real functions (`test_reconcile.py`, "live rows", and the review of 2026-11-23):
+**The single-figure limit** (D-150) is added to that and the hard limit above is unchanged. The numbers and the kinds are
+`reconciliation.single_figure_limit` in `config/pipeline.json` (`gap_pct`, today 5, and `kinds`, today the three the file holds
+in `figure_kind`: the passenger, commercial and total figures; the code names none, and an empty list switches the rule off). Each
+row has a `figure_kind`, an id that says what sort of figure it is.
+
+1. A compared row of a listed kind, of a source marked independent, whose own `tolerance_pct` is below `gap_pct`, **stops the
+   build alone** when ours is `gap_pct` percent or more from theirs: exactly `gap_pct` stops it (exact arithmetic, inclusive), on
+   either side. One such row is enough: no second source, no share of the month's weight. The row is marked `fail`, and the
+   build adds one abort line for each, naming the month, the source, the measure, ours, theirs, the gap, the limit and the kind.
+2. A row of a listed kind whose own `tolerance_pct` is `gap_pct` or more is **exempt**, because the row itself says ours cannot
+   come that close. Such a row is refused when the files are read unless its `known_difference` says why. Today that is the 22
+   `mta_vstat` rows for new light commercial vehicles (tolerance 12, with a stated known difference).
+3. A source that is not independent, a row that was not compared, and a kind the config does not list never stop the build alone.
+   Each row of `reconciliation.json` carries `stops_alone_pct`: the limit as a number where rules 1 and 2 make the rule apply to
+   that row (a listed kind, an independent source, a tolerance below the limit), otherwise null, whether or not the row was
+   compared this month.
+
+On the 336 rows committed on 2026-11-23 the rule applies to 94: the 44 `mta_vstat` and 44 `statsnz` passenger figures and the
+six `mia` figures (two each of its passenger, commercial and total). The other 242 are the 220 one-model figures (a kind the
+config does not list) and the 22 exempt commercial figures.
+
+What size of error stops a build. On the 336 rows committed on 2026-11-23, measured through the real functions (`test_reconcile.py`, "live rows", and the review of 2026-11-23). The hard limit alone is first, then what the single-figure limit adds:
 
 - Starting from figures equal to each source's: an error that moves every one of our figures by 2.1%, either way, stops the build in each of the 22 months (2.0% only where rounding tips it, 1.5% in none).
 - Starting from the October 2026 build's own figures, which sit up to 0.7% under the sources': 2.1% lower stops it in every month; higher, 2.5% stops 21 of the 22 months and 2.8% all of them.
-- 3%, 5% and 6%, either way, stop it in every month, and in one month alone whether three sources have rows there or two.
+- 3%, 5% and 6%, either way, stop it in every month, and in one month alone whether three sources have rows there or two (the hard limit's line for the month is one in each case).
 - 5% of the passenger vehicles, new and used alike, counted as commercial stops it in all 22 months, on the low side.
-- **What it does not stop.** The same fault among new vehicles only, at 5%, 10% and 20%: the new passenger figure is under half of what vstat and the MIA publish for a month, so only Stats NZ breaches. It warns on 71 rows and the build goes on. A fault confined to one kind of figure is a warning to read, not a stop.
-- A source restating its history 10% higher or lower, in every month, never stops a build.
+- **What the single-figure limit adds, for an error in every one of our figures.** At 4.9% above and 4% below, none of the 94 figures it covers stops the build alone (the hard limit still stops every month). At 5% either way, about half of them do, because the rounding of our figure decides which are at 5% or more (49 of the 94, above and below, in all 22 months). At 6% above and 6% below, all 94 do.
+- **A fault among new vehicles only** (a share of the new passenger vehicles counted as commercial; every other import status right). The hard limit stops none of it, at 2%, 5%, 10% and 20%: with the single-figure limit off, nothing stops the build at any of those sizes, as the review of 2026-11-23 found. With it on, the figures it covers stop the build alone: at 2% in the 2 months where the `mia` has rows (its commercial figure is small, so the shifted vehicles are a large share of it), at 5% in 13 of the 22 months (rounding decides which), and at 10% and 20% in all 22.
+- A source restating its history 10% higher or lower, in every month, never stops a build by the hard limit. Through the single-figure limit it does: each of that source's covered figures stops the build, so every month in which the source has a covered row (22 months and 44 figures for `mta_vstat` and for `statsnz`, 2 months and 6 figures for `mia`).
+- **A source whose figures are wide on purpose does not stop a build alone.** The 22 `mta_vstat` light commercial rows have a tolerance of 12% and a known difference; ours is 6.3% to 11.1% above theirs in the dry run of the October 2026 pull, and they are exempt.
 
 ```json
 {
   "latest_snapshot": "2026-10-31",
   "sources": {
     "source_a": { "name": "Source A", "home_url": "https://a.example", "independent": true,
-                  "definition": "What the source says it counts.", "definition_date_read": "2026-11-20" }
+                  "definition": "What the source says it counts.", "definition_date_read": "2026-11-20",
+                  "data_basis": "same data, processed separately" }
   },
   "summary": {
     "rows": 2,
@@ -720,17 +748,20 @@ What size of error stops a build. On the 336 rows committed on 2026-11-23, measu
     "by_source": { "source_a": { "rows": 2, "pass": 1, "warn": 0, "fail": 0, "not_compared": 1 } },
     "months": { "first": "2026-09", "last": "2026-11" },
     "thresholds": { "max_tolerance_pct": 20, "hard_limit_tolerance_multiple": 2, "hard_limit_floor_pct": 2,
-                    "hard_limit_min_sources": 2, "hard_limit_source_vehicle_share": 0.5 }
+                    "hard_limit_min_sources": 2, "hard_limit_source_vehicle_share": 0.5,
+                    "single_figure_gap_pct": 5, "single_figure_kinds": ["passenger", "commercial", "total"] }
   },
   "rows": [
     { "source": "source_a", "month": "2026-09", "measure_as_published": "Measure as the source words it",
       "dataset": "registrations_flow", "filters": { "import_status": ["a value"] },
       "ours": 1040, "theirs": 1020, "gap": 20, "gap_pct": 1.9608, "tolerance_pct": 2.0, "hard_bound_pct": 4.0,
-      "known_difference": null, "status": "pass", "reason_kind": null, "reason": null,
+      "known_difference": null, "added_up_from": null, "figure_kind": "passenger", "stops_alone_pct": 5,
+      "status": "pass", "reason_kind": null, "reason": null,
       "source_url": "https://a.example/page", "date_read": "2026-11-20" },
     { "source": "source_a", "month": "2026-11", "measure_as_published": "Measure as the source words it",
       "dataset": "registrations_flow", "filters": {}, "ours": null, "theirs": 1100, "gap": null, "gap_pct": null,
-      "tolerance_pct": 2.0, "hard_bound_pct": 4.0, "known_difference": null, "status": "not_compared",
+      "tolerance_pct": 2.0, "hard_bound_pct": 4.0, "known_difference": null, "added_up_from": "chart", "figure_kind": "model",
+      "stops_alone_pct": null, "status": "not_compared",
       "reason_kind": "month_not_held", "reason": "Our registrations_flow data holds 2021-01 to 2026-10 in this build, so 2026-11 is outside it and is not compared.",
       "source_url": "https://a.example/page", "date_read": "2026-11-20" }
   ]
@@ -739,7 +770,10 @@ What size of error stops a build. On the 336 rows committed on 2026-11-23, measu
 
 (The values are made up, to show the shape.) Rows are sorted by month, then source, measure and filters, so the file does not
 depend on the order of the CSV; `sources` holds every source of `published_sources.csv` in file order, so a page can state a
-definition without knowing a source by name; `summary.by_source` lists every source, with zeros for one that has no rows. The
+definition without knowing a source by name (`data_basis` is the few words the source's row states about what its figures are
+made from, or null when the cell is blank, `definition` and `definition_date_read` likewise); a row's `added_up_from` is the
+lower case words its row states about what of the source's the figure was added up from, or null for a figure the source
+prints itself, so a page can say "added up from <the source's name>'s published <those words>"; `summary.by_source` lists every source, with zeros for one that has no rows. The
 file has no time in it: the same cube and the same two reference files always write the same bytes. It is written with `\n`
 line endings and counts towards `payload_bytes`. With no rows in `published_figures.csv` the file is the same shape with
 `rows: []`, null months and all counts zero. The manifest's `reconciliation` entry is `{ "file", "rows", "by_status", "months" }`,
@@ -1373,6 +1407,12 @@ Published figures (`reconciliation.json`, above):
   month and the measure. A filter value the files do not hold is not an abort: the row is `not_compared` (`value_not_held`).
 - The hard limit: in one month, at least `min_sources` independent sources, and more than half of those compared that month, each
   have at least `source_vehicle_share` of what they published in rows past the hard bound on the same side.
+- The single-figure limit (D-150): one compared row of a kind in `reconciliation.single_figure_limit.kinds`, of an independent source,
+  whose own tolerance is below `gap_pct`, is `gap_pct` percent or more from ours, on either side. One abort line for each such row.
+  A row of such a kind whose own tolerance is `gap_pct` or more and that has no `known_difference`, or a `figure_kind` that is not an
+  id, is a fault in the file and aborts when it is read; `reconciliation.single_figure_limit` missing, a `gap_pct` that is not above
+  0 and at most 100, kinds that are not a list of distinct ids or that name a kind `reconciliation.figure_kinds` does not list,
+  or a `figure_kinds` that is not such a list, abort the build before anything is read.
 
 Events:
 
@@ -1430,7 +1470,8 @@ is worse than one that is visibly stale.
 - The payload exceeds the size budget.
 - A supplied dataset was not built because its store is absent.
 - A source has figures past their tolerance (`reconciliation: <name>: <k> of <m> compared figures are past their tolerance, in
-  <months>; the largest gap is <pct> (<month>)`), one line for each source however many rows. A source has figures that name a
+  <months>; the largest gap is <pct> (<month>)`), one line for each source however many rows. A figure that stops the build alone
+  is counted here too, as one past its tolerance. A source has figures that name a
   value the published files do not hold (`reconciliation: <name>: <k> figures name a value the published files do not hold, in
   <months>, so they were not compared`), one line for each source. When every figure of a source does so, or more than half of
   all the figures, one more line says that a label in a reference file may have been renamed (a renamed status or vehicle
