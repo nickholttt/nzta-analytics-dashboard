@@ -8,7 +8,7 @@
    here are the ones the script keeps and must change together with it. font-display: swap draws the text in the fallback at once and swaps the
    face in when it arrives, so the type never holds the page back. */
 @font-face {
-  font-family: "IBM Plex Sans";
+  font-family: "NZVR Sans";
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
@@ -17,7 +17,7 @@
 }
 
 @font-face {
-  font-family: "IBM Plex Sans";
+  font-family: "NZVR Sans";
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
@@ -26,7 +26,7 @@
 }
 
 @font-face {
-  font-family: "IBM Plex Sans";
+  font-family: "NZVR Sans";
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
@@ -35,7 +35,7 @@
 }
 
 @font-face {
-  font-family: "Source Serif 4";
+  font-family: "NZVR Serif";
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
@@ -44,7 +44,7 @@
 }
 
 @font-face {
-  font-family: "Source Serif 4";
+  font-family: "NZVR Serif";
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
@@ -55,8 +55,8 @@
 :root {
   /* Type. Two families: a serif for the questions a reader scans for, a sans for everything they read
      closely, including every number. */
-  --font-display: "Source Serif 4", "Source Serif Pro", Georgia, serif;
-  --font-text: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "NZVR Serif", "Source Serif Pro", Georgia, serif;
+  --font-text: "NZVR Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, monospace;
 
   /* Scale: 12 / 14 / 16 / 22 / 30 / 44. Strong jumps between the tiers of heading so a lead chart and a

@@ -3,7 +3,9 @@
 //   node scripts/subset-fonts.mjs [--python <python that has fonttools and brotli>]
 // Run by hand when the characters below change; the output is committed. It needs Python's fonttools and brotli (pip install fonttools
 // brotli), which are tools for this one script and not dependencies of the site. The typefaces are SIL Open Font License 1.1 (their
-// licence files sit beside the files they made).
+// licence files sit beside the files they made, and src/fonts/README.md says what the files are). Both typefaces reserve a font name, so the
+// copies are renamed inside the file as the licence requires (scripts/rename_font.py): "NZVR Sans" and "NZVR Serif". The copyright and licence
+// records are kept as the designers wrote them.
 //
 // Each family is cut into pieces that load only when a page's text uses them (the browser reads each @font-face's unicode-range):
 //   latin     Basic Latin, the punctuation, quotes, dashes, arrows and signs the site's words and tables use
@@ -39,8 +41,14 @@ const families = [
   { name: "serif", pkg: "source-serif-4", file: (piece) => `source-serif-4-${piece === "macron" ? "latin-ext" : "latin"}-opsz-normal.woff2`, axes: ["wght=400:700", "opsz=28"], pieces: ["latin", "macron"], licence: "node_modules/@fontsource-variable/source-serif-4/LICENSE" },
 ];
 
-const run = (module, argv) => {
-  const r = spawnSync(python, ["-m", module, ...argv], { encoding: "utf8" });
+// The new names, and what each is made of in the original: [pattern in the original, replacement]. Order matters: the longer name first.
+const RENAMES = {
+  plex: [["IBM Plex Sans", "NZVR Sans"], ["IBMPlexSans", "NZVRSans"], [";IBM;", ";NZVR;"]],
+  serif: [["Source Serif 4", "NZVR Serif"], ["SourceSerif4Roman", "NZVRSerif"], [";ADBO;", ";NZVR;"], [";ADOBE$", ""]],
+};
+
+const run = (module, argv, cwd) => {
+  const r = spawnSync(python, ["-m", module, ...argv], { encoding: "utf8", cwd });
   if (r.status !== 0) {
     console.error(`${module} failed:\n${r.stderr || r.stdout}`);
     process.exit(1);
@@ -59,6 +67,7 @@ for (const family of families) {
     const target = join(out, `${family.name}-${piece}.woff2`);
     run("fontTools.subset", [instance, `--unicodes=${PIECES[piece]}`, `--layout-features=${FEATURES}`, "--flavor=woff2", `--output-file=${target}`]);
     rmSync(instance);
+    run("rename_font", [target, ...RENAMES[family.name].map(([from, to]) => `${from}=${to}`)], join(root, "scripts"));
     console.log(`${target.slice(root.length + 1)}: ${statSync(target).size} bytes`);
   }
   const licence = join(root, family.licence);

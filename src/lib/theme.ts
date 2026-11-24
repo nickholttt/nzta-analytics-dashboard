@@ -102,7 +102,7 @@ export const PALETTES: Record<ThemeName, Palette> = { light: LIGHT, dark: DARK }
 // How many series get a colour of their own, in either theme.
 export const SERIES_COUNT = SERIES_LIGHT.length;
 
-export const FONT_TEXT = "'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
+export const FONT_TEXT = "'NZVR Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
 
 export const LINE_WIDTH = 2;
 export const THIN_LINE_WIDTH = 1.25;
