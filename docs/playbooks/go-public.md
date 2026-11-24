@@ -36,16 +36,22 @@ Relied on by `deploy.yml`, job `upload`, step "Upload to Cloudflare Pages", whic
 production branch must be `main`, or the upload is filed as a preview and `<name>.pages.dev` stays empty.
 
 1. Create a Cloudflare account at dash.cloudflare.com if you have none (Free plan, no card).
-2. In a terminal in the repository, run `npx wrangler login` and approve in the browser (inferred — confirm; it changes
-   nothing in the repository).
-3. Run `npx wrangler pages project create <name> --production-branch main`. It makes an empty Direct Upload project with
-   production branch `main` and uploads nothing, so nothing is public. Command and flag: developers.cloudflare.com,
-   Wrangler "Pages" commands.
-4. Dashboard route instead (not preferred): Workers & Pages, Create application, Get started, Drag and drop your files,
+2. In a terminal at the repository's root, install the upload tool the workflow itself uses, pinned at wrangler 4.148.0
+   (D-057): `npm ci --prefix .github/deploy`. It adds a `node_modules` folder under `.github/deploy` and changes no
+   tracked file. The three wrangler commands below were checked against that version's own help on 2026-11-24; none
+   was run against Cloudflare.
+3. Run `npx --prefix .github/deploy wrangler login` and approve in the browser. It signs this computer in to your
+   Cloudflare account and changes nothing in the repository; `npx --prefix .github/deploy wrangler logout` undoes it
+   (the logout command is inferred — confirm).
+4. Run `npx --prefix .github/deploy wrangler pages project create <name> --production-branch main`. It makes an empty
+   Direct Upload project with production branch `main` and uploads nothing, so nothing is public.
+5. Run `npx --prefix .github/deploy wrangler whoami` and copy the Account ID it prints beside your account's name
+   (what it prints is inferred — confirm). You need it in step 3.
+6. Dashboard route instead (not preferred): Workers & Pages, Create application, Get started, Drag and drop your files,
    type `<name>`, Deploy site. Cloudflare's page does not say whether the project can be made without files, and offers no
    dashboard control for the production branch, so this route may publish a first upload at once and may leave the branch
    at Cloudflare's default (inferred — confirm). If you use it, upload one empty page only.
-5. Check: Workers & Pages lists `<name>`, and its production branch is `main` (inferred — confirm where it shows; once
+7. Check: Workers & Pages lists `<name>`, and its production branch is `main` (inferred — confirm where it shows; once
    deployed, the Deployments list marks each deploy Production or Preview).
 
 ## 2. The API token (PRODUCTION; undo: delete the token in the same list)
@@ -59,18 +65,20 @@ Relied on by `deploy.yml`, job `upload`, step "Upload to Cloudflare Pages", as `
    Edit"). Nothing else.
 5. Optional: a Token expiration. If set, deploys fail on that date until you make a new token.
 6. Continue to summary, Create Token. The token is shown once: keep the page open until step 3 is done.
-7. Find your Account ID. The docs place it on a zone's Overview page, in the right-hand menu under "API"; with no zone,
-   try the Workers & Pages overview, right-hand side (inferred — confirm). Copy it.
+7. The Account ID is the one from section 1, step 5. In the dashboard, the docs place it on a zone's Overview page, in
+   the right-hand menu under "API"; with no zone, try the Workers & Pages overview, right-hand side (inferred —
+   confirm).
 
 ## 3. The two secrets in GitHub (PRODUCTION; undo: delete both)
 
 They are **environment secrets of the environment `production`**, not repository secrets. The environment exists
-already, limited to the branch `main`, holding no secret (D-072). `deploy.yml`, job `upload`, step "The Cloudflare
+already, limited to the branch `main`, with no required reviewer, no secret, and no repository variable set (read
+from GitHub on 2026-11-24; D-072). `deploy.yml`, job `upload`, step "The Cloudflare
 secrets are set" fails the run, naming them, if either is missing; step "Upload to Cloudflare Pages" reads both.
 
 1. github.com/nickholttt/nzta-analytics-dashboard, Settings, Environments (left sidebar), `production`.
 2. Under Environment secrets, Add secret. Name `CLOUDFLARE_API_TOKEN`; Secret: the token from step 2; Add secret.
-3. Add secret again. Name `CLOUDFLARE_ACCOUNT_ID`; Secret: the Account ID from step 2; Add secret.
+3. Add secret again. Name `CLOUDFLARE_ACCOUNT_ID`; Secret: the Account ID from section 1, step 5; Add secret.
 4. Check the page shows no required reviewer and deployment branches limited to `main`. The workflow expects no
    reviewer; one would hold every upload, the monthly one included, until someone approves.
 
@@ -81,7 +89,9 @@ repository variable `CLOUDFLARE_PAGES_PROJECT` is not empty, and job `upload` st
 builds, checks and stops green.
 
 1. Same repository, Settings, Secrets and variables (Security section), Actions, Variables tab, New repository variable.
-2. Name `CLOUDFLARE_PAGES_PROJECT`; Value `<name>`; Add variable. A variable, not a secret.
+2. Name `CLOUDFLARE_PAGES_PROJECT`; Value `<name>`; Add variable. A variable, not a secret. Saving it uploads nothing by
+   itself, but from this moment the next push to `main` that changes the site, and the next built month, upload without
+   asking. Do step 3 straight away so the first upload is one you are watching.
 3. Start the first deploy, only on your word: Actions, `Deploy`, Run workflow, branch `main`. After this, uploads also
    happen on a push to `main` that changes the site, and after each built month (`monthly-build.yml`, job `deploy`, step
    "Start the deploy").
