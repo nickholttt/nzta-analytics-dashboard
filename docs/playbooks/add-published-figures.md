@@ -25,7 +25,7 @@ explained, not a way to quiet a warning.
   only from what it releases publicly: its own site, its monthly media releases (Scoop publishes them in full), or a news
   report that credits the MIA for the figure on the same page. The row's `source_url` is that page, read in the session, and its
   measure says in brackets where the figure was read. Never its members' data, and never a figure reached through anyone's
-  work login. A figure given only rounded, or on a page that does not credit the MIA, has no row, and the month stays a gap.
+  work login. A figure that may be rounded, or that is on a page that does not credit the MIA, has no row, and the month stays a gap.
 - **Read, never scrape.** A source that cannot be read automatically is copied in by the maintainer; list exactly which figures
   and from which page, and park the rows until they are supplied.
 - The figure is a whole number as the source prints it, with no thousands separator and no unit. A source that gives a rounded

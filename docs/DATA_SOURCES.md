@@ -421,11 +421,11 @@ never stop it. (D-150; the whole rule, with the sizes it was measured at, is in 
 have a compared row that month, each have half or more of what they published (the weight of a row is its figure, so a total
 and its parts both count) in rows further from ours than twice their tolerance, never less than 2%, on the same side. A month
 with compared rows from fewer than two independent sources cannot stop a build. The numbers are in `config/pipeline.json`
-(`reconciliation.hard_limit`); the whole rule is in `docs/CUBE_SCHEMA.md`. On the 336 rows
-committed on 2026-11-23, an error of 3% or more in all of our figures, either way, stops the build in every month. A fault
-confined to one kind of figure (new passenger vehicles counted as commercial) is not stopped by this rule at any size tried, and
-is stopped by the one-figure rule at 2% in 2 months, at 5% in 13, and from 10% in all 22; the measured sizes are in
-`docs/CUBE_SCHEMA.md`, "What size of error stops a build".
+(`reconciliation.hard_limit`); the whole rule is in `docs/CUBE_SCHEMA.md`. On the 389 rows
+committed on 2026-11-24, an error of 3% or more in all of our figures, either way, stops the build in every month. A fault
+confined to one kind of figure (new passenger vehicles counted as commercial) is stopped by this rule in one month of the 22,
+from 5%, and by the one-figure rule at 2% in 10 months and from 5% in all 22; the measured sizes, and those on the 336 rows of
+2026-11-23, are in `docs/CUBE_SCHEMA.md`, "What size of error stops a build".
 
 What it holds (for January 2025 to October 2026): 389 rows, 336 read on 2026-11-23 and 53 of the MIA's read on 2026-11-24.
 
@@ -462,7 +462,7 @@ How each was read, and what that means for a row:
   fetched each page again and found the figure and its sentence in the page's text. A row's measure is this file's
   one wording for the figure (the releases give each in a sentence), followed in brackets by where it was read. Where no
   count was released for a month at the time (March and June 2025), the row is the figure a later release or report gives
-  for that month, and its measure says so. A figure given only rounded, or on a page that does not credit the MIA, has no row.
+  for that month, and its measure says so. A figure that may be rounded, or that is on a page that does not credit the MIA, has no row.
   The months with a figure missing: September 2025 has no total; January, April and May 2026 have a total only.
 - In every MIA month its two commercial figures are added, and the row's measure says so, because our figures cannot
   separate light from heavy commercial vehicles: `added_up_from` is `table` on the two rows from its table and `figures` on

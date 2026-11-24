@@ -1030,11 +1030,31 @@ def test_live_rows_a_fault_among_new_vehicles_only_is_stopped_by_the_hard_limit_
     # and one source is never enough for the hard limit. The hard limit still misses it in most months: it stops only a month
     # in which a second source published so little else that these vehicles are half of what it published. The single-figure
     # limit (D-150) stops it wherever a figure of a covered kind is 5% or more from ours.
-    months = live_setup()[4]
+    _, prepared, c, _, months = live_setup()
+    h = c["hard_limit"]
+
+    def exposed(ours) -> set[str]:
+        """The months in which enough sources for the hard limit each have their share of what they published in figures this
+        fault lowers: there the fault looks, to the hard limit, like separate counts agreeing against ours."""
+        lowered: dict[tuple[str, str], int] = {}
+        published: dict[tuple[str, str], int] = {}
+        for f in prepared.figures:
+            published[(f.month, f.source)] = published.get((f.month, f.source), 0) + f.figure
+            if ours(f) < f.figure:
+                lowered[(f.month, f.source)] = lowered.get((f.month, f.source), 0) + f.figure
+        sources: dict[str, set[str]] = {}
+        for (month, source), weight in lowered.items():
+            if weight >= h["source_vehicle_share"] * published[(month, source)]:
+                sources.setdefault(month, set()).add(source)
+        return {month for month, found in sources.items() if len(found) >= h["min_sources"]}
+
     by_hard, alone = {}, {}
     for share in (0.02, 0.05, 0.10, 0.20):
         ours = live_new_vehicles_only(share)
         by_hard[share] = stopped_months(live_aborts(ours, kinds=[]))
+        if share >= 0.05:
+            # From 5% every lowered figure is past its hard bound, so the hard limit stops exactly the exposed months.
+            assert by_hard[share] == exposed(ours) != set(), share
         aborts = live_aborts(ours)
         assert stopped_months(month_lines(aborts)) == by_hard[share], "the hard limit is the same with the single-figure limit on"
         assert len(month_lines(aborts)) + len(figure_lines(aborts)) == len(aborts), share
@@ -1043,7 +1063,7 @@ def test_live_rows_a_fault_among_new_vehicles_only_is_stopped_by_the_hard_limit_
     assert all(len(by_hard[share]) < len(months) / 2 for share in by_hard), "the hard limit alone misses this fault in most months"
     assert alone[0.10] == alone[0.20] == set(months)
     assert by_hard[0.05] < alone[0.05] and len(alone[0.05]) > len(months) / 2
-    assert alone[0.02] <= alone[0.05]
+    assert alone[0.02] < alone[0.05]
 
 
 STAGED = config.ROOT / "data" / "staging" / "build" / "reconciliation.json"

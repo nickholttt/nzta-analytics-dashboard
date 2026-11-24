@@ -389,7 +389,7 @@ date, or "inferred — confirm"; the full legend heads the archive.
 - Options considered:
   - The MIA's members' statistics. Not chosen: the user's word.
   - Any news report that gives a monthly registration count. Not chosen: several publish NZTA's count, or their own, days before the MIA's and do not say whose it is, and the figures differ (May 2026: 11,296 in two such reports, 11,294 as later reported from the MIA). A report counts only when the page credits the MIA for the figure.
-  - A rounded figure with a wide tolerance (September 2025's total, "14,000"). Not chosen: it would test nothing.
+  - September 2025's total, which GoAuto's report gives as "14,000". Not chosen: it may be rounded. The three figures on the same page do add to exactly 14,000, and the MIA's release for September 2026 implies 13,981 for that month, so it may also be exact and since restated; the month keeps its passenger and commercial rows and has no total until one is read that is plainly exact.
   - Both figures for October 2025, the one reported at the time (14,240) and the one in the MIA's October 2026 table (14,218). Not chosen: one figure a month for each measure, and the MIA's own table is the better page. The file keeps the table's.
 - Decision:
   1. The MIA's figures are taken only from its own site, its monthly media releases, or a news report that credits the MIA for the figure on the same page. Each row's `source_url` is the page the figure was read on, and its measure says in brackets where it was read. The playbook's rule against the press keeps this one exception and names it.
