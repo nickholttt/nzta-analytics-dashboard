@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-24 (second session of the day)
+Last updated by claude on 2026-11-25 (the session begun on 2026-11-24, its second)
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the Lanes table are in
 `docs/CHECKPOINT.md`. The direction is work order 3, `docs/brief/WORK_ORDER.md` (D-148; D-147's rules).
@@ -87,7 +87,7 @@ gaps; the Cloudflare clicks; `DASHBOARD_EXPORT_METHOD.md`; D-153's reading; the 
 
 ## How to run
 
-`AGENTS.md` §Commands has the verified commands. The site's tests: 646 passed on 2026-11-24.
+`AGENTS.md` §Commands has the verified commands. The site's tests: 647 passed on 2026-11-25.
 
 - NZTA's dashboard blocks automated readers: it is read only from files the user supplies.
 - The public checks, after the public build: `node scripts/check-plain-english.mjs`, and the same for

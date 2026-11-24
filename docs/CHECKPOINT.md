@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-24 (second session of the day)
+Last updated by claude on 2026-11-25 (the session begun on 2026-11-24, its second)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2)
 
@@ -10,12 +10,12 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 |---|---|---|---|
 | A: finish the canvas | none | free | all five steps merged (#132, #133, #138); milestone 1's "done when" met; what is left is the user's design choices (question 3) |
 | B: the accuracy guard | none | free | items 1 to 3 and the user's answers of 2026-11-24 merged (#134, #135); next is item 5, the write-up |
-| C: public readiness | none | free | items 1 to 3 merged (#130, #131, #136, #137) and the private dry run done; the design pass's cheap fixes are on `claude/c-last-fixes`, unfinished and not yet a pull request: finish and merge them first; after that only the user's four items are left |
+| C: public readiness | none | free | items 1 to 3 merged (#130, #131, #136, #137, #140) and the private dry run done; what is left is the user's four items |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 23 November built nothing |
 
 ## Where we left off
 
-- 2026-11-24, second session (lanes A and C, the user's answers on B): #129 to #138 merged; none open.
+- 2026-11-24 to 25, second session (lanes A and C, the user's answers on B): #129 to #140 merged; none open.
 
 ## The queue, lane by lane (the order's §2 has each lane's "done when")
 
@@ -68,7 +68,7 @@ engine beyond the canvas's sentences (D-102); a measure worked out from two othe
   browser only when it differs from the device. #137: "being refreshed" means a month is due and not
   here yet. #138: the fonts are cut-down files in the repository, renamed inside ("NZVR Sans", "NZVR
   Serif") as their licence requires; charts after the first wait until the first is drawn.
-- `claude/c-last-fixes` (unfinished): one quiet "selected" style for toggles and chips, and the design pass's other cheap fixes.
+- #140: one quiet "selected" style for toggles and chips, and the design pass's other cheap fixes.
   D-148 to D-151 and the canvas choices of 2026-11-23 are still unreviewed (their records say which).
 
 ## Prompt for the next session
