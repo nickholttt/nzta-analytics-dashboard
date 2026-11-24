@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { SentenceContext } from "./ChartSentence";
+import { MIN_CHART_HEIGHT } from "../lib/theme";
 import { TableOnlyContext } from "./FiguresContext";
 
 // Renders a Plot figure at the width of its container, and again whenever that width changes.
@@ -12,6 +13,9 @@ import { TableOnlyContext } from "./FiguresContext";
 export function PlotFigure({ render, onWidth, label }: { render: (width: number) => Element; onWidth?: (width: number) => void; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  // Whether a figure is in the element yet. Until it is, the element holds the least height a figure has (src/lib/theme.ts, chartHeight), so the
+  // sentence and the table under it do not jump down when the figure arrives a frame after the width is known.
+  const [drawn, setDrawn] = useState(false);
   const tableOnly = useContext(TableOnlyContext);
   const sentence = useContext(SentenceContext);
   const describedBy = sentence?.text ? sentence.id : undefined;
@@ -35,6 +39,7 @@ export function PlotFigure({ render, onWidth, label }: { render: (width: number)
     figure.setAttribute("aria-label", label);
     for (const named of figure.querySelectorAll("[aria-label]")) named.removeAttribute("aria-label");
     ref.current?.replaceChildren(figure);
+    setDrawn(true);
     return () => figure.remove();
   }, [render, width, label, tableOnly]);
 
@@ -46,5 +51,5 @@ export function PlotFigure({ render, onWidth, label }: { render: (width: number)
     else figure.removeAttribute("aria-describedby");
   }, [describedBy, render, width, label, tableOnly]);
 
-  return tableOnly ? null : <div ref={ref} className="chart" />;
+  return tableOnly ? null : <div ref={ref} className="chart" style={drawn ? undefined : { minHeight: MIN_CHART_HEIGHT }} />;
 }

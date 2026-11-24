@@ -2,14 +2,61 @@
    them into SVG attributes, which cannot read CSS custom properties; the ink, surface and rule tokens
    below, in both themes, are mirrored there for the same reason and must change together (tests/site/theme-tokens.test.ts). */
 
-@import "@fontsource-variable/source-serif-4/opsz.css";
-@import "@fontsource-variable/ibm-plex-sans/wght.css";
+/* The type: both families are cut down to the characters a New Zealand page uses, one file for every weight (scripts/subset-fonts.mjs; the
+   licence of each is in src/fonts/). A page downloads only the pieces its text needs: the accented letters and the macron vowels of te reo Maori
+   are separate files, asked for only by a page that has one. A character in none of them is drawn from the next font in the stack. The ranges
+   here are the ones the script keeps and must change together with it. font-display: swap draws the text in the fallback at once and swaps the
+   face in when it arrives, so the type never holds the page back. */
+@font-face {
+  font-family: "NZVR Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/plex-latin.woff2") format("woff2");
+  unicode-range: U+0020-007E,U+00A0,U+00A7,U+00B0-00B1,U+00B7,U+00D7,U+00F7,U+2010-2015,U+2018-201E,U+2022,U+2026,U+2190-2193,U+2212,U+2264-2265;
+}
+
+@font-face {
+  font-family: "NZVR Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/plex-accents.woff2") format("woff2");
+  unicode-range: U+00C0-00D6,U+00D8-00F6,U+00F8-00FF;
+}
+
+@font-face {
+  font-family: "NZVR Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/plex-macron.woff2") format("woff2");
+  unicode-range: U+0100-0101,U+0112-0113,U+012A-012B,U+014C-014D,U+016A-016B,U+0304;
+}
+
+@font-face {
+  font-family: "NZVR Serif";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/serif-latin.woff2") format("woff2");
+  unicode-range: U+0020-007E,U+00A0,U+00A7,U+00B0-00B1,U+00B7,U+00D7,U+00F7,U+2010-2015,U+2018-201E,U+2022,U+2026,U+2190-2193,U+2212,U+2264-2265;
+}
+
+@font-face {
+  font-family: "NZVR Serif";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("../fonts/serif-macron.woff2") format("woff2");
+  unicode-range: U+0100-0101,U+0112-0113,U+012A-012B,U+014C-014D,U+016A-016B,U+0304;
+}
 
 :root {
   /* Type. Two families: a serif for the questions a reader scans for, a sans for everything they read
      closely, including every number. */
-  --font-display: "Source Serif 4 Variable", "Source Serif Pro", Georgia, serif;
-  --font-text: "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "NZVR Serif", "Source Serif Pro", Georgia, serif;
+  --font-text: "NZVR Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, monospace;
 
   /* Scale: 12 / 14 / 16 / 22 / 30 / 44. Strong jumps between the tiers of heading so a lead chart and a

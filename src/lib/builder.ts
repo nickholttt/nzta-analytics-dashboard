@@ -65,7 +65,9 @@ export type DatasetVocabulary = { dataset: string; label: string; measures: Buil
 // small cells were hidden (src/lib/kept.ts).
 // narrowings: for each dimension made from a field the register records for only a kind of vehicle, the conditions that keep that kind (src/lib/narrowing.ts),
 // worked out here from the data map so the island does not carry the map. Absent means none.
-export type Vocabulary = { datasets: DatasetVocabulary[]; owner: string[]; narrowings?: Record<string, Narrowing[]> };
+// nests: for each dimension, the dimensions it rolls up to through any number of steps (src/lib/nesting.ts), likewise worked out here, which is what
+// canCrossIn reads. Absent means none.
+export type Vocabulary = { datasets: DatasetVocabulary[]; owner: string[]; narrowings?: Record<string, Narrowing[]>; nests?: Record<string, string[]> };
 
 const findBuilderMeasure = (id: string) => builderSpec.measures.find((m) => m.id === id);
 const partsOf = (m: BuilderMeasure) => (m.parts ?? [m.id]).map(findBuilderMeasure).filter((x): x is BuilderMeasure => Boolean(x));
@@ -202,8 +204,14 @@ const rolledUp = (a: string, b: string): boolean => {
 
 // Whether Build crosses two fields: they are two, and neither sits under a single value of the other. That is a pair measured and listed
 // in config (builder.cannot_cross), or one the data map says rolls up (a class under its type of vehicle, D-122).
-export const canCross = (a: string, b: string): boolean =>
-  a !== b && !builderSpec.cannot_cross.some(([x, y]) => (x === a && y === b) || (x === b && y === a)) && !rolledUp(a, b);
+const crossable = (a: string, b: string, nested: (a: string, b: string) => boolean): boolean =>
+  a !== b && !builderSpec.cannot_cross.some(([x, y]) => (x === a && y === b) || (x === b && y === a)) && !nested(a, b);
+
+// Where the page is built, from the data map itself.
+export const canCross = (a: string, b: string): boolean => crossable(a, b, rolledUp);
+
+// In the browser, from what the vocabulary carries of the map, so that the page does not carry the map.
+export const canCrossIn = (all: Vocabulary, a: string, b: string): boolean => crossable(a, b, (x, y) => Boolean(all.nests?.[x]?.includes(y) || all.nests?.[y]?.includes(x)));
 
 // What a dataset is called to a visitor: its public label, and for one that starts later than the register, where it starts.
 export function datasetName(id: string, manifest?: Manifest): string {
@@ -228,7 +236,9 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
       return found.length ? [[d.id, found] as const] : [];
     }),
   );
-  return { datasets, owner: ownerDimensions(dataMapDoc as unknown as Parameters<typeof ownerDimensions>[0], dimensions), narrowings };
+  rollUpsOfMap ??= rollUps((dataMapDoc as unknown as { fields: MapField[] }).fields, dimensions as unknown as MapDimension[]);
+  const nests = Object.fromEntries([...rollUpsOfMap].map(([from, to]) => [from, [...to]]));
+  return { datasets, owner: ownerDimensions(dataMapDoc as unknown as Parameters<typeof ownerDimensions>[0], dimensions), narrowings, nests };
 }
 
 function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabulary {

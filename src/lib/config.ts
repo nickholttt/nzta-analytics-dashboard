@@ -277,6 +277,7 @@ export const dimensions = dimensionsDoc.dimensions as unknown as Dimension[];
 export const datasets = dimensionsDoc.datasets as unknown as Dataset[];
 export const periods = dimensionsDoc.periods as unknown as Period[];
 
+// The browser is given only the keys of the pipeline config that are read here (scripts/browser-config.mjs): a key read from `pipeline` below must be listed there.
 const pipeline = pipelineDoc as unknown as {
   // source_hybrid.value names the powertrain value that holds the hybrids; undivided_powertrain, where the pipeline names it, the one
   // that holds them where a dataset does not divide them (the same value today).

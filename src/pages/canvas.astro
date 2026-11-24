@@ -5,6 +5,7 @@ import "../styles/canvas.css";
 import { builderVocabulary } from "../lib/builder";
 import { canvasVocabulary, say } from "../lib/canvas";
 import { canvasFields } from "../lib/canvasFields";
+import { openingReads } from "../lib/openingReads";
 import manifest from "../../public/data/manifest.json";
 import type { Manifest } from "../lib/data";
 
@@ -13,6 +14,8 @@ import type { Manifest } from "../lib/data";
 // map, so the browser is handed plain data and does not read the map for it.
 const vocabulary = canvasVocabulary(builderVocabulary(manifest as Manifest));
 const groups = vocabulary.datasets.length > 0 ? canvasFields(vocabulary, manifest as Manifest) : [];
+// The files the canvas as it opens reads for its first chart, which the page asks for before its script has run (src/lib/openingReads.ts).
+const reads = vocabulary.datasets.length > 0 ? openingReads(vocabulary, manifest as Manifest) : [];
 ---
 
 <Layout title={say("page_title")} activeNav="canvas" wide>
@@ -22,8 +25,28 @@ const groups = vocabulary.datasets.length > 0 ? canvasFields(vocabulary, manifes
   </Fragment>
 
   {
+    reads.length > 0 && (
+      <script is:inline define:vars={{ reads }}>
+        // Only an address with no question in it opens on the chart these files are for; a link to another question asks for its own, when the script runs.
+        if (!location.search) {
+          for (const href of reads) {
+            const link = document.createElement("link");
+            link.rel = "preload";
+            link.as = "fetch";
+            link.crossOrigin = "anonymous";
+            link.href = href;
+            document.head.append(link);
+          }
+        }
+      </script>
+    )
+  }
+
+  {
     vocabulary.datasets.length > 0 ? (
-      <Canvas client:only="react" vocabulary={vocabulary} groups={groups} />
+      <div class="canvas-slot">
+        <Canvas client:only="react" vocabulary={vocabulary} groups={groups} />
+      </div>
     ) : (
       <div class="callout blocked">
         <span class="callout-label">{say("not_available_label")}</span>

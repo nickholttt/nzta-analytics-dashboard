@@ -2,7 +2,7 @@
 // chart is a Build question drawn by the same panel as every other chart on the site; what a field may do in a zone, which chart types
 // fit, how charts are added, copied, removed and moved, and the address are src/lib/canvas.ts. The whole canvas lives in the address
 // bar, so the link is the page.
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { absentNotes, absentValues, linkNotices, settle, withoutValues } from "../../lib/builder";
 import type { Question, Vocabulary } from "../../lib/builder";
 import {
@@ -37,12 +37,29 @@ import type { Canvas as CanvasState, CanvasChart, CanvasField, CanvasFieldGroup,
 import { fieldValues, loadManifest } from "../../lib/data";
 import type { Manifest } from "../../lib/data";
 import { servedMonth } from "../../lib/pin";
+import { whenGateOpens } from "../../lib/loadGate";
 import { focusSoon, valueLabel } from "../ValuePicker";
-import AddMenu from "./AddMenu";
 import ChartCard, { cardId } from "./ChartCard";
-import ChartPane from "./ChartPane";
-import FieldList from "./FieldList";
-import MyCanvases from "./MyCanvases";
+
+// What changes the canvas, and what saves it, are files of their own. The canvas reads the address, fetches the data and draws its charts first;
+// the editing tools (the chart's zones, the field list, the dialog for where a field goes) and My canvases (the saved list, with the carry-over of the
+// questions the Build page kept) are fetched once the first chart is drawn, and the space they will take is held until they arrive.
+const Editor = lazy(() => import("./Editor"));
+const MyCanvases = lazy(() => import("./MyCanvases"));
+
+// Held where the editing tools will be, so nothing under or beside it moves when they arrive. The same classes, and the same ids, as the tools.
+function EditorPending() {
+  return (
+    <div className="canvas-editor canvas-editor-pending" id="canvas-editor" aria-busy="true">
+      <section className="chart-pane">
+        <p className="meta" role="status">
+          {say("editor_loading")}
+        </p>
+      </section>
+      <section className="field-list" aria-hidden="true" />
+    </div>
+  );
+}
 
 // At this width and over, the chart's zones and the field list sit beside the charts; under it they open below the chart being edited.
 const WIDE = "(min-width: 64rem)";
@@ -81,11 +98,12 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
   const [status, setStatus] = useState("");
   const [dragging, setDragging] = useState<CanvasField | null>(null);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
-  // The field a visitor chose without dragging, waiting to be told where it goes.
-  const [adding, setAdding] = useState<CanvasField | null>(null);
   // Where the selected chart's time row is drawn: the Period zone.
   const [periodSlot, setPeriodSlot] = useState<HTMLElement | null>(null);
   const wide = useWide();
+  // True once the first chart is drawn (or cannot be): the editing tools and the saved list are asked for then and not before.
+  const [drawn, setDrawn] = useState(false);
+  useEffect(() => whenGateOpens(() => setDrawn(true)), []);
   // Under the wide layout the editor opens below the chart when asked for.
   const [open, setOpen] = useState(false);
   // The chart being dragged to another place, by its id.
@@ -348,10 +366,11 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
   const title = (first && chartPreset(first, (value) => valueLabel(value, first.question.by ?? undefined))?.question) || say("page_title");
   const name = canvas.charts.length > 1 ? say("default_name_more", { name: title, number: canvas.charts.length - 1 }) : title;
 
-  const editor = current ? (
-    <div className="canvas-editor" id="canvas-editor">
-      <ChartPane
-        key={current.id}
+  const editor = !current ? null : !drawn ? (
+    <EditorPending />
+  ) : (
+    <Suspense fallback={<EditorPending />}>
+      <Editor
         all={all}
         chart={current}
         number={place + 1}
@@ -360,6 +379,7 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
         manifest={built}
         served={manifest}
         owner={owner}
+        groups={groups}
         dragging={dragging}
         refusal={refusal?.chart === current.id ? refusal : null}
         onAsk={(next) => ask(current.id, next)}
@@ -371,21 +391,15 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
         onDuplicate={() => duplicate(current.id)}
         onRemove={() => remove(current.id)}
         onMove={(by) => move(current.id, place + by)}
-      />
-      <FieldList
-        all={all}
-        question={current.question}
-        groups={groups}
         onDragStart={(field) => {
           // A new field in hand: what the last one was told no longer stands in its zone.
           setRefusal(null);
           setDragging(field);
         }}
         onDragEnd={() => setDragging(null)}
-        onChoose={setAdding}
       />
-    </div>
-  ) : null;
+    </Suspense>
+  );
 
   return (
     <div className={`canvas${wide ? " wide" : ""}`} data-dragging={dragging ? "" : undefined}>
@@ -405,6 +419,7 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
               editorOpen={chart.id === current?.id && editorShown}
               periodSlot={chart.id === current?.id && editorShown ? periodSlot : null}
               moving={moving}
+              defer={i > 0}
               notices={notices[chart.id] ?? []}
               served={manifest}
               owner={owner}
@@ -445,21 +460,15 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
             </p>
           ) : null}
         </div>
-        <MyCanvases all={all} served={manifest ?? null} name={name} pinned={isPinned(canvas)} pinnable={built ? canPinCanvas(canvas, built) : false} onPin={pin} />
+        {drawn ? (
+          <Suspense fallback={<div className="my-canvases my-canvases-pending" aria-hidden="true" />}>
+            <MyCanvases all={all} served={manifest ?? null} name={name} pinned={isPinned(canvas)} pinnable={built ? canPinCanvas(canvas, built) : false} onPin={pin} />
+          </Suspense>
+        ) : (
+          <div className="my-canvases my-canvases-pending" aria-hidden="true" />
+        )}
       </div>
       {wide ? editor : null}
-      {adding && current ? (
-        <AddMenu
-          all={all}
-          question={current.question}
-          field={adding}
-          onPut={(zone) => {
-            put(current.id, zone, adding);
-            setAdding(null);
-          }}
-          onClose={() => setAdding(null)}
-        />
-      ) : null}
     </div>
   );
 }

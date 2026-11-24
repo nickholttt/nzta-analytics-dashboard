@@ -102,7 +102,7 @@ export const PALETTES: Record<ThemeName, Palette> = { light: LIGHT, dark: DARK }
 // How many series get a colour of their own, in either theme.
 export const SERIES_COUNT = SERIES_LIGHT.length;
 
-export const FONT_TEXT = "'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
+export const FONT_TEXT = "'NZVR Sans', system-ui, -apple-system, 'Segoe UI', sans-serif";
 
 export const LINE_WIDTH = 2;
 export const THIN_LINE_WIDTH = 1.25;
@@ -121,8 +121,9 @@ export const tipStyle = (pal: Palette) => ({ fill: pal.tipFill, stroke: pal.tipS
 
 // Lead charts carry the page, so they are taller for the same width. Heights are clamped so a wide
 // screen does not produce a letterbox and a narrow one keeps a readable plot.
+export const MIN_CHART_HEIGHT = 240;
 export function chartHeight(width: number, lead = false) {
-  const [ratio, min, max] = lead ? [0.44, 300, 500] : [0.34, 240, 380];
+  const [ratio, min, max] = lead ? [0.44, 300, 500] : [0.34, MIN_CHART_HEIGHT, 380];
   return Math.round(Math.max(min, Math.min(max, width * ratio)));
 }
 
