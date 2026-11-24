@@ -66,6 +66,14 @@ explained, not a way to quiet a warning.
    .venv/Scripts/python.exe -c "from pipeline import config, reconcile; print(reconcile.prepare(config.load())[1])"
    ```
 
+   Then run the guard's own tests (about a minute). Its "live rows" tests read the committed rows, so new rows can change
+   what they measure: on 2026-11-24 the MIA's rows made two of them false. A test that fails is restated to what is now
+   true, with the new sizes in `docs/CUBE_SCHEMA.md`, never weakened:
+
+   ```
+   .venv/Scripts/python.exe -m pytest pipeline/tests/test_reconcile.py -q -p no:cacheprovider
+   ```
+
 4. Run the new rows against the saved pull of the snapshot they are for, which publishes nothing (12 to 16 minutes). It stops
    with exit 2 if a filter names a dimension the dataset cannot derive or that is not live; if, in one month, at least two
    independent sources, and more than half of those with a compared row that month, each have half or more of what they published
