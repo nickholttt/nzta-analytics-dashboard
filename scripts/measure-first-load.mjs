@@ -191,6 +191,7 @@ for (const page of pages) {
   out[page.id] = {
     path: page.path,
     chartsExpected: page.expected,
+    browserVersion: browser.version(),
     runs: results.length,
     failedRuns: results.length - ok.length,
     firstChartMs: ms("firstChartMs"),
