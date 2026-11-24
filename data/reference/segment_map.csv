@@ -22,3 +22,11 @@ GOODS VAN/TRUCK/UTILITY,FLAT-DECK TRUCK,1,3500,Truck,Light commercial,
 GOODS VAN/TRUCK/UTILITY,FLAT-DECK TRUCK,3501,999999,Truck,Heavy commercial,
 GOODS VAN/TRUCK/UTILITY,ARTICULATED TRUCK,,,Truck,Heavy commercial,Heavy regardless of GVM: the 45 rows recording 3500 kg or less are implausible for this body.
 GOODS VAN/TRUCK/UTILITY,STATION WAGON,,,Other,Light commercial,"Goods-rated wagons and vans (Defender, Hiace, Estima, NV200, Corolla wagon). Too mixed to call."
+BUS,MINIBUS,,,Other,Other,"Buses are not a ute, van or truck, and this split names no commercial class for them: Market type (market_type_map.csv) is the split that places them, by mass. No weight bound, so a bus never reads Not recorded here. 24,796 vehicles of any status on the register at 2026-10. Needed since registrations_surviving counts the types vehicle_scope.csv marks trade_scope (D-157)."
+BUS,SERVICE COACH,,,Other,Other,"As the minibus. A heavy coach is not heavy commercial in this split. 12,844 vehicles of any status at 2026-10."
+BUS,CAB AND CHASSIS ONLY,,,Other,Other,A bus registered with a cab-chassis body: still a bus. 6 vehicles of any status at 2026-10.
+MOTOR CARAVAN,SELF PROPELLED CARAVAN,,,Other,Other,"Motorhomes. Not a car, ute, van or truck; Market type decides light or heavy for them from mass. 56,655 vehicles of any status at 2026-10."
+MOTOR CARAVAN,HEAVY BUS,,,Other,Other,A motor caravan whose body NZTA records as heavy bus: still a motor caravan. 269 vehicles of any status at 2026-10.
+MOTOR CARAVAN,CAB AND CHASSIS ONLY,,,Other,Other,A motor caravan registered with a cab-chassis body: not a ute or truck. 32 vehicles of any status at 2026-10.
+SPECIAL PURPOSE VEHICLE,OTHER TRUCK,,,Other,Other,Special purpose vehicles with a truck body. Not placed in a commercial class by this split. 2,098 vehicles of any status at 2026-10.
+SPECIAL PURPOSE VEHICLE,MOBILE MACHINE,,,Other,Other,Special purpose vehicles with a mobile machine body. 1,286 vehicles of any status at 2026-10.

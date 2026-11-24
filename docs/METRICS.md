@@ -1251,6 +1251,14 @@ site reads the file yet.
   reference has ranges of mass for goods vehicles, so a goods vehicle of a body
   type that has them and no mass is "Not recorded", not "No reference match".
   Passenger vehicles ignore mass.
+- **A bus, a motor caravan or a special purpose vehicle reads "Other" in both `segment` and `segment_group` (D-157).** Once
+  `registrations_surviving` counts the five types of `vehicle_scope.csv`'s `trade_scope` column, these three types reach those two
+  dimensions. `segment_map.csv` names car, van, ute and truck for the two types it was written for, and a vehicle of a type and body
+  it has no row for reads "No reference match" and counts as unmapped. Eight rows (bus: minibus, service coach, cab and chassis only;
+  motor caravan: self-propelled caravan, heavy bus, cab and chassis only; special purpose vehicle: other truck, mobile machine) place
+  them in "Other", the value the three-wheelers registered as passenger vehicles already have, with no weight bound. These
+  are every type and body the three types hold on the register at 2026-10 (all statuses), so none of them reads "No reference match". This split
+  does not call a bus or a motor caravan light or heavy commercial; Market type (D-154, D-155) is the split that places them, by mass.
 - **A model whose make has no match in the brand reference keeps the raw make
   in its key.** The model's key is the canonical make, a separator and the
   model; where there is no canonical make, the make as the register records it
