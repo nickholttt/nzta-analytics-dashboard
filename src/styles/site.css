@@ -1046,6 +1046,18 @@ section[id] {
   color: var(--ink-2);
 }
 
+/* A note on a reading page about the subject, not a warning about the page: no fill, a 2px rule at the left and the label in the muted ink. */
+.callout.aside {
+  background: none;
+  border-left-width: 2px;
+  border-color: var(--rule-strong);
+  color: var(--ink);
+}
+
+.callout.aside .callout-label {
+  color: var(--ink-3);
+}
+
 .callout-label {
   display: block;
   font-size: var(--text-xs);
