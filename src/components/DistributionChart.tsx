@@ -11,7 +11,7 @@ import { countedText } from "../lib/sentences";
 import { latestMonthOf } from "../lib/resolve";
 import { count, readout, spanPeriod, withheldThin } from "../lib/readout";
 import type { Cell } from "../lib/figures";
-import { chartHeight, plotStyle, tipStyle } from "../lib/theme";
+import { BAR_RADIUS, FONT_TEXT, chartHeight, plotStyle, tipStyle } from "../lib/theme";
 import { usePalette } from "../lib/useTheme";
 import { ChartSentence } from "./ChartSentence";
 import { FiguresTable } from "./FiguresTable";
@@ -30,6 +30,35 @@ type Props = {
 };
 
 type Bar = { value: string; y: number; n: number };
+
+// How the labels under the bars are laid out. Every bar keeps its label: they wrap to two lines at the chart's own size, then
+// the type shrinks to 11 px, and only then do alternate labels drop to a second row so each has two bars' width. A label is never left out.
+const LABEL_LINE = 13;
+const LABEL_SIZES = [12, 11];
+function labelLayout(names: string[], room: number) {
+  const context = typeof document === "undefined" ? null : document.createElement("canvas").getContext("2d");
+  const lines = (name: string, size: number, cap: number) => {
+    if (context) context.font = `${size}px ${FONT_TEXT}`;
+    const width = (s: string) => (context ? context.measureText(s).width : (s.length * size * 7) / 12);
+    const rows: string[] = [];
+    for (const word of name.split(" ")) {
+      const last = rows.length - 1;
+      if (last >= 0 && width(`${rows[last]} ${word}`) <= cap) rows[last] = `${rows[last]} ${word}`;
+      else rows.push(word);
+    }
+    return { count: rows.length, widest: Math.max(...rows.map(width)) };
+  };
+  const tries = [...LABEL_SIZES.map((size) => ({ size, stagger: false })), { size: LABEL_SIZES[LABEL_SIZES.length - 1], stagger: true }];
+  const fitting = (t: { size: number; stagger: boolean }) => {
+    const cap = room * (t.stagger ? 2 : 1) - 6;
+    return names.every((n) => {
+      const l = lines(n, t.size, cap);
+      return l.count <= 2 && l.widest <= cap;
+    });
+  };
+  const chosen = tries.find(fitting) ?? tries[tries.length - 1];
+  return { ...chosen, cap: room * (chosen.stagger ? 2 : 1) - 6 };
+}
 
 export function DistributionChart({ preset, dimension, rows, manifest, minDenominator, label, dimensionLabel, lead = false }: Props) {
   const pal = usePalette();
@@ -60,29 +89,39 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
     (width: number) => {
       const format = model.share ? (d: number) => `${Math.round(d * 100)}%` : (d: number) => d.toLocaleString();
       const marginLeft = model.share ? 44 : 64;
-      // Every band keeps its bar, but where labels would run into each other only every step-th is labelled, counting
-      // from the first band; the readout names each bar. The step is the smallest at which every pair of neighbouring
-      // labels clears the other, taking a label as 7px a character, with 6px between.
       const perBand = (width - marginLeft - 16) / Math.max(1, model.order.length);
-      const widths = model.order.map((v) => label(v).length * 7);
-      const fits = (s: number) => widths.every((w, i) => i % s !== 0 || i + s >= widths.length || s * perBand >= (w + widths[i + s]) / 2 + 6);
-      let step = 1;
-      while (step < widths.length && !fits(step)) step++;
+      const names = model.order.map((v) => label(v));
+      const layout = labelLayout(names, perBand);
+      const rowsUnder = layout.stagger ? 2 : 1;
+      const labels = (offset: number, parity: number) => {
+        const mine = model.order.filter((_, i) => i % rowsUnder === parity);
+        return Plot.text(mine, {
+          x: (v: string) => v,
+          frameAnchor: "bottom",
+          dy: offset,
+          text: (v: string) => label(v),
+          lineWidth: layout.cap / layout.size,
+          lineAnchor: "top",
+          textAnchor: "middle",
+          fontSize: layout.size,
+          fill: pal.ink3,
+        });
+      };
       return Plot.plot({
         width,
         height: chartHeight(width, lead),
         marginTop: 16,
         marginLeft,
         marginRight: 16,
-        marginBottom: 36,
+        marginBottom: 14 + LABEL_LINE * 2 * rowsUnder,
         style: plotStyle(pal),
-        x: { domain: model.order, label: null, padding: 0.3 },
+        x: { domain: model.order, label: null, padding: 0.3, axis: null },
         y: { label: null },
         marks: [
           Plot.gridY({ ticks: 5, stroke: pal.rule, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: format }),
-          Plot.axisX({ ticks: model.order.filter((_, i) => i % step === 0), tickSize: 0, tickPadding: 8, label: null, tickFormat: label }),
-          Plot.barY(model.bars, { x: "value", y: "y", fill: model.suppressed ? pal.suppressedLine : pal.series[0], ry2: 3 }),
+          ...(layout.stagger ? [labels(8, 0), labels(8 + LABEL_LINE * 2 + 2, 1)] : [labels(8, 0)]),
+          Plot.barY(model.bars, { x: "value", y: "y", fill: model.suppressed ? pal.suppressedLine : pal.series[0], ry2: BAR_RADIUS }),
           Plot.ruleY([0], { stroke: pal.ruleStrong }),
           Plot.tip(
             model.bars,
