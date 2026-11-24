@@ -43,7 +43,7 @@
   ],
   "skip_link": "Skip to the content",
   "theme": {
-    "storage_key": "theme",
+    "storage_key": "nzta.theme",
     "toggle": "Dark mode"
   },
   "build_moved": {
