@@ -5,7 +5,7 @@
 // back from. It names no field, measure, dataset or value: the words are config/canvas.json's, the rules are the builder's and the
 // chart rule table's.
 import canvasDoc from "../../config/canvas.json";
-import { builderSpec, dimensionLabel, dimensions, findDataset, findDerived, findDimension, findMeasure } from "./config";
+import { builderSpec, dimensionLabel, dimensions, lowerLabel, findDataset, findDerived, findDimension, findMeasure } from "./config";
 import type { Preset } from "./config";
 import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCross, changeQuestion, isOneChart, questionParams, readQuestion, settle } from "./builder";
 import type { BuilderOption, DatasetVocabulary, Question, Vocabulary } from "./builder";
@@ -437,7 +437,7 @@ export function linkGaps(all: Vocabulary, a: AskedChart, chart: CanvasChart): st
     const v = datasetOf(all, chart.question.dataset);
     const known = builderSpec.measures.find((m) => m.id === asked);
     gaps.push(
-      say("gap_measure", { query: known ? measureLabel({ id: asked, phrase: known.phrase }) : asked, dataset: datasetLabel(v.dataset), measure: measureLabel(measureOf(v, chart.question.measure)), zone: zoneLabel("measure") }),
+      say("gap_measure", { query: known ? measureLabel({ id: asked, phrase: known.phrase }) : asked, dataset: lowerLabel(datasetLabel(v.dataset)), measure: measureLabel(measureOf(v, chart.question.measure)), zone: zoneLabel("measure") }),
     );
   }
   if (a.type && !isShape(a.type)) gaps.push(say("gap_type_unknown", { query: a.type, shown: typeLabel(chart.type ?? bestType(chart.question)) }));

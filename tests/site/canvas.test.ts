@@ -412,7 +412,7 @@ test("a link that names a measure the data lacks says what was not found, what t
   const gaps = canvas.linkGaps(all, link, chart);
   assert.equal(gaps.length, 1);
   assert.ok(filled(gaps[0]), gaps[0]);
-  for (const part of ["no_such_measure", canvas.datasetLabel(first.dataset), canvas.measureLabel(shown), canvas.zoneLabel("measure")]) assert.ok(gaps[0].includes(part), `${part}: ${gaps[0]}`);
+  for (const part of ["no_such_measure", config.lowerLabel(canvas.datasetLabel(first.dataset)), canvas.measureLabel(shown), canvas.zoneLabel("measure")]) assert.ok(gaps[0].includes(part), `${part}: ${gaps[0]}`);
   // A measure the builder has and the canvas does not draw as one chart is named in its own words, not as the text of the link.
   const parts = config.builderSpec.measures.find((m) => m.parts) as (typeof config.builderSpec.measures)[number];
   const two = askedChart(`?canvas.charts=c1&c1.measure=${parts.id}`);
