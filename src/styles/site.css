@@ -1,6 +1,6 @@
 /* Design tokens and base styles for every page. Chart colours live in src/lib/theme.ts, because Plot writes
    them into SVG attributes, which cannot read CSS custom properties; the ink, surface and rule tokens
-   below are mirrored there for the same reason and must change together. */
+   below, in both themes, are mirrored there for the same reason and must change together (tests/site/theme-tokens.test.ts). */
 
 @import "@fontsource-variable/source-serif-4/opsz.css";
 @import "@fontsource-variable/ibm-plex-sans/wght.css";
@@ -44,6 +44,20 @@
   --rule: #e2dfd6;      /* hairline grid */
   --rule-strong: #c9c5ba;
   --accent: #3049ba;    /* links and focus: slot 1 of the series palette */
+  --on-accent: #ffffff; /* what is printed on a surface filled with the accent: 7.3:1 */
+  --selected: #1b1c1f;  /* the fill of a chosen option and of a chip, and its ink: ink on paper in light, a quiet raised fill in dark */
+  --selected-ink: #f8f7f3;
+
+  /* The canvas page's surfaces, set here with the rest so that each has its dark value beside it (src/styles/canvas.css uses them). */
+  --card: #ffffff;
+  --card-muted: #f6f5f0;
+  /* The edge of an input, a button or a chip: 3.6:1 on the card and 3.3:1 on the muted card, so a control can be told from its
+     surroundings without its fill (WCAG 1.4.11). */
+  --control: #85878d;
+  --accent-wash: #eef0fa;
+  --accent-veil: rgb(238 240 250 / 0.9); /* the accent wash over a card while a chart is dragged onto it */
+  --scrim: rgb(27 28 31 / 0.35);         /* behind a dialog */
+  --scroll-shadow: rgb(26 27 31 / 0.16); /* the edge of a table that has more beyond it */
 
   /* The sequential scale of a grid (matrix): paper toward the accent, then deeper. Six steps, each with the ink that is printed on it.
      The ink flips from dark to light between steps 4 and 5, skipping the mid-tones where neither ink reaches 4.5:1; the lowest ratio of
@@ -69,9 +83,125 @@
   --block-ink: #a2372b;
   --block-wash: #f8e9e5;
 
+  /* The marks of a ranking that moved: up, down and new. Each is text on paper, at least 4.5:1. */
+  --rank-up: #15803d;
+  --rank-down: #b91c1c;
+  --rank-new: #0369a1;
+  --rank-new-wash: rgb(3 105 161 / 0.1);
+
+  /* Highlighted text (the About page's gaps) and the visitor's selection. */
+  --mark: #ffff00;
+  --mark-ink: #000000;
+  --selection: Highlight;
+  --selection-ink: HighlightText;
+
+  /* Tells the browser which of its own parts (form controls, scrollbars, the canvas behind the page) to draw light or dark. */
+  color-scheme: light;
+
   --measure: 44rem;     /* comfortable line length for prose */
   --page: 72rem;
   --radius: 3px;
+}
+
+/* The dark theme. A visitor's choice (data-theme on <html>, set by the toggle and read before first paint, src/lib/themeChoice.ts) wins; with no
+   choice the device setting decides, in this stylesheet alone, so it holds with scripts off. The two blocks below carry the same declarations
+   and tests/site/theme-tokens.test.ts holds them to it. The chart colours that mirror these are in src/lib/theme.ts. The grid's steps run the other
+   way in dark, a brighter shade meaning more, and the ink flips between steps 4 and 5 as in light; the lowest ratio of any step is 5.05:1 (step 4),
+   checked by tests/site/matrix-colour.test.ts. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #16171a;
+    --paper-2: #1f2024;
+    --ink: #ececea;
+    --ink-2: #c1c2c7;
+    --ink-3: #9a9ca3;
+    --rule: #2b2d32;
+    --rule-strong: #41444b;
+    --accent: #6f86ee;
+    --on-accent: #16171a;
+    --selected: #353b55;
+    --selected-ink: #ececea;
+    --card: #1c1d21;
+    --card-muted: #23252a;
+    --control: #7d8088;
+    --accent-wash: #232a4a;
+    --accent-veil: rgb(35 42 74 / 0.9);
+    --scrim: rgb(0 0 0 / 0.6);
+    --scroll-shadow: rgb(0 0 0 / 0.5);
+    --scale-1: #202538;
+    --scale-2: #2a3560;
+    --scale-3: #344494;
+    --scale-4: #4559c8;
+    --scale-5: #7a8ef0;
+    --scale-6: #aebbf8;
+    --scale-ink-1: #ececea;
+    --scale-ink-2: #ececea;
+    --scale-ink-3: #ececea;
+    --scale-ink-4: #ececea;
+    --scale-ink-5: #16171a;
+    --scale-ink-6: #16171a;
+    --thin-wash: #2a2c31;
+    --warn-ink: #e3b04b;
+    --warn-wash: #2b2412;
+    --block-ink: #f08c80;
+    --block-wash: #2e1b19;
+    --rank-up: #6fc08a;
+    --rank-down: #e8706a;
+    --rank-new: #7a8ef0;
+    --rank-new-wash: rgb(122 142 240 / 0.16);
+    --mark: #4d3f12;
+    --mark-ink: #f5e9c0;
+    --selection: #3b4a8c;
+    --selection-ink: #ececea;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #16171a;
+  --paper-2: #1f2024;
+  --ink: #ececea;
+  --ink-2: #c1c2c7;
+  --ink-3: #9a9ca3;
+  --rule: #2b2d32;
+  --rule-strong: #41444b;
+  --accent: #6f86ee;
+  --on-accent: #16171a;
+  --selected: #353b55;
+  --selected-ink: #ececea;
+  --card: #1c1d21;
+  --card-muted: #23252a;
+  --control: #7d8088;
+  --accent-wash: #232a4a;
+  --accent-veil: rgb(35 42 74 / 0.9);
+  --scrim: rgb(0 0 0 / 0.6);
+  --scroll-shadow: rgb(0 0 0 / 0.5);
+  --scale-1: #202538;
+  --scale-2: #2a3560;
+  --scale-3: #344494;
+  --scale-4: #4559c8;
+  --scale-5: #7a8ef0;
+  --scale-6: #aebbf8;
+  --scale-ink-1: #ececea;
+  --scale-ink-2: #ececea;
+  --scale-ink-3: #ececea;
+  --scale-ink-4: #ececea;
+  --scale-ink-5: #16171a;
+  --scale-ink-6: #16171a;
+  --thin-wash: #2a2c31;
+  --warn-ink: #e3b04b;
+  --warn-wash: #2b2412;
+  --block-ink: #f08c80;
+  --block-wash: #2e1b19;
+  --rank-up: #6fc08a;
+  --rank-down: #e8706a;
+  --rank-new: #7a8ef0;
+  --rank-new-wash: rgb(122 142 240 / 0.16);
+  --mark: #4d3f12;
+  --mark-ink: #f5e9c0;
+  --selection: #3b4a8c;
+  --selection-ink: #ececea;
+  color-scheme: dark;
 }
 
 *,
@@ -127,6 +257,16 @@ a:hover {
 code {
   font-family: var(--font-mono);
   font-size: 0.9em;
+}
+
+mark {
+  background: var(--mark);
+  color: var(--mark-ink);
+}
+
+::selection {
+  background: var(--selection);
+  color: var(--selection-ink);
 }
 
 /* ---------- Page frame ---------- */
@@ -409,8 +549,8 @@ section[id] {
   gap: var(--space-1);
   padding-left: var(--space-3);
   font-size: var(--text-sm);
-  color: var(--paper);
-  background: var(--ink);
+  color: var(--selected-ink);
+  background: var(--selected);
   border-radius: 999px;
 }
 
@@ -537,8 +677,8 @@ section[id] {
 }
 
 .toggle label:has(input:checked) {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--selected);
+  color: var(--selected-ink);
 }
 
 .toggle label:has(input:focus-visible) {
@@ -1028,8 +1168,8 @@ section[id] {
   background:
     linear-gradient(to right, var(--paper) 40%, transparent) left center / 2.5rem 100% no-repeat local,
     linear-gradient(to left, var(--paper) 40%, transparent) right center / 2.5rem 100% no-repeat local,
-    linear-gradient(to right, rgb(26 27 31 / 0.16), transparent) left center / 0.75rem 100% no-repeat scroll,
-    linear-gradient(to left, rgb(26 27 31 / 0.16), transparent) right center / 0.75rem 100% no-repeat scroll;
+    linear-gradient(to right, var(--scroll-shadow), transparent) left center / 0.75rem 100% no-repeat scroll,
+    linear-gradient(to left, var(--scroll-shadow), transparent) right center / 0.75rem 100% no-repeat scroll;
 }
 
 /* Said in words too, while the ranking table is wider than its box: the shadow alone is easy to miss. */

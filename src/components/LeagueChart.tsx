@@ -477,15 +477,15 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
                         <span className="visually-hidden">{noYearAgo}</span>
                       </span>
                     ) : !hasMovement ? (
-                      <span className="badge" style={{ background: "rgba(3, 105, 161, 0.1)", color: "#0369a1", fontSize: "11px" }}>
+                      <span className="badge" style={{ background: "var(--rank-new-wash)", color: "var(--rank-new)", fontSize: "11px" }}>
                         New
                       </span>
                     ) : isUp ? (
-                      <span style={{ color: "#15803d", fontWeight: 600, fontSize: "12px" }}>
+                      <span style={{ color: "var(--rank-up)", fontWeight: 600, fontSize: "12px" }}>
                         <span aria-hidden="true">▲</span> +{item.rankDelta}
                       </span>
                     ) : isDown ? (
-                      <span style={{ color: "#b91c1c", fontWeight: 600, fontSize: "12px" }}>
+                      <span style={{ color: "var(--rank-down)", fontWeight: 600, fontSize: "12px" }}>
                         <span aria-hidden="true">▼</span> {item.rankDelta}
                       </span>
                     ) : (
