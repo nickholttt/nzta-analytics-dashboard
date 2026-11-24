@@ -273,6 +273,6 @@ hard rules 7 and 8 below carry the merge rule and the steps that go with them.
 
 ## Playbooks
 
-`docs/playbooks/`: `run-checks`, `local-ui-dev`, `refresh-public-data`, `check-monthly-run`,
+`docs/playbooks/`: `monthly` (start here each month), `run-checks`, `local-ui-dev`, `refresh-public-data`, `check-monthly-run`,
 `change-reference-data`, `add-event`, `change-preset`, `session-handoff`,
 `supply-statsnz-series`.
