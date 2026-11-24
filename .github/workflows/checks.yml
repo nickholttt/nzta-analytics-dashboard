@@ -183,15 +183,20 @@ jobs:
           if npm ci --prefix .github/first-load --ignore-scripts --no-audit --no-fund && .github/first-load/node_modules/.bin/playwright-core install chromium-headless-shell; then
             chrome=$(find "$HOME/.cache/ms-playwright" -type f -name chrome-headless-shell | head -n 1)
           fi
+          # A browser that is there and cannot start (a runner image missing a library) is the runner's fault, not the pull request's.
+          if [ -n "$chrome" ] && ! node -e "require('./.github/first-load/node_modules/playwright-core').chromium.launch({ executablePath: process.argv[1] }).then((b) => b.close())" "$chrome"; then
+            chrome=""
+          fi
           if [ -z "$chrome" ]; then
-            echo "The browser could not be installed, so the first chart's time was not checked on this run." | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "The browser could not be installed or started, so the first chart's time was not checked on this run." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
           echo "chrome=$chrome" >> "$GITHUB_OUTPUT"
 
       - name: First chart time
         if: steps.browser.outputs.chrome != ''
-        timeout-minutes: 8
+        # A page that never draws takes about eight minutes to say so (a first visit, then five runs that each wait 90 s).
+        timeout-minutes: 10
         env:
           CHROME: ${{ steps.browser.outputs.chrome }}
         run: |
