@@ -540,11 +540,12 @@
   border-color: var(--accent);
 }
 
-/* A choice that cannot be made: greyed, a dotted edge, and its reason said when it is tried. */
+/* A choice that cannot be made: no fill, a hairline edge and the lightest ink allowed for text, so it is quieter than one that can; it stays in
+   the tab order and its reason is said when it is tried. */
 .choice[aria-disabled="true"] {
   color: var(--ink-3);
-  background: var(--card-muted);
-  border-style: dotted;
+  background: transparent;
+  border: 1px solid var(--rule);
   cursor: help;
 }
 
