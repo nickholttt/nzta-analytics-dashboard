@@ -239,7 +239,7 @@ data/reference/
   vehicle_usage_map.csv  # NZTA's vehicle usage value -> readable label; an owner field, read only by the stock dataset fleet (D-135)
   statsnz_series.csv  # Stats NZ's table headers -> series, group and role (D-094)
   model_segment.csv   # canonical make + model -> SUV or car, with basis and confidence: two slices, and nothing reads it yet (D-117, D-123)
-  market_type_map.csv  # ordered rules: NZTA vehicle type + body + GVM (+ the SUV file) -> Passenger, SUV, Light commercial, Heavy commercial or Other; defined and tested, nothing reads it yet (D-154)
+  market_type_map.csv  # ordered rules: NZTA vehicle type + body + NZTA class + GVM (+ the SUV file) -> Passenger, SUV, Not yet classified, Light commercial, Heavy commercial or Other; defined and tested, nothing reads it yet (D-154, D-155)
   published_sources.csv  # the organisations whose published figures every build is set beside: name, address, what each says it counts (D-149)
   published_figures.csv  # one row per published figure: source, month, measure as published, the figure, our matching query (dataset and filters), tolerance (D-149)
 docs/
