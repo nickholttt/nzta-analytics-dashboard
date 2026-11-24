@@ -109,7 +109,7 @@ jobs:
   # It runs beside the other jobs, so it adds no waiting.
   public-site-checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -168,3 +168,18 @@ jobs:
       # No page ships more on first load than its budget (config/performance_budget.json). --report lists every page's bytes in the log.
       - name: Performance budget
         run: node scripts/check-performance-budget.mjs --report
+
+      # The timed half: the canvas's first chart on the throttled phone profile (config/performance_budget.json, first_chart_ms). It only
+      # reports. The profile slows the processor four times relative to the machine it runs on, and the limit was set on the maintainer's
+      # computer, not on a runner, so a figure over it here may be the runner and not the change: the byte limit above is what stops a pull
+      # request, and the maintainer runs the timed check by hand before a canvas pull request merges (AGENTS.md, Commands). Every run's
+      # time, the median and the bytes are on the run's summary page, to be read against the maintainer's figure until the limit has been
+      # seen to hold here; then --warn-only comes off. The tool and the browser are pinned by .github/first-load's own lockfile, outside the
+      # site's dependencies; a step that cannot install or start them fails and the job goes on.
+      - name: First chart time (reports only)
+        continue-on-error: true
+        run: |
+          npm ci --prefix .github/first-load --ignore-scripts --no-audit --no-fund
+          .github/first-load/node_modules/.bin/playwright-core install --with-deps chromium-headless-shell
+          chrome=$(find "$HOME/.cache/ms-playwright" -type f -name chrome-headless-shell | head -n 1)
+          { echo '```'; node scripts/check-first-load.mjs --playwright .github/first-load --chrome "$chrome" --warn-only; echo '```'; } | tee -a "$GITHUB_STEP_SUMMARY"

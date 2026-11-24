@@ -1,0 +1,8 @@
+{
+  "name": "nzta-site-first-load",
+  "private": true,
+  "description": "The tool the Checks workflow times the canvas's first chart with, pinned by this folder's own lockfile so that installing the site never installs it (D-057). Its version also fixes the Chrome Headless Shell that `playwright-core install` downloads.",
+  "dependencies": {
+    "playwright-core": "1.65.1"
+  }
+}
