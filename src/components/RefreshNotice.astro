@@ -1,0 +1,31 @@
+---
+// One calm line at the top of every page's main, from the first day a whole month has ended that the site does not show yet (src/lib/refreshNotice.ts).
+// It is built hidden, with its due date; the script after it shows it when the visitor's own date is on or after that date.
+import "../styles/refreshNotice.css";
+import siteDoc from "../../config/site.json";
+import { refreshDue, revealRefreshNotice } from "../lib/refreshNotice";
+import { fillTemplate } from "../lib/sentences";
+
+interface Props {
+  // The date the register is as at, YYYY-MM-DD.
+  snapshot: string;
+}
+
+const { snapshot } = Astro.props;
+const due = refreshDue(snapshot);
+const words = due ? fillTemplate(siteDoc.refresh_notice.text, { month: due.label, date: snapshot }) : undefined;
+if (words && words.unresolved.length) throw new Error(`The refresh notice's words in config/site.json have no value for ${words.unresolved.join(", ")}.`);
+---
+
+{
+  due && words && (
+    <>
+      <p class="refresh-notice" role="note" data-refresh-due={due.due} hidden>
+        <span class="refresh-notice-label">{siteDoc.refresh_notice.label}</span>
+        {words.text}
+      </p>
+      {/* Straight after the notice, so it is shown as the page is read and before what is below it is drawn: nothing moves after the visitor starts reading. */}
+      <script is:inline set:html={`(${revealRefreshNotice})()`} />
+    </>
+  )
+}
