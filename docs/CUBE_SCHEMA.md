@@ -734,6 +734,13 @@ What size of error stops a build. On the 336 rows committed on 2026-11-23, measu
 - A source restating its history 10% higher or lower, in every month, never stops a build by the hard limit. Through the single-figure limit it does: each of that source's covered figures stops the build, so every month in which the source has a covered row (22 months and 44 figures for `mta_vstat` and for `statsnz`, 2 months and 6 figures for `mia`).
 - **A source whose figures are wide on purpose does not stop a build alone.** The 22 `mta_vstat` light commercial rows have a tolerance of 12% and a known difference; ours is 6.3% to 11.1% above theirs in the dry run of the October 2026 pull, and they are exempt.
 
+On the 389 rows of 2026-11-24 (the 53 figures from the `mia`'s public releases added, D-151), measured the same way. Every one of the 22 months now has rows from three sources, and the single-figure limit applies to 147 rows (59 of the `mia`'s, 44 of `mta_vstat`'s, 44 of `statsnz`'s):
+
+- The hard limit is as above: an error in every figure stops no month at 1.5% and every month at 2.1%, either way, and a month in which only two of its three sources are compared is still stopped at 3% to 6%, whichever two (tried in one month).
+- An error in every one of our figures stops none of the 147 alone at 4.9% above or 4% below, 77 of them at 5% either way (in all 22 months), and all 147 at 6%.
+- A fault among new vehicles only. The hard limit alone now stops one month from 5% up, September 2025, where the `mia` released a passenger and a commercial figure and no total, so the passenger figure is more than half of what it published; at 2% it stops none. The single-figure limit stops the build alone in 10 months at 2% and in all 22 at 5%, 10% and 20%.
+- A source restated 10% either way never stops a build by the hard limit, and stops it alone in all 22 months, whichever source: 59 figures for the `mia`, 44 for `mta_vstat`, 44 for `statsnz`.
+
 ```json
 {
   "latest_snapshot": "2026-10-31",

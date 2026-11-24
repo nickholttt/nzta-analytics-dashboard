@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import copy
 import csv
+import itertools
 import json
 import shutil
 from datetime import date
@@ -848,14 +849,20 @@ def live_setup():
     return cfg, prepared, c, (Decimal(str(h["tolerance_multiple"])), Decimal(str(h["floor_pct"])), int(c["pct_decimals"])), months
 
 
-def live_aborts(ours, kinds=None) -> list[str]:
+def live_aborts(ours, kinds=None, left_out=None) -> list[str]:
     """The aborts the real step raises when our figure for each live row is ours(figure). `kinds` replaces the kinds the
-    single-figure limit covers: [] shows what the hard limit alone does."""
+    single-figure limit covers: [] shows what the hard limit alone does. A row `left_out` picks is not compared, as if the
+    source had published nothing our data can answer."""
     cfg, prepared, c, (multiple, floor, decimals), _ = live_setup()
     if kinds is not None:
         c = copy.deepcopy(c)
         c["single_figure_limit"]["kinds"] = kinds
-    judged = [reconcile.judge(f, reconcile.Answer(int(round(ours(f)))), multiple, floor, decimals) for f in prepared.figures]
+
+    def answer(f):
+        if left_out is not None and left_out(f):
+            return reconcile.Answer(None, reconcile.DATASET_NOT_BUILT, "left out of this test")
+        return reconcile.Answer(int(round(ours(f))))
+    judged = [reconcile.judge(f, answer(f), multiple, floor, decimals) for f in prepared.figures]
     return reconcile.finish(prepared, judged, c, [], "fixture").aborts
 
 
@@ -891,9 +898,15 @@ def live_month_with(count: int) -> str:
 @pytest.mark.parametrize("count", [3, 2])
 @pytest.mark.parametrize("scale", [1.05, 0.94, 1.03, 0.97])
 def test_live_rows_a_few_percent_error_in_a_month_stops_the_build_when_two_or_three_sources_have_rows(count, scale):
-    month = live_month_with(count)
-    # The hard limit's line for the month is one, at 5% as at 3%; at 5% some figures also stop the build alone.
-    assert len(month_lines(live_aborts(lambda f: f.figure * scale if f.month == month else f.figure))) == 1
+    # Every month of the live rows has three sources, so a month of two is made from one of three: each choice of `count` of
+    # its sources is compared, and the rows of the rest are not.
+    month = live_month_with(3)
+    sources = sorted(live_setup()[4][month])
+    for kept in itertools.combinations(sources, count):
+        aborts = live_aborts(lambda f: f.figure * scale if f.month == month else f.figure,
+                             left_out=lambda f: f.month == month and f.source not in kept)
+        # The hard limit's line for the month is one, at 5% as at 3%; at 5% some figures also stop the build alone.
+        assert len(month_lines(aborts)) == 1, kept
 
 
 def test_live_rows_the_smallest_uniform_error_that_stops_every_month_is_about_two_percent_either_way():
@@ -1011,22 +1024,25 @@ def live_new_vehicles_only(share):
     return ours
 
 
-def test_live_rows_a_fault_among_new_vehicles_only_never_stops_a_build_by_the_hard_limit_and_stops_it_alone_from_five_percent_up():
-    # Replaces the review of 2026-11-23, which found that this fault only warned: only one source's figure that takes in the new
-    # vehicles breached, and one source is never enough for the hard limit. That still holds for the hard limit. The single-figure
-    # limit (D-150) stops it where a figure of a covered kind is 5% or more from ours.
+def test_live_rows_a_fault_among_new_vehicles_only_is_stopped_by_the_hard_limit_in_few_months_and_alone_from_five_percent_up():
+    # The review of 2026-11-23 found that this fault only warned: one source's figure that takes in the new vehicles breached,
+    # and one source is never enough for the hard limit. The hard limit still misses it in most months: it stops only a month
+    # in which a second source published so little else that these vehicles are half of what it published. The single-figure
+    # limit (D-150) stops it wherever a figure of a covered kind is 5% or more from ours.
     months = live_setup()[4]
-    stopped = {}
+    by_hard, alone = {}, {}
     for share in (0.02, 0.05, 0.10, 0.20):
         ours = live_new_vehicles_only(share)
-        assert live_aborts(ours, kinds=[]) == [], share
+        by_hard[share] = stopped_months(live_aborts(ours, kinds=[]))
         aborts = live_aborts(ours)
-        assert month_lines(aborts) == [] and len(figure_lines(aborts)) == len(aborts), share
-        stopped[share] = stopped_months(aborts)
-    assert stopped[0.10] == stopped[0.20] == set(months)
-    assert 0 < len(stopped[0.05]) < len(months), "5% is on the edge: rounding decides in which months"
-    assert stopped[0.02] <= stopped[0.05]
-    assert len(stopped[0.02]) < len(stopped[0.05])
+        assert stopped_months(month_lines(aborts)) == by_hard[share], "the hard limit is the same with the single-figure limit on"
+        assert len(month_lines(aborts)) + len(figure_lines(aborts)) == len(aborts), share
+        alone[share] = stopped_months(figure_lines(aborts))
+    assert by_hard[0.02] == set()
+    assert all(len(by_hard[share]) < len(months) / 2 for share in by_hard), "the hard limit alone misses this fault in most months"
+    assert alone[0.10] == alone[0.20] == set(months)
+    assert by_hard[0.05] < alone[0.05] and len(alone[0.05]) > len(months) / 2
+    assert alone[0.02] <= alone[0.05]
 
 
 STAGED = config.ROOT / "data" / "staging" / "build" / "reconciliation.json"
