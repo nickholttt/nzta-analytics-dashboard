@@ -11,7 +11,7 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | A: finish the canvas | none | free | all five steps merged (#132, #133, #138); milestone 1's "done when" met; what is left is the user's design choices (question 3) |
 | B: the accuracy guard | none | free | items 1 to 3 and the user's answers of 2026-11-24 merged (#134, #135); next is item 5, the write-up |
 | C: public readiness | none | free | items 1 to 3 merged (#130, #131, #136, #137, #140) and the private dry run done; what is left is the user's four items |
-| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 23 November built nothing |
+| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 24 November built nothing |
 
 ## Where we left off
 

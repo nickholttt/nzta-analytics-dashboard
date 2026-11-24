@@ -8,7 +8,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the 
 ## Live now
 
 - **The pipeline** runs on `main` in GitHub Actions, tried every day (D-064). The last build is the
-  forced run of 17 November (snapshot 2026-10; release `cube-2026-10`); the daily runs to 23 November
+  forced run of 17 November (snapshot 2026-10; release `cube-2026-10`); the daily runs to 24 November
   were green and built nothing. The next build is the first to publish the current fleet. The private
   archive (`nickholttt/nzta-register-archive`) holds one release, `snapshot-2026-10`.
 - **Datasets**: `registrations_surviving`; `registrations_flow` and `registrations_flow_wider` (from
