@@ -46,6 +46,10 @@
     "storage_key": "nzta.theme",
     "toggle": "Dark mode"
   },
+  "refresh_notice": {
+    "label": "Data refresh",
+    "text": "Figures for {month} are not here yet. Each month is added once NZTA publishes its data. This page shows the register as at {date|date}."
+  },
   "build_moved": {
     "title": "Build has moved to the canvas",
     "lead": "Charts are built on the canvas now. With scripts on, this page takes you there with your question.",
