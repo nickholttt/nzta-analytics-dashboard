@@ -104,7 +104,7 @@ Setup, **not re-run this session** (the environment already existed):
   `public/data/` only if every guardrail passes. Exit codes: 2 guardrail, 3 source, 4 DuckDB.
 - `pipeline/reconcile.py` (D-149): every build sets figures other organisations publish (`data/reference/published_figures.csv`, one row a figure, each with
   the dataset and filters it is set beside and a tolerance) beside the same figures read from the files it is about to publish, and writes
-  `reconciliation.json`. A row past its tolerance warns; two independent sources each well past theirs in one month, on the same side, and more than half of those compared that month, stop the build; and so does one figure of a kind `reconciliation.single_figure_limit` lists (`figure_kind` in the figures file) that is 5% or more from ours (D-150); a source restating its own figure by 5% or more (`restated_from`) warns and does not stop it (D-153).
+  `reconciliation.json`. A row past its tolerance warns; two independent sources each well past theirs in one month, on the same side, and more than half of those compared that month, stop the build; and so does one figure of a kind `reconciliation.single_figure_limit` lists (`figure_kind` in the figures file) that is 5% or more from ours (D-150); a source restating its own figure by 5% or more (`restated_from`) warns and is listed on `/status` and does not stop it (D-153).
   Adding a month's rows is a high-risk pull request (`docs/playbooks/add-published-figures.md`).
 - `pipeline/supplied.py` and `pipeline/series.py`: `python -m pipeline supply`, by hand only, checks one CSV a maintainer exports and adds its
   months to the store `data/supplied/<id>/` (counts and a ledger), which is committed to the repository (D-097), so GitHub reads the same
@@ -143,7 +143,7 @@ Setup, **not re-run this session** (the environment already existed):
 - `src/lib/comparison.ts` (pure, tested in `tests/site/comparison.test.ts`) reads `reconciliation.json` where the site is built and
   groups each organisation's published figures by what this site's figure is. `src/components/ComparisonSection.astro` draws
   "How our figures compare" on the Differences page from it, in the words of `config/comparison.json` (held to the template lint), with no
-  script; `ReconciliationStatus.astro` lists every row on the internal status page. A build whose data has no such file says so in one sentence (D-150).
+  script; `ReconciliationStatus.astro` lists every row on the internal status page, with a short list of the figures a source restated by 5% or more at its top (D-153). A build whose data has no such file says so in one sentence (D-150).
 - `scripts/unmatched_hybrids.py` lists, for one dataset, the hybrids that count against its mild hybrid coverage at high
   confidence, by make and model. Run by hand when a build warns that the split flipped (`docs/playbooks/check-monthly-run.md`,
   D-112); it reads the repository and a saved pull and writes nothing.

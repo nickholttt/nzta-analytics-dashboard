@@ -421,7 +421,7 @@ never stop it. (D-150; the whole rule, with the sizes it was measured at, is in 
 *A source restating its own figure* (D-153) does not stop a build. When a source's page shows a different figure for a month and
 measure already in the file, read it again, put the new figure in `figure` and the old one in `restated_from`. A restatement of
 `reconciliation.restatement_warn_pct` percent or more of the old figure (today 5, exactly 5 counts) is warned about in the build
-and the row is never better than `warn`. On such a row the one-figure rule stops the build only when
+and listed on `/status`, and the row is never better than `warn`. On such a row the one-figure rule stops the build only when
 ours is `gap_pct` percent or more from both the new and the old figure; the separate-counts rule is unchanged. The column is
 blank on every row today.
 

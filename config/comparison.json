@@ -46,6 +46,20 @@
     "many": "{count} further figures are checked the same way in every build. They are not shown here.",
     "one": "One further figure is checked the same way in every build. It is not shown here."
   },
+  "restated": {
+    "heading": "Figures a source has restated",
+    "intro": "{count} of the figures below were published earlier by their source, which now publishes another figure for the same month and measure, by the size the build warns about or more. Each is shown with the figure it published before and the one it publishes now. The build warns and goes on: a gap between the source's figure and this site's is still judged as it was.",
+    "caption": "Figures a source has restated, newest month first",
+    "columns": {
+      "month": "Month",
+      "source": "Source",
+      "measure": "Measure as published",
+      "earlier": "Earlier figure",
+      "current": "Current figure",
+      "change": "Change",
+      "ours": "This site's figure"
+    }
+  },
   "absent": "The comparison with figures that organisations beyond this site publish is not in this build of the site yet. It arrives with the next monthly refresh.",
   "empty": "No published figures have been set beside this site's in this build."
 }

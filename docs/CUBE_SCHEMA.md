@@ -727,7 +727,7 @@ as a percentage of the earlier figure, and exactly that size counts (exact arith
 
 1. A restatement of that size or more makes the build print one warning line for the row (the month, the source, the measure, the two
    figures and the percentage), and the row is never better than `warn`: a row within its tolerance becomes `warn`, a row that was
-   not compared stays `not_compared`. The build is not stopped by the restatement.
+   not compared stays `not_compared`. It is listed on the status page. The build is not stopped by the restatement.
 2. On such a row the single-figure limit stops the build only when ours is `gap_pct` percent or more from **both** the source's
    current figure and its earlier one (each as a share of that figure, inclusive). If ours is within the limit of either, the row
    warns, and the warning line says how far ours is from each. A row restated by less than the warning size, and every row that was

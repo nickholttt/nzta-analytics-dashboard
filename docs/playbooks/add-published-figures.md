@@ -50,8 +50,8 @@ explained, not a way to quiet a warning.
   in NZTA's raw codes.
 - **A source's page shows a different figure for a month already in the file** (it has restated it). Read the page again, put
   the new figure in `figure`, the old one in `restated_from`, and the day you read it in `date_read`; change nothing else on the
-  row. A restatement of `reconciliation.restatement_warn_pct` percent or more (5, exactly 5 counts) is warned about in the build;
-  it does not stop the build, and on that row the one-figure rule then stops it only when ours is 5% or
+  row. A restatement of `reconciliation.restatement_warn_pct` percent or more (5, exactly 5 counts) is warned about in the build
+  and listed on `/status`; it does not stop the build, and on that row the one-figure rule then stops it only when ours is 5% or
   more from both figures (D-153). A build never reads the page, so a row not corrected is not seen: the old figure still stands
   in the file, and a gap between it and ours stops the build as it did before. Leave the column blank for a figure the source
   has not changed, and never fill it to quiet a gap: that is what the rule above forbids.

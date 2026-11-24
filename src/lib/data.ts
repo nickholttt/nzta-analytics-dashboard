@@ -134,6 +134,11 @@ export type ReconciliationRow = {
   // Null, or a word for what the source's own figures were added up from ("chart", "table").
   added_up_from: string | null;
   stops_alone_pct: number | null;
+  // The figure the source published before it restated this one, and the change from it as a share of it; whether the change is the size the
+  // build warns about (D-153). Absent from a file written before they existed.
+  restated_from?: number | null;
+  restated_pct?: number | null;
+  restated_past_warning?: boolean;
 };
 export type Reconciliation = {
   latest_snapshot: string;
