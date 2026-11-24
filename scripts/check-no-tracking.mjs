@@ -47,10 +47,12 @@ const FETCHING = {
 };
 const LINK_NOT_A_REQUEST = new Set(["canonical", "alternate", "author", "license", "help", "next", "prev", "search", "bookmark"]);
 
-// The attributes of a tag, their values decoded as a browser decodes them (&quot; and &#39; are quotes, not text).
+// The attributes of a tag, their values decoded as a browser decodes them (&quot; and &#39; are quotes, not text). A value
+// written without quotes runs to the next white space or the tag's end, as a browser reads it: an "=" or a quote inside
+// it is part of the value, not its end.
 function attributes(tag) {
   const found = {};
-  for (const m of tag.matchAll(/([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) found[m[1].toLowerCase()] = decodeEntities(m[2] ?? m[3] ?? "");
+  for (const m of tag.matchAll(/([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g)) found[m[1].toLowerCase()] = decodeEntities(m[2] ?? m[3] ?? m[4] ?? "");
   return found;
 }
 
