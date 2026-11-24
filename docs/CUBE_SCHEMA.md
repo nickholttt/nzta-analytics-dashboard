@@ -734,7 +734,7 @@ as a percentage of the earlier figure, and exactly that size counts (exact arith
    not restated, is judged as above.
 3. The hard limit is unchanged and counts the row against its current figure only.
 4. A build never reads a source's page, so a restatement is known only from the file: a source that restates a figure the file
-   still holds as before is not seen, and a gap between that figure and ours stops the build as rules 1 to 3 above say, until the
+   still holds as before is not seen, and a gap between that figure and ours stops the build as the single-figure limit and the hard limit say, until the
    row is read again and corrected.
 
 On the 336 rows committed on 2026-11-23 the rule applies to 94: the 44 `mta_vstat` and 44 `statsnz` passenger figures and the

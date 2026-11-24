@@ -57,7 +57,7 @@ const percent = (n: number | null | undefined) => (n === null || n === undefined
                   </thead>
                   <tbody>
                     {restated.rows.map((r) => (
-                      <tr class="recon-warn">
+                      <tr class:list={[`recon-${r.status}`]}>
                         <td class="nowrap">{r.month}</td>
                         <td>{r.source}</td>
                         <td class="measure">{r.measure}</td>

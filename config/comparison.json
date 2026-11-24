@@ -48,7 +48,7 @@
   },
   "restated": {
     "heading": "Figures a source has restated",
-    "intro": "{count} of the figures below were published earlier by their source, which now publishes another figure for the same month and measure, by the size the build warns about or more. Each is shown with the figure it published before and the one it publishes now. The build warns and goes on: a gap between the source's figure and this site's is still judged as it was.",
+    "intro": "{count} of the figures below were published earlier by their source, which now publishes another figure for the same month and measure, by the size the build warns about or more. Each is shown with the figure it published before and the one it publishes now. The build warns about each one. On these rows a single figure stops the build when this site's figure is the single-figure limit or more from both of the source's figures, and not when it is within that limit of either. The limit that takes more than one source counts each row against its current figure, as it does any row.",
     "caption": "Figures a source has restated, newest month first",
     "columns": {
       "month": "Month",

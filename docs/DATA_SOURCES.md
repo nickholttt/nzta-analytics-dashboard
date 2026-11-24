@@ -467,7 +467,7 @@ How each was read, and what that means for a row:
   releases as published by Scoop, 11 from GoAuto's monthly reports and one from Autofile's, each of which credits the MIA for
   the figure on the page. Since D-152 a figure's link is a news page where one gives the same figure, and Scoop's copy of the
   release only where none does: 6 rows are still Scoop's (the light passenger and commercial figures of January and February 2025,
-  the light commercial figure of February 2026 and of June 2026), 45 are GoAuto's, one Autofile's and one Autotrader NZ's, which
+  the commercial figure, light and heavy added, of February 2026 and of June 2026), 45 are GoAuto's, one Autofile's and one Autotrader NZ's, which
   carries the one passenger figure for February 2026. Its own site carries no past month, and its statistics pages are for members and were not read.
   Every figure was read on the page at the row's `source_url` on 2026-11-24, twice: by a reader, and then by a script that
   fetched each page again and found the figure and its sentence in the page's text. A row's measure is this file's

@@ -277,7 +277,7 @@ export function comparisonView(reconciliation: Reconciliation | undefined | null
 
 // ---- The internal list of restated figures ----
 
-export type RestatedFigure = { month: string; monthLabel: string; source: string; measure: string; earlier: string; current: string; change: string; ours: string | null };
+export type RestatedFigure = { month: string; status: ReconciliationStatus; source: string; measure: string; earlier: string; current: string; change: string; ours: string | null };
 
 export type RestatedView = {
   heading: string;
@@ -306,7 +306,7 @@ export function restatedView(reconciliation: Reconciliation | undefined | null, 
     columns: w.restated.columns,
     rows: restated.map((row) => ({
       month: row.month,
-      monthLabel: monthLabel(row.month),
+      status: row.status,
       source: sources[row.source]?.name ?? row.source,
       measure: row.measure_as_published,
       earlier: figure(row.restated_from as number),
