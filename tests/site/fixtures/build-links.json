@@ -1,0 +1,33 @@
+{
+  "$comment": "Links made for the Build page, as they were written before the canvas replaced it (tests/site/build-link.test.ts opens each as the old page did and as the canvas now does). The first group is every Build link the site and its measurements held: the pages scripts/measure-first-load.mjs visited, the two on the Differences page, and the saved questions of tests/site/saved.test.ts; the queries of scripts/query_service_prototype/questions.json are read from that file, not copied here. The second group is one link for each part of a Build address the first group does not use. They are data, so no field or value is named in a test.",
+  "held": [
+    { "name": "first load, three brands", "link": "/build/?build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger" },
+    { "name": "first load, eight fields", "link": "/build/?build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger&build.where.import_status=NZ%20New&build.where.engine_size_band=1.5-1.9%20L&build.where.engine_size_band=2.0-2.4%20L&build.where.built_in=JAPAN&build.where.built_in=THAILAND&build.where.built_in=CHINA&build.where.age_at_registration_band=0&build.where.heritage_country=Japan&build.where.heritage_country=United%20States&build.where.heritage_country=China" },
+    { "name": "Differences page, the Build page", "link": "/build/" },
+    { "name": "Differences page, a share by a group", "link": "/build/?build.measure=share&build.by=powertrain_group" },
+    { "name": "saved question, a count", "link": "/build?build.measure=count&build.by=make" },
+    { "name": "saved question, pinned", "link": "/build?build.measure=share&build.by=make&build.snapshot=2026-10" },
+    { "name": "saved question, a ranking in a month", "link": "/build?build.measure=count&build.by=make&build.value=a&build.value=b&build.view=league&build.month=2026-08" },
+    { "name": "saved question, a setting", "link": "/build?build.measure=count&build.by=make&build.period=1y" }
+  ],
+  "more": [
+    { "name": "a grid of two fields", "link": "/build/?build.measure=count&build.by=powertrain&build.by2=segment" },
+    { "name": "a grid with values, a pin and a cell setting", "link": "/build/?build.measure=share&build.by=powertrain&build.by2=segment&build.value=Petrol&build.value2=Car&build.snapshot=2026-10&build.cells=column" },
+    { "name": "a pin on a measure of two parts", "link": "/build/?build.measure=share_and_count&build.by=make&build.value=a&build.value=b&build.snapshot=2026-10" },
+    { "name": "a measure of two parts with a setting for each part", "link": "/build/?build.measure=share_and_count&build.by=make&build.value=a&build.value=b&build.period=5y&build-count.period=1y&build-count.range=all" },
+    { "name": "a ranking of a measure of two parts", "link": "/build/?build.measure=share_and_count&build.by=make&build.value=a&build.value=b&build.view=league" },
+    { "name": "a grid of a measure of two parts", "link": "/build/?build.measure=share_and_count&build.by=powertrain&build.by2=segment" },
+    { "name": "a chart type chosen", "link": "/build/?build.measure=share&build.by=make&build.view=league" },
+    { "name": "a ranking of every value", "link": "/build/?build.measure=count&build.by=make&build.value=a&build.value=b&build.view=league&build.rank=all" },
+    { "name": "a total", "link": "/build/?build.measure=count&build.by=" },
+    { "name": "another dataset", "link": "/build/?build.dataset=registrations_flow&build.measure=count&build.by=powertrain" },
+    { "name": "a condition on the breakdown, and a field kept off", "link": "/build/?build.measure=share&build.by=powertrain&build.where.powertrain=Petrol&build.widen=segment" }
+  ],
+  "strange": [
+    { "name": "names nothing the data has", "link": "/build/?build.measure=no_such_measure&build.by=no_such_field&build.value=zzz&build.where.no_such_field=zzz&build.view=no_such_view&build.snapshot=soon&build.period=forever&build.nothing=1&other=2" },
+    { "name": "values with no field", "link": "/build/?build.value=a&build.value2=b&build.by2=powertrain&build.rank=all&build.widen=" },
+    { "name": "parameters of no page", "link": "/build/?utm_source=x&a=b" },
+    { "name": "a broken escape", "link": "/build/?build.by=%E0%A4%A&build.where.x=%" },
+    { "name": "a very long value", "link": "/build/?build.measure=count&build.by=make&build.value=a&build.value=a&build.value=a&build.value=a&build.value=a&build.value=a&build.value=a&build.value=a&build.value=a&build.value=a&build.value=a&build.value=a" }
+  ]
+}

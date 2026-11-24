@@ -377,6 +377,9 @@ export function pinCanvas(canvas: Canvas, manifest: Manifest, month: string | nu
 // under its own (questionParams), with the chart's type, whether it shows a table, and its width. The panel that draws a chart keeps the
 // chart's own settings (its time range, a month) under the same id. Nothing a visitor types is ever in the address.
 
+// Where the canvas is, as an address: a link that opens a canvas is this path and a query.
+export const CANVAS_PATH = "/canvas/";
+
 const pageKey = (name: string) => `${canvasSpec.id}.${name}`;
 const CHARTS = "charts";
 const TYPE = "type";
@@ -410,9 +413,15 @@ export function readCanvas(search: string): AskedChart[] {
 // A chart from what a link asked for, kept as far as the data can answer it: the nearest question (settle), and a type that is one of
 // the six. Whether the build draws that type is checked once the manifest is known (withFittingTypes).
 export function settleChart(all: Vocabulary, a: AskedChart): CanvasChart {
-  const question: Question = { ...settle(all, a.asked), view: null };
+  const settled = settle(all, a.asked);
+  // A link that ranks every value (the Build page's `rank=all`, which the canvas never writes) is a ranking with no values chosen: the canvas
+  // ranks the values a chart has, and a chart with none ranks them all.
+  const ranksAll = settled.view === RANKING && settled.rankAll === true;
+  const question: Question = ranksAll ? { ...settle(all, { ...settled, values: [], pageValues: undefined, view: null, rankAll: false }), view: null } : { ...settled, view: null };
+  // The view a Build link chose is the chart type, where the question still has it (settle keeps a view the question fits and no other).
+  const type = isShape(a.type) ? a.type : isShape(settled.view) ? settled.view : null;
   // The preset a link names is kept only while the question is the preset's: an id config does not have, or a question that has since changed, is left out.
-  return { id: a.id, question, type: isShape(a.type) ? a.type : null, table: a.table, width: a.width, ...(a.preset && standsFor(question, a.preset) ? { preset: a.preset } : {}) };
+  return { id: a.id, question, type, table: a.table, width: a.width, ...(a.preset && standsFor(question, a.preset) ? { preset: a.preset } : {}) };
 }
 
 // What a link asked of a chart's title that the page did not give, said as the canvas says the rest of what a link asked and did not get.

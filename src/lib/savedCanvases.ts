@@ -4,7 +4,7 @@
 // never in a link.
 import { isMonthKey } from "./builder";
 import type { Vocabulary } from "./builder";
-import { canvasAddress, canvasSpec, pinCanvas, readCanvas, settleCanvas } from "./canvas";
+import { CANVAS_PATH, canvasAddress, canvasSpec, pinCanvas, readCanvas, settleCanvas } from "./canvas";
 import type { Manifest } from "./data";
 import type { Kind, Saved } from "./saved";
 
@@ -36,7 +36,7 @@ export function canvasQuery(search: string): string | undefined {
 export const CANVASES: Kind = { key: STORAGE_KEY, keep: canvasQuery, maxQuery: MAX_QUERY };
 
 // Where a saved canvas opens: the canvas page, with the canvas in the address.
-export const canvasHref = (entry: Pick<Saved, "query">): string => `/canvas/?${entry.query}`;
+export const canvasHref = (entry: Pick<Saved, "query">): string => `${CANVAS_PATH}?${entry.query}`;
 
 // The list as plain text a visitor can paste anywhere: each name, then its link, in the order listed.
 export const canvasLinks = (items: Saved[], origin: string): string => items.map((i) => `${i.name}\n${origin}${canvasHref(i)}`).join("\n\n");

@@ -8,3 +8,5 @@ export const aboutCopy = siteDoc.about;
 
 // The marker every unfilled gap on the About page carries, so one search finds them all.
 export const PLACEHOLDER_MARK = "TO DECIDE";
+// The Build page's words: it only sends a visitor on to the canvas (src/pages/build.astro).
+export const buildMoved = siteDoc.build_moved;
