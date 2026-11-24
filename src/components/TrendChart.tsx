@@ -28,21 +28,8 @@ import { TRAILING_MONTHS, addMonths, collapsedAgainstTrailingMedian, counted, mo
 import { fillNote } from "../lib/notes";
 import { count, greyedReason, markReason, monthPeriod, readout } from "../lib/readout";
 import type { Greyed } from "../lib/readout";
-import {
-  LINE_WIDTH,
-  PAPER,
-  RULE,
-  RULE_STRONG,
-  SERIES,
-  SUPPRESSED_BAND,
-  SUPPRESSED_LINE,
-  THIN_LINE_WIDTH,
-  chartHeight,
-  plotStyle,
-  seriesColour,
-  tipStyle,
-  xTicks,
-} from "../lib/theme";
+import { LINE_WIDTH, THIN_LINE_WIDTH, chartHeight, plotStyle, seriesColour, tipStyle, xTicks } from "../lib/theme";
+import { usePalette } from "../lib/useTheme";
 import { ChartSentence, useComparable } from "./ChartSentence";
 import { FiguresTable } from "./FiguresTable";
 import type { Cell } from "../lib/figures";
@@ -106,6 +93,7 @@ export function TrendChart(props: Props) {
 // One line per value of the dimension and one for the total, each a share of the denominator dataset's count for the same
 // month. The axis starts where the data does, and says so, since a share that stays near 100% would otherwise draw flat.
 function RatioTrend({ preset, rows, companion, manifest, lead = false, label = asIs }: Props & { companion: SliceRow[] }) {
+  const pal = usePalette();
   const derived = findDerived(preset.derived);
   const guards = derived?.guards ?? {};
   const totalLabel = derived?.total_label ?? "All";
@@ -131,7 +119,7 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = a
     return { from: all[0], to: all[all.length - 1], base: Math.max(0, Math.floor(low * 20) / 20 - 0.05), top: Math.max(1, high) * 1.02 };
   }, [series]);
   const starts = model.from === firstMonth ? startsSentence : undefined;
-  const colour = (i: number) => seriesColour(i);
+  const colour = (i: number) => seriesColour(pal, i);
   const render = useCallback(
     (width: number) =>
       Plot.plot({
@@ -141,14 +129,14 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = a
         marginLeft: 48,
         marginRight: 16,
         marginBottom: 28,
-        style: plotStyle,
+        style: plotStyle(pal),
         x: { type: "utc", label: null, domain: [monthDate(model.from), monthDate(addMonths(model.to, 1))] },
         y: { label: null, domain: [model.base, model.top] },
         marks: [
-          Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
+          Plot.gridY({ ticks: 5, stroke: pal.rule, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => `${Math.round(d * 100)}%` }),
-          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
-          Plot.ruleY([1], { stroke: RULE_STRONG, strokeDasharray: "3,3" }),
+          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: pal.ruleStrong, label: null }),
+          Plot.ruleY([1], { stroke: pal.ruleStrong, strokeDasharray: "3,3" }),
           ...series.flatMap((s, i) => {
             const data = s.points.map((p) => ({ ...p, date: monthDate(p.month), name: name(s) }));
             // Every month in the window, with no value where a month is left out, so the line breaks there instead of joining
@@ -163,7 +151,7 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = a
                 Plot.pointerX({
                   x: "date",
                   y: "value",
-                  ...tipStyle,
+                  ...tipStyle(pal),
                   title: (p: RatioPoint & { name: string }) => readout({ name: p.name, period: monthPeriod(p.month), share: p.value, n: p.n, base: p.denominator }),
                 }),
               ),
@@ -171,7 +159,7 @@ function RatioTrend({ preset, rows, companion, manifest, lead = false, label = a
           }),
         ],
       }),
-    [model, series, lead, label, totalLabel],
+    [model, series, lead, label, totalLabel, pal],
   );
   const lastOf = (s: RatioSeries) => s.points[s.points.length - 1];
   return (
@@ -211,6 +199,7 @@ type ValuePoint = { month: string; date: Date; series: string; y?: number };
 // uses for its first slots, so a value shown as a share and as a count wears the same colour in both. A count carries
 // no share guard, so nothing is greyed.
 function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asIs, values }: Props & { values: string[] }) {
+  const pal = usePalette();
   const rolling = preset.measure === "rolling_12m";
   const model = useMemo(() => {
     const months = [...new Set(rows.map((r) => r.month))].sort();
@@ -246,8 +235,8 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
   }, [rows, preset, manifest, values, rolling, covers]);
 
   const colour = useCallback(
-    (s: string) => seriesColour([...model.totals].sort((a, b) => (b.n ?? -1) - (a.n ?? -1) || nameOrder(label(a.series), label(b.series))).findIndex((t) => t.series === s)),
-    [model.totals, label],
+    (s: string) => seriesColour(pal, [...model.totals].sort((a, b) => (b.n ?? -1) - (a.n ?? -1) || nameOrder(label(a.series), label(b.series))).findIndex((t) => t.series === s)),
+    [model.totals, label, pal],
   );
 
   const render = useCallback(
@@ -264,35 +253,35 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
         marginLeft: 56,
         marginRight: 16,
         marginBottom: 28,
-        style: plotStyle,
+        style: plotStyle(pal),
         x: { type: "utc", label: null, domain: [monthDate(model.win.from), monthDate(addMonths(model.win.to, 1))] },
         y: { label: null, domain: [0, yMax] },
         color: { domain: values, range: values.map(colour) },
         marks: [
           Plot.rect(
             model.runs.map((r) => ({ x1: monthDate(r.from), x2: monthDate(addMonths(r.to, 1)), y1: 0, y2: yMax })),
-            { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: SUPPRESSED_BAND },
+            { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: pal.suppressedBand },
           ),
-          Plot.gridY({ ticks, stroke: RULE, strokeOpacity: 1 }),
+          Plot.gridY({ ticks, stroke: pal.rule, strokeOpacity: 1 }),
           Plot.axisY({ ticks, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => d.toLocaleString() }),
-          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
-          Plot.ruleY([0], { stroke: RULE_STRONG }),
+          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: pal.ruleStrong, label: null }),
+          Plot.ruleY([0], { stroke: pal.ruleStrong }),
           Plot.lineY(model.points, { x: "date", y: "y", z: "series", stroke: "series", strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" }),
-          Plot.ruleX(drawn, Plot.pointerX({ x: "date", stroke: RULE_STRONG })),
-          Plot.dot(drawn, Plot.pointer({ x: "date", y: "y", r: 4, fill: "series", stroke: PAPER, strokeWidth: 1.5 })),
+          Plot.ruleX(drawn, Plot.pointerX({ x: "date", stroke: pal.ruleStrong })),
+          Plot.dot(drawn, Plot.pointer({ x: "date", y: "y", r: 4, fill: "series", stroke: pal.paper, strokeWidth: 1.5 })),
           Plot.tip(
             drawn,
             Plot.pointer({
               x: "date",
               y: "y",
-              ...tipStyle,
+              ...tipStyle(pal),
               title: (p: ValuePoint) => readout({ name: label(p.series), period: monthPeriod(p.month, rolling), n: p.y }),
             }),
           ),
         ],
       });
     },
-    [model, lead, values, colour, label, rolling],
+    [model, lead, values, colour, label, rolling, pal],
   );
 
   const names = values.map(label).join(", ");
@@ -364,6 +353,7 @@ function ValuesTrend({ preset, rows, manifest, covers, lead = false, label = asI
 }
 
 function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFraction, lead = false, label = asIs, month, onMonth, after }: Props) {
+  const pal = usePalette();
   const derived = preset.derived ? findDerived(preset.derived) : undefined;
   const share = derived?.unit === PERCENT;
   const words = datasetWords(preset.dataset);
@@ -491,37 +481,37 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
         marginLeft: share ? 44 : 56,
         marginRight: 16,
         marginBottom: 28,
-        style: plotStyle,
+        style: plotStyle(pal),
         x: { type: "utc", label: null, domain: [monthDate(model.win.from), monthDate(addMonths(model.win.to, 1))] },
         y: { label: null, domain: [0, yMax] },
         marks: [
-          Plot.rect(model.bands.map((b) => ({ ...b, y1: 0, y2: yMax })), { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: SUPPRESSED_BAND }),
+          Plot.rect(model.bands.map((b) => ({ ...b, y1: 0, y2: yMax })), { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: pal.suppressedBand }),
           ...(chosen
             ? [
-                Plot.ruleX([monthDate(chosen)], { stroke: RULE_STRONG, strokeDasharray: "3,3" }),
-                Plot.dot(model.points.filter((p) => p.month === chosen && p.y !== undefined), { x: "date", y: "y", r: 5, fill: SERIES[0], stroke: PAPER, strokeWidth: 2 }),
+                Plot.ruleX([monthDate(chosen)], { stroke: pal.ruleStrong, strokeDasharray: "3,3" }),
+                Plot.dot(model.points.filter((p) => p.month === chosen && p.y !== undefined), { x: "date", y: "y", r: 5, fill: pal.series[0], stroke: pal.paper, strokeWidth: 2 }),
               ]
             : []),
-          Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
+          Plot.gridY({ ticks: 5, stroke: pal.rule, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: format }),
-          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
-          Plot.ruleY([0], { stroke: RULE_STRONG }),
-          Plot.lineY(model.points, { x: "date", y: "y", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH, clip: true }),
+          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: pal.ruleStrong, label: null }),
+          Plot.ruleY([0], { stroke: pal.ruleStrong }),
+          Plot.lineY(model.points, { x: "date", y: "y", stroke: pal.suppressedLine, strokeWidth: THIN_LINE_WIDTH, clip: true }),
           Plot.lineY(
             model.points.map((p) => (p.suppressed ? { ...p, y: undefined } : p)),
-            { x: "date", y: "y", stroke: SERIES[0], strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" },
+            { x: "date", y: "y", stroke: pal.series[0], strokeWidth: LINE_WIDTH, strokeLinejoin: "round", strokeLinecap: "round" },
           ),
-          Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: RULE_STRONG })),
+          Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: pal.ruleStrong })),
           Plot.dot(
             model.points.filter((p) => p.y !== undefined),
-            Plot.pointerX({ x: "date", y: inFrame, r: 4, fill: SERIES[0], stroke: PAPER, strokeWidth: 1.5 }),
+            Plot.pointerX({ x: "date", y: inFrame, r: 4, fill: pal.series[0], stroke: pal.paper, strokeWidth: 1.5 }),
           ),
           Plot.tip(
             model.points.filter((p) => p.y !== undefined),
             Plot.pointerX({
               x: "date",
               y: inFrame,
-              ...tipStyle,
+              ...tipStyle(pal),
               title: (p: Point) =>
                 readout({
                   name,
@@ -540,7 +530,7 @@ function OneTrend({ preset, rows, manifest, covers, minDenominator, collapseFrac
         ],
       });
     },
-    [model, share, lead, name, preset.measure, minDenominator, chosen, showYear, rows, label],
+    [model, share, lead, name, preset.measure, minDenominator, chosen, showYear, rows, label, pal],
   );
 
   // A click or tap on the chart reads the month nearest to it. The month list is the keyboard's way to the same thing.

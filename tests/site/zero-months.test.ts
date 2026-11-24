@@ -211,7 +211,7 @@ test("the charts that draw a greyed line set the axis with axisTop, clip the gre
   for (const file of ["src/components/MixChart.tsx", "src/components/TrendChart.tsx"]) {
     const source = readFileSync(new URL(`../../${file}`, import.meta.url), "utf8");
     assert.ok(source.includes("axisTop(model.points.map((p) => ({ value: "), file);
-    assert.ok(source.includes("stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH, clip: true"), file);
+    assert.ok(source.includes("stroke: pal.suppressedLine, strokeWidth: THIN_LINE_WIDTH, clip: true"), file);
     assert.ok(source.includes("const inFrame = (p: Point) => Math.min("), file);
   }
   const panel = readFileSync(new URL("../../src/components/PresetPanel.tsx", import.meta.url), "utf8");
