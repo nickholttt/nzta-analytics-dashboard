@@ -23,10 +23,11 @@ export default function FieldList({ all, question, groups, onDragStart, onDragEn
   const shown = groups.map((g) => ({ ...g, fields: g.fields.filter((f) => !needle || f.label.toLowerCase().includes(needle)) })).filter((g) => g.fields.length > 0);
 
   return (
-    <section className="field-list" aria-labelledby="canvas-fields-title">
-      <h2 className="pane-title" id="canvas-fields-title">
+    // A part of the editing panel, under the chart's zones: its heading is one level under the panel's.
+    <div className="field-list">
+      <h3 className="pane-title" id="canvas-fields-title">
         {say("pane_fields")}
-      </h2>
+      </h3>
       <label className="visually-hidden" htmlFor="canvas-field-search">
         {say("search_fields")}
       </label>
@@ -34,9 +35,9 @@ export default function FieldList({ all, question, groups, onDragStart, onDragEn
       {shown.length === 0 ? <p className="zone-empty">{say("no_field_matches", { query: query.trim() })}</p> : null}
       {shown.map((g) => (
         <div className="field-group" key={g.id}>
-          <h3 className="zone-label" id={`canvas-fields-${g.id}`}>
+          <h4 className="zone-label" id={`canvas-fields-${g.id}`}>
             {g.label}
-          </h3>
+          </h4>
           <ul aria-labelledby={`canvas-fields-${g.id}`}>
             {g.fields.map((f) => {
               const ok = usable(all, question, f);
@@ -77,6 +78,6 @@ export default function FieldList({ all, question, groups, onDragStart, onDragEn
           </>
         ) : null}
       </p>
-    </section>
+    </div>
   );
 }

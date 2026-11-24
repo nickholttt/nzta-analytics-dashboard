@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { MAX_VALUES, RANKING, questionParams, withValues } from "../../lib/builder";
 import type { Question, Vocabulary } from "../../lib/builder";
-import { TABLE, WIDTHS, bestType, canvasSpec, chartQuestion, chartTypes, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
+import { FIELD_ZONES, TABLE, WIDTHS, bestType, canvasSpec, chartQuestion, chartTypes, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
 import type { CanvasChart, CanvasField, Width, Zone } from "../../lib/canvas";
 import { chartDefaults, findDataset, lowerLabel } from "../../lib/config";
 import type { Manifest } from "../../lib/data";
@@ -15,6 +15,9 @@ import type { Owner } from "../../lib/kept";
 import { ValuePicker, focusSoon, valueLabel } from "../ValuePicker";
 import { useReading } from "../useReading";
 import type { Refusal } from "./Canvas";
+
+// The zones held at the top of the panel while a field is dragged: the ones a field is put into, and the period.
+const PINNED_ZONES: readonly Zone[] = [...FIELD_ZONES, "period"];
 
 const without = (where: Record<string, string[]>, dimension: string) => Object.fromEntries(Object.entries(where).filter(([d]) => d !== dimension));
 
@@ -253,8 +256,22 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
   // The question as one text, to tell one question from the next.
   const asked = `${String(questionParams(q, chart.id))}|${q.values.join("|")}`;
 
+  // A field let go over one of the pinned zones: once the drag is over, the panel is scrolled to where the zones were pinned, so the zone
+  // dropped on stays in view with what the drop did, or why it could not. A drag let go anywhere else leaves the list where it was.
+  const group = useRef<HTMLDivElement>(null);
+  const dropped = useRef(false);
+  const drop = (zone: Zone, field: CanvasField) => {
+    dropped.current = PINNED_ZONES.includes(zone);
+    onPut(zone, field);
+  };
+  useEffect(() => {
+    if (dragging || !dropped.current) return;
+    dropped.current = false;
+    group.current?.scrollIntoView({ block: "nearest" });
+  }, [dragging]);
+
   const box = (zone: Zone, children: ReactNode) => (
-    <ZoneBox zone={zone} dragging={dragging} refused={refusal?.zone === zone ? refusal.reason : undefined} verdictOf={(field) => verdict(all, q, zone, field)} onPut={onPut}>
+    <ZoneBox zone={zone} dragging={dragging} refused={refusal?.zone === zone ? refusal.reason : undefined} verdictOf={(field) => verdict(all, q, zone, field)} onPut={drop}>
       {children}
     </ZoneBox>
   );
@@ -286,12 +303,10 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
   const shown = chart.table ? TABLE : type;
   const typeHelp = shown === TABLE ? canvasSpec.table.help : canvasSpec.chart_types.find((t) => t.id === shown)?.help;
 
+  // No box of its own: the parts sit straight in the editing panel (Editor.tsx), so the zones that take a field can be held at the top of the
+  // panel while a field is dragged from anywhere in the list under them.
   return (
-    <section className="chart-pane" aria-labelledby="canvas-pane-title">
-      <h2 className="pane-title" id="canvas-pane-title">
-        {of > 1 ? say("card_label", { number }) : say("pane_chart")}
-      </h2>
-
+    <>
       <Actions
         // A canvas of one chart has nowhere to move it and keeps it: it can be copied.
         actions={[
@@ -348,141 +363,146 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
         />,
       )}
 
-      {box(
-        "by",
-        q.by ? (
-          <>
-            <FieldChip
-              field={q.by}
-              zone="by"
-              onRemove={
-                m.allowsTotal
-                  ? () => {
-                      onRemoved(q.by as string, "by");
-                      onAsk({ by: null, values: [], by2: null, values2: [] });
-                      toZone("by");
-                    }
-                  : undefined
-              }
-            />
-            {breakdown?.values
-              ? values(
-                  "by",
-                  q.by,
-                  q.pageValues ? [] : q.values,
-                  type === RANKING ? say("values_every") : say("values_page"),
-                  <ValuePicker
-                    dataset={q.dataset}
-                    dimension={q.by}
-                    noun={lowerLabel(fieldLabel(q.by))}
-                    // The page's own starting values are not the visitor's: the list starts empty, and the first value chosen replaces them.
-                    chosen={q.pageValues ? [] : q.values}
-                    where={applicable(q.where)}
-                    snapshot={pickAt(q.by, applicable(q.where))}
-                    max={q.by2 ? chartDefaults.matrix.rows : MAX_VALUES}
-                    onChange={(next) => onAsk({ values: next, pageValues: false })}
-                    idPrefix={`${chart.id}-by`}
-                  />,
-                )
-              : null}
-          </>
-        ) : (
-          <p className="zone-empty">{say("by_empty")}</p>
-        ),
-      )}
-
-      {box(
-        "by2",
-        q.by2 ? (
-          <>
-            <FieldChip
-              field={q.by2}
-              zone="by2"
-              onRemove={() => {
-                onRemoved(q.by2 as string, "by2");
-                onAsk({ by2: null, values2: [] });
-                toZone("by2");
-              }}
-            />
-            {second?.values
-              ? values(
-                  "by2",
-                  q.by2,
-                  q.values2 ?? [],
-                  say("values_page"),
-                  <ValuePicker
-                    dataset={q.dataset}
-                    dimension={q.by2}
-                    noun={lowerLabel(fieldLabel(q.by2))}
-                    chosen={q.values2 ?? []}
-                    where={applicable(q.where)}
-                    snapshot={pickAt(q.by2, applicable(q.where))}
-                    max={chartDefaults.matrix.columns}
-                    onChange={(next) => onAsk({ values2: next })}
-                    idPrefix={`${chart.id}-by2`}
-                  />,
-                )
-              : null}
-          </>
-        ) : (
-          <p className="zone-empty">{say("by2_empty")}</p>
-        ),
-      )}
-
-      {box(
-        "where",
-        Object.keys(q.where).length === 0 ? (
-          <p className="zone-empty">{say("where_empty")}</p>
-        ) : (
-          Object.entries(q.where).map(([d, kept]) => (
-            <div className="zone-filter" key={d}>
+      {/* The zones a field is put into. While a field is held they are pinned to the top of the panel (or of the window, where the panel opens
+          below the chart), so every one of them can be reached from anywhere in the field list without the list moving under the pointer.
+          Pinning moves nothing else: the group keeps its place in the panel. */}
+      <div className="zone-group" ref={group} data-pinned={dragging ? "" : undefined}>
+        {box(
+          "by",
+          q.by ? (
+            <>
               <FieldChip
-                field={d}
-                zone="where"
+                field={q.by}
+                zone="by"
+                onRemove={
+                  m.allowsTotal
+                    ? () => {
+                        onRemoved(q.by as string, "by");
+                        onAsk({ by: null, values: [], by2: null, values2: [] });
+                        toZone("by");
+                      }
+                    : undefined
+                }
+              />
+              {breakdown?.values
+                ? values(
+                    "by",
+                    q.by,
+                    q.pageValues ? [] : q.values,
+                    type === RANKING ? say("values_every") : say("values_page"),
+                    <ValuePicker
+                      dataset={q.dataset}
+                      dimension={q.by}
+                      noun={lowerLabel(fieldLabel(q.by))}
+                      // The page's own starting values are not the visitor's: the list starts empty, and the first value chosen replaces them.
+                      chosen={q.pageValues ? [] : q.values}
+                      where={applicable(q.where)}
+                      snapshot={pickAt(q.by, applicable(q.where))}
+                      max={q.by2 ? chartDefaults.matrix.rows : MAX_VALUES}
+                      onChange={(next) => onAsk({ values: next, pageValues: false })}
+                      idPrefix={`${chart.id}-by`}
+                    />,
+                  )
+                : null}
+            </>
+          ) : (
+            <p className="zone-empty">{say("by_empty")}</p>
+          ),
+        )}
+
+        {box(
+          "by2",
+          q.by2 ? (
+            <>
+              <FieldChip
+                field={q.by2}
+                zone="by2"
                 onRemove={() => {
-                  onRemoved(d, "where");
-                  onAsk({ where: without(q.where, d) });
-                  toZone("where");
+                  onRemoved(q.by2 as string, "by2");
+                  onAsk({ by2: null, values2: [] });
+                  toZone("by2");
                 }}
               />
-              {canApply(d) ? (
-                values(
-                  `where.${d}`,
-                  d,
-                  kept,
-                  "",
-                  <ValuePicker
-                    dataset={q.dataset}
-                    dimension={d}
-                    noun={lowerLabel(fieldLabel(d))}
-                    chosen={kept}
-                    where={applicable(without(q.where, d))}
-                    snapshot={pickAt(d, applicable(without(q.where, d)))}
-                    onChange={(next) => {
-                      onAsk({ where: withValues(q.where, d, next) });
-                      // The last value taken away takes the filter with it.
-                      if (next.length === 0) toZone("where");
-                    }}
-                    idPrefix={`${chart.id}-where`}
-                  />,
-                  // A filter with no value yet keeps every vehicle: its list is open until it has one.
-                  kept.length === 0,
-                )
-              ) : (
-                <p className="zone-message refuses">{say("filter_cannot_apply", { dataset: datasetLabel(q.dataset), field: fieldLabel(d) })}</p>
-              )}
-            </div>
-          ))
-        ),
-      )}
+              {second?.values
+                ? values(
+                    "by2",
+                    q.by2,
+                    q.values2 ?? [],
+                    say("values_page"),
+                    <ValuePicker
+                      dataset={q.dataset}
+                      dimension={q.by2}
+                      noun={lowerLabel(fieldLabel(q.by2))}
+                      chosen={q.values2 ?? []}
+                      where={applicable(q.where)}
+                      snapshot={pickAt(q.by2, applicable(q.where))}
+                      max={chartDefaults.matrix.columns}
+                      onChange={(next) => onAsk({ values2: next })}
+                      idPrefix={`${chart.id}-by2`}
+                    />,
+                  )
+                : null}
+            </>
+          ) : (
+            <p className="zone-empty">{say("by2_empty")}</p>
+          ),
+        )}
 
-      {box(
-        "period",
-        <>
-          {findDataset(q.dataset)?.single_period ? <p className="zone-empty">{say("period_one")}</p> : null}
-          <div className="period-slot" ref={onPeriodSlot} />
-        </>,
-      )}
+        {box(
+          "where",
+          Object.keys(q.where).length === 0 ? (
+            <p className="zone-empty">{say("where_empty")}</p>
+          ) : (
+            Object.entries(q.where).map(([d, kept]) => (
+              <div className="zone-filter" key={d}>
+                <FieldChip
+                  field={d}
+                  zone="where"
+                  onRemove={() => {
+                    onRemoved(d, "where");
+                    onAsk({ where: without(q.where, d) });
+                    toZone("where");
+                  }}
+                />
+                {canApply(d) ? (
+                  values(
+                    `where.${d}`,
+                    d,
+                    kept,
+                    "",
+                    <ValuePicker
+                      dataset={q.dataset}
+                      dimension={d}
+                      noun={lowerLabel(fieldLabel(d))}
+                      chosen={kept}
+                      where={applicable(without(q.where, d))}
+                      snapshot={pickAt(d, applicable(without(q.where, d)))}
+                      onChange={(next) => {
+                        onAsk({ where: withValues(q.where, d, next) });
+                        // The last value taken away takes the filter with it.
+                        if (next.length === 0) toZone("where");
+                      }}
+                      idPrefix={`${chart.id}-where`}
+                    />,
+                    // A filter with no value yet keeps every vehicle: its list is open until it has one.
+                    kept.length === 0,
+                  )
+                ) : (
+                  <p className="zone-message refuses">{say("filter_cannot_apply", { dataset: datasetLabel(q.dataset), field: fieldLabel(d) })}</p>
+                )}
+              </div>
+            ))
+          ),
+        )}
+
+        {box(
+          "period",
+          <>
+            {findDataset(q.dataset)?.single_period ? <p className="zone-empty">{say("period_one")}</p> : null}
+            <div className="period-slot" ref={onPeriodSlot} />
+          </>,
+        )}
+      </div>
 
       <section className="zone" aria-labelledby="canvas-zone-width">
         <h3 className="zone-label" id="canvas-zone-width">
@@ -497,6 +517,6 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
           onChoose={(id) => onSet({ width: id as Width })}
         />
       </section>
-    </section>
+    </>
   );
 }

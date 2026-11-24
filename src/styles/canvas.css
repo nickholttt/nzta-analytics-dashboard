@@ -3,7 +3,7 @@
    the site's paper with cards on it: a title and a line under it, the chart, then one muted line for the source. */
 
 .page.page-canvas {
-  /* Wider than a reading page: the charts share it with two panes. */
+  /* Wider than a reading page: the charts share it with the editing panel. */
   max-width: 96rem;
 
   --border: var(--rule);
@@ -37,24 +37,13 @@
   align-items: start;
 }
 
-/* On a wide screen the chart's zones and the field list are two columns beside the charts, as tall as the window, each scrolling on
-   its own, so a field can be dragged to a zone without either leaving the screen. */
+/* On a wide screen the editing panel is one column beside the charts: the chart's settings and zones, then the field list. It is as tall
+   as the window and scrolls on its own, and the charts have the rest of the width. */
 .canvas.wide {
-  grid-template-columns: minmax(0, 1fr) 17.5rem 14.5rem;
+  grid-template-columns: minmax(0, 1fr) 20rem;
 }
 
-.canvas-editor {
-  display: grid;
-  gap: var(--space-4);
-  min-width: 0;
-}
-
-.canvas.wide .canvas-editor {
-  display: contents;
-}
-
-.chart-pane,
-.field-list {
+.canvas-panel {
   min-width: 0;
   padding: var(--space-4);
   background: var(--card);
@@ -62,27 +51,47 @@
   border-radius: var(--radius-card);
 }
 
-.canvas.wide .chart-pane,
-.canvas.wide .field-list {
+.canvas.wide .canvas-panel {
   position: sticky;
   top: var(--space-4);
   max-height: calc(100vh - 2 * var(--space-4));
   overflow-y: auto;
-  /* Thin, in the control edge colour on no track: these two panes scroll on their own, and the system bar is heavier than what it moves. */
+  /* Thin, in the control edge colour on no track: the panel scrolls on its own, and the system bar is heavier than what it moves. */
   scrollbar-width: thin;
   scrollbar-color: var(--control) transparent;
 }
 
-/* Held while the editing tools are fetched, after the first chart is drawn: the panes are as tall as they will be, so nothing beside or under them
-   moves when they arrive. Where the tools open below a chart (a narrow screen) the visitor asked for them, and a rough height does. */
-.canvas-editor-pending .chart-pane,
-.canvas-editor-pending .field-list {
+/* The zones a field is put into. While a field is held they are pinned to the top of the panel, over the list, so each can be reached
+   from anywhere in it. Pinning changes no size, so nothing in the list moves under the pointer: the group carries the same padding pinned
+   or not, and pinned it only gains a ground, an edge and a shadow. */
+.zone-group {
+  margin: 0 calc(-1 * var(--space-4));
+  padding: var(--space-2) var(--space-4) 0;
+  border-bottom: 1px solid transparent;
+}
+
+.zone-group[data-pinned] {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--card);
+  border-bottom-color: var(--border);
+  box-shadow: 0 8px 12px -10px rgb(0 0 0 / 0.25);
+}
+
+/* In the panel's own scroll, pinned at its very top, over its padding, so nothing of the list shows above the zones. */
+.canvas.wide .zone-group[data-pinned] {
+  top: calc(-1 * var(--space-4));
+}
+
+/* Held while the editing tools are fetched, after the first chart is drawn: the panel is as tall as it will be, so nothing beside or under it
+   moves when it arrives. Where the panel opens below a chart (a narrow screen) the visitor asked for it, and a rough height does. */
+.canvas-panel-pending {
   min-height: 24rem;
 }
 
-.canvas.wide .canvas-editor-pending .chart-pane,
-.canvas.wide .canvas-editor-pending .field-list {
-  min-height: calc(100vh - 2 * var(--space-4));
+.canvas.wide .canvas-panel-pending {
+  height: calc(100vh - 2 * var(--space-4));
 }
 
 .my-canvases-pending {
@@ -116,8 +125,7 @@
 
 /* ---------- Cards ---------- */
 
-/* Two cards to a row where the row is wide enough for two, which it is beside the two panes from a window of about 1200 px; a
-   full-width card takes the row. */
+/* Two cards to a row where the row is wide enough for two; a full-width card takes the row. */
 .canvas-charts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -125,6 +133,7 @@
   min-width: 0;
   container-type: inline-size;
 }
+
 
 .chart-card {
   container: chart-card / inline-size;
@@ -187,10 +196,10 @@
   }
 }
 
-/* Under the wide layout the charts are one column, and the editor opens in that column below the chart being edited. */
+/* Under the wide layout the charts are one column, and the editing panel opens in that column below the chart being edited. */
 .canvas:not(.wide) .chart-card,
 .canvas:not(.wide) .chart-add,
-.canvas-charts > .canvas-editor {
+.canvas-charts > .canvas-panel {
   grid-column: 1 / -1;
 }
 
@@ -706,8 +715,8 @@
   border-top: 1px solid var(--border);
 }
 
-/* The list of values, inside a pane: the same picker as the Build page's, sized for a narrow column. */
-.chart-pane .picker input[type="search"] {
+/* The list of values, inside the panel: the same picker as the Build page's, sized for a narrow column. */
+.canvas-panel .picker input[type="search"] {
   max-width: none;
   min-height: 44px;
   font-size: var(--text-sm);
@@ -716,20 +725,20 @@
   border-radius: var(--radius-control);
 }
 
-.chart-pane .chips button {
+.canvas-panel .chips button {
   min-width: 44px;
   min-height: 44px;
   margin-block: -7px;
   margin-right: -6px;
 }
 
-.chart-pane .suggestions {
+.canvas-panel .suggestions {
   flex-direction: column;
   flex-wrap: nowrap;
   gap: var(--space-1);
 }
 
-.chart-pane .suggestions button {
+.canvas-panel .suggestions button {
   flex-direction: row;
   flex-wrap: wrap;
   align-items: baseline;
@@ -764,6 +773,17 @@
 }
 
 /* ---------- The field list ---------- */
+
+/* The lower part of the editing panel, under the chart's settings, set off by a rule across the panel. */
+.field-list {
+  margin: var(--space-3) calc(-1 * var(--space-4)) 0;
+  padding: var(--space-4) var(--space-4) 0;
+  border-top: 1px solid var(--border);
+}
+
+.field-group > h4 {
+  margin-top: 0;
+}
 
 .field-search {
   margin-bottom: var(--space-3);
