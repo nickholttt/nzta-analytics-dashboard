@@ -30,7 +30,7 @@ const starters = all.datasets.length > 0 ? starterViews(all, manifest as Manifes
     {
       starters.length > 0 ? (
         <>
-          <p class="meta" style="margin-bottom: var(--space-5); max-width: var(--measure);">{say("starters_intro")}</p>
+          <p class="meta starters-intro">{say("starters_intro")}</p>
           <ul class="starters">
             {starters.map((s) => (
               <li>
