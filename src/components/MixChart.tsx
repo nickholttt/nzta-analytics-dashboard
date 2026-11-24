@@ -440,6 +440,9 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
     const change: Cell = changeShown ? shareChange(shown - before.n / before.denominator) : nowOutside || before.missing > 0 ? outside() : withheldThin(minDenominator);
     return { cells: [label(series), share, change] as Cell[], changeShown, shownFigure: shown !== undefined };
   });
+  // A row whose share and change both print as zero is set quieter: found by comparing what is printed with what zero would print, so the format stays in one place.
+  const zeroText = [cellText(pct(0)), cellText(shareChange(0))];
+  const isZeroRow = (i: number) => summaryRows[i].shownFigure && summaryRows[i].changeShown && cellText(summaryRows[i].cells[1]) === zeroText[0] && cellText(summaryRows[i].cells[2]) === zeroText[1];
   const figuresGetter = useCallback(
     () => ({ period: `Last ${TRAILING_MONTHS} months to ${monthLabel(latest)}, and the ${TRAILING_MONTHS} months before`, columns: summaryColumns, rows: summaryRows.map((r) => r.cells) }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -500,7 +503,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
           {model.summary.map(({ series, colour, remainder }, i) => {
             const { cells, changeShown, shownFigure } = summaryRows[i];
             return (
-              <tr key={series} className={remainder ? "remainder" : undefined}>
+              <tr key={series} className={[remainder ? "remainder" : "", isZeroRow(i) ? "zero" : ""].filter(Boolean).join(" ") || undefined}>
                 <td>
                   <span className="swatch" style={{ background: colour }} aria-hidden="true" />
                   <span>{cellText(cells[0])}</span>

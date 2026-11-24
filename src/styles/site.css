@@ -876,6 +876,12 @@ section[id] {
   font-weight: 400;
 }
 
+/* A row whose figures all print as zero: the muted ink at normal weight. It keeps its place and its words. */
+.key tr.zero td {
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
 .key tr.remainder td:first-child {
   color: var(--ink-2);
 }
