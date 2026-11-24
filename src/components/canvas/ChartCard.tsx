@@ -8,6 +8,7 @@ import { awaitsValues, canvasSpec, chartHeading, chartPreset, chartQuestion, fie
 import type { CanvasChart } from "../../lib/canvas";
 import type { Manifest } from "../../lib/data";
 import { pinLine } from "../../lib/kept";
+import { openGate } from "../../lib/loadGate";
 import type { Owner } from "../../lib/kept";
 import { TRAILING_MONTHS } from "../../lib/measures";
 import PresetPanel from "../PresetPanel";
@@ -41,6 +42,8 @@ type Props = {
   periodSlot: HTMLElement | null;
   // The chart being dragged to another place, if one is.
   moving: string | null;
+  // A chart after the first draws nothing from the cube until the first is drawn and this card is near the screen (src/lib/loadGate.ts).
+  defer: boolean;
   // What the link asked of this chart that the page could not give.
   notices: string[];
   // The snapshot this page serves (null: it could not be read; undefined: not yet), and the fields made from an owner field: what a
@@ -57,7 +60,7 @@ type Props = {
   onMoveHere: () => void;
 };
 
-export default function ChartCard({ all, chart, number, of, selected, wide, editorOpen, periodSlot, moving, notices, served, owner, onUnpin, onEdit, onPageValues, onMoveStart, onMoveEnd, onMoveHere }: Props) {
+export default function ChartCard({ all, chart, number, of, selected, wide, editorOpen, periodSlot, moving, defer, notices, served, owner, onUnpin, onEdit, onPageValues, onMoveStart, onMoveEnd, onMoveHere }: Props) {
   const q = chart.question;
   const card = useRef<HTMLElement>(null);
   const [over, setOver] = useState(false);
@@ -98,6 +101,13 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
     // onPageValues reads the latest canvas itself; these are what decide whether starting values are needed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [awaiting, q.dataset, q.by, whereKey, reading === undefined, keptFolder]);
+
+  // A first card that draws no figure (its starting values failed or there were none, or its question gives no chart) has nothing the charts after
+  // it, or the editor, should wait for (src/lib/loadGate.ts): the panel opens the gate for the one that does draw.
+  const figureless = !preset || (awaiting && start?.key === startKey);
+  useEffect(() => {
+    if (figureless && !defer) openGate();
+  }, [figureless, defer]);
 
   // Keyed by the question and the type, so a changed chart is a new panel that reads its cleared settings from the address. Showing the
   // figures as a table is the same chart, and keeps them.
@@ -228,7 +238,7 @@ export default function ChartCard({ all, chart, number, of, selected, wide, edit
           )}
         </div>
       ) : preset ? (
-        <PresetPanel key={panelKey} preset={preset} heading={heading} frame="card" audience="public" anchored={false} controlsSlot={periodSlot} tableOnly={chart.table} headerEnd={headerEnd} cardWords={cardWords} snapshot={keptFolder} onFirstMonth={(month) => setFirstSeen({ key: panelKey, month })} />
+        <PresetPanel key={panelKey} defer={defer} preset={preset} heading={heading} frame="card" audience="public" anchored={false} controlsSlot={periodSlot} tableOnly={chart.table} headerEnd={headerEnd} cardWords={cardWords} snapshot={keptFolder} onFirstMonth={(month) => setFirstSeen({ key: panelKey, month })} />
       ) : null}
     </article>
   );

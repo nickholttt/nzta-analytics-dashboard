@@ -419,6 +419,7 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
               editorOpen={chart.id === current?.id && editorShown}
               periodSlot={chart.id === current?.id && editorShown ? periodSlot : null}
               moving={moving}
+              defer={i > 0}
               notices={notices[chart.id] ?? []}
               served={manifest}
               owner={owner}
