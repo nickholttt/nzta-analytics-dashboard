@@ -71,12 +71,15 @@ export default function FieldList({ all, question, groups, onDragStart, onDragEn
           </ul>
         </div>
       ))}
-      <p className="field-about">
+      {/* Always there, so the strip never appears over the field the pointer has just reached at the foot of the list. */}
+      <p className="field-about" data-hint={about ? undefined : ""}>
         {about ? (
           <>
             <strong>{about.label}.</strong> {about.definition}
           </>
-        ) : null}
+        ) : (
+          say("field_about_hint")
+        )}
       </p>
     </div>
   );
