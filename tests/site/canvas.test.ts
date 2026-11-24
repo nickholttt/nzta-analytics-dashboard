@@ -633,9 +633,13 @@ test("every word the canvas says is in config, and config holds no word the canv
     readFileSync(new URL("../../src/pages/canvas.astro", import.meta.url), "utf8"),
     // The front page says the starters' words, and the way to an empty canvas.
     readFileSync(new URL("../../src/pages/index.astro", import.meta.url), "utf8"),
+    // The value picker says the canvas's words for a search that matches nothing and a list with nothing to choose.
+    readFileSync(new URL("../../src/components/ValuePicker.tsx", import.meta.url), "utf8"),
     ...readdirSync(dir).filter((f) => /\.tsx?$/.test(f)).map((f) => readFileSync(new URL(f, dir), "utf8")),
   ].join("\n");
-  const said = new Set([...sources.matchAll(/\b(?:say|refuse)\(\s*["`]([a-z0-9_]+)["`]/g), ...sources.matchAll(/canvasSpec\.words\.([a-z0-9_]+)/g)].map((m) => m[1]));
+  const said = new Set([...sources.matchAll(/\b(?:say|canvasSay|refuse)\(\s*["`]([a-z0-9_]+)["`]/g), ...sources.matchAll(/canvasSpec\.words\.([a-z0-9_]+)/g)].map((m) => m[1]));
+  // A key chosen between two in one call: both are said.
+  for (const m of sources.matchAll(/\bcanvasSay\([^)]*\?\s*"([a-z0-9_]+)"\s*:\s*"([a-z0-9_]+)"/g)) said.add(m[1]).add(m[2]);
   // Keys made from a zone's own id: its name, and what a drop on it would do where it takes a field.
   for (const zone of canvas.ZONES) said.add(`zone_${zone}`);
   for (const zone of [...canvas.FIELD_ZONES, "period"]) said.add(`drop_${zone}`);

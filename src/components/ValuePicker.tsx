@@ -2,6 +2,7 @@
 // Build page and the canvas, so a brand is found and chosen the same way on both (D-058, D-111).
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { say as canvasSay } from "../lib/canvas";
 import { datasetWords, valueWords } from "../lib/config";
 import { isChoosable } from "../lib/reserved";
 import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
@@ -169,16 +170,14 @@ export function ValuePicker({
           </div>
           <input id={inputId} ref={input} type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
           {options === null ? (
-            <p className="picker-hint">Loading…</p>
+            <p className="picker-hint">{canvasSay("picker_loading")}</p>
           ) : matches.length === 0 ? (
             <p className="picker-hint">
               {query.trim()
-                ? `Nothing matches “${query.trim()}”${filtered ? " among the vehicles the conditions keep" : ""}.`
+                ? canvasSay(filtered ? "picker_no_match_filtered" : "picker_no_match", { query: query.trim() })
                 : options.length === 0
-                  ? filtered
-                    ? "The other conditions keep no vehicles, so there is nothing to choose from."
-                    : "There is nothing to choose from."
-                  : "Every value is chosen."}
+                  ? canvasSay(filtered ? "picker_none_filtered" : "picker_none")
+                  : canvasSay("picker_all_chosen")}
             </p>
           ) : (
             <ul className="suggestions" aria-label={query.trim() ? `Matching “${query.trim()}”` : "The largest in the last 12 months"}>
