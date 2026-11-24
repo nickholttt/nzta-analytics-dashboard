@@ -384,7 +384,7 @@ and our true registrations are its export, so it would not be independent.
 | `tolerance_pct` | how far ours may be from theirs, as a percentage of theirs, before the row warns; 0 up to `reconciliation.max_tolerance_pct` in `config/pipeline.json` |
 | `known_difference` | a short note where a difference is known and explained; blank otherwise. It is shown beside the row and never used to hide it |
 | `added_up_from` | blank when the figure is one the source prints itself. Otherwise one or more lower case words (letters and single spaces, refused otherwise) saying what of the source's the figure was added up from, such as `chart` or `table`; the site writes "added up from <the source's name>'s published <these words>" beside the figure |
-| `figure_kind` | an id (lower case letters, digits and underscores, starting with a letter) saying what sort of figure it is; required. `reconciliation.single_figure_limit.kinds` in `config/pipeline.json` lists the kinds that stop a build on one figure (below). A row of a listed kind whose `tolerance_pct` is `reconciliation.single_figure_limit.gap_pct` or more must have a `known_difference` that says why ours cannot come that close |
+| `figure_kind` | an id (lower case letters, digits and underscores, starting with a letter) saying what sort of figure it is; required, and one of `reconciliation.figure_kinds` in `config/pipeline.json` (any other is refused, so a misspelt kind stops the build). `reconciliation.single_figure_limit.kinds` in `config/pipeline.json` lists the kinds that stop a build on one figure (below). A row of a listed kind whose `tolerance_pct` is `reconciliation.single_figure_limit.gap_pct` or more must have a `known_difference` that says why ours cannot come that close |
 
 **Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
 datasets (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it counts first
@@ -422,7 +422,7 @@ with compared rows from fewer than two independent sources cannot stop a build. 
 (`reconciliation.hard_limit`); the whole rule is in `docs/CUBE_SCHEMA.md`. On the 336 rows
 committed on 2026-11-23, an error of 3% or more in all of our figures, either way, stops the build in every month. A fault
 confined to one kind of figure (new passenger vehicles counted as commercial) is not stopped by this rule at any size tried, and
-is stopped by the one-figure rule from 5% in some months and from 10% in all 22; the measured sizes are in
+is stopped by the one-figure rule at 2% in 2 months, at 5% in 13, and from 10% in all 22; the measured sizes are in
 `docs/CUBE_SCHEMA.md`, "What size of error stops a build".
 
 What it holds (read on 2026-11-23, for January 2025 to October 2026): 336 rows.

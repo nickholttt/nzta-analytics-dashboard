@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import re
 from collections import defaultdict
 from datetime import date
@@ -180,16 +181,27 @@ def settings(cfg) -> tuple[dict, list[str]]:
     share = h.get("source_vehicle_share")
     if isinstance(share, bool) or not isinstance(share, (int, float)) or not 0 < share <= 1:
         problems.append("reconciliation.hard_limit.source_vehicle_share must be above 0 and at most 1")
+    def ids(value) -> bool:
+        return isinstance(value, list) and all(isinstance(k, str) and ID.fullmatch(k) for k in value) and len(set(value)) == len(value)
+
+    known = c.get("figure_kinds")
+    if not ids(known) or not known:
+        problems.append("reconciliation.figure_kinds must be a list of distinct ids (lower case letters, digits and underscores, "
+                        "starting with a letter): every kind a row of figures_file may state")
     s = c.get("single_figure_limit")
     if not isinstance(s, dict):
         problems.append("reconciliation.single_figure_limit must be an object with gap_pct and kinds")
     else:
-        if isinstance(s.get("gap_pct"), bool) or not isinstance(s.get("gap_pct"), (int, float)) or not s["gap_pct"] > 0:
-            problems.append("reconciliation.single_figure_limit.gap_pct must be a number above 0")
+        gap = s.get("gap_pct")
+        if isinstance(gap, bool) or not isinstance(gap, (int, float)) or not math.isfinite(gap) or not 0 < gap <= 100:
+            problems.append("reconciliation.single_figure_limit.gap_pct must be a number above 0 and at most 100")
         kinds = s.get("kinds")
-        if not isinstance(kinds, list) or not all(isinstance(k, str) and ID.fullmatch(k) for k in kinds) or len(set(kinds)) != len(kinds):
+        if not ids(kinds):
             problems.append("reconciliation.single_figure_limit.kinds must be a list of distinct ids (lower case letters, digits and "
                             "underscores, starting with a letter); an empty list switches the rule off")
+        elif ids(known) and set(kinds) - set(known):
+            problems.append(f"reconciliation.single_figure_limit.kinds names {sorted(set(kinds) - set(known))}, which "
+                            "reconciliation.figure_kinds does not list: a kind no row may state would cover nothing")
     return c, problems
 
 
@@ -266,6 +278,7 @@ def parse_figures(cfg, c: dict, sources: dict[str, Source]) -> tuple[list[Figure
     seen: dict[tuple, int] = {}
     maximum = Decimal(str(c["max_tolerance_pct"]))
     limit, kinds = Decimal(str(c["single_figure_limit"]["gap_pct"])), set(c["single_figure_limit"]["kinds"])
+    known = set(c["figure_kinds"])
     for line, cells in rows:
         row = dict(zip(FIGURE_COLUMNS, (x.strip() for x in cells)))
         where = f"{c['figures_file']} line {line} ({row['source'] or 'no source'}, {row['month'] or 'no month'}, {row['measure_as_published']!r})"
@@ -322,7 +335,10 @@ def parse_figures(cfg, c: dict, sources: dict[str, Source]) -> tuple[list[Figure
                            "holds one dimension only")
         if not ID.fullmatch(row["figure_kind"]):
             bad.append("figure_kind must be lower case letters, digits and underscores, starting with a letter")
-        elif tolerance is not None and not row["known_difference"] and tolerance >= limit and row["figure_kind"] in kinds:
+        elif row["figure_kind"] not in known:
+            # A kind nobody listed would fall out of the single-figure limit without a word: a misspelling must stop the build.
+            bad.append(f"figure_kind {row['figure_kind']!r} is not one of reconciliation.figure_kinds ({', '.join(sorted(known))})")
+        elif tolerance is not None and not row["known_difference"] and published(tolerance) >= limit and row["figure_kind"] in kinds:
             bad.append(f"figure_kind {row['figure_kind']!r} is covered by reconciliation.single_figure_limit and tolerance_pct "
                        f"{row['tolerance_pct']} is {c['single_figure_limit']['gap_pct']} or more, which exempts the row from it: "
                        "known_difference must say why ours cannot come that close")
@@ -506,6 +522,12 @@ class Staged:
 
 def percent(gap: int, theirs: int, decimals: int) -> float:
     return float((Decimal(gap) * 100 / Decimal(theirs)).quantize(Decimal(1).scaleb(-decimals)))
+
+
+def published(tolerance: Decimal) -> Decimal:
+    """A row's tolerance as reconciliation.json states it (a float), which is the number the single-figure limit reads: the check
+    made when the file is read and the rule itself must not disagree about a tolerance with more digits than a float holds."""
+    return Decimal(str(float(tolerance)))
 
 
 def outside(gap: int, theirs: int, pct: Decimal) -> bool:

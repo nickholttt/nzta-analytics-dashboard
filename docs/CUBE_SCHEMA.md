@@ -653,7 +653,7 @@ Both files are read and checked at the start of the build, before the register i
 **A row is a fault, and the build aborts naming the row (file, line, source, month, measure), when** the header is not exactly
 the columns; a cell is malformed (a month not `YYYY-MM`, a figure that is not a whole number above zero, an address that is
 not `https://`, a date that is not `YYYY-MM-DD`, a tolerance above `reconciliation.max_tolerance_pct`, a `figure_kind` that is
-not an id, an `added_up_from` that is not blank or lower case words); a row of a kind the single-figure limit covers whose
+not an id or is not one of `reconciliation.figure_kinds`, an `added_up_from` that is not blank or lower case words); a row of a kind the single-figure limit covers whose
 tolerance is that limit or more and whose `known_difference` is blank (below); a source is not in
 `published_sources.csv`; the dataset is not one of `config/pipeline.json`; a filter names a dimension the dataset cannot
 derive, one that is not live in this build, or two dimensions that no one published table holds together (the second is found from
@@ -1411,7 +1411,8 @@ Published figures (`reconciliation.json`, above):
   whose own tolerance is below `gap_pct`, is `gap_pct` percent or more from ours, on either side. One abort line for each such row.
   A row of such a kind whose own tolerance is `gap_pct` or more and that has no `known_difference`, or a `figure_kind` that is not an
   id, is a fault in the file and aborts when it is read; `reconciliation.single_figure_limit` missing, a `gap_pct` that is not above
-  0, or kinds that are not a list of distinct ids, abort the build before anything is read.
+  0 and at most 100, kinds that are not a list of distinct ids or that name a kind `reconciliation.figure_kinds` does not list,
+  or a `figure_kinds` that is not such a list, abort the build before anything is read.
 
 Events:
 

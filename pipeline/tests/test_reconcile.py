@@ -26,6 +26,8 @@ from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
 FLOW, FLEET, SERIES, SURVIVING = "registrations_flow", "fleet", "registrations_cars_long_run", "registrations_surviving"
 STATUS, TYPE = "import_status", "vehicle_type"
 LISTED, SECOND_LISTED = "fixture_listed", "fixture_second_listed"
+# Every kind a fixture row may state (reconciliation.figure_kinds in these tests).
+KNOWN_KINDS = (LISTED, SECOND_LISTED, "fixture_other", "fixture_unlisted")
 
 # (month, import status, vehicle type, vehicles). The month totals are 520, 1040 and 1560.
 FACT_ROWS = [
@@ -114,13 +116,14 @@ def write_reference(tmp_path, figures, sources=SOURCES):
     return reference
 
 
-def cfg_for(tmp_path, figures, sources=SOURCES, single=None, **hard_limit):
+def cfg_for(tmp_path, figures, sources=SOURCES, single=None, known=None, **hard_limit):
     """The live configuration with the hard limit's numbers changed by `hard_limit`, and the single-figure limit set to the
     fixture's own (5%, two fixture kinds) unless `single` gives other numbers: the live kinds are real ones, which no test names."""
     cfg = config.load(overrides={"reference_dir": str(write_reference(tmp_path, figures, sources))})
     cfg.pipeline = copy.deepcopy(cfg.pipeline)
     cfg.pipeline["reconciliation"]["hard_limit"].update(hard_limit)
     cfg.pipeline["reconciliation"]["single_figure_limit"] = {"gap_pct": 5, "kinds": [LISTED, SECOND_LISTED], **(single or {})}
+    cfg.pipeline["reconciliation"]["figure_kinds"] = list(KNOWN_KINDS if known is None else known)
     return cfg
 
 
@@ -291,6 +294,10 @@ def test_config_numbers_are_checked(tmp_path):
     ({"gap_pct": -5}, "gap_pct must be a number above 0"),
     ({"gap_pct": True}, "gap_pct must be a number above 0"),
     ({"gap_pct": "5"}, "gap_pct must be a number above 0"),
+    ({"gap_pct": float("inf")}, "gap_pct must be a number above 0 and at most 100"),
+    ({"gap_pct": float("nan")}, "gap_pct must be a number above 0 and at most 100"),
+    ({"gap_pct": 1e308}, "gap_pct must be a number above 0 and at most 100"),
+    ({"kinds": ["fixture_nobody_listed"]}, "which reconciliation.figure_kinds does not list"),
     ({"kinds": LISTED}, "kinds must be a list of distinct ids"),
     ({"kinds": [LISTED, LISTED]}, "kinds must be a list of distinct ids"),
     ({"kinds": ["Fixture Kind"]}, "kinds must be a list of distinct ids"),
@@ -771,6 +778,25 @@ def test_a_row_that_was_not_compared_never_stops_a_build_but_the_rule_still_appl
     assert [(r["status"], r["stops_alone_pct"], r["gap"]) for r in result.document["rows"]] == [("not_compared", 5, None)] * 3
 
 
+def test_a_kind_nobody_listed_is_refused_so_a_misspelling_cannot_fall_out_of_the_limit(tmp_path):
+    # One letter off a covered kind, on a row the limit would cover: before this check it was read, and never stopped a build.
+    misspelt = [figure_row(figure="900", figure_kind=LISTED + "s")]
+    problems = problems_of(tmp_path / "a", misspelt)
+    assert len(problems) == 1 and "is not one of reconciliation.figure_kinds" in problems[0] and "line 2" in problems[0]
+    assert reconcile.prepare(cfg_for(tmp_path / "b", misspelt, known=[*KNOWN_KINDS, LISTED + "s"]))[1] == []
+    for n, known in enumerate(([], "fixture_other", [LISTED, LISTED], ["Fixture Kind"], None)):
+        cfg = cfg_for(tmp_path / f"c{n}", [])
+        cfg.pipeline["reconciliation"]["figure_kinds"] = known
+        assert any("reconciliation.figure_kinds must be a list of distinct ids" in p for p in reconcile.prepare(cfg)[1]), known
+
+
+def test_a_tolerance_with_more_digits_than_the_file_states_is_read_the_same_way_by_the_check_and_the_rule(tmp_path):
+    # 4.99...9 is below 5 exactly and is 5.0 as reconciliation.json states it, where the row is exempt: so it needs a known difference.
+    row = figure_row(figure="900", figure_kind=LISTED, tolerance_pct="4.9999999999999999999")
+    assert len(problems_of(tmp_path / "a", [row])) == 1
+    assert problems_of(tmp_path / "b", [{**row, "known_difference": "A made-up known difference."}]) == []
+
+
 def test_the_numbers_of_the_single_figure_limit_are_config(tmp_path):
     figures = [figure_row(figure="990", figure_kind=LISTED)]                      # 5.05% under
     wide = [figure_row(figure="900", figure_kind=LISTED)]                         # 15.6% under
@@ -986,7 +1012,7 @@ def live_new_vehicles_only(share):
 
 
 def test_live_rows_a_fault_among_new_vehicles_only_never_stops_a_build_by_the_hard_limit_and_stops_it_alone_from_five_percent_up():
-    # Replaces the review of 2026-11-23, which found that this fault only warned: only Stats NZ's figure that takes in the new
+    # Replaces the review of 2026-11-23, which found that this fault only warned: only one source's figure that takes in the new
     # vehicles breached, and one source is never enough for the hard limit. That still holds for the hard limit. The single-figure
     # limit (D-150) stops it where a figure of a covered kind is 5% or more from ours.
     months = live_setup()[4]
@@ -1073,6 +1099,10 @@ def build_with(tmp_path, workspace, figures, sources):
     write_reference(tmp_path, figures, sources)
     rows = load_rows()
     cfg = make_cfg(workspace, reference_dir=reference)
+    # The fixture rows state fixture kinds, as in cfg_for.
+    cfg.pipeline = copy.deepcopy(cfg.pipeline)
+    cfg.pipeline["reconciliation"]["single_figure_limit"]["kinds"] = [LISTED, SECOND_LISTED]
+    cfg.pipeline["reconciliation"]["figure_kinds"] = list(KNOWN_KINDS)
     return cfg, build.build(cfg, source_for(rows), write_pages(tmp_path / "pages", rows), None, NOW)
 
 
@@ -1110,7 +1140,7 @@ def test_a_build_stops_when_three_independent_sources_disagree_with_it_the_same_
 
 
 def test_a_build_stops_on_one_figure_of_a_kind_the_single_figure_limit_covers(tmp_path, workspace):
-    kind = config.load().pipeline["reconciliation"]["single_figure_limit"]["kinds"][0]
+    kind = LISTED
     figures = [figure_row(dataset=SURVIVING, month="2026-08", figure="1", figure_kind=kind)]
     with pytest.raises(GuardrailError) as stopped:
         build_with(tmp_path, workspace, figures, SOURCES)

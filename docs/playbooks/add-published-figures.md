@@ -30,7 +30,9 @@ explained, not a way to quiet a warning.
   words, such as `chart` or `table`), and the public page labels it so: "added up from <the source's name>'s published
   <those words>". A figure the source prints itself leaves the column blank.
 - Every row has a `figure_kind`, an id that says what sort of figure it is (`docs/DATA_SOURCES.md`, section F, lists the kinds in use;
-  a new kind is a new word, and is not covered by the one-figure rule until `reconciliation.single_figure_limit.kinds` lists it). A
+  a kind must be one of `reconciliation.figure_kinds` in `config/pipeline.json`, or the row is refused when the files are read, so
+  a misspelt kind stops the build; a new kind is added to that list first, and is not covered by the one-figure rule until
+  `reconciliation.single_figure_limit.kinds` lists it too). A
   row of a listed kind needs a tolerance below the limit's `gap_pct`, or, at `gap_pct` or more, a `known_difference` that says why
   ours cannot come that close: a row without one is refused when the files are read.
 - `measure_as_published` is the source's wording, so the page can say what was compared. The rows of one source, one month and
