@@ -1,80 +1,106 @@
 # Playbook: put the site on the public internet (Cloudflare Pages)
 
 **Status: nothing in this list has been started.** No Cloudflare project exists, no token or secret has been
-created, and the repository variable `CLOUDFLARE_PAGES_PROJECT` is not set. The values below come from
-`docs/CHECKPOINT.md` item 3, D-072 in `docs/DECISIONS.md` and `.github/workflows/deploy.yml`. **Cloudflare's current
-screens were not checked**: wording of buttons and menus marked "inferred - confirm" is from memory of the console
-and may have moved. Where the console differs, follow the console and fix this file.
+created, and the repository variable `CLOUDFLARE_PAGES_PROJECT` is not set. Names below are the ones
+`.github/workflows/deploy.yml` reads (D-056, D-057, D-072). Console labels were checked on 2026-11-24 against
+developers.cloudflare.com and docs.github.com; a label not found there is marked "inferred — confirm". Where a screen
+differs, follow the screen and fix this file.
 
-Every step is **PRODUCTION**: there is no staging copy of Cloudflare here. One click or one value per step. Do them
-in order. Step 10 is the one that switches uploading on, and step 11's first run is what puts the site on the
-internet; both are done last and only when you say so. One earlier step can also put something public: step 6, if
-Cloudflare insists on a first upload. Read it before you reach it.
+Do the steps in order, one at a time. Cloudflare has no staging copy here, so every Cloudflare and GitHub step below is
+PRODUCTION. Nothing is public until step 4 is done and a `Deploy` run on `main` finishes.
 
-**Money and accounts.** If you have no Cloudflare account, creating one is a step of its own and yours to decide.
-Cloudflare Pages has a free plan (inferred - confirm). Stop if any screen asks for a payment method or a paid plan:
-nothing in this list should cost money.
+**Accounts and money.** Step 1 needs a Cloudflare account; creating one is yours to decide. The Pages Free plan's limits,
+from developers.cloudflare.com/pages/platform/limits/ (read 2026-11-24): 20,000 files a site, 25 MiB a file, 100 projects
+an account, 500 builds a month (our builds run on GitHub, not Cloudflare). The page states no limit on uploads a day.
+`scripts/host-limits.mjs` holds the first two, and `scripts/check-public-build.mjs` fails the `Deploy` build before the
+upload if either is passed. Nothing here should ask for a card; if a screen does, stop.
 
 ## Before you start
 
-- Fill in the About page's gaps: search the repository for `TO DECIDE` (they are all in `config/site.json`).
-  Two are left since 2026-11-16: the site's name and its address. Read the privacy sentence
-  again too: it says what is true today (no advertising, no cookies, no tracking), and you meant to look at
-  it again before going live (D-096).
-  The site is public once step 11's run has uploaded it, and the About page says it is a draft while any gap is
-  left.
-- **Choose the project's name first.** It becomes the site's public address, `<name>.pages.dev` (D-055), and the
-  site's name and domain are not decided (`docs/CHECKPOINT.md`, questions). The steps below write
-  `nz-vehicle-registrations`, the name used so far, as the default: put your own in its place everywhere it
-  appears. A Pages project cannot be renamed afterwards (inferred - confirm): a wrong name means deleting the
-  project and starting again.
-- The cube the site is built from should hold the fact table first (`docs/STATE.md`, known issues), or the public
-  Build page offers no conditions.
+Still not done in the repo (`docs/CHECKPOINT.md`, `docs/STATE.md`):
 
-## Cloudflare: the Pages project
+- The site's name and web address (`config/site.json`, `site_name` and `site_address`) are undecided, and the About page
+  says it is a draft while any `TO DECIDE` is left. This playbook works with a `pages.dev` address alone; leave
+  `site_address` as it is until you choose one.
+- The About page's other gaps: search the repository for `TO DECIDE`. Read its privacy sentence again before going live
+  (D-096).
+- The social cards are redrawn after the site is named (`scripts/make-social-cards.mjs`).
+- Choose the Pages project's name now. **Yours to choose:** it becomes the public address `<name>.pages.dev`, and a Pages
+  project cannot be renamed afterwards (inferred — confirm); a wrong name means a new project. Below, `<name>` is that
+  name. A custom domain is a later, separate step and not covered here.
 
-1. PRODUCTION. Sign in to the Cloudflare dashboard (inferred - confirm: `dash.cloudflare.com`).
-2. PRODUCTION. In the left menu, open Workers & Pages (inferred - confirm).
-3. PRODUCTION. Choose Create, then the Pages tab (inferred - confirm).
-4. PRODUCTION. Choose "Upload assets" / Direct Upload, not "Connect to Git" (inferred - confirm the wording). The
-   site is uploaded by `deploy.yml`; Cloudflare must not build it.
-5. PRODUCTION. Project name: the name you chose (default `nz-vehicle-registrations`). The site will be at
-   `<name>.pages.dev` (D-055).
-6. PRODUCTION. Create the project. If the console asks you to upload files now, skip it. **If it will not let you
-   skip (inferred - confirm), stop here and say so before uploading anything:** whatever is uploaded is served at
-   `<name>.pages.dev` straight away, before step 10. If you then choose to go on, upload one empty page and nothing
-   else; the first real deploy replaces it.
+## 1. The Cloudflare Pages project (PRODUCTION; undo: delete the project)
 
-## Cloudflare: the token and the account id
+Relied on by `deploy.yml`, job `upload`, step "Upload to Cloudflare Pages", which runs
+`wrangler pages deploy dist --project-name "$PROJECT" --branch main --commit-dirty=true`. The project must exist and its
+production branch must be `main`, or the upload is filed as a preview and `<name>.pages.dev` stays empty.
 
-7. PRODUCTION. Create an API token: profile menu, My Profile, API Tokens, Create Token, "Create Custom Token"
-   (inferred - confirm). Name: `<name> deploy`. One permission only: Account, Cloudflare Pages,
-   Edit. Account Resources: your account only. Create it and copy the token once; it is shown once.
-8. PRODUCTION. Copy your Account ID (inferred - confirm: Workers & Pages overview, right-hand side, or the account's
-   home page URL).
+1. Create a Cloudflare account at dash.cloudflare.com if you have none (Free plan, no card).
+2. In a terminal in the repository, run `npx wrangler login` and approve in the browser (inferred — confirm; it changes
+   nothing in the repository).
+3. Run `npx wrangler pages project create <name> --production-branch main`. It makes an empty Direct Upload project with
+   production branch `main` and uploads nothing, so nothing is public. Command and flag: developers.cloudflare.com,
+   Wrangler "Pages" commands.
+4. Dashboard route instead (not preferred): Workers & Pages, Create application, Get started, Drag and drop your files,
+   type `<name>`, Deploy site. Cloudflare's page does not say whether the project can be made without files, and offers no
+   dashboard control for the production branch, so this route may publish a first upload at once and may leave the branch
+   at Cloudflare's default (inferred — confirm). If you use it, upload one empty page only.
+5. Check: Workers & Pages lists `<name>`, and its production branch is `main` (inferred — confirm where it shows; once
+   deployed, the Deployments list marks each deploy Production or Preview).
 
-## GitHub: the two secrets, in the environment `production`
+## 2. The API token (PRODUCTION; undo: delete the token in the same list)
 
-The environment `production` exists already, limited to the branch `main` (D-072). The secrets go in the
-environment, not the repository.
+Relied on by `deploy.yml`, job `upload`, step "Upload to Cloudflare Pages", as `CLOUDFLARE_API_TOKEN`.
 
-9a. PRODUCTION. Repository on GitHub, Settings, Environments, `production`, Environment secrets, Add secret.
-    Name `CLOUDFLARE_API_TOKEN`; value the token from step 7.
-9b. PRODUCTION. Same page, Add secret. Name `CLOUDFLARE_ACCOUNT_ID`; value the Account ID from step 8.
+1. Dashboard, My Profile, API Tokens, Create Token.
+2. Start from scratch (the docs' wording; "Create Custom Token" is inferred — confirm).
+3. Token name: `<name> deploy`.
+4. One policy: type Account, your own account, permission Cloudflare Pages, Edit (docs: "Account > Cloudflare Pages >
+   Edit"). Nothing else.
+5. Optional: a Token expiration. If set, deploys fail on that date until you make a new token.
+6. Continue to summary, Create Token. The token is shown once: keep the page open until step 3 is done.
+7. Find your Account ID. The docs place it on a zone's Overview page, in the right-hand menu under "API"; with no zone,
+   try the Workers & Pages overview, right-hand side (inferred — confirm). Copy it.
 
-## The switch: last, on your word
+## 3. The two secrets in GitHub (PRODUCTION; undo: delete both)
 
-10. PRODUCTION. Set the repository variable `CLOUDFLARE_PAGES_PROJECT` to the project's name: Settings,
-    Secrets and variables, Actions, Variables tab, New repository variable. Or say "set the variable" and Claude
-    sets it with `gh`. **This switches uploading on.** From then on, every run of `Deploy` on `main` uploads
-    the site, and the first such run makes it public. Until it is set, `Deploy` builds the site and stops, green, and nothing is uploaded (D-072).
-11. PRODUCTION. Start the first deploy: Actions, `Deploy`, Run workflow, branch `main`. Once it is green, open
-    `https://<name>.pages.dev` and check `/`, `/build`, `/about`, `/feedback` and `/differences`. A
-    missing secret fails the run with a message that names it (D-072).
+They are **environment secrets of the environment `production`**, not repository secrets. The environment exists
+already, limited to the branch `main`, holding no secret (D-072). `deploy.yml`, job `upload`, step "The Cloudflare
+secrets are set" fails the run, naming them, if either is missing; step "Upload to Cloudflare Pages" reads both.
 
-## Undoing it
+1. github.com/nickholttt/nzta-analytics-dashboard, Settings, Environments (left sidebar), `production`.
+2. Under Environment secrets, Add secret. Name `CLOUDFLARE_API_TOKEN`; Secret: the token from step 2; Add secret.
+3. Add secret again. Name `CLOUDFLARE_ACCOUNT_ID`; Secret: the Account ID from step 2; Add secret.
+4. Check the page shows no required reviewer and deployment branches limited to `main`. The workflow expects no
+   reviewer; one would hold every upload, the monthly one included, until someone approves.
 
-- Take the site down from the repository's side: delete the variable `CLOUDFLARE_PAGES_PROJECT`. The next runs build
-  and stop. The last upload stays served until you remove it in Cloudflare (Pages project, Deployments; inferred -
-  confirm) or delete the project.
-- Revoke the token in Cloudflare (My Profile, API Tokens) and delete the two secrets in the environment.
+## 4. The switch (PRODUCTION; this step can make the site public)
+
+Relied on by `deploy.yml`, job `build`, step "Will it be uploaded": it sets `upload=true` only on `main` and only when the
+repository variable `CLOUDFLARE_PAGES_PROJECT` is not empty, and job `upload` starts only then. Until then every run
+builds, checks and stops green.
+
+1. Same repository, Settings, Secrets and variables (Security section), Actions, Variables tab, New repository variable.
+2. Name `CLOUDFLARE_PAGES_PROJECT`; Value `<name>`; Add variable. A variable, not a secret.
+3. Start the first deploy, only on your word: Actions, `Deploy`, Run workflow, branch `main`. After this, uploads also
+   happen on a push to `main` that changes the site, and after each built month (`monthly-build.yml`, job `deploy`, step
+   "Start the deploy").
+
+## 5. What to look at afterwards
+
+1. Actions, the `Deploy` run: jobs `build` and `upload` green. Its summary names the cube used ("Cube: release
+   cube-YYYY-MM"). A red run names the cause; a missing secret says which.
+2. Open `https://<name>.pages.dev` and check `/`, `/canvas`, `/about`, `/feedback`, `/differences`, `/method` and
+   `/caveats`. An old `/build` link should land on the canvas. An address that does not exist, such as `/nothing-here`,
+   should show the not-found page.
+3. `/status` and `/sense-check` must return not found. If either loads, switch off (step 6) and report it.
+4. Look at one page at phone width and in both themes, and follow one figure to its definition.
+
+## 6. Switching it off
+
+1. Stop new uploads: Settings, Secrets and variables, Actions, Variables, delete `CLOUDFLARE_PAGES_PROJECT` (GitHub's
+   docs page gives no delete path; the control is beside the variable, inferred — confirm). Later runs build and stop.
+2. Take the live site down: the last upload stays served. In Cloudflare, Workers & Pages, `<name>`, remove the deployment
+   or delete the project (labels inferred — confirm). Deleting the project frees the name.
+3. Revoke the token (My Profile, API Tokens) and delete the two secrets in `production`.
+4. Switching on again is steps 1 to 4 again as far as they were undone.
