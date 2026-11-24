@@ -16,7 +16,8 @@ export function appliedTheme(attribute: string | null | undefined, deviceIsDark:
 // (the page writes bootTheme.toString() into an inline script), so it must use nothing outside its parameters and the browser. It:
 //   - applies the stored choice if it is "light" or "dark" (a missing, unreadable or any other stored value is no choice, and the device decides);
 //   - marks <html> with the class theme-js, which is what shows the toggle: without scripts there is no toggle, and no promise it makes is kept;
-//   - makes a click on the toggle switch the theme that applies, store the choice, and update every toggle's state;
+//   - makes a click on the toggle switch the theme that applies and update every toggle's state. A choice that differs from the device
+//     setting is stored; one that is what the device already says is no override, so it is dropped and the page follows the device again;
 //   - follows a choice made in another tab, and the device setting while no choice is made.
 // The storage is guarded because a private window or blocked site data can make the accessor throw: the toggle then still works for the page.
 export function bootTheme(key: string, doc: Document = document, win: Window = window): void {
@@ -57,9 +58,12 @@ export function bootTheme(key: string, doc: Document = document, win: Window = w
     const target = event.target as Element | null;
     if (!target || !target.closest || !target.closest("[data-theme-toggle]")) return;
     const next = applied() === "dark" ? "light" : "dark";
-    root.setAttribute("data-theme", next);
+    const override = next !== (device.matches ? "dark" : "light");
+    if (override) root.setAttribute("data-theme", next);
+    else root.removeAttribute("data-theme");
     try {
-      win.localStorage.setItem(key, next);
+      if (override) win.localStorage.setItem(key, next);
+      else win.localStorage.removeItem(key);
     } catch (error) {
       // The choice holds for this page, and is not kept.
     }

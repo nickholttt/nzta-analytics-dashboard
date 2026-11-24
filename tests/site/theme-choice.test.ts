@@ -46,6 +46,10 @@ function page({ stored, deviceDark = false, throwing = false }: { stored?: strin
         if (throwing) throw new Error("blocked");
         store.set(key, value);
       },
+      removeItem: (key: string) => {
+        if (throwing) throw new Error("blocked");
+        store.delete(key);
+      },
     },
     addEventListener: (type: string, fn: (e: unknown) => void) => void (winListeners[type] ??= []).push(fn),
   };
@@ -87,17 +91,29 @@ test("the toggle shows only once the script has run, and reads the theme that ap
   assert.equal(p.toggle.state, "false", "the device setting changing while no choice is made");
 });
 
-test("a click switches to the other theme from the one that applies, and keeps the choice under one key", () => {
+test("a click switches to the other theme from the one that applies, and keeps a choice that differs from the device under one key", () => {
   const p = page({ deviceDark: true });
   p.click();
   assert.equal(p.theme(), "light");
   assert.deepEqual([...p.store], [["theme", "light"]]);
   assert.equal(p.toggle.state, "false");
-  p.click();
-  assert.equal(p.theme(), "dark");
-  assert.equal(p.store.get("theme"), "dark");
   p.clickElsewhere();
-  assert.equal(p.theme(), "dark", "a click that is not on the toggle changes nothing");
+  assert.equal(p.theme(), "light", "a click that is not on the toggle changes nothing");
+});
+
+test("a click back to what the device says drops the choice, so the page follows the device again", () => {
+  const p = page({ deviceDark: true });
+  p.click();
+  p.click();
+  assert.equal(p.theme(), undefined, "dark is what the device says: no override is left on the page");
+  assert.deepEqual([...p.store], [], "and nothing is kept");
+  assert.equal(p.toggle.state, "true");
+  p.deviceChanges(false);
+  assert.equal(p.toggle.state, "false", "the device setting is followed once more");
+  const kept = page({ stored: "dark", deviceDark: false });
+  kept.click();
+  assert.equal(kept.theme(), undefined);
+  assert.deepEqual([...kept.store], [], "a choice stored earlier is dropped the same way");
 });
 
 test("a choice that cannot be kept still holds for the page", () => {
