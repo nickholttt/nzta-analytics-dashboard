@@ -187,7 +187,6 @@
 }
 
 .chart-actions > .button-quiet {
-  min-height: 24px;
   margin-top: 0;
   font-size: var(--text-note);
 }
@@ -250,7 +249,6 @@
 }
 
 .chart-removed > .button-quiet {
-  min-height: 24px;
   margin-top: 0;
   font-size: var(--text-note);
 }
@@ -293,7 +291,6 @@
 
 .chart-card-edit.button-quiet {
   flex: none;
-  min-height: 24px;
   margin-top: 0;
   font-size: var(--text-note);
   white-space: nowrap;
@@ -323,7 +320,9 @@
 
 .chart-card-about > summary {
   width: fit-content;
-  min-height: 24px;
+  min-height: 44px;
+  padding-block: 0.75rem;
+  box-sizing: border-box;
   font-size: var(--text-note);
   color: var(--accent);
   cursor: pointer;
@@ -336,7 +335,6 @@
 
 .chart-card-foot > .button-quiet {
   justify-self: start;
-  min-height: 24px;
   margin-top: 0;
   font-size: var(--text-note);
 }
@@ -448,7 +446,7 @@
   font: inherit;
   font-size: var(--text-sm);
   width: 100%;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 var(--space-2);
   color: var(--ink);
   background: var(--card);
@@ -466,7 +464,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 32px;
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
   padding: 0 var(--space-2);
   font: inherit;
   font-size: var(--text-note);
@@ -523,8 +523,10 @@
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 32px;
-  min-height: 30px;
+  width: 44px;
+  min-height: 44px;
+  margin-block: -7px;
+  margin-right: -6px;
   padding: 0;
   color: var(--ink-2);
   background: transparent;
@@ -535,7 +537,6 @@
 
 .chip-remove:hover {
   color: var(--ink);
-  background: var(--paper-2);
 }
 
 .zone-values {
@@ -548,7 +549,6 @@
 }
 
 .zone-values > .button-quiet {
-  min-height: 24px;
   margin-top: var(--space-1);
   font-size: var(--text-note);
 }
@@ -562,7 +562,7 @@
 /* The list of values, inside a pane: the same picker as the Build page's, sized for a narrow column. */
 .chart-pane .picker input[type="search"] {
   max-width: none;
-  min-height: 36px;
+  min-height: 44px;
   font-size: var(--text-sm);
   background: var(--card);
   border-color: var(--control);
@@ -570,8 +570,10 @@
 }
 
 .chart-pane .chips button {
-  min-width: 32px;
-  min-height: 32px;
+  min-width: 44px;
+  min-height: 44px;
+  margin-block: -7px;
+  margin-right: -6px;
 }
 
 .chart-pane .suggestions {
@@ -587,7 +589,7 @@
   justify-content: space-between;
   gap: 0 var(--space-2);
   width: 100%;
-  min-height: 36px;
+  min-height: 44px;
   background: var(--card);
   border-color: var(--control);
   border-radius: var(--radius-control);
@@ -638,7 +640,7 @@
   align-items: center;
   gap: 0 var(--space-2);
   width: 100%;
-  min-height: 32px;
+  min-height: 44px;
   padding: var(--space-1) var(--space-2);
   font: inherit;
   font-size: var(--text-sm);
