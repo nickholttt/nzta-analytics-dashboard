@@ -7,7 +7,7 @@
 import canvasDoc from "../../config/canvas.json";
 import { builderSpec, dimensionLabel, dimensions, lowerLabel, findDataset, findDerived, findDimension, findMeasure } from "./config";
 import type { Preset } from "./config";
-import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCross, changeQuestion, isOneChart, questionParams, readQuestion, settle } from "./builder";
+import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCrossIn, changeQuestion, isOneChart, questionParams, readQuestion, settle } from "./builder";
 import type { BuilderOption, DatasetVocabulary, Question, Vocabulary } from "./builder";
 import type { Manifest } from "./data";
 import { canPin } from "./pin";
@@ -143,7 +143,7 @@ export function verdict(all: Vocabulary, q: Question, zone: Zone, field: CanvasF
     if (main?.with.includes(field.id)) return { ok: true, change: { by2: field.id, values2: [] }, ...(q.by2 ? { replaces: q.by2 } : {}) };
     if (m.derived) return refuse("refuse_measure_one_field");
     if (!offered) return noBreakdown();
-    return refuse(canCross(q.by, field.id) ? "refuse_not_crossed" : "refuse_nested", { other: fieldLabel(q.by) });
+    return refuse(canCrossIn(all, q.by, field.id) ? "refuse_not_crossed" : "refuse_nested", { other: fieldLabel(q.by) });
   }
 
   // Filters.
