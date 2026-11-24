@@ -71,6 +71,9 @@ function prunePublicBuild() {
 export default defineConfig({
   integrations: [react(), preloadIslands(), prunePublicBuild()],
   server: { host: "127.0.0.1", port: 4321 },
+  // A font file is never folded into the stylesheet as text, however small: the stylesheet blocks the first paint, and a face the page
+  // does not need would be in it all the same. Each is its own file, asked for only by a page whose text uses it.
+  vite: { build: { assetsInlineLimit: (file) => (file.endsWith(".woff2") ? false : undefined) } },
   // The dev toolbar overlays the page and lands in every screenshot.
   devToolbar: { enabled: false },
 });

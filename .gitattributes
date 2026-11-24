@@ -2,3 +2,4 @@
 # across platforms so a checkout on Windows cannot change a hash or a diff.
 * text=auto eol=lf
 *.parquet binary
+*.woff2 binary
