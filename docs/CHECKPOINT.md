@@ -9,9 +9,9 @@ A session on the web takes only A, B or C.
 
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
-| A: finish the canvas | none | free | steps 1 and 2 of 5 merged (#118, #119, #121); next is step 3, Build folded in |
-| B: the accuracy guard | none | free | items 1 to 3 merged, and the user's four answers of 2026-11-24 (#125, #126, #127); next is item 5, the write-up |
-| C: public readiness | none | free | item 4 and the checks of item 2 merged (#120); next is item 1, the playbook |
+| A: finish the canvas | `claude/a-*` | the session on the computer of 2026-11-24 (its second) | steps 1 and 2 of 5 merged (#118, #119, #121); steps 3 to 5 and the milestone 1 report under way |
+| B: the accuracy guard | `claude/b-*` | the same session, for the user's three answers below only | items 1 to 3 merged (#125, #126, #127); after the answers, next is item 5, the write-up |
+| C: public readiness | `claude/c-*` | the session on the computer of 2026-11-24 (its second) | item 4 and the checks of item 2 merged (#120); items 1 to 3 and the dry run under way |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 22 November built nothing |
 
 ## Where we left off
@@ -57,10 +57,18 @@ measure worked out from two others on the canvas (three Explore charts wait on i
 ## Questions for the user (parked; none stops the work)
 
 1. **The site's name and web address** and the About page's gaps (`config/site.json`).
-2. **Scoop's notice.** 41 MIA rows link to Scoop's copies of its releases. Scoop asks for a licence for
-   work use; only a figure and a link are taken. Kept unless the user says otherwise.
-3. **Swap `public/data`** for the dry-run build that holds `reconciliation.json` (STATE, raw files), so
-   the local site shows the comparison? The playbook says to ask. Not done until the user says.
+
+## The user's answers of 2026-11-24 (second session), being done
+
+1. **Scoop:** keep the figures. Where the MIA's own site or a news outlet has the same release, link to
+   that; keep a Scoop link only where nothing else exists.
+2. **Swap `public/data`** for the dry-run build holding `reconciliation.json`: yes, then check the
+   Differences page and `/status` in the browser with the real figures.
+3. **A source restating its own figure by 5% or more** warns and is listed on `/status`; it does not
+   stop the build. A gap between a source's figure and ours still stops it.
+4. **Lane D:** when NZTA publishes November the user gives `DASHBOARD_EXPORT_METHOD.md`. Use it to retake
+   the history with "GVM group" and "CC grouping - vehicle", then guard light commercial against vstat
+   with a real tolerance.
 
 ## Decided for the user (unreviewed)
 
