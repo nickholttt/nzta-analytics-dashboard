@@ -11,6 +11,10 @@ fixtures/published_figures.csv, made-up rows the fixture cube can answer), not d
 row for every published figure, so building from the live files would make each month's new rows a contract change, and the
 live rows name months, models and datasets this small cube does not have. The live files are still read and validated by every
 other test's build, and test_reconcile.py holds the step's own behaviour.
+
+A fixture row whose kind the single-figure limit covers (D-150) must never be compared in any cube built from these files: a row
+of 11 vehicles beside a cube of hundreds is a gap of thousands of percent, and one such row stops the build. The golden's covered
+row is one for a month the cube does not hold, so it shows the field and is not compared.
 """
 
 from __future__ import annotations

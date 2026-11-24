@@ -1,7 +1,7 @@
-source,source_url,date_read,month,measure_as_published,figure,dataset,filters,tolerance_pct,known_difference,added_up_from
-fixture_a,https://fixture.example/a/total,2026-11-01,2026-08,Fixture measure: all vehicles,11,registrations_surviving,,2,,
-fixture_a,https://fixture.example/a/new,2026-11-01,2026-07,Fixture measure: new vehicles,4,registrations_surviving,"{""import_status"": [""NZ New""]}",5,A made-up known difference.,
-fixture_b,https://fixture.example/b/total,2026-11-01,2026-06,Fixture measure: all vehicles,7,registrations_surviving,,5,,
-fixture_b,https://fixture.example/b/total,2026-11-01,2026-09,Fixture measure: all vehicles,12,registrations_surviving,,2,,made up table
-fixture_c,https://fixture.example/c/total,2026-11-01,2026-08,Fixture measure: all vehicles,100,registrations_flow,,2,,
-fixture_c,https://fixture.example/c/value,2026-11-01,2026-08,Fixture measure: one value,5,registrations_surviving,"{""import_status"": [""Fixture value not held""]}",2,,
+source,source_url,date_read,month,measure_as_published,figure,dataset,filters,tolerance_pct,known_difference,added_up_from,figure_kind
+fixture_a,https://fixture.example/a/total,2026-11-01,2026-08,Fixture measure: all vehicles,11,registrations_surviving,,2,,,model
+fixture_a,https://fixture.example/a/new,2026-11-01,2026-07,Fixture measure: new vehicles,4,registrations_surviving,"{""import_status"": [""NZ New""]}",5,A made-up known difference.,,passenger
+fixture_b,https://fixture.example/b/total,2026-11-01,2026-06,Fixture measure: all vehicles,7,registrations_surviving,,5,,,model
+fixture_b,https://fixture.example/b/total,2026-11-01,2026-09,Fixture measure: all vehicles,12,registrations_surviving,,2,,made up table,commercial
+fixture_c,https://fixture.example/c/total,2026-11-01,2026-08,Fixture measure: all vehicles,100,registrations_flow,,2,,,total
+fixture_c,https://fixture.example/c/value,2026-11-01,2026-08,Fixture measure: one value,5,registrations_surviving,"{""import_status"": [""Fixture value not held""]}",2,,,model

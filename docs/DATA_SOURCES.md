@@ -384,6 +384,7 @@ and our true registrations are its export, so it would not be independent.
 | `tolerance_pct` | how far ours may be from theirs, as a percentage of theirs, before the row warns; 0 up to `reconciliation.max_tolerance_pct` in `config/pipeline.json` |
 | `known_difference` | a short note where a difference is known and explained; blank otherwise. It is shown beside the row and never used to hide it |
 | `added_up_from` | blank when the figure is one the source prints itself. Otherwise one or more lower case words (letters and single spaces, refused otherwise) saying what of the source's the figure was added up from, such as `chart` or `table`; the site writes "added up from <the source's name>'s published <these words>" beside the figure |
+| `figure_kind` | an id (lower case letters, digits and underscores, starting with a letter) saying what sort of figure it is; required. `reconciliation.single_figure_limit.kinds` in `config/pipeline.json` lists the kinds that stop a build on one figure (below). A row of a listed kind whose `tolerance_pct` is `reconciliation.single_figure_limit.gap_pct` or more must have a `known_difference` that says why ours cannot come that close |
 
 **Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
 datasets (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it counts first
@@ -405,29 +406,42 @@ never a zero and never a stopped build.
 
 Two rows are the same figure when their source, month, measure and filters are the same; the second aborts the build.
 
-**When rows stop a build.** A row past its tolerance only warns. The build stops (exit 2) when separate counts agree with each
-other and not with ours: in one month, at least two independent sources, and more than half of the independent sources that
+**When rows stop a build.** A row past its tolerance only warns. Two rules stop it (exit 2).
+
+*One figure.* A compared row of an independent source whose `figure_kind` is one of `reconciliation.single_figure_limit.kinds`
+stops the build alone when ours is `gap_pct` percent or more from theirs (today 5, and exactly 5 stops it), on either side. One
+row is enough: no second source and no share of the month. A row of a listed kind whose own `tolerance_pct` is below `gap_pct` is
+subject to it; one whose tolerance is `gap_pct` or more is exempt, because the row itself says ours cannot come that close, and
+must say why in `known_difference`. A kind that is not listed, a source with `independent` false, and a row that was not compared
+never stop it. (D-150; the whole rule, with the sizes it was measured at, is in `docs/CUBE_SCHEMA.md`.)
+
+*Separate counts.* The build stops when separate counts agree with each other and not with ours: in one month, at least two independent sources, and more than half of the independent sources that
 have a compared row that month, each have half or more of what they published (the weight of a row is its figure, so a total
 and its parts both count) in rows further from ours than twice their tolerance, never less than 2%, on the same side. A month
 with compared rows from fewer than two independent sources cannot stop a build. The numbers are in `config/pipeline.json`
 (`reconciliation.hard_limit`); the whole rule is in `docs/CUBE_SCHEMA.md`. On the 336 rows
-committed on 2026-11-23, an error of 3% or more in all of our figures, either way, stops the build in every month, and a
-fault confined to one kind of figure (new passenger vehicles counted as commercial, at any size tried) only warns; the
-measured sizes are in `docs/CUBE_SCHEMA.md`, "What size of error stops a build".
+committed on 2026-11-23, an error of 3% or more in all of our figures, either way, stops the build in every month. A fault
+confined to one kind of figure (new passenger vehicles counted as commercial) is not stopped by this rule at any size tried, and
+is stopped by the one-figure rule from 5% in some months and from 10% in all 22; the measured sizes are in
+`docs/CUBE_SCHEMA.md`, "What size of error stops a build".
 
 What it holds (read on 2026-11-23, for January 2025 to October 2026): 336 rows.
 
-| Source | Measure | Months | Set beside | Tolerance |
-|---|---|---|---|---|
-| `statsnz` | New Cars and Station Wagons Total (series TPTM.S22IZ) | 22 | true registrations, passenger cars and vans, new and used | 1% |
-| `statsnz` | New Cars/Stat'n Wags Prev Reg'd Ovrseas (series TPTM.S22JZ) | 22 | the same, used imports only | 1% |
-| `mta_vstat` | new passenger cars | 22 | true registrations, new passenger cars and vans | 1% |
-| `mta_vstat` | used import passenger cars | 22 | the same, used imports | 1% |
-| `mta_vstat` | new light commercial vehicles | 22 | true registrations, new goods vans, trucks and utes | 12%, with a known difference |
-| `mta_vstat` | each of the ten largest new models of the month | 22, ten rows each | true registrations on the wider scope, new, that model | 3% |
-| `mia` | Total Industry | 2 | true registrations on the wider scope, new | 1% |
-| `mia` | Light Passenger (incl. SUV) | 2 | true registrations, new passenger cars and vans | 1% |
-| `mia` | Light Commercial plus Heavy Commercial | 2 | true registrations on the wider scope, new, commercial | 2% |
+| Source | Measure | `figure_kind` | Months | Set beside | Tolerance |
+|---|---|---|---|---|---|
+| `statsnz` | New Cars and Station Wagons Total (series TPTM.S22IZ) | `passenger` | 22 | true registrations, passenger cars and vans, new and used | 1% |
+| `statsnz` | New Cars/Stat'n Wags Prev Reg'd Ovrseas (series TPTM.S22JZ) | `passenger` | 22 | the same, used imports only | 1% |
+| `mta_vstat` | new passenger cars | `passenger` | 22 | true registrations, new passenger cars and vans | 1% |
+| `mta_vstat` | used import passenger cars | `passenger` | 22 | the same, used imports | 1% |
+| `mta_vstat` | new light commercial vehicles | `commercial` | 22 | true registrations, new goods vans, trucks and utes | 12%, with a known difference (exempt from the one-figure rule) |
+| `mta_vstat` | each of the ten largest new models of the month | `model` | 22, ten rows each | true registrations on the wider scope, new, that model | 3% |
+| `mia` | Total Industry | `total` | 2 | true registrations on the wider scope, new | 1% |
+| `mia` | Light Passenger (incl. SUV) | `passenger` | 2 | true registrations, new passenger cars and vans | 1% |
+| `mia` | Light Commercial plus Heavy Commercial | `commercial` | 2 | true registrations on the wider scope, new, commercial | 2% |
+
+The config lists `passenger`, `commercial` and `total` for the one-figure rule, so it applies to 94 of the 336 rows (a count
+made with the real functions on the committed rows); the 220 `model` rows and the 22 exempt light commercial rows are not
+subject to it.
 
 How each was read, and what that means for a row:
 
