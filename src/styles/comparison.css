@@ -1,26 +1,27 @@
 /* "How our figures compare" on the Differences page (config/comparison.json). It sits inside .prose, so the table, heading and link styles of the
    reading pages apply; this adds only what a table of figures needs. A link standing alone is a tap target of at least 44px each way: its box is
-   taller than its text, and the spacing around it gives back what the box adds, so the page reads as it did. */
+   taller than its text, and the spacing above a heading gives back part of what the box adds. */
 .comparison {
   --tap: 44px;
-  --slack: 0.47rem; /* half of what a 44px link adds to a line of heading text */
+  --slack: 0.47rem; /* about half of what a 44px box adds to one line of heading text */
 }
 
 .comparison h3 {
   margin-top: calc(var(--space-5) - var(--slack));
-  margin-bottom: calc(var(--space-2) - var(--slack));
+  margin-bottom: var(--space-2);
 }
 
 .comparison h3 a {
   display: inline-flex;
-  align-items: center;
+  /* The text sits at the foot of the box, so what a one-line heading gains goes above it and the line under it (the data basis) always starts below the last line of text, however many lines the name takes. */
+  align-items: flex-end;
   min-width: var(--tap);
   min-height: var(--tap);
 }
 
 /* What the organisation's figures are made from: a line of its own under the name, not part of the heading. */
 .comparison p.basis {
-  margin: calc(var(--space-1) - var(--space-2) - 0.31rem) 0 0.2rem;
+  margin: calc(var(--space-1) - var(--space-2)) 0 var(--space-2);
   font-size: var(--text-sm);
   color: var(--ink-2);
 }
@@ -121,7 +122,7 @@
 
   .comparison .table-scroll tr {
     display: grid;
-    grid-template-columns: 4.75rem repeat(4, minmax(0, 1fr));
+    grid-template-columns: 4rem repeat(4, minmax(0, 1fr));
     align-items: baseline;
     border-bottom: 1px solid var(--rule);
   }
@@ -139,9 +140,13 @@
   .comparison .table-scroll td {
     display: block;
     min-width: 0;
-    padding-inline: var(--space-1);
+    padding-inline: 0.125rem;
     border-bottom: 0;
     font-size: var(--text-xs);
+  }
+
+  /* A header wraps between words only; a link or a sentence may break anywhere rather than run off the edge. */
+  .comparison .table-scroll td {
     overflow-wrap: anywhere;
   }
 
