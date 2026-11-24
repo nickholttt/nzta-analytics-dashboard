@@ -1417,9 +1417,9 @@ Published figures (`reconciliation.json`, above):
 - The single-figure limit (D-150): one compared row of a kind in `reconciliation.single_figure_limit.kinds`, of an independent source,
   whose own tolerance is below `gap_pct`, is `gap_pct` percent or more from ours, on either side. One abort line for each such row.
   A row of such a kind whose own tolerance is `gap_pct` or more and that has no `known_difference`, or a `figure_kind` that is not an
-  id, is a fault in the file and aborts when it is read; `reconciliation.single_figure_limit` missing, a `gap_pct` that is not above
+  id or is not one of `reconciliation.figure_kinds`, is a fault in the file and aborts when it is read; `reconciliation.single_figure_limit` missing, a `gap_pct` that is not above
   0 and at most 100, kinds that are not a list of distinct ids or that name a kind `reconciliation.figure_kinds` does not list,
-  or a `figure_kinds` that is not such a list, abort the build before anything is read.
+  or a `figure_kinds` that is not such a list or is empty, abort the build before anything is read.
 
 Events:
 

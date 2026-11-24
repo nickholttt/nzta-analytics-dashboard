@@ -298,6 +298,7 @@ def test_config_numbers_are_checked(tmp_path):
     ({"gap_pct": float("inf")}, "gap_pct must be a number above 0 and at most 100"),
     ({"gap_pct": float("nan")}, "gap_pct must be a number above 0 and at most 100"),
     ({"gap_pct": 1e308}, "gap_pct must be a number above 0 and at most 100"),
+    ({"gap_pct": 10 ** 400}, "gap_pct must be a number above 0 and at most 100"),
     ({"kinds": ["fixture_nobody_listed"]}, "which reconciliation.figure_kinds does not list"),
     ({"kinds": LISTED}, "kinds must be a list of distinct ids"),
     ({"kinds": [LISTED, LISTED]}, "kinds must be a list of distinct ids"),
