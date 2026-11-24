@@ -5,7 +5,7 @@
 // What a page "ships on first load", by kind:
 //   html    the page's own file, gzipped
 //   styles  each stylesheet the page links, gzipped
-//   scripts each script the page names (a script tag, a modulepreload, an island's component or renderer) and every script those import
+//   scripts each script the page names (a script tag, a modulepreload, an island's component or renderer, a file its inline script adds links for) and every script those import
 //           statically, gzipped. A script loaded later on a visitor's action (a lazy import) is not first load and is not counted
 //   fonts   for every page, the Latin and the Latin Extended face of each family the stylesheets declare (a page of New Zealand English
 //           and te reo Maori, with its macrons, can load both, and the charts and the canvas draw their text in them), and any other face
@@ -39,6 +39,8 @@ export function pageFiles(root, html) {
     ...[...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/gi)].map((m) => m[1]),
     ...[...html.matchAll(/<link\b[^>]*\brel="modulepreload"[^>]*\bhref="([^"]+)"/gi)].map((m) => m[1]),
     ...[...html.matchAll(/(?:component-url|renderer-url|before-hydration-url)="([^"]+)"/gi)].map((m) => m[1]),
+    // a script the page's own inline script adds links for once the island's code has arrived (astro.config.mjs, preloadIslands)
+    ...[...html.matchAll(/"(\/_astro\/[^"\s]+\.js)"/g)].map((m) => m[1]),
   ].map(local).filter(Boolean);
   const scripts = new Set();
   const add = (url) => {

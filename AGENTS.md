@@ -154,7 +154,11 @@ Setup, **not re-run this session** (the environment already existed):
   `config/pipeline.json` for the browser to the keys listed in `scripts/browser-config.mjs` (`tests/site/browser-config.test.ts`), and marks the
   Parquet decompressor packages as free of side effects (`unusedCompressors`) so that only the zstd decoder `src/lib/data.ts` takes is
   bundled and not the brotli, gzip, lz4 and WebAssembly Snappy decoders beside it (7,274 B gzipped), and
-  `src/lib/openingReads.ts` names what the canvas as it opens asks for before its script runs. `config/performance_budget.json` holds each page
+  `src/lib/openingReads.ts` names what the canvas as it opens asks for before its script runs. The drawing library (the chunk named `plot`, the
+  largest file on the way to the first chart) is not linked in a page's head with the island's own code: a short script `preloadIslands` writes
+  there waits for the island's module and then adds the library's links, so that on a slow link the island, the framework and the reader of the
+  data are not slowed by it (the canvas's first chart: medians 2,672 to 2,725 ms in three interleaved rounds against 2,945 to 3,082 ms
+  with the links in the head, phone profile). `config/performance_budget.json` holds each page
   to what it now ships. Measured on 2026-11-24, phone profile, median of 5: the canvas's first chart 2,871 ms in one run and 3,046 and 3,065 ms
   in two others (3,831 ms before); a canvas link that reads the fact table is bound by its data (the acceptance question as a ranking: 6,376 ms,
   654 KB of it data).
