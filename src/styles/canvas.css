@@ -134,6 +134,13 @@
   container-type: inline-size;
 }
 
+/* Beside the editing panel, a window under 75rem leaves the charts about 50rem or less: two cards would be about 25rem each, too narrow for a
+   chart's title and its figure, so the charts are one to a row there. */
+@media (min-width: 64rem) and (max-width: 74.99rem) {
+  .canvas-charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 
 .chart-card {
   container: chart-card / inline-size;
