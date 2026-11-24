@@ -594,14 +594,3 @@ export function addressParams(search: string, q: Question, keepChart: boolean): 
   for (const [k, v] of questionParams(q)) params.append(k, v);
   return params;
 }
-
-// The Build page's address for a question. It carries the time range the chart was showing, where that differs from
-// the question's own default, so the chart opens as the reader left it.
-export function builderHref(q: Question, period?: string, fullHistory = false, cells?: string): string {
-  const params = questionParams(q);
-  const [first] = builderPresets(q);
-  if (period && first && period !== first.period) params.set(builderKey("period"), period);
-  if (fullHistory) params.set(builderKey("range"), "all");
-  if (cells) params.set(builderKey("cells"), cells);
-  return `/build?${params}`;
-}

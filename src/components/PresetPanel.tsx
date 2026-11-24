@@ -2,7 +2,8 @@
 import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
+import { builderPresets, builderQuestionFor } from "../lib/builder";
+import { chartLink } from "../lib/canvas";
 import { shownEnd } from "../lib/pin";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { datasetAttribution, datasetsOf, figuresHeader } from "../lib/figuresHeader";
@@ -651,12 +652,12 @@ export default function PresetPanel({
       ? fillNote(phrases.matrix_eyebrow, { row_field: dimensionLabel, column_field: dimensionLabel2 }).text
       : (dimensionLabel ?? derived?.label ?? measure?.label);
 
-  // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube
+  // The same chart on the canvas, ready to change: offered only where the sentence can say this view and the cube
   // draws what it says, and opened on the time range shown here.
   const builderQuestion = builderQuestionFor(effectivePreset);
-  const builderLink =
+  const changeLink =
     builderQuestion && builderPresets(builderQuestion).every((p) => resolvePreset(p, manifest).preventsRender.length === 0)
-      ? builderHref(builderQuestion, activePeriod, fullHistory, shape === "matrix" ? getParam(presetId, "cells", "") || effectivePreset.cell_basis || undefined : undefined)
+      ? chartLink(builderQuestion, activePeriod, fullHistory, shape === "matrix" ? getParam(presetId, "cells", "") || effectivePreset.cell_basis || undefined : undefined)
       : undefined;
   const questionId = `${preset.id}-question`;
 
@@ -717,8 +718,8 @@ export default function PresetPanel({
       <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
         {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
       </button>
-      {builderLink ? (
-        <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
+      {changeLink ? (
+        <a className="button-quiet" href={changeLink} aria-describedby={questionId}>
           Change this chart
         </a>
       ) : null}

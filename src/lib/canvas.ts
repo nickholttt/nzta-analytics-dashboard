@@ -469,6 +469,18 @@ export function canvasParams(canvas: Canvas): URLSearchParams {
   return params;
 }
 
+// The canvas that holds one chart asking this question, as an address: where "Change this chart" on a ready-made chart goes. It carries the time
+// range the chart was showing, where that differs from the question's own default, so the chart opens as the reader left it.
+export function chartLink(q: Question, period?: string, fullHistory = false, cells?: string): string {
+  const id = nextChartId([]);
+  const params = canvasParams({ charts: [{ id, question: q, type: null, table: false, width: "full" }] });
+  const [first] = builderPresets(q, undefined, id);
+  if (period && first && period !== first.period) params.set(`${id}.period`, period);
+  if (fullHistory) params.set(`${id}.range`, "all");
+  if (cells) params.set(`${id}.cells`, cells);
+  return `${CANVAS_PATH}?${params}`;
+}
+
 // The address with the canvas written into it. A chart whose question or type changed loses its own settings (its time range belongs to
 // the chart it was); a chart that did not change keeps them; a chart no longer on the canvas loses everything under its id.
 export function canvasAddress(search: string, canvas: Canvas, changed: ReadonlySet<string> = new Set()): URLSearchParams {

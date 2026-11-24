@@ -451,6 +451,20 @@ test("a link the canvas wrote itself, or one that asks for what the data has, ha
   assert.deepEqual(canvas.linkGaps(all, bare, canvas.settleChart(all, bare)), []);
 });
 
+test("the link from a ready-made chart opens a canvas of that chart, on the time range it was showing", () => {
+  const { question } = questions[0];
+  const [open] = builder.builderPresets(question);
+  const other = config.periods.find((p) => p.id !== open.period)?.id as string;
+  const href = canvas.chartLink(question, other, true, "column");
+  assert.ok(href.startsWith(`${canvas.CANVAS_PATH}?`));
+  const search = href.slice(href.indexOf("?"));
+  const [chart] = canvas.settleCanvas(all, canvas.readCanvas(search)).charts;
+  assert.deepEqual(chart.question, question);
+  assert.deepEqual(canvas.chartSettings(search, chart.id).sort(), [["cells", "column"], ["period", other], ["range", "all"]]);
+  // Where the chart shows its own default, the link carries no setting.
+  assert.deepEqual(canvas.chartSettings(canvas.chartLink(question, open.period), "c1"), []);
+});
+
 // ---- The page: charts added, copied, removed and moved ----
 
 const ids = (c: { charts: CanvasChart[] }) => c.charts.map((chart) => chart.id);
