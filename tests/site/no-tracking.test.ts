@@ -186,3 +186,22 @@ test("only the exact XML namespace names are allowed from w3.org, not any other 
   assert.deepEqual(problems({ "_astro/a.js": `const a = "http://www.w3.org/2000/svg", b = "http://www.w3.org/1999/xlink";` }), []);
   assert.match(problems({ "_astro/a.js": `new Image().src = "http://www.w3.org/evil/track.gif";` }).join("\n"), /w3\.org\/evil\/track\.gif/);
 });
+
+test("an unquoted attribute value, after a quoted one or on its own, is read like a quoted one", () => {
+  const cases: [string, string][] = [
+    [`<img alt="x" src=https://one.example/p.gif>`, "one.example/p.gif"],
+    [`<script async="" src=//two.example/t.js></script>`, "two.example/t.js"],
+    [`<img alt='x' src=https://three.example/p.gif>`, "three.example/p.gif"],
+    [`<img alt="x" src=https://four.example/p.gif/>`, "four.example/p.gif"],
+    [`<img src=https://five.example/p.gif alt="x">`, "five.example/p.gif"],
+    [`<img alt="x" srcset=https://six.example/a.png>`, "six.example/a.png"],
+    [`<IMG ALT="x" SRC=https://seven.example/p.gif>`, "seven.example/p.gif"],
+    [`<script src=https://eight.example/t.js async></script>`, "eight.example/t.js"],
+  ];
+  for (const [html, needle] of cases) {
+    const text = problems({ "index.html": page("", html) }).join("\n");
+    assert.match(text, new RegExp(needle.replace(/\./g, "\.")), `${html} passed:\n${text}`);
+  }
+  // Unquoted values that stay on this site, or that are not requests, still pass.
+  assert.deepEqual(problems({ "index.html": page("", `<img alt="x" src=/own.png><img alt=x src=data:image/png;base64,AAAA><a href=https://www.nzta.govt.nz/>NZTA</a>`) }), []);
+});

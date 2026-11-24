@@ -50,7 +50,7 @@ const LINK_NOT_A_REQUEST = new Set(["canonical", "alternate", "author", "license
 // The attributes of a tag, their values decoded as a browser decodes them (&quot; and &#39; are quotes, not text).
 function attributes(tag) {
   const found = {};
-  for (const m of tag.matchAll(/([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) found[m[1].toLowerCase()] = decodeEntities(m[2] ?? m[3] ?? "");
+  for (const m of tag.matchAll(/([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g)) found[m[1].toLowerCase()] = decodeEntities(m[2] ?? m[3] ?? m[4] ?? "");
   return found;
 }
 
