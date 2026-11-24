@@ -66,7 +66,7 @@
   "$chart_types_comment": "The six shapes (config/chart_rules.json), in the order the picker lists those that do not fit. Which fit a question is the rule table's to say, never this file's. table is the seventh choice: the figures of the chart as a table, always available (CLAUDE.md, Shapes).",
   "table": { "id": "table", "label": "Table", "help": "The figures behind the chart, as a table." },
   "words": {
-    "$comment": "Interface words and the reasons the canvas gives. Placeholders: {field} and {other} are field names; {dataset} a dataset's public name; {measure} a measure's name as the Measure zone says it; {zone} a zone's name; {type} a chart type's name; {wanted} what a chart type needs, as the names of measures or in words from kinds or measure_kinds; {number} and {months} whole numbers; {top_n} how many values a measure gathers; {date} the snapshot's date or the day a canvas was saved; {name} the name of a saved canvas, or a chart's title; {query} what a visitor typed; {reason} another template, filled. config/narrative/rules.json lists them for the lint.",
+    "$comment": "Interface words and the reasons the canvas gives. Placeholders: {field} and {other} are field names; {dataset} a dataset's public name; {measure} a measure's name as the Measure zone says it; {zone} a zone's name; {type} a chart type's name; {wanted} what a chart type needs, as the names of measures or in words from kinds or measure_kinds; {number} and {months} whole numbers; {top_n} how many values a measure gathers; {date} the snapshot's date or the day a canvas was saved; {name} the name of a saved canvas, or a chart's title; {query} what a visitor typed; {reason} another template, filled; {shown} what a chart shows in place of what a link asked for. config/narrative/rules.json lists them for the lint.",
     "page_title": "Canvas",
     "starters_heading": "Start with a question",
     "starters_intro": "Each one opens as a canvas of ready-made charts. Change any chart, add more, and the address keeps your page.",
@@ -108,6 +108,9 @@
     "status_chart_restored": "Chart {number} put back.",
     "status_chart_moved": "The chart is now chart {number}.",
     "link_changed_label": "This link was changed",
+    "gap_measure": "This link asked to measure “{query}”, which {dataset} does not have. This chart shows {measure} instead. To change it, choose another in {zone}.",
+    "gap_type_unknown": "This link asked for the chart type “{query}”, which the canvas does not draw. This chart shows its best fit, {shown}. To change it, choose a chart type.",
+    "gap_type_unfit": "This link asked for {type}, which does not fit this question, so this chart shows {shown}. {reason}",
     "link_preset_dropped": "This link named a ready-made question that does not match this chart, so the chart is titled by what it shows.",
     "pinned_label": "Pinned",
     "pin_reading": "Checking which snapshot this chart is pinned to…",

@@ -5,7 +5,7 @@
 // back from. It names no field, measure, dataset or value: the words are config/canvas.json's, the rules are the builder's and the
 // chart rule table's.
 import canvasDoc from "../../config/canvas.json";
-import { dimensionLabel, dimensions, findDataset, findDerived, findDimension, findMeasure } from "./config";
+import { builderSpec, dimensionLabel, dimensions, findDataset, findDerived, findDimension, findMeasure } from "./config";
 import type { Preset } from "./config";
 import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCross, changeQuestion, isOneChart, questionParams, readQuestion, settle } from "./builder";
 import type { BuilderOption, DatasetVocabulary, Question, Vocabulary } from "./builder";
@@ -426,6 +426,27 @@ export function settleChart(all: Vocabulary, a: AskedChart): CanvasChart {
 
 // What a link asked of a chart's title that the page did not give, said as the canvas says the rest of what a link asked and did not get.
 export const presetNotice = (a: AskedChart, chart: CanvasChart): string[] => (a.preset && !chart.preset ? [say("link_preset_dropped")] : []);
+
+// What a link asked of a chart that the data lacks and the page did not say: a measure the dataset does not have, a chart type the canvas
+// does not draw. The dataset, the breakdowns, the values, the conditions and the pin are told by the Build page's own sentences
+// (builder.linkNotices). Each sentence says what was not found, what the chart shows instead, and what to do to change it.
+export function linkGaps(all: Vocabulary, a: AskedChart, chart: CanvasChart): string[] {
+  const gaps: string[] = [];
+  const asked = a.asked.measure;
+  if (asked && asked !== chart.question.measure) {
+    const v = datasetOf(all, chart.question.dataset);
+    const known = builderSpec.measures.find((m) => m.id === asked);
+    gaps.push(
+      say("gap_measure", { query: known ? measureLabel({ id: asked, phrase: known.phrase }) : asked, dataset: datasetLabel(v.dataset), measure: measureLabel(measureOf(v, chart.question.measure)), zone: zoneLabel("measure") }),
+    );
+  }
+  if (a.type && !isShape(a.type)) gaps.push(say("gap_type_unknown", { query: a.type, shown: typeLabel(chart.type ?? bestType(chart.question)) }));
+  return gaps;
+}
+
+// What a chart type a link asked for, which the build cannot draw for the chart's question, was set back from: the reason, and the type shown.
+export const typeGap = (all: Vocabulary, asked: CanvasChart): string =>
+  asked.type ? say("gap_type_unfit", { type: typeLabel(asked.type), shown: typeLabel(bestType(asked.question)), reason: typeReason(all, asked.question, asked.type) }) : "";
 
 // The heading of a chart: the Explore question it stands for, else the title its question generates (chartPreset).
 export const chartHeading = (chart: Pick<CanvasChart, "preset">): string | undefined => (chart.preset ? presetQuestion(chart.preset) : undefined);
