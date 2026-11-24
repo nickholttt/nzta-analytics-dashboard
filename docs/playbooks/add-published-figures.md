@@ -22,8 +22,9 @@ explained, not a way to quiet a warning.
 - **Never enter a figure that was not read from the source's page in this session.** Not from memory, not from the press, not
   from an earlier decision record. A gap stays a gap: a month a source has not published has no row.
 - **The MIA is the one exception to "not from the press", by the user's word of 2026-11-24 (D-151).** Its figures are taken
-  only from what it releases publicly: its own site, its monthly media releases (Scoop publishes them in full), or a news
-  report that credits the MIA for the figure on the same page. The row's `source_url` is that page, read in the session, and its
+  only from what it releases publicly: its own site, a news report that credits the MIA for the figure on the same page, or its
+  monthly media releases (Scoop publishes them in full). Use the first of these that gives the figure: a Scoop link stays only
+  where nothing else does (user, 2026-11-24, D-152). The row's `source_url` is that page, read in the session, and its
   measure says in brackets where the figure was read. Never its members' data, and never a figure reached through anyone's
   work login. A figure that may be rounded, or that is on a page that does not credit the MIA, has no row, and the month stays a gap.
 - **Read, never scrape.** A source that cannot be read automatically is copied in by the maintainer; list exactly which figures
@@ -47,6 +48,13 @@ explained, not a way to quiet a warning.
   not a registration is set against it only with a `known_difference` saying so. The dataset carries the scope; there is no
   scope column. Filter values are written as the published files hold them (the labels), so look them up in the files, not
   in NZTA's raw codes.
+- **A source's page shows a different figure for a month already in the file** (it has restated it). Read the page again, put
+  the new figure in `figure`, the old one in `restated_from`, and the day you read it in `date_read`; change nothing else on the
+  row. A restatement of `reconciliation.restatement_warn_pct` percent or more (5, exactly 5 counts) is warned about in the build
+  and listed on `/status`; it does not stop the build, and on that row the one-figure rule then stops it only when ours is 5% or
+  more from both figures (D-153). A build never reads the page, so a row not corrected is not seen: the old figure still stands
+  in the file, and a gap between it and ours stops the build as it did before. Leave the column blank for a figure the source
+  has not changed, and never fill it to quiet a gap: that is what the rule above forbids.
 - Never edit a row's figure, tolerance or filters to make a warning go away. A warning is a real gap. Add a `known_difference`
   only where the difference is known and explained; it is shown beside the row and does not hide it.
 - A new organisation is a row in `published_sources.csv` first, in its own commit, with its `definition` copied from its page
@@ -94,6 +102,8 @@ explained, not a way to quiet a warning.
    dropped out of the capped list: look the value up in the published files, and correct the row if it is a typo.
 5. If a row warns, look at ours before theirs: which of the two is wrong? A known and explained difference goes in
    `known_difference`; an unexplained one is reported to the lead, not hidden, and the Differences page shows it.
-6. If the build stopped on the hard limit, our data is the likelier fault: report it to the lead, do not change the rows.
+6. If the build stopped on the hard limit, our data is the likelier fault: report it to the lead, do not change the rows. If it
+   stopped on one figure, read that source's page again first: if the page now shows another figure, the source restated it
+   (see the rule above on `restated_from`); if it shows the figure in the row, ours is the likelier fault.
 7. Commit the rows with the message naming the month and the sources. Open the pull request, say that it is high risk, and give
    the reviewer the rows and the checks above.

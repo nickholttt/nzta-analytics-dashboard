@@ -23,6 +23,8 @@ function page({ stored, deviceDark = false, throwing = false }: { stored?: strin
   const media: Record<string, ((event: unknown) => void)[]> = {};
   const toggle = { state: "false", setAttribute: (name: string, value: string) => void (name === "aria-pressed" && (toggle.state = value)), closest: (selector: string) => (selector === "[data-theme-toggle]" ? toggle : null) };
   const store = new Map<string, string>(stored === undefined ? [] : [["theme", stored]]);
+  // Every write the script itself asks for, kept or refused: only a click on the toggle may cause one.
+  const writes: string[] = [];
   const device = { matches: deviceDark, addEventListener: (_: string, fn: (e: unknown) => void) => void (media.change ??= []).push(fn) };
   const winListeners: Record<string, ((event: unknown) => void)[]> = {};
   const doc = {
@@ -43,10 +45,12 @@ function page({ stored, deviceDark = false, throwing = false }: { stored?: strin
         return store.get(key) ?? null;
       },
       setItem: (key: string, value: string) => {
+        writes.push(`set ${key}=${value}`);
         if (throwing) throw new Error("blocked");
         store.set(key, value);
       },
       removeItem: (key: string) => {
+        writes.push(`remove ${key}`);
         if (throwing) throw new Error("blocked");
         store.delete(key);
       },
@@ -59,6 +63,7 @@ function page({ stored, deviceDark = false, throwing = false }: { stored?: strin
     theme: () => attributes.get("data-theme"),
     classes,
     store,
+    writes,
     toggle,
     click: () => listeners.click.forEach((fn) => fn({ target: toggle })),
     clickElsewhere: () => listeners.click.forEach((fn) => fn({ target: { closest: () => null } })),
@@ -80,6 +85,37 @@ test("a stored choice is applied before anything is drawn; none, or a bad one, l
   assert.equal(page({ stored: "light", deviceDark: true }).theme(), "light");
   for (const stored of [undefined, "", "blue", "Dark", "null"]) assert.equal(page({ stored }).theme(), undefined, `stored ${JSON.stringify(stored)}`);
   assert.equal(page({ throwing: true }).theme(), undefined, "storage that throws is no choice");
+});
+
+test("nothing is written to the browser's storage unless the toggle is clicked", () => {
+  const cases: [string, Parameters<typeof page>[0]][] = [
+    ["nothing stored", {}],
+    ["nothing stored, a dark device", { deviceDark: true }],
+    ["a stored choice", { stored: "dark" }],
+    ["a stored choice that is what the device says", { stored: "dark", deviceDark: true }],
+    ["a stored value that is not a theme", { stored: "blue" }],
+    ["storage that throws", { throwing: true }],
+  ];
+  for (const [name, given] of cases) {
+    const p = page(given);
+    const before = JSON.stringify([...p.store]);
+    assert.deepEqual(p.writes, [], `${name}: on load`);
+    p.ready();
+    assert.deepEqual(p.writes, [], `${name}: when the page is ready`);
+    p.deviceChanges(true);
+    p.deviceChanges(false);
+    assert.deepEqual(p.writes, [], `${name}: when the device setting changes`);
+    p.clickElsewhere();
+    assert.deepEqual(p.writes, [], `${name}: on a click that is not on the toggle`);
+    assert.equal(JSON.stringify([...p.store]), before, `${name}: the store is as it was`);
+    p.otherTab("dark");
+    p.otherTab("blue");
+    p.otherTab(null);
+    assert.deepEqual(p.writes, [], `${name}: when another tab changes the choice`);
+  }
+  const clicked = page({});
+  clicked.click();
+  assert.deepEqual(clicked.writes, ["set theme=dark"], "a click on the toggle is the one thing that writes, and it writes one key");
 });
 
 test("the toggle shows only once the script has run, and reads the theme that applies", () => {

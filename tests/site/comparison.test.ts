@@ -303,6 +303,42 @@ test("the internal table puts the figures that need a look first, each newest mo
   assert.equal(comparison.filtersText({}), "");
 });
 
+// ---- The figures a source restated (D-153) ----
+
+const restated = (over: Partial<Row>): Row => row({ restated_from: 1000, restated_pct: 6, restated_past_warning: true, theirs: 1060, ours: 1000, gap: -60, gap_pct: -5.6604, status: "warn", ...over });
+
+test("a build with no restated figure shows nothing for them, whether the file lacks the fields or states none", () => {
+  assert.equal(comparison.restatedView(undefined), null);
+  assert.equal(comparison.restatedView(file([row({}), notCompared({})])), null);
+  assert.equal(comparison.restatedView(file([row({ restated_from: null, restated_pct: null, restated_past_warning: false })])), null);
+});
+
+test("a figure restated by less than the warning size is recorded in the file and not listed", () => {
+  assert.equal(comparison.restatedView(file([row({ restated_from: 1000, restated_pct: 4.9, restated_past_warning: false })])), null);
+});
+
+test("the restated figures are listed newest month first with the earlier figure, the current one, the change and ours", () => {
+  const view = comparison.restatedView(
+    file([
+      restated({ month: "2026-08", source: "beta", measure_as_published: "Measure B", restated_from: 2000, restated_pct: -7.5, theirs: 1850, ours: 1900 }),
+      row({ month: "2026-10" }),
+      restated({ month: "2026-09" }),
+      restated({ month: "2026-08", source: "alpha", ours: null, gap: null, gap_pct: null, status: "not_compared", reason_kind: "month_not_held", reason: "internal text" }),
+    ]),
+  );
+  assert.ok(view);
+  assert.deepEqual(
+    view.rows.map((r) => [r.month, r.source, r.measure, r.earlier, r.current, r.change, r.ours]),
+    [
+      ["2026-09", "Alpha Association", "Measure A", "1,000", "1,060", "+6.00%", "1,000"],
+      ["2026-08", "Alpha Association", "Measure A", "1,000", "1,060", "+6.00%", null],
+      ["2026-08", "Beta Board", "Measure B", "2,000", "1,850", "−7.50%", "1,900"],
+    ],
+  );
+  assert.equal(view.heading, comparison.words.restated.heading);
+  assert.match(view.intro ?? "", /^3 of the figures below/);
+});
+
 // ---- config/comparison.json is held to the template lint ----
 //
 // The same rules pipeline/tests/test_site_config.py applies to the other words of config (config/narrative/rules.json): a placeholder only from the

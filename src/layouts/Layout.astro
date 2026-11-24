@@ -36,7 +36,7 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     {/* The visitor's light or dark choice, applied before the page is drawn so it never flashes the other one (src/lib/themeChoice.ts). */}
-    <script is:inline set:html={`(${bootTheme})(${JSON.stringify(siteDoc.theme.storage_key)})`} />
+    <script is:inline set:html={`(${bootTheme})(${JSON.stringify(siteDoc.theme.storage_key).replace(/</g, "\\u003c")})`} />
     <title>{head?.title ?? withSuffix(title)}</title>
     {noindex && <meta name="robots" content="noindex" />}
     {head && head.tags.map((tag) => (tag.attribute === "name" ? <meta name={tag.key} content={tag.content} /> : <meta property={tag.key} content={tag.content} />))}

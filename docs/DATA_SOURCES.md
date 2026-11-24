@@ -364,7 +364,7 @@ What it holds (read on 2026-11-23): three organisations, each counted as indepen
 
 | `id` | Where its definition was read | What could be read | `data_basis` |
 |---|---|---|---|
-| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | on its own site, one month's table and its year-earlier column. Earlier months come from what it releases publicly: its monthly media releases, as published by Scoop, and news reports that credit it for the figure (D-151). Its statistics pages are for members and are not used | blank |
+| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | on its own site, one month's table and its year-earlier column. Earlier months come from what it releases publicly: news reports that credit it for the figure, and, where no such report gives a figure, its monthly media releases as published by Scoop (D-151, D-152). Its statistics pages are for members and are not used | blank |
 | `mta_vstat` | its About page | 22 months; the page says its figures are NZTA's records as they were when it published | `same NZTA data, processed separately` |
 | `statsnz` | the group title of its monthly release file, Transport vehicle registrations | 22 months, each marked final | blank |
 
@@ -387,6 +387,7 @@ and our true registrations are its export, so it would not be independent.
 | `known_difference` | a short note where a difference is known and explained; blank otherwise. It is shown beside the row and never used to hide it |
 | `added_up_from` | blank when the figure is one the source prints itself. Otherwise one or more lower case words (letters and single spaces, refused otherwise) saying what of the source's the figure was added up from, such as `chart` or `table`; the site writes "added up from <the source's name>'s published <these words>" beside the figure |
 | `figure_kind` | an id (lower case letters, digits and underscores, starting with a letter) saying what sort of figure it is; required, and one of `reconciliation.figure_kinds` in `config/pipeline.json` (any other is refused, so a misspelt kind stops the build). `reconciliation.single_figure_limit.kinds` in `config/pipeline.json` lists the kinds that stop a build on one figure (below). A row of a listed kind whose `tolerance_pct` is `reconciliation.single_figure_limit.gap_pct` or more must have a `known_difference` that says why ours cannot come that close |
+| `restated_from` | blank, or a whole number above zero that is not the same as `figure`: the figure this source published before for the same month and measure, when its page now shows a different one. The row then holds the new figure in `figure` and the old one here (D-153). It is filled in by hand when the row is corrected, never worked out |
 
 **Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
 datasets (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it counts first
@@ -416,6 +417,13 @@ row is enough: no second source and no share of the month. A row of a listed kin
 subject to it; one whose tolerance is `gap_pct` or more is exempt, because the row itself says ours cannot come that close, and
 must say why in `known_difference`. A kind that is not listed, a source with `independent` false, and a row that was not compared
 never stop it. (D-150; the whole rule, with the sizes it was measured at, is in `docs/CUBE_SCHEMA.md`.)
+
+*A source restating its own figure* (D-153) does not stop a build. When a source's page shows a different figure for a month and
+measure already in the file, read it again, put the new figure in `figure` and the old one in `restated_from`. A restatement of
+`reconciliation.restatement_warn_pct` percent or more of the old figure (today 5, exactly 5 counts) is warned about in the build
+and listed on `/status`, and the row is never better than `warn`. On such a row the one-figure rule stops the build only when
+ours is `gap_pct` percent or more from both the new and the old figure; the separate-counts rule is unchanged. The column is
+blank on every row today.
 
 *Separate counts.* The build stops when separate counts agree with each other and not with ours: in one month, at least two independent sources, and more than half of the independent sources that
 have a compared row that month, each have half or more of what they published (the weight of a row is its figure, so a total
@@ -457,11 +465,14 @@ How each was read, and what that means for a row:
   readers. The October 2025 rows are the year-earlier column of that table.
 - The MIA, January 2025 to September 2026 (53 rows, D-151): only figures it releases publicly. 41 are from its monthly media
   releases as published by Scoop, 11 from GoAuto's monthly reports and one from Autofile's, each of which credits the MIA for
-  the figure on the page. Its own site carries no past month, and its statistics pages are for members and were not read.
+  the figure on the page. Since D-152 a figure's link is a news page where one gives the same figure, and Scoop's copy of the
+  release only where none does: 6 rows are still Scoop's (the light passenger and commercial figures of January and February 2025,
+  the commercial figure, light and heavy added, of February 2026 and of June 2026), 45 are GoAuto's, one Autofile's and one Autotrader NZ's, which
+  carries the one passenger figure for February 2026. Its own site carries no past month, and its statistics pages are for members and were not read.
   Every figure was read on the page at the row's `source_url` on 2026-11-24, twice: by a reader, and then by a script that
   fetched each page again and found the figure and its sentence in the page's text. A row's measure is this file's
   one wording for the figure (the releases give each in a sentence), followed in brackets by where it was read. Where no
-  count was released for a month at the time (March and June 2025), the row is the figure a later release or report gives
+  count was released for a month at the time (March 2025), the row is the figure a later release or report gives
   for that month, and its measure says so. A figure that may be rounded, or that is on a page that does not credit the MIA, has no row.
   The months with a figure missing: September 2025 has no total; January, April and May 2026 have a total only.
 - In every MIA month its two commercial figures are added, and the row's measure says so, because our figures cannot
