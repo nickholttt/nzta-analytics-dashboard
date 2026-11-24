@@ -162,6 +162,7 @@
     "snapshot_line": "Snapshot of {date|date}.",
     "download_csv": "Download the figures (CSV)",
     "table_loading": "Loading the figures…",
+    "chart_loading": "Loading the chart…",
     "finding_values": "Finding the largest to start from…",
     "values_failed_label": "Nothing to draw yet",
     "values_failed": "The values to start from did not load. Reload the page to try again.",

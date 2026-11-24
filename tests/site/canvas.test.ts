@@ -635,6 +635,8 @@ test("every word the canvas says is in config, and config holds no word the canv
     readFileSync(new URL("../../src/pages/index.astro", import.meta.url), "utf8"),
     // The value picker says the canvas's words for a search that matches nothing and a list with nothing to choose.
     readFileSync(new URL("../../src/components/ValuePicker.tsx", import.meta.url), "utf8"),
+    // The chart panel says the line a chart shows while it is on its way.
+    readFileSync(new URL("../../src/components/PresetPanel.tsx", import.meta.url), "utf8"),
     ...readdirSync(dir).filter((f) => /\.tsx?$/.test(f)).map((f) => readFileSync(new URL(f, dir), "utf8")),
   ].join("\n");
   const said = new Set([...sources.matchAll(/\b(?:say|canvasSay|refuse)\(\s*["`]([a-z0-9_]+)["`]/g), ...sources.matchAll(/canvasSpec\.words\.([a-z0-9_]+)/g)].map((m) => m[1]));

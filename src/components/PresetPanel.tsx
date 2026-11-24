@@ -3,7 +3,7 @@ import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useRef, use
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { builderPresets, builderQuestionFor } from "../lib/builder";
-import { chartLink } from "../lib/canvas";
+import { chartLink, say } from "../lib/canvas";
 import { shownEnd } from "../lib/pin";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { datasetAttribution, datasetsOf, figuresHeader } from "../lib/figuresHeader";
@@ -74,7 +74,7 @@ function Renderer({ children }: { children: ReactNode }) {
       <Suspense
         fallback={
           <div className="chart-pending">
-            <p className="meta">Loading the chart…</p>
+            <p className="meta">{say("chart_loading")}</p>
           </div>
         }
       >
@@ -899,9 +899,10 @@ export default function PresetPanel({
                 {w}
               </div>
             ))}
-            {preventsRender.length === 0 && wanted ? (
+            {/* A card still waiting for its turn (src/lib/loadGate.ts) says so too, in the room it holds, and the same line goes on to say the chart has loaded. */}
+            {preventsRender.length === 0 ? (
               <p className={rows ? "visually-hidden" : "meta"} role="status" aria-labelledby={questionId}>
-                {rows ? (rows.length > 0 ? "The chart has loaded." : "") : "Loading the chart…"}
+                {rows ? (rows.length > 0 ? "The chart has loaded." : "") : say("chart_loading")}
               </p>
             ) : null}
             {answerFirst && shape === "league" ? null : replacedNotice}
@@ -1035,7 +1036,7 @@ export default function PresetPanel({
           role={internal ? undefined : "status"}
           aria-labelledby={internal ? undefined : questionId}
         >
-          {rows ? (rows.length > 0 ? "The chart has loaded." : "") : "Loading the chart…"}
+          {rows ? (rows.length > 0 ? "The chart has loaded." : "") : say("chart_loading")}
         </p>
       ) : null}
       {answerFirst && shape === "league" ? null : replacedNotice}
