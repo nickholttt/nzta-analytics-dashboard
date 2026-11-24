@@ -2,16 +2,17 @@
 
 Last updated by claude on 2026-11-25 (the session of 25 November)
 
-## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2)
+## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
 Take only a lane that is free or your own. Write your line here, on `main`, before you start. On the web: A, B or C.
 
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
-| A: finish the canvas | none | free | all five steps and the user's three design choices of 2026-11-25 merged (#142, #143, #144); nothing queued |
-| B: the accuracy guard | none | free | Market type's rules and its test merged (#146, D-154), not built; next is building the field, after the user's answers (questions 2 to 4) |
+| A: finish the canvas | `claude/a-first-load-hold` | this session (computer, 2026-11-25, its second) | the additions' item 4: the first chart held at 3.0 s and checked |
+| B: the accuracy guard | `claude/b-market-type-answers`, then `claude/b-one-new-registrations`, `claude/b-market-type-build` | this session (computer, 2026-11-25, its second) | the additions' items 1 to 3, then 5 and 6 |
 | C: public readiness | none | free | items 1 to 3 merged and the private dry run done; what is left is the user's four items |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
+| E: classification, the latest month, findability (the additions' items 8 to 13) | `claude/e-*` | this session (computer, 2026-11-25, its second) | starts with what does not touch the pipeline: item 13's playbook and item 11's reading of the importers' figures |
 
 ## Where we left off
 
