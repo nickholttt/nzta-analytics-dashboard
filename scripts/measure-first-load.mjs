@@ -162,6 +162,8 @@ async function visit(page, { throttle, settleMs, shot }) {
     totalRequests: done.length,
     errors,
     dataFiles: done.filter((r) => kindOf(r.url) === "data").map((r) => ({ path: new URL(r.url).pathname, bytes: r.bytes })),
+    // Every request that finished before the answer was read, in the order it started: when it started and ended (ms from the first request) and what crossed the network.
+    requests: done.map((r) => ({ path: new URL(r.url).pathname, startMs: Math.round((r.start - t0) * 1000), endMs: Math.round((r.end - t0) * 1000), bytes: r.bytes })).sort((a, b) => a.startMs - b.startMs),
   };
   await context.close();
   return result;
@@ -200,6 +202,7 @@ for (const page of pages) {
     totalRequests: Math.round(median(results.map((r) => r.totalRequests))),
     errors: [...new Set(results.flatMap((r) => r.errors))],
     dataFiles: mid.dataFiles,
+    requests: mid.requests,
   };
   console.log(`${page.id}: first chart ${out[page.id].firstChartMs?.median} ms, first answer ${out[page.id].firstAnswerMs?.median} ms [${out[page.id].firstAnswerMs?.min}-${out[page.id].firstAnswerMs?.max}], ${out[page.id].totalBytes} bytes in ${out[page.id].totalRequests} requests (code ${out[page.id].bytes.code.bytes}, fonts ${out[page.id].bytes.fonts.bytes}, data ${out[page.id].bytes.data.bytes})`);
 }

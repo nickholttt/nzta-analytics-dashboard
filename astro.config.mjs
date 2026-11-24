@@ -94,12 +94,28 @@ function browserConfig() {
   };
 }
 
+// The package that holds the decompressors for the Parquet reader (src/lib/data.ts takes only the zstd one from it) is not marked as free of
+// side effects the way hyparquet and fzstd are, so the bundler keeps every codec it imports for the sake of their top-level code: the brotli
+// decoder with its tables, the gzip and lz4 ones, and a Snappy decoder held as a text-encoded WebAssembly module. Saying here that its
+// modules have none lets the bundler leave out what nothing uses, with no change to any file's contents or to what is read.
+function unusedCompressors() {
+  return {
+    name: "unused-compressors",
+    enforce: "pre",
+    async resolveId(source, importer, options) {
+      if (options?.ssr) return null;
+      const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
+      return resolved && /[\\/]node_modules[\\/](?:hyparquet-compressors|hysnappy)[\\/]/.test(resolved.id) ? { ...resolved, moduleSideEffects: false } : null;
+    },
+  };
+}
+
 // Local reference tool only: the dev server serves public/data as the pipeline built it.
 export default defineConfig({
   integrations: [react(), preloadIslands(), prunePublicBuild()],
   server: { host: "127.0.0.1", port: 4321 },
   vite: {
-    plugins: [browserConfig()],
+    plugins: [browserConfig(), unusedCompressors()],
     build: {
       // A font file is never folded into the stylesheet as text, however small: the stylesheet blocks the first paint, and a face the page
       // does not need would be in it all the same. Each is its own file, asked for only by a page whose text uses it.

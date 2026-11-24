@@ -151,7 +151,9 @@ Setup, **not re-run this session** (the environment already existed):
   says what the files are and why they are renamed), each fetched only when a page's text uses its characters. On the canvas the chart path
   loads first: each shape's renderer is a file of its own, the editing tools (`src/components/canvas/Editor.tsx`) and My canvases are fetched once
   the first chart is drawn, with their room held, and charts after the first wait on `src/lib/loadGate.ts`. `astro.config.mjs` cuts
-  `config/pipeline.json` for the browser to the keys listed in `scripts/browser-config.mjs` (`tests/site/browser-config.test.ts`), and
+  `config/pipeline.json` for the browser to the keys listed in `scripts/browser-config.mjs` (`tests/site/browser-config.test.ts`), and marks the
+  Parquet decompressor packages as free of side effects (`unusedCompressors`) so that only the zstd decoder `src/lib/data.ts` takes is
+  bundled and not the brotli, gzip, lz4 and WebAssembly Snappy decoders beside it (7,274 B gzipped), and
   `src/lib/openingReads.ts` names what the canvas as it opens asks for before its script runs. `config/performance_budget.json` holds each page
   to what it now ships. Measured on 2026-11-24, phone profile, median of 5: the canvas's first chart 2,871 ms in one run and 3,046 and 3,065 ms
   in two others (3,831 ms before); a canvas link that reads the fact table is bound by its data (the acceptance question as a ranking: 6,376 ms,
