@@ -387,6 +387,7 @@ and our true registrations are its export, so it would not be independent.
 | `known_difference` | a short note where a difference is known and explained; blank otherwise. It is shown beside the row and never used to hide it |
 | `added_up_from` | blank when the figure is one the source prints itself. Otherwise one or more lower case words (letters and single spaces, refused otherwise) saying what of the source's the figure was added up from, such as `chart` or `table`; the site writes "added up from <the source's name>'s published <these words>" beside the figure |
 | `figure_kind` | an id (lower case letters, digits and underscores, starting with a letter) saying what sort of figure it is; required, and one of `reconciliation.figure_kinds` in `config/pipeline.json` (any other is refused, so a misspelt kind stops the build). `reconciliation.single_figure_limit.kinds` in `config/pipeline.json` lists the kinds that stop a build on one figure (below). A row of a listed kind whose `tolerance_pct` is `reconciliation.single_figure_limit.gap_pct` or more must have a `known_difference` that says why ours cannot come that close |
+| `restated_from` | blank, or a whole number above zero that is not the same as `figure`: the figure this source published before for the same month and measure, when its page now shows a different one. The row then holds the new figure in `figure` and the old one here (D-153). It is filled in by hand when the row is corrected, never worked out |
 
 **Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
 datasets (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it counts first
@@ -416,6 +417,13 @@ row is enough: no second source and no share of the month. A row of a listed kin
 subject to it; one whose tolerance is `gap_pct` or more is exempt, because the row itself says ours cannot come that close, and
 must say why in `known_difference`. A kind that is not listed, a source with `independent` false, and a row that was not compared
 never stop it. (D-150; the whole rule, with the sizes it was measured at, is in `docs/CUBE_SCHEMA.md`.)
+
+*A source restating its own figure* (D-153) does not stop a build. When a source's page shows a different figure for a month and
+measure already in the file, read it again, put the new figure in `figure` and the old one in `restated_from`. A restatement of
+`reconciliation.restatement_warn_pct` percent or more of the old figure (today 5, exactly 5 counts) is warned about in the build
+and the row is never better than `warn`. On such a row the one-figure rule stops the build only when
+ours is `gap_pct` percent or more from both the new and the old figure; the separate-counts rule is unchanged. The column is
+blank on every row today.
 
 *Separate counts.* The build stops when separate counts agree with each other and not with ours: in one month, at least two independent sources, and more than half of the independent sources that
 have a compared row that month, each have half or more of what they published (the weight of a row is its figure, so a total

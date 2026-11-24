@@ -638,7 +638,7 @@ manifest. The point is that a gap is caught before a visitor sees it, and that t
 compared is data and nothing in the code names it: `data/reference/published_figures.csv` has one row for each published
 figure (the source, the month, the measure as the source defines it, the figure, the question to put to our own files as a
 dataset and a set of dimension filters, a tolerance, a note on any known difference, what of the source's it was added up from,
-and the figure's kind), and
+the figure's kind, and the figure the source published before if it restated this one), and
 `data/reference/published_sources.csv` one row for each organisation (`docs/DATA_SOURCES.md`, section F, has both files'
 columns and the filter encoding). Scope is carried by the dataset: the default scope and the trade's wider scope are two
 datasets, so a row says which total it is set against by its dataset and filters, and there is no scope column.
@@ -653,7 +653,8 @@ Both files are read and checked at the start of the build, before the register i
 **A row is a fault, and the build aborts naming the row (file, line, source, month, measure), when** the header is not exactly
 the columns; a cell is malformed (a month not `YYYY-MM`, a figure that is not a whole number above zero, an address that is
 not `https://`, a date that is not `YYYY-MM-DD`, a tolerance above `reconciliation.max_tolerance_pct`, a `figure_kind` that is
-not an id or is not one of `reconciliation.figure_kinds`, an `added_up_from` that is not blank or lower case words); a row of a kind the single-figure limit covers whose
+not an id or is not one of `reconciliation.figure_kinds`, an `added_up_from` that is not blank or lower case words, a `restated_from`
+that is not blank or a positive whole number or that equals `figure`); a row of a kind the single-figure limit covers whose
 tolerance is that limit or more and whose `known_difference` is blank (below); a source is not in
 `published_sources.csv`; the dataset is not one of `config/pipeline.json`; a filter names a dimension the dataset cannot
 derive, one that is not live in this build, or two dimensions that no one published table holds together (the second is found from
@@ -719,6 +720,23 @@ row has a `figure_kind`, an id that says what sort of figure it is.
    that row (a listed kind, an independent source, a tolerance below the limit), otherwise null, whether or not the row was
    compared this month.
 
+**A source restating its own figure** (D-153) warns and does not stop the build. When a source's page shows a different figure
+for a month and measure already in the file, the row is corrected to the new figure and the old one goes in `restated_from` (blank
+otherwise). The size of restatement that is warned about is `reconciliation.restatement_warn_pct` in `config/pipeline.json`, today 5,
+as a percentage of the earlier figure, and exactly that size counts (exact arithmetic).
+
+1. A restatement of that size or more makes the build print one warning line for the row (the month, the source, the measure, the two
+   figures and the percentage), and the row is never better than `warn`: a row within its tolerance becomes `warn`, a row that was
+   not compared stays `not_compared`. The build is not stopped by the restatement.
+2. On such a row the single-figure limit stops the build only when ours is `gap_pct` percent or more from **both** the source's
+   current figure and its earlier one (each as a share of that figure, inclusive). If ours is within the limit of either, the row
+   warns, and the warning line says how far ours is from each. A row restated by less than the warning size, and every row that was
+   not restated, is judged as above.
+3. The hard limit is unchanged and counts the row against its current figure only.
+4. A build never reads a source's page, so a restatement is known only from the file: a source that restates a figure the file
+   still holds as before is not seen, and a gap between that figure and ours stops the build as rules 1 to 3 above say, until the
+   row is read again and corrected.
+
 On the 336 rows committed on 2026-11-23 the rule applies to 94: the 44 `mta_vstat` and 44 `statsnz` passenger figures and the
 six `mia` figures (two each of its passenger, commercial and total). The other 242 are the 220 one-model figures (a kind the
 config does not list) and the 22 exempt commercial figures.
@@ -756,20 +774,21 @@ On the 389 rows of 2026-11-24 (the 53 figures from the `mia`'s public releases a
     "months": { "first": "2026-09", "last": "2026-11" },
     "thresholds": { "max_tolerance_pct": 20, "hard_limit_tolerance_multiple": 2, "hard_limit_floor_pct": 2,
                     "hard_limit_min_sources": 2, "hard_limit_source_vehicle_share": 0.5,
-                    "single_figure_gap_pct": 5, "single_figure_kinds": ["passenger", "commercial", "total"] }
+                    "single_figure_gap_pct": 5, "single_figure_kinds": ["passenger", "commercial", "total"],
+                    "restatement_warn_pct": 5 }
   },
   "rows": [
     { "source": "source_a", "month": "2026-09", "measure_as_published": "Measure as the source words it",
       "dataset": "registrations_flow", "filters": { "import_status": ["a value"] },
       "ours": 1040, "theirs": 1020, "gap": 20, "gap_pct": 1.9608, "tolerance_pct": 2.0, "hard_bound_pct": 4.0,
       "known_difference": null, "added_up_from": null, "figure_kind": "passenger", "stops_alone_pct": 5,
-      "status": "pass", "reason_kind": null, "reason": null,
+      "restated_from": null, "restated_pct": null, "restated_past_warning": false, "status": "pass", "reason_kind": null, "reason": null,
       "source_url": "https://a.example/page", "date_read": "2026-11-20" },
     { "source": "source_a", "month": "2026-11", "measure_as_published": "Measure as the source words it",
       "dataset": "registrations_flow", "filters": {}, "ours": null, "theirs": 1100, "gap": null, "gap_pct": null,
       "tolerance_pct": 2.0, "hard_bound_pct": 4.0, "known_difference": null, "added_up_from": "chart", "figure_kind": "model",
-      "stops_alone_pct": null, "status": "not_compared",
-      "reason_kind": "month_not_held", "reason": "Our registrations_flow data holds 2021-01 to 2026-10 in this build, so 2026-11 is outside it and is not compared.",
+      "stops_alone_pct": null, "restated_from": 1080, "restated_pct": 1.8519, "restated_past_warning": false,
+      "status": "not_compared", "reason_kind": "month_not_held", "reason": "Our registrations_flow data holds 2021-01 to 2026-10 in this build, so 2026-11 is outside it and is not compared.",
       "source_url": "https://a.example/page", "date_read": "2026-11-20" }
   ]
 }
@@ -780,7 +799,11 @@ depend on the order of the CSV; `sources` holds every source of `published_sourc
 definition without knowing a source by name (`data_basis` is the few words the source's row states about what its figures are
 made from, or null when the cell is blank, `definition` and `definition_date_read` likewise); a row's `added_up_from` is the
 lower case words its row states about what of the source's the figure was added up from, or null for a figure the source
-prints itself, so a page can say "added up from <the source's name>'s published <those words>"; `summary.by_source` lists every source, with zeros for one that has no rows. The
+prints itself, so a page can say "added up from <the source's name>'s published <those words>"; a row's `restated_from` is the
+whole number its row states as the figure the source published before (null when blank), `restated_pct` is the change from it to
+`theirs` as a percentage of it, signed and rounded like `gap_pct` (null with it), and `restated_past_warning` is true when that
+change is `summary.thresholds.restatement_warn_pct` or more, which is when the build warned and the row is at least `warn`;
+`summary.by_source` lists every source, with zeros for one that has no rows. The
 file has no time in it: the same cube and the same two reference files always write the same bytes. It is written with `\n`
 line endings and counts towards `payload_bytes`. With no rows in `published_figures.csv` the file is the same shape with
 `rows: []`, null months and all counts zero. The manifest's `reconciliation` entry is `{ "file", "rows", "by_status", "months" }`,
@@ -1419,7 +1442,10 @@ Published figures (`reconciliation.json`, above):
   A row of such a kind whose own tolerance is `gap_pct` or more and that has no `known_difference`, or a `figure_kind` that is not an
   id or is not one of `reconciliation.figure_kinds`, is a fault in the file and aborts when it is read; `reconciliation.single_figure_limit` missing, a `gap_pct` that is not above
   0 and at most 100, kinds that are not a list of distinct ids or that name a kind `reconciliation.figure_kinds` does not list,
-  or a `figure_kinds` that is not such a list or is empty, abort the build before anything is read.
+  or a `figure_kinds` that is not such a list or is empty, abort the build before anything is read. So does a
+  `reconciliation.restatement_warn_pct` that is not a number above 0 and at most 100. A restatement (D-153) is never an abort by
+  itself: it is a warning, and a row is refused when read only for a `restated_from` that is not a positive whole number or equals
+  `figure`.
 
 Events:
 
