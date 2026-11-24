@@ -1200,36 +1200,47 @@ Our totals are within 0.2% of the published ones (6,073 passenger vehicles again
 derived from the MIA's quoted counts and shares (2,087 at 34.3%), not read from the release; 13,411 against 13,438). These are different definitions (the MIA's and AfMA's segments are a
 committee's placements; here a vehicle's class is its nameplate's, whole), so the figures are not expected to match.
 
-## Market type (D-154)
+## Market type (D-154, D-155)
 
 A vehicle's market type says what kind of vehicle it is in the way the published top level does, from its body and its
-mass, not from the type NZTA registers it under. It has five values, decided by `data/reference/market_type_map.csv`,
-twelve ordered rules of which the first that matches a vehicle wins (so the order is part of the definition):
+mass, not from the type NZTA registers it under. It has six values, decided by `data/reference/market_type_map.csv`,
+fifteen ordered rules of which the first that matches a vehicle wins (so the order is part of the definition). A rule can
+test the vehicle type, the body, NZTA's class (`nzta_classes`, values of `class_map.csv`), the GVM and the SUV file's class
+for the model. The definitions below are the user's, an industry convention for which no source is cited; D-155 adds
+Not yet classified and settles motor caravans and special purpose vehicles:
 
 - **Heavy commercial**: a goods vehicle, bus, motor caravan or special purpose vehicle over 3,500 kg GVM, whatever its body.
   NZTA's own classes draw the same line (`class_map.csv`: goods NA up to 3.5 tonnes and NB over it; omnibuses MD1 and MD2
   up to it); 3,500 kg itself is on the light side.
 - **Light commercial**: a ute (body UTILITY), whatever type NZTA registers it under; a goods vehicle with a cab-and-chassis
-  or flat-deck body; a goods van up to 3,500 kg; a bus up to 3,500 kg. A ute has no weight bound of its own: a goods ute over
-  3,500 kg is heavy only because the heavy rule comes first.
+  or flat-deck body; a goods van up to 3,500 kg; a bus up to 3,500 kg; a motor caravan up to 3,500 kg (the industry files
+  it under its base vehicle, and NZTA's class agrees: `class_map.csv` lists it under NA); a special purpose vehicle up to
+  3,500 kg that NZTA classes NA, the one class of NZTA's table that is goods and up to that line. A ute has no weight bound of
+  its own: a goods ute over 3,500 kg is heavy only because the heavy rule comes first.
 - **SUV**: a passenger-registered car or van whose make and model `model_segment.csv` marks `suv`, at any confidence.
-- **Passenger**: every other passenger-registered car or van, people movers and sports cars included. A passenger-registered
-  van is a people mover and is passenger, not light commercial.
-- **Other**: what the rules do not name, each in a rule of its own so it can be counted: a motor caravan or special purpose
-  vehicle up to 3,500 kg or with no recorded GVM; a goods vehicle up to 3,500 kg whose body is an other truck, an articulated
-  truck or a station wagon; a goods vehicle or bus with no recorded GVM that no rule above took (a ute with no recorded GVM
-  is Light commercial under rule 2); a three-wheeler registered as a passenger vehicle.
-  A recorded GVM of 0 is not recorded. A vehicle no rule matches is not Other: a build would count it as unmapped.
+- **Passenger**: a passenger-registered car or van whose make and model `model_segment.csv` marks `car`, at any confidence;
+  people movers and sports cars included. A passenger-registered van is a people mover, not light commercial. Passenger
+  means only models the file marks car.
+- **Not yet classified**: every other passenger-registered car or van: a model the file marks `unresolved`, a model it has no
+  row for, and one whose vehicle year is outside the year bounds of its row. It is not known to be a car or an SUV, so it is
+  counted as neither. A comparison with a published "passenger including SUV" figure adds Passenger, SUV and Not yet
+  classified.
+- **Other**: what the rules do not name, each in a rule of its own so it can be counted: a special purpose vehicle up to
+  3,500 kg of any other NZTA class or none; a motor caravan or special purpose vehicle with no recorded GVM; a goods vehicle
+  up to 3,500 kg whose body is an other truck, an articulated truck or a station wagon; a goods vehicle or bus with no recorded
+  GVM that no rule above took (a ute with no recorded GVM is Light commercial under rule 2); a three-wheeler registered as a
+  passenger vehicle. A recorded GVM of 0 is not recorded. A vehicle no rule matches is not Other: a build would count it as
+  unmapped.
 
-**Coverage caveat for SUV.** The register has no field that says SUV, so the value rests on the nameplate file, which does
-not cover every model. A model it marks car or unresolved, or has no row for, is Passenger, so SUV is a floor. On the new
-passenger-registered vehicles of November 2025 to October 2026, the file classifies 80.9% (suv 73.4%, car 7.5%), marks 12.6%
-unresolved and has no row for 6.6%. The SUV count is as good as that file and no better.
+**Coverage caveat for the SUV file.** The register has no field that says SUV, so SUV, Passenger and Not yet classified rest on
+the nameplate file, which does not cover every model. On the new passenger-registered vehicles of November 2025 to October
+2026, the file classifies 80.9% (suv 73.4%, car 7.5%), marks 12.6% unresolved and has no row for 6.6%: Not yet classified holds
+19.1% of them. SUV is a floor, and Passenger is a floor too.
 
 **Counted on the register only.** The rules need the gross vehicle mass and the body, which the register carries and the
 dashboard's export does not, so the dashboard's datasets get no market type until the history is retaken with the GVM group.
 
-It is defined and tested against the published figures (D-154) but not built: no dimension, no build and no figure on the
+It is defined and tested against the published figures (D-154, D-155) but not built: no dimension, no build and no figure on the
 site reads the file yet.
 
 ## Values in edge cases
