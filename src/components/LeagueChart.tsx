@@ -307,12 +307,12 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   );
 
   const countHead = (
-    <th scope="col" data-hint="the number of vehicles" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+    <th scope="col" data-hint="the number of vehicles" style={{ textAlign: "right" }}>
       {words?.count_heading ?? "Vehicles"}
     </th>
   );
   const yearHead = (
-    <th scope="col" data-hint="the change on a year ago" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+    <th scope="col" data-hint="the change on a year ago" style={{ textAlign: "right" }}>
       Change on a year ago
     </th>
   );
@@ -435,19 +435,19 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
           is the ranking itself. Headings stay on one line: a heading that wraps in a narrow column makes the whole
           header row tall, which read as a blank gap under the chart. */}
       <div ref={tableBox} className="table-scroll" role="region" aria-label="Ranking table" tabIndex={0} style={{ marginTop: "var(--space-4)" }}>
-        <table className="key" style={{ width: "100%", fontSize: "13px" }}>
+        <table className="key ranking" style={{ width: "100%", fontSize: "13px" }}>
           <thead>
             <tr>
-              <th scope="col" style={about ? { whiteSpace: "nowrap" } : { width: "45px" }}>{about ? about.rankHead : "Rank"}</th>
+              <th scope="col" style={about ? undefined : { width: "45px" }}>{about ? about.rankHead : "Rank"}</th>
               {single ? null : <th scope="col" style={{ width: "56px" }}>Move</th>}
               <th scope="col">{valueHeading}</th>
               {showYear ? countHead : null}
               {showYear ? yearHead : null}
-              <th scope="col" data-hint="the share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{about ? about.shareHead : "Share"}</th>
-              {single ? null : <th scope="col" data-hint="the change in share" style={{ textAlign: "right", whiteSpace: "nowrap" }}>Change in share</th>}
+              <th scope="col" data-hint="the share" style={{ textAlign: "right" }}>{about ? about.shareHead : "Share"}</th>
+              {single ? null : <th scope="col" data-hint="the change in share" style={{ textAlign: "right" }}>Change in share</th>}
               {showYear ? null : countHead}
               {single ? null : (
-                <th scope="col" data-hint="the rank a year earlier" style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                <th scope="col" data-hint="the rank a year earlier" style={{ textAlign: "right" }}>
                   {about ? about.priorHead : <>Rank <span className="visually-hidden">a year </span>before</>}
                 </th>
               )}
