@@ -42,6 +42,10 @@
     }
   ],
   "skip_link": "Skip to the content",
+  "theme": {
+    "storage_key": "theme",
+    "toggle": "Dark mode"
+  },
   "build_moved": {
     "title": "Build has moved to the canvas",
     "lead": "Charts are built on the canvas now. With scripts on, this page takes you there with your question.",
