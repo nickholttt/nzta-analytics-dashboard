@@ -140,12 +140,13 @@ test("the sentence names the value, the field and the data, in the words of conf
 });
 
 test("the page runs the check once, against the question's own dataset, and says what it left out", () => {
-  const page = readFileSync(new URL("../../src/components/QuestionBuilder.tsx", import.meta.url), "utf8");
+  const page = readFileSync(new URL("../../src/components/canvas/Canvas.tsx", import.meta.url), "utf8");
   assert.match(page, /absentValues\(asked, canApply, readTable\)/);
   assert.match(page, /fieldValues\(from, field, /);
-  assert.match(page, /ask\(withoutValues\(now, absent\), false, true, false\)/);
-  // The page hands "not the visitor's" on to the rule every page that holds a question shares, which hands it to settleChange.
-  assert.match(page, /changeQuestion\(all, latest\.current, next, canApply, removal\)/);
+  assert.match(page, /changeChart\(all, now, withoutValues\(now\.question, absent\), latestBuilt\.current, false\)/);
+  // The page hands "not the visitor's" on to the rule every chart's question shares, which hands it to settleChange.
+  const chart = readFileSync(new URL("../../src/lib/canvas.ts", import.meta.url), "utf8");
+  assert.match(chart, /changeQuestion\(all, chart\.question, \{ \.\.\.next, view: null \}, .*, removal\)/);
   const shared = readFileSync(new URL("../../src/lib/builder.ts", import.meta.url), "utf8");
   assert.match(shared, /settleChange\(all, current, asked, removal\)/);
   assert.match(page, /\.\.\.absentNotes\(asked\.dataset, absent, valueLabel\)/);

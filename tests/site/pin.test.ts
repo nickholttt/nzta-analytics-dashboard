@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { everythingBuilt } from "./support/observe.ts";
 
-const { addressParams, builderVocabulary, builderPresets, questionParams, readQuestion, readingNotes, settle } = await import("../../src/lib/builder.ts");
+const { builderVocabulary, builderPresets, questionParams, readQuestion, readingNotes, settle } = await import("../../src/lib/builder.ts");
 const { dimensions, findPeriod } = await import("../../src/lib/config.ts");
 const { canPin, heldEnd, holdsWindow, pinNote, shownEnd } = await import("../../src/lib/pin.ts");
 const { END_MONTH_SHAPES } = await import("../../src/lib/resolve.ts");
@@ -106,10 +106,10 @@ test("a dataset whose manifest gives no first month is told it by the chart: a p
   assert.equal(supplied?.kind, "uncovered");
 });
 
-test("the Build page hands the first month the chart loaded to the pinned line, from the first chart only", () => {
+test("a chart of the canvas hands the first month the chart loaded to its pinned line", () => {
   const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
-  assert.ok(read("src/components/QuestionBuilder.tsx").includes("pinLine(question, served, reading, firstSeen?.key === firstKey ? firstSeen.month : undefined)"));
-  assert.ok(read("src/components/QuestionBuilder.tsx").includes("onFirstMonth={i === 0 ? (month) => setFirstSeen({ key: panelKey(p.id), month }) : undefined}"));
+  assert.ok(read("src/components/canvas/ChartCard.tsx").includes("pinLine(pinnedQuestion, served, reading, firstSeen?.key === panelKey ? firstSeen.month : undefined)"));
+  assert.ok(read("src/components/canvas/ChartCard.tsx").includes("onFirstMonth={(month) => setFirstSeen({ key: panelKey, month })}"));
   assert.match(read("src/components/PresetPanel.tsx"), /setFirstMonth\(first\);\s+tell\.current\?\.\(first\);/);
   assert.ok(read("src/lib/kept.ts").includes("pinNote(q, reading.manifest, firstMonth)"));
 });
@@ -178,17 +178,6 @@ test("a month the visitor picked in a ranking is not carried into the pin: the p
   // Not pinned: the month the visitor picked, and none means the newest.
   assert.equal(shownEnd(undefined, "2026-10", "2025-03"), "2025-03");
   assert.equal(shownEnd(undefined, "2026-10", ""), "");
-});
-
-test("pinning takes the picked month out of the address and keeps the chart's other settings; an unpinned question keeps its month", () => {
-  const search = `?${ranking}&build.period=1y&build.month=2025-03&other=1`;
-  const unpinned = addressParams(search, read(ranking), true);
-  assert.equal(unpinned.get("build.month"), "2025-03");
-  const pinned = addressParams(search, read(`${ranking}&build.snapshot=2026-10`), true);
-  assert.equal(pinned.has("build.month"), false);
-  assert.equal(pinned.get("build.period"), "1y");
-  assert.equal(pinned.get("build.snapshot"), "2026-10");
-  assert.equal(pinned.get("other"), "1");
 });
 
 // A build in which the second dataset (true registrations: a supplied one) starts in 2021-01 and ends a month before the register's snapshot.

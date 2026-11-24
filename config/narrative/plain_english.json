@@ -48,7 +48,7 @@
     {
       "rule": "internal id",
       "in": "config/dimensions.json > datasets[registrations_flow_wider].definition",
-      "reason": "The dataset's maintainer wording. A public page draws its public_definition instead (PresetPanel.tsx, QuestionBuilder.tsx). Reword it and remove this entry."
+      "reason": "The dataset's maintainer wording. A public page draws its public_definition instead (PresetPanel.tsx). Reword it and remove this entry."
     },
     {
       "rule": "manifest",

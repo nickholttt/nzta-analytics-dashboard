@@ -278,13 +278,13 @@ test("the suggestions under a picker are counted in the kept snapshot where it c
   assert.equal(pickerMonth({ ...reading, manifest: noFacts }, dataset, long, { [long]: ["x"] }, ownerSet), undefined, "a condition its fact table does not carry");
 });
 
-test("every list of values on the Build page is asked of the snapshot the question reads from", () => {
-  const source = readFileSync(new URL("../../src/components/QuestionBuilder.tsx", import.meta.url), "utf8");
+test("every list of values in a chart's editor is asked of the snapshot the question reads from", () => {
+  const source = readFileSync(new URL("../../src/components/canvas/ChartPane.tsx", import.meta.url), "utf8");
   const count = (text: string) => source.split(text).length - 1;
   const pickers = count("<ValuePicker");
-  assert.equal(pickers, 3, "the page has three lists of values; if that changed, this test must follow");
+  assert.equal(pickers, 3, "the editor has three lists of values; if that changed, this test must follow");
   assert.equal(count("snapshot={pickAt("), pickers, "each picker is given its snapshot");
-  // The picker itself is shared with the canvas (src/components/ValuePicker.tsx).
+  // The picker itself is one component (src/components/ValuePicker.tsx).
   const picker = readFileSync(new URL("../../src/components/ValuePicker.tsx", import.meta.url), "utf8");
   assert.ok(picker.includes("valueOptions(dataset, dimension, JSON.parse(whereKey), snapshot)"), "the picker's list is read from it");
   assert.ok(picker.includes("[dataset, dimension, whereKey, snapshot]"), "and read again when it changes");

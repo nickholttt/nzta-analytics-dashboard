@@ -99,7 +99,7 @@ const spanLabel = (months: number) => (months >= 24 && months % 12 === 0 ? `${mo
 // what blocks the preset, drifting notes and the preset's spec line (D-041).
 // preset: a preset built outside presets.json (the sentence builder), drawn exactly as a canon one is.
 // anchored: the copied link jumps to this panel. Off where the controls that made the chart sit above it.
-// frame: "panel" is a section of a page that holds one chart after another (Explore, Build). "card" is a chart on a canvas: the heading
+// frame: "panel" is a section of a page that holds one chart after another (the status page). "card" is a chart on a canvas: the heading
 // row holds the canvas's own controls, the time row is drawn in the canvas's Period zone, the notes sit behind one disclosure, and the
 // links that belong to a page of one chart are left out. What is drawn, and every note, is the same in both.
 export type CardWords = {

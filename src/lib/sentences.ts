@@ -333,20 +333,6 @@ export function rankingLeaderSentence(p: PickedRankingPhrases, leaders: readonly
   return fillTemplate(leaders.length === 1 ? p.ranking_all_leader : p.ranking_all_leaders, { leader: leaders[0], leaders: sayList(leaders), counted }).text;
 }
 
-// What the question builder says around a ranking of some values: the switch to the ranking, the way back to the values, the note while every
-// value is ranked, and the note under the picker where the values are the page's own.
-export function pickedBuilderSentences(p: PickedRankingPhrases, f: { own: boolean; picked: number; field: string; months: number; names: readonly string[] }) {
-  const form = f.own ? "picked" : "shown";
-  const context = { picked: f.picked, field: f.field, months: f.months, names: sayList(f.names) };
-  return {
-    toRanking: fillTemplate(p[`ranking_switch_${form}` as keyof PickedRankingPhrases], context).text,
-    toLines: p.ranking_back_to_lines,
-    allNote: fillTemplate(p[`ranking_all_note_${form}` as keyof PickedRankingPhrases], context).text,
-    back: fillTemplate(p[`ranking_back_${form}` as keyof PickedRankingPhrases], context).text,
-    pickerNote: f.own ? undefined : fillTemplate(p.picker_page_values, context).text,
-  };
-}
-
 // ---- A month the address names ----
 
 // A sentence for a month that is asked about and is not inside the months the chart draws; undefined when it is inside.

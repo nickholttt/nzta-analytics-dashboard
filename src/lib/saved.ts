@@ -1,6 +1,6 @@
-// My questions: the questions a visitor saved, kept in this browser and nowhere else (D-125). No account, nothing is sent. A saved question is
-// a Build link (the address bar's form of the question, D-111), so it opens through the same validation as any link and the question has one
-// spelling. What is kept for each is that link's query (a pin is in it, as build.snapshot), a name the visitor can edit and when it was saved. Storage is read defensively: a value that cannot be read is dropped and counted, never allowed to break the page.
+// The lists a visitor keeps in this browser and nowhere else (D-125): My canvases (src/lib/savedCanvases.ts), and the questions saved on the Build
+// page before the canvas replaced it, which are carried into My canvases once. No account, nothing is sent. A saved question is a Build link (the
+// address bar's form of the question, D-111), so it opens through the same validation as any link and the question has one spelling. What is kept for each is that link's query (a pin is in it, as build.snapshot), a name the visitor can edit and when it was saved. Storage is read defensively: a value that cannot be read is dropped and counted, never allowed to break the page.
 import { builderSpec } from "./config";
 
 export const STORAGE_KEY = "nzta.my_questions";
@@ -128,20 +128,3 @@ export const rename = (items: Saved[], id: string, name: string): Saved[] => {
 };
 
 export const remove = (items: Saved[], id: string): Saved[] => items.filter((i) => i.id !== id);
-
-// Pin or unpin a saved question: its link gains or loses the snapshot's month.
-export function pinEntry(items: Saved[], id: string, month: string | null): Saved[] {
-  return items.map((i) => {
-    if (i.id !== id) return i;
-    const params = new URLSearchParams(i.query);
-    params.delete(`${builderSpec.id}.snapshot`);
-    if (month) params.set(`${builderSpec.id}.snapshot`, month);
-    return { ...i, query: params.toString() };
-  });
-}
-
-// Where a saved question opens: the Build page, with its question in the address.
-export const hrefOf = (entry: Saved): string => `/build?${entry.query}`;
-
-// The list as plain text a visitor can paste anywhere: each name, then its link, in the order listed.
-export const exportLinks = (items: Saved[], origin: string): string => items.map((i) => `${i.name}\n${origin}${hrefOf(i)}`).join("\n\n");
