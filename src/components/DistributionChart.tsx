@@ -145,7 +145,7 @@ export function DistributionChart({ preset, dimension, rows, manifest, minDenomi
     [model, label, lead, heading, minDenominator, pal],
   );
 
-  // The sentence under the chart: the band that holds the most vehicles, and its share or count as the chart gives it. A share the chart withholds
+  // The chart's sentence: the band that holds the most vehicles, and its share or count as the chart gives it. A share the chart withholds
   // (too few vehicles behind it) is not stated, and a band that stands for vehicles with no value is no competitor for first.
   const words = datasetWords(preset.dataset);
   const period = findDataset(preset.dataset)?.single_period && words?.window_one ? words.window_one : periodPhrase(chartSentences, model.win.from, model.win.to);

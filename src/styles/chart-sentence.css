@@ -1,4 +1,4 @@
-/* The one sentence under a chart (src/components/ChartSentence.tsx). It carries its own rules so a chart on any page, canvas or not, reads alike. */
+/* The one sentence of a chart (src/components/ChartSentence.tsx). It carries its own rules so a chart on any page, canvas or not, reads alike. */
 .chart-sentence {
   margin-top: var(--space-3);
   max-width: var(--measure);

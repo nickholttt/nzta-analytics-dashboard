@@ -450,7 +450,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
   );
   useFigures(figuresGetter);
 
-  // The sentence under the chart: the largest share over the last 12 months and how it moved on the 12 months before, as the table gives them. The
+  // The chart's sentence: the largest share over the last 12 months and how it moved on the 12 months before, as the table gives them. The
   // comparison is left out where the table withholds it or a change in how the data is recorded lies in the 24 months compared.
   const comparable = useComparable();
   const sentence = (() => {

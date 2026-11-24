@@ -16,6 +16,7 @@ import { count, spanPeriod } from "../lib/readout";
 import { latestMonthOf } from "../lib/resolve";
 import { countedText, fillTemplate, markReason, matrixSentences, vehiclesText, rankingWindows, rankingWords, sayBadMonth } from "../lib/sentences";
 import { getParam, setParam } from "../lib/url";
+import { Caveat } from "./Caveat";
 import { ChartSentence, SentenceContext } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
 
@@ -239,17 +240,17 @@ export function MatrixChart({ preset, dimension, dimension2, rows, manifest, lab
       {controls}
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
       {sentences.cells ? <p className="chart-unit">{sentences.cells}</p> : null}
-      {sentences.tiny ? <p className="chart-unit">{sentences.tiny}</p> : null}
+      {sentences.tiny ? <Caveat>{sentences.tiny}</Caveat> : null}
       {sentences.hidden ? (
-        <p className="chart-unit">
+        <Caveat>
           {sentences.hidden} <a href="/method#hidden-counts">{phrases.hidden_link}</a>
-        </p>
+        </Caveat>
       ) : null}
       {[...sentences.rows, ...sentences.columns].map((sentence) => (
-        <p key={sentence} className="chart-unit">{sentence}</p>
+        <Caveat key={sentence}>{sentence}</Caveat>
       ))}
       {sentences.thin.map((sentence) => (
-        <p key={sentence} className="chart-unit">{sentence}</p>
+        <Caveat key={sentence}>{sentence}</Caveat>
       ))}
 
       <div className="matrix-legend">

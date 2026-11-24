@@ -15,6 +15,7 @@ import { BAR_GAP, BAR_RADIUS, BAR_THICKNESS, FONT_TEXT, PLOT_FONT_SIZE, barRows,
 import { usePalette } from "../lib/useTheme";
 import { cellAt, cellText } from "../lib/figures";
 import { leaderIsClear, leagueRows, leagueTable, pickedSummary, rankingGuard, rankingLimit } from "../lib/league";
+import { Caveat } from "./Caveat";
 import { ChartSentence } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
 import type { LeagueRow } from "../lib/league";
@@ -137,7 +138,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       conditions: Object.values(preset.where ?? {}).some((kept) => kept.length > 0),
     });
   }, [picked, own, model, label, valueHeading, windowWords, words, preset.where]);
-  // The sentence under the chart: who is first, with how many (of the values picked, where some were). A hidden count could be as large as the
+  // The chart's sentence: who is first, with how many (of the values picked, where some were). A hidden count could be as large as the
   // leader's: then nobody is named. Where none of the values picked has a vehicle, the sentence says that, as there is nothing to name.
   const sentence = useMemo(() => {
     if (model.items.length === 0) return about?.leader;
@@ -317,15 +318,13 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
     </th>
   );
 
-  // What the page says about a choice of values, above the chart: how the values are ranked and which of them take no place.
+  // What the page says about a choice of values: how the values are ranked and which of them take no place. Notes, so a card draws them under the chart.
   const aboutChoice =
     about && model.items.length > 0 ? (
       <>
-        <p className="chart-unit">{about.label}</p>
+        <Caveat>{about.label}</Caveat>
         {about.unranked.map((text) => (
-          <p key={text} className="chart-unit">
-            {text}
-          </p>
+          <Caveat key={text}>{text}</Caveat>
         ))}
       </>
     ) : null;
@@ -414,13 +413,13 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       </div>
 
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
-      <p className="chart-unit">{basis}</p>
-      {about?.share ? <p className="chart-unit">{about.share}</p> : null}
-      {model.guard.sentence ? <p className="chart-unit">{model.guard.sentence}</p> : null}
+      <Caveat>{basis}</Caveat>
+      {about?.share ? <Caveat>{about.share}</Caveat> : null}
+      {model.guard.sentence ? <Caveat>{model.guard.sentence}</Caveat> : null}
       {hiddenNote ? (
-        <p className="chart-unit">
+        <Caveat>
           {hiddenNote.text} <a href="/method#hidden-counts">{phrases.hidden_link}</a>
-        </p>
+        </Caveat>
       ) : null}
 
       <PlotFigure
@@ -534,11 +533,11 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         </table>
       </div>
       {table.notes.map((note) => (
-        <p key={`${note.column}|${note.reason}`} className="chart-unit">
+        <Caveat key={`${note.column}|${note.reason}`}>
           {note.column}: {note.reason.charAt(0).toLowerCase() + note.reason.slice(1)}
-        </p>
+        </Caveat>
       ))}
-      {model.tiedBeyond > 0 ? <p className="chart-unit">{fillTemplate(phrases.tie_beyond_cut, { count: model.tiedBeyond }).text}</p> : null}
+      {model.tiedBeyond > 0 ? <Caveat>{fillTemplate(phrases.tie_beyond_cut, { count: model.tiedBeyond }).text}</Caveat> : null}
       {hiddenColumns.length > 0 ? (
         <p className="scroll-hint">
           The table scrolls sideways: {hiddenColumns.length > 1 ? `${hiddenColumns.slice(0, -1).join(", ")} and ${hiddenColumns[hiddenColumns.length - 1]}` : hiddenColumns[0]}{" "}

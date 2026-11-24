@@ -1,4 +1,4 @@
-// The one sentence under every chart (CLAUDE.md invariant 8; work order 3, lane A, item 2). Each function takes the figures a chart
+// The one sentence of every chart (CLAUDE.md invariant 8; work order 3, lane A, item 2). Each function takes the figures a chart
 // draws and works out one fact in generic terms (a month's figure and its change on a year earlier, the part that is largest, the
 // line that has the most), then fills a phrase template from config/narrative/chart_sentences.json. Pure: no React, no config reads
 // and no domain word, so tests/site/ runs it with Node's own test runner. The charts hand it the figures from the same code that
