@@ -34,8 +34,8 @@ const view = comparisonView(reconciliation, {
           <div class="source">
             <h3>
               <a href={source.homeUrl}>{source.name}</a>
-              {source.basis && <span class="basis">{source.basis}</span>}
             </h3>
+            {source.basis && <p class="basis">{source.basis}</p>}
             {source.definition && (
               <p>
                 <span class="label">{source.says}.</span> {source.definition}

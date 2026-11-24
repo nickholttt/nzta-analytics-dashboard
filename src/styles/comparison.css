@@ -1,11 +1,27 @@
 /* "How our figures compare" on the Differences page (config/comparison.json). It sits inside .prose, so the table, heading and link styles of the
-   reading pages apply; this adds only what a table of figures needs. */
-.comparison h3 .basis {
-  display: block;
-  margin-top: var(--space-1);
-  font-family: var(--font-text);
+   reading pages apply; this adds only what a table of figures needs. A link standing alone is a tap target of at least 44px each way: its box is
+   taller than its text, and the spacing around it gives back what the box adds, so the page reads as it did. */
+.comparison {
+  --tap: 44px;
+  --slack: 0.47rem; /* half of what a 44px link adds to a line of heading text */
+}
+
+.comparison h3 {
+  margin-top: calc(var(--space-5) - var(--slack));
+  margin-bottom: calc(var(--space-2) - var(--slack));
+}
+
+.comparison h3 a {
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+}
+
+/* What the organisation's figures are made from: a line of its own under the name, not part of the heading. */
+.comparison p.basis {
+  margin: calc(var(--space-1) - var(--space-2) - 0.31rem) 0 0.2rem;
   font-size: var(--text-sm);
-  font-weight: 400;
   color: var(--ink-2);
 }
 
@@ -49,9 +65,18 @@
   padding-inline: var(--space-2);
 }
 
+/* The source link is at least 44px each way, so a tap lands on it. */
 .comparison td.read {
   min-width: 7rem;
+  padding-block: 0;
   font-size: var(--text-xs);
+}
+
+.comparison td.read a {
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
 }
 
 .comparison details {
@@ -60,7 +85,9 @@
 
 .comparison summary {
   cursor: pointer;
-  padding-block: var(--space-2);
+  box-sizing: border-box;
+  min-height: var(--tap);
+  padding-block: 0.75rem;
   font-size: var(--text-sm);
   color: var(--ink-2);
 }
@@ -79,4 +106,82 @@
 
 .comparison tr.row-notes span {
   display: block;
+}
+
+/* On a phone the table has no room for six columns. Each row becomes a grid of the month and the four figures, with the source link on a line
+   of its own under them and the row's notes under that, so nothing is off the edge of the screen. Every part carries its table role in the
+   markup, so a screen reader still reads a table: the column headers stay in the document, and the one that has no column here is hidden
+   from the eye only. */
+@media (max-width: 48rem) {
+  .comparison .table-scroll table,
+  .comparison .table-scroll thead,
+  .comparison .table-scroll tbody {
+    display: block;
+  }
+
+  .comparison .table-scroll tr {
+    display: grid;
+    grid-template-columns: 4.75rem repeat(4, minmax(0, 1fr));
+    align-items: baseline;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .comparison .table-scroll thead tr {
+    align-items: end;
+    border-bottom: 2px solid var(--rule-strong);
+  }
+
+  .comparison .table-scroll tr.has-notes {
+    border-bottom: 0;
+  }
+
+  .comparison .table-scroll th,
+  .comparison .table-scroll td {
+    display: block;
+    min-width: 0;
+    padding-inline: var(--space-1);
+    border-bottom: 0;
+    font-size: var(--text-xs);
+    overflow-wrap: anywhere;
+  }
+
+  .comparison .table-scroll thead th {
+    padding-block: var(--space-2);
+    line-height: var(--leading-snug);
+  }
+
+  .comparison .table-scroll tbody th,
+  .comparison .table-scroll td.num {
+    padding-block: var(--space-2) 0;
+  }
+
+  .comparison th.read-head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .comparison td.not-compared {
+    grid-column: span 3;
+    padding-block: var(--space-2) 0;
+    color: var(--ink-2);
+  }
+
+  .comparison .table-scroll td.read {
+    grid-column: 1 / -1;
+    min-width: 0;
+    padding-block: 0;
+  }
+
+  .comparison .table-scroll tr.row-notes {
+    display: block;
+  }
+
+  .comparison .table-scroll tr.row-notes td {
+    padding-block: 0 var(--space-2);
+  }
 }

@@ -1,7 +1,9 @@
 ---
 // One table of a measure's figures: their figure, this site's, the gap, and where it was read. A figure that was not set beside this site's has
 // the sentence that says so across the three columns it leaves empty. Static HTML; every word comes from config/comparison.json through
-// src/lib/comparison.ts. A table wider than the screen scrolls inside its own labelled, focusable region.
+// src/lib/comparison.ts. At phone width the rows are drawn as grids (src/styles/comparison.css), which some browsers then read as a list of
+// blocks, so every part carries its table role: a screen reader reads a table with its row and column headers at every width. A table wider
+// than the screen (between a phone and the page's full width) scrolls inside its own labelled, focusable region.
 import type { FigureRowView } from "../lib/comparison";
 import type { Words } from "../lib/comparison";
 
@@ -14,39 +16,39 @@ const { caption, rows, columns } = Astro.props;
 ---
 
 <div class="table-scroll" role="region" aria-label={caption} tabindex="0">
-  <table>
+  <table role="table">
     <caption class="visually-hidden">{caption}</caption>
-    <thead>
-      <tr>
-        <th scope="col">{columns.month}</th>
-        <th scope="col" class="num">{columns.theirs}</th>
-        <th scope="col" class="num">{columns.ours}</th>
-        <th scope="col" class="num">{columns.gap}</th>
-        <th scope="col" class="num">{columns.gap_pct}</th>
-        <th scope="col">{columns.read}</th>
+    <thead role="rowgroup">
+      <tr role="row">
+        <th scope="col" role="columnheader">{columns.month}</th>
+        <th scope="col" role="columnheader" class="num">{columns.theirs}</th>
+        <th scope="col" role="columnheader" class="num">{columns.ours}</th>
+        <th scope="col" role="columnheader" class="num">{columns.gap}</th>
+        <th scope="col" role="columnheader" class="num">{columns.gap_pct}</th>
+        <th scope="col" role="columnheader" class="read-head">{columns.read}</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody role="rowgroup">
       {
         rows.map((row) => (
           <>
-          <tr class:list={{ "has-notes": row.notes.length > 0 }}>
-            <th scope="row">{row.monthLabel}</th>
-            <td class="num">{row.theirs}</td>
+          <tr role="row" class:list={{ "has-notes": row.notes.length > 0 }}>
+            <th scope="row" role="rowheader">{row.monthLabel}</th>
+            <td role="cell" class="num">{row.theirs}</td>
             {row.notCompared !== undefined ? (
-              <td colspan="3">{row.notCompared}</td>
+              <td role="cell" colspan="3" class="not-compared">{row.notCompared}</td>
             ) : (
               <>
-                <td class="num">{row.ours}</td>
-                <td class="num">{row.gap}</td>
-                <td class="num">{row.gapPct}</td>
+                <td role="cell" class="num">{row.ours}</td>
+                <td role="cell" class="num">{row.gap}</td>
+                <td role="cell" class="num">{row.gapPct}</td>
               </>
             )}
-            <td class="read">{row.readLabel !== null ? <a href={row.readUrl}>{row.readLabel}</a> : null}</td>
+            <td role="cell" class="read">{row.readLabel !== null ? <a href={row.readUrl}>{row.readLabel}</a> : null}</td>
           </tr>
           {row.notes.length > 0 && (
-            <tr class="row-notes">
-              <td colspan="6">
+            <tr role="row" class="row-notes">
+              <td role="cell" colspan="6">
                 {row.notes.map((note) => (
                   <span>{note}</span>
                 ))}
