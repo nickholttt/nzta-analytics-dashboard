@@ -413,7 +413,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       </div>
 
       {monthNotice ? <p className="chart-unit" role="status">{monthNotice}</p> : null}
-      <p className="chart-unit">{basis}</p>
+      <Caveat>{basis}</Caveat>
       {about?.share ? <Caveat>{about.share}</Caveat> : null}
       {model.guard.sentence ? <Caveat>{model.guard.sentence}</Caveat> : null}
       {hiddenNote ? (
