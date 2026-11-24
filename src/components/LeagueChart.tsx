@@ -11,21 +11,8 @@ import { TRAILING_MONTHS, addMonths, minDenominator as floorOf, monthLabel, mont
 import { countedText, fillTemplate, pickedRankingSentences, rankingLeaderSentence, rankingText, rankingWindows, rankingWords, sayBadMonth, vehiclesText, yearTooFewText } from "../lib/sentences";
 import { count, greyedReason, readout, spanPeriod } from "../lib/readout";
 import { latestMonthOf, servedFrom } from "../lib/resolve";
-import {
-  FONT_TEXT,
-  INK,
-  INK_2,
-  INK_3,
-  PAPER,
-  REMAINDER,
-  RULE,
-  RULE_STRONG,
-  SUPPRESSED_LINE,
-  chartHeight,
-  plotStyle,
-  seriesColour,
-  tipStyle,
-} from "../lib/theme";
+import { FONT_TEXT, chartHeight, PLOT_FONT_SIZE, plotStyle, seriesColour, tipStyle } from "../lib/theme";
+import { usePalette } from "../lib/useTheme";
 import { cellAt, cellText } from "../lib/figures";
 import { leaderIsClear, leagueRows, leagueTable, pickedSummary, rankingGuard, rankingLimit } from "../lib/league";
 import { ChartSentence } from "./ChartSentence";
@@ -37,7 +24,7 @@ import { PlotFigure } from "./PlotFigure";
 // narrow letters both fit. Without a canvas (no browser) it estimates generously.
 function fitter(room: number) {
   const context = typeof document === "undefined" ? null : document.createElement("canvas").getContext("2d");
-  if (context) context.font = `${plotStyle.fontSize} ${FONT_TEXT}`;
+  if (context) context.font = `${PLOT_FONT_SIZE} ${FONT_TEXT}`;
   const width = (s: string) => (context ? context.measureText(s).width : s.length * 8);
   return (name: string) => {
     if (width(name) <= room) return name;
@@ -75,6 +62,7 @@ const signed = (x: number) => `${x > 0.0005 ? "+" : x < -0.0005 ? "−" : "±"}$
 // Bars follow the preset's measure. A count is offered beside the share only when the measure is not
 // share: on a share preset the dataset may be one whose counts read as sales (D-044).
 export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, minDenominator, label, valueHeading, lead = false, month, onMonth, after }: Props) {
+  const pal = usePalette();
   const [topN, setTopN] = useState<number>(preset.top_n ?? 15);
   // A ranking of the values a visitor chose (D-111): it lists all of them, and says it is a ranking among them.
   const picked = preset.values && preset.values.length > 0 ? preset.values : undefined;
@@ -114,7 +102,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
   const floor = floorOf("share");
   const model = useMemo(() => {
     const result = leagueRows({ rows, currentFrom, end, priorFrom, priorTo, hasPrior: ranking.hasPrior && !single, topN: rankingLimit({ single, picked, topN }), nameOf: label, yearFloor });
-    const items: LeagueItem[] = result.items.map((item, idx) => ({ ...item, colour: seriesColour(idx), isRemainder: false }));
+    const items: LeagueItem[] = result.items.map((item, idx) => ({ ...item, colour: seriesColour(pal, idx), isRemainder: false }));
     const guard = rankingGuard({
       floor,
       currentDenom: result.currentDenom,
@@ -125,7 +113,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       phrases,
     });
     return { items, hidden: result.hidden, hiddenAtMost: result.hiddenAtMost, notBrokenDown: result.notBrokenDown, currentDenom: result.currentDenom, priorDenom: result.priorDenom, hasPrior: ranking.hasPrior && !single, tiedBeyond: result.tiedBeyond, guard: items.length > 0 ? guard : { shares: false, changes: false, sentence: undefined } };
-  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor, picked, single, once]);
+  }, [rows, end, currentFrom, priorFrom, priorTo, yearFloor, topN, label, ranking, floor, picked, single, once, pal]);
 
   // What the page says about the choice: how it is ranked, who leads, who is not ranked and what a share is a share of.
   const windowWords = rankingWords(phrases, { span, end, latest, once }).window;
@@ -236,7 +224,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
       return Plot.plot({
         width,
         height,
-        style: plotStyle,
+        style: plotStyle(pal),
         marginLeft,
         marginRight: 45,
         marginTop: 20,
@@ -253,11 +241,11 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
           tickFormat: isShare ? (d: number) => `${(d * 100).toFixed(0)}%` : (d: number) => d.toLocaleString(),
         },
         marks: [
-          Plot.gridX({ stroke: RULE }),
+          Plot.gridX({ stroke: pal.rule }),
           Plot.barX(model.items, {
             y: "name",
             x: isShare ? "share" : "n",
-            fill: isShare && model.guard.shares ? SUPPRESSED_LINE : "colour",
+            fill: isShare && model.guard.shares ? pal.suppressedLine : "colour",
             insetTop: 2,
             insetBottom: 2,
             rx: 2,
@@ -268,18 +256,18 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
             text: (d: LeagueItem) => (isShare ? pct(d.share) : d.n.toLocaleString()),
             dx: 6,
             textAnchor: "start",
-            fill: INK_2,
+            fill: pal.ink2,
             fontSize: 11,
             fontWeight: 500,
           }),
           // A hidden value has no bar: its name stands on the axis with the word at the start of the row, never a bar of zero length that reads as zero.
-          Plot.text(model.hidden, { y: "name", x: 0, text: () => phrases.hidden_word, dx: 6, textAnchor: "start", fill: INK_3, fontSize: 11, fontStyle: "italic" }),
+          Plot.text(model.hidden, { y: "name", x: 0, text: () => phrases.hidden_word, dx: 6, textAnchor: "start", fill: pal.ink3, fontSize: 11, fontStyle: "italic" }),
           Plot.tip(
             model.items,
             Plot.pointerY({
               y: "name",
               x: isShare ? "share" : "n",
-              ...tipStyle,
+              ...tipStyle(pal),
               title: (d: LeagueItem) => {
                 const move = !model.hasPrior
                   ? noYearAgo
@@ -310,7 +298,7 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
         ],
       });
     },
-    [model, displayMode, currentFrom, end, showYear, floor, single],
+    [model, displayMode, currentFrom, end, showYear, floor, single, pal],
   );
 
   const countHead = (
@@ -477,15 +465,15 @@ export function LeagueChart({ preset, dimension, rows, firstMonth, manifest, min
                         <span className="visually-hidden">{noYearAgo}</span>
                       </span>
                     ) : !hasMovement ? (
-                      <span className="badge" style={{ background: "rgba(3, 105, 161, 0.1)", color: "#0369a1", fontSize: "11px" }}>
+                      <span className="badge" style={{ background: "var(--rank-new-wash)", color: "var(--rank-new)", fontSize: "11px" }}>
                         New
                       </span>
                     ) : isUp ? (
-                      <span style={{ color: "#15803d", fontWeight: 600, fontSize: "12px" }}>
+                      <span style={{ color: "var(--rank-up)", fontWeight: 600, fontSize: "12px" }}>
                         <span aria-hidden="true">▲</span> +{item.rankDelta}
                       </span>
                     ) : isDown ? (
-                      <span style={{ color: "#b91c1c", fontWeight: 600, fontSize: "12px" }}>
+                      <span style={{ color: "var(--rank-down)", fontWeight: 600, fontSize: "12px" }}>
                         <span aria-hidden="true">▼</span> {item.rankDelta}
                       </span>
                     ) : (

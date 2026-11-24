@@ -2,7 +2,8 @@
 import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { builderHref, builderPresets, builderQuestionFor } from "../lib/builder";
+import { builderPresets, builderQuestionFor } from "../lib/builder";
+import { chartLink } from "../lib/canvas";
 import { shownEnd } from "../lib/pin";
 import { figuresCsv, figuresFileName, withByteOrderMark } from "../lib/figures";
 import { datasetAttribution, datasetsOf, figuresHeader } from "../lib/figuresHeader";
@@ -98,7 +99,7 @@ const spanLabel = (months: number) => (months >= 24 && months % 12 === 0 ? `${mo
 // what blocks the preset, drifting notes and the preset's spec line (D-041).
 // preset: a preset built outside presets.json (the sentence builder), drawn exactly as a canon one is.
 // anchored: the copied link jumps to this panel. Off where the controls that made the chart sit above it.
-// frame: "panel" is a section of a page that holds one chart after another (Explore, Build). "card" is a chart on a canvas: the heading
+// frame: "panel" is a section of a page that holds one chart after another (the status page). "card" is a chart on a canvas: the heading
 // row holds the canvas's own controls, the time row is drawn in the canvas's Period zone, the notes sit behind one disclosure, and the
 // links that belong to a page of one chart are left out. What is drawn, and every note, is the same in both.
 export type CardWords = {
@@ -651,12 +652,12 @@ export default function PresetPanel({
       ? fillNote(phrases.matrix_eyebrow, { row_field: dimensionLabel, column_field: dimensionLabel2 }).text
       : (dimensionLabel ?? derived?.label ?? measure?.label);
 
-  // The same chart on the Build page, ready to change: offered only where the sentence can say this view and the cube
+  // The same chart on the canvas, ready to change: offered only where the sentence can say this view and the cube
   // draws what it says, and opened on the time range shown here.
   const builderQuestion = builderQuestionFor(effectivePreset);
-  const builderLink =
+  const changeLink =
     builderQuestion && builderPresets(builderQuestion).every((p) => resolvePreset(p, manifest).preventsRender.length === 0)
-      ? builderHref(builderQuestion, activePeriod, fullHistory, shape === "matrix" ? getParam(presetId, "cells", "") || effectivePreset.cell_basis || undefined : undefined)
+      ? chartLink(builderQuestion, activePeriod, fullHistory, shape === "matrix" ? getParam(presetId, "cells", "") || effectivePreset.cell_basis || undefined : undefined)
       : undefined;
   const questionId = `${preset.id}-question`;
 
@@ -717,8 +718,8 @@ export default function PresetPanel({
       <button type="button" className="button-quiet" onClick={handleCopyLink} aria-live="polite">
         {copied === "copied" ? "Link copied" : copied === "address" ? "The address bar now links to this chart" : "Copy link to this chart"}
       </button>
-      {builderLink ? (
-        <a className="button-quiet" href={builderLink} aria-describedby={questionId}>
+      {changeLink ? (
+        <a className="button-quiet" href={changeLink} aria-describedby={questionId}>
           Change this chart
         </a>
       ) : null}

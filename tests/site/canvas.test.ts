@@ -401,6 +401,70 @@ test("nothing a visitor types is in the address: a canvas's parameters are its c
   }
 });
 
+// ---- What a link asked that the data lacks ----
+
+const askedChart = (search: string) => canvas.readCanvas(search)[0];
+
+test("a link that names a measure the data lacks says what was not found, what the chart shows and where to change it", () => {
+  const link = askedChart("?canvas.charts=c1&c1.measure=no_such_measure");
+  const chart = canvas.settleChart(all, link);
+  const shown = first.measures.find((m) => m.id === chart.question.measure) as (typeof first.measures)[number];
+  const gaps = canvas.linkGaps(all, link, chart);
+  assert.equal(gaps.length, 1);
+  assert.ok(filled(gaps[0]), gaps[0]);
+  for (const part of ["no_such_measure", config.lowerLabel(canvas.datasetLabel(first.dataset)), canvas.measureLabel(shown), canvas.zoneLabel("measure")]) assert.ok(gaps[0].includes(part), `${part}: ${gaps[0]}`);
+  // A measure the builder has and the canvas does not draw as one chart is named in its own words, not as the text of the link.
+  const parts = config.builderSpec.measures.find((m) => m.parts) as (typeof config.builderSpec.measures)[number];
+  const two = askedChart(`?canvas.charts=c1&c1.measure=${parts.id}`);
+  const [said] = canvas.linkGaps(all, two, canvas.settleChart(all, two));
+  assert.ok(said.includes(parts.phrase) && !said.includes(parts.id), said);
+});
+
+test("a link that names a chart type the canvas does not draw says so, and what the chart shows instead", () => {
+  const link = askedChart("?canvas.charts=c1&c1.type=no_such_type");
+  const chart = canvas.settleChart(all, link);
+  const gaps = canvas.linkGaps(all, link, chart);
+  assert.equal(gaps.length, 1);
+  assert.ok(filled(gaps[0]), gaps[0]);
+  const best = canvas.chartTypes(all, chart.question, manifest).find((c) => c.best);
+  assert.ok(gaps[0].includes("no_such_type") && gaps[0].includes(best?.label ?? "?"), gaps[0]);
+});
+
+test("a chart type the link asked for and the build cannot draw is set back with the reason the picker gives", () => {
+  const question = questions[0].question;
+  const unfit = canvas.chartTypes(all, question, manifest).find((c) => !c.fits);
+  assert.ok(unfit?.reason);
+  const chart: CanvasChart = { id: "c1", question, type: unfit.id, table: false, width: "full" };
+  const said = canvas.typeGap(all, chart);
+  assert.ok(filled(said), said);
+  assert.ok(said.includes(unfit.label) && said.includes(unfit.reason), said);
+  assert.equal(canvas.typeGap(all, { ...chart, type: null }), "");
+  assert.equal(canvas.withFittingTypes({ charts: [chart] }, manifest).charts[0].type, null);
+});
+
+test("a link the canvas wrote itself, or one that asks for what the data has, has nothing to say", () => {
+  for (const chart of sample()) {
+    const link = askedChart(`?${canvas.canvasParams({ charts: [chart] })}`);
+    assert.deepEqual(canvas.linkGaps(all, link, canvas.settleChart(all, link)), [], chart.id);
+  }
+  const bare = askedChart("?canvas.charts=c1");
+  assert.deepEqual(canvas.linkGaps(all, bare, canvas.settleChart(all, bare)), []);
+});
+
+test("the link from a ready-made chart opens a canvas of that chart, on the time range it was showing", () => {
+  const { question } = questions[0];
+  const [open] = builder.builderPresets(question);
+  const other = config.periods.find((p) => p.id !== open.period)?.id as string;
+  const href = canvas.chartLink(question, other, true, "column");
+  assert.ok(href.startsWith(`${canvas.CANVAS_PATH}?`));
+  const search = href.slice(href.indexOf("?"));
+  const [chart] = canvas.settleCanvas(all, canvas.readCanvas(search)).charts;
+  assert.deepEqual(chart.question, question);
+  assert.deepEqual(canvas.chartSettings(search, chart.id).sort(), [["cells", "column"], ["period", other], ["range", "all"]]);
+  // Where the chart shows its own default, the link carries no setting.
+  assert.deepEqual(canvas.chartSettings(canvas.chartLink(question, open.period), "c1"), []);
+});
+
 // ---- The page: charts added, copied, removed and moved ----
 
 const ids = (c: { charts: CanvasChart[] }) => c.charts.map((chart) => chart.id);

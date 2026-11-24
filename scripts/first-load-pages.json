@@ -1,5 +1,5 @@
 {
-  "$comment": "The pages scripts/measure-first-load.mjs visits. The Build links are the work order's acceptance question (3 fields) and the 8-field question of docs/QUERY_SERVICE.md; the values are data, kept here and not in code. 'expected' is how many charts must be drawn for the answer to count as drawn; left out, it is the number an unthrottled first visit draws on its own. The starter canvases (the front page lists them, and each is a canvas link) are judged on their first chart, since the charts below it load later; the front page itself draws no chart. 'target' is the id of a chart's panel: the page is then judged on when that panel's own figure is drawn. The canvas is visited twice: as it opens with nothing asked (one chart, read from a slice), and at a link to work order 2's acceptance question as a ranking (three brands, one powertrain, one vehicle type, read from five columns of the fact table).",
+  "$comment": "The pages scripts/measure-first-load.mjs visits. q3 and q8 are the work order's acceptance question (3 fields) and the 8-field question of docs/QUERY_SERVICE.md, at the canvas addresses the old Build links for them now open (src/lib/buildLink.ts): a canvas of two charts, the share and the number, as Build drew them. The values are data, kept here and not in code. 'expected' is how many charts must be drawn for the answer to count as drawn; left out, it is the number an unthrottled first visit draws on its own. The starter canvases (the front page lists them, and each is a canvas link) are judged on their first chart, since the charts below it load later; the front page itself draws no chart. 'target' is the id of a chart's panel: the page is then judged on when that panel's own figure is drawn. The canvas is visited twice: as it opens with nothing asked (one chart, read from a slice), and at a link to work order 2's acceptance question as a ranking (three brands, one powertrain, one vehicle type, read from five columns of the fact table).",
   "pages": [
     {
       "id": "canvas",
@@ -28,11 +28,11 @@
     },
     {
       "id": "q3",
-      "path": "/build/?build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger"
+      "path": "/canvas/?canvas.charts=c1%2Cc2&c1.measure=share&c1.by=make&c1.value=FORD&c1.value=TOYOTA&c1.value=BYD&c1.where.powertrain=Hybrid&c1.where.segment_group=Light+passenger&c2.measure=count&c2.by=make&c2.value=FORD&c2.value=TOYOTA&c2.value=BYD&c2.where.powertrain=Hybrid&c2.where.segment_group=Light+passenger"
     },
     {
       "id": "q8",
-      "path": "/build/?build.measure=share_and_count&build.by=make&build.value=FORD&build.value=TOYOTA&build.value=BYD&build.where.powertrain=Hybrid&build.where.segment_group=Light%20passenger&build.where.import_status=NZ%20New&build.where.engine_size_band=1.5-1.9%20L&build.where.engine_size_band=2.0-2.4%20L&build.where.built_in=JAPAN&build.where.built_in=THAILAND&build.where.built_in=CHINA&build.where.age_at_registration_band=0&build.where.heritage_country=Japan&build.where.heritage_country=United%20States&build.where.heritage_country=China"
+      "path": "/canvas/?canvas.charts=c1%2Cc2&c1.measure=share&c1.by=make&c1.value=FORD&c1.value=TOYOTA&c1.value=BYD&c1.where.powertrain=Hybrid&c1.where.segment_group=Light+passenger&c1.where.import_status=NZ+New&c1.where.engine_size_band=1.5-1.9+L&c1.where.engine_size_band=2.0-2.4+L&c1.where.built_in=JAPAN&c1.where.built_in=THAILAND&c1.where.built_in=CHINA&c1.where.age_at_registration_band=0&c1.where.heritage_country=Japan&c1.where.heritage_country=United+States&c1.where.heritage_country=China&c2.measure=count&c2.by=make&c2.value=FORD&c2.value=TOYOTA&c2.value=BYD&c2.where.powertrain=Hybrid&c2.where.segment_group=Light+passenger&c2.where.import_status=NZ+New&c2.where.engine_size_band=1.5-1.9+L&c2.where.engine_size_band=2.0-2.4+L&c2.where.built_in=JAPAN&c2.where.built_in=THAILAND&c2.where.built_in=CHINA&c2.where.age_at_registration_band=0&c2.where.heritage_country=Japan&c2.where.heritage_country=United+States&c2.where.heritage_country=China"
     }
   ]
 }

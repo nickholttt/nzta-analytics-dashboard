@@ -29,25 +29,8 @@ import type { Cell, Column } from "../lib/figures";
 import { ChartSentence, useComparable } from "./ChartSentence";
 import { useFigures } from "./FiguresContext";
 import type { Greyed } from "../lib/readout";
-import {
-  EVENT_WINDOW,
-  INK_2,
-  INK_3,
-  LINE_WIDTH,
-  PAPER,
-  REMAINDER,
-  RULE,
-  RULE_STRONG,
-  SUPPRESSED_BAND,
-  SUPPRESSED_LINE,
-  THIN_LINE_WIDTH,
-  chartHeight,
-  hasOwnColour,
-  plotStyle,
-  seriesColour,
-  tipStyle,
-  xTicks,
-} from "../lib/theme";
+import { LINE_WIDTH, THIN_LINE_WIDTH, chartHeight, hasOwnColour, plotStyle, seriesColour, tipStyle, xTicks } from "../lib/theme";
+import { usePalette } from "../lib/useTheme";
 import { latestMonthOf } from "../lib/resolve";
 import { nameOrder, rankByCount } from "../lib/ranking";
 import { BEYOND_CAP, REST_NAME } from "../lib/reserved";
@@ -101,6 +84,7 @@ type Props = {
 };
 
 export function MixChart({ preset, dimension, rows, manifest, events, covers, minDenominator, collapseFraction, label, lead = false, fullHistory = false, internal = false }: Props) {
+  const pal = usePalette();
   const [showUnscoped, setShowUnscoped] = useState(false);
   const defaultSmoothing = preset.smoothing ?? chartDefaults.mix_smoothing;
   const [smoothing, setSmoothing] = useState<string>(() => {
@@ -212,7 +196,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
     const byTrailing = ranked.filter((v) => peak.has(v)).slice(0, chartDefaults.colour_slots_by_trailing);
     const byPeak = candidates.filter((s) => !byTrailing.includes(s)).sort((a, b) => (peak.get(b) ?? 0) - (peak.get(a) ?? 0) || nameOrder(label(a), label(b)));
     const colourRank = new Map([...byTrailing, ...byPeak].map((s, i) => [s, i]));
-    const colourOf = (s: string) => (s === ALL_OTHER ? REMAINDER : seriesColour(colourRank.get(s) ?? Number.POSITIVE_INFINITY));
+    const colourOf = (s: string) => (s === ALL_OTHER ? pal.remainder : seriesColour(pal, colourRank.get(s) ?? Number.POSITIVE_INFINITY));
     const ownColour = (s: string) => s !== ALL_OTHER && hasOwnColour(colourRank.get(s) ?? Number.POSITIVE_INFINITY);
 
     // Rolling is computed here from n and denominator, never read from the cube: the cube carries
@@ -257,7 +241,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
       .sort((a, b) => Number(a.remainder) - Number(b.remainder) || (b.shown ?? -1) - (a.shown ?? -1) || nameOrder(label(a.series), label(b.series)));
 
     return { win, full, rankWin, series, points, bands, summary, categories, defaultStart, colourOf, ownColour };
-  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, fullHistory, label, covers]);
+  }, [rows, preset, dimension, latest, minDenominator, collapseFraction, rolling, fullHistory, label, covers, pal]);
 
   const selected = useMemo(
     () => (preset.events && events ? selectEvents(events, dimension.id, model.categories, `${model.win.from}-01`, manifest.latest_snapshot) : null),
@@ -349,9 +333,9 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
       const contextPoints = drawn.filter((p) => !ownColour(p.series));
       const labelMarks = showDirectLabels
         ? [
-            Plot.link(labels, { x1: "date", y1: "share", x2: () => labelX, y2: "labelY", stroke: RULE_STRONG }),
-            Plot.dot(labels, { x: "date", y: "share", r: 3.5, fill: "series", stroke: PAPER, strokeWidth: 1.5 }),
-            Plot.text(labels, { x: () => labelX, y: "labelY", text: (p: Point) => label(p.series), textAnchor: "start", dx: 4, fill: INK_2 }),
+            Plot.link(labels, { x1: "date", y1: "share", x2: () => labelX, y2: "labelY", stroke: pal.ruleStrong }),
+            Plot.dot(labels, { x: "date", y: "share", r: 3.5, fill: "series", stroke: pal.paper, strokeWidth: 1.5 }),
+            Plot.text(labels, { x: () => labelX, y: "labelY", text: (p: Point) => label(p.series), textAnchor: "start", dx: 4, fill: pal.ink2 }),
           ]
         : [];
 
@@ -362,24 +346,24 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
         marginRight,
         marginLeft: MARGIN_LEFT,
         marginBottom: MARGIN_BOTTOM,
-        style: plotStyle,
+        style: plotStyle(pal),
         x: { type: "utc", label: null, domain: [monthDate(domain.from), monthDate(domain.to)] },
         y: { label: null, domain: [0, yMax] },
         color: { domain: model.series, range: model.series.map(model.colourOf) },
         marks: [
-          Plot.rect(bands, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: SUPPRESSED_BAND }),
+          Plot.rect(bands, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: pal.suppressedBand }),
           // A window can run past the latest snapshot (a policy in force until 2029); it stops at the
           // frame rather than shading the end labels.
-          Plot.rect(windowed, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: EVENT_WINDOW, fillOpacity: 0.55, clip: true }),
-          Plot.gridY({ ticks: 5, stroke: RULE, strokeOpacity: 1 }),
+          Plot.rect(windowed, { x1: "x1", x2: "x2", y1: "y1", y2: "y2", fill: pal.eventWindow, fillOpacity: 0.55, clip: true }),
+          Plot.gridY({ ticks: 5, stroke: pal.rule, strokeOpacity: 1 }),
           Plot.axisY({ ticks: 5, tickSize: 0, tickPadding: 6, label: null, tickFormat: (d: number) => `${Math.round(d * 100)}%` }),
-          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: RULE_STRONG, label: null }),
-          Plot.ruleY([0], { stroke: RULE_STRONG }),
+          Plot.axisX({ ticks: xTicks(width), tickSize: 4, stroke: pal.ruleStrong, label: null }),
+          Plot.ruleY([0], { stroke: pal.ruleStrong }),
           // An event that straddles the chart's start, or was announced before it, would otherwise draw
           // its rule in the left margin over the axis labels.
-          Plot.ruleX(announced, { x: "x", stroke: INK_3, strokeOpacity: 0.4, strokeDasharray: "1,3", clip: true }),
-          Plot.ruleX(rules.filter((r) => !r.measurement), { x: "x", stroke: INK_2, strokeOpacity: 0.45, clip: true }),
-          Plot.ruleX(rules.filter((r) => r.measurement), { x: "x", stroke: INK_2, strokeOpacity: 0.8, strokeDasharray: "4,3", clip: true }),
+          Plot.ruleX(announced, { x: "x", stroke: pal.ink3, strokeOpacity: 0.4, strokeDasharray: "1,3", clip: true }),
+          Plot.ruleX(rules.filter((r) => !r.measurement), { x: "x", stroke: pal.ink2, strokeOpacity: 0.45, clip: true }),
+          Plot.ruleX(rules.filter((r) => r.measurement), { x: "x", stroke: pal.ink2, strokeOpacity: 0.8, strokeDasharray: "4,3", clip: true }),
           // Lane 0 sits just above the frame and each further lane above that, so markers that would
           // print on top of each other are read as a column instead of a smear. dy is a constant
           // offset in Plot, not a channel, so each lane needs its own mark.
@@ -389,12 +373,12 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
               y: yMax,
               text: "label",
               dy: -10 - lane * LANE_HEIGHT,
-              fill: INK_2,
+              fill: pal.ink2,
               fontWeight: 600,
               fontSize: 11,
             }),
           ),
-          Plot.lineY(model.points, { x: "date", y: "share", z: "series", stroke: SUPPRESSED_LINE, strokeWidth: THIN_LINE_WIDTH, clip: true }),
+          Plot.lineY(model.points, { x: "date", y: "share", z: "series", stroke: pal.suppressedLine, strokeWidth: THIN_LINE_WIDTH, clip: true }),
           Plot.lineY(contextPoints, {
             x: "date",
             y: "share",
@@ -414,17 +398,17 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
             strokeLinecap: "round",
           }),
           ...labelMarks,
-          Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: RULE_STRONG })),
+          Plot.ruleX(model.points, Plot.pointerX({ x: "date", stroke: pal.ruleStrong })),
           Plot.dot(
             model.points.filter((p) => p.share !== undefined),
-            Plot.pointer({ x: "date", y: inFrame, r: 4, fill: "series", stroke: PAPER, strokeWidth: 1.5 }),
+            Plot.pointer({ x: "date", y: inFrame, r: 4, fill: "series", stroke: pal.paper, strokeWidth: 1.5 }),
           ),
           Plot.tip(
             model.points.filter((p) => p.share !== undefined),
             Plot.pointer({
               x: "date",
               y: inFrame,
-              ...tipStyle,
+              ...tipStyle(pal),
               title: (p: Point) =>
                 readout({
                   name: label(p.series),
@@ -440,7 +424,7 @@ export function MixChart({ preset, dimension, rows, manifest, events, covers, mi
         ],
       });
     },
-    [model, markersAt, endLabels, label, lead, domain, rolling, minDenominator],
+    [model, markersAt, endLabels, label, lead, domain, rolling, minDenominator, pal],
   );
 
   // The table under the chart, as the page shows it and as the file of figures writes it.

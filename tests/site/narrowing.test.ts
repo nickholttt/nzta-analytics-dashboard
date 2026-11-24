@@ -1,6 +1,6 @@
 // A question that breaks down by a field the register records for only a kind of vehicle starts with the condition that keeps that kind, says so,
 // and lets the visitor remove it; the removal is in the address, so it survives settle, a saved question and a pin (D-132). Through the real
-// settle, readQuestion, questionParams, addressParams and saved.questionQuery. No field or value is named: the fields come from the data map,
+// settle, readQuestion, questionParams and saved.questionQuery. No field or value is named: the fields come from the data map,
 // the class and its condition from config.
 //   node --test "tests/site/*.test.ts"
 import "./support/register.mjs";
@@ -114,12 +114,8 @@ test("the removal survives the address, a reload, a saved question and a pin", (
   assert.equal(params.has(`build.where.${D}`), false);
   // A reload reads the address.
   assert.deepEqual(read(String(params)), removed);
-  // The address as the page writes it, with the chart's own settings kept.
-  const address = builder.addressParams("?other=1", removed, true);
-  assert.deepEqual(read(String(address)), removed);
-  assert.equal(address.get("other"), "1");
   // A saved question is the build parameters of the address.
-  const query = saved.questionQuery(`?${address}`);
+  const query = saved.questionQuery(`?${params}&other=1`);
   assert.ok(query);
   assert.deepEqual(read(query), removed);
   // A pin is one more parameter of it.

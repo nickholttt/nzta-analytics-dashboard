@@ -14,11 +14,6 @@
       "label": "Canvas"
     },
     {
-      "id": "build",
-      "href": "/build",
-      "label": "Build a chart"
-    },
-    {
       "id": "method",
       "href": "/method",
       "label": "Methodology"
@@ -47,6 +42,15 @@
     }
   ],
   "skip_link": "Skip to the content",
+  "theme": {
+    "storage_key": "nzta.theme",
+    "toggle": "Dark mode"
+  },
+  "build_moved": {
+    "title": "Build has moved to the canvas",
+    "lead": "Charts are built on the canvas now. With scripts on, this page takes you there with your question.",
+    "link": "Open the canvas"
+  },
   "about": {
     "site_name": "[TO DECIDE: the site's name]",
     "site_address": "[TO DECIDE: the site's web address]",
@@ -62,7 +66,7 @@
     "card_width": 1200,
     "card_height": 630,
     "card_foot": "Built on NZTA open data",
-    "noscript": "The charts on this page are drawn by a script, and scripts are switched off in this browser. Turn them on to see the charts. The Methodology page says what each figure counts and needs no script.",
+    "noscript": "This page needs a script, and scripts are switched off in this browser. Turn them on to see the charts. The Methodology page says what each figure counts and needs no script.",
     "pages": {
       "explore": {
         "title": "Start from a question",
@@ -74,8 +78,8 @@
         "needs_script": true
       },
       "build": {
-        "title": "Build a chart from the register",
-        "description": "Ask your own question of New Zealand's vehicle register: what to show, what to compare and which vehicles to count.",
+        "title": "Build has moved to the canvas",
+        "description": "Charts are built on the canvas now. A link to the old Build page opens there, with the same chart drawn from the same figures.",
         "needs_script": true
       },
       "method": {

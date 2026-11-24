@@ -63,10 +63,9 @@ test("not recorded and no reference match are still choosable, as a value and as
 });
 
 test("the picker does not list the beyond-the-cap value, among the values to compare or the values of a condition", () => {
-  // The picker is shared by the Build page and the canvas (src/components/ValuePicker.tsx); the page says what a link named that it left out.
+  // The picker is one component (src/components/ValuePicker.tsx); the canvas says what a link named that it left out.
   assert.match(read("src/components/ValuePicker.tsx"), /o\.total > 0 && isChoosable\(o\.value\)/);
-  // The sentence is filled in one place for both pages (src/lib/builder.ts, linkNotices), and each page says what it returns.
+  // The sentence is filled in one place (src/lib/builder.ts, linkNotices), and the canvas says what it returns.
   assert.match(read("src/lib/builder.ts"), /fill\(notices\.left_out, left\)/);
-  assert.match(read("src/components/QuestionBuilder.tsx"), /linkNotices\(all, asked, settle\(all, asked\), valueLabel\)/);
   assert.match(read("src/components/canvas/Canvas.tsx"), /linkNotices\(all, a\.asked, settle\(all, a\.asked\), valueLabel\)/);
 });

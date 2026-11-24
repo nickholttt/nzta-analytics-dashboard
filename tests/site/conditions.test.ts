@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { everythingBuilt } from "./support/observe.ts";
 
-const { REMOVE_CONDITION, builderVocabulary, builderPresets, questionParams, readQuestion, removeConditionLabel, settle, withValues } = await import("../../src/lib/builder.ts");
+const { builderVocabulary, builderPresets, questionParams, readQuestion, settle, withValues } = await import("../../src/lib/builder.ts");
 const { resolvePreset } = await import("../../src/lib/resolve.ts");
 const { conditionsSentence } = await import("../../src/lib/scope.ts");
 
@@ -81,15 +81,4 @@ test("taking the last value off a condition takes the line away; taking another 
   assert.deepEqual(withValues(where, "b", []), { a: ["x", "y"] });
   assert.deepEqual(withValues(where, "c", ["w"]), { a: ["x", "y"], b: ["z"], c: ["w"] });
   assert.deepEqual(where, { a: ["x", "y"], b: ["z"] }, "the question it was given is not changed");
-});
-
-test("each condition's remove button is named by the words it shows, then its field", () => {
-  assert.equal(REMOVE_CONDITION, "Remove this condition");
-  for (const field of ["Powertrain", "Country of the brand's owner"]) {
-    const name = removeConditionLabel(field);
-    assert.ok(name.startsWith(REMOVE_CONDITION), "the visible words come first in the name");
-    assert.ok(name.endsWith(field.toLowerCase()));
-  }
-  // Two conditions have two names, so each button can be told from the other.
-  assert.notEqual(removeConditionLabel("a"), removeConditionLabel("b"));
 });

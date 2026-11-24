@@ -5,7 +5,7 @@
 // back from. It names no field, measure, dataset or value: the words are config/canvas.json's, the rules are the builder's and the
 // chart rule table's.
 import canvasDoc from "../../config/canvas.json";
-import { dimensionLabel, dimensions, findDataset, findDerived, findDimension, findMeasure } from "./config";
+import { builderSpec, dimensionLabel, dimensions, lowerLabel, findDataset, findDerived, findDimension, findMeasure } from "./config";
 import type { Preset } from "./config";
 import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCross, changeQuestion, isOneChart, questionParams, readQuestion, settle } from "./builder";
 import type { BuilderOption, DatasetVocabulary, Question, Vocabulary } from "./builder";
@@ -377,6 +377,9 @@ export function pinCanvas(canvas: Canvas, manifest: Manifest, month: string | nu
 // under its own (questionParams), with the chart's type, whether it shows a table, and its width. The panel that draws a chart keeps the
 // chart's own settings (its time range, a month) under the same id. Nothing a visitor types is ever in the address.
 
+// Where the canvas is, as an address: a link that opens a canvas is this path and a query.
+export const CANVAS_PATH = "/canvas/";
+
 const pageKey = (name: string) => `${canvasSpec.id}.${name}`;
 const CHARTS = "charts";
 const TYPE = "type";
@@ -410,13 +413,40 @@ export function readCanvas(search: string): AskedChart[] {
 // A chart from what a link asked for, kept as far as the data can answer it: the nearest question (settle), and a type that is one of
 // the six. Whether the build draws that type is checked once the manifest is known (withFittingTypes).
 export function settleChart(all: Vocabulary, a: AskedChart): CanvasChart {
-  const question: Question = { ...settle(all, a.asked), view: null };
+  const settled = settle(all, a.asked);
+  // A link that ranks every value (the Build page's `rank=all`, which the canvas never writes) is a ranking with no values chosen: the canvas
+  // ranks the values a chart has, and a chart with none ranks them all.
+  const ranksAll = settled.view === RANKING && settled.rankAll === true;
+  const question: Question = ranksAll ? { ...settle(all, { ...settled, values: [], pageValues: undefined, view: null, rankAll: false }), view: null } : { ...settled, view: null };
+  // The view a Build link chose is the chart type, where the question still has it (settle keeps a view the question fits and no other).
+  const type = isShape(a.type) ? a.type : isShape(settled.view) ? settled.view : null;
   // The preset a link names is kept only while the question is the preset's: an id config does not have, or a question that has since changed, is left out.
-  return { id: a.id, question, type: isShape(a.type) ? a.type : null, table: a.table, width: a.width, ...(a.preset && standsFor(question, a.preset) ? { preset: a.preset } : {}) };
+  return { id: a.id, question, type, table: a.table, width: a.width, ...(a.preset && standsFor(question, a.preset) ? { preset: a.preset } : {}) };
 }
 
 // What a link asked of a chart's title that the page did not give, said as the canvas says the rest of what a link asked and did not get.
 export const presetNotice = (a: AskedChart, chart: CanvasChart): string[] => (a.preset && !chart.preset ? [say("link_preset_dropped")] : []);
+
+// What a link asked of a chart that the data lacks and the page did not say: a measure the dataset does not have, a chart type the canvas
+// does not draw. The dataset, the breakdowns, the values, the conditions and the pin are told by the Build page's own sentences
+// (builder.linkNotices). Each sentence says what was not found, what the chart shows instead, and what to do to change it.
+export function linkGaps(all: Vocabulary, a: AskedChart, chart: CanvasChart): string[] {
+  const gaps: string[] = [];
+  const asked = a.asked.measure;
+  if (asked && asked !== chart.question.measure) {
+    const v = datasetOf(all, chart.question.dataset);
+    const known = builderSpec.measures.find((m) => m.id === asked);
+    gaps.push(
+      say("gap_measure", { query: known ? measureLabel({ id: asked, phrase: known.phrase }) : asked, dataset: lowerLabel(datasetLabel(v.dataset)), measure: measureLabel(measureOf(v, chart.question.measure)), zone: zoneLabel("measure") }),
+    );
+  }
+  if (a.type && !isShape(a.type)) gaps.push(say("gap_type_unknown", { query: a.type, shown: typeLabel(chart.type ?? bestType(chart.question)) }));
+  return gaps;
+}
+
+// What a chart type a link asked for, which the build cannot draw for the chart's question, was set back from: the reason, and the type shown.
+export const typeGap = (all: Vocabulary, asked: CanvasChart): string =>
+  asked.type ? say("gap_type_unfit", { type: typeLabel(asked.type), shown: typeLabel(bestType(asked.question)), reason: typeReason(all, asked.question, asked.type) }) : "";
 
 // The heading of a chart: the Explore question it stands for, else the title its question generates (chartPreset).
 export const chartHeading = (chart: Pick<CanvasChart, "preset">): string | undefined => (chart.preset ? presetQuestion(chart.preset) : undefined);
@@ -437,6 +467,18 @@ export function canvasParams(canvas: Canvas): URLSearchParams {
     if (chart.preset) params.set(`${chart.id}.${FROM}`, chart.preset);
   }
   return params;
+}
+
+// The canvas that holds one chart asking this question, as an address: where "Change this chart" on a ready-made chart goes. It carries the time
+// range the chart was showing, where that differs from the question's own default, so the chart opens as the reader left it.
+export function chartLink(q: Question, period?: string, fullHistory = false, cells?: string): string {
+  const id = nextChartId([]);
+  const params = canvasParams({ charts: [{ id, question: q, type: null, table: false, width: "full" }] });
+  const [first] = builderPresets(q, undefined, id);
+  if (period && first && period !== first.period) params.set(`${id}.period`, period);
+  if (fullHistory) params.set(`${id}.range`, "all");
+  if (cells) params.set(`${id}.cells`, cells);
+  return `${CANVAS_PATH}?${params}`;
 }
 
 // The address with the canvas written into it. A chart whose question or type changed loses its own settings (its time range belongs to

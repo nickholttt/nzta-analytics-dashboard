@@ -3,12 +3,13 @@
 // browser's storage, and where that is blocked the page says so and the canvas works as it does without it. A name is never in a link.
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Vocabulary } from "../../lib/builder";
+import { buildLinkRules } from "../../lib/buildLinkRules";
 import { say } from "../../lib/canvas";
 import type { Manifest } from "../../lib/data";
 import { servedMonth } from "../../lib/pin";
 import { MAX_NAME, MAX_SAVED, add, browserStorage, load, persist, remove, rename } from "../../lib/saved";
 import type { Loaded, Saved } from "../../lib/saved";
-import { CANVASES, canvasHref, canvasLinks, canvasQuery, pinSavedCanvas, savedPin } from "../../lib/savedCanvases";
+import { CANVASES, canvasHref, canvasLinks, canvasQuery, carryQuestionsOver, pinSavedCanvas, savedPin } from "../../lib/savedCanvases";
 import { focusSoon } from "../ValuePicker";
 
 const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`);
@@ -31,9 +32,11 @@ type Props = {
 };
 
 export default function MyCanvases({ all, served, name, pinned, pinnable, onPin }: Props) {
+  // The questions saved on the Build page, which the canvas replaced, are carried into the list the first time it is read.
+  const [carried] = useState(() => carryQuestionsOver(browserStorage(), buildLinkRules()));
   const [loaded, setLoaded] = useState<Loaded>(read);
   // What the last action did, in a live region so a screen reader hears it.
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(() => (carried > 0 ? say("saved_carried", { number: carried }) : ""));
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [confirmClear, setConfirmClear] = useState(false);

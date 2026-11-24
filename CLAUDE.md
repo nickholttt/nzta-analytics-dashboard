@@ -1,9 +1,11 @@
 # NZ Vehicle Registration Analytics — Project Brief
 
 An analytics site built on NZTA open data. Two surfaces: **Explore**
-(question-titled charts, each a starting point) and **Build** (a question
-builder: any measure, any values of any dimension, any filters, any period,
-answered from a precomputed fact table, D-058, D-059). No hand-written
+(starter canvases of question-titled charts, each a starting point) and
+the **canvas** (a page of charts a visitor builds: any measure, any values
+of any dimension, any filters, any period, answered from a precomputed fact
+table, D-058, D-059). The canvas took in Build, the earlier question
+builder, on 2026-11-24 (D-148): an old Build link opens as a canvas. No hand-written
 reports or commentary, and no SQL console. The only prose about the data is
 generated from neutral phrase templates (invariant 8, D-062).
 
@@ -12,8 +14,8 @@ Audience: people who are not data analysts, answering questions like
 manufacturer origin shifted over the last decade" without touching a
 multi-gigabyte CSV. And people who are: analysts, the trade and informed
 buyers, who today download the register, clean it, filter it and redraw
-it by hand every month. Explore sets the stage for the first group. Build
-is the full engine for the second, and must bend to any question the
+it by hand every month. Explore sets the stage for the first group. The
+canvas is the full engine for the second, and must bend to any question the
 data can honestly answer (D-062).
 
 ## The goal
@@ -41,7 +43,7 @@ How every page reads:
    askable, subject to privacy, invariant 4 and data quality.
 8. **A field is defined before it is askable.** The data map
    (`docs/DATA_MAP.md`) gives every field its meaning, its coverage, what
-   it can be used for, and how it relates to other fields. Build offers
+   it can be used for, and how it relates to other fields. The canvas offers
    only what the map defines.
 9. **A saved question keeps itself up to date.** A link redraws on the
    newest month with no work from the visitor, or stays pinned to a
@@ -69,11 +71,11 @@ work order 2 §5; D-138, D-147):
   - every figure is one step from its definition, source and snapshot;
   - a flow series never shares a chart with survivors.
 
-(Being built under work order 2, milestone 1: on a local build `/canvas`
-holds several charts, each with its zones and the chart-type picker, and
-canvases are saved and pinned in the browser; the starter canvases and a
-generated sentence under every chart are planned. Where it has got to is
-in `docs/STATE.md`.)
+(Built under work orders 2 and 3: on a local build `/canvas` holds several
+charts, each with its zones, the chart-type picker and one generated
+sentence; canvases are saved and pinned in the browser; Explore lists the
+starter canvases; Build is folded in. Where it has got to is in
+`docs/STATE.md`.)
 
 ---
 
@@ -126,7 +128,7 @@ Violating any of them is a bug, not a shortcut.
 
    If the service is down, the stage still works (D-062).
 
-   (Planned: no service is chosen or built. Today Build reads the
+   (Planned: no service is chosen or built. Today the canvas reads the
    precomputed fact table in the browser, D-058.)
 
 7. **Never present a measurement artefact as market behaviour.** Some
@@ -197,7 +199,7 @@ visual variant chosen by config inside a shape (such as the ridgeline inside
 - TanStack Table (virtualised) for league tables (planned: not yet a
   dependency; `LeagueChart` draws a Plot bar chart over a plain,
   non-virtualised rank table; no Explore preset is a live league, and the
-  Build page ranks brands over 12 months, D-045)
+  canvas ranks brands over 12 months, D-045)
 - Python + DuckDB for the pipeline, run in GitHub Actions: tried every day,
   building each month once (D-064)
 - Static files for the stage, at no runtime cost. A hosted query service
@@ -216,7 +218,6 @@ config/
   measures.json       # what users can measure
   presets.json        # the Explore canon, as data
   chart_rules.json    # which shapes fit a question: the one rule table (D-100)
-  my_questions.json   # the interface words of Build's saved questions (D-125)
   canvas.json         # the canvas page's words, field groups and one-line field definitions (D-147)
   data_map.json       # the data map in machine-readable form (D-090)
   pipeline.json       # source field bindings, thresholds, detection rules
@@ -287,14 +288,14 @@ scripts/               # maintainer scripts run by hand, never by the pipeline
 2. Cube contract locked (`docs/CUBE_SCHEMA.md`), with a golden-file test.
 3. Explore surface, rendering `mix` and `trend` presets only.
 4. Events layer over those charts.
-5. Build surface (the sentence).
+5. Build surface (the sentence); folded into the canvas since (D-148).
 6. Remaining shapes: `league`, `distribution`, `geo`.
 7. Fleet (stock) dataset and cohort survival.
 8. Age at registration, derived model launch dates, pipeline lag.
 9. The data map: every source field defined, with its coverage, uses,
    privacy class and relations to other fields.
-10. The full engine: Build over every field the map makes public, with
-    saved questions that update themselves.
+10. The full engine: the canvas over every field the map makes public, with
+    saved canvases that update themselves.
 11. Answer pages: a page per brand, model, powertrain, segment and region,
     and a latest-month page, each built from config and generated
     statements (invariant 8).

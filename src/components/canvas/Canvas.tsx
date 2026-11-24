@@ -17,6 +17,7 @@ import {
   fieldLabel,
   isFull,
   isPinned,
+  linkGaps,
   moveChart,
   presetNotice,
   pinCanvas,
@@ -26,6 +27,7 @@ import {
   say,
   settleCanvas,
   settleChart,
+  typeGap,
   verdict,
   withChartSettings,
   withFittingTypes,
@@ -95,7 +97,10 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
   // What the link asked of each chart that the page could not give, said on the chart until the visitor changes it.
   const [notices, setNotices] = useState<Record<string, string[]>>(() => {
     if (typeof window === "undefined") return {};
-    const told = readCanvas(window.location.search).map((a): [string, string[]] => [a.id, [...linkNotices(all, a.asked, settle(all, a.asked), valueLabel), ...presetNotice(a, settleChart(all, a))]]);
+    const told = readCanvas(window.location.search).map((a): [string, string[]] => {
+      const chart = settleChart(all, a);
+      return [a.id, [...linkNotices(all, a.asked, settle(all, a.asked), valueLabel), ...linkGaps(all, a, chart), ...presetNotice(a, chart)]];
+    });
     return Object.fromEntries(told.filter(([, lines]) => lines.length > 0));
   });
 
@@ -121,13 +126,16 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
         const fitted = withFittingTypes(latest.current, m);
         const changed = new Set(fitted.charts.filter((c, i) => c.type !== latest.current.charts[i].type).map((c) => c.id));
         if (changed.size === 0) return;
+        // A chart type the link asked for and the build cannot draw gives way, and the chart says so.
+        const dropped = latest.current.charts.filter((c) => changed.has(c.id) && c.type !== null);
+        if (dropped.length > 0) setNotices((before) => ({ ...before, ...Object.fromEntries(dropped.map((c) => [c.id, [...(before[c.id] ?? []), typeGap(all, c)]])) }));
         latest.current = fitted;
         setCanvas(fitted);
         write(fitted, changed);
       },
       () => setManifest(null),
     );
-  }, [write]);
+  }, [write, all]);
 
   // The canvas changed. changed: the charts that became other charts, whose own settings in the address go. search: the address to
   // write over, where it is not the page's own (a copy's settings, a chart put back).

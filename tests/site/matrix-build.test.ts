@@ -157,7 +157,7 @@ test("values for a second breakdown the link names none for are said, and nothin
 
 test("every phrase the grid's code reads from config exists there", async () => {
   const { readFileSync, readdirSync } = await import("node:fs");
-  const source = ["src/components/MatrixChart.tsx", "src/components/QuestionBuilder.tsx", "src/components/PresetPanel.tsx", "src/lib/sentences.ts"]
+  const source = ["src/components/MatrixChart.tsx", "src/components/PresetPanel.tsx", "src/lib/sentences.ts"]
     .map((f) => readFileSync(new URL(`../../${f}`, import.meta.url), "utf8"))
     .join("\n");
   const used = new Set([...source.matchAll(/\bphrases\.((?:matrix|build_second|chart)_[a-z_0-9]+)/g)].map((m) => m[1]));

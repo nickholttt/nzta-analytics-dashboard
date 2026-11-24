@@ -1,6 +1,6 @@
 /* Design tokens and base styles for every page. Chart colours live in src/lib/theme.ts, because Plot writes
    them into SVG attributes, which cannot read CSS custom properties; the ink, surface and rule tokens
-   below are mirrored there for the same reason and must change together. */
+   below, in both themes, are mirrored there for the same reason and must change together (tests/site/theme-tokens.test.ts). */
 
 @import "@fontsource-variable/source-serif-4/opsz.css";
 @import "@fontsource-variable/ibm-plex-sans/wght.css";
@@ -44,6 +44,20 @@
   --rule: #e2dfd6;      /* hairline grid */
   --rule-strong: #c9c5ba;
   --accent: #3049ba;    /* links and focus: slot 1 of the series palette */
+  --on-accent: #ffffff; /* what is printed on a surface filled with the accent: 7.3:1 */
+  --selected: #1b1c1f;  /* the fill of a chosen option and of a chip, and its ink: ink on paper in light, a quiet raised fill in dark */
+  --selected-ink: #f8f7f3;
+
+  /* The canvas page's surfaces, set here with the rest so that each has its dark value beside it (src/styles/canvas.css uses them). */
+  --card: #ffffff;
+  --card-muted: #f6f5f0;
+  /* The edge of an input, a button or a chip: 3.6:1 on the card and 3.3:1 on the muted card, so a control can be told from its
+     surroundings without its fill (WCAG 1.4.11). */
+  --control: #85878d;
+  --accent-wash: #eef0fa;
+  --accent-veil: rgb(238 240 250 / 0.9); /* the accent wash over a card while a chart is dragged onto it */
+  --scrim: rgb(27 28 31 / 0.35);         /* behind a dialog */
+  --scroll-shadow: rgb(26 27 31 / 0.16); /* the edge of a table that has more beyond it */
 
   /* The sequential scale of a grid (matrix): paper toward the accent, then deeper. Six steps, each with the ink that is printed on it.
      The ink flips from dark to light between steps 4 and 5, skipping the mid-tones where neither ink reaches 4.5:1; the lowest ratio of
@@ -69,9 +83,125 @@
   --block-ink: #a2372b;
   --block-wash: #f8e9e5;
 
+  /* The marks of a ranking that moved: up, down and new. Each is text on paper, at least 4.5:1. */
+  --rank-up: #15803d;
+  --rank-down: #b91c1c;
+  --rank-new: #0369a1;
+  --rank-new-wash: rgb(3 105 161 / 0.1);
+
+  /* Highlighted text (the About page's gaps) and the visitor's selection. */
+  --mark: #ffff00;
+  --mark-ink: #000000;
+  --selection: Highlight;
+  --selection-ink: HighlightText;
+
+  /* Tells the browser which of its own parts (form controls, scrollbars, the canvas behind the page) to draw light or dark. */
+  color-scheme: light;
+
   --measure: 44rem;     /* comfortable line length for prose */
   --page: 72rem;
   --radius: 3px;
+}
+
+/* The dark theme. A visitor's choice (data-theme on <html>, set by the toggle and read before first paint, src/lib/themeChoice.ts) wins; with no
+   choice the device setting decides, in this stylesheet alone, so it holds with scripts off. The two blocks below carry the same declarations
+   and tests/site/theme-tokens.test.ts holds them to it. The chart colours that mirror these are in src/lib/theme.ts. The grid's steps run the other
+   way in dark, a brighter shade meaning more, and the ink flips between steps 4 and 5 as in light; the lowest ratio of any step is 5.05:1 (step 4),
+   checked by tests/site/matrix-colour.test.ts. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #16171a;
+    --paper-2: #1f2024;
+    --ink: #ececea;
+    --ink-2: #c1c2c7;
+    --ink-3: #9a9ca3;
+    --rule: #2b2d32;
+    --rule-strong: #41444b;
+    --accent: #6f86ee;
+    --on-accent: #16171a;
+    --selected: #353b55;
+    --selected-ink: #ececea;
+    --card: #1c1d21;
+    --card-muted: #23252a;
+    --control: #7d8088;
+    --accent-wash: #232a4a;
+    --accent-veil: rgb(35 42 74 / 0.9);
+    --scrim: rgb(0 0 0 / 0.6);
+    --scroll-shadow: rgb(0 0 0 / 0.5);
+    --scale-1: #202538;
+    --scale-2: #2a3560;
+    --scale-3: #344494;
+    --scale-4: #4559c8;
+    --scale-5: #7a8ef0;
+    --scale-6: #aebbf8;
+    --scale-ink-1: #ececea;
+    --scale-ink-2: #ececea;
+    --scale-ink-3: #ececea;
+    --scale-ink-4: #ececea;
+    --scale-ink-5: #16171a;
+    --scale-ink-6: #16171a;
+    --thin-wash: #2a2c31;
+    --warn-ink: #e3b04b;
+    --warn-wash: #2b2412;
+    --block-ink: #f08c80;
+    --block-wash: #2e1b19;
+    --rank-up: #6fc08a;
+    --rank-down: #e8706a;
+    --rank-new: #7a8ef0;
+    --rank-new-wash: rgb(122 142 240 / 0.16);
+    --mark: #4d3f12;
+    --mark-ink: #f5e9c0;
+    --selection: #3b4a8c;
+    --selection-ink: #ececea;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #16171a;
+  --paper-2: #1f2024;
+  --ink: #ececea;
+  --ink-2: #c1c2c7;
+  --ink-3: #9a9ca3;
+  --rule: #2b2d32;
+  --rule-strong: #41444b;
+  --accent: #6f86ee;
+  --on-accent: #16171a;
+  --selected: #353b55;
+  --selected-ink: #ececea;
+  --card: #1c1d21;
+  --card-muted: #23252a;
+  --control: #7d8088;
+  --accent-wash: #232a4a;
+  --accent-veil: rgb(35 42 74 / 0.9);
+  --scrim: rgb(0 0 0 / 0.6);
+  --scroll-shadow: rgb(0 0 0 / 0.5);
+  --scale-1: #202538;
+  --scale-2: #2a3560;
+  --scale-3: #344494;
+  --scale-4: #4559c8;
+  --scale-5: #7a8ef0;
+  --scale-6: #aebbf8;
+  --scale-ink-1: #ececea;
+  --scale-ink-2: #ececea;
+  --scale-ink-3: #ececea;
+  --scale-ink-4: #ececea;
+  --scale-ink-5: #16171a;
+  --scale-ink-6: #16171a;
+  --thin-wash: #2a2c31;
+  --warn-ink: #e3b04b;
+  --warn-wash: #2b2412;
+  --block-ink: #f08c80;
+  --block-wash: #2e1b19;
+  --rank-up: #6fc08a;
+  --rank-down: #e8706a;
+  --rank-new: #7a8ef0;
+  --rank-new-wash: rgb(122 142 240 / 0.16);
+  --mark: #4d3f12;
+  --mark-ink: #f5e9c0;
+  --selection: #3b4a8c;
+  --selection-ink: #ececea;
+  color-scheme: dark;
 }
 
 *,
@@ -127,6 +257,16 @@ a:hover {
 code {
   font-family: var(--font-mono);
   font-size: 0.9em;
+}
+
+mark {
+  background: var(--mark);
+  color: var(--mark-ink);
+}
+
+::selection {
+  background: var(--selection);
+  color: var(--selection-ink);
 }
 
 /* ---------- Page frame ---------- */
@@ -195,6 +335,70 @@ code {
   color: var(--ink);
   text-decoration: underline solid var(--ink);
   text-decoration-thickness: 2px;
+}
+
+/* The light or dark toggle, last in the bar. It is shown only once the page's head script has run (it adds theme-js to <html>): without
+   scripts it could do nothing, and the device setting still decides. At least 44 px high and wide. */
+.theme-toggle {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-2);
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.theme-js .theme-toggle {
+  display: inline-flex;
+}
+
+/* On a narrow screen the toggle takes the right of the first row, beside the date, and the links take a row below. */
+@media (max-width: 40rem) {
+  .site-bar .theme-toggle {
+    order: 2;
+  }
+
+  .site-bar .site-nav {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
+.theme-toggle:hover {
+  color: var(--ink);
+}
+
+/* A small switch: a track with a knob that sits at the left in light and the right in dark. State is also in aria-pressed. */
+.theme-toggle-track {
+  position: relative;
+  flex: none;
+  width: 1.75rem;
+  height: 1rem;
+  border: 1px solid var(--ink-3);
+  border-radius: 999px;
+}
+
+.theme-toggle-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+
+.theme-toggle[aria-pressed="true"] .theme-toggle-track::after {
+  left: calc(100% - 0.625rem - 2px);
+  background: var(--ink);
 }
 
 .site-footer {
@@ -344,115 +548,7 @@ section[id] {
   margin-left: 10px;
 }
 
-/* ---------- Sentence builder (/build) ---------- */
-
-/* The choices sit inside the sentence as words, underlined like a blank to fill. They stay native
-   selects, so keyboard and screen reader behaviour is the platform's. On a narrow screen a select
-   takes the line's width rather than pushing the page sideways. */
-.sentence {
-  max-width: var(--measure);
-  margin: 0 0 var(--space-6);
-}
-
-.sentence-text {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  line-height: 1.6;
-  color: var(--ink);
-}
-
-.sentence select {
-  min-height: 44px;
-  /* Sized to the chosen words where the browser can; elsewhere to the longest option. */
-  field-sizing: content;
-  max-width: 100%;
-  font: inherit;
-  color: inherit;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid var(--ink);
-  border-radius: 0;
-  padding: 0 var(--space-1);
-  cursor: pointer;
-}
-
-@media (max-width: 480px) {
-  .sentence-text {
-    font-size: var(--text-lg);
-  }
-}
-
-.sentence select:hover {
-  background: var(--paper-2);
-}
-
-.sentence select:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.not-offered {
-  max-width: var(--measure);
-  margin-top: var(--space-6);
-}
-
-/* ---------- Question builder (/build) ---------- */
-
-/* The sentence says what to show; the parts below it say what to compare and which vehicles to keep. Each part is a
-   fieldset, so a screen reader hears its legend before its controls. */
-.question {
-  max-width: var(--measure);
-  margin: 0 0 var(--space-6);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.question .sentence-text {
-  margin: 0;
-}
-
-.question select {
-  min-height: 44px;
-  field-sizing: content;
-  max-width: 100%;
-  font: inherit;
-  color: inherit;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid var(--ink);
-  border-radius: 0;
-  padding: 0 var(--space-1);
-  cursor: pointer;
-}
-
-.question select:hover {
-  background: var(--paper-2);
-}
-
-.question select:focus-visible,
-.question input:focus-visible,
-.question button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.question-part {
-  margin: 0;
-  padding: var(--space-3) 0 0;
-  border: 0;
-  border-top: 1px solid var(--rule);
-  min-width: 0;
-}
-
-.question-part legend {
-  padding: 0 var(--space-2) 0 0;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
+/* ---------- Value picker ---------- */
 
 .picker {
   display: flex;
@@ -480,17 +576,6 @@ section[id] {
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--space-4);
-}
-
-/* Text links on the label's row: the row keeps the label's height, and the touch target is made taller than the text without taking room. */
-.question .picker-aside .button-quiet {
-  min-width: 0;
-  min-height: 0;
-  margin-top: 0;
-  padding: 6px 0;
-  margin-block: -6px;
-  line-height: 1.2;
-  white-space: nowrap;
 }
 
 .picker input[type="search"] {
@@ -528,8 +613,8 @@ section[id] {
   gap: var(--space-1);
   padding-left: var(--space-3);
   font-size: var(--text-sm);
-  color: var(--paper);
-  background: var(--ink);
+  color: var(--selected-ink);
+  background: var(--selected);
   border-radius: 999px;
 }
 
@@ -577,37 +662,6 @@ section[id] {
 .suggestion-figure {
   font-size: var(--text-xs);
   color: var(--ink-3);
-}
-
-.condition {
-  margin-top: var(--space-3);
-}
-
-.condition-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-2) var(--space-4);
-}
-
-.condition-name {
-  font-weight: 600;
-}
-
-.condition-add {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  font-size: var(--text-sm);
-}
-
-/* The question's text buttons are tap targets, 44px like the chips' remove buttons. */
-.question .button-quiet {
-  min-width: 44px;
-  min-height: 44px;
-  margin-top: 0;
 }
 
 /* The lines of a count comparison, each with its colour and its last 12 months: the key a reader checks first. */
@@ -687,8 +741,8 @@ section[id] {
 }
 
 .toggle label:has(input:checked) {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--selected);
+  color: var(--selected-ink);
 }
 
 .toggle label:has(input:focus-visible) {
@@ -1178,8 +1232,8 @@ section[id] {
   background:
     linear-gradient(to right, var(--paper) 40%, transparent) left center / 2.5rem 100% no-repeat local,
     linear-gradient(to left, var(--paper) 40%, transparent) right center / 2.5rem 100% no-repeat local,
-    linear-gradient(to right, rgb(26 27 31 / 0.16), transparent) left center / 0.75rem 100% no-repeat scroll,
-    linear-gradient(to left, rgb(26 27 31 / 0.16), transparent) right center / 0.75rem 100% no-repeat scroll;
+    linear-gradient(to right, var(--scroll-shadow), transparent) left center / 0.75rem 100% no-repeat scroll,
+    linear-gradient(to left, var(--scroll-shadow), transparent) right center / 0.75rem 100% no-repeat scroll;
 }
 
 /* Said in words too, while the ranking table is wider than its box: the shadow alone is easy to miss. */
@@ -1283,13 +1337,6 @@ section[id] {
 @media (max-width: 480px) {
   .answer-figure {
     font-size: var(--text-xl);
-  }
-}
-
-/* The dataset's name is long, and a select cannot wrap: on a phone it is set smaller so the whole name shows. */
-@media (max-width: 480px) {
-  .question .dataset-select {
-    font-size: var(--text-md);
   }
 }
 
@@ -1456,7 +1503,7 @@ tr.hidden-row td {
   background: repeating-linear-gradient(135deg, var(--thin-wash) 0 4px, var(--rule-strong) 4px 5px);
 }
 
-/* ---------- My questions (/build): the questions a visitor saved in this browser ---------- */
+/* ---------- My canvases: the canvases a visitor saved in this browser ---------- */
 
 .my-questions {
   max-width: var(--measure);
