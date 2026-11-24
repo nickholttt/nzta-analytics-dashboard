@@ -528,9 +528,9 @@
   cursor: help;
 }
 
+/* Full ink: dimmed, the tag fell under 4.5:1 on the chosen button's fill in the dark theme. Its size sets it apart. */
 .choice-tag {
   font-size: 0.6875rem;
-  opacity: 0.85;
 }
 
 .chip {
