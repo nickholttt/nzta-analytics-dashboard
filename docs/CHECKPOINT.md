@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-25 (the session begun on 2026-11-24, its second)
+Last updated by claude on 2026-11-25 (the session of 25 November)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2)
 
@@ -8,68 +8,68 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
-| A: finish the canvas | none | free | all five steps and the user's three design choices of 2026-11-25 merged (#142 the sentence as the headline, #143 one colour per value, #144 the field list in the chart panel) |
-| B: the accuracy guard | `claude/b-market-type` | this session (computer, 2026-11-25) | the user's order of 2026-11-25: a Market type field (Passenger, SUV, Light commercial, Heavy commercial, Other) from body and mass, tested against the published splits beside today's split by vehicle type; then one New registrations dataset; item 5 after |
-| C: public readiness | none | free | items 1 to 3 merged (#130, #131, #136, #137, #140) and the private dry run done; what is left is the user's four items |
-| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 24 November built nothing |
+| A: finish the canvas | none | free | all five steps and the user's three design choices of 2026-11-25 merged (#142, #143, #144); nothing queued |
+| B: the accuracy guard | none | free | Market type's rules and its test merged (#146, D-154), not built; next is building the field, after the user's answers (questions 2 to 4) |
+| C: public readiness | none | free | items 1 to 3 merged and the private dry run done; what is left is the user's four items |
+| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
 
 ## Where we left off
 
-- 2026-11-24 to 25, second session (lanes A and C, the user's answers on B): #129 to #140 merged; none open.
+- 2026-11-25: #141 to #146 merged; none open (lane A's three design choices; lane B's D-154).
 
 ## The queue, lane by lane (the order's §2 has each lane's "done when")
 
-**A, finish the canvas.** Nothing is queued until the user answers question 3. Small and safe: drop three
-unused decompressors from the Parquet reader (about 5 KB); remove the old Build screen's words (STATE 8).
+**A, finish the canvas.** Nothing queued. Small and safe: drop three unused decompressors from the Parquet
+reader (about 5 KB); remove the old Build screen's words (STATE 8). The design pass's other findings stay
+parked (#140's description lists them).
 
-**B, the accuracy guard.**
-4. Each month, one pull request adding the month's rows (high risk; `docs/playbooks/add-published-figures.md`).
-   The MIA's come from its media release or a report that credits it (D-151, D-152). November's go with lane D.
-5. Write up the measured gap on the Differences page: its hand-written MIA section gives 16 November's
-   figures; the month-by-month ones are in the comparison beside it. Say what is measured, not why.
-- Follow-ups: a check that a filled `restated_from` is what the row's figure was before the change
-  (STATE 7); vstat's October 2026 totals labelled "added up"; September 2025's MIA total has no row.
+**B, the accuracy guard** (the user's order of 2026-11-25; D-154 has the detail).
+1. Build Market type on the register datasets (high risk). It needs an ordered-rules derive kind, a
+   register dataset holding the five vehicle types (`registrations_surviving` holds two), the unmapped
+   guard, a coverage figure for the SUV rule and the data map entry. The dashboard datasets wait for lane D.
+2. One "New registrations" dataset on the five vehicle types with vehicle type as a filter (question 2).
+3. Range-extended electric vehicles askable apart from plug-in hybrids: they are apart only in
+   `powertrain_detail`, which no field reads. Mild hybrids are already a value of Powertrain.
+4. Then guard vstat's light commercial on the register basis with a real tolerance (22 rows are exempt).
+5. Each month, one pull request adding the month's published rows (`docs/playbooks/add-published-figures.md`).
+6. Write up the measured gap on the Differences page (its MIA section still gives 16 November's figures).
+- Detailed segments (size with price bands) stay parked: no list prices; if offered, labelled as ours.
+- Follow-ups: a check on `restated_from` (STATE 7); September 2025's MIA total has no row.
 
 **C, public readiness.** The user's four items: the name, the address, the About page's gaps, the
-Cloudflare clicks (`docs/playbooks/go-public.md`). After the name: redraw the social cards
-(`scripts/make-social-cards.mjs`). When wanted: say so when a page left open draws a newer month than it
-was built for (STATE 3); close the tracking check's old gaps and hold `localStorage` to named keys (STATE 6).
+Cloudflare clicks (`docs/playbooks/go-public.md`). After the name: redraw the social cards.
 
-**D, the December refresh.** November's build and archive; its published figures (lane B, item 4); the
-usage-column check (D-134). When NZTA publishes November the user gives `DASHBOARD_EXPORT_METHOD.md`:
-use it to retake the dashboard history with "GVM group" and "CC grouping - vehicle", then guard light
-commercial against vstat with a real tolerance in place of the 22 exempt rows (user, 2026-11-24).
+**D, the December refresh.** November's build and archive; its published figures; the usage-column check
+(D-134). When NZTA publishes November the user gives `DASHBOARD_EXPORT_METHOD.md`: use it to retake the
+dashboard history with "GVM group" and "CC grouping - vehicle" (user, 2026-11-24).
 
 ## Parked until the user says otherwise
 
 Colour's own table (D-144); more SUV slices (D-145, D-117); further hybrid work (D-110, D-119); new
-segment schemes (D-103); new fields, datasets and privacy tables; drawing a hidden cell over time
-(D-130); the query service (D-091), which a 3 s first chart on a fact-table link needs; the narrative
-engine beyond the canvas's sentences (D-102); a measure worked out from two others (STATE 4).
+segment schemes (D-103); new privacy tables; drawing a hidden cell over time (D-130); the query service
+(D-091), which a 3 s first chart on a fact-table link needs; the narrative engine beyond the canvas's
+sentences (D-102); a measure worked out from two others (STATE 4).
 
 ## Questions for the user (parked; none stops the work)
 
 1. **The site's name and web address** and the About page's gaps (`config/site.json`).
-2. **D-153's reading of the restatement rule.** A restated row stops the build only when our figure is
-   5% or more from both the source's new figure and its earlier one; "gaps between a source's figure and
-   ours still stop it" could be read as the new figure alone. Recommended: keep it as built (the other
-   reading stops the build on every large restatement). It stays unless the user says otherwise.
-3. **The design pass's larger findings** (the session's report lists all). The three that matter most:
-   a value keeps one colour across a page of charts (today colour follows rank); the editing panels take
-   nearly half the desktop width; the sentence sits under the chart with method notes above it (the
-   order of 2026-11-23 put it under). Recommended: do the first, fold the field list into the chart
-   panel for the second, leave the third. None is started until the user says.
+2. **The earlier message on one "New registrations" dataset did not reach the session of 2026-11-25.**
+   Read from the later one: the two dashboard datasets become one on the five vehicle types. Recommended:
+   confirm, or send it again. Until then they stay two.
+3. **Motor caravans and special purpose vehicles up to 3,500 kg** are Other, as the user's words leave
+   them. NZTA's class puts 860 of the 862 since January 2025 with light goods vehicles, and the published
+   commercial figures are closer with them in Light commercial (D-154). They stay Other unless told.
+4. **A passenger model the SUV file does not classify** (19.1% of new passenger vehicles) is Passenger, as
+   the user's words say; invariant 4 would make it unmapped. Recommended: a value of its own for
+   "not classified", so Passenger means models known to be cars. The file stays as written unless told.
 
 ## Decided for the user (unreviewed)
 
-- D-152: GoAuto's credit line counts as crediting the MIA; Autotrader NZ carries one row. D-153: the
-  "both figures" rule (question 2); the earlier figure is entered by hand.
-- #132: a Build link for "share and number" opens as two charts. #133: the theme choice is kept in the
-  browser only when it differs from the device. #137: "being refreshed" means a month is due and not
-  here yet. #138: the fonts are cut-down files in the repository, renamed inside ("NZVR Sans", "NZVR
-  Serif") as their licence requires; charts after the first wait until the first is drawn.
-- #140: one quiet "selected" style for toggles and chips, and the design pass's other cheap fixes.
-  D-148 to D-151 and the canvas choices of 2026-11-23 are still unreviewed (their records say which).
+- #142: the chart's title stays the heading; notes are not shortened. #143: colour is per field and
+  value. #144: the panel is 20rem; zones pin during a drag; the canvas's style budget is 9,400 bytes.
+- D-154: Market type is kept beside vehicle type; people movers are Passenger; a ute is Light commercial
+  by its body; the SUV file's rows count at any confidence; no catch-all rule.
+- D-148 to D-153 and the canvas choices of 2026-11-23 and 24 are still unreviewed (their records say which).
 
 ## Prompt for the next session
 
