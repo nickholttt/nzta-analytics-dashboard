@@ -70,6 +70,22 @@
   overflow-y: auto;
 }
 
+/* Held while the editing tools are fetched, after the first chart is drawn: the panes are as tall as they will be, so nothing beside or under them
+   moves when they arrive. Where the tools open below a chart (a narrow screen) the visitor asked for them, and a rough height does. */
+.canvas-editor-pending .chart-pane,
+.canvas-editor-pending .field-list {
+  min-height: 24rem;
+}
+
+.canvas.wide .canvas-editor-pending .chart-pane,
+.canvas.wide .canvas-editor-pending .field-list {
+  min-height: calc(100vh - 2 * var(--space-4));
+}
+
+.my-canvases-pending {
+  min-height: 7rem;
+}
+
 .pane-title {
   margin-bottom: var(--space-3);
   font-family: var(--font-text);

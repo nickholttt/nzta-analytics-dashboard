@@ -166,6 +166,7 @@
     "values_failed_label": "Nothing to draw yet",
     "values_failed": "The values to start from did not load. Reload the page to try again.",
     "values_none": "Nothing was counted in the last {months} months among the vehicles this chart keeps, so there is no largest to start from. Choose values of {field} to draw a line for each.",
+    "editor_loading": "Loading the editing tools…",
     "pane_chart": "This chart",
     "pane_fields": "Fields",
     "zone_dataset": "Counting",
