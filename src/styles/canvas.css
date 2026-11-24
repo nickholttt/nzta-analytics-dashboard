@@ -532,9 +532,11 @@
   background: var(--card-muted);
 }
 
+/* The one chosen style (see .toggle in site.css). */
 .choice[aria-pressed="true"] {
-  color: var(--on-accent);
-  background: var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--accent-wash);
   border-color: var(--accent);
 }
 

@@ -43,6 +43,14 @@ test("the chart palettes mirror the stylesheet's surface, ink and rule tokens in
   }
 });
 
+test("a chosen option is ink on the accent wash with an accent edge: 4.5 to 1 for its text and 3 to 1 for its edge against what it sits among, in both themes", () => {
+  for (const [name, tokens] of [["light", light], ["dark", darkChosen]] as const) {
+    const t = (key: string) => tokens.get(`--${key}`) as string;
+    assert.ok(ratio(t("ink"), t("accent-wash")) >= 4.5, `${name}: text on the chosen fill`);
+    for (const ground of ["card", "card-muted", "paper"]) assert.ok(ratio(t("accent"), t(ground)) >= 3, `${name}: the edge against ${ground}`);
+  }
+});
+
 test("in the dark theme, text reaches 4.5 to 1 on the paper and the raised paper, and the accent and the status inks on theirs", () => {
   const t = (name: string) => token(darkChosen, name);
   for (const ground of ["paper", "paper-2", "card", "card-muted"]) for (const ink of ["ink", "ink-2", "ink-3"]) assert.ok(ratio(t(ink), t(ground)) >= 4.5, `${ink} on ${ground}`);
