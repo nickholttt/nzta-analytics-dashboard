@@ -123,3 +123,43 @@ test("the real budget names the limit for every kind on every page", () => {
     for (const kind of ["html", "scripts", "styles", "fonts", "data", "total"]) assert.equal(typeof limits[kind], "number", `${page} has no ${kind}`);
   }
 });
+
+test("a page that asks for files before its script has run also has a first-chart figure, and a script its inline script names is counted", () => {
+  const dir = output({ "entry.js": randomBytes(400).toString("base64"), "late.js": randomBytes(4000).toString("base64") }, (links) => `<!DOCTYPE html><html><head>${links}<script>Promise.all([import("/_astro/entry.js")]).then(()=>{for(const href of ["/_astro/late.js"]){}})</script></head><body><script>(function(){const reads = ["/data/events.json","/data/cube/a.parquet"];})()</script><p>TEXT</p></body></html>`);
+  try {
+    mkdirSync(join(dir, "data/cube"), { recursive: true });
+    writeFileSync(join(dir, "data/events.json"), JSON.stringify({ events: "x".repeat(5000) }));
+    writeFileSync(join(dir, "data/cube/a.parquet"), randomBytes(700));
+    const m = measurePages(dir)["/"];
+    assert.ok(m.scripts > 4000, `the script only the inline script names is counted: ${m.scripts}`);
+    // the JSON is compressed as the host does, the Parquet file is sent as it is
+    assert.ok(m.first_chart_bytes > m.total + 700 && m.first_chart_bytes < m.total + 700 + 400, `${m.first_chart_bytes} against a total of ${m.total}`);
+    assert.equal(measurePages(output({}, page))["/"].first_chart_bytes, undefined, "a page that asks for nothing has no first-chart figure");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("a first-chart figure over its limit fails, naming the page; a limit with no figure, and a figure with no limit, fail too", () => {
+  const m = { html: 1, scripts: 40, styles: 1, fonts: 1, data: 0, total: 43, first_chart_bytes: 90 };
+  const limits = { html: 1, scripts: 40, styles: 1, fonts: 1, data: 0, total: 43 };
+  assert.deepEqual(budgetProblems({ "/": m }, { pages: { "/": { ...limits, first_chart_bytes: 90 } } }), []);
+  const over = budgetProblems({ "/": m }, { pages: { "/": { ...limits, first_chart_bytes: 80 } } }) as string[];
+  assert.equal(over.length, 1);
+  assert.match(over[0], /^\/: the first chart's critical path is 90 B compressed, over the budget of 80 B by 10 B/);
+  assert.match((budgetProblems({ "/": m }, { pages: { "/": limits } }) as string[]).join("\n"), /names no limit for first_chart_bytes/);
+  assert.match((budgetProblems({ "/": { ...m, first_chart_bytes: undefined } }, { pages: { "/": { ...limits, first_chart_bytes: 90 } } }) as string[]).join("\n"), /asks for nothing before its script has run/);
+  assert.equal(propose({ "/": m })["/"].first_chart_bytes, 100);
+});
+
+test("the page the budget times is a page the measuring script visits, and has a byte limit for the same first chart", () => {
+  const root = fileURLToPath(new URL("../..", import.meta.url));
+  const budget = JSON.parse(readFileSync(join(root, "config/performance_budget.json"), "utf8"));
+  const visited = JSON.parse(readFileSync(join(root, "scripts/first-load-pages.json"), "utf8")).pages.map((p: { path: string }) => p.path);
+  const timed = Object.entries(budget.pages).filter(([, limits]) => typeof (limits as Record<string, unknown>).first_chart_ms === "number");
+  assert.ok(timed.length > 0, "a page has a time limit");
+  for (const [page, limits] of timed as Array<[string, Record<string, number>]>) {
+    assert.ok(visited.includes(page), `${page} has first_chart_ms but scripts/first-load-pages.json does not visit it`);
+    assert.equal(typeof limits.first_chart_bytes, "number", `${page} has a time limit and no limit on the bytes that give it`);
+  }
+});

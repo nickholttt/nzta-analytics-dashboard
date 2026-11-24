@@ -19,7 +19,9 @@
 // (the count is found by a first, unthrottled visit; a page's "expected" in the pages file overrides it), and "first
 // chart" the time until the first of them is drawn. A page with a "target" (the id of a chart's panel) is judged on that
 // panel's own figure instead: a page opened at a chart's link draws its first chart too, and the two are not the same.
-// Bytes are what crossed the network (headers included) as Chrome reports them, split by what the file is.
+// Bytes are what crossed the network (headers included) as Chrome reports them, split by what the file is. The JSON result also holds each run's
+// first-chart time (firstChartRunsMs) and every request of the first run (requests: path, start and end in ms from the first request, bytes),
+// which is what to read to see what the first chart waits for.
 
 import { createReadStream, existsSync, readFileSync, statSync, mkdirSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
@@ -192,6 +194,7 @@ for (const page of pages) {
     runs: results.length,
     failedRuns: results.length - ok.length,
     firstChartMs: ms("firstChartMs"),
+    firstChartRunsMs: ok.map((r) => Math.round(r.firstChartMs)),
     firstAnswerMs: ms("firstAnswerMs"),
     codeLastByteMs: ms("codeLastByteMs"),
     dataFirstRequestMs: ms("dataFirstRequestMs"),

@@ -1,5 +1,6 @@
 // Holds each built public page to its performance budget (config/performance_budget.json): the most bytes it may ship on first load,
-// compressed, by kind (html, scripts, styles, fonts, data) and in total. Measured from the built files, not timed, so it gives the same
+// compressed, by kind (html, scripts, styles, fonts, data) and in total, and, for a page that asks for files before its script has run (the canvas),
+// the bytes on the way to its first chart (first_chart_bytes). Measured from the built files, not timed, so it gives the same
 // answer on every machine (scripts/performance-budget.mjs says what counts).
 //   node scripts/check-performance-budget.mjs [dist] [--report] [--propose] [--repo <folder holding config/>]
 //   --report   print every page's bytes beside its limits, then check
@@ -8,7 +9,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { KINDS, budgetProblems, measurePages, propose } from "./performance-budget.mjs";
+import { FIRST_CHART, KINDS, budgetProblems, measurePages, propose } from "./performance-budget.mjs";
 
 const args = process.argv.slice(2);
 const repoFlag = args.indexOf("--repo");
@@ -28,7 +29,7 @@ if (args.includes("--propose")) {
 const budget = JSON.parse(readFileSync(join(repoRoot, "config/performance_budget.json"), "utf8"));
 if (args.includes("--report")) {
   for (const [page, m] of Object.entries(measured)) {
-    console.log(`${page.padEnd(14)} ${[...KINDS, "total"].map((k) => `${k} ${n(m[k])}/${n(budget.pages[page]?.[k] ?? 0)}`).join("  ")}`);
+    console.log(`${page.padEnd(14)} ${[...KINDS, "total", ...(m[FIRST_CHART] === undefined ? [] : [FIRST_CHART])].map((k) => `${k} ${n(m[k])}/${n(budget.pages[page]?.[k] ?? 0)}`).join("  ")}`);
   }
 }
 const problems = budgetProblems(measured, budget);
