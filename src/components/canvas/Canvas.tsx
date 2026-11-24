@@ -47,21 +47,19 @@ import ChartCard, { cardId } from "./ChartCard";
 const Editor = lazy(() => import("./Editor"));
 const MyCanvases = lazy(() => import("./MyCanvases"));
 
-// Held where the editing tools will be, so nothing under or beside it moves when they arrive. The same classes, and the same ids, as the tools.
+// Held where the editing panel will be, so nothing under or beside it moves when it arrives. The same class, and the same id, as the panel.
 function EditorPending() {
   return (
-    <div className="canvas-editor canvas-editor-pending" id="canvas-editor" aria-busy="true">
-      <section className="chart-pane">
-        <p className="meta" role="status">
-          {say("editor_loading")}
-        </p>
-      </section>
-      <section className="field-list" aria-hidden="true" />
+    <div className="canvas-panel canvas-panel-pending" id="canvas-editor" aria-busy="true">
+      <p className="meta" role="status">
+        {say("editor_loading")}
+      </p>
     </div>
   );
 }
 
-// At this width and over, the chart's zones and the field list sit beside the charts; under it they open below the chart being edited.
+// At this width and over, the editing panel (the chart's zones, then the field list) sits beside the charts; under it, it opens below the chart
+// being edited.
 const WIDE = "(min-width: 64rem)";
 
 function useWide(): boolean {

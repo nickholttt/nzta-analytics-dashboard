@@ -194,6 +194,7 @@
     "drop_period": "Drop to choose the period",
     "filter_cannot_apply": "{dataset} cannot filter by {field}, so no chart is drawn. Remove the filter to see the chart.",
     "search_fields": "Search fields",
+    "field_about_hint": "Point to a field, or tab to it, to read what it means.",
     "no_field_matches": "No field matches “{query}”. Try a shorter word, or clear the search to see every field.",
     "picker_loading": "Loading the values…",
     "picker_no_match": "Nothing matches “{query}”. Try a shorter word, or clear the search to see every value.",
