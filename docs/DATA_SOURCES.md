@@ -364,7 +364,7 @@ What it holds (read on 2026-11-23): three organisations, each counted as indepen
 
 | `id` | Where its definition was read | What could be read | `data_basis` |
 |---|---|---|---|
-| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | on its own site, one month's table and its year-earlier column. Earlier months come from what it releases publicly: its monthly media releases, as published by Scoop, and news reports that credit it for the figure (D-151). Its statistics pages are for members and are not used | blank |
+| `mia` | the "Detailed data table" image of its home page's Monthly Numbers, October 2026 | on its own site, one month's table and its year-earlier column. Earlier months come from what it releases publicly: news reports that credit it for the figure, and, where no such report gives a figure, its monthly media releases as published by Scoop (D-151, D-152). Its statistics pages are for members and are not used | blank |
 | `mta_vstat` | its About page | 22 months; the page says its figures are NZTA's records as they were when it published | `same NZTA data, processed separately` |
 | `statsnz` | the group title of its monthly release file, Transport vehicle registrations | 22 months, each marked final | blank |
 
@@ -457,11 +457,14 @@ How each was read, and what that means for a row:
   readers. The October 2025 rows are the year-earlier column of that table.
 - The MIA, January 2025 to September 2026 (53 rows, D-151): only figures it releases publicly. 41 are from its monthly media
   releases as published by Scoop, 11 from GoAuto's monthly reports and one from Autofile's, each of which credits the MIA for
-  the figure on the page. Its own site carries no past month, and its statistics pages are for members and were not read.
+  the figure on the page. Since D-152 a figure's link is a news page where one gives the same figure, and Scoop's copy of the
+  release only where none does: 6 rows are still Scoop's (the light passenger and commercial figures of January and February 2025,
+  the light commercial figure of February 2026 and of June 2026), 45 are GoAuto's, one Autofile's and one Autotrader NZ's, which
+  carries the one passenger figure for February 2026. Its own site carries no past month, and its statistics pages are for members and were not read.
   Every figure was read on the page at the row's `source_url` on 2026-11-24, twice: by a reader, and then by a script that
   fetched each page again and found the figure and its sentence in the page's text. A row's measure is this file's
   one wording for the figure (the releases give each in a sentence), followed in brackets by where it was read. Where no
-  count was released for a month at the time (March and June 2025), the row is the figure a later release or report gives
+  count was released for a month at the time (March 2025), the row is the figure a later release or report gives
   for that month, and its measure says so. A figure that may be rounded, or that is on a page that does not credit the MIA, has no row.
   The months with a figure missing: September 2025 has no total; January, April and May 2026 have a total only.
 - In every MIA month its two commercial figures are added, and the row's measure says so, because our figures cannot

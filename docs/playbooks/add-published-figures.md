@@ -22,8 +22,9 @@ explained, not a way to quiet a warning.
 - **Never enter a figure that was not read from the source's page in this session.** Not from memory, not from the press, not
   from an earlier decision record. A gap stays a gap: a month a source has not published has no row.
 - **The MIA is the one exception to "not from the press", by the user's word of 2026-11-24 (D-151).** Its figures are taken
-  only from what it releases publicly: its own site, its monthly media releases (Scoop publishes them in full), or a news
-  report that credits the MIA for the figure on the same page. The row's `source_url` is that page, read in the session, and its
+  only from what it releases publicly: its own site, a news report that credits the MIA for the figure on the same page, or its
+  monthly media releases (Scoop publishes them in full). Use the first of these that gives the figure: a Scoop link stays only
+  where nothing else does (user, 2026-11-24, D-152). The row's `source_url` is that page, read in the session, and its
   measure says in brackets where the figure was read. Never its members' data, and never a figure reached through anyone's
   work login. A figure that may be rounded, or that is on a page that does not credit the MIA, has no row, and the month stays a gap.
 - **Read, never scrape.** A source that cannot be read automatically is copied in by the maintainer; list exactly which figures
