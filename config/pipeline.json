@@ -175,12 +175,12 @@
     }
   },
   "supplied": {
-    "$comment": "Sources a maintainer supplies by hand as a CSV, checked and kept in a store by `python -m pipeline supply <id> <csv>` (pipeline/supplied.py). The Action never runs that command and nothing here is fetched. The store (a Parquet file of counts and a ledger) is committed to the repository (D-097), so a build on GitHub reads the same files as a local build. `fields` maps a logical field name of the top-level `fields` block to the CSV column that carries it; `extra_fields` are public columns the register does not have, kept in the store under the name given; `private_columns` must be in the header and are dropped, so no owner field reaches the store or any output. `publisher`, `licence`, `attribution` and `origin` are copied into the store's ledger each time `supply` writes it, so the committed file carries its own terms.",
+    "$comment": "Sources a maintainer supplies by hand as a CSV, checked and kept in a store by `python -m pipeline supply <id> <csv>` (pipeline/supplied.py). The Action never runs that command and nothing here is fetched. The store (a Parquet file of counts and a ledger) is committed to the repository (D-097), so a build on GitHub reads the same files as a local build. `fields` maps a logical field name of the top-level `fields` block to the CSV column that carries it; `extra_fields` are public columns the register does not have, kept in the store under the name given; `private_columns` must be in the header and are dropped, so the owner's district reaches neither the store nor any output. The two kind-of-owner columns (owner type and usage at registration, the data map's group kind_of_owner) are kept as extra_fields: they say what kind of owner registered a vehicle, not who or where, and the build keeps them apart from every field that says where the owner lives (pipeline/privacy.py). `publisher`, `licence`, `attribution` and `origin` are copied into the store's ledger each time `supply` writes it, so the committed file carries its own terms.",
     "nzta_dashboard": {
       "kind": "counted_rows",
       "publisher": "NZ Transport Agency Waka Kotahi",
       "licence": "CC BY 4.0",
-      "attribution": "Motor vehicle registrations dashboard open data, NZ Transport Agency Waka Kotahi, licensed CC BY 4.0. Counts of vehicles first registered in each month; the owner columns of the export are not kept.",
+      "attribution": "Motor vehicle registrations dashboard open data, NZ Transport Agency Waka Kotahi, licensed CC BY 4.0. Counts of vehicles first registered in each month, with the kind of owner (owner type and usage at registration); the owner's district is not kept.",
       "origin": "NZTA's registrations dashboard (the First registration report), exported by hand by the repository's owner and checked by `python -m pipeline supply`.",
       "store": "data/supplied/nzta_dashboard",
       "registrations_file": "registrations.parquet",
@@ -197,8 +197,8 @@
         "original_country": "Country of origin",
         "vehicle_year": "Vehicle year"
       },
-      "extra_fields": { "vehicle_status": "Vehicle Status" },
-      "private_columns": ["Owner Type", "Territorial authority", "Vehicle usage"],
+      "extra_fields": { "vehicle_status": "Vehicle Status", "owner_type": "Owner Type", "usage_registered": "Vehicle usage" },
+      "private_columns": ["Territorial authority"],
       "$outside_scope_comment": "For a row whose vehicle type and import status the named dataset does not count (its `require` flags, read from the scope files the build reads, with the vehicle types marked true in the vehicle scope file's `also_kept_column` judged as if they were in scope), `supply` stores the listed fields as not recorded and sums the rows that become identical. The model of a trailer or a caravan is free text typed at registration, and the dataset never reads it. Everything else about those rows is kept, so their counts stay askable. The scope is written into the ledger; a store written under another scope is refused until the history is supplied again.",
       "outside_scope": { "dataset": "new_registrations", "fields": ["model"], "also_kept_column": "trade_scope" },
       "year_field": "registration_year",

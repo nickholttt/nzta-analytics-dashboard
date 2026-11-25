@@ -308,5 +308,5 @@ def test_a_store_with_only_one_of_its_two_files_aborts_and_is_not_reported_as_no
 def test_a_private_column_mapped_to_a_public_field_aborts_the_build(tmp_path, workspace_with_store):
     cfg = workspace_with_store
     source = cfg.pipeline["supplied"][SOURCE]
-    source["extra_fields"] = {**source["extra_fields"], "district": source["private_columns"][1]}
+    source["extra_fields"] = {**source["extra_fields"], "district": source["private_columns"][0]}
     expect_abort(lambda: run(tmp_path, cfg), "private_columns")

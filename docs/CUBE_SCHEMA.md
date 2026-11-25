@@ -1110,9 +1110,12 @@ builds read the same two files as a local build, and nothing else is kept there:
 
 - `registrations.parquet`: one row per month and combination of the public fields. Columns, in order:
   `month` (DATE, the first day), the fields named in `supplied.<id>.fields` under their logical names,
-  the fields in `extra_fields` (`vehicle_status`), and `vehicles` (INTEGER). Rows are summed over the
-  columns in `private_columns` (for the dashboard, the three owner columns), which are asserted present
-  in the file and then dropped, so no owner field is in the store or in any output. When the source names an
+  the fields in `extra_fields` (for the dashboard `vehicle_status`, `owner_type` and `usage_registered`: the last two
+  are the group `kind_of_owner` of the data map, what kind of owner and not who or where, public since 2026-11-25),
+  and `vehicles` (INTEGER). Rows are summed over the columns in `private_columns` (for the dashboard, the owner's
+  district alone), which are asserted present in the file and then dropped, so no field that says where the owner
+  lives is in the store or in any output. A store without a configured column is refused by the build and by
+  `supply` (the whole history is supplied again). When the source names an
   `outside_scope` rule (`supplied.<id>.outside_scope`: a dataset, the fields to blank and a vehicle-scope column
   that widens it), a row whose (vehicle type, import status) is known to the scope files and counted neither by
   that dataset nor by a vehicle type the column marks has those fields
@@ -1158,7 +1161,8 @@ is not live for the dataset, with the reason `the source does not carry <FIELD>`
 decided from the derive block and the source's field list (`derive.applicable`), never from a list of
 dimension ids. For the dashboard these are the dimensions that need the gross vehicle mass, the engine
 size and the district. Fuel consumption is all missing: `fc_n` is 0 and `fc_sum` is null in every row.
-`vehicle_status` is kept in the store only; it is not a dimension.
+`vehicle_status`, `owner_type` and `usage_registered` are kept in the store only; none is a dimension yet, and the build
+does not carry an `extra_fields` column into `raw`, so a store that gains one changes no built file.
 
 **New registrations** (`new_registrations`, D-158; the dataset was two before it: `registrations_flow` of the default scope's two vehicle
 types from D-084, and from D-113 `registrations_flow_wider` of five). `scope.vehicle.also` in

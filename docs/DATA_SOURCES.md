@@ -233,10 +233,17 @@ first registrations and buyer type from the same dashboard.
   means is defined with the dataset (`docs/METRICS.md`, D-087).
 - **The engine cuts an export off at 5,000,000 cells**, so the history
   was taken a year at a time and joined (the user's account).
-- **Not published:** `Owner Type`, `Territorial authority` and
-  `Vehicle usage` describe the owner. Under the user's rule (2026-11-16,
-  D-096) they may be published only in a table of one or two fields with
-  cells under 10 vehicles hidden, and not before the pipeline hides them.
+- **What is kept, and what is not.** `Owner Type` and `Vehicle usage`
+  say what kind of owner registered the vehicle, not who or where. On the
+  user's direction of 2026-11-25 they are public and shown in full, and the
+  committed store keeps them (as `owner_type` and `usage_registered`); the
+  data map holds them as the group `kind_of_owner`, which the build keeps
+  out of any table with a field that says where the owner lives. The
+  repository is public, so the committed store publishes them, by month and
+  with the other public fields; no built file reads them yet. `Territorial authority`, the owner's district,
+  is not kept: `supply` checks that it is in the file and drops it, and
+  under the user's rule (2026-11-16, D-096) it could be published only in a
+  table of one or two fields with cells under 10 vehicles hidden.
 - **How it reaches the cube.** A maintainer adds each file to the store
   with one command, below; the build reads the store and writes the
   dataset `new_registrations` (`docs/CUBE_SCHEMA.md`, *Supplied
@@ -249,9 +256,15 @@ first registrations and buyer type from the same dashboard.
   14 November 2026 and named `nzta-first-registrations-2021-01_to_2026-10.csv`
   (its SHA-256 is the key of the ledger's `files` entry, and the seven totals it
   was checked against are recorded there). The committed store and ledger
-  were written from it by `supply` on 16 November 2026, with the model kept
-  only where a dataset or the wider scope counts the vehicle (below): 306,771 rows,
-  843,345 bytes of Parquet and a 20,199-byte ledger. The user means to retake the
+  were first written from it by `supply` on 16 November 2026 without the owner
+  type and usage, and written again from the same file on 26 November 2026 with
+  them (the kind of owner, above), the model kept
+  only where a dataset or the wider scope counts the vehicle (below): 395,199 rows,
+  1,102,012 bytes of Parquet and a 20,250-byte ledger (306,771 rows and 843,345
+  bytes before). Every month's vehicles are as they were, and the seven totals were
+  checked again (the earlier ledger's `totals_checked`, as the totals file itself
+  was not kept). The earlier ledger had no `replaced` entry, so none was lost.
+  The user means to retake the
   history with the vehicle's mass and engine-size groupings and replace the
   file; the steps for that are in the playbook, *Replacing the whole history*.
 - **What the committed store keeps of the model.** The model is free
@@ -292,7 +305,8 @@ The file is the history form (with a `Registration month` column such as
 month). The command aborts, writing nothing, unless:
 
 - the header is exactly the configured columns (`supplied.nzta_dashboard`
-  in `config/pipeline.json`), the three owner columns among them;
+  in `config/pipeline.json`), the three owner columns among them (the district
+  as a private column, the other two as stored fields);
 - every count is a whole number above zero, every numeric field parses,
   and no two rows share all their key columns;
 - every month text parses, and the months in the file have no gap;
@@ -308,15 +322,17 @@ month). The command aborts, writing nothing, unless:
   months, so a changed month is never replaced silently;
 - the months added join the stored months without a gap.
 
-The three owner columns (`Owner Type`, `Territorial authority`,
-`Vehicle usage`) are checked and dropped: no owner field is in the store or in
-anything built from it. Nothing is built privately from them either: they are
-used for one thing, to check that the export is the one expected (the header
-and the uniqueness of its rows), and the counts are summed over them before
-anything is written. A private build over the owner columns would need the
-export itself, which stays on the maintainer's computer. The store is
+Of the three owner columns, `Territorial authority` is checked and dropped:
+the owner's district is not in the store or in anything built from it. Nothing
+is built privately from it either: it is used for one thing, to check that the
+export is the one expected (the header and the uniqueness of its rows), and the
+counts are summed over it before anything is written. A private build over the
+district would need the export itself, which stays on the maintainer's computer.
+`Owner Type` and `Vehicle usage` are kept, as `owner_type` and `usage_registered`
+(above). The store is
 `data/supplied/nzta_dashboard/`, committed (D-097): `registrations.parquet`,
-counts by month and the public fields with `vehicle_status`, and `ledger.json`,
+counts by month and the public fields with `vehicle_status`, `owner_type` and
+`usage_registered`, and `ledger.json`,
 which records the source's terms and, for each month, the file's name, its
 SHA-256, the day it was taken, and its rows and vehicles. A test
 (`pipeline/tests/test_stores_in_repo.py`) fails if the data map's held columns

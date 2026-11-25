@@ -16,8 +16,8 @@ the user on 2026-11-16 (D-096):**
   `kind_of_owner`, which is not an owner group. The floor under that: a field of this group is never put in one table with a
   field that says where the owner lives or describes the owner (the `Territorial authority` column, the register's `TLA`,
   `VEHICLE_USAGE` and the rest of the owner groups), and an owner field still never reaches a fact table. The build refuses a
-  config that breaks it (`owner_rule` in `config/data_map.json`; "Privacy classes" below). Nothing is built from the two
-  columns yet;
+  config that breaks it (`owner_rule` in `config/data_map.json`; "Privacy classes" below). The committed store of the
+  dashboard keeps the two columns; nothing is built from them yet;
 - the `region` slice (share of vehicles by the owner's region, by month), published since before
   the work order under D-078, stays, and since D-127 takes the minimum of 10 (the user's ruling of
   2026-11-17, D-120 item 4) with a second rule that limits what a total gives away of a hidden cell
@@ -1063,7 +1063,12 @@ it is recorded for, traps, privacy and relations are its register field's (above
 the whole file: every row carries a value, so coverage is the share not written as "not recorded",
 and it covers January 2021 to October 2026 only. It is few or many as in the dataset built from the
 file, whose scope was the survivors dataset's when it was written (D-087), the default scope: for example vehicle type has 14 values in the
-file and 2 in the dataset (the survivors count five since D-157). It is not bound: the dataset is not built yet.
+file and 2 in the dataset (the survivors count five since D-157). None is `bound` (a test holds the map to that): `bound` names a register field's
+logical name in the top-level `fields` of `config/pipeline.json`, and a dashboard column is named in
+`supplied.nzta_dashboard` instead, as a `fields` entry, an `extra_fields` entry or, for the district alone, a private
+column. The committed store keeps every column but `Territorial authority`, which `supply` checks and drops (rows that
+differ only in it are summed). `Owner Type` and `Vehicle usage` are stored as the export has them, as `owner_type` and
+`usage_registered` (3 and 20 values, none empty, in the committed store).
 
 **Two dashboard columns are not taken** in any export: `VIN - first 11` and `Physical post code`.
 They are the dashboard's forms of `VIN11` and `POSTCODE`, which are kept in the private archive

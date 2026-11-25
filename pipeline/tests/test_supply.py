@@ -82,8 +82,34 @@ def test_the_history_file_is_added_month_by_month_with_a_ledger(cfg, source):
     with HISTORY.open(encoding="utf-8", newline="") as fh:
         file_rows = list(csv.DictReader(fh))
     assert stored_vehicles == sum(int(r[source["count_column"]]) for r in file_rows)
-    assert stored_rows < len(file_rows), "rows are summed over the dropped owner columns"
+    assert stored_rows == len(file_rows), "no two rows of the fixture differ only in the district, so none are summed"
     assert sum(e["rows"] for e in ledger["months"].values()) == stored_rows
+    for logical, column in source["extra_fields"].items():
+        stored = {v for (v,) in con.execute(f"SELECT DISTINCT {logical} FROM read_parquet('{registrations.as_posix()}')").fetchall()}
+        assert stored == {r[column] for r in file_rows}, f"{column} is kept as the file has it"
+
+
+def test_rows_that_differ_only_in_the_district_are_summed_and_the_district_is_not_kept(tmp_path, cfg, source):
+    district = source["private_columns"][0]
+
+    def split(rows):
+        rows.append({**rows[0], district: rows[0][district] + " (another)", source["count_column"]: "4"})
+
+    supply(cfg, edited(tmp_path, HISTORY, split))
+    con, registrations, ledger = store_table(cfg)
+    with HISTORY.open(encoding="utf-8", newline="") as fh:
+        file_rows = list(csv.DictReader(fh))
+    stored_rows, stored_vehicles = con.execute(
+        f"SELECT count(*), sum({supplied.STORE_COUNT}) FROM read_parquet('{registrations.as_posix()}')").fetchone()
+    assert stored_rows == len(file_rows), "the extra row joined the row it differs from only in the district"
+    assert stored_vehicles == sum(int(r[source["count_column"]]) for r in file_rows) + 4
+    first = file_rows[0]
+    where = " AND ".join(f"CAST({logical} AS VARCHAR) = {supplied.lit(first[column])}"
+                         for logical, column in {**source["fields"], **source["extra_fields"]}.items())
+    month = datetime.strptime(first[source["month"]["column"]], source["month"]["format"]).date().isoformat()
+    (summed,) = con.execute(f"SELECT {supplied.STORE_COUNT} FROM read_parquet('{registrations.as_posix()}') "
+                            f"WHERE month = DATE '{month}' AND {where}").fetchone()
+    assert summed == int(first[source["count_column"]]) + 4
 
 
 def test_no_owner_column_is_in_the_store_or_the_ledger(cfg, source):
@@ -342,7 +368,7 @@ def test_a_totals_period_that_is_not_real_names_its_line(tmp_path, cfg, period, 
 
 
 def test_a_private_column_mapped_to_a_public_field_is_refused(cfg, source):
-    cfg.pipeline["supplied"][SOURCE]["extra_fields"] = {"district": source["private_columns"][1]}
+    cfg.pipeline["supplied"][SOURCE]["extra_fields"] = {"district": source["private_columns"][0]}
     aborts("private_columns", lambda: supply(cfg, HISTORY))
     assert not supplied.store_paths(cfg, SOURCE)[0].exists()
 

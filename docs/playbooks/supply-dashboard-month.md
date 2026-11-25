@@ -43,8 +43,9 @@ check passes.
 5. Run the tests that cover the store (`.venv/Scripts/python.exe -m pytest pipeline/tests/test_stores_in_repo.py -q -p no:cacheprovider`),
    then commit `data/supplied/nzta_dashboard/registrations.parquet` and `ledger.json` **together, in one commit**
    (stage them by name). The two files belong to each other by a hash: one without the other makes every build
-   abort, and the same test fails on the pull request. The raw export, with its owner columns, is never
-   committed: it stays in `data/raw/`.
+   abort, and the same test fails on the pull request. The raw export, with its district column, is never
+   committed: it stays in `data/raw/`. The store itself is public (the repository is), and it holds owner type
+   and usage at registration; the tests fail if it holds the district in any form.
 
 **Build with `--dry-run` afterwards.** A local `python -m pipeline build <pull>` without `--dry-run` writes
 `new_registrations` into `data/state/last_good.json` and the register's archive into `data/snapshots/`. Never
@@ -55,7 +56,9 @@ Action's own last build, not with a local one. After supplying a month, build wi
 caravans). `supply` keeps a model where the vehicle type is in the default scope or `trade_scope` in
 `vehicle_scope.csv` and the import status is one `new_registrations` counts; for every other row it stores the
 model as not recorded and sums the rows that become identical. Every other field of the row, and so every
-vehicle type's counts, stays. Which rows those are comes from `supplied.nzta_dashboard.outside_scope` and the
+vehicle type's counts, stays. Of the export's three owner columns, owner type and usage at registration are
+kept (the data map's group `kind_of_owner`, public) and the district (`Territorial authority`) is checked and
+dropped, rows that differ only in it being summed. Which rows those are comes from `supplied.nzta_dashboard.outside_scope` and the
 scope files the build reads, and the ledger records the scope the store was written under. The store is wrong
 only if the dataset would now read a model it blanked: a (vehicle type, import status) pair that was not counted
 when the store was written and is now (a vehicle type or import status becomes counted, or gains `trade_scope`),
@@ -79,6 +82,10 @@ months), the new file replaces the old one. Do it in one commit:
    `supply` refuses a file with other columns, or a store whose blanked models the dataset would now read, over the old store and says
    so, writing nothing. Keep the raw exports (in `data/raw/`): a widened scope needs them again.
 3. Supply the whole new history in one go, with `--totals` for every year and `--taken` for the day it was exported.
+   Keep the `--totals` file next to the raw export. If it was not kept, the old ledger's `totals_checked` (under
+   its `files` entry) holds the same figures: copy them into a two-column CSV before the old ledger is removed
+   (the store was supplied again this way on 2026-11-26, to keep owner type and usage). The new ledger must give
+   every month the vehicles the old one did; compare them before committing.
 4. Run the tests above and a `--dry-run` build. Commit the config, the two new store files and the docs together.
 
 The build compares each month's total with the last good build's and aborts if any moved by more than
@@ -93,7 +100,7 @@ Each message names the cause. What to do:
 
 | Message says | Meaning | Do |
 |---|---|---|
-| the header is not the configured columns | A column is missing, extra or repeated. A missing owner column is refused too: it is checked and then dropped. | Export the same dimensions as before. If NZTA changed the report, change `supplied` in `config/pipeline.json` first. |
+| the header is not the configured columns | A column is missing, extra or repeated. A missing owner column is refused too (the district is checked and then dropped; owner type and usage are stored). | Export the same dimensions as before. If NZTA changed the report, change `supplied` in `config/pipeline.json` first. |
 | `--month` is required / refused | A file without a month column needs `--month`; a file with one must not have it. | Add or drop the flag. |
 | Vehicles must be a whole number above zero | A blank, zero, negative or fractional count. | Export again. Do not edit the file. |
 | combinations of the key columns appear in more than one row | Two exports were joined, or the export repeated rows. | Export again. |
