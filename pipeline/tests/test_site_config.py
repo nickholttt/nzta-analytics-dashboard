@@ -68,6 +68,7 @@ def _templates() -> list[tuple[str, str, str]]:
     found.extend(_chart_sentence_templates())
     found.extend(_comparison_templates())
     found.extend(_latest_month_templates())
+    found.extend(_answer_pages_templates())
     for dimension in dimensions["dimensions"]:
         if "public_line" in dimension:
             found.append(("line", f"dimension {dimension['id']} public_line", dimension["public_line"]))
@@ -126,6 +127,12 @@ def _latest_month_templates() -> list[tuple[str, str, str]]:
     """The words of the latest month on the front page (config/latest_month.json): every text under `words`. What lies outside it (the dataset,
     the fields, the addresses and the chart's settings) is an id or an address the code reads, which the next test places."""
     return [("latest_month", f"latest_month.{path}", text) for path, text in _strings(_json("config/latest_month.json")["words"])]
+
+
+def _answer_pages_templates() -> list[tuple[str, str, str]]:
+    """The words of the brand and model pages and their index (config/answer_pages.json): every text under `words`. What lies outside it (the
+    dataset, the measure, the fields, the addresses and the numbers) is an id, an address or a limit the code reads, which the next test places."""
+    return [("answer_pages", f"answer_pages.{path}", text) for path, text in _strings(_json("config/answer_pages.json")["words"])]
 
 
 def _chart_sentence_templates() -> list[tuple[str, str, str]]:
@@ -233,6 +240,26 @@ def test_the_lint_reads_every_word_of_the_latest_month():
             assert text in linted, f"config/latest_month.json {path} is a text the lint does not read"
         else:
             assert _LATEST_MONTH_NOT_A_TEMPLATE.match(path), f"config/latest_month.json {path} is a text this test does not place"
+
+
+# What in config/answer_pages.json is not a template: the dataset and the measure it counts, the fields it makes pages for, the first part of each
+# page's address, the index's address, the address of the definition and of the caveats page.
+_ANSWER_PAGES_NOT_A_TEMPLATE = re.compile(
+    r"^(dataset|measure|index_path|definition|caveat\.href|(brand|model)\.(dimension|path))$"
+)
+
+
+def test_the_lint_reads_every_word_of_the_answer_pages():
+    """Every text in config/answer_pages.json is linted unless it is an id or an address, so a word added to it later is linted too, or is named
+    here as one of those."""
+    linted = {text for kind, _, text in _templates() if kind == "answer_pages"}
+    texts = list(_strings(_json("config/answer_pages.json")))
+    assert len([t for p, t in texts if p.startswith("words.")]) >= 30, "the answer pages' words have gone missing: this test would pass without checking anything"
+    for path, text in texts:
+        if path.startswith("words."):
+            assert text in linted, f"config/answer_pages.json {path} is a text the lint does not read"
+        else:
+            assert _ANSWER_PAGES_NOT_A_TEMPLATE.match(path), f"config/answer_pages.json {path} is a text this test does not place"
 
 
 def test_the_lint_reads_the_words_of_the_comparison_with_published_figures():
