@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-25 (the second session of 25 November)
+Last updated by claude on 2026-11-25 (the second session of 25 November: #148 to #151, #153, #155 and #156 merged; #152 and #154 open for the user)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -13,10 +13,6 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | C: public readiness | none | free | what is left is the user's four items |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
 | E: classification, the latest month, findability | `claude/e-classify-batch-1`, `claude/e-classify-corolla` | free; #152 and #154 wait for the user's "merge" | items 9, 10 and 13 merged (#153, #155, #149); item 8's first batches are open; 11 found nothing; 12 not started |
-
-## Where we left off
-
-- 2026-11-25, second session: #148 to #151, #153, #155 and #156 merged. Open for the user: #152, #154.
 
 ## The queue (item numbers are the additions'; each plan was written and accepted on 2026-11-25)
 

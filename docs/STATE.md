@@ -25,20 +25,18 @@ with the user's additions of 2026-11-25, `docs/brief/WORK_ORDER_3_ADDITIONS.md` 
   two pull requests that wait for the user (#152, #154).
 - **The site's code is on `main`; nothing is deployed** (`CLOUDFLARE_PAGES_PROJECT` is unset). Pages:
   Explore, Canvas, Method, Caveats, About (a draft), Feedback, Differences, a not-found page, and
-  generated pages for 63 brands and 260 models with an index (#155).
+  generated pages for 63 brands and 260 models with an index (#155). A sitemap is written at build time
+  once `about.site_address` is set in `config/site.json`.
 - **The home page opens with the latest month** (#153): the month's total and its change on a year
   earlier, new against used, top brands and models, movers and the powertrain split, each generated
   from templates and opening in the canvas. Its Market type block appears when the field is built.
-- **A sitemap** is written at build time once `about.site_address` is set in `config/site.json` (#155).
 - **The canvas is the only builder** (#132). Each chart's sentence is its headline (#142), a value keeps
   one colour across a page (#143), the field list is inside the one editing panel (#144).
 - **First load is held** (D-156, #151): the canvas's first chart is about 2.7 s on the phone profile
   here (2.5 and 2.6 s on GitHub's runner). A pull request fails over 3.0 s (a timed step in `Checks`)
   or over the byte limit on the first chart's critical path.
-- **Every pull request** builds the public site and checks it: plain English, no tracking, each page's
-  metadata, a performance budget (generated pages by pattern) and the first chart's time.
-- **The month, start to finish**, is `docs/playbooks/monthly.md` (#149); going public is
-  `docs/playbooks/go-public.md`.
+- **Every pull request** builds the public site and checks it (plain English, no tracking, metadata, the
+  budget). **Playbooks:** the month is `docs/playbooks/monthly.md` (#149); going public is `go-public.md`.
 
 ## Current step
 
@@ -70,13 +68,13 @@ as first observed (item 5). Lane E waits on the user's approval of #152 and #154
 4. Three Explore charts are on no starter canvas. "Area Outside Region" reaches visitors as is. Segment
    "Other" now holds buses, motor caravans and special purpose vehicles (D-157).
 5. `/method`, `/caveats` and `/differences` are hand-written and fall behind at each refresh.
-6. The no-tracking check still misses rarer spellings (#131's review lists them).
-7. `restated_from` is filled by hand and nothing checks the earlier figure (D-153).
-8. Not tested: Safari, a real screen reader. The brand and model pages wrap the month column on a phone.
-9. The home page and the brand and model pages name the dashboard dataset in `config/latest_month.json`
+6. The no-tracking check still misses rarer spellings (#131's review); `restated_from` is filled by hand
+   and nothing checks the earlier figure (D-153).
+7. Not tested: Safari, a real screen reader. The brand and model pages wrap the month column on a phone.
+8. The home page and the brand and model pages name the dashboard dataset in `config/latest_month.json`
    and `config/answer_pages.json`: both change with item 1's rename, or the front page's links vanish.
-10. The Vehicle Importers Association publishes no monthly figures on its own pages (an annual one, on
-    a border-entry basis), so the guard has no used-import source of its own (item 11).
+9. The Vehicle Importers Association publishes no monthly figures on its own pages (an annual one, on a
+   border-entry basis), so the guard has no used-import source of its own (item 11).
 
 ## Where docs and code disagree (noted, not changed)
 
