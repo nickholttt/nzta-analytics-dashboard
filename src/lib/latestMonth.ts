@@ -20,6 +20,8 @@ import type { Event, Manifest, SliceRow } from "./data";
 import { recordingChange } from "./recordingChange";
 import { addMonths, changeOnYear, count, fillTemplate, percent, sayList } from "./sentences";
 import type { YearChange } from "./sentences";
+import { windowedSection } from "./latestPeriods";
+import type { PeriodsKit, PeriodTable } from "./latestPeriods";
 
 export type BlockConfig = {
   id: string;
@@ -74,7 +76,10 @@ export type Kit = {
   // The minimum the build applied to a field's slice, where the manifest says it hid small counts.
   ruleMinimum: (dimension: string) => number | undefined;
   // The address of the canvas that draws a block's question, kept to the given values of other fields where there are any, or nothing where it cannot.
-  link: (block: BlockConfig, where?: Record<string, string[]>) => string | undefined;
+  // With a period (the id of a canvas period), the block's own period is replaced by it where the block has one.
+  link: (block: BlockConfig, where?: Record<string, string[]>, period?: string) => string | undefined;
+  // The windows the blocks with views are also drawn over (config/windows.json); absent, the section is drawn over the newest month alone.
+  periods?: PeriodsKit;
   // The conditions the vehicles are split by and each field's counts under them, where the build can give them (src/lib/conditionViewsBuild.ts); absent,
   // the section is drawn without views.
   views?: ViewsKit;
@@ -109,6 +114,8 @@ export type RowView = {
   share?: string;
   prior?: string;
   change?: Change;
+  // No vehicles of this value in the same months a year earlier (a new entry): said in a tag of its own, with no percentage.
+  fresh?: boolean;
   points?: Change;
   // The row's bar, from 0 to 1 of the block's largest; absent for a hidden count.
   bar?: number;
@@ -132,6 +139,8 @@ export type BlockView = {
   parts?: string;
   // The block once for each condition and once for all of them, in the order of the switch; the block's own fields above are the figures for all.
   views?: PanelView[];
+  // The same block once for each window and each condition and all of them (window by window), where the section is drawn over windows.
+  windowed?: PanelView[];
 };
 // One view of a block: its sentences, its table (or the line that says it has nothing) and its own link to the canvas.
 export type PanelView = {
@@ -142,8 +151,12 @@ export type PanelView = {
   rows: RowView[];
   notes: string[];
   empty?: string;
-  canvas: string;
-  canvasLabel: string;
+  // Absent where the canvas cannot draw the panel's period.
+  canvas?: string;
+  canvasLabel?: string;
+  // The window and the view (condition, or all) a windowed panel is for, by position.
+  win?: number;
+  view?: number;
 };
 export type View = {
   month: string;
@@ -152,11 +165,14 @@ export type View = {
   intro: string;
   blocks: BlockView[];
   // The switch between the views of the blocks that have them; absent where no block has views.
-  switch?: { legend: string; note: string; labels: string[] };
+  switch?: { legend: string; note: string; labels: string[]; period?: { legend: string; labels: string[]; checked: number } };
+  // The month's figure over each window, and where each window's months are, where the section is drawn over windows.
+  byPeriod?: PeriodTable;
+  windowNote?: string;
   caveat: { text: string; link: string; href: string };
   hiddenHref: string;
   // The words of the links and the dash a block draws, from config.
-  labels: { canvas: string; definition: string; noComparison: string; hiddenLink: string };
+  labels: { canvas: string; definition: string; noComparison: string; hiddenLink: string; newEntry?: string };
   provenance: Kit["provenance"];
   // Where the definition of what the section counts is, for the line that says where its figures come from.
   sourceLink: { text: string; href: string };
@@ -620,10 +636,23 @@ export function latestMonthView(kit: Kit): View | undefined {
   const note = say(words, "view_note", {});
   const switchable = viewed.length > 0 && made.every((p) => p !== undefined) && legend !== undefined && note !== undefined;
   if (switchable) blocks = blocks.map((b) => (viewed.includes(b) ? { ...b, views: made[viewed.indexOf(b)] } : b));
+  // Over each window too: where any panel cannot be made, the section is drawn over the newest month as it was.
+  const windowed =
+    switchable && kit.periods
+      ? windowedSection(kit, kit.periods, {
+          month,
+          has: (m) => monthOf(kit.slices[config.total_from], m) !== undefined,
+          conditions,
+          comparableFor: (win, dimension, value) => kit.dataset.showsYear && recordingChange(kit.events, win.prior[0], month, { dimension, values: value === undefined ? undefined : new Set([value]) }) === false,
+          fieldOf,
+          blocks: viewed,
+        })
+      : undefined;
+  if (windowed) blocks = blocks.map((b) => (windowed.panels.has(b.id) ? { ...b, windowed: windowed.panels.get(b.id) } : b));
   // The month's figure is the section's answer: without it there is no section.
   if (!blocks.some((b) => b.kind === "total")) return undefined;
   const heading = say(words, "heading", ids);
   const intro = say(words, "intro", ids);
   if (heading === undefined || intro === undefined) return undefined;
-  return { month, prior, heading, intro, blocks, ...(switchable ? { switch: { legend: legend as string, note: note as string, labels: [...conditions.map((c) => c.label), words.view_all] } } : {}), caveat: { text: words.caveat, link: words.caveat_link, href: config.caveat.href }, hiddenHref: config.hidden.href, labels: { canvas: words.canvas_link, definition: words.definition_link, noComparison: words.no_comparison, hiddenLink: kit.hidden.link }, provenance: kit.provenance, sourceLink: { text: words.source_link, href: config.blocks.find((b) => b.kind === "total")?.definition ?? config.caveat.href } };
+  return { month, prior, heading, intro, blocks, ...(switchable ? { switch: { legend: legend as string, note: windowed?.note ? `${note as string} ${windowed.note}` : (note as string), labels: [...conditions.map((c) => c.label), words.view_all], ...(windowed ? { period: windowed.period } : {}) } } : {}), ...(windowed?.table ? { byPeriod: windowed.table } : {}), ...(windowed?.note ? { windowNote: windowed.note } : {}), caveat: { text: words.caveat, link: words.caveat_link, href: config.caveat.href }, hiddenHref: config.hidden.href, labels: { canvas: words.canvas_link, definition: words.definition_link, noComparison: words.no_comparison, hiddenLink: kit.hidden.link, ...(windowed ? { newEntry: windowed.newEntry } : {}) }, provenance: kit.provenance, sourceLink: { text: words.source_link, href: config.blocks.find((b) => b.kind === "total")?.definition ?? config.caveat.href } };
 }

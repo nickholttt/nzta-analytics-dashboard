@@ -27,6 +27,7 @@ import { monthKey } from "./monthkey";
 import { fillNote, noteContext } from "./notes";
 import { NOT_BROKEN_DOWN_TOKEN, NOT_RECORDED_TOKEN, addMonths, countedText, fillTemplate, monthLabel, monthRange } from "./sentences";
 import { pct, shareChange } from "./measures";
+import { defaultWindow, windowsConfig, windowsFor } from "./windows";
 
 // The cube is written with zstd (docs/CUBE_SCHEMA.md): the one codec the files need, as data.ts takes it.
 const compressors = { ZSTD: (input: Uint8Array) => (decompressZstd as (input: Uint8Array) => Uint8Array)(input) };
@@ -106,6 +107,8 @@ export async function latestMonthSection(manifest: Manifest, read: ReadFile, con
       views = { field, conditions, cuts: cut.cuts, floors: cut.floors };
     }
   }
+  const windows = windowsFor(datasetLatestMonth(manifest, config.dataset));
+  const home = defaultWindow(windows, "home");
   const kit: Kit = {
     config,
     manifest,
@@ -129,14 +132,16 @@ export async function latestMonthSection(manifest: Manifest, read: ReadFile, con
     },
     ruleMinimum: (dimension) => ruleMinimum(manifest, config.dataset, SMALL_CELL_KEY, dimension),
     views,
-    link: (block, where) =>
+    // The windows the blocks with views are drawn over; with no window to open on, there are none.
+    periods: windows.length > 0 && home ? { windows, defaultIndex: home.index, moverPerMonth: windowsConfig.mover_minimum_per_month, span: (end, months) => fillTemplate(phrases.window_to, { span: months, end: monthLabel(end) }).text } : undefined,
+    link: (block, where, period) =>
       latestMonthLink(all, manifest, {
         where,
         dataset: config.dataset,
         measure: block.canvas.measure,
         by: block.canvas.by ? (block.dimension ?? null) : null,
         type: block.canvas.type,
-        settings: block.canvas.settings,
+        settings: period !== undefined && block.canvas.settings?.period !== undefined ? { ...block.canvas.settings, period } : block.canvas.settings,
       }),
     provenance: {
       source: source.unresolved.length === 0 && source.text ? source.text : undefined,

@@ -1,6 +1,7 @@
 ---
 // One table of the latest month with the sentences, notes and links that go with it (src/components/LatestMonth.astro): a block's own figures, or one
 // view of a block that has views. A table's bars are in its first column, and the figures are the chart's own text.
+import "../styles/new-entry.css";
 import type { PanelView, RowView, View } from "../lib/latestMonth";
 
 interface Props {
@@ -54,6 +55,8 @@ const region = "label" in title ? { "aria-label": panel.heading } : { "aria-labe
                     <td title={r.hidden.reason}><em>{r.hidden.word}</em></td>
                   ) : change ? (
                     <td class={`change ${change.direction}`}>{change.text}</td>
+                  ) : c.key === "year" && r.fresh && labels.newEntry ? (
+                    <td class="change"><span class="new-entry">{labels.newEntry}</span></td>
                   ) : cell ? (
                     <td class="figure">{cell}</td>
                   ) : (
@@ -70,6 +73,6 @@ const region = "label" in title ? { "aria-label": panel.heading } : { "aria-labe
 }
 {panel.notes.map((n) => <p class="meta">{n}{hiddenLink && <> <a href={hiddenLink}>{labels.hiddenLink}</a></>}</p>)}
 <p class="lm-foot">
-  <a class="starter-open" href={panel.canvas} aria-label={panel.canvasLabel}>{labels.canvas}</a>
+  {panel.canvas && <a class="starter-open" href={panel.canvas} aria-label={panel.canvasLabel}>{labels.canvas}</a>}
   <a href={definition}>{labels.definition}</a>
 </p>

@@ -8,7 +8,7 @@ import configDoc from "../../config/windows.json";
 import { addMonths, monthIndex, monthRange } from "./sentences";
 
 export type WindowDef = { id: string; months?: number; year_to_date?: boolean; canvas_period: string };
-export type WindowsConfig = { windows: WindowDef[]; default: Record<string, string> };
+export type WindowsConfig = { windows: WindowDef[]; default: Record<string, string>; mover_minimum_per_month: number };
 export const windowsConfig = configDoc as unknown as WindowsConfig;
 
 export type Window = {
@@ -19,6 +19,8 @@ export type Window = {
   // The same months a year earlier, in the same order.
   prior: string[];
   canvasPeriod: string;
+  // Whether the window is the year to date, which a sentence says as a range of months and not as a count of them.
+  yearToDate: boolean;
 };
 
 // The months of a window ending with `latest`: the last N, or January of the newest month's year to the newest month.
@@ -32,7 +34,7 @@ export function windowsFor(latest: string, config: WindowsConfig = windowsConfig
   if (Number.isNaN(monthIndex(latest))) return [];
   return config.windows.map((def, index) => {
     const months = windowMonths(def, latest);
-    return { id: def.id, index, months, prior: months.map((m) => addMonths(m, -12)), canvasPeriod: def.canvas_period };
+    return { id: def.id, index, months, prior: months.map((m) => addMonths(m, -12)), canvasPeriod: def.canvas_period, yearToDate: def.year_to_date === true };
   });
 }
 
