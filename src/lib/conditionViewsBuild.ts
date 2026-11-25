@@ -8,6 +8,8 @@ import { parquetReadObjects } from "hyparquet";
 import { decompressZstd } from "hyparquet-compressors";
 import { findDimension, unrecordedBand } from "./config";
 import { Cut, capFloor } from "./conditionViews";
+import { cutSet } from "./powertrainCut";
+import type { CutSet } from "./powertrainCut";
 import type { FactColumns } from "./conditionViews";
 import { SMALL_CELL_KEY, ruleMinimum } from "./data";
 import type { Manifest, SliceRow } from "./data";
@@ -98,4 +100,22 @@ export async function viewCuts(
     floors[field] = cuts[field] && isCapped(field) ? capFloor(slices[field], months) : undefined;
   }
   return { condition, cuts, floors };
+}
+
+// The cuts of `fields` by `condition` for all the vehicles and for the vehicles of each value of `restrict` (the powertrain, on the site), read from the fact
+// table where the site is built; nothing, with one build line, where the table is missing or any cut does not hold to its slice (src/lib/powertrainCut.ts).
+export async function restrictedCuts(
+  read: ReadFile,
+  manifest: Manifest,
+  dataset: string,
+  condition: string,
+  order: readonly string[],
+  fields: readonly string[],
+  restrict: string,
+  slices: Readonly<Record<string, readonly SliceRow[] | undefined>>,
+): Promise<CutSet | undefined> {
+  const table = await readFactColumns(read, manifest, dataset, [...new Set([condition, restrict, ...fields])]);
+  const set = table ? cutSet(table, condition, order, fields, restrict, slices) : undefined;
+  if (!set) console.warn(`[by ${restrict}] ${dataset}: no cut by ${restrict}: the fact table is missing or does not agree with the slices`);
+  return set;
 }
