@@ -298,6 +298,83 @@ def test_the_first_build_that_has_the_dataset_is_accepted_and_the_later_ones_gua
     expect_abort(lambda: run(tmp_path, bare, state=copy.deepcopy(full), name="gone", publish=False), f"{NEW}: it was built in the last good run")
 
 
+CARRIED = ("live_dimensions", "month_counts", "mild_split", "supplied_totals", "supplied_files")
+
+
+def left_by(full: dict, old: str) -> dict:
+    """The last good state as it was when the dataset's predecessor was built under another id: its records are under that id, none under this one's."""
+    state = copy.deepcopy(full)
+    for key in CARRIED:
+        state[key][old] = state[key].pop(NEW)
+    return state
+
+
+def test_the_dataset_is_compared_with_the_records_of_the_one_it_took_the_place_of(built, tmp_path):
+    cfg, full = make_cfg(built["workspace"]), json.loads(built["state"].read_text(encoding="utf-8"))
+    (old,) = cfg.pipeline["datasets"][NEW]["continues"]
+    assert old not in cfg.pipeline["datasets"], "the id it continues is retired"
+    left = left_by(full, old)
+    assert all(NEW not in left[key] and old in left[key] for key in CARRIED)
+
+    # A month of the store whose total moved since then is refused although no record is under this dataset's own id.
+    moved = copy.deepcopy(left)
+    month = next(iter(moved["supplied_totals"][old]))
+    moved["supplied_totals"][old][month] *= 2
+    expect_abort(lambda: run(tmp_path, cfg, state=moved, name="moved", publish=False), f"{NEW}: 1 month(s) differ from the last good build")
+    # With nothing continued the same state compares nothing: the lapse the list closes.
+    alone = make_cfg(built["workspace"])
+    alone.pipeline["datasets"][NEW].pop("continues")
+    run(tmp_path, alone, state=copy.deepcopy(moved), name="alone", publish=False)
+
+    # A month that has emptied and a split that flipped are read the same way.
+    floor = cfg.pipeline["guardrails"]["zero_row_min_previous_rows"]
+    inherited = guardrails.inherit_history(cfg, left)
+    assert inherited["month_counts"][NEW] == left["month_counts"][old] and inherited["mild_split"][NEW] == left["mild_split"][old]
+    previous = {**inherited, "month_counts": {**inherited["month_counts"], NEW: {**inherited["month_counts"][NEW], month: floor}}}
+    current = {**full, "month_counts": {**full["month_counts"], NEW: {m: n for m, n in full["month_counts"][NEW].items() if m != month}}}
+    aborts, _ = guardrails.compare(cfg, current, previous)
+    assert any(a.startswith(f"{NEW}: 1 month(s)") and month in a for a in aborts), aborts
+    flipped = copy.deepcopy(left)
+    flipped["mild_split"][old]["published"] = not flipped["mild_split"][old]["published"]
+    manifest = run(tmp_path, cfg, state=flipped, name="flipped", publish=False)
+    assert any(w.startswith(f"{NEW}: the mild hybrid split was") for w in manifest["warnings"])
+    # A dataset recorded as built cannot quietly vanish, and the record it inherits says it was built.
+    bare = make_cfg({**built["workspace"], "supplied": tmp_path / "nowhere"})
+    expect_abort(lambda: run(tmp_path, bare, state=copy.deepcopy(left), name="gone", publish=False), f"{NEW}: it was built in the last good run")
+    # What the run writes back is its own build, under its own id, and the old id's record is not carried on.
+    manifest = run(tmp_path, cfg, state=copy.deepcopy(left), name="written", publish=True)
+    written = json.loads(built["state"].read_text(encoding="utf-8"))
+    assert NEW in written["month_counts"] and old not in written["month_counts"] and old not in written["supplied_totals"]
+
+
+def test_a_record_of_the_datasets_own_is_not_replaced_and_a_bad_state_is_left_alone(built):
+    cfg, full = make_cfg(built["workspace"]), json.loads(built["state"].read_text(encoding="utf-8"))
+    (old,) = cfg.pipeline["datasets"][NEW]["continues"]
+    both = copy.deepcopy(full)
+    for key in CARRIED:
+        both[key][old] = {"a": 1}
+    assert guardrails.inherit_history(cfg, both) == both, "a dataset with a record of its own keeps it"
+    assert guardrails.inherit_history(cfg, None) is None
+    odd = copy.deepcopy(full)
+    odd["mild_split"] = ["not", "a", "mapping"]
+    odd["supplied_files"] = None
+    assert guardrails.inherit_history(cfg, odd) == odd
+    # The input is not changed.
+    left = left_by(full, old)
+    before = copy.deepcopy(left)
+    guardrails.inherit_history(cfg, left)
+    assert left == before
+
+
+def test_a_continued_id_that_is_still_a_dataset_or_is_not_an_id_is_refused(built, tmp_path):
+    for bad, fragment in ((SURVIVING, f"{NEW}: continues names {SURVIVING}, which is still a dataset of this build"), ("", "continues must be a list of dataset ids"),
+                          (["a", 3], "continues must be a list of dataset ids")):
+        cfg = make_cfg(built["workspace"])
+        cfg.pipeline["datasets"][NEW]["continues"] = [bad] if isinstance(bad, str) and bad else bad
+        assert any(fragment in problem for problem in guardrails.continuation_problems(cfg)), bad
+        expect_abort(lambda: run(tmp_path, cfg, name="refused", publish=False), fragment)
+
+
 def test_a_ledger_that_lacks_a_counted_pair_is_refused_and_the_committed_trim_is_the_datasets_pairs(built):
     """The older refusal: a ledger whose trim differs from today's rule by a pair that is counted now. (The case of a
     second dataset counting beyond a trim that matches the rule is the next test; this one does not reach it.)"""

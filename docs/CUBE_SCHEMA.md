@@ -641,9 +641,9 @@ figure (the source, the month, the measure as the source defines it, the figure,
 dataset and a set of dimension filters, a tolerance, a note on any known difference, what of the source's it was added up from,
 the figure's kind, and the figure the source published before if it restated this one), and
 `data/reference/published_sources.csv` one row for each organisation (`docs/DATA_SOURCES.md`, section F, has both files'
-columns and the filter encoding). Scope is carried by the dataset: the default scope and the trade's wider scope are two
-datasets of first registrations (the vehicles still registered count the wider scope since D-157), so a row says which total it is
-set against by its dataset and filters, and there is no scope column.
+columns and the filter encoding). Scope is carried by the dataset and its filters: first registrations are one dataset, of five
+vehicle types (D-158), and the vehicles still registered count the same five (D-157), so a row says which total it is set against
+by its dataset and filters, and a source that counts fewer types names them in a `vehicle_type` filter. There is no scope column.
 
 **What is checked is what is published.** After every dataset is staged and before the build is promoted, each row is
 answered from the staged files a visitor's browser would read, not from an internal table: from the dataset's fact table
@@ -1179,9 +1179,13 @@ model of a (type, status) pair any dataset reading it counts, not only the datas
 for the narrower one, the vehicle types it counted (`where`). The site reads a link, a saved canvas or a Build link that names one as
 that dataset with those types kept, so it draws the figures it drew, and says so. A manifest or a cube kept from before D-158 holds
 the old ids and not the new one: a link to the new dataset pinned to such a month, or a retired id settled to it and pinned there, is
-withheld by the rule for a snapshot that did not build a dataset. The first real build that has `new_registrations` finds nothing about it
-in `data/state/last_good.json` and accepts it (as for any new dataset), and the old ids' entries there are not compared, since a guard
-reads only the datasets of the current build. `contract_version` stays 1: this document gives no rule for when it changes, and the manifest's
+withheld by the rule for a snapshot that did not build a dataset. A guard compares a dataset with the records `data/state/last_good.json` keeps under its own id, and the first build
+that has `new_registrations` finds none, so the dataset names the one it took the place of in `continues` (`config/pipeline.json`,
+`registrations_flow_wider`, which counted the same five types): for that run it is compared with that id's records of
+`live_dimensions`, `month_counts`, `mild_split`, `supplied_totals` and `supplied_files`, where a dataset with a record of its own keeps it. Without this the
+supplied-month change guard, the emptied-month guard, the live-dimension guard and the mild-split warning would compare nothing
+for one build. `continues` names no dataset this build still defines (the build stops before it reads anything). The state the run
+writes holds only the datasets it built, so the old ids leave it. `contract_version` stays 1: this document gives no rule for when it changes, and the manifest's
 shape does not change (a dataset id is data); a reviewer may want a bump.
 
 Measured on the 2026-10 pull (2026-11-17, as `registrations_flow_wider`): 1,506,467 vehicles over 70 months (23,064
@@ -1383,6 +1387,8 @@ Supplied sources:
   (`new_registrations` counts types a narrower dataset reading the same store would not), checked as the trim of the dataset the ledger
   names is. A `require` that names no scope flag or more than one aborts the build.
 - A supplied dataset was built in the last good run and its store is now absent.
+- A dataset's `continues` is not a list of ids, or names a dataset this build still defines (D-158). The build stops before it reads
+  anything.
 - A dimension of the `series` derive kind names no datasets in `applies_to`, or names one that does not read a source of
   kind `series`: it would be offered to datasets that cannot derive it. The build stops before it reads anything.
 - For a dataset of a source of kind `series`: its `total` names a series the table does not have, or the total

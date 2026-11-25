@@ -20,7 +20,7 @@ Rules that bind you:
 - Only the shapes CLAUDE.md lists have renderers. Observable Plot draws them all.
 - The browser reads published data only through `src/lib/data.ts`. It never receives a vehicle
   row.
-- A flow series (true registrations) never shares a chart with survivors.
+- A flow series (new registrations) never shares a chart with survivors.
 - Accessible by default: semantic HTML, keyboard, contrast, labels. Works at 320 px wide. A plain
   message when data cannot be read.
 - Check every page you touch headless at 390 and 1280 px, with screenshots saved to a scratch
