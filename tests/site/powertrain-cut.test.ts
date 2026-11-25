@@ -88,7 +88,7 @@ test("on the real build, the cuts by powertrain agree with the slices and with a
   const { readFactColumns } = await import("../../src/lib/conditionViewsBuild.ts");
   const { readSlice } = await import("../../src/lib/latestMonthBuild.ts");
   const manifest = JSON.parse(readFileSync(join("public", "data", "manifest.json"), "utf8"));
-  const dataset = "registrations_flow";
+  const dataset = "new_registrations";
   const table = await readFactColumns(readPublished, manifest, dataset, ["make", "model", "powertrain", "import_status"]);
   assert.ok(table);
   const slices: Record<string, SliceRow[] | undefined> = {};

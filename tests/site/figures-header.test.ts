@@ -48,7 +48,7 @@ test("a register chart credits the register and nothing else", () => {
   assert.equal(h.address, "https://example.test/#x");
 });
 
-test("a chart of true registrations credits that dataset's own statement and says which export it is", () => {
+test("a chart of new registrations credits that dataset's own statement and says which export it is", () => {
   assert.ok(trueRegistrations);
   const h = header(trueRegistrations.id);
   assert.deepEqual(h.attributions, [raw(trueRegistrations.dataset)]);

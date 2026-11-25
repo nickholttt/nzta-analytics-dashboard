@@ -88,7 +88,7 @@ test("a chart's own settings are ones the panel reads, and every chart is on one
     }
 });
 
-test("every chart reads one dataset, so a true-registrations series never shares a chart with the vehicles still registered, and no marked pair is read", () => {
+test("every chart reads one dataset, so a new-registrations series never shares a chart with the vehicles still registered, and no marked pair is read", () => {
   for (const starter of starters) {
     const charts = startCanvas(all, starter.charts).charts;
     charts.forEach((chart, i) => {

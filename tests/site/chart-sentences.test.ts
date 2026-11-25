@@ -34,18 +34,18 @@ const say = (dataset: string, rolling = false) => {
 const series = (set: Record<string, number> = {}) => (m: string) => (m >= "2024-01" && m <= "2026-10" ? (set[m] ?? 1000) : undefined);
 
 test("a count in a month: its figure and its change on the same month a year earlier, in the dataset's own words", () => {
-  const up = sentences.countSentence(t, sentences.countFact(series({ "2026-10": 1120 }), "2026-10", { floor: FLOOR, comparable: true }), say("registrations_flow"));
+  const up = sentences.countSentence(t, sentences.countFact(series({ "2026-10": 1120 }), "2026-10", { floor: FLOOR, comparable: true }), say("new_registrations"));
   assert.equal(up, "1,120 vehicles first registered in Oct 2026, up 12% on the 1,000 in Oct 2025.");
-  const down = sentences.countSentence(t, sentences.countFact(series({ "2026-10": 950 }), "2026-10", { floor: FLOOR, comparable: true }), say("registrations_flow"));
+  const down = sentences.countSentence(t, sentences.countFact(series({ "2026-10": 950 }), "2026-10", { floor: FLOOR, comparable: true }), say("new_registrations"));
   assert.equal(down, "950 vehicles first registered in Oct 2026, down 5.0% on the 1,000 in Oct 2025.");
-  const same = sentences.countSentence(t, sentences.countFact(series(), "2026-10", { floor: FLOOR, comparable: true }), say("registrations_flow"));
+  const same = sentences.countSentence(t, sentences.countFact(series(), "2026-10", { floor: FLOOR, comparable: true }), say("new_registrations"));
   assert.equal(same, "1,000 vehicles first registered in Oct 2026, the same as the 1,000 in Oct 2025.");
 });
 
 test("a count's figures are the ones the chart's table writes: the whole number with its separator, the change by the one rule", () => {
   const fact = sentences.countFact(series({ "2026-10": 21091, "2025-10": 18800 }), "2026-10", { floor: FLOOR, comparable: true });
   assert.equal(fact?.n, 21091);
-  const text = sentences.countSentence(t, fact, say("registrations_flow")) as string;
+  const text = sentences.countSentence(t, fact, say("new_registrations")) as string;
   assert.ok(text.includes(count(21091)) && text.includes(count(18800)) && text.includes(percent((21091 - 18800) / 18800)), text);
 });
 
@@ -53,29 +53,29 @@ test("a missing year-ago month, one under the floor, or one that cannot be compa
   const alone = "1,000 vehicles first registered in Oct 2026.";
   // The year-ago month is not in the dataset: the series starts later.
   const late = (m: string) => (m >= "2026-01" && m <= "2026-10" ? 1000 : undefined);
-  assert.equal(sentences.countSentence(t, sentences.countFact(late, "2026-10", { floor: FLOOR, comparable: true }), say("registrations_flow")), alone);
+  assert.equal(sentences.countSentence(t, sentences.countFact(late, "2026-10", { floor: FLOOR, comparable: true }), say("new_registrations")), alone);
   // It is there but holds fewer vehicles than the floor, as the table of the change on a year ago withholds it.
-  assert.equal(sentences.countSentence(t, sentences.countFact(series({ "2025-10": 10 }), "2026-10", { floor: FLOOR, comparable: true }), say("registrations_flow")), alone);
+  assert.equal(sentences.countSentence(t, sentences.countFact(series({ "2025-10": 10 }), "2026-10", { floor: FLOOR, comparable: true }), say("new_registrations")), alone);
   // Nothing in it at all.
-  assert.equal(sentences.countSentence(t, sentences.countFact(series({ "2025-10": 0 }), "2026-10", { floor: FLOOR, comparable: true }), say("registrations_flow")), alone);
+  assert.equal(sentences.countSentence(t, sentences.countFact(series({ "2025-10": 0 }), "2026-10", { floor: FLOOR, comparable: true }), say("new_registrations")), alone);
   // The dataset does not give a change on a year ago, or a change in the recording lies between the months (the caller says so).
-  assert.equal(sentences.countSentence(t, sentences.countFact(series({ "2026-10": 1500 }), "2026-10", { floor: FLOOR, comparable: false }), say("registrations_flow")), "1,500 vehicles first registered in Oct 2026.");
+  assert.equal(sentences.countSentence(t, sentences.countFact(series({ "2026-10": 1500 }), "2026-10", { floor: FLOOR, comparable: false }), say("new_registrations")), "1,500 vehicles first registered in Oct 2026.");
 });
 
 test("a month with no figure has no sentence", () => {
-  assert.equal(sentences.countSentence(t, sentences.countFact(series(), "2026-11", { floor: FLOOR, comparable: true }), say("registrations_flow")), undefined);
+  assert.equal(sentences.countSentence(t, sentences.countFact(series(), "2026-11", { floor: FLOOR, comparable: true }), say("new_registrations")), undefined);
 });
 
 test("a running total says its twelve months, and the twelve a year earlier", () => {
   const at = (m: string) => (m >= "2025-01" && m <= "2026-10" ? 12000 : undefined);
   const fact = sentences.countFact(at, "2026-10", { floor: FLOOR, comparable: true });
-  assert.equal(sentences.countSentence(t, fact, say("registrations_flow", true)), "12,000 vehicles first registered in the 12 months to Oct 2026, the same as the 12,000 in the 12 months to Oct 2025.");
+  assert.equal(sentences.countSentence(t, fact, say("new_registrations", true)), "12,000 vehicles first registered in the 12 months to Oct 2026, the same as the 12,000 in the 12 months to Oct 2025.");
 });
 
 test("each dataset says what it counts in its own words, a bare figure for one that names its own unit", () => {
   assert.equal(sentences.countSentence(t, { month: "2026-10", n: 3513 }, say("registrations_surviving")), "3,513 vehicles first registered in Oct 2026 that are still registered.");
   assert.equal(sentences.countSentence(t, { month: "2026-09", n: 4200 }, say("registrations_cars_long_run")), `4,200 cars registered for the first time in ${monthLabel("2026-09")}.`);
-  assert.equal(sentences.countSentence(t, { month: "2026-10", n: 1 }, say("registrations_flow_wider")), "1 vehicle first registered in Oct 2026, on the wider scope.");
+  assert.equal(sentences.countSentence(t, { month: "2026-10", n: 1 }, say("new_registrations")), "1 vehicle first registered in Oct 2026.");
 });
 
 const lines = (a: Record<string, number>, b: Record<string, number>) => [
@@ -84,26 +84,26 @@ const lines = (a: Record<string, number>, b: Record<string, number>) => [
 ];
 
 test("the line with the most, and its change on a year earlier", () => {
-  const text = sentences.valuesSentence(t, lines({ "2026-10": 1300 }, { "2026-10": 900 }), "2026-10", { floor: FLOOR, comparable: true }, say("registrations_flow"));
+  const text = sentences.valuesSentence(t, lines({ "2026-10": 1300 }, { "2026-10": 900 }), "2026-10", { floor: FLOOR, comparable: true }, say("new_registrations"));
   assert.equal(text, "Line A has the most: 1,300 vehicles first registered in Oct 2026, up 30% on the 1,000 in Oct 2025.");
   assert.equal(
-    sentences.valuesSentence(t, lines({ "2026-10": 1300, "2025-10": 5 }, {}), "2026-10", { floor: FLOOR, comparable: true }, say("registrations_flow")),
+    sentences.valuesSentence(t, lines({ "2026-10": 1300, "2025-10": 5 }, {}), "2026-10", { floor: FLOOR, comparable: true }, say("new_registrations")),
     "Line A has the most: 1,300 vehicles first registered in Oct 2026.",
   );
 });
 
 test("lines level at the top are all named and no comparison is made between them", () => {
   assert.equal(
-    sentences.valuesSentence(t, lines({}, {}), "2026-10", { floor: FLOOR, comparable: true }, say("registrations_flow")),
+    sentences.valuesSentence(t, lines({}, {}), "2026-10", { floor: FLOOR, comparable: true }, say("new_registrations")),
     "Line A and Line B are level at the top: each has 1,000 vehicles first registered in Oct 2026.",
   );
 });
 
 test("a month in which a line has no figure leaves the whole chart without a sentence, and so does a chart of nothing", () => {
   const gap = [{ name: "Line A", at: series() }, { name: "Line B", at: (m: string) => (m === "2026-10" ? undefined : 5) }];
-  assert.equal(sentences.valuesSentence(t, gap, "2026-10", { floor: FLOOR, comparable: true }, say("registrations_flow")), undefined);
-  assert.equal(sentences.valuesSentence(t, [], "2026-10", { floor: FLOOR, comparable: true }, say("registrations_flow")), undefined);
-  assert.equal(sentences.valuesSentence(t, lines({ "2026-10": 0 }, { "2026-10": 0 }), "2026-10", { floor: FLOOR, comparable: true }, say("registrations_flow")), undefined);
+  assert.equal(sentences.valuesSentence(t, gap, "2026-10", { floor: FLOOR, comparable: true }, say("new_registrations")), undefined);
+  assert.equal(sentences.valuesSentence(t, [], "2026-10", { floor: FLOOR, comparable: true }, say("new_registrations")), undefined);
+  assert.equal(sentences.valuesSentence(t, lines({ "2026-10": 0 }, { "2026-10": 0 }), "2026-10", { floor: FLOOR, comparable: true }, say("new_registrations")), undefined);
 });
 
 const ratio = (set: Record<string, number | undefined>) => (m: string) => (m in set ? set[m] : m >= "2024-01" && m <= "2026-10" ? 0.4 : undefined);
@@ -192,17 +192,17 @@ test("the months a chart covers are said as one month or a span", () => {
 });
 
 test("a template that cannot be filled is dropped, not written with a gap", () => {
-  assert.equal(sentences.countSentence({ count_alone: "{counted} in {nowhere}." }, { month: "2026-10", n: 5 }, say("registrations_flow")), undefined);
-  assert.equal(sentences.countSentence({}, { month: "2026-10", n: 5 }, say("registrations_flow")), undefined);
+  assert.equal(sentences.countSentence({ count_alone: "{counted} in {nowhere}." }, { month: "2026-10", n: 5 }, say("new_registrations")), undefined);
+  assert.equal(sentences.countSentence({}, { month: "2026-10", n: 5 }, say("new_registrations")), undefined);
   // A comparison template that cannot be filled falls back to the figure alone.
   assert.equal(
-    sentences.countSentence({ count_up: "{counted}, up {gone}.", count_alone: "{counted}." }, { month: "2026-10", n: 1200, prior: { prior: 1000, change: 0.2, direction: "up" } }, say("registrations_flow")),
+    sentences.countSentence({ count_up: "{counted}, up {gone}.", count_alone: "{counted}." }, { month: "2026-10", n: 1200, prior: { prior: 1000, change: 0.2, direction: "up" } }, say("new_registrations")),
     "1,200 vehicles first registered in Oct 2026.",
   );
 });
 
 test("the same figures on the same snapshot give the same sentence", () => {
-  const make = () => sentences.countSentence(t, sentences.countFact(series({ "2026-10": 1120 }), "2026-10", { floor: FLOOR, comparable: true }), say("registrations_flow"));
+  const make = () => sentences.countSentence(t, sentences.countFact(series({ "2026-10": 1120 }), "2026-10", { floor: FLOOR, comparable: true }), say("new_registrations"));
   assert.equal(make(), make());
 });
 

@@ -20,7 +20,7 @@
     { "name": "a chart type chosen", "link": "/build/?build.measure=share&build.by=make&build.view=league" },
     { "name": "a ranking of every value", "link": "/build/?build.measure=count&build.by=make&build.value=a&build.value=b&build.view=league&build.rank=all" },
     { "name": "a total", "link": "/build/?build.measure=count&build.by=" },
-    { "name": "another dataset", "link": "/build/?build.dataset=registrations_flow&build.measure=count&build.by=powertrain" },
+    { "name": "another dataset", "link": "/build/?build.dataset=new_registrations&build.measure=count&build.by=powertrain" },
     { "name": "a condition on the breakdown, and a field kept off", "link": "/build/?build.measure=share&build.by=powertrain&build.where.powertrain=Petrol&build.widen=segment" }
   ],
   "strange": [

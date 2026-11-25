@@ -482,12 +482,8 @@
     },
     "model_cap": {}
    },
-   "registrations_flow": {
-    "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register.",
-    "not_built": "the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`"
-   },
-   "registrations_flow_wider": {
-    "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register, counting buses, motor caravans and special purpose vehicles as well as the vehicle types registrations_flow counts.",
+   "new_registrations": {
+    "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register, new and used, of five vehicle types: passenger cars and vans, goods vans, trucks and utes, buses, motor caravans and special purpose vehicles.",
     "not_built": "the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`"
    },
    "registrations_cars_long_run": {
@@ -560,14 +556,13 @@
     "last": "2026-09"
    }
   },
-  "payload_bytes": 124110,
+  "payload_bytes": 124108,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
    "registrations_surviving: 1 rows are dated after the snapshot month and were excluded",
    "registrations_surviving: mild hybrid identification coverage over the trailing 12 months is 25.0% counting high-confidence classifications only, below 70%, so the mild hybrid split is not published: its mild hybrids are counted as Hybrid",
-   "registrations_flow was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
-   "registrations_flow_wider was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
+   "new_registrations was not built: the supplied store for nzta_dashboard is absent (data/supplied/nzta_dashboard); add a file with `python -m pipeline supply nzta_dashboard <csv>`",
    "registrations_cars_long_run was not built: the supplied store for statsnz_tpt is absent (data/supplied/statsnz_tpt); add a file with `python -m pipeline supply statsnz_tpt <csv>`",
    "no last good state: first run, so previous-run comparisons were skipped",
    "reconciliation: Fixture source A: 1 of 2 compared figures are past their tolerance, in 2026-07; the largest gap is -25.00% (2026-07)",
@@ -17234,7 +17229,7 @@
     "source": "fixture_c",
     "month": "2026-08",
     "measure_as_published": "Fixture measure: all vehicles",
-    "dataset": "registrations_flow",
+    "dataset": "new_registrations",
     "filters": {},
     "ours": null,
     "theirs": 100,
@@ -17251,7 +17246,7 @@
     "restated_past_warning": false,
     "status": "not_compared",
     "reason_kind": "dataset_not_built",
-    "reason": "registrations_flow was not built in this run.",
+    "reason": "new_registrations was not built in this run.",
     "source_url": "https://fixture.example/c/total",
     "date_read": "2026-11-01"
    },

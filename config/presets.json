@@ -227,10 +227,13 @@
     "$comment": "The Build page: a question a visitor builds (what to measure, what to compare, which vehicles to keep, D-058), drawn through the same panel and resolver as Explore. Values and filters are summed from the fact table; without them a chart reads the slices. A measure offers only the dimensions it lists here (each with the words the sentence uses for it), and of those only the ones that resolve and draw against the cube as built. Ids name what config/measures.json and config/dimensions.json define; the words are for visitors. not_offered tells the visitor what is missing and why (D-044).",
     "id": "build",
     "dataset": "registrations_surviving",
-    "datasets": ["registrations_surviving", "registrations_flow", "registrations_flow_wider", "registrations_cars_long_run", "fleet"],
+    "datasets": ["registrations_surviving", "new_registrations", "registrations_cars_long_run", "fleet"],
     "notices": {
       "$comment": "What the page says when a link asks for something the page cannot give and shows the nearest question instead. The address is corrected as it is for a condition the page cannot apply; the words say so, so a link never quietly counts something else. Placeholders: config/narrative/rules.json.",
       "dataset": "This link asked to count {asked}, which this build does not have. It is counting {shown} instead.",
+      "retired": "This link was made for {asked}, which is now {shown}. The figures are the same.",
+      "retired_narrowed": "This link was made for {asked}, which is now part of {shown}. It keeps {kind}, as {asked} did.",
+      "retired_dropped": "This link named “{asked}” for {field}, which {dataset} did not count, so it was left out.",
       "by": "This link asked to break the figures down by {asked}, which is not available for {dataset}. It shows {shown} instead.",
       "left_out": "This link named “{asked}” for {field}, which is not a value that can be chosen here, so it was left out.",
       "absent": "This link named “{asked}” for {field}, which is not a value in the data for {dataset}, so it was left out.",
@@ -262,7 +265,7 @@
       ["model", "heritage_country"],
       ["trade_group", "vehicle_type"]
     ],
-    "$cannot_cross_comment": "Pairs of fields where each value of one sits under a single value of the other (a model under its brand, a brand under its group), so a grid of the two would be empty except along one line and its empty cells would be empty by construction, not by what people bought. Measured on the 2026-10 fact tables of both datasets: each value of the first sat under one value of the second, except that two models of the survivors and one of true registrations sat under two brands (and so two groups and countries). The data map's rolls_up_to gives make to parent_group and owner_country and model to make. Build offers no second breakdown that makes one of these pairs. Also measured: segment_group (vehicle class) sits under one vehicle_type (registered as), but vehicle_type is a condition only and never a breakdown, so no pair is listed for it; add [segment_group, vehicle_type] if it is ever offered. On the 2026-10 fact table of true registrations on the wider scope each of its five registered-as types sits under exactly one passenger-or-commercial group (Passenger holds one, Commercial four), so [trade_group, vehicle_type] is listed; vehicle_type is still a condition only, and the pair is listed so that offering it as a breakdown later cannot make a grid empty by construction. segment (vehicle type in Build's words) and segment_group are not nested (4 of 6 segments have more than one class), and are crossed. Build also reads the data map itself (src/lib/nesting.ts): a field that rolls up to another there, through any number of steps, is not crossed with it, nor with a dimension read from that field alone, so NZTA's class code is not crossed with the registered-as type or its passenger-or-commercial reading (D-122). This list stays for pairs the map does not record.",
+    "$cannot_cross_comment": "Pairs of fields where each value of one sits under a single value of the other (a model under its brand, a brand under its group), so a grid of the two would be empty except along one line and its empty cells would be empty by construction, not by what people bought. Measured on the 2026-10 fact tables of both datasets: each value of the first sat under one value of the second, except that two models of the survivors and one of new registrations sat under two brands (and so two groups and countries). The data map's rolls_up_to gives make to parent_group and owner_country and model to make. Build offers no second breakdown that makes one of these pairs. Also measured: segment_group (vehicle class) sits under one vehicle_type (registered as), but vehicle_type is a condition only and never a breakdown, so no pair is listed for it; add [segment_group, vehicle_type] if it is ever offered. On the 2026-10 fact table of new registrations (then the wider scope) each of its five registered-as types sits under exactly one passenger-or-commercial group (Passenger holds one, Commercial four), so [trade_group, vehicle_type] is listed; vehicle_type is still a condition only, and the pair is listed so that offering it as a breakdown later cannot make a grid empty by construction. segment (vehicle type in Build's words) and segment_group are not nested (4 of 6 segments have more than one class), and are crossed. Build also reads the data map itself (src/lib/nesting.ts): a field that rolls up to another there, through any number of steps, is not crossed with it, nor with a dimension read from that field alone, so NZTA's class code is not crossed with the registered-as type or its passenger-or-commercial reading (D-122). This list stays for pairs the map does not record.",
     "narrowings": {
       "nz_new": { "dimension": "import_status", "value": "NZ New", "kind": "vehicles sold new in New Zealand" }
     },
@@ -394,8 +397,8 @@
     "not_offered": [
       "Two breakdowns drawn over time, as a line for each combination. A crossing is drawn for one window, the last 12 months or one month; move the window to see it change.",
       {
-        "text": "Every vehicle registered each month, including those since removed from the register. This build does not carry true registrations, so these figures count vehicles still registered today.",
-        "when_not_built": "registrations_flow"
+        "text": "Every vehicle registered each month, including those since removed from the register. This build does not carry new registrations, so these figures count vehicles still registered today.",
+        "when_not_built": "new_registrations"
       },
       "Registrations before the first month of the dashboard's data, by brand or model. Stats NZ's long-run series has totals and a split into new and ex-overseas, no brand or model; the Explore page draws it where this build carries it."
     ]
@@ -553,7 +556,7 @@
           "question": "How long do vehicles stay on the road?",
           "status": "blocked",
           "requires": [
-            "the registrations_flow dataset from the Stats NZ TPT series (build step 1b)",
+            "the new_registrations dataset (build step 1b)",
             "the fleet dataset (build step 7)",
             "two or more archived snapshots in data/snapshots/",
             "a renderer for the cohort_survival derived measure"
@@ -567,7 +570,7 @@
     },
     {
       "id": "true-registrations",
-      "label": "True registrations",
+      "label": "New registrations",
       "title": "How many vehicles were registered, which ones, and what powers them",
       "defer": true,
       "$defer_comment": "Draws its data only once the section is scrolled to, so it adds nothing to what the page downloads before its first chart.",
@@ -576,7 +579,7 @@
           "id": "registrations-monthly",
           "question": "How many vehicles were registered last month, and is that up or down on a year ago?",
           "status": "live",
-          "dataset": "registrations_flow",
+          "dataset": "new_registrations",
           "measure": "count",
           "period": "all",
           "answer": {
@@ -589,26 +592,26 @@
         },
         {
           "id": "registrations-new-wider-monthly",
-          "question": "How many new vehicles were registered each month on the wider scope, which also counts buses, motor caravans and special purpose vehicles?",
-          "$comment": "Beside the chart above, which counts new and used vehicles of fewer types: this one keeps new vehicles only, on a dataset that counts buses, motor caravans and special purpose vehicles as well (D-106, D-113, D-118). The two datasets are never on one chart (D-118).",
+          "question": "How many new vehicles were registered each month?",
+          "$comment": "Beside the chart above, which counts new and used vehicles: this one keeps new vehicles only, the same dataset with New or used kept to NZ New (D-158). Its id says wider scope, as it did when it was a dataset of its own (D-106, D-113); ids are not changed, so an older link to it keeps its title.",
           "status": "live",
-          "dataset": "registrations_flow_wider",
+          "dataset": "new_registrations",
           "measure": "count",
           "where": { "import_status": ["NZ New"] },
           "period": "all",
           "answer": {
-            "$comment": "As the answer above, for new vehicles on the wider scope. A template names no month, figure or cause.",
-            "up": "In {month}, {count} new vehicles were registered on the wider scope, up {change|pct} on {prior_month}, when {prior_count} were.",
-            "down": "In {month}, {count} new vehicles were registered on the wider scope, down {change|pct} on {prior_month}, when {prior_count} were.",
-            "same": "In {month}, {count} new vehicles were registered on the wider scope, the same as in {prior_month}, when {prior_count} were.",
-            "alone": "In {month}, {count} new vehicles were registered on the wider scope."
+            "$comment": "As the answer above, for new vehicles. A template names no month, figure or cause.",
+            "up": "In {month}, {count} new vehicles were registered, up {change|pct} on {prior_month}, when {prior_count} were.",
+            "down": "In {month}, {count} new vehicles were registered, down {change|pct} on {prior_month}, when {prior_count} were.",
+            "same": "In {month}, {count} new vehicles were registered, the same as in {prior_month}, when {prior_count} were.",
+            "alone": "In {month}, {count} new vehicles were registered."
           }
         },
         {
           "id": "registrations-new-wider-passenger-or-commercial",
-          "question": "How do new registrations divide between passenger and commercial vehicles on the wider scope?",
+          "question": "How do new registrations divide between passenger and commercial vehicles?",
           "status": "live",
-          "dataset": "registrations_flow_wider",
+          "dataset": "new_registrations",
           "measure": "share",
           "dimension": "trade_group",
           "where": { "import_status": ["NZ New"] },
@@ -618,7 +621,7 @@
           "id": "model-leaderboard",
           "question": "Which brands and models were registered most?",
           "status": "live",
-          "dataset": "registrations_flow",
+          "dataset": "new_registrations",
           "measure": "count",
           "dimension": "make",
           "period": "latest_year",
@@ -633,7 +636,7 @@
           "question": "How many of the vehicles registered each month are still on the register?",
           "status": "live",
           "derived": "completeness",
-          "dataset": "registrations_flow_wider",
+          "dataset": "new_registrations",
           "dimension": "import_status",
           "period": "all"
         },
@@ -642,7 +645,7 @@
           "question": "How many of the vehicles registered each month are still on the register, by kind of vehicle and whether new or used?",
           "status": "live",
           "derived": "completeness",
-          "dataset": "registrations_flow_wider",
+          "dataset": "new_registrations",
           "dimension": "vehicle_type",
           "cross": "import_status",
           "period": "all"
@@ -651,7 +654,7 @@
           "id": "registrations-powertrain-mix",
           "question": "What share of registrations does each powertrain take?",
           "status": "live",
-          "dataset": "registrations_flow",
+          "dataset": "new_registrations",
           "measure": "share",
           "dimension": "powertrain",
           "period": "all",
@@ -661,7 +664,7 @@
           "id": "registrations-powertrain-by-new-or-used",
           "question": "How does the mix of powertrains differ between new and used registrations?",
           "status": "live",
-          "dataset": "registrations_flow",
+          "dataset": "new_registrations",
           "measure": "share",
           "dimension": "powertrain",
           "dimension2": "import_status",
@@ -686,7 +689,7 @@
           "measure": "count",
           "period": "all",
           "answer": {
-            "$comment": "As the true-registrations answer above, in this dataset's words. A template names no month, figure or cause.",
+            "$comment": "As the new-registrations answer above, in this dataset's words. A template names no month, figure or cause.",
             "up": "In {month}, {count} cars were registered for the first time, up {change|pct} on {prior_month}, when {prior_count} were.",
             "down": "In {month}, {count} cars were registered for the first time, down {change|pct} on {prior_month}, when {prior_count} were.",
             "same": "In {month}, {count} cars were registered for the first time, the same as in {prior_month}, when {prior_count} were.",

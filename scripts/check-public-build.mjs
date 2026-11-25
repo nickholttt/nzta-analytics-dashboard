@@ -7,11 +7,13 @@
 // kept folder still holds a table of an owner field that its manifest does not say the small-cell rule was applied to. And it fails when the
 // output holds more files, or a larger file, than the host serves (host-limits.mjs, D-146). And it fails when the output has a sitemap while the site's address
 // is not set, or, with the address set, none or one that does not list exactly the pages a search engine may index, or a robots.txt with no pointer to it.
+// And it fails when the data the build holds lacks a dataset the latest-month section or the brand, model and powertrain pages read (page-datasets.mjs).
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { hostLimitProblems } from "./host-limits.mjs";
 import { indexProblems, ownerTableProblems } from "./kept-snapshots.mjs";
+import { pageDatasetProblems } from "./page-datasets.mjs";
 import { sitemapProblems } from "./sitemap.mjs";
 
 const root = resolve(process.argv[2] ?? "dist");
@@ -26,6 +28,7 @@ for (const folder of INTERNAL_PAGE_FOLDERS) if (existsSync(join(root, folder))) 
 
 for (const problem of [...indexProblems(join(root, "data")), ...ownerTableProblems(join(root, "data"))]) problems.push(problem);
 for (const problem of hostLimitProblems(root)) problems.push(problem);
+for (const problem of pageDatasetProblems(join(root, "data"), fileURLToPath(new URL("..", import.meta.url)))) problems.push(problem);
 for (const problem of sitemapProblems(root, fileURLToPath(new URL("..", import.meta.url)))) problems.push(problem);
 
 const reached = new Set();

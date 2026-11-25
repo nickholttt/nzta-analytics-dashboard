@@ -97,7 +97,7 @@ test("the fact table is not read where the manifest does not list a field, or a 
 // ---- the real build, where there is one ----
 
 const ROOT = join(process.cwd(), "public", "data");
-const built = existsSync(join(ROOT, "manifest.json")) && existsSync(join(ROOT, "facts", "registrations_flow", "make.parquet"));
+const built = existsSync(join(ROOT, "manifest.json")) && existsSync(join(ROOT, "facts", "new_registrations", "make.parquet"));
 const readReal = (relative: string): ArrayBuffer | undefined => {
   try {
     const file = readFileSync(join(ROOT, relative));
@@ -111,9 +111,9 @@ test("the real fact table agrees with every slice it is cut for, month by month,
   const m = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8"));
   const fields = ["make", "model", "powertrain_group"];
   const slices: Record<string, SliceRow[] | undefined> = {};
-  for (const f of ["import_status", ...fields]) slices[f] = await readSlice(readReal, m, "registrations_flow", f);
+  for (const f of ["import_status", ...fields]) slices[f] = await readSlice(readReal, m, "new_registrations", f);
   const months = ["2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09", "2026-10"];
-  const { cuts, floors } = await viewCuts(readReal, m, "registrations_flow", "import_status", ["NZ New", "Used Import"], fields, slices, months);
+  const { cuts, floors } = await viewCuts(readReal, m, "new_registrations", "import_status", ["NZ New", "Used Import"], fields, slices, months);
   for (const f of ["import_status", ...fields]) assert.ok(cuts[f], `${f} has a cut`);
   const model = cuts.model!;
   assert.deepEqual(model.conditions(), ["NZ New", "Used Import"]);

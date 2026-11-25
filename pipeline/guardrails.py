@@ -58,6 +58,46 @@ def split_flips(cfg, current: dict[str, dict], previous: dict | None) -> list[st
     return warnings
 
 
+# What the last good state keeps for each dataset, by the dataset's id: the records a dataset can inherit (`continues`).
+CARRIED = ("live_dimensions", "month_counts", "mild_split", "supplied_totals", "supplied_files")
+
+
+def continuation_problems(cfg) -> list[str]:
+    """What a `continues` list in config/pipeline.json gets wrong, found before anything is read: it is a list of ids, and
+    none of them is a dataset this build still defines (a dataset cannot take over the history of one that is still built)."""
+    datasets = cfg.pipeline["datasets"]
+    problems = []
+    for dataset, spec in datasets.items():
+        old = spec.get("continues", [])
+        if not isinstance(old, list) or not all(isinstance(o, str) and o for o in old):
+            problems.append(f"{dataset}: continues must be a list of dataset ids")
+            continue
+        problems += [f"{dataset}: continues names {o}, which is still a dataset of this build" for o in old if o in datasets]
+    return problems
+
+
+def inherit_history(cfg, state: dict | None) -> dict | None:
+    """The last good state, with a dataset that replaced others taking over their records (`continues` in
+    config/pipeline.json). A guard compares a dataset with the record the last good build kept under its own id, so a dataset
+    renamed or joined into another would have nothing to be compared with on its first build: a month the source restated, a
+    dimension that stopped being live, a month emptied or a mild hybrid split that flipped would pass once. A dataset that
+    already has a record keeps it, and the first id listed that has one is taken for each kind of record. The record is
+    only copied for the run's comparisons: what the run writes back is its own. A state that is not a mapping, or a record
+    that is not one, is left as it is, so that a guard never raises on a bad state."""
+    if not isinstance(state, dict):
+        return state
+    inherited = dict(state)
+    for dataset, spec in cfg.pipeline["datasets"].items():
+        for key in CARRIED:
+            records = inherited.get(key)
+            if not isinstance(records, dict) or dataset in records:
+                continue
+            old = next((o for o in spec.get("continues", []) if o in records), None)
+            if old is not None:
+                inherited[key] = {**records, dataset: records[old]}
+    return inherited
+
+
 def compare(cfg, current: dict, previous: dict | None) -> tuple[list[str], list[str]]:
     g = cfg.pipeline["guardrails"]
     aborts: list[str] = []

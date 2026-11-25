@@ -77,10 +77,11 @@ test("a config sentence that names a banned term or an id is found, with where i
     const rulesFile = JSON.parse(readFileSync(join(repoRoot, "config/narrative/plain_english.json"), "utf8"));
     writeFileSync(join(dir, "config/narrative/plain_english.json"), JSON.stringify({ ...rulesFile, config_files: ["config/words.json"], allow: [] }));
     writeFileSync(join(dir, "config/pipeline.json"), JSON.stringify({ datasets: { some_dataset: {} } }));
-    writeFileSync(join(dir, "config/words.json"), JSON.stringify({ $note: "the cube", group: { help: "Counted from some_dataset, a slice of the cube." }, formula: "a slice of the cube" }));
+    writeFileSync(join(dir, "config/dimensions.json"), JSON.stringify({ retired_datasets: { gone_dataset: { to: "some_dataset" } } }));
+    writeFileSync(join(dir, "config/words.json"), JSON.stringify({ $note: "the cube", group: { help: "Counted from some_dataset or gone_dataset, a slice of the cube." }, formula: "a slice of the cube" }));
     const local = loadRules(dir);
     const hits = configWords(local, dir).flatMap((w: { source: string; text: string }) => findHits(local, w.source, w.text, /\s/.test(w.text), true));
-    assert.deepEqual(hits.map((h: { rule: string }) => h.rule).sort(), ["cube", "internal id", "slice"]);
+    assert.deepEqual(hits.map((h: { rule: string }) => h.rule).sort(), ["cube", "internal id", "internal id", "slice"]);
     assert.ok(hits.every((h: { source: string }) => h.source === "config/words.json > group.help"), "the note and the skipped key were read");
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -106,6 +107,7 @@ test("an allow entry that matches nothing fails the check", () => {
     const stale = { rule: "cube", in: "config/words.json > old.help", reason: "A sentence that has since been reworded and no longer holds the word." };
     writeFileSync(join(dir, "config/narrative/plain_english.json"), JSON.stringify({ ...rulesFile, config_files: ["config/words.json"], allow: [stale] }));
     writeFileSync(join(dir, "config/pipeline.json"), JSON.stringify({ datasets: {} }));
+    writeFileSync(join(dir, "config/dimensions.json"), JSON.stringify({ retired_datasets: {} }));
     writeFileSync(join(dir, "config/words.json"), JSON.stringify({ old: { help: "Plain words." } }));
     writeFileSync(join(dir, "dist", "index.html"), "<!DOCTYPE html><html><head><title>Page</title></head><body><p>Plain words.</p></body></html>");
     const run = spawnSync(process.execPath, [script, join(dir, "dist"), "--repo", dir], { encoding: "utf8" });
@@ -152,5 +154,17 @@ test("a decision number is found whichever hyphen it is written with", () => {
     const found = lintPage(`<p>Decided in D${hyphen}058 and kept.</p>`);
     assert.equal(found.status, 1, JSON.stringify(hyphen) + found.out);
     assert.match(found.out, /decision number/);
+  }
+});
+
+test("a retired dataset id is still an internal id: it is a key of dimensions.json retired_datasets, no longer a dataset or an id", () => {
+  const config = JSON.parse(readFileSync(join(repoRoot, "config/dimensions.json"), "utf8"));
+  const retired = Object.keys(config.retired_datasets).filter((k) => !k.startsWith("$"));
+  assert.ok(retired.length > 0, "dimensions.json retires no dataset, so this would check nothing");
+  for (const id of retired) {
+    assert.ok(rules.ids.has(id), `${id} is not on the list of internal ids`);
+    const run = lintPage(`<p>The chart is read from ${id}.</p>`);
+    assert.equal(run.status, 1, `${id}: ${run.out}`);
+    assert.match(run.out, /internal id/);
   }
 });

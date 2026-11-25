@@ -7,7 +7,7 @@ import { starterViews } from "../lib/starters";
 import manifest from "../../public/data/manifest.json";
 import type { Manifest } from "../lib/data";
 
-// The link to the starter canvas of true registrations is made from the starter's config, so it follows the charts it holds; the front page where
+// The link to the starter canvas of new registrations is made from the starter's config, so it follows the charts it holds; the front page where
 // this build holds none of them.
 const registrations = starterViews(canvasVocabulary(builderVocabulary(manifest as Manifest)), manifest as Manifest, "/canvas/").find((s) => s.id === "registrations")?.href ?? "/";
 ---
@@ -34,18 +34,19 @@ const registrations = starterViews(canvasVocabulary(builderVocabulary(manifest a
     <p>
       Most charts count vehicles first registered in a month that are still registered at the latest snapshot.
       Vehicles that have left the register since are not in the count, so a count for an older month is smaller than the
-      number first registered then. The charts of true registrations count every vehicle first registered, including
-      those since removed, and the two are never drawn together. <a href="/method#data-grains">The ways to count the register</a>.
+      number first registered then. The charts of new registrations count every vehicle first registered, including
+      those since removed, and the two are never drawn together, except in the share of each month's registrations
+      that are still registered. <a href="/method#data-grains">The ways to count the register</a>.
     </p>
 
     <h2>Scope can differ</h2>
     <p>
       This site counts only some vehicle types, and only vehicles registered in New Zealand for the first time.
-      A source that counts other types, or counts returning vehicles, will give a different total. The default
-      scope of true registrations leaves out buses, motor caravans and special purpose vehicles, among others, so
-      its total of new vehicles is lower than a total that counts them. True registrations are also counted on a
-      wider scope that takes those three in, as the next section says, and the charts of vehicles still registered
-      count them too.{" "}
+      A source that counts other types, or counts returning vehicles, will give a different total. New registrations
+      and the vehicles still registered count the same five types: passenger cars and vans, goods vans, trucks and
+      utes, buses, motor caravans and special purpose vehicles. A total that counts fewer of them will be lower than
+      this site's, and one that counts others, such as motorcycles, higher. The canvas can narrow either dataset to
+      the types a visitor wants: add Registered as under Filters.{" "}
       <a href="/method#vehicle-scope">Which vehicles are counted</a>.
     </p>
 
@@ -54,16 +55,11 @@ const registrations = starterViews(canvasVocabulary(builderVocabulary(manifest a
     <h2>The Motor Industry Association's figures</h2>
     <p>
       The Motor Industry Association (MIA) publishes a count of new vehicle registrations each month. Set beside
-      it, this site's count of new vehicles on its default scope is lower: the published totals sit above it by 1.4%
-      to 3.9% in the periods compared, which are eight months and three whole years between March 2021 and October
-      2026, measured in November 2026. The total for October 2026 was read from the MIA's own page; the earlier
-      ones are as quoted in trade press reports of its releases. The default scope is passenger cars and vans and
-      goods vans, utes and trucks.
-    </p>
-    <p>
-      Counted on the wider scope, which also takes in buses, motor caravans and special purpose vehicles, this
-      site's count of new vehicles comes within 0.06% of the published total for October 2026, and within 1.3% for
-      each of the other periods compared. The older the month, the wider the gap. The cause is not established.
+      it, this site's count of new vehicles, counting all five types, comes within 0.06% of the published total for
+      October 2026, and within 1.3% for each of the other periods compared, which are eight months and three whole
+      years between March 2021 and October 2026, measured in November 2026. The total for October 2026 was read from
+      the MIA's own page; the earlier ones are as quoted in trade press reports of its releases. The older the month,
+      the wider the gap. The cause is not established.
       What has been measured is how close the counts come. It does not say how any organisation defines its own
       count, which has not been read here. The MIA's figures are as reported when a month closed, or as it later
       restates them; this site's are as NZTA's dashboard holds them at the latest export, where NZTA says a past
@@ -71,16 +67,18 @@ const registrations = starterViews(canvasVocabulary(builderVocabulary(manifest a
       section above says. This site does not adjust a figure to match another source.
     </p>
     <p>
-      The wider total sits beside the default one. In Explore it is under True registrations. On the canvas,
-      choose True registrations, wider scope under Counting, then add New or used under Filters and choose NZ New.{" "}
-      <a href={registrations}>True registrations in Explore</a>.{" "}
+      Counted on the two types this site counted before it counted five, passenger cars and vans and goods vans,
+      trucks and utes, the count of new vehicles is lower, and the published totals sit above it by 1.4% to 3.9% in the
+      same periods. On the canvas, choose New registrations under Counting, then add New or used under Filters and
+      choose NZ New, and add Registered as to keep the two types.{" "}
+      <a href={registrations}>New registrations in Explore</a>.{" "}
       <a href="/canvas/">Open the canvas</a>.
     </p>
 
     <h2>The Motor Trade Association's figures</h2>
     <p>
       The Motor Trade Association's vstat site (vstat.mta.org.nz) says it is built from NZTA data. Compared on 17 November
-      2026, it shows for October 2026 the same count of new passenger cars and vans as this site's true
+      2026, it shows for October 2026 the same count of new passenger cars and vans as this site's new
       registrations, 11,824, and the same top ten new models.
     </p>
     <p>
@@ -98,9 +96,9 @@ const registrations = starterViews(canvasVocabulary(builderVocabulary(manifest a
     <h2>Other sites take a different source</h2>
     <p>
       Some other sites take first registrations from NZTA's registrations dashboard. This site reads that dashboard
-      too, for the charts of true registrations where a build has them, and the open register for everything else. A site that counts only
+      too, for the charts of new registrations where a build has them, and the open register for everything else. A site that counts only
       the dashboard, or only the register, will give a different figure for the same month.{" "}
-      <a href="/method#true-registrations">What true registrations count</a>.{" "}
+      <a href="/method#true-registrations">What new registrations count</a>.{" "}
       <a href="/caveats">Other limits of the data</a>.
     </p>
 

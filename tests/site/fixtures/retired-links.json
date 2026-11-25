@@ -1,0 +1,670 @@
+[
+ {
+  "name": "starter registrations, the whole canvas",
+  "link": "/canvas/?canvas.charts=c1%2Cc2%2Cc3%2Cc4%2Cc5%2Cc6&c1.measure=count&c1.by=&c1.dataset=registrations_flow&c1.size=full&c1.from=registrations-monthly&c2.measure=count&c2.by=&c2.dataset=registrations_flow_wider&c2.where.import_status=NZ+New&c2.from=registrations-new-wider-monthly&c3.measure=share&c3.by=trade_group&c3.dataset=registrations_flow_wider&c3.where.import_status=NZ+New&c3.from=registrations-new-wider-passenger-or-commercial&c4.measure=count&c4.by=make&c4.dataset=registrations_flow&c4.type=league&c4.size=full&c4.from=model-leaderboard&c5.measure=share&c5.by=powertrain&c5.dataset=registrations_flow&c5.size=full&c5.from=registrations-powertrain-mix&c6.measure=share&c6.by=powertrain&c6.dataset=registrations_flow&c6.by2=import_status&c6.size=full&c6.from=registrations-powertrain-by-new-or-used&c6.cells=column",
+  "kind": "starter",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": null,
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-monthly",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   },
+   {
+    "id": "c2",
+    "dataset": "registrations_flow_wider",
+    "measure": "count",
+    "by": null,
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {
+     "import_status": [
+      "NZ New"
+     ]
+    },
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-new-wider-monthly",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   },
+   {
+    "id": "c3",
+    "dataset": "registrations_flow_wider",
+    "measure": "share",
+    "by": "trade_group",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {
+     "import_status": [
+      "NZ New"
+     ]
+    },
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-new-wider-passenger-or-commercial",
+    "status": "live",
+    "shape": "mix",
+    "filters": []
+   },
+   {
+    "id": "c4",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": "make",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": "league",
+    "preset": "model-leaderboard",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   },
+   {
+    "id": "c5",
+    "dataset": "registrations_flow",
+    "measure": "share",
+    "by": "powertrain",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-powertrain-mix",
+    "status": "live",
+    "shape": "mix",
+    "filters": []
+   },
+   {
+    "id": "c6",
+    "dataset": "registrations_flow",
+    "measure": "share",
+    "by": "powertrain",
+    "by2": "import_status",
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-powertrain-by-new-or-used",
+    "status": "live",
+    "shape": "matrix",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "starter registrations, chart 1 (registrations-monthly)",
+  "link": "/canvas/?canvas.charts=c1&c1.measure=count&c1.by=&c1.dataset=registrations_flow&c1.size=full&c1.from=registrations-monthly",
+  "kind": "starter-chart",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": null,
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-monthly",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "starter registrations, chart 2 (registrations-new-wider-monthly)",
+  "link": "/canvas/?canvas.charts=c1&c1.measure=count&c1.by=&c1.dataset=registrations_flow_wider&c1.where.import_status=NZ+New&c1.from=registrations-new-wider-monthly",
+  "kind": "starter-chart",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow_wider",
+    "measure": "count",
+    "by": null,
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {
+     "import_status": [
+      "NZ New"
+     ]
+    },
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-new-wider-monthly",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "starter registrations, chart 3 (registrations-new-wider-passenger-or-commercial)",
+  "link": "/canvas/?canvas.charts=c1&c1.measure=share&c1.by=trade_group&c1.dataset=registrations_flow_wider&c1.where.import_status=NZ+New&c1.from=registrations-new-wider-passenger-or-commercial",
+  "kind": "starter-chart",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow_wider",
+    "measure": "share",
+    "by": "trade_group",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {
+     "import_status": [
+      "NZ New"
+     ]
+    },
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-new-wider-passenger-or-commercial",
+    "status": "live",
+    "shape": "mix",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "starter registrations, chart 4 (model-leaderboard)",
+  "link": "/canvas/?canvas.charts=c1&c1.measure=count&c1.by=make&c1.dataset=registrations_flow&c1.type=league&c1.size=full&c1.from=model-leaderboard",
+  "kind": "starter-chart",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": "make",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": "league",
+    "preset": "model-leaderboard",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "starter registrations, chart 5 (registrations-powertrain-mix)",
+  "link": "/canvas/?canvas.charts=c1&c1.measure=share&c1.by=powertrain&c1.dataset=registrations_flow&c1.size=full&c1.from=registrations-powertrain-mix",
+  "kind": "starter-chart",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "share",
+    "by": "powertrain",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-powertrain-mix",
+    "status": "live",
+    "shape": "mix",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "starter registrations, chart 6 (registrations-powertrain-by-new-or-used)",
+  "link": "/canvas/?canvas.charts=c1&c1.measure=share&c1.by=powertrain&c1.dataset=registrations_flow&c1.by2=import_status&c1.size=full&c1.from=registrations-powertrain-by-new-or-used&c1.cells=column",
+  "kind": "starter-chart",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "share",
+    "by": "powertrain",
+    "by2": "import_status",
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-powertrain-by-new-or-used",
+    "status": "live",
+    "shape": "matrix",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "explore preset registrations-new-wider-passenger-or-commercial",
+  "link": "/canvas/?canvas.charts=c1&c1.measure=share&c1.by=trade_group&c1.dataset=registrations_flow_wider&c1.size=full&c1.from=registrations-new-wider-passenger-or-commercial",
+  "kind": "preset",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow_wider",
+    "measure": "share",
+    "by": "trade_group",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": null,
+    "status": "live",
+    "shape": "mix",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "explore preset registrations-powertrain-mix",
+  "link": "/canvas/?canvas.charts=c1&c1.measure=share&c1.by=powertrain&c1.dataset=registrations_flow&c1.size=full&c1.from=registrations-powertrain-mix",
+  "kind": "preset",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "share",
+    "by": "powertrain",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-powertrain-mix",
+    "status": "live",
+    "shape": "mix",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "explore preset registrations-powertrain-by-new-or-used",
+  "link": "/canvas/?canvas.charts=c1&c1.measure=share&c1.by=powertrain&c1.dataset=registrations_flow&c1.by2=import_status&c1.size=full&c1.from=registrations-powertrain-by-new-or-used",
+  "kind": "preset",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "share",
+    "by": "powertrain",
+    "by2": "import_status",
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-powertrain-by-new-or-used",
+    "status": "live",
+    "shape": "matrix",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "a Build link naming the narrower dataset",
+  "link": "/build/?build.dataset=registrations_flow&build.measure=count&build.by=powertrain",
+  "kind": "build",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": "powertrain",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": null,
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "a Build link naming the wider dataset",
+  "link": "/build/?build.dataset=registrations_flow_wider&build.measure=count&build.by=powertrain",
+  "kind": "build",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow_wider",
+    "measure": "count",
+    "by": "powertrain",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": null,
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "a Build link of a share by powertrain on the narrower dataset",
+  "link": "/build/?build.dataset=registrations_flow&build.measure=share&build.by=powertrain&build.where.import_status=NZ+New",
+  "kind": "build",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "share",
+    "by": "powertrain",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {
+     "import_status": [
+      "NZ New"
+     ]
+    },
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": null,
+    "status": "live",
+    "shape": "mix",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "a canvas link of the narrower dataset with its own condition on the vehicle type",
+  "link": "/canvas/?canvas.charts=c1&c1.dataset=registrations_flow&c1.measure=count&c1.by=powertrain&c1.value=BEV&c1.where.vehicle_type=Goods+vans%2C+trucks+and+utes",
+  "kind": "canvas",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": "powertrain",
+    "by2": null,
+    "values": [
+     "BEV"
+    ],
+    "values2": [],
+    "where": {
+     "vehicle_type": [
+      "Goods vans, trucks and utes"
+     ]
+    },
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": null,
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "a canvas link of the narrower dataset naming a vehicle type it never counted",
+  "link": "/canvas/?canvas.charts=c1&c1.dataset=registrations_flow&c1.measure=count&c1.by=powertrain&c1.where.vehicle_type=Buses",
+  "kind": "canvas",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": "powertrain",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {
+     "vehicle_type": [
+      "Buses"
+     ]
+    },
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": null,
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "a canvas link of the narrower dataset pinned to a month",
+  "link": "/canvas/?canvas.charts=c1&c1.dataset=registrations_flow&c1.measure=count&c1.by=make&c1.view=league&c1.snapshot=2026-10",
+  "kind": "canvas",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": "make",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": "2026-10",
+    "type": "league",
+    "preset": null,
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "a canvas link of the wider dataset with a preset title",
+  "link": "/canvas/?canvas.charts=c1&c1.dataset=registrations_flow_wider&c1.measure=count&c1.by=&c1.where.import_status=NZ+New&c1.from=registrations-new-wider-monthly",
+  "kind": "canvas",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow_wider",
+    "measure": "count",
+    "by": null,
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {
+     "import_status": [
+      "NZ New"
+     ]
+    },
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-new-wider-monthly",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "a saved canvas: the starter of registrations as My canvases kept it",
+  "link": "/canvas/?canvas.charts=c1%2Cc2%2Cc3%2Cc4%2Cc5%2Cc6&c1.by=&c1.dataset=registrations_flow&c1.from=registrations-monthly&c1.measure=count&c1.size=full&c2.by=&c2.dataset=registrations_flow_wider&c2.from=registrations-new-wider-monthly&c2.measure=count&c2.where.import_status=NZ+New&c3.by=trade_group&c3.dataset=registrations_flow_wider&c3.from=registrations-new-wider-passenger-or-commercial&c3.measure=share&c3.where.import_status=NZ+New&c4.by=make&c4.dataset=registrations_flow&c4.from=model-leaderboard&c4.measure=count&c4.size=full&c4.type=league&c5.by=powertrain&c5.dataset=registrations_flow&c5.from=registrations-powertrain-mix&c5.measure=share&c5.size=full&c6.by=powertrain&c6.by2=import_status&c6.cells=column&c6.dataset=registrations_flow&c6.from=registrations-powertrain-by-new-or-used&c6.measure=share&c6.size=full",
+  "kind": "saved",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": null,
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-monthly",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   },
+   {
+    "id": "c2",
+    "dataset": "registrations_flow_wider",
+    "measure": "count",
+    "by": null,
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {
+     "import_status": [
+      "NZ New"
+     ]
+    },
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-new-wider-monthly",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   },
+   {
+    "id": "c3",
+    "dataset": "registrations_flow_wider",
+    "measure": "share",
+    "by": "trade_group",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {
+     "import_status": [
+      "NZ New"
+     ]
+    },
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-new-wider-passenger-or-commercial",
+    "status": "live",
+    "shape": "mix",
+    "filters": []
+   },
+   {
+    "id": "c4",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": "make",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": "league",
+    "preset": "model-leaderboard",
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   },
+   {
+    "id": "c5",
+    "dataset": "registrations_flow",
+    "measure": "share",
+    "by": "powertrain",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-powertrain-mix",
+    "status": "live",
+    "shape": "mix",
+    "filters": []
+   },
+   {
+    "id": "c6",
+    "dataset": "registrations_flow",
+    "measure": "share",
+    "by": "powertrain",
+    "by2": "import_status",
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": false,
+    "snapshot": null,
+    "type": null,
+    "preset": "registrations-powertrain-by-new-or-used",
+    "status": "live",
+    "shape": "matrix",
+    "filters": []
+   }
+  ]
+ },
+ {
+  "name": "a canvas link of the narrower dataset broken down by model (the one link whose figures can differ: the model cap ranks five types, D-158; written from the make link above with the breakdown changed)",
+  "link": "/canvas/?canvas.charts=c1&c1.dataset=registrations_flow&c1.measure=count&c1.by=model",
+  "kind": "canvas",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": "model",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": null,
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
+ }
+]

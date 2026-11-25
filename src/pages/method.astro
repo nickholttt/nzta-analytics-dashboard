@@ -55,7 +55,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       <li>
         <strong>Flow</strong>: every first registration in month <em>M</em>,
         including vehicles since removed from the register, from NZTA's registrations dashboard. This is the dataset
-        for how many vehicles entered the fleet. The charts under “True registrations” use it, and
+        for how many vehicles entered the fleet. The charts under “New registrations” use it, and
         {" "}<a href="#true-registrations">the section below</a> says what it counts.
       </li>
       <li>
@@ -71,10 +71,9 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
     </p>
     <ul>
       <li>
-        <strong>Vehicle types</strong>: the vehicles still registered and true registrations on the wider scope count five types: passenger cars and vans,
-        goods vans, utes and trucks, buses, motor caravans and special purpose vehicles. True registrations on the default scope count the first two only
-        (the scopes are set once, in a list kept with the site's reference data).
-        Every other type is out, including motorcycles, mopeds, trailers and caravans, and tractors and other machinery.
+        <strong>Vehicle types</strong>: the vehicles still registered and new registrations count the same five types: passenger cars and vans,
+        goods vans, utes and trucks, buses, motor caravans and special purpose vehicles (the types are set once, in a list kept with the site's
+        reference data). A chart can be narrowed to some of them with the Registered as filter on the canvas. Every other type is out, including motorcycles, mopeds, trailers and caravans, and tractors and other machinery.
       </li>
       <li>
         <strong>Entering the fleet</strong>: survivors and flow count only vehicles registered in New Zealand for the
@@ -151,13 +150,13 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       there.
     </p>
     <p>
-      Charts of vehicles still registered show shares. Charts of true registrations show the count and the change on a
+      Charts of vehicles still registered show shares. Charts of new registrations show the count and the change on a
       year ago, as well as shares. The running total is defined here because the configuration allows it.
     </p>
 
-    <h2 id="true-registrations">True registrations</h2>
+    <h2 id="true-registrations">New registrations</h2>
     <p>
-      A true registration is a vehicle's first registration in New Zealand, counted in the month it happened, including
+      A new registration here is a vehicle's first registration in New Zealand, counted in the month it happened, including
       vehicles that have since been removed from the register. These counts come from NZTA's registrations
       dashboard, in files supplied by hand, and each chart says which export it uses and when it was taken.
       They begin in the dashboard's first month of data. Earlier months are not shown.
@@ -165,9 +164,9 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
     <ul>
       <li>
         <strong>What is counted</strong>: the same new and used-import statuses as the survivors dataset (under Vehicle
-        Scope). True registrations on the wider scope count the same five vehicle types as the survivors, so those two
-        can be compared; true registrations on the default scope count two. Re-registered and scratch-built
-        vehicles are left out of all of them.
+        Scope). New registrations count the same five vehicle types as the survivors, so those two can be compared.
+        Re-registered and scratch-built vehicles are left out of both. The dataset holds new and used vehicles: keep
+        New or used to NZ New to count new vehicles only.
       </li>
       <li>
         <strong>Past months can change</strong>: NZTA says vehicles may be added to or removed from the dashboard and a
@@ -176,8 +175,8 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
       </li>
       <li>
         <strong>Fewer ways to split</strong>: the export this site uses carries no engine size and no gross vehicle
-        mass, so charts of true registrations cannot be split by them. It does carry the owner's district, which this
-        site does not publish, so there is no regional chart of true registrations. Model names can differ from the register's for some
+        mass, so charts of new registrations cannot be split by them. It does carry the owner's district, which this
+        site does not publish, so there is no regional chart of new registrations. Model names can differ from the register's for some
         nameplates, so a model's count here and its survivors are not always the same vehicles.
       </li>
       <li>
@@ -186,7 +185,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
         sentence or a hover, a change on a year ago under 10% has one decimal place and any other is a whole number.
       </li>
       <li>
-        <strong>The canvas</strong> can count either vehicles still registered or true registrations. They are
+        <strong>The canvas</strong> can count either vehicles still registered or new registrations. They are
         never drawn on the same chart.
       </li>
     </ul>
@@ -242,7 +241,7 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
 
     <h2 id="cars-still-registered">Cars still registered against the long-run count</h2>
     <p>
-      Before the registrations dashboard begins there is no count of true registrations by vehicle. For cars, the
+      Before the registrations dashboard begins there is no count of new registrations by vehicle. For cars, the
       register's passenger cars and vans still registered are set against Stats NZ's count of cars registered for the
       first time that month, new and registered overseas first, from the first month Stats NZ splits them.
     </p>

@@ -30,7 +30,7 @@ test("a ranking over it spans the 3 months to the newest and is set beside the s
 test("a link that asks for a ranking over the 3 months reads back as asked and writes back unchanged", () => {
   const built = realisticBuilt();
   const all = canvas.canvasVocabulary(builder.builderVocabulary(built));
-  const link = latestMonthLink(all, built, { dataset: "registrations_flow", measure: "count", by: "make", type: "league", settings: { period: "latest_3m" } });
+  const link = latestMonthLink(all, built, { dataset: "new_registrations", measure: "count", by: "make", type: "league", settings: { period: "latest_3m" } });
   assert.ok(link);
   const url = new URL(link, "https://site.example");
   assert.deepEqual(canvas.chartSettings(url.search, "c1"), [["period", "latest_3m"]]);

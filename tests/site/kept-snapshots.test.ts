@@ -13,10 +13,15 @@ const script = fileURLToPath(new URL("../../scripts/kept-snapshots.mjs", import.
 const checker = fileURLToPath(new URL("../../scripts/check-public-build.mjs", import.meta.url));
 const { SMALL_CELL_KEY, indexProblems, ownerTableProblems, problemsIn, readKept, realOwnerDimensions, uncoveredOwnerTables, withholdOwnerTables, writeIndex } = await import("../../scripts/kept-snapshots.mjs");
 
+// The datasets the page configs name, held by every served manifest here: the public-build check fails a build that lacks them (page-datasets.mjs).
+const pageDatasets = Object.fromEntries(
+  ["config/latest_month.json", "config/answer_pages.json"].map((c) => [JSON.parse(readFileSync(new URL(`../../${c}`, import.meta.url), "utf8")).dataset as string, { rows: 1 }]),
+);
+
 // A data folder whose newest snapshot is `served`, with the kept folders given: folder name -> the snapshot date its manifest names (null: no manifest).
 function data(served: string, kept: Record<string, string | null>) {
   const dir = mkdtempSync(join(tmpdir(), "kept-"));
-  writeFileSync(join(dir, "manifest.json"), JSON.stringify({ latest_snapshot: served }));
+  writeFileSync(join(dir, "manifest.json"), JSON.stringify({ latest_snapshot: served, datasets: pageDatasets }));
   for (const [name, date] of Object.entries(kept)) {
     mkdirSync(join(dir, "snapshots", name), { recursive: true });
     if (date !== null) writeFileSync(join(dir, "snapshots", name, "manifest.json"), JSON.stringify({ latest_snapshot: date }));
@@ -123,7 +128,7 @@ test("the public-build check fails when a kept folder is malformed or the index 
     writeFileSync(join(dist, "index.html"), `<html><astro-island component-url="/_astro/Entry.AbCd1234.js"></astro-island></html>`);
     writeFileSync(join(dist, "_astro", "Entry.AbCd1234.js"), "export const a = 1;");
     mkdirSync(join(dist, "data", "snapshots", "2026-10"), { recursive: true });
-    writeFileSync(join(dist, "data", "manifest.json"), JSON.stringify({ latest_snapshot: "2026-12-31" }));
+    writeFileSync(join(dist, "data", "manifest.json"), JSON.stringify({ latest_snapshot: "2026-12-31", datasets: pageDatasets }));
     writeFileSync(join(dist, "data", "snapshots", "2026-10", "manifest.json"), JSON.stringify({ latest_snapshot: "2026-10-31" }));
     const check = () => spawnSync(process.execPath, [checker, dist], { encoding: "utf8" });
     const noIndex = check();
@@ -148,7 +153,7 @@ const dataset = "ds";
 function withKept(covered: unknown, run: (dir: string, folder: string) => void) {
   const dir = mkdtempSync(join(tmpdir(), "owner-"));
   try {
-    writeFileSync(join(dir, "manifest.json"), JSON.stringify({ latest_snapshot: "2026-12-31" }));
+    writeFileSync(join(dir, "manifest.json"), JSON.stringify({ latest_snapshot: "2026-12-31", datasets: pageDatasets }));
     const folder = join(dir, "snapshots", "2026-10");
     const datasetEntry = covered === undefined ? {} : { [SMALL_CELL_KEY]: { [owner]: covered } };
     mkdirSync(folder, { recursive: true });

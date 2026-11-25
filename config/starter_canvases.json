@@ -28,12 +28,12 @@
       "title": "How many vehicles are registered each month, and which ones?",
       "description": "Vehicles registered month by month: how many, of which kinds, the largest brands, and what powers them.",
       "charts": [
-        { "from": "registrations-monthly", "dataset": "registrations_flow", "measure": "count", "by": null, "type": null, "width": "full" },
-        { "from": "registrations-new-wider-monthly", "dataset": "registrations_flow_wider", "measure": "count", "by": null, "where": { "import_status": ["NZ New"] }, "type": null, "width": "half" },
-        { "from": "registrations-new-wider-passenger-or-commercial", "dataset": "registrations_flow_wider", "measure": "share", "by": "trade_group", "where": { "import_status": ["NZ New"] }, "type": null, "width": "half" },
-        { "from": "model-leaderboard", "dataset": "registrations_flow", "measure": "count", "by": "make", "type": "league", "width": "full" },
-        { "from": "registrations-powertrain-mix", "dataset": "registrations_flow", "measure": "share", "by": "powertrain", "type": null, "width": "full" },
-        { "from": "registrations-powertrain-by-new-or-used", "dataset": "registrations_flow", "measure": "share", "by": "powertrain", "by2": "import_status", "type": null, "width": "full", "settings": { "cells": "column" } }
+        { "from": "registrations-monthly", "dataset": "new_registrations", "measure": "count", "by": null, "type": null, "width": "full" },
+        { "from": "registrations-new-wider-monthly", "dataset": "new_registrations", "measure": "count", "by": null, "where": { "import_status": ["NZ New"] }, "type": null, "width": "half" },
+        { "from": "registrations-new-wider-passenger-or-commercial", "dataset": "new_registrations", "measure": "share", "by": "trade_group", "where": { "import_status": ["NZ New"] }, "type": null, "width": "half" },
+        { "from": "model-leaderboard", "dataset": "new_registrations", "measure": "count", "by": "make", "type": "league", "width": "full" },
+        { "from": "registrations-powertrain-mix", "dataset": "new_registrations", "measure": "share", "by": "powertrain", "type": null, "width": "full" },
+        { "from": "registrations-powertrain-by-new-or-used", "dataset": "new_registrations", "measure": "share", "by": "powertrain", "by2": "import_status", "type": null, "width": "full", "settings": { "cells": "column" } }
       ]
     },
     {

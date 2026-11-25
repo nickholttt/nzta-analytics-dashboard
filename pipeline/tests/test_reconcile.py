@@ -24,7 +24,7 @@ from pipeline.errors import GuardrailError
 
 from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
 
-FLOW, FLEET, SERIES, SURVIVING = "registrations_flow", "fleet", "registrations_cars_long_run", "registrations_surviving"
+FLOW, FLEET, SERIES, SURVIVING = "new_registrations", "fleet", "registrations_cars_long_run", "registrations_surviving"
 STATUS, TYPE = "import_status", "vehicle_type"
 LISTED, SECOND_LISTED = "fixture_listed", "fixture_second_listed"
 # Every kind a fixture row may state (reconciliation.figure_kinds in these tests).
@@ -408,7 +408,7 @@ def test_an_answer_that_rests_on_a_hidden_cell_is_not_compared_and_ours_is_not_p
 
 
 @pytest.mark.parametrize("figures, fragment", [
-    ([figure_row(filters='{"import_status": ["fixture_new", "fixture_old"]}')], "import_status has no value 'fixture_old' in the published files of registrations_flow"),
+    ([figure_row(filters='{"import_status": ["fixture_new", "fixture_old"]}')], "import_status has no value 'fixture_old' in the published files of new_registrations"),
     ([figure_row(filters='{"vehicle_type": ["fixture_x"]}')], "vehicle_type has no value 'fixture_x'"),
     ([figure_row(dataset=FLEET, filters='{"vehicle_usage": ["fixture_none"]}')], "vehicle_usage has no value 'fixture_none'"),
     ([figure_row(dataset=FLEET, filters='{"vehicle_usage": ["__NOT_BROKEN_DOWN__"]}')], "has no value '__NOT_BROKEN_DOWN__'"),
@@ -478,7 +478,7 @@ def test_a_dimension_the_dataset_publishes_no_file_for_aborts(tmp_path):
     staging, datasets = stage(tmp_path)
     datasets[FLOW]["live_dimensions"] = [TYPE]
     result = reconcile_figures(tmp_path, [figure_row(filters='{"import_status": ["fixture_new"]}')], datasets=datasets)
-    assert len(result.aborts) == 1 and "import_status is not a live dimension of registrations_flow in this build" in result.aborts[0]
+    assert len(result.aborts) == 1 and "import_status is not a live dimension of new_registrations in this build" in result.aborts[0]
 
 
 def test_two_dimensions_that_no_one_table_holds_abort_but_one_alone_uses_its_slice(tmp_path):

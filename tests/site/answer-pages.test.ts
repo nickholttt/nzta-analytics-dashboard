@@ -258,7 +258,7 @@ test("every address is unique across the pages, and the title and description of
   for (const p of mid.pages) assert.ok(p.description.length <= most && !p.description.includes("Its most registered models"), "the shorter description");
 });
 
-test("true registrations and survivors are never in one table: the pages read one dataset, config's, and it is a flow", () => {
+test("new registrations and survivors are never in one table: the pages read one dataset, config's, and it is a flow", () => {
   assert.equal(config.findDataset(answerConfig.dataset)?.grain, "flow");
   assert.ok(config.builderSpec.datasets.includes(answerConfig.dataset));
   assert.equal(new Set(["brand", "model"].map((k) => answerConfig.dataset)).size, 1);
@@ -275,7 +275,7 @@ test("the words of the pages are filled with nothing left over, for made-up fact
 test("no page or template names a value: the config's words carry no figure and the module no field", () => {
   for (const [key, text] of Object.entries(answerConfig.words)) assert.doesNotMatch(text.replace(/\{[^}]*\}/g, ""), /\d/, `${key}: a template holds no digit`);
   const source = readFileSync(new URL("../../src/lib/answerPages.ts", import.meta.url), "utf8");
-  for (const word of ["registrations_flow", "registrations_surviving", '"make"', "powertrain", "TOYOTA"]) assert.ok(!source.includes(word), word);
+  for (const word of ["registrations_flow", "new_registrations", "registrations_surviving", '"make"', "powertrain", "TOYOTA"]) assert.ok(!source.includes(word), word);
 });
 
 // ---- The links each page opens in the canvas, read back by the canvas's own reader ----

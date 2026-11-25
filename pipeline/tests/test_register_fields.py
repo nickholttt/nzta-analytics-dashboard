@@ -164,7 +164,7 @@ def test_the_field_is_read_from_the_register_and_is_not_live_where_the_source_ca
     cfg = make_cfg({})
     # The datasets that read a supplied source. A stock is offered only the dimensions it lists (test_stock.py).
     others = [d for d, spec in cfg.pipeline["datasets"].items() if "source" in spec]
-    assert len(others) >= 3
+    assert len(others) >= 2
     field = spec_of(cfg, dim_id)["derive"]["field"]
     assert derive.needed_fields(cfg, spec_of(cfg, dim_id)["derive"]) == {field}
     assert "applies_to" not in spec_of(cfg, dim_id), "the carried-fields rule must decide this, not a list"
@@ -475,7 +475,7 @@ def test_a_raw_category_has_no_sentinel_and_is_not_live_where_the_source_carries
     assert not sentinel_forms(cfg, cfg.pipeline["fields"][RAW_FIELD]), "the field has no form of not recorded but a blank"
     assert "reference" not in spec_of(cfg, dim_id)["derive"]
     others = [d for d, spec in cfg.pipeline["datasets"].items() if "source" in spec]
-    assert len(others) >= 3
+    assert len(others) >= 2
     for dataset in others:
         live, not_live = derive.applicable(cfg, dataset)
         assert dim_id not in {d["id"] for d in live}, dataset

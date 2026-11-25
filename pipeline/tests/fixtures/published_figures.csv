@@ -3,5 +3,5 @@ fixture_a,https://fixture.example/a/total,2026-11-01,2026-08,Fixture measure: al
 fixture_a,https://fixture.example/a/new,2026-11-01,2026-07,Fixture measure: new vehicles,4,registrations_surviving,"{""import_status"": [""NZ New""]}",5,A made-up known difference.,,passenger,
 fixture_b,https://fixture.example/b/total,2026-11-01,2026-06,Fixture measure: all vehicles,7,registrations_surviving,,5,,,model,8
 fixture_b,https://fixture.example/b/total,2026-11-01,2026-09,Fixture measure: all vehicles,12,registrations_surviving,,2,,made up table,commercial,
-fixture_c,https://fixture.example/c/total,2026-11-01,2026-08,Fixture measure: all vehicles,100,registrations_flow,,2,,,total,102
+fixture_c,https://fixture.example/c/total,2026-11-01,2026-08,Fixture measure: all vehicles,100,new_registrations,,2,,,total,102
 fixture_c,https://fixture.example/c/value,2026-11-01,2026-08,Fixture measure: one value,5,registrations_surviving,"{""import_status"": [""Fixture value not held""]}",2,,,model,

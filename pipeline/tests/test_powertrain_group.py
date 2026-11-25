@@ -135,7 +135,7 @@ def fact_pairs(public, dataset: str = SURVIVING) -> list[tuple[str, str, int]]:
 def test_every_dataset_that_cuts_by_powertrain_carries_the_group_beside_it_and_guards_it():
     cfg = make_cfg({})
     datasets = {d: spec for d, spec in cfg.pipeline["datasets"].items() if POWERTRAIN in (spec.get("facts") or [])}
-    assert len(datasets) >= 3
+    assert len(datasets) >= 2
     for dataset, spec in datasets.items():
         assert DIM in spec["facts"], dataset
         assert DIM in {d["id"] for d in derive.applicable(cfg, dataset)[0]}, dataset

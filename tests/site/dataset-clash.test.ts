@@ -1,6 +1,6 @@
-// Datasets that count some of the same vehicles are never drawn together (config/dimensions.json, never_charted_with; D-118): the wider
-// scope of true registrations counts every vehicle the default scope counts and more, so a chart reading both would count vehicles twice,
-// and a ratio of the register's survivors to it would set one scope against another.
+// Datasets that count some of the same vehicles are never drawn together (config/dimensions.json, never_charted_with; D-118, D-158): the
+// vehicles still registered and the registrations of the same five vehicle types are two counts of the same vehicles, so a chart reading both
+// would set one against the other. The one exception is the ratio that divides them on purpose.
 //   node --test "tests/site/*.test.ts"
 import "./support/register.mjs";
 import { test } from "node:test";
@@ -37,15 +37,34 @@ test("a marked pair is a clash whichever way round it is asked, and a pair nobod
   assert.equal(config.datasetClashes(["b", "c"], list).length, 0);
 });
 
-test("the wider scope of true registrations is marked against the default scope and not against the vehicles still registered, which count the same types since D-157; the default scope is marked against the vehicles still registered", () => {
-  assert.equal(config.datasetClashes(["registrations_flow_wider", "registrations_flow"]).length, 1);
-  assert.equal(config.datasetClashes(["registrations_flow", "registrations_flow_wider"]).length, 1);
-  // Completeness is the survivors over the wider scope: one scope set against itself, so it is not a clash.
-  assert.equal(config.datasetClashes(["registrations_flow_wider", "registrations_surviving"]).length, 0);
-  // The default scope counts two vehicle types and the survivors five (D-157), so a chart of both would set one scope against another.
-  // Completeness, the one ratio of survivors to registrations, reads the wider scope, which counts the same five.
-  assert.equal(config.datasetClashes(["registrations_flow", "registrations_surviving"]).length, 1);
-  assert.equal(config.datasetClashes(["registrations_surviving", "registrations_flow"]).length, 1);
+test("the one dataset of first registrations is marked against the vehicles still registered, whichever way round it is asked (D-158)", () => {
+  assert.equal(config.datasetClashes(["new_registrations", "registrations_surviving"]).length, 1);
+  assert.equal(config.datasetClashes(["registrations_surviving", "new_registrations"]).length, 1);
+  // A flow series of it and a survivors series on one chart is never drawn.
+  const base = { id: "p", question: "q", status: "live" as const };
+  const resolution = resolve.resolvePreset({ ...base, dataset: "new_registrations", measure: "count", series: [{ dataset: "registrations_surviving" }] }, everythingBuilt());
+  assert.equal(resolution.status, "invalid");
+  assert.ok(resolution.invalid.some((s) => /never drawn on one chart/.test(s)));
+});
+
+test("completeness is the one ratio of the two, and a ratio that does not say so is a clash like any other chart of the pair", () => {
+  const completeness = config.findDerived("completeness");
+  assert.ok(completeness?.numerator_dataset && completeness.denominator_dataset, "completeness divides two datasets");
+  assert.equal(completeness.ratio_of_clashing_datasets, true);
+  const pair = [completeness.numerator_dataset, completeness.denominator_dataset];
+  assert.equal(config.datasetClashes(pair).length, 1, "the pair it divides is marked: the exemption is for this ratio and not for the pair");
+  const chart = config.presets.filter((p) => p.derived === "completeness");
+  assert.ok(chart.length > 0, "a preset of completeness: this test would pass without checking anything");
+  for (const p of chart) {
+    assert.deepEqual(config.datasetClashes(config.datasetsRead(p)), [], p.id);
+    assert.ok(!resolve.resolvePreset(p, everythingBuilt()).invalid.some((s) => /never drawn on one chart/.test(s)), p.id);
+  }
+  // The same ratio without the flag reads both datasets, so a chart of it is invalid; so is a series of the other dataset beside the ratio.
+  const unflagged = (id?: string) => (id === completeness.id ? { ...completeness, ratio_of_clashing_datasets: undefined } : undefined);
+  assert.equal(config.datasetClashes(config.datasetsRead(chart[0], unflagged)).length, 1);
+  const beside = { ...chart[0], series: [{ dataset: completeness.numerator_dataset }, { dataset: completeness.numerator_dataset }] };
+  assert.equal(beside.dataset, completeness.denominator_dataset);
+  assert.equal(config.datasetClashes(config.datasetsRead(beside)).length, 1, "a series of the numerator beside the denominator's own is the pair drawn together");
 });
 
 test("every chart in the canon reads no clashing pair, and the resolver does not mark one", () => {

@@ -91,7 +91,7 @@ test("folding says whether anything was lost", () => {
 // ---- On the built data, where there is one ----
 
 const here = new URL("../../public/data/", import.meta.url);
-const haveData = existsSync(new URL("cube/registrations_flow/model.parquet", here));
+const haveData = existsSync(new URL("cube/new_registrations/model.parquet", here));
 
 test("the addresses of every brand and model value the build holds are unique and safe", { skip: !haveData && "no built data in public/data" }, async () => {
   const { readSlice } = await import("../../src/lib/latestMonthBuild.ts");
@@ -105,7 +105,7 @@ test("the addresses of every brand and model value the build holds are unique an
     }
   };
   for (const dimension of ["make", "model"]) {
-    const rows = (await readSlice(read, manifest, "registrations_flow", dimension)) ?? [];
+    const rows = (await readSlice(read, manifest, "new_registrations", dimension)) ?? [];
     const values = [...new Set(rows.map((r) => r.value))];
     assert.ok(values.length > 20, `${dimension}: values to check`);
     const s = slugsFor(values);

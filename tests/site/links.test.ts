@@ -14,7 +14,7 @@ const { findPeriod } = await import("../../src/lib/config.ts");
 
 const built = realisticBuilt();
 const all = canvas.canvasVocabulary(builder.builderVocabulary(built));
-const DATASET = "registrations_flow";
+const DATASET = "new_registrations";
 
 // Opens an address as the canvas does and reports what it asks.
 function open(link: string) {

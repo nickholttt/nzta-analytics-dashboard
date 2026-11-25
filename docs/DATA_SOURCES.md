@@ -239,7 +239,7 @@ first registrations and buyer type from the same dashboard.
   cells under 10 vehicles hidden, and not before the pipeline hides them.
 - **How it reaches the cube.** A maintainer adds each file to the store
   with one command, below; the build reads the store and writes the
-  dataset `registrations_flow` (`docs/CUBE_SCHEMA.md`, *Supplied
+  dataset `new_registrations` (`docs/CUBE_SCHEMA.md`, *Supplied
   sources*). The store is committed to this repository (the user,
   2026-11-16, D-097), so GitHub's runs build the dataset from the same
   files a local build reads. The raw exports, which carry the owner
@@ -260,7 +260,7 @@ first registrations and buyer type from the same dashboard.
   where the vehicle type is in the default scope or marked `trade_scope` in
   `vehicle_scope.csv` (the types of the wider scope, with which our counts of new vehicles
   come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared,
-  `docs/METRICS.md`, D-105 and D-106) and the import status is one `registrations_flow` counts. For every
+  `docs/METRICS.md`, D-105 and D-106) and the import status is one `new_registrations` counts. For every
   other row the model is stored as not recorded, and the rows that become
   identical are summed; every other field stays, so every vehicle type's counts
   remain askable. The rule is `supplied.nzta_dashboard.outside_scope` in
@@ -351,7 +351,7 @@ reference files that a maintainer edits; no source, measure or vehicle type is n
 | `id` | a short key of lower case letters, digits and underscores, which the `source` column of `published_figures.csv` uses |
 | `name` | the organisation's name as the site shows it |
 | `home_url` | the organisation's own address, `https://` |
-| `independent` | `true` if the source counts the vehicles separately from the data our datasets are built from; `false` for a copy of the same export (the dashboard export feeds `registrations_flow`, so its totals should match to the vehicle and prove nothing about whether ours are right). A source that is not independent is compared and shown, and does not count towards the hard limit |
+| `independent` | `true` if the source counts the vehicles separately from the data our datasets are built from; `false` for a copy of the same export (the dashboard export feeds `new_registrations`, so its totals should match to the vehicle and prove nothing about whether ours are right). A source that is not independent is compared and shown, and does not count towards the hard limit |
 | `definition` | what the source says it counts, in its own words, copied from the page it was read on; blank until read |
 | `definition_date_read` | the day that page was read, `YYYY-MM-DD`; blank exactly when `definition` is |
 | `data_basis` | a few words saying what data the source's figures are made from, shown beside its name on the site; free text; blank when nothing has been stated |
@@ -389,10 +389,12 @@ and our true registrations are its export, so it would not be independent.
 | `figure_kind` | an id (lower case letters, digits and underscores, starting with a letter) saying what sort of figure it is; required, and one of `reconciliation.figure_kinds` in `config/pipeline.json` (any other is refused, so a misspelt kind stops the build). `reconciliation.single_figure_limit.kinds` in `config/pipeline.json` lists the kinds that stop a build on one figure (below). A row of a listed kind whose `tolerance_pct` is `reconciliation.single_figure_limit.gap_pct` or more must have a `known_difference` that says why ours cannot come that close |
 | `restated_from` | blank, or a whole number above zero that is not the same as `figure`: the figure this source published before for the same month and measure, when its page now shows a different one. The row then holds the new figure in `figure` and the old one here (D-153). It is filled in by hand when the row is corrected, never worked out |
 
-**Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
-datasets of first registrations (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it
-counts first registrations or vehicles still registered (`registrations_surviving`: survivors are not registrations, and since
-D-157 they count the wider scope's five types). A row is set against that dataset's counts, narrowed by its filters, and nothing else.
+**Scope is carried by the dataset and its filters, so there is no scope column.** First registrations are one dataset,
+`new_registrations`, of five vehicle types (D-158; it replaced `registrations_flow`, which counted two, and
+`registrations_flow_wider`, which counted five), so a source that counts fewer types is set against it with a `vehicle_type`
+filter. The dataset also says whether it counts first registrations or vehicles still registered (`registrations_surviving`:
+survivors are not registrations, and since D-157 they count the same five types). A row is set against that dataset's counts, narrowed by
+its filters, and nothing else.
 
 **Filters** are one JSON object in the cell, each key a dimension id and each value a list of the values wanted:
 `{"import_status": ["<value>"], "vehicle_type": ["<value>", "<value>"]}`. The dimensions are all required at once; the values
@@ -439,15 +441,15 @@ What it holds (for January 2025 to October 2026): 389 rows, 336 read on 2026-11-
 
 | Source | Measure | `figure_kind` | Months | Set beside | Tolerance |
 |---|---|---|---|---|---|
-| `statsnz` | New Cars and Station Wagons Total (series TPTM.S22IZ) | `passenger` | 22 | true registrations, passenger cars and vans, new and used | 1% |
+| `statsnz` | New Cars and Station Wagons Total (series TPTM.S22IZ) | `passenger` | 22 | new registrations, passenger cars and vans, new and used | 1% |
 | `statsnz` | New Cars/Stat'n Wags Prev Reg'd Ovrseas (series TPTM.S22JZ) | `passenger` | 22 | the same, used imports only | 1% |
-| `mta_vstat` | new passenger cars | `passenger` | 22 | true registrations, new passenger cars and vans | 1% |
+| `mta_vstat` | new passenger cars | `passenger` | 22 | new registrations, new passenger cars and vans | 1% |
 | `mta_vstat` | used import passenger cars | `passenger` | 22 | the same, used imports | 1% |
-| `mta_vstat` | new light commercial vehicles | `commercial` | 22 | true registrations, new goods vans, trucks and utes | 12%, with a known difference (exempt from the one-figure rule) |
-| `mta_vstat` | each of the ten largest new models of the month | `model` | 22, ten rows each | true registrations on the wider scope, new, that model | 3% |
-| `mia` | total new vehicle registrations | `total` | 21 | true registrations on the wider scope, new | 1% |
-| `mia` | light passenger registrations, including SUVs | `passenger` | 19 | true registrations, new passenger cars and vans | 1% |
-| `mia` | light commercial plus heavy commercial registrations | `commercial` | 19 | true registrations on the wider scope, new, commercial | 2% |
+| `mta_vstat` | new light commercial vehicles | `commercial` | 22 | new registrations, new goods vans, trucks and utes | 12%, with a known difference (exempt from the one-figure rule) |
+| `mta_vstat` | each of the ten largest new models of the month | `model` | 22, ten rows each | new registrations, new, that model | 3% |
+| `mia` | total new vehicle registrations | `total` | 21 | new registrations, new | 1% |
+| `mia` | light passenger registrations, including SUVs | `passenger` | 19 | new registrations, new passenger cars and vans | 1% |
+| `mia` | light commercial plus heavy commercial registrations | `commercial` | 19 | new registrations, new, commercial | 2% |
 
 The config lists `passenger`, `commercial` and `total` for the one-figure rule, so it applies to 147 of the 389 rows (a count
 made with the real functions on the committed rows: 59 of the MIA's, 44 of vstat's, 44 of Stats NZ's); the 220 `model` rows

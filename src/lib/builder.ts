@@ -3,8 +3,8 @@
 // the resolver and the panel treat a built chart exactly as they treat an Explore one. A chart on the canvas holds one (src/lib/canvas.ts); the
 // Build page it began on only sends a link on (src/lib/buildLink.ts).
 import dataMapDoc from "../../config/data_map.json";
-import { builderSpec, dimensions, lowerLabel, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset } from "./config";
-import type { BuilderMeasure, Preset } from "./config";
+import { builderSpec, dimensions, lowerLabel, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset, retiredDatasets } from "./config";
+import type { BuilderMeasure, Preset, RetiredDataset } from "./config";
 import { isBuilt } from "./data";
 import type { Manifest } from "./data";
 import { monthLabel } from "./measures";
@@ -45,6 +45,12 @@ export type Question = {
   // Pinned to the snapshot of this month (YYYY-MM): the window keeps ending in it, in the charts that end in a month the visitor can name
   // (a ranking, a grid). The site serves one snapshot, so the figures are that snapshot's; the page says when it is not the one pinned to.
   snapshot?: string;
+  // On what a link asked, never on a settled question: the retired dataset the link named (readRetired), so the page can say what became of it;
+  // the values by field that the old dataset's scope held the chart to beyond what the link said itself (none for a field the link's own condition
+  // already kept inside the old scope); and the values the link named that the old scope ruled out and the chart no longer holds.
+  retiredFrom?: string;
+  retiredKept?: Record<string, string[]>;
+  retiredDropped?: NamedValue[];
 };
 
 // What the page offers, worked out at build time against the cube as built and handed to the island as plain data.
@@ -418,10 +424,26 @@ export type Reading = {
   snapshot?: { asked: string };
   // Values the link named that the page does not offer to choose, each with the field it was named for.
   left_out?: { asked: string; field: string }[];
+  // The link named a dataset that has been joined into another (retired_datasets): its old name, the dataset it is now, and the vehicles the old
+  // one counted where it counted fewer than the new one does.
+  retired?: { asked: string; shown: string; kind?: string };
+  // Values the link named for a field the old dataset narrowed that the old dataset did not count, so the one dataset's chart no longer holds them:
+  // the value, its field and the old dataset's name.
+  retired_dropped?: { asked: string; field: string; dataset: string }[];
 };
 
-export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled: Question, label: (value: string, dimension: string) => string = (v) => v): Reading {
+export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled: Question, label: (value: string, dimension: string) => string = (v) => v, retired: Readonly<Record<string, RetiredDataset>> = retiredDatasets): Reading {
   const note: Reading = {};
+  const was = asked.retiredFrom && Object.hasOwn(retired, asked.retiredFrom) ? retired[asked.retiredFrom] : undefined;
+  if (was) {
+    // What the old dataset's scope added to the link's question (readRetired meets the two): its own list, or the part of it the link's own condition
+    // left. A link whose own conditions already lay inside the old scope has nothing added, and is told the plain sentence: its figures are the same.
+    const kept = Object.entries(asked.retiredKept ?? {}).flatMap(([d, values]) => values.map((v) => label(v, d)));
+    note.retired = { asked: lowerFirst(was.label), shown: lowerFirst(datasetName(settled.dataset)), ...(kept.length ? { kind: sayList(kept) } : {}) };
+    const seenDropped = new Set<string>();
+    const dropped = (asked.retiredDropped ?? []).filter(({ dimension, value }) => !seenDropped.has(`${dimension}|${value}`) && seenDropped.add(`${dimension}|${value}`));
+    if (dropped.length) note.retired_dropped = dropped.map(({ dimension, value }) => ({ asked: label(value, dimension), field: lowerFirst(dimensionLabel(dimension, false, settled.dataset) ?? dimension), dataset: lowerFirst(was.label) }));
+  }
   const named = [
     ...(asked.by && asked.values ? asked.values.map((v) => ({ v, d: asked.by as string })) : []),
     ...Object.entries(asked.where ?? {}).flatMap(([d, kept]) => kept.map((v) => ({ v, d }))),
@@ -451,16 +473,18 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
 
 // What a link asked for that the page did not give, as the sentences the page says: one rule for the Build page and for each chart of
 // a canvas, so a link is told the same thing wherever it opens.
-export function linkNotices(all: Vocabulary, asked: Partial<Question>, settled: Question, label: (value: string, dimension: string) => string = (v) => v): string[] {
-  const note = readingNotes(all, asked, settled, label);
+export function linkNotices(all: Vocabulary, asked: Partial<Question>, settled: Question, label: (value: string, dimension: string) => string = (v) => v, retired: Readonly<Record<string, RetiredDataset>> = retiredDatasets): string[] {
+  const note = readingNotes(all, asked, settled, label, retired);
   const notices = builderSpec.notices;
   const fill = (template: string, context: Record<string, unknown>) => fillTemplate(template, context).text;
   return [
+    ...(note.retired ? [fill(note.retired.kind ? notices.retired_narrowed : notices.retired, note.retired)] : []),
     ...(note.dataset ? [fill(notices.dataset, note.dataset)] : []),
     ...(note.by ? [fill(notices.by, note.by)] : []),
     ...(note.by2 ? [fill(notices.by2, note.by2)] : []),
     ...(note.value2 ? [notices.value2] : []),
     ...(note.snapshot ? [fill(notices.snapshot, note.snapshot)] : []),
+    ...(note.retired_dropped ?? []).map((gone) => fill(notices.retired_dropped, gone)),
     ...(note.left_out ?? []).map((left) => fill(notices.left_out, left)),
   ];
 }
@@ -528,6 +552,37 @@ const WHERE = "where.";
 // own, where a plain one would hand back a built-in for a key such as "constructor" and the page would fail on it.
 const noConditions = (): Record<string, string[]> => Object.create(null);
 
+// A link that names a retired dataset (dimensions.json, retired_datasets) is read as the dataset it joined, narrowed to the vehicles the old one
+// counted: the same chart, the same figures. The old dataset's conditions meet the link's own by intersection (the link keeps what both allow;
+// where nothing is both, the old dataset's list stands, since the old dataset could not count anything else). A breakdown by a field the old
+// dataset narrowed keeps only the values it counted, so a link never draws a value the old dataset did not have. What the link named and the
+// old scope rules out is not kept silently: it goes in retiredDropped, and the page names each value (the old dataset drew nothing under such a
+// condition, and the one dataset cannot say "nothing" for a type it does count). The address a page writes
+// back never names a retired id: only an address an older page wrote does, so the id alone says the link is old.
+export function readRetired(asked: Partial<Question>, retired: Readonly<Record<string, RetiredDataset>> = retiredDatasets): Partial<Question> {
+  const from = asked.dataset && Object.hasOwn(retired, asked.dataset) ? retired[asked.dataset] : undefined;
+  if (!from) return asked;
+  const where = noConditions();
+  for (const [d, kept] of Object.entries(asked.where ?? {})) where[d] = kept;
+  const allowed = from.where ?? {};
+  const kept = noConditions();
+  const dropped: NamedValue[] = [];
+  for (const [d, list] of Object.entries(allowed)) {
+    const own = where[d] ?? [];
+    const both = own.filter((v) => list.includes(v));
+    for (const value of own) if (!list.includes(value)) dropped.push({ dimension: d, value });
+    where[d] = (both.length > 0 ? both : [...list]).sort(byText);
+    // The old scope added to the link's question unless the link's own condition lay wholly inside it.
+    if (both.length < own.length || own.length === 0) kept[d] = where[d];
+  }
+  const within = (field: string | null | undefined, values: string[] | undefined) => {
+    if (!field || !Object.hasOwn(allowed, field)) return values;
+    for (const value of values ?? []) if (!allowed[field].includes(value)) dropped.push({ dimension: field, value });
+    return (values ?? []).filter((v) => allowed[field].includes(v));
+  };
+  return { ...asked, dataset: from.to, where, values: within(asked.by, asked.values), values2: within(asked.by2, asked.values2), retiredFrom: asked.dataset, retiredKept: kept, retiredDropped: dropped };
+}
+
 export function readQuestion(search: string, scope: string = builderSpec.id): Partial<Question> {
   const key = (name: string) => `${scope}.${name}`;
   const params = new URLSearchParams(search);
@@ -537,7 +592,7 @@ export function readQuestion(search: string, scope: string = builderSpec.id): Pa
     if (k.startsWith(key(WHERE)) && v !== "") (where[k.slice(key(WHERE).length)] ??= []).push(v);
   }
   const by = params.get(key("by"));
-  return {
+  return readRetired({
     dataset: params.get(key("dataset")) ?? undefined,
     measure: params.get(key("measure")) ?? undefined,
     by: by === null ? undefined : by === "" ? null : by,
@@ -549,7 +604,7 @@ export function readQuestion(search: string, scope: string = builderSpec.id): Pa
     snapshot: params.get(key("snapshot")) || undefined,
     widened: params.getAll(key("widen")),
     rankAll: params.get(key("rank")) === "all",
-  };
+  });
 }
 
 export function questionParams(q: Question, scope: string = builderSpec.id): URLSearchParams {

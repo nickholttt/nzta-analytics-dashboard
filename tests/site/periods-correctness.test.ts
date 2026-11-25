@@ -24,7 +24,7 @@ const { fieldNoteAnchor, fullNote } = await import("../../src/lib/dimensionNote.
 const canvas = await import("../../src/lib/canvas.ts");
 const builder = await import("../../src/lib/builder.ts");
 
-const DATASET = "registrations_flow";
+const DATASET = "new_registrations";
 const NEW = "NZ New";
 const USED = "Used Import";
 const CONDITIONS = [NEW, USED, undefined] as const;

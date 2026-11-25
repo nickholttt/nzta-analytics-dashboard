@@ -10,7 +10,7 @@ const builder = await import("../../src/lib/builder.ts");
 
 const built = realisticBuilt();
 const all = canvas.canvasVocabulary(builder.builderVocabulary(built));
-const base = "canvas.charts=c1&c1.measure=count&c1.by=make&c1.dataset=registrations_flow&c1.type=league&c1.size=full";
+const base = "canvas.charts=c1&c1.measure=count&c1.by=make&c1.dataset=new_registrations&c1.type=league&c1.size=full";
 
 test("an empty condition or an empty value is dropped when the address is read", () => {
   const q = builder.readQuestion(`${base}&c1.where.import_status=&c1.where.powertrain=&c1.value=&c1.value=ONE&c1.value=`, "c1");

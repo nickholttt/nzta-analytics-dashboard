@@ -160,6 +160,9 @@ export type DerivedMeasure = Measure & {
   top_n?: number;
   numerator_dataset?: string;
   denominator_dataset?: string;
+  // The ratio divides two datasets that never share a chart (never_charted_with) on purpose: it is one number built from both, not two series
+  // drawn together, so datasetsRead does not count the two as read by a chart of it. Only a measure that says so is exempt.
+  ratio_of_clashing_datasets?: boolean;
   // Where the numerator's breakdown is not the preset's dimension: its own id, and the one value-set of another dimension the
   // numerator is narrowed to (through a pair slice). The two datasets then divide on the values both name alike.
   numerator_dimension?: string;
@@ -226,7 +229,7 @@ export type BuilderSpec = {
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
-  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; absent: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string; narrowed: string; narrowed_label: string };
+  notices: { dataset: string; retired: string; retired_narrowed: string; retired_dropped: string; by: string; by2: string; value2: string; left_out: string; absent: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string; narrowed: string; narrowed_label: string };
   not_offered: NotOffered[];
 };
 
@@ -276,6 +279,14 @@ export const shareChangeUnit: string = measuresDoc.share_change_display.unit;
 export const dimensions = dimensionsDoc.dimensions as unknown as Dimension[];
 export const datasets = dimensionsDoc.datasets as unknown as Dataset[];
 export const periods = dimensionsDoc.periods as unknown as Period[];
+
+// A dataset that was joined into another (dimensions.json, retired_datasets). Nothing writes its id any more; an old link, a saved canvas or a
+// Build link still carries it, and the page reads it as `to`, narrowed by `where` to the vehicles the old dataset counted. `label` is the name
+// the old dataset had, for the sentence that tells the visitor what happened.
+export type RetiredDataset = { to: string; label: string; where?: Record<string, string[]> };
+export const retiredDatasets: Readonly<Record<string, RetiredDataset>> = Object.fromEntries(
+  Object.entries((dimensionsDoc as unknown as { retired_datasets?: Record<string, RetiredDataset> }).retired_datasets ?? {}).filter(([id]) => !id.startsWith("$")),
+);
 
 // The browser is given only the keys of the pipeline config that are read here (scripts/browser-config.mjs): a key read from `pipeline` below must be listed there.
 const pipeline = pipelineDoc as unknown as {
@@ -329,13 +340,14 @@ export const isDeclaredComposite = (preset: Preset) => compositeRules.members.in
 
 // ---- Datasets that count the same vehicles are never drawn together ----
 
-// The datasets one chart reads: its own; both a ratio divides; the dataset each series of a curated comparison names. A dataset
-// that is another one filtered counts as that one.
+// The datasets one chart reads: its own; both a ratio divides, unless the ratio is one that config says divides datasets that never share a chart
+// (ratio_of_clashing_datasets: the one chart of the pair); the dataset each series of a curated comparison names. A dataset that is another one
+// filtered counts as that one.
 export function datasetsRead(preset: Preset, derived: (id?: string) => DerivedMeasure | undefined = findDerived): string[] {
+  const ratio = derived(preset.derived);
   const named = [
     preset.dataset,
-    derived(preset.derived)?.numerator_dataset,
-    derived(preset.derived)?.denominator_dataset,
+    ...(ratio?.ratio_of_clashing_datasets ? [] : [ratio?.numerator_dataset, ratio?.denominator_dataset]),
     ...(preset.series ?? []).map((s) => (s as { dataset?: string } | null)?.dataset),
   ];
   const served = named.filter((id): id is string => Boolean(id)).map((id) => findDataset(id)?.base ?? id);

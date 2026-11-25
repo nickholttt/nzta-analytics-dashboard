@@ -127,7 +127,7 @@ any figure they quoted from the earlier build no longer matches.
 
    ```bash
    # true registrations: reads the committed store, no pull needed
-   .venv/Scripts/python.exe -I scripts/unmatched_hybrids.py registrations_flow --top 25
+   .venv/Scripts/python.exe -I scripts/unmatched_hybrids.py new_registrations --top 25
    # the register: needs the saved pull of that snapshot (the pull is made only by the Action, or by the user's go-ahead)
    .venv/Scripts/python.exe -I scripts/unmatched_hybrids.py registrations_surviving data/raw/YYYY-MM/<timestamp> --top 25
    ```

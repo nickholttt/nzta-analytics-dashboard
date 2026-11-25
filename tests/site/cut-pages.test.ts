@@ -18,7 +18,7 @@ const { windowsFor } = await import("../../src/lib/windows.ts");
 const { count } = await import("../../src/lib/sentences.ts");
 const { answerConfig } = await import("../../src/lib/answerPages.ts");
 
-const DATASET = "registrations_flow";
+const DATASET = "new_registrations";
 const site = real ? await answerPagesSite(manifest, readPublished) : undefined;
 const table = real ? await readFactColumns(readPublished, manifest, DATASET, ["make", "model", "powertrain", "import_status"]) : undefined;
 const windows = real ? windowsFor(manifest.datasets[DATASET].latest_month) : [];
@@ -137,8 +137,22 @@ test("the new entries over the 12 months are counted from the raw rows: models a
   };
   // the figures are those of the build under test (22 models and 4 brands on the October 2026 build): they are counted, not stated
   assert.ok(count12("make") >= 0 && count12("model") >= 0);
-  const newModels = site!.pages.filter((p) => p.kind === "model" && p.periods!.rows.find((r) => r.fresh)).length;
-  assert.ok(newModels <= count12("model"), `${newModels} model pages open with a new entry in a period, of ${count12("model")} new models`);
+  // The 12-month row of a model's page is marked new exactly where the raw rows say it has vehicles now and none in the same 12 months a year earlier. (A model
+  // can be new in the month or the 3 months and have had vehicles earlier in the 12 months, so a mark in any row is not a count of the 12 months' new models.)
+  const row = windows.indexOf(twelve);
+  const modelPages = site!.pages.filter((p) => p.kind === "model");
+  const newEntries = (field: "model", value: string) => {
+    let now = 0;
+    let before = 0;
+    table!.n.forEach((x, i) => {
+      if (table!.values[field][i] !== value) return;
+      if (twelve.months.includes(table!.month[i])) now += x;
+      if (twelve.prior.includes(table!.month[i])) before += x;
+    });
+    return now > 0 && before === 0;
+  };
+  for (const p of modelPages) assert.equal(Boolean(p.periods!.rows[row].fresh), newEntries("model", p.value), `${p.name}: new over the 12 months`);
+  assert.ok(modelPages.filter((p) => p.periods!.rows[row].fresh).length <= count12("model"));
 });
 
 test("the index ranks every brand with a page over the 12 months: each row is the raw sum, in order, with a place only where it can be said", { skip: !real }, () => {

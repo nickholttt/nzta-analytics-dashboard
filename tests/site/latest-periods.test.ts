@@ -17,7 +17,7 @@ const { listWindow, newEntries } = await import("../../src/lib/periodTables.ts")
 const { windowsFor } = await import("../../src/lib/windows.ts");
 const { count } = await import("../../src/lib/sentences.ts");
 
-const DATASET = "registrations_flow";
+const DATASET = "new_registrations";
 const section = real ? await latestMonthSection(manifest, readPublished) : undefined;
 const table = real ? await readFactColumns(readPublished, manifest, DATASET, ["make", "model", "import_status"]) : undefined;
 const latest = manifest?.datasets?.[DATASET]?.latest_month as string | undefined;

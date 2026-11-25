@@ -326,7 +326,7 @@ test("the month shown is the dataset's newest month the manifest names, never re
   const view = make();
   assert.equal(view?.month, datasetLatestMonth(kit().manifest, "set_one"));
   assert.equal(latestConfig.dataset, config.builderSpec.datasets.find((id) => id === latestConfig.dataset));
-  assert.equal(config.findDataset(latestConfig.dataset)?.grain, "flow", "true registrations, which never share a chart with survivors");
+  assert.equal(config.findDataset(latestConfig.dataset)?.grain, "flow", "new registrations, which never share a chart with survivors");
 });
 
 // ---- The definitions each block points at ----
