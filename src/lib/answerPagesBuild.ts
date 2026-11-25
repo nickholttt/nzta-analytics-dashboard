@@ -6,17 +6,19 @@
 import { builderVocabulary, datasetName } from "./builder";
 import { canvasSpec, canvasVocabulary } from "./canvas";
 import { answerPageLink } from "./answerPageLinks";
+import { viewCuts } from "./conditionViewsBuild";
 import { answerConfig, answerSite } from "./answerPages";
 import type { AnswerConfig, Kind, Kit, Site } from "./answerPages";
 import { datasetWords, dimensionLabel, findDataset, findDimension, findMeasure, phrases, valueWords, yearChangeFloor } from "./config";
 import type { Preset } from "./config";
+import { datasetLatestMonth } from "./data";
 import type { Manifest } from "./data";
-import { labeller } from "./displayNames";
+import { conditionOrder, conditionWords, labeller } from "./displayNames";
 import { builtDisplayNames } from "./displayNamesBuild";
 import { readEvents, readSlice } from "./latestMonthBuild";
 import type { ReadFile } from "./latestMonthBuild";
 import { fillNote, noteContext } from "./notes";
-import { countedText, fillTemplate, monthLabel } from "./sentences";
+import { addMonths, countedText, fillTemplate, monthLabel, monthRange } from "./sentences";
 import { pct } from "./measures";
 
 const KINDS: readonly Kind[] = ["brand", "model"];
@@ -45,6 +47,32 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
     },
     valueWords,
   );
+  // The vehicles counted by the condition the pages say their figures under (new or used): cut from the fact table where it agrees with the slices.
+  const display = builtDisplayNames();
+  let views: Kit["views"];
+  if (config.view_field && display) {
+    const field = config.view_field;
+    const latest = datasetLatestMonth(manifest, config.dataset);
+    const wanted = KINDS.map((kind) => config[kind].dimension);
+    const bySlice: Record<string, Awaited<ReturnType<typeof readSlice>>> = { [field]: await readSlice(read, manifest, config.dataset, field) };
+    for (const kind of KINDS) bySlice[config[kind].dimension] = slices[kind];
+    const cut = await viewCuts(read, manifest, config.dataset, field, conditionOrder(display, field), wanted, bySlice, monthRange(addMonths(latest, 1 - config.window), latest));
+    const held = cut.cuts[field]?.conditions();
+    if (held && held.length > 0) {
+      const conditions = held.map((value) => {
+        const given = conditionWords(display, field, value);
+        const label = given?.label ?? names.label(field, value);
+        return { value, label, phrase: given?.phrase ?? label };
+      });
+      views = {
+        field,
+        fieldLabel: dimensionLabel(field, false, config.dataset) ?? field,
+        conditions,
+        cuts: { brand: cut.cuts[config.brand.dimension], model: cut.cuts[config.model.dimension] },
+        floor: cut.floors[config.model.dimension],
+      };
+    }
+  }
   const kit: Kit = {
     config,
     manifest,
@@ -61,7 +89,8 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
     phrases: { priorMonths: phrases.prior_months },
     floors: { change: yearChangeFloor(), share: findMeasure("share")?.guards?.min_denominator ?? 0 },
     format: { share: pct },
-    link: (kind, value) => answerPageLink(all, manifest, { dataset: config.dataset, measure: config.measure, field: config[kind].dimension, value }),
+    views,
+    link: (kind, value, by) => answerPageLink(all, manifest, { dataset: config.dataset, measure: config.measure, field: config[kind].dimension, value, by }),
     provenance: {
       source: source.unresolved.length === 0 && source.text ? source.text : undefined,
       snapshot: fillNote(canvasSpec.words.snapshot_line, { date: manifest.latest_snapshot }).text,

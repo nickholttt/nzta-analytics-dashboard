@@ -37,13 +37,8 @@
   border: 1px solid var(--rule-strong);
   border-radius: 999px;
   background: var(--paper);
-  color: var(--ink);
   font-size: var(--text-sm);
   cursor: pointer;
-}
-
-.vs-label:hover {
-  background: var(--paper-2);
 }
 
 .vs-input:checked + .vs-label {
