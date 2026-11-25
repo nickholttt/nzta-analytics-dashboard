@@ -256,7 +256,7 @@ when first registered here, and `powertrain__segment_group`, which applies a
 filter such as light passenger vehicles to the powertrain mix, and
 `import_status__vehicle_type`, which reads the vehicles still registered under one of NZTA's
 vehicle types as new or used (completeness by vehicle type and import status divides it by the
-same split of `registrations_flow`, which the fact table gives). A pair is live in a run when both of its
+same split of `registrations_flow_wider`, which the fact table gives; `registrations_flow` before D-157). A pair is live in a run when both of its
 dimensions are live, and `manifest.json` lists the live ones per dataset as
 `live_pairs`, which the site reads rather than assuming a pair exists. A
 pair whose dimension is not live waits, as the dimension does, and is listed
@@ -641,7 +641,8 @@ dataset and a set of dimension filters, a tolerance, a note on any known differe
 the figure's kind, and the figure the source published before if it restated this one), and
 `data/reference/published_sources.csv` one row for each organisation (`docs/DATA_SOURCES.md`, section F, has both files'
 columns and the filter encoding). Scope is carried by the dataset: the default scope and the trade's wider scope are two
-datasets, so a row says which total it is set against by its dataset and filters, and there is no scope column.
+datasets of first registrations (the vehicles still registered count the wider scope since D-157), so a row says which total it is
+set against by its dataset and filters, and there is no scope column.
 
 **What is checked is what is published.** After every dataset is staged and before the build is promoted, each row is
 answered from the staged files a visitor's browser would read, not from an internal table: from the dataset's fact table
@@ -969,7 +970,9 @@ window. The dataset's own
 rate, the one the site states, counts the vehicles in the cube. On the 2026-10
 snapshot `registrations_surviving` has 4,634,954 in-scope rows with 33,016
 unmapped makes (0.7123%, `unmapped_rates.make` 0.007123) against 4,520,304
-vehicles in the cube with 26,433 (0.58%); `registrations_flow` has 1,492,122
+vehicles in the cube with 26,433 (0.58%); since D-157, which widened it to the five types of the wider scope, the same
+snapshot gives 4,732,890 rows with 36,100 (0.7627%) against 4,615,306 vehicles in the cube with 29,330 (0.64%), and the
+trailing basis 367 of 244,463 (0.1501%, was 0.1188%), under the 0.5% warning level; `registrations_flow` has 1,492,122
 with 1,954 (0.1310%) against 1,483,403 in the cube with 1,753 (0.12%). The guard's rate is the
 higher here and is the one that aborts; the cube's is the one the site states.
 Neither is wrong, and the guard was left as it is (D-108).
@@ -1141,7 +1144,7 @@ register's shape: one row per vehicle (each store row repeated `vehicles` times)
 names, NULL for a field the source does not carry, and the registration year and month from `month`.
 Sentinels, scope, brand aliases, the model registry, the hybrid classification, the model cap and the
 unmapped guards then apply exactly as to the register. `registrations_flow` takes `require`
-`in_scope` and `fleet_entry`, as `registrations_surviving` does: the dashboard's RE-REG and SCRATCH
+`in_scope` and `fleet_entry`, as `registrations_surviving` did until D-157: the dashboard's RE-REG and SCRATCH
 rows are in the store and are not fleet entries.
 
 **The dataset's own latest month.** A supplied dataset's snapshot month is the last month in its store,
@@ -1306,7 +1309,9 @@ Volume:
   dataset counts a different number of vehicles than the register holds rows, has more than the one period, or has a slice
   or pair file with a column other than the contract's or a month other than the snapshot's (*Stock datasets*).
 - In-scope source rows differ from the last good run by more than 2%. The
-  fleet grows slowly; a jump means the source changed.
+  fleet grows slowly; a jump means the source changed. The rows are the default scope's (`in_scope`,
+  `in_scope_row_count` in the state), whichever scope a dataset counts: widening
+  `registrations_surviving` to the wider scope (D-157) added 95,002 vehicles to the dataset and moved this count by none.
 - A month that had at least 1,000 rows in the last good run now has none,
   or the snapshot month itself has none. Sparse early months are exempt,
   because scrapping the last surviving vehicle legitimately empties them.
