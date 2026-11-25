@@ -99,11 +99,11 @@ test("the question draws one grid: matrix, live, in a window, reading the fact t
   assert.deepEqual(builder.viewsFor(q), [], "there is one shape that fits, so there is nothing to switch");
 });
 
-test("the time row of a grid offers a month and the last 12 months, and no span of years", () => {
+test("the time row of a grid offers a month, the last 3 months and the last 12 months, and no span of years", () => {
   const q = builder.settle({ datasets: [vocabulary] }, { ...base, by2: "segment" });
   const [p] = builder.builderPresets(q);
-  assert.deepEqual(resolve.rankingPeriods(p).sort(), ["latest_month", "latest_year"]);
-  assert.ok(resolve.fitsPin(p, "latest_month") && resolve.fitsPin(p, "latest_year"));
+  assert.deepEqual(resolve.rankingPeriods(p).sort(), ["latest_3m", "latest_month", "latest_year"]);
+  assert.ok(resolve.fitsPin(p, "latest_month") && resolve.fitsPin(p, "latest_3m") && resolve.fitsPin(p, "latest_year"));
   assert.ok(!resolve.fitsPin(p, "5y") && !resolve.fitsPin(p, "all"));
 });
 

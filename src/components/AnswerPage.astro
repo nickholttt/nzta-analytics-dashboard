@@ -1,8 +1,15 @@
 ---
 // One answer page, a brand's or a model's (src/lib/answerPages.ts): the question as the heading, the answer as a figure and a sentence, the tables the
-// question rests on, a link that opens the same question in the canvas, and where the figures come from. Drawn as plain HTML with no script.
+// question rests on, a link that opens the same question in the canvas, and where the figures come from. Drawn as plain HTML with no script. Where the
+// figures are said by new and used, the big figure has them beside it, and a table that has a view for each is drawn behind a switch that needs no script.
 import "../styles/answer-pages.css";
+import "../styles/answer-parts.css";
 import type { PageView } from "../lib/answerPages";
+import AnswerTable from "./AnswerTable.astro";
+import CompareForm from "./CompareForm.astro";
+import CutNav from "./CutNav.astro";
+import PeriodTable from "./PeriodTable.astro";
+import ViewSwitch from "./ViewSwitch.astro";
 
 interface Props {
   page: PageView;
@@ -20,17 +27,72 @@ const tableId = (i: number) => `ap-table-${i}`;
   </ol>
 </nav>
 
+{page.cutNav && <CutNav nav={page.cutNav} />}
+
 <div class="ap-answer">
   <p class="ap-figure" aria-hidden="true">{page.figure}</p>
+  {
+    page.parts && (
+      <dl class="ap-parts">
+        {page.parts.map((p) => (
+          <div>
+            <dt>{p.label}</dt>
+            <dd>{p.value}</dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
   <ul class="ap-sentences">
     {page.sentences.map((s) => <li>{s}</li>)}
   </ul>
+  {page.notes && page.notes.map((n) => <p class="meta">{n}</p>)}
   <p class="ap-links">
     <a class="starter-open" href={page.canvas.href} aria-label={page.canvas.named}>{page.canvas.text}</a>
+    {page.canvasSplit && <a class="starter-open" href={page.canvasSplit.href} aria-label={page.canvasSplit.named}>{page.canvasSplit.text}</a>}
+    {page.more?.map((l) => <a class="starter-open" href={l.href} aria-label={l.named}>{l.text}</a>)}
     {page.brand?.href && <a href={page.brand.href}>{page.brand.text}</a>}
     <a href={page.definitionHref}>{page.labels.definition}</a>
   </p>
 </div>
+
+{page.periods && <PeriodTable table={page.periods} id="ap-periods" level={2} noComparison={page.labels.noComparison} newEntry={page.labels.newEntry} />}
+
+{
+  page.scope && (
+    <ViewSwitch id="ap-scope" legend={page.scope.legend} note={page.scope.note} labels={page.scope.labels} period={page.scope.period}>
+      {page.scope.sections.map((section) => (
+        <section class="ap-table-section">
+          <div class="section-head">
+            <h2 class="section-title" id={`ap-sec-${section.id}`}>{section.heading}</h2>
+          </div>
+          {section.intro && <p class="meta">{section.intro}</p>}
+          {section.panels.map((p) => (
+            <div class="vs-panel" data-view={p.view} data-win={`w${p.win}`} data-win-default={p.win === page.scope?.period.checked ? "" : undefined}>
+              <h3 class="vs-view">{p.label}</h3>
+              {p.sentences.map((s) => <p class="ap-panel-sentence">{s}</p>)}
+              {p.empty ? <p class="meta">{p.empty}</p> : <AnswerTable caption={p.heading} columns={p.columns} rows={p.rows} label={p.heading} noComparison={page.labels.noComparison} />}
+              {p.notes.map((n) => <p class="meta">{n}</p>)}
+              {p.links && p.links.length > 0 && <p class="ap-links">{p.links.map((l) => <a class="starter-open" href={l.href} aria-label={l.named}>{l.text}</a>)}</p>}
+            </div>
+          ))}
+        </section>
+      ))}
+    </ViewSwitch>
+  )
+}
+
+{
+  page.fixed && (
+    <section class="ap-table-section">
+      <div class="section-head">
+        <h2 class="section-title" id="ap-sec-fixed">{page.fixed.heading}</h2>
+      </div>
+      {page.fixed.panels.map((p) => <AnswerTable caption={p.heading} columns={p.columns} rows={p.rows} labelledby="ap-sec-fixed" noComparison={page.labels.noComparison} />)}
+      {page.fixed.panels.flatMap((p) => p.notes).map((n) => <p class="meta">{n}</p>)}
+    </section>
+  )
+}
 
 {
   page.tables.map((table, i) => (
@@ -38,35 +100,24 @@ const tableId = (i: number) => `ap-table-${i}`;
       <div class="section-head">
         <h2 class="section-title" id={tableId(i)}>{table.heading}</h2>
       </div>
-      <div class="ap-scroll" role="region" tabindex="0" aria-labelledby={tableId(i)}>
-        <table class="key ap-table">
-          <caption class="visually-hidden">{table.heading}</caption>
-          <thead>
-            <tr>{table.columns.map((c) => <th scope="col">{c}</th>)}</tr>
-          </thead>
-          <tbody>
-            {table.rows.map((r) => (
-              <tr class={r.total ? "total" : undefined}>
-                <th scope="row" class="text">{r.href ? <a href={r.href}>{r.name}</a> : r.name}</th>
-                {r.cells.map((c) =>
-                  c.hidden ? (
-                    <td><em>{c.text}</em></td>
-                  ) : c.none ? (
-                    <td class="change">—<span class="visually-hidden">{page.labels.noComparison}</span></td>
-                  ) : c.direction ? (
-                    <td class={`change ${c.direction}`}>{c.text}</td>
-                  ) : (
-                    <td class="figure">{c.text}</td>
-                  ),
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {table.views && table.switch ? (
+        <ViewSwitch id={`ap-view-${i}`} legend={table.switch.legend} note={table.switch.note} labels={table.switch.labels}>
+          {table.views.map((v, j) => (
+            <div class="vs-panel" data-view={j}>
+              <h3 class="vs-view">{v.label}</h3>
+              {v.empty ? <p class="meta">{v.empty}</p> : <AnswerTable caption={v.heading} columns={v.columns} rows={v.rows} label={v.heading} noComparison={page.labels.noComparison} />}
+            </div>
+          ))}
+        </ViewSwitch>
+      ) : (
+        <AnswerTable caption={table.heading} columns={table.columns} rows={table.rows} labelledby={tableId(i)} noComparison={page.labels.noComparison} />
+      )}
+      {table.note && <p class="meta">{table.note}</p>}
     </section>
   ))
 }
+
+{page.compare && <CompareForm form={page.compare} id="ap-compare" />}
 
 <p class="meta ap-source">
   {[page.provenance.source, page.provenance.snapshot].filter(Boolean).join(" ")} <a href={page.definitionHref}>{page.labels.source}</a>

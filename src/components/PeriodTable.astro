@@ -1,0 +1,50 @@
+---
+// The figure over each window, one row a window, beside its change on the same months a year earlier (src/lib/latestPeriods.ts, src/lib/answerPeriods.ts). Plain
+// text in a table that can be reached by keyboard where it scrolls sideways; a new entry is a tag, never a percentage.
+import "../styles/answer-pages.css";
+import "../styles/new-entry.css";
+import type { PeriodTable } from "../lib/latestPeriods";
+
+interface Props {
+  table: PeriodTable;
+  // The words for a missing comparison and a new entry, and the id the table is named by.
+  noComparison: string;
+  newEntry: string;
+  id: string;
+  level?: 2 | 3;
+}
+const { table, noComparison, newEntry, id, level = 3 } = Astro.props;
+const Heading = `h${level}` as "h2" | "h3";
+---
+
+<section class="ap-table-section">
+  <Heading class="ap-period-title" id={id}>{table.heading}</Heading>
+  <div class="ap-scroll" role="region" tabindex="0" aria-labelledby={id}>
+    <table class="key ap-table">
+      <caption class="visually-hidden">{table.heading}</caption>
+      <thead>
+        <tr>{table.columns.map((c) => <th scope="col">{c}</th>)}</tr>
+      </thead>
+      <tbody>
+        {
+          table.rows.map((r) => (
+            <tr>
+              <th scope="row" class="text">{r.label}</th>
+              {r.cells.map((c) => <td class="figure">{c}</td>)}
+              {
+                r.change ? (
+                  <td class={`change ${r.change.direction}`}>{r.change.text}</td>
+                ) : r.fresh ? (
+                  <td class="change"><span class="new-entry">{newEntry}</span></td>
+                ) : (
+                  <td class="change">—<span class="visually-hidden">{noComparison}</span></td>
+                )
+              }
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  {table.note && <p class="meta">{table.note}</p>}
+</section>

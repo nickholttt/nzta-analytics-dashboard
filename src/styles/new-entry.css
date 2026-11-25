@@ -1,0 +1,11 @@
+/* The marker of a value that has no vehicles in the same months a year earlier (src/lib/windowFigures.ts): a small outlined tag in the ink of the text. It is a word, so it
+   does not rest on colour, and it carries no sign because there is no percentage to sign. */
+.new-entry {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  white-space: nowrap;
+}

@@ -562,17 +562,18 @@ export function readQuestion(search: string, scope: string = builderSpec.id): Pa
   const key = (name: string) => `${scope}.${name}`;
   const params = new URLSearchParams(search);
   const where = noConditions();
+  // An empty value is no value: a form that sends "Any" as an empty condition (a plain GET form always sends every field) asks for no condition.
   for (const [k, v] of params) {
-    if (k.startsWith(key(WHERE))) (where[k.slice(key(WHERE).length)] ??= []).push(v);
+    if (k.startsWith(key(WHERE)) && v !== "") (where[k.slice(key(WHERE).length)] ??= []).push(v);
   }
   const by = params.get(key("by"));
   return readRetired({
     dataset: params.get(key("dataset")) ?? undefined,
     measure: params.get(key("measure")) ?? undefined,
     by: by === null ? undefined : by === "" ? null : by,
-    values: params.getAll(key("value")),
+    values: params.getAll(key("value")).filter((v) => v !== ""),
     by2: params.get(key("by2")) || undefined,
-    values2: params.getAll(key("value2")),
+    values2: params.getAll(key("value2")).filter((v) => v !== ""),
     where,
     view: params.get(key("view")),
     snapshot: params.get(key("snapshot")) || undefined,

@@ -1,0 +1,6 @@
+{
+  "$comment": "How the site writes a value's name as a person does (data/reference/display_names.csv, src/lib/displayNames.ts), read when the site is built and only by the home page's latest month and the answer pages: the canvas and the starter canvases keep the register's capitals. `rules` gives a field a rule for values with no row of their own in the file: title_case lowercases the value and capitalises each word. A row in the file wins over a rule, and a row can never rename a value, only change its case or spacing (tests/site/display-names.test.ts). `compound` names, for a field whose values join several fields' values with the field's separator (config/dimensions.json, key_separator), the fields the leading parts belong to: a model's value is its brand's value, then the model as the register holds it, so only the brand part follows the brand field's rule. Two values that would read the same are each shown as the register holds them. A field with no rule and no row is shown as it is held. The file also holds the words for the two conditions a first registration is counted under (display for a column or a button, phrase for a sentence).",
+  "reference": "display_names.csv",
+  "rules": { "make": "title_case" },
+  "compound": { "model": ["make"] }
+}

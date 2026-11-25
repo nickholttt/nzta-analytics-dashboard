@@ -32,6 +32,7 @@ def test_a_compound_dimension_declares_the_separator_the_pipeline_writes():
 # The templates in config are words, written once. Each may use only the placeholders the code fills, names no figure or
 # year, and carries no causal or judgement word. The lists they are held to are in config/narrative/rules.json.
 
+import csv
 import json
 import re
 from pathlib import Path
@@ -69,6 +70,7 @@ def _templates() -> list[tuple[str, str, str]]:
     found.extend(_comparison_templates())
     found.extend(_latest_month_templates())
     found.extend(_answer_pages_templates())
+    found.extend(_display_name_templates())
     for dimension in dimensions["dimensions"]:
         if "public_line" in dimension:
             found.append(("line", f"dimension {dimension['id']} public_line", dimension["public_line"]))
@@ -133,6 +135,15 @@ def _answer_pages_templates() -> list[tuple[str, str, str]]:
     """The words of the brand and model pages and their index (config/answer_pages.json): every text under `words`. What lies outside it (the
     dataset, the measure, the fields, the addresses and the numbers) is an id, an address or a limit the code reads, which the next test places."""
     return [("answer_pages", f"answer_pages.{path}", text) for path, text in _strings(_json("config/answer_pages.json")["words"])]
+
+
+def _display_name_templates() -> list[tuple[str, str, str]]:
+    """The words for the two conditions a first registration is counted under and for each powertrain cut (data/reference/display_names.csv): the name of each in a column or a
+    button, and its phrase in a sentence, for one vehicle and for several. They fill every sentence about new and used imports and about a powertrain, so they are held to
+    the same rules as a template: no figure, no causal word, no placeholder. A make's display name is a spelling, not a word of a sentence."""
+    with (ROOT / "data" / "reference" / "display_names.csv").open(encoding="utf-8", newline="") as handle:
+        rows = [r for r in csv.DictReader(handle) if r["field"] in ("import_status", "powertrain")]
+    return [("display_names", f"display_names.{r['value']}.{column}", r[column]) for r in rows for column in ("display", "phrase", "phrase_one") if (r.get(column) or "").strip()]
 
 
 def _chart_sentence_templates() -> list[tuple[str, str, str]]:
@@ -224,7 +235,7 @@ def test_the_lint_reads_every_word_of_the_starter_canvases():
 # What in config/latest_month.json is not a template: the dataset and the fields it names, each block's id, kind and the address of its definition, the
 # chart it opens in the canvas (a measure, a chart type and a setting, which are ids), and the two addresses of the section's links.
 _LATEST_MONTH_NOT_A_TEMPLATE = re.compile(
-    r"^(dataset|total_from|caveat\.href|hidden\.href"
+    r"^(dataset|total_from|view_field|caveat\.href|hidden\.href"
     r"|blocks\[\d+\]\.(id|kind|dimension|definition|canvas\.(measure|type|settings\..+)))$"
 )
 
@@ -245,8 +256,21 @@ def test_the_lint_reads_every_word_of_the_latest_month():
 # What in config/answer_pages.json is not a template: the dataset and the measure it counts, the fields it makes pages for, the first part of each
 # page's address, the index's address, the address of the definition and of the caveats page.
 _ANSWER_PAGES_NOT_A_TEMPLATE = re.compile(
-    r"^(dataset|measure|index_path|definition|caveat\.href|(brand|model)\.(dimension|path))$"
+    r"^(dataset|measure|view_field|index_path|definition|rivals_trend_period|caveat\.href|(brand|model|cut)\.(dimension|path))$"
 )
+
+
+def test_the_lint_reads_the_words_for_new_and_used_imports():
+    """The words that fill every sentence about the two conditions come from data/reference/display_names.csv, so they are linted as a template is:
+    each condition has its name, its phrase and its phrase for one vehicle."""
+    linted = {where for kind, where, _ in _templates() if kind == "display_names"}
+    with (ROOT / "data" / "reference" / "display_names.csv").open(encoding="utf-8", newline="") as handle:
+        rows = [r for r in csv.DictReader(handle) if r["field"] == "import_status"]
+    assert len(rows) >= 2, "the two conditions have gone missing: this test would pass without checking anything"
+    for r in rows:
+        for column in ("display", "phrase", "phrase_one"):
+            assert r[column].strip(), f"{r['value']} has no {column}"
+            assert f"display_names.{r['value']}.{column}" in linted, f"{r['value']} {column} is a text the lint does not read"
 
 
 def test_the_lint_reads_every_word_of_the_answer_pages():
@@ -363,8 +387,6 @@ def test_the_measure_that_sets_the_year_change_floor_exists():
 # names come from the reference files and the bands in config/dimensions.json, so a value added there is caught without an edit
 # here. config/narrative/rules.json lists, under ordinary_words, the few names that are also plain words in a sentence.
 
-import csv
-
 # (reference file, columns whose values the site shows a visitor as a value or a label)
 _NAME_COLUMNS = {
     "brand_registry.csv": ["make_canonical", "parent_group", "owner_country", "heritage_country", "brand_region"],
@@ -416,6 +438,8 @@ def test_the_lint_catches_a_short_name_a_plural_and_a_different_case():
 
 @pytest.mark.parametrize("kind,where,text", _templates(), ids=_id)
 def test_a_template_names_no_dimension_value_and_no_reference_label(kind, where, text):
+    if kind == "display_names":
+        pytest.skip("these are the words of the value itself, read beside its row: the one place a value is named")
     found = _names_in(text)
     assert not found, f"{where}: names {found}, values or labels that live in config and the reference files; fill them in as placeholders"
 

@@ -1,0 +1,31 @@
+field,value,display,phrase,note,phrase_one
+import_status,NZ New,New,new vehicles,Shown as one of the two conditions a first registration is counted under; read only by the site.,new vehicle
+import_status,Used Import,Used imports,used imports,Shown as the other condition; read only by the site.,used import
+powertrain,Petrol,Petrol,petrol vehicles,Shown as one of the powertrain cuts of the pages; read only by the site.,petrol vehicle
+powertrain,Diesel,Diesel,diesel vehicles,Shown as one of the powertrain cuts of the pages; read only by the site.,diesel vehicle
+powertrain,Hybrid,Hybrid,hybrid vehicles,Shown as one of the powertrain cuts of the pages; read only by the site.,hybrid vehicle
+powertrain,Mild hybrid,Mild hybrid,mild hybrid vehicles,Shown as one of the powertrain cuts of the pages; the site adds how far the line is identified where the manifest says it is partial.,mild hybrid vehicle
+powertrain,PHEV,Plug-in hybrid,plug-in hybrid vehicles,Shown as one of the powertrain cuts of the pages; read only by the site.,plug-in hybrid vehicle
+powertrain,BEV,Battery electric,battery electric vehicles,Shown as one of the powertrain cuts of the pages; read only by the site.,battery electric vehicle
+make,BAIC,BAIC,,An initialism: kept in capitals.,
+make,BMW,BMW,,An initialism: kept in capitals.,
+make,BYD,BYD,,An initialism: kept in capitals.,
+make,CRRC,CRRC,,An initialism: kept in capitals.,
+make,DAF,DAF,,An initialism: kept in capitals.,
+make,DS,DS,,Kept in capitals as the maker writes it.,
+make,GAC,GAC,,An initialism: kept in capitals.,
+make,GMC,GMC,,An initialism: kept in capitals.,
+make,GWM,GWM,,An initialism: kept in capitals.,
+make,JAC,JAC,,An initialism: kept in capitals.,
+make,KGM,KGM,,An initialism: kept in capitals.,
+make,LDV,LDV,,An initialism: kept in capitals.,
+make,MAN,MAN,,A name the maker writes in capitals; the plain rule would read as a word.,
+make,MG,MG,,An initialism: kept in capitals.,
+make,NIO,NIO,,Kept in capitals as the maker writes it.,
+make,KIA,Kia,,A short name that reads as a word.,
+make,ORA,Ora,,A short name that reads as a word.,
+make,RAM,Ram,,A short name that reads as a word.,
+make,LYNK & CO,Lynk & Co,,The short word is not capitalised in the maker's own name.,
+make,UD TRUCKS,UD Trucks,,The first word is an initialism.,
+make,MCLAREN,McLaren,,A capital inside the name.,
+powertrain,Mild hybrid (identified),Mild hybrid (identified),identified mild hybrid vehicles,Said in a sentence on the mild hybrid page while the line is only partly identified; read only by the site.,identified mild hybrid vehicle

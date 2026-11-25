@@ -4,12 +4,13 @@
 // The address names no month: the chart redraws on each month the site holds, and the page it is linked from is rebuilt with the data
 // (CLAUDE.md, how a page reads, point 9).
 //
-// latestMonthLink takes no condition, so a question about one value cannot be asked through it; this asks for the value as a condition, and nothing else.
+// A question about one value is asked as a condition on its field; `by` splits the count by another field, as the page's second link does.
 import type { Vocabulary } from "./builder";
 import { CANVAS_PATH, bestType, canvasParams, draws, nextChartId, settleCanvas, withFittingTypes } from "./canvas";
 import type { Manifest } from "./data";
 
-export type PageAsk = { dataset: string; measure: string; field: string; value: string };
+// `by` splits the count by another field (the second link of a page, which draws the value's count by new or used); absent, the count is of the value alone.
+export type PageAsk = { dataset: string; measure: string; field: string; value: string; by?: string };
 
 const sameWhere = (a: Record<string, string[]>, b: Record<string, string[]>) => JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 
@@ -18,10 +19,10 @@ const sameWhere = (a: Record<string, string[]>, b: Record<string, string[]>) => 
 export function answerPageLink(all: Vocabulary, manifest: Manifest, ask: PageAsk): string | undefined {
   const id = nextChartId([]);
   const where = { [ask.field]: [ask.value] };
-  const canvas = withFittingTypes(settleCanvas(all, [{ id, asked: { dataset: ask.dataset, measure: ask.measure, by: null, where }, type: null, table: false, width: "full" }]), manifest);
+  const canvas = withFittingTypes(settleCanvas(all, [{ id, asked: { dataset: ask.dataset, measure: ask.measure, by: ask.by ?? null, where }, type: null, table: false, width: "full" }]), manifest);
   const [chart] = canvas.charts;
   const q = chart.question;
-  if (q.dataset !== ask.dataset || q.measure !== ask.measure || q.by !== null || !sameWhere(q.where, where)) return undefined;
+  if (q.dataset !== ask.dataset || q.measure !== ask.measure || q.by !== (ask.by ?? null) || !sameWhere(q.where, where)) return undefined;
   if (!draws(q, chart.type ?? bestType(q), manifest)) return undefined;
   return `${CANVAS_PATH}?${canvasParams(canvas)}`;
 }

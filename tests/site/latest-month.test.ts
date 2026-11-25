@@ -232,11 +232,94 @@ for (const b of latestConfig.blocks.filter((x) => !x.dimension || live.has(x.dim
   });
 }
 
+// ---- Each view's link, read back by the canvas ----
+
+const { conditionOrder } = await import("../../src/lib/displayNames.ts");
+const { builtDisplayNames } = await import("../../src/lib/displayNamesBuild.ts");
+
+for (const b of latestConfig.blocks.filter((x) => x.views && x.dimension && live.has(x.dimension))) {
+  test(`block ${b.id}: each view's link opens the canvas on the block's question kept to that condition, and for all of them on the block's own`, () => {
+    const field = latestConfig.view_field as string;
+    const values = conditionOrder(builtDisplayNames(), field);
+    assert.ok(values.length >= 2, "the display names file gives the conditions");
+    for (const where of [...values.map((v) => ({ [field]: [v] })), undefined]) {
+      const link = latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: b.canvas.measure, by: b.canvas.by ? (b.dimension as string) : null, type: b.canvas.type, settings: b.canvas.settings, where });
+      assert.ok(link, "the canvas can draw this question");
+      const url = new URL(link, "https://site.example");
+      const asked = canvas.readCanvas(url.search);
+      const opened = canvas.withFittingTypes(canvas.settleCanvas(all, asked), built);
+      const q = opened.charts[0].question;
+      assert.equal(q.dataset, latestConfig.dataset);
+      assert.equal(q.measure, b.canvas.measure);
+      assert.equal(q.by, b.canvas.by ? b.dimension : null);
+      assert.deepEqual(q.where, where ?? {});
+      assert.equal(opened.charts[0].type, b.canvas.type);
+      assert.deepEqual(builder.linkNotices(all, asked[0].asked, q), []);
+      assert.ok(canvas.draws(q, opened.charts[0].type ?? canvas.bestType(q), built));
+      assert.deepEqual([...canvas.canvasAddress(url.search, opened)].sort(), [...url.searchParams].sort());
+      const settings = canvas.chartSettings(url.search, "c1");
+      assert.deepEqual(Object.fromEntries(settings.filter(([name]) => name !== "month")), b.canvas.settings ?? {});
+    }
+  });
+}
+
+test("the views of the real section are the registered figures cut by new or used, the switch's three, each with a link", { skip: !existsSync("public/data/manifest.json") }, async () => {
+  const { readPublished } = await import("../../src/lib/publishedFiles.mjs");
+  const manifest = JSON.parse(readFileSync("public/data/manifest.json", "utf8"));
+  const section = await latestMonthSection(manifest, readPublished);
+  assert.ok(section?.switch, "the build gives the switch");
+  assert.deepEqual(section.switch.labels, ["New", "Used imports", "All"]);
+  const total = section.blocks.find((b) => b.kind === "total");
+  const [, n, u] = /^Of these, ([\d,]+) new vehicles and ([\d,]+) used imports\.$/.exec(total?.parts ?? "") ?? [];
+  assert.ok(n && u, total?.parts);
+  assert.equal(count(Number(n.replace(/,/g, "")) + Number(u.replace(/,/g, ""))), total?.figure, "new and used imports are the month's figure");
+  for (const b of section.blocks.filter((x) => latestConfig.blocks.find((c) => c.id === x.id)?.views)) {
+    assert.equal(b.views?.length, 3, b.id);
+    for (const p of b.views ?? []) {
+      assert.ok(p.canvas.startsWith("/canvas/?"), p.label);
+      assert.ok(p.rows.length > 0 || p.empty, `${b.id} ${p.label} has a table or says it has none`);
+    }
+    // The all view is the block's own figures, each row's parts adding up to its count.
+    const all = b.views?.[2];
+    assert.deepEqual(all?.rows.map((r) => r.count), b.rows.map((r) => r.count));
+    for (const r of all?.rows ?? []) assert.equal(count((r.parts ?? []).reduce((s, x) => s + Number(x.replace(/,/g, "")), 0)), r.count, `${b.id} ${r.name}`);
+    // Each part sits under its own condition: wherever a condition's own view lists a value, the all view's part for that condition is that count.
+    let matched = 0;
+    for (const [i, view] of (b.views ?? []).slice(0, 2).entries()) {
+      for (const r of view.rows) {
+        const row = all?.rows.find((x) => x.value !== undefined && x.value === r.value);
+        if (!row) continue;
+        matched += 1;
+        assert.equal(row.parts?.[i], r.count, `${b.id} ${r.name}: the all view's ${view.label} figure is the ${view.label} view's`);
+      }
+    }
+    assert.ok(matched > 0 || b.rows.length === 0, `${b.id}: the parts were compared with something`);
+    // The change column beside the parts is the total's, and says so.
+    for (const col of all?.columns.filter((x) => x.key === "year") ?? []) assert.match(col.name, /^Change in all /);
+  }
+});
+
 test("a link to a question the canvas answers with another is not made: a field this build lacks leaves no link", () => {
   assert.equal(latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: "count", by: "no_such_field", type: null }), undefined);
   assert.equal(latestMonthLink(all, built, { dataset: "no_such_dataset", measure: "count", by: null, type: null }), undefined);
   // A chart type the question does not fit (a ranking of a field with two values) is not asked for either.
   assert.equal(latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: "count", by: "import_status", type: "league" }), undefined);
+});
+
+test("a block's question kept to one value of another field opens the canvas with that condition and writes back unchanged", () => {
+  const ask = { dataset: latestConfig.dataset, measure: "count", by: "make", type: "league", settings: { period: "latest_month" }, where: { import_status: ["NZ New"] } };
+  const link = latestMonthLink(all, built, ask);
+  assert.ok(link, "the canvas can draw this question");
+  const url = new URL(link, "https://site.example");
+  const asked = canvas.readCanvas(url.search);
+  const opened = canvas.withFittingTypes(canvas.settleCanvas(all, asked), built);
+  assert.deepEqual(opened.charts[0].question.where, { import_status: ["NZ New"] });
+  assert.equal(opened.charts[0].question.by, "make");
+  assert.deepEqual([...canvas.canvasAddress(url.search, opened)].sort(), [...url.searchParams].sort());
+  // With no condition the address is the block's own, unchanged.
+  assert.equal(latestMonthLink(all, built, { ...ask, where: undefined }), latestMonthLink(all, built, { ...ask, where: {} }));
+  assert.ok(!new URL(latestMonthLink(all, built, { ...ask, where: undefined }) as string, "https://site.example").search.includes("where"));
+  assert.equal(latestMonthLink(all, built, { ...ask, where: { no_such_field: ["x"] } }), undefined);
 });
 
 test("the month shown is the dataset's newest month the manifest names, never read from the survivors dataset", () => {
@@ -330,7 +413,7 @@ test("on the built data the figure is the sum of the vehicle-type split and of e
 
 test("the words of the section are filled with nothing left over, for a made-up month", () => {
   for (const [key, text] of Object.entries(latestConfig.words)) {
-    const { unresolved } = fillTemplate(text, { month: MONTH, prior_month: PRIOR, counted: "c", change: 0.1, prior_count: "1", prior: "p", name: "n", names: "n", field: "f", share: "s", points: "p", minimum: "1", heading: "h" });
+    const { unresolved } = fillTemplate(text, { month: MONTH, prior_month: PRIOR, counted: "c", change: 0.1, prior_count: "1", prior: "p", name: "n", names: "n", field: "f", share: "s", points: "p", minimum: "1", heading: "h", view: "v", parts: "p", count: "1", window: "w", start: "s", end: "e", items: "i", label: "l", months: 3 });
     assert.deepEqual(unresolved, [], key);
   }
 });

@@ -1,0 +1,51 @@
+---
+// One table of an answer page (src/components/AnswerPage.astro): the figures are text, each row's name links to its page where it has one, and a figure that
+// cannot be given says why it is missing. Where the table scrolls sideways it can be reached by keyboard, and it is named by the heading it sits under.
+import "../styles/new-entry.css";
+import type { TableRow } from "../lib/answerPages";
+
+interface Props {
+  caption: string;
+  columns: string[];
+  rows: TableRow[];
+  // What names the scrolling region: the id of a heading on the page, or the words themselves.
+  labelledby?: string;
+  label?: string;
+  noComparison: string;
+}
+const { caption, columns, rows, labelledby, label, noComparison } = Astro.props;
+const name = labelledby ? { "aria-labelledby": labelledby } : { "aria-label": label };
+---
+
+<div class="ap-scroll" role="region" tabindex="0" {...name}>
+  <table class="key ap-table">
+    <caption class="visually-hidden">{caption}</caption>
+    <thead>
+      <tr>{columns.map((c) => <th scope="col">{c}</th>)}</tr>
+    </thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr class={r.total ? "total" : undefined}>
+          <th scope="row" class={r.marked ? "text ap-this" : "text"}>
+            {r.href ? <a href={r.href}>{r.name}</a> : r.name}
+            {r.marked && <span class="visually-hidden"> ({r.marked})</span>}
+            {r.after && <> <a class="ap-after" href={r.after.href}>{r.after.text}</a></>}
+          </th>
+          {r.cells.map((c) =>
+            c.hidden ? (
+              <td><em>{c.text}</em></td>
+            ) : c.none ? (
+              <td class="change">—<span class="visually-hidden">{c.reason ?? noComparison}</span></td>
+            ) : c.fresh ? (
+              <td class="change"><span class="new-entry">{c.text}</span></td>
+            ) : c.direction ? (
+              <td class={`change ${c.direction}`}>{c.text}</td>
+            ) : (
+              <td class="figure">{c.text}</td>
+            ),
+          )}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
