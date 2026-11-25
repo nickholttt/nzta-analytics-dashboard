@@ -156,8 +156,9 @@ test("a dimension's kind agrees with the data map where it is a plain binding of
   let checked = 0;
   for (const d of config.dimensions) {
     assert.ok(kinds.includes(d.kind), `dimension ${d.id}: ${d.kind} is not a kind in the data map`);
-    const derive = d.derive as { kind: string; field?: string; from?: string; minus?: string };
-    if (derive.kind === "raw" || derive.kind === "lookup") {
+    const derive = d.derive as { kind: string; field?: string; from?: string; minus?: string; keys?: object };
+    // A lookup on several fields together (`keys`) is not a plain binding of one field: its kind is the reference file's, checked with the data map's group.
+    if (derive.kind === "raw" || (derive.kind === "lookup" && !derive.keys)) {
       const field = bound(derive.field as string);
       assert.ok(field, `dimension ${d.id} reads ${derive.field}, which the data map does not bind`);
       assert.equal(d.kind, field.kind, `dimension ${d.id} is a ${d.kind}; its field ${field.name} is a ${field.kind}`);

@@ -29,7 +29,7 @@ NEVER_BY = ["registration_year", "registration_month"]
 def dimension_reading(cfg, field: str, value: str | None = None) -> str:
     """The one dimension that looks up the field in a reference file (and returns `value`, when given)."""
     found = [d["id"] for d in cfg.dimensions["dimensions"]
-             if d.get("derive", {}).get("kind") == "lookup" and d["derive"]["field"] == field
+             if d.get("derive", {}).get("kind") == "lookup" and d["derive"].get("field") == field
              and (value is None or d["derive"]["value"] == value)]
     assert len(found) >= 1, field
     return found[0]

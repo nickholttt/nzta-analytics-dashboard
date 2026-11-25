@@ -17,7 +17,7 @@ the user on 2026-11-16 (D-096):**
   field that says where the owner lives or describes the owner (the `Territorial authority` column, the register's `TLA`,
   `VEHICLE_USAGE` and the rest of the owner groups), and an owner field still never reaches a fact table. The build refuses a
   config that breaks it (`owner_rule` in `config/data_map.json`; "Privacy classes" below). The committed store of the
-  dashboard keeps the two columns; nothing is built from them yet;
+  dashboard keeps the two columns, and the dimension `buyer_type` of `new_registrations` is built from them (D-159);
 - the `region` slice (share of vehicles by the owner's region, by month), published since before
   the work order under D-078, stays, and since D-127 takes the minimum of 10 (the user's ruling of
   2026-11-17, D-120 item 4) with a second rule that limits what a total gives away of a hidden cell
@@ -1157,15 +1157,17 @@ types, one row for every `Owner Type` (3) times every `Vehicle usage` value (20)
 - **Pairs the export has not sent.** 57 of the 60 pairs occur in the export. Three do not (Other with the overseas
   visitor licence, Other with hearse, Individual with commercial ambulance); they keep their rows so a later month that
   sends one still maps. A pair with no row at all, because NZTA sends an owner type or a usage value it has not sent
-  before, is meant to read `__UNMAPPED__` and stop the build (invariant 5).
+  before, reads `__UNMAPPED__` and stops the build (invariant 5: `buyer_type` is in `guardrails.abort_on_unmapped`).
 - **No empty value occurs.** None of the export's 991,274 rows has an empty `Owner Type` or an empty `Vehicle usage`.
   `UNDEFINED` is a value NZTA writes in `Vehicle usage` (382 vehicles); it is mapped like any other and follows its owner
-  type. An empty value is not a pair of the file: it is meant to read `__UNDEFINED__`, as an empty field does for every
-  derived field (`data/reference/sentinels.csv`).
+  type. An empty value is not a pair of the file: it reads `__UNDEFINED__`, as an empty field does for every derived field
+  (the store holds an empty value as null, and the lookup reads a null in either key as undefined).
 - **The moment.** The owner type is most likely the owner at first registration, not proven (above). The usage is the
   usage at registration, not the register's current use (As first registered, or today, below).
-- Nothing reads the file yet. Which fields may be published is decided by the privacy class each holds in the tables
-  above, which this file does not change.
+- The dimension `buyer_type` (`config/dimensions.json`, for `new_registrations` only) reads the file through a lookup on
+  both columns (`derive.lookup_keys`), so no value is named in code. Which fields may be published is decided by the privacy
+  class each holds in the tables above, which this file does not change; the floor keeps the dimension out of every table that
+  holds a field saying where the owner lives, and a test holds the published files to it (D-159).
 
 ## Stats NZ's series
 

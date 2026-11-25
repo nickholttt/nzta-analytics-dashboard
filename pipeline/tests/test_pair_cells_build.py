@@ -40,7 +40,7 @@ def other_dimension() -> str:
     cfg = config.load()
     h, engine = cfg.pipeline["hybrid_classification"], cfg.pipeline["engine"]
     found = [d["id"] for d in cfg.dimensions["dimensions"]
-             if d.get("derive", {}).get("kind") == "lookup" and d["derive"]["field"] == engine["field"]
+             if d.get("derive", {}).get("kind") == "lookup" and d["derive"].get("field") == engine["field"]
              and d["derive"]["reference"] == engine["reference"] and d["derive"]["value"] == h["powertrain_column"]]
     assert len(found) == 1, found
     return found[0]

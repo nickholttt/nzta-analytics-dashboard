@@ -1345,7 +1345,11 @@ pair; the fields, the counts, what the value does and does not say, and the pair
 - The owner type is most likely the owner at first registration, not proven (`docs/DATA_MAP.md`); a change of owner after
   registration is not seen.
 
-It is defined and tested but not built: no dimension, no build and no figure on the site reads the file yet.
+It is the dimension `buyer_type` of `new_registrations` and of no other dataset (the register carries neither column). It has a
+slice, a pair with new or used and a narrow fact table (`docs/CUBE_SCHEMA.md`, *Buyer type*), and no count of it is hidden: it
+says what kind of owner registered a vehicle, never who or where (`docs/DATA_MAP.md`), and it is never in one table with a field that
+says where the owner lives (D-159). A pair of owner type and usage the file has no row for reads `__UNMAPPED__` and stops the build.
+The canvas offers it as a field (group Buyer); no other page of the site reads it yet.
 
 ## Values in edge cases
 

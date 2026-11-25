@@ -99,7 +99,16 @@ def carried_fields(cfg, dataset: str) -> set[str] | None:
     if "fields" not in s:
         # A source of published series carries no vehicle's fields.
         return set()
-    return {*s["fields"], s["year_field"], s["month_field"], s["row_id_field"]}
+    return {*s["fields"], *s.get("extra_fields", {}), s["year_field"], s["month_field"], s["row_id_field"]}
+
+
+def extra_fields_read(cfg, source_id: str) -> list[str]:
+    """The logical names of a supplied source's `extra_fields` that some dimension's derive block reads, in the order the source
+    lists them. The build carries these into `src` beside the register's fields and no others: an extra field nothing reads
+    (the dashboard's vehicle status) stays in the store."""
+    s = cfg.supplied(source_id)
+    read = set().union(*(needed_fields(cfg, d["derive"]) for d in cfg.dimensions["dimensions"] if "derive" in d))
+    return [name for name in s.get("extra_fields", {}) if name in read]
 
 
 def series_dimension_problems(cfg) -> list[str]:
@@ -143,7 +152,7 @@ def applicable(cfg, dataset: str) -> tuple[list[dict], dict[str, str]]:
         elif offered is not None and dim["id"] not in offered:
             not_live[dim["id"]] = "not offered to this dataset (its dimensions in config/pipeline.json)"
         elif lacking:
-            not_live[dim["id"]] = "the source does not carry " + ", ".join(cfg.source_field(f) for f in lacking)
+            not_live[dim["id"]] = "the source does not carry " + ", ".join(cfg.pipeline["fields"].get(f, f) for f in lacking)
         elif "derive" not in dim:
             not_live[dim["id"]] = "no derive block in dimensions.json"
         else:

@@ -297,6 +297,24 @@
       "$comment": "The same vehicle_scope.csv key as vehicle_type, reading the trade_group column the file gives each type of the trade scope. A type outside that scope has no group and never reaches this dataset. The dataset is the only one that names it (D-113, D-158)."
     },
     {
+      "id": "buyer_type",
+      "label": "Buyer type",
+      "public_line": "Who the vehicle was first registered to: a person, a hire company, another company, or neither a person nor a company.",
+      "public_note": "Who NZTA records as the vehicle's registered person when it was first registered, in four groups. Private is a person (NZTA's owner type Individual). Rental is a company whose recorded use at registration is rental. Company is every other company, and it includes dealers, which NZTA's data does not separate from other companies. Other is neither a person nor a company (NZTA's owner type Other); another publisher shows a group of about this size as government, and NZTA's data does not say so. It is who registered the vehicle, not who owns it now. No count of it is hidden.",
+      "source": "nzta_dashboard:owner_type + nzta_dashboard:usage_registered + reference:buyer_type_map",
+      "derive": {
+        "kind": "lookup",
+        "reference": "buyer_type_map.csv",
+        "keys": { "owner_type": "nzta_owner_type", "usage_registered": "nzta_vehicle_usage" },
+        "value": "buyer_type"
+      },
+      "kind": "category",
+      "cardinality": "low",
+      "applies_to": ["new_registrations"],
+      "help": "Who the vehicle was first registered to: a person, a rental firm, another company, or neither a person nor a company. Counted for new registrations only.",
+      "$comment": "Read from the registrations dashboard's Owner Type and Vehicle usage (the data map's group kind_of_owner), which the register does not carry, so only the dataset built from the dashboard offers it (applies_to). A pair of the two the map file has no row for reads __UNMAPPED__ and trips the unmapped guard (pipeline.json guardrails.abort_on_unmapped). Public and shown in full, with no cell hidden, on the user's direction of 2026-11-25 (D-159); it is never put in one table with a field that says where the owner lives (config/data_map.json, owner_rule). The pipeline keeps no order of a dimension's values."
+    },
+    {
       "id": "import_status",
       "label": "New or used",
       "source": "nzta:import_status + reference:import_status_map",

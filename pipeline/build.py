@@ -485,6 +485,9 @@ def supplied_raw(con, cfg, source_id: str, types: dict[str, str]) -> None:
         else:
             value = "NULL"
         columns.append(f"CAST({value} AS {types[source_name]}) AS {quote(source_name)}")
+    # The source's own extra columns that a dimension reads (derive.extra_fields_read), under their logical names: they are
+    # not register fields, so they have no source name or type of the register's.
+    columns += [f"{quote(name)}" for name in derive.extra_fields_read(cfg, source_id)]
     # unnest(range(n)) repeats each store row n times: a vehicle each.
     con.execute(f"""
         CREATE OR REPLACE TABLE raw AS
@@ -545,7 +548,7 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
         extra = series.manifest_facts(ledger, s)
     else:
         supplied_raw(con, cfg, source_id, types)
-        normalise.build_src(con, cfg, types, schema_names)
+        normalise.build_src(con, cfg, types, schema_names, derive.extra_fields_read(cfg, source_id))
         con.execute("DROP TABLE raw")
         normalise.build_rows(con, cfg)
         built = {d: build_dataset(con, cfg, d, p["datasets"][d], latest, previous_live, staging, aborts, warnings) for d in names}

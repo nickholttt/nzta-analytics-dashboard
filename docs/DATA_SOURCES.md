@@ -240,7 +240,7 @@ first registrations and buyer type from the same dashboard.
   data map holds them as the group `kind_of_owner`, which the build keeps
   out of any table with a field that says where the owner lives. The
   repository is public, so the committed store publishes them, by month and
-  with the other public fields; no built file reads them yet. `Territorial authority`, the owner's district,
+  with the other public fields, and the dimension `buyer_type` of `new_registrations` is built from them (D-159). `Territorial authority`, the owner's district,
   is not kept: `supply` checks that it is in the file and drops it, and
   under the user's rule (2026-11-16, D-096) it could be published only in a
   table of one or two fields with cells under 10 vehicles hidden.

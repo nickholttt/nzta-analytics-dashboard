@@ -14,6 +14,7 @@ import duckdb
 import pytest
 
 from pipeline import build, derive, normalise, reference, supplied
+from pipeline.contract import PAIR_SEPARATOR
 from pipeline.errors import GuardrailError
 
 from .conftest import FIXTURES, NOW, load_rows, make_cfg, source_for, write_pages
@@ -87,7 +88,9 @@ def test_the_dataset_is_written_like_a_register_dataset(built):
     assert entry["rows"] == fleet_entry_vehicles(cfg)
     for dim in entry["live_dimensions"]:
         assert (public / "cube" / DATASET / f"{dim}.parquet").exists()
-    assert not (public / "pairs" / DATASET).exists()
+    # The pairs the dataset configures, and no other (a pair is a choice of config, and a dataset that lists none writes none).
+    configured = {f"{a}{PAIR_SEPARATOR}{b}.parquet" for a, b in cfg.pipeline["datasets"][DATASET].get("pairs", [])}
+    assert {p.name for p in (public / "pairs" / DATASET).glob("*.parquet")} == configured
 
 
 def test_the_fact_table_totals_the_datasets_vehicles(built):

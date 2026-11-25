@@ -54,6 +54,7 @@
     "not_live": {
      "imported_from": "does not apply to this dataset",
      "trade_group": "does not apply to this dataset",
+     "buyer_type": "does not apply to this dataset",
      "car_origin": "does not apply to this dataset",
      "car_engine_band": "does not apply to this dataset",
      "vehicle_usage": "does not apply to this dataset"
@@ -388,6 +389,7 @@
      "segment": "not offered to this dataset (its dimensions in config/pipeline.json)",
      "segment_group": "not offered to this dataset (its dimensions in config/pipeline.json)",
      "trade_group": "does not apply to this dataset",
+     "buyer_type": "does not apply to this dataset",
      "import_status": "not offered to this dataset (its dimensions in config/pipeline.json)",
      "car_origin": "does not apply to this dataset",
      "car_engine_band": "does not apply to this dataset",

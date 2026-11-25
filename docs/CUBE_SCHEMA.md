@@ -480,6 +480,27 @@ the 2026-10 pull against the build of the branch before it: the table's rows are
 payload is 4,877,607 bytes before and 4,912,106 after (+34,499), 61.4% of the 8,000,000 byte budget. Every other file is
 byte-identical; the manifest gains the dimension's entries.
 
+`buyer_type` (who the vehicle was first registered to, in four values under the names in `buyer_type_map.csv`: Private, Company, Rental
+and Other; D-159) is a lookup on two of the dashboard's fields together, owner type and usage at registration (`derive` `keys`, the
+data map's group `kind_of_owner`), so it is live for `new_registrations` and for no other dataset (`applies_to`; the register carries
+neither field): the others list it under `not_live` as "does not apply to this dataset", and the golden gains those two lines. It
+has a slice of its own, one pair (`buyer_type` with `import_status`, `pairs/new_registrations/buyer_type__import_status.parquet`) and
+a narrow fact table, `buyer` (`facts/new_registrations/narrow/buyer/`), of `buyer_type`, `import_status`, `vehicle_type`,
+`trade_group`, `powertrain_group`, `make` and `model`. It is not a column of the wide table. The rule used was: a column of the wide table
+only if it adds under 10% to that table's bytes, and otherwise a narrow table (D-144). Both were built on a dry run of the 2026-10 pull and the
+committed store: as a column the wide table's rows went from 136,452 to 195,281 (+43.1%) and its files from 388,759 to 511,307 bytes
+(+122,548, +31.5%, and each of its 14 files changed); as the narrow table the wide table's 14 files are byte for byte what they
+were, and the narrow table is 82,446 rows and 177,433 bytes over nine files. The slice is 2,801 bytes (280 cells, the smallest 152
+vehicles) and the pair 4,899 (560 cells; 20 of them, all Used Import with Other, hold under 10 vehicles, 147 in all, and are published as they
+are). The payload went from 5,922,555 to 6,107,688 bytes (+185,133), 76.3% of the 8,000,000 byte budget. The site does not read a narrow table
+yet, so a chart of buyer type alone, or by new or used, is drawn from the slice and the pair, and buyer type crossed with a make or a model
+waits for the site to read the narrow table. Every count adds up: a month's four values sum to the dataset's total for the month, and the
+pair summed over new or used is the slice (both tested, `pipeline/tests/test_buyer_type.py`). The dimension is in `abort_on_unmapped`: a pair of
+owner type and usage the file has no row for reads `__UNMAPPED__`. No cell is hidden, on the user's direction of 2026-11-25; the floor under
+that is that no table holds it beside a field that says where the owner lives (`pipeline/privacy.py`, `build.kind_of_owner_floor_problems`,
+tested on the published files). The reconciliation file is byte for byte as it was (all 389 rows), and the manifest gains the dimension's entries
+only. The pipeline keeps no order of a dimension's values; Private, Company, Rental, Other is the order the table shown to the user before the merge uses.
+
 A list that is empty or not distinct dimension ids, or names a dimension the
 dataset cannot derive (or `month`, `n` or `rid`), aborts the run. A listed dimension
 that is not live this run is left out of the table, with a warning, and listed
@@ -526,6 +547,8 @@ dimension not live this run is left out, with a warning, and listed under `not_l
 `n.parquet` and must equal the dataset's vehicles, or the run aborts. A table needs the dataset's `facts` (the wide table), a table's
 id is lower case letters, digits and underscores, and an id listed twice aborts. A dimension that reads an owner field is
 refused, exactly as for `facts` (above): the build aborts before anything is written.
+
+`narrow_facts` of `new_registrations` holds one table, `buyer` (above, under `buyer_type`); its sizes are measured there.
 
 `narrow_facts` of `registrations_surviving` holds one table, `colour`, of the dimensions `colour`, `make` and `powertrain_group`
 (D-144). Measured on the saved 2026-10 pull (4,520,304 vehicles), by writing each set with the build's own code:
@@ -1161,8 +1184,10 @@ is not live for the dataset, with the reason `the source does not carry <FIELD>`
 decided from the derive block and the source's field list (`derive.applicable`), never from a list of
 dimension ids. For the dashboard these are the dimensions that need the gross vehicle mass, the engine
 size and the district. Fuel consumption is all missing: `fc_n` is 0 and `fc_sum` is null in every row.
-`vehicle_status`, `owner_type` and `usage_registered` are kept in the store only; none is a dimension yet, and the build
-does not carry an `extra_fields` column into `raw`, so a store that gains one changes no built file.
+`vehicle_status`, `owner_type` and `usage_registered` are `extra_fields` of the store. The build carries into `src` the
+`extra_fields` that some dimension's derive block reads (`derive.extra_fields_read`, from the blocks, never a list of names), as text with an
+empty value read as null, and no others: `owner_type` and `usage_registered` are read by `buyer_type`, `vehicle_status` by none, so it stays
+in the store only. A store that gains an `extra_fields` column no dimension reads changes no built file.
 
 **New registrations** (`new_registrations`, D-158; the dataset was two before it: `registrations_flow` of the default scope's two vehicle
 types from D-084, and from D-113 `registrations_flow_wider` of five). `scope.vehicle.also` in
@@ -1171,7 +1196,8 @@ types from D-084, and from D-113 `registrations_flow_wider` of five). `scope.veh
 rows of its table `dims`, its hybrid coverage and its guards (a `require` naming none or two aborts the build).
 `new_registrations` takes `require` `in_trade_scope` and `fleet_entry`. Its facts are the dashboard's dimensions
 and `trade_group`, the dimension that sorts each counted type into the groups `vehicle_scope.csv`'s `trade_group`
-column gives (a lookup, as `vehicle_type` is; it applies to this dataset only). No pairs. The types the dataset counts are the rows of
+column gives (a lookup, as `vehicle_type` is; it applies to this dataset only). One pair, `buyer_type` with `import_status`
+(the paragraph on `buyer_type` under *Fact table*). The types the dataset counts are the rows of
 `registrations_flow_wider`, unchanged: its cube and fact files are byte for byte what that dataset's were (tested on the fixture
 history with added types, and measured on the 2026-10 pull in D-158), and a question for the default scope's two types is this dataset
 narrowed to them through its fact table, which holds `vehicle_type`. The store keeps the model for the types the dataset counts
