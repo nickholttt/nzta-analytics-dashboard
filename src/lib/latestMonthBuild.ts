@@ -55,7 +55,7 @@ export async function readSlice(read: ReadFile, manifest: Manifest, dataset: str
   });
 }
 
-function readEvents(read: ReadFile): Event[] | null {
+export function readEvents(read: ReadFile): Event[] | null {
   const file = read("events.json");
   if (!file) return null;
   try {

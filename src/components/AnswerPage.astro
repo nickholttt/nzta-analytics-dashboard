@@ -1,0 +1,74 @@
+---
+// One answer page, a brand's or a model's (src/lib/answerPages.ts): the question as the heading, the answer as a figure and a sentence, the tables the
+// question rests on, a link that opens the same question in the canvas, and where the figures come from. Drawn as plain HTML with no script.
+import "../styles/answer-pages.css";
+import type { PageView } from "../lib/answerPages";
+
+interface Props {
+  page: PageView;
+  // The address and words of the index, for the breadcrumb; absent where the build has none.
+  index?: { href: string; title: string };
+}
+const { page, index } = Astro.props;
+const tableId = (i: number) => `ap-table-${i}`;
+---
+
+<nav aria-label={page.labels.breadcrumb}>
+  <ol class="ap-crumbs">
+    <li><a href="/">{page.labels.home}</a></li>
+    {index && <li><a href={index.href}>{index.title}</a></li>}
+  </ol>
+</nav>
+
+<div class="ap-answer">
+  <p class="ap-figure" aria-hidden="true">{page.figure}</p>
+  <ul class="ap-sentences">
+    {page.sentences.map((s) => <li>{s}</li>)}
+  </ul>
+  <p class="ap-links">
+    <a class="starter-open" href={page.canvas.href} aria-label={page.canvas.named}>{page.canvas.text}</a>
+    {page.brand?.href && <a href={page.brand.href}>{page.brand.text}</a>}
+    <a href={page.definitionHref}>{page.labels.definition}</a>
+  </p>
+</div>
+
+{
+  page.tables.map((table, i) => (
+    <section class="ap-table-section">
+      <div class="section-head">
+        <h2 class="section-title" id={tableId(i)}>{table.heading}</h2>
+      </div>
+      <div class="ap-scroll" role="region" tabindex="0" aria-labelledby={tableId(i)}>
+        <table class="key ap-table">
+          <caption class="visually-hidden">{table.heading}</caption>
+          <thead>
+            <tr>{table.columns.map((c) => <th scope="col">{c}</th>)}</tr>
+          </thead>
+          <tbody>
+            {table.rows.map((r) => (
+              <tr class={r.total ? "total" : undefined}>
+                <th scope="row" class="text">{r.href ? <a href={r.href}>{r.name}</a> : r.name}</th>
+                {r.cells.map((c) =>
+                  c.hidden ? (
+                    <td><em>{c.text}</em></td>
+                  ) : c.none ? (
+                    <td class="change">—<span class="visually-hidden">{page.labels.noComparison}</span></td>
+                  ) : c.direction ? (
+                    <td class={`change ${c.direction}`}>{c.text}</td>
+                  ) : (
+                    <td class="figure">{c.text}</td>
+                  ),
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  ))
+}
+
+<p class="meta ap-source">
+  {[page.provenance.source, page.provenance.snapshot].filter(Boolean).join(" ")} <a href={page.definitionHref}>{page.labels.source}</a>
+</p>
+<p class="meta ap-source">{page.labels.caveat} <a href={page.caveatHref}>{page.labels.caveatLink}</a></p>

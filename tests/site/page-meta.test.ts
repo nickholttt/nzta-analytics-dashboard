@@ -131,3 +131,35 @@ test("the check fails on a card image named before the address is set, and on on
   const late = check({ "about/index.html": full("about") }, { address: "https://example.nz" });
   assert.match(late.join("\n"), /has no og:image, and the site's address is set/);
 });
+
+test("a generated page (a brand's or model's) has a title of its own, found by its folder, and shares its kind's card; two with one title fail", () => {
+  const answers = JSON.parse(readFileSync(join(repoRoot, "config/answer_pages.json"), "utf8"));
+  const own = (title: string, description: string) => full("about", { title: `${title} · ${site.meta.title_suffix}`, description });
+  const a = own("How many ALPHA vehicles were first registered in New Zealand in the last 12 months?", "Registrations of ALPHA in New Zealand: a count in the last year, and the months.");
+  const b = own("How many BETA vehicles were first registered in New Zealand in the last 12 months?", "Registrations of BETA in New Zealand: a count in the last year, and the months.");
+  const files = { [`${answers.brand.path}/alpha/index.html`]: a, [`${answers.brand.path}/beta/index.html`]: b };
+  assert.deepEqual(checkWithAnswers(files, answers), []);
+  const twin = checkWithAnswers({ ...files, [`${answers.model.path}/x/index.html`]: a }, answers).join("\n");
+  assert.match(twin, /the title .* is the one .* has/);
+  // The same title outside the generated folders is not one of meta.pages.
+  assert.match(check({ "elsewhere/index.html": a }).join("\n"), /not one of config\/site\.json meta\.pages/);
+});
+
+function checkWithAnswers(pages: Record<string, string>, answers: unknown) {
+  const dir = mkdtempSync(join(tmpdir(), "page-meta-"));
+  try {
+    mkdirSync(join(dir, "repo/config"), { recursive: true });
+    writeFileSync(join(dir, "repo/config/site.json"), JSON.stringify(site));
+    writeFileSync(join(dir, "repo/config/answer_pages.json"), JSON.stringify(answers));
+    mkdirSync(join(dir, "dist/_astro"), { recursive: true });
+    mkdirSync(join(dir, "dist/cards"), { recursive: true });
+    for (const id of ids) if (id !== "not_found") copyFileSync(join(repoRoot, "public/cards", `${id}.png`), join(dir, `dist/cards/${id}.png`));
+    for (const [name, html] of Object.entries(pages)) {
+      mkdirSync(join(dir, "dist", name, ".."), { recursive: true });
+      writeFileSync(join(dir, "dist", name), html);
+    }
+    return metadataProblems(join(dir, "dist"), join(dir, "repo")) as string[];
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}

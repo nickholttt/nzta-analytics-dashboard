@@ -1,0 +1,33 @@
+---
+// The index of the answer pages (src/lib/answerPages.ts): every brand with a page, and under each the models that have one. Plain nested lists.
+import "../styles/answer-pages.css";
+import type { IndexView } from "../lib/answerPages";
+
+interface Props {
+  index: IndexView;
+  home: string;
+  breadcrumb: string;
+}
+const { index, home, breadcrumb } = Astro.props;
+---
+
+<nav aria-label={breadcrumb}>
+  <ol class="ap-crumbs">
+    <li><a href="/">{home}</a></li>
+  </ol>
+</nav>
+
+<ul class="ap-index">
+  {
+    index.entries.map((e) => (
+      <li>
+        {e.href ? <a href={e.href}>{e.name}</a> : e.name}
+        {e.models.length > 0 && (
+          <ul aria-label={e.modelsLabel}>
+            {e.models.map((m) => <li><a href={m.href}>{m.name}</a></li>)}
+          </ul>
+        )}
+      </li>
+    ))
+  }
+</ul>

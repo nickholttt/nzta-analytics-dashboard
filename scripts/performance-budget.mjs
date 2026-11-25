@@ -109,33 +109,64 @@ export function measurePages(root) {
 
 const n = (x) => x.toLocaleString("en-NZ");
 
-// The problems: a page with no budget, a budget with no page, a kind over its limit, each naming the page and the kind.
+// A budget key that ends in "/*" holds every page whose address begins with what comes before the star (the pages a build generates, one for each brand or
+// model, are held to one entry, not one each); any other key is one page. A page with an entry of its own is held to that, else to the longest pattern that covers it.
+export const isPattern = (key) => key.endsWith("/*");
+const covers = (key, page) => (isPattern(key) ? page.startsWith(key.slice(0, -1)) : key === page);
+export function budgetFor(budget, page) {
+  if (budget.pages[page] && !isPattern(page)) return page;
+  return Object.keys(budget.pages)
+    .filter((key) => isPattern(key) && covers(key, page))
+    .sort((a, b) => b.length - a.length)[0];
+}
+
+// The problems: a page with no budget, a budget with no page, a kind over its limit, each naming the page and the kind. Of the pages one pattern holds, the
+// worst is named, with how many more are over.
 export function budgetProblems(measured, budget) {
   const problems = [];
-  for (const page of Object.keys(measured)) if (!budget.pages[page]) problems.push(`${page} is built but has no budget: add it to config/performance_budget.json (run the check with --propose for the numbers)`);
-  for (const [page, limits] of Object.entries(budget.pages)) {
-    if (!measured[page]) {
-      problems.push(`${page} has a budget but is not in the build: remove it from config/performance_budget.json`);
+  for (const page of Object.keys(measured)) if (budgetFor(budget, page) === undefined) problems.push(`${page} is built but has no budget: add it to config/performance_budget.json (run the check with --propose for the numbers)`);
+  for (const [key, limits] of Object.entries(budget.pages)) {
+    const pages = Object.keys(measured).filter((page) => budgetFor(budget, page) === key);
+    if (pages.length === 0) {
+      problems.push(isPattern(key) ? `${key} has a budget but no page of the build is under it: remove it from config/performance_budget.json` : `${key} has a budget but is not in the build: remove it from config/performance_budget.json`);
       continue;
     }
-    for (const { url, bytes } of measured[page].unnamed_drawing ?? []) problems.push(`${page}: the page's HTML does not name the drawing library (${url}, ${n(bytes)} B): the script that asks for it is missing, so those bytes are in no figure and the chart slows`);
-    if (measured[page][FIRST_CHART] !== undefined && typeof limits[FIRST_CHART] !== "number") problems.push(`${page}: the budget names no limit for ${FIRST_CHART}`);
+    for (const page of pages) {
+      for (const { url, bytes } of measured[page].unnamed_drawing ?? []) problems.push(`${page}: the page's HTML does not name the drawing library (${url}, ${n(bytes)} B): the script that asks for it is missing, so those bytes are in no figure and the chart slows`);
+      if (measured[page][FIRST_CHART] !== undefined && typeof limits[FIRST_CHART] !== "number") problems.push(`${page}: the budget names no limit for ${FIRST_CHART}`);
+    }
     for (const kind of [...KINDS, "total", ...(typeof limits[FIRST_CHART] === "number" ? [FIRST_CHART] : [])]) {
       const limit = limits[kind];
-      if (kind === FIRST_CHART && measured[page][kind] === undefined) {
-        problems.push(`${page}: the budget has a limit for ${kind} but the page asks for nothing before its script has run`);
+      if (kind === FIRST_CHART && pages.some((page) => measured[page][kind] === undefined)) {
+        problems.push(`${key}: the budget has a limit for ${kind} but the page asks for nothing before its script has run`);
         continue;
       }
-      if (typeof limit !== "number") problems.push(`${page}: the budget names no limit for ${kind}`);
-      else if (measured[page][kind] > limit) {
-        const over = measured[page][kind] - limit;
-        problems.push(`${page}: ${kind === FIRST_CHART ? "the first chart's critical path is" : `${kind} are`} ${n(measured[page][kind])} B compressed, over the budget of ${n(limit)} B by ${n(over)} B${limit > 0 ? ` (${((over / limit) * 100).toFixed(1)}%)` : ""}`);
+      if (typeof limit !== "number") {
+        problems.push(`${key}: the budget names no limit for ${kind}`);
+        continue;
       }
+      const over = pages.filter((page) => measured[page][kind] > limit).sort((a, b) => measured[b][kind] - measured[a][kind] || (a < b ? -1 : 1));
+      if (over.length === 0) continue;
+      const [worst] = over;
+      const by = measured[worst][kind] - limit;
+      const more = over.length > 1 ? ` (${over.length - 1} more page${over.length === 2 ? "" : "s"} under ${key} ${over.length === 2 ? "is" : "are"} over it too)` : "";
+      problems.push(`${worst}: ${kind === FIRST_CHART ? "the first chart's critical path is" : `${kind} are`} ${n(measured[worst][kind])} B compressed, over the budget of ${n(limit)} B by ${n(by)} B${limit > 0 ? ` (${((by / limit) * 100).toFixed(1)}%)` : ""}${more}`);
     }
   }
   return problems;
 }
 
-// A budget from what is measured, with a margin and rounded up to the next 100 bytes.
-export const propose = (measured, margin = 0.05) =>
-  Object.fromEntries(Object.entries(measured).map(([page, m]) => [page, Object.fromEntries([...KINDS, "total", ...(m[FIRST_CHART] === undefined ? [] : [FIRST_CHART])].map((k) => [k, Math.ceil((m[k] * (1 + margin)) / 100) * 100]))]));
+// A budget from what is measured, with a margin and rounded up to the next 100 bytes. A page a pattern in `patterns` covers is not given a line of its own: the
+// pattern's line is the largest of each kind over the pages it covers, plus the margin.
+export function propose(measured, margin = 0.05, patterns = []) {
+  const round = (x) => Math.ceil((x * (1 + margin)) / 100) * 100;
+  const kindsOf = (m) => [...KINDS, "total", ...(m[FIRST_CHART] === undefined ? [] : [FIRST_CHART])];
+  const heldBy = (page) => patterns.filter((key) => covers(key, page)).sort((a, b) => b.length - a.length)[0];
+  const out = {};
+  for (const [page, m] of Object.entries(measured)) {
+    const key = heldBy(page);
+    if (key === undefined) out[page] = Object.fromEntries(kindsOf(m).map((k) => [k, round(m[k])]));
+    else out[key] = Object.fromEntries(kindsOf(m).map((k) => [k, Math.max(out[key]?.[k] ?? 0, round(m[k]))]));
+  }
+  return Object.fromEntries(Object.entries(out).sort(([a], [b]) => a.localeCompare(b)));
+}

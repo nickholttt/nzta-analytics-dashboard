@@ -128,7 +128,7 @@ const say = (words: Record<string, string>, key: string, context: Record<string,
 
 // ---- A month of one slice ----
 
-type MonthOf = { visible: Map<string, number>; hidden: string[]; total: number };
+export type MonthOf = { visible: Map<string, number>; hidden: string[]; total: number };
 
 // The rows of one month of a slice: each visible value's count, the values whose count is hidden, and the month's total. Nothing where the slice
 // has no rows for the month, where the month is not broken down by the field (its one row is no value of it), or where the rows do not agree on the

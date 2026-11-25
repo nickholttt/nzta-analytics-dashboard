@@ -24,6 +24,10 @@ export function metadataProblems(root, repoRoot) {
   const { meta } = site;
   const origin = ownOrigin(repoRoot);
   const byTitle = new Map(Object.entries(meta.pages).map(([id, p]) => [`${p.title} · ${meta.title_suffix}`, id]));
+  // A generated page (config/answer_pages.json: a brand's, a model's) has a title of its own, which says what that page is, and shares the card of its kind
+  // (an entry of meta.pages with "generated"): it is found by its folder, not by its title. One picture serves hundreds of pages.
+  const answers = existsSync(join(repoRoot, "config/answer_pages.json")) ? JSON.parse(readFileSync(join(repoRoot, "config/answer_pages.json"), "utf8")) : {};
+  const generated = Object.entries(meta.pages).flatMap(([id, p]) => (p.generated && answers[p.generated]?.path ? [[`${answers[p.generated].path}/`, id]] : []));
   const seenTitle = new Map();
   const seenDescription = new Map();
 
@@ -61,7 +65,7 @@ export function metadataProblems(root, repoRoot) {
     if (noindex) continue;
 
     for (const key of ["og:type", "og:title", "og:description", "twitter:card", "twitter:title", "twitter:description"]) if (!tags[key]) here(`has no ${key}`);
-    const id = byTitle.get(title);
+    const id = generated.find(([folder]) => file.startsWith(folder))?.[1] ?? byTitle.get(title);
     if (!id) here(`the title "${title}" is not one of config/site.json meta.pages, so its card cannot be found`);
     const cardTags = ["og:image", "og:url", "twitter:image"];
     if (origin) {

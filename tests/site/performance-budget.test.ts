@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 // @ts-expect-error a plain module with no types
-import { budgetProblems, measurePages, propose } from "../../scripts/performance-budget.mjs";
+import { budgetFor, budgetProblems, measurePages, propose } from "../../scripts/performance-budget.mjs";
 
 const script = fileURLToPath(new URL("../../scripts/check-performance-budget.mjs", import.meta.url));
 
@@ -184,4 +184,80 @@ test("a page with a first-chart figure fails, naming the page, when its HTML doe
     rmSync(missing, { recursive: true, force: true });
     rmSync(named, { recursive: true, force: true });
   }
+});
+
+// ---- Pages the build generates are held by pattern ----
+
+const sized = (html: number) => ({ html, scripts: 0, styles: 10, fonts: 10, data: 0, total: html + 20 });
+const limit = (html: number) => ({ html, scripts: 0, styles: 10, fonts: 10, data: 0, total: html + 20 });
+
+test("a budget key ending in /* holds every page under it, and a page with its own line is held to that line, not the pattern's", () => {
+  const measured = { "/": sized(100), "/brand/a/": sized(300), "/brand/b/": sized(350), "/brand/": sized(50), "/model/x/": sized(200) };
+  const budget = { pages: { "/": limit(100), "/brand/*": limit(400), "/brand/": limit(50), "/model/*": limit(250) } };
+  assert.deepEqual(budgetFor(budget, "/brand/a/"), "/brand/*");
+  assert.deepEqual(budgetFor(budget, "/brand/"), "/brand/", "an exact line wins over a pattern");
+  assert.deepEqual(budgetFor(budget, "/model/x/"), "/model/*");
+  assert.equal(budgetFor(budget, "/other/"), undefined);
+  assert.deepEqual(budgetProblems(measured, budget), []);
+});
+
+test("a page over its pattern fails naming the worst page, and how many more are over", () => {
+  const measured = { "/brand/a/": sized(300), "/brand/b/": sized(500), "/brand/c/": sized(450), "/brand/d/": sized(100) };
+  const found = budgetProblems(measured, { pages: { "/brand/*": limit(400) } }) as string[];
+  const html = found.filter((p) => p.includes("html are"));
+  assert.equal(html.length, 1, "one line for the pattern's kind, not one for each page");
+  assert.match(html[0], /^\/brand\/b\/: html are 500 B compressed, over the budget of 400 B by 100 B \(25\.0%\) \(1 more page under \/brand\/\* is over it too\)$/);
+  const three = budgetProblems({ ...measured, "/brand/e/": sized(600) }, { pages: { "/brand/*": limit(400) } }) as string[];
+  assert.match(three.find((p) => p.includes("html are")) ?? "", /^\/brand\/e\/: .*\(2 more pages under \/brand\/\* are over it too\)$/);
+});
+
+test("a pattern with no page under it fails, as a line with no page does; a built page no line or pattern covers fails", () => {
+  const found = (budgetProblems({ "/about/": sized(10) }, { pages: { "/brand/*": limit(400), "/about/": limit(10) } }) as string[]).join("\n");
+  assert.match(found, /\/brand\/\* has a budget but no page of the build is under it/);
+  assert.match((budgetProblems({ "/brand/a/": sized(10), "/new/": sized(10) }, { pages: { "/brand/*": limit(400) } }) as string[]).join("\n"), /\/new\/ is built but has no budget/);
+});
+
+test("a proposed budget for a pattern is the largest of each kind over its pages, plus 5%, rounded up to 100", () => {
+  const measured = { "/": sized(1000), "/brand/a/": { ...sized(3000), styles: 5000 }, "/brand/b/": { ...sized(3668), styles: 4000 } };
+  const p = propose(measured, 0.05, ["/brand/*"]);
+  assert.deepEqual(Object.keys(p), ["/", "/brand/*"]);
+  assert.equal(p["/brand/*"].html, 3900);
+  assert.equal(p["/brand/*"].styles, 5300);
+  assert.equal(p["/brand/*"].total, Math.ceil((3668 + 20) * 1.05 / 100) * 100);
+  assert.deepEqual(propose(measured)["/brand/a/"] !== undefined, true, "with no pattern, every page has its own line, as before");
+});
+
+test("the command reports a pattern as one line and fails on a planted page over it", () => {
+  const dir = output({}, page);
+  const repo = mkdtempSync(join(tmpdir(), "perf-repo-"));
+  try {
+    for (const name of ["a", "b"]) {
+      mkdirSync(join(dir, "brand", name), { recursive: true });
+      writeFileSync(join(dir, "brand", name, "index.html"), page("<link rel=\"stylesheet\" href=\"/_astro/a.css\">").replace("TEXT", name === "b" ? "x".repeat(4000) : "a"));
+    }
+    mkdirSync(join(repo, "config"));
+    const m = measurePages(dir);
+    const own = (k: string) => m[k];
+    const budget = (brand: number) => JSON.stringify({ pages: { "/": { ...own("/") , html: 1e6, total: 1e6 }, "/brand/*": { ...own("/brand/a/"), html: brand, total: 1e6 } } });
+    writeFileSync(join(repo, "config/performance_budget.json"), budget(1e6));
+    const ok = spawnSync(process.execPath, [script, dir, "--repo", repo, "--report"], { encoding: "utf8" });
+    assert.equal(ok.status, 0, ok.stdout + ok.stderr);
+    assert.equal(ok.stdout.split("\n").filter((l) => l.startsWith("/brand/")).length, 1, "the two pages under the pattern are one line");
+    assert.match(ok.stdout, /\/brand\/\* \(2\)/);
+    writeFileSync(join(repo, "config/performance_budget.json"), budget(m["/brand/a/"].html));
+    const over = spawnSync(process.execPath, [script, dir, "--repo", repo], { encoding: "utf8" });
+    assert.equal(over.status, 1);
+    assert.match(over.stderr, /^- \/brand\/b\/: html are/m);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("the real budget's patterns each hold at least one page's worth of config: every generated kind has a line", () => {
+  const root = fileURLToPath(new URL("../..", import.meta.url));
+  const budget = JSON.parse(readFileSync(join(root, "config/performance_budget.json"), "utf8"));
+  const answers = JSON.parse(readFileSync(join(root, "config/answer_pages.json"), "utf8"));
+  for (const kind of ["brand", "model"]) assert.equal(typeof budget.pages[`/${answers[kind].path}/*`]?.html, "number", `no line for the ${kind} pages`);
+  assert.equal(typeof budget.pages[`/${answers.index_path}/`]?.html, "number", "no line for the index");
 });

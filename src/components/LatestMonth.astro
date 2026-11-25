@@ -3,27 +3,30 @@
 // when the site is built from the published slices (src/lib/latestMonthBuild.ts) and drawn as plain HTML with no script: each block's chart is bars
 // in a table, so the figures are the chart's own text, and each block opens its question in the canvas. Where the build cannot give the section
 // (the dataset is not built, its files are not there) nothing is drawn, and the page is as it was.
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import "../styles/latest-month.css";
 import manifest from "../../public/data/manifest.json";
 import type { Manifest } from "../lib/data";
 import { latestMonthSection } from "../lib/latestMonthBuild";
+import { latestConfig } from "../lib/latestMonth";
 import type { BlockView } from "../lib/latestMonth";
+import { answerConfig } from "../lib/answerPages";
+import { builtAnswerSite } from "../lib/answerSite";
+import { readPublished } from "../lib/publishedFiles.mjs";
 
-// The published files, read from the folder the site is built from (Astro builds with the project's folder as its working directory).
-const read = (relative: string) => {
-  try {
-    const file = readFileSync(join(process.cwd(), "public", "data", relative));
-    return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
-  } catch {
-    return undefined;
-  }
-};
-const view = await latestMonthSection(manifest as unknown as Manifest, read);
+// The published files are read from the folder the site is built from (src/lib/publishedFiles.mjs).
+const view = await latestMonthSection(manifest as unknown as Manifest, readPublished);
 const answer = view?.blocks.find((b) => b.kind === "total");
 const blocks = view?.blocks.filter((b) => b.kind !== "total") ?? [];
 const heading = (b: BlockView) => `lm-${b.id}`;
+// A name in a table that has a page of its own (src/lib/answerPages.ts) links to it. The page is found by the name the table shows, for the field the block
+// is about; a name two pages share has no link, so a link never opens the other's page.
+const answers = await builtAnswerSite();
+const pageOf = (b: BlockView, name: string): string | undefined => {
+  if (latestConfig.dataset !== answerConfig.dataset) return undefined;
+  const dimension = latestConfig.blocks.find((x) => x.id === b.id)?.dimension;
+  const kind = dimension === answerConfig.brand.dimension ? "brand" : dimension === answerConfig.model.dimension ? "model" : undefined;
+  return (kind && answers?.byLabel[kind].get(name)) || undefined;
+};
 // A split's segments, from darkest to lightest and back, so neighbours differ; a swatch beside each name repeats its colour.
 const SEGMENTS = [6, 3, 5, 2, 4];
 const colour = (i: number) => `--c:var(--scale-${SEGMENTS[i % SEGMENTS.length]})`;
@@ -67,7 +70,7 @@ const percent = (x: number) => `${(x * 100).toFixed(1)}%`;
                       <tr>
                         <th scope="row" class="text">
                           {b.kind === "split" && r.bar !== undefined && <span class="lm-swatch" style={colour(i)} aria-hidden="true" />}
-                          {r.name}
+                          {pageOf(b, r.name) ? <a href={pageOf(b, r.name)}>{r.name}</a> : r.name}
                           {b.kind !== "split" && r.bar !== undefined && <span class={`lm-bar ${b.kind === "movers" ? (r.change?.direction ?? "") : ""}`} style={`--w:${percent(r.bar)}`} aria-hidden="true" />}
                         </th>
                         {b.columns.slice(1).map((c) => {

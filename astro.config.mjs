@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import { BROWSER_PARTS, cutConfig } from "./scripts/browser-config.mjs";
+import { writeSitemap } from "./scripts/sitemap.mjs";
 
 // A page whose chart is an island fetches the island's script only when the page's own inline script runs, and each
 // script then names the ones it imports: a chain of requests, each waiting a round trip for the one before it. This
@@ -84,6 +85,19 @@ function prunePublicBuild() {
   };
 }
 
+// sitemap.xml and the robots.txt line, written once the site's address is set (config/site.json, about.site_address) and not before: a sitemap holds absolute
+// addresses. With no address the build says so and writes neither. It runs after the public build has dropped the internal pages, so they are never listed.
+function sitemap() {
+  return {
+    name: "sitemap",
+    hooks: {
+      "astro:build:done": ({ dir, logger }) => {
+        writeSitemap(fileURLToPath(dir), fileURLToPath(new URL(".", import.meta.url)), (message) => logger.info(message));
+      },
+    },
+  };
+}
+
 // A config file the browser reads only in part reaches the client build as the part (scripts/browser-config.mjs). The pages are made from the whole
 // file, which this leaves alone: it acts only where the browser's own code asks for the file.
 function browserConfig() {
@@ -124,7 +138,7 @@ function unusedCompressors() {
 
 // Local reference tool only: the dev server serves public/data as the pipeline built it.
 export default defineConfig({
-  integrations: [react(), preloadIslands(), prunePublicBuild()],
+  integrations: [react(), preloadIslands(), prunePublicBuild(), sitemap()],
   server: { host: "127.0.0.1", port: 4321 },
   vite: {
     plugins: [browserConfig(), unusedCompressors()],
