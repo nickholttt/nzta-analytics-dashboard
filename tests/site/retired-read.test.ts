@@ -87,12 +87,40 @@ test("a link to a retired id is told what became of it, in config's words: one s
   const plain = builder.linkNotices(vocabulary, plainAsk, builder.settle(vocabulary, plainAsk), label, retired);
   assert.ok(plain[0].startsWith("This link was made for plain old counts, which is now "), plain[0]);
   assert.ok(!/X and Y/.test(plain[0]));
-  // A link whose own condition keeps part of the old list is told that part, not the whole list the old dataset counted.
+  // A link whose own condition already lies inside the old list changed nothing: it is told the plain sentence, not that the old dataset counted only that.
   const own = asked({ dataset: OLD, measure: "count", where: Object.assign(Object.create(null), { [FIELD]: ["y"] }) });
   const [part] = builder.linkNotices(vocabulary, own, builder.settle(vocabulary, own), label, retired);
-  assert.match(part, /It keeps Y,/);
-  assert.ok(!/X/.test(part), part);
+  assert.ok(part.startsWith("This link was made for old counts, which is now "), part);
+  assert.ok(!/keeps/.test(part), part);
   // A link that names no retired id is told nothing of one.
   const fine = { dataset: target.id, measure: "count", where: Object.assign(Object.create(null), {}) };
   assert.ok(builder.linkNotices(vocabulary, fine, builder.settle(vocabulary, fine), label, retired).every((n) => !n.startsWith("This link was made for")));
+});
+
+test("a value the link named that the old dataset did not count is named as left out, whether it was the whole condition, part of it or a breakdown value", () => {
+  const vocabulary = builder.builderVocabulary(everythingBuilt());
+  const label = (v: string) => v.toUpperCase();
+  const w = (values: string[]) => Object.assign(Object.create(null), { [FIELD]: values });
+  const told = (ask: Partial<import("../../src/lib/builder.ts").Question>) => {
+    const read = asked(ask);
+    return { read, notices: builder.linkNotices(vocabulary, read, builder.settle(vocabulary, read), label, retired) };
+  };
+  // Nothing in common: the old list stands, and the value the link named is said to be left out.
+  const none = told({ dataset: OLD, measure: "count", where: w(["q"]) });
+  assert.deepEqual(none.read.retiredDropped, [{ dimension: FIELD, value: "q" }]);
+  assert.equal(none.notices.filter((n) => n.includes("“Q”")).length, 1, none.notices.join(" | "));
+  assert.match(none.notices.join(" "), /“Q” for .*, which old counts did not count, so it was left out/);
+  assert.match(none.notices[0], /It keeps X and Y, as old counts did/);
+  // Part of the condition is inside: that part stays, the rest is named.
+  const part = told({ dataset: OLD, measure: "count", where: w(["y", "q"]) });
+  assert.deepEqual({ ...part.read.where }, { [FIELD]: ["y"] });
+  assert.equal(part.notices.filter((n) => n.includes("“Q”")).length, 1);
+  // A breakdown value, named once however many places name it.
+  const by = told({ dataset: OLD, measure: "count", by: FIELD, values: ["x", "q"], where: w(["q"]) });
+  assert.equal(by.notices.filter((n) => n.includes("“Q”")).length, 1, by.notices.join(" | "));
+  // A condition wholly inside, a link with no condition and a dataset with no narrowing name nothing as left out.
+  for (const ask of [{ dataset: OLD, measure: "count", where: w(["x", "y"]) }, { dataset: OLD, measure: "count", where: w([]) }, { dataset: "plain", measure: "count", where: w(["q"]) }]) {
+    assert.deepEqual(told(ask).read.retiredDropped ?? [], [], JSON.stringify(ask));
+    assert.ok(told(ask).notices.every((n) => !n.includes("did not count")));
+  }
 });

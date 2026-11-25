@@ -45,8 +45,12 @@ export type Question = {
   // Pinned to the snapshot of this month (YYYY-MM): the window keeps ending in it, in the charts that end in a month the visitor can name
   // (a ranking, a grid). The site serves one snapshot, so the figures are that snapshot's; the page says when it is not the one pinned to.
   snapshot?: string;
-  // On what a link asked, never on a settled question: the retired dataset the link named (readRetired), so the page can say what became of it.
+  // On what a link asked, never on a settled question: the retired dataset the link named (readRetired), so the page can say what became of it;
+  // the values by field that the old dataset's scope held the chart to beyond what the link said itself (none for a field the link's own condition
+  // already kept inside the old scope); and the values the link named that the old scope ruled out and the chart no longer holds.
   retiredFrom?: string;
+  retiredKept?: Record<string, string[]>;
+  retiredDropped?: NamedValue[];
 };
 
 // What the page offers, worked out at build time against the cube as built and handed to the island as plain data.
@@ -423,18 +427,22 @@ export type Reading = {
   // The link named a dataset that has been joined into another (retired_datasets): its old name, the dataset it is now, and the vehicles the old
   // one counted where it counted fewer than the new one does.
   retired?: { asked: string; shown: string; kind?: string };
+  // Values the link named for a field the old dataset narrowed that the old dataset did not count, so the one dataset's chart no longer holds them:
+  // the value, its field and the old dataset's name.
+  retired_dropped?: { asked: string; field: string; dataset: string }[];
 };
 
 export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled: Question, label: (value: string, dimension: string) => string = (v) => v, retired: Readonly<Record<string, RetiredDataset>> = retiredDatasets): Reading {
   const note: Reading = {};
   const was = asked.retiredFrom && Object.hasOwn(retired, asked.retiredFrom) ? retired[asked.retiredFrom] : undefined;
   if (was) {
-    // What the chart keeps of the vehicles the old dataset counted: its own list, or the part of it the link's own condition left (readRetired meets the two).
-    const kept = Object.entries(was.where ?? {}).flatMap(([d, values]) => {
-      const left = (settled.where?.[d] ?? []).filter((v) => values.includes(v));
-      return (left.length > 0 ? left : values).map((v) => label(v, d));
-    });
+    // What the old dataset's scope added to the link's question (readRetired meets the two): its own list, or the part of it the link's own condition
+    // left. A link whose own conditions already lay inside the old scope has nothing added, and is told the plain sentence: its figures are the same.
+    const kept = Object.entries(asked.retiredKept ?? {}).flatMap(([d, values]) => values.map((v) => label(v, d)));
     note.retired = { asked: lowerFirst(was.label), shown: lowerFirst(datasetName(settled.dataset)), ...(kept.length ? { kind: sayList(kept) } : {}) };
+    const seenDropped = new Set<string>();
+    const dropped = (asked.retiredDropped ?? []).filter(({ dimension, value }) => !seenDropped.has(`${dimension}|${value}`) && seenDropped.add(`${dimension}|${value}`));
+    if (dropped.length) note.retired_dropped = dropped.map(({ dimension, value }) => ({ asked: label(value, dimension), field: lowerFirst(dimensionLabel(dimension, false, settled.dataset) ?? dimension), dataset: lowerFirst(was.label) }));
   }
   const named = [
     ...(asked.by && asked.values ? asked.values.map((v) => ({ v, d: asked.by as string })) : []),
@@ -476,6 +484,7 @@ export function linkNotices(all: Vocabulary, asked: Partial<Question>, settled: 
     ...(note.by2 ? [fill(notices.by2, note.by2)] : []),
     ...(note.value2 ? [notices.value2] : []),
     ...(note.snapshot ? [fill(notices.snapshot, note.snapshot)] : []),
+    ...(note.retired_dropped ?? []).map((gone) => fill(notices.retired_dropped, gone)),
     ...(note.left_out ?? []).map((left) => fill(notices.left_out, left)),
   ];
 }
@@ -546,7 +555,9 @@ const noConditions = (): Record<string, string[]> => Object.create(null);
 // A link that names a retired dataset (dimensions.json, retired_datasets) is read as the dataset it joined, narrowed to the vehicles the old one
 // counted: the same chart, the same figures. The old dataset's conditions meet the link's own by intersection (the link keeps what both allow;
 // where nothing is both, the old dataset's list stands, since the old dataset could not count anything else). A breakdown by a field the old
-// dataset narrowed keeps only the values it counted, so a link never draws a value the old dataset did not have. The address a page writes
+// dataset narrowed keeps only the values it counted, so a link never draws a value the old dataset did not have. What the link named and the
+// old scope rules out is not kept silently: it goes in retiredDropped, and the page names each value (the old dataset drew nothing under such a
+// condition, and the one dataset cannot say "nothing" for a type it does count). The address a page writes
 // back never names a retired id: only an address an older page wrote does, so the id alone says the link is old.
 export function readRetired(asked: Partial<Question>, retired: Readonly<Record<string, RetiredDataset>> = retiredDatasets): Partial<Question> {
   const from = asked.dataset && Object.hasOwn(retired, asked.dataset) ? retired[asked.dataset] : undefined;
@@ -554,12 +565,22 @@ export function readRetired(asked: Partial<Question>, retired: Readonly<Record<s
   const where = noConditions();
   for (const [d, kept] of Object.entries(asked.where ?? {})) where[d] = kept;
   const allowed = from.where ?? {};
+  const kept = noConditions();
+  const dropped: NamedValue[] = [];
   for (const [d, list] of Object.entries(allowed)) {
-    const both = (where[d] ?? []).filter((v) => list.includes(v));
+    const own = where[d] ?? [];
+    const both = own.filter((v) => list.includes(v));
+    for (const value of own) if (!list.includes(value)) dropped.push({ dimension: d, value });
     where[d] = (both.length > 0 ? both : [...list]).sort(byText);
+    // The old scope added to the link's question unless the link's own condition lay wholly inside it.
+    if (both.length < own.length || own.length === 0) kept[d] = where[d];
   }
-  const within = (field: string | null | undefined, values: string[] | undefined) => (field && Object.hasOwn(allowed, field) ? (values ?? []).filter((v) => allowed[field].includes(v)) : values);
-  return { ...asked, dataset: from.to, where, values: within(asked.by, asked.values), values2: within(asked.by2, asked.values2), retiredFrom: asked.dataset };
+  const within = (field: string | null | undefined, values: string[] | undefined) => {
+    if (!field || !Object.hasOwn(allowed, field)) return values;
+    for (const value of values ?? []) if (!allowed[field].includes(value)) dropped.push({ dimension: field, value });
+    return (values ?? []).filter((v) => allowed[field].includes(v));
+  };
+  return { ...asked, dataset: from.to, where, values: within(asked.by, asked.values), values2: within(asked.by2, asked.values2), retiredFrom: asked.dataset, retiredKept: kept, retiredDropped: dropped };
 }
 
 export function readQuestion(search: string, scope: string = builderSpec.id): Partial<Question> {

@@ -134,7 +134,9 @@ test("a link to a retired id is told what became of it, in one sentence for each
       if (retired[old.dataset]) {
         assert.equal(told.length, 1, `${link.name}, chart ${i + 1}`);
         assert.ok(told[0].toLowerCase().includes((retired[old.dataset].label as string).toLowerCase()), told[0]);
-        assert.equal(retired[old.dataset].where === undefined, !/\bkeeps\b/.test(told[0]), told[0]);
+        // The sentence says what the old scope added: nothing for the wider dataset, nothing for a link whose own conditions lay inside the old scope.
+        const added = Object.entries(retired[old.dataset].where ?? {}).some(([d, list]) => (old.where[d] ?? []).length === 0 || (old.where[d] ?? []).some((v) => !list.includes(v)));
+        assert.equal(added, /\bkeeps\b/.test(told[0]), told[0]);
       } else assert.equal(told.length, 0, `${link.name}, chart ${i + 1}`);
     });
   }
@@ -206,4 +208,17 @@ test("nothing the site writes names a retired id: not a starter, not a canvas of
   for (const file of ["presets", "starter_canvases", "measures", "latest_month", "answer_pages"]) walk(JSON.parse(readFileSync(new URL(`../../config/${file}.json`, import.meta.url), "utf8")));
   assert.ok(named.length > 20, "the walk found the datasets config names: this test would pass without checking anything");
   for (const id of ids) assert.ok(!named.includes(id), `config names the retired ${id}`);
+});
+
+test("a link that named a vehicle type the old dataset never counted is told that type was left out, and one that named a type it counted is not", () => {
+  const find = (part: string) => corpus.find((l) => l.name.includes(part)) as Link;
+  const told = (link: Link) => {
+    const [a] = canvas.readCanvas(searchFor(link));
+    return builder.linkNotices(buildVocabulary, a.asked, open(searchFor(link)).charts[0].question);
+  };
+  const never = told(find("never counted"));
+  assert.equal(never.filter((n) => n.includes("“Buses”") && n.includes("did not count")).length, 1, never.join(" | "));
+  assert.ok(never.some((n) => /It keeps .*Passenger cars and vans.*Goods vans, trucks and utes/.test(n) || /It keeps .*Goods vans, trucks and utes.*Passenger cars and vans/.test(n)), never.join(" | "));
+  const own = told(find("its own condition on the vehicle type"));
+  assert.ok(own.every((n) => !n.includes("did not count") && !/\bkeeps\b/.test(n)), own.join(" | "));
 });

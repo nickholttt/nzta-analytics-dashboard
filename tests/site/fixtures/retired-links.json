@@ -642,5 +642,29 @@
     "filters": []
    }
   ]
+ },
+ {
+  "name": "a canvas link of the narrower dataset broken down by model (the one link whose figures can differ: the model cap ranks five types, D-158; written from the make link above with the breakdown changed)",
+  "link": "/canvas/?canvas.charts=c1&c1.dataset=registrations_flow&c1.measure=count&c1.by=model",
+  "kind": "canvas",
+  "charts": [
+   {
+    "id": "c1",
+    "dataset": "registrations_flow",
+    "measure": "count",
+    "by": "model",
+    "by2": null,
+    "values": [],
+    "values2": [],
+    "where": {},
+    "pageValues": true,
+    "snapshot": null,
+    "type": null,
+    "preset": null,
+    "status": "live",
+    "shape": "trend",
+    "filters": []
+   }
+  ]
  }
 ]
