@@ -13,9 +13,11 @@ import { decompressZstd } from "hyparquet-compressors";
 import { builderVocabulary, datasetName } from "./builder";
 import { canvasSpec, canvasVocabulary } from "./canvas";
 import { chartSentences } from "./chartWords";
-import { dimensionLabel, findDataset, findMeasure, phrases, unrecordedBand, valueWords, yearChangeFloor } from "./config";
+import { dimensionLabel, findDataset, findDimension, findMeasure, phrases, unrecordedBand, valueWords, yearChangeFloor } from "./config";
 import type { Preset } from "./config";
 import { SMALL_CELL_KEY, ruleMinimum } from "./data";
+import { labeller } from "./displayNames";
+import { builtDisplayNames } from "./displayNamesBuild";
 import type { Event, Manifest, SliceRow } from "./data";
 import { latestConfig, latestMonthView } from "./latestMonth";
 import type { Kit, LatestConfig, View } from "./latestMonth";
@@ -83,13 +85,15 @@ export async function latestMonthSection(manifest: Manifest, read: ReadFile, con
   const words = dataset.words ?? (dataset.base ? findDataset(dataset.base)?.words : undefined);
   const windowText = (month: string) => fillTemplate(phrases.window_month, { end: monthLabel(month) }).text;
   const source = fillNote(dataset.source_note ?? "", noteContext({ dataset: config.dataset } as Preset, manifest));
+  // A value is named as a person writes it (src/lib/displayNames.ts); the canvas keeps the register's capitals.
+  const names = labeller(builtDisplayNames(), (field) => findDimension(field)?.key_separator, (field) => (slices[field] ?? []).map((r) => r.value), valueWords);
   const kit: Kit = {
     config,
     manifest,
     slices,
     events: readEvents(read),
     sentences: chartSentences,
-    label: { field: (dimension) => dimensionLabel(dimension, false, config.dataset), value: (dimension, value) => valueWords(dimension, value) },
+    label: { field: (dimension) => dimensionLabel(dimension, false, config.dataset), value: names.label },
     dataset: {
       counted: (n, window) => countedText(words?.leader_count, n, window),
       showsYear: dataset.shows_year_change === true,

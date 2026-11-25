@@ -1,0 +1,24 @@
+field,value,display,phrase,note
+import_status,NZ New,New,new vehicles,Shown as one of the two conditions a first registration is counted under; read only by the site.
+import_status,Used Import,Used imports,used imports,Shown as the other condition; read only by the site.
+make,BAIC,BAIC,,An initialism: kept in capitals.
+make,BMW,BMW,,An initialism: kept in capitals.
+make,BYD,BYD,,An initialism: kept in capitals.
+make,CRRC,CRRC,,An initialism: kept in capitals.
+make,DAF,DAF,,An initialism: kept in capitals.
+make,DS,DS,,Kept in capitals as the maker writes it.
+make,GAC,GAC,,An initialism: kept in capitals.
+make,GMC,GMC,,An initialism: kept in capitals.
+make,GWM,GWM,,An initialism: kept in capitals.
+make,JAC,JAC,,An initialism: kept in capitals.
+make,KGM,KGM,,An initialism: kept in capitals.
+make,LDV,LDV,,An initialism: kept in capitals.
+make,MAN,MAN,,A name the maker writes in capitals; the plain rule would read as a word.
+make,MG,MG,,An initialism: kept in capitals.
+make,NIO,NIO,,Kept in capitals as the maker writes it.
+make,KIA,Kia,,A short name that reads as a word.
+make,ORA,Ora,,A short name that reads as a word.
+make,RAM,Ram,,A short name that reads as a word.
+make,LYNK & CO,Lynk & Co,,The short word is not capitalised in the maker's own name.
+make,UD TRUCKS,UD Trucks,,The first word is an initialism.
+make,MCLAREN,McLaren,,A capital inside the name.

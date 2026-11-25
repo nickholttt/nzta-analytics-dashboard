@@ -50,6 +50,8 @@ export type Kit = {
   events: readonly Event[] | null;
   // A value as a visitor reads it, and the separator a compound value (a model, as brand and model) is joined with.
   label: (dimension: string, value: string) => string;
+  // A compound value (a model) without its leading parts (its brand): a brand's own table names its models by this. Absent, the label is used.
+  tail?: (dimension: string, value: string) => string;
   separator: string | undefined;
   dataset: {
     // A count said in the dataset's words for a period ("in the 12 months to Oct 2026").

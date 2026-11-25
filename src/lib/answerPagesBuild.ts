@@ -11,6 +11,8 @@ import type { AnswerConfig, Kind, Kit, Site } from "./answerPages";
 import { datasetWords, dimensionLabel, findDataset, findDimension, findMeasure, phrases, valueWords, yearChangeFloor } from "./config";
 import type { Preset } from "./config";
 import type { Manifest } from "./data";
+import { labeller } from "./displayNames";
+import { builtDisplayNames } from "./displayNamesBuild";
 import { readEvents, readSlice } from "./latestMonthBuild";
 import type { ReadFile } from "./latestMonthBuild";
 import { fillNote, noteContext } from "./notes";
@@ -32,12 +34,24 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
   const all = canvasVocabulary(builderVocabulary(manifest));
   const words = datasetWords(config.dataset);
   const source = fillNote(dataset.source_note ?? "", noteContext({ dataset: config.dataset } as Preset, manifest));
+  // A value is named as a person writes it (src/lib/displayNames.ts); the canvas keeps the register's capitals.
+  const fieldKind = (field: string): Kind | undefined => KINDS.find((kind) => config[kind].dimension === field);
+  const names = labeller(
+    builtDisplayNames(),
+    (field) => findDimension(field)?.key_separator,
+    (field) => {
+      const kind = fieldKind(field);
+      return (kind ? (slices[kind] ?? []) : []).map((r) => r.value);
+    },
+    valueWords,
+  );
   const kit: Kit = {
     config,
     manifest,
     slices: { brand: slices.brand, model: slices.model },
     events: readEvents(read),
-    label: (dimension, value) => valueWords(dimension, value),
+    label: names.label,
+    tail: names.tail,
     separator: findDimension(config.model.dimension)?.key_separator,
     dataset: { counted: (n, period) => countedText(words?.leader_count, n, period), showsYear: dataset.shows_year_change === true },
     period: {
