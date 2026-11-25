@@ -50,9 +50,8 @@ gaps, the Cloudflare clicks. After the name: redraw the social cards.
 
 ## Parked until the user says otherwise
 
-Detailed segments with price bands (no list prices); colour's own table (D-144); further hybrid work
-(D-110, D-119); new segment schemes (D-103); the query service (D-091); the narrative engine beyond the
-canvas's and the new pages' sentences (D-102); the design pass's other findings (#140).
+Detailed segments with price bands; colour's own table (D-144); further hybrid work (D-110, D-119); new
+segment schemes (D-103); the query service (D-091); the narrative engine (D-102); #140's other findings.
 
 ## Questions for the user (parked; none stops the work)
 
