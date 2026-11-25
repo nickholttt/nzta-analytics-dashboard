@@ -47,7 +47,7 @@ pages' year-to-date links are withheld); "New entry" in the canvas's ranking; pa
 heavy vehicles and motorcycles; a brand's place over time. Parked: a chosen period kept in the address
 (needs a script on reading pages).
 
-**E.** The next classification batch: the 113 small nameplates (0.8% of new passenger vehicles).
+**E.** Waits for Market type's build (B3): the next classification batch. Measured 2026-11-26: 98.64% of the last 12 months' new passenger vehicles are classified (target 98%); 921 vehicles (0.83%) have no row, the largest nameplate 75.
 
 **C.** The user's four items: name, address (it turns the sitemap on), About gaps, Cloudflare clicks.
 
