@@ -226,7 +226,7 @@ export type BuilderSpec = {
   lead: string;
   measures: BuilderMeasure[];
   dimension_notes: Record<string, PerDataset>;
-  notices: { dataset: string; by: string; by2: string; value2: string; left_out: string; absent: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string; narrowed: string; narrowed_label: string };
+  notices: { dataset: string; retired: string; retired_narrowed: string; by: string; by2: string; value2: string; left_out: string; absent: string; snapshot: string; pin_same: string; pin_newer: string; pin_newer_plain: string; pin_newer_open: string; pin_uncovered: string; pin_ahead: string; pin_kept: string; pin_kept_missing: string; pin_kept_withheld: string; small_cells_hidden: string; narrowed: string; narrowed_label: string };
   not_offered: NotOffered[];
 };
 
@@ -276,6 +276,12 @@ export const shareChangeUnit: string = measuresDoc.share_change_display.unit;
 export const dimensions = dimensionsDoc.dimensions as unknown as Dimension[];
 export const datasets = dimensionsDoc.datasets as unknown as Dataset[];
 export const periods = dimensionsDoc.periods as unknown as Period[];
+
+// A dataset that was joined into another (dimensions.json, retired_datasets). Nothing writes its id any more; an old link, a saved canvas or a
+// Build link still carries it, and the page reads it as `to`, narrowed by `where` to the vehicles the old dataset counted. `label` is the name
+// the old dataset had, for the sentence that tells the visitor what happened.
+export type RetiredDataset = { to: string; label: string; where?: Record<string, string[]> };
+export const retiredDatasets = ((dimensionsDoc as unknown as { retired_datasets?: Record<string, RetiredDataset> }).retired_datasets ?? {}) as Readonly<Record<string, RetiredDataset>>;
 
 // The browser is given only the keys of the pipeline config that are read here (scripts/browser-config.mjs): a key read from `pipeline` below must be listed there.
 const pipeline = pipelineDoc as unknown as {

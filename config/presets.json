@@ -231,6 +231,8 @@
     "notices": {
       "$comment": "What the page says when a link asks for something the page cannot give and shows the nearest question instead. The address is corrected as it is for a condition the page cannot apply; the words say so, so a link never quietly counts something else. Placeholders: config/narrative/rules.json.",
       "dataset": "This link asked to count {asked}, which this build does not have. It is counting {shown} instead.",
+      "retired": "This link was made for {asked}, which is now {shown}. The figures are the same.",
+      "retired_narrowed": "This link was made for {asked}, which is now part of {shown}. It keeps {kind}, the vehicles {asked} counted.",
       "by": "This link asked to break the figures down by {asked}, which is not available for {dataset}. It shows {shown} instead.",
       "left_out": "This link named “{asked}” for {field}, which is not a value that can be chosen here, so it was left out.",
       "absent": "This link named “{asked}” for {field}, which is not a value in the data for {dataset}, so it was left out.",
