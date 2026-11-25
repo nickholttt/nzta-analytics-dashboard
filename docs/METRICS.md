@@ -179,8 +179,9 @@ D-113, D-158).
   total moved by more than 2% without a recorded replacement, an emptied
   month, the unmapped make and powertrain rates, the mild hybrid split judged on this dataset's own hybrids, and the
   model cap with its tie rule. A guard of another dataset reads its own rows
-  and does not change when this one does. The first build that has the dataset under this name accepts it (the last good
-  state has nothing about it); later builds compare with it (D-158).
+  and does not change when this one does. The last good state holds nothing under this name, so
+  for the first build the dataset is compared with the records of `registrations_flow_wider`, which counted the same five types
+  (`continues` in `config/pipeline.json`, D-158); later builds compare with its own.
 
 ### Coverage of the lookups on the added types (measured 2026-11-17, D-113)
 
