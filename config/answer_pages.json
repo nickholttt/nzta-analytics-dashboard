@@ -127,6 +127,24 @@
     "mover_up": "{name} rose most by {field}: {counted}, up {change|pct} on the {prior_count} {prior}.",
     "mover_down": "{name} fell most by {field}: {counted}, down {change|pct} on the {prior_count} {prior}.",
     "mover_view_up": "Among {view}, {name} rose most by {field}: {counted}, up {change|pct} on the {prior_count} {prior}.",
-    "mover_view_down": "Among {view}, {name} fell most by {field}: {counted}, down {change|pct} on the {prior_count} {prior}."
+    "mover_view_down": "Among {view}, {name} fell most by {field}: {counted}, down {change|pct} on the {prior_count} {prior}.",
+    "cut_title": "Which brands and models had the most {cut} first registered in New Zealand?",
+    "cut_description": "Registrations of {cut} in New Zealand: {counted}. The brands and models with the most, and which moved most, over several periods.",
+    "cut_description_parts": "Registrations of {cut} in New Zealand: {counted}, of which {parts}. The brands and models with the most.",
+    "cut_description_parts_short": "Registrations of {cut} in New Zealand: {counted}, of which {parts}.",
+    "cut_description_short": "Registrations of {cut} in New Zealand: {counted}.",
+    "cut_count_up": "{count} {cut} were first registered {window}, up {change|pct} on the {prior_count} {prior}.",
+    "cut_count_down": "{count} {cut} were first registered {window}, down {change|pct} on the {prior_count} {prior}.",
+    "cut_count_same": "{count} {cut} were first registered {window}, the same as the {prior_count} {prior}.",
+    "cut_count_alone": "{count} {cut} were first registered {window}.",
+    "cut_share": "{cut_cap} were {share} of all the vehicles first registered {window}.",
+    "heading_cut_brands": "Brands with the most {cut}",
+    "heading_cut_models": "Models with the most {cut}",
+    "heading_cut_brand_movers": "Biggest changes among brands of {cut}",
+    "heading_cut_model_movers": "Biggest changes among models of {cut}",
+    "col_share_cut": "Share of {cut}",
+    "heading_label": "{heading}: {label}",
+    "cut_legend": "Cut by powertrain",
+    "cut_all": "All powertrains"
   }
 }

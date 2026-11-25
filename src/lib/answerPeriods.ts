@@ -110,6 +110,22 @@ export function valuePeriods(env: Env, cut: Cut, value: string, dimension: strin
   return { heading, columns, rows, ...(note ? { note } : {}) };
 }
 
+// The same table for a whole cut of the market (every vehicle of one powertrain, say), whose figure is the cut's total and not one value's.
+export function cutPeriods(env: Env, cut: Cut, dimension: string, value: string): PeriodTable | undefined {
+  const heading = say(env.words, "heading_periods", {});
+  const columns = [env.words.col_period, ...env.conditions.map((c) => c.label), env.words.view_all, env.words.col_change_all];
+  const rows = env.windows.flatMap((w) => {
+    if (!w.months.every(env.has)) return [];
+    const n = totalFigure(cut, undefined, w.months);
+    const before = w.prior.every(env.has) ? totalFigure(cut, undefined, w.prior) : undefined;
+    const cell = changeCell(env, changeOutcome({ now: n, before, comparable: env.comparable(dimension, value, w), floor: env.floors.change }));
+    return [{ label: windowLabel(env, w), cells: [...env.conditions.map((c) => count(totalFigure(cut, c.value, w.months))), count(n)], ...(cell.direction ? { change: { direction: cell.direction, text: cell.text } } : {}), ...(cell.fresh ? { fresh: true } : {}) }];
+  });
+  if (!heading || rows.length === 0 || columns.some((c) => !c)) return undefined;
+  const note = rows.some((r) => r.fresh) ? say(env.words, "new_entry_note", { prior: env.phrase.prior(env.windows[0]) }) : undefined;
+  return { heading, columns, rows, ...(note ? { note } : {}) };
+}
+
 // ---- A brand's models ----
 
 export type ModelsAsk = {
@@ -260,7 +276,7 @@ export function cutPanel(env: Env, a: CutAsk, w: Window, c: Condition | undefine
 export type LeadersAsk = {
   cut: Cut;
   dimension: string;
-  heading: (view: string) => string | undefined;
+  heading: (view: string, label: string) => string | undefined;
   nameHead: string;
   top: number;
   above?: number;
@@ -276,7 +292,7 @@ export type LeadersAsk = {
 };
 
 export function leadersPanel(env: Env, a: LeadersAsk, w: Window, c: Condition | undefined, wi: number, ci: number): Panel | undefined {
-  const heading = a.heading(viewPhrase(env, c));
+  const heading = a.heading(viewPhrase(env, c), viewLabel(env, c));
   const head = changeHead(env, c);
   const share = a.shareHead(c);
   if (heading === undefined || !head || !share) return undefined;
@@ -304,7 +320,7 @@ export function leadersPanel(env: Env, a: LeadersAsk, w: Window, c: Condition | 
 export type MoversAsk = {
   cut: Cut;
   dimension: string;
-  heading: (view: string) => string | undefined;
+  heading: (view: string, label: string) => string | undefined;
   nameHead: string;
   each: number;
   least: number;
@@ -317,7 +333,7 @@ export type MoversAsk = {
 };
 
 export function moversPanel(env: Env, a: MoversAsk, w: Window, c: Condition | undefined, wi: number, ci: number): Panel | undefined {
-  const heading = a.heading(viewPhrase(env, c));
+  const heading = a.heading(viewPhrase(env, c), viewLabel(env, c));
   const earlier = env.words.col_prior;
   const head = changeHead(env, c);
   if (heading === undefined || !earlier || !head) return undefined;

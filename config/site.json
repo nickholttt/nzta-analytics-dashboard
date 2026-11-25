@@ -129,6 +129,11 @@
         "description": "How many vehicles of a model were first registered in New Zealand in the last year, and the month-by-month figures.",
         "generated": "model"
       },
+      "cut": {
+        "title": "Registrations by powertrain",
+        "description": "Which brands and models had the most vehicles of one powertrain first registered in New Zealand, and which moved most, over several periods.",
+        "generated": "cut"
+      },
       "not_found": {
         "title": "Page not found",
         "description": "There is no page at this address. The canvas is the place to start a chart of your own."

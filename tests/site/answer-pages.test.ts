@@ -645,7 +645,7 @@ test("on the built data: a brand's twelve-month figure is the sum of its months,
   assert.ok(linked > 50);
   // Every model page links to its brand's page where the brand has one, and every page is in the index.
   const indexed = new Set(s.index?.entries.flatMap((e) => [e.href, ...e.models.map((m) => m.href)]));
-  for (const p of s.pages) assert.ok(indexed.has(p.href), `${p.href} is in the index`);
+  for (const p of s.pages.filter((x) => x.kind !== "cut")) assert.ok(indexed.has(p.href), `${p.href} is in the index`);
   assert.equal(new Set(s.pages.map((p) => p.href)).size, s.pages.length);
   assert.doesNotMatch(JSON.stringify(s.pages), /NaN|undefined|\{[a-z_]+\}/);
 });

@@ -9,7 +9,9 @@ import { answerPageLink } from "./answerPageLinks";
 import { restrictedCuts, viewCuts } from "./conditionViewsBuild";
 import { chipValues, firstAppearance } from "./powertrainCut";
 import { hybrid } from "./config";
-import { fieldNoteAnchor } from "./dimensionNote";
+import { dimensionNote, fieldNoteAnchor } from "./dimensionNote";
+import { hybridNotes, splitPublished } from "./hybrid";
+import type { HybridCoverage, HybridPhrases } from "./hybrid";
 import { latestMonthLink } from "./latestMonthLinks";
 import { readReference } from "./readReference.mjs";
 import { defaultWindow, windowsConfig, windowsFor } from "./windows";
@@ -95,6 +97,10 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
       const partial = coverage !== undefined && [coverage.all_time.coverage_stated_confidence, coverage.trailing.coverage_stated_confidence].some((x) => x === null || x < coverage.complete_at_coverage);
       // The mild line takes the label the canvas gives it while it is only partly identified.
       const label = (value: string) => (partial && value === hybrid.mild_powertrain && coverage ? coverage.label : cutNames.label(config.cut.dimension, value));
+      const field = findDimension(config.cut.dimension);
+      const published = (coverage as unknown as HybridCoverage | undefined);
+      const note = dimensionNote(field, false, { splitPublished: splitPublished(published) }).plain;
+      const coverageNote = hybridNotes({ coverage: published, onPowertrain: true, mildDrawn: true, narrowed: false, internal: false, mildValue: hybrid.mild_powertrain, undividedValue: hybrid.undivided_powertrain ?? hybrid.source_hybrid.value, phrases: phrases as unknown as HybridPhrases, percent: pct }).coverage;
       const chips = chipValues(cutSlices[config.cut.dimension], monthRange(addMonths(latestMonth, 1 - config.window), latestMonth), config.cut.minimum, order);
       cutBy = {
         field: config.cut.dimension,
@@ -102,6 +108,8 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
         order,
         label,
         cuts: { brand: set.fields[config.brand.dimension].by, model: set.fields[config.model.dimension].by },
+        phrase: (value) => conditionWords(display, config.cut.dimension, value)?.phrase ?? label(value).toLowerCase(),
+        notes: (value) => [note, value === hybrid.mild_powertrain ? coverageNote : undefined].filter((x): x is string => Boolean(x)),
         noted: set.values.includes(hybrid.mild_powertrain) ? { value: hybrid.mild_powertrain, href: `/method#${fieldNoteAnchor(config.cut.dimension)}` } : undefined,
       };
     }

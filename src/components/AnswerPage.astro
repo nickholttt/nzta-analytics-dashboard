@@ -6,6 +6,7 @@ import "../styles/answer-pages.css";
 import "../styles/answer-parts.css";
 import type { PageView } from "../lib/answerPages";
 import AnswerTable from "./AnswerTable.astro";
+import CutNav from "./CutNav.astro";
 import PeriodTable from "./PeriodTable.astro";
 import ViewSwitch from "./ViewSwitch.astro";
 
@@ -25,6 +26,8 @@ const tableId = (i: number) => `ap-table-${i}`;
   </ol>
 </nav>
 
+{page.cutNav && <CutNav nav={page.cutNav} />}
+
 <div class="ap-answer">
   <p class="ap-figure" aria-hidden="true">{page.figure}</p>
   {
@@ -42,6 +45,7 @@ const tableId = (i: number) => `ap-table-${i}`;
   <ul class="ap-sentences">
     {page.sentences.map((s) => <li>{s}</li>)}
   </ul>
+  {page.notes && page.notes.map((n) => <p class="meta">{n}</p>)}
   <p class="ap-links">
     <a class="starter-open" href={page.canvas.href} aria-label={page.canvas.named}>{page.canvas.text}</a>
     {page.canvasSplit && <a class="starter-open" href={page.canvasSplit.href} aria-label={page.canvasSplit.named}>{page.canvasSplit.text}</a>}

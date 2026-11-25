@@ -14,6 +14,7 @@ import { answerConfig } from "../lib/answerPages";
 import { builtAnswerSite } from "../lib/answerSite";
 import { readPublished } from "../lib/publishedFiles.mjs";
 import LatestTable from "./LatestTable.astro";
+import CutNav from "./CutNav.astro";
 import PeriodTable from "./PeriodTable.astro";
 import ViewSwitch from "./ViewSwitch.astro";
 
@@ -69,6 +70,7 @@ const viewed = view?.switch ? blocks.filter((b) => b.views) : [];
       {
         view.switch && viewed.length > 0 && (
           <ViewSwitch id="lm-view" legend={view.switch.legend} note={view.switch.note} labels={view.switch.labels} period={view.switch.period}>
+            {answers?.cutNav && <CutNav nav={answers.cutNav} onAll />}
             <ul class="lm-blocks">
               {viewed.map((b) => (
                 <li>

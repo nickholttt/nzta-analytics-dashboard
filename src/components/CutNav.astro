@@ -1,0 +1,28 @@
+---
+// The row of links to the pages that cut the lists by one value (the powertrain): "all" is the home page's own lists, and each value has a page of its own
+// (src/lib/answerPages.ts). A page of one cut marks it; on the home page "all" is marked. The note that explains how a line is counted follows the value it is
+// about. Plain links: no script.
+import type { CutNav } from "../lib/answerPages";
+
+interface Props {
+  nav: CutNav;
+  // Whether the page it sits on is the one that lists everything (the home page), so "all" is the current one.
+  onAll?: boolean;
+}
+const { nav, onAll = false } = Astro.props;
+---
+
+<nav class="cut-nav" aria-label={nav.legend}>
+  <p class="cut-legend">{nav.legend}</p>
+  <ul class="cut-list">
+    <li><a href={nav.all.href} aria-current={onAll ? "page" : undefined}>{nav.all.text}</a></li>
+    {
+      nav.items.map((item, i) => (
+        <li>
+          <a href={item.href} aria-current={item.current ? "page" : undefined}>{item.text}</a>
+          {nav.note && nav.note.after === i && <a class="cut-note" href={nav.note.href}>{nav.note.text}</a>}
+        </li>
+      ))
+    }
+  </ul>
+</nav>
