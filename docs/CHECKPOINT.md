@@ -8,8 +8,8 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
-| A: finish the canvas | none | free | item 4 merged (#151, D-156); nothing queued |
-| B: the accuracy guard and the datasets | none | free; #156 waits for the user's word | items 2 and 3 merged (#150, D-155); the survivors on five vehicle types is reviewed and open (#156, D-157); next is item 1, stacked on it |
+| A: finish the canvas | `claude/a-new-used-apart` | this session (computer, 2026-11-25, its third part) | new and used imports shown apart on the home page and the brand and model pages; makes in ordinary case (from the study of vstat) |
+| B: the accuracy guard and the datasets | `claude/b-one-new-registrations`, stacked on #156 | this session (computer, 2026-11-25, its third part) | item 1, one "New registrations" dataset; then buyer type from the dashboard export (the user, 2026-11-25: "do it") |
 | C: public readiness | none | free | what is left is the user's four items |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
 | E: classification, the latest month, findability | `claude/e-classify-batch-1`, `claude/e-classify-corolla` | free; #152 and #154 wait for the user's "merge" | items 9, 10 and 13 merged (#153, #155, #149); item 8's first batches are open; 11 found nothing; 12 not started |
