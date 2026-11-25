@@ -35,7 +35,7 @@ const name = labelledby ? { "aria-labelledby": labelledby } : { "aria-label": la
             c.hidden ? (
               <td><em>{c.text}</em></td>
             ) : c.none ? (
-              <td class="change">—<span class="visually-hidden">{noComparison}</span></td>
+              <td class="change">—<span class="visually-hidden">{c.reason ?? noComparison}</span></td>
             ) : c.fresh ? (
               <td class="change"><span class="new-entry">{c.text}</span></td>
             ) : c.direction ? (

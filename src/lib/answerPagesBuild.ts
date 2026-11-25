@@ -9,7 +9,7 @@ import { answerPageLink } from "./answerPageLinks";
 import { restrictedCuts, viewCuts } from "./conditionViewsBuild";
 import { chipValues, firstAppearance } from "./powertrainCut";
 import { hybrid } from "./config";
-import { dimensionNote, fieldNoteAnchor } from "./dimensionNote";
+import { dimensionNote, fieldNoteAnchor, fullNote } from "./dimensionNote";
 import { hybridNotes, splitPublished } from "./hybrid";
 import type { HybridCoverage, HybridPhrases } from "./hybrid";
 import { latestMonthLink, oneChartCanvas } from "./latestMonthLinks";
@@ -110,9 +110,13 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
         order,
         label,
         cuts: { brand: set.fields[config.brand.dimension].by, model: set.fields[config.model.dimension].by },
-        phrase: (value) => conditionWords(display, config.cut.dimension, value)?.phrase ?? label(value).toLowerCase(),
+        // A line that is only partly identified is said by its own words ("identified mild hybrid vehicles"), not as if it counted every one.
+        phrase: (value) => (partial && value === hybrid.mild_powertrain && coverage ? (conditionWords(display, config.cut.dimension, coverage.label)?.phrase ?? label(value).toLowerCase()) : (conditionWords(display, config.cut.dimension, value)?.phrase ?? label(value).toLowerCase())),
+        // Its change on a year earlier is not stated while it is partial: the identification may have changed between the two periods, and that is a change in how the data is read.
+        ...(partial && set.values.includes(hybrid.mild_powertrain) ? { uncompared: new Set([hybrid.mild_powertrain]) } : {}),
         notes: (value) => [note, value === hybrid.mild_powertrain ? coverageNote : undefined].filter((x): x is string => Boolean(x)),
-        noted: set.values.includes(hybrid.mild_powertrain) ? { value: hybrid.mild_powertrain, href: `/method#${fieldNoteAnchor(config.cut.dimension)}` } : undefined,
+        // The link goes only where the method page has a section for the field.
+        noted: set.values.includes(hybrid.mild_powertrain) && fullNote(field) !== undefined ? { value: hybrid.mild_powertrain, href: `/method#${fieldNoteAnchor(config.cut.dimension)}` } : undefined,
       };
     }
   }

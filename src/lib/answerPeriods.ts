@@ -13,7 +13,7 @@ import type { ChangeOutcome } from "./windowFigures";
 import type { Window } from "./windows";
 import { count, fillTemplate, percent } from "./sentences";
 
-export type Cell = { text: string; direction?: "up" | "down" | "same"; hidden?: boolean; none?: boolean; fresh?: boolean };
+export type Cell = { text: string; direction?: "up" | "down" | "same"; hidden?: boolean; none?: boolean; fresh?: boolean; reason?: string };
 export type Row = {
   name: string;
   href?: string;
@@ -85,6 +85,8 @@ export function changeCell(env: Env, o: ChangeOutcome): Cell {
 }
 
 const noCell: Cell = { text: "", none: true };
+// A place the build does not state (a tie, or a count at or below a group kept out of the list) is not a comparison that failed: a screen reader is told so.
+const unstatedPlace = (env: Env): Cell => ({ text: "", none: true, ...(env.words.place_not_stated ? { reason: env.words.place_not_stated } : {}) });
 const shareCell = (env: Env, n: number, total: number | undefined): Cell => (total !== undefined && total >= env.floors.share && total > 0 ? { text: env.share(n / total) } : noCell);
 const newNote = (env: Env, w: Window, rows: readonly Row[]): string[] => (rows.some((r) => r.cells.some((c) => c.fresh)) ? [say(env.words, "new_entry_note", { prior: env.phrase.prior(w) })].filter((x): x is string => x !== undefined) : []);
 // The counts of a value under each condition, as table cells (the columns an "all" panel has beside the total).
@@ -96,6 +98,7 @@ const changeHead = (env: Env, c: Condition | undefined) => say(env.words, c ? "c
 
 export function valuePeriods(env: Env, cut: Cut, value: string, dimension: string): PeriodTable | undefined {
   const heading = say(env.words, "heading_periods", {});
+  const fresh: Window[] = [];
   const columns = [env.words.col_period, ...env.conditions.map((c) => c.label), env.words.view_all, env.words.col_change_all];
   const rows = env.windows.flatMap((w) => {
     if (!w.months.every(env.has)) return [];
@@ -103,26 +106,29 @@ export function valuePeriods(env: Env, cut: Cut, value: string, dimension: strin
     const before = w.prior.every(env.has) ? figure(cut, value, undefined, w.prior) : undefined;
     const o = changeOutcome({ now: n, before, comparable: env.comparable(dimension, value, w), floor: env.floors.change });
     const cell = changeCell(env, o);
+    if (cell.fresh) fresh.push(w);
     return [{ label: windowLabel(env, w), cells: [...env.conditions.map((c) => count(figure(cut, value, c.value, w.months))), count(n)], ...(cell.direction ? { change: { direction: cell.direction, text: cell.text } } : {}), ...(cell.fresh ? { fresh: true } : {}) }];
   });
   if (!heading || rows.length === 0 || columns.some((c) => !c)) return undefined;
-  const note = rows.some((r) => r.fresh) ? say(env.words, "new_entry_note", { prior: env.phrase.prior(env.windows[0]) }) : undefined;
+  const note = fresh.length > 0 ? say(env.words, "new_entry_note", { prior: env.phrase.prior(fresh[0]) }) : undefined;
   return { heading, columns, rows, ...(note ? { note } : {}) };
 }
 
 // The same table for a whole cut of the market (every vehicle of one powertrain, say), whose figure is the cut's total and not one value's.
 export function cutPeriods(env: Env, cut: Cut, dimension: string, value: string): PeriodTable | undefined {
   const heading = say(env.words, "heading_periods", {});
+  const fresh: Window[] = [];
   const columns = [env.words.col_period, ...env.conditions.map((c) => c.label), env.words.view_all, env.words.col_change_all];
   const rows = env.windows.flatMap((w) => {
     if (!w.months.every(env.has)) return [];
     const n = totalFigure(cut, undefined, w.months);
     const before = w.prior.every(env.has) ? totalFigure(cut, undefined, w.prior) : undefined;
     const cell = changeCell(env, changeOutcome({ now: n, before, comparable: env.comparable(dimension, value, w), floor: env.floors.change }));
+    if (cell.fresh) fresh.push(w);
     return [{ label: windowLabel(env, w), cells: [...env.conditions.map((c) => count(totalFigure(cut, c.value, w.months))), count(n)], ...(cell.direction ? { change: { direction: cell.direction, text: cell.text } } : {}), ...(cell.fresh ? { fresh: true } : {}) }];
   });
   if (!heading || rows.length === 0 || columns.some((c) => !c)) return undefined;
-  const note = rows.some((r) => r.fresh) ? say(env.words, "new_entry_note", { prior: env.phrase.prior(env.windows[0]) }) : undefined;
+  const note = fresh.length > 0 ? say(env.words, "new_entry_note", { prior: env.phrase.prior(fresh[0]) }) : undefined;
   return { heading, columns, rows, ...(note ? { note } : {}) };
 }
 
@@ -189,7 +195,13 @@ export type RivalsAsk = {
 
 export function rivalsPanel(env: Env, a: RivalsAsk, w: Window, c: Condition | undefined, wi: number, ci: number): Panel | undefined {
   const heading = say(env.words, "heading_rivals_view", { name: a.name, view: viewPhrase(env, c) });
-  const columns = [env.words.col_brand, env.words.col_vehicles, env.words.col_share_all, env.words.col_place, changeHead(env, c)];
+  const columns = [
+    env.words.col_brand,
+    c ? c.label : env.words.col_vehicles,
+    c ? say(env.words, "col_share_all_view", { view: c.phrase }) : env.words.col_share_all,
+    c ? say(env.words, "col_place_view", { view: c.phrase }) : env.words.col_place,
+    changeHead(env, c),
+  ];
   if (heading === undefined || columns.some((x) => !x)) return undefined;
   const label = viewLabel(env, c);
   const basis = basisOf(env, w, a.dimension);
@@ -201,6 +213,8 @@ export function rivalsPanel(env: Env, a: RivalsAsk, w: Window, c: Condition | un
   const atLeast = a.reservedMost(c?.value, w);
   const ones = a.set.map((v) => [v, listOne(a.cut, v, c?.value, basis)] as [string, Listed | undefined]);
   if (ones.some(([, l]) => !l)) return undefined;
+  // The rows follow this table's own count (the set stays the same for every period and count); a tie keeps the set's order.
+  ones.sort((x, y) => (y[1] as Listed).n - (x[1] as Listed).n);
   const rows: Row[] = ones.map(([v, l]) => {
     const place = placeAmong(v, sums, { exact: true, atLeast });
     const placeText = place ? say(env.words, "place_cell", { rank: place.rank, of: place.of }) : undefined;
@@ -209,12 +223,12 @@ export function rivalsPanel(env: Env, a: RivalsAsk, w: Window, c: Condition | un
       name: a.nameOf(v),
       href: v === a.value ? undefined : a.href(v),
       ...(v === a.value ? { marked: env.words.this_brand } : {}),
-      cells: [{ text: count(item.n) }, shareCell(env, item.n, total), placeText ? { text: placeText } : noCell, changeCell(env, item.outcome)],
+      cells: [{ text: count(item.n) }, shareCell(env, item.n, total), placeText ? { text: placeText } : unstatedPlace(env), changeCell(env, item.outcome)],
     };
   });
   // The gap against the rival just above, or just below for the first of the set: dropped on a tie.
   const sentences: string[] = [];
-  const against = gapAgainst(a.value, a.set);
+  const against = gapAgainst(a.value, ones.map(([v]) => v));
   const mine = ones.find(([v]) => v === a.value)?.[1];
   const theirs = ones.find(([v]) => v === against)?.[1];
   if (against !== undefined && mine && theirs && mine.n !== theirs.n) {
@@ -287,7 +301,7 @@ export type LeadersAsk = {
   shareOf: (c: Condition | undefined, w: Window) => number | undefined;
   shareHead: (c: Condition | undefined) => string | undefined;
   // With this, each row has its place among all the values (the most vehicles a group left out of the list may hold): the index of brands.
-  place?: { atLeast: (c: Condition | undefined, w: Window) => number; head: string };
+  place?: { atLeast: (c: Condition | undefined, w: Window) => number; head: (c: Condition | undefined) => string | undefined };
   link?: (c: Condition | undefined, w: Window, heading: string) => Link | undefined;
 };
 
@@ -295,9 +309,10 @@ export function leadersPanel(env: Env, a: LeadersAsk, w: Window, c: Condition | 
   const heading = a.heading(viewPhrase(env, c), viewLabel(env, c));
   const head = changeHead(env, c);
   const share = a.shareHead(c);
-  if (heading === undefined || !head || !share) return undefined;
+  const placeHead = a.place ? a.place.head(c) : undefined;
+  if (heading === undefined || !head || !share || (a.place && !placeHead)) return undefined;
   const label = viewLabel(env, c);
-  const columns = [a.nameHead, ...(a.place ? [a.place.head] : []), ...columnsFor(env, c), share, head];
+  const columns = [a.nameHead, ...(placeHead ? [placeHead] : []), ...columnsFor(env, c), share, head];
   const links = (): Link[] => {
     const l = a.link?.(c, w, heading);
     return l ? [l] : [];
@@ -312,7 +327,7 @@ export function leadersPanel(env: Env, a: LeadersAsk, w: Window, c: Condition | 
   const shown = list.slice(0, a.top);
   const rows: Row[] = shown.map((l) => {
     const place = a.place ? placeAmong(l.value, sums, { exact: true, atLeast: a.place.atLeast(c, w) }) : undefined;
-    return { name: a.nameOf(l.value), href: a.href(l.value), cells: [...(a.place ? [place ? { text: String(place.rank) } : noCell] : []), ...(c ? [] : partCells(env, a.cut, l.value, w)), { text: count(l.n) }, shareCell(env, l.n, total), changeCell(env, l.outcome)] };
+    return { name: a.nameOf(l.value), href: a.href(l.value), cells: [...(a.place ? [place ? { text: String(place.rank) } : unstatedPlace(env)] : []), ...(c ? [] : partCells(env, a.cut, l.value, w)), { text: count(l.n) }, shareCell(env, l.n, total), changeCell(env, l.outcome)] };
   });
   return { win: wi, view: ci, label, heading, sentences: [], columns, rows, notes: newNote(env, w, rows), links: links() };
 }
@@ -329,6 +344,8 @@ export type MoversAsk = {
   nameOf: (value: string) => string;
   href: (value: string) => string | undefined;
   field: string;
+  // On a page about one cut of the market (one powertrain), the words for that cut: the figures count only its vehicles, and the sentences say so.
+  cutWords?: string;
   link?: (c: Condition | undefined, w: Window, heading: string) => Link | undefined;
 };
 
@@ -346,7 +363,9 @@ export function moversPanel(env: Env, a: MoversAsk, w: Window, c: Condition | un
   const { rose, fell } = movers(list, { perMonth, months: w.months.length, changeFloor: env.floors.change, least: a.least, each: a.each });
   const links = link ? [link] : [];
   if (rose.length + fell.length === 0) {
-    const message = say(env.words, "view_empty_movers_window", { field: a.field, minimum: count(floor), view: viewPhrase(env, c) });
+    const message = a.cutWords === undefined
+      ? say(env.words, "view_empty_movers_window", { field: a.field, minimum: count(floor), view: viewPhrase(env, c) })
+      : say(env.words, c ? "view_empty_movers_cut_view_window" : "view_empty_movers_cut_window", { field: a.field, minimum: count(floor), cut: a.cutWords, view: c?.phrase });
     return message === undefined ? undefined : { win: wi, view: ci, label, heading, sentences: [], columns, rows: [], notes: [], empty: message, links };
   }
   const shown = [...rose, ...fell];
@@ -355,7 +374,8 @@ export function moversPanel(env: Env, a: MoversAsk, w: Window, c: Condition | un
     .filter((x): x is [string, Listed] => Boolean(x))
     .flatMap(([key, l]) => {
       const cmp = l.outcome.kind === "change" ? { change: Math.abs(l.outcome.change.change), prior_count: count(l.outcome.change.prior), prior: env.phrase.prior(w) } : {};
-      const text = say(env.words, c ? key.replace("mover_", "mover_view_") : key, { field: a.field, view: viewPhrase(env, c), name: a.nameOf(l.value), counted: env.counted(l.n, env.phrase.window(w)), ...cmp });
+      const used = a.cutWords === undefined ? (c ? key.replace("mover_", "mover_view_") : key) : key.replace("mover_", c ? "mover_cut_view_" : "mover_cut_");
+      const text = say(env.words, used, { field: a.field, view: viewPhrase(env, c), cut: a.cutWords, name: a.nameOf(l.value), counted: env.counted(l.n, env.phrase.window(w)), count: count(l.n), window: env.phrase.window(w), ...cmp });
       return text ? [text] : [];
     });
   const note = say(env.words, "movers_floor_window", { minimum: count(floor) });

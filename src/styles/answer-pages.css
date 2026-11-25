@@ -172,7 +172,7 @@
 }
 
 .cut-note {
-  margin-left: var(--space-2);
+  margin: var(--space-2) 0 0;
   font-size: var(--text-sm);
 }
 

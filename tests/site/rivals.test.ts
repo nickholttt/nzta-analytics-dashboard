@@ -1,5 +1,6 @@
 // A brand beside its nearest rivals (src/lib/rivals.ts, src/lib/answerPeriods.ts): two above and two below by the 12-month count, four rivals at either end, only brands
-// with a page, a hidden rival skipped for the next, the same set in every window and condition, and the gap sentence dropped on a tie.
+// with a page, a hidden rival skipped for the next, the same set in every window and condition (each table in the order of its own count), and the gap sentence
+// against the rival next in that order, dropped on a tie.
 import "./support/register.mjs";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -53,6 +54,9 @@ const words: Record<string, string> = {
   col_vehicles: "Vehicles",
   col_share_all: "Share",
   col_place: "Place",
+  col_share_all_view: "Share of all {view}",
+  col_place_view: "Place by {view}",
+  place_not_stated: "Place not stated",
   col_change: "Change",
   col_change_all: "Change in all",
   place_cell: "{rank} of {of}",
@@ -85,14 +89,22 @@ const env = {
 };
 const ask = (value: string, set: string[]) => ({ value, name: value, set, cut, dimension: "brand", nameOf: (v: string) => v, href: (v: string) => `/${v}/`, reservedMost: () => 0, link: () => undefined });
 
-test("the same brands are in every panel, in the same order, with the page's own marked", () => {
+test("the same brands are in every panel, each table in the order of its own count, with the page's own marked", () => {
   const set = ["A", "B", "C"];
   const panels = windows.flatMap((w) => [env.conditions[0], env.conditions[1], undefined].map((c, ci) => rivalsPanel(env as never, ask("B", set) as never, w, c as never, w.index, ci)!));
   assert.ok(panels.every(Boolean));
   for (const p of panels) {
-    assert.deepEqual(p.rows.map((r) => r.name), set);
-    assert.deepEqual(p.rows.map((r) => r.marked !== undefined), [false, true, false]);
+    assert.deepEqual(p.rows.map((r) => r.name).sort(), set);
+    assert.deepEqual(p.rows.filter((r) => r.marked !== undefined).map((r) => r.name), ["B"]);
+    const counts = p.rows.map((r) => Number(r.cells[0].text.replace(/,/g, "")));
+    assert.deepEqual(counts, [...counts].sort((a, b) => b - a), "the rows follow the table's own count");
   }
+  // used imports alone: A has more than B, and C has none, so the order differs from the all-vehicles one
+  const used = rivalsPanel(env as never, ask("B", set) as never, windows[0], env.conditions[1] as never, 0, 1)!;
+  assert.deepEqual(used.rows.map((r) => r.name), ["A", "B", "C"]);
+  const newOnly = rivalsPanel(env as never, ask("C", set) as never, windows[0], env.conditions[0] as never, 0, 0)!;
+  assert.equal(newOnly.rows.at(-1)!.name, "C");
+  assert.deepEqual(newOnly.columns.slice(1, 4), ["New", "Share of all new vehicles", "Place by new vehicles"], "the headings say which vehicles the figures count");
 });
 
 test("the gap sentence is against the rival above, says more or fewer, and is dropped on a tie", () => {
@@ -121,11 +133,10 @@ test("on the real build every brand page's rivals are the two above and the two 
   const ranked = [...brands].sort((a, b) => figure(b) - figure(a) || (a.value < b.value ? -1 : 1)).map((p) => p.value);
   for (const p of brands) {
     const rivals = p.scope!.sections.find((s) => s.id === "rivals")!;
-    const names = rivals.panels.map((x) => x.rows.map((r) => r.name).join("|"));
-    assert.equal(new Set(names).size, 1, `${p.value}: one set for every window and condition`);
+    assert.equal(new Set(rivals.panels.map((x) => x.rows.map((r) => r.name).sort().join("|"))).size, 1, `${p.value}: one set for every window and condition`);
     const expected = nearestRivals(p.value, ranked)!;
     const shown = rivals.panels[0].rows.map((r) => brands.find((b) => b.name === r.name)?.value);
-    assert.deepEqual(shown, expected, p.value);
+    assert.deepEqual([...shown].sort(), [...expected].sort(), p.value);
     assert.equal(shown.length, Math.min(5, ranked.length));
   }
 });

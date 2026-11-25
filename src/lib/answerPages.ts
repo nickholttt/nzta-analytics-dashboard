@@ -111,6 +111,8 @@ export type Kit = {
     cuts: Readonly<Record<Kind, ReadonlyMap<string, Cut>>>;
     // The value whose line is only partly identified, and the address of the note about how it is counted.
     noted?: { value: string; href: string };
+    // The values whose change on a year earlier is not stated (a line whose identification is only partial).
+    uncompared?: ReadonlySet<string>;
     // The words about the field a page of a value carries: the field's note, and, for the line that is only partly identified, how far it is.
     notes: (value: string) => string[];
     // The phrase a value is said by in a sentence ("battery electric vehicles").
@@ -170,7 +172,7 @@ export type PageView = {
   definitionHref: string;
   provenance: Kit["provenance"];
 };
-export type CutNav = { legend: string; all: { text: string; href: string }; items: { text: string; href: string; current?: boolean }[]; note?: { text: string; href: string; after: number } };
+export type CutNav = { legend: string; all: { text: string; href: string }; items: { text: string; href: string; current?: boolean }[]; note?: { text: string; href: string } };
 export type IndexEntry = { name: string; href?: string; models: { name: string; href: string }[]; modelsLabel: string };
 export type IndexView = {
   href: string;
@@ -461,7 +463,8 @@ export function answerSite(kit: Kit): Site | undefined {
     });
     const heading = words.heading_months;
     const columns = [words.col_month, ...(cut ? [...conditions.map((c) => c.label), words.view_all] : [words.col_count]), cut ? words.col_year_all : words.col_year];
-    return heading && rows.length > 0 ? { heading, columns, rows } : undefined;
+    const note = rows.some((r) => r.cells.some((c) => c.fresh)) ? words.new_entry_note_month : undefined;
+    return heading && rows.length > 0 ? { heading, columns, rows, ...(note ? { note } : {}) } : undefined;
   };
 
   const labelsOf = (): PageView["labels"] => ({
@@ -650,7 +653,10 @@ export function answerSite(kit: Kit): Site | undefined {
     if (heading === undefined || columns.some((c) => c === undefined)) return undefined;
     const table: TableView = { heading, columns: columns as string[], rows };
     const views = hidden.length === 0 ? modelViews(brand, brandN, brandName, top.map(([value]) => value)) : undefined;
-    return views ? { ...table, ...views } : table;
+    const whole: TableView = views ? { ...table, ...views } : table;
+    const fresh = [whole.rows, ...(whole.views ?? []).map((v) => v.rows)].some((rs) => rs.some((r) => r.cells.some((c) => c.fresh)));
+    const note = fresh ? say(words, "new_entry_note", { prior: phrase.priorWindow }) : undefined;
+    return note ? { ...whole, note } : whole;
   };
 
   // The brand's models once for each condition, ranked by that condition's count, and once for all with each condition's count beside the total. In
@@ -770,7 +776,7 @@ export function answerSite(kit: Kit): Site | undefined {
     const legend = words.cut_legend;
     if (!kit.cutBy || cutValues.length === 0 || !legend || !words.cut_all) return undefined;
     const items = cutValues.map((v) => ({ text: kit.cutBy?.label(v) ?? v, href: cutHref(v) ?? "", ...(v === current ? { current: true } : {}) }));
-    const note = kit.cutBy.noted && cutValues.includes(kit.cutBy.noted.value) && words.field_note_link ? { text: words.field_note_link, href: kit.cutBy.noted.href, after: cutValues.indexOf(kit.cutBy.noted.value) } : undefined;
+    const note = kit.cutBy.noted && cutValues.includes(kit.cutBy.noted.value) && words.field_note_link ? { text: words.field_note_link, href: kit.cutBy.noted.href } : undefined;
     return { legend, all: { text: words.cut_all, href: "/" }, items, ...(note ? { note } : {}) };
   };
   const upper = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
@@ -786,7 +792,7 @@ export function answerSite(kit: Kit): Site | undefined {
     const name = by.label(value);
     const n = totalFigure(brandCut, undefined, headlineWindow.months);
     const before = headlineWindow.prior.every(env.has) ? totalFigure(brandCut, undefined, headlineWindow.prior) : undefined;
-    const comparableNow = env.comparable(config.cut.dimension, value, headlineWindow);
+    const comparableNow = by.uncompared?.has(value) !== true && env.comparable(config.cut.dimension, value, headlineWindow);
     const change = comparableNow && before !== undefined ? changeOnYear(n, before, kit.floors.change) : undefined;
     const counted = kit.dataset.counted(n, phrase.window);
     const context = { count: count(n), cut: cutName, window: phrase.window, prior: phrase.priorWindow };
@@ -808,25 +814,30 @@ export function answerSite(kit: Kit): Site | undefined {
     };
     const wherePanel = (c: Condition | undefined) => ({ [config.cut.dimension]: [value], ...viewFieldWhere(c) });
     const totalOf = (cut: Cut) => (c: Condition | undefined, w: Window) => (w.months.every(env.has) ? totalFigure(cut, c?.value, w.months) : undefined);
-    const shareHead = () => say(words, "col_share_cut", { cut: cutName });
-    const brandAsk = { cut: brandCut, dimension: config.brand.dimension, nameHead: words.col_brand, top: config.models_listed, nameOf: (v: string) => kit.label(config.brand.dimension, v), href: (v: string) => hrefOf("brand", v), shareOf: totalOf(brandCut), shareHead: () => shareHead(), link: cutLink(config.brand.dimension, wherePanel) };
-    const modelAsk = { cut: modelCut, dimension: config.model.dimension, nameHead: words.col_model, top: config.models_listed, above: floor, nameOf: (v: string) => kit.label(config.model.dimension, v), href: (v: string) => hrefOf("model", v), shareOf: totalOf(modelCut), shareHead: () => shareHead(), link: cutLink(config.model.dimension, wherePanel) };
+    // The share is of the cut's vehicles under the condition chosen, and the heading says which.
+    const shareHead = (c: Condition | undefined) => (c ? say(words, "col_share_cut_view", { cut: cutName, view: c.phrase }) : say(words, "col_share_cut", { cut: cutName }));
+    const brandAsk = { cut: brandCut, dimension: config.brand.dimension, nameHead: words.col_brand, top: config.models_listed, nameOf: (v: string) => kit.label(config.brand.dimension, v), href: (v: string) => hrefOf("brand", v), shareOf: totalOf(brandCut), shareHead, link: cutLink(config.brand.dimension, wherePanel) };
+    const modelAsk = { cut: modelCut, dimension: config.model.dimension, nameHead: words.col_model, top: config.models_listed, above: floor, nameOf: (v: string) => kit.label(config.model.dimension, v), href: (v: string) => hrefOf("model", v), shareOf: totalOf(modelCut), shareHead, link: cutLink(config.model.dimension, wherePanel) };
     // A section's heading, and the heading of each of its panels (the section's, then the count it shows).
     const headed = (key: string) => {
       const heading = say(words, key, { cut: cutName });
       return { heading, panel: (_view: string, label: string) => (heading === undefined ? undefined : say(words, "heading_label", { heading, label })) };
     };
     const [hBrands, hModels, hBrandMovers, hModelMovers] = ["heading_cut_brands", "heading_cut_models", "heading_cut_brand_movers", "heading_cut_model_movers"].map(headed);
+    // Where the line's change is not stated, no table of the page states one.
+    const uncompared = by.uncompared?.has(value) === true;
+    const base = env;
+    const page: Env = uncompared ? { ...base, comparable: () => false } : base;
     const sections = [
-      hBrands.heading && sectionOf(env, "brands", hBrands.heading, undefined, (w, c, wi, ci) => leadersPanel(env, { ...brandAsk, heading: hBrands.panel }, w, c, wi, ci)),
-      hModels.heading && sectionOf(env, "models", hModels.heading, undefined, (w, c, wi, ci) => leadersPanel(env, { ...modelAsk, heading: hModels.panel }, w, c, wi, ci)),
-      hBrandMovers.heading && sectionOf(env, "brand-movers", hBrandMovers.heading, undefined, (w, c, wi, ci) =>
-        moversPanel(env, { cut: brandCut, dimension: config.brand.dimension, nameHead: words.col_brand, each: 3, least: 0.05, nameOf: brandAsk.nameOf, href: brandAsk.href, field: words.col_brand.toLowerCase(), link: brandAsk.link, heading: hBrandMovers.panel }, w, c, wi, ci)),
-      hModelMovers.heading && sectionOf(env, "model-movers", hModelMovers.heading, undefined, (w, c, wi, ci) =>
-        moversPanel(env, { cut: modelCut, dimension: config.model.dimension, nameHead: words.col_model, each: 3, least: 0.05, above: floor, nameOf: modelAsk.nameOf, href: modelAsk.href, field: words.col_model.toLowerCase(), link: modelAsk.link, heading: hModelMovers.panel }, w, c, wi, ci)),
+      hBrands.heading && sectionOf(page, "brands", hBrands.heading, undefined, (w, c, wi, ci) => leadersPanel(page, { ...brandAsk, heading: hBrands.panel }, w, c, wi, ci)),
+      hModels.heading && sectionOf(page, "models", hModels.heading, undefined, (w, c, wi, ci) => leadersPanel(page, { ...modelAsk, heading: hModels.panel }, w, c, wi, ci)),
+      hBrandMovers.heading && sectionOf(page, "brand-movers", hBrandMovers.heading, undefined, (w, c, wi, ci) =>
+        moversPanel(page, { cut: brandCut, dimension: config.brand.dimension, nameHead: words.col_brand, each: 3, least: 0.05, nameOf: brandAsk.nameOf, href: brandAsk.href, field: words.col_brand.toLowerCase(), cutWords: cutName, link: brandAsk.link, heading: hBrandMovers.panel }, w, c, wi, ci)),
+      hModelMovers.heading && sectionOf(page, "model-movers", hModelMovers.heading, undefined, (w, c, wi, ci) =>
+        moversPanel(page, { cut: modelCut, dimension: config.model.dimension, nameHead: words.col_model, each: 3, least: 0.05, above: floor, nameOf: modelAsk.nameOf, href: modelAsk.href, field: words.col_model.toLowerCase(), cutWords: cutName, link: modelAsk.link, heading: hModelMovers.panel }, w, c, wi, ci)),
     ];
-    const scope = sections.every((x): x is Section => Boolean(x)) ? scopeOf(env, sections) : undefined;
-    const periods = cutPeriods(env, brandCut, config.cut.dimension, value);
+    const scope = sections.every((x): x is Section => Boolean(x)) ? scopeOf(page, sections) : undefined;
+    const periods = cutPeriods(page, brandCut, config.cut.dimension, value);
     const named = say(words, "canvas_link_named", { heading: title });
     if (!scope || !periods || title === undefined || description === undefined || sentences.length === 0 || !canvasHref || named === undefined || !words.canvas_link) return undefined;
     return {
@@ -888,8 +899,8 @@ export function answerSite(kit: Kit): Site | undefined {
         nameOf: (v) => kit.label(config.brand.dimension, v),
         href: (v) => hrefOf("brand", v),
         shareOf: (cond, win) => (win.months.every(env.has) ? totalFigure(brandCut, cond?.value, win.months) : undefined),
-        shareHead: () => words.col_share_all,
-        place: { atLeast: (cond, win) => reservedMostBy(brandCut)(cond?.value, win), head: words.col_place },
+        shareHead: (cond) => (cond ? say(words, "col_share_all_view", { view: cond.phrase }) : words.col_share_all),
+        place: { atLeast: (cond, win) => reservedMostBy(brandCut)(cond?.value, win), head: (cond) => (cond ? say(words, "col_place_view", { view: cond.phrase }) : words.col_place) },
       }, w, c, wi, ci),
     );
     if (!section) return undefined;
