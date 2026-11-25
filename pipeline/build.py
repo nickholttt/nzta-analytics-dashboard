@@ -297,6 +297,17 @@ def fact_table_owner_problems(cfg) -> list[str]:
     return problems
 
 
+def kind_of_owner_floor_problems(cfg) -> list[str]:
+    """Each table config/pipeline.json writes that puts a field saying what kind of owner beside a field that says who or where
+    the owner is, found before anything is read or written (privacy.floor_problems). A build whose config breaks the floor
+    aborts and leaves the last good build in place; tests/test_data_map.py and test_privacy.py hold the committed config to
+    the same rule."""
+    try:
+        return privacy.floor_problems(cfg)
+    except (privacy.DataMapError, OSError, KeyError) as exc:
+        raise GuardrailError("data map", f"config/data_map.json cannot be used to protect owner fields: {exc!r}") from exc
+
+
 def stock_problems(con, staging, dataset: str, snapshot_month: date, counts: dict[str, int]) -> list[str]:
     """What a stock's written files break: it counts every vehicle the register holds, it has the one period, the snapshot's
     month, and every slice and pair file has the contract's columns and that month alone, so that no vehicle's own month or
@@ -566,7 +577,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
     # Before anything is read: a series dimension that would be offered to a register dataset cannot be derived there.
     misconfigured = (derive.series_dimension_problems(cfg) + stock_configuration_problems(cfg)
-                     + fact_table_owner_problems(cfg) + guardrails.continuation_problems(cfg))
+                     + fact_table_owner_problems(cfg) + kind_of_owner_floor_problems(cfg) + guardrails.continuation_problems(cfg))
     if misconfigured:
         raise GuardrailError("build", "\n  - " + "\n  - ".join(misconfigured))
     # A dataset that replaced others is compared with the records they left (guardrails.inherit_history).

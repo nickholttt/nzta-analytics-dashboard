@@ -1412,6 +1412,12 @@ Fact tables, found before anything is read:
   dimension from that dataset's `facts`. A data map the build cannot read aborts the same check.
 - The same, for a dimension a dataset's `narrow_facts` table lists (*Narrow fact tables*): the message names the table and says to
   remove the dimension from it.
+- A pair, a `facts` list, a `narrow_facts` table or the snapshot aggregate's `group_by` puts a dimension that reads a field of the
+  data map's `kind_of_owner_groups` (what kind of owner registered the vehicle: buyer type) in one table with a dimension that reads a
+  field of an owner group (where the owner lives, or how the register records the owner's usage). The message names the table, both
+  dimensions and the owner field, and says to remove one of them. A data map with no `kind_of_owner_groups`, or one that puts a group
+  in both lists, aborts the same check (`pipeline/privacy.py`, `floor_problems`; `docs/DATA_MAP.md`, *The floor under what kind of
+  owner*). No dimension reads such a field yet, so today the check finds nothing.
 
 Pairs:
 

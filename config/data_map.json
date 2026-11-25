@@ -9,6 +9,8 @@
   "$stock_only_comment": "A register field's entry may carry stock_only: true (D-135). It says the field describes the vehicle as it is at the snapshot, not as it was when first registered, so a count of it by month of first registration would misread it. A dimension that reads such a field is built for a dataset marked stock in config/pipeline.json and for no other; the build and pipeline/tests/test_stock.py hold this from this map (pipeline/privacy.py stock_only_dimensions), and no dimension id is named in code.",
   "owner_groups": ["who_has_it"],
   "$owner_groups_comment": "Groups whose fields describe or locate the owner. They are published only as owner_rule allows.",
+  "kind_of_owner_groups": ["kind_of_owner"],
+  "$kind_of_owner_groups_comment": "Groups whose fields say what kind of owner registered the vehicle (a person, a company, a rental firm or neither), not who the owner is or where the owner lives. They are not owner groups: on the user's direction of 2026-11-25 they are public and published in full, with no cell hidden. The floor under that is in owner_rule: a field of one of these groups is never put in one table with a field of an owner group. pipeline/privacy.py (floor_problems) reads this list and owner_groups to find the dimensions on each side, and the build aborts before it reads anything when config/pipeline.json puts them in one table.",
   "owner_rule": {
     "decision": "D-096",
     "outputs": ["slice", "pair"],
@@ -25,7 +27,7 @@
     },
     "enforced": true,
     "not_published": ["POSTCODE"],
-    "$comment": "The user's rule for owner fields (2026-11-16, D-096): only in tables of one or two fields (a slice or a pair, never the fact table or the committed snapshot aggregate), with any cell counting fewer than minimum_count vehicles hidden. The map's test holds an owner field to those outputs whatever its class or exceptions say. enforced is true since D-127: the pipeline hides small cells (the two rules above) in the slice of every dimension that reads an owner field, reads each such slice back, and holds a pair with one to the pair_rule above (pipeline/small_cells.py, pipeline/pair_cells.py, pipeline/privacy.py). That does not publish any other owner field: the map's test keeps every owner field out of a published class until the owner has been shown that field's first table (D-120). not_published lists owner fields the user holds back altogether for now: postcode totals (the same answer). A field leaves the list only on the user's word, in a new decision record. Nothing derived from VIN11 is covered by this rule."
+    "$comment": "The user's rule for owner fields (2026-11-16, D-096): only in tables of one or two fields (a slice or a pair, never the fact table or the committed snapshot aggregate), with any cell counting fewer than minimum_count vehicles hidden. The map's test holds an owner field to those outputs whatever its class or exceptions say. enforced is true since D-127: the pipeline hides small cells (the two rules above) in the slice of every dimension that reads an owner field, reads each such slice back, and holds a pair with one to the pair_rule above (pipeline/small_cells.py, pipeline/pair_cells.py, pipeline/privacy.py). That does not publish any other owner field: the map's test keeps every owner field out of a published class until the owner has been shown that field's first table (D-120). not_published lists owner fields the user holds back altogether for now: postcode totals (the same answer). A field leaves the list only on the user's word, in a new decision record. Nothing derived from VIN11 is covered by this rule. The floor under kind_of_owner_groups (2026-11-25): a field of those groups (the dashboard's Owner Type and Vehicle usage, which say what kind of owner) is public and shown in full, but is never put in a pair, a fact table, a narrow fact table or the snapshot aggregate together with a dimension that reads a field of an owner group, and an owner field still never reaches a fact table; a slice holds one field and cannot cross them. The build checks it from this file and the derive blocks (pipeline/privacy.py floor_problems, build.kind_of_owner_floor_problems) and aborts; pipeline/tests/test_kind_of_owner_floor.py holds the committed config to it."
   },
   "cardinality": {
     "few_max_values": 8,
@@ -33,7 +35,7 @@
   },
   "enums": {
     "source": ["register", "dashboard"],
-    "group": ["identity_and_time", "what_the_vehicle_is", "how_it_is_powered", "size_and_weight", "where_it_came_from", "who_has_it", "codes_and_free_text"],
+    "group": ["identity_and_time", "what_the_vehicle_is", "how_it_is_powered", "size_and_weight", "where_it_came_from", "who_has_it", "kind_of_owner", "codes_and_free_text"],
     "kind": ["category", "ordered_band", "number", "time", "place", "identifier", "free_text"],
     "cardinality": ["few", "many"],
     "measure": ["count", "average", "median", "total"],
@@ -1064,7 +1066,7 @@
       "name": "Owner Type",
       "source": "dashboard",
       "register_fields": [],
-      "group": "who_has_it",
+      "group": "kind_of_owner",
       "kind": "category",
       "cardinality": "few",
       "definition": "The kind of registered owner: a person, a company or other. Most likely the owner at first registration; not proven.",
@@ -1072,9 +1074,9 @@
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
       "not_recorded": [],
-      "privacy": "owner_restricted",
-      "privacy_reason": "Describes the owner (the work order's section 3 names it an owner field).",
-      "after_review": "minimum_count",
+      "privacy": "public",
+      "privacy_reason": "Says what kind of owner registered the vehicle, not who or where. Public and shown in full on the user's direction of 2026-11-25 (NZTA releases it in its open data); never in one table with a field that says where the owner lives (owner_rule, kind_of_owner_groups).",
+      "after_review": null,
       "bound": null,
       "relations": { "rolls_up_to": [], "derived_from": [], "follows_vehicle": "no" }
     },
@@ -1104,7 +1106,7 @@
       "name": "Vehicle usage",
       "source": "dashboard",
       "register_fields": ["VEHICLE_USAGE"],
-      "group": "who_has_it",
+      "group": "kind_of_owner",
       "kind": "category",
       "cardinality": "many",
       "definition": "How the vehicle is used, in a finer list than the register's, at an earlier moment than the register's: consistent with the usage at first registration (shown for rental only).",
@@ -1112,9 +1114,9 @@
       "recorded_for": ["every_vehicle"],
       "nothing_means": "not_recorded",
       "not_recorded": ["UNDEFINED"],
-      "privacy": "owner_restricted",
-      "privacy_reason": "Describes how the owner uses the vehicle (the work order's section 3 names it an owner field).",
-      "after_review": "minimum_count",
+      "privacy": "public",
+      "privacy_reason": "Says how the vehicle was registered for use, which with the owner type says what kind of owner registered it. Public and shown in full on the user's direction of 2026-11-25; the register's VEHICLE_USAGE, which is the usage today, stays an owner field; never in one table with a field that says where the owner lives (owner_rule, kind_of_owner_groups).",
+      "after_review": null,
       "bound": null,
       "relations": { "rolls_up_to": [], "derived_from": [], "follows_vehicle": "no" }
     }

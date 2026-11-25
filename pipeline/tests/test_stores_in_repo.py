@@ -322,7 +322,7 @@ def test_the_committed_store_holds_no_owner_field_in_any_form(source_id):
 def test_the_held_columns_come_from_the_data_map_and_are_all_dropped_by_supply():
     dmap = data_map()
     held = held_columns(dmap)
-    assert len(held) >= 3, "the data map no longer holds any dashboard column back, so the check would prove nothing"
+    assert held, "the data map no longer holds any dashboard column back, so the check would prove nothing"
     assert held <= set(REAL.supplied(COUNTED)["private_columns"]), "a held column must be one `supply` checks for and drops"
     stored = set(supplied.store_columns(REAL.supplied(COUNTED)))
     assert not {squash(n) for n in held_names(REAL, dmap)} & {squash(c) for c in stored}
