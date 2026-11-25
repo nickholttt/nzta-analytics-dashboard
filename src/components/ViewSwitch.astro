@@ -3,6 +3,10 @@
 // the page's stylesheet shows when its button is chosen (src/styles/view-switch.css). The first view is chosen to begin with. Where the browser
 // cannot do that (no :has()) the choice is not drawn and every view is, one after the other, each labelled. The views go inside as the slot, by
 // position: the buttons' labels in the order of the panels'. The switch has room for five views.
+//
+// A switch may have a second choice, the period (the `period` property): then every panel also carries the period it is for in `data-win` (`w` and its
+// position), and the default period's panels carry `data-win-default`. Where the browser cannot do :has() the choices are not drawn and the default period's
+// panels are, one after the other for each view, labelled.
 import "../styles/view-switch.css";
 
 interface Props {
@@ -12,11 +16,26 @@ interface Props {
   // Says what the choice changes.
   note: string;
   labels: string[];
+  // The second choice: its legend, the labels of the periods in the order of the panels' `data-win`, and which is chosen to begin with.
+  period?: { legend: string; labels: string[]; checked: number };
 }
-const { id, legend, note, labels } = Astro.props;
+const { id, legend, note, labels, period } = Astro.props;
 ---
 
 <div class="vs-scope">
+  {
+    period && (
+      <fieldset class="vs" aria-describedby={`${id}-note`}>
+        <legend class="vs-legend">{period.legend}</legend>
+        {period.labels.map((label, i) => (
+          <>
+            <input class="vs-input" type="radio" name={`${id}-win`} id={`${id}-w${i}`} value={`w${i}`} checked={i === period.checked} />
+            <label class="vs-label" for={`${id}-w${i}`}>{label}</label>
+          </>
+        ))}
+      </fieldset>
+    )
+  }
   <fieldset class="vs" aria-describedby={`${id}-note`}>
     <legend class="vs-legend">{legend}</legend>
     {
