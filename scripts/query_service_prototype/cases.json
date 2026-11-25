@@ -33,7 +33,7 @@
       "why": "a compared value is a parameter, never SQL",
       "query": "build.by=make&build.value=x%27%20OR%20%271%27%3D%271",
       "status": 200,
-      "totals": {"snapshot": "2026-10-31", "denominator_sum": 4520304, "value_sums": {}}
+      "totals": {"snapshot": "2026-10-31", "denominator_sum": 4615306, "value_sums": {}}
     },
     {
       "id": "limit-values",
@@ -89,7 +89,7 @@
       "why": "no breakdown, no condition: every vehicle, month by month",
       "query": "",
       "status": 200,
-      "totals": {"snapshot": "2026-10-31", "denominator_sum": 4520304, "value_sums": {}}
+      "totals": {"snapshot": "2026-10-31", "denominator_sum": 4615306, "value_sums": {}}
     }
   ]
 }
