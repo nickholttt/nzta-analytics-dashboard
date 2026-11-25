@@ -14,11 +14,12 @@
 import configDoc from "../../config/answer_pages.json";
 import { datasetLatestMonth, isBuilt } from "./data";
 import type { Event, Manifest, SliceRow } from "./data";
-import { monthOf } from "./latestMonth";
-import type { MonthOf } from "./latestMonth";
+import { Cut } from "./conditionViews";
+import { MAX_VIEWS, monthOf, phraseFor } from "./latestMonth";
+import type { Condition, MonthOf } from "./latestMonth";
 import { recordingChange } from "./recordingChange";
 import { slugsFor } from "./answerSlug";
-import { addMonths, changeOnYear, count, fillTemplate, monthLabel, monthRange, percent } from "./sentences";
+import { addMonths, changeOnYear, count, fillTemplate, monthLabel, monthRange, percent, sayList } from "./sentences";
 import { isReservedValue } from "./chartSentence";
 
 export type FieldConfig = { dimension: string; path: string; minimum: number };
@@ -28,6 +29,8 @@ export type AnswerConfig = {
   window: number;
   brand: FieldConfig;
   model: FieldConfig;
+  // The field whose values the vehicles are counted under (new or used): each page says its figures by them.
+  view_field?: string;
   models_listed: number;
   months_shown: number;
   index_path: string;
@@ -50,6 +53,8 @@ export type Kit = {
   events: readonly Event[] | null;
   // A value as a visitor reads it, and the separator a compound value (a model, as brand and model) is joined with.
   label: (dimension: string, value: string) => string;
+  // A compound value (a model) without its leading parts (its brand): a brand's own table names its models by this. Absent, the label is used.
+  tail?: (dimension: string, value: string) => string;
   separator: string | undefined;
   dataset: {
     // A count said in the dataset's words for a period ("in the 12 months to Oct 2026").
@@ -64,15 +69,34 @@ export type Kit = {
   // The least number of vehicles in the earlier period for a change to be stated, and the least in a total for a share to be.
   floors: { change: number; share: number };
   format: { share: (x: number) => string };
-  // The address of the canvas that draws one value's question, or nothing where it cannot.
-  link: (kind: Kind, value: string) => string | undefined;
+  // The address of the canvas that draws one value's question (split by a field, where one is given), or nothing where it cannot.
+  link: (kind: Kind, value: string, by?: string) => string | undefined;
+  // The conditions the vehicles are counted under and each field's counts by them, where the build can give them (src/lib/conditionViewsBuild.ts); absent,
+  // the pages are drawn without them.
+  views?: {
+    field: string;
+    // The field as the second link names it.
+    fieldLabel: string;
+    conditions: readonly Condition[];
+    cuts: Readonly<Partial<Record<Kind, Cut>>>;
+    // The fewest vehicles over the window of any model the build names: a model ranks on a part of its count only above it.
+    floor: number | undefined;
+  };
   // Where the figures come from and the snapshot's date, as the latest month says them.
   provenance: { source?: string; snapshot: string };
 };
 
 export type TableCell = { text: string; direction?: "up" | "down" | "same"; hidden?: boolean; none?: boolean };
 export type TableRow = { name: string; href?: string; cells: TableCell[]; total?: boolean };
-export type TableView = { heading: string; columns: string[]; rows: TableRow[]; note?: string };
+export type TableView = {
+  heading: string;
+  columns: string[];
+  rows: TableRow[];
+  note?: string;
+  // The table once for each condition and once for all (the table's own columns and rows are the figures for all), and the words of the switch between them.
+  views?: { label: string; heading: string; columns: string[]; rows: TableRow[]; empty?: string }[];
+  switch?: { legend: string; note: string; labels: string[] };
+};
 export type PageView = {
   kind: Kind;
   value: string;
@@ -86,6 +110,10 @@ export type PageView = {
   sentences: string[];
   tables: TableView[];
   canvas: { href: string; text: string; named: string };
+  // The same question split by the condition, month by month.
+  canvasSplit?: { href: string; text: string; named: string };
+  // The window's figure by condition and for all, beside the big figure.
+  parts?: { label: string; value: string }[];
   // The brand of a model, as the model's page links to it (the link only where the brand has a page).
   brand?: { name: string; href?: string; text?: string };
   // The words the page draws beside its content, from config.
@@ -249,6 +277,42 @@ export function answerSite(kit: Kit): Site | undefined {
     priorMonth: kit.period.month(addMonths(latest, -12)),
   };
 
+  // ---- The conditions the figures can be said by ----
+
+  const conditions: readonly Condition[] = kit.views && kit.views.conditions.length >= 2 && kit.views.conditions.length < MAX_VIEWS ? kit.views.conditions : [];
+  const cuts = { brand: conditions.length > 0 ? kit.views?.cuts.brand : undefined, model: conditions.length > 0 ? kit.views?.cuts.model : undefined };
+  const floor = kit.views?.floor;
+  // Each condition's places among the values of a field: the sums of the named values over the window.
+  const standingBy = (cut: Cut | undefined) =>
+    cut ? new Map(conditions.map((c) => [c.value, new Map(cut.values(thisWindow).filter((v) => !isReservedValue(v)).map((v) => [v, cut.sum(v, c.value, thisWindow)] as [string, number]))])) : undefined;
+  const conditionStanding = { brand: standingBy(cuts.brand), model: standingBy(cuts.model) };
+  // The most vehicles of a condition that any one reserved group holds (no reference match, not recorded, beyond the cap). A make the build groups there
+  // may have up to that many, so a brand's place by a condition is not said unless its own count is above it.
+  const reservedMost = (cut: Cut | undefined, c: Condition): number =>
+    cut ? Math.max(0, ...cut.values(thisWindow).filter(isReservedValue).map((v) => cut.sum(v, c.value, thisWindow))) : 0;
+  const reserved = { brand: new Map(conditions.map((c) => [c.value, reservedMost(cuts.brand, c)])) };
+  // The part of a figure a sentence says each condition has: "Of these, 805 new vehicles and 15 used imports", or that all were of one.
+  // The parts as a list ("805 new vehicles and 15 used imports"): nothing where all were of one condition, which the sentence says in its own words.
+  const partsList = (amounts: readonly number[]): string | undefined => {
+    const held = conditions.map((c, i) => ({ c, n: amounts[i] })).filter((x) => x.n > 0);
+    const texts = held.map((x) => say(words, "part", { count: count(x.n), view: phraseFor(x.c, x.n) }));
+    return held.length > 1 && texts.every((t): t is string => t !== undefined) ? sayList(texts) : undefined;
+  };
+  const partsSentence = (key: "parts_window" | "parts_month", amounts: readonly number[]): string | undefined => {
+    const held = conditions.map((c, i) => ({ c, n: amounts[i] })).filter((x) => x.n > 0);
+    if (held.length === 1) return say(words, "parts_one", { view: held[0].c.phrase });
+    const list = partsList(amounts);
+    return list === undefined ? undefined : say(words, key, { parts: list });
+  };
+  // A place by a condition's count: said as the place by all is, for a model only above the floor, below which a model the cap hid may have more, and
+  // for a brand only above the reserved groups' count, below which a make the build grouped there may have more.
+  const placeUnder = (kind: Kind, value: string, c: Condition, exact: boolean) => {
+    const sums = conditionStanding[kind]?.get(c.value);
+    const n = sums?.get(value);
+    if (!sums || n === undefined || (kind === "model" && floor !== undefined && n <= floor) || (kind === "brand" && n <= (reserved.brand.get(c.value) ?? 0))) return undefined;
+    return placeOf(value, sums, exact);
+  };
+
   // Whether a figure for two periods a year apart can be set side by side: the dataset's counts allow it and no change in how the data is
   // recorded lies between the two, for the value in question.
   const comparable = (kind: Kind, value: string, from: string, to: string) =>
@@ -300,16 +364,20 @@ export function answerSite(kit: Kit): Site | undefined {
   };
 
   const months = (kind: Kind, value: string, counts: Counts): TableView | undefined => {
+    const cut = cuts[kind];
     const rows: TableRow[] = [...shown].reverse().flatMap((month) => {
       const n = counts.at(value, month);
       if (n === undefined) return [];
       const before = counts.at(value, addMonths(month, -12));
       const cells: TableCell[] =
         n === "hidden" ? [{ text: words.hidden, hidden: true }, { text: "", none: true }] : [{ text: count(n) }, changeCell(n, before, comparable(kind, value, addMonths(month, -12), month))];
+      // Each month's figure is shown by its parts too, which add up to it.
+      if (cut && typeof n === "number") cells.splice(0, 0, ...conditions.map((c) => ({ text: count(cut.at(value, c.value, month)) })));
       return [{ name: monthLabel(month), cells }];
     });
     const heading = words.heading_months;
-    return heading && rows.length > 0 ? { heading, columns: [words.col_month, words.col_count, words.col_year], rows } : undefined;
+    const columns = [words.col_month, ...(cut ? [...conditions.map((c) => c.label), words.view_all] : [words.col_count]), cut ? words.col_year_all : words.col_year];
+    return heading && rows.length > 0 ? { heading, columns, rows } : undefined;
   };
 
   const labelsOf = (): PageView["labels"] => ({
@@ -324,24 +392,39 @@ export function answerSite(kit: Kit): Site | undefined {
     index: words.index_link,
   });
 
-  const fit = (text: string | undefined, short: string | undefined) => {
+  // The first of the descriptions, longest first, that fits a search result.
+  const fit = (...texts: (string | undefined)[]) => {
     const [least, most] = config.description_length;
-    return [text, short].find((t): t is string => t !== undefined && t.length >= least && t.length <= most);
+    return texts.find((t): t is string => t !== undefined && t.length >= least && t.length <= most);
   };
 
-  const finish = (kind: Kind, value: string, name: string, sentences: string[], tables: TableView[], n: number, extra: Partial<PageView>): PageView | undefined => {
+  const finish = (kind: Kind, value: string, name: string, sentences: string[], tables: TableView[], n: number, parts: string | undefined, extra: Partial<PageView>): PageView | undefined => {
     const slug = slugs[kind].get(value);
     const href = hrefOf(kind, value);
     const canvas = kit.link(kind, value);
     const title = say(words, `${kind}_title`, { name, span });
     const counted = kit.dataset.counted(n, phrase.window);
-    const description = fit(say(words, `${kind}_description`, { name, counted }), say(words, "short_description", { name, counted }));
+    // A description says the split too where it is there, so a search result or a link preview does not show the combined figure alone.
+    const description = fit(
+      say(words, `${kind}_description_parts`, { name, counted, parts }),
+      say(words, "short_description_parts", { name, counted, parts }),
+      say(words, `${kind}_description`, { name, counted }),
+      say(words, "short_description", { name, counted }),
+    );
     if (slug === undefined || href === undefined || canvas === undefined || title === undefined || description === undefined || sentences.length === 0) return undefined;
     const named = say(words, "canvas_link_named", { heading: title });
     if (named === undefined || !words.canvas_link) return undefined;
+    // The same question split by the condition, where the canvas can draw it: left out where it cannot.
+    const splitHref = kit.views && conditions.length > 0 && cuts[kind] ? kit.link(kind, value, kit.views.field) : undefined;
+    const splitText = kit.views ? say(words, "canvas_split_link", { field: kit.views.fieldLabel }) : undefined;
+    const splitNamed = kit.views ? say(words, "canvas_split_named", { heading: title, field: kit.views.fieldLabel }) : undefined;
+    const cut = cuts[kind];
+    const strip = cut ? [...conditions.map((c) => ({ label: c.label, value: count(cut.sum(value, c.value, thisWindow)) })), { label: words.view_all, value: count(n) }] : undefined;
     return {
       kind, value, name, slug, href, title, description, figure: count(n), sentences, tables,
       canvas: { href: canvas, text: words.canvas_link, named },
+      ...(splitHref && splitText && splitNamed ? { canvasSplit: { href: splitHref, text: splitText, named: splitNamed } } : {}),
+      ...(strip ? { parts: strip } : {}),
       labels: labelsOf(),
       caveatHref: config.caveat.href,
       definitionHref: config.definition,
@@ -358,10 +441,18 @@ export function answerSite(kit: Kit): Site | undefined {
     if (f.n === undefined) return undefined;
     const sentences: string[] = [];
     const push = (s: string | undefined) => void (s && sentences.push(s));
+    const cut = cuts.brand;
     push(countSentence(name, f.n, phrase.window, { n: f.before, period: phrase.priorWindow, ok: f.yearOk }));
+    if (cut) push(partsSentence("parts_window", conditions.map((c) => cut.sum(value, c.value, thisWindow))));
     if (typeof f.monthN === "number") push(countSentence(name, f.monthN, phrase.month, { n: f.monthBefore, period: phrase.priorMonth, ok: f.monthOk }));
+    if (cut && typeof f.monthN === "number") push(partsSentence("parts_month", conditions.map((c) => cut.at(value, c.value, latest))));
     const place = placeOf(value, brandStanding.sums, brandStanding.exact);
     if (place) push(say(words, "brand_rank", { name, rank: place.rank, of: place.of, window: phrase.window }));
+    // Its place among the brands that have vehicles of each condition, said as its place among all is.
+    for (const c of cut ? conditions : []) {
+      const under = placeUnder("brand", value, c, brandStanding.exact);
+      if (under) push(say(words, "brand_rank_view", { name, rank: under.rank, of: under.of, view: c.phrase, window: phrase.window }));
+    }
     if (windowTotal !== undefined && windowTotal >= kit.floors.share) push(say(words, "brand_share", { name, share: kit.format.share(f.n / windowTotal), window: phrase.window }));
 
     const tables: TableView[] = [];
@@ -369,7 +460,7 @@ export function answerSite(kit: Kit): Site | undefined {
     if (listed) tables.push(listed);
     const byMonth = months("brand", value, brandCounts);
     if (byMonth) tables.push(byMonth);
-    return finish("brand", value, name, sentences, tables, f.n, {});
+    return finish("brand", value, name, sentences, tables, f.n, cut ? partsList(conditions.map((c) => cut.sum(value, c.value, thisWindow))) : undefined, {});
   };
 
   // The brand's models, most registered first, each linking to its page where it has one, and the rest of the brand in one line.
@@ -386,7 +477,7 @@ export function answerSite(kit: Kit): Site | undefined {
     const rows: TableRow[] = top.map(([value, n]) => {
       const p = prior(value);
       return {
-        name: kit.label(config.model.dimension, value),
+        name: kit.tail ? kit.tail(config.model.dimension, value) : kit.label(config.model.dimension, value),
         href: hrefOf("model", value),
         cells: [
           { text: count(n) },
@@ -404,7 +495,76 @@ export function answerSite(kit: Kit): Site | undefined {
     const heading = say(words, "heading_models", { name: brandName });
     const columns = [words.col_model, say(words, "col_window", { window: phrase.window }), say(words, "col_share", { name: brandName }), say(words, "col_window_change", { span })];
     if (heading === undefined || columns.some((c) => c === undefined)) return undefined;
-    return { heading, columns: columns as string[], rows };
+    const table: TableView = { heading, columns: columns as string[], rows };
+    const views = hidden.length === 0 ? modelViews(brand, brandN, brandName, top.map(([value]) => value)) : undefined;
+    return views ? { ...table, ...views } : table;
+  };
+
+  // The brand's models once for each condition, ranked by that condition's count, and once for all with each condition's count beside the total. In
+  // every one the models listed and the line for the rest add up to the brand's line. A model ranks on a part of its count only above the floor.
+  const modelViews = (brand: string, brandN: number, brandName: string, listedForAll: readonly string[]): Pick<TableView, "views" | "switch"> | undefined => {
+    const brandCut = cuts.brand;
+    const modelCut = cuts.model;
+    const legend = words.view_legend_models;
+    const note = words.view_note_models;
+    if (!brandCut || !modelCut || !models || !legend || !note) return undefined;
+    const shareable = (n: number) => n >= kit.floors.share;
+    const own = (value: string) => brandOfModel(value) === brand && !isReservedValue(value);
+    const modelsOfBrand = modelCut.values(thisWindow).filter(own);
+    const rowFor = (value: string, cells: TableCell[]): TableRow => ({ name: kit.tail ? kit.tail(config.model.dimension, value) : kit.label(config.model.dimension, value), href: hrefOf("model", value), cells });
+    const noCell: TableCell = { text: "", none: true };
+    // The change is on the vehicles the table counts: in a condition's table that condition's, and where a table has every condition's count beside the total, the total's.
+    const columnsFor = (heads: string[], share: string | undefined, wholly = false): string[] | undefined => {
+      const last = say(words, wholly ? "col_window_change_all" : "col_window_change", { span });
+      return share === undefined || last === undefined ? undefined : [words.col_model, ...heads, share, last];
+    };
+    const out: NonNullable<TableView["views"]> = [];
+    for (const c of conditions) {
+      const brandC = brandCut.sum(brand, c.value, thisWindow);
+      const heading = say(words, "heading_models_view", { name: brandName, view: c.phrase });
+      const columns = columnsFor([c.label], say(words, "col_view_share", { name: brandName, view: c.phrase }));
+      if (heading === undefined || !columns) return undefined;
+      if (brandC <= 0) {
+        const empty = say(words, "view_empty", { name: brandName, view: c.phrase, window: phrase.window });
+        if (empty === undefined) return undefined;
+        out.push({ label: c.label, heading, columns, rows: [], empty });
+        continue;
+      }
+      const ranked = modelsOfBrand
+        .map((value) => [value, modelCut.sum(value, c.value, thisWindow)] as [string, number])
+        .filter(([, n]) => n > 0 && (floor === undefined || n > floor))
+        .sort((a, b) => b[1] - a[1] || byName(a[0], b[0]))
+        .slice(0, config.models_listed);
+      const rows: TableRow[] = ranked.map(([value, n]) => rowFor(value, [{ text: count(n) }, shareable(brandC) ? { text: kit.format.share(n / brandC) } : noCell, changeCell(n, modelCut.sum(value, c.value, priorWindow), comparable("model", value, earliestPrior, latest))]));
+      const rest = brandC - ranked.reduce((sum, [, n]) => sum + n, 0);
+      const otherName = say(words, "other_models", { name: brandName });
+      if (rest > 0 && otherName) rows.push({ name: otherName, cells: [{ text: count(rest) }, shareable(brandC) ? { text: kit.format.share(rest / brandC) } : noCell, noCell] });
+      const totalName = say(words, "total_row_view", { name: brandName, view: c.phrase });
+      if (!totalName) return undefined;
+      rows.push({ name: totalName, total: true, cells: [{ text: count(brandC) }, shareable(brandC) ? { text: kit.format.share(1) } : noCell, changeCell(brandC, brandCut.sum(brand, c.value, priorWindow), comparable("brand", brand, earliestPrior, latest))] });
+      out.push({ label: c.label, heading, columns, rows });
+    }
+    // All of them: the table as it is, each condition's count beside the total, the rest and the total adding up in every column.
+    const heading = say(words, "heading_models_view", { name: brandName, view: words.view_all_phrase });
+    const columns = columnsFor([...conditions.map((c) => c.label), words.view_all], say(words, "col_share", { name: brandName }), true);
+    const totalName = say(words, "total_row", { name: brandName });
+    const otherName = say(words, "other_models", { name: brandName });
+    if (heading === undefined || !columns || !totalName) return undefined;
+    const partsOf = (value: string) => conditions.map((c) => modelCut.sum(value, c.value, thisWindow));
+    const brandParts = conditions.map((c) => brandCut.sum(brand, c.value, thisWindow));
+    const all = listedForAll.map((value) => {
+      const n = models.sum(value, thisWindow);
+      return n === undefined ? undefined : rowFor(value, [...partsOf(value).map((x) => ({ text: count(x) })), { text: count(n) }, shareable(brandN) ? { text: kit.format.share(n / brandN) } : noCell, changeCell(n, models.sum(value, priorWindow), comparable("model", value, earliestPrior, latest))]);
+    });
+    if (all.some((r) => r === undefined)) return undefined;
+    const rows = all as TableRow[];
+    const listedParts = conditions.map((_, i) => listedForAll.reduce((sum, value) => sum + partsOf(value)[i], 0));
+    const listedN = listedForAll.reduce((sum, value) => sum + (models.sum(value, thisWindow) ?? 0), 0);
+    const rest = brandN - listedN;
+    if (rest > 0 && otherName) rows.push({ name: otherName, cells: [...brandParts.map((x, i) => ({ text: count(x - listedParts[i]) })), { text: count(rest) }, shareable(brandN) ? { text: kit.format.share(rest / brandN) } : noCell, noCell] });
+    rows.push({ name: totalName, total: true, cells: [...brandParts.map((x) => ({ text: count(x) })), { text: count(brandN) }, shareable(brandN) ? { text: kit.format.share(1) } : noCell, changeCell(brandN, brandCounts.sum(brand, priorWindow), comparable("brand", brand, earliestPrior, latest))] });
+    out.push({ label: words.view_all, heading, columns, rows });
+    return { views: out, switch: { legend, note, labels: [...conditions.map((c) => c.label), words.view_all] } };
   };
 
   // ---- A model's page ----
@@ -416,10 +576,17 @@ export function answerSite(kit: Kit): Site | undefined {
     if (f.n === undefined) return undefined;
     const sentences: string[] = [];
     const push = (s: string | undefined) => void (s && sentences.push(s));
+    const cut = cuts.model;
     push(countSentence(name, f.n, phrase.window, { n: f.before, period: phrase.priorWindow, ok: f.yearOk }));
+    if (cut) push(partsSentence("parts_window", conditions.map((c) => cut.sum(value, c.value, thisWindow))));
     if (typeof f.monthN === "number") push(countSentence(name, f.monthN, phrase.month, { n: f.monthBefore, period: phrase.priorMonth, ok: f.monthOk }));
+    if (cut && typeof f.monthN === "number") push(partsSentence("parts_month", conditions.map((c) => cut.at(value, c.value, latest))));
     const place = placeOf(value, modelStanding.sums, modelStanding.exact);
     if (place) push(say(words, "model_rank", { name, rank: place.rank, window: phrase.window }));
+    for (const c of cut ? conditions : []) {
+      const under = placeUnder("model", value, c, modelStanding.exact);
+      if (under) push(say(words, "model_rank_view", { name, rank: under.rank, view: c.phrase, window: phrase.window }));
+    }
     const brand = brandOfModel(value);
     const brandName = brand === undefined ? undefined : kit.label(config.brand.dimension, brand);
     const brandN = brand === undefined ? undefined : brandCounts.sum(brand, thisWindow);
@@ -434,7 +601,7 @@ export function answerSite(kit: Kit): Site | undefined {
     if (byMonth) tables.push(byMonth);
     const brandHref = brand === undefined ? undefined : hrefOf("brand", brand);
     const link = brandName === undefined ? undefined : say(words, "brand_page_link", { name: brandName });
-    return finish("model", value, name, sentences, tables, f.n, brandName === undefined ? {} : { brand: { name: brandName, href: brandHref, text: link } });
+    return finish("model", value, name, sentences, tables, f.n, cut ? partsList(conditions.map((c) => cut.sum(value, c.value, thisWindow))) : undefined, brandName === undefined ? {} : { brand: { name: brandName, href: brandHref, text: link } });
   };
 
   const make = () => [...brandValues.flatMap((v) => brandPage(v) ?? []), ...modelValues.flatMap((v) => modelPage(v) ?? [])];
@@ -449,24 +616,25 @@ export function answerSite(kit: Kit): Site | undefined {
   const built = (kind: Kind) => new Map(pages.filter((p) => p.kind === kind).map((p) => [p.value, p]));
   const brandPages = built("brand");
   const modelPages = built("model");
-  const groups = new Map<string, { name: string; href?: string; models: { name: string; href: string }[] }>();
-  for (const [value, page] of brandPages) groups.set(value, { name: page.name, href: page.href, models: [] });
+  // The names are as a person writes them, but the order is of the values as the register holds them, as it always was.
+  const groups = new Map<string, { value: string; name: string; href?: string; models: { value: string; name: string; href: string }[] }>();
+  for (const [value, page] of brandPages) groups.set(value, { value, name: page.name, href: page.href, models: [] });
   for (const [value, page] of modelPages) {
     const brand = brandOfModel(value);
     if (brand === undefined) continue;
-    const group = groups.get(brand) ?? { name: kit.label(config.brand.dimension, brand), models: [] };
-    group.models.push({ name: page.name, href: page.href });
+    const group = groups.get(brand) ?? { value: brand, name: kit.label(config.brand.dimension, brand), models: [] };
+    group.models.push({ value, name: page.name, href: page.href });
     groups.set(brand, group);
   }
-  const entries: IndexEntry[] = [...groups.values()]
-    .sort((a, b) => byName(a.name, b.name))
-    .map((g) => ({ name: g.name, href: g.href, models: g.models.sort((a, b) => byName(a.name, b.name)), modelsLabel: say(words, "index_models", { name: g.name }) ?? g.name }));
+  const entries = [...groups.values()]
+    .sort((a, b) => byName(a.value, b.value))
+    .map((g) => ({ value: g.value, entry: { name: g.name, href: g.href, models: g.models.sort((a, b) => byName(a.value, b.value)).map(({ name, href }) => ({ name, href })), modelsLabel: say(words, "index_models", { name: g.name }) ?? g.name } }));
   // Models with no brand in their value, which no group holds, are listed by themselves.
-  const loose = [...modelPages.entries()].filter(([value]) => brandOfModel(value) === undefined).map(([, p]) => ({ name: p.name, models: [], href: p.href, modelsLabel: p.name }));
+  const loose = [...modelPages.entries()].filter(([value]) => brandOfModel(value) === undefined).map(([value, p]) => ({ value, entry: { name: p.name, models: [], href: p.href, modelsLabel: p.name } }));
   const title = say(words, "index_title", {});
   const minimum = Math.min(config.brand.minimum, config.model.minimum);
   const intro = say(words, "index_intro", { span, minimum: count(minimum) });
-  const index: IndexView | undefined = title && intro && pages.length > 0 ? { href: `/${config.index_path}/`, title, intro, entries: [...entries, ...loose].sort((a, b) => byName(a.name, b.name)) } : undefined;
+  const index: IndexView | undefined = title && intro && pages.length > 0 ? { href: `/${config.index_path}/`, title, intro, entries: [...entries, ...loose].sort((a, b) => byName(a.value, b.value)).map((e) => e.entry) } : undefined;
 
   // The label of each value with a page, for the front page's tables; a label two values share has no link, as a link might open the other's.
   const labelled = (kind: Kind) => {

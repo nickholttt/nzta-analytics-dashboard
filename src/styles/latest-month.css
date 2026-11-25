@@ -75,8 +75,18 @@
   }
 }
 
+/* position: relative holds the absolutely positioned visually-hidden labels inside the scroll box, as .table-scroll does in site.css. */
 .lm-scroll {
   overflow-x: auto;
+  position: relative;
+}
+
+/* Narrow screens: site.css makes a .key table scroll itself; here the focusable wrapper is the one that scrolls, so a keyboard reaches every column. */
+@media (max-width: 640px) {
+  .lm-scroll .key {
+    display: table;
+    overflow: visible;
+  }
 }
 
 .lm-table {

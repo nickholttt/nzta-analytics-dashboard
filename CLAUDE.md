@@ -243,6 +243,7 @@ data/reference/
   market_type_map.csv  # ordered rules: NZTA vehicle type + body + NZTA class + GVM (+ the SUV file) -> Passenger, SUV, Not yet classified, Light commercial, Heavy commercial or Other; defined and tested, nothing reads it yet (D-154, D-155)
   published_sources.csv  # the organisations whose published figures every build is set beside: name, address, what each says it counts (D-149)
   published_figures.csv  # one row per published figure: source, month, measure as published, the figure, our matching query (dataset and filters), tolerance (D-149)
+  display_names.csv   # how a make and the two import statuses are shown to a reader (ordinary case; initialisms kept): exceptions only, a make without a row is title-cased by rule; read only when the site is built
 docs/
   DATA_SOURCES.md     # endpoints, cadence, field traps, licence
   METRICS.md          # exact measure definitions

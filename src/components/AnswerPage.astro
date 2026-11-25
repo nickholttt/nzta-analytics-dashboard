@@ -1,8 +1,12 @@
 ---
 // One answer page, a brand's or a model's (src/lib/answerPages.ts): the question as the heading, the answer as a figure and a sentence, the tables the
-// question rests on, a link that opens the same question in the canvas, and where the figures come from. Drawn as plain HTML with no script.
+// question rests on, a link that opens the same question in the canvas, and where the figures come from. Drawn as plain HTML with no script. Where the
+// figures are said by new and used, the big figure has them beside it, and a table that has a view for each is drawn behind a switch that needs no script.
 import "../styles/answer-pages.css";
+import "../styles/answer-parts.css";
 import type { PageView } from "../lib/answerPages";
+import AnswerTable from "./AnswerTable.astro";
+import ViewSwitch from "./ViewSwitch.astro";
 
 interface Props {
   page: PageView;
@@ -22,11 +26,24 @@ const tableId = (i: number) => `ap-table-${i}`;
 
 <div class="ap-answer">
   <p class="ap-figure" aria-hidden="true">{page.figure}</p>
+  {
+    page.parts && (
+      <dl class="ap-parts">
+        {page.parts.map((p) => (
+          <div>
+            <dt>{p.label}</dt>
+            <dd>{p.value}</dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
   <ul class="ap-sentences">
     {page.sentences.map((s) => <li>{s}</li>)}
   </ul>
   <p class="ap-links">
     <a class="starter-open" href={page.canvas.href} aria-label={page.canvas.named}>{page.canvas.text}</a>
+    {page.canvasSplit && <a class="starter-open" href={page.canvasSplit.href} aria-label={page.canvasSplit.named}>{page.canvasSplit.text}</a>}
     {page.brand?.href && <a href={page.brand.href}>{page.brand.text}</a>}
     <a href={page.definitionHref}>{page.labels.definition}</a>
   </p>
@@ -38,32 +55,18 @@ const tableId = (i: number) => `ap-table-${i}`;
       <div class="section-head">
         <h2 class="section-title" id={tableId(i)}>{table.heading}</h2>
       </div>
-      <div class="ap-scroll" role="region" tabindex="0" aria-labelledby={tableId(i)}>
-        <table class="key ap-table">
-          <caption class="visually-hidden">{table.heading}</caption>
-          <thead>
-            <tr>{table.columns.map((c) => <th scope="col">{c}</th>)}</tr>
-          </thead>
-          <tbody>
-            {table.rows.map((r) => (
-              <tr class={r.total ? "total" : undefined}>
-                <th scope="row" class="text">{r.href ? <a href={r.href}>{r.name}</a> : r.name}</th>
-                {r.cells.map((c) =>
-                  c.hidden ? (
-                    <td><em>{c.text}</em></td>
-                  ) : c.none ? (
-                    <td class="change">—<span class="visually-hidden">{page.labels.noComparison}</span></td>
-                  ) : c.direction ? (
-                    <td class={`change ${c.direction}`}>{c.text}</td>
-                  ) : (
-                    <td class="figure">{c.text}</td>
-                  ),
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {table.views && table.switch ? (
+        <ViewSwitch id={`ap-view-${i}`} legend={table.switch.legend} note={table.switch.note} labels={table.switch.labels}>
+          {table.views.map((v, j) => (
+            <div class="vs-panel" data-view={j}>
+              <h3 class="vs-view">{v.label}</h3>
+              {v.empty ? <p class="meta">{v.empty}</p> : <AnswerTable caption={v.heading} columns={v.columns} rows={v.rows} label={v.heading} noComparison={page.labels.noComparison} />}
+            </div>
+          ))}
+        </ViewSwitch>
+      ) : (
+        <AnswerTable caption={table.heading} columns={table.columns} rows={table.rows} labelledby={tableId(i)} noComparison={page.labels.noComparison} />
+      )}
     </section>
   ))
 }

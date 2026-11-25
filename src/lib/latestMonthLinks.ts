@@ -7,16 +7,19 @@ import type { Vocabulary } from "./builder";
 import { CANVAS_PATH, bestType, canvasParams, draws, nextChartId, settleCanvas, withFittingTypes } from "./canvas";
 import type { Manifest } from "./data";
 
-export type LinkAsk = { dataset: string; measure: string; by: string | null; type: string | null; settings?: Record<string, string> };
+// `where` keeps the question to the values of other fields (the vehicles first registered new, say), as a canvas's own conditions do.
+export type LinkAsk = { dataset: string; measure: string; by: string | null; type: string | null; settings?: Record<string, string>; where?: Record<string, string[]> };
+
+const sameWhere = (a: Record<string, string[]>, b: Record<string, string[]>) => JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 
 // The address of a canvas of one chart that asks this question, or nothing where the canvas would answer another question (a dataset or field this
 // build lacks settles to something else) or cannot draw the chart type asked for: a link never opens to a chart that is not the block's.
 export function latestMonthLink(all: Vocabulary, manifest: Manifest, ask: LinkAsk): string | undefined {
   const id = nextChartId([]);
-  const canvas = withFittingTypes(settleCanvas(all, [{ id, asked: { dataset: ask.dataset, measure: ask.measure, by: ask.by, where: {} }, type: ask.type, table: false, width: "full" }]), manifest);
+  const canvas = withFittingTypes(settleCanvas(all, [{ id, asked: { dataset: ask.dataset, measure: ask.measure, by: ask.by, where: ask.where ?? {} }, type: ask.type, table: false, width: "full" }]), manifest);
   const [chart] = canvas.charts;
   const q = chart.question;
-  if (q.dataset !== ask.dataset || q.measure !== ask.measure || q.by !== ask.by) return undefined;
+  if (q.dataset !== ask.dataset || q.measure !== ask.measure || q.by !== ask.by || !sameWhere(q.where, ask.where ?? {})) return undefined;
   if (ask.type !== null && chart.type !== ask.type) return undefined;
   if (!draws(q, chart.type ?? bestType(q), manifest)) return undefined;
   const params = canvasParams(canvas);

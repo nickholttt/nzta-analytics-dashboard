@@ -1,0 +1,75 @@
+---
+// One table of the latest month with the sentences, notes and links that go with it (src/components/LatestMonth.astro): a block's own figures, or one
+// view of a block that has views. A table's bars are in its first column, and the figures are the chart's own text.
+import type { PanelView, RowView, View } from "../lib/latestMonth";
+
+interface Props {
+  // The block's kind, its id (the table's region is named by the title or label it is given) and what names the table.
+  kind: "total" | "split" | "ranking" | "movers";
+  title: { id: string } | { label: string };
+  panel: Pick<PanelView, "sentences" | "columns" | "rows" | "notes" | "empty" | "heading" | "canvas" | "canvasLabel">;
+  definition: string;
+  hiddenLink?: string;
+  labels: View["labels"];
+  // The address of the page a name has, where it has one.
+  pageOf: (name: string) => string | undefined;
+  colour: (i: number) => string;
+}
+const { kind, title, panel, definition, hiddenLink, labels, pageOf, colour } = Astro.props;
+const percent = (x: number) => `${(x * 100).toFixed(1)}%`;
+const cellOf = (key: string, r: RowView): string | undefined =>
+  key === "count" ? r.count : key === "share" ? r.share : key === "prior" ? r.prior : key.startsWith("part") ? r.parts?.[Number(key.slice(4))] : undefined;
+const region = "label" in title ? { "aria-label": panel.heading } : { "aria-labelledby": title.id };
+---
+
+{panel.sentences.map((s) => <p class="lm-sentence-small">{s}</p>)}
+{
+  panel.empty ? (
+    <p class="meta">{panel.empty}</p>
+  ) : (
+    <>
+      {kind === "split" && (
+        <div class="lm-split" aria-hidden="true">
+          {panel.rows.filter((r) => r.bar !== undefined).map((r, i) => <span style={`${colour(i)};--g:${(r.bar as number) * 100}`} />)}
+        </div>
+      )}
+      <div class="lm-scroll" role="region" tabindex="0" {...region}>
+        <table class="key lm-table">
+          <caption class="visually-hidden">{panel.heading}</caption>
+          <thead>
+            <tr>{panel.columns.map((c) => <th scope="col">{c.name}</th>)}</tr>
+          </thead>
+          <tbody>
+            {panel.rows.map((r, i) => (
+              <tr>
+                <th scope="row" class="text">
+                  {kind === "split" && r.bar !== undefined && <span class="lm-swatch" style={colour(i)} aria-hidden="true" />}
+                  {pageOf(r.name) ? <a href={pageOf(r.name)}>{r.name}</a> : r.name}
+                  {kind !== "split" && r.bar !== undefined && <span class={`lm-bar ${kind === "movers" ? (r.change?.direction ?? "") : ""}`} style={`--w:${percent(r.bar)}`} aria-hidden="true" />}
+                </th>
+                {panel.columns.slice(1).map((c) => {
+                  const cell = cellOf(c.key, r);
+                  const change = c.key === "year" ? r.change : c.key === "points" ? r.points : undefined;
+                  return r.hidden ? (
+                    <td title={r.hidden.reason}><em>{r.hidden.word}</em></td>
+                  ) : change ? (
+                    <td class={`change ${change.direction}`}>{change.text}</td>
+                  ) : cell ? (
+                    <td class="figure">{cell}</td>
+                  ) : (
+                    <td class="change">—<span class="visually-hidden">{labels.noComparison}</span></td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
+}
+{panel.notes.map((n) => <p class="meta">{n}{hiddenLink && <> <a href={hiddenLink}>{labels.hiddenLink}</a></>}</p>)}
+<p class="lm-foot">
+  <a class="starter-open" href={panel.canvas} aria-label={panel.canvasLabel}>{labels.canvas}</a>
+  <a href={definition}>{labels.definition}</a>
+</p>
