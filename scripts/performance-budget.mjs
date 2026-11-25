@@ -5,7 +5,7 @@
 // What a page "ships on first load", by kind:
 //   html    the page's own file, gzipped
 //   styles  each stylesheet the page links, gzipped
-//   scripts each script the page names (a script tag, a modulepreload, an island's component or renderer) and every script those import
+//   scripts each script the page names (a script tag, a modulepreload, an island's component or renderer, a file its inline script adds links for) and every script those import
 //           statically, gzipped. A script loaded later on a visitor's action (a lazy import) is not first load and is not counted
 //   fonts   for every page, the Latin and the Latin Extended face of each family the stylesheets declare (a page of New Zealand English
 //           and te reo Maori, with its macrons, can load both, and the charts and the canvas draw their text in them), and any other face
@@ -13,12 +13,16 @@
 //   data    each file the page asks the browser to preload (the manifest), gzipped. Data a script asks for after it starts (the events
 //           file, a table of figures) is not named by the page's HTML and is not counted
 //   total   the sum of the five
+// A page that asks for files before its script has run (the canvas, src/lib/openingReads.ts) also has a first-chart figure: the five kinds
+// and those files (gzipped; a Parquet file as served). It is what crosses the network before the first chart can be drawn, less the drawing
+// code of the chart's own shape, which the page cannot name, and less the requests' headers. scripts/measure-first-load.mjs times it.
 // gzip stands in for the host's compression (as scripts/measure-first-load.mjs does); a browser that accepts Brotli is sent less.
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { gzipSync } from "node:zlib";
 
 export const KINDS = ["html", "scripts", "styles", "fonts", "data"];
+export const FIRST_CHART = "first_chart_bytes";
 
 const gz = (path) => gzipSync(readFileSync(path)).length;
 const decode = (s) => s.replace(/&(?:#(\d+)|#x([0-9a-f]+)|[a-z]+);/gi, (all, dec, hex) => (dec ? String.fromCodePoint(Number(dec)) : hex ? String.fromCodePoint(parseInt(hex, 16)) : " "));
@@ -39,6 +43,8 @@ export function pageFiles(root, html) {
     ...[...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/gi)].map((m) => m[1]),
     ...[...html.matchAll(/<link\b[^>]*\brel="modulepreload"[^>]*\bhref="([^"]+)"/gi)].map((m) => m[1]),
     ...[...html.matchAll(/(?:component-url|renderer-url|before-hydration-url)="([^"]+)"/gi)].map((m) => m[1]),
+    // a script the page's own inline script adds links for once the island's code has arrived (astro.config.mjs, preloadIslands)
+    ...[...html.matchAll(/"(\/_astro\/[^"\s]+\.js)"/g)].map((m) => m[1]),
   ].map(local).filter(Boolean);
   const scripts = new Set();
   const add = (url) => {
@@ -66,8 +72,19 @@ export function pageFiles(root, html) {
       if ([0x41, 0x101, 0x14d, 0x16b].some(covers) || [...codes].some(covers)) fonts.add(url);
     }
   }
-  return { styles: [...new Set(styles)], scripts: [...scripts], fonts: [...fonts], data: [...new Set(data)] };
+  // The files the page's own inline script asks for when it opens on its own chart: `const reads = [...]`, written there by define:vars.
+  const opening = /\bconst reads = (\[[^\]]*\])/.exec(html)?.[1];
+  let reads = [];
+  try {
+    reads = opening ? JSON.parse(opening).map(local).filter(Boolean) : [];
+  } catch {
+    // an inline script that is not that list asks for nothing
+  }
+  return { styles: [...new Set(styles)], scripts: [...scripts], fonts: [...fonts], data: [...new Set(data)], reads: [...new Set(reads)] };
 }
+
+// The drawing library's chunks in a build (the chunk named "plot", astro.config.mjs).
+const drawingChunks = (root) => (existsSync(join(root, "_astro")) ? readdirSync(join(root, "_astro")).filter((f) => /^plot\.[\w-]+\.js$/.test(f)).map((f) => `/_astro/${f}`) : []);
 
 // The bytes of every built page, by kind: { "/": { html, scripts, styles, fonts, data, total }, ... }
 export function measurePages(root) {
@@ -79,7 +96,13 @@ export function measurePages(root) {
     const f = pageFiles(root, html);
     const sum = (urls, size) => urls.reduce((n, url) => n + (existsSync(join(root, url)) ? size(join(root, url)) : 0), 0);
     const m = { html: gzipSync(Buffer.from(html)).length, scripts: sum(f.scripts, gz), styles: sum(f.styles, gz), fonts: sum(f.fonts, (p) => statSync(p).size), data: sum(f.data, gz) };
-    pages[key] = { ...m, total: KINDS.reduce((n, k) => n + m[k], 0) };
+    const total = KINDS.reduce((n, k) => n + m[k], 0);
+    // Only Parquet is sent as it is; text is compressed, as the host does.
+    const reads = sum(f.reads, (p) => (p.endsWith(".parquet") ? statSync(p).size : gz(p)));
+    // The drawing library is named by a script the build writes into the page (astro.config.mjs, preloadIslands). If that script is lost the library
+    // (about 90 KB) drops out of every figure above while the chart still needs it, so a page with a first-chart figure must name every one in the build.
+    const unnamed = f.reads.length ? drawingChunks(root).filter((url) => !f.scripts.includes(url)) : [];
+    pages[key] = { ...m, total, ...(f.reads.length ? { [FIRST_CHART]: total + reads } : {}), ...(unnamed.length ? { unnamed_drawing: unnamed.map((url) => ({ url, bytes: gz(join(root, url)) })) } : {}) };
   }
   return Object.fromEntries(Object.entries(pages).sort(([a], [b]) => a.localeCompare(b)));
 }
@@ -95,12 +118,18 @@ export function budgetProblems(measured, budget) {
       problems.push(`${page} has a budget but is not in the build: remove it from config/performance_budget.json`);
       continue;
     }
-    for (const kind of [...KINDS, "total"]) {
+    for (const { url, bytes } of measured[page].unnamed_drawing ?? []) problems.push(`${page}: the page's HTML does not name the drawing library (${url}, ${n(bytes)} B): the script that asks for it is missing, so those bytes are in no figure and the chart slows`);
+    if (measured[page][FIRST_CHART] !== undefined && typeof limits[FIRST_CHART] !== "number") problems.push(`${page}: the budget names no limit for ${FIRST_CHART}`);
+    for (const kind of [...KINDS, "total", ...(typeof limits[FIRST_CHART] === "number" ? [FIRST_CHART] : [])]) {
       const limit = limits[kind];
+      if (kind === FIRST_CHART && measured[page][kind] === undefined) {
+        problems.push(`${page}: the budget has a limit for ${kind} but the page asks for nothing before its script has run`);
+        continue;
+      }
       if (typeof limit !== "number") problems.push(`${page}: the budget names no limit for ${kind}`);
       else if (measured[page][kind] > limit) {
         const over = measured[page][kind] - limit;
-        problems.push(`${page}: ${kind} are ${n(measured[page][kind])} B compressed, over the budget of ${n(limit)} B by ${n(over)} B${limit > 0 ? ` (${((over / limit) * 100).toFixed(1)}%)` : ""}`);
+        problems.push(`${page}: ${kind === FIRST_CHART ? "the first chart's critical path is" : `${kind} are`} ${n(measured[page][kind])} B compressed, over the budget of ${n(limit)} B by ${n(over)} B${limit > 0 ? ` (${((over / limit) * 100).toFixed(1)}%)` : ""}`);
       }
     }
   }
@@ -109,4 +138,4 @@ export function budgetProblems(measured, budget) {
 
 // A budget from what is measured, with a margin and rounded up to the next 100 bytes.
 export const propose = (measured, margin = 0.05) =>
-  Object.fromEntries(Object.entries(measured).map(([page, m]) => [page, Object.fromEntries([...KINDS, "total"].map((k) => [k, Math.ceil((m[k] * (1 + margin)) / 100) * 100]))]));
+  Object.fromEntries(Object.entries(measured).map(([page, m]) => [page, Object.fromEntries([...KINDS, "total", ...(m[FIRST_CHART] === undefined ? [] : [FIRST_CHART])].map((k) => [k, Math.ceil((m[k] * (1 + margin)) / 100) * 100]))]));

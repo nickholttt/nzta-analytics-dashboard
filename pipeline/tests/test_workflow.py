@@ -177,3 +177,23 @@ def test_a_rerun_of_the_whole_deploy_replaces_the_site_artifact():
     lines = [line.strip() for line in (WORKFLOW.parent / "deploy.yml").read_text(encoding="utf-8").splitlines()]
     step = lines[lines.index("name: site"):]
     assert "overwrite: true" in step[:6]
+
+
+def test_the_checks_workflow_fails_a_pull_request_over_the_first_chart_time():
+    """The owner's rule is that the canvas's first chart must not get slower than its limit. The step that times it must therefore
+    fail the job (no --warn-only, no continue-on-error, a time limit of its own); only the step that fetches the browser may be forgiven,
+    so that a download that fails does not fail the job."""
+    lines = (WORKFLOW.parent / "checks.yml").read_text(encoding="utf8").splitlines()
+
+    def step(name):
+        start = next(i for i, line in enumerate(lines) if line.strip() == f"- name: {name}")
+        end = next((i for i in range(start + 1, len(lines)) if lines[i].strip().startswith("- name:")), len(lines))
+        return [line.strip() for line in lines[start:end]]
+
+    timed = step("First chart time")
+    assert not any("--warn-only" in line for line in timed)
+    assert "continue-on-error: true" not in timed
+    assert any(line.startswith("timeout-minutes:") for line in timed)
+    assert "set -o pipefail" in timed
+    assert any("check-first-load.mjs" in line for line in timed)
+    assert "continue-on-error: true" in step("Browser for the first-chart timing")

@@ -10,7 +10,13 @@ import { BROWSER_PARTS, cutConfig } from "./scripts/browser-config.mjs";
 // reads the built pages, finds every island's scripts and everything they import, and tells the browser about all of
 // them in the page's head, along with the manifest the island's first act is to read. No dependency; it only adds links.
 // The drawing library (the chunk named "plot", below) is not imported by the island itself but by the renderer it loads once it knows a
-// chart's shape; a page whose island mentions it gets it in the same breath, so it comes down beside the island's own code and not after it.
+// chart's shape, and it is the largest file on the way to the first chart. On a slow link every file asked for at once gets an equal share of
+// the bandwidth, so asked for beside the island's own code it slows the code the page needs in order to start (the island, the framework, the
+// reader of the data). So it is asked for once the island's own code has arrived: a short script in the head waits for the island's module and
+// then adds its links, and the library comes down while the page is starting and is there when the renderer wants it. On the phone profile the
+// canvas's first chart drew about 300 ms sooner than with its links in the head (three interleaved rounds of five runs: medians 3,082, 2,945
+// and 2,977 ms with the links in the head, 2,672, 2,725 and 2,675 ms with the script). scripts/performance-budget.mjs reads the files the
+// script names, so the budget still counts the library.
 function preloadIslands() {
   const importsOf = (root, url, seen) => {
     if (seen.has(url)) return;
@@ -31,12 +37,18 @@ function preloadIslands() {
           const scripts = new Set();
           for (const url of entries) importsOf(root, url, scripts);
           const drawing = readdirSync(join(root, "_astro")).filter((name) => /^plot\.[\w-]+\.js$/.test(name));
-          if (drawing.some((name) => [...scripts].some((url) => readFileSync(join(root, url), "utf8").includes(name)))) for (const name of drawing) importsOf(root, `/_astro/${name}`, scripts);
+          const later = new Set();
+          if (drawing.some((name) => [...scripts].some((url) => readFileSync(join(root, url), "utf8").includes(name)))) for (const name of drawing) importsOf(root, `/_astro/${name}`, later);
+          for (const url of scripts) later.delete(url);
           const links = [
             ...[...scripts].map((url) => `<link rel="modulepreload" href="${url}">`),
             `<link rel="preload" href="/data/manifest.json" as="fetch" crossorigin="anonymous">`,
           ].join("");
-          writeFileSync(path, html.replace("</head>", `${links}</head>`));
+          const components = [...html.matchAll(/component-url="(\/_astro\/[^"]+\.js)"/g)].map((m) => m[1]);
+          const asked = later.size
+            ? `<script>Promise.all([${components.map((url) => `import("${url}")`).join(",")}]).then(()=>{for(const href of ${JSON.stringify([...later])}){const link=document.createElement("link");link.rel="modulepreload";link.href=href;document.head.append(link)}},()=>{})</script>`
+            : "";
+          writeFileSync(path, html.replace("</head>", `${links}${asked}</head>`));
         }
       },
     },
@@ -94,12 +106,28 @@ function browserConfig() {
   };
 }
 
+// The package that holds the decompressors for the Parquet reader (src/lib/data.ts takes only the zstd one from it) is not marked as free of
+// side effects the way hyparquet and fzstd are, so the bundler keeps every codec it imports for the sake of their top-level code: the brotli
+// decoder with its tables, the gzip and lz4 ones, and a Snappy decoder held as a text-encoded WebAssembly module. Saying here that its
+// modules have none lets the bundler leave out what nothing uses, with no change to any file's contents or to what is read.
+function unusedCompressors() {
+  return {
+    name: "unused-compressors",
+    enforce: "pre",
+    async resolveId(source, importer, options) {
+      if (options?.ssr) return null;
+      const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
+      return resolved && /[\\/]node_modules[\\/](?:hyparquet-compressors|hysnappy)[\\/]/.test(resolved.id) ? { ...resolved, moduleSideEffects: false } : null;
+    },
+  };
+}
+
 // Local reference tool only: the dev server serves public/data as the pipeline built it.
 export default defineConfig({
   integrations: [react(), preloadIslands(), prunePublicBuild()],
   server: { host: "127.0.0.1", port: 4321 },
   vite: {
-    plugins: [browserConfig()],
+    plugins: [browserConfig(), unusedCompressors()],
     build: {
       // A font file is never folded into the stylesheet as text, however small: the stylesheet blocks the first paint, and a face the page
       // does not need would be in it all the same. Each is its own file, asked for only by a page whose text uses it.
