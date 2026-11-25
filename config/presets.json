@@ -556,7 +556,7 @@
           "question": "How long do vehicles stay on the road?",
           "status": "blocked",
           "requires": [
-            "the new_registrations dataset from the Stats NZ TPT series (build step 1b)",
+            "the new_registrations dataset (build step 1b)",
             "the fleet dataset (build step 7)",
             "two or more archived snapshots in data/snapshots/",
             "a renderer for the cohort_survival derived measure"
