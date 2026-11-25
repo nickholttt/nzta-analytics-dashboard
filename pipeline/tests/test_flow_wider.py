@@ -286,8 +286,11 @@ def test_a_store_whose_trim_matches_its_rule_but_not_a_second_dataset_is_refused
     only_wider = supplied.counted_pairs(cfg, WIDER) - supplied.counted_pairs(cfg, FLOW)
     assert only_wider and not only_wider & {tuple(p) for p in ledger["outside_scope"]["counted"]}
     refusals = supplied.scope_problems(cfg, source, ledger).refusals
-    assert len(refusals) == 1 and WIDER in refusals[0] and f"{len(only_wider)} (vehicle type, import status) pairs" in refusals[0], refusals
-    assert all(vehicle in refusals[0] for vehicle, _ in list(sorted(only_wider))[:6])
+    # One refusal for each dataset that counts those pairs: the wider scope's, and New registrations (D-158), which counts the same five types.
+    assert len(refusals) == 2 and {d for d in (WIDER, "new_registrations") if any(d in r for r in refusals)} == {WIDER, "new_registrations"}, refusals
+    refusal = next(r for r in refusals if WIDER in r)
+    assert f"{len(only_wider)} (vehicle type, import status) pairs" in refusal, refusals
+    assert all(vehicle in refusal for vehicle, _ in list(sorted(only_wider))[:6])
     expect_abort(lambda: run(tmp_path, cfg), f"{WIDER} counts")
 
 

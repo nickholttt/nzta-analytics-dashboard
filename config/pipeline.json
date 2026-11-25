@@ -172,6 +172,12 @@
       "require": ["in_trade_scope", "fleet_entry"],
       "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "trade_group", "import_status", "age_at_registration_band", "model"]
     },
+    "new_registrations": {
+      "$comment": "New registrations (D-158): every vehicle first registered in a month, new and used, of the five vehicle types the vehicle scope file marks in its trade_scope column (in_trade_scope), read from the supplied source nzta_dashboard through the same normalise, derive and output code as the register and with the same import-status rule (fleet_entry) as registrations_surviving, which counts the same five types since D-157. It replaces registrations_flow (two types) and registrations_flow_wider (five types, the same facts): vehicle type, and so the narrower scope, is a condition of a question, not a dataset. Both are retired in dimensions.json, so an older link still opens. The dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
+      "source": "nzta_dashboard",
+      "require": ["in_trade_scope", "fleet_entry"],
+      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "trade_group", "import_status", "age_at_registration_band", "model"]
+    },
     "registrations_cars_long_run": {
       "$comment": "Read from the supplied source statsnz_tpt, a source of kind series (pipeline/series.py): Stats NZ's monthly count of cars and station wagons registered for the first time, from January 1961. `total` is the series that gives each month's vehicles. Its dimensions (car_origin, car_engine_band in dimensions.json) are Stats NZ's own breakdowns of that total, published separately, so they cannot be crossed with each other or with anything else: there are no pairs and no fact table. Nothing else the table holds (commercial vehicles, buses, motorcycles, power cycles, tractors) is built, because its classes are not lined up with NZTA's vehicle types (D-065).",
       "source": "statsnz_tpt",

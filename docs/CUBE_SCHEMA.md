@@ -52,7 +52,10 @@ and its block in `manifest.json`, and no fact table, so no associations file.
 When the supplied store for `registrations_flow` is present (*Supplied sources*), the build also emits
 `cube/registrations_flow/`, `facts/registrations_flow/` and its block in `manifest.json`; it configures
 no pairs. With the same store it emits `cube/registrations_flow_wider/`, `facts/registrations_flow_wider/` and
-its block: the same dataset on a wider scope of vehicle types (D-113, *The wider scope*, below). When the store
+its block: the same dataset on a wider scope of vehicle types (D-113, *The wider scope*, below). The same store
+also gives `cube/new_registrations/`, `facts/new_registrations/` and its block (D-158): one dataset of the five vehicle types, new and used,
+which replaces both of those two and holds the wider one's rows and files unchanged; they are built beside it only until the commit that
+retires them. When the store
 for `registrations_cars_long_run` is present, the build emits
 `cube/registrations_cars_long_run/` (one slice for each of its two dimensions) and its block in
 `manifest.json`, and no pair slices and no fact table (*A source of kind `series`*).
