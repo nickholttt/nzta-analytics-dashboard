@@ -37,13 +37,15 @@ test("a marked pair is a clash whichever way round it is asked, and a pair nobod
   assert.equal(config.datasetClashes(["b", "c"], list).length, 0);
 });
 
-test("the wider scope of true registrations is marked against the default scope, and not against the vehicles still registered, which count the same types since D-157", () => {
+test("the wider scope of true registrations is marked against the default scope and not against the vehicles still registered, which count the same types since D-157; the default scope is marked against the vehicles still registered", () => {
   assert.equal(config.datasetClashes(["registrations_flow_wider", "registrations_flow"]).length, 1);
   assert.equal(config.datasetClashes(["registrations_flow", "registrations_flow_wider"]).length, 1);
   // Completeness is the survivors over the wider scope: one scope set against itself, so it is not a clash.
   assert.equal(config.datasetClashes(["registrations_flow_wider", "registrations_surviving"]).length, 0);
-  // The default scope is set against the register's survivors in a ratio of its own (completeness); that is not a clash.
-  assert.equal(config.datasetClashes(["registrations_flow", "registrations_surviving"]).length, 0);
+  // The default scope counts two vehicle types and the survivors five (D-157), so a chart of both would set one scope against another.
+  // Completeness, the one ratio of survivors to registrations, reads the wider scope, which counts the same five.
+  assert.equal(config.datasetClashes(["registrations_flow", "registrations_surviving"]).length, 1);
+  assert.equal(config.datasetClashes(["registrations_surviving", "registrations_flow"]).length, 1);
 });
 
 test("every chart in the canon reads no clashing pair, and the resolver does not mark one", () => {

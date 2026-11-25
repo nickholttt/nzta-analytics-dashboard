@@ -164,9 +164,10 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
     </p>
     <ul>
       <li>
-        <strong>What is counted</strong>: the same vehicles as the survivors dataset (the vehicle types and the new
-        and used-import statuses under Vehicle Scope), so the two can be compared. Re-registered and scratch-built
-        vehicles are left out of both.
+        <strong>What is counted</strong>: the same new and used-import statuses as the survivors dataset (under Vehicle
+        Scope). True registrations on the wider scope count the same five vehicle types as the survivors, so those two
+        can be compared; true registrations on the default scope count two. Re-registered and scratch-built
+        vehicles are left out of all of them.
       </li>
       <li>
         <strong>Past months can change</strong>: NZTA says vehicles may be added to or removed from the dashboard and a

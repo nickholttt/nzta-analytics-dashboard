@@ -151,7 +151,8 @@ D-113).
   the site's default stays `registrations_flow` (D-106) and this dataset is
   offered beside it. Its figures are never added to `registrations_flow`'s
   (they count the same vehicles twice), and the two are not drawn as one
-  series. **Never on a chart with survivors.**
+  series. **Never on a chart with survivors**, except the one ratio of the two, completeness (below), which divides the survivors
+  by this dataset since D-157: both count the same five vehicle types.
 - **Passenger or commercial.** Its extra dimension, `trade_group`, sorts the
   vehicles by NZTA's registered type: passenger cars and vans are
   `Passenger`; every other type it counts is `Commercial` (goods vehicles,

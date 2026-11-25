@@ -38,6 +38,8 @@
       "status": "built only where the supplied store is present",
       "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register.",
       "public_definition": "Each month counts the vehicles first registered in New Zealand that month, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken. It includes vehicles since removed from the register.",
+      "never_charted_with": ["registrations_surviving"],
+      "$never_charted_with_comment": "This dataset counts the default scope's two vehicle types and registrations_surviving the five of the wider scope since D-157, so a chart of both would set one scope against another. Before D-157 they counted the same two and the ratio of the two (completeness) was allowed; completeness now divides the survivors by registrations_flow_wider, which counts the survivors' five types, and no chart reads this pair. src/lib/resolve.ts marks any preset that reads both as invalid.",
       "source_note": "Source: NZTA's registrations dashboard, from the export taken on {dataset.supplied.taken_latest|date}. It holds {dataset.supplied.months.first|month} to {dataset.supplied.months.last|month}. Past months can be restated by a later export.",
       "not_built_message": "True registrations are not in this build of the site, so the charts that use them cannot be drawn here.",
       "words": {
@@ -83,7 +85,7 @@
         "none_recent": "Nothing was registered in the last {months} months, on the wider scope",
         "cap_count": "registrations on the wider scope"
       },
-      "help": "Every vehicle registered in NZ for the first time in a month, including those since scrapped, on a wider scope than true registrations: it also counts buses, motor caravans and special purpose vehicles. It holds new and used vehicles; keep New or used to NZ New to count new vehicles. Neither scope is the right one: they answer different questions. Never shown on the same chart as registrations still on the road or as true registrations."
+      "help": "Every vehicle registered in NZ for the first time in a month, including those since scrapped, on a wider scope than true registrations: it also counts buses, motor caravans and special purpose vehicles. It holds new and used vehicles; keep New or used to NZ New to count new vehicles. Neither scope is the right one: they answer different questions. Never shown on the same chart as true registrations. It is set beside the registrations still on the road in one place only, the share of them that are still registered (completeness), which divides the two."
     },
     {
       "id": "registrations_cars_long_run",
@@ -272,7 +274,7 @@
       },
       "kind": "category",
       "cardinality": "low",
-      "help": "Car, ute, van, truck or other. The register records most SUVs as station wagons, so they count as cars.",
+      "help": "Car, ute, van, truck or other. Most SUVs are recorded as station wagons, so they count as cars. Other holds buses, motor caravans, special purpose vehicles and passenger three-wheelers.",
       "$comment": "segment_map matches on vehicle_type + body_type. Where gvm_min_kg/gvm_max_kg are set, GVM must fall in that inclusive range and a missing GVM matches nothing; where both are blank, GVM is not used."
     },
     {
@@ -290,7 +292,7 @@
       },
       "kind": "category",
       "cardinality": "low",
-      "help": "Light passenger, light commercial, heavy commercial or other, from the same vehicle type, body and gross vehicle mass as vehicle type. Not the same split: utes and vans fall in all three classes.",
+      "help": "Light passenger, light commercial, heavy commercial or other, from type, body and mass; utes and vans fall in all three. Other holds buses, motor caravans and special purpose vehicles of any mass.",
       "$comment": "The same segment_map.csv match as segment, reading its segment_group column, so powertrain-mix can narrow to light passenger vehicles. segment = Car is not light passenger: light passenger also holds the passenger-registered utes and vans."
     },
     {
