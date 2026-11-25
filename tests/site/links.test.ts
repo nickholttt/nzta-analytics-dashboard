@@ -64,3 +64,71 @@ test("every window's canvas period is one the canvas has, or its link is withhel
     assert.equal(link !== undefined, findPeriod(w.canvas_period) !== undefined, w.id);
   }
 });
+
+// ---- Every link the generated pages carry, read back, on the real build ----
+
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
+const real = existsSync(join("public", "data", "manifest.json"));
+test("every canvas link in a brand page's rivals and powertrain tables, and a model page's two more, reads back as the panel says", { skip: !real }, async () => {
+  const { answerPagesSite } = await import("../../src/lib/answerPagesBuild.ts");
+  const { readPublished } = await import("../../src/lib/publishedFiles.mjs");
+  const { windowsFor } = await import("../../src/lib/windows.ts");
+  const manifest = JSON.parse(readFileSync(join("public", "data", "manifest.json"), "utf8"));
+  const site = await answerPagesSite(manifest, readPublished);
+  const windows = windowsFor(manifest.datasets[DATASET].latest_month);
+  const conditions = ["NZ New", "Used Import", undefined];
+  const opens = canvas.canvasVocabulary(builder.builderVocabulary(manifest));
+  const read = (href: string) => {
+    const url = new URL(href, "https://site.example");
+    const asked = canvas.readCanvas(url.search);
+    const opened = canvas.withFittingTypes(canvas.settleCanvas(opens, asked), manifest);
+    const chart = opened.charts[0];
+    assert.deepEqual(builder.linkNotices(opens, asked[0].asked, chart.question), [], href);
+    assert.ok(canvas.draws(chart.question, chart.type ?? canvas.bestType(chart.question), manifest), href);
+    assert.deepEqual([...canvas.canvasAddress(url.search, opened)].sort(), [...url.searchParams].sort(), href);
+    return { q: chart.question, type: chart.type, period: Object.fromEntries(canvas.chartSettings(url.search, "c1")).period };
+  };
+  let rivalLinks = 0;
+  let rowLinks = 0;
+  for (const page of site!.pages.filter((p) => p.kind === "brand").slice(0, 25)) {
+    for (const section of page.scope!.sections) {
+      for (const p of section.panels) {
+        const w = windows[p.win];
+        const condition = conditions[p.view];
+        const where = (q: { where: Record<string, string[]> }) => ({ ...q.where });
+        for (const l of p.links ?? []) {
+          const { q, type, period } = read(l.href);
+          assert.equal(q.by, "make");
+          assert.equal(q.values.length, p.rows.length);
+          assert.deepEqual(where(q), condition ? { import_status: [condition] } : {});
+          if (l.href.includes("c1.type=league")) {
+            assert.equal(type, "league");
+            assert.equal(period, w.canvasPeriod);
+          } else {
+            assert.equal(type, "trend");
+            assert.equal(period, "3y");
+          }
+          rivalLinks += 1;
+        }
+        for (const r of section.id === "cut" ? p.rows : []) {
+          if (!r.href) continue;
+          const { q, type, period } = read(r.href);
+          assert.equal(q.by, "model");
+          assert.equal(type, "league");
+          assert.equal(period, w.canvasPeriod);
+          assert.deepEqual(q.where.make, [page.value]);
+          assert.equal(q.where.powertrain.length, 1);
+          assert.deepEqual(q.where.import_status ?? [], condition ? [condition] : []);
+          rowLinks += 1;
+        }
+      }
+    }
+  }
+  assert.ok(rivalLinks > 100 && rowLinks > 100, `${rivalLinks} rival links, ${rowLinks} row links`);
+  for (const page of site!.pages.filter((p) => p.kind === "model").slice(0, 25)) {
+    for (const l of page.more ?? []) read(l.href);
+    assert.ok((page.more ?? []).length >= 1);
+  }
+});

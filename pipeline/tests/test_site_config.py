@@ -256,7 +256,7 @@ def test_the_lint_reads_every_word_of_the_latest_month():
 # What in config/answer_pages.json is not a template: the dataset and the measure it counts, the fields it makes pages for, the first part of each
 # page's address, the index's address, the address of the definition and of the caveats page.
 _ANSWER_PAGES_NOT_A_TEMPLATE = re.compile(
-    r"^(dataset|measure|view_field|index_path|definition|caveat\.href|(brand|model)\.(dimension|path))$"
+    r"^(dataset|measure|view_field|index_path|definition|rivals_trend_period|caveat\.href|(brand|model|cut)\.(dimension|path))$"
 )
 
 

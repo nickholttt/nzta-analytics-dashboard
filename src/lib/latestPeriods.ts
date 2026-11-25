@@ -10,6 +10,7 @@ import type { Basis, Listed } from "./periodTables";
 import { changeOutcome, moverFloor } from "./windowFigures";
 import type { ChangeOutcome } from "./windowFigures";
 import { count, fillTemplate, monthLabel, percent, sayList } from "./sentences";
+import { windowPhrase as windowPhraseOf, windowRange } from "./windows";
 import type { Window } from "./windows";
 
 // What the windowed section needs beyond the kit's views.
@@ -53,14 +54,9 @@ export function windowedSection(kit: Kit, periods: PeriodsKit, ctx: { month: str
   const all = [...conditions.map((c) => c as Condition | undefined), undefined];
 
   const labelOf = (w: Window) => say(words, `win_${w.id}`, { months: w.months.length }) ?? "";
-  const phraseOf = (months: readonly string[], ytd: boolean): string => {
-    const end = months[months.length - 1];
-    if (ytd && months.length > 1) return say(words, "in_ytd", { start: monthLabel(months[0]), end: monthLabel(end) }) ?? "";
-    return months.length === 1 ? kit.window(end) : periods.span(end, months.length);
-  };
-  const isYtd = (w: Window) => w.yearToDate;
-  const windowPhrase = (w: Window) => phraseOf(w.months, isYtd(w));
-  const priorPhrase = (w: Window) => phraseOf(w.prior, isYtd(w));
+  const said = { month: kit.window, span: periods.span, range: (start: string, end: string) => say(words, "in_ytd", { start: monthLabel(start), end: monthLabel(end) }) ?? "" };
+  const windowPhrase = (w: Window) => windowPhraseOf(w.months, w.yearToDate, said);
+  const priorPhrase = (w: Window) => windowPhraseOf(w.prior, w.yearToDate, said);
   const basisFor = (w: Window, dimension: string | undefined): Basis => ({ window: w, has: ctx.has, comparable: (value) => ctx.comparableFor(w, dimension, value), changeFloor: kit.floors.change });
 
   const signed = (o: ChangeOutcome): { change?: Change; fresh?: boolean } =>
@@ -251,7 +247,7 @@ export function windowedSection(kit: Kit, periods: PeriodsKit, ctx: { month: str
     });
     if (heading && rows.length > 0 && columns.every((c) => c !== undefined)) table = { heading, columns, rows, ...(rows.some((r) => r.fresh) ? { note: say(words, "new_entry_note", { prior: priorPhrase(windows[0]) }) } : {}) };
   }
-  const items = windows.map((w) => say(words, "window_note_item", { label: labelOf(w), months: w.months.length === 1 ? monthLabel(w.months[0]) : say(words, "months_range", { start: monthLabel(w.months[0]), end: monthLabel(w.months[w.months.length - 1]) }) }));
+  const items = windows.map((w) => say(words, "window_note_item", { label: labelOf(w), months: windowRange(w.months, (start, end) => say(words, "months_range", { start: monthLabel(start), end: monthLabel(end) }) ?? "", monthLabel) }));
   const note = items.every((x): x is string => x !== undefined) ? say(words, "window_note", { items: items.join("; ") }) : undefined;
   const newEntry = words.new_entry;
   if (newEntry === undefined) return undefined;

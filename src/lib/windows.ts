@@ -55,3 +55,16 @@ export function sumOver(months: readonly string[], at: (month: string) => number
   }
   return months.length > 0 ? total : undefined;
 }
+
+// The phrase a window is said in: a month ("in Oct 2026"), a count of months to a month ("in the 3 months to Oct 2026"), or, for the year to date, the range of
+// its months ("from Jan 2026 to Oct 2026"). The words are the caller's, from the site's phrases and config.
+export type WindowSaid = { month: (month: string) => string; span: (end: string, months: number) => string; range: (start: string, end: string) => string };
+export function windowPhrase(months: readonly string[], yearToDate: boolean, said: WindowSaid): string {
+  const end = months[months.length - 1];
+  if (yearToDate && months.length > 1) return said.range(months[0], end);
+  return months.length === 1 ? said.month(end) : said.span(end, months.length);
+}
+
+// The months a window covers as a range ("Aug 2026 to Oct 2026"), or the month alone for a window of one.
+export const windowRange = (months: readonly string[], say: (start: string, end: string) => string, one: (month: string) => string): string =>
+  months.length === 1 ? one(months[0]) : say(months[0], months[months.length - 1]);

@@ -128,3 +128,14 @@
   font-size: var(--text-sm);
   color: var(--ink-2);
 }
+
+/* The row of the page's own value in a table that sets it beside others, and the note that follows a row's name. */
+.ap-this {
+  font-weight: 700;
+}
+
+.ap-after {
+  margin-left: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}

@@ -265,7 +265,7 @@ test("true registrations and survivors are never in one table: the pages read on
 });
 
 test("the words of the pages are filled with nothing left over, for made-up facts", () => {
-  const facts = { name: "n", brand: "b", span: 12, counted: "c", change: 0.1, prior_count: "1", prior: "p", window: "w", rank: 1, of: 2, share: "s", heading: "h", minimum: "1", view: "v", parts: "p", count: "1", field: "f" };
+  const facts = { start: "s", end: "e", items: "i", label: "l", months: 3, gap: "g", rival: "r", names: "n", cut: "c", cut_cap: "C", name: "n", brand: "b", span: 12, counted: "c", change: 0.1, prior_count: "1", prior: "p", window: "w", rank: 1, of: 2, share: "s", heading: "h", minimum: "1", view: "v", parts: "p", count: "1", field: "f" };
   for (const [key, text] of Object.entries(answerConfig.words)) {
     const { unresolved } = fillTemplate(text, facts);
     assert.deepEqual(unresolved, [], key);
@@ -614,22 +614,30 @@ test("on the built data: a brand's twelve-month figure is the sum of its months,
   const rows = (await readSlice(reader, manifest, answerConfig.dataset, answerConfig.brand.dimension)) ?? [];
   const sumOf = (value: string, months: string[]) => rows.filter((r) => r.value === value && months.includes(r.month)).reduce((n, r) => n + r.n, 0);
   const brands = s.pages.filter((p) => p.kind === "brand");
+  // A brand's models are in the table behind the switch: the 12-month panel for all vehicles, whose count is the third cell from the end (after the parts); without the switch, the first table.
+  const { windowsFor } = await import("../../src/lib/windows.ts");
+  const twelve = windowsFor(latest).find((w) => !w.yearToDate && w.months.length === answerConfig.window)?.index;
+  const modelsOf = (p: (typeof brands)[number]) => {
+    const panel = p.scope?.sections[0].panels.find((x) => x.win === twelve && x.view === p.scope!.labels.length - 1);
+    return panel ? { rows: panel.rows, count: (r: (typeof panel.rows)[number]) => r.cells[r.cells.length - 3] } : { rows: p.tables[0]?.rows ?? [], count: (r: { cells: { text: string; hidden?: boolean }[] }) => r.cells[0] };
+  };
   for (const p of brands) {
     assert.equal(p.figure, count(sumOf(p.value, window)), `${p.value}: the figure is the sum of its twelve months`);
     assert.ok(sumOf(p.value, window) >= answerConfig.brand.minimum, `${p.value}: at or above the minimum`);
     const months = p.tables.at(-1);
     assert.equal(months?.rows.reduce((n, r) => n + Number(r.cells[r.cells.length - 2].text.replace(/,/g, "")), 0), sumOf(p.value, window), `${p.value}: its monthly table adds up to its figure`);
-    const total = p.tables[0]?.rows.find((r) => r.total);
-    if (total) assert.equal(total.cells[0].text, p.figure, `${p.value}: the models table ends at the brand's figure`);
-    const listed = p.tables[0]?.rows.filter((r) => !r.total && !r.cells[0].hidden).reduce((n, r) => n + Number(r.cells[0].text.replace(/,/g, "")), 0);
+    const models = modelsOf(p);
+    const total = models.rows.find((r) => r.total);
+    if (total) assert.equal(models.count(total).text, p.figure, `${p.value}: the models table ends at the brand's figure`);
+    const listed = models.rows.filter((r) => !r.total && !models.count(r).hidden).reduce((n, r) => n + Number(models.count(r).text.replace(/,/g, "")), 0);
     if (total) assert.equal(listed, sumOf(p.value, window), `${p.value}: the rows add up to the total`);
   }
   let linked = 0;
   for (const b of brands) {
-    for (const row of b.tables[0]?.rows.filter((r) => r.href) ?? []) {
+    for (const row of modelsOf(b).rows.filter((r) => r.href)) {
       const model = s.pages.find((p) => p.href === row.href);
       assert.ok(model, `${row.name}: its page exists`);
-      assert.equal(model.figure, row.cells[0].text, `${row.name}: same figure on the model's page and on the brand's`);
+      assert.equal(model.figure, modelsOf(b).count(row).text, `${row.name}: same figure on the model's page and on the brand's`);
       assert.equal(model.brand?.href, b.href, `${row.name}: a model page links back to the brand it is listed under`);
       linked += 1;
     }
