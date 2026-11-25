@@ -9,7 +9,7 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
 | A: finish the canvas | none | free | #161 and #162 merged (the study's site items a to d); what is left is under "A" below |
-| B: the accuracy guard and the datasets | none | free | item 1 merged (#164, D-158) and October's cube rebuilt under it; next is buyer type. One pipeline pull request at a time |
+| B: the accuracy guard and the datasets | `claude/b-buyer-type` (worktree `nzta-lane-b`) | the computer, from 2026-11-26 | item 1 merged (#164, D-158) and October's cube rebuilt under it; buyer type (queue B2) is being built. One pipeline pull request at a time |
 | C: public readiness | none | free | what is left is the user's four items |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
 | E: classification, the latest month, findability | none | free | items 8 (two batches, 98.7%), 9, 10 and 13 merged; 11 found nothing; 12 is in B's queue |
