@@ -32,17 +32,15 @@ with the user's additions of 2026-11-25, `docs/brief/WORK_ORDER_3_ADDITIONS.md` 
   and CSS, every view in the HTML. Each row has a change on the same months a year earlier, or "New
   entry". Brand pages set a brand beside its nearest rivals and, through a form, beside any brands in
   the canvas. The period windows are `config/windows.json`.
-- **The canvas is the only builder** (#132). It has a 3-month period (#162); it has no year to date.
-- **First load is held** (D-156, #151): the canvas's first chart is about 2.7 s on the phone profile
-  here. A pull request fails over 3.0 s or over the byte limit on the first chart's critical path.
+- **The canvas is the only builder** (#132). It has a 3-month period (#162) and no year to date. Its first
+  chart is held (D-156): about 2.7 s on the phone profile here; a pull request fails over 3.0 s.
 - **Every pull request** builds the public site and checks it (plain English, no tracking, metadata, the
   budget). **Playbooks:** the month is `docs/playbooks/monthly.md` (#149); going public is `go-public.md`.
 
 ## Current step
 
-The additions' items 2, 3, 4, 8 (two batches), 9, 10 and 13 are merged; 6 is drafted for the user; 11
-found nothing to add. Item 1 (one "New registrations" dataset) is built on its branch and under review.
-Next on lane B: buyer type, then building Market type, then figures as first observed (item 5).
+Merged of the additions: items 2, 3, 4, 8 (two batches), 9, 10, 13; 6 is drafted; 11 found nothing. Item 1 is
+built on its branch and under review. Next on lane B: buyer type, Market type, figures as first observed.
 
 ## In progress (all claude; nothing by gemini)
 
@@ -53,35 +51,27 @@ Next on lane B: buyer type, then building Market type, then figures as first obs
   `nzta-lane-b` and `nzta-lane-e` have no `node_modules`, `.venv` or raw data.
 - Worktrees with work that is not on `main`: `nzta-screens` (narrative drafts, **uncommitted**, D-102);
   `nzta-segments` (an untracked draft scheme file, D-103); `nzta-notes` (the closed board proposal).
-- Private, outside the repository, on the computer: the study of vstat's site, and the reading of NZTA's
-  118 "Existing fleet" workbooks (changes of registered person) with a plan and a draft decision record.
+- Private, on the computer: the study of vstat, and NZTA's 118 "Existing fleet" workbooks read, with a plan.
 
 ## Raw files on this computer (gitignored)
 
 - `data/raw/2026-08/`, `data/raw/2026-10/20261113T045017Z` (5,926,990 rows, 36 fields), the dashboard
-  exports and Stats NZ's series. No local file holds `VIN11` or `POSTCODE`. The main folder's
-  `public/data` is the dry-run build of 2026-11-24, older than the rebuilt cube (survivors on two types).
+  exports and Stats NZ's series. No local file holds `VIN11` or `POSTCODE`. The main folder's `public/data`
+  is the dry-run build of 2026-11-24, older than the rebuilt cube.
 
 ## Known issues
 
 1. A link that reads the fact table is bound by its data (the acceptance question: 6.5 s first chart).
-2. No link draws a map today (the owner's region table hides small counts); nor a chart pinned to a kept
-   snapshot.
+2. No link draws a map today (the region table hides small counts); nor a chart pinned to a kept snapshot.
 3. A page left open across a monthly refresh draws new figures under the old snapshot date.
 4. Three Explore charts are on no starter canvas. "Area Outside Region" reaches visitors as is.
 5. `/method`, `/caveats` and `/differences` are hand-written and fall behind at each refresh.
-6. The no-tracking check still misses rarer spellings (#131's review); `restated_from` is filled by hand
-   and nothing checks the earlier figure (D-153).
+6. The no-tracking check misses rarer spellings (#131); nothing checks a `restated_from` figure (D-153).
 7. Not tested: Safari, a real screen reader, a browser without `:has()` (the period and new-or-used
    switches rest on it). A chosen period is not kept in the address.
-8. A brand page's HTML doubled with #162 (largest 116 KB raw): on the throttled phone profile its
-   DOMContentLoaded rose about 330 ms; first paint is unchanged.
-9. The pages show year-to-date figures; the canvas has no such period, so those links are withheld.
-   The canvas's ranking shows no comparison where the pages say "New entry".
-10. Range-extended electric vehicles are counted with plug-in hybrids (the note says so): apart only in
-    `powertrain_detail`, which is not published.
-11. The Vehicle Importers Association publishes no monthly figures, so the guard has no used-import
-    source of its own (item 11).
+8. A brand page's HTML doubled with #162: DOMContentLoaded up about 330 ms on the phone profile, first paint unchanged.
+9. The canvas has no year to date (the pages' links for it are withheld) and no "New entry" in its ranking.
+   Range-extended electric vehicles are counted with plug-in hybrids (the note says so).
 
 ## Where docs and code disagree (noted, not changed)
 
