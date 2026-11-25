@@ -15,7 +15,7 @@ type DisplayNames = import("../../src/lib/displayNames.ts").DisplayNames;
 const config = { reference: "x.csv", rules: { make: "title_case" }, compound: { model: ["make"] } };
 const rows = (records: Record<string, string>[]) => displayRows(records) ?? [];
 const names = (records: Record<string, string>[] = []): DisplayNames => ({ rows: rows(records), config });
-const row = (field: string, value: string, display: string, phrase = "") => ({ field, value, display, phrase, note: "" });
+const row = (field: string, value: string, display: string, phrase = "", phrase_one = "") => ({ field, value, display, phrase, phrase_one, note: "" });
 const plain = (_f: string, v: string) => v.split("|").join(" ");
 const sep = (f: string) => (f === "model" ? "|" : undefined);
 const make = (n: DisplayNames | undefined, values: string[] = []) => labeller(n, sep, () => values, plain);
@@ -64,9 +64,9 @@ test("with no file, every value reads as it did before", () => {
 });
 
 test("the conditions come with their words, in the file's order", () => {
-  const n = names([row("import_status", "NZ New", "New", "new vehicles"), row("import_status", "Used Import", "Used imports", "used imports"), row("make", "BMW", "BMW")]);
+  const n = names([row("import_status", "NZ New", "New", "new vehicles"), row("import_status", "Used Import", "Used imports", "used imports", "used import"), row("make", "BMW", "BMW")]);
   assert.deepEqual(conditionOrder(n, "import_status"), ["NZ New", "Used Import"]);
-  assert.deepEqual(conditionWords(n, "import_status", "Used Import"), { label: "Used imports", phrase: "used imports" });
+  assert.deepEqual(conditionWords(n, "import_status", "Used Import"), { label: "Used imports", phrase: "used imports", phraseOne: "used import" });
   assert.equal(conditionWords(n, "import_status", "Unlisted"), undefined);
 });
 

@@ -283,6 +283,19 @@ test("the views of the real section are the registered figures cut by new or use
     const all = b.views?.[2];
     assert.deepEqual(all?.rows.map((r) => r.count), b.rows.map((r) => r.count));
     for (const r of all?.rows ?? []) assert.equal(count((r.parts ?? []).reduce((s, x) => s + Number(x.replace(/,/g, "")), 0)), r.count, `${b.id} ${r.name}`);
+    // Each part sits under its own condition: wherever a condition's own view lists a value, the all view's part for that condition is that count.
+    let matched = 0;
+    for (const [i, view] of (b.views ?? []).slice(0, 2).entries()) {
+      for (const r of view.rows) {
+        const row = all?.rows.find((x) => x.value !== undefined && x.value === r.value);
+        if (!row) continue;
+        matched += 1;
+        assert.equal(row.parts?.[i], r.count, `${b.id} ${r.name}: the all view's ${view.label} figure is the ${view.label} view's`);
+      }
+    }
+    assert.ok(matched > 0 || b.rows.length === 0, `${b.id}: the parts were compared with something`);
+    // The change column beside the parts is the total's, and says so.
+    for (const col of all?.columns.filter((x) => x.key === "year") ?? []) assert.match(col.name, /^Change in all /);
   }
 });
 

@@ -82,7 +82,9 @@ export type Kit = {
   provenance: { source?: string; snapshot: string };
 };
 
-export type Condition = { value: string; label: string; phrase: string };
+export type Condition = { value: string; label: string; phrase: string; phraseOne?: string };
+// A condition's phrase for a count: its singular where the count is one ("1 used import"), so a figure never reads "1 used imports".
+export const phraseFor = (c: Condition, n: number): string => (Math.round(n) === 1 ? (c.phraseOne ?? c.phrase) : c.phrase);
 export type ViewsKit = {
   field: string;
   // In the order they are shown.
@@ -267,7 +269,7 @@ export function latestMonthView(kit: Kit): View | undefined {
     if (!sentence) return undefined;
     // The figure said by its conditions: "Of these, 14,904 new vehicles and 8,650 used imports", or that all were of one.
     const held = conditions.map((c) => ({ c, n: totalNow.visible.get(c.value) ?? 0 })).filter((x) => x.n > 0);
-    const texts = held.map((x) => say(words, "part", { count: count(x.n), view: x.c.phrase }));
+    const texts = held.map((x) => say(words, "part", { count: count(x.n), view: phraseFor(x.c, x.n) }));
     const parts =
       held.length === 1
         ? say(words, "parts_one", { view: held[0].c.phrase })
@@ -588,8 +590,10 @@ export function latestMonthView(kit: Kit): View | undefined {
   // All the vehicles: the block's own figures, with each condition's count beside the total (and the earlier month's count left to the sentence).
   const allPanel = (block: BlockConfig, base: BlockView): Panel | undefined => {
     if (base.rows.some((r) => r.parts === undefined)) return undefined;
+    // The change column sits beside each condition's count but is the change in the total, and says so.
+    const wholly = say(words, "col_year_all", ids);
     const columns: BlockView["columns"] = base.columns.flatMap((col) =>
-      col.key === "prior" ? [] : col.key === "count" ? [...conditions.map((c, i) => ({ name: c.label, key: `part${i}` as const })), { name: words.view_all, key: "count" as const }] : [col],
+      col.key === "prior" ? [] : col.key === "count" ? [...conditions.map((c, i) => ({ name: c.label, key: `part${i}` as const })), { name: words.view_all, key: "count" as const }] : col.key === "year" && wholly ? [{ ...col, name: wholly }] : [col],
     );
     const heading = headingOf(base.heading, words.view_all_phrase);
     if (heading === undefined) return undefined;

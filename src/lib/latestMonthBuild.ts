@@ -101,7 +101,7 @@ export async function latestMonthSection(manifest: Manifest, read: ReadFile, con
       const conditions = held.map((value) => {
         const given = conditionWords(names0, field, value);
         const label = given?.label ?? names.label(field, value);
-        return { value, label, phrase: given?.phrase ?? label };
+        return { value, label, phrase: given?.phrase ?? label, ...(given?.phraseOne ? { phraseOne: given.phraseOne } : {}) };
       });
       views = { field, conditions, cuts: cut.cuts, floors: cut.floors };
     }

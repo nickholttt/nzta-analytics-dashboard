@@ -15,7 +15,7 @@ import configDoc from "../../config/answer_pages.json";
 import { datasetLatestMonth, isBuilt } from "./data";
 import type { Event, Manifest, SliceRow } from "./data";
 import { Cut } from "./conditionViews";
-import { MAX_VIEWS, monthOf } from "./latestMonth";
+import { MAX_VIEWS, monthOf, phraseFor } from "./latestMonth";
 import type { Condition, MonthOf } from "./latestMonth";
 import { recordingChange } from "./recordingChange";
 import { slugsFor } from "./answerSlug";
@@ -286,18 +286,30 @@ export function answerSite(kit: Kit): Site | undefined {
   const standingBy = (cut: Cut | undefined) =>
     cut ? new Map(conditions.map((c) => [c.value, new Map(cut.values(thisWindow).filter((v) => !isReservedValue(v)).map((v) => [v, cut.sum(v, c.value, thisWindow)] as [string, number]))])) : undefined;
   const conditionStanding = { brand: standingBy(cuts.brand), model: standingBy(cuts.model) };
+  // The most vehicles of a condition that any one reserved group holds (no reference match, not recorded, beyond the cap). A make the build groups there
+  // may have up to that many, so a brand's place by a condition is not said unless its own count is above it.
+  const reservedMost = (cut: Cut | undefined, c: Condition): number =>
+    cut ? Math.max(0, ...cut.values(thisWindow).filter(isReservedValue).map((v) => cut.sum(v, c.value, thisWindow))) : 0;
+  const reserved = { brand: new Map(conditions.map((c) => [c.value, reservedMost(cuts.brand, c)])) };
   // The part of a figure a sentence says each condition has: "Of these, 805 new vehicles and 15 used imports", or that all were of one.
+  // The parts as a list ("805 new vehicles and 15 used imports"): nothing where all were of one condition, which the sentence says in its own words.
+  const partsList = (amounts: readonly number[]): string | undefined => {
+    const held = conditions.map((c, i) => ({ c, n: amounts[i] })).filter((x) => x.n > 0);
+    const texts = held.map((x) => say(words, "part", { count: count(x.n), view: phraseFor(x.c, x.n) }));
+    return held.length > 1 && texts.every((t): t is string => t !== undefined) ? sayList(texts) : undefined;
+  };
   const partsSentence = (key: "parts_window" | "parts_month", amounts: readonly number[]): string | undefined => {
     const held = conditions.map((c, i) => ({ c, n: amounts[i] })).filter((x) => x.n > 0);
     if (held.length === 1) return say(words, "parts_one", { view: held[0].c.phrase });
-    const texts = held.map((x) => say(words, "part", { count: count(x.n), view: x.c.phrase }));
-    return held.length > 1 && texts.every((t): t is string => t !== undefined) ? say(words, key, { parts: sayList(texts) }) : undefined;
+    const list = partsList(amounts);
+    return list === undefined ? undefined : say(words, key, { parts: list });
   };
-  // A place by a condition's count: said as the place by all is, and for a model only above the floor, below which a model the cap hid may have more.
+  // A place by a condition's count: said as the place by all is, for a model only above the floor, below which a model the cap hid may have more, and
+  // for a brand only above the reserved groups' count, below which a make the build grouped there may have more.
   const placeUnder = (kind: Kind, value: string, c: Condition, exact: boolean) => {
     const sums = conditionStanding[kind]?.get(c.value);
     const n = sums?.get(value);
-    if (!sums || n === undefined || (kind === "model" && floor !== undefined && n <= floor)) return undefined;
+    if (!sums || n === undefined || (kind === "model" && floor !== undefined && n <= floor) || (kind === "brand" && n <= (reserved.brand.get(c.value) ?? 0))) return undefined;
     return placeOf(value, sums, exact);
   };
 
@@ -364,7 +376,7 @@ export function answerSite(kit: Kit): Site | undefined {
       return [{ name: monthLabel(month), cells }];
     });
     const heading = words.heading_months;
-    const columns = [words.col_month, ...(cut ? [...conditions.map((c) => c.label), words.view_all] : [words.col_count]), words.col_year];
+    const columns = [words.col_month, ...(cut ? [...conditions.map((c) => c.label), words.view_all] : [words.col_count]), cut ? words.col_year_all : words.col_year];
     return heading && rows.length > 0 ? { heading, columns, rows } : undefined;
   };
 
@@ -380,18 +392,25 @@ export function answerSite(kit: Kit): Site | undefined {
     index: words.index_link,
   });
 
-  const fit = (text: string | undefined, short: string | undefined) => {
+  // The first of the descriptions, longest first, that fits a search result.
+  const fit = (...texts: (string | undefined)[]) => {
     const [least, most] = config.description_length;
-    return [text, short].find((t): t is string => t !== undefined && t.length >= least && t.length <= most);
+    return texts.find((t): t is string => t !== undefined && t.length >= least && t.length <= most);
   };
 
-  const finish = (kind: Kind, value: string, name: string, sentences: string[], tables: TableView[], n: number, extra: Partial<PageView>): PageView | undefined => {
+  const finish = (kind: Kind, value: string, name: string, sentences: string[], tables: TableView[], n: number, parts: string | undefined, extra: Partial<PageView>): PageView | undefined => {
     const slug = slugs[kind].get(value);
     const href = hrefOf(kind, value);
     const canvas = kit.link(kind, value);
     const title = say(words, `${kind}_title`, { name, span });
     const counted = kit.dataset.counted(n, phrase.window);
-    const description = fit(say(words, `${kind}_description`, { name, counted }), say(words, "short_description", { name, counted }));
+    // A description says the split too where it is there, so a search result or a link preview does not show the combined figure alone.
+    const description = fit(
+      say(words, `${kind}_description_parts`, { name, counted, parts }),
+      say(words, "short_description_parts", { name, counted, parts }),
+      say(words, `${kind}_description`, { name, counted }),
+      say(words, "short_description", { name, counted }),
+    );
     if (slug === undefined || href === undefined || canvas === undefined || title === undefined || description === undefined || sentences.length === 0) return undefined;
     const named = say(words, "canvas_link_named", { heading: title });
     if (named === undefined || !words.canvas_link) return undefined;
@@ -441,7 +460,7 @@ export function answerSite(kit: Kit): Site | undefined {
     if (listed) tables.push(listed);
     const byMonth = months("brand", value, brandCounts);
     if (byMonth) tables.push(byMonth);
-    return finish("brand", value, name, sentences, tables, f.n, {});
+    return finish("brand", value, name, sentences, tables, f.n, cut ? partsList(conditions.map((c) => cut.sum(value, c.value, thisWindow))) : undefined, {});
   };
 
   // The brand's models, most registered first, each linking to its page where it has one, and the rest of the brand in one line.
@@ -494,8 +513,9 @@ export function answerSite(kit: Kit): Site | undefined {
     const modelsOfBrand = modelCut.values(thisWindow).filter(own);
     const rowFor = (value: string, cells: TableCell[]): TableRow => ({ name: kit.tail ? kit.tail(config.model.dimension, value) : kit.label(config.model.dimension, value), href: hrefOf("model", value), cells });
     const noCell: TableCell = { text: "", none: true };
-    const columnsFor = (heads: string[], share: string | undefined): string[] | undefined => {
-      const last = say(words, "col_window_change", { span });
+    // The change is on the vehicles the table counts: in a condition's table that condition's, and where a table has every condition's count beside the total, the total's.
+    const columnsFor = (heads: string[], share: string | undefined, wholly = false): string[] | undefined => {
+      const last = say(words, wholly ? "col_window_change_all" : "col_window_change", { span });
       return share === undefined || last === undefined ? undefined : [words.col_model, ...heads, share, last];
     };
     const out: NonNullable<TableView["views"]> = [];
@@ -526,7 +546,7 @@ export function answerSite(kit: Kit): Site | undefined {
     }
     // All of them: the table as it is, each condition's count beside the total, the rest and the total adding up in every column.
     const heading = say(words, "heading_models_view", { name: brandName, view: words.view_all_phrase });
-    const columns = columnsFor([...conditions.map((c) => c.label), words.view_all], say(words, "col_share", { name: brandName }));
+    const columns = columnsFor([...conditions.map((c) => c.label), words.view_all], say(words, "col_share", { name: brandName }), true);
     const totalName = say(words, "total_row", { name: brandName });
     const otherName = say(words, "other_models", { name: brandName });
     if (heading === undefined || !columns || !totalName) return undefined;
@@ -581,7 +601,7 @@ export function answerSite(kit: Kit): Site | undefined {
     if (byMonth) tables.push(byMonth);
     const brandHref = brand === undefined ? undefined : hrefOf("brand", brand);
     const link = brandName === undefined ? undefined : say(words, "brand_page_link", { name: brandName });
-    return finish("model", value, name, sentences, tables, f.n, brandName === undefined ? {} : { brand: { name: brandName, href: brandHref, text: link } });
+    return finish("model", value, name, sentences, tables, f.n, cut ? partsList(conditions.map((c) => cut.sum(value, c.value, thisWindow))) : undefined, brandName === undefined ? {} : { brand: { name: brandName, href: brandHref, text: link } });
   };
 
   const make = () => [...brandValues.flatMap((v) => brandPage(v) ?? []), ...modelValues.flatMap((v) => modelPage(v) ?? [])];

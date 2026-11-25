@@ -376,7 +376,7 @@ const factRows = (by: (model: string) => string): [string, string, string, numbe
     }),
   );
 const cutFrom = (rows: [string, string, string, number][]) => Cut.from({ month: rows.map((r) => r[0]), n: rows.map((r) => r[3]), values: { thing: rows.map((r) => r[1]), cond: rows.map((r) => r[2]) } }, "thing", "cond", ["x", "y"])!;
-const conditions = [{ value: "x", label: "Newish", phrase: "newish things" }, { value: "y", label: "Oldish", phrase: "oldish things" }];
+const conditions = [{ value: "x", label: "Newish", phrase: "newish things", phraseOne: "newish thing" }, { value: "y", label: "Oldish", phrase: "oldish things", phraseOne: "oldish thing" }];
 
 function viewKit(over: Parameters<typeof kit>[0] & { floor?: number; noModelCut?: boolean } = {}): Kit {
   const { floor, noModelCut, ...rest } = over;
@@ -424,8 +424,47 @@ test("a model's place by one condition is stated only above the cap floor, and i
   const p = page(viewSite(), "model", "ALPHA|A1");
   assert.deepEqual(p?.parts?.map((x) => x.value), ["720", "120", "840"]);
   const months = p?.tables.at(-1);
-  assert.deepEqual(months?.columns, ["Month", "Newish", "Oldish", "All", "Change on the same month a year earlier"]);
+  assert.deepEqual(months?.columns, ["Month", "Newish", "Oldish", "All", "Change in all on the same month a year earlier"], "the change is on the total, and says so");
   assert.deepEqual(months?.rows[0].cells.slice(0, 3).map((c) => c.text), ["60", "10", "70"], "the latest month: the parts add up to the figure the page showed");
+});
+
+test("a count of one says the condition in the singular, in a sentence and in the description", () => {
+  const rows: [string, string, string, number][] = [[LATEST, "ALPHA", "x", 1], [LATEST, "ALPHA", "y", 9], ["2026-09", "ALPHA", "x", 4], ["2026-09", "ALPHA", "y", 1]];
+  const s = viewSite({ views: { ...viewKit().views!, cuts: { brand: cutFrom(rows), model: cutFrom(rows.map(([m, , c, n]) => [m, "ALPHA|A1", c, n] as [string, string, string, number])) } } });
+  const p = page(s, "brand", "ALPHA");
+  assert.ok(p?.sentences.includes("Of these, 5 newish things and 10 oldish things."), "the window");
+  assert.ok(p?.sentences.includes("Of these, 1 newish thing and 9 oldish things."), "the month: one is singular, nine is plural");
+  assert.ok(!p?.sentences.some((t) => /1 w+ things/.test(t)));
+});
+
+test("a page's description gives the split beside the combined figure, in a search result's length", () => {
+  const s = viewSite();
+  const [least, most] = answerConfig.description_length;
+  const ranger = page(s, "model", "ALPHA|A1");
+  assert.ok(ranger?.description.includes("840 vehicles first registered in the 12 months to Oct 2026, of which 720 newish things and 120 oldish things"), ranger?.description);
+  for (const p of s?.pages ?? []) {
+    assert.ok(p.description.length >= least && p.description.length <= most, p.description);
+    if (p.parts && p.parts.slice(0, 2).every((x) => x.value !== "0")) assert.ok(p.description.includes("of which"), p.description);
+  }
+  // A name too long for the split keeps the description as it was, which has none.
+  const long = answerSite(viewKit({ label: (_d, v) => `${v} ${"X".repeat(95)}` }));
+  assert.ok(long && long.pages.length > 0);
+  for (const p of long.pages) assert.ok(p.description.length <= most);
+});
+
+// A group the build holds makes in (no reference match, not recorded) may hold one with more vehicles than a brand the page ranks, so no place by a
+// condition is said for a brand whose count is at or below the group's.
+test("a brand's place by one condition is not said where a reserved group holds as many of that condition", () => {
+  const reserved: [string, string, string, number][] = MONTHS.filter((m) => m > "2025-10").flatMap((m) => [[m, "__GROUPED__", "x", 30] as [string, string, string, number], [m, "__GROUPED__", "y", 10] as [string, string, string, number]]);
+  const base = viewKit().views!;
+  const s = viewSite({ views: { ...base, cuts: { ...base.cuts, brand: cutFrom([...factRows(brandOf), ...reserved]) } } });
+  const said = (value: string, view: string) => page(s, "brand", value)?.sentences.some((t) => t.includes(`by ${view} first registered`));
+  // The group holds 360 newish and 120 oldish things. DELTA has 360 newish (not above) and 360 oldish (above).
+  assert.equal(said("DELTA", "newish things"), false, "360 is not above the 360 the group holds");
+  assert.equal(said("DELTA", "oldish things"), true);
+  assert.equal(said("ALPHA", "oldish things"), true, "480 is above 120");
+  // The same brands with no reserved group say their places, as before.
+  assert.equal(page(viewSite(), "brand", "DELTA")?.sentences.some((t) => t.includes("by newish things first registered")), true);
 });
 
 test("a brand's models are listed once for each condition and once for all, and in every one the rows and the rest add up to the total", () => {
@@ -495,13 +534,47 @@ test("the index names brands as written but keeps their order", () => {
 });
 
 // The pages worked out from the real build.
+test("on the built data: no place by new or by used imports is said for a brand a reserved group may out-count, and no sentence says '1 new vehicles'", { skip: !haveData && "no built data in public/data" }, async () => {
+  const manifest = JSON.parse(readFileSync(new URL("manifest.json", here), "utf8"));
+  const s = await answerPagesSite(manifest, reader);
+  assert.ok(s);
+  const { viewCuts } = await import("../../src/lib/conditionViewsBuild.ts");
+  const { builtDisplayNames } = await import("../../src/lib/displayNamesBuild.ts");
+  const { conditionOrder, conditionWords } = await import("../../src/lib/displayNames.ts");
+  const { isReservedValue } = await import("../../src/lib/chartSentence.ts");
+  const names = builtDisplayNames();
+  const field = answerConfig.view_field as string;
+  const latest = manifest.datasets[answerConfig.dataset].latest_month;
+  const window = monthRange(addMonths(latest, 1 - answerConfig.window), latest);
+  const brandRows = await readSlice(reader, manifest, answerConfig.dataset, answerConfig.brand.dimension);
+  const cuts = await viewCuts(reader, manifest, answerConfig.dataset, field, conditionOrder(names, field), [field, answerConfig.brand.dimension], { [field]: await readSlice(reader, manifest, answerConfig.dataset, field), [answerConfig.brand.dimension]: brandRows }, window);
+  const cut = cuts.cuts[answerConfig.brand.dimension];
+  assert.ok(cut, "the brand cut agrees with its slice");
+  const held = cut.values(window);
+  let said = 0;
+  let reservedSeen = 0;
+  for (const c of cuts.cuts[field]?.conditions() ?? []) {
+    const phrase = conditionWords(names, field, c)?.phrase as string;
+    const most = Math.max(0, ...held.filter(isReservedValue).map((v) => cut.sum(v, c, window)));
+    if (most > 0) reservedSeen += 1;
+    for (const p of s.pages.filter((x) => x.kind === "brand")) {
+      if (!p.sentences.some((t) => t.includes(` brands by ${phrase} first registered`))) continue;
+      said += 1;
+      assert.ok(cut.sum(p.value, c, window) > most, `${p.value}: a place by ${phrase} with ${cut.sum(p.value, c, window)}, where a reserved group holds ${most}`);
+    }
+  }
+  assert.ok(said > 20 && reservedSeen > 0, "places are said, and a reserved group holds some of each: this test checks something");
+  for (const p of s.pages) for (const t of p.sentences) assert.ok(!/1 (new vehicles|used imports)/.test(t), t);
+});
+
 test("on the built data: a page's figure by new and used adds up to its figure, and the Ranger's October is 805 new and 15 used imports, 820 in all", { skip: !haveData && "no built data in public/data" }, async () => {
   const manifest = JSON.parse(readFileSync(new URL("manifest.json", here), "utf8"));
   const s = await answerPagesSite(manifest, reader);
   assert.ok(s);
   const ranger = s.pages.find((p) => p.href === "/model/ford-ranger/");
   assert.equal(ranger?.name, "Ford RANGER");
-  assert.deepEqual(ranger?.tables.at(-1)?.columns, ["Month", "New", "Used imports", "All", "Change on the same month a year earlier"]);
+  assert.deepEqual(ranger?.tables.at(-1)?.columns, ["Month", "New", "Used imports", "All", "Change in all on the same month a year earlier"]);
+  assert.match(ranger?.description ?? "", /of which [0-9,]+ new vehicles and [0-9,]+ used imports/, "the split is in the description a search result shows");
   assert.deepEqual(ranger?.tables.at(-1)?.rows[0].cells.slice(0, 3).map((c) => c.text), ["805", "15", "820"]);
   assert.ok(ranger?.sentences.includes("Of these, 805 new vehicles and 15 used imports."));
   assert.equal(ranger?.canvasSplit && new URL(ranger.canvasSplit.href, "https://site.example").searchParams.get("c1.by"), "import_status");

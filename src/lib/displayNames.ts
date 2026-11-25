@@ -4,7 +4,7 @@
 // its own it reads by the rule. The value itself, in addresses, in the data and in the canvas, is unchanged.
 import { isReservedValue } from "./chartSentence";
 
-export type DisplayRow = { field: string; value: string; display: string; phrase: string; note?: string };
+export type DisplayRow = { field: string; value: string; display: string; phrase: string; phrase_one?: string; note?: string };
 export type DisplayConfig = { reference: string; rules: Record<string, string>; compound: Record<string, string[]> };
 export type DisplayNames = { rows: readonly DisplayRow[]; config: DisplayConfig };
 
@@ -13,7 +13,7 @@ export const titleCase = (value: string): string => value.toLowerCase().replace(
 
 export function displayRows(records: readonly Record<string, string>[] | undefined): DisplayRow[] | undefined {
   if (!records) return undefined;
-  return records.map((r) => ({ field: r.field, value: r.value, display: r.display, phrase: r.phrase, note: r.note }));
+  return records.map((r) => ({ field: r.field, value: r.value, display: r.display, phrase: r.phrase, phrase_one: r.phrase_one, note: r.note }));
 }
 
 const overrideOf = (names: DisplayNames, field: string, value: string) => names.rows.find((r) => r.field === field && r.value === value && r.display !== "");
@@ -72,10 +72,10 @@ export function labeller(
   return { label, tail };
 }
 
-// The words a condition is shown with: its label (a column, a button) and its phrase (inside a sentence).
-export const conditionWords = (names: DisplayNames | undefined, field: string, value: string): { label: string; phrase: string } | undefined => {
+// The words a condition is shown with: its label (a column, a button), its phrase (inside a sentence) and its phrase for a count of one.
+export const conditionWords = (names: DisplayNames | undefined, field: string, value: string): { label: string; phrase: string; phraseOne?: string } | undefined => {
   const row = names?.rows.find((r) => r.field === field && r.value === value && r.display !== "" && r.phrase !== "");
-  return row ? { label: row.display, phrase: row.phrase } : undefined;
+  return row ? { label: row.display, phrase: row.phrase, ...(row.phrase_one ? { phraseOne: row.phrase_one } : {}) } : undefined;
 };
 
 // The values of a field the file names words for, in the file's order: the order the conditions are shown in.

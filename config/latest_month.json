@@ -38,6 +38,7 @@
     "col_share": "Share",
     "col_points": "Change in share on {prior_month|month}",
     "col_year": "Change on {prior_month|month}",
+    "col_year_all": "Change in all on {prior_month|month}",
     "col_prior": "{prior_month|month}",
     "rest": "The rest",
     "level": "Level",
