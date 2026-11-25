@@ -62,8 +62,17 @@
   margin-bottom: var(--space-7);
 }
 
+/* position: relative holds the absolutely positioned visually-hidden labels inside the scroll box, as .table-scroll does in site.css. */
 .ap-scroll {
   overflow-x: auto;
+  position: relative;
+}
+
+@media (max-width: 640px) {
+  .ap-scroll .key {
+    display: table;
+    overflow: visible;
+  }
 }
 
 .ap-table {
