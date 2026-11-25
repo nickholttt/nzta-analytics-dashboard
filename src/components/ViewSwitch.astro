@@ -1,0 +1,33 @@
+---
+// A choice between views of the same figures that needs no script: radio buttons, and each view a `.vs-panel` with its position in `data-view` that
+// the page's stylesheet shows when its button is chosen (src/styles/view-switch.css). The first view is chosen to begin with. Where the browser
+// cannot do that (no :has()) the choice is not drawn and every view is, one after the other, each labelled. The views go inside as the slot, by
+// position: the buttons' labels in the order of the panels'. The switch has room for five views.
+import "../styles/view-switch.css";
+
+interface Props {
+  // Names the group of buttons: unique on the page.
+  id: string;
+  legend: string;
+  // Says what the choice changes.
+  note: string;
+  labels: string[];
+}
+const { id, legend, note, labels } = Astro.props;
+---
+
+<div class="vs-scope">
+  <fieldset class="vs" aria-describedby={`${id}-note`}>
+    <legend class="vs-legend">{legend}</legend>
+    {
+      labels.map((label, i) => (
+        <>
+          <input class="vs-input" type="radio" name={id} id={`${id}-${i}`} value={String(i)} checked={i === 0} />
+          <label class="vs-label" for={`${id}-${i}`}>{label}</label>
+        </>
+      ))
+    }
+  </fieldset>
+  <p class="meta vs-note" id={`${id}-note`}>{note}</p>
+  <slot />
+</div>

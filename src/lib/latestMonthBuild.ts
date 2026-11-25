@@ -12,19 +12,20 @@ import { parquetReadObjects } from "hyparquet";
 import { decompressZstd } from "hyparquet-compressors";
 import { builderVocabulary, datasetName } from "./builder";
 import { canvasSpec, canvasVocabulary } from "./canvas";
+import { viewCuts } from "./conditionViewsBuild";
 import { chartSentences } from "./chartWords";
 import { dimensionLabel, findDataset, findDimension, findMeasure, phrases, unrecordedBand, valueWords, yearChangeFloor } from "./config";
 import type { Preset } from "./config";
-import { SMALL_CELL_KEY, ruleMinimum } from "./data";
-import { labeller } from "./displayNames";
+import { SMALL_CELL_KEY, datasetLatestMonth, ruleMinimum } from "./data";
+import { conditionOrder, conditionWords, labeller } from "./displayNames";
 import { builtDisplayNames } from "./displayNamesBuild";
 import type { Event, Manifest, SliceRow } from "./data";
 import { latestConfig, latestMonthView } from "./latestMonth";
-import type { Kit, LatestConfig, View } from "./latestMonth";
+import type { Kit, LatestConfig, View, ViewsKit } from "./latestMonth";
 import { latestMonthLink } from "./latestMonthLinks";
 import { monthKey } from "./monthkey";
 import { fillNote, noteContext } from "./notes";
-import { NOT_BROKEN_DOWN_TOKEN, NOT_RECORDED_TOKEN, countedText, fillTemplate, monthLabel } from "./sentences";
+import { NOT_BROKEN_DOWN_TOKEN, NOT_RECORDED_TOKEN, addMonths, countedText, fillTemplate, monthLabel, monthRange } from "./sentences";
 import { pct, shareChange } from "./measures";
 
 // The cube is written with zstd (docs/CUBE_SCHEMA.md): the one codec the files need, as data.ts takes it.
@@ -70,7 +71,7 @@ export function readEvents(read: ReadFile): Event[] | null {
 
 // The slices the section's blocks and total read, each field once.
 export async function readSlices(read: ReadFile, manifest: Manifest, config: LatestConfig): Promise<Record<string, SliceRow[] | undefined>> {
-  const fields = [...new Set([config.total_from, ...config.blocks.flatMap((b) => (b.dimension ? [b.dimension] : []))])];
+  const fields = [...new Set([config.total_from, ...(config.view_field ? [config.view_field] : []), ...config.blocks.flatMap((b) => (b.dimension ? [b.dimension] : []))])];
   const slices: Record<string, SliceRow[] | undefined> = {};
   for (const dimension of fields) slices[dimension] = await readSlice(read, manifest, config.dataset, dimension);
   return slices;
@@ -87,6 +88,24 @@ export async function latestMonthSection(manifest: Manifest, read: ReadFile, con
   const source = fillNote(dataset.source_note ?? "", noteContext({ dataset: config.dataset } as Preset, manifest));
   // A value is named as a person writes it (src/lib/displayNames.ts); the canvas keeps the register's capitals.
   const names = labeller(builtDisplayNames(), (field) => findDimension(field)?.key_separator, (field) => (slices[field] ?? []).map((r) => r.value), valueWords);
+  // The vehicles split by the condition the section's views are for (new or used): cut from the fact table where it agrees with the slices.
+  const names0 = builtDisplayNames();
+  let views: ViewsKit | undefined;
+  if (config.view_field && names0) {
+    const field = config.view_field;
+    const latest = datasetLatestMonth(manifest, config.dataset);
+    const dims = [...new Set(config.blocks.flatMap((b) => (b.views && b.dimension ? [b.dimension] : [])))];
+    const cut = await viewCuts(read, manifest, config.dataset, field, conditionOrder(names0, field), dims, slices, monthRange(addMonths(latest, -11), latest));
+    const held = cut.cuts[field]?.conditions();
+    if (held && held.length > 0) {
+      const conditions = held.map((value) => {
+        const given = conditionWords(names0, field, value);
+        const label = given?.label ?? names.label(field, value);
+        return { value, label, phrase: given?.phrase ?? label };
+      });
+      views = { field, conditions, cuts: cut.cuts, floors: cut.floors };
+    }
+  }
   const kit: Kit = {
     config,
     manifest,
@@ -109,8 +128,10 @@ export async function latestMonthSection(manifest: Manifest, read: ReadFile, con
       note: (hidden, minimum) => fillTemplate(hidden === 1 ? phrases.hidden_ranking_note_one : phrases.hidden_ranking_note, { count: hidden, minimum }).text,
     },
     ruleMinimum: (dimension) => ruleMinimum(manifest, config.dataset, SMALL_CELL_KEY, dimension),
-    link: (block) =>
+    views,
+    link: (block, where) =>
       latestMonthLink(all, manifest, {
+        where,
         dataset: config.dataset,
         measure: block.canvas.measure,
         by: block.canvas.by ? (block.dimension ?? null) : null,

@@ -1,0 +1,109 @@
+/* A choice between views of the same figures, with no script (src/components/ViewSwitch.astro). The buttons are radio inputs, visually hidden but still
+   reached by keyboard; the chosen view's panel is shown by :has(). Without :has() the choice is not drawn and every panel is, one after the other. The
+   chosen button is told apart by a tick and weight as well as by its colours. */
+
+.vs {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.vs-legend {
+  flex-basis: 100%;
+  margin-bottom: var(--space-1);
+  padding: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.vs-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.vs-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.vs-label:hover {
+  background: var(--paper-2);
+}
+
+.vs-input:checked + .vs-label {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.vs-input:checked + .vs-label::before {
+  content: "\2713";
+  content: "\2713" / "";
+  margin-right: var(--space-2);
+}
+
+.vs-input:focus-visible + .vs-label {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.vs-note {
+  margin-bottom: var(--space-5);
+  max-width: var(--measure);
+}
+
+.vs-view {
+  margin: var(--space-3) 0 var(--space-1);
+  font-size: var(--text-sm);
+}
+
+@supports selector(:has(*)) {
+  .vs-panel {
+    display: none;
+  }
+
+  .vs-scope:has(> .vs .vs-input[value="0"]:checked) .vs-panel[data-view="0"],
+  .vs-scope:has(> .vs .vs-input[value="1"]:checked) .vs-panel[data-view="1"],
+  .vs-scope:has(> .vs .vs-input[value="2"]:checked) .vs-panel[data-view="2"],
+  .vs-scope:has(> .vs .vs-input[value="3"]:checked) .vs-panel[data-view="3"],
+  .vs-scope:has(> .vs .vs-input[value="4"]:checked) .vs-panel[data-view="4"] {
+    display: block;
+  }
+
+  /* The chosen button says which view this is, so each panel's own label is only for where the choice is not drawn. */
+  .vs-view {
+    display: none;
+  }
+}
+
+@supports not selector(:has(*)) {
+  .vs,
+  .vs-note {
+    display: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .vs-input:checked + .vs-label {
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+}

@@ -224,7 +224,7 @@ def test_the_lint_reads_every_word_of_the_starter_canvases():
 # What in config/latest_month.json is not a template: the dataset and the fields it names, each block's id, kind and the address of its definition, the
 # chart it opens in the canvas (a measure, a chart type and a setting, which are ids), and the two addresses of the section's links.
 _LATEST_MONTH_NOT_A_TEMPLATE = re.compile(
-    r"^(dataset|total_from|caveat\.href|hidden\.href"
+    r"^(dataset|total_from|view_field|caveat\.href|hidden\.href"
     r"|blocks\[\d+\]\.(id|kind|dimension|definition|canvas\.(measure|type|settings\..+)))$"
 )
 

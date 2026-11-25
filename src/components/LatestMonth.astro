@@ -1,7 +1,8 @@
 ---
 // The latest month: the front page's first section, an answer to what happened in the newest month (config/latest_month.json). It is worked out
 // when the site is built from the published slices (src/lib/latestMonthBuild.ts) and drawn as plain HTML with no script: each block's chart is bars
-// in a table, so the figures are the chart's own text, and each block opens its question in the canvas. Where the build cannot give the section
+// in a table, so the figures are the chart's own text, and each block opens its question in the canvas. Where a block has views (new vehicles, used
+// imports, all), they sit behind one switch that needs no script (src/components/ViewSwitch.astro). Where the build cannot give the section
 // (the dataset is not built, its files are not there) nothing is drawn, and the page is as it was.
 import "../styles/latest-month.css";
 import manifest from "../../public/data/manifest.json";
@@ -12,6 +13,8 @@ import type { BlockView } from "../lib/latestMonth";
 import { answerConfig } from "../lib/answerPages";
 import { builtAnswerSite } from "../lib/answerSite";
 import { readPublished } from "../lib/publishedFiles.mjs";
+import LatestTable from "./LatestTable.astro";
+import ViewSwitch from "./ViewSwitch.astro";
 
 // The published files are read from the folder the site is built from (src/lib/publishedFiles.mjs).
 const view = await latestMonthSection(manifest as unknown as Manifest, readPublished);
@@ -21,7 +24,7 @@ const heading = (b: BlockView) => `lm-${b.id}`;
 // A name in a table that has a page of its own (src/lib/answerPages.ts) links to it. The page is found by the name the table shows, for the field the block
 // is about; a name two pages share has no link, so a link never opens the other's page.
 const answers = await builtAnswerSite();
-const pageOf = (b: BlockView, name: string): string | undefined => {
+const pageOf = (b: BlockView) => (name: string): string | undefined => {
   if (latestConfig.dataset !== answerConfig.dataset) return undefined;
   const dimension = latestConfig.blocks.find((x) => x.id === b.id)?.dimension;
   const kind = dimension === answerConfig.brand.dimension ? "brand" : dimension === answerConfig.model.dimension ? "model" : undefined;
@@ -30,7 +33,9 @@ const pageOf = (b: BlockView, name: string): string | undefined => {
 // A split's segments, from darkest to lightest and back, so neighbours differ; a swatch beside each name repeats its colour.
 const SEGMENTS = [6, 3, 5, 2, 4];
 const colour = (i: number) => `--c:var(--scale-${SEGMENTS[i % SEGMENTS.length]})`;
-const percent = (x: number) => `${(x * 100).toFixed(1)}%`;
+// The blocks with views are drawn under the switch, the others above it.
+const plain = view?.switch ? blocks.filter((b) => !b.views) : blocks;
+const viewed = view?.switch ? blocks.filter((b) => b.views) : [];
 ---
 
 {
@@ -43,63 +48,43 @@ const percent = (x: number) => `${(x * 100).toFixed(1)}%`;
       <div class="lm-answer">
         <p class="lm-figure" aria-hidden="true">{answer.figure}</p>
         <p class="lm-sentence">{answer.sentences[0]}</p>
+        {answer.parts && <p class="lm-sentence">{answer.parts}</p>}
         <p class="lm-links">
           <a class="starter-open" href={answer.canvas} aria-label={answer.canvasLabel}>{view.labels.canvas}</a>
           <a href={answer.definition}>{view.labels.definition}</a>
         </p>
       </div>
       <ul class="lm-blocks">
-        {blocks.map((b) => (
+        {plain.map((b) => (
           <li>
             <article class="starter lm-block" aria-labelledby={heading(b)}>
               <h3 class="lm-title" id={heading(b)}>{b.heading}</h3>
-              {b.sentences.map((s) => <p class="lm-sentence-small">{s}</p>)}
-              {b.kind === "split" && (
-                <div class="lm-split" aria-hidden="true">
-                  {b.rows.filter((r) => r.bar !== undefined).map((r, i) => <span style={`${colour(i)};--g:${(r.bar as number) * 100}`} />)}
-                </div>
-              )}
-              <div class="lm-scroll" role="region" tabindex="0" aria-labelledby={heading(b)}>
-                <table class="key lm-table">
-                  <caption class="visually-hidden">{b.heading}</caption>
-                  <thead>
-                    <tr>{b.columns.map((c) => <th scope="col">{c.name}</th>)}</tr>
-                  </thead>
-                  <tbody>
-                    {b.rows.map((r, i) => (
-                      <tr>
-                        <th scope="row" class="text">
-                          {b.kind === "split" && r.bar !== undefined && <span class="lm-swatch" style={colour(i)} aria-hidden="true" />}
-                          {pageOf(b, r.name) ? <a href={pageOf(b, r.name)}>{r.name}</a> : r.name}
-                          {b.kind !== "split" && r.bar !== undefined && <span class={`lm-bar ${b.kind === "movers" ? (r.change?.direction ?? "") : ""}`} style={`--w:${percent(r.bar)}`} aria-hidden="true" />}
-                        </th>
-                        {b.columns.slice(1).map((c) => {
-                          const cell = c.key === "count" ? r.count : c.key === "share" ? r.share : c.key === "prior" ? r.prior : undefined;
-                          const change = c.key === "year" ? r.change : c.key === "points" ? r.points : undefined;
-                          return r.hidden ? (
-                            <td title={r.hidden.reason}><em>{r.hidden.word}</em></td>
-                          ) : change ? (
-                            <td class={`change ${change.direction}`}>{change.text}</td>
-                          ) : cell ? (
-                            <td class="figure">{cell}</td>
-                          ) : (
-                            <td class="change">—<span class="visually-hidden">{view.labels.noComparison}</span></td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {b.notes.map((n) => <p class="meta">{n}{b.hiddenLink && <> <a href={b.hiddenLink}>{view.labels.hiddenLink}</a></>}</p>)}
-              <p class="lm-foot">
-                <a class="starter-open" href={b.canvas} aria-label={b.canvasLabel}>{view.labels.canvas}</a>
-                <a href={b.definition}>{view.labels.definition}</a>
-              </p>
+              <LatestTable kind={b.kind} title={{ id: heading(b) }} panel={b} definition={b.definition} hiddenLink={b.hiddenLink} labels={view.labels} pageOf={pageOf(b)} colour={colour} />
             </article>
           </li>
         ))}
       </ul>
+      {
+        view.switch && viewed.length > 0 && (
+          <ViewSwitch id="lm-view" legend={view.switch.legend} note={view.switch.note} labels={view.switch.labels}>
+            <ul class="lm-blocks">
+              {viewed.map((b) => (
+                <li>
+                  <article class="starter lm-block" aria-labelledby={heading(b)}>
+                    <h3 class="lm-title" id={heading(b)}>{b.heading}</h3>
+                    {(b.views ?? []).map((p, i) => (
+                      <div class="vs-panel" data-view={i}>
+                        <h4 class="vs-view">{p.label}</h4>
+                        <LatestTable kind={b.kind} title={{ label: p.label }} panel={p} definition={b.definition} hiddenLink={b.hiddenLink} labels={view.labels} pageOf={pageOf(b)} colour={colour} />
+                      </div>
+                    ))}
+                  </article>
+                </li>
+              ))}
+            </ul>
+          </ViewSwitch>
+        )
+      }
       <p class="meta lm-source">
         {[view.provenance.source, view.provenance.snapshot].filter(Boolean).join(" ")} <a href={view.sourceLink.href}>{view.sourceLink.text}</a>
       </p>

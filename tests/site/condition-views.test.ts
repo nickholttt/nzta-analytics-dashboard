@@ -126,3 +126,195 @@ test("the real fact table agrees with every slice it is cut for, month by month,
   const totals = ["import_status", ...fields].map((f) => cuts[f]!.total("NZ New", "2026-10") + cuts[f]!.total("Used Import", "2026-10"));
   assert.equal(new Set(totals).size, 1);
 });
+
+// ---- The latest month drawn by its conditions (made-up fixtures) ----
+
+const { latestConfig, latestMonthView } = await import("../../src/lib/latestMonth.ts");
+const { chartSentences } = await import("../../src/lib/chartWords.ts");
+const { count, monthLabel } = await import("../../src/lib/sentences.ts");
+const { pct, shareChange } = await import("../../src/lib/measures.ts");
+type Kit = import("../../src/lib/latestMonth.ts").Kit;
+type BlockConfig = import("../../src/lib/latestMonth.ts").BlockConfig;
+
+const MONTH = "2026-10";
+const PRIOR = "2025-10";
+// Each value's count under the two conditions, x ("newish things") and y ("oldish things"), in the month and a year earlier. Every field counts the same vehicles:
+// 490 x and 510 y in the month, 490 x and 310 y a year earlier.
+const GRID: Record<string, Record<string, Record<string, [number, number]>>> = {
+  field_a: {
+    [MONTH]: { alpha: [200, 400], beta: [290, 10], gamma: [0, 100] },
+    [PRIOR]: { alpha: [100, 300], beta: [340, 10], gamma: [50, 0] },
+  },
+  field_b: {
+    [MONTH]: { p1: [100, 400], p2: [290, 110], p3: [98, 0], p4: [2, 0] },
+    [PRIOR]: { p1: [100, 200], p2: [340, 110], p3: [48, 0], p4: [2, 0] },
+  },
+};
+const rowsOf = (field: string): [string, string, string, number][] =>
+  Object.entries(GRID[field]).flatMap(([month, values]) =>
+    Object.entries(values).flatMap(([value, [x, y]]) => [[month, value, "x", x] as [string, string, string, number], [month, value, "y", y] as [string, string, string, number]].filter((r) => r[3] > 0)),
+  );
+const cutOf = (field: string) =>
+  Cut.from({ month: rowsOf(field).map((r) => r[0]), n: rowsOf(field).map((r) => r[3]), values: { thing: rowsOf(field).map((r) => r[1]), cond: rowsOf(field).map((r) => r[2]) } }, "thing", "cond", ["x", "y"])!;
+const sliceOf = (field: string): SliceRow[] => {
+  const total = (month: string) => Object.values(GRID[field][month]).reduce((s, [x, y]) => s + x + y, 0);
+  return Object.entries(GRID[field]).flatMap(([month, values]) => Object.entries(values).map(([value, [x, y]]) => ({ month, value, n: x + y, denominator: total(month) })));
+};
+const condSlice = (x: number, y: number, xBefore = 490, yBefore = 310): SliceRow[] => [
+  { month: MONTH, value: "x", n: x, denominator: x + y },
+  { month: MONTH, value: "y", n: y, denominator: x + y },
+  { month: PRIOR, value: "x", n: xBefore, denominator: xBefore + yBefore },
+  { month: PRIOR, value: "y", n: yBefore, denominator: xBefore + yBefore },
+];
+const block = (kind: BlockConfig["kind"], dimension: string | undefined, over: Partial<BlockConfig> = {}): BlockConfig => ({
+  id: `${kind}-${dimension ?? "all"}`,
+  kind,
+  dimension,
+  definition: "/method#x",
+  canvas: { measure: "count", by: dimension !== undefined, type: null },
+  ...over,
+});
+// "field_a" is also the field the block cuts by: its cuts here are made from the same grid as its slice.
+function kit(over: Partial<Kit> & { blocks?: BlockConfig[]; floors?: Record<string, number | undefined>; noViews?: boolean; cond?: SliceRow[] } = {}): Kit {
+  const { blocks, floors, noViews, cond, ...rest } = over;
+  return {
+    config: {
+      ...latestConfig,
+      dataset: "set_one",
+      total_from: "cond",
+      view_field: "cond",
+      blocks: blocks ?? [block("total", undefined), block("ranking", "field_a", { top: 3, views: true }), block("ranking", "field_b", { top: 3, views: true }), block("movers", "field_b", { each: 2, minimum: 100, least: 0.05, views: true })],
+    },
+    manifest: { latest_snapshot: "2026-10-31", datasets: { set_one: { latest_month: MONTH, live_dimensions: ["cond", "field_a", "field_b"] } } } as never,
+    slices: { cond: cond ?? condSlice(490, 510), field_a: sliceOf("field_a"), field_b: sliceOf("field_b") },
+    events: [],
+    sentences: chartSentences,
+    label: { field: (d) => ({ field_a: "Field A", field_b: "Field B", cond: "Condition" })[d], value: (_d, v) => v },
+    dataset: { counted: (n, window) => `${count(n)} vehicles ${window}`, showsYear: true, unit: "Vehicles each month" },
+    window: (m) => `in ${monthLabel(m)}`,
+    floors: { change: 50, share: 200 },
+    format: { share: pct, points: shareChange },
+    hidden: { word: "hidden", link: "How counts are hidden", reason: (m) => `Counts under ${m} are hidden.`, note: (n, m) => `${n} hidden under ${m}.` },
+    ruleMinimum: () => undefined,
+    link: (_b, where) => (where ? `/canvas/?asked&where=${JSON.stringify(where)}` : "/canvas/?asked"),
+    provenance: { snapshot: "Snapshot." },
+    views: noViews
+      ? undefined
+      : {
+          field: "cond",
+          conditions: [{ value: "x", label: "Newish", phrase: "newish things" }, { value: "y", label: "Oldish", phrase: "oldish things" }],
+          cuts: { field_a: cutOf("field_a"), field_b: cutOf("field_b") },
+          floors: floors ?? {},
+        },
+    ...rest,
+  };
+}
+const find = (view: ReturnType<typeof latestMonthView>, id: string) => view?.blocks.find((b) => b.id === id);
+const panel = (view: ReturnType<typeof latestMonthView>, id: string, label: string) => find(view, id)?.views?.find((p) => p.label === label);
+
+test("the fixture's conditions add up to the slices it is checked against", () => {
+  for (const field of ["field_a", "field_b"]) assert.ok(cutOf(field).agreesWith(sliceOf(field)), field);
+});
+
+test("the month's figure is said by its conditions, and by one where the other has none", () => {
+  const view = latestMonthView(kit());
+  assert.equal(find(view, "total-all")?.parts, "Of these, 490 newish things and 510 oldish things.");
+  assert.equal(find(view, "total-all")?.figure, "1,000");
+  const one = latestMonthView(kit({ cond: condSlice(1000, 0, 490, 310) }));
+  assert.equal(find(one, "total-all")?.parts, "All of these were newish things.");
+});
+
+test("a block with views is drawn once for each condition and once for all, in the order of the switch", () => {
+  const view = latestMonthView(kit());
+  assert.deepEqual(view?.switch?.labels, ["Newish", "Oldish", "All"]);
+  assert.deepEqual(find(view, "ranking-field_b")?.views?.map((p) => p.label), ["Newish", "Oldish", "All"]);
+  assert.equal(find(view, "total-all")?.views, undefined, "the month's figure is outside the switch");
+});
+
+test("a rank on one condition is among that condition's vehicles only: first by all is not first by newish, and a value with none is absent", () => {
+  const view = latestMonthView(kit());
+  // By all, field_b's p1 (500) is first. Among newish things p2 (290) is first, and p1 (100) is second.
+  assert.equal(find(view, "ranking-field_b")?.rows[0].name, "p1");
+  const newish = panel(view, "ranking-field_b", "Newish");
+  assert.deepEqual(newish?.rows.map((r) => r.name), ["p2", "p1", "p3"]);
+  assert.match(newish?.sentences[0] ?? "", /^Among newish things, p2 is first by field B: 290 vehicles in Oct 2026, down 15% on the 340 in Oct 2025\.$/);
+  // gamma has no newish vehicles this month: absent from that panel, and present among oldish things.
+  assert.deepEqual(panel(view, "ranking-field_a", "Newish")?.rows.map((r) => r.name), ["beta", "alpha"]);
+  assert.deepEqual(panel(view, "ranking-field_a", "Oldish")?.rows.map((r) => r.name), ["alpha", "gamma", "beta"]);
+});
+
+test("the all panel has each condition's count beside the total, and they add up to it", () => {
+  const view = latestMonthView(kit());
+  const all = panel(view, "ranking-field_a", "All");
+  assert.deepEqual(all?.columns.map((c) => c.key), ["name", "part0", "part1", "count", "year"]);
+  assert.deepEqual(all?.columns.map((c) => c.name).slice(0, 4), ["Field A", "Newish", "Oldish", "All"]);
+  for (const r of all?.rows ?? []) assert.equal(count(Number(r.parts?.[0].replace(/,/g, "")) + Number(r.parts?.[1].replace(/,/g, ""))), r.count);
+  // The all panel is the block's own figures: nothing about the total changes.
+  assert.deepEqual(all?.rows.map((r) => r.count), find(view, "ranking-field_a")?.rows.map((r) => r.count));
+  assert.equal(all?.canvas, "/canvas/?asked", "the address of the question for all of them has no condition");
+});
+
+test("each condition's panel has its own link that keeps the question to that condition", () => {
+  const view = latestMonthView(kit());
+  assert.equal(panel(view, "ranking-field_b", "Newish")?.canvas, `/canvas/?asked&where=${JSON.stringify({ cond: ["x"] })}`);
+  assert.equal(panel(view, "ranking-field_b", "Oldish")?.canvas, `/canvas/?asked&where=${JSON.stringify({ cond: ["y"] })}`);
+  assert.match(panel(view, "ranking-field_b", "Newish")?.canvasLabel ?? "", /newish things.*open in the canvas$/);
+});
+
+test("a field the build caps ranks a value on a part of its count only above the fewest any named value has", () => {
+  const view = latestMonthView(kit({ floors: { field_b: 99 } }));
+  // p3 has 98 newish vehicles: below the floor, a value the cap hid might have more, so it is not placed. p1 has 100 and is.
+  assert.deepEqual(panel(view, "ranking-field_b", "Newish")?.rows.map((r) => r.name), ["p2", "p1"]);
+  // The all panel ranks by the slice's own count, as before.
+  assert.deepEqual(panel(view, "ranking-field_b", "All")?.rows.map((r) => r.name), ["p1", "p2", "p3"]);
+});
+
+test("the movers' minimum and floors apply to the condition's own counts, and a panel with none says so", () => {
+  const view = latestMonthView(kit());
+  const oldish = panel(view, "movers-field_b", "Oldish");
+  assert.deepEqual(oldish?.rows.map((r) => [r.name, r.count, r.prior, r.change?.text]), [["p1", "400", "200", "+100%"]]);
+  const newish = panel(view, "movers-field_b", "Newish");
+  assert.deepEqual(newish?.rows.map((r) => [r.name, r.change?.text]), [["p2", "−15%"]]);
+  const none = latestMonthView(kit({ blocks: [block("total", undefined), block("movers", "field_b", { each: 2, minimum: 1000, least: 0.05, views: true })] }));
+  assert.equal(find(none, "movers-field_b"), undefined, "no move for all of them: no block");
+  const some = latestMonthView(kit({ blocks: [block("total", undefined), block("movers", "field_b", { each: 2, minimum: 300, least: 0.05, views: true })] }));
+  // For all of them p1 had 300 a year ago and 500 now, so the block is drawn; among newish things no value has 300, and among oldish things p1 had 200 a year ago.
+  assert.equal(panel(some, "movers-field_b", "Newish")?.empty, "No field B has 300 or more newish things in both months to compare.");
+  assert.equal(panel(some, "movers-field_b", "Oldish")?.empty, "No field B has 300 or more oldish things in both months to compare.");
+  assert.equal(panel(some, "movers-field_b", "Newish")?.rows.length, 0);
+  assert.equal(panel(some, "movers-field_b", "All")?.rows[0].name, "p1");
+});
+
+test("a split is of the condition's own total, with its own shares", () => {
+  const view = latestMonthView(kit({ blocks: [block("total", undefined), block("split", "field_a", { views: true })] }));
+  const newish = panel(view, "split-field_a", "Newish");
+  // 290 of 490 newish things are beta's; 200 are alpha's.
+  assert.deepEqual(newish?.rows.map((r) => [r.name, r.count, r.share]), [["beta", "290", "59.2%"], ["alpha", "200", "40.8%"]]);
+  assert.match(newish?.sentences[0] ?? "", /^Among newish things, by field A, beta is the largest group: 59\.2% of the newish things counted in Oct 2026/);
+  assert.deepEqual(panel(view, "split-field_a", "All")?.columns.map((c) => c.key), ["name", "part0", "part1", "count", "share", "points"]);
+});
+
+test("a cut that is missing for any block leaves the section as it was: no switch, no views, no parts of the total's sentence lost", () => {
+  const base = latestMonthView(kit({ noViews: true }));
+  assert.equal(base?.switch, undefined);
+  assert.ok(base?.blocks.every((b) => b.views === undefined));
+  const lacking = kit();
+  const missing = latestMonthView({ ...lacking, views: { ...lacking.views!, cuts: { field_a: cutOf("field_a") } } });
+  assert.equal(missing?.switch, undefined);
+  assert.ok(missing?.blocks.every((b) => b.views === undefined));
+  // The block's own figures are the same with or without views.
+  const withViews = latestMonthView(kit());
+  for (const b of base?.blocks ?? []) assert.deepEqual(find(withViews, b.id)?.rows.map(({ parts, ...r }) => r), b.rows.map(({ parts, ...r }) => r), b.id);
+  // A link the canvas cannot answer for a condition takes the views away, not the block.
+  const noLink = latestMonthView(kit({ link: (_b, where) => (where ? undefined : "/canvas/?asked") }));
+  assert.equal(noLink?.switch, undefined);
+  assert.ok(find(noLink, "ranking-field_b"));
+});
+
+test("with one condition, or too many for the switch, there are no views", () => {
+  const k = kit();
+  const one = latestMonthView({ ...k, views: { ...k.views!, conditions: [k.views!.conditions[0]] } });
+  assert.equal(one?.switch, undefined);
+  const many = Array.from({ length: 5 }, (_, i) => ({ value: `c${i}`, label: `C${i}`, phrase: `c${i}` }));
+  assert.equal(latestMonthView({ ...k, views: { ...k.views!, conditions: many } })?.switch, undefined);
+});
