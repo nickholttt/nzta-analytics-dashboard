@@ -30,6 +30,7 @@ VOCABULARY_COLUMNS = {
     "class_map.csv": ["nzta_class", "label"],
     "transmission_map.csv": ["nzta_transmission", "group", "label"],
     "vehicle_usage_map.csv": ["nzta_vehicle_usage", "label"],
+    "buyer_type_map.csv": ["nzta_owner_type", "nzta_vehicle_usage", "buyer_type"],
 }
 
 

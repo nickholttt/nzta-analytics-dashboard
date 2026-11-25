@@ -1111,6 +1111,37 @@ type were today's owner, a car sold on to a household would show an individual. 
 company too, so this is not proof. The company share of all still-registered passenger cars is 30.9%
 for 2021 and 39.0% for 2026.
 
+**Buyer type: `data/reference/buyer_type_map.csv`.** The file decodes the dashboard's two owner columns into four buyer
+types, one row for every `Owner Type` (3) times every `Vehicle usage` value (20) the history export holds: 60 rows.
+
+| Buyer type | Rule | Vehicles in the history export (January 2021 to October 2026, every vehicle type; counted this session) |
+|---|---|---|
+| Private | `Owner Type` Individual, whatever the usage | 1,045,469 |
+| Company | `Owner Type` Company, with any usage but rental | 701,954 |
+| Rental | `Owner Type` Company with the rental usage | 108,164 |
+| Other | `Owner Type` Other, whatever the usage | 28,199 |
+
+- **Usage splits companies and nothing else.** The rental usage value sits under Company for 108,164 of its 108,439
+  vehicles (99.7%). The other 275 (230 Individual, 45 Other) follow their owner type, so a buyer type says who registered
+  the vehicle, not what it was used for. Three rows of the file carry the rental usage, one for each owner type; only the
+  Company row says Rental.
+- **Other is neither a person nor a company.** NZTA's `Owner Type` has no value for government, and neither the usage
+  list nor the register's industry class has one, so a government body is counted inside Other and the value is named for
+  what NZTA's data says. A dealer registering a demonstrator is a company: the export cannot tell a dealer from any other
+  company.
+- **Pairs the export has not sent.** 57 of the 60 pairs occur in the export. Three do not (Other with the overseas
+  visitor licence, Other with hearse, Individual with commercial ambulance); they keep their rows so a later month that
+  sends one still maps. A pair with no row at all, because NZTA sends an owner type or a usage value it has not sent
+  before, is meant to read `__UNMAPPED__` and stop the build (invariant 5).
+- **No empty value occurs.** None of the export's 991,274 rows has an empty `Owner Type` or an empty `Vehicle usage`.
+  `UNDEFINED` is a value NZTA writes in `Vehicle usage` (382 vehicles); it is mapped like any other and follows its owner
+  type. An empty value is not a pair of the file: it is meant to read `__UNDEFINED__`, as an empty field does for every
+  derived field (`data/reference/sentinels.csv`).
+- **The moment.** The owner type is most likely the owner at first registration, not proven (above). The usage is the
+  usage at registration, not the register's current use (As first registered, or today, below).
+- Nothing reads the file yet. Which fields may be published is decided by the privacy class each holds in the tables
+  above, which this file does not change.
+
 ## Stats NZ's series
 
 The source of `registrations_cars_long_run` (`docs/METRICS.md`; `docs/DATA_SOURCES.md` §C). It is

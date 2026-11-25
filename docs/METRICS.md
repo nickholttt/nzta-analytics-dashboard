@@ -1327,6 +1327,26 @@ dashboard's export does not, so the dashboard's datasets get no market type unti
 It is defined and tested against the published figures (D-154, D-155) but not built: no dimension, no build and no figure on the
 site reads the file yet.
 
+## Buyer type
+
+A vehicle's buyer type says who registered it, in the four values of `data/reference/buyer_type_map.csv`: **Private**
+(NZTA's owner type Individual), **Company** (owner type Company, whatever the usage but rental), **Rental** (owner type
+Company with the usage at registration rental) and **Other** (owner type Other: neither a person nor a company). The value is
+read from the two columns of NZTA's registrations dashboard, `Owner Type` and `Vehicle usage`, one row of the file for each
+pair; the fields, the counts, what the value does and does not say, and the pairs not yet sent are in `docs/DATA_MAP.md`
+(*The dashboard's fields*, Buyer type).
+
+- A count by buyer type counts vehicles first registered in the month, as the dataset it is read from does. Each buyer type's
+  counts add up to the dataset's total for the month, so a table by buyer type and a table without it give the same total.
+- A company includes a dealer registering a demonstrator or stock: the data does not separate them. Rental is companies with
+  the rental usage and nobody else; usage splits no other owner type.
+- Other holds every owner that is neither a person nor a company, a government body included. It is not named Government,
+  because NZTA's data does not say so.
+- The owner type is most likely the owner at first registration, not proven (`docs/DATA_MAP.md`); a change of owner after
+  registration is not seen.
+
+It is defined and tested but not built: no dimension, no build and no figure on the site reads the file yet.
+
 ## Values in edge cases
 
 - **A goods vehicle with a gross mass of zero reads "Not recorded" on the
