@@ -43,10 +43,11 @@ explained, not a way to quiet a warning.
   ours cannot come that close: a row without one is refused when the files are read.
 - `measure_as_published` is the source's wording, so the page can say what was compared. The rows of one source, one month and
   one measure are told apart by their filters (a "top ten models" figure is one row per model, each with its `MAKE|MODEL`).
-- Choose the dataset by what the source counts: first registrations are `registrations_flow` (the default scope) or
-  `registrations_flow_wider` (the trade's scope); vehicles still registered are `registrations_surviving`, and a figure that is
-  not a registration is set against it only with a `known_difference` saying so. The dataset carries the scope; there is no
-  scope column. Filter values are written as the published files hold them (the labels), so look them up in the files, not
+- Choose the dataset by what the source counts: first registrations are `new_registrations`, which counts five vehicle types,
+  and a source that counts fewer is set against it with a `vehicle_type` filter (a source of passenger cars and vans only filters
+  to that one type, D-158); vehicles still registered are `registrations_surviving`, and a figure that is
+  not a registration is set against it only with a `known_difference` saying so. The dataset and the filters carry the scope; there is
+  no scope column. Filter values are written as the published files hold them (the labels), so look them up in the files, not
   in NZTA's raw codes.
 - **A source's page shows a different figure for a month already in the file** (it has restated it). Read the page again, put
   the new figure in `figure`, the old one in `restated_from`, and the day you read it in `date_read`; change nothing else on the

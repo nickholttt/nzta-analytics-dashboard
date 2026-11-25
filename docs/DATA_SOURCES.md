@@ -389,10 +389,12 @@ and our true registrations are its export, so it would not be independent.
 | `figure_kind` | an id (lower case letters, digits and underscores, starting with a letter) saying what sort of figure it is; required, and one of `reconciliation.figure_kinds` in `config/pipeline.json` (any other is refused, so a misspelt kind stops the build). `reconciliation.single_figure_limit.kinds` in `config/pipeline.json` lists the kinds that stop a build on one figure (below). A row of a listed kind whose `tolerance_pct` is `reconciliation.single_figure_limit.gap_pct` or more must have a `known_difference` that says why ours cannot come that close |
 | `restated_from` | blank, or a whole number above zero that is not the same as `figure`: the figure this source published before for the same month and measure, when its page now shows a different one. The row then holds the new figure in `figure` and the old one here (D-153). It is filled in by hand when the row is corrected, never worked out |
 
-**Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
-datasets of first registrations (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it
-counts first registrations or vehicles still registered (`registrations_surviving`: survivors are not registrations, and since
-D-157 they count the wider scope's five types). A row is set against that dataset's counts, narrowed by its filters, and nothing else.
+**Scope is carried by the dataset and its filters, so there is no scope column.** First registrations are one dataset,
+`new_registrations`, of five vehicle types (D-158; it replaced `registrations_flow`, which counted two, and
+`registrations_flow_wider`, which counted five), so a source that counts fewer types is set against it with a `vehicle_type`
+filter. The dataset also says whether it counts first registrations or vehicles still registered (`registrations_surviving`:
+survivors are not registrations, and since D-157 they count the same five types). A row is set against that dataset's counts, narrowed by
+its filters, and nothing else.
 
 **Filters** are one JSON object in the cell, each key a dimension id and each value a list of the values wanted:
 `{"import_status": ["<value>"], "vehicle_type": ["<value>", "<value>"]}`. The dimensions are all required at once; the values
@@ -439,15 +441,15 @@ What it holds (for January 2025 to October 2026): 389 rows, 336 read on 2026-11-
 
 | Source | Measure | `figure_kind` | Months | Set beside | Tolerance |
 |---|---|---|---|---|---|
-| `statsnz` | New Cars and Station Wagons Total (series TPTM.S22IZ) | `passenger` | 22 | true registrations, passenger cars and vans, new and used | 1% |
+| `statsnz` | New Cars and Station Wagons Total (series TPTM.S22IZ) | `passenger` | 22 | new registrations, passenger cars and vans, new and used | 1% |
 | `statsnz` | New Cars/Stat'n Wags Prev Reg'd Ovrseas (series TPTM.S22JZ) | `passenger` | 22 | the same, used imports only | 1% |
-| `mta_vstat` | new passenger cars | `passenger` | 22 | true registrations, new passenger cars and vans | 1% |
+| `mta_vstat` | new passenger cars | `passenger` | 22 | new registrations, new passenger cars and vans | 1% |
 | `mta_vstat` | used import passenger cars | `passenger` | 22 | the same, used imports | 1% |
-| `mta_vstat` | new light commercial vehicles | `commercial` | 22 | true registrations, new goods vans, trucks and utes | 12%, with a known difference (exempt from the one-figure rule) |
-| `mta_vstat` | each of the ten largest new models of the month | `model` | 22, ten rows each | true registrations on the wider scope, new, that model | 3% |
-| `mia` | total new vehicle registrations | `total` | 21 | true registrations on the wider scope, new | 1% |
-| `mia` | light passenger registrations, including SUVs | `passenger` | 19 | true registrations, new passenger cars and vans | 1% |
-| `mia` | light commercial plus heavy commercial registrations | `commercial` | 19 | true registrations on the wider scope, new, commercial | 2% |
+| `mta_vstat` | new light commercial vehicles | `commercial` | 22 | new registrations, new goods vans, trucks and utes | 12%, with a known difference (exempt from the one-figure rule) |
+| `mta_vstat` | each of the ten largest new models of the month | `model` | 22, ten rows each | new registrations, new, that model | 3% |
+| `mia` | total new vehicle registrations | `total` | 21 | new registrations, new | 1% |
+| `mia` | light passenger registrations, including SUVs | `passenger` | 19 | new registrations, new passenger cars and vans | 1% |
+| `mia` | light commercial plus heavy commercial registrations | `commercial` | 19 | new registrations, new, commercial | 2% |
 
 The config lists `passenger`, `commercial` and `total` for the one-figure rule, so it applies to 147 of the 389 rows (a count
 made with the real functions on the committed rows: 59 of the MIA's, 44 of vstat's, 44 of Stats NZ's); the 220 `model` rows
