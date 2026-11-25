@@ -3,13 +3,14 @@
 // the bytes on the way to its first chart (first_chart_bytes). Measured from the built files, not timed, so it gives the same
 // answer on every machine (scripts/performance-budget.mjs says what counts).
 //   node scripts/check-performance-budget.mjs [dist] [--report] [--propose] [--repo <folder holding config/>]
-//   --report   print every page's bytes beside its limits, then check
-//   --propose  print a budget (today's bytes plus 5%, rounded up to 100 bytes) as the JSON for the config's "pages", and exit 0
+//   --report   print every page's bytes beside its limits, then check; the pages one pattern holds ("/brand/*") are one line, the largest of each kind
+//   --propose  print a budget (today's bytes plus 5%, rounded up to 100 bytes) as the JSON for the config's "pages", and exit 0; the pages a pattern the
+//              config already has covers are one line, the largest of each kind plus 5%
 // Exit 1, naming the page and the kind, when a page is over; also when a page has no budget or a budget has no page.
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FIRST_CHART, KINDS, budgetProblems, measurePages, propose } from "./performance-budget.mjs";
+import { FIRST_CHART, KINDS, budgetFor, budgetProblems, isPattern, measurePages, propose } from "./performance-budget.mjs";
 
 const args = process.argv.slice(2);
 const repoFlag = args.indexOf("--repo");
@@ -22,14 +23,24 @@ if (!existsSync(join(root, "_astro"))) {
 const measured = measurePages(root);
 const n = (x) => x.toLocaleString("en-NZ");
 
+const budget = JSON.parse(readFileSync(join(repoRoot, "config/performance_budget.json"), "utf8"));
 if (args.includes("--propose")) {
-  console.log(JSON.stringify(propose(measured), null, 2));
+  console.log(JSON.stringify(propose(measured, 0.05, Object.keys(budget.pages).filter(isPattern)), null, 2));
   process.exit(0);
 }
-const budget = JSON.parse(readFileSync(join(repoRoot, "config/performance_budget.json"), "utf8"));
 if (args.includes("--report")) {
+  const line = (name, m, limits) => `${name.padEnd(14)} ${[...KINDS, "total", ...(m[FIRST_CHART] === undefined ? [] : [FIRST_CHART])].map((k) => `${k} ${n(m[k])}/${n(limits?.[k] ?? 0)}`).join("  ")}`;
+  const shown = new Set();
   for (const [page, m] of Object.entries(measured)) {
-    console.log(`${page.padEnd(14)} ${[...KINDS, "total", ...(m[FIRST_CHART] === undefined ? [] : [FIRST_CHART])].map((k) => `${k} ${n(m[k])}/${n(budget.pages[page]?.[k] ?? 0)}`).join("  ")}`);
+    const key = budgetFor(budget, page);
+    if (key === undefined || !isPattern(key)) {
+      console.log(line(page, m, key === undefined ? undefined : budget.pages[key]));
+    } else if (!shown.has(key)) {
+      shown.add(key);
+      const held = Object.entries(measured).filter(([other]) => budgetFor(budget, other) === key).map(([, x]) => x);
+      const largest = Object.fromEntries([...KINDS, "total"].map((k) => [k, Math.max(...held.map((x) => x[k]))]));
+      console.log(line(`${key} (${held.length})`, largest, budget.pages[key]));
+    }
   }
 }
 const problems = budgetProblems(measured, budget);
