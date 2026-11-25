@@ -9,24 +9,25 @@ with the user's additions of 2026-11-25, `docs/brief/WORK_ORDER_3_ADDITIONS.md` 
 ## Live now
 
 - **The pipeline** runs on `main` in GitHub Actions, tried every day (D-064). The last build is the
-  forced run of 25 November, which rebuilt snapshot 2026-10 (release `cube-2026-10`) after #156; the
-  daily runs to 25 November were green and built nothing. The private archive
+  forced run of 25 November 19:31 UTC, which rebuilt snapshot 2026-10 (release `cube-2026-10`) after
+  #164; the daily runs to 25 November were green and built nothing. The private archive
   (`nickholttt/nzta-register-archive`) holds one release, `snapshot-2026-10`.
 - **Datasets**: `registrations_surviving` (five vehicle types since #156, D-157: 4,615,306 vehicles);
-  `registrations_flow` and `registrations_flow_wider` (from January 2021, D-097; they become one,
-  `new_registrations`, in #164, D-158, not merged); `registrations_cars_long_run` (from 1961);
-  `fleet` (D-135, D-141).
+  `new_registrations` (true first registrations from January 2021, five vehicle types, new and used,
+  #164, D-158; it took the place of `registrations_flow` and `registrations_flow_wider`, and a link
+  to either still opens); `registrations_cars_long_run` (from 1961); `fleet` (D-135, D-141).
 - **The accuracy guard** (D-149 to D-153): every build sets 389 published figures beside ours. Past its
   tolerance a figure warns; two independent sources well past theirs in a month, or one passenger,
   commercial or total figure 5% or more from ours, stop the build. A restated figure warns (D-153).
-  The rebuilt October: 388 pass, 1 warns.
+  The rebuilt October: 388 pass, 1 warns, the same before and after #164.
 - **Market type is defined and tested, not built** (D-154, D-155): `market_type_map.csv`, fifteen
   ordered rules. Nothing reads it. The SUV file classifies 98.7% of the last 12 months' new passenger
   vehicles (#152, #154; five judgements at low confidence).
 - **The site's code is on `main`; nothing is deployed** (`CLOUDFLARE_PAGES_PROJECT` is unset). Pages:
   Explore, Canvas, Method, Caveats, About (a draft), Feedback, Differences, a not-found page, and
-  generated pages for 63 brands, 260 models and 6 powertrains, with a brand index. None of the
-  generated pages ships a script. A sitemap is written once `about.site_address` is set.
+  generated pages for 64 brands, 265 models and 6 powertrains (counted on five vehicle types since
+  #164), with a brand index. None of the generated pages ships a script. A sitemap is written once
+  `about.site_address` is set. The public build fails when the cube lacks a dataset those pages read.
 - **The home page opens with the latest month** (#153), with new and used imports apart (#161) and over
   four periods (#162): the month, 3 months, 12 months and the year to date, chosen with radio inputs
   and CSS, every view in the HTML. Each row has a change on the same months a year earlier, or "New
@@ -39,16 +40,13 @@ with the user's additions of 2026-11-25, `docs/brief/WORK_ORDER_3_ADDITIONS.md` 
 
 ## Current step
 
-Merged of the additions: items 2, 3, 4, 8 (two batches), 9, 10, 13; 6 is drafted; 11 found nothing. Item 1 is
-#164: built, reviewed, waiting on the user. Next on lane B: buyer type, Market type, figures as first observed.
+Merged of the additions: items 1, 2, 3, 4, 8 (two batches), 9, 10, 13; 6 is drafted; 11 found nothing.
+Next on lane B: buyer type, Market type, figures as first observed.
 
 ## In progress (all claude; nothing by gemini)
 
-- Lane B: #164, `claude/b-one-new-registrations` in the worktree `nzta-lane-b` (D-158). It holds `main`
-  to 26dea07; the whole pipeline suite passed there (3,473 passed, 28 skipped); three independent reviews
-  and their fixes are in. Its public-site checks fail by design on the kept cube (CHECKPOINT, B1).
-- #164 is the only open pull request. The worktrees `nzta-lane-a`, `-c` and `-e` are detached on `main`.
-  `nzta-lane-b` and `nzta-lane-e` have no `node_modules`, `.venv` or raw data.
+- Nothing is being built; no pull request is open but the one carrying these notes. The lane worktrees are
+  detached on `main` (`-a`, `-c`, `-e` behind it); `-b` and `-e` have no `node_modules`, `.venv` or raw data.
 - Worktrees with work that is not on `main`: `nzta-screens` (narrative drafts, **uncommitted**, D-102);
   `nzta-segments` (an untracked draft scheme file, D-103); `nzta-notes` (the closed board proposal).
 - Private, on the computer: the study of vstat, and NZTA's 118 "Existing fleet" workbooks read, with a plan.
@@ -57,7 +55,8 @@ Merged of the additions: items 2, 3, 4, 8 (two batches), 9, 10, 13; 6 is drafted
 
 - `data/raw/2026-08/`, `data/raw/2026-10/20261113T045017Z` (5,926,990 rows, 36 fields), the dashboard
   exports and Stats NZ's series. No local file holds `VIN11` or `POSTCODE`. The main folder's `public/data`
-  is the dry-run build of 2026-11-24, older than the rebuilt cube.
+  is the dry-run build of 2026-11-24, which holds the two retired datasets and not `new_registrations`:
+  refresh it (the `refresh-public-data` skill) before running the site here.
 
 ## Known issues
 
@@ -83,14 +82,16 @@ Merged of the additions: items 2, 3, 4, 8 (two batches), 9, 10, 13; 6 is drafted
 
 ## Blocked or waiting on the user
 
-Lane B's next items wait for #164 (they build on its dataset). Waiting on the user (CHECKPOINT): the word
-to merge #164 with its public-site job failing and to force October's rebuild; the email to NZTA; the licence line on NZTA's Existing fleet page;
-the name, address, About gaps and Cloudflare clicks; `DASHBOARD_EXPORT_METHOD.md` when NZTA publishes.
+Nothing stops the work. Waiting on the user (CHECKPOINT): D-158's two open questions; the email to NZTA;
+the licence line on NZTA's Existing fleet page; the name, address, About gaps and Cloudflare clicks; `DASHBOARD_EXPORT_METHOD.md` when NZTA publishes.
 
 ## How to run
 
-`AGENTS.md` §Commands has the verified commands. The site's tests: 848 passed on 2026-11-26.
+`AGENTS.md` §Commands has the verified commands. The site's tests: 870 passed on 2026-11-26, against a
+staged build with the site built (38 skip with no build in `public/data`).
 
+- A change that renames or retires a dataset the pages read cannot pass the public-site checks before
+  it merges: a cube is published only from a Monthly build on `main` (D-158, "The kept cube").
 - NZTA's sites block automated readers: they are read only from files the user supplies.
 - The timed first-chart check by hand: `node scripts/check-first-load.mjs` (AGENTS.md has its arguments).
 - Before a high-risk pull request, run every test file that builds a cube (the whole `pipeline/tests/`

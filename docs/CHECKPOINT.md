@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-26 (the long session of 25 and 26 November: #152, #154, #156 to #162 merged; October's cube rebuilt; the one-dataset change built, reviewed and open as #164)
+Last updated by claude on 2026-11-26 (the long session of 25 and 26 November: #152, #154, #156 to #162 merged; the one-dataset change merged as #164 on the user's word and October's cube rebuilt under it)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -9,7 +9,7 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
 | A: finish the canvas | none | free | #161 and #162 merged (the study's site items a to d); what is left is under "A" below |
-| B: the accuracy guard and the datasets | `claude/b-one-new-registrations` (worktree `nzta-lane-b`), #164 | the computer, until #164 merges | item 1 built and reviewed (D-158); waiting on the user's word to merge. The next item starts from `main` after that merge |
+| B: the accuracy guard and the datasets | `claude/b-buyer-type` (worktree `nzta-lane-b`) | the computer, from 2026-11-26 | item 1 merged (#164, D-158) and October's cube rebuilt under it; buyer type (queue B2) is being built. One pipeline pull request at a time |
 | C: public readiness | none | free | what is left is the user's four items |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
 | E: classification, the latest month, findability | none | free | items 8 (two batches, 98.7%), 9, 10 and 13 merged; 11 found nothing; 12 is in B's queue |
@@ -17,11 +17,10 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 ## The queue (item numbers are the additions'; plans were written and accepted on 2026-11-25 and are kept outside the repository, on the computer)
 
 **B, in this order, each a high-risk pull request with one independent review.**
-1. Item 1, one "New registrations" dataset (`new_registrations`, five vehicle types; both old ids retire; a
-   link to the narrower one comes back narrowed to its two types): **#164, open, reviewed** (D-158). All
-   389 published figures unchanged. Its public-site checks fail by design: the newest cube holds the old
-   ids, and a cube is published only from `main`. The order, on the user's word: merge with that one job
-   failing, force the monthly build at once, then run the public-site checks again on `main`.
+1. Done: item 1, one "New registrations" dataset (#164, D-158). Merged on the user's word with its
+   public-site job failing (the kept cube held the old ids; a cube is published only from `main`), then
+   the forced build: success, 388 of 389 published figures pass and 1 warns, as before. A later change
+   that renames a dataset the pages read meets the same order of steps (STATE, "How to run").
 2. Buyer type on the one dataset (the user, 2026-11-25: "do it but tell me where its used"; "we should be
    using it to its full extent instead of censoring it"): `supply` keeps owner type and usage; a buyer-type
    map as reference data (private, rental, company, other); no monthly cell is under 10. Shown on the
@@ -64,7 +63,7 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 2. **Small counts**: lifting the under-10 rule (region table, current-use pair) changes Method's promise; district
    counts are a new kind of data. Each needs the user's word by name. Default: both stay as they are.
 3. **December's retake** would ask for 13 fields against a limit of 12. Recommended: "CC grouping - vehicle" waits.
-4. **#164**: the word to merge it with its public-site job failing and to force October's rebuild straight after.
+4. **D-158's open questions**: `contract_version` 2 for a cube that lost two dataset ids (default: stays 1); retiring `in_scope` from `vehicle_scope.csv` (default: kept).
 5. Taken as yes: the monthly dashboard export covers the trailing 24 months (item 5). Not sent: the email to NZTA
    (item 6). Parked: the Existing fleet page's licence line (B7). Open: the site's name, address and About gaps.
 
@@ -76,4 +75,4 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 ## Prompt for the next session
 
 /start. Continue `docs/brief/WORK_ORDER.md` (work order 3) and `docs/brief/WORK_ORDER_3_ADDITIONS.md`
-from CHECKPOINT. Take a free lane. Merge rules as before. Do not stop for questions; park what needs me.
+from CHECKPOINT: lane B's buyer type first. Merge rules as before. Do not stop for questions; park what needs me.
