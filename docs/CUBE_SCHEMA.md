@@ -49,13 +49,11 @@ associations file beside it (*Associations*, below). The same build also emits t
 `cube/fleet/vehicle_usage.parquet`, `cube/fleet/vehicle_type.parquet`, `pairs/fleet/vehicle_usage__vehicle_type.parquet`
 and its block in `manifest.json`, and no fact table, so no associations file.
 
-When the supplied store for `registrations_flow` is present (*Supplied sources*), the build also emits
-`cube/registrations_flow/`, `facts/registrations_flow/` and its block in `manifest.json`; it configures
-no pairs. With the same store it emits `cube/registrations_flow_wider/`, `facts/registrations_flow_wider/` and
-its block: the same dataset on a wider scope of vehicle types (D-113, *The wider scope*, below). The same store
-also gives `cube/new_registrations/`, `facts/new_registrations/` and its block (D-158): one dataset of the five vehicle types, new and used,
-which replaces both of those two and holds the wider one's rows and files unchanged; they are built beside it only until the commit that
-retires them. When the store
+When the supplied store for `new_registrations` is present (*Supplied sources*), the build also emits
+`cube/new_registrations/`, `facts/new_registrations/` and its block in `manifest.json`; it configures
+no pairs. It is one dataset of the five vehicle types of the vehicle scope file's `trade_scope` column, new and used (D-158, *New
+registrations*, below), and replaces `registrations_flow` and `registrations_flow_wider`, which counted the default scope's two types and the
+five: both ids are retired and no file is written under them (*Retired datasets*, below). When the store
 for `registrations_cars_long_run` is present, the build emits
 `cube/registrations_cars_long_run/` (one slice for each of its two dimensions) and its block in
 `manifest.json`, and no pair slices and no fact table (*A source of kind `series`*).
@@ -259,7 +257,7 @@ when first registered here, and `powertrain__segment_group`, which applies a
 filter such as light passenger vehicles to the powertrain mix, and
 `import_status__vehicle_type`, which reads the vehicles still registered under one of NZTA's
 vehicle types as new or used (completeness by vehicle type and import status divides it by the
-same split of `registrations_flow_wider`, which the fact table gives; `registrations_flow` before D-157). A pair is live in a run when both of its
+same split of `new_registrations`, which the fact table gives; `registrations_flow_wider` before D-158, `registrations_flow` before D-157). A pair is live in a run when both of its
 dimensions are live, and `manifest.json` lists the live ones per dataset as
 `live_pairs`, which the site reads rather than assuming a pair exists. A
 pair whose dimension is not live waits, as the dimension does, and is listed
@@ -404,9 +402,9 @@ the browser: `n` over the sum of `n` for the same month and filter.
 
 `vehicle_type` (NZTA's own vehicle type, under the labels in
 `vehicle_scope.csv`) is a column of the register-shaped datasets' tables (`trade_group`, the passenger or commercial
-group, is a column of `registrations_flow_wider`'s alone).
-`registrations_flow` has no `segment`, so the column is the only way to ask
-true registrations by vehicle type together with a brand or a powertrain. On
+group, is a column of `new_registrations`' alone).
+`new_registrations` has no `segment`, so the column is the only way to ask
+new registrations by vehicle type together with a brand or a powertrain. On
 `registrations_surviving` it adds no rows: on the 2026-10 pull the table is
 641,618 rows with and without it, and 1,726,119 bytes grow to 1,768,391
 (+2.4%, the column's own file being 42,272). On `registrations_flow` the
@@ -477,7 +475,7 @@ in one group), so it is published on a dataset that withholds the split. It is n
 (`not_live`: "the source does not carry MOTIVE_POWER"). A motive power the file does not hold reads `__UNMAPPED__` here as
 it does for the powertrain, and the dimension is in `abort_on_unmapped` beside it. Measured on a dry run of 2026-11-17 on
 the 2026-10 pull against the build of the branch before it: the table's rows are unchanged (755,586 on
-`registrations_surviving`, 131,260 on `registrations_flow`, 136,452 on `registrations_flow_wider`); the files added are
+`registrations_surviving`, 131,260 on `registrations_flow` and 136,452 on `registrations_flow_wider`, the datasets `new_registrations` replaced in D-158); the files added are
 18,829 bytes (slice) and 6,115 (column) on the first, 2,920 and 1,851 on the second, 2,920 and 1,864 on the third; the
 payload is 4,877,607 bytes before and 4,912,106 after (+34,499), 61.4% of the 8,000,000 byte budget. Every other file is
 byte-identical; the manifest gains the dimension's entries.
@@ -624,8 +622,8 @@ follow-up). Under the config as it now stands the marked pairs are 16, 10 and 11
 | dataset | dimensions | pairs | marked | bytes | gzipped |
 |---|---|---|---|---|---|
 | `registrations_surviving` | 19 | 171 | 13 | 58,988 | 4,700 |
-| `registrations_flow` | 11 | 55 | 7 | 19,579 | 1,791 |
-| `registrations_flow_wider` | 12 | 66 | 8 | 23,318 | 1,965 |
+| `registrations_flow` (retired, D-158) | 11 | 55 | 7 | 19,579 | 1,791 |
+| `registrations_flow_wider` (now `new_registrations`) | 12 | 66 | 8 | 23,318 | 1,965 |
 
 The three files are 101,885 bytes, 1.9% of the payload of 5,312,692 bytes (66.4% of the 8,000,000 byte budget). The step took
 26.0 s for the three datasets (21.5, 1.7 and 2.8 s), timed inside the build; an earlier run of the same measure took 26.2 s and
@@ -783,16 +781,16 @@ On the 389 rows of 2026-11-24 (the 53 figures from the `mia`'s public releases a
   },
   "rows": [
     { "source": "source_a", "month": "2026-09", "measure_as_published": "Measure as the source words it",
-      "dataset": "registrations_flow", "filters": { "import_status": ["a value"] },
+      "dataset": "new_registrations", "filters": { "import_status": ["a value"] },
       "ours": 1040, "theirs": 1020, "gap": 20, "gap_pct": 1.9608, "tolerance_pct": 2.0, "hard_bound_pct": 4.0,
       "known_difference": null, "added_up_from": null, "figure_kind": "passenger", "stops_alone_pct": 5,
       "restated_from": null, "restated_pct": null, "restated_past_warning": false, "status": "pass", "reason_kind": null, "reason": null,
       "source_url": "https://a.example/page", "date_read": "2026-11-20" },
     { "source": "source_a", "month": "2026-11", "measure_as_published": "Measure as the source words it",
-      "dataset": "registrations_flow", "filters": {}, "ours": null, "theirs": 1100, "gap": null, "gap_pct": null,
+      "dataset": "new_registrations", "filters": {}, "ours": null, "theirs": 1100, "gap": null, "gap_pct": null,
       "tolerance_pct": 2.0, "hard_bound_pct": 4.0, "known_difference": null, "added_up_from": "chart", "figure_kind": "model",
       "stops_alone_pct": null, "restated_from": 1080, "restated_pct": 1.8519, "restated_past_warning": false,
-      "status": "not_compared", "reason_kind": "month_not_held", "reason": "Our registrations_flow data holds 2021-01 to 2026-10 in this build, so 2026-11 is outside it and is not compared.",
+      "status": "not_compared", "reason_kind": "month_not_held", "reason": "Our new_registrations data holds 2021-01 to 2026-10 in this build, so 2026-11 is outside it and is not compared.",
       "source_url": "https://a.example/page", "date_read": "2026-11-20" }
   ]
 }
@@ -1141,13 +1139,13 @@ prints a warning.
 
 **The build.** A dataset in `config/pipeline.json` whose `datasets` entry has `"source": "<id>"` is built
 from the store, after the register's datasets, through the same `normalise`, `derive`, `metrics` and
-`outputs` code (`registrations_flow` is the first). The store is checked against its ledger (months, rows
+`outputs` code (`new_registrations` is the dashboard's; it was `registrations_flow` before D-158). The store is checked against its ledger (months, rows
 and vehicles per month equal, no gap between its first and last month), then `raw` is made in the
 register's shape: one row per vehicle (each store row repeated `vehicles` times), the register's column
 names, NULL for a field the source does not carry, and the registration year and month from `month`.
 Sentinels, scope, brand aliases, the model registry, the hybrid classification, the model cap and the
-unmapped guards then apply exactly as to the register. `registrations_flow` takes `require`
-`in_scope` and `fleet_entry`, as `registrations_surviving` did until D-157: the dashboard's RE-REG and SCRATCH
+unmapped guards then apply exactly as to the register. `new_registrations` takes `require`
+`in_trade_scope` and `fleet_entry`, as `registrations_surviving` does since D-157: the dashboard's RE-REG and SCRATCH
 rows are in the store and are not fleet entries.
 
 **The dataset's own latest month.** A supplied dataset's snapshot month is the last month in its store,
@@ -1162,24 +1160,34 @@ dimension ids. For the dashboard these are the dimensions that need the gross ve
 size and the district. Fuel consumption is all missing: `fc_n` is 0 and `fc_sum` is null in every row.
 `vehicle_status` is kept in the store only; it is not a dimension.
 
-**The wider scope** (`registrations_flow_wider`, D-113). A second dataset reads the same store through the same
-code and differs from `registrations_flow` in one thing: which vehicle types it counts. `scope.vehicle.also` in
+**New registrations** (`new_registrations`, D-158; the dataset was two before it: `registrations_flow` of the default scope's two vehicle
+types from D-084, and from D-113 `registrations_flow_wider` of five). `scope.vehicle.also` in
 `config/pipeline.json` names each wider scope as a flag of `rows` (here `in_trade_scope`) and the column of
 `vehicle_scope.csv` it reads (`trade_scope`); a dataset's `require` names exactly one scope flag, which decides the
 rows of its table `dims`, its hybrid coverage and its guards (a `require` naming none or two aborts the build).
-`registrations_flow_wider` takes `require` `in_trade_scope` and `fleet_entry`. Its facts are `registrations_flow`'s
+`new_registrations` takes `require` `in_trade_scope` and `fleet_entry`. Its facts are the dashboard's dimensions
 and `trade_group`, the dimension that sorts each counted type into the groups `vehicle_scope.csv`'s `trade_group`
-column gives (a lookup, as `vehicle_type` is; it applies to this dataset only, so no file of another dataset
-changes). No pairs, as for `registrations_flow`. Adding it changes no byte of any other dataset's files and no
-figure of its manifest entry (tested). The store keeps the model for the types the wider scope counts
+column gives (a lookup, as `vehicle_type` is; it applies to this dataset only). No pairs. The types the dataset counts are the rows of
+`registrations_flow_wider`, unchanged: its cube and fact files are byte for byte what that dataset's were (tested on the fixture
+history with added types, and measured on the 2026-10 pull in D-158), and a question for the default scope's two types is this dataset
+narrowed to them through its fact table, which holds `vehicle_type`. The store keeps the model for the types the dataset counts
 (`supplied.nzta_dashboard.outside_scope.also_kept_column`), and the build refuses a store whose ledger trimmed the
 model of a (type, status) pair any dataset reading it counts, not only the dataset the trim names.
 
-Measured on the 2026-10 pull (2026-11-17): `registrations_flow_wider` is 1,506,467 vehicles over 70 months (23,064
-more than `registrations_flow`: buses 10,997, motor caravans 11,541 and special purpose vehicles 526). Its slices are
+**Retired datasets.** `registrations_flow` and `registrations_flow_wider` are not built and not defined. Their ids are kept in
+`retired_datasets` in `config/dimensions.json` (not a file of the cube), each with the dataset it joined (`to`), its old public name and,
+for the narrower one, the vehicle types it counted (`where`). The site reads a link, a saved canvas or a Build link that names one as
+that dataset with those types kept, so it draws the figures it drew, and says so. A manifest or a cube kept from before D-158 holds
+the old ids and not the new one: a link to the new dataset pinned to such a month, or a retired id settled to it and pinned there, is
+withheld by the rule for a snapshot that did not build a dataset. The first real build that has `new_registrations` finds nothing about it
+in `data/state/last_good.json` and accepts it (as for any new dataset), and the old ids' entries there are not compared, since a guard
+reads only the datasets of the current build. `contract_version` stays 1: this document gives no rule for when it changes, and the manifest's
+shape does not change (a dataset id is data); a reviewer may want a bump.
+
+Measured on the 2026-10 pull (2026-11-17, as `registrations_flow_wider`): 1,506,467 vehicles over 70 months (23,064
+more than the two types of the default scope: buses 10,997, motor caravans 11,541 and special purpose vehicles 526). Its slices are
 140,695 bytes and its fact table 136,452 rows and 386,878 bytes, 527,573 bytes in all; without the fact table the
-dataset would add 140,695 bytes. The whole cube's payload goes from 3,753,258 to 4,281,132 bytes (+14.1%) against the
-8,000,000 byte budget. Build can only ask a dataset that has a fact table, so it carries one.
+dataset would add 140,695 bytes. Build can only ask a dataset that has a fact table, so it carries one.
 
 ### A source of kind `series`
 
@@ -1372,7 +1380,7 @@ Supplied sources:
   replacement of that month that the last good build explains (see the state's `supplied_files`, above). The totals are kept in
   the state as `supplied_totals.<dataset>`, so an edit to a scope file cannot trip this check.
 - The store did not keep the model of a (vehicle type, import status) pair that another dataset reading it counts
-  (`registrations_flow_wider` counts types `registrations_flow` does not), checked as the trim of the dataset the ledger
+  (`new_registrations` counts types a narrower dataset reading the same store would not), checked as the trim of the dataset the ledger
   names is. A `require` that names no scope flag or more than one aborts the build.
 - A supplied dataset was built in the last good run and its store is now absent.
 - A dimension of the `series` derive kind names no datasets in `applies_to`, or names one that does not read a source of

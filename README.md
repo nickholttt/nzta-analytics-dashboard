@@ -54,8 +54,9 @@ them until the next month is built):
 - **How many vehicles were registered in any month since January 2021**, and
   whether that is up or down on a year ago, by brand and by model.
 - **Which brands and models lead** in any single month.
-- **The same count on a wider scope**, with buses, motor caravans and special
-  purpose vehicles counted too, and passenger against commercial.
+- **The same count by kind of vehicle**: passenger cars and vans, goods vans,
+  trucks and utes, buses, motor caravans and special purpose vehicles are
+  counted, and passenger against commercial.
 - **How complete the picture is**: for each month, how many of the vehicles
   registered are still on the register, by kind of vehicle and new or used.
 - **How many cars were registered each month back to 1961**, new and
@@ -74,7 +75,7 @@ no commentary.
 | Dataset | What it counts | Source | Covers |
 |---|---|---|---|
 | Vehicles still registered | Vehicles first registered in a month that are still on the register | NZTA's open Motor Vehicle Register, pulled by the pipeline | All history; older months thin out as vehicles are scrapped |
-| True registrations | Vehicles first registered in a month, including those since removed | NZTA's registrations dashboard, exported by hand | January 2021 on |
+| New registrations | Vehicles first registered in a month, new and used, including those since removed | NZTA's registrations dashboard, exported by hand | January 2021 on |
 | Cars registered since 1961 | Cars and station wagons first registered each month, new and ex-overseas | Stats NZ's monthly series, from its Infoshare tool | January 1961 on (the new and ex-overseas split from July 1975) |
 
 The first two count cars, vans, utes and trucks only, new or used when they
@@ -188,7 +189,7 @@ a reference value.
 ## Not there yet
 
 - The website is not online. Its About page is a marked draft.
-- True registrations and the long-run car series are not in the data GitHub
+- New registrations and the long-run car series are not in the data GitHub
   has released so far; its next monthly build holds them.
 - SUVs cannot be told apart from cars: the register records most as station
   wagons. A model-level classification is planned.

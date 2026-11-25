@@ -21,7 +21,7 @@ from pathlib import Path
 import duckdb
 import pytest
 
-from pipeline import build, config, metrics, supplied
+from pipeline import build, config, metrics, normalise, supplied
 from pipeline.errors import GuardrailError
 
 from .conftest import FIXTURES, NOW, frozen_published_reference, load_rows, make_cfg, source_for, write_pages
@@ -623,9 +623,12 @@ def test_a_pair_the_store_blanked_that_the_dataset_counts_now_is_refused_by_the_
     cfg = make_cfg(workspace)
     supply_counted(cfg, HISTORY)
     kept_type = not_counted_type(cfg)
+    # The column of the vehicle scope file the dataset the ledger names reads: marking the type there is what makes the dataset count it.
+    dataset = cfg.supplied(COUNTED)["outside_scope"]["dataset"]
+    counting = normalise.scope_columns(cfg)[normalise.scope_flag(cfg, dataset, cfg.pipeline["datasets"][dataset]["require"])]
 
     def now_counted(rows, vehicle):
-        next(r for r in rows if r[vehicle["key"]] == kept_type)[vehicle["in_scope"]] = REAL.pipeline["boolean_true"]
+        next(r for r in rows if r[vehicle["key"]] == kept_type)[counting] = REAL.pipeline["boolean_true"]
     widened = with_scope_file(tmp_path, workspace, "widened", now_counted)
     expect_abort(lambda: run(tmp_path, widened), "did not keep the model")
     expect_abort(lambda: supply_counted(widened, HISTORY), kept_type)

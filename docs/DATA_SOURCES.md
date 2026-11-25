@@ -239,7 +239,7 @@ first registrations and buyer type from the same dashboard.
   cells under 10 vehicles hidden, and not before the pipeline hides them.
 - **How it reaches the cube.** A maintainer adds each file to the store
   with one command, below; the build reads the store and writes the
-  dataset `registrations_flow` (`docs/CUBE_SCHEMA.md`, *Supplied
+  dataset `new_registrations` (`docs/CUBE_SCHEMA.md`, *Supplied
   sources*). The store is committed to this repository (the user,
   2026-11-16, D-097), so GitHub's runs build the dataset from the same
   files a local build reads. The raw exports, which carry the owner
@@ -260,7 +260,7 @@ first registrations and buyer type from the same dashboard.
   where the vehicle type is in the default scope or marked `trade_scope` in
   `vehicle_scope.csv` (the types of the wider scope, with which our counts of new vehicles
   come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared,
-  `docs/METRICS.md`, D-105 and D-106) and the import status is one `registrations_flow` counts. For every
+  `docs/METRICS.md`, D-105 and D-106) and the import status is one `new_registrations` counts. For every
   other row the model is stored as not recorded, and the rows that become
   identical are summed; every other field stays, so every vehicle type's counts
   remain askable. The rule is `supplied.nzta_dashboard.outside_scope` in
@@ -351,7 +351,7 @@ reference files that a maintainer edits; no source, measure or vehicle type is n
 | `id` | a short key of lower case letters, digits and underscores, which the `source` column of `published_figures.csv` uses |
 | `name` | the organisation's name as the site shows it |
 | `home_url` | the organisation's own address, `https://` |
-| `independent` | `true` if the source counts the vehicles separately from the data our datasets are built from; `false` for a copy of the same export (the dashboard export feeds `registrations_flow`, so its totals should match to the vehicle and prove nothing about whether ours are right). A source that is not independent is compared and shown, and does not count towards the hard limit |
+| `independent` | `true` if the source counts the vehicles separately from the data our datasets are built from; `false` for a copy of the same export (the dashboard export feeds `new_registrations`, so its totals should match to the vehicle and prove nothing about whether ours are right). A source that is not independent is compared and shown, and does not count towards the hard limit |
 | `definition` | what the source says it counts, in its own words, copied from the page it was read on; blank until read |
 | `definition_date_read` | the day that page was read, `YYYY-MM-DD`; blank exactly when `definition` is |
 | `data_basis` | a few words saying what data the source's figures are made from, shown beside its name on the site; free text; blank when nothing has been stated |

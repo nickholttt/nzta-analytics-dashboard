@@ -47,13 +47,13 @@ check passes.
    committed: it stays in `data/raw/`.
 
 **Build with `--dry-run` afterwards.** A local `python -m pipeline build <pull>` without `--dry-run` writes
-`registrations_flow` into `data/state/last_good.json` and the register's archive into `data/snapshots/`. Never
+`new_registrations` into `data/state/last_good.json` and the register's archive into `data/snapshots/`. Never
 commit those (only the Action does; hard rule 3): the guardrails of the next GitHub build compare with the
 Action's own last build, not with a local one. After supplying a month, build with `--dry-run`.
 
 **What the store keeps.** The dashboard's model field is free text for some vehicle types (trailers and
 caravans). `supply` keeps a model where the vehicle type is in the default scope or `trade_scope` in
-`vehicle_scope.csv` and the import status is one `registrations_flow` counts; for every other row it stores the
+`vehicle_scope.csv` and the import status is one `new_registrations` counts; for every other row it stores the
 model as not recorded and sums the rows that become identical. Every other field of the row, and so every
 vehicle type's counts, stays. Which rows those are comes from `supplied.nzta_dashboard.outside_scope` and the
 scope files the build reads, and the ledger records the scope the store was written under. The store is wrong

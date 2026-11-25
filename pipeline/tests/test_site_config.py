@@ -418,3 +418,46 @@ def test_the_lint_catches_a_short_name_a_plural_and_a_different_case():
 def test_a_template_names_no_dimension_value_and_no_reference_label(kind, where, text):
     found = _names_in(text)
     assert not found, f"{where}: names {found}, values or labels that live in config and the reference files; fill them in as placeholders"
+
+
+# ---- Retired datasets (D-158) ----
+#
+# A dataset joined into another is no longer built or defined; its id lives on only in `retired_datasets` of config/dimensions.json, which the
+# site reads so that an older link, a saved canvas or a Build link opens as the dataset it joined (src/lib/builder.ts, readRetired).
+
+
+def test_a_retired_dataset_leads_to_a_built_dataset_and_keeps_to_values_the_data_holds():
+    dimensions = _json("config/dimensions.json")
+    retired = {k: v for k, v in dimensions["retired_datasets"].items() if not k.startswith("$")}
+    assert retired, "no dataset is retired: this test would pass without checking anything"
+    defined = {d["id"] for d in dimensions["datasets"]}
+    built = set(_json("config/pipeline.json")["datasets"])
+    by_id = {d["id"]: d for d in dimensions["dimensions"]}
+    narrowed = [r for r in retired.values() if r.get("where")]
+    assert narrowed, "no retired dataset is narrowed: this test would pass without checking anything"
+    for old, r in retired.items():
+        assert old not in defined and old not in built, f"{old} is retired and still defined or built"
+        assert r["to"] in defined and r["to"] in built, f"{old} leads to {r['to']}, which is not a dataset the pipeline builds"
+        assert r["label"].strip(), f"{old}: a retired dataset keeps the name it had, for the sentence that tells a visitor"
+        for dimension, values in r.get("where", {}).items():
+            assert dimension in by_id, f"{old}: {dimension} is not a dimension"
+            assert values and len(values) == len(set(values)), f"{old}: {dimension} names no values or names one twice"
+            derive = by_id[dimension].get("derive", {})
+            if derive.get("kind") == "lookup":
+                with (Path("data/reference") / derive["reference"]).open(encoding="utf-8", newline="") as fh:
+                    held = {row[derive["value"]] for row in csv.DictReader(fh)}
+                assert set(values) <= held, f"{old}: {sorted(set(values) - held)} is not a value of {dimension} in {derive['reference']}"
+
+
+def test_a_retired_narrowing_is_the_scope_the_old_dataset_counted():
+    """The narrower retired dataset counted the types the vehicle scope file marks in the default scope, and the block says the same."""
+    cfg = config.load()
+    vehicle = cfg.pipeline["scope"]["vehicle"]
+    dimension = next(d for d in cfg.dimensions["dimensions"] if d["id"] == "vehicle_type")
+    derive = dimension["derive"]
+    with cfg.reference(derive["reference"]).open(encoding="utf-8", newline="") as fh:
+        counted = {row[derive["value"]] for row in csv.DictReader(fh) if row[vehicle["in_scope"]] == cfg.pipeline["boolean_true"]}
+    narrowed = [r["where"]["vehicle_type"] for r in cfg.dimensions["retired_datasets"].values() if isinstance(r, dict) and "vehicle_type" in r.get("where", {})]
+    assert narrowed, "no retired dataset is narrowed by vehicle type: this test would pass without checking anything"
+    for values in narrowed:
+        assert set(values) == counted

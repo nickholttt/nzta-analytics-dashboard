@@ -26,7 +26,7 @@ from .test_flow import HISTORY, supply
 from .test_guardrails import expect_abort, run
 
 DATASET = "registrations_surviving"
-FLOW = "registrations_flow"
+FLOW = "new_registrations"
 
 
 # --- the formula --------------------------------------------------------------------------------------------------

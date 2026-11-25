@@ -552,7 +552,7 @@ export function readRetired(asked: Partial<Question>, retired: Readonly<Record<s
   const allowed = from.where ?? {};
   for (const [d, list] of Object.entries(allowed)) {
     const both = (where[d] ?? []).filter((v) => list.includes(v));
-    where[d] = both.length > 0 ? both : [...list];
+    where[d] = (both.length > 0 ? both : [...list]).sort(byText);
   }
   const within = (field: string | null | undefined, values: string[] | undefined) => (field && Object.hasOwn(allowed, field) ? (values ?? []).filter((v) => allowed[field].includes(v)) : values);
   return { ...asked, dataset: from.to, where, values: within(asked.by, asked.values), values2: within(asked.by2, asked.values2), retiredFrom: asked.dataset };

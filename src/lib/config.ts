@@ -284,7 +284,9 @@ export const periods = dimensionsDoc.periods as unknown as Period[];
 // Build link still carries it, and the page reads it as `to`, narrowed by `where` to the vehicles the old dataset counted. `label` is the name
 // the old dataset had, for the sentence that tells the visitor what happened.
 export type RetiredDataset = { to: string; label: string; where?: Record<string, string[]> };
-export const retiredDatasets = ((dimensionsDoc as unknown as { retired_datasets?: Record<string, RetiredDataset> }).retired_datasets ?? {}) as Readonly<Record<string, RetiredDataset>>;
+export const retiredDatasets: Readonly<Record<string, RetiredDataset>> = Object.fromEntries(
+  Object.entries((dimensionsDoc as unknown as { retired_datasets?: Record<string, RetiredDataset> }).retired_datasets ?? {}).filter(([id]) => !id.startsWith("$")),
+);
 
 // The browser is given only the keys of the pipeline config that are read here (scripts/browser-config.mjs): a key read from `pipeline` below must be listed there.
 const pipeline = pipelineDoc as unknown as {

@@ -221,7 +221,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   `trade_scope` column marks the types of a wider scope: the two in scope and
   buses, motor caravans and special purpose vehicles; `registrations_surviving` counts that scope since D-157. With them added, our counts of new vehicles
   come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared
-  (`docs/METRICS.md`; D-105, D-106). It decides which types `registrations_flow_wider` counts (D-113), and it is the set of types
+  (`docs/METRICS.md`; D-105, D-106). It decides which types `new_registrations` counts (D-113, D-158), and it is the set of types
   whose model names the committed store of the dashboard keeps (DATA_SOURCES §D). Its `trade_group` column sorts each of those types
   into two groups: passenger cars and vans are `Passenger`; every other type in `trade_scope`
   (goods vehicles, buses, motor caravans, special purpose vehicles) is `Commercial`; a type outside it has no
@@ -231,10 +231,10 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   3,617,900 and 902,576 as measured then), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
 - **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` (labelled "Registered as",
   for visitors too, so it cannot be read as the site's "Vehicle type"; Build offers it as a
-  condition as soon as a cube carries it) on `registrations_surviving`, `registrations_flow` and `registrations_flow_wider`, which all carry it, with its pairs and
+  condition as soon as a cube carries it) on `registrations_surviving` and `new_registrations`, which both carry it, with its pairs and
   fact-table columns listed in `docs/CUBE_SCHEMA.md`. It holds the types the dataset's scope counts
-  (`vehicle_scope.csv`), so five values on `registrations_surviving` and `registrations_flow_wider` and two on
-  `registrations_flow`, under that file's labels. It is not live on
+  (`vehicle_scope.csv`), so five values on `registrations_surviving` and `new_registrations`, under that file's labels (the retired
+  `registrations_flow` had two). It is not live on
   `registrations_cars_long_run`, whose source is a published series with no register field.
 - **Coverage.** Every vehicle.
 - **Not recorded.** No form seen.
@@ -1036,7 +1036,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 ## The dashboard's fields
 
-The source of `registrations_flow` (`docs/METRICS.md`; `docs/DATA_SOURCES.md` §D). Measured on
+The source of `new_registrations` (`docs/METRICS.md`; `docs/DATA_SOURCES.md` §D). Measured on
 2026-11-14 from the user's export of January 2021 to October 2026 (D) against the register as at
 31 October 2026, vehicles first registered in the same 70 months (D-087). The file has no empty
 cell: what is not recorded is written as text. `Vehicles` is the count column, not a field.
@@ -1075,7 +1075,7 @@ only and published in no form (D-076, D-084).
 - **Make.** Three values the whole register lacks, the largest `LANDROVER` beside `LAND ROVER`
   (424 vehicles, 165 of them in 2021). 30 makes of the register's same 70 months are absent, most
   with one to four vehicles. Over 99.8% of in-scope vehicles map through `brand_registry.csv`. On the types
-  only `registrations_flow_wider` counts (buses, motor caravans, special purpose vehicles), 97.8% of new
+  only the five-type dataset counts (buses, motor caravans, special purpose vehicles; `registrations_flow_wider`, now `new_registrations`), 97.8% of new
   vehicles of all time map once seven bus, crane and motorhome makes were added (93.6% before; D-113,
   `docs/METRICS.md`).
 - **Model.** (The committed store keeps it only where a dataset or the wider scope counts the vehicle:
@@ -1196,7 +1196,7 @@ is derived from, read from its `derive` block:
 | `imported_from` | `PREVIOUS_COUNTRY` | none |
 | `segment`, `segment_group` | `VEHICLE_TYPE`, `BODY_TYPE`, `GROSS_VEHICLE_MASS` | `segment_map.csv` |
 | `vehicle_type` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `label` column) |
-| `trade_group` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `trade_group` column; `registrations_flow_wider` only) |
+| `trade_group` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `trade_group` column; `new_registrations` only) |
 | `import_status` | `IMPORT_STATUS` | `import_status_map.csv` |
 | `region` | `TLA` | `tla_region.csv` |
 | `vehicle_year_band` | `VEHICLE_YEAR`, against the snapshot year | none |

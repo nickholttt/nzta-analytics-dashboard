@@ -1,4 +1,4 @@
-"""registrations_flow: a dataset built from a supplied store through the register's own normalise, derive and output code.
+"""new_registrations (D-158): a dataset built from a supplied store through the register's own normalise, derive and output code.
 
 The store is made from the invented fixture CSV by `supply` itself (fixtures/dashboard_history.csv), so these tests also
 cover the hand-off between the two. Column names come from config and the reference files, not from this file.
@@ -13,13 +13,13 @@ import json
 import duckdb
 import pytest
 
-from pipeline import build, derive, reference, supplied
+from pipeline import build, derive, normalise, reference, supplied
 from pipeline.errors import GuardrailError
 
 from .conftest import FIXTURES, NOW, load_rows, make_cfg, source_for, write_pages
 
 SOURCE = "nzta_dashboard"
-DATASET = "registrations_flow"
+DATASET = "new_registrations"
 SURVIVING = "registrations_surviving"
 HISTORY, MONTH = FIXTURES / "dashboard_history.csv", FIXTURES / "dashboard_month.csv"
 
@@ -40,12 +40,18 @@ def expect_abort(fn, fragment):
     assert fragment in str(info.value), str(info.value)
 
 
+def scope_column(cfg) -> str:
+    """The column of the vehicle scope file that says which types the dataset counts: the one its `require` names."""
+    columns = normalise.scope_columns(cfg)
+    return columns[normalise.scope_flag(cfg, DATASET, cfg.pipeline["datasets"][DATASET]["require"])]
+
+
 def fleet_entry_vehicles(cfg) -> int:
     """Vehicles in the fixture file that are in scope and enter the fleet, decided from the reference files and config."""
     p, s = cfg.pipeline, cfg.supplied(SOURCE)
     vehicle, status = p["scope"]["vehicle"], p["scope"]["status"]
     true = p["boolean_true"]
-    types = {r[vehicle["key"]] for r in reference.read(cfg.reference(vehicle["file"])) if r[vehicle["in_scope"]] == true}
+    types = {r[vehicle["key"]] for r in reference.read(cfg.reference(vehicle["file"])) if r[scope_column(cfg)] == true}
     statuses = {r[status["key"]] for r in reference.read(cfg.reference(status["file"]))
                 if r[status["in_scope"]] == true and r[status["fleet_entry"]] == true}
     with HISTORY.open(encoding="utf-8", newline="") as fh:
@@ -99,7 +105,7 @@ def test_the_vehicle_type_is_live_in_the_fact_table_and_counts_each_type_under_i
     p, s, spec = cfg.pipeline, cfg.supplied(SOURCE), dim["derive"]
     status = p["scope"]["status"]
     types = {r[spec["key"]]: r[spec["value"]] for r in reference.read(cfg.reference(spec["reference"]))
-             if r[p["scope"]["vehicle"]["in_scope"]] == p["boolean_true"]}
+             if r[scope_column(cfg)] == p["boolean_true"]}
     statuses = {r[status["key"]] for r in reference.read(cfg.reference(status["file"]))
                 if r[status["in_scope"]] == p["boolean_true"] and r[status["fleet_entry"]] == p["boolean_true"]}
     expected = {}

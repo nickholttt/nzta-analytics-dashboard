@@ -1,6 +1,6 @@
-// Datasets that count some of the same vehicles are never drawn together (config/dimensions.json, never_charted_with; D-118): the wider
-// scope of true registrations counts every vehicle the default scope counts and more, so a chart reading both would count vehicles twice,
-// and a ratio of the register's survivors to it would set one scope against another.
+// Datasets that count some of the same vehicles are never drawn together (config/dimensions.json, never_charted_with; D-118, D-158): the
+// vehicles still registered and the registrations of the same five vehicle types are two counts of the same vehicles, so a chart reading both
+// would set one against the other. The one exception is the ratio that divides them on purpose.
 //   node --test "tests/site/*.test.ts"
 import "./support/register.mjs";
 import { test } from "node:test";
@@ -35,17 +35,6 @@ test("a marked pair is a clash whichever way round it is asked, and a pair nobod
   const list = [{ id: "a", label: "a", never_charted_with: ["b"] }, { id: "b", label: "b" }, { id: "c", label: "c" }];
   assert.equal(config.datasetClashes(["a", "b", "c"], list).length, 1);
   assert.equal(config.datasetClashes(["b", "c"], list).length, 0);
-});
-
-test("the wider scope of true registrations is marked against the default scope and not against the vehicles still registered, which count the same types since D-157; the default scope is marked against the vehicles still registered", () => {
-  assert.equal(config.datasetClashes(["registrations_flow_wider", "registrations_flow"]).length, 1);
-  assert.equal(config.datasetClashes(["registrations_flow", "registrations_flow_wider"]).length, 1);
-  // Completeness is the survivors over the wider scope: one scope set against itself, so it is not a clash.
-  assert.equal(config.datasetClashes(["registrations_flow_wider", "registrations_surviving"]).length, 0);
-  // The default scope counts two vehicle types and the survivors five (D-157), so a chart of both would set one scope against another.
-  // Completeness, the one ratio of survivors to registrations, reads the wider scope, which counts the same five.
-  assert.equal(config.datasetClashes(["registrations_flow", "registrations_surviving"]).length, 1);
-  assert.equal(config.datasetClashes(["registrations_surviving", "registrations_flow"]).length, 1);
 });
 
 test("the one dataset of first registrations is marked against the vehicles still registered, whichever way round it is asked (D-158)", () => {

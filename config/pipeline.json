@@ -143,7 +143,7 @@
   },
   "datasets": {
     "registrations_surviving": {
-      "$scope_comment": "Counts the five vehicle types the vehicle scope file marks in its trade_scope column (in_trade_scope), the types of the wider scope, since D-157: the published split into light and heavy commercial holds buses, motor caravans and special purpose vehicles, which the default scope (in_scope) leaves out. in_scope is unchanged and is still read by registrations_flow, by the in-scope row count the guardrails compare with the last good build, and by the event checks, so a deliberate change of this dataset's scope moves none of those.",
+      "$scope_comment": "Counts the five vehicle types the vehicle scope file marks in its trade_scope column (in_trade_scope), the types of the wider scope, since D-157: the published split into light and heavy commercial holds buses, motor caravans and special purpose vehicles, which the default scope (in_scope) leaves out. in_scope is unchanged and is still read by the in-scope row count the guardrails compare with the last good build and by the event checks, so a deliberate change of this dataset's scope moves neither.",
       "require": ["in_trade_scope", "fleet_entry"],
       "$pairs_comment": "The two-dimensional slices this dataset emits, each [dim_a, dim_b], written to pairs/{dataset}/{dim_a}__{dim_b}.parquet. Only pairs a chart or filter needs (docs/CUBE_SCHEMA.md, Pair slices).",
       "pairs": [["import_status", "age_at_registration_band"], ["powertrain", "segment_group"], ["import_status", "vehicle_type"]],
@@ -159,18 +159,6 @@
       "dimensions": ["vehicle_usage", "vehicle_type"],
       "not_by": ["registration_year", "registration_month"],
       "pairs": [["vehicle_usage", "vehicle_type"]]
-    },
-    "registrations_flow": {
-      "$comment": "Read from the supplied source nzta_dashboard (the `supplied` block), through the same normalise, derive and output code as the register. The same import-status rule (fleet_entry) as registrations_surviving, but on the default scope's two vehicle types (in_scope): the survivors count the five of the wider scope since D-157, so the two do not count the same kinds of vehicle, and the dataset that does is registrations_flow_wider. The dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
-      "source": "nzta_dashboard",
-      "require": ["in_scope", "fleet_entry"],
-      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "import_status", "age_at_registration_band", "model"]
-    },
-    "registrations_flow_wider": {
-      "$comment": "registrations_flow on a wider scope (D-106, D-113): the same source, import-status rule and code, counting the vehicle types the vehicle scope file marks in its trade_scope column (the default scope's two and buses, motor caravans and special purpose vehicles) in place of those it marks in_scope. Where the two datasets disagree is only in which vehicle types they count. No pairs, as for registrations_flow. Its facts are registrations_flow's and the passenger-or-commercial group (trade_group).",
-      "source": "nzta_dashboard",
-      "require": ["in_trade_scope", "fleet_entry"],
-      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "trade_group", "import_status", "age_at_registration_band", "model"]
     },
     "new_registrations": {
       "$comment": "New registrations (D-158): every vehicle first registered in a month, new and used, of the five vehicle types the vehicle scope file marks in its trade_scope column (in_trade_scope), read from the supplied source nzta_dashboard through the same normalise, derive and output code as the register and with the same import-status rule (fleet_entry) as registrations_surviving, which counts the same five types since D-157. It replaces registrations_flow (two types) and registrations_flow_wider (five types, the same facts): vehicle type, and so the narrower scope, is a condition of a question, not a dataset. Both are retired in dimensions.json, so an older link still opens. The dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
@@ -210,7 +198,7 @@
       "extra_fields": { "vehicle_status": "Vehicle Status" },
       "private_columns": ["Owner Type", "Territorial authority", "Vehicle usage"],
       "$outside_scope_comment": "For a row whose vehicle type and import status the named dataset does not count (its `require` flags, read from the scope files the build reads, with the vehicle types marked true in the vehicle scope file's `also_kept_column` judged as if they were in scope), `supply` stores the listed fields as not recorded and sums the rows that become identical. The model of a trailer or a caravan is free text typed at registration, and the dataset never reads it. Everything else about those rows is kept, so their counts stay askable. The scope is written into the ledger; a store written under another scope is refused until the history is supplied again.",
-      "outside_scope": { "dataset": "registrations_flow", "fields": ["model"], "also_kept_column": "trade_scope" },
+      "outside_scope": { "dataset": "new_registrations", "fields": ["model"], "also_kept_column": "trade_scope" },
       "year_field": "registration_year",
       "month_field": "registration_month",
       "row_id_field": "object_id",
