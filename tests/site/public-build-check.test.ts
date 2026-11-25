@@ -4,7 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { closeSync, ftruncateSync, mkdirSync, mkdtempSync, openSync, rmSync, writeFileSync } from "node:fs";
+import { closeSync, ftruncateSync, mkdirSync, mkdtempSync, openSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -93,4 +93,53 @@ test("a chunk named in Vite's dependency map that the output lacks fails by name
   assert.match(missing.out, /names Grid\.Gone4567\.js, which is not in the output/);
   const held = check((n) => `${importing(n)}\n${map("Grid.Here4567.js")}`, { "react.Zz9Yy8Xx.js": "export const a = 1;", "Grid.Here4567.js": "export const g = 1;" });
   assert.equal(held.status, 0, held.out);
+});
+
+// A public build whose data folder holds a manifest with the datasets given. The page configs name the datasets the pages are built from; a
+// build made from a cube that lacks one still exits 0 and makes none of those pages, so the check must say so (D-158).
+function checkData(datasets: Record<string, object> | undefined) {
+  const dir = mkdtempSync(join(tmpdir(), "public-build-"));
+  try {
+    mkdirSync(join(dir, "_astro"));
+    writeFileSync(join(dir, "index.html"), "<html></html>");
+    if (datasets) {
+      mkdirSync(join(dir, "data"));
+      writeFileSync(join(dir, "data", "manifest.json"), JSON.stringify({ datasets }));
+    }
+    const run = spawnSync(process.execPath, [script, dir], { encoding: "utf8" });
+    return { status: run.status, out: run.stdout + run.stderr };
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+const pageDatasets = [...new Set(["config/latest_month.json", "config/answer_pages.json"].map((f) => JSON.parse(readFileSync(new URL(`../../${f}`, import.meta.url), "utf8")).dataset as string))];
+
+test("a build whose data holds every dataset the page configs name passes, and one that lacks any of them fails, naming the file and the dataset", () => {
+  assert.ok(pageDatasets.length > 0);
+  const all = Object.fromEntries(pageDatasets.map((id) => [id, { rows: 1 }]));
+  const ok = checkData(all);
+  assert.equal(ok.status, 0, ok.out);
+  for (const id of pageDatasets) {
+    const { [id]: _gone, ...rest } = all;
+    const missing = checkData({ other_dataset: {}, ...rest });
+    assert.equal(missing.status, 1, missing.out);
+    assert.match(missing.out, new RegExp(`config/(latest_month|answer_pages)\.json reads the dataset ${id}`));
+    const unbuilt = checkData({ ...all, [id]: { not_built: "no store" } });
+    assert.equal(unbuilt.status, 1, unbuilt.out);
+  }
+});
+
+test("an output with no data folder is not read for page datasets, and one with a data folder and no manifest fails", () => {
+  assert.equal(checkData(undefined).status, 0);
+  const dir = mkdtempSync(join(tmpdir(), "public-build-"));
+  try {
+    mkdirSync(join(dir, "_astro"));
+    mkdirSync(join(dir, "data"));
+    writeFileSync(join(dir, "index.html"), "<html></html>");
+    const run = spawnSync(process.execPath, [script, dir], { encoding: "utf8" });
+    assert.equal(run.status, 1, run.stdout + run.stderr);
+    assert.match(run.stderr, /no readable manifest.json/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
