@@ -75,7 +75,7 @@
       "unit": "percent",
       "kind": "ratio",
       "numerator_dataset": "registrations_surviving",
-      "denominator_dataset": "registrations_flow",
+      "denominator_dataset": "registrations_flow_wider",
       "total_label": "All vehicles",
       "definition": "For each month, the vehicles first registered that month and still on the register at the snapshot, as a share of the vehicles first registered that month according to NZTA's registrations dashboard.",
       "unit_note": "Share of the vehicles first registered each month that are still on the register. The axis starts at {base}.",

@@ -27,9 +27,13 @@ by `pipeline/tests/test_data_map.py`. That file holds no measured figure; the fi
 ## How to read this map
 
 - **Sources and bases.** Every figure names its basis:
-  - **S**: the site's in-scope dataset, `registrations_surviving` as built: passenger cars and vans,
-    and goods vans, utes and trucks, first registered new or used. 4,520,476 vehicles: NEW 2,732,333,
-    USED 1,788,143; car/van 3,617,900, goods 902,576.
+  - **S**: the site's in-scope dataset, `registrations_surviving` as built: since D-157 five vehicle types
+    (the `trade_scope` column of `vehicle_scope.csv`), first registered new or used: 4,615,306 vehicles in the
+    cube at 2026-10 (passenger cars and vans 3,617,895; goods vans, trucks and utes 902,409; buses 37,053;
+    motor caravans 54,693; special purpose vehicles 3,256). Before D-157 it held the first two only
+    (4,520,304 in the cube). Every other figure marked S in this map was measured before D-157, on the two types
+    (4,520,476 vehicles: NEW 2,732,333, USED 1,788,143; car/van 3,617,900, goods 902,576), and is not restated
+    unless a line says so.
   - **W**: the whole register, every vehicle type and import status: 5,926,990 vehicles.
   - **D**: NZTA's registrations dashboard, the user's export of January 2021 to October 2026: 991,274
     rows, 1,883,786 vehicles (D-084, D-087).
@@ -215,20 +219,22 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 - **Meaning.** NZTA's vehicle type. It decides what the site counts (`vehicle_scope.csv`, which also
   gives every type a readable label: the name a visitor reads, with no part in scope). The file's
   `trade_scope` column marks the types of a wider scope: the two in scope and
-  buses, motor caravans and special purpose vehicles. With them added, our counts of new vehicles
+  buses, motor caravans and special purpose vehicles; `registrations_surviving` counts that scope since D-157. With them added, our counts of new vehicles
   come within 0.06% of the published total for October 2026 and within 1.3% for the other periods compared
   (`docs/METRICS.md`; D-105, D-106). It decides which types `registrations_flow_wider` counts (D-113), and it is the set of types
   whose model names the committed store of the dashboard keeps (DATA_SOURCES §D). Its `trade_group` column sorts each of those types
   into two groups: passenger cars and vans are `Passenger`; every other type in `trade_scope`
   (goods vehicles, buses, motor caravans, special purpose vehicles) is `Commercial`; a type outside it has no
   group (D-113).
-- **Kind and values.** Category. 2 values on S (passenger car/van 3,617,900; goods van, truck or
-  utility 902,576), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
+- **Kind and values.** Category. 5 values on S since D-157 (passenger car/van 3,617,895; goods van, truck or
+  utility 902,409; bus 37,053; motor caravan 54,693; special purpose vehicle 3,256; before D-157, 2 values:
+  3,617,900 and 902,576 as measured then), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
 - **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` (labelled "Registered as",
   for visitors too, so it cannot be read as the site's "Vehicle type"; Build offers it as a
   condition as soon as a cube carries it) on `registrations_surviving`, `registrations_flow` and `registrations_flow_wider`, which all carry it, with its pairs and
-  fact-table columns listed in `docs/CUBE_SCHEMA.md`. It holds the types `vehicle_scope.csv` puts in
-  scope, so two values today, under that file's labels. It is not live on
+  fact-table columns listed in `docs/CUBE_SCHEMA.md`. It holds the types the dataset's scope counts
+  (`vehicle_scope.csv`), so five values on `registrations_surviving` and `registrations_flow_wider` and two on
+  `registrations_flow`, under that file's labels. It is not live on
   `registrations_cars_long_run`, whose source is a published series with no register field.
 - **Coverage.** Every vehicle.
 - **Not recorded.** No form seen.
@@ -1039,8 +1045,8 @@ cell: what is not recorded is written as text. `Vehicles` is the count column, n
 it is recorded for, traps, privacy and relations are its register field's (above). Its coverage is
 the whole file: every row carries a value, so coverage is the share not written as "not recorded",
 and it covers January 2021 to October 2026 only. It is few or many as in the dataset built from the
-file, whose scope is the survivors dataset's (D-087): for example vehicle type has 14 values in the
-file and 2 in the dataset. It is not bound: the dataset is not built yet.
+file, whose scope was the survivors dataset's when it was written (D-087), the default scope: for example vehicle type has 14 values in the
+file and 2 in the dataset (the survivors count five since D-157). It is not bound: the dataset is not built yet.
 
 **Two dashboard columns are not taken** in any export: `VIN - first 11` and `Physical post code`.
 They are the dashboard's forms of `VIN11` and `POSTCODE`, which are kept in the private archive

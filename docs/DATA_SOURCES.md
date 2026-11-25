@@ -390,9 +390,9 @@ and our true registrations are its export, so it would not be independent.
 | `restated_from` | blank, or a whole number above zero that is not the same as `figure`: the figure this source published before for the same month and measure, when its page now shows a different one. The row then holds the new figure in `figure` and the old one here (D-153). It is filled in by hand when the row is corrected, never worked out |
 
 **Scope is carried by the dataset, so there is no scope column.** The default scope and the trade's wider scope are two
-datasets (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it counts first
-registrations or vehicles still registered (`registrations_surviving`: survivors are not registrations). A row is set
-against that dataset's counts, narrowed by its filters, and nothing else.
+datasets of first registrations (`registrations_flow` and `registrations_flow_wider`), and the dataset also says whether it
+counts first registrations or vehicles still registered (`registrations_surviving`: survivors are not registrations, and since
+D-157 they count the wider scope's five types). A row is set against that dataset's counts, narrowed by its filters, and nothing else.
 
 **Filters** are one JSON object in the cell, each key a dimension id and each value a list of the values wanted:
 `{"import_status": ["<value>"], "vehicle_type": ["<value>", "<value>"]}`. The dimensions are all required at once; the values

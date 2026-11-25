@@ -37,11 +37,11 @@ test("a marked pair is a clash whichever way round it is asked, and a pair nobod
   assert.equal(config.datasetClashes(["b", "c"], list).length, 0);
 });
 
-test("the wider scope of true registrations is marked against the default scope and against the vehicles still registered", () => {
-  for (const other of ["registrations_flow", "registrations_surviving"]) {
-    assert.equal(config.datasetClashes(["registrations_flow_wider", other]).length, 1, other);
-    assert.equal(config.datasetClashes([other, "registrations_flow_wider"]).length, 1, other);
-  }
+test("the wider scope of true registrations is marked against the default scope, and not against the vehicles still registered, which count the same types since D-157", () => {
+  assert.equal(config.datasetClashes(["registrations_flow_wider", "registrations_flow"]).length, 1);
+  assert.equal(config.datasetClashes(["registrations_flow", "registrations_flow_wider"]).length, 1);
+  // Completeness is the survivors over the wider scope: one scope set against itself, so it is not a clash.
+  assert.equal(config.datasetClashes(["registrations_flow_wider", "registrations_surviving"]).length, 0);
   // The default scope is set against the register's survivors in a ratio of its own (completeness); that is not a clash.
   assert.equal(config.datasetClashes(["registrations_flow", "registrations_surviving"]).length, 0);
 });

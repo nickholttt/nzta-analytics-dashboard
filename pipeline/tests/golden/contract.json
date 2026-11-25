@@ -23,7 +23,7 @@
   },
   "datasets": {
    "registrations_surviving": {
-    "definition": "Vehicles first registered in month M that are still registered as at the snapshot date.",
+    "definition": "Vehicles first registered in month M that are still registered as at the snapshot date, of five vehicle types: passenger cars and vans, goods vans, trucks and utes, buses, motor caravans and special purpose vehicles.",
     "rows": 56,
     "months": 17,
     "latest_month": "2026-08",

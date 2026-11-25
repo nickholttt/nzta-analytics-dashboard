@@ -12,7 +12,7 @@ from collections import Counter
 
 import duckdb
 
-from pipeline import build, derive, reference
+from pipeline import build, derive, normalise, reference
 from pipeline.contract import OTHER, UNDEFINED, UNMAPPED
 
 from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
@@ -51,13 +51,21 @@ def slice_counts(public, dataset=SURVIVING) -> dict[str, int]:
     return dict(con.execute(f"SELECT dim_value, sum(n) FROM read_parquet('{path}') GROUP BY 1").fetchall())
 
 
+def scope_column(cfg) -> str:
+    """The column of the vehicle scope file that decides which types the register dataset counts: the one its `require` names."""
+    columns = normalise.scope_columns(cfg)
+    named = [columns[flag] for flag in cfg.pipeline["datasets"][SURVIVING]["require"] if flag in columns]
+    assert len(named) == 1, named
+    return named[0]
+
+
 def fleet_entry_counts(cfg, rows, latest_month) -> Counter:
     """Fixture vehicles per vehicle type that scope counts and that enter the fleet, decided from the reference files.
 
     A vehicle with no first-registration month, or one after the snapshot month, is in no month's count."""
     p = cfg.pipeline
     true, vehicle, status = p["boolean_true"], p["scope"]["vehicle"], p["scope"]["status"]
-    types = {r[vehicle["key"]] for r in scope_rows(cfg) if r[vehicle["in_scope"]] == true}
+    types = {r[vehicle["key"]] for r in scope_rows(cfg) if r[scope_column(cfg)] == true}
     statuses = {r[status["key"]] for r in reference.read(cfg.reference(status["file"]))
                 if r[status["in_scope"]] == true and r[status["fleet_entry"]] == true}
     year, month = p["fields"]["registration_year"], p["fields"]["registration_month"]
@@ -106,13 +114,13 @@ def test_a_type_brought_into_scope_appears_under_its_label_with_no_other_change(
     column = cfg.pipeline["fields"][vehicle["field"]]
     # A vehicle like the first one in the fixture, recorded under a type that scope leaves out and no fixture vehicle has.
     present = {r[column] for r in load_rows()}
-    out = next(r for r in scope_rows(cfg) if r[vehicle["in_scope"]] != true and r[vehicle["key"]] not in present)
+    out = next(r for r in scope_rows(cfg) if r[scope_column(cfg)] != true and r[vehicle["key"]] not in present)
     extra = dict(load_rows()[0], OBJECTID=9001, **{column: out[vehicle["key"]]})
     _, _, before = build_fixture(tmp_path / "before", workspace, extra_rows=[extra])
     assert out[dimension(cfg)["derive"]["value"]] not in slice_counts(workspace["public"])
     ref = tmp_path / "reference"
     shutil.copytree(cfg.reference("x").parent, ref)
-    changed = [dict(r, **{vehicle["in_scope"]: true}) if r[vehicle["key"]] == out[vehicle["key"]] else r for r in scope_rows(cfg)]
+    changed = [dict(r, **{scope_column(cfg): true}) if r[vehicle["key"]] == out[vehicle["key"]] else r for r in scope_rows(cfg)]
     with (ref / vehicle["file"]).open("w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=list(changed[0]), lineterminator="\n")
         writer.writeheader()

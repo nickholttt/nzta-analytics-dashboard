@@ -7,7 +7,7 @@
       "public_label": "Vehicles still registered",
       "attribution": "Data source: NZ Transport Agency (NZTA) Motor Vehicle Register, released under CC BY 4.0. Figures describe registrations recorded by NZTA, not sales.",
       "basis_note": "Registrations recorded by NZTA. Not the same as vehicle sales.",
-      "public_definition": "Each month counts the vehicles first registered in New Zealand that month that are still registered on the snapshot date.",
+      "public_definition": "Each month counts the vehicles first registered in New Zealand that month that are still registered on the snapshot date. It counts passenger cars and vans, goods vans, trucks and utes, buses, motor caravans and special purpose vehicles.",
       "words": {
         "$comment": "How a chart says what its dataset counts, in the words a visitor reads (D-042). A {name} is filled in by the chart: {months} is the trailing window and {window} the months a ranking covers. nz_new and used_imports take their base dataset's words. The placeholders each text may use are listed in config/narrative/rules.json, which pipeline/tests/test_site_config.py holds them to.",
         "count_heading": "Still registered",
@@ -22,7 +22,7 @@
         "cap_count": "vehicles first registered and still registered"
       },
       "grain": "survivors",
-      "definition": "Vehicles first registered in month M that are still registered as at the snapshot date.",
+      "definition": "Vehicles first registered in month M that are still registered as at the snapshot date, of five vehicle types: passenger cars and vans, goods vans, trucks and utes, buses, motor caravans and special purpose vehicles.",
       "help": "Vehicles first registered in NZ in a given month, NZ-new or used import, that are still registered at the snapshot date. Older months are thinned by scrappage."
     },
     {
@@ -67,8 +67,8 @@
       "status": "built only where the supplied store is present",
       "definition": "Vehicles first registered in New Zealand in month M, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken, including vehicles since removed from the register, counting buses, motor caravans and special purpose vehicles as well as the vehicle types registrations_flow counts.",
       "public_definition": "Each month counts the vehicles first registered in New Zealand that month, as NZTA's registrations dashboard held them at its latest monthly update before the export was taken. It counts the same vehicles as true registrations and also buses, motor caravans and special purpose vehicles, and it includes vehicles since removed from the register.",
-      "never_charted_with": ["registrations_flow", "registrations_surviving"],
-      "$never_charted_with_comment": "This dataset counts every vehicle registrations_flow counts, and more, so a chart of both counts the same vehicles twice; and registrations_surviving holds only the types of the default scope, so a ratio of it to this dataset would set a scope against a different one (D-118). src/lib/resolve.ts marks any preset that reads one of these with it as invalid.",
+      "never_charted_with": ["registrations_flow"],
+      "$never_charted_with_comment": "This dataset counts every vehicle registrations_flow counts, and more, so a chart of both counts the same vehicles twice (D-118). It does not list registrations_surviving since D-157: the survivors count the same five vehicle types, so the ratio of the two (completeness) sets one scope against itself. D-118 listed it because the survivors then held only the types of the default scope. src/lib/resolve.ts marks any preset that reads one of these with it as invalid.",
       "source_note": "Source: NZTA's registrations dashboard, from the export taken on {dataset.supplied.taken_latest|date}. It holds {dataset.supplied.months.first|month} to {dataset.supplied.months.last|month}. Past months can be restated by a later export.",
       "not_built_message": "True registrations on the wider scope are not in this build of the site, so the charts that use them cannot be drawn here.",
       "words": {
@@ -297,7 +297,7 @@
       "id": "vehicle_type",
       "label": "Registered as",
       "public_line": "The type NZTA registers each vehicle under, which is a different thing from a split that also reads the body and the weight.",
-      "public_note": "The type NZTA registers the vehicle under. It is a different thing from Vehicle type, which sorts vehicles into cars, utes, vans and trucks from the body and weight as well: a ute can be registered as a passenger vehicle. Only the types a dataset counts are shown: the two types of the default scope in most datasets, the types of the wider scope in the wider one, and every type in the vehicles registered today.",
+      "public_note": "The type NZTA registers the vehicle under. It is a different thing from Vehicle type, which sorts vehicles into cars, utes, vans and trucks from the body and weight as well: a ute can be registered as a passenger vehicle. Only the types a dataset counts are shown: the five types of the wider scope in the vehicles still registered and in true registrations on the wider scope, the two types of the default scope in true registrations, and every type in the vehicles registered today.",
       "source": "nzta:vehicle_type + reference:vehicle_scope",
       "derive": { "kind": "lookup", "field": "vehicle_type", "reference": "vehicle_scope.csv", "key": "vehicle_type", "value": "label" },
       "kind": "category",
