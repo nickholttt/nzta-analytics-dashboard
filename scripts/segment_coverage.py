@@ -119,6 +119,12 @@ for label, where in ((f"trailing {window} months", trailing), ("all time", "TRUE
     for cls, confidence, n in con.execute(
             f"SELECT cls, confidence, count(*) FROM pv WHERE {where} GROUP BY cls, confidence ORDER BY cls = 'no row', cls, confidence").fetchall():
         print(f"{n:>9,}  {n / total:>7.2%}  {cls}{' at ' + confidence if confidence else ''}")
+    # A class at low confidence is a recorded judgement (docs/METRICS.md, the tie-break rule): it counts as classified, and its share is shown apart.
+    split = dict(con.execute(
+        f"SELECT confidence, count(*) FROM pv WHERE {where} AND cls IN ('suv', 'car') GROUP BY confidence").fetchall())
+    classified = sum(split.values())
+    print(f"{classified:>9,}  {classified / total:>7.2%}  classified: "
+          + ", ".join(f"{c} {split.get(c, 0):,} ({split.get(c, 0) / total:.2%})" for c in ("high", "medium", "low")))
 
 print(f"\nlargest nameplates without a row, trailing {window} months:")
 for make, model, n in con.execute(

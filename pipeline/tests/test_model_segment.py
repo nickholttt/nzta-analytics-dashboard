@@ -1,7 +1,7 @@
 """data/reference/model_segment.csv is well formed (D-117). Nothing reads the file in a build yet, so this is the only check
 that stands between a bad row and the day a build starts to read it: a row with the wrong number of fields, a value outside
 the allowed words, two rows that could match one vehicle, a make the brand registry does not know, a call made at high
-confidence without a page and the date it was read.
+confidence without a page and the date it was read, a low row that names a class without saying it is a judgement.
 
 The checks are written over the text of a file so that the tests below can show each one failing on a made-up file."""
 
@@ -47,8 +47,10 @@ def problems(text: str, makes: set[str]) -> list[str]:
             found.append(f"{label}: class {r['class']!r} is not one of {sorted(CLASSES)}")
         if r["confidence"] not in CONFIDENCE:
             found.append(f"{label}: confidence {r['confidence']!r} is not one of {sorted(CONFIDENCE)}")
-        if (r["class"] == "unresolved") != (r["confidence"] == "low"):
-            found.append(f"{label}: a row is unresolved exactly when its confidence is low")
+        if r["class"] == "unresolved" and r["confidence"] != "low":
+            found.append(f"{label}: an unresolved row must have low confidence")
+        if r["class"] != "unresolved" and r["confidence"] == "low" and "judgement" not in r["basis"]:
+            found.append(f"{label}: a low row that names a class is a recorded judgement, and its basis must say 'judgement'")
         years = []
         for column in ("match_vehicle_year_min", "match_vehicle_year_max"):
             value = r[column]
@@ -122,8 +124,9 @@ def with_(row: list[str], **changes: str) -> list[str]:
     (build(SUV, with_(LATER, match_vehicle_year_min="2018")), "also matched by line 2"),
     (build(SUV, with_(LATER, match_vehicle_year_min="")), "also matched by line 2"),
     (build(with_(CAR, confidence="certain")), "is not one of ['high', 'low', 'medium']"),
-    (build(with_(CAR, confidence="low")), "exactly when its confidence is low"),
-    (build(with_(LATER, confidence="medium")), "exactly when its confidence is low"),
+    (build(with_(CAR, confidence="low")), "must say 'judgement'"),
+    (build(with_(CAR, confidence="low", basis="a judgement: nothing settled it")), None),
+    (build(with_(LATER, confidence="medium")), "an unresolved row must have low confidence"),
     (build(with_(SUV, match_vehicle_year_max="19")), "not a four-digit year"),
     (build(with_(SUV, match_vehicle_year_min="2021")), "is after match_vehicle_year_max"),
     (build(CAR, newline=chr(13) + chr(10)), "carriage returns"),
