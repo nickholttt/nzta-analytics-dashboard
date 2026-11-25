@@ -12,9 +12,9 @@ with the user's additions of 2026-11-25, `docs/brief/WORK_ORDER_3_ADDITIONS.md` 
   forced run of 17 November (snapshot 2026-10; release `cube-2026-10`); the daily runs to 25 November
   were green and built nothing. The next build is the first to publish the current fleet. The private
   archive (`nickholttt/nzta-register-archive`) holds one release, `snapshot-2026-10`.
-- **Datasets**: `registrations_surviving`, on five vehicle types from the next build (D-157, #156; the
-  kept cube of October counts two); `registrations_flow` and `registrations_flow_wider` (from January
-  2021, D-097); `registrations_cars_long_run` (from 1961); `fleet` (D-135, D-141).
+- **Datasets**: `registrations_surviving` (two vehicle types; five once #156 is merged with a rebuild of
+  October's cube, D-157); `registrations_flow` and `registrations_flow_wider` (from January 2021,
+  D-097); `registrations_cars_long_run` (from 1961); `fleet` (D-135, D-141).
 - **The accuracy guard** (D-149 to D-153): every build sets 389 published figures beside ours. Past its
   tolerance a figure warns; two independent sources well past theirs in a month, or one passenger,
   commercial or total figure 5% or more from ours, stop the build. A restated figure warns (D-153).
@@ -46,8 +46,8 @@ as first observed (item 5). Lane E waits on the user's approval of #152 and #154
 
 ## In progress (all claude; nothing by gemini)
 
-- No lane is held. Open for the user's approval, not to be merged without their word: #152
-  (`claude/e-classify-batch-1`) and #154 (`claude/e-classify-corolla`, stacked on it).
+- No lane is held. Open, each waiting for the user's word: #152 (`claude/e-classify-batch-1`), #154
+  (`claude/e-classify-corolla`, stacked on it) and #156 (`claude/b-survivors-five-types`, reviewed).
 - The worktrees `nzta-lane-a`, `-b`, `-c` are detached on `main`; `nzta-lane-e` holds the two open
   branches. `nzta-lane-b` and `nzta-lane-e` have no `node_modules`, `.venv` or raw data.
 - Worktrees with work that is not on `main`: `nzta-screens` (narrative drafts, **uncommitted**, D-102);
@@ -57,16 +57,15 @@ as first observed (item 5). Lane E waits on the user's approval of #152 and #154
 
 - `data/raw/2026-08/`, `data/raw/2026-10/20261113T045017Z` (5,926,990 rows, 36 fields), the dashboard
   exports and Stats NZ's series. No local file holds `VIN11` or `POSTCODE`. `public/data` is the dry-run
-  build of 2026-11-24 (two vehicle types in the survivors; refresh it after #156).
+  build of 2026-11-24.
 
 ## Known issues
 
 1. A link that reads the fact table is bound by its data (the acceptance question: 6.5 s first chart).
 2. No link draws a map today (the owner's region table hides small counts); nor a chart pinned to a kept
-   snapshot. A link pinned to October's cube counts two vehicle types where an unpinned one counts five.
+   snapshot.
 3. A page left open across a monthly refresh draws new figures under the old snapshot date.
-4. Three Explore charts are on no starter canvas. "Area Outside Region" reaches visitors as is. Segment
-   "Other" now holds buses, motor caravans and special purpose vehicles (D-157).
+4. Three Explore charts are on no starter canvas. "Area Outside Region" reaches visitors as is.
 5. `/method`, `/caveats` and `/differences` are hand-written and fall behind at each refresh.
 6. The no-tracking check still misses rarer spellings (#131's review); `restated_from` is filled by hand
    and nothing checks the earlier figure (D-153).
@@ -80,11 +79,11 @@ as first observed (item 5). Lane E waits on the user's approval of #152 and #154
 
 - `docs/brief/MASTER_BRIEF.md` knows no canvas; the order wins. The order puts the sentence under the
   chart; the user's answer of 2026-11-25 put it above, and the code follows that.
-- `docs/DATA_MAP.md`: ten listed disagreements; its survivors figures but the totals predate D-157.
+- `docs/DATA_MAP.md` lists ten places where it disagrees with other files, fixed as each field is touched.
 
 ## Blocked or waiting on the user
 
-Nothing stops the work. Waiting on the user (CHECKPOINT): #152 and #154; the email to NZTA to send; the
+Nothing stops the work. Waiting on the user (CHECKPOINT): #152, #154 and #156; the email to NZTA; the
 monthly export's trailing months; the name, address, About gaps and Cloudflare clicks;
 `DASHBOARD_EXPORT_METHOD.md` when NZTA publishes November.
 

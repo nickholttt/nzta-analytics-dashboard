@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-25 (the second session of 25 November: #148 to #151, #153, #155 and #156 merged; #152 and #154 open for the user)
+Last updated by claude on 2026-11-25 (the second session of 25 November: #148 to #151, #153 and #155 merged; #152, #154 and #156 open for the user)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -9,7 +9,7 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
 | A: finish the canvas | none | free | item 4 merged (#151, D-156); nothing queued |
-| B: the accuracy guard and the datasets | none | free | items 2 and 3 merged (#150, D-155), the survivors on five vehicle types (#156, D-157); next is item 1 |
+| B: the accuracy guard and the datasets | none | free; #156 waits for the user's word | items 2 and 3 merged (#150, D-155); the survivors on five vehicle types is reviewed and open (#156, D-157); next is item 1, stacked on it |
 | C: public readiness | none | free | what is left is the user's four items |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
 | E: classification, the latest month, findability | `claude/e-classify-batch-1`, `claude/e-classify-corolla` | free; #152 and #154 wait for the user's "merge" | items 9, 10 and 13 merged (#153, #155, #149); item 8's first batches are open; 11 found nothing; 12 not started |
@@ -17,6 +17,8 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 ## The queue (item numbers are the additions'; each plan was written and accepted on 2026-11-25)
 
 **B, in this order, each a high-risk pull request with one independent review.**
+0. #156: on the user's word, merge it and force a rebuild of October 2026's cube in the same sitting (the
+   kept cube counts two vehicle types; D-157 says what reads wrong between the two). Never one without the other.
 1. Item 1, one "New registrations" dataset: a new id, `new_registrations`, on the five vehicle types, new
    and used; both old ids retire and an old link is told by its id (a link to the narrower one comes
    back narrowed to its two types, so it draws the same figures, with a test). The guard's 389 rows,
@@ -58,8 +60,8 @@ canvas's and the new pages' sentences (D-102); the design pass's other findings 
    EV6, Kia Niro, Nissan Qashqai and MINI Aceman as SUV; Honda Jazz as car.
 2. **The monthly dashboard export should cover the trailing 24 months**, not the new month alone, or a
    later change to a past month is never seen (item 5). Recommended: yes, from November's export.
-3. **The survivors now count five vehicle types** (D-157, decided by claude): every figure from that
-   dataset rises (1.56% over the last 12 months). Say "undo" before the next build if that is not wanted.
+3. **#156, the survivors on five vehicle types** (D-157, decided by claude): every figure from that
+   dataset rises (1.56% over the last 12 months). "Merge 156 and rebuild October", or no. Recommended: yes.
 4. **The email to NZTA is drafted, not sent** (item 6); it is the user's to send.
 5. **Used imports (item 11):** the importers' association publishes no monthly figures on its own pages.
    Does the user know where it does, or is vstat's used-import figure enough?
@@ -68,8 +70,8 @@ canvas's and the new pages' sentences (D-102); the design pass's other findings 
 ## Decided for the user (unreviewed; each is in its pull request or record)
 
 - D-155: class NA alone for special purpose vehicles. D-156: the timed check fails a pull request; a
-  browser that cannot be installed is forgiven. D-157: widen the survivors; segment "Other" for the three
-  added types. #153: movers by percentage change above 100 vehicles. #155: pages from 100 vehicles a year.
+  browser that cannot be installed is forgiven. D-157 (open): widen the survivors; segment "Other" for
+  the three added types. #153: movers by percentage change above 100 vehicles. #155: pages from 100 vehicles a year.
 - D-148 to D-154 and the canvas choices of 2026-11-23 to 25 are still unreviewed.
 
 ## Prompt for the next session
