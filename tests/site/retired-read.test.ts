@@ -87,6 +87,11 @@ test("a link to a retired id is told what became of it, in config's words: one s
   const plain = builder.linkNotices(vocabulary, plainAsk, builder.settle(vocabulary, plainAsk), label, retired);
   assert.ok(plain[0].startsWith("This link was made for plain old counts, which is now "), plain[0]);
   assert.ok(!/X and Y/.test(plain[0]));
+  // A link whose own condition keeps part of the old list is told that part, not the whole list the old dataset counted.
+  const own = asked({ dataset: OLD, measure: "count", where: Object.assign(Object.create(null), { [FIELD]: ["y"] }) });
+  const [part] = builder.linkNotices(vocabulary, own, builder.settle(vocabulary, own), label, retired);
+  assert.match(part, /It keeps Y,/);
+  assert.ok(!/X/.test(part), part);
   // A link that names no retired id is told nothing of one.
   const fine = { dataset: target.id, measure: "count", where: Object.assign(Object.create(null), {}) };
   assert.ok(builder.linkNotices(vocabulary, fine, builder.settle(vocabulary, fine), label, retired).every((n) => !n.startsWith("This link was made for")));

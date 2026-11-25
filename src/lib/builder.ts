@@ -429,7 +429,11 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
   const note: Reading = {};
   const was = asked.retiredFrom && Object.hasOwn(retired, asked.retiredFrom) ? retired[asked.retiredFrom] : undefined;
   if (was) {
-    const kept = Object.entries(was.where ?? {}).flatMap(([d, values]) => values.map((v) => label(v, d)));
+    // What the chart keeps of the vehicles the old dataset counted: its own list, or the part of it the link's own condition left (readRetired meets the two).
+    const kept = Object.entries(was.where ?? {}).flatMap(([d, values]) => {
+      const left = (settled.where?.[d] ?? []).filter((v) => values.includes(v));
+      return (left.length > 0 ? left : values).map((v) => label(v, d));
+    });
     note.retired = { asked: lowerFirst(was.label), shown: lowerFirst(datasetName(settled.dataset)), ...(kept.length ? { kind: sayList(kept) } : {}) };
   }
   const named = [
