@@ -70,7 +70,7 @@ const tableId = (i: number) => `ap-table-${i}`;
           {section.panels.map((p) => (
             <div class="vs-panel" data-view={p.view} data-win={`w${p.win}`} data-win-default={p.win === page.scope?.period.checked ? "" : undefined}>
               <h3 class="vs-view">{p.label}</h3>
-              {p.sentences.map((s) => <p class="lm-sentence-small">{s}</p>)}
+              {p.sentences.map((s) => <p class="ap-panel-sentence">{s}</p>)}
               {p.empty ? <p class="meta">{p.empty}</p> : <AnswerTable caption={p.heading} columns={p.columns} rows={p.rows} label={p.heading} noComparison={page.labels.noComparison} />}
               {p.notes.map((n) => <p class="meta">{n}</p>)}
               {p.links && p.links.length > 0 && <p class="ap-links">{p.links.map((l) => <a class="starter-open" href={l.href} aria-label={l.named}>{l.text}</a>)}</p>}

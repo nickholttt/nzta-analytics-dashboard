@@ -123,7 +123,6 @@
     "model_cut_link": "{name} by powertrain, month by month: open in the canvas",
     "model_cut_named": "{name} by powertrain, month by month: open in the canvas",
     "model_siblings_link": "{brand} models side by side: open in the canvas",
-    "model_siblings_named": "{name} among the models of {brand}: open in the canvas",
     "mover_up": "{name} rose most by {field}: {counted}, up {change|pct} on the {prior_count} {prior}.",
     "mover_down": "{name} fell most by {field}: {counted}, down {change|pct} on the {prior_count} {prior}.",
     "mover_view_up": "Among {view}, {name} rose most by {field}: {counted}, up {change|pct} on the {prior_count} {prior}.",

@@ -578,7 +578,7 @@ export function answerSite(kit: Kit): Site | undefined {
     if (byPt && t1) out.push({ href: byPt, text: t1, named: say(words, "model_cut_named", { name }) ?? t1 });
     const siblings = brand !== undefined && headlineWindow ? kit.askLink?.({ by: config.model.dimension, type: "league", where: { [config.brand.dimension]: [brand] }, settings: { period: headlineWindow.canvasPeriod } }) : undefined;
     const t2 = brandName ? say(words, "model_siblings_link", { brand: brandName }) : undefined;
-    if (siblings && t2) out.push({ href: siblings, text: t2, named: say(words, "model_siblings_named", { brand: brandName, name }) ?? t2 });
+    if (siblings && t2) out.push({ href: siblings, text: t2, named: t2 });
     return out;
   };
 
