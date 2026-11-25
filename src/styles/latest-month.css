@@ -1,0 +1,155 @@
+/* The latest month, the front page's first section (src/components/LatestMonth.astro). Bars are tokens of the site's own, so both themes work; the
+   figures are text beside them, so a bar adds a picture and no information the table lacks. Cards are the starter card's. */
+
+.lm-intro {
+  margin-bottom: var(--space-5);
+  max-width: var(--measure);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.lm-answer {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-7);
+}
+
+.lm-figure {
+  font: 600 clamp(3rem, 14vw, 5rem) / 1 var(--font-display);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.lm-sentence {
+  max-width: var(--measure);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+}
+
+.lm-links,
+.lm-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+  font-size: var(--text-sm);
+}
+
+.lm-foot {
+  margin-top: auto;
+}
+
+.lm-blocks {
+  list-style: none;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+@media (min-width: 52rem) {
+  .lm-blocks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.lm-title {
+  font-size: var(--text-md);
+}
+
+.lm-sentence-small {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+/* Cards and cells are tighter than the starter's so a table of four columns fits a screen 320 px wide without scrolling; the wrapper scrolls, and
+   can be reached by keyboard, only where a table is still wider than its card. */
+.starter.lm-block {
+  padding: var(--space-4);
+}
+
+@media (min-width: 52rem) {
+  .starter.lm-block {
+    padding: var(--space-5);
+  }
+}
+
+.lm-scroll {
+  overflow-x: auto;
+}
+
+.lm-table {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.lm-table th,
+.lm-table td {
+  padding-left: var(--space-3);
+}
+
+.lm-table th:first-child {
+  padding-left: 0;
+}
+
+.lm-table td.up,
+.lm-table .lm-bar.up {
+  color: var(--rank-up);
+}
+
+.lm-table td.down,
+.lm-table .lm-bar.down {
+  color: var(--rank-down);
+}
+
+.lm-bar,
+.lm-split span,
+.lm-swatch {
+  display: block;
+  background: var(--c, currentColor);
+}
+
+.lm-bar {
+  width: var(--w);
+  height: 4px;
+  margin-top: 3px;
+  border-radius: 2px;
+  color: var(--accent);
+}
+
+.lm-split {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.lm-split span {
+  flex: var(--g) 1 0;
+}
+
+.lm-swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: var(--space-2);
+  border-radius: 2px;
+}
+
+.lm-source {
+  margin-top: var(--space-2);
+  max-width: var(--measure);
+}
+
+@media (forced-colors: active) {
+  .lm-bar,
+  .lm-split span,
+  .lm-swatch {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}

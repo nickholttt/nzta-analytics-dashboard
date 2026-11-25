@@ -1,13 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import "../styles/starters.css";
+import LatestMonth from "../components/LatestMonth.astro";
 import { builderVocabulary } from "../lib/builder";
 import { canvasVocabulary, say } from "../lib/canvas";
 import { starterViews } from "../lib/starters";
 import manifest from "../../public/data/manifest.json";
 import type { Manifest } from "../lib/data";
 
-// The front page is the list of the starter canvases (config/starter_canvases.json). Each is a canvas link the canvas page reads like any
+// The front page opens with the latest month (src/components/LatestMonth.astro, drawn only where the build can give it), then the list of the starter canvases (config/starter_canvases.json). Each is a canvas link the canvas page reads like any
 // shared one; the list holds only the charts this build can draw, as the canvas will draw them, so no starter opens to an error.
 const CANVAS = "/canvas/";
 const all = canvasVocabulary(builderVocabulary(manifest as Manifest));
@@ -22,6 +23,8 @@ const starters = all.datasets.length > 0 ? starterViews(all, manifest as Manifes
       NZTA's open data: the Motor Vehicle Register and, where a chart says so, its registrations dashboard.
     </p>
   </Fragment>
+
+  <LatestMonth />
 
   <section aria-labelledby="starters-heading">
     <div class="section-head">

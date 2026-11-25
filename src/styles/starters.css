@@ -16,8 +16,8 @@
   }
 }
 
-/* The masthead already ends in a rule, so the first section does not begin with a second one; the caption under its heading sits close to it. */
-[aria-labelledby="starters-heading"] > .section-head {
+/* The masthead already ends in a rule, so the first section of the page does not begin with a second one; the caption under its heading sits close to it. */
+.masthead + section > .section-head {
   margin-top: 0;
   padding-top: 0;
   margin-bottom: var(--space-2);

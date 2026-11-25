@@ -168,6 +168,12 @@ Setup, **not re-run this session** (the environment already existed):
   groups each organisation's published figures by what this site's figure is. `src/components/ComparisonSection.astro` draws
   "How our figures compare" on the Differences page from it, in the words of `config/comparison.json` (held to the template lint), with no
   script; `ReconciliationStatus.astro` lists every row on the internal status page, with a short list of the figures a source restated by 5% or more at its top (D-153). A build whose data has no such file says so in one sentence (D-150).
+- `src/lib/latestMonth.ts` (pure, tested in `tests/site/latest-month.test.ts`) works out the latest month, the front page's first section, from the slices of one dataset
+  (`config/latest_month.json` names it, the blocks, their minimums and every word, held to the template lint): the month's figure and its change on a year ago, new against
+  used, the largest values of a field, the largest moves, and each split of a field. `src/lib/latestMonthBuild.ts` reads the slices where the site is built (hyparquet in Node, by the
+  rules of `loadSlice`), `src/lib/latestMonthLinks.ts` writes each block's canvas address with the canvas's own functions, and `src/components/LatestMonth.astro` draws bars in tables
+  with no script. A block whose field the manifest does not list as live for the dataset is not drawn, so a field built later appears by itself; the section is not drawn where the
+  dataset or its files are not in the build.
 - `scripts/unmatched_hybrids.py` lists, for one dataset, the hybrids that count against its mild hybrid coverage at high
   confidence, by make and model. Run by hand when a build warns that the split flipped (`docs/playbooks/check-monthly-run.md`,
   D-112); it reads the repository and a saved pull and writes nothing.

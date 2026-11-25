@@ -1,0 +1,106 @@
+---
+// The latest month: the front page's first section, an answer to what happened in the newest month (config/latest_month.json). It is worked out
+// when the site is built from the published slices (src/lib/latestMonthBuild.ts) and drawn as plain HTML with no script: each block's chart is bars
+// in a table, so the figures are the chart's own text, and each block opens its question in the canvas. Where the build cannot give the section
+// (the dataset is not built, its files are not there) nothing is drawn, and the page is as it was.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import "../styles/latest-month.css";
+import manifest from "../../public/data/manifest.json";
+import type { Manifest } from "../lib/data";
+import { latestMonthSection } from "../lib/latestMonthBuild";
+import type { BlockView } from "../lib/latestMonth";
+
+// The published files, read from the folder the site is built from (Astro builds with the project's folder as its working directory).
+const read = (relative: string) => {
+  try {
+    const file = readFileSync(join(process.cwd(), "public", "data", relative));
+    return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
+  } catch {
+    return undefined;
+  }
+};
+const view = await latestMonthSection(manifest as unknown as Manifest, read);
+const answer = view?.blocks.find((b) => b.kind === "total");
+const blocks = view?.blocks.filter((b) => b.kind !== "total") ?? [];
+const heading = (b: BlockView) => `lm-${b.id}`;
+// A split's segments, from darkest to lightest and back, so neighbours differ; a swatch beside each name repeats its colour.
+const SEGMENTS = [6, 3, 5, 2, 4];
+const colour = (i: number) => `--c:var(--scale-${SEGMENTS[i % SEGMENTS.length]})`;
+const percent = (x: number) => `${(x * 100).toFixed(1)}%`;
+---
+
+{
+  view && answer && (
+    <section class="lm" aria-labelledby="lm-heading">
+      <div class="section-head">
+        <h2 class="section-title" id="lm-heading">{view.heading}</h2>
+      </div>
+      <p class="meta lm-intro">{view.intro}</p>
+      <div class="lm-answer">
+        <p class="lm-figure" aria-hidden="true">{answer.figure}</p>
+        <p class="lm-sentence">{answer.sentences[0]}</p>
+        <p class="lm-links">
+          <a class="starter-open" href={answer.canvas} aria-label={answer.canvasLabel}>{view.labels.canvas}</a>
+          <a href={answer.definition}>{view.labels.definition}</a>
+        </p>
+      </div>
+      <ul class="lm-blocks">
+        {blocks.map((b) => (
+          <li>
+            <article class="starter lm-block" aria-labelledby={heading(b)}>
+              <h3 class="lm-title" id={heading(b)}>{b.heading}</h3>
+              {b.sentences.map((s) => <p class="lm-sentence-small">{s}</p>)}
+              {b.kind === "split" && (
+                <div class="lm-split" aria-hidden="true">
+                  {b.rows.filter((r) => r.bar !== undefined).map((r, i) => <span style={`${colour(i)};--g:${(r.bar as number) * 100}`} />)}
+                </div>
+              )}
+              <div class="lm-scroll" role="region" tabindex="0" aria-labelledby={heading(b)}>
+                <table class="key lm-table">
+                  <caption class="visually-hidden">{b.heading}</caption>
+                  <thead>
+                    <tr>{b.columns.map((c) => <th scope="col">{c.name}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {b.rows.map((r, i) => (
+                      <tr>
+                        <th scope="row" class="text">
+                          {b.kind === "split" && r.bar !== undefined && <span class="lm-swatch" style={colour(i)} aria-hidden="true" />}
+                          {r.name}
+                          {b.kind !== "split" && r.bar !== undefined && <span class={`lm-bar ${b.kind === "movers" ? (r.change?.direction ?? "") : ""}`} style={`--w:${percent(r.bar)}`} aria-hidden="true" />}
+                        </th>
+                        {b.columns.slice(1).map((c) => {
+                          const cell = c.key === "count" ? r.count : c.key === "share" ? r.share : c.key === "prior" ? r.prior : undefined;
+                          const change = c.key === "year" ? r.change : c.key === "points" ? r.points : undefined;
+                          return r.hidden ? (
+                            <td title={r.hidden.reason}><em>{r.hidden.word}</em></td>
+                          ) : change ? (
+                            <td class={`change ${change.direction}`}>{change.text}</td>
+                          ) : cell ? (
+                            <td class="figure">{cell}</td>
+                          ) : (
+                            <td class="change">—<span class="visually-hidden">{view.labels.noComparison}</span></td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {b.notes.map((n) => <p class="meta">{n}{b.hiddenLink && <> <a href={b.hiddenLink}>{view.labels.hiddenLink}</a></>}</p>)}
+              <p class="lm-foot">
+                <a class="starter-open" href={b.canvas} aria-label={b.canvasLabel}>{view.labels.canvas}</a>
+                <a href={b.definition}>{view.labels.definition}</a>
+              </p>
+            </article>
+          </li>
+        ))}
+      </ul>
+      <p class="meta lm-source">
+        {[view.provenance.source, view.provenance.snapshot].filter(Boolean).join(" ")} <a href={view.sourceLink.href}>{view.sourceLink.text}</a>
+      </p>
+      <p class="meta lm-source">{view.caveat.text} <a href={view.caveat.href}>{view.caveat.link}</a></p>
+    </section>
+  )
+}
