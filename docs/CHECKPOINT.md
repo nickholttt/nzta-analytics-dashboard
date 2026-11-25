@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-26 (the long session of 25 and 26 November: #152, #154, #156 to #162 merged; October's cube rebuilt; the one-dataset change built on its branch and under review)
+Last updated by claude on 2026-11-26 (the long session of 25 and 26 November: #152, #154, #156 to #162 merged; October's cube rebuilt; the one-dataset change built, reviewed and open as #164)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -9,7 +9,7 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
 | A: finish the canvas | none | free | #161 and #162 merged (the study's site items a to d); what is left is under "A" below |
-| B: the accuracy guard and the datasets | `claude/b-one-new-registrations` (worktree `nzta-lane-b`, not pushed) | the computer, the session of 2026-11-26 | item 1 built: 8 commits and D-158; being brought up to `main` and reviewed. Take it over only from that branch |
+| B: the accuracy guard and the datasets | `claude/b-one-new-registrations` (worktree `nzta-lane-b`), #164 | the computer, until #164 merges | item 1 built and reviewed (D-158); waiting on the user's word to merge. The next item starts from `main` after that merge |
 | C: public readiness | none | free | what is left is the user's four items |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
 | E: classification, the latest month, findability | none | free | items 8 (two batches, 98.7%), 9, 10 and 13 merged; 11 found nothing; 12 is in B's queue |
@@ -18,10 +18,10 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 
 **B, in this order, each a high-risk pull request with one independent review.**
 1. Item 1, one "New registrations" dataset (`new_registrations`, five vehicle types; both old ids retire; a
-   link to the narrower one comes back narrowed to its two types). Built: all 389 published figures
-   unchanged; 609 of 1,483,403 vehicles move between a model's name and "other models" (the 300 named
-   models are ranked on five types). To do: take `main` in, the review, the pull request. The kept cube
-   holds the old ids: the merge needs the user's word and a forced rebuild of October in the same sitting.
+   link to the narrower one comes back narrowed to its two types): **#164, open, reviewed** (D-158). All
+   389 published figures unchanged. Its public-site checks fail by design: the newest cube holds the old
+   ids, and a cube is published only from `main`. The order, on the user's word: merge with that one job
+   failing, force the monthly build at once, then run the public-site checks again on `main`.
 2. Buyer type on the one dataset (the user, 2026-11-25: "do it but tell me where its used"; "we should be
    using it to its full extent instead of censoring it"): `supply` keeps owner type and usage; a buyer-type
    map as reference data (private, rental, company, other); no monthly cell is under 10. Shown on the
@@ -47,7 +47,7 @@ pages' year-to-date links are withheld); "New entry" in the canvas's ranking; pa
 heavy vehicles and motorcycles; a brand's place over time. Parked: a chosen period kept in the address
 (needs a script on reading pages).
 
-**E.** The next classification batch: the 113 small nameplates (0.8% of new passenger vehicles).
+**E.** Waits for Market type's build (B3): the next classification batch. Measured 2026-11-26: 98.64% of the last 12 months' new passenger vehicles are classified (target 98%); 921 vehicles (0.83%) have no row, the largest nameplate 75.
 
 **C.** The user's four items: name, address (it turns the sitemap on), About gaps, Cloudflare clicks.
 
@@ -64,13 +64,13 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 2. **Small counts**: lifting the under-10 rule (region table, current-use pair) changes Method's promise; district
    counts are a new kind of data. Each needs the user's word by name. Default: both stay as they are.
 3. **December's retake** would ask for 13 fields against a limit of 12. Recommended: "CC grouping - vehicle" waits.
-4. The monthly dashboard export should cover the trailing 24 months (item 5). Taken as yes.
-5. The email to NZTA is drafted, not sent (item 6). The licence line for the Existing fleet page (B7). The
-   site's name and web address and the About page's gaps (`config/site.json`).
+4. **#164**: the word to merge it with its public-site job failing and to force October's rebuild straight after.
+5. Taken as yes: the monthly dashboard export covers the trailing 24 months (item 5). Not sent: the email to NZTA
+   (item 6). Parked: the Existing fleet page's licence line (B7). Open: the site's name, address and About gaps.
 
 ## Decided for the user (unreviewed; each is in its pull request or record)
 
-- D-148 to D-157 and the choices listed in #142 to #162; D-158 on the unmerged branch. #152's five low-confidence
+- D-148 to D-157 and the choices listed in #142 to #162; D-158 and the seven choices listed in #164. #152's five low-confidence
   judgements (Kia EV6, Kia Niro, Nissan Qashqai, MINI Aceman as SUV; Honda Jazz as car). #162: a brand page's HTML doubled.
 
 ## Prompt for the next session

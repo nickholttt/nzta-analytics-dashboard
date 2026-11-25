@@ -14,7 +14,7 @@ with the user's additions of 2026-11-25, `docs/brief/WORK_ORDER_3_ADDITIONS.md` 
   (`nickholttt/nzta-register-archive`) holds one release, `snapshot-2026-10`.
 - **Datasets**: `registrations_surviving` (five vehicle types since #156, D-157: 4,615,306 vehicles);
   `registrations_flow` and `registrations_flow_wider` (from January 2021, D-097; they become one,
-  `new_registrations`, on the unmerged branch, D-158); `registrations_cars_long_run` (from 1961);
+  `new_registrations`, in #164, D-158, not merged); `registrations_cars_long_run` (from 1961);
   `fleet` (D-135, D-141).
 - **The accuracy guard** (D-149 to D-153): every build sets 389 published figures beside ours. Past its
   tolerance a figure warns; two independent sources well past theirs in a month, or one passenger,
@@ -40,14 +40,14 @@ with the user's additions of 2026-11-25, `docs/brief/WORK_ORDER_3_ADDITIONS.md` 
 ## Current step
 
 Merged of the additions: items 2, 3, 4, 8 (two batches), 9, 10, 13; 6 is drafted; 11 found nothing. Item 1 is
-built on its branch and under review. Next on lane B: buyer type, Market type, figures as first observed.
+#164: built, reviewed, waiting on the user. Next on lane B: buyer type, Market type, figures as first observed.
 
 ## In progress (all claude; nothing by gemini)
 
-- Lane B: `claude/b-one-new-registrations` in the worktree `nzta-lane-b`, not pushed: 8 commits and
-  D-158, the whole pipeline suite passed on its last commit (2,891 passed, 1 skipped) before `main`
-  gained #161 and #162. It must take `main` in and follow the rename through what they added.
-- No pull request is open. The worktrees `nzta-lane-a`, `-c` and `-e` are detached on `main`.
+- Lane B: #164, `claude/b-one-new-registrations` in the worktree `nzta-lane-b` (D-158). It holds `main`
+  to 26dea07; the whole pipeline suite passed there (3,473 passed, 28 skipped); three independent reviews
+  and their fixes are in. Its public-site checks fail by design on the kept cube (CHECKPOINT, B1).
+- #164 is the only open pull request. The worktrees `nzta-lane-a`, `-c` and `-e` are detached on `main`.
   `nzta-lane-b` and `nzta-lane-e` have no `node_modules`, `.venv` or raw data.
 - Worktrees with work that is not on `main`: `nzta-screens` (narrative drafts, **uncommitted**, D-102);
   `nzta-segments` (an untracked draft scheme file, D-103); `nzta-notes` (the closed board proposal).
@@ -83,8 +83,8 @@ built on its branch and under review. Next on lane B: buyer type, Market type, f
 
 ## Blocked or waiting on the user
 
-Nothing stops the work. Waiting on the user (CHECKPOINT): the word to merge the one-dataset change with
-a forced rebuild, once it is reviewed; the email to NZTA; the licence line on NZTA's Existing fleet page;
+Lane B's next items wait for #164 (they build on its dataset). Waiting on the user (CHECKPOINT): the word
+to merge #164 with its public-site job failing and to force October's rebuild; the email to NZTA; the licence line on NZTA's Existing fleet page;
 the name, address, About gaps and Cloudflare clicks; `DASHBOARD_EXPORT_METHOD.md` when NZTA publishes.
 
 ## How to run
