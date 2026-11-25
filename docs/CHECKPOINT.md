@@ -42,16 +42,21 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 **E.** After the user's word: merge #152, then retarget #154 to `main` and merge it. The next batch is the
 113 small nameplates (0.8% of new passenger vehicles) and the low-confidence rows the user wants looked at.
 
-**C.** The user's four items: the name, the address (it also turns the sitemap on), the About page's
-gaps, the Cloudflare clicks. After the name: redraw the social cards.
+**C.** The user's four items: name, address (it turns the sitemap on), About gaps, Cloudflare clicks.
+
+**From the study of vstat (user, 2026-11-25; private, outside the repository, nothing copied from it).** Site:
+(a) new and used imports shown apart on the latest month, the brand and model pages and rankings (default
+New, a switch, both in the sentence: today a brand's figure adds them unsaid); (b) names in ordinary case;
+(c) period switches, change chips and powertrain chips; (d) brand against brand from each brand page. Lane B:
+the register plus the dashboard's inactive vehicles rebuilds true registrations to within 19 vehicles over 34
+months: write it on Differences. The user's: buyer type (an owner field) and changes of ownership.
 
 **D.** November's build and archive; its published figures; the usage-column check (D-134). The user gives
 `DASHBOARD_EXPORT_METHOD.md`; the retake adds "GVM group" and "CC grouping - vehicle" (item 7 follows).
 
 ## Parked until the user says otherwise
 
-Detailed segments with price bands; colour's own table (D-144); further hybrid work (D-110, D-119); new
-segment schemes (D-103); the query service (D-091); the narrative engine (D-102); #140's other findings.
+Detailed segments with price bands; colour's own table (D-144); further hybrid work (D-110, D-119); new segment schemes (D-103); the query service (D-091); the narrative engine (D-102); #140's other findings.
 
 ## Questions for the user (parked; none stops the work)
 
@@ -61,17 +66,12 @@ segment schemes (D-103); the query service (D-091); the narrative engine (D-102)
    later change to a past month is never seen (item 5). Recommended: yes, from November's export.
 3. **#156, the survivors on five vehicle types** (D-157, decided by claude): every figure from that
    dataset rises (1.56% over the last 12 months). "Merge 156 and rebuild October", or no. Recommended: yes.
-4. **The email to NZTA is drafted, not sent** (item 6); it is the user's to send.
-5. **Used imports (item 11):** the importers' association publishes no monthly figures on its own pages.
-   Does the user know where it does, or is vstat's used-import figure enough?
+4. **The email to NZTA is drafted, not sent** (item 6). 5. No monthly importers' figures exist (item 11).
 6. The site's name and web address and the About page's gaps (`config/site.json`).
 
 ## Decided for the user (unreviewed; each is in its pull request or record)
 
-- D-155: class NA alone for special purpose vehicles. D-156: the timed check fails a pull request; a
-  browser that cannot be installed is forgiven. D-157 (open): widen the survivors; segment "Other" for
-  the three added types. #153: movers by percentage change above 100 vehicles. #155: pages from 100 vehicles a year.
-- D-148 to D-154 and the canvas choices of 2026-11-23 to 25 are still unreviewed.
+- D-148 to D-157 and the choices listed in #142 to #156 are unreviewed; each record or pull request says which.
 
 ## Prompt for the next session
 
