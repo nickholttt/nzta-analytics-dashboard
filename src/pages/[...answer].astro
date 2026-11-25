@@ -1,0 +1,44 @@
+---
+// The answer pages: a page for each brand and each model above the minimum volume, and their index (config/answer_pages.json). Made when the site is
+// built, from the published slices (src/lib/answerSite.ts); where the build cannot give them there are none, and an address like these is the
+// page-not-found page. They ship no script.
+import Layout from "../layouts/Layout.astro";
+import AnswerPage from "../components/AnswerPage.astro";
+import AnswerIndex from "../components/AnswerIndex.astro";
+import { builtAnswerSite } from "../lib/answerSite";
+import type { IndexView, PageView } from "../lib/answerPages";
+import { answerConfig } from "../lib/answerPages";
+
+export async function getStaticPaths() {
+  const site = await builtAnswerSite();
+  if (!site) return [];
+  const pages = site.pages.map((page) => ({ params: { answer: page.href.slice(1, -1) }, props: { page, index: site.index } }));
+  return site.index ? [...pages, { params: { answer: site.index.href.slice(1, -1) }, props: { page: undefined, index: site.index } }] : pages;
+}
+
+interface Props {
+  page?: PageView;
+  index: IndexView;
+}
+const { page, index } = Astro.props;
+const words = answerConfig.words;
+---
+
+{
+  page ? (
+    <Layout title={page.title} meta={page.kind} own={{ title: page.title, description: page.description }}>
+      <Fragment slot="masthead">
+        <h1>{page.title}</h1>
+      </Fragment>
+      <AnswerPage page={page} index={{ href: index.href, title: index.title }} />
+    </Layout>
+  ) : (
+    <Layout title={index.title} activeNav="brands">
+      <Fragment slot="masthead">
+        <h1>{index.title}</h1>
+        <p class="standfirst">{index.intro}</p>
+      </Fragment>
+      <AnswerIndex index={index} home={words.home_link} breadcrumb={words.breadcrumb} />
+    </Layout>
+  )
+}

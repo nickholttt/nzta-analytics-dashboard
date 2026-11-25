@@ -1,0 +1,121 @@
+/* The answer pages (src/components/AnswerPage.astro, AnswerIndex.astro): a brand's or a model's page, and the index of them. Tokens of the site's own,
+   so both themes work. The first sentence and its figure lead; the tables are plain, with the figures as text. */
+
+.ap-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.ap-crumbs li + li::before {
+  content: "/";
+  margin-right: var(--space-3);
+  color: var(--ink-3);
+}
+
+.ap-answer {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-7);
+}
+
+.ap-figure {
+  margin: 0;
+  font: 600 clamp(3rem, 14vw, 5rem) / 1 var(--font-display);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ap-sentences {
+  display: grid;
+  gap: var(--space-2);
+  max-width: var(--measure);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-sentences li:first-child {
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+}
+
+.ap-sentences li + li {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.ap-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.ap-table-section {
+  margin-bottom: var(--space-7);
+}
+
+.ap-scroll {
+  overflow-x: auto;
+}
+
+.ap-table {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.ap-table th,
+.ap-table td {
+  padding-left: var(--space-3);
+}
+
+.ap-table th:first-child {
+  padding-left: 0;
+}
+
+.ap-table tr.total th,
+.ap-table tr.total td {
+  font-weight: 600;
+}
+
+.ap-table td.up {
+  color: var(--rank-up);
+}
+
+.ap-table td.down {
+  color: var(--rank-down);
+}
+
+.ap-source {
+  margin-top: var(--space-2);
+  max-width: var(--measure);
+}
+
+.ap-index {
+  columns: 16rem;
+  column-gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-index > li {
+  break-inside: avoid;
+  margin-bottom: var(--space-4);
+}
+
+.ap-index ul {
+  margin: var(--space-1) 0 0;
+  padding: 0 0 0 var(--space-4);
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}

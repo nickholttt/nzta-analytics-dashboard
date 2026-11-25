@@ -27,11 +27,15 @@ export function siteOrigin(address: string): string | undefined {
   }
 }
 
+// A generated page (a brand's, a model's: config/answer_pages.json) has the title and description of its own, which say what that page is; it shares the
+// social card of its kind (cards/<id>.png), so there is one picture for hundreds of pages.
+export type OwnWords = { title: string; description: string };
+
 export function pageMeta(
   id: PageId,
-  { pathname, noindex = false, address = siteDoc.about.site_address, siteName = siteDoc.about.site_name }: { pathname: string; noindex?: boolean; address?: string; siteName?: string },
+  { pathname, noindex = false, address = siteDoc.about.site_address, siteName = siteDoc.about.site_name, own }: { pathname: string; noindex?: boolean; address?: string; siteName?: string; own?: OwnWords },
 ): PageMeta {
-  const page = meta.pages[id];
+  const page = { ...meta.pages[id], ...own };
   const title = withSuffix(page.title);
   const origin = siteOrigin(address);
   const tags: MetaTag[] = [{ attribute: "name", key: "description", content: page.description }];
@@ -57,9 +61,9 @@ export function pageMeta(
         { attribute: "property", key: "og:image", content: image },
         { attribute: "property", key: "og:image:width", content: String(meta.card_width) },
         { attribute: "property", key: "og:image:height", content: String(meta.card_height) },
-        { attribute: "property", key: "og:image:alt", content: page.title },
+        { attribute: "property", key: "og:image:alt", content: meta.pages[id].title },
         { attribute: "name", key: "twitter:image", content: image },
-        { attribute: "name", key: "twitter:image:alt", content: page.title },
+        { attribute: "name", key: "twitter:image:alt", content: meta.pages[id].title },
       );
     }
   }

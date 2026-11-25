@@ -6,25 +6,32 @@ import siteDoc from "../../config/site.json";
 import { attribution } from "../lib/siteCopy";
 import { bootTheme } from "../lib/themeChoice";
 import RefreshNotice from "../components/RefreshNotice.astro";
-import { pageMeta, withSuffix, type PageId } from "./pageMeta";
+import { pageMeta, withSuffix, type OwnWords, type PageId } from "./pageMeta";
+import { builtAnswerSite } from "../lib/answerSite";
 
 interface Props {
   title: string;
   activeNav?: Exclude<PageId, "not_found">;
   // The page's words for the head (config/site.json, meta.pages) when it is not one of the navigation's pages, such as the page-not-found page.
   meta?: PageId;
+  // The page's own title and description, for a generated page that shares its kind's entry in config/site.json (meta) and its card.
+  own?: OwnWords;
   // Internal pages (D-028) stay out of search engines and out of the main navigation.
   noindex?: boolean;
   // The canvas page: wider than a reading page, with its own tokens (src/styles/canvas.css).
   wide?: boolean;
 }
 
-const { title, activeNav, meta, noindex = false, wide = false } = Astro.props;
+const { title, activeNav, meta, own, noindex = false, wide = false } = Astro.props;
 
 // The head's words come from config, keyed by the page. A page that is searched for and has none is a build error, not a page with no description.
 const id = meta ?? activeNav;
 if (!id && !noindex) throw new Error(`The page "${title}" names no entry of config/site.json meta.pages (activeNav or meta), so it would have no description or social card.`);
-const head = id ? pageMeta(id, { pathname: Astro.url.pathname, noindex }) : undefined;
+const head = id ? pageMeta(id, { pathname: Astro.url.pathname, noindex, own }) : undefined;
+
+// A footer link that leads to the answer pages is drawn only where this build has them: a link to a page that is not there is worse than none.
+const hasAnswerPages = (await builtAnswerSite())?.index !== undefined;
+const footerLinks = siteDoc.footer_links.filter((link) => !("when" in link) || (link.when === "answer_pages" && hasAnswerPages));
 
 const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
   new Date(`${manifest.latest_snapshot}T00:00:00Z`),
@@ -86,7 +93,7 @@ const snapshot = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "long
         <p>{attribution}</p>
         <nav aria-label="About this site">
           {
-            siteDoc.footer_links.map((link) => (
+            footerLinks.map((link) => (
               <a href={link.href} aria-current={activeNav === link.id ? "page" : undefined}>
                 {link.label}
               </a>
