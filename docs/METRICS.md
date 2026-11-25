@@ -34,7 +34,7 @@ them added, our counts of new vehicles come within 0.06% of the published total 
 periods compared: the table under "Set beside published figures", D-105 and D-106). `registrations_surviving` (since D-157) and
 `new_registrations` (since D-158) count the trade scope, because the published split into light and heavy commercial holds buses, motor
 caravans and special purpose vehicles. The default scope is no longer a dataset: it is what a question narrowed to its two vehicle types
-counts (the Vehicle type filter), and the column stays because the guardrails' row-count check reads it. Datasets that measure entry to the
+counts (the Registered as filter, the `vehicle_type` field), and the column stays because the guardrails' row-count check reads it. Datasets that measure entry to the
 fleet also require `counts_as_fleet_entry`. The unmapped-value guardrail rates are measured on the rows of the dataset's own
 scope (the table `dims`); the row-count movement check is measured on the default scope's rows (`in_scope`), whichever scope a
 dataset counts, so a change of one dataset's scope does not move it (D-157). The unmapped make and powertrain rates are measured on two bases, and
@@ -152,7 +152,7 @@ D-113, D-158).
   dataset itself is not a count of new vehicles.
 - **Narrowing to fewer types.** A source that counts fewer types is set beside this dataset with a
   `vehicle_type` condition (the published-figures rows of the passenger and goods totals do), and a visitor
-  does the same with Vehicle type under Filters. Until D-158 the narrower scope was a dataset of its own; it
+  does the same with Registered as under Filters. Until D-158 the narrower scope was a dataset of its own; it
   answered "how many passenger and goods vehicles were registered", and its figures were never added to the
   wider dataset's, which counted the same vehicles twice. With one dataset there is nothing to add twice.
   **Never on a chart with survivors**, except the one ratio of the two, completeness (below), which divides the

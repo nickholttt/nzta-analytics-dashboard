@@ -54,7 +54,7 @@
         "none_recent": "Nothing was registered in the last {months} months",
         "cap_count": "first registrations"
       },
-      "help": "Every vehicle registered in NZ for the first time in a month, including those since scrapped: passenger cars and vans, goods vans, trucks and utes, buses, motor caravans and special purpose vehicles, new and used. Keep New or used to NZ New to count new vehicles, and Vehicle type to count the types you want. Never shown on the same chart as registrations still on the road, except in the share of registrations still registered (completeness), which divides the two."
+      "help": "Every vehicle registered in NZ for the first time in a month, including those since scrapped: passenger cars and vans, goods vans, trucks and utes, buses, motor caravans and special purpose vehicles, new and used. Keep New or used to NZ New to count new vehicles, and Registered as to count the types you want. Never shown on the same chart as registrations still on the road, except in the share of registrations still registered (completeness), which divides the two."
     },
     {
       "id": "registrations_cars_long_run",
