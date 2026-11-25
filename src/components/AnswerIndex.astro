@@ -2,13 +2,17 @@
 // The index of the answer pages (src/lib/answerPages.ts): every brand with a page, and under each the models that have one. Plain nested lists.
 import "../styles/answer-pages.css";
 import type { IndexView } from "../lib/answerPages";
+import AnswerTable from "./AnswerTable.astro";
+import CompareForm from "./CompareForm.astro";
+import ViewSwitch from "./ViewSwitch.astro";
 
 interface Props {
   index: IndexView;
   home: string;
   breadcrumb: string;
+  noComparison: string;
 }
-const { index, home, breadcrumb } = Astro.props;
+const { index, home, breadcrumb, noComparison } = Astro.props;
 ---
 
 <nav aria-label={breadcrumb}>
@@ -16,6 +20,29 @@ const { index, home, breadcrumb } = Astro.props;
     <li><a href="/">{home}</a></li>
   </ol>
 </nav>
+
+{
+  index.league && (
+    <section class="ap-table-section">
+      <div class="section-head">
+        <h2 class="section-title" id="ap-league">{index.league.section.heading}</h2>
+      </div>
+      {index.league.section.intro && <p class="meta">{index.league.section.intro}</p>}
+      <ViewSwitch id="ap-league-view" legend={index.league.legend} note={index.league.note} labels={index.league.labels}>
+        {index.league.section.panels.map((p) => (
+          <div class="vs-panel" data-view={p.view}>
+            <h3 class="vs-view">{p.label}</h3>
+            {p.empty ? <p class="meta">{p.empty}</p> : <AnswerTable caption={p.heading} columns={p.columns} rows={p.rows} label={p.heading} noComparison={noComparison} />}
+            {p.notes.map((n) => <p class="meta">{n}</p>)}
+          </div>
+        ))}
+      </ViewSwitch>
+      {index.league.links.length > 0 && <p class="ap-links">{index.league.links.map((l) => <a class="starter-open" href={l.href} aria-label={l.named}>{l.text}</a>)}</p>}
+    </section>
+  )
+}
+
+{index.compare && <CompareForm form={index.compare} id="ap-compare" />}
 
 <ul class="ap-index">
   {

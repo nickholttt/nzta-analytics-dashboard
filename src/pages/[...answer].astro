@@ -38,7 +38,7 @@ const words = answerConfig.words;
         <h1>{index.title}</h1>
         <p class="standfirst">{index.intro}</p>
       </Fragment>
-      <AnswerIndex index={index} home={words.home_link} breadcrumb={words.breadcrumb} />
+      <AnswerIndex index={index} home={words.home_link} breadcrumb={words.breadcrumb} noComparison={words.no_comparison} />
     </Layout>
   )
 }

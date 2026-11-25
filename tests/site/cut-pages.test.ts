@@ -140,3 +140,30 @@ test("the new entries over the 12 months are counted from the raw rows: models a
   const newModels = site!.pages.filter((p) => p.kind === "model" && p.periods!.rows.find((r) => r.fresh)).length;
   assert.ok(newModels <= count12("model"), `${newModels} model pages open with a new entry in a period, of ${count12("model")} new models`);
 });
+
+test("the index ranks every brand with a page over the 12 months: each row is the raw sum, in order, with a place only where it can be said", { skip: !real }, () => {
+  const league = site!.index!.league!;
+  const twelve = windows.find((w) => !w.yearToDate && w.months.length === 12)!;
+  assert.equal(league.section.panels.length, 3);
+  assert.equal(league.labels.length, 3);
+  const brandPages = site!.pages.filter((p) => p.kind === "brand");
+  league.section.panels.forEach((panel, ci) => {
+    const condition = CONDITIONS[ci];
+    assert.equal(panel.view, ci);
+    const counts = panel.rows.map((r) => {
+      const page = brandPages.find((b) => b.href === r.href)!;
+      assert.ok(page, `${r.name} has a page`);
+      const n = raw({ make: page.value }, condition, twelve.months);
+      assert.equal(num(r.cells[condition === undefined ? 3 : 1].text), n, `${r.name} ${condition ?? "all"}`);
+      return n;
+    });
+    assert.deepEqual([...counts].sort((a, b) => b - a), counts);
+    // a place is never stated for a brand level with another
+    for (let i = 0; i < panel.rows.length; i++) {
+      const place = panel.rows[i].cells[0].text;
+      const tied = counts.filter((n) => n === counts[i]).length > 1;
+      if (tied) assert.equal(place, "", `${panel.rows[i].name} is level with another`);
+    }
+  });
+  assert.equal(league.section.panels[2].rows.length, brandPages.length);
+});

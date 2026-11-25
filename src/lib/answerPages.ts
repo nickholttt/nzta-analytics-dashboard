@@ -25,6 +25,7 @@ import { basisOf, cutPeriods, leadersPanel, moversPanel, modelsPanel, cutPanel, 
 import type { Cell, Env, Row, Scope, Section } from "./answerPeriods";
 import type { PeriodTable } from "./latestPeriods";
 import { nearestRivals } from "./rivals";
+import type { CompareForm, FormNames, Option, Select } from "./compareForm";
 import { windowPhrase, windowRange, windowsFor } from "./windows";
 import type { Window } from "./windows";
 import { fieldNoteAnchor } from "./dimensionNote";
@@ -115,6 +116,8 @@ export type Kit = {
     // The phrase a value is said by in a sentence ("battery electric vehicles").
     phrase: (value: string) => string;
   };
+  // The names the canvas gives the fields of a chart of a league of brands, and the hidden fields that open it, and the periods a form offers: what the forms are written from.
+  compare?: { names: FormNames; periods: Option[]; defaultPeriod: string; action: string };
   // The address of the canvas that draws a question about the config's dataset and measure, or nothing where it cannot.
   askLink?: (ask: { by: string | null; type: string | null; settings?: Record<string, string>; where?: Record<string, string[]>; values?: string[] }) => string | undefined;
 };
@@ -147,6 +150,8 @@ export type PageView = {
   scope?: Scope;
   // The one table the page draws over the 12 months with no choice (a model's cut values).
   fixed?: Section;
+  // The form that sets this brand beside others in the canvas.
+  compare?: CompareForm;
   // On a page of a cut: the links to every cut's page, with this one marked; and the notes about the field.
   cutNav?: CutNav;
   notes?: string[];
@@ -167,7 +172,15 @@ export type PageView = {
 };
 export type CutNav = { legend: string; all: { text: string; href: string }; items: { text: string; href: string; current?: boolean }[]; note?: { text: string; href: string; after: number } };
 export type IndexEntry = { name: string; href?: string; models: { name: string; href: string }[]; modelsLabel: string };
-export type IndexView = { href: string; title: string; intro: string; entries: IndexEntry[] };
+export type IndexView = {
+  href: string;
+  title: string;
+  intro: string;
+  entries: IndexEntry[];
+  // Every brand with a page by volume over the 12 months, behind a choice of what is counted, with the links that rank them over each period; and the form that sets brands beside each other.
+  league?: { section: Section; legend: string; note: string; labels: string[]; links: { href: string; text: string; named: string }[] };
+  compare?: CompareForm;
+};
 export type Site = {
   month: string;
   pages: PageView[];
@@ -599,7 +612,8 @@ export function answerSite(kit: Kit): Site | undefined {
     const byMonth = months("brand", value, brandCounts);
     if (byMonth) tables.push(byMonth);
     const periods = scope && env && cuts.brand ? valuePeriods(env, cuts.brand, value, config.brand.dimension) : undefined;
-    return finish("brand", value, name, sentences, tables, f.n, cut ? partsList(conditions.map((c) => cut.sum(value, c.value, thisWindow))) : undefined, scope && periods ? { scope, periods } : {});
+    const compare = scope ? compareFor({ value, name }) : undefined;
+    return finish("brand", value, name, sentences, tables, f.n, cut ? partsList(conditions.map((c) => cut.sum(value, c.value, thisWindow))) : undefined, scope && periods ? { scope, periods, ...(compare ? { compare } : {}) } : {});
   };
 
   // The brand's models, most registered first, each linking to its page where it has one, and the rest of the brand in one line.
@@ -828,6 +842,66 @@ export function answerSite(kit: Kit): Site | undefined {
     };
   };
 
+  // ---- The form that sets brands beside each other ----
+
+  const brandOptions = (without?: string): Option[] =>
+    brandValues.filter((v) => v !== without && hrefOf("brand", v) !== undefined).map((v) => ({ value: v, label: kit.label(config.brand.dimension, v) })).sort((a, b) => byName(a.label, b.label));
+  const compareFor = (fixed?: { value: string; name: string }): CompareForm | undefined => {
+    const c = kit.compare;
+    if (!c || !env || !words.compare_button || !words.compare_note) return undefined;
+    const legend = fixed ? say(words, "compare_legend", { name: fixed.name }) : words.compare_legend_index;
+    const brands = brandOptions(fixed?.value);
+    if (!legend || brands.length < 2) return undefined;
+    const choose: Option = { value: "", label: words.compare_choose };
+    const none: Option = { value: "", label: words.compare_none };
+    const brandSelect = (label: string, required: boolean): Select => ({ name: c.names.value, label, required, selected: "", options: [required ? choose : none, ...brands] });
+    const selects: Select[] = fixed
+      ? [brandSelect(words.compare_beside, true), brandSelect(words.compare_and, false)]
+      : [brandSelect(words.compare_first, true), brandSelect(words.compare_second, true), brandSelect(words.compare_third, false)];
+    selects.push({ name: c.names.period, label: words.compare_over, required: true, selected: c.defaultPeriod, options: c.periods });
+    if (kit.views) selects.push({ name: c.names.where(kit.views.field), label: words.compare_counting, required: false, selected: "", options: [{ value: "", label: words.compare_all }, ...conditions.map((x) => ({ value: x.value, label: x.label }))] });
+    if (kit.cutBy && cutValues.length > 0) selects.push({ name: c.names.where(kit.cutBy.field), label: words.compare_cut, required: false, selected: "", options: [{ value: "", label: words.compare_any }, ...cutValues.map((v) => ({ value: v, label: kit.cutBy?.label(v) ?? v }))] });
+    return { action: c.action, legend, hidden: [...c.names.hidden, ...(fixed ? ([[c.names.value, fixed.value]] as [string, string][]) : [])], selects, button: words.compare_button, note: words.compare_note };
+  };
+
+  // ---- Every brand with a page, by volume ----
+
+  const leagueView = (): IndexView["league"] => {
+    if (!env || !cuts.brand || !headlineWindow) return undefined;
+    const brandCut = cuts.brand;
+    const one: Env = { ...env, windows: [headlineWindow], defaultIndex: headlineWindow.index };
+    const heading = words.heading_league;
+    const legend = words.scope_legend;
+    const intro = say(words, "league_intro", { window: phrase.window });
+    const note = intro;
+    if (!heading || !legend || !note) return undefined;
+    const withPage = (v: string) => hrefOf("brand", v) !== undefined;
+    const panelHeading = (_view: string, label: string) => say(words, "heading_label", { heading, label });
+    const section = sectionOf(one, "league", heading, intro, (w, c, wi, ci) =>
+      leadersPanel(one, {
+        cut: brandCut,
+        dimension: config.brand.dimension,
+        nameHead: words.col_brand,
+        heading: panelHeading,
+        top: Number.MAX_SAFE_INTEGER,
+        keep: withPage,
+        nameOf: (v) => kit.label(config.brand.dimension, v),
+        href: (v) => hrefOf("brand", v),
+        shareOf: (cond, win) => (win.months.every(env.has) ? totalFigure(brandCut, cond?.value, win.months) : undefined),
+        shareHead: () => words.col_share_all,
+        place: { atLeast: (cond, win) => reservedMostBy(brandCut)(cond?.value, win), head: words.col_place },
+      }, w, c, wi, ci),
+    );
+    if (!section) return undefined;
+    const links = windows.flatMap((w) => {
+      const href = kit.askLink?.({ by: config.brand.dimension, type: "league", settings: { period: w.canvasPeriod } });
+      const text = say(words, "league_link", { window: env.phrase.window(w) });
+      const named = say(words, "league_link_named", { heading, window: env.phrase.window(w) });
+      return href && text && named ? [{ href, text, named }] : [];
+    });
+    return { section, legend, note: "", labels: [...conditions.map((x) => x.label), words.view_all], links };
+  };
+
   const make = () => [...brandValues.flatMap((v) => brandPage(v) ?? []), ...modelValues.flatMap((v) => modelPage(v) ?? [])];
   let pages = make();
   if (pages.length < brandValues.length + modelValues.length) {
@@ -861,7 +935,9 @@ export function answerSite(kit: Kit): Site | undefined {
   const title = say(words, "index_title", {});
   const minimum = Math.min(config.brand.minimum, config.model.minimum);
   const intro = say(words, "index_intro", { span, minimum: count(minimum) });
-  const index: IndexView | undefined = title && intro && pages.length > 0 ? { href: `/${config.index_path}/`, title, intro, entries: [...entries, ...loose].sort((a, b) => byName(a.value, b.value)).map((e) => e.entry) } : undefined;
+  const league = pages.length > 0 ? leagueView() : undefined;
+  const compareIndex = pages.length > 0 ? compareFor() : undefined;
+  const index: IndexView | undefined = title && intro && pages.length > 0 ? { href: `/${config.index_path}/`, title, intro, entries: [...entries, ...loose].sort((a, b) => byName(a.value, b.value)).map((e) => e.entry), ...(league ? { league } : {}), ...(compareIndex ? { compare: compareIndex } : {}) } : undefined;
 
   // The label of each value with a page, for the front page's tables; a label two values share has no link, as a link might open the other's.
   const labelled = (kind: Kind) => {

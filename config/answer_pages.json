@@ -145,6 +145,26 @@
     "col_share_cut": "Share of {cut}",
     "heading_label": "{heading}: {label}",
     "cut_legend": "Cut by powertrain",
-    "cut_all": "All powertrains"
+    "cut_all": "All powertrains",
+    "compare_legend": "Set {name} beside brands of your choice",
+    "compare_legend_index": "Set brands side by side",
+    "compare_beside": "Beside",
+    "compare_and": "And",
+    "compare_first": "First",
+    "compare_second": "Second",
+    "compare_third": "Third",
+    "compare_over": "Over",
+    "compare_counting": "Counting",
+    "compare_cut": "Powertrain",
+    "compare_none": "No further brand",
+    "compare_any": "Any",
+    "compare_all": "All vehicles",
+    "compare_choose": "Choose a brand",
+    "compare_button": "Compare in the canvas",
+    "compare_note": "The canvas draws them ranked; its chart type picker shows them month by month.",
+    "heading_league": "Brands by volume",
+    "league_intro": "Every brand with a page, ranked by the vehicles first registered {window}.",
+    "league_link": "Rank every brand {window}",
+    "league_link_named": "{heading}: rank every brand {window}, open in the canvas"
   }
 }

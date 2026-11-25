@@ -6,6 +6,7 @@ import "../styles/answer-pages.css";
 import "../styles/answer-parts.css";
 import type { PageView } from "../lib/answerPages";
 import AnswerTable from "./AnswerTable.astro";
+import CompareForm from "./CompareForm.astro";
 import CutNav from "./CutNav.astro";
 import PeriodTable from "./PeriodTable.astro";
 import ViewSwitch from "./ViewSwitch.astro";
@@ -115,6 +116,8 @@ const tableId = (i: number) => `ap-table-${i}`;
     </section>
   ))
 }
+
+{page.compare && <CompareForm form={page.compare} id="ap-compare" />}
 
 <p class="meta ap-source">
   {[page.provenance.source, page.provenance.snapshot].filter(Boolean).join(" ")} <a href={page.definitionHref}>{page.labels.source}</a>

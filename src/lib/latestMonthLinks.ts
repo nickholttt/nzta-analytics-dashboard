@@ -5,6 +5,7 @@
 import { CHART_PARAMS } from "./builder";
 import type { Vocabulary } from "./builder";
 import { CANVAS_PATH, bestType, canvasParams, draws, nextChartId, settleCanvas, withFittingTypes } from "./canvas";
+import type { Canvas } from "./canvas";
 import { findPeriod } from "./config";
 import type { Manifest } from "./data";
 
@@ -30,4 +31,12 @@ export function latestMonthLink(all: Vocabulary, manifest: Manifest, ask: LinkAs
   const params = canvasParams(canvas);
   for (const [name, value] of Object.entries(ask.settings ?? {})) if (CHART_PARAMS.includes(name)) params.set(`${id}.${name}`, value);
   return `${CANVAS_PATH}?${params}`;
+}
+
+// The canvas of one full-width chart of a league of the field, as the canvas settles it for the dataset and measure: what a form's hidden fields are written from.
+export function oneChartCanvas(all: Vocabulary, manifest: Manifest, ask: { dataset: string; measure: string; by: string; type: string }): Canvas | undefined {
+  const id = nextChartId([]);
+  const canvas = withFittingTypes(settleCanvas(all, [{ id, asked: { dataset: ask.dataset, measure: ask.measure, by: ask.by, where: {} }, type: ask.type, table: false, width: "full" }]), manifest);
+  const [chart] = canvas.charts;
+  return chart && chart.question.dataset === ask.dataset && chart.question.measure === ask.measure && chart.question.by === ask.by && chart.type === ask.type ? canvas : undefined;
 }

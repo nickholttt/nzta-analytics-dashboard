@@ -132,3 +132,57 @@ test("every canvas link in a brand page's rivals and powertrain tables, and a mo
     assert.ok((page.more ?? []).length >= 1);
   }
 });
+
+// ---- The forms that set brands beside each other, as a browser sends them ----
+
+test("a form's hidden fields and chosen options, flattened as a browser submits them, read back through the canvas as the page says", { skip: !real }, async () => {
+  const { answerPagesSite } = await import("../../src/lib/answerPagesBuild.ts");
+  const { readPublished } = await import("../../src/lib/publishedFiles.mjs");
+  const manifest = JSON.parse(readFileSync(join("public", "data", "manifest.json"), "utf8"));
+  const site = await answerPagesSite(manifest, readPublished);
+  const opens = canvas.canvasVocabulary(builder.builderVocabulary(manifest));
+  const submit = (form: NonNullable<typeof site>["pages"][number]["compare"], choices: Record<number, string>) => {
+    const params = new URLSearchParams();
+    for (const [name, value] of form!.hidden) params.append(name, value);
+    form!.selects.forEach((s, i) => params.append(s.name, choices[i] ?? s.selected));
+    return `?${params}`;
+  };
+  const read = (search: string) => {
+    const asked = canvas.readCanvas(search);
+    const opened = canvas.withFittingTypes(canvas.settleCanvas(opens, asked), manifest);
+    const [chart] = opened.charts;
+    assert.deepEqual(builder.linkNotices(opens, asked[0].asked, chart.question), []);
+    assert.ok(canvas.draws(chart.question, chart.type ?? canvas.bestType(chart.question), manifest));
+    return { q: chart.question, type: chart.type, period: Object.fromEntries(canvas.chartSettings(search, "c1")).period, opened };
+  };
+  const page = site!.pages.find((p) => p.kind === "brand" && p.href === "/brand/toyota/")!;
+  const form = page.compare!;
+  const other = (label: string) => form.selects[0].options.find((o) => o.label === label)!.value;
+  // the form with this brand fixed: the page's own brand, one more, and the defaults for the rest
+  const base = read(submit(form, { 0: other("Mazda") }));
+  assert.deepEqual([...base.q.values].sort(), ["MAZDA", "TOYOTA"]);
+  assert.equal(base.type, "league");
+  assert.equal(base.period, "latest_year");
+  assert.deepEqual({ ...base.q.where }, {});
+  // two more brands, new vehicles only, a powertrain, the 3 months: spaces go as +
+  const full = read(submit(form, { 0: other("Mazda"), 1: other("Ford"), 2: "latest_3m", 3: "NZ New", 4: "BEV" }));
+  assert.deepEqual([...full.q.values].sort(), ["FORD", "MAZDA", "TOYOTA"]);
+  assert.deepEqual({ ...full.q.where }, { import_status: ["NZ New"], powertrain: ["BEV"] });
+  assert.equal(full.period, "latest_3m");
+  assert.match(submit(form, { 0: other("Mazda"), 3: "NZ New" }), /c1\.where\.import_status=NZ\+New/);
+  // the empty choices ("no further brand", "all vehicles", "any powertrain") ask for nothing and the address is written back without them
+  const search = submit(form, { 0: other("Mazda") });
+  assert.match(search, /c1\.where\.import_status=&/);
+  const again = canvas.canvasAddress(search, base.opened);
+  assert.ok(![...again.keys()].some((k) => k.startsWith("c1.where.")));
+  // the form on the index: three brands, two required
+  const index = site!.index!.compare!;
+  assert.deepEqual(index.selects.slice(0, 3).map((s) => s.required), [true, true, false]);
+  const pick = (i: number, label: string) => index.selects[i].options.find((o) => o.label === label)!.value;
+  const three = read(submit(index, { 0: pick(0, "Toyota"), 1: pick(1, "Ford"), 2: pick(2, "Mazda") }));
+  assert.deepEqual([...three.q.values].sort(), ["FORD", "MAZDA", "TOYOTA"]);
+  const two = read(submit(index, { 0: pick(0, "Toyota"), 1: pick(1, "Ford") }));
+  assert.deepEqual([...two.q.values].sort(), ["FORD", "TOYOTA"]);
+  // no form can ask for more brands than the canvas keeps
+  assert.ok(index.selects.filter((s) => s.name === index.selects[0].name).length <= 3);
+});

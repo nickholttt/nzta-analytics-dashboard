@@ -12,12 +12,14 @@ import { hybrid } from "./config";
 import { dimensionNote, fieldNoteAnchor } from "./dimensionNote";
 import { hybridNotes, splitPublished } from "./hybrid";
 import type { HybridCoverage, HybridPhrases } from "./hybrid";
-import { latestMonthLink } from "./latestMonthLinks";
+import { latestMonthLink, oneChartCanvas } from "./latestMonthLinks";
+import { formNames } from "./compareForm";
+import { CANVAS_PATH } from "./canvas";
 import { readReference } from "./readReference.mjs";
 import { defaultWindow, windowsConfig, windowsFor } from "./windows";
 import { answerConfig, answerSite } from "./answerPages";
 import type { AnswerConfig, Kind, Kit, Site } from "./answerPages";
-import { datasetWords, dimensionLabel, findDataset, findDimension, findMeasure, phrases, valueWords, yearChangeFloor } from "./config";
+import { datasetWords, dimensionLabel, findDataset, findDimension, findMeasure, periods as canvasPeriods, phrases, valueWords, yearChangeFloor } from "./config";
 import type { Preset } from "./config";
 import { datasetLatestMonth } from "./data";
 import type { Manifest } from "./data";
@@ -114,6 +116,11 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
       };
     }
   }
+  // What the forms that open the canvas are written from: its own address for a league of brands, and the periods of a year or less it has.
+  const chart = oneChartCanvas(all, manifest, { dataset: config.dataset, measure: config.measure, by: config.brand.dimension, type: "league" });
+  const formFields = chart ? formNames(chart, chart.charts[0].question) : undefined;
+  const formPeriods = canvasPeriods.flatMap((p) => (p.months !== undefined && p.months <= 12 ? [{ value: p.id, label: p.label, months: p.months }] : [])).sort((a, c) => a.months - c.months).map(({ value, label }) => ({ value, label }));
+  const compare: Kit["compare"] = formFields && open && formPeriods.some((p) => p.value === open.canvasPeriod) ? { names: formFields, periods: formPeriods, defaultPeriod: open.canvasPeriod, action: CANVAS_PATH } : undefined;
   const kit: Kit = {
     config,
     manifest,
@@ -133,6 +140,7 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
     views,
     periods: open && windows.length > 0 ? { windows, defaultIndex: open.index, moverPerMonth: windowsConfig.mover_minimum_per_month, span: (end, months) => fillTemplate(phrases.window_to, { span: months, end: monthLabel(end) }).text, range: (start, end) => fillTemplate(config.words.in_ytd, { start: monthLabel(start), end: monthLabel(end) }).text } : undefined,
     cutBy,
+    compare,
     askLink: (ask) => latestMonthLink(all, manifest, { dataset: config.dataset, measure: config.measure, ...ask }),
     link: (kind, value, by) => answerPageLink(all, manifest, { dataset: config.dataset, measure: config.measure, field: config[kind].dimension, value, by }),
     provenance: {

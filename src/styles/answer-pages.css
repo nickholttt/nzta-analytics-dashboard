@@ -175,3 +175,69 @@
   margin-left: var(--space-2);
   font-size: var(--text-sm);
 }
+
+/* The form that sets brands beside each other in the canvas (src/components/CompareForm.astro). Every control is a native one, so it is reached and used by keyboard. */
+.cmp {
+  margin: var(--space-6) 0;
+}
+
+.cmp-set {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.cmp-legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+}
+
+.cmp-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.cmp-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.cmp-field label {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.cmp-field select {
+  min-height: 2.75rem;
+  max-width: 100%;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+
+.cmp-button {
+  min-height: 2.75rem;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cmp-button:focus-visible,
+.cmp-field select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
