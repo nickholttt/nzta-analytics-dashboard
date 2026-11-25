@@ -143,7 +143,8 @@
   },
   "datasets": {
     "registrations_surviving": {
-      "require": ["in_scope", "fleet_entry"],
+      "$scope_comment": "Counts the five vehicle types the vehicle scope file marks in its trade_scope column (in_trade_scope), the types of the wider scope, since D-157: the published split into light and heavy commercial holds buses, motor caravans and special purpose vehicles, which the default scope (in_scope) leaves out. in_scope is unchanged and is still read by registrations_flow, by the in-scope row count the guardrails compare with the last good build, and by the event checks, so a deliberate change of this dataset's scope moves none of those.",
+      "require": ["in_trade_scope", "fleet_entry"],
       "$pairs_comment": "The two-dimensional slices this dataset emits, each [dim_a, dim_b], written to pairs/{dataset}/{dim_a}__{dim_b}.parquet. Only pairs a chart or filter needs (docs/CUBE_SCHEMA.md, Pair slices).",
       "pairs": [["import_status", "age_at_registration_band"], ["powertrain", "segment_group"], ["import_status", "vehicle_type"]],
       "$facts_comment": "The fact table: counts by month and every dimension listed here, one Parquet file per column under facts/{dataset}/, so the browser can answer any combination by downloading only the columns a question needs (docs/CUBE_SCHEMA.md, Fact table; D-058). region is left out on purpose (D-078), and the user's rule for owner fields allows them in a slice or a pair only (D-096): it is where the vehicle's owner lives, and with it two in three of the table's rows counted a single vehicle.",
@@ -160,7 +161,7 @@
       "pairs": [["vehicle_usage", "vehicle_type"]]
     },
     "registrations_flow": {
-      "$comment": "Read from the supplied source nzta_dashboard (the `supplied` block), through the same normalise, derive and output code as the register. The same require as registrations_surviving, so the two count the same kinds of vehicle: the dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
+      "$comment": "Read from the supplied source nzta_dashboard (the `supplied` block), through the same normalise, derive and output code as the register. The same import-status rule (fleet_entry) as registrations_surviving, but on the default scope's two vehicle types (in_scope): the survivors count the five of the wider scope since D-157, so the two do not count the same kinds of vehicle, and the dataset that does is registrations_flow_wider. The dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
       "source": "nzta_dashboard",
       "require": ["in_scope", "fleet_entry"],
       "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "import_status", "age_at_registration_band", "model"]

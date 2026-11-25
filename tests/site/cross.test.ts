@@ -50,7 +50,9 @@ test("completeness by vehicle type and new or used divides the pair slice by the
   const presets = JSON.parse(read("config/presets.json")).groups.flatMap((g: { presets: { id: string }[] }) => g.presets);
   const p = presets.find((x: { id: string }) => x.id === "registrations-completeness-by-type");
   assert.equal(p.derived, "completeness");
-  assert.equal(p.dataset, "registrations_flow");
+  // The chart reads the dataset the ratio divides by, which counts the same vehicle types as the survivors it divides (D-157).
+  const measure = JSON.parse(read("config/measures.json")).derived_measures.find((m: { id: string }) => m.id === "completeness");
+  assert.equal(p.dataset, measure.denominator_dataset);
   assert.ok(p.dimension && p.cross && p.dimension !== p.cross);
   const resolve = read("src/lib/resolve.ts");
   assert.match(resolve, /cross: \{ dimension: preset\.cross, pair \}/);

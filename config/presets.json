@@ -633,7 +633,7 @@
           "question": "How many of the vehicles registered each month are still on the register?",
           "status": "live",
           "derived": "completeness",
-          "dataset": "registrations_flow",
+          "dataset": "registrations_flow_wider",
           "dimension": "import_status",
           "period": "all"
         },
@@ -642,7 +642,7 @@
           "question": "How many of the vehicles registered each month are still on the register, by kind of vehicle and whether new or used?",
           "status": "live",
           "derived": "completeness",
-          "dataset": "registrations_flow",
+          "dataset": "registrations_flow_wider",
           "dimension": "vehicle_type",
           "cross": "import_status",
           "period": "all"
