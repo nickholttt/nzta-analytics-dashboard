@@ -628,6 +628,11 @@
       "months": 12
     },
     {
+      "id": "latest_3m",
+      "label": "Last 3 months",
+      "months": 3
+    },
+    {
       "id": "latest_month",
       "label": "Latest month",
       "months": 1
