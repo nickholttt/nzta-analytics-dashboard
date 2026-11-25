@@ -1,4 +1,4 @@
-// The latest month, the first section of the front page (config/latest_month.json): what the newest month of true registrations holds, worked out from
+// The latest month, the first section of the front page (config/latest_month.json): what the newest month of new registrations holds, worked out from
 // the slices the build published, each figure with its change on the same month a year earlier. Pure: it reads nothing and names no dataset, field,
 // value or year, so tests/site/ runs it with Node's own test runner. The page's build hands it the slices (src/lib/latestMonthBuild.ts); every
 // sentence is a template of config/latest_month.json, or one of the chart sentences' own (config/narrative/chart_sentences.json), filled with

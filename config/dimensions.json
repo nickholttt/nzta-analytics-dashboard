@@ -273,7 +273,7 @@
       "id": "vehicle_type",
       "label": "Registered as",
       "public_line": "The type NZTA registers each vehicle under, which is a different thing from a split that also reads the body and the weight.",
-      "public_note": "The type NZTA registers the vehicle under. It is a different thing from Vehicle type, which sorts vehicles into cars, utes, vans and trucks from the body and weight as well: a ute can be registered as a passenger vehicle. Only the types a dataset counts are shown: the five types of the wider scope in the vehicles still registered and in true registrations on the wider scope, the two types of the default scope in true registrations, and every type in the vehicles registered today.",
+      "public_note": "The type NZTA registers the vehicle under. It is a different thing from Vehicle type, which sorts vehicles into cars, utes, vans and trucks from the body and weight as well: a ute can be registered as a passenger vehicle. Only the types a dataset counts are shown: the five types of the trade scope in the vehicles still registered and in new registrations, and every type in the vehicles registered today.",
       "source": "nzta:vehicle_type + reference:vehicle_scope",
       "derive": { "kind": "lookup", "field": "vehicle_type", "reference": "vehicle_scope.csv", "key": "vehicle_type", "value": "label" },
       "kind": "category",

@@ -180,7 +180,7 @@ test("a month the visitor picked in a ranking is not carried into the pin: the p
   assert.equal(shownEnd(undefined, "2026-10", ""), "");
 });
 
-// A build in which the second dataset (true registrations: a supplied one) starts in 2021-01 and ends a month before the register's snapshot.
+// A build in which the second dataset (new registrations: a supplied one) starts in 2021-01 and ends a month before the register's snapshot.
 const behind = vocabulary.datasets[1]?.dataset as string;
 const behindManifest = (snapshot: string, latest: string) =>
   ({

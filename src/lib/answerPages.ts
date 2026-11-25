@@ -10,7 +10,7 @@
 //   - a change on a year ago is left out where the earlier period is missing, has fewer vehicles than the change floor, or lies across a change in
 //     how the data is recorded (invariant 7); the figure stays;
 //   - a place is not stated for a value level with another.
-// Only true registrations are read: one dataset (config), so survivors and flow are never in one table.
+// Only new registrations are read: one dataset (config), so survivors and flow are never in one table.
 import configDoc from "../../config/answer_pages.json";
 import { datasetLatestMonth, isBuilt } from "./data";
 import type { Event, Manifest, SliceRow } from "./data";
