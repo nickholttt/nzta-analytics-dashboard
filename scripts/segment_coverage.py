@@ -9,7 +9,9 @@ script, run by hand; the pipeline never runs it (D-117). Nothing reads data/refe
 
 A vehicle counts here when the dataset's own filter counts it and its vehicle type is in the vehicle scope file's `--group`
 (a `scope_group` value). It has a row when the file has a row for its canonical make and model whose vehicle-year bounds it
-meets; a vehicle with no vehicle year meets no row that bounds the year.
+meets and, where the row bounds the gross vehicle mass (`match_gvm_min`, `match_gvm_max`, inclusive, in kilograms), whose mass
+it meets; a vehicle with no vehicle year meets no row that bounds the year, and a vehicle with no recorded gross vehicle mass (or a
+dataset that has none) meets no row that bounds the mass.
 """
 
 import argparse
@@ -53,7 +55,8 @@ seg = []
 for row in segment_rows:
     for model in reference.split(row["models"], sep):
         seg.append((row["make"], model, row["class"], row["confidence"],
-                    row.get("match_vehicle_year_min") or None, row.get("match_vehicle_year_max") or None))
+                    row.get("match_vehicle_year_min") or None, row.get("match_vehicle_year_max") or None,
+                    row.get("match_gvm_min") or None, row.get("match_gvm_max") or None))
 
 expected = json.loads(cfg.path("expected_schema").read_text(encoding="utf-8"))
 types = schema.pull_types(expected, list(p["fields"].values()))
@@ -82,7 +85,11 @@ try:
 except GuardrailError as exc:
     sys.exit(f"the data could not be read: {exc}")
 
-reference.register(con, "seg", ["make", "model", "cls", "confidence", "ymin", "ymax"], seg)
+reference.register(con, "seg", ["make", "model", "cls", "confidence", "ymin", "ymax", "gmin", "gmax"], seg)
+# The dashboard's rows have no gross vehicle mass: there a row that bounds it matches nothing.
+columns = {r[0] for r in con.execute("DESCRIBE rows").fetchall()}
+has_gvm = {"gvm", "gvm__missing", "gvm__sentinel"} <= columns
+gvm_known = "NOT coalesce(r.gvm__missing, false) AND NOT coalesce(r.gvm__sentinel, false) AND r.gvm IS NOT NULL" if has_gvm else "false"
 window = int(p["trailing_window_months"])
 start = metrics.month_add(snapshot, -(window - 1))
 ds = metrics.dataset_filter(dataset_cfg["require"], snapshot)
@@ -99,6 +106,8 @@ con.execute(f"""
     LEFT JOIN seg s ON s.make = r.make_final AND s.model = r.model_final
         AND (s.ymin IS NULL OR r.vehicle_year >= CAST(s.ymin AS BIGINT))
         AND (s.ymax IS NULL OR r.vehicle_year <= CAST(s.ymax AS BIGINT))
+        AND (s.gmin IS NULL OR ({gvm_known} AND r.gvm >= CAST(s.gmin AS BIGINT)))
+        AND (s.gmax IS NULL OR ({gvm_known} AND r.gvm <= CAST(s.gmax AS BIGINT)))
     WHERE {ds} AND r.{vehicle_type} IN ({types_sql}){status_sql}
 """)
 counted = con.execute(f"SELECT count(*) FROM rows r WHERE {ds} AND r.{vehicle_type} IN ({types_sql}){status_sql}").fetchone()[0]

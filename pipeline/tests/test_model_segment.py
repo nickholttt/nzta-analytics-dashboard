@@ -16,11 +16,18 @@ import pytest
 from pipeline import config, reference
 
 FILE = "model_segment.csv"
-HEADER = ["make", "models", "class", "match_vehicle_year_min", "match_vehicle_year_max", "confidence", "basis", "note"]
+HEADER = ["make", "models", "class", "match_vehicle_year_min", "match_vehicle_year_max", "match_gvm_min", "match_gvm_max", "confidence", "basis", "note"]
 CLASSES = {"suv", "car", "unresolved"}
 CONFIDENCE = {"high", "medium", "low"}
 URL = re.compile(r"https?://[^\s;,)]+")
 DATE_READ = re.compile(r"\bread \d{4}-\d{2}-\d{2}\b")
+
+
+def disjoint(lo1: int | None, hi1: int | None, lo2: int | None, hi2: int | None) -> bool:
+    """True when no value lies in both inclusive ranges; a missing bound is open."""
+    lows = [x for x in (lo1, lo2) if x is not None]
+    highs = [x for x in (hi1, hi2) if x is not None]
+    return bool(lows and highs and max(lows) > min(highs))
 
 
 def problems(text: str, makes: set[str]) -> list[str]:
@@ -31,7 +38,7 @@ def problems(text: str, makes: set[str]) -> list[str]:
     rows = list(csv.reader(io.StringIO(text, newline="")))
     if not rows or rows[0] != HEADER:
         return found + [f"the header must be exactly {HEADER}, not {rows[0] if rows else 'empty'}"]
-    seen: dict[tuple[str, str], list[tuple[int, int | None, int | None]]] = {}
+    seen: dict[tuple[str, str], list[tuple[int, int | None, int | None, int | None, int | None]]] = {}
     for line, row in enumerate(rows[1:], start=2):
         if len(row) != len(HEADER):
             found.append(f"line {line}: {len(row)} fields where the header has {len(HEADER)}")
@@ -59,17 +66,23 @@ def problems(text: str, makes: set[str]) -> list[str]:
             years.append(int(value) if value.isdigit() else None)
         if None not in years and years[0] > years[1]:
             found.append(f"{label}: match_vehicle_year_min is after match_vehicle_year_max")
+        gvms = []
+        for column in ("match_gvm_min", "match_gvm_max"):
+            value = r[column]
+            if value and not (value.isdigit() and 3 <= len(value) <= 5):
+                found.append(f"{label}: {column} {value!r} is not a whole number of kilograms (three to five digits)")
+            gvms.append(int(value) if value.isdigit() else None)
+        if None not in gvms and gvms[0] > gvms[1]:
+            found.append(f"{label}: match_gvm_min is after match_gvm_max")
         if not r["basis"].strip():
             found.append(f"{label}: every row needs a basis")
         if r["confidence"] in ("high", "medium") and not (URL.search(r["basis"]) and DATE_READ.search(r["basis"])):
             found.append(f"{label}: a {r['confidence']} row's basis must carry a URL and the date it was read ('read YYYY-MM-DD')")
         for model in models:
-            for other_line, lo, hi in seen.get((r["make"], model), []):
-                starts = [y for y in (years[0], lo) if y is not None]
-                ends = [y for y in (years[1], hi) if y is not None]
-                if not (starts and ends and max(starts) > min(ends)):
+            for other_line, ylo, yhi, glo, ghi in seen.get((r["make"], model), []):
+                if not disjoint(years[0], years[1], ylo, yhi) and not disjoint(gvms[0], gvms[1], glo, ghi):
                     found.append(f"{label}: {model} is also matched by line {other_line}, and some vehicle could meet both")
-            seen.setdefault((r["make"], model), []).append((line, years[0], years[1]))
+            seen.setdefault((r["make"], model), []).append((line, years[0], years[1], gvms[0], gvms[1]))
     return found
 
 
@@ -100,10 +113,10 @@ def build(*rows: list[str], header: list[str] = HEADER, newline: str = chr(10)) 
     return out.getvalue()
 
 
-# make, models, class, year min, year max, confidence, basis, note
-CAR = ["AAAA", "XX1|XX2", "car", "", "", "medium", PAGE, ""]
-SUV = ["AAAA", "XX3", "suv", "", "2019", "high", PAGE, ""]
-LATER = ["AAAA", "XX3", "unresolved", "2020", "", "low", "nothing read", ""]
+# make, models, class, year min, year max, gvm min, gvm max, confidence, basis, note
+CAR = ["AAAA", "XX1|XX2", "car", "", "", "", "", "medium", PAGE, ""]
+SUV = ["AAAA", "XX3", "suv", "", "2019", "", "", "high", PAGE, ""]
+LATER = ["AAAA", "XX3", "unresolved", "2020", "", "", "", "low", "nothing read", ""]
 
 
 def with_(row: list[str], **changes: str) -> list[str]:
@@ -112,8 +125,8 @@ def with_(row: list[str], **changes: str) -> list[str]:
 
 @pytest.mark.parametrize("text, said", [
     (build(CAR, SUV, LATER), None),
-    (build(CAR + ["extra"]), "9 fields where the header has 8"),
-    (build(CAR[:-1]), "7 fields where the header has 8"),
+    (build(CAR + ["extra"]), "11 fields where the header has 10"),
+    (build(CAR[:-1]), "9 fields where the header has 10"),
     (build(with_(CAR, **{"class": "wagon"})), "is not one of ['car', 'suv', 'unresolved']"),
     (build(with_(CAR, make="ZZZZ")), "not a make_canonical"),
     (build(with_(CAR, models="XX1||XX2")), "non-empty, trimmed"),
@@ -129,6 +142,16 @@ def with_(row: list[str], **changes: str) -> list[str]:
     (build(with_(LATER, confidence="medium")), "an unresolved row must have low confidence"),
     (build(with_(SUV, match_vehicle_year_max="19")), "not a four-digit year"),
     (build(with_(SUV, match_vehicle_year_min="2021")), "is after match_vehicle_year_max"),
+    # gvm bounds work as the year bounds do: inclusive, a missing bound is open, and two rows may not overlap in both
+    (build(with_(CAR, models="XX1", match_gvm_min="1000", match_gvm_max="1499"), with_(CAR, models="XX1", match_gvm_min="1500")), None),
+    (build(with_(CAR, models="XX1", match_gvm_min="1000", match_gvm_max="1500"), with_(CAR, models="XX1", match_gvm_min="1500")), "also matched by line 2"),
+    (build(with_(CAR, models="XX1", match_gvm_min="1000"), with_(CAR, models="XX1")), "also matched by line 2"),
+    (build(with_(CAR, models="XX1", match_vehicle_year_min="2022", match_gvm_min="1700", match_gvm_max="1924"),
+           with_(CAR, models="XX1", match_vehicle_year_max="2021")), None),
+    (build(with_(CAR, models="XX1", match_vehicle_year_min="2022", match_gvm_min="1700", match_gvm_max="1924"),
+           with_(CAR, models="XX1", match_vehicle_year_min="2022", match_gvm_min="1925")), None),
+    (build(with_(CAR, match_gvm_min="2000", match_gvm_max="1900")), "match_gvm_min is after match_gvm_max"),
+    (build(with_(CAR, match_gvm_min="1.5t")), "not a whole number of kilograms"),
     (build(CAR, newline=chr(13) + chr(10)), "carriage returns"),
     (build(CAR, header=["make", "model", *HEADER[2:]]), "the header must be exactly"),
 ])

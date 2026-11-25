@@ -1131,13 +1131,17 @@ dimension, no build uses it, and no figure on the site depends on it. A maintain
   previous country of 98.2% (88,089 of 89,733) of passenger used imports in that window. A row's note gives the shares its
   `high` rests on. A maker's current page is taken to speak for earlier generations of the same name unless it says
   otherwise; where it does not cover them, the note says so.
-- **Match columns.** `match_vehicle_year_min` and `match_vehicle_year_max`, as in the other reference files. Used only where a
-  nameplate changed kind between generations and the year can be defended under `docs/MODEL_AND_AGE.md` §1 (for NZ-new vehicles
-  from 2007 `VEHICLE_YEAR` is the registration year; for used imports it is a year from the vehicle's life overseas, so a
-  bound on it is a bound on when the generation could have been first registered anywhere). A vehicle with no vehicle year
-  matches no row that bounds the year, as for `model_registry.csv`. Two rows for one nameplate may not overlap. The two
-  nameplates that use it are Corolla (the Corolla Cross, an SUV, was first sold in 2020) and Leaf (the third generation, a
-  crossover, is 2025 on). The years from the first SUV generation on are `unresolved`.
+- **Match columns.** `match_vehicle_year_min` and `match_vehicle_year_max`, as in the other reference files, and
+  `match_gvm_min` and `match_gvm_max`, a vehicle's gross vehicle mass in kilograms (the register's `GROSS_VEHICLE_MASS`). All
+  four are inclusive and optional, and used only where a nameplate changed kind between generations or models under one name and
+  the field can be defended. The year can be defended under `docs/MODEL_AND_AGE.md` §1 (for NZ-new vehicles from 2007
+  `VEHICLE_YEAR` is the registration year; for used imports it is a year from the vehicle's life overseas, so a bound on it is a
+  bound on when the generation could have been first registered anywhere). A vehicle with no vehicle year matches no row that
+  bounds the year, as for `model_registry.csv`; a vehicle with no recorded gross vehicle mass (missing, or NZTA's placeholder
+  0) matches no row that bounds the mass, and a dataset with no gross vehicle mass (the dashboard's) matches none. Two rows for
+  one nameplate may not overlap: the test treats the year range and the mass range together, and two rows conflict only when
+  both ranges overlap, an open bound being open. The nameplates that use them are Corolla (below) and Leaf (the third
+  generation, a crossover, is 2025 on; the years from there are `unresolved`).
 
 **Which source decides (the tie-break rule).** A passenger model the file does not classify, with no row or an `unresolved`
 row, is shown as its own value, "Not yet classified". A nameplate's class is taken from the first of these that settles it,
@@ -1157,9 +1161,9 @@ and the row's `basis` names what was read or measured:
    judgement: what the maker's own pages say (a "crossover" that does not say SUV, a hatchback and SUV wording together), what
    the maker's own range groups it with, and the register's body type and class. It counts as classified, and the review
    queue's low-confidence list shows it for the owner to approve or change. `unresolved` is left only where no judgement can
-   honestly be made: one register name that covers two different vehicles no row can separate (the register's COROLLA from
-   2020 until the vehicle's mass is used, a brand name such as BMW's `I` that covers several models), a van body registered as
-   a passenger vehicle, or a nameplate where nothing read or measured points either way.
+   honestly be made: one register name that covers two different vehicles no row can separate (a brand name such as BMW's `I`
+   that covers several models), a van body registered as a passenger vehicle, or a nameplate where nothing read or measured
+   points either way.
 
 A class is never taken from memory, and a review, dealer, press or reference page is never copied in as the maker's: such a
 page may be named in a row's basis as supporting evidence only. Where the maker's own pages differ (a menu group that
@@ -1168,9 +1172,41 @@ holds small cars, against a model page's wording), the model page decides and th
 **A register spelling the dashboard does not share.** The register records the Corolla Cross as `COROLLA` and the Prado as
 `LANDCRUISER`; the dashboard records `COROLLA CROSS` and `LANDCRUISER PRADO` (the register's trailing `COROLLA` is 11,305
 vehicles, the dashboard's `COROLLA` 6,600 plus `COROLLA CROSS` 4,651, to within 0.5%). A row is keyed on the make and model as the
-pipeline derives them for either dataset, so one file serves both. For `COROLLA`, where the register's name hides an SUV, the
-file leaves 2020 on unresolved in both datasets, which makes the dashboard's NZ-new Corolla unresolved too, though the
-dashboard does tell the two apart. A per-dataset rule is a later piece (D-117).
+pipeline derives them for either dataset, so one file serves both.
+
+**The register's COROLLA is split on gross vehicle mass.** For NZ-new vehicles of vehicle year 2022 or later (20,366 in the
+2026-10 pull, measured 2026-11-25) the register's gross vehicle mass separates the Corolla from the Corolla Cross with no
+exception: every one has a recorded mass; the 9,533 at 1,925 kg or more (1,930 kg: 8,512; 2,005 kg: 1,020; one at 2,640 kg) are
+station wagons and all carry the submodel engine token of the Cross (2.0PH), and the 10,833 lighter ones (1,735 to 1,915 kg:
+hatchbacks, saloons, the GR Corolla at 1,915 kg and station wagons of 1,735 and 1,785 kg) none does. The first such NZ-new
+vehicle was registered in September 2022. The submodel is free text and was looked at as a check, never used as a basis. The file
+has four COROLLA rows: car up to vehicle year 2019 (the older Corolla, from Wikipedia and Toyota Japan); car for vehicle years
+2020 and 2021 (of the 7,110 NZ-new vehicles of those years one saloon is at 1,925 kg or more); car for vehicle year 2022 on at
+1,700 to 1,924 kg; and suv for vehicle year 2022 on at 1,925 kg or more. Toyota New Zealand's SUV range page lists the Corolla
+Cross and not the Corolla, and its hatchback page lists the Corolla Hatch. The three newer rows are `medium`: the New Zealand
+pages speak for the NZ-new vehicles, 60% of the register's trailing COROLLA vehicles (6,783 of 11,307).
+
+*Used imports.* The rows cannot tell a used import from a NZ-new vehicle (the file has no column for it), and the mass rule does
+not hold for used imports: the Japanese-market Cross weighs 1,605 to 1,805 kg and overlaps the wagons. Of the 1,004 used imports
+and re-registrations of vehicle year 2022 or later, 815 weigh under 1,700 kg or have no mass and match no row (not classified),
+175 are called car (16 of the 526 whose submodel says Corolla, 72 of the 231 that say Cross, 87 of the 247 that say neither) and
+13 are called suv (1 that says Cross, 12 that say neither). Of the 275 used imports whose submodel says Cross, 158 match no
+row, 116 are miscalled car (44 of vehicle year 2021, 72 of 2022 on) and 1 is called suv. Used imports of vehicle year 2020 and
+2021 are called car, 44 of them Crosses. So the used-import Corolla is partly not classified and partly miscalled; the lower
+bound of 1,700 kg is the lightest NZ-new vehicle (1,735 kg) rounded down, so that it keeps the lighter Japanese-market vehicles
+out rather than call them car. New registrations, the owner's target, are classified completely. The dashboard has no gross
+vehicle mass, so its COROLLA of vehicle year 2022 or later matches no row (it was `unresolved`) and its COROLLA CROSS has the row
+of its own; a per-dataset rule is a later piece (D-117).
+
+*Body type.* Every vehicle at 1,925 kg or more is a station wagon, so a station-wagon condition on the `suv` row would change no
+call today. It would make the row safer against a heavier hatchback or sports body (the GR Corolla is 10 kg under the line and
+the Cross 5 kg over it), but the file cannot express it: that needs a `match_body_type` column, which is proposed and not added.
+
+*When a build reads the file.* A build that joins this file on canonical make and model must apply the year bounds and the mass
+bounds together, inclusively; treat a vehicle with no recorded mass as matching no row that bounds the mass; and take the
+`gvm` the `rows` table holds after sentinel handling, never the raw field. For the Market type rules (`market_type_map.csv`
+rule 6), a vehicle that matches no row, or a row that is not `suv`, stays Passenger, so a Corolla with no recorded mass, or a
+used import under 1,700 kg, is Passenger and not SUV.
 
 **Coverage reached** (measured 2026-11-25; passenger vehicles, the `passenger` scope group of `vehicle_scope.csv`, each
 dataset's own filter; the 2026-10 snapshot; trailing is November 2025 to October 2026; "has a row" counts `unresolved` rows,
@@ -1178,18 +1214,19 @@ dataset's own filter; the 2026-10 snapshot; trailing is November 2025 to October
 
 | Dataset | Window | Vehicles | Has a row | Classified | `suv` | `car` | `unresolved` | no row |
 |---|---|---|---|---|---|---|---|---|
-| `registrations_flow` | trailing | 201,088 | 192,070 (95.52%) | 186,948 (92.97%) | 114,006 (56.69%) | 72,942 (36.27%) | 5,122 (2.55%) | 9,018 (4.48%) |
-| `registrations_flow` | all time | 1,218,768 | 1,085,993 (89.11%) | 1,060,496 (87.01%) | 580,863 (47.66%) | 479,633 (39.35%) | 25,497 (2.09%) | 132,775 (10.89%) |
-| `registrations_surviving` | trailing | 200,387 | 191,587 (95.61%) | 181,749 (90.70%) | 109,147 (54.47%) | 72,602 (36.23%) | 9,838 (4.91%) | 8,800 (4.39%) |
-| `registrations_surviving` | all time | 3,617,895 | 2,425,925 (67.05%) | 2,379,777 (65.78%) | 1,087,168 (30.05%) | 1,292,609 (35.73%) | 46,148 (1.28%) | 1,191,970 (32.95%) |
+| `registrations_flow` | trailing | 201,088 | 189,428 (94.20%) | 188,503 (93.74%) | 114,006 (56.69%) | 74,497 (37.05%) | 925 (0.46%) | 11,660 (5.80%) |
+| `registrations_flow` | all time | 1,218,768 | 1,074,620 (88.17%) | 1,068,976 (87.71%) | 580,863 (47.66%) | 488,113 (40.05%) | 5,644 (0.46%) | 144,148 (11.83%) |
+| `registrations_surviving` | trailing | 200,387 | 191,052 (95.34%) | 190,129 (94.88%) | 113,728 (56.75%) | 76,401 (38.13%) | 923 (0.46%) | 9,335 (4.66%) |
+| `registrations_surviving` | all time | 3,617,895 | 2,425,110 (67.03%) | 2,411,107 (66.64%) | 1,096,702 (30.31%) | 1,314,405 (36.33%) | 14,003 (0.39%) | 1,192,785 (32.97%) |
 
 "Classified" is a class at any confidence. In the trailing window the flow dataset's classified vehicles are 37.22% at `high`,
-54.96% at `medium` and 0.78% at `low` (the recorded judgements); the register's are 34.23%, 55.68% and 0.78%. The script prints
-the three shares apart.
+55.74% at `medium` and 0.78% at `low` (the recorded judgements); the register's are 34.23%, 59.87% and 0.78%. The script prints
+the three shares apart. The flow dataset's trailing `no row` rose from 9,018 to 11,660 with the Corolla split: its COROLLA of
+vehicle year 2022 or later has no mass and matches no row (it was `unresolved`).
 
-The file has 221 rows for 296 entries (294 distinct make-and-model pairs; Corolla and Leaf have two rows each): 89 rows at
-`high` (60 `suv`, 29 `car`), 119 at `medium` (56 `suv`, 63 `car`) and 13 at `low` (4 `suv`, 1 `car`, 8 `unresolved`). By entries:
-`suv` 89 high, 81 medium and 4 low; `car` 33 high, 79 medium and 1 low; `unresolved` 9. The first slice's 169 pairs were the 150
+The file has 223 rows for 298 entries (294 distinct make-and-model pairs; Corolla has four rows and Leaf two): 89 rows at
+`high` (60 `suv`, 29 `car`), 122 at `medium` (57 `suv`, 65 `car`) and 12 at `low` (4 `suv`, 1 `car`, 7 `unresolved`). By entries:
+`suv` 89 high, 82 medium and 4 low; `car` 33 high, 81 medium and 1 low; `unresolved` 8. The first slice's 169 pairs were the 150
 largest passenger nameplates of the two datasets' trailing windows combined and 19 more, to the rank where the register's
 cumulative share reached 90% (D-117); the second slice added the ten largest still without a row (D-123), and the third the
 next ten and the Suzuki e VITARA (D-145). The fourth, the first batch of the classification review (2026-11-25), took the
@@ -1203,10 +1240,10 @@ nameplates, not the many that were registered earlier and have since gone.
 **Measured on new passenger vehicles** (the register: NZ-new vehicles of passenger type, first registered November 2025 to
 October 2026, in the bodies the SUV-or-car rules cover: station wagon, hatchback, saloon, sports car, convertible, light and
 heavy van; 110,606 vehicles; measured 2026-11-25). Before the fourth slice: `suv` 73.38%, `car` 7.47%, `unresolved` 12.57%, no
-row 6.58%, so 80.85% classified. After: `suv` 89,140 (80.59%), `car` 13,229 (11.96%), `unresolved` 7,364 (6.66%), no row 873
-(0.79%), so 92.55% classified: 47.68% at `high`, 43.47% at `medium` and 1.40% (1,553 vehicles) at `low`. Of the `unresolved`
-vehicles, 6,783 (6.13% of the 110,606) are the register's COROLLA, which holds the Corolla Cross with the Corolla and which no
-field the file uses today separates; with it left `unresolved`, 93.87% is the most the file can classify.
+row 6.58%, so 80.85% classified. After the first batch and the recorded judgements: 92.55% classified, with the register's
+COROLLA (6,783, 6.13%) the largest `unresolved` name. After the Corolla split: `suv` 93,720 (84.73%), `car` 15,432 (13.95%),
+`unresolved` 581 (0.53%: the Ford Transit and Transit Courier, Hiace, Vito, BMW `I` and Yukon), no row 873 (0.79%), so 109,152
+(98.69%) classified: 47.68% at `high`, 49.60% at `medium` and 1.40% (1,553 vehicles) at `low`.
 `scripts/segment_coverage.py` prints these figures for either dataset.
 
 **Set beside the trade's own placement, privately.** The file's first slice was set beside the FCAI's published sample of its
