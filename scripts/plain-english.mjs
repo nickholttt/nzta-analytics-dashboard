@@ -24,6 +24,9 @@ export function loadRules(repoRoot) {
   // An id reads as an id, not as a phrase, when it holds an underscore or two hyphens ("long-run" is a phrase).
   const isIdLike = (id) => id.includes("_") || (id.match(/-/g) ?? []).length >= 2;
   const ids = new Set(Object.keys(read("config/pipeline.json").datasets ?? {}).filter(isIdLike));
+  // A retired dataset is no longer a key of pipeline.json or an "id" anywhere, yet an older link still names it and the bundle holds it
+  // (dimensions.json, retired_datasets), so its id stays banned in a page and in config words.
+  for (const id of Object.keys(read("config/dimensions.json").retired_datasets ?? {})) if (!id.startsWith("$") && isIdLike(id)) ids.add(id);
   const walk = (node) => {
     if (Array.isArray(node)) node.forEach(walk);
     else if (node && typeof node === "object") {
