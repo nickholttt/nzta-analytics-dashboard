@@ -1120,9 +1120,12 @@ dimension, no build uses it, and no figure on the site depends on it. A maintain
   the row's `basis`, covering the markets that make up at least 80% of the nameplate's vehicles in the trailing 12 months.
   `medium`: a review, a trade or reference source (Wikipedia is used and named as such), a maker's page found by search but
   not read (a number of makers' sites refuse automated readers), or a primary page that covers under 80% of the nameplate's
-  vehicles. `low` is always `unresolved`, and an `unresolved` row is always `low`: the maker's pages disagree, the maker says
-  "crossover" without saying SUV, one name covers both kinds across generations that the match columns cannot separate, or no
-  source was read. A large count never raises a row's confidence.
+  vehicles. `low`: a recorded judgement (step 3 of the tie-break rule below), which gives the nameplate a class (`suv` or
+  `car`) with the ground it rests on, or `unresolved`. An `unresolved` row is always `low`. A `low` row that names a class says
+  "judgement" in its `basis`, and a test checks that. `unresolved` is for a nameplate where no judgement can honestly be made:
+  one name covers both kinds, across generations that the match columns cannot separate or in one model year, or a van body
+  that NZTA registers as a passenger vehicle, or nothing read or measured points either way. A large count never raises a
+  row's confidence.
 - **Market cover is measured on the register** (D-123): a row's markets are its NZ-new vehicles and its used imports by
   `PREVIOUS_COUNTRY`, in the register's trailing 12 months, since the dashboard has no previous country. Japan is the
   previous country of 98.2% (88,089 of 89,733) of passenger used imports in that window. A row's note gives the shares its
@@ -1136,6 +1139,32 @@ dimension, no build uses it, and no figure on the site depends on it. A maintain
   nameplates that use it are Corolla (the Corolla Cross, an SUV, was first sold in 2020) and Leaf (the third generation, a
   crossover, is 2025 on). The years from the first SUV generation on are `unresolved`.
 
+**Which source decides (the tie-break rule).** A passenger model the file does not classify, with no row or an `unresolved`
+row, is shown as its own value, "Not yet classified". A nameplate's class is taken from the first of these that settles it,
+and the row's `basis` names what was read or measured:
+
+1. **The maker's own New Zealand site**: the category it lists the model under, such as an "SUV" range page, a body-style menu
+   or the model page's own wording. Where the New Zealand site gives no class (no site, a model not sold new here), the
+   maker's Japanese or global site. `high` when the page was read and covers at least 80% of the nameplate's vehicles (the
+   rule above); `medium` when the page was found by search and not read, covers less, or is another market's.
+2. **The register's own fields**: body type and NZTA class (`MC` against `MA`), with the measured shares in the row's note.
+   `medium`. Station wagons that are nearly all `MC` are `suv`; saloon, coupe, convertible and sports bodies are `car`; a
+   hatchback body alone is taken as `car` and is the weakest case, because the register records some SUVs as hatchbacks (the
+   Stonic and the Juke above, the Mercedes-Benz GLA in the 2026-10 pull). Where the fields are mixed, as with `MA` station
+   wagons, which hold SUVs and wagons alike, or a van body, they do not settle it and the nameplate goes to step 3.
+3. **A recorded low-confidence judgement**: when neither step settles it, the judgement is made and the nameplate is given a
+   class (`suv` or `car`) at `low` confidence, with the ground it rests on in the `basis`, which says plainly that it is a
+   judgement: what the maker's own pages say (a "crossover" that does not say SUV, a hatchback and SUV wording together), what
+   the maker's own range groups it with, and the register's body type and class. It counts as classified, and the review
+   queue's low-confidence list shows it for the owner to approve or change. `unresolved` is left only where no judgement can
+   honestly be made: one register name that covers two different vehicles no row can separate (the register's COROLLA from
+   2020 until the vehicle's mass is used, a brand name such as BMW's `I` that covers several models), a van body registered as
+   a passenger vehicle, or a nameplate where nothing read or measured points either way.
+
+A class is never taken from memory, and a review, dealer, press or reference page is never copied in as the maker's: such a
+page may be named in a row's basis as supporting evidence only. Where the maker's own pages differ (a menu group that
+holds small cars, against a model page's wording), the model page decides and the note says so.
+
 **A register spelling the dashboard does not share.** The register records the Corolla Cross as `COROLLA` and the Prado as
 `LANDCRUISER`; the dashboard records `COROLLA CROSS` and `LANDCRUISER PRADO` (the register's trailing `COROLLA` is 11,305
 vehicles, the dashboard's `COROLLA` 6,600 plus `COROLLA CROSS` 4,651, to within 0.5%). A row is keyed on the make and model as the
@@ -1143,27 +1172,41 @@ pipeline derives them for either dataset, so one file serves both. For `COROLLA`
 file leaves 2020 on unresolved in both datasets, which makes the dashboard's NZ-new Corolla unresolved too, though the
 dashboard does tell the two apart. A per-dataset rule is a later piece (D-117).
 
-**Coverage reached** (measured 2026-11-18; passenger vehicles, the `passenger` scope group of `vehicle_scope.csv`, each
+**Coverage reached** (measured 2026-11-25; passenger vehicles, the `passenger` scope group of `vehicle_scope.csv`, each
 dataset's own filter; the 2026-10 snapshot; trailing is November 2025 to October 2026; "has a row" counts `unresolved` rows,
 "classified" does not).
 
 | Dataset | Window | Vehicles | Has a row | Classified | `suv` | `car` | `unresolved` | no row |
 |---|---|---|---|---|---|---|---|---|
-| `registrations_flow` | trailing | 201,088 | 184,490 (91.75%) | 172,875 (85.97%) | 105,529 (52.48%) | 67,346 (33.49%) | 11,615 (5.78%) | 16,598 (8.25%) |
-| `registrations_flow` | all time | 1,218,768 | 1,025,279 (84.12%) | 968,889 (79.50%) | 529,441 (43.44%) | 439,448 (36.06%) | 56,390 (4.63%) | 193,489 (15.88%) |
-| `registrations_surviving` | trailing | 200,387 | 183,990 (91.82%) | 167,669 (83.67%) | 100,698 (50.25%) | 66,971 (33.42%) | 16,321 (8.14%) | 16,397 (8.18%) |
-| `registrations_surviving` | all time | 3,617,895 | 2,264,057 (62.58%) | 2,148,386 (59.38%) | 977,278 (27.01%) | 1,171,108 (32.37%) | 115,671 (3.20%) | 1,353,838 (37.42%) |
+| `registrations_flow` | trailing | 201,088 | 192,070 (95.52%) | 186,948 (92.97%) | 114,006 (56.69%) | 72,942 (36.27%) | 5,122 (2.55%) | 9,018 (4.48%) |
+| `registrations_flow` | all time | 1,218,768 | 1,085,993 (89.11%) | 1,060,496 (87.01%) | 580,863 (47.66%) | 479,633 (39.35%) | 25,497 (2.09%) | 132,775 (10.89%) |
+| `registrations_surviving` | trailing | 200,387 | 191,587 (95.61%) | 181,749 (90.70%) | 109,147 (54.47%) | 72,602 (36.23%) | 9,838 (4.91%) | 8,800 (4.39%) |
+| `registrations_surviving` | all time | 3,617,895 | 2,425,925 (67.05%) | 2,379,777 (65.78%) | 1,087,168 (30.05%) | 1,292,609 (35.73%) | 46,148 (1.28%) | 1,191,970 (32.95%) |
 
-The file has 134 rows for 192 entries (190 distinct make-and-model pairs; Corolla and Leaf have two rows each): 53 rows at
-`high` (36 `suv`, 17 `car`), 66 at `medium` (30 `suv`, 36 `car`) and 15 at `low`, all `unresolved`. By entries: `suv` 60 high
-and 50 medium, `car` 20 high and 44 medium, `unresolved` 18. By vehicles in the flow dataset's trailing window, `high` is
-34.29% and `medium` 51.68%; in the register's, 31.29% and 52.38%. The first slice's 169 pairs were the 150 largest passenger
-nameplates of the two datasets' trailing windows combined and 19 more, to the rank where the register's cumulative share
-reached 90% (D-117); the second slice added the ten largest still without a row (D-123), and the third the next ten and the
-Suzuki e VITARA (D-145). The largest nameplates still without a row (trailing, flow): Mazda Biante 159, Audi A3 157, Honda e:N1
-156, Volkswagen Polo 156, Nissan Sylphy 152, Mitsubishi Mirage 151, Audi A5 147, MINI Aceman 147, Toyota Hiace 145, Lexus LX
-144. The register's all-time figure is low because the file lists current nameplates, not the many that were registered
-earlier and have since gone.
+"Classified" is a class at any confidence. In the trailing window the flow dataset's classified vehicles are 37.22% at `high`,
+54.96% at `medium` and 0.78% at `low` (the recorded judgements); the register's are 34.23%, 55.68% and 0.78%. The script prints
+the three shares apart.
+
+The file has 221 rows for 296 entries (294 distinct make-and-model pairs; Corolla and Leaf have two rows each): 89 rows at
+`high` (60 `suv`, 29 `car`), 119 at `medium` (56 `suv`, 63 `car`) and 13 at `low` (4 `suv`, 1 `car`, 8 `unresolved`). By entries:
+`suv` 89 high, 81 medium and 4 low; `car` 33 high, 79 medium and 1 low; `unresolved` 9. The first slice's 169 pairs were the 150
+largest passenger nameplates of the two datasets' trailing windows combined and 19 more, to the rank where the register's
+cumulative share reached 90% (D-117); the second slice added the ten largest still without a row (D-123), and the third the
+next ten and the Suzuki e VITARA (D-145). The fourth, the first batch of the classification review (2026-11-25), took the
+passenger nameplates with the most NZ-new vehicles in the trailing window, every one with 20 or more in the last three months:
+it added or changed 98 rows for 117 nameplates (the maker's own site for 81 of them, the register's fields for 27, a recorded
+judgement for 5 classed at `low`, and 4 left `unresolved`). The largest nameplates still without a row (trailing, flow): Mazda
+Biante 159, Nissan Sylphy 152, Mitsubishi Mirage 151, Honda Jade 143, Lexus RX450H 137, Subaru Exiga 121, Lexus GS450H 118,
+Nissan Teana 118, BMW 320D 110, BMW 420I 108. The register's all-time figure is low because the file lists current
+nameplates, not the many that were registered earlier and have since gone.
+
+**Measured on new passenger vehicles** (the register: NZ-new vehicles of passenger type, first registered November 2025 to
+October 2026, in the bodies the SUV-or-car rules cover: station wagon, hatchback, saloon, sports car, convertible, light and
+heavy van; 110,606 vehicles; measured 2026-11-25). Before the fourth slice: `suv` 73.38%, `car` 7.47%, `unresolved` 12.57%, no
+row 6.58%, so 80.85% classified. After: `suv` 89,140 (80.59%), `car` 13,229 (11.96%), `unresolved` 7,364 (6.66%), no row 873
+(0.79%), so 92.55% classified: 47.68% at `high`, 43.47% at `medium` and 1.40% (1,553 vehicles) at `low`. Of the `unresolved`
+vehicles, 6,783 (6.13% of the 110,606) are the register's COROLLA, which holds the Corolla Cross with the Corolla and which no
+field the file uses today separates; with it left `unresolved`, 93.87% is the most the file can classify.
 `scripts/segment_coverage.py` prints these figures for either dataset.
 
 **Set beside the trade's own placement, privately.** The file's first slice was set beside the FCAI's published sample of its
