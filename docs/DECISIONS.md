@@ -731,7 +731,7 @@ date, or "inferred — confirm"; the full legend heads the archive.
   - Buyer type public everywhere, beside the owner's region or district too. Not chosen: location at district level is the one line NZTA itself drew in writing, no question asked so far needs the two together, and the floor is cheap to keep.
   - Buyer type public and in a fact table, never in a table with a field that says where the owner lives. Chosen.
   - Keep owner type and usage as raw columns in the store, or only the derived buyer type. Raw columns: a dimension is derived in the build from source values and a reference file (invariant 4), and the usage at registration answers other questions later (a "Registered as" field, D-140).
-  - Rental as usage "rental" whatever the owner type, or as a company with that usage. The second: buyer type is who registered the vehicle, and usage only divides companies. They differ by 155 vehicles over the history (owner type Individual with the rental usage, five types, new and used).
+  - Rental as usage "rental" whatever the owner type, or as a company with that usage. The second: buyer type is who registered the vehicle, and usage only divides companies. They differ by 196 vehicles over the history (155 with owner type Individual and 41 with owner type Other, all with the rental usage; five types, new and used).
   - The fourth value named "Government". Not chosen, and the user's direction is "Other": no value of owner type or of the usage list says government.
   - A column of the wide fact table, or a narrow table (D-144). The rule, set before the build: a column only if it adds under 10% to the wide table's bytes. Measured on a dry run: +31.5%, so the narrow table (below).
 - Decision:
