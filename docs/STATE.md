@@ -80,8 +80,7 @@ as first observed (item 5). Lane E waits on the user's approval of #152 and #154
 
 - `docs/brief/MASTER_BRIEF.md` knows no canvas; the order wins. The order puts the sentence under the
   chart; the user's answer of 2026-11-25 put it above, and the code follows that.
-- `docs/DATA_MAP.md` lists ten places where it disagrees with other files; its survivors figures other
-  than the totals were measured on two vehicle types and are not restated (D-157).
+- `docs/DATA_MAP.md`: ten listed disagreements; its survivors figures but the totals predate D-157.
 
 ## Blocked or waiting on the user
 
