@@ -1,0 +1,34 @@
+---
+// The form that sets brands beside each other in the canvas (src/lib/compareForm.ts): a plain GET form to the canvas's own address, so it works with no script and
+// stays on the site's own origin. The hidden fields open one chart that ranks the chosen brands; the choices are selects, and an empty one asks for nothing (any
+// powertrain, all vehicles, no other brand). At most three brands can be chosen, so the canvas's cap is never passed.
+import "../styles/answer-pages.css";
+import type { CompareForm } from "../lib/compareForm";
+
+interface Props {
+  form: CompareForm;
+  id: string;
+}
+const { form, id } = Astro.props;
+---
+
+<form class="cmp" action={form.action} method="get">
+  <fieldset class="cmp-set">
+    <legend class="cmp-legend">{form.legend}</legend>
+    {form.hidden.map(([name, value]) => <input type="hidden" name={name} value={value} />)}
+    <div class="cmp-fields">
+      {
+        form.selects.map((s, i) => (
+          <div class="cmp-field">
+            <label for={`${id}-${i}`}>{s.label}</label>
+            <select id={`${id}-${i}`} name={s.name} required={s.required}>
+              {s.options.map((o) => <option value={o.value} selected={o.value === s.selected}>{o.label}</option>)}
+            </select>
+          </div>
+        ))
+      }
+    </div>
+    <button class="cmp-button" type="submit">{form.button}</button>
+  </fieldset>
+  <p class="meta">{form.note}</p>
+</form>

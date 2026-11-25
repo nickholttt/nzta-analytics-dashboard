@@ -20,16 +20,20 @@ export class Cut {
   ) {}
 
   // The counts of `field` by `condition` over the fact table's rows. The conditions are listed in `order`, then any other the table holds as it holds it.
-  static from(columns: FactColumns, field: string, condition: string, order: readonly string[]): Cut | undefined {
+  // With `only`, just the rows where another field has that value: the cut of the vehicles of one powertrain, say.
+  static from(columns: FactColumns, field: string, condition: string, order: readonly string[], only?: { field: string; value: string }): Cut | undefined {
     const values = columns.values[field];
     const conditions = columns.values[condition];
+    const filter = only ? columns.values[only.field] : undefined;
     const length = columns.n.length;
     if (!values || !conditions || values.length !== length || conditions.length !== length || columns.month.length !== length) return undefined;
+    if (only && (!filter || filter.length !== length)) return undefined;
     const cells = new Map<string, Map<string, Map<string, number>>>();
     const seen = new Set<string>();
     for (let i = 0; i < length; i++) {
       const n = columns.n[i];
       if (!Number.isFinite(n)) return undefined;
+      if (only && filter?.[i] !== only.value) continue;
       const month = columns.month[i];
       let byValue = cells.get(month);
       if (!byValue) cells.set(month, (byValue = new Map()));
@@ -72,6 +76,23 @@ export class Cut {
     for (const m of months) for (const v of this.cells.get(m)?.keys() ?? []) out.add(v);
     return [...out];
   };
+
+  // Whether this cut's every count is the sum of the same count in each of `parts`, and the parts hold nothing more: the cut of all the vehicles is
+  // the cuts of each powertrain added up.
+  agreesWithSum(parts: readonly Cut[]): boolean {
+    let mine = 0;
+    for (const [month, byValue] of this.cells) {
+      for (const [value, byCondition] of byValue) {
+        for (const [condition, n] of byCondition) {
+          mine += n;
+          if (parts.reduce((s, p) => s + p.at(value, condition, month), 0) !== n) return false;
+        }
+      }
+    }
+    let theirs = 0;
+    for (const p of parts) for (const byValue of p.cells.values()) for (const byCondition of byValue.values()) for (const n of byCondition.values()) theirs += n;
+    return mine === theirs;
+  }
 
   // Whether the cut says what the slice says: every slice row's count is the sum over conditions, no row of the slice is hidden, and the table holds
   // no value in a month that the slice does not.

@@ -138,11 +138,11 @@ def _answer_pages_templates() -> list[tuple[str, str, str]]:
 
 
 def _display_name_templates() -> list[tuple[str, str, str]]:
-    """The words for the two conditions a first registration is counted under (data/reference/display_names.csv): the name of each in a column or a
-    button, and its phrase in a sentence, for one vehicle and for several. They fill every sentence about new and used imports, so they are held to
+    """The words for the two conditions a first registration is counted under and for each powertrain cut (data/reference/display_names.csv): the name of each in a column or a
+    button, and its phrase in a sentence, for one vehicle and for several. They fill every sentence about new and used imports and about a powertrain, so they are held to
     the same rules as a template: no figure, no causal word, no placeholder. A make's display name is a spelling, not a word of a sentence."""
     with (ROOT / "data" / "reference" / "display_names.csv").open(encoding="utf-8", newline="") as handle:
-        rows = [r for r in csv.DictReader(handle) if r["field"] == "import_status"]
+        rows = [r for r in csv.DictReader(handle) if r["field"] in ("import_status", "powertrain")]
     return [("display_names", f"display_names.{r['value']}.{column}", r[column]) for r in rows for column in ("display", "phrase", "phrase_one") if (r.get(column) or "").strip()]
 
 
@@ -256,7 +256,7 @@ def test_the_lint_reads_every_word_of_the_latest_month():
 # What in config/answer_pages.json is not a template: the dataset and the measure it counts, the fields it makes pages for, the first part of each
 # page's address, the index's address, the address of the definition and of the caveats page.
 _ANSWER_PAGES_NOT_A_TEMPLATE = re.compile(
-    r"^(dataset|measure|view_field|index_path|definition|caveat\.href|(brand|model)\.(dimension|path))$"
+    r"^(dataset|measure|view_field|index_path|definition|rivals_trend_period|caveat\.href|(brand|model|cut)\.(dimension|path))$"
 )
 
 

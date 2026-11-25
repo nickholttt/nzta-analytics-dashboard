@@ -1,0 +1,11 @@
+{
+  "$comment": "The period windows the home page, the brand and model pages, the powertrain pages and the index list their figures over (src/lib/windows.ts). It holds no words: each window's words are the `win_<id>` entries of `words` in config/latest_month.json and config/answer_pages.json. `months` is the number of months ending with the newest month; `year_to_date` runs from January of the newest month's year to the newest month. A window's figure is the sum of its months, and its change is against the same months a year earlier. `canvas_period` is the id of the canvas period (config/dimensions.json, periods) a link to the canvas asks for; a window whose period the canvas lacks has its canvas link withheld. `default` is the window each surface opens on. `mover_minimum_per_month` is the fewest vehicles a month a value needs, in both windows, to be a mover: a window of three months needs three times it (src/lib/windowFigures.ts).",
+  "windows": [
+    { "id": "month", "months": 1, "canvas_period": "latest_month" },
+    { "id": "3m", "months": 3, "canvas_period": "latest_3m" },
+    { "id": "12m", "months": 12, "canvas_period": "latest_year" },
+    { "id": "ytd", "year_to_date": true, "canvas_period": "year_to_date" }
+  ],
+  "default": { "home": "month", "brand": "12m", "model": "12m", "cut": "12m", "index": "12m" },
+  "mover_minimum_per_month": 100
+}

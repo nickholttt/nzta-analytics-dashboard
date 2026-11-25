@@ -413,7 +413,7 @@ test("on the built data the figure is the sum of the vehicle-type split and of e
 
 test("the words of the section are filled with nothing left over, for a made-up month", () => {
   for (const [key, text] of Object.entries(latestConfig.words)) {
-    const { unresolved } = fillTemplate(text, { month: MONTH, prior_month: PRIOR, counted: "c", change: 0.1, prior_count: "1", prior: "p", name: "n", names: "n", field: "f", share: "s", points: "p", minimum: "1", heading: "h", view: "v", parts: "p", count: "1" });
+    const { unresolved } = fillTemplate(text, { month: MONTH, prior_month: PRIOR, counted: "c", change: 0.1, prior_count: "1", prior: "p", name: "n", names: "n", field: "f", share: "s", points: "p", minimum: "1", heading: "h", view: "v", parts: "p", count: "1", window: "w", start: "s", end: "e", items: "i", label: "l", months: 3 });
     assert.deepEqual(unresolved, [], key);
   }
 });

@@ -6,10 +6,20 @@
 import { builderVocabulary, datasetName } from "./builder";
 import { canvasSpec, canvasVocabulary } from "./canvas";
 import { answerPageLink } from "./answerPageLinks";
-import { viewCuts } from "./conditionViewsBuild";
+import { restrictedCuts, viewCuts } from "./conditionViewsBuild";
+import { chipValues, firstAppearance } from "./powertrainCut";
+import { hybrid } from "./config";
+import { dimensionNote, fieldNoteAnchor, fullNote } from "./dimensionNote";
+import { hybridNotes, splitPublished } from "./hybrid";
+import type { HybridCoverage, HybridPhrases } from "./hybrid";
+import { latestMonthLink, oneChartCanvas } from "./latestMonthLinks";
+import { formNames } from "./compareForm";
+import { CANVAS_PATH } from "./canvas";
+import { readReference } from "./readReference.mjs";
+import { defaultWindow, windowsConfig, windowsFor } from "./windows";
 import { answerConfig, answerSite } from "./answerPages";
 import type { AnswerConfig, Kind, Kit, Site } from "./answerPages";
-import { datasetWords, dimensionLabel, findDataset, findDimension, findMeasure, phrases, valueWords, yearChangeFloor } from "./config";
+import { datasetWords, dimensionLabel, findDataset, findDimension, findMeasure, periods as canvasPeriods, phrases, valueWords, yearChangeFloor } from "./config";
 import type { Preset } from "./config";
 import { datasetLatestMonth } from "./data";
 import type { Manifest } from "./data";
@@ -73,6 +83,48 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
       };
     }
   }
+  // The windows, and the cuts of the brands and models by powertrain, where the fact table agrees with the slices.
+  const latestMonth = datasetLatestMonth(manifest, config.dataset);
+  const windows = windowsFor(latestMonth);
+  const open = defaultWindow(windows, "brand");
+  let cutBy: Kit["cutBy"];
+  if (views && display && entry.live_dimensions?.includes(config.cut.dimension)) {
+    const cutSlices: Record<string, Awaited<ReturnType<typeof readSlice>>> = { [config.cut.dimension]: await readSlice(read, manifest, config.dataset, config.cut.dimension), [views.field]: await readSlice(read, manifest, config.dataset, views.field) };
+    for (const kind of KINDS) cutSlices[config[kind].dimension] = slices[kind];
+    const set = await restrictedCuts(read, manifest, config.dataset, views.field, conditionOrder(display, views.field), KINDS.map((kind) => config[kind].dimension), config.cut.dimension, cutSlices);
+    if (set) {
+      const order = firstAppearance((readReference("powertrain_map.csv") ?? []).map((r: Record<string, string>) => r.powertrain));
+      const cutNames = labeller(display, () => undefined, () => set.values, valueWords);
+      const coverage = (manifest.datasets[config.dataset] as { mild_hybrid_identification_coverage?: { label: string; complete_at_coverage: number; all_time: { coverage_stated_confidence: number | null }; trailing: { coverage_stated_confidence: number | null } } }).mild_hybrid_identification_coverage;
+      const partial = coverage !== undefined && [coverage.all_time.coverage_stated_confidence, coverage.trailing.coverage_stated_confidence].some((x) => x === null || x < coverage.complete_at_coverage);
+      // The mild line takes the label the canvas gives it while it is only partly identified.
+      const label = (value: string) => (partial && value === hybrid.mild_powertrain && coverage ? coverage.label : cutNames.label(config.cut.dimension, value));
+      const field = findDimension(config.cut.dimension);
+      const published = (coverage as unknown as HybridCoverage | undefined);
+      const note = dimensionNote(field, false, { splitPublished: splitPublished(published) }).plain;
+      const coverageNote = hybridNotes({ coverage: published, onPowertrain: true, mildDrawn: true, narrowed: false, internal: false, mildValue: hybrid.mild_powertrain, undividedValue: hybrid.undivided_powertrain ?? hybrid.source_hybrid.value, phrases: phrases as unknown as HybridPhrases, percent: pct }).coverage;
+      const chips = chipValues(cutSlices[config.cut.dimension], monthRange(addMonths(latestMonth, 1 - config.window), latestMonth), config.cut.minimum, order);
+      cutBy = {
+        field: config.cut.dimension,
+        chips,
+        order,
+        label,
+        cuts: { brand: set.fields[config.brand.dimension].by, model: set.fields[config.model.dimension].by },
+        // A line that is only partly identified is said by its own words ("identified mild hybrid vehicles"), not as if it counted every one.
+        phrase: (value) => (partial && value === hybrid.mild_powertrain && coverage ? (conditionWords(display, config.cut.dimension, coverage.label)?.phrase ?? label(value).toLowerCase()) : (conditionWords(display, config.cut.dimension, value)?.phrase ?? label(value).toLowerCase())),
+        // Its change on a year earlier is not stated while it is partial: the identification may have changed between the two periods, and that is a change in how the data is read.
+        ...(partial && set.values.includes(hybrid.mild_powertrain) ? { uncompared: new Set([hybrid.mild_powertrain]) } : {}),
+        notes: (value) => [note, value === hybrid.mild_powertrain ? coverageNote : undefined].filter((x): x is string => Boolean(x)),
+        // The link goes only where the method page has a section for the field.
+        noted: set.values.includes(hybrid.mild_powertrain) && fullNote(field) !== undefined ? { value: hybrid.mild_powertrain, href: `/method#${fieldNoteAnchor(config.cut.dimension)}` } : undefined,
+      };
+    }
+  }
+  // What the forms that open the canvas are written from: its own address for a league of brands, and the periods of a year or less it has.
+  const chart = oneChartCanvas(all, manifest, { dataset: config.dataset, measure: config.measure, by: config.brand.dimension, type: "league" });
+  const formFields = chart ? formNames(chart, chart.charts[0].question) : undefined;
+  const formPeriods = canvasPeriods.flatMap((p) => (p.months !== undefined && p.months <= 12 ? [{ value: p.id, label: p.label, months: p.months }] : [])).sort((a, c) => a.months - c.months).map(({ value, label }) => ({ value, label }));
+  const compare: Kit["compare"] = formFields && open && formPeriods.some((p) => p.value === open.canvasPeriod) ? { names: formFields, periods: formPeriods, defaultPeriod: open.canvasPeriod, action: CANVAS_PATH } : undefined;
   const kit: Kit = {
     config,
     manifest,
@@ -90,6 +142,10 @@ export async function answerPagesSite(manifest: Manifest, read: ReadFile, config
     floors: { change: yearChangeFloor(), share: findMeasure("share")?.guards?.min_denominator ?? 0 },
     format: { share: pct },
     views,
+    periods: open && windows.length > 0 ? { windows, defaultIndex: open.index, moverPerMonth: windowsConfig.mover_minimum_per_month, span: (end, months) => fillTemplate(phrases.window_to, { span: months, end: monthLabel(end) }).text, range: (start, end) => fillTemplate(config.words.in_ytd, { start: monthLabel(start), end: monthLabel(end) }).text } : undefined,
+    cutBy,
+    compare,
+    askLink: (ask) => latestMonthLink(all, manifest, { dataset: config.dataset, measure: config.measure, ...ask }),
     link: (kind, value, by) => answerPageLink(all, manifest, { dataset: config.dataset, measure: config.measure, field: config[kind].dimension, value, by }),
     provenance: {
       source: source.unresolved.length === 0 && source.text ? source.text : undefined,

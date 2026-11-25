@@ -174,10 +174,10 @@
     {
       "id": "powertrain",
       "label": "Powertrain",
-      "public_note": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is.",
+      "public_note": "NZTA does not record whether a hybrid is mild or full. Mild hybrids are picked out by model name, so the mild hybrid line counts only the ones identified; the note below says what share that is. Plug-in hybrids include range-extended electric vehicles, which NZTA records separately and this site counts with them.",
       "note_condition": "split_published",
       "$note_condition_comment": "Both notes speak of a mild hybrid line. A dataset that does not divide its hybrids (manifest: mild_split_published false) has none, so the notes read as the _otherwise ones say; the chart then carries the sentence defaults.phrases.mild_split_withheld. The conditions are listed in src/lib/dimensionNote.ts.",
-      "public_note_otherwise": "NZTA does not record whether a hybrid is mild or full.",
+      "public_note_otherwise": "NZTA does not record whether a hybrid is mild or full. Plug-in hybrids include range-extended electric vehicles, which NZTA records separately and this site counts with them.",
       "note_otherwise": "NZTA does not record whether a hybrid is mild or full. This dataset does not divide its hybrids (mild_split_published is false), so they are one value and there is no mild line to relabel.",
       "source": "nzta:motive_power + reference:powertrain_map",
       "derive": { "kind": "lookup", "field": "motive_power", "reference": "powertrain_map.csv", "key": "nzta_motive_power", "value": "powertrain" },
@@ -626,6 +626,11 @@
       "id": "latest_year",
       "label": "Last 12 months",
       "months": 12
+    },
+    {
+      "id": "latest_3m",
+      "label": "Last 3 months",
+      "months": 3
     },
     {
       "id": "latest_month",

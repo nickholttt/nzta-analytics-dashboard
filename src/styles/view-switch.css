@@ -1,4 +1,4 @@
-/* A choice between views of the same figures, with no script (src/components/ViewSwitch.astro). The buttons are radio inputs, visually hidden but still
+/* A choice between views of the same figures, with no script (and, optionally, a second choice of period) (src/components/ViewSwitch.astro). The buttons are radio inputs, visually hidden but still
    reached by keyboard; the chosen view's panel is shown by :has(). Without :has() the choice is not drawn and every panel is, one after the other. The
    chosen button is told apart by a tick and weight as well as by its colours. */
 
@@ -82,6 +82,15 @@
     display: block;
   }
 
+  /* The period: a panel of another period than the chosen one is hidden, whichever view is chosen (this has the higher specificity). */
+  .vs-scope:has(> .vs .vs-input[value="w0"]:checked) .vs-panel[data-win]:not([data-win="w0"]),
+  .vs-scope:has(> .vs .vs-input[value="w1"]:checked) .vs-panel[data-win]:not([data-win="w1"]),
+  .vs-scope:has(> .vs .vs-input[value="w2"]:checked) .vs-panel[data-win]:not([data-win="w2"]),
+  .vs-scope:has(> .vs .vs-input[value="w3"]:checked) .vs-panel[data-win]:not([data-win="w3"]),
+  .vs-scope:has(> .vs .vs-input[value="w4"]:checked) .vs-panel[data-win]:not([data-win="w4"]) {
+    display: none;
+  }
+
   /* The chosen button says which view this is, so each panel's own label is only for where the choice is not drawn. */
   .vs-view {
     display: none;
@@ -91,6 +100,11 @@
 @supports not selector(:has(*)) {
   .vs,
   .vs-note {
+    display: none;
+  }
+
+  /* Only the default period is drawn, each of its views one after the other. */
+  .vs-panel[data-win]:not([data-win-default]) {
     display: none;
   }
 }
