@@ -420,3 +420,20 @@ def test_the_committed_stores_months_are_what_the_dataset_counts(tmp_path):
     narrower = months(["in_scope", "fleet_entry"])
     assert sum(counts[NEW].values()) > sum(narrower.values())
     assert all(counts[NEW][m] >= narrower[m] for m in narrower)
+
+
+def test_the_committed_ledger_still_names_the_dataset_it_was_trimmed_for_by_its_old_name_and_the_store_is_accepted():
+    """The store was written when the dashboard's dataset was registrations_flow, and the ledger records that name. Config now names
+    new_registrations, so the ledger and the rule differ in that name alone: what the store kept (the pairs counted, the fields, the values
+    the scope files knew) is what the rule wants, so the store is neither refused nor warned about, until a full supply writes the new name."""
+    cfg = make_cfg({})
+    registrations, ledger_path = supplied.store_paths(cfg, SOURCE)
+    if not registrations.exists():
+        pytest.skip("the dashboard's store is not committed")
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    wanted = supplied.outside_scope(cfg, cfg.supplied(SOURCE))
+    recorded = ledger["outside_scope"]
+    assert wanted["dataset"] == NEW and recorded["dataset"] != NEW, "the ledger names the dataset it was written for: the test is for the rename"
+    assert {k: v for k, v in wanted.items() if k != "dataset"} == {k: v for k, v in recorded.items() if k != "dataset"}
+    check = supplied.scope_problems(cfg, cfg.supplied(SOURCE), ledger)
+    assert check.refusals == [] and check.warnings == [], (check.refusals, check.warnings)
