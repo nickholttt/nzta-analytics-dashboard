@@ -313,6 +313,20 @@ test("a link to a question the canvas answers with another is not made", () => {
   assert.equal(answerPageLink(all, built, { ...ask, field: "no_such_field" }), undefined);
 });
 
+test("a question about one value, split by another field, opens the canvas on that and writes back unchanged", () => {
+  const field = answerConfig.model.dimension;
+  const link = answerPageLink(all, built, { dataset, measure: answerConfig.measure, field, value: "ALPHA|A1", by: "import_status" });
+  assert.ok(link, "the canvas can draw this question");
+  const url = new URL(link, "https://site.example");
+  const asked = canvas.readCanvas(url.search);
+  const opened = canvas.withFittingTypes(canvas.settleCanvas(all, asked), built);
+  const q = opened.charts[0].question;
+  assert.equal(q.by, "import_status");
+  assert.deepEqual(q.where, { [field]: ["ALPHA|A1"] });
+  assert.deepEqual([...canvas.canvasAddress(url.search, opened)].sort(), [...url.searchParams].sort());
+  assert.equal(answerPageLink(all, built, { dataset, measure: answerConfig.measure, field, value: "ALPHA|A1", by: "no_such_field" }), undefined);
+});
+
 // ---- The anchors the pages point at ----
 
 test("the definition and the caveats the pages link to are a page and an anchor that exist", () => {

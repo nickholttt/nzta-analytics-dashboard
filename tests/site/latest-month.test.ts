@@ -239,6 +239,22 @@ test("a link to a question the canvas answers with another is not made: a field 
   assert.equal(latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: "count", by: "import_status", type: "league" }), undefined);
 });
 
+test("a block's question kept to one value of another field opens the canvas with that condition and writes back unchanged", () => {
+  const ask = { dataset: latestConfig.dataset, measure: "count", by: "make", type: "league", settings: { period: "latest_month" }, where: { import_status: ["NZ New"] } };
+  const link = latestMonthLink(all, built, ask);
+  assert.ok(link, "the canvas can draw this question");
+  const url = new URL(link, "https://site.example");
+  const asked = canvas.readCanvas(url.search);
+  const opened = canvas.withFittingTypes(canvas.settleCanvas(all, asked), built);
+  assert.deepEqual(opened.charts[0].question.where, { import_status: ["NZ New"] });
+  assert.equal(opened.charts[0].question.by, "make");
+  assert.deepEqual([...canvas.canvasAddress(url.search, opened)].sort(), [...url.searchParams].sort());
+  // With no condition the address is the block's own, unchanged.
+  assert.equal(latestMonthLink(all, built, { ...ask, where: undefined }), latestMonthLink(all, built, { ...ask, where: {} }));
+  assert.ok(!new URL(latestMonthLink(all, built, { ...ask, where: undefined }) as string, "https://site.example").search.includes("where"));
+  assert.equal(latestMonthLink(all, built, { ...ask, where: { no_such_field: ["x"] } }), undefined);
+});
+
 test("the month shown is the dataset's newest month the manifest names, never read from the survivors dataset", () => {
   const view = make();
   assert.equal(view?.month, datasetLatestMonth(kit().manifest, "set_one"));
