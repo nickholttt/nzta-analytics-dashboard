@@ -17,7 +17,7 @@ const manifest = {
   warnings: [],
   datasets: {
     registrations_surviving: { ...live },
-    registrations_flow: { ...live, latest_month: "2026-10", supplied: { source: "x", months: { first: "2021-01", last: "2026-10", count: 70 }, taken: [], replaced: [] } },
+    new_registrations: { ...live, latest_month: "2026-10", supplied: { source: "x", months: { first: "2021-01", last: "2026-10", count: 70 }, taken: [], replaced: [] } },
     registrations_cars_long_run: { ...live, latest_month: "2026-09", supplied: { source: "y", months: { first: "1961-01", last: "2026-09", count: 789 }, taken: [], replaced: [] } },
   },
 } as unknown as import("../../src/lib/data.ts").Manifest;

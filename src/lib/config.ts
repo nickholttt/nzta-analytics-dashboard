@@ -160,6 +160,9 @@ export type DerivedMeasure = Measure & {
   top_n?: number;
   numerator_dataset?: string;
   denominator_dataset?: string;
+  // The ratio divides two datasets that never share a chart (never_charted_with) on purpose: it is one number built from both, not two series
+  // drawn together, so datasetsRead does not count the two as read by a chart of it. Only a measure that says so is exempt.
+  ratio_of_clashing_datasets?: boolean;
   // Where the numerator's breakdown is not the preset's dimension: its own id, and the one value-set of another dimension the
   // numerator is narrowed to (through a pair slice). The two datasets then divide on the values both name alike.
   numerator_dimension?: string;
@@ -335,13 +338,14 @@ export const isDeclaredComposite = (preset: Preset) => compositeRules.members.in
 
 // ---- Datasets that count the same vehicles are never drawn together ----
 
-// The datasets one chart reads: its own; both a ratio divides; the dataset each series of a curated comparison names. A dataset
-// that is another one filtered counts as that one.
+// The datasets one chart reads: its own; both a ratio divides, unless the ratio is one that config says divides datasets that never share a chart
+// (ratio_of_clashing_datasets: the one chart of the pair); the dataset each series of a curated comparison names. A dataset that is another one
+// filtered counts as that one.
 export function datasetsRead(preset: Preset, derived: (id?: string) => DerivedMeasure | undefined = findDerived): string[] {
+  const ratio = derived(preset.derived);
   const named = [
     preset.dataset,
-    derived(preset.derived)?.numerator_dataset,
-    derived(preset.derived)?.denominator_dataset,
+    ...(ratio?.ratio_of_clashing_datasets ? [] : [ratio?.numerator_dataset, ratio?.denominator_dataset]),
     ...(preset.series ?? []).map((s) => (s as { dataset?: string } | null)?.dataset),
   ];
   const served = named.filter((id): id is string => Boolean(id)).map((id) => findDataset(id)?.base ?? id);

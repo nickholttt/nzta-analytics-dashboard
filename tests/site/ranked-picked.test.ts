@@ -155,7 +155,7 @@ test("values the page chose are called shown and never picked, in every sentence
 
 test("the leader is said in the dataset's own words for what it counts", () => {
   const surviving = datasetWords("registrations_surviving");
-  const flow = datasetWords("registrations_flow");
+  const flow = datasetWords("new_registrations");
   assert.equal(countedText(surviving?.leader_count, 3513, WINDOW), "3,513 vehicles first registered in the last 12 months that are still registered");
   assert.equal(countedText(flow?.leader_count, 3517, WINDOW), "3,517 vehicles first registered in the last 12 months");
   assert.equal(countedText(undefined, 1, WINDOW), "1 vehicle in the last 12 months");

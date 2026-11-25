@@ -312,8 +312,16 @@ def test_no_ratio_divides_datasets_that_are_never_charted_together():
         assert len(pair) == 2 and pair <= set(datasets), f"never_charted_with names a dataset config does not define, or itself: {sorted(pair)}"
     ratios = [m for m in _json("config/measures.json")["derived_measures"] if "numerator_dataset" in m]
     assert ratios, "no ratio measure: this test would pass without checking anything"
+    # A ratio may divide a pair that is never charted together only where it says so (ratio_of_clashing_datasets, D-158): it is then the one
+    # chart of the pair, one number made from both. A measure that says so without dividing such a pair is a flag that means nothing.
+    flagged = [m for m in ratios if m.get("ratio_of_clashing_datasets")]
+    assert flagged, "no ratio of a marked pair says so: this test would pass without checking anything"
     for m in ratios:
-        assert frozenset((m["numerator_dataset"], m["denominator_dataset"])) not in never, f"{m['id']}: it divides datasets config says are never charted together"
+        pair = frozenset((m["numerator_dataset"], m["denominator_dataset"]))
+        if m.get("ratio_of_clashing_datasets"):
+            assert pair in never, f"{m['id']}: it says it divides datasets that are never charted together, and they are not marked"
+        else:
+            assert pair not in never, f"{m['id']}: it divides datasets config says are never charted together"
 
 
 def test_a_ratio_measure_names_only_dimensions_config_defines():
