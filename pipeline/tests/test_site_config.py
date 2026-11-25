@@ -67,6 +67,7 @@ def _templates() -> list[tuple[str, str, str]]:
     found.extend(_starter_templates())
     found.extend(_chart_sentence_templates())
     found.extend(_comparison_templates())
+    found.extend(_latest_month_templates())
     for dimension in dimensions["dimensions"]:
         if "public_line" in dimension:
             found.append(("line", f"dimension {dimension['id']} public_line", dimension["public_line"]))
@@ -119,6 +120,12 @@ def _comparison_templates() -> list[tuple[str, str, str]]:
     the kinds of figure it lists, so a word added later is linted without being named here."""
     return [("comparison", f"comparison.{path}", text) for path, text in _strings(_json("config/comparison.json"))
             if not _COMPARISON_NOT_A_TEMPLATE.match(path)]
+
+
+def _latest_month_templates() -> list[tuple[str, str, str]]:
+    """The words of the latest month on the front page (config/latest_month.json): every text under `words`. What lies outside it (the dataset,
+    the fields, the addresses and the chart's settings) is an id or an address the code reads, which the next test places."""
+    return [("latest_month", f"latest_month.{path}", text) for path, text in _strings(_json("config/latest_month.json")["words"])]
 
 
 def _chart_sentence_templates() -> list[tuple[str, str, str]]:
@@ -205,6 +212,27 @@ def test_the_lint_reads_every_word_of_the_starter_canvases():
         assert words.match(path) or not_words.match(path), f"config/starter_canvases.json {path} is a text this test does not place"
         if words.match(path):
             assert text in linted, f"config/starter_canvases.json {path} is a text the lint does not read"
+
+
+# What in config/latest_month.json is not a template: the dataset and the fields it names, each block's id, kind and the address of its definition, the
+# chart it opens in the canvas (a measure, a chart type and a setting, which are ids), and the two addresses of the section's links.
+_LATEST_MONTH_NOT_A_TEMPLATE = re.compile(
+    r"^(dataset|total_from|caveat\.href|hidden\.href"
+    r"|blocks\[\d+\]\.(id|kind|dimension|definition|canvas\.(measure|type|settings\..+)))$"
+)
+
+
+def test_the_lint_reads_every_word_of_the_latest_month():
+    """Every text in config/latest_month.json is linted unless it is an id or an address, so a word added to it later is linted too, or is
+    named here as one of those."""
+    linted = {text for kind, _, text in _templates() if kind == "latest_month"}
+    texts = list(_strings(_json("config/latest_month.json")))
+    assert len([t for p, t in texts if p.startswith("words.")]) >= 20, "the latest month's words have gone missing: this test would pass without checking anything"
+    for path, text in texts:
+        if path.startswith("words."):
+            assert text in linted, f"config/latest_month.json {path} is a text the lint does not read"
+        else:
+            assert _LATEST_MONTH_NOT_A_TEMPLATE.match(path), f"config/latest_month.json {path} is a text this test does not place"
 
 
 def test_the_lint_reads_the_words_of_the_comparison_with_published_figures():
