@@ -1,0 +1,384 @@
+// The latest month, the first section of the front page (config/latest_month.json): what the newest month of true registrations holds, worked out from
+// the slices the build published, each figure with its change on the same month a year earlier. Pure: it reads nothing and names no dataset, field,
+// value or year, so tests/site/ runs it with Node's own test runner. The page's build hands it the slices (src/lib/latestMonthBuild.ts); every
+// sentence is a template of config/latest_month.json, or one of the chart sentences' own (config/narrative/chart_sentences.json), filled with
+// the facts worked out here (CLAUDE.md invariant 8).
+//
+// Three rules hold throughout:
+//   - a sentence that cannot be filled, or that rests on a count the build hides, is dropped, never softened; a hidden count is shown as hidden and
+//     never read as zero (the small-cell rule, D-127);
+//   - a change on a year ago is left out where the earlier month is missing, has fewer vehicles than the change floor, or lies across a change in
+//     how the data is recorded (invariant 7); the figure for the month stays;
+//   - a block whose field the manifest does not list as live for the dataset, whose slice cannot be read, or whose slice disagrees with the others on
+//     the month's total, is not drawn: no error and no empty box.
+import configDoc from "../../config/latest_month.json";
+import { countFact, countSentence, isReservedValue, splitChange } from "./chartSentence";
+import type { SentenceTemplates } from "./chartSentence";
+import { datasetLatestMonth, isBuilt } from "./data";
+import type { Event, Manifest, SliceRow } from "./data";
+import { recordingChange } from "./recordingChange";
+import { addMonths, changeOnYear, count, fillTemplate, percent, sayList } from "./sentences";
+import type { YearChange } from "./sentences";
+
+export type BlockConfig = {
+  id: string;
+  kind: "total" | "split" | "ranking" | "movers";
+  dimension?: string;
+  top?: number;
+  each?: number;
+  minimum?: number;
+  // The smallest change on a year ago (as a proportion) that is a move.
+  least?: number;
+  definition: string;
+  canvas: { measure: string; by: boolean; type: string | null; settings?: Record<string, string> };
+};
+export type LatestConfig = {
+  dataset: string;
+  total_from: string;
+  blocks: BlockConfig[];
+  caveat: { href: string };
+  hidden: { href: string };
+  words: Record<string, string>;
+};
+export const latestConfig = configDoc as unknown as LatestConfig;
+
+// Everything the section needs from outside: the slices as the site's loader reads them (a hidden cell has no count and the flag, never a zero),
+// the events, and the site's own words and formatters, so nothing here reads config or names a domain value.
+export type Kit = {
+  config: LatestConfig;
+  manifest: Manifest;
+  // Each field's slice by field; absent where the file is missing or cannot be read.
+  slices: Readonly<Record<string, readonly SliceRow[] | undefined>>;
+  events: readonly Event[] | null;
+  sentences: SentenceTemplates;
+  label: { field: (dimension: string) => string | undefined; value: (dimension: string, value: string) => string };
+  dataset: {
+    // A count said in the dataset's words for a window ("in Oct 2026").
+    counted: (n: number, window: string) => string;
+    // Whether the dataset's counts can be compared with the same month a year earlier (a dataset of survivors cannot).
+    showsYear: boolean;
+    // What one month's figure counts, in the dataset's words: the heading of the month's figure.
+    unit: string;
+  };
+  // "in Oct 2026".
+  window: (month: string) => string;
+  // The least number of vehicles in the earlier month for a change to be stated, and the least in a month for a share to be.
+  floors: { change: number; share: number };
+  format: { share: (x: number) => string; points: (delta: number) => string };
+  hidden: { word: string; link: string; reason: (minimum: number) => string; note: (hidden: number, minimum: number) => string };
+  // The minimum the build applied to a field's slice, where the manifest says it hid small counts.
+  ruleMinimum: (dimension: string) => number | undefined;
+  // The address of the canvas that draws a block's question, or nothing where it cannot.
+  link: (block: BlockConfig) => string | undefined;
+  // The dataset's own source note (where its figures come from and when the export was taken), where the build has what it names, and the snapshot line.
+  provenance: { source?: string; snapshot: string };
+};
+
+export type Change = { text: string; direction: "up" | "down" | "same" };
+export type RowView = {
+  name: string;
+  // Absent where the count is hidden.
+  count?: string;
+  hidden?: { word: string; reason: string };
+  // The share of the month's vehicles, a prior-year count (movers), the change on a year ago and the change in share.
+  share?: string;
+  prior?: string;
+  change?: Change;
+  points?: Change;
+  // The row's bar, from 0 to 1 of the block's largest; absent for a hidden count.
+  bar?: number;
+};
+export type BlockView = {
+  id: string;
+  kind: BlockConfig["kind"];
+  heading: string;
+  sentences: string[];
+  // The column headings, in the order the row's cells are drawn.
+  columns: { name: string; key: "name" | "count" | "share" | "points" | "year" | "prior" }[];
+  rows: RowView[];
+  notes: string[];
+  // The block's figure (the total's) and the canvas address and definition it links to.
+  figure?: string;
+  canvas: string;
+  canvasLabel: string;
+  definition: string;
+  hiddenLink?: string;
+};
+export type View = {
+  month: string;
+  prior: string;
+  heading: string;
+  intro: string;
+  blocks: BlockView[];
+  caveat: { text: string; link: string; href: string };
+  hiddenHref: string;
+  // The words of the links and the dash a block draws, from config.
+  labels: { canvas: string; definition: string; noComparison: string; hiddenLink: string };
+  provenance: Kit["provenance"];
+  // Where the definition of what the section counts is, for the line that says where its figures come from.
+  sourceLink: { text: string; href: string };
+};
+
+const say = (words: Record<string, string>, key: string, context: Record<string, unknown>): string | undefined => {
+  const template = words[key];
+  if (template === undefined) return undefined;
+  const { text, unresolved } = fillTemplate(template, context);
+  return unresolved.length === 0 ? text : undefined;
+};
+
+// ---- A month of one slice ----
+
+type MonthOf = { visible: Map<string, number>; hidden: string[]; total: number };
+
+// The rows of one month of a slice: each visible value's count, the values whose count is hidden, and the month's total. Nothing where the slice
+// has no rows for the month, where the month is not broken down by the field (its one row is no value of it), or where the rows do not agree on the
+// month's total.
+export function monthOf(slice: readonly SliceRow[] | undefined, month: string): MonthOf | undefined {
+  if (!slice) return undefined;
+  const rows = slice.filter((r) => r.month === month);
+  if (rows.length === 0 || rows.some((r) => r.notBrokenDown)) return undefined;
+  const total = rows[0].denominator;
+  if (!Number.isFinite(total) || rows.some((r) => r.denominator !== total)) return undefined;
+  const visible = new Map<string, number>();
+  const hidden: string[] = [];
+  for (const r of rows) {
+    if (r.hidden || !Number.isFinite(r.n)) hidden.push(r.value);
+    else visible.set(r.value, r.n);
+  }
+  return { visible, hidden, total };
+}
+
+const byCountThenName = (a: [string, number], b: [string, number]) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+
+const isLive = (manifest: Manifest, dataset: string, dimension: string): boolean => manifest.datasets[dataset]?.live_dimensions?.includes(dimension) === true;
+
+// ---- The section ----
+
+export function latestMonthView(kit: Kit): View | undefined {
+  const { config, manifest } = kit;
+  const words = config.words;
+  if (!isBuilt(manifest, config.dataset)) return undefined;
+  const month = datasetLatestMonth(manifest, config.dataset);
+  const prior = addMonths(month, -12);
+  const totalNow = monthOf(kit.slices[config.total_from], month);
+  if (!totalNow) return undefined;
+  const totalBefore = monthOf(kit.slices[config.total_from], prior);
+  const total = totalNow.total;
+  const priorTotal = totalBefore?.total;
+
+  // Whether a figure of the month can be set beside the same month a year earlier: the dataset's counts allow it, and no change in how the data is
+  // recorded lies between the two months for what is counted.
+  const comparable = (scope: { dimension?: string; value?: string }) =>
+    kit.dataset.showsYear && recordingChange(kit.events, prior, month, { dimension: scope.dimension, values: scope.value === undefined ? undefined : new Set([scope.value]) }) === false;
+
+  // A field's two months, each agreeing with the total's on the month's total: a slice that says another total is not read.
+  const read = (dimension: string) => {
+    if (!isLive(manifest, config.dataset, dimension)) return undefined;
+    const slice = kit.slices[dimension];
+    const now = monthOf(slice, month);
+    if (!now || now.total !== total) return undefined;
+    const before = monthOf(slice, prior);
+    return { now, before: before && priorTotal !== undefined && before.total === priorTotal ? before : undefined };
+  };
+
+  const yearChange = (dimension: string, value: string, n: number, before: MonthOf | undefined, floor: number): YearChange | undefined => {
+    const earlier = before?.visible.get(value);
+    if (earlier === undefined || !comparable({ dimension, value })) return undefined;
+    return changeOnYear(n, earlier, floor);
+  };
+  const signed = (c: YearChange | undefined): Change | undefined =>
+    c ? { direction: c.direction, text: c.direction === "same" ? words.level : `${c.change > 0 ? "+" : "−"}${percent(Math.abs(c.change))}` } : undefined;
+  const pointsOf = (delta: number): Change | undefined => {
+    const text = kit.format.points(delta);
+    const split = splitChange(text);
+    return split ? { direction: split.direction, text } : undefined;
+  };
+  const counted = (n: number) => kit.dataset.counted(n, kit.window(month));
+  const comparison = (c: YearChange) => ({ change: Math.abs(c.change), prior_count: count(c.prior), prior: kit.window(prior) });
+  const fieldOf = (dimension: string) => {
+    const label = kit.label.field(dimension);
+    return label === undefined ? undefined : { label, lower: /^[A-Z]{2,}(?![a-z])/.test(label) ? label : label.charAt(0).toLowerCase() + label.slice(1) };
+  };
+  const ids = { month, prior_month: prior };
+
+  const view = (block: BlockConfig, v: Omit<BlockView, "id" | "kind" | "canvas" | "canvasLabel" | "definition">): BlockView | undefined => {
+    const canvas = kit.link(block);
+    const named = say(words, "canvas_link_named", { heading: v.heading });
+    if (canvas === undefined || named === undefined) return undefined;
+    return { id: block.id, kind: block.kind, ...v, canvas, canvasLabel: named, definition: block.definition };
+  };
+
+  // ---- The month's figure ----
+
+  const totalBlock = (block: BlockConfig): BlockView | undefined => {
+    const at = (m: string) => (m === month ? total : m === prior ? priorTotal : undefined);
+    const fact = countFact(at, month, { floor: kit.floors.change, comparable: comparable({}) });
+    const sentence = countSentence(kit.sentences, fact, { counted: (n, m) => kit.dataset.counted(n, kit.window(m)), window: kit.window });
+    if (!sentence) return undefined;
+    return view(block, { heading: kit.dataset.unit, sentences: [sentence], columns: [], rows: [], notes: [], figure: count(total) });
+  };
+
+  // ---- Every value of a field ----
+
+  const splitBlock = (block: BlockConfig): BlockView | undefined => {
+    const dimension = block.dimension as string;
+    const field = fieldOf(dimension);
+    const data = read(dimension);
+    // Shares of a month with fewer vehicles than the share floor are too imprecise to state.
+    if (!field || !data || total < kit.floors.share) return undefined;
+    const { now, before } = data;
+    const shareable = before !== undefined && before.total >= kit.floors.share;
+    const minimum = kit.ruleMinimum(dimension);
+    const named = [...now.visible].filter(([value]) => !isReservedValue(value)).sort(byCountThenName);
+    const restN = [...now.visible].filter(([value]) => isReservedValue(value)).reduce((s, [, n]) => s + n, 0);
+    const rows: RowView[] = named.map(([value, n]) => {
+      const earlier = before?.visible.get(value);
+      const delta = shareable && earlier !== undefined && comparable({ dimension, value }) ? n / total - earlier / before.total : undefined;
+      return { name: kit.label.value(dimension, value), count: count(n), share: kit.format.share(n / total), points: delta === undefined ? undefined : pointsOf(delta), bar: n / total };
+    });
+    if (restN > 0) rows.push({ name: words.rest, count: count(restN), share: kit.format.share(restN / total), bar: restN / total });
+    for (const value of now.hidden) {
+      rows.push({ name: kit.label.value(dimension, value), hidden: { word: kit.hidden.word, reason: kit.hidden.reason(minimum ?? 0) } });
+    }
+    // The largest group, said only where no count is hidden: a hidden count is not known to be smaller.
+    const sentences: string[] = [];
+    if (named.length > 0 && now.hidden.length === 0) {
+      const top = named[0][1];
+      const leaders = named.filter(([, n]) => n === top);
+      const share = kit.format.share(top / total);
+      const context = { ...ids, field: field.lower, share };
+      if (leaders.length > 1) {
+        const text = say(words, "split_tied", { ...context, names: sayList(leaders.map(([v]) => kit.label.value(dimension, v))) });
+        if (text) sentences.push(text);
+      } else {
+        const [value] = leaders[0];
+        const name = kit.label.value(dimension, value);
+        const lead = rows.find((r) => r.name === name);
+        const text = lead?.points
+          ? say(words, `split_${lead.points.direction}`, { ...context, name, points: lead.points.text.slice(1) })
+          : say(words, "split_alone", { ...context, name });
+        if (text) sentences.push(text);
+      }
+    }
+    const heading = say(words, "heading_split", { field: field.lower });
+    if (heading === undefined || rows.length === 0) return undefined;
+    const year = say(words, "col_points", ids);
+    const columns: BlockView["columns"] = [
+      { name: field.label, key: "name" },
+      { name: words.col_count, key: "count" },
+      { name: words.col_share, key: "share" },
+      ...(rows.some((r) => r.points) && year ? [{ name: year, key: "points" as const }] : []),
+    ];
+    const notes = now.hidden.length > 0 ? [kit.hidden.note(now.hidden.length, minimum ?? 0)] : [];
+    return view(block, { heading, sentences, columns, rows, notes, hiddenLink: now.hidden.length > 0 ? config.hidden.href : undefined });
+  };
+
+  // ---- The largest values ----
+
+  const rankingBlock = (block: BlockConfig): BlockView | undefined => {
+    const dimension = block.dimension as string;
+    const field = fieldOf(dimension);
+    const data = read(dimension);
+    if (!field || !data) return undefined;
+    const { now, before } = data;
+    const minimum = kit.ruleMinimum(dimension);
+    const ranked = [...now.visible].filter(([value]) => !isReservedValue(value)).sort(byCountThenName);
+    const shown = ranked.slice(0, block.top ?? 5);
+    if (shown.length === 0) return undefined;
+    const most = shown[0][1];
+    const rows: RowView[] = shown.map(([value, n]) => ({
+      name: kit.label.value(dimension, value),
+      count: count(n),
+      change: signed(yearChange(dimension, value, n, before, kit.floors.change)),
+      bar: n / most,
+    }));
+    const sentences: string[] = [];
+    // First place is said only where no count is hidden: a hidden count is not known to be smaller.
+    if (now.hidden.length === 0) {
+      const leaders = ranked.filter(([, n]) => n === most);
+      if (leaders.length > 1) {
+        const text = say(words, "ranking_tied", {
+          field: field.lower,
+          counted: counted(most),
+          names: sayList(leaders.map(([v]) => kit.label.value(dimension, v))),
+        });
+        if (text) sentences.push(text);
+      } else {
+        const [value] = leaders[0];
+        const c = yearChange(dimension, value, most, before, kit.floors.change);
+        const context = { field: field.lower, name: kit.label.value(dimension, value), counted: counted(most) };
+        const text = c ? say(words, `ranking_${c.direction}`, { ...context, ...comparison(c) }) ?? say(words, "ranking_alone", context) : say(words, "ranking_alone", context);
+        if (text) sentences.push(text);
+      }
+    }
+    const heading = say(words, "heading_ranking", { field: field.lower });
+    const year = say(words, "col_year", ids);
+    if (heading === undefined) return undefined;
+    const columns: BlockView["columns"] = [
+      { name: field.label, key: "name" },
+      { name: words.col_count, key: "count" },
+      ...(rows.some((r) => r.change) && year ? [{ name: year, key: "year" as const }] : []),
+    ];
+    const notes = now.hidden.length > 0 ? [kit.hidden.note(now.hidden.length, minimum ?? 0)] : [];
+    return view(block, { heading, sentences, columns, rows, notes, hiddenLink: now.hidden.length > 0 ? config.hidden.href : undefined });
+  };
+
+  // ---- The largest moves ----
+
+  const moversBlock = (block: BlockConfig): BlockView | undefined => {
+    const dimension = block.dimension as string;
+    const field = fieldOf(dimension);
+    const data = read(dimension);
+    const minimum = block.minimum ?? 0;
+    if (!field || !data || !data.before) return undefined;
+    const { now, before } = data;
+    // Both months must reach the block's minimum, so a move from 2 to 6 is not a headline; a hidden count is no candidate.
+    const moves = [...now.visible]
+      .filter(([value, n]) => !isReservedValue(value) && n >= minimum)
+      .flatMap(([value, n]) => {
+        const c = yearChange(dimension, value, n, before, Math.max(minimum, kit.floors.change));
+        return c && c.direction !== "same" && Math.abs(c.change) >= (block.least ?? 0) ? [{ value, n, c }] : [];
+      });
+    const rose = moves.filter((m) => m.c.direction === "up").sort((a, b) => b.c.change - a.c.change || (a.value < b.value ? -1 : 1)).slice(0, block.each ?? 3);
+    const fell = moves.filter((m) => m.c.direction === "down").sort((a, b) => a.c.change - b.c.change || (a.value < b.value ? -1 : 1)).slice(0, block.each ?? 3);
+    if (rose.length + fell.length === 0) return undefined;
+    const largest = Math.max(...[...rose, ...fell].map((m) => Math.abs(m.c.change)));
+    const rows: RowView[] = [...rose, ...fell].map((m) => ({
+      name: kit.label.value(dimension, m.value),
+      count: count(m.n),
+      prior: count(m.c.prior),
+      change: signed(m.c),
+      bar: Math.abs(m.c.change) / largest,
+    }));
+    const sentences = [rose[0] && ["mover_up", rose[0]], fell[0] && ["mover_down", fell[0]]]
+      .filter((x): x is [string, (typeof rose)[number]] => Boolean(x))
+      .flatMap(([key, m]) => {
+        const text = say(words, key, { field: field.lower, name: kit.label.value(dimension, m.value), counted: counted(m.n), ...comparison(m.c) });
+        return text ? [text] : [];
+      });
+    const heading = say(words, "heading_movers", { field: field.lower });
+    const year = say(words, "col_year", ids);
+    const earlier = say(words, "col_prior", ids);
+    const floor = say(words, "movers_floor", { minimum: count(minimum) });
+    if (heading === undefined || !year || !earlier) return undefined;
+    const columns: BlockView["columns"] = [
+      { name: field.label, key: "name" },
+      { name: words.col_count, key: "count" },
+      { name: earlier, key: "prior" },
+      { name: year, key: "year" },
+    ];
+    return view(block, { heading, sentences, columns, rows, notes: floor ? [floor] : [] });
+  };
+
+  const builders = { total: totalBlock, split: splitBlock, ranking: rankingBlock, movers: moversBlock } as const;
+  const blocks = config.blocks.flatMap((block) => {
+    const built = builders[block.kind](block);
+    return built ? [built] : [];
+  });
+  // The month's figure is the section's answer: without it there is no section.
+  if (!blocks.some((b) => b.kind === "total")) return undefined;
+  const heading = say(words, "heading", ids);
+  const intro = say(words, "intro", ids);
+  if (heading === undefined || intro === undefined) return undefined;
+  return { month, prior, heading, intro, blocks, caveat: { text: words.caveat, link: words.caveat_link, href: config.caveat.href }, hiddenHref: config.hidden.href, labels: { canvas: words.canvas_link, definition: words.definition_link, noComparison: words.no_comparison, hiddenLink: kit.hidden.link }, provenance: kit.provenance, sourceLink: { text: words.source_link, href: config.blocks.find((b) => b.kind === "total")?.definition ?? config.caveat.href } };
+}
