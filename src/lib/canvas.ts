@@ -7,7 +7,7 @@
 import canvasDoc from "../../config/canvas.json";
 import { builderSpec, dimensionLabel, dimensions, lowerLabel, findDataset, findDerived, findDimension, findMeasure } from "./config";
 import type { Preset } from "./config";
-import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCrossIn, changeQuestion, isOneChart, questionParams, readQuestion, settle } from "./builder";
+import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCrossIn, changeQuestion, holdsTogether, isOneChart, questionParams, readQuestion, settle } from "./builder";
 import type { BuilderOption, DatasetVocabulary, Question, Vocabulary } from "./builder";
 import type { Manifest } from "./data";
 import { canPin } from "./pin";
@@ -15,7 +15,7 @@ import { inferShape, questionFacts, resolvePreset } from "./resolve";
 import { isWindowShape, ruleTable, shapesFor } from "./shapes";
 import type { FactName, Facts } from "./shapes";
 import { presetQuestion, standsFor } from "./presetTitles";
-import { fillTemplate } from "./sentences";
+import { fillTemplate, sayList } from "./sentences";
 
 export type FieldGroupSpec = { id: string; label: string; map_groups: string[]; kinds?: string[] };
 export type ChartTypeSpec = { id: string; label: string; help: string };
@@ -110,6 +110,30 @@ const typeLabel = (id: string): string => (id === TABLE ? canvasSpec.table.label
 // ok: the change to the question that puts the field there, and the field it replaces, if any. Otherwise the reason, in words.
 export type Verdict = { ok: true; change: Partial<Question>; replaces?: string } | { ok: false; reason: string };
 
+// The fields a chart already names that a field put in a zone must share a table with: its breakdown, its second one and its conditions that keep
+// something. A field put in the breakdown replaces it, and the second one is set aside by settle where the new breakdown cannot be crossed with it.
+const namedBesides = (q: Question, zone: Zone): string[] => [
+  ...(zone !== "by" && q.by ? [q.by] : []),
+  ...(zone === "where" && q.by2 ? [q.by2] : []),
+  ...Object.entries(q.where).filter(([, kept]) => kept.length > 0).map(([d]) => d),
+];
+
+// The fields among those named that no table holds with this one, or all of them where each pair is held and no one table holds the lot; none where a
+// table holds them all (or the chart names none).
+function apartFrom(v: DatasetVocabulary, names: readonly string[], field: string): string[] {
+  const others = names.filter((n) => n !== field);
+  if (others.length === 0 || holdsTogether(v, [...new Set([...names, field])])) return [];
+  const apart = others.filter((n) => !holdsTogether(v, [n, field]));
+  return apart.length ? apart : others;
+}
+
+// Why a condition the chart holds cannot be drawn with the fields it names, in the canvas's words: a link can carry one the page would not have accepted.
+export function conditionApart(all: Vocabulary, q: Question, field: string): string | undefined {
+  const v = datasetOf(all, q.dataset);
+  const apart = apartFrom(v, [...(q.by ? [q.by] : []), ...(q.by2 ? [q.by2] : []), ...Object.entries(q.where).filter(([d, kept]) => d !== field && kept.length > 0).map(([d]) => d)], field);
+  return apart.length ? say("refuse_not_crossed", { dataset: datasetLabel(v.dataset), field: fieldLabel(field), other: sayList(apart.map(fieldLabel)) }) : undefined;
+}
+
 export function verdict(all: Vocabulary, q: Question, zone: Zone, field: CanvasField): Verdict {
   const v = datasetOf(all, q.dataset);
   const m = measureOf(v, q.measure);
@@ -131,6 +155,9 @@ export function verdict(all: Vocabulary, q: Question, zone: Zone, field: CanvasF
   if (zone === "by") {
     if (q.by === field.id) return refuse("refuse_same");
     if (!offered) return noBreakdown();
+    // A condition the chart keeps must be in a table with the new breakdown, or the question could not be drawn from any one table.
+    const apartBy = apartFrom(v, namedBesides(q, zone), field.id);
+    if (apartBy.length) return refuse("refuse_not_crossed", { other: sayList(apartBy.map(fieldLabel)) });
     // A condition on the field becomes the values compared (settle), so choosing to break down by a filter never widens the question.
     return { ok: true, change: { by: field.id, values: [] }, ...(q.by ? { replaces: q.by } : {}) };
   }
@@ -140,7 +167,11 @@ export function verdict(all: Vocabulary, q: Question, zone: Zone, field: CanvasF
     if (q.by === field.id) return refuse("refuse_is_breakdown", { zone: zoneLabel("by") });
     if (q.by2 === field.id) return refuse("refuse_same");
     const main = m.dimensions.find((d) => d.id === q.by);
-    if (main?.with.includes(field.id)) return { ok: true, change: { by2: field.id, values2: [] }, ...(q.by2 ? { replaces: q.by2 } : {}) };
+    if (main?.with.includes(field.id)) {
+      const apartBy2 = apartFrom(v, namedBesides(q, zone), field.id);
+      if (apartBy2.length) return refuse("refuse_not_crossed", { other: sayList(apartBy2.map(fieldLabel)) });
+      return { ok: true, change: { by2: field.id, values2: [] }, ...(q.by2 ? { replaces: q.by2 } : {}) };
+    }
     if (m.derived) return refuse("refuse_measure_one_field");
     if (!offered) return noBreakdown();
     return refuse(canCrossIn(all, q.by, field.id) ? "refuse_not_crossed" : "refuse_nested", { other: fieldLabel(q.by) });
@@ -151,7 +182,11 @@ export function verdict(all: Vocabulary, q: Question, zone: Zone, field: CanvasF
   if (q.by2 === field.id) return refuse("refuse_is_breakdown", { zone: zoneLabel("by2") });
   if (field.id in q.where) return refuse("refuse_same");
   // A filter starts with no value, which keeps every vehicle: the page holds it until it has one (changeQuestion).
-  if (filters) return { ok: true, change: { where: { ...q.where, [field.id]: [] } } };
+  if (filters) {
+    const apartWhere = apartFrom(v, namedBesides(q, zone), field.id);
+    if (apartWhere.length) return refuse("refuse_not_crossed", { other: sayList(apartWhere.map(fieldLabel)) });
+    return { ok: true, change: { where: { ...q.where, [field.id]: [] } } };
+  }
   if (field.unavailable) return refuse(field.unavailable);
   if (v.filters.length === 0) return refuse("refuse_no_filters");
   return refuse(brokenDownElsewhere ? "refuse_no_values" : "refuse_not_in_dataset");

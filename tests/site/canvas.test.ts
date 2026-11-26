@@ -637,6 +637,8 @@ test("every word the canvas says is in config, and config holds no word the canv
     readFileSync(new URL("../../src/components/ValuePicker.tsx", import.meta.url), "utf8"),
     // The chart panel says the line a chart shows while it is on its way.
     readFileSync(new URL("../../src/components/PresetPanel.tsx", import.meta.url), "utf8"),
+    // The line for a pinned chart says which field the snapshot it is pinned to does not hold.
+    readFileSync(new URL("../../src/lib/kept.ts", import.meta.url), "utf8"),
     ...readdirSync(dir).filter((f) => /\.tsx?$/.test(f)).map((f) => readFileSync(new URL(f, dir), "utf8")),
   ].join("\n");
   const said = new Set([...sources.matchAll(/\b(?:say|canvasSay|refuse)\(\s*["`]([a-z0-9_]+)["`]/g), ...sources.matchAll(/canvasSpec\.words\.([a-z0-9_]+)/g)].map((m) => m[1]));

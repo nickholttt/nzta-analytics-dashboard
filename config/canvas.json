@@ -224,6 +224,7 @@
     "refuse_needs_by": "Put a field in {zone} first.",
     "refuse_nested": "{field} and {other} nest, so a grid of the two would be empty off one line.",
     "refuse_not_crossed": "{dataset} does not hold {field} together with {other}.",
+    "refuse_not_in_snapshot": "The figures of {date|date} do not hold {field}.",
     "refuse_measure_one_field": "{measure} takes one field.",
     "refuse_is_breakdown": "{field} is in {zone}. Choose its values there.",
     "refuse_time": "Every chart over time runs along the month already. Set how much of it is drawn in {zone}.",
