@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-26 (a second session that day: #166 merged; buyer type built, reviewed and open as #167; the user's word on location data, with a plan; the scratch files moved off the system drive)
+Last updated by claude on 2026-11-26 (a third session that day: #167, #169 and #168 merged on the user's word and October rebuilt with buyer type; #170 to #173 built, checked and open)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -8,45 +8,43 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
-| A: finish the canvas | `claude/b-buyer-type-site` (worktree `nzta-lane-a`), #169 | the computer | buyer type's site side, stacked on #167. #169 (D-160): a canvas chart by buyer type starts on new vehicles; open, low risk. Then B, C and D of the design (private). The rest is under "A" below |
-| B: the accuracy guard and the datasets | `claude/b-buyer-type` (worktree `nzta-lane-b`), #167 | the computer, until #167 merges | buyer type built and reviewed (D-159), checks green; waiting on the user's word. One pipeline pull request at a time |
+| A: finish the canvas | `claude/a-latest-month-buyers` (#170), `claude/a-all-panel-phone` (#171, stacked on it), `claude/a-narrow-tables` (#172) | the computer, until they merge | all three open and green. Next: the brand and model pages' buyer table, which needs #170 and #172 on `main` |
+| B: the accuracy guard and the datasets | `claude/b-market-type` (#173) | the computer, until #173 merges | Market type built and reviewed (D-161). One pipeline pull request at a time |
 | C: public readiness | none | free | what is left is the user's four items |
-| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
-| E: classification, the latest month, findability | none | free | waits for Market type's build (B3); 98.64% classified against a 98% target |
+| D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing new |
+| E: classification, the latest month, findability | none | free | the next classification batch can start once #173 merges (the contract test no longer moves with the nameplate file) |
 
 ## The queue (plans are kept outside the repository, on the computer; each B item is a high-risk pull request with one independent review)
 
 **B, in this order.**
-1. Done: item 1, one "New registrations" dataset (#164, D-158).
-2. **Buyer type: #167, open, reviewed, green** (D-159). The store keeps owner type and usage at registration
-   and still drops the district; a slice, a pair with new or used, a narrow fact table with brand and model.
-   All 389 published figures unchanged. Next, each the user's word: merge; force October's build (it is
-   what publishes the files); then the site pull requests from the design (the canvas saying "new vehicles
-   only" first: today it counts new and used together, 51.9% private against about 27% for new alone;
-   then the latest month, then brand and model pages); then vstat's buyer mix in the guard (warn only).
-3. Build Market type on the register datasets (D-154, D-155): a generic `ordered_rules` derive kind;
-   `model_segment.csv` read by the build; unmapped stops the build; a published coverage figure.
-4. Item 8's build side: each build writes a classification review file and `/status` shows it.
-5. Item 5, figures as first observed: later exports kept as differences, a revisions file on `/status`,
+1. Done: one "New registrations" dataset (#164, D-158); buyer type (#167, D-159), published by the forced
+   build of 26 November: 388 of 389 published figures pass, 1 warns, as before.
+2. **Market type: #173, open, reviewed, green** (D-161). Live on `registrations_surviving` and `fleet`;
+   every other published file unchanged; 98.69% of the last 12 months' new passenger vehicles placed. Not
+   on New registrations until the dashboard history is retaken with the GVM group (lane D); then the
+   register-basis guard on vstat's light commercial figures.
+3. Item 8's build side: each build writes a classification review file and `/status` shows it.
+4. Item 5, figures as first observed: later exports kept as differences, a revisions file on `/status`,
    and `supply --retake --dry-run` for December's comparison with the 14 November export.
-6. Item 12: range-extended electric vehicles as a value of Powertrain.
-7. Averages from the register (fuel consumption, power, each with its coverage) and where used imports
-   came from (the user, 2026-11-26: yes).
-8. **Location (the user, 2026-11-26, by name; the plan and its independent re-check are private files).**
-   Four pull requests, each with a privacy record: (a) the under-10 hiding lifted on the region table
-   and the Current use pair, Method's promise reworded; (b) district on the register datasets, with a map;
-   (c) new registrations by district, keeping vehicle type only where no set of vehicles can be placed in
-   a district (measured: 1.7% of vehicles folded into "other vehicle types"; the stricter rule the
-   re-check asked for is measured first, and over 5% goes back to the user); (d) postcode: every count,
-   by year with old years as one line, postcode by powertrain group by year, a postcode map. Then the
-   site. Only the current snapshot's postcode tables are deployed. Credits go in the page footer.
-9. Changes of registered person (`ownership_changes`, approved 2026-11-26). **Its counts are not committed
+5. Item 12: range-extended electric vehicles as a value of Powertrain.
+6. vstat's buyer mix in the guard (warn only). Averages from the register (fuel consumption, power, each
+   with its coverage) and where used imports came from (the user, 2026-11-26: yes).
+7. **Location (the user, 2026-11-26, by name; the plan and its re-check are private files).** Four pull
+   requests, each with a privacy record: (a) the under-10 hiding lifted on the region table and the
+   Current use pair, Method's promise reworded; (b) district on the register datasets, with a map; (c) new
+   registrations by district, keeping vehicle type only where no set of vehicles can be placed in a
+   district (over 5% folded goes back to the user); (d) postcode: every count, by year, by powertrain
+   group, a map. Only the current snapshot's postcode tables are deployed. Credits go in the page footer.
+8. Changes of registered person (`ownership_changes`, approved 2026-11-26). **Its counts are not committed
    until the licence line on NZTA's page is read (the user parked that).**
-10. Each month's published rows; on Differences, that the register plus the dashboard's inactive vehicles
-    rebuilds true registrations to within 19 vehicles over 34 months.
+9. Each month's published rows; on Differences, that the register plus the dashboard's inactive vehicles
+   rebuilds true registrations to within 19 vehicles over 34 months.
 
-**A.** After buyer type's site side: year to date in the canvas; "New entry" in its ranking; pages for
-used-import age, heavy vehicles and motorcycles; a brand's place over time.
+**A.** The brand and model pages' "who registered them" table (the design's last piece; 12 months, New
+and Used imports side by side, a minimum of 200 vehicles for a share). Then: Market type on the canvas
+for the fleet and a place it is shown; "new vehicles" in a buyer-type chart's title and sentence; year to
+date in the canvas; "New entry" in its ranking; pages for used-import age, heavy vehicles and
+motorcycles; a brand's place over time. Small: the cube download for the site-tests job (STATE, issue 9).
 
 **C.** The user's four items: name, address (it turns the sitemap on), About gaps, Cloudflare clicks.
 
@@ -59,21 +57,23 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-1. **#167**: "merge 167 and force the build" (the table by month and the screenshots were shown on
-   2026-11-26). Then **#169**, stacked on it: "merge 169". Both are green.
-2. **Buyer type for used imports** on the front page and the brand and model pages (the design's C and D)?
-   The accepted plan said new vehicles. Recommended: New and Used side by side. Default: new vehicles only.
-3. **December's retake** asks for 13 fields against a limit of 12. Recommended: "CC grouping - vehicle" waits.
-4. **D-158**: `contract_version` 2 (default: 1); retiring `in_scope` (default: kept). Not sent: the NZTA email. Parked: the Existing fleet licence line. Open: the site's name, address, About gaps.
+1. **Merges**, each green: "merge 170", then "merge 171" (stacked on 170); "merge 172"; "merge 173" (high
+   risk; its description has the before and after, the golden's diff and the review).
+2. **After #173: build October again** so the published cube gains Market type? It is a forced build that
+   the standing exception does not cover. Default: no; November's build carries it.
+3. **Market type's coverage levels**: warn under 75% placed, not live under 70% (today 98.69%). Default: kept.
+4. **December's retake** asks for 13 fields against a limit of 12. Recommended: "CC grouping - vehicle" waits.
+5. **D-158**: `contract_version` 2 (default: 1); retiring `in_scope` (default: kept). Not sent: the NZTA
+   email. Parked: the Existing fleet licence line. Open: the site's name, address, About gaps.
 
 ## Decided for the user (unreviewed; each is in its pull request or record)
 
-- D-148 to D-158 and the choices listed in #142 to #164; D-159 and the choices listed in #167 (among them:
-  buyer type by brand and model in a table of its own; a new owner type or usage value stops the build on
-  the first vehicle; Method's hidden-counts wording). #152's five low-confidence judgements.
-- Location plan: the stricter district rule; old years as one line in the postcode tables; place names from a list with no formal licence.
+- D-148 to D-160 and the choices listed in #142 to #169. #152's five low-confidence judgements. The
+  location plan's: the stricter district rule; old years as one line; place names from an unlicensed list.
+- This session: "all of the previously mentioned pull requests" read as #167, #169, #168; October's forced
+  build started under D-120 (the supplied counts had changed); the choices listed in #170 to #173 (D-161).
 
 ## Prompt for the next session
 
-/start. Continue work order 3 and its additions from CHECKPOINT: #167 and #169 first (merges and the forced
-build need my word), then the rest of buyer type's site side. Do not stop for questions; park what needs me.
+/start. Continue work order 3 and its additions from CHECKPOINT: merge what I have named, then the brand
+and model pages' buyer table (lane A) and the next item of lane B. Do not stop for questions; park what needs me.
