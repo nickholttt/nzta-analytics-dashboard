@@ -59,12 +59,13 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-1. **#167**: the word to merge it and to force October's build ("merge 167 and force the build"). The table
-   by month and the canvas screenshots were shown in the session of 2026-11-26.
-2. **December's retake** would ask for 13 fields against a limit of 12. Recommended: "CC grouping - vehicle" waits.
-3. **D-158's open questions**: `contract_version` 2 (default: stays 1); retiring `in_scope` (default: kept).
-4. Not sent: the email to NZTA. Parked: the Existing fleet page's licence line. Open: the site's name,
-   address and About gaps.
+1. **#167**: "merge 167 and force the build" (the table by month and the screenshots were shown on
+   2026-11-26). Then **#169**, stacked on it: "merge 169". Both are green.
+2. **Buyer type for used imports** on the front page and the brand and model pages (the design's C and D)?
+   The accepted plan said new vehicles. Recommended: New and Used side by side. Default: new vehicles only.
+3. **December's retake** asks for 13 fields against a limit of 12. Recommended: "CC grouping - vehicle" waits.
+4. **D-158**: `contract_version` 2 (default: stays 1); retiring `in_scope` (default: kept). Not sent: the email
+   to NZTA. Parked: the Existing fleet licence line. Open: the site's name, address and About gaps.
 
 ## Decided for the user (unreviewed; each is in its pull request or record)
 
@@ -75,5 +76,5 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Prompt for the next session
 
-/start. Continue work order 3 and its additions from CHECKPOINT: #167 first (merge and forced build need my
-word), then buyer type's site side. Merge rules as before. Do not stop for questions; park what needs me.
+/start. Continue work order 3 and its additions from CHECKPOINT: #167 and #169 first (merges and the forced
+build need my word), then the rest of buyer type's site side. Do not stop for questions; park what needs me.
