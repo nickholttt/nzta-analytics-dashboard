@@ -9,6 +9,7 @@ invariant 1). The same reading is what `pipeline/tests/test_data_map.py` holds t
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 
 REGISTER = "register"
@@ -247,3 +248,35 @@ def floor_problems(cfg, dmap: dict | None = None) -> list[str]:
         problems.append(f"snapshot_archive.group_by puts {sorted(held_kind)} (what kind of owner) with {sorted(held_owner)} "
                         "(where or who the owner is); remove one in config/pipeline.json")
     return problems
+
+
+# --- the dashboard columns the map holds back: never stored, whatever config says ------------------------------------------
+
+
+def squash(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def held_columns(dmap: dict) -> set[str]:
+    """The dashboard export's columns that the data map holds back: those whose privacy class is not a published one, or whose
+    group describes or locates the owner. `supply` checks and drops them; no store, ledger or output carries one."""
+    published = {n for n, spec in dmap["privacy_classes"].items() if spec["published"]}
+    owner = groups_named(dmap, "owner_groups")
+    return {e["name"] for e in dmap["fields"]
+            if e["source"] == DASHBOARD and (e["privacy"] not in published or e["group"] in owner)}
+
+
+def held_names(cfg, dmap: dict) -> set[str]:
+    """Every name a held column could carry in a stored file: its own, the register field it mirrors, the logical name config gives
+    that field, and the place a roll-up of it leads to."""
+    logical = {v: k for k, v in cfg.pipeline["fields"].items()}
+    held = held_columns(dmap)
+    names = set()
+    for entry in dmap["fields"]:
+        if entry["source"] != DASHBOARD or entry["name"] not in held:
+            continue
+        names.add(entry["name"])
+        for field in entry.get("register_fields", []):
+            names.update({field, logical.get(field, field)})
+        names.update(r["to"] for r in entry["relations"]["rolls_up_to"])
+    return {n for n in names if n}

@@ -20,7 +20,7 @@ from typing import NamedTuple
 
 import duckdb
 
-from . import metrics, normalise, outputs, reference, schema
+from . import metrics, normalise, outputs, privacy, reference, schema
 from .errors import GuardrailError
 from .normalise import lit
 from .reference import quote
@@ -62,11 +62,28 @@ def layout(source: dict) -> Layout:
     raise abort(f"supplied source kind {kind!r} is not one this pipeline reads ({COUNTED_ROWS!r}, {SERIES!r})")
 
 
-def check_config(source: dict) -> list[str]:
-    """No column the file carries for the owner may also be a public field: it would be stored."""
-    mapped = {*source.get("fields", {}).values(), *source.get("extra_fields", {}).values()}
-    return [f"{c} is listed in private_columns and also mapped to a public field in config/pipeline.json; "
-            "a private column is dropped, never stored" for c in source.get("private_columns", []) if c in mapped]
+def check_config(cfg, source: dict) -> list[str]:
+    """What in a source's config would let a column the data map holds back (the owner's district) be stored: a column listed in
+    private_columns and also mapped to a field, or a field mapped to a held column, or stored under a name the map holds back
+    (the district, its register field, its logical name, the region it rolls up to), whether or not private_columns lists it. The
+    floor is the data map, not this config's own list, so a config that empties private_columns cannot widen the store."""
+    private = set(source.get("private_columns", []))
+    try:
+        dmap = privacy.load_map(cfg)
+        held, names = privacy.held_columns(dmap), {privacy.squash(n) for n in privacy.held_names(cfg, dmap)}
+    except (privacy.DataMapError, OSError, KeyError) as exc:
+        return [f"config/data_map.json cannot be used to tell which columns are held back ({exc!r}), so no column of the "
+                "file can be stored"]
+    found = []
+    for name, column in sorted({**source.get("fields", {}), **source.get("extra_fields", {})}.items()):
+        if column in private:
+            found.append(f"{column} is listed in private_columns and also mapped to a public field in config/pipeline.json; "
+                         "a private column is dropped, never stored")
+        elif column in held or privacy.squash(name) in names or privacy.squash(column) in names:
+            found.append(f"{name!r} (column {column!r}) is held back by the data map (config/data_map.json: it describes or "
+                         "locates the owner) and is mapped to a stored field in config/pipeline.json; a held column or name "
+                         "is checked and dropped, never stored")
+    return found
 
 
 def store_paths(cfg, source_id: str) -> tuple[Path, Path]:
@@ -147,7 +164,7 @@ def load_store(con, cfg, source_id: str, aborts: list[str], warnings: list[str] 
     the scope check finds that leaves the store correct is added to `warnings`."""
     source = cfg.supplied(source_id)
     registrations, ledger_path = store_paths(cfg, source_id)
-    bad = check_config(source)
+    bad = check_config(cfg, source)
     if bad:
         aborts.extend(f"{source_id}: {problem}" for problem in bad)
         return None
@@ -506,7 +523,7 @@ def supply(cfg, source_id: str, csv_path: Path, month: str | None = None, taken:
     if source_id not in cfg.pipeline.get("supplied", {}):
         raise abort(f"{source_id!r} is not a supplied source in config/pipeline.json ({sorted(cfg.pipeline.get('supplied', {}))})")
     source = cfg.supplied(source_id)
-    bad = check_config(source)
+    bad = check_config(cfg, source)
     if bad:
         raise abort("; ".join(bad))
     if not csv_path.is_file():

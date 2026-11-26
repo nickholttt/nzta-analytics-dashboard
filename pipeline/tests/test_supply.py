@@ -373,6 +373,41 @@ def test_a_private_column_mapped_to_a_public_field_is_refused(cfg, source):
     assert not supplied.store_paths(cfg, SOURCE)[0].exists()
 
 
+@pytest.mark.parametrize("where, logical", [("extra_fields", "district"), ("fields", "tla")])
+def test_a_held_column_taken_out_of_private_columns_and_mapped_is_refused_by_supply(cfg, source, where, logical):
+    """The district stays out of the store because the data map holds it back, not because a config list happens to name it:
+    emptying `private_columns` and mapping the column to a field must not let `supply` write it."""
+    held = source["private_columns"][0]
+    cfg.pipeline["supplied"][SOURCE]["private_columns"] = []
+    cfg.pipeline["supplied"][SOURCE][where] = {**source[where], logical: held}
+    aborts("data map", lambda: supply(cfg, HISTORY))
+    assert not supplied.store_paths(cfg, SOURCE)[0].exists()
+
+
+def test_a_stored_field_named_for_where_the_owner_lives_is_refused_by_supply(cfg, source):
+    """A held name under another column's header is as much a leak as the held column itself."""
+    cfg.pipeline["supplied"][SOURCE]["extra_fields"] = {**source["extra_fields"], "region": source["extra_fields"]["usage_registered"]}
+    aborts("data map", lambda: supply(cfg, HISTORY))
+    assert not supplied.store_paths(cfg, SOURCE)[0].exists()
+
+
+def test_the_load_of_a_store_refuses_a_config_that_maps_a_held_column(cfg, source):
+    """The build reads a store only under a config that holds the district back: it aborts on one that does not."""
+    supply(cfg, HISTORY)
+    held = source["private_columns"][0]
+    cfg.pipeline["supplied"][SOURCE]["private_columns"] = []
+    cfg.pipeline["supplied"][SOURCE]["extra_fields"] = {**source["extra_fields"], "district": held}
+    found = []
+    assert supplied.load_store(duckdb.connect(), cfg, SOURCE, found) is None
+    assert found and "data map" in found[0], found
+
+
+def test_an_export_with_a_held_column_missing_from_private_columns_is_refused(cfg, source):
+    cfg.pipeline["supplied"][SOURCE]["private_columns"] = []
+    aborts("not expected", lambda: supply(cfg, HISTORY))
+    assert not supplied.store_paths(cfg, SOURCE)[0].exists()
+
+
 def test_a_refused_supply_says_the_store_is_unchanged(capsys):
     from pipeline.__main__ import main
     assert main(["supply", SOURCE, "no-such-file.csv"]) == 2

@@ -1399,7 +1399,10 @@ Supplied sources:
   has only one of its two files.
 - The store's latest month is after the register's.
 - The store file is not the one the ledger was written with (`store_sha256` differs), or a column named in
-  `private_columns` is also mapped to a public field.
+  `private_columns` is also mapped to a public field, or a column or name the data map holds back (a field of an owner group:
+  the owner's district, the register field it mirrors, its logical name, the region it rolls up to) is mapped to a stored field
+  at all, whether or not `private_columns` lists it (`pipeline/privacy.py`, `held_columns`, `held_names`). `supply` refuses the
+  same config, so a district cannot be stored by emptying a list.
 - The store blanked the model of a (vehicle type, import status) pair that the dataset counts now (the ledger's
   `outside_scope` against the one computed from `config/pipeline.json` and the scope files), or config no longer
   trims a field the ledger says was blanked, so the dataset would read a model the store does not hold. The message
