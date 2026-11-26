@@ -29,12 +29,10 @@ with the user's additions of 2026-11-25, `docs/brief/WORK_ORDER_3_ADDITIONS.md` 
   year earlier, or "New entry". Brand pages set a brand beside its rivals, and any brands in the canvas.
 - **The canvas is the only builder** (#132). It has a 3-month period (#162) and no year to date. Its first
   chart is held (D-156): about 2.7 s on the phone profile here; a pull request fails over 3.0 s.
-- **Every pull request** builds the public site and checks it (plain English, no tracking, metadata, the
-  budget). **Playbooks:** the month is `docs/playbooks/monthly.md` (#149); going public is `go-public.md`.
+- **Every pull request** builds and checks the public site. **Playbooks:** `monthly.md`, `go-public.md`.
 
 ## Current step
 
-Merged of the additions: items 1, 2, 3, 4, 8 (two batches), 9, 10, 13; 6 is drafted; 11 found nothing.
 Buyer type is #167, open. After it on lane B: Market type, first-observed figures, location (CHECKPOINT).
 
 ## In progress (all claude; nothing by gemini)
