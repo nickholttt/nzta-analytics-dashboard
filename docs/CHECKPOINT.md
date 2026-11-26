@@ -10,14 +10,14 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 |---|---|---|---|
 | A: finish the canvas | none | closed into F | #170, #171 and #172 merged. No further polish of the current screens: what is left of A is built in lane F's new UI |
 | B: the accuracy guard and the datasets | none | free (the computer for anything needing raw data) | Market type merged (#173, D-161). Next: item 3. One pipeline pull request at a time |
-| C: public readiness | none | free | waits for lane F. The address is vcore.co.nz (registered); the name's spelling is asked |
+| C: public readiness | none | the user (Cloudflare) | the user has the first Cloudflare steps (the account, the domain's nameservers, an empty Pages project); nothing is public. What the address shows first is asked |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing new |
 | E: classification, the latest month, findability | none | free | the next classification batch can start: #173 is merged (the contract test no longer moves with the nameplate file) |
-| F: the new UI for vcore.co.nz | `claude/f-design-context` | the computer | the third proposal is with the user (D-162); the branch holds the product record and the direction contract. Build starts on their word, as `claude/f-*` branches |
+| F: the new UI for vcore.co.nz | `claude/f-design-context` (#176) | the computer | the design is accepted (D-163). Next: the first build pull request, foundations, as `claude/f-foundations` |
 
 ## The queue (plans are kept outside the repository, on the computer; each B item is a high-risk pull request with one independent review)
 
-**F, once the user accepts the design** (D-162; `PRODUCT.md`; the direction contract in `.impeccable/surfaces/`).
+**F, accepted on 27 November** (D-163 over D-162; `PRODUCT.md`, `DESIGN.md`, the direction contract in `.impeccable/surfaces/`).
 One pull request each: foundations (tokens, Geist, the shell and shared parts); the card, one component that holds a
 question and can re-ask itself over `src/lib/canvas.ts` and the rule table; the six renderers to one set of marks; the
 market page as a started canvas; brand, model and powertrain pages likewise, with brand against brand; search; the
@@ -57,9 +57,9 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-0. **The new UI's design**: accept the third proposal and its structure ("go"), or say what to change. Default: nothing of it is
-   built. And the name as written: vcore, Vcore or VCORE. Default: "vcore" in text, VCORE on the plate mark.
-1. **Merge** the lane F context pull request (docs and context files only) once it is open and green.
+0. **What vcore.co.nz shows first**: a private preview only the user can open (recommended), a public holding
+   page, or nothing until the new UI is built (the default). The name as written: default "vcore", VCORE on the plate.
+1. **The domain's registrar**, so the nameserver step can be written with its real screens.
 2. **After #173: build October again** so the published cube gains Market type? It is a forced build that
    the standing exception does not cover. Default: no; November's build carries it.
 3. **Market type's coverage levels**: warn under 75% placed, not live under 70% (today 98.69%). Default: kept.
@@ -75,5 +75,5 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Prompt for the next session
 
-/start. Read `docs/brief/UI_DIRECTION.md` and D-162. If I have accepted the design, build lane F's first pull
-request (foundations); if not, take lane B's item 3. Merge what I have named. Park what needs me.
+/start. Read `docs/brief/UI_DIRECTION.md`, D-162, D-163, `PRODUCT.md` and `DESIGN.md`. Build lane F's first pull
+request (foundations) with Impeccable's playbooks, then the card. Merge what I have named. Park what needs me.

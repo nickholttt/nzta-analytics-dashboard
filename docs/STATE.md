@@ -33,7 +33,7 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the 
 
 The user's direction of 27 November (`docs/brief/UI_DIRECTION.md`, D-162): the site built so far is the engine's
 proof and is not published; the public site at vcore.co.nz is a new UI in which every page is a canvas the
-visitor can re-ask. A third design proposal is with the user (lane F); nothing of it is built in `src/`.
+visitor can re-ask. The user accepted the design on 27 November (D-163); nothing of it is built in `src/` yet.
 
 ## In progress (all claude; nothing by gemini)
 
@@ -45,7 +45,7 @@ visitor can re-ask. A third design proposal is with the user (lane F); nothing o
   `nzta-segments` (an untracked draft scheme file, D-103); `nzta-notes` (the closed board proposal).
 - Private, on the computer: **the new UI's proposal** (a private page and its files) and its reviews; the vstat
   study, now with vstat's design tokens; the "Existing fleet" workbooks with a plan; the location plan.
-- The Impeccable design skill is installed for the maintainer's user, with no hook (D-162).
+- The Impeccable design skill is installed for the maintainer's user; its hook is on for this project (D-163).
 
 ## Raw files on this computer (gitignored)
 
@@ -79,7 +79,7 @@ visitor can re-ask. A third design proposal is with the user (lane F); nothing o
 
 ## Blocked or waiting on the user
 
-Waiting on the user (CHECKPOINT): the new UI's design; whether October is built again; D-158's questions; the
+Waiting on the user (CHECKPOINT): the Cloudflare steps and what the address should show; whether October is built again; D-158's questions; the
 NZTA email; the Existing fleet licence line; `DASHBOARD_EXPORT_METHOD.md`.
 
 ## How to run
