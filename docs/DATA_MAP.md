@@ -219,7 +219,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   first pass read 1890 to 2027 on W).
 - **Uses.** Break down banded: as vehicle age (`vehicle_year_band`) and as age at first registration
   (`age_at_registration_band`). Filter. Count only; age measures are derived and scoped to used
-  imports (`docs/METRICS.md`).
+  imports (`docs/METRICS.md`). Read by the dimension `market_type` (`market_type_map.csv`, D-161) for the year bounds of a nameplate's class.
 - **Coverage.** Every vehicle but one.
 - **Not recorded.** Zero, on 1 vehicle (W and S), covered by `sentinels.csv`.
 - **Traps.** 3,756 S vehicles have a vehicle year after their registration year, 20 of them by more
@@ -246,7 +246,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 - **Kind and values.** Category. 5 values on S since D-157 (passenger car/van 3,617,895; goods van, truck or
   utility 902,409; bus 37,053; motor caravan 54,693; special purpose vehicle 3,256; before D-157, 2 values:
   3,617,900 and 902,576 as measured then), 14 on W (trailers and caravans 883,184, motorcycles 192,024 and others).
-- **Uses.** Break down, filter. Count only. Offered as the dimension `vehicle_type` (labelled "Registered as",
+- **Uses.** Break down, filter. Count only. Read by the dimension `market_type` (`market_type_map.csv`, D-161), which tests it in every rule. Offered as the dimension `vehicle_type` (labelled "Registered as",
   for visitors too, so it cannot be read as the site's "Vehicle type"; Build offers it as a
   condition as soon as a cube carries it) on `registrations_surviving` and `new_registrations`, which both carry it, with its pairs and
   fact-table columns listed in `docs/CUBE_SCHEMA.md`. It holds the types the dataset's scope counts
@@ -270,7 +270,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   from them (`segment_map.csv`; D-003).
 - **Kind and values.** Category. 13 values on S, 27 on W. S: station wagon 1,692,157; hatchback
   1,210,348; saloon 587,739; utility 556,953.
-- **Uses.** Break down, filter. Count only.
+- **Uses.** Break down, filter. Count only. Read by the dimension `market_type` (`market_type_map.csv`, D-161).
 - **Coverage.** Every vehicle.
 - **Not recorded.** No form seen.
 - **Traps.** **It does not roll up to vehicle type.** 4 of the 13 S body types sit under both vehicle
@@ -327,7 +327,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 - **Kind and values.** Category. 7 values on S, 21 on W (`class_map.csv` holds all 21 and the 7 more the supplied table
   lists, so a wider scope, or a class that first appears later, does not trip the unmapped guard). S: MA 3,018,623; NA 701,639; MC 414,719; NB 72,851; NC
   68,051; MB 8,848; LE 1,702.
-- **Uses.** Break down from March 2002, filter. Count only. **Bound** as the dimension `nzta_class`
+- **Uses.** Break down from March 2002, filter. Count only. Read by the dimension `market_type` (`market_type_map.csv`, D-161) for special purpose vehicles. **Bound** as the dimension `nzta_class`
   ("NZTA vehicle class"), a slice and a fact-table column of `registrations_surviving` (D-116).
 - **Coverage.** S 94.8% (NEW 92.4%, USED 98.5%), and it depends on the year and on new or used.
   Not recorded, re-measured 2026-11-17 on the cube's 4,520,304 vehicles: NZ-new, 194,840 of 219,015
@@ -363,7 +363,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
   algorithmically; the site maps it to a brand through `brand_registry.csv` and `model_registry.csv`.
 - **Kind and values.** Category. 371 values on S, 1,030 on W; 73 appear once on S. S: Toyota
   1,135,722; Nissan 429,546; Mazda 386,990.
-- **Uses.** Break down (a ranking), filter. Count only.
+- **Uses.** Break down (a ranking), filter. Count only. With the model, read by the dimension `market_type` (`market_type_map.csv`, D-161) to find the nameplate's class.
 - **Coverage.** Every vehicle.
 - **Not recorded.** No form seen.
 - **Traps.** Sub-brands and bare words persist (`model_registry.csv`). `TRAILER` is a make on W
@@ -381,7 +381,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 - **Kind and values.** Category. 28,000 values on S (16,696 appear once), 175,398 on W (123,251 once).
   S: Corolla 173,420; Hilux 161,092; Ranger 134,798.
 - **Uses.** Break down within a make (the `model` dimension keeps the 300 with most volume over the
-  trailing 12 months), filter. Count only.
+  trailing 12 months), filter. Count only. With the make, read by the dimension `market_type` (`market_type_map.csv`, D-161) to find the nameplate's class.
 - **Coverage.** S 99.9%; before 1990, 96.6%. W 99.6%.
 - **Not recorded.** NULL (W 24,971; S 4,108), covered. Words that mean nothing, not yet in
   `sentinels.csv`: `UNKNOWN` (W 24), `NOT KNOWN` (1), `UNK` (1), `N/A` (7), `-` (7), `.` (1), `0`
@@ -708,7 +708,7 @@ The questions this map put to the user were answered on 2026-11-16 (D-096).
 
 - **Meaning.** The vehicle's maximum laden mass, in kilograms, as recorded. Not its empty weight.
 - **Kind and values.** Number. 5,372 values on S, 9,398 on W. Median on S 1,970.
-- **Uses.** Used by the segment (`segment_map.csv`). Break down banded, filter; average and median
+- **Uses.** Used by the segment (`segment_map.csv`) and by the dimension `market_type` (`market_type_map.csv`, D-161) (the 3,500 kg line and the nameplate class's mass bounds). Break down banded, filter; average and median
   inside the guard, split by vehicle type; never a total. Bands, S share inside the range: 300-1,199
   (0.9%), 1,200-1,599 (21.3%), 1,600-1,999 (29.3%), 2,000-2,499 (20.9%), 2,500-3,499 (23.7%),
   3,500-7,499 (1.6%), 7,500 and over (2.2%).
@@ -1253,6 +1253,7 @@ is derived from, read from its `derive` block:
 | `built_in` | `ORIGINAL_COUNTRY` | none |
 | `imported_from` | `PREVIOUS_COUNTRY` | none |
 | `segment`, `segment_group` | `VEHICLE_TYPE`, `BODY_TYPE`, `GROSS_VEHICLE_MASS` | `segment_map.csv` |
+| `market_type` | `VEHICLE_TYPE`, `BODY_TYPE`, `CLASS`, `GROSS_VEHICLE_MASS`; and `MAKE`, `MODEL` and `VEHICLE_YEAR` for the nameplate's class; `registrations_surviving` and `fleet` only (D-161) | `market_type_map.csv`, `model_segment.csv` |
 | `vehicle_type` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `label` column) |
 | `trade_group` | `VEHICLE_TYPE` | `vehicle_scope.csv` (its `trade_group` column; `new_registrations` only) |
 | `import_status` | `IMPORT_STATUS` | `import_status_map.csv` |
@@ -1266,10 +1267,13 @@ is derived from, read from its `derive` block:
 The dataset's scope is derived from `VEHICLE_TYPE` and `IMPORT_STATUS` (`vehicle_scope.csv`,
 `import_status_map.csv`). No register field is derived from another.
 
-Not yet a dimension: whether a nameplate is an SUV. `BODY_TYPE` records most SUVs as station wagons and no register field
+Whether a nameplate is an SUV is not a dimension of its own: `BODY_TYPE` records most SUVs as station wagons and no register field
 separates them, so the class comes from `model_segment.csv`, a lookup on canonical `MAKE` and `MODEL` (and `VEHICLE_YEAR` and
-`GROSS_VEHICLE_MASS` where a nameplate changed kind between generations or models under one name). The build joins it onto every vehicle as a column of its own (`model_classes` in `config/pipeline.json`, D-161), which no dimension reads yet; its rule, coverage and checks are in
-`docs/METRICS.md` ("SUV or car, by nameplate", D-117).
+`GROSS_VEHICLE_MASS` where a nameplate changed kind between generations or models under one name). The build joins it onto every vehicle
+as a column of its own (`model_classes` in `config/pipeline.json`, D-161), and the dimension `market_type` reads that column in its rules
+(`docs/METRICS.md`, "Market type"; its rule, coverage and checks are in "SUV or car, by nameplate", D-117). `market_type` reads no owner
+field: every field it reads is public. It is not offered to `new_registrations`, whose source carries no body type, class or
+gross vehicle mass.
 
 ### Recorded only for
 
