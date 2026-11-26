@@ -337,7 +337,7 @@ def coverage_guards(con, cfg, dataset: str, derived: list, candidates: list[dict
     each, and the reason for each that is not live this run. Below `warn_below` a build warns. Below `live_at` the dimension is
     not live; one that was live in the last good build aborts the run instead, as any dimension that stops being live does
     (docs/CUBE_SCHEMA.md, Live dimensions). A pool with no vehicle in it cannot be judged: that warns and leaves the dimension
-    as it was. A block that names what does not exist aborts before anything is counted."""
+    as it was in the last good build (live if it was live, not live if it was not, a first build included). A block that names what does not exist aborts before anything is counted."""
     blocks: dict[str, dict] = {}
     too_thin: dict[str, str] = {}
     by_id = {dim["id"]: dim for dim in candidates}
@@ -356,7 +356,14 @@ def coverage_guards(con, cfg, dataset: str, derived: list, candidates: list[dict
                   f"in {', '.join(spec['pool'])}, {block['trailing']['coverage'] or 0:.1%} are placed (not {spec['not_known']})")
         live = True
         if not vehicles:
-            warnings.append(f"{dataset}.{d.dim_id}: no vehicle in the coverage pool in the trailing {window} months, so its coverage cannot be judged")
+            # No evidence either way: the dimension stays as it was in the last good build, built if it was live and not built if it was not.
+            note = f"{dataset}.{d.dim_id}: no vehicle in the coverage pool in the trailing {window} months, so its coverage cannot be judged"
+            if d.dim_id in was_live:
+                warnings.append(f"{note}; the dimension was live in the last good build and stays live")
+            else:
+                live = False
+                too_thin[d.dim_id] = f"no vehicle in its coverage pool in the trailing {window} months, so its coverage cannot be judged"
+                warnings.append(f"{note}; the dimension was not live in the last good build and is not live")
         elif (vehicles - not_known) / vehicles < spec["live_at"]:
             live = False
             reason = f"coverage {(vehicles - not_known) / vehicles:.1%} is below {spec['live_at']:.0%} of the vehicles in its pool"

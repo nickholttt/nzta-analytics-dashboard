@@ -238,3 +238,38 @@ def test_the_guard_judges_the_trailing_window_and_not_the_whole_history(tmp_path
     assert block["all_time"]["coverage"] < 0.8 < 0.9 < block["trailing"]["coverage"], block
     assert block["live"] is True and dim["id"] in entry["live_dimensions"] and dim["id"] not in entry["not_live"]
     assert not any(dim["id"] in w and ("is not live" in w or "stops being live" in w) for w in manifest["warnings"]), manifest["warnings"]
+
+
+def without_the_pool(cfg, rows):
+    """The fixture without any new vehicle of the type the rules that read the nameplate's class are for: the coverage pool is empty."""
+    dim = dimension(cfg)
+    f = cfg.pipeline["fields"]
+    reading = next(x for x in reference.ordered_rules(cfg, dim["derive"], dim["id"]) if x["model_class"])
+    statuses = cfg.pipeline["scope"]["status"]
+    new = {s[statuses["key"]] for s in reference.read(cfg.reference(statuses["file"])) if s[statuses["label"]] in dim["coverage"]["over"]["status_labels"]}
+    kept = [r for r in rows if not (r[f["vehicle_type"]] in reference.split(reading["vehicle_types"], "|") and r[f["import_status"]] in new)]
+    assert 0 < len(kept) < len(rows)
+    return kept
+
+
+def test_a_pool_with_no_vehicle_cannot_be_judged_so_the_dimension_stays_as_it_was(tmp_path, workspace):
+    """No evidence is neither a pass nor a fail. A dimension that was not live is not made live by it, and one that was live is not
+    taken away by it (the run does not abort on what it cannot measure); both say so in a warning."""
+    cfg = frozen_cfg(tmp_path, workspace)
+    dim_id = dimension(cfg)["id"]
+    rows = without_the_pool(cfg, load_rows())
+    _, first = run(tmp_path, workspace, rows=rows, cfg=cfg, name="first")
+    for dataset in (SURVIVORS, STOCK):
+        entry = first["datasets"][dataset]
+        assert entry["dimension_coverage"][dim_id]["trailing"]["coverage"] is None
+        assert dim_id not in entry["live_dimensions"] and "cannot be judged" in entry["not_live"][dim_id]
+        assert entry["dimension_coverage"][dim_id]["live"] is False
+    assert any("so its coverage cannot be judged" in w and SURVIVORS in w for w in first["warnings"])
+    state = json.loads(workspace["state"].read_text(encoding="utf-8"))
+    for dataset in (SURVIVORS, STOCK):
+        state["live_dimensions"][dataset].append(dim_id)
+    _, second = run(tmp_path, workspace, rows=rows, cfg=cfg, state=state, name="second", publish=False)
+    for dataset in (SURVIVORS, STOCK):
+        entry = second["datasets"][dataset]
+        assert dim_id in entry["live_dimensions"] and entry["dimension_coverage"][dim_id]["live"] is True
+    assert any("cannot be judged" in w for w in second["warnings"])

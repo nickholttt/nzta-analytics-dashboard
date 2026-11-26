@@ -1584,7 +1584,8 @@ is worse than one that is visibly stale.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
 - A dimension with a `coverage` block (`market_type`) places less of its pool than `warn_below` (75%) over the trailing 12 months, or
-  less than `live_at` (70%) and is therefore not live; or its pool is empty in the window, so its coverage cannot be judged.
+  less than `live_at` (70%) and is therefore not live; or its pool is empty in the window, so its coverage cannot be judged (the dimension
+  then stays as it was in the last good build: live if it was live, not live if it was not, a first build included).
 - A dataset's mild hybrid split is published now and was withheld in the last
   good build, or the reverse (`mild_split` in the state). One build then
   rewrites the dataset's whole history of the two values, in every slice, pair
