@@ -45,9 +45,26 @@ reading and the state of the work, each marked as such.
 >
 > 3, merge 170, 171, 172, 173, 174, 175.
 
+## The user's acceptance (2026-11-27, a third message)
+
+> Im happy with the initial design. do a pass which optimises views for web and desktop explicitly. It needs
+> to look good on both. make sure on dekstop spacing is relevant and no weird gaps are left. [...]
+>
+> 1, go for now, it looks good enough.
+> 2, merge 176.
+> 3, install it.
+>
+> Also tell me how to set up cloudflare to get this site somewhat live
+
+Claude's reading: the design and its structure are accepted for building (D-163); "for now" is read as
+leave to change it later. The layout pass was done on the proposal the same day: the gaps the user marked
+on a desktop screenshot (the empty end of a card's control row, the dead area beside the first chart, a
+half-empty second row in a card's foot) are closed, measured at 1024, 1280 and 1440 px, with no sideways
+scroll at 320, 390, 768, 1024, 1280 or 1440 px. Impeccable's hook is on for this project.
+
 ## Where it has got to (2026-11-27, end of day)
 
-- **Nothing in `src/` has changed.** No design is accepted yet. The record is D-162.
+- **Nothing in `src/` has changed.** The design is accepted (D-163, over D-162); lane F builds it.
 - The proposal was remade twice. In its third version every page is a canvas someone started for the
   visitor: one bar recounts the whole page (what is counted, over which period, ending in which month, only
   which powertrain); every card states its answer, then offers a field picker with a line defining each
@@ -60,8 +77,6 @@ reading and the state of the work, each marked as such.
   20; every text colour passes 4.5 to 1), a finish review ("fix", eight material fixes), one fix batch, a
   verdict pass (seven resolved, one partial, three regressions), a second batch and a second verdict pass
   (the three regressions resolved, none new), and `DESIGN.md`.
-- Open after the reviews, and the owner's: accepting the structure (the reviewer's one partial item: the
-  owner pinned the look, the author chose the structure).
 - Open for the build: a filter on any field and a card's own condition; an address that carries the page's
   choices; a light and heavy vehicle switch (waits for data); change shown in vehicles as well as per cent;
   one colour per value from reference data. Not done: a real phone, Safari, a screen reader.

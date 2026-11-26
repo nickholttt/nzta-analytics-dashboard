@@ -852,3 +852,14 @@ date, or "inferred — confirm"; the full legend heads the archive.
   - Two things a reader of the current site would see change, each for the user to confirm: direction shown by an arrow in ink where green and red are used today; and curves that never pass a data point where shadcn's default can.
   - `.impeccable/` is a new top-level directory. A reader who has not installed the skill loses nothing: the files are plain Markdown.
 - Status: the direction, the look and the use of the skill are the user's (accepted). The structure, the product record's wording and the two changes above are decided by claude (unreviewed). Docs and context files only: low risk.
+
+## D-163 2026-11-27 — The user accepts the new UI's design and structure, for building
+- Agent: user (the acceptance); claude (the reading)
+- Basis: the user's message of 2026-11-27 after the third proposal, kept in `docs/brief/UI_DIRECTION.md`: "Im happy with the initial design"; "go for now, it looks good enough"; "do a pass which optimises views for web and desktop explicitly ... no weird gaps are left"; "install it" (Impeccable's hook).
+- Context: D-162 left two things unreviewed: the structure (every page a canvas the visitor can re-ask), which the finish reviewer scored partial because the user had pinned the look and not the structure, and the proposal's own choices.
+- Decision:
+  1. The design in `DESIGN.md` and the direction contract in `.impeccable/surfaces/` are the basis lane F builds from. "For now" is read as leave to change it later, not as a hold.
+  2. The layout pass the user asked for is part of that design: a card lays itself out by its own width, the first card spans the page under a one-row headline, a card's foot is one row, and cards in a row share a height (`DESIGN.md`, Layout).
+  3. Impeccable's hook is turned on for this project (`.impeccable/config.json`), with Geist recorded as the owner's choice so the detector does not flag it. The hook scans UI files a Claude Code session edits and changes nothing for other tools or for `Checks`.
+- Consequences: still for the user to confirm when they see them built: direction as an arrow in ink where green and red are used today, the number-plate wordmark, and how the name is written. Open for the build: a filter on any field, a card's own condition, an address that carries the page's choices, and a light and heavy vehicle switch.
+- Status: accepted (user) for points 1 and 3; the reading of "for now" and the detail of point 2 are claude's (unreviewed). Docs and context files only.

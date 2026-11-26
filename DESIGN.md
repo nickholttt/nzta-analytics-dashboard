@@ -180,9 +180,10 @@ components:
 # Design System: vcore
 
 This file records the proposed system. It was read off the design proposal's prototype, kept outside the
-repository, on 2026-11-27. The owner has not yet accepted it and it is not yet applied to `src/`. The site
+repository, on 2026-11-27. The owner accepted the design that day ("Im happy with the initial design"; "go
+for now, it looks good enough"; D-163). It is not yet applied to `src/`. The site
 as it stands ships a different look (a serif and IBM Plex Sans on warm paper, in `src/styles/site.css` and
-`src/lib/theme.ts`). Until the owner accepts this proposal, that code is the live system and this file is
+`src/lib/theme.ts`). Until lane F's pull requests replace it, that code is the live system and this file is
 the plan for its replacement. The name "vcore" is inferred from the site's address; how it is written is
 not confirmed.
 
@@ -263,13 +264,14 @@ The prototype loads Geist from Google Fonts. The site makes no third-party reque
 
 A centred column, 1200px at most, with a 16px gutter that respects the safe-area insets. The full editor widens to 1560px. Pages read top to bottom: top bar, the sticky scope bar, the answer, then cards.
 
-- **The answer row:** two columns in a 5 to 7 ratio (36px column gap). Left: the headline and the three count tiles. Right: the page's first card.
-- **The card grid:** two equal columns with a 20px gap. A card can span both. Inside a wide card, a chart and its table sit side by side in a 3 to 2 ratio.
+- **The answer row:** two columns in a 5 to 7 ratio (36px column gap), aligned on their lower edge. Left: the headline. Right: the three count tiles. One line of small print runs full width under it. The page's first card comes next and spans both columns of the grid, with its chart and the last six points as a table side by side.
+- **The card grid:** two equal columns with a 20px gap. A card can span both. Cards in a row are the same height, with the foot held to the bottom edge. Inside a wide card, a chart and its table sit side by side in a 3 to 2 ratio.
+- **No stray gaps:** a card lays itself out by its own width (a container query), not the window's. Under 900px wide its chart-type tiles stretch to fill the row beside the field picker, and a line switch takes a full row of its own under 700px. At 900px and over the controls sit to the right of the sentence.
 - **The editor:** three columns, a 216px field list, the card grid, and a 296px settings pane, with 16px gaps. Both panes stick below the scope bar.
 - **Rhythm:** 8px between related controls, 14px by 20px inside a card, 20px between cards, 36px to 44px between page sections. No spacing custom properties exist in the prototype; these are the values it repeats.
 
 Responsive behaviour, as built:
-- **1400px and under:** the scope bar's period switch becomes a select.
+- **The scope bar is one row from 1024px up.** Its period control is a select on page-width bars; the segmented form appears only in the editor's wide bar at 1500px and over.
 - **1240px and under:** the editor drops its field list. **1100px and under:** the editor's cards go to one column.
 - **900px and under:** the answer row, the card grid and the list of starting questions go to one column. The editor's settings pane becomes a sheet that rises from the bottom edge, opened by a fixed button.
 - **640px and under:** controls grow to 44px high (chart-type tiles to 48px), inputs take 16px text, the scope bar folds into one summary button that opens its controls, the field picker and the chart-type tiles go full width, card padding drops to 12px by 14px, and the less needed table columns are hidden.
@@ -315,7 +317,7 @@ Edges are 1px. A solid edge in the control colour means "this can be used". A da
 - **Shadow Strategy:** the resting shadow. See Elevation & Depth.
 - **Border:** 1px hairline. Ink with the selected ring when chosen in the editor.
 - **Internal Padding:** 18px top, 14px bottom, 20px sides (14px, 12px and 14px at phone width).
-- **Anatomy, top to bottom:** the answer first, as a title-size sentence with one quiet line saying what is counted; the ask row (the field picker, the chart-type tiles, and where it applies a small switch for how a line is drawn), closed by a hairline; the evidence (a chart, a ranked list, a table or movers); the source line, closed above by a hairline, in caption type, with the source, the period, "How this is counted", and the card's actions at the right.
+- **Anatomy, top to bottom:** the head, closed by a hairline: the answer first, as a title-size sentence with one quiet line saying what is counted, then the ask row (the field picker, the chart-type tiles, and where it applies a small switch for how a line is drawn). On a card 900px wide or more the ask row sits to the right of the sentence; on a narrower card it sits under it and fills the row. Then the evidence (a chart, a ranked list, a table or movers; a field with few, coloured values shows its mix as one bar above its ranking); a caption where one is owed; and the foot, always one row in caption type, closed above by a hairline: the source and "How this is counted" at the left, the card's actions ("Show 25", "Full editor", "Remove") at the right.
 
 ### Inputs / Fields
 - **Search:** 36px high (44px at phone width), control edge, small radius, a 16px search icon inside the left edge. Results drop below as a floating menu of rows with a quiet kind label at the right.
