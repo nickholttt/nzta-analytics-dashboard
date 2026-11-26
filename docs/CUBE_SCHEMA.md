@@ -495,8 +495,8 @@ vehicles) and the pair 4,899 (560 cells; 20 of them, all Used Import with Other,
 are). The payload went from 5,922,555 to 6,107,688 bytes (+185,133), 76.3% of the 8,000,000 byte budget. The site does not read a narrow table
 yet, so a chart of buyer type alone, or by new or used, is drawn from the slice and the pair, and buyer type crossed with a make or a model
 waits for the site to read the narrow table. Every count adds up: a month's four values sum to the dataset's total for the month, and the
-pair summed over new or used is the slice (both tested, `pipeline/tests/test_buyer_type.py`). The dimension is in `abort_on_unmapped`: a pair of
-owner type and usage the file has no row for reads `__UNMAPPED__`. No cell is hidden, on the user's direction of 2026-11-25; the floor under
+pair summed over new or used is the slice (both tested, `pipeline/tests/test_buyer_type.py`). The dimension is in `abort_on_unmapped` and in `abort_on_any_unmapped`: a pair of
+owner type and usage the file has no row for reads `__UNMAPPED__` and stops the build on any such row, not only above 2%. No cell is hidden, on the user's direction of 2026-11-25; the floor under
 that is that no table holds it beside a field that says where the owner lives (`pipeline/privacy.py`, `build.kind_of_owner_floor_problems`,
 tested on the published files). The reconciliation file is byte for byte as it was (all 389 rows), and the manifest gains the dimension's entries
 only. The pipeline keeps no order of a dimension's values; Private, Company, Rental, Other is the order the table shown to the user before the merge uses.
@@ -1382,6 +1382,8 @@ Mapping:
 - Unmapped powertrain above 2% of in-scope rows, on the same two bases.
 - Unmapped `nz_assembled`, `nzta_class`, `transmission` or `powertrain_group` above 2% of in-scope rows, on the same two bases (every dimension in
   `abort_on_unmapped` in `config/pipeline.json` is guarded so, D-116).
+- Any unmapped row at all of a dimension in `abort_on_any_unmapped` (`buyer_type`, D-159: it is published for every vehicle, so a
+  buyer type of `__UNMAPPED__` is never published). A dimension in that list that is not also in `abort_on_unmapped` aborts too.
 - A dimension that was live in the last good run exceeds its unmapped
   threshold or loses a reference file.
 

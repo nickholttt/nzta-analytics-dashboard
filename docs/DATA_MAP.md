@@ -1157,7 +1157,7 @@ types, one row for every `Owner Type` (3) times every `Vehicle usage` value (20)
 - **Pairs the export has not sent.** 57 of the 60 pairs occur in the export. Three do not (Other with the overseas
   visitor licence, Other with hearse, Individual with commercial ambulance); they keep their rows so a later month that
   sends one still maps. A pair with no row at all, because NZTA sends an owner type or a usage value it has not sent
-  before, reads `__UNMAPPED__` and stops the build (invariant 5: `buyer_type` is in `guardrails.abort_on_unmapped`).
+  before, reads `__UNMAPPED__` and stops the build on any such row, however few (invariant 5: `buyer_type` is in `guardrails.abort_on_unmapped` and in `guardrails.abort_on_any_unmapped`).
 - **No empty value occurs.** None of the export's 991,274 rows has an empty `Owner Type` or an empty `Vehicle usage`.
   `UNDEFINED` is a value NZTA writes in `Vehicle usage` (382 vehicles); it is mapped like any other and follows its owner
   type. An empty value is not a pair of the file: it reads `__UNDEFINED__`, as an empty field does for every derived field

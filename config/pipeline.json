@@ -264,6 +264,7 @@
     "max_in_scope_row_change": 0.02,
     "max_unmapped_rate": 0.02,
     "abort_on_unmapped": ["make", "powertrain", "powertrain_group", "nz_assembled", "nzta_class", "transmission", "vehicle_usage", "buyer_type"],
+    "abort_on_any_unmapped": ["buyer_type"],
     "max_unmapped_rate_trailing": 0.02,
     "warn_unmapped_rate_trailing": 0.005,
     "zero_row_min_previous_rows": 1000,

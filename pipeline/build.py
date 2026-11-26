@@ -378,6 +378,15 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
         elif t["unmapped"] > t["warn_above"] * t["rows"]:
             warnings.append(f"{detail}, above the {t['warn_above']:.1%} warning level; the run aborts above "
                             f"{t['abort_above']:.0%}, {t['headroom_rows']:,} rows away")
+    # A dimension that says who a vehicle was registered to is published for every vehicle: one row the map has no row for stops the
+    # build, not only a share above the guard (invariant 5). It must be one the guard measures.
+    for dim_id in g.get("abort_on_any_unmapped", []):
+        if dim_id in {d.dim_id for d in derived} and dim_id not in guard:
+            aborts.append(f"{dataset}.{dim_id} is in guardrails.abort_on_any_unmapped but not in abort_on_unmapped, so nothing measures it")
+        elif dim_id in guard and guard[dim_id]["whole_run"]["unmapped"] > 0:
+            aborts.append(f"{dataset}.{dim_id}: {guard[dim_id]['whole_run']['unmapped']:,} of {guard[dim_id]['whole_run']['rows']:,} "
+                          "in-scope rows read unmapped (a value its reference file has no row for); this dimension stops the "
+                          "build on any unmapped row (guardrails.abort_on_any_unmapped), so add the row to the reference file")
     live = []
     for d in derived:
         if rates[d.dim_id] <= g["max_unmapped_rate"]:

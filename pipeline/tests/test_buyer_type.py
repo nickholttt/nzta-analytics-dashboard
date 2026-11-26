@@ -15,7 +15,7 @@ from collections import Counter
 import duckdb
 import pytest
 
-from pipeline import build, privacy, reference, supplied
+from pipeline import build, config, privacy, reference, supplied
 from pipeline.contract import FACT_COUNT, FACT_MONTH, FACTS_DIR, NARROW_DIR, PAIR_SEPARATOR
 from pipeline.errors import GuardrailError
 
@@ -150,6 +150,28 @@ def test_a_pair_the_map_has_no_row_for_stops_the_build(tmp_path, workspace):
     with pytest.raises(GuardrailError) as info:
         build.build(cfg, source_for(rows), write_pages(tmp_path / "pages", rows), None, NOW, publish=False)
     assert DIMENSION in str(info.value), str(info.value)
+
+
+def test_a_single_vehicle_of_a_pair_the_map_has_no_row_for_stops_the_build(tmp_path, workspace):
+    """The unmapped guard of the other dimensions waits for 2% of rows; this one holds the buyer type of every vehicle, so a pair the
+    map has no row for stops the build whatever its size, in one month's one row: the committed store cannot change without a pull
+    request, but the build must not publish a buyer type of `__UNMAPPED__` either."""
+    cfg = make_cfg(workspace)
+    owner, _ = next(iter(pairs_of_the_map(cfg)))
+    path, _ = history_with(cfg, tmp_path, "history_one_unmapped.csv", [(owner, "A USAGE NO ROW OF THE MAP NAMES")], count=1)
+    supplied.supply(cfg, SOURCE, path, taken="2026-09-05", echo=lambda *_: None)
+    rows = load_rows()
+    with pytest.raises(GuardrailError) as info:
+        build.build(cfg, source_for(rows), write_pages(tmp_path / "pages", rows), None, NOW, publish=False)
+    message = str(info.value)
+    assert DIMENSION in message and "unmapped" in message.lower(), message
+    assert not (workspace["public"]).exists()
+
+
+def test_every_dimension_that_stops_the_build_on_any_unmapped_row_is_in_the_unmapped_guard():
+    g = config.load().pipeline["guardrails"]
+    assert DIMENSION in g["abort_on_any_unmapped"]
+    assert set(g["abort_on_any_unmapped"]) <= set(g["abort_on_unmapped"])
 
 
 def test_the_dimension_is_in_the_unmapped_guard_and_reads_only_the_dataset_that_carries_the_two_columns(built):
