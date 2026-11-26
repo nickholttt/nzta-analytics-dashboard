@@ -202,12 +202,16 @@ const fieldNotes = dimensions.flatMap((d) => (fullNote(d) ? [{ id: d.id, label: 
 
     <h2 id="hidden-counts">Hidden counts</h2>
     <p>
-      A table of a field that describes how a vehicle is used, or who has it, never shows a count under {hideBelow}, so no
-      vehicle can be picked out from it. A hidden count is marked <em>hidden</em>, with no bar and no number, and is never
+      A table of a field that describes how a vehicle is used today, or where its owner lives, never shows a count under
+      {hideBelow}, so no vehicle can be picked out from it. A hidden count is marked <em>hidden</em>, with no bar and no number, and is never
       drawn as zero. A few counts beside a hidden one are hidden too: a total less the counts shown would otherwise give a
       hidden one away. The totals of every row and column are complete and count every vehicle, so they can be more than
       the counts shown beside them add up to. Where no cell of a table could be shown without giving a vehicle away, the
       table is not broken down, and the page says so.
+    </p>
+    <p>
+      Buyer type, who a vehicle was first registered to, is not one of those fields. It is shown in full, with every
+      count, and is never shown beside where the owner lives.
     </p>
 
     <h2 id="long-run-cars">Long-run car registrations</h2>
