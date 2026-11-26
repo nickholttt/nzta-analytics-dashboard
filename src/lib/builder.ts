@@ -5,7 +5,7 @@
 import dataMapDoc from "../../config/data_map.json";
 import { builderSpec, dimensions, lowerLabel, phrases, findDataset, findDerived, findDimension, findMeasure, dimensionLabel, forDataset, retiredDatasets } from "./config";
 import type { BuilderMeasure, Preset, RetiredDataset } from "./config";
-import { isBuilt } from "./data";
+import { PAIR_SEPARATOR, factTableFor, factTables, isBuilt } from "./data";
 import type { Manifest } from "./data";
 import { monthLabel } from "./measures";
 import { drawnShapes, findPair, inferShape, questionFacts, resolvePreset } from "./resolve";
@@ -61,12 +61,16 @@ export type BuilderOption = {
   joiner: string;
   derived: boolean;
   allowsTotal: boolean;
-  // with: the fields this one can be crossed with in a grid (the fact table carries both, they are not one nested in the other).
-  dimensions: { id: string; phrase: string; values: boolean; with: string[] }[];
+  // with: the fields this one can be crossed with in a grid (one fact table carries both, they are not one nested in the other).
+  // startValues: with none chosen the page starts on the largest few (a long list, or one the wide fact table carries); false for a short list kept only in a
+  // narrow table, which is drawn from its slice, every value, and whose values the visitor may still choose.
+  dimensions: { id: string; phrase: string; values: boolean; with: string[]; startValues: boolean }[];
 };
 export type FilterOption = { id: string; label: string };
-// What one dataset offers; label is how the page names what it counts.
-export type DatasetVocabulary = { dataset: string; label: string; measures: BuilderOption[]; filters: FilterOption[] };
+// What one dataset offers; label is how the page names what it counts. tables: the fields each table of the dataset holds, which are the fields a question can
+// name together: each fact table (the wide one, then the narrow ones, D-144) and each live pair of two fields. A field is crossed with, or kept beside, another
+// only where one table holds both (holdsTogether).
+export type DatasetVocabulary = { dataset: string; label: string; measures: BuilderOption[]; filters: FilterOption[]; tables: string[][] };
 // owner: the dimensions made from a field that describes the owner (src/lib/owner.ts), which a kept snapshot's table of is read only where it says its
 // small cells were hidden (src/lib/kept.ts).
 // narrowings: for each dimension made from a field the register records for only a kind of vehicle, the conditions that keep that kind (src/lib/narrowing.ts),
@@ -236,6 +240,12 @@ export function datasetName(id: string, manifest?: Manifest): string {
   return first ? `${name}, from ${monthLabel(first)}` : name;
 }
 
+// Whether one table of the dataset holds every one of these fields: what a question that names them all can be answered from.
+export const holdsTogether = (v: Pick<DatasetVocabulary, "tables">, fields: readonly string[]): boolean => v.tables.some((t) => fields.every((f) => t.includes(f)));
+
+// The fields that share a table with this one, and so can be named in one chart with it.
+export const together = (v: Pick<DatasetVocabulary, "tables">, field: string): string[] => [...new Set(v.tables.filter((t) => t.includes(field)).flat())].filter((f) => f !== field);
+
 const draws = (q: Question, manifest: Manifest) => builderPresets(q).every((p) => resolvePreset(p, manifest).preventsRender.length === 0);
 
 // The condition a field starts under by config (builder.starts_under, D-160), for the datasets of this build that can serve it: those with a live pair of
@@ -272,22 +282,26 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
 
 function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabulary {
   const facts = manifest.datasets[dataset]?.facts;
+  // Each fact table, then each live pair: a pair is a table of two fields, which a question with one breakdown and one condition is read from.
+  const tables = [...factTables(facts), ...(manifest.datasets[dataset]?.live_pairs ?? []).map((pair) => pair.split(PAIR_SEPARATOR))];
+  const inFacts = (...ids: string[]) => factTableFor(facts, ids) !== null;
   const blank: Question = { dataset, measure: "", by: null, values: [], where: {}, view: null };
   const measures = builderSpec.measures
     .map((m): BuilderOption => {
       const probe = (by: string | null, values: string[] = []) => draws({ ...blank, measure: m.id, by, values }, manifest);
       const offered = Object.entries(dimensionsOf(m, dataset)).flatMap(([id, phrase]) => {
-        const values = !m.derived && Boolean(facts?.dimensions.includes(id)) && probe(id, ["?"]);
+        const values = !m.derived && inFacts(id) && probe(id, ["?"]);
         // A count by a breakdown draws a line per chosen value, so without values it has nothing to draw. In a dataset of one period it is a ranking of
         // every value, which needs none. A short list of a dataset with no fact table (a published series) has no values to choose: its slice holds every value.
         // So does a short list the fact table does not carry as a column (a field kept in a narrow table, D-144, such as buyer type): the slice is drawn, every value.
-        const needsValues = partsOf(m).some((p) => p.id === COUNT) && !hasOnePeriod(dataset) && (Boolean(facts?.dimensions.includes(id)) || findDimension(id)?.cardinality !== "low");
-        return values || (!needsValues && probe(id)) ? [{ id, phrase, values }] : [];
+        const longList = Boolean(facts?.dimensions.includes(id)) || findDimension(id)?.cardinality !== "low";
+        const needsValues = partsOf(m).some((p) => p.id === COUNT) && !hasOnePeriod(dataset) && longList;
+        return values || (!needsValues && probe(id)) ? [{ id, phrase, values, startValues: longList }] : [];
       });
-      // A grid needs the fact table to carry both fields, and a plain measure of vehicles.
-      // Where the fact table carries both fields they are crossed from it; where it does not, from the pair slice of the two, if the question draws.
+      // A grid needs one fact table to carry both fields, and a plain measure of vehicles.
+      // Where a fact table carries both fields they are crossed from it; where none does, from the pair slice of the two, if the question draws.
       const crosses = (d: { id: string; values: boolean }, o: { id: string; values: boolean }) =>
-        canCross(d.id, o.id) && (d.values && o.values ? true : !facts && Boolean(findPair(manifest.datasets[dataset]?.live_pairs ?? [], d.id, o.id)) && draws({ ...blank, measure: m.id, by: d.id, by2: o.id }, manifest));
+        canCross(d.id, o.id) && (d.values && o.values ? inFacts(d.id, o.id) : !facts && Boolean(findPair(manifest.datasets[dataset]?.live_pairs ?? [], d.id, o.id)) && draws({ ...blank, measure: m.id, by: d.id, by2: o.id }, manifest));
       const dimensions = offered.map((d) => ({ ...d, with: m.derived ? [] : offered.filter((o) => o.id !== d.id && crosses(d, o)).map((o) => o.id) }));
       return {
         id: m.id,
@@ -299,10 +313,10 @@ function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabula
       };
     })
     .filter((m) => m.dimensions.length > 0 || m.allowsTotal);
-  const filters = (facts?.dimensions ?? [])
+  const filters = [...new Set(factTables(facts).flat())]
     .filter((id) => findDimension(id))
     .map((id) => ({ id, label: dimensionLabel(id, false, dataset) ?? id }));
-  return { dataset, label: datasetName(dataset, manifest), measures, filters };
+  return { dataset, label: datasetName(dataset, manifest), measures, filters, tables };
 }
 
 // The conditions after a visitor changes the values of one: a condition left with no value is gone, since a condition with none keeps
@@ -399,6 +413,8 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   const dimension = m.dimensions.find((d) => d.id === q.by);
   const by = dimension ? dimension.id : m.allowsTotal && (q.by === null || q.by === undefined) ? null : (m.dimensions[0]?.id ?? null);
   const takesValues = Boolean(by && m.dimensions.find((d) => d.id === by)?.values);
+  // The page fills in values for a count only where it needs them: a short list kept in a narrow table has none to fill in (it is drawn, every value).
+  const startsOnValues = takesValues && m.dimensions.find((d) => d.id === by)?.startValues !== false;
   // A second breakdown only where the dataset carries both fields and they can be crossed; otherwise the question has none.
   const by2 = by && q.by2 && dimension?.with.includes(q.by2) ? q.by2 : null;
   const onBreakdown = by ? (q.where?.[by] ?? []) : [];
@@ -415,7 +431,7 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   const values2 = by2 ? [...new Set((q.values2?.length ? q.values2 : onBreakdown2).filter(isChoosable))].slice(0, chartDefaults.matrix.columns) : [];
   // Values the page chose: any question that names none, and one the page has filled in and the visitor has not touched. A grid chooses its own
   // lines in the window it shows, so it has no starting values to fill in.
-  const pageValues = !by2 && takesValues && (values.length === 0 || q.pageValues === true);
+  const pageValues = !by2 && startsOnValues && (values.length === 0 || q.pageValues === true);
   // A breakdown by a field recorded for only a kind of vehicle starts with the condition that keeps that kind (D-132), unless the link already
   // has a condition on that field, or says it was removed. A condition on a breakdown itself is already the question, and a field this data
   // cannot condition on cannot be narrowed.

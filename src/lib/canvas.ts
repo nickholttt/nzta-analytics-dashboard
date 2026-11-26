@@ -198,7 +198,8 @@ export function awaitsValues(all: Vocabulary, chart: Pick<CanvasChart, "question
   const preset = chartPreset({ id: canvasSpec.chart_prefix, question: q, type: chart.type });
   if (!preset || preset.derived || preset.shape_override === RANKING) return false;
   const breakdown = measureOf(datasetOf(all, q.dataset), q.measure).dimensions.find((d) => d.id === q.by);
-  return findMeasure(preset.measure)?.kind === COUNT_KIND && Boolean(breakdown?.values);
+  // A short list kept in a narrow table has values to choose but none for the page to start on: it is drawn from its slice, every value.
+  return findMeasure(preset.measure)?.kind === COUNT_KIND && Boolean(breakdown?.values) && breakdown?.startValues !== false;
 }
 
 // Whether the engine draws the question as this shape: the rule table says the shape fits, and nothing in the build stops the chart.

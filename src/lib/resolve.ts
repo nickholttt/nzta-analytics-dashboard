@@ -6,7 +6,7 @@
 // triage table that has quietly gone stale is worse than no triage table.
 import { COMPOSITE, chartDefaults, compositeRules, datasetClashes, datasetsRead, findDataset, findDerived, findDimension, findMeasure, findPeriod, isComposite, isDeclaredComposite, periods, presets } from "./config";
 import type { Dimension, Measure, Preset, PresetStatus } from "./config";
-import { PAIR_SEPARATOR, SMALL_CELL_KEY, SMALL_CELL_PAIR_KEY, datasetLatestMonth, isBuilt, ruleMinimum, smallCellDimensions } from "./data";
+import { PAIR_SEPARATOR, SMALL_CELL_KEY, SMALL_CELL_PAIR_KEY, datasetLatestMonth, factTableFor, isBuilt, ruleMinimum, smallCellDimensions } from "./data";
 import type { Manifest, ViewSource } from "./data";
 import { datasetFirstMonth, isUnbuilt } from "./built";
 import type { Covers } from "./rolling";
@@ -230,8 +230,12 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
     const facts = entry?.facts;
     const where = Object.fromEntries(Object.entries(preset.where ?? {}).filter(([, kept]) => kept.length > 0));
     const named = [...(preset.dimension ? [preset.dimension] : []), ...(preset.dimension2 ? [preset.dimension2] : []), ...Object.keys(where)];
-    // A dimension the config does not define has no name to show a visitor, so it is as missing as one the table lacks.
-    const missing = named.filter((d) => !facts?.dimensions.includes(d) || !findDimension(d));
+    // The fields the wide table lacks (a dimension the config does not define has no name to show a visitor, so it is as missing as one the table lacks).
+    const missing =named.filter((d) => !facts?.dimensions.includes(d) || !findDimension(d));
+    // The fact table the question is summed from: the wide one where it holds every field, else the first narrow table that does (D-144). A question is
+    // answered from one table, so what no table holds together is not drawn: `unheld` are the fields no table holds at all.
+    const table = named.every((d) => findDimension(d)) ? factTableFor(facts, named) : null;
+    const unheld = named.filter((d) => !factTableFor(facts, [d]) || !findDimension(d));
     // A dataset with no fact table draws a grid of two fields from the pair slice of the two, every value of both, for the one period it holds (D-139).
     const gridPair =
       !facts && cubeDataset && entry && preset.dimension && preset.dimension2 && preset.values === undefined && preset.values2 === undefined && Object.keys(where).length === 0
@@ -252,12 +256,13 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
       source = { dataset: cubeDataset, dimension: preset.dimension, filter: { ...keptPair, dimension: keptField, values: keptValues } };
       keptBy = [{ dimension: keptField, values: keptValues }];
     }
-    else if (missing.length) add("blocked", `the fact table does not carry ${missing.join(", ")}`);
+    else if (unheld.length) add("blocked", `the fact table does not carry ${unheld.join(", ")}`);
+    else if (!table) add("blocked", `no one fact table carries ${named.join(" together with ")}`);
     else if (cubeDataset) {
       source = {
         dataset: cubeDataset,
         dimension: preset.dimension ?? null,
-        facts: { values: preset.values, where },
+        facts: { values: preset.values, where, ...(table.table !== undefined ? { table: table.table } : {}) },
         ...(preset.dimension2 ? { cross: { dimension: preset.dimension2, grid: true } } : {}),
       };
       keptBy = Object.entries(where).map(([d, values]) => ({ dimension: d, values }));
