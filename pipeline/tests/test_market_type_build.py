@@ -211,3 +211,30 @@ def test_a_vehicle_no_rule_takes_stops_the_build_however_few_there_are(tmp_path,
     assert dim["id"] in guards["abort_on_unmapped"] and dim["id"] in guards["abort_on_any_unmapped"]
     with pytest.raises(GuardrailError, match=rf"{dim['id']}: 1 of [\d,]+ in-scope rows read unmapped"):
         run(tmp_path, workspace, rows=rows + [odd], publish=False)
+
+
+def test_the_guard_judges_the_trailing_window_and_not_the_whole_history(tmp_path, workspace):
+    """Old months full of vehicles the SUV file does not know, which is what the register looks like (the file places a small share of
+    the older vehicles), must not switch the dimension off or warn: the guard judges new vehicles of the trailing window. The thresholds
+    sit between the two figures, so a guard that read the whole history would warn at the first and leave the dimension not live at the
+    second."""
+    cfg = frozen_cfg(tmp_path, workspace)
+    dim = dimension(cfg)
+    f = cfg.pipeline["fields"]
+    rows = load_rows()
+    reading = next(x for x in reference.ordered_rules(cfg, dim["derive"], dim["id"]) if x["model_class"])
+    statuses = cfg.pipeline["scope"]["status"]
+    new = next(r["nzta"] for r in [{"nzta": s[statuses["key"]], "label": s[statuses["label"]]} for s in reference.read(cfg.reference(statuses["file"]))]
+               if r["label"] in dim["coverage"]["over"]["status_labels"])
+    template = next(r for r in rows if r[f["vehicle_type"]] == reference.split(reading["vehicle_types"], "|")[0] and r[f["import_status"]] == new)
+    first_id = max(r[f["object_id"]] for r in rows) + 1
+    # 120 vehicles of a nameplate the file has no row for, first registered years before the window and still registered.
+    old = [dict(template, **{f["object_id"]: first_id + i, f["registration_year"]: 2012, f["registration_month"]: 6, f["vehicle_year"]: 2012,
+                             f["model"]: f"UNLISTED NAMEPLATE {i}"}) for i in range(120)]
+    cfg = with_coverage(cfg, warn_below=0.9, live_at=0.8)
+    cfg, manifest = run(tmp_path, workspace, rows=rows + old, cfg=cfg, publish=False)
+    entry = manifest["datasets"][SURVIVORS]
+    block = entry["dimension_coverage"][dim["id"]]
+    assert block["all_time"]["coverage"] < 0.8 < 0.9 < block["trailing"]["coverage"], block
+    assert block["live"] is True and dim["id"] in entry["live_dimensions"] and dim["id"] not in entry["not_live"]
+    assert not any(dim["id"] in w and ("is not live" in w or "stops being live" in w) for w in manifest["warnings"]), manifest["warnings"]
