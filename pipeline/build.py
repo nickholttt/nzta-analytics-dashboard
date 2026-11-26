@@ -297,6 +297,17 @@ def fact_table_owner_problems(cfg) -> list[str]:
     return problems
 
 
+def kind_of_owner_floor_problems(cfg) -> list[str]:
+    """Each table config/pipeline.json writes that puts a field saying what kind of owner beside a field that says who or where
+    the owner is, found before anything is read or written (privacy.floor_problems). A build whose config breaks the floor
+    aborts and leaves the last good build in place; tests/test_data_map.py and test_privacy.py hold the committed config to
+    the same rule."""
+    try:
+        return privacy.floor_problems(cfg)
+    except (privacy.DataMapError, OSError, KeyError) as exc:
+        raise GuardrailError("data map", f"config/data_map.json cannot be used to protect owner fields: {exc!r}") from exc
+
+
 def stock_problems(con, staging, dataset: str, snapshot_month: date, counts: dict[str, int]) -> list[str]:
     """What a stock's written files break: it counts every vehicle the register holds, it has the one period, the snapshot's
     month, and every slice and pair file has the contract's columns and that month alone, so that no vehicle's own month or
@@ -367,6 +378,15 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
         elif t["unmapped"] > t["warn_above"] * t["rows"]:
             warnings.append(f"{detail}, above the {t['warn_above']:.1%} warning level; the run aborts above "
                             f"{t['abort_above']:.0%}, {t['headroom_rows']:,} rows away")
+    # A dimension that says who a vehicle was registered to is published for every vehicle: one row the map has no row for stops the
+    # build, not only a share above the guard (invariant 5). It must be one the guard measures.
+    for dim_id in g.get("abort_on_any_unmapped", []):
+        if dim_id in {d.dim_id for d in derived} and dim_id not in guard:
+            aborts.append(f"{dataset}.{dim_id} is in guardrails.abort_on_any_unmapped but not in abort_on_unmapped, so nothing measures it")
+        elif dim_id in guard and guard[dim_id]["whole_run"]["unmapped"] > 0:
+            aborts.append(f"{dataset}.{dim_id}: {guard[dim_id]['whole_run']['unmapped']:,} of {guard[dim_id]['whole_run']['rows']:,} "
+                          "in-scope rows read unmapped (a value its reference file has no row for); this dimension stops the "
+                          "build on any unmapped row (guardrails.abort_on_any_unmapped), so add the row to the reference file")
     live = []
     for d in derived:
         if rates[d.dim_id] <= g["max_unmapped_rate"]:
@@ -474,6 +494,9 @@ def supplied_raw(con, cfg, source_id: str, types: dict[str, str]) -> None:
         else:
             value = "NULL"
         columns.append(f"CAST({value} AS {types[source_name]}) AS {quote(source_name)}")
+    # The source's own extra columns that a dimension reads (derive.extra_fields_read), under their logical names: they are
+    # not register fields, so they have no source name or type of the register's.
+    columns += [f"{quote(name)}" for name in derive.extra_fields_read(cfg, source_id)]
     # unnest(range(n)) repeats each store row n times: a vehicle each.
     con.execute(f"""
         CREATE OR REPLACE TABLE raw AS
@@ -534,7 +557,7 @@ def build_supplied(con, cfg, source_id: str, types: dict[str, str], schema_names
         extra = series.manifest_facts(ledger, s)
     else:
         supplied_raw(con, cfg, source_id, types)
-        normalise.build_src(con, cfg, types, schema_names)
+        normalise.build_src(con, cfg, types, schema_names, derive.extra_fields_read(cfg, source_id))
         con.execute("DROP TABLE raw")
         normalise.build_rows(con, cfg)
         built = {d: build_dataset(con, cfg, d, p["datasets"][d], latest, previous_live, staging, aborts, warnings) for d in names}
@@ -566,7 +589,7 @@ def build(cfg, source: dict, pages_glob: str, state: dict | None, now: datetime 
     p, g = cfg.pipeline, cfg.pipeline["guardrails"]
     # Before anything is read: a series dimension that would be offered to a register dataset cannot be derived there.
     misconfigured = (derive.series_dimension_problems(cfg) + stock_configuration_problems(cfg)
-                     + fact_table_owner_problems(cfg) + guardrails.continuation_problems(cfg))
+                     + fact_table_owner_problems(cfg) + kind_of_owner_floor_problems(cfg) + guardrails.continuation_problems(cfg))
     if misconfigured:
         raise GuardrailError("build", "\n  - " + "\n  - ".join(misconfigured))
     # A dataset that replaced others is compared with the records they left (guardrails.inherit_history).

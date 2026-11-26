@@ -1327,6 +1327,30 @@ dashboard's export does not, so the dashboard's datasets get no market type unti
 It is defined and tested against the published figures (D-154, D-155) but not built: no dimension, no build and no figure on the
 site reads the file yet.
 
+## Buyer type
+
+A vehicle's buyer type says who registered it, in the four values of `data/reference/buyer_type_map.csv`: **Private**
+(NZTA's owner type Individual), **Company** (owner type Company, whatever the usage but rental), **Rental** (owner type
+Company with the usage at registration rental) and **Other** (owner type Other: neither a person nor a company). The value is
+read from the two columns of NZTA's registrations dashboard, `Owner Type` and `Vehicle usage`, one row of the file for each
+pair; the fields, the counts, what the value does and does not say, and the pairs not yet sent are in `docs/DATA_MAP.md`
+(*The dashboard's fields*, Buyer type).
+
+- A count by buyer type counts vehicles first registered in the month, as the dataset it is read from does. Each buyer type's
+  counts add up to the dataset's total for the month, so a table by buyer type and a table without it give the same total.
+- A company includes a dealer registering a demonstrator or stock: the data does not separate them. Rental is companies with
+  the rental usage and nobody else; usage splits no other owner type.
+- Other holds every owner that is neither a person nor a company, a government body included. It is not named Government,
+  because NZTA's data does not say so.
+- The owner type is most likely the owner at first registration, not proven (`docs/DATA_MAP.md`); a change of owner after
+  registration is not seen.
+
+It is the dimension `buyer_type` of `new_registrations` and of no other dataset (the register carries neither column). It has a
+slice, a pair with new or used and a narrow fact table (`docs/CUBE_SCHEMA.md`, *Buyer type*), and no count of it is hidden: it
+says what kind of owner registered a vehicle, never who or where (`docs/DATA_MAP.md`), and it is never in one table with a field that
+says where the owner lives (D-159). A pair of owner type and usage the file has no row for reads `__UNMAPPED__` and stops the build on any such row, however few (`guardrails.abort_on_any_unmapped`).
+The canvas offers it as a field (group Buyer) to break a count or a share down by, drawn from the slice (new and used together); a condition on it, or crossing it with another field, is not drawn yet. No other page of the site reads it.
+
 ## Values in edge cases
 
 - **A goods vehicle with a gross mass of zero reads "Not recorded" on the

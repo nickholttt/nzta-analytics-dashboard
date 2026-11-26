@@ -23,7 +23,9 @@ Rules that bind you:
 - A phrase template names no domain value, figure or year.
 - Never present a measurement artefact as market behaviour.
 - A privacy class is a proposal for the user until the user approves it. Owner fields, postcode
-  and anything derived from `VIN11` are not published.
+  and anything derived from `VIN11` are not published beyond `owner_rule` in
+  `config/data_map.json`; the one exception is the group `kind_of_owner` (D-159), whose fields are
+  public in full and never beside where the owner lives.
 - A dimension must be derivable from source fields plus a reference lookup with no monthly hand
   curation. A lookup keyed on make and model guards its coverage.
 - Files are written with LF line endings. No path from the user's computer in a doc, a commit

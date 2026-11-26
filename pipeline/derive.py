@@ -1,7 +1,8 @@
 """Dimension derivations, driven by the `derive` block of each dimension in config/dimensions.json.
 
 Kinds:
-  lookup        field value -> reference key column -> reference value column
+  lookup        field value -> reference key column -> reference value column; or, with `keys`, several fields together
+                -> reference key columns -> reference value column
   range_lookup  several fields -> reference key columns, plus a numeric field inside an optional range
   brand         normalised make -> a brand_registry column
   raw           the source value itself
@@ -47,6 +48,19 @@ class Derived:
         return quote(f"u__{self.dim_id}")
 
 
+def lookup_keys(spec: dict, who: str) -> dict[str, str]:
+    """The fields a lookup reads, each with the reference column it is matched against, in order. A block names them one of two
+    ways: `keys`, a map of field to reference column (one or more), or `field` with `key` (one). Naming them both ways, or
+    neither, is a configuration error: a build does not guess which was meant."""
+    found = {k for k in ("keys", "field", "key") if k in spec}
+    if found == {"keys"} and isinstance(spec["keys"], dict) and spec["keys"]:
+        return dict(spec["keys"])
+    if found == {"field", "key"}:
+        return {spec["field"]: spec["key"]}
+    raise ValueError(f"{who}: a lookup names its fields with `keys` (a map of field to reference column, at least "
+                     f"one) or with `field` and `key`, and not both ways; this block has {sorted(found) or 'neither'}")
+
+
 def references_for(cfg, spec: dict) -> list[str]:
     if spec["kind"] in ("lookup", "range_lookup"):
         return [spec["reference"]]
@@ -60,7 +74,9 @@ def references_for(cfg, spec: dict) -> list[str]:
 def needed_fields(cfg, spec: dict) -> set[str]:
     """The logical source fields a derive block reads."""
     kind, b = spec["kind"], cfg.pipeline["brand"]
-    if kind in ("lookup", "raw"):
+    if kind == "lookup":
+        return set(lookup_keys(spec, "a lookup block"))
+    if kind == "raw":
         return {spec["field"]}
     if kind == "range_lookup":
         return {*spec["keys"], spec["range_field"]}
@@ -83,7 +99,16 @@ def carried_fields(cfg, dataset: str) -> set[str] | None:
     if "fields" not in s:
         # A source of published series carries no vehicle's fields.
         return set()
-    return {*s["fields"], s["year_field"], s["month_field"], s["row_id_field"]}
+    return {*s["fields"], *s.get("extra_fields", {}), s["year_field"], s["month_field"], s["row_id_field"]}
+
+
+def extra_fields_read(cfg, source_id: str) -> list[str]:
+    """The logical names of a supplied source's `extra_fields` that some dimension's derive block reads, in the order the source
+    lists them. The build carries these into `src` beside the register's fields and no others: an extra field nothing reads
+    (the dashboard's vehicle status) stays in the store."""
+    s = cfg.supplied(source_id)
+    read = set().union(*(needed_fields(cfg, d["derive"]) for d in cfg.dimensions["dimensions"] if "derive" in d))
+    return [name for name in s.get("extra_fields", {}) if name in read]
 
 
 def series_dimension_problems(cfg) -> list[str]:
@@ -127,7 +152,7 @@ def applicable(cfg, dataset: str) -> tuple[list[dict], dict[str, str]]:
         elif offered is not None and dim["id"] not in offered:
             not_live[dim["id"]] = "not offered to this dataset (its dimensions in config/pipeline.json)"
         elif lacking:
-            not_live[dim["id"]] = "the source does not carry " + ", ".join(cfg.source_field(f) for f in lacking)
+            not_live[dim["id"]] = "the source does not carry " + ", ".join(cfg.pipeline["fields"].get(f, f) for f in lacking)
         elif "derive" not in dim:
             not_live[dim["id"]] = "no derive block in dimensions.json"
         else:
@@ -144,16 +169,21 @@ def derive(con, cfg, dim: dict, index: int, snapshot_year: int) -> Derived:
     kind = spec["kind"]
 
     if kind == "lookup":
+        keys = lookup_keys(spec, f"dimension {dim_id}")
+        key_fields, key_cols = list(keys), list(keys.values())
         rows = reference.read(cfg.reference(spec["reference"]))
-        reference.require_unique([r[spec["key"]] for r in rows], spec["reference"])
+        reference.require_unique([r[key_cols[0]] if len(key_cols) == 1 else tuple(r[c] for c in key_cols) for r in rows],
+                                 spec["reference"])
         table = f"ref_dim_{index}"
-        reference.register(con, table, ["key", "value"], [(r[spec["key"]], r[spec["value"]]) for r in rows])
-        f = _field(spec["field"])
+        columns = [f"k{i}" for i in range(len(key_cols))] + ["value"]
+        reference.register(con, table, columns, [tuple(r[c] for c in key_cols) + (r[spec["value"]],) for r in rows])
+        match = " AND ".join(f"{_field(f)} = {alias}.k{i}" for i, f in enumerate(key_fields))
+        any_null = " OR ".join(f"{_field(f)} IS NULL" for f in key_fields)
         return Derived(
             dim_id, kind,
-            f"CASE WHEN {f} IS NULL THEN {lit(UNDEFINED)} WHEN {alias}.key IS NULL THEN {lit(UNMAPPED)} ELSE {alias}.value END",
-            f"({f} IS NOT NULL AND {alias}.key IS NULL)",
-            [f"LEFT JOIN {table} {alias} ON {f} = {alias}.key"],
+            f"CASE WHEN {any_null} THEN {lit(UNDEFINED)} WHEN {alias}.k0 IS NULL THEN {lit(UNMAPPED)} ELSE {alias}.value END",
+            f"(NOT ({any_null}) AND {alias}.k0 IS NULL)",
+            [f"LEFT JOIN {table} {alias} ON {match}"],
             {r[spec["value"]] for r in rows},
         )
 
@@ -288,8 +318,8 @@ def undivide_hybrids(con, cfg, derived: list[Derived]) -> list[str]:
     changed = []
     for d in derived:
         spec = specs[d.dim_id]
-        if (spec["kind"] == "lookup" and spec["field"] == engine["field"] and spec["reference"] == engine["reference"]
-                and spec["value"] == h["powertrain_column"]):
+        if (spec["kind"] == "lookup" and list(lookup_keys(spec, f"dimension {d.dim_id}")) == [engine["field"]]
+                and spec["reference"] == engine["reference"] and spec["value"] == h["powertrain_column"]):
             con.execute(f"UPDATE dims SET {d.column} = {lit(h['undivided_powertrain'])} "
                         f"WHERE {d.column} = {lit(h['mild_powertrain'])}")
             changed.append(d.dim_id)

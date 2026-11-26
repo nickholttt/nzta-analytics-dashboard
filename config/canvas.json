@@ -19,12 +19,14 @@
     { "id": "powertrain", "label": "Powertrain", "map_groups": ["how_it_is_powered"] },
     { "id": "time", "label": "Time", "map_groups": ["identity_and_time"] },
     { "id": "place", "label": "Place", "map_groups": ["who_has_it"], "kinds": ["place"] },
+    { "id": "buyer", "label": "Buyer", "map_groups": ["kind_of_owner"] },
     { "id": "current_use", "label": "Current use", "map_groups": ["who_has_it"] }
   ],
   "$groups_comment": "The field list's groups, in order. A field goes to the first group that lists the data map group of the register field it is made from (config/data_map.json, group) and, where the group names kinds, whose kinds include the field's own. A field made from a reference file about that register field, and not from the field itself, can be placed by hand in group_of. tests/site/canvas.test.ts holds every field the canvas lists to exactly one group and to a definition of one line.",
   "group_of": {
     "owner_country": "origin",
-    "heritage_country": "origin"
+    "heritage_country": "origin",
+    "buyer_type": "buyer"
   },
   "definitions": {
     "$comment": "A field's one-line definition, shown when a visitor hovers over, focuses or taps it, is its dimension's own help line (config/dimensions.json, help), so it is written once. This block holds a line for the few fields whose help line is longer than a line of the list or is written for a maintainer. Each is that help line shortened: none says anything it does not.",

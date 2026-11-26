@@ -14,6 +14,7 @@ import duckdb
 import pytest
 
 from pipeline import build, derive, normalise, reference, supplied
+from pipeline.contract import PAIR_SEPARATOR
 from pipeline.errors import GuardrailError
 
 from .conftest import FIXTURES, NOW, load_rows, make_cfg, source_for, write_pages
@@ -87,7 +88,9 @@ def test_the_dataset_is_written_like_a_register_dataset(built):
     assert entry["rows"] == fleet_entry_vehicles(cfg)
     for dim in entry["live_dimensions"]:
         assert (public / "cube" / DATASET / f"{dim}.parquet").exists()
-    assert not (public / "pairs" / DATASET).exists()
+    # The pairs the dataset configures, and no other (a pair is a choice of config, and a dataset that lists none writes none).
+    configured = {f"{a}{PAIR_SEPARATOR}{b}.parquet" for a, b in cfg.pipeline["datasets"][DATASET].get("pairs", [])}
+    assert {p.name for p in (public / "pairs" / DATASET).glob("*.parquet")} == configured
 
 
 def test_the_fact_table_totals_the_datasets_vehicles(built):
@@ -308,5 +311,5 @@ def test_a_store_with_only_one_of_its_two_files_aborts_and_is_not_reported_as_no
 def test_a_private_column_mapped_to_a_public_field_aborts_the_build(tmp_path, workspace_with_store):
     cfg = workspace_with_store
     source = cfg.pipeline["supplied"][SOURCE]
-    source["extra_fields"] = {**source["extra_fields"], "district": source["private_columns"][1]}
+    source["extra_fields"] = {**source["extra_fields"], "district": source["private_columns"][0]}
     expect_abort(lambda: run(tmp_path, cfg), "private_columns")

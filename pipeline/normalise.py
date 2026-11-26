@@ -55,8 +55,10 @@ def sentinel_values(cfg, schema_fields: set[str]) -> dict[str, list[str]]:
     return by_field
 
 
-def build_src(con, cfg, types: dict[str, str], schema_fields: set[str]) -> None:
-    """Logical column names; empty and sentinel values become NULL, with flags recording which it was."""
+def build_src(con, cfg, types: dict[str, str], schema_fields: set[str], extra: list[str] | None = None) -> None:
+    """Logical column names; empty and sentinel values become NULL, with flags recording which it was. `extra` names columns
+    of `raw` that are not register fields (a supplied export's extra_fields that a dimension reads): each is kept under its own
+    name as text, empty as NULL. A sentinel list is a register notion, so none applies to them."""
     by_field = sentinel_values(cfg, schema_fields)
     any_values = by_field.get(cfg.pipeline["sentinels"]["any_field"], [])
     columns = []
@@ -72,6 +74,7 @@ def build_src(con, cfg, types: dict[str, str], schema_fields: set[str]) -> None:
             f"{missing} AS {quote(logical + '__missing')}",
             f"(NOT {missing} AND {sentinel}) AS {quote(logical + '__sentinel')}",
         ]
+    columns += [f"NULLIF(trim(CAST({quote(name)} AS VARCHAR)), '') AS {quote(name)}" for name in extra or []]
     con.execute(f"CREATE OR REPLACE TABLE src AS SELECT {', '.join(columns)} FROM raw")
 
 

@@ -161,12 +161,14 @@
       "pairs": [["vehicle_usage", "vehicle_type"]]
     },
     "new_registrations": {
-      "$comment": "New registrations (D-158): every vehicle first registered in a month, new and used, of the five vehicle types the vehicle scope file marks in its trade_scope column (in_trade_scope), read from the supplied source nzta_dashboard through the same normalise, derive and output code as the register and with the same import-status rule (fleet_entry) as registrations_surviving, which counts the same five types since D-157. It replaces registrations_flow (two types) and registrations_flow_wider (five types, the same facts): vehicle type, and so the narrower scope, is a condition of a question, not a dataset. Both are retired in dimensions.json, so an older link still opens. The dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. No pairs. Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
+      "$comment": "New registrations (D-158): every vehicle first registered in a month, new and used, of the five vehicle types the vehicle scope file marks in its trade_scope column (in_trade_scope), read from the supplied source nzta_dashboard through the same normalise, derive and output code as the register and with the same import-status rule (fleet_entry) as registrations_surviving, which counts the same five types since D-157. It replaces registrations_flow (two types) and registrations_flow_wider (five types, the same facts): vehicle type, and so the narrower scope, is a condition of a question, not a dataset. Both are retired in dimensions.json, so an older link still opens. The dashboard's RE-REG and SCRATCH rows are in the store and are not fleet entries. One pair, buyer type with new or used (D-159). Only dimensions the source carries are listed in facts: one it lacks (a dimension that needs the gross vehicle mass, engine size or district) would abort, not wait.",
       "source": "nzta_dashboard",
       "$continues_comment": "The datasets whose place this one took, by id (D-158). The guards compare a dataset with the record the last good build kept under its own id; a dataset with none has nothing to be compared with on its first build, so a month the dashboard restated, a month emptied, a dimension that stopped being live or a mild hybrid split that flipped would pass once. A dataset listed here that has no record of its own takes the first listed id's record for that run (pipeline/guardrails.py, inherit_history). Only an id that counted the same vehicles belongs here: registrations_flow_wider counted this dataset's five types, registrations_flow counted two. An id still built as a dataset is refused.",
       "continues": ["registrations_flow_wider"],
       "require": ["in_trade_scope", "fleet_entry"],
-      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "trade_group", "import_status", "age_at_registration_band", "model"]
+      "pairs": [["buyer_type", "import_status"]],
+      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "vehicle_type", "trade_group", "import_status", "age_at_registration_band", "model"],
+      "narrow_facts": [{ "id": "buyer", "dimensions": ["buyer_type", "import_status", "vehicle_type", "trade_group", "powertrain_group", "make", "model"] }]
     },
     "registrations_cars_long_run": {
       "$comment": "Read from the supplied source statsnz_tpt, a source of kind series (pipeline/series.py): Stats NZ's monthly count of cars and station wagons registered for the first time, from January 1961. `total` is the series that gives each month's vehicles. Its dimensions (car_origin, car_engine_band in dimensions.json) are Stats NZ's own breakdowns of that total, published separately, so they cannot be crossed with each other or with anything else: there are no pairs and no fact table. Nothing else the table holds (commercial vehicles, buses, motorcycles, power cycles, tractors) is built, because its classes are not lined up with NZTA's vehicle types (D-065).",
@@ -175,12 +177,12 @@
     }
   },
   "supplied": {
-    "$comment": "Sources a maintainer supplies by hand as a CSV, checked and kept in a store by `python -m pipeline supply <id> <csv>` (pipeline/supplied.py). The Action never runs that command and nothing here is fetched. The store (a Parquet file of counts and a ledger) is committed to the repository (D-097), so a build on GitHub reads the same files as a local build. `fields` maps a logical field name of the top-level `fields` block to the CSV column that carries it; `extra_fields` are public columns the register does not have, kept in the store under the name given; `private_columns` must be in the header and are dropped, so no owner field reaches the store or any output. `publisher`, `licence`, `attribution` and `origin` are copied into the store's ledger each time `supply` writes it, so the committed file carries its own terms.",
+    "$comment": "Sources a maintainer supplies by hand as a CSV, checked and kept in a store by `python -m pipeline supply <id> <csv>` (pipeline/supplied.py). The Action never runs that command and nothing here is fetched. The store (a Parquet file of counts and a ledger) is committed to the repository (D-097), so a build on GitHub reads the same files as a local build. `fields` maps a logical field name of the top-level `fields` block to the CSV column that carries it; `extra_fields` are public columns the register does not have, kept in the store under the name given; `private_columns` must be in the header and are dropped, so the owner's district reaches neither the store nor any output. The two kind-of-owner columns (owner type and usage at registration, the data map's group kind_of_owner) are kept as extra_fields: they say what kind of owner registered a vehicle, not who or where, and the build keeps them apart from every field that says where the owner lives (pipeline/privacy.py). `publisher`, `licence`, `attribution` and `origin` are copied into the store's ledger each time `supply` writes it, so the committed file carries its own terms.",
     "nzta_dashboard": {
       "kind": "counted_rows",
       "publisher": "NZ Transport Agency Waka Kotahi",
       "licence": "CC BY 4.0",
-      "attribution": "Motor vehicle registrations dashboard open data, NZ Transport Agency Waka Kotahi, licensed CC BY 4.0. Counts of vehicles first registered in each month; the owner columns of the export are not kept.",
+      "attribution": "Motor vehicle registrations dashboard open data, NZ Transport Agency Waka Kotahi, licensed CC BY 4.0. Counts of vehicles first registered in each month, with the kind of owner (owner type and usage at registration); the owner's district is not kept.",
       "origin": "NZTA's registrations dashboard (the First registration report), exported by hand by the repository's owner and checked by `python -m pipeline supply`.",
       "store": "data/supplied/nzta_dashboard",
       "registrations_file": "registrations.parquet",
@@ -197,8 +199,8 @@
         "original_country": "Country of origin",
         "vehicle_year": "Vehicle year"
       },
-      "extra_fields": { "vehicle_status": "Vehicle Status" },
-      "private_columns": ["Owner Type", "Territorial authority", "Vehicle usage"],
+      "extra_fields": { "vehicle_status": "Vehicle Status", "owner_type": "Owner Type", "usage_registered": "Vehicle usage" },
+      "private_columns": ["Territorial authority"],
       "$outside_scope_comment": "For a row whose vehicle type and import status the named dataset does not count (its `require` flags, read from the scope files the build reads, with the vehicle types marked true in the vehicle scope file's `also_kept_column` judged as if they were in scope), `supply` stores the listed fields as not recorded and sums the rows that become identical. The model of a trailer or a caravan is free text typed at registration, and the dataset never reads it. Everything else about those rows is kept, so their counts stay askable. The scope is written into the ledger; a store written under another scope is refused until the history is supplied again.",
       "outside_scope": { "dataset": "new_registrations", "fields": ["model"], "also_kept_column": "trade_scope" },
       "year_field": "registration_year",
@@ -261,7 +263,8 @@
   "guardrails": {
     "max_in_scope_row_change": 0.02,
     "max_unmapped_rate": 0.02,
-    "abort_on_unmapped": ["make", "powertrain", "powertrain_group", "nz_assembled", "nzta_class", "transmission", "vehicle_usage"],
+    "abort_on_unmapped": ["make", "powertrain", "powertrain_group", "nz_assembled", "nzta_class", "transmission", "vehicle_usage", "buyer_type"],
+    "abort_on_any_unmapped": ["buyer_type"],
     "max_unmapped_rate_trailing": 0.02,
     "warn_unmapped_rate_trailing": 0.005,
     "zero_row_min_previous_rows": 1000,

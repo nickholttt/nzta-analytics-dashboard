@@ -9,6 +9,7 @@ invariant 1). The same reading is what `pipeline/tests/test_data_map.py` holds t
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 
 REGISTER = "register"
@@ -151,3 +152,139 @@ def pair_cell_rule(dmap: dict) -> SmallCellRule:
     if found.minimum < 2 or found.hidden_cells < 2 or found.hidden_vehicles < found.minimum:
         raise DataMapError(f"data_map owner_rule.pair_rule is too weak to protect a cell: {found}")
     return found
+
+
+# --- the floor under a field that says what kind of owner, never where the owner is (config/data_map.json) -------------------
+
+
+DASHBOARD = "dashboard"
+
+
+def groups_named(dmap: dict, key: str) -> set[str]:
+    """The map's list of groups under `key` (`owner_groups`, `kind_of_owner_groups`), each a group the map defines."""
+    named = dmap.get(key)
+    if not isinstance(named, list) or not all(isinstance(g, str) for g in named):
+        raise DataMapError(f"data_map {key} must be a list of group names")
+    unknown = sorted(set(named) - set(dmap["enums"]["group"]))
+    if unknown:
+        raise DataMapError(f"data_map {key} names {unknown}, which are not in enums.group")
+    return set(named)
+
+
+def dashboard_columns(cfg) -> dict[str, str]:
+    """The logical name a dimension's derive block uses for each column of a supplied source's export, with the column: every
+    entry of `fields` and `extra_fields` of every supplied source that counts rows (config/pipeline.json, supplied). The private
+    columns are not here: they are checked and dropped, so no dimension can read one."""
+    found: dict[str, str] = {}
+    for source in cfg.pipeline.get("supplied", {}).values():
+        if isinstance(source, dict):
+            found.update(source.get("fields", {}))
+            found.update(source.get("extra_fields", {}))
+    return found
+
+
+def names_in_groups(dmap: dict, groups: set[str], source: str) -> set[str]:
+    """The names of the map's entries of one source (`register` or `dashboard`) that are in one of `groups`."""
+    return {e["name"] for e in dmap["fields"] if e["source"] == source and e["group"] in groups}
+
+
+def dimensions_in_groups(cfg, dmap: dict, groups: set[str]) -> dict[str, list[str]]:
+    """Each dimension of config/dimensions.json that reads a field the map puts in one of `groups`, with the fields it reads.
+    The field is a register field, found as `dimensions_reading` finds it, or a column of a supplied export, found by the
+    logical name its derive block gives it (`dashboard_columns`)."""
+    register, exports = names_in_groups(dmap, groups, REGISTER), names_in_groups(dmap, groups, DASHBOARD)
+    columns = dashboard_columns(cfg)
+    found = {}
+    for dim in cfg.dimensions["dimensions"]:
+        if "derive" not in dim:
+            continue
+        read = sorted((fields_read(dim, cfg.pipeline, dmap["derive_reads"]) & register)
+                      | ({columns[f] for f in strings(dim["derive"]) & set(columns)} & exports))
+        if read:
+            found[dim["id"]] = read
+    return found
+
+
+def floor_problems(cfg, dmap: dict | None = None) -> list[str]:
+    """Where config/pipeline.json puts a field that says what kind of owner (the map's `kind_of_owner_groups`) in one table with a
+    field that says where the owner lives or describes the owner (its `owner_groups`): a pair, a fact table, a narrow fact table,
+    or the committed snapshot aggregate. A slice holds one dimension, but a dimension may read several fields (a lookup on keys),
+    so one that reads both sides is a table that crosses them in its own slice: it is a problem wherever it is listed. This is
+    the floor under the user's direction that buyer type be published in full (`owner_rule`): it is never shown beside a
+    district, a region or any other owner field, and the owner fields still never reach a fact table
+    (build.fact_table_owner_problems).
+
+    Which dimensions read which fields is worked out from the map and the derive blocks, so no dimension is named here. Returns
+    sentences, empty when the floor holds."""
+    dmap = dmap if dmap is not None else load_map(cfg)
+    kind_groups, owner_groups = groups_named(dmap, "kind_of_owner_groups"), groups_named(dmap, "owner_groups")
+    if kind_groups & owner_groups:
+        raise DataMapError(f"data_map puts {sorted(kind_groups & owner_groups)} in both kind_of_owner_groups and owner_groups")
+    kind = dimensions_in_groups(cfg, dmap, kind_groups)
+    owner = dimensions_in_groups(cfg, dmap, owner_groups)
+    tables = []
+    for dataset, spec in cfg.pipeline["datasets"].items():
+        tables += [(f"{dataset}: pair {pair!r}", pair) for pair in spec.get("pairs") or []]
+        tables.append((f"{dataset}: facts", spec.get("facts")))
+        for table in spec.get("narrow_facts") if isinstance(spec.get("narrow_facts"), list) else []:
+            if isinstance(table, dict):
+                tables.append((f"{dataset}: narrow_facts '{table.get('id')}'", table.get("dimensions")))
+    problems = []
+    for dim in sorted(set(kind) & set(owner)):
+        problems.append(
+            f"{dim} reads {', '.join(kind[dim])} (which says what kind of owner) and {', '.join(owner[dim])} (a field that "
+            "describes or locates the owner): one dimension cannot say both, because its own slice would cross them. A kind of "
+            "owner is never published beside where the owner lives (owner_rule in config/data_map.json); split it into two "
+            "dimensions in config/dimensions.json")
+    for label, listed in tables:
+        listed = listed if isinstance(listed, list) else []
+        kinds, owners = [d for d in listed if d in kind], [d for d in listed if d in owner]
+        if kinds and owners:
+            problems.append(
+                f"{label} puts {', '.join(kinds)} (which says what kind of owner) with {', '.join(owners)} (which reads "
+                f"{', '.join(sorted({f for d in owners for f in owner[d]}))}, a field that describes or locates the owner). "
+                "A kind of owner is never published beside where the owner lives (owner_rule in config/data_map.json); "
+                "remove one of them from this table in config/pipeline.json")
+    # The snapshot aggregate is a table too: its group_by names logical fields, not dimensions.
+    grouped = set(cfg.pipeline.get("snapshot_archive", {}).get("group_by", []))
+    columns = dashboard_columns(cfg)
+    register = {cfg.pipeline["fields"][f] for f in grouped if f in cfg.pipeline["fields"]}
+    exports = {columns[f] for f in grouped if f in columns}
+    held_kind = (register & names_in_groups(dmap, kind_groups, REGISTER)) | (exports & names_in_groups(dmap, kind_groups, DASHBOARD))
+    held_owner = (register & names_in_groups(dmap, owner_groups, REGISTER)) | (exports & names_in_groups(dmap, owner_groups, DASHBOARD))
+    if held_kind and held_owner:
+        problems.append(f"snapshot_archive.group_by puts {sorted(held_kind)} (what kind of owner) with {sorted(held_owner)} "
+                        "(where or who the owner is); remove one in config/pipeline.json")
+    return problems
+
+
+# --- the dashboard columns the map holds back: never stored, whatever config says ------------------------------------------
+
+
+def squash(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def held_columns(dmap: dict) -> set[str]:
+    """The dashboard export's columns that the data map holds back: those whose privacy class is not a published one, or whose
+    group describes or locates the owner. `supply` checks and drops them; no store, ledger or output carries one."""
+    published = {n for n, spec in dmap["privacy_classes"].items() if spec["published"]}
+    owner = groups_named(dmap, "owner_groups")
+    return {e["name"] for e in dmap["fields"]
+            if e["source"] == DASHBOARD and (e["privacy"] not in published or e["group"] in owner)}
+
+
+def held_names(cfg, dmap: dict) -> set[str]:
+    """Every name a held column could carry in a stored file: its own, the register field it mirrors, the logical name config gives
+    that field, and the place a roll-up of it leads to."""
+    logical = {v: k for k, v in cfg.pipeline["fields"].items()}
+    held = held_columns(dmap)
+    names = set()
+    for entry in dmap["fields"]:
+        if entry["source"] != DASHBOARD or entry["name"] not in held:
+            continue
+        names.add(entry["name"])
+        for field in entry.get("register_fields", []):
+            names.update({field, logical.get(field, field)})
+        names.update(r["to"] for r in entry["relations"]["rolls_up_to"])
+    return {n for n in names if n}

@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from pipeline import config, reference
-from pipeline.privacy import fields_read, resolve as _resolve, strings as _strings
+from pipeline.privacy import dashboard_columns, fields_read, resolve as _resolve, strings as _strings
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_MAP = ROOT / "config" / "data_map.json"
@@ -343,7 +343,8 @@ def test_derive_reads_resolve():
     other_source = set(reads.get("other_source_kinds", []))
     for dim in cfg.dimensions["dimensions"]:
         if "derive" in dim and dim["derive"]["kind"] not in other_source:
-            assert fields_read(dim, cfg.pipeline, reads), f"dimension {dim['id']} reads no field the map can see"
+            # A register field, or a column of a supplied export under the logical name its derive block gives it (the dashboard's kind of owner).
+            assert fields_read(dim, cfg.pipeline, reads) or _strings(dim["derive"]) & set(dashboard_columns(cfg)),                 f"dimension {dim['id']} reads no field the map can see"
 
 
 def test_a_dimension_reading_the_engine_field_reads_what_the_hybrid_classification_reads():

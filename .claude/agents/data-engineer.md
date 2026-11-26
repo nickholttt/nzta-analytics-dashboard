@@ -25,9 +25,13 @@ Rules that bind you:
   must build.
 - Resolve a field's meaning against the data before writing it down. Report counts for edge
   cases; never silently bucket.
-- Owner fields (district, region, usage, industry class, owner type), postcode and anything
-  derived from `VIN11` never reach a published file. Building and testing them privately is
-  allowed.
+- Owner fields (district, region, usage today, industry class), postcode and anything derived
+  from `VIN11` never reach a published file except as `config/data_map.json` `owner_rule` allows
+  (small counts hidden, never a fact table). The dashboard's owner type and usage at registration
+  (the data map's group `kind_of_owner`, buyer type) are public in full by the user's direction
+  (D-159), and are never put in one table with a field that says where the owner lives: the build
+  enforces that floor (`pipeline/privacy.py`), and the district is never stored. Building and
+  testing the rest privately is allowed.
 - Files are written with LF line endings. No path from the user's computer in a doc, a commit
   message or a pull request.
 - Work only on the branch you were given. Commit with the subject prefix `claude: `. Do not push,

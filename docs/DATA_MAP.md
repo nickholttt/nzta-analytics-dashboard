@@ -4,13 +4,20 @@
 the user on 2026-11-16 (D-096):**
 
 - the 31 register fields and 10 dashboard columns that describe the vehicle are public;
-- an owner field (district, region, usage, industry class, road transport code, owner type) may be
+- an owner field (district, region, usage, industry class, road transport code) may be
   published only in a table of one or two fields, with any cell counting fewer than 10 vehicles
   hidden. **None is published yet** other than the `region` slice below and the usage tables of the
   stock `fleet` (the register's current usage alone and by vehicle type, approved on 2026-11-18, D-141):
   the pipeline hides small cells in a slice since D-127, but the user asked to be shown the first
   table of an owner field before a build publishes it (D-120), so every other owner field, and every
   other table of usage, stays out of every published file;
+- the dashboard's `Owner Type` and `Vehicle usage` say what kind of owner registered a vehicle, not who they are or where they
+  live, so on the user's direction of 2026-11-25 they are public and shown in full, with no cell hidden; they form the group
+  `kind_of_owner`, which is not an owner group. The floor under that: a field of this group is never put in one table with a
+  field that says where the owner lives or describes the owner (the `Territorial authority` column, the register's `TLA`,
+  `VEHICLE_USAGE` and the rest of the owner groups), and an owner field still never reaches a fact table. The build refuses a
+  config that breaks it (`owner_rule` in `config/data_map.json`; "Privacy classes" below). The committed store of the
+  dashboard keeps the two columns, and the dimension `buyer_type` of `new_registrations` is built from them (D-159);
 - the `region` slice (share of vehicles by the owner's region, by month), published since before
   the work order under D-078, stays, and since D-127 takes the minimum of 10 (the user's ruling of
   2026-11-17, D-120 item 4) with a second rule that limits what a total gives away of a hidden cell
@@ -113,21 +120,31 @@ and a median). Values are S then W. Privacy is the class the user approved (D-09
 | `OBJECTID` | identifier | one per row | none | never published | `object_id` |
 
 The dashboard's 13 columns are in "The dashboard's fields" below: each is as its register field
-except where that section says otherwise. Ten are public; `Owner Type`, `Territorial
-authority` and `Vehicle usage` fall under the owner rule.
+except where that section says otherwise. Twelve are public, two of them as the
+group `kind_of_owner` (`Owner Type` and `Vehicle usage`); `Territorial authority` falls under the owner rule.
 
 Counts. Register: 22 bound and 18 not. By kind: 17 category, 12 number, 6 identifier, 2 time,
 2 place, 1 free text. By class: 31 public, 5 under the owner rule, 2 never published,
-2 never pulled. Dashboard: 10 category, 1 time, 1 number, 1 place; 10 public, 3 under the owner rule.
+2 never pulled. Dashboard: 10 category, 1 time, 1 number, 1 place; 12 public (two as what kind of owner), 1 under the owner rule.
 
 ## Privacy classes: approved by the user on 2026-11-16 (D-096)
 
 | Class | Fields | Why |
 |---|---|---|
 | Public | The 31 register fields that describe the vehicle; the dashboard's 10 vehicle columns | They describe the vehicle, not its owner, and NZTA publishes each of them vehicle by vehicle |
-| Owner rule | `TLA` (and `region` from it), `POSTCODE`, `VEHICLE_USAGE`, `INDUSTRY_CLASS`, `ROAD_TRANSPORT_CODE`; the dashboard's `Owner Type`, `Territorial authority`, `Vehicle usage` | They describe or locate the owner. Published only in a table of one or two fields, with any cell under 10 vehicles hidden (`owner_rule` in `config/data_map.json`; the pipeline hides them in a slice since D-127 and in a pair with a second field since D-135), and not before the owner has been shown the field's first table (D-120). Postcode totals are not published for now (D-076, D-096) |
+| Public, as what kind of owner | The dashboard's `Owner Type` and `Vehicle usage` (the group `kind_of_owner`, `kind_of_owner_groups` in `config/data_map.json`) | They say what kind of owner registered the vehicle (a person, a company, a rental firm or neither), not who it is or where it lives. The user's direction of 2026-11-25: NZTA releases them in its open data and would have vetted them, so they are used in full, with no cell hidden. Never in one table with a field of an owner group (the floor, below) |
+| Owner rule | `TLA` (and `region` from it), `POSTCODE`, `VEHICLE_USAGE`, `INDUSTRY_CLASS`, `ROAD_TRANSPORT_CODE`; the dashboard's `Territorial authority` | They describe or locate the owner. Published only in a table of one or two fields, with any cell under 10 vehicles hidden (`owner_rule` in `config/data_map.json`; the pipeline hides them in a slice since D-127 and in a pair with a second field since D-135), and not before the owner has been shown the field's first table (D-120). Postcode totals are not published for now (D-076, D-096) |
 | Never published | `VIN11`, `OBJECTID` | `VIN11` narrows a vehicle to a handful, and only a field derived from it may be published, once checked and approved (D-076, D-079). `OBJECTID` is a row number |
 | Never pulled | `CHASSIS7`, `ENGINE_NUMBER` | They identify a vehicle and serve no question (D-062, D-076; `register_archive.never_pulled`) |
+
+**The floor under what kind of owner.** A field of the group `kind_of_owner` is never put in a pair, a fact table, a narrow
+fact table or the committed snapshot aggregate together with a dimension that reads a field of an owner group, and the owner
+fields still never reach a fact table. A dimension that reads a field of both sides is refused too, because its own slice would cross them. `pipeline/privacy.py` (`floor_problems`)
+works out from the map and the derive blocks which dimensions are on which side, so no dimension is named in code; the build
+checks it before it reads anything and aborts, leaving the last good build in place (`build.kind_of_owner_floor_problems`), and
+`pipeline/tests/test_kind_of_owner_floor.py` holds the committed config to it and shows each kind of crossing caught. The reason
+is that NZTA draws its own line at location, given at district level "to make sure it isn't possible to identify a person"
+(Context from NZTA, below); the floor keeps a kind of owner on the safe side of that line.
 
 **The one exception in place, and what the test checks.** The `region` slice, derived from `TLA`, is
 published under the small-cell rule (status line above); the fact table leaves `region` out (D-078). The map records the
@@ -1046,7 +1063,12 @@ it is recorded for, traps, privacy and relations are its register field's (above
 the whole file: every row carries a value, so coverage is the share not written as "not recorded",
 and it covers January 2021 to October 2026 only. It is few or many as in the dataset built from the
 file, whose scope was the survivors dataset's when it was written (D-087), the default scope: for example vehicle type has 14 values in the
-file and 2 in the dataset (the survivors count five since D-157). It is not bound: the dataset is not built yet.
+file and 2 in the dataset (the survivors count five since D-157). None is `bound` (a test holds the map to that): `bound` names a register field's
+logical name in the top-level `fields` of `config/pipeline.json`, and a dashboard column is named in
+`supplied.nzta_dashboard` instead, as a `fields` entry, an `extra_fields` entry or, for the district alone, a private
+column. The committed store keeps every column but `Territorial authority`, which `supply` checks and drops (rows that
+differ only in it are summed). `Owner Type` and `Vehicle usage` are stored as the export has them, as `owner_type` and
+`usage_registered` (3 and 20 values, none empty, in the committed store).
 
 **Two dashboard columns are not taken** in any export: `VIN - first 11` and `Physical post code`.
 They are the dashboard's forms of `VIN11` and `POSTCODE`, which are kept in the private archive
@@ -1064,9 +1086,9 @@ only and published in no form (D-076, D-084).
 | `Country of origin` | `ORIGINAL_COUNTRY` | 48 | none | `NOT KNOWN` (720) | public |
 | `Vehicle year` | `VEHICLE_YEAR` | 129 | none | none seen | public |
 | `Vehicle Status` | none | 2 | A column of the dashboard only (below) | none seen | public |
-| `Owner Type` | none | 3 | A column of the dashboard only (below) | none seen | owner rule |
+| `Owner Type` | none | 3 | A column of the dashboard only (below) | none seen | public, what kind of owner |
 | `Territorial authority` | `TLA` | 70 | Two values the register lacks (below) | `UNKNOWN` (5,141) | owner rule |
-| `Vehicle usage` | `VEHICLE_USAGE` | 20 | A finer list, at an earlier moment (below) | `UNDEFINED` (382) | owner rule |
+| `Vehicle usage` | `VEHICLE_USAGE` | 20 | A finer list, at an earlier moment (below) | `UNDEFINED` (382) | public, what kind of owner |
 
 **How each lines up with the register** (D-087):
 
@@ -1088,7 +1110,9 @@ only and published in no form (D-076, D-084).
   (272) and `OVERSEAS` (22). The register leaves an unknown district empty, for a different count:
   4,848 still-registered `UNKNOWN` against 2,935 empty.
 - **Vehicle usage.** 20 values to the register's 8; two names differ only in punctuation. It holds an
-  earlier moment than the register's, shown for rental ("As first registered, or today").
+  earlier moment than the register's, shown for rental ("As first registered, or today"). Public, in
+  the group `kind_of_owner`, as `Owner Type` is. It is the usage at registration, not the register's
+  `VEHICLE_USAGE`, which stays an owner field of the stock `fleet` alone.
 
 **The two columns with no register field:**
 
@@ -1098,8 +1122,9 @@ only and published in no form (D-076, D-084).
   none of October 2026. NZTA's page also names "reversed"; the file has none. Uses: break down and
   filter, count only. Public: it says whether the vehicle is still registered.
 - **`Owner Type`** (category, few). Individual 1,045,469; Company 810,118; Other 28,199. Uses: break
-  down and filter, count only, under the owner rule (D-096): it describes the owner. Most
-  likely the owner at first registration, **not proven** (below).
+  down and filter, count only. Public, in the group `kind_of_owner`: it says what kind of owner, not
+  who or where, and the floor above keeps it out of a table with an owner field. Most likely the owner
+  at first registration, **not proven** (below). Its use is the buyer type (below).
 
 What the export cannot give: gross vehicle mass and engine size, so the site's `segment`,
 `segment_group` and engine bands cannot be asked of true registrations (`docs/METRICS.md`).
@@ -1110,6 +1135,39 @@ in the older months (37 first registered in January 2021, against the dashboard'
 type were today's owner, a car sold on to a household would show an individual. A dealer is a
 company too, so this is not proof. The company share of all still-registered passenger cars is 30.9%
 for 2021 and 39.0% for 2026.
+
+**Buyer type: `data/reference/buyer_type_map.csv`.** The file decodes the dashboard's two owner columns into four buyer
+types, one row for every `Owner Type` (3) times every `Vehicle usage` value (20) the history export holds: 60 rows.
+
+| Buyer type | Rule | Vehicles in the history export (January 2021 to October 2026, every vehicle type; counted this session) |
+|---|---|---|
+| Private | `Owner Type` Individual, whatever the usage | 1,045,469 |
+| Company | `Owner Type` Company, with any usage but rental | 701,954 |
+| Rental | `Owner Type` Company with the rental usage | 108,164 |
+| Other | `Owner Type` Other, whatever the usage | 28,199 |
+
+- **Usage splits companies and nothing else.** The rental usage value sits under Company for 108,164 of its 108,439
+  vehicles (99.7%). The other 275 (230 Individual, 45 Other) follow their owner type, so a buyer type says who registered
+  the vehicle, not what it was used for. Three rows of the file carry the rental usage, one for each owner type; only the
+  Company row says Rental.
+- **Other is neither a person nor a company.** NZTA's `Owner Type` has no value for government, and neither the usage
+  list nor the register's industry class has one, so a government body is counted inside Other and the value is named for
+  what NZTA's data says. A dealer registering a demonstrator is a company: the export cannot tell a dealer from any other
+  company.
+- **Pairs the export has not sent.** 57 of the 60 pairs occur in the export. Three do not (Other with the overseas
+  visitor licence, Other with hearse, Individual with commercial ambulance); they keep their rows so a later month that
+  sends one still maps. A pair with no row at all, because NZTA sends an owner type or a usage value it has not sent
+  before, reads `__UNMAPPED__` and stops the build on any such row, however few (invariant 5: `buyer_type` is in `guardrails.abort_on_unmapped` and in `guardrails.abort_on_any_unmapped`).
+- **No empty value occurs.** None of the export's 991,274 rows has an empty `Owner Type` or an empty `Vehicle usage`.
+  `UNDEFINED` is a value NZTA writes in `Vehicle usage` (382 vehicles); it is mapped like any other and follows its owner
+  type. An empty value is not a pair of the file: it reads `__UNDEFINED__`, as an empty field does for every derived field
+  (the store holds an empty value as null, and the lookup reads a null in either key as undefined).
+- **The moment.** The owner type is most likely the owner at first registration, not proven (above). The usage is the
+  usage at registration, not the register's current use (As first registered, or today, below).
+- The dimension `buyer_type` (`config/dimensions.json`, for `new_registrations` only) reads the file through a lookup on
+  both columns (`derive.lookup_keys`), so no value is named in code. Which fields may be published is decided by the privacy
+  class each holds in the tables above, which this file does not change; the floor keeps the dimension out of every table that
+  holds a field saying where the owner lives, and a test holds the published files to it (D-159).
 
 ## Stats NZ's series
 

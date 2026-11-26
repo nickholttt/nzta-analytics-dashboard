@@ -239,6 +239,7 @@ data/reference/
   nz_assembled_map.csv  # NZTA's assembly flag -> label (D-116)
   transmission_map.csv  # NZTA's gearbox value -> group: automatic, manual, continuously variable or other (D-128)
   vehicle_usage_map.csv  # NZTA's vehicle usage value -> readable label; an owner field, read only by the stock dataset fleet (D-135)
+  buyer_type_map.csv  # NZTA dashboard owner type + usage at registration -> Private, Company, Rental or Other; read by the dimension buyer_type of new_registrations (D-159)
   statsnz_series.csv  # Stats NZ's table headers -> series, group and role (D-094)
   model_segment.csv   # canonical make + model -> SUV or car, with basis and confidence: four slices, with vehicle-year and gross-vehicle-mass bounds where a name changed kind, and nothing reads it yet (D-117, D-123, D-145, and the classification review's first batch)
   market_type_map.csv  # ordered rules: NZTA vehicle type + body + NZTA class + GVM (+ the SUV file) -> Passenger, SUV, Not yet classified, Light commercial, Heavy commercial or Other; defined and tested, nothing reads it yet (D-154, D-155)

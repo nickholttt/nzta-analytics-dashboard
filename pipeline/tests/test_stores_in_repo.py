@@ -21,7 +21,7 @@ from pathlib import Path
 import duckdb
 import pytest
 
-from pipeline import build, config, metrics, normalise, supplied
+from pipeline import build, config, metrics, normalise, privacy, supplied
 from pipeline.errors import GuardrailError
 
 from .conftest import FIXTURES, NOW, frozen_published_reference, load_rows, make_cfg, source_for, write_pages
@@ -322,10 +322,75 @@ def test_the_committed_store_holds_no_owner_field_in_any_form(source_id):
 def test_the_held_columns_come_from_the_data_map_and_are_all_dropped_by_supply():
     dmap = data_map()
     held = held_columns(dmap)
-    assert len(held) >= 3, "the data map no longer holds any dashboard column back, so the check would prove nothing"
+    assert held, "the data map no longer holds any dashboard column back, so the check would prove nothing"
     assert held <= set(REAL.supplied(COUNTED)["private_columns"]), "a held column must be one `supply` checks for and drops"
     stored = set(supplied.store_columns(REAL.supplied(COUNTED)))
     assert not {squash(n) for n in held_names(REAL, dmap)} & {squash(c) for c in stored}
+
+
+def kind_of_owner_columns(cfg=REAL) -> dict[str, str]:
+    """The logical name and export column of each dashboard field the data map says is what kind of owner, not who or where."""
+    dmap = data_map()
+    names = privacy.names_in_groups(dmap, privacy.groups_named(dmap, "kind_of_owner_groups"), privacy.DASHBOARD)
+    logical = {column: name for name, column in privacy.dashboard_columns(cfg).items()}
+    return {logical[n]: n for n in sorted(names)}
+
+
+def test_the_store_keeps_what_kind_of_owner_and_the_data_map_holds_nothing_else_back():
+    kept = kind_of_owner_columns()
+    assert len(kept) >= 1, "the data map names no dashboard field as what kind of owner, so the checks below prove nothing"
+    stored = set(supplied.store_columns(REAL.supplied(COUNTED)))
+    assert set(kept) <= stored, "a field the map publishes as what kind of owner must be one the store keeps"
+    # Every export column is either stored or held back and dropped: the district is the only one dropped.
+    export = {*REAL.supplied(COUNTED)["fields"].values(), *REAL.supplied(COUNTED)["extra_fields"].values()}
+    assert set(REAL.supplied(COUNTED)["private_columns"]) == held_columns(data_map())
+    assert not set(REAL.supplied(COUNTED)["private_columns"]) & export
+
+
+def test_the_committed_store_holds_what_kind_of_owner_in_every_row():
+    registrations, _ = supplied.store_paths(REAL, COUNTED)
+    columns = [c for c, *_ in duckdb.connect().execute(
+        f"DESCRIBE SELECT * FROM read_parquet('{registrations.as_posix()}')").fetchall()]
+    assert set(kind_of_owner_columns()) <= set(columns)
+    for column in kind_of_owner_columns():
+        empty = duckdb.connect().execute(
+            f"SELECT count(*) FROM read_parquet('{registrations.as_posix()}') WHERE {column} IS NULL").fetchone()[0]
+        assert empty == 0, f"{empty} stored rows have no {column}"
+
+
+def test_every_owner_type_and_usage_pair_in_the_committed_store_has_a_buyer_type():
+    registrations, _ = supplied.store_paths(REAL, COUNTED)
+    kept = list(kind_of_owner_columns())
+    with (ROOT / "data" / "reference" / "buyer_type_map.csv").open(encoding="utf-8", newline="") as fh:
+        mapped = {(r[0], r[1]) for r in list(csv.reader(fh))[1:]}
+    pairs = duckdb.connect().execute(
+        f"SELECT DISTINCT {', '.join(kept)} FROM read_parquet('{registrations.as_posix()}')").fetchall()
+    assert len(kept) == 2, "the buyer type map is keyed on the two kind-of-owner fields"
+    assert [p for p in pairs if tuple(p) not in mapped] == []
+
+
+@pytest.mark.parametrize("dropped", sorted(kind_of_owner_columns()))
+def test_a_store_without_what_kind_of_owner_is_refused_and_so_is_an_export_without_it(tmp_path, workspace, dropped):
+    cfg = make_cfg(workspace)
+    supply_counted(cfg, counted_history(cfg, tmp_path))
+    registrations, _ = supplied.store_paths(cfg, COUNTED)
+    older = tmp_path / "older.parquet"
+    kept = [c for c in supplied.store_columns(cfg.supplied(COUNTED)) if c != dropped]
+    duckdb.connect().execute(f"COPY (SELECT {', '.join(kept)} FROM read_parquet('{registrations.as_posix()}')) "
+                             f"TO '{older.as_posix()}' (FORMAT PARQUET)")
+    shutil.copyfile(older, registrations)
+    aborts = []
+    assert supplied.load_store(duckdb.connect(), cfg, COUNTED, aborts) is None
+    assert any("config/pipeline.json expects" in a for a in aborts), aborts
+
+    column = kind_of_owner_columns()[dropped]
+    with HISTORY.open(encoding="utf-8", newline="") as fh:
+        rows = list(csv.reader(fh))
+    at = rows[0].index(column)
+    bare = tmp_path / "bare_export.csv"
+    with bare.open("w", encoding="utf-8", newline="") as fh:
+        csv.writer(fh, lineterminator=chr(10)).writerows([r[:at] + r[at + 1:] for r in rows])
+    expect_abort(lambda: supply_counted(make_cfg(workspace), bare), f"missing ['{column}']")
 
 
 def test_the_check_catches_an_owner_column_in_a_store_and_in_a_ledger(tmp_path, workspace):

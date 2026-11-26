@@ -23,7 +23,9 @@ Check, and say which of these you actually ran or read:
 1. Does the change do what its spec says, and only that? One purpose per pull request.
 2. The eight invariants. Above all: no brand, powertrain, country, segment, policy or event name
    in a `.ts`, `.tsx`, `.astro` or `.py` file; the browser never receives a vehicle row; no owner
-   field, postcode or anything derived from `VIN11` reaches a published file; a flow series never
+   field reaches a published file beyond `owner_rule` in `config/data_map.json` (the group
+   `kind_of_owner` is public in full by D-159, and never beside where the owner lives), and no
+   postcode or anything derived from `VIN11` does; a flow series never
    shares a chart with survivors; no sentence says why something happened.
 3. Tests: are they added or updated, do they fail without the change, and was any test weakened,
    skipped or deleted to get a pass?
