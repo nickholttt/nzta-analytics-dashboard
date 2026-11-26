@@ -54,7 +54,9 @@ export type ViewSource = {
   // The kept snapshot (a month) the rows are read from; none: the newest, which the data folder itself holds.
   snapshot?: string;
   filter?: { pair: string; side: "a" | "b"; dimension: string; values: string[] };
-  facts?: { values?: string[]; where: Record<string, string[]> };
+  // table: the id of the narrow fact table the rows are summed from (the manifest's facts.narrow), where the wide one does not hold every field the
+  // question names (factTableFor); none: the wide table.
+  facts?: { values?: string[]; where: Record<string, string[]>; table?: string };
   // Each value of the breakdown crossed with each value of this other dimension, one row for each combination (a value reads
   // "breakdown value · other value"), from a pair slice when `pair` is given, otherwise from the fact table. Where the
   // other dimension is not narrowed to some values, the crossed rows add up to the month's whole.
@@ -64,7 +66,26 @@ export type ViewSource = {
 
 
 // What the build says about the fact table (docs/CUBE_SCHEMA.md, Fact table). Absent from a manifest built before it.
-export type FactsManifest = { rows: number; dimensions: string[]; not_live: Record<string, string> };
+// A narrow fact table (D-144) holds a few fields beside the month and the count, in files of its own under facts/{dataset}/narrow/{id}/.
+export type NarrowManifest = { rows: number; dimensions: string[]; not_live: Record<string, string> };
+export type FactsManifest = { rows: number; dimensions: string[]; not_live: Record<string, string>; narrow?: Record<string, NarrowManifest> };
+
+// The fact table that holds every one of these fields at once: the wide one ({}), else the first narrow table of the manifest that does ({ table: id }),
+// else none (null). A question is answered from one table, so a month column and a count column are always of the same rows. A field a narrow table lists
+// under not_live was not written, and is not held.
+export type FactTable = { table?: string };
+export function factTableFor(facts: FactsManifest | null | undefined, fields: readonly string[]): FactTable | null {
+  if (!facts) return null;
+  if (fields.every((f) => facts.dimensions.includes(f))) return {};
+  for (const [table, narrow] of Object.entries(facts.narrow ?? {})) {
+    if (fields.every((f) => narrow.dimensions.includes(f) && !(f in (narrow.not_live ?? {})))) return { table };
+  }
+  return null;
+}
+
+// The fields each fact table holds, the wide table first: what a question can name together (a table holds the fields in its list with one another).
+export const factTables = (facts: FactsManifest | null | undefined): string[][] =>
+  facts ? [facts.dimensions, ...Object.values(facts.narrow ?? {}).map((t) => t.dimensions.filter((d) => !(d in (t.not_live ?? {}))))] : [];
 
 export type { CoverageBasis } from "./hybrid";
 
@@ -382,9 +403,18 @@ async function pairGrid(dataset: string, pair: { pair: string; side: "a" | "b" }
 // order, so a question downloads only the columns it names and lines them up by position.
 type FactColumn = ArrayLike<unknown>;
 
-const loadFactColumn = (dataset: string, column: string, snapshot?: string) =>
-  once(inFolder(snapshot, `facts:${dataset}/${column}`), async (): Promise<FactColumn> => {
-    const file = await (await fetchOk(`facts/${dataset}/${column}.parquet`, snapshot)).arrayBuffer();
+// Where a fact table's files are, under the dataset's folder: the wide table's are its own, a narrow table's are in a folder named for it. Only an id of the
+// shape the cube writes is ever turned into a path. The cache keys below are made from this too, so a column of one table is never read for another's.
+const TABLE_ID = /^[a-z0-9_]+$/;
+function tableFolder(dataset: string, table?: string): string {
+  if (table === undefined) return dataset;
+  if (!TABLE_ID.test(table)) throw new Error(`${table} is not a fact table id`);
+  return `${dataset}/narrow/${table}`;
+}
+
+const loadFactColumn = (dataset: string, column: string, snapshot?: string, table?: string) =>
+  once(inFolder(snapshot, `facts:${tableFolder(dataset, table)}/${column}`), async (): Promise<FactColumn> => {
+    const file = await (await fetchOk(`facts/${tableFolder(dataset, table)}/${column}.parquet`, snapshot)).arrayBuffer();
     const chunks: ColumnData[] = [];
     await decoded(() => parquetRead({ file, compressors, columns: [column], onChunk: (chunk) => chunks.push(chunk) }));
     chunks.sort((a, b) => a.rowStart - b.rowStart);
@@ -399,9 +429,10 @@ const loadFactColumn = (dataset: string, column: string, snapshot?: string) =>
 // The values a dataset's own table of one field holds, read as the page reads them (a banded field's unknown band is the reserved not-recorded value).
 // It takes the file the field's picker reads in the same question, so the check adds no download: the fact table's column when the picker is counted
 // among conditions, the field's slice when it is not. The cube writes both from the same rows, so they hold the same values (D-137).
-export async function fieldValues(dataset: string, dimension: string, viaFacts: boolean, snapshot?: string): Promise<ReadonlySet<string>> {
+// among: the other fields the question's conditions name, which decide the table the picker reads (factTableFor).
+export async function fieldValues(dataset: string, dimension: string, viaFacts: boolean, snapshot?: string, among: readonly string[] = []): Promise<ReadonlySet<string>> {
   if (viaFacts && (!QUERY_SERVICE || snapshot !== undefined)) {
-    const column = await loadFactColumn(dataset, dimension, snapshot);
+    const column = await loadFactColumn(dataset, dimension, snapshot, await tableHolding(dataset, [dimension, ...among], snapshot));
     const held = new Set<string>();
     for (let i = 0; i < column.length; i++) held.add(String(column[i]));
     return held;
@@ -411,9 +442,9 @@ export async function fieldValues(dataset: string, dimension: string, viaFacts: 
 
 // The month column as "YYYY-MM" keys. The table is sorted by month, so the same value repeats in runs and one
 // conversion per distinct month serves them all.
-const loadFactMonths = (dataset: string, snapshot?: string) =>
-  once(inFolder(snapshot, `facts:${dataset}/month-keys`), async () => {
-    const raw = await loadFactColumn(dataset, "month", snapshot);
+const loadFactMonths = (dataset: string, snapshot?: string, table?: string) =>
+  once(inFolder(snapshot, `facts:${tableFolder(dataset, table)}/month-keys`), async () => {
+    const raw = await loadFactColumn(dataset, "month", snapshot, table);
     const keys = new Map<string, string>();
     const out: string[] = new Array(raw.length);
     for (let i = 0; i < raw.length; i++) {
@@ -425,6 +456,17 @@ const loadFactMonths = (dataset: string, snapshot?: string) =>
     }
     return out;
   });
+
+// The narrow table that holds every one of these fields (undefined: the wide table), by the manifest of the folder the question reads. A question no table
+// holds is an error here, as a file that is not there would be, and is never read from another table. A manifest that cannot be read says nothing, and the
+// wide table is asked for, as it was before there were narrow ones: a file it lacks fails the read.
+export async function tableHolding(dataset: string, fields: readonly string[], snapshot?: string): Promise<string | undefined> {
+  const manifest = await loadManifest(snapshot).catch(() => undefined);
+  if (!manifest) return undefined;
+  const held = factTableFor(manifest.datasets[dataset]?.facts, fields);
+  if (!held) throw new Error(`no fact table of ${dataset} holds ${fields.join(", ")} together`);
+  return held.table;
+}
 
 // The seam for the query service (docs/QUERY_SERVICE.md). Set at build time; unset, as by default, the fact table is
 // read in the browser exactly as before and the service is never asked. Set, a question that needs the fact table is
@@ -516,15 +558,16 @@ async function serviceView(dataset: string, dimension: string | null, values: st
 // cross: each breakdown value is crossed with this other dimension's, so a row's value is "breakdown value · other value".
 // The query service is not asked for a crossed view: its question has one breakdown, so it is read from the table here. Nor is it asked for a
 // kept snapshot's: it answers from the newest it holds (docs/QUERY_SERVICE.md), so the table of that snapshot's folder is read instead.
-export async function factView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>, cross?: string, snapshot?: string) {
-  if (QUERY_SERVICE && !cross && snapshot === undefined) return serviceView(dataset, dimension, values, where);
+// table: the narrow fact table the rows are summed from; the query service answers from the wide one, so it is not asked for a narrow table's question.
+export async function factView(dataset: string, dimension: string | null, values: string[] | undefined, where: Record<string, string[]>, cross?: string, snapshot?: string, table?: string) {
+  if (QUERY_SERVICE && !cross && snapshot === undefined && table === undefined) return serviceView(dataset, dimension, values, where);
   const filters = Object.entries(where).filter(([, kept]) => kept.length > 0);
   const [months, counts, firstBreakdown, other, ...filterColumns] = await Promise.all([
-    loadFactMonths(dataset, snapshot),
-    loadFactColumn(dataset, "n", snapshot),
-    dimension ? loadFactColumn(dataset, dimension, snapshot) : Promise.resolve(null),
-    dimension && cross ? loadFactColumn(dataset, cross, snapshot) : Promise.resolve(null),
-    ...filters.map(([d]) => loadFactColumn(dataset, d, snapshot)),
+    loadFactMonths(dataset, snapshot, table),
+    loadFactColumn(dataset, "n", snapshot, table),
+    dimension ? loadFactColumn(dataset, dimension, snapshot, table) : Promise.resolve(null),
+    dimension && cross ? loadFactColumn(dataset, cross, snapshot, table) : Promise.resolve(null),
+    ...filters.map(([d]) => loadFactColumn(dataset, d, snapshot, table)),
   ]);
   const breakdown: FactColumn | null =
     firstBreakdown && other ? Array.from({ length: firstBreakdown.length }, (_, i) => crossValue(String(firstBreakdown[i]), String(other[i]))) : firstBreakdown;
@@ -566,14 +609,14 @@ export async function factView(dataset: string, dimension: string | null, values
 // (one row each, with vehicles in it), and the month's total of those vehicles as the denominator. The window and the lines of the grid are
 // chosen later, from these rows (src/lib/matrix.ts), so a question downloads the columns it names once and a new window needs no more. The
 // query service is not asked: its question has one breakdown, so the table is read here, as for any crossed view.
-export async function factGrid(dataset: string, dimension: string, other: string, where: Record<string, string[]>, snapshot?: string): Promise<SliceRow[]> {
+export async function factGrid(dataset: string, dimension: string, other: string, where: Record<string, string[]>, snapshot?: string, table?: string): Promise<SliceRow[]> {
   const filters = Object.entries(where).filter(([, kept]) => kept.length > 0);
   const [months, counts, first, second, ...filterColumns] = await Promise.all([
-    loadFactMonths(dataset, snapshot),
-    loadFactColumn(dataset, "n", snapshot),
-    loadFactColumn(dataset, dimension, snapshot),
-    loadFactColumn(dataset, other, snapshot),
-    ...filters.map(([d]) => loadFactColumn(dataset, d, snapshot)),
+    loadFactMonths(dataset, snapshot, table),
+    loadFactColumn(dataset, "n", snapshot, table),
+    loadFactColumn(dataset, dimension, snapshot, table),
+    loadFactColumn(dataset, other, snapshot, table),
+    ...filters.map(([d]) => loadFactColumn(dataset, d, snapshot, table)),
   ]);
   const keep = filters.map(([, kept]) => new Set(kept));
   const totals = new Map<string, number>();
@@ -611,17 +654,17 @@ export async function loadFirstMonth(source: ViewSource, rows: readonly SliceRow
     for (const m of months) if (first === undefined || m < first) first = m;
     return first;
   };
-  if (source.facts && (!QUERY_SERVICE || source.snapshot !== undefined)) return earliest(await loadFactMonths(source.dataset, source.snapshot));
+  if (source.facts && (!QUERY_SERVICE || source.snapshot !== undefined || source.facts.table !== undefined)) return earliest(await loadFactMonths(source.dataset, source.snapshot, source.facts.table));
   if (source.filter) return earliest((await loadPair(source.dataset, source.filter.pair, source.snapshot)).map((r) => r.month));
   return earliest(rows.map((r) => r.month));
 }
 
 export const loadView = async (source: ViewSource): Promise<SliceRow[]> => {
   const { dataset, dimension, filter, facts, cross, snapshot } = source;
-  if (facts && cross?.grid && dimension) return factGrid(dataset, dimension, cross.dimension, facts.where, snapshot);
+  if (facts && cross?.grid && dimension) return factGrid(dataset, dimension, cross.dimension, facts.where, snapshot, facts.table);
   if (!facts && cross?.grid && cross.pair && dimension) return pairGrid(dataset, cross.pair, snapshot);
   if (cross?.pair) return crossPair(await loadPair(dataset, cross.pair.pair, snapshot), cross.pair.side);
-  if (facts) return factView(dataset, dimension, facts.values, facts.where, cross?.dimension, snapshot);
+  if (facts) return factView(dataset, dimension, facts.values, facts.where, cross?.dimension, snapshot, facts.table);
   if (!dimension) throw new Error("a view from the cube's slices needs a breakdown");
   if (!filter) return loadSlice(dataset, dimension, snapshot);
   return narrowPair(await loadPair(dataset, filter.pair, snapshot), filter.side, filter.values);

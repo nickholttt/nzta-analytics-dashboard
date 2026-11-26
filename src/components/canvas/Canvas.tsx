@@ -239,7 +239,7 @@ export default function Canvas({ vocabulary: all, groups }: { vocabulary: Vocabu
       const filters = all.datasets.find((v) => v.dataset === asked.dataset)?.filters ?? [];
       const canApply = (d: string) => filters.some((f) => f.id === d);
       const readTable = (from: string, field: string, others: Record<string, string[]>) =>
-        fieldValues(from, field, Object.values(others).some((kept) => kept.length > 0)).catch(() => undefined);
+        fieldValues(from, field, Object.values(others).some((kept) => kept.length > 0), undefined, Object.keys(others)).catch(() => undefined);
       absentValues(asked, canApply, readTable).then((absent) => {
         const now = chartOf(id);
         if (absent.length === 0 || !now || now.question.dataset !== asked.dataset) return;

@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { say as canvasSay } from "../lib/canvas";
 import { datasetWords, valueWords } from "../lib/config";
 import { isChoosable } from "../lib/reserved";
-import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice } from "../lib/data";
+import { ServiceError, datasetLatestMonth, factView, loadManifest, loadSlice, tableHolding } from "../lib/data";
 import type { SliceRow } from "../lib/data";
 import { TRAILING_MONTHS, addMonths } from "../lib/measures";
 import { fillNote } from "../lib/notes";
@@ -33,8 +33,12 @@ export const startingValues = (options: readonly ValueOption[]): string[] =>
 // among the vehicles the question's other conditions keep, so the list matches what the chart will show.
 export async function valueOptions(dataset: string, dimension: string, where: Record<string, string[]>, snapshot?: string): Promise<ValueOption[]> {
   const filtered = Object.values(where).some((kept) => kept.length > 0);
+  // Counted among the conditions, the list is summed from the one fact table that holds the field and every condition's field (a narrow table where the
+  // wide one lacks one of them), so it is the table the chart reads.
   const [rows, manifest] = await Promise.all([
-    filtered ? factView(dataset, dimension, undefined, where, undefined, snapshot) : loadSlice(dataset, dimension, snapshot),
+    filtered
+      ? tableHolding(dataset, [dimension, ...Object.entries(where).filter(([, kept]) => kept.length > 0).map(([d]) => d)], snapshot).then((table) => factView(dataset, dimension, undefined, where, undefined, snapshot, table))
+      : loadSlice(dataset, dimension, snapshot),
     loadManifest(snapshot),
   ]);
   const latest = datasetLatestMonth(manifest, dataset);
