@@ -1,6 +1,6 @@
 {
   "contract_version": 1,
-  "generated_at": "2026-11-25T19:43:01Z",
+  "generated_at": "2026-11-26T04:04:04Z",
   "latest_snapshot": "2026-10-31",
   "row_count": 5926990,
   "in_scope_row_count": 4634954,
@@ -48,6 +48,7 @@
       "built_in",
       "vehicle_type",
       "trade_group",
+      "buyer_type",
       "import_status",
       "age_at_registration_band",
       "model"
