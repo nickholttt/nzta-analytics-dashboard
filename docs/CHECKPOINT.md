@@ -64,8 +64,7 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 2. **Buyer type for used imports** on the front page and the brand and model pages (the design's C and D)?
    The accepted plan said new vehicles. Recommended: New and Used side by side. Default: new vehicles only.
 3. **December's retake** asks for 13 fields against a limit of 12. Recommended: "CC grouping - vehicle" waits.
-4. **D-158**: `contract_version` 2 (default: stays 1); retiring `in_scope` (default: kept). Not sent: the email
-   to NZTA. Parked: the Existing fleet licence line. Open: the site's name, address and About gaps.
+4. **D-158**: `contract_version` 2 (default: 1); retiring `in_scope` (default: kept). Not sent: the NZTA email. Parked: the Existing fleet licence line. Open: the site's name, address, About gaps.
 
 ## Decided for the user (unreviewed; each is in its pull request or record)
 
