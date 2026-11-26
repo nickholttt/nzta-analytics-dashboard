@@ -75,10 +75,9 @@
   }
 }
 
-/* position: relative holds the absolutely positioned visually-hidden labels inside the scroll box, as .table-scroll does in site.css. */
+/* The scroll box, its overflow and the shadow that says there is more beyond an edge are .table-scroll's, in site.css; a card is the ground here. */
 .lm-scroll {
-  overflow-x: auto;
-  position: relative;
+  --scroll-ground: var(--card);
 }
 
 /* Narrow screens: site.css makes a .key table scroll itself; here the focusable wrapper is the one that scrolls, so a keyboard reaches every column. */
@@ -102,6 +101,14 @@
 
 .lm-table th:first-child {
   padding-left: 0;
+}
+
+/* On a phone the gap between figures is 6 px, not 12, so a table of five or six columns scrolls by less, or not at all. */
+@media (max-width: 640px) {
+  .lm-table th,
+  .lm-table td {
+    padding-left: calc(var(--space-2) * 0.75);
+  }
 }
 
 .lm-table td.up,

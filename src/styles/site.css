@@ -1310,8 +1310,11 @@ section[id] {
   margin-top: var(--space-3);
 }
 
-/* Wide tables scroll inside their own box, so the page never scrolls sideways at 320px. */
-.table-scroll {
+/* Wide tables scroll inside their own box, so the page never scrolls sideways at 320px. The latest month's tables and the answer pages' tables
+   (.lm-scroll, .ap-scroll) are the same box; --scroll-ground is the colour behind it where that is not the page's, as on a card. */
+.table-scroll,
+.lm-scroll,
+.ap-scroll {
   overflow-x: auto;
   max-width: 100%;
   /* Contains the absolutely positioned visually-hidden labels, which would otherwise widen the page. */
@@ -1319,10 +1322,20 @@ section[id] {
   /* A shadow at an edge that has more table beyond it, and none at an edge that does not: the two paper-coloured
      layers move with the table and cover the shadows, which stay put, once that end is reached. */
   background:
-    linear-gradient(to right, var(--paper) 40%, transparent) left center / 2.5rem 100% no-repeat local,
-    linear-gradient(to left, var(--paper) 40%, transparent) right center / 2.5rem 100% no-repeat local,
-    linear-gradient(to right, var(--scroll-shadow), transparent) left center / 0.75rem 100% no-repeat scroll,
-    linear-gradient(to left, var(--scroll-shadow), transparent) right center / 0.75rem 100% no-repeat scroll;
+    linear-gradient(to right, var(--scroll-ground, var(--paper)) 40%, transparent) left center / var(--scroll-cover, 2.5rem) 100% no-repeat local,
+    linear-gradient(to left, var(--scroll-ground, var(--paper)) 40%, transparent) right center / var(--scroll-cover, 2.5rem) 100% no-repeat local,
+    linear-gradient(to right, var(--scroll-shadow), transparent) left center / var(--scroll-edge, 0.75rem) 100% no-repeat scroll,
+    linear-gradient(to left, var(--scroll-shadow), transparent) right center / var(--scroll-edge, 0.75rem) 100% no-repeat scroll;
+}
+
+/* These boxes show their edge in the rule colour, because the shadow token is a dark edge that a dark card hides. The edge is narrower than the
+   cover that hides it where the table has been scrolled to that end, so next to nothing of it is left there, and the cover is short, so a table that is only
+   a few pixels too wide still shows its edge. */
+.lm-scroll,
+.ap-scroll {
+  --scroll-shadow: var(--rule-strong);
+  --scroll-edge: 0.5rem;
+  --scroll-cover: 1rem;
 }
 
 /* Said in words too, while the ranking table is wider than its box: the shadow alone is easy to miss. */
