@@ -41,7 +41,7 @@ Buyer type is #167, open. After it on lane B: Market type, first-observed figure
   reviewed twice, checks green. On `main` the store holds no owner field and the cube no buyer type;
   after the merge the cube gains its files only when October is rebuilt (a forced build, the user's word).
 - `claude/b-buyer-type-site` in `nzta-lane-a`, cut from #167's branch, its `public/data` that branch's
-  staged build: nothing committed. `-c` and `-e` are detached, behind `main`; `-b` and `-e` have no tooling.
+  staged build: #169 (D-160), open. `-c` and `-e` are detached, behind `main`; `-b` and `-e` have no tooling.
 - Worktrees with work that is not on `main`: `nzta-screens` (narrative drafts, **uncommitted**, D-102);
   `nzta-segments` (an untracked draft scheme file, D-103); `nzta-notes` (the closed board proposal).
 - Private, on the computer: the vstat study; NZTA's 118 "Existing fleet" workbooks with a plan; the

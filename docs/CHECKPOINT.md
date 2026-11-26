@@ -8,7 +8,7 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
-| A: finish the canvas | `claude/b-buyer-type-site` (worktree `nzta-lane-a`) | the computer | buyer type's site side, stacked on #167: a design is written (private), nothing built. The rest is under "A" below |
+| A: finish the canvas | `claude/b-buyer-type-site` (worktree `nzta-lane-a`), #169 | the computer | buyer type's site side, stacked on #167. #169 (D-160): a canvas chart by buyer type starts on new vehicles; open, low risk. Then B, C and D of the design (private). The rest is under "A" below |
 | B: the accuracy guard and the datasets | `claude/b-buyer-type` (worktree `nzta-lane-b`), #167 | the computer, until #167 merges | buyer type built and reviewed (D-159), checks green; waiting on the user's word. One pipeline pull request at a time |
 | C: public readiness | none | free | what is left is the user's four items |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing |
