@@ -1,9 +1,9 @@
 # State
 
-Last updated by claude on 2026-11-26 (the third session of that day)
+Last updated by claude on 2026-11-27
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the Lanes table are in
-`docs/CHECKPOINT.md`. The direction: `docs/brief/WORK_ORDER.md` (D-148) and `WORK_ORDER_3_ADDITIONS.md`.
+`docs/CHECKPOINT.md`. The direction: `docs/brief/UI_DIRECTION.md` (2026-11-27) over `WORK_ORDER.md` and its additions.
 
 ## Live now
 
@@ -22,16 +22,16 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the 
 - **The site's code is on `main`; nothing is deployed** (`CLOUDFLARE_PAGES_PROJECT` is unset). Pages:
   Explore, Canvas, Method, Caveats, About (a draft), Feedback, Differences, a not-found page, and script-free
   generated pages for 64 brands, 265 models and 6 powertrains. A sitemap waits for `about.site_address`.
-- **The home page opens with the latest month** (#153), new and used imports apart (#161), over four
-  periods (#162, `config/windows.json`), switched with radio inputs and CSS.
+- **The home page opens with the latest month** (#153, #161, #162): new and used apart, over four periods.
 - **The canvas is the only builder** (#132). A chart by buyer type starts on new vehicles, a condition the
   visitor can remove (#169, D-160). Its first chart is held (D-156): a pull request fails over 3.0 s on
   the phone profile; `Checks` read 2.7 s on #172. Every pull request builds and checks the public site.
 
 ## Current step
 
-Four pull requests are open and waiting on the user's word (CHECKPOINT): #170, #171, #172 on lane A,
-#173 on lane B. After them: the brand and model pages' buyer table (A), then B's queue.
+The user's direction of 27 November (`docs/brief/UI_DIRECTION.md`): the site built so far is the engine's
+proof and is not published; the public site at vcore.co.nz is a new UI. A design proposal is with the user
+(lane F); nothing of it is built until they accept it. #170 to #174 wait on their word; B's queue goes on.
 
 ## In progress (all claude; nothing by gemini)
 
@@ -43,8 +43,8 @@ Four pull requests are open and waiting on the user's word (CHECKPOINT): #170, #
   `registrations_surviving` and `fleet` (D-161). High risk; reviewed. The cube gains it at the next build.
 - Worktrees with work that is not on `main`: `nzta-screens` (narrative drafts, **uncommitted**, D-102);
   `nzta-segments` (an untracked draft scheme file, D-103); `nzta-notes` (the closed board proposal).
-- Private, on the computer: the vstat study; the "Existing fleet" workbooks with a plan; the location
-  plan; the site design for buyer type (its last piece is not built). Playbooks: `monthly.md`, `go-public.md`.
+- Private, on the computer: **the new UI's proposal (lane F, no branch yet)** and its files; the vstat study,
+  now with vstat's design tokens; the "Existing fleet" workbooks with a plan; the location plan.
 
 ## Raw files on this computer (gitignored)
 
@@ -73,14 +73,14 @@ Four pull requests are open and waiting on the user's word (CHECKPOINT): #170, #
 
 ## Where docs and code disagree (noted, not changed)
 
-- `docs/brief/MASTER_BRIEF.md` knows no canvas; the order wins. `docs/DATA_MAP.md` lists ten disagreements,
+- `docs/brief/MASTER_BRIEF.md` knows no canvas; the order wins. Work order 3's 12 December date: see UI_DIRECTION. `docs/DATA_MAP.md` lists ten disagreements,
   fixed as each field is touched. The stub dataset `ownership_changes` says "vehicles"; it counts changes.
   D-144, D-159 and D-160 say the site does not read the narrow tables: true when written; #172 reads them.
 
 ## Blocked or waiting on the user
 
-Waiting on the user (CHECKPOINT): the word to merge #170 to #173; whether October is built again; D-158's
-questions; the NZTA email; the Existing fleet licence line; the site's four items; `DASHBOARD_EXPORT_METHOD.md`.
+Waiting on the user (CHECKPOINT): the new UI's design; the word to merge #170 to #174; whether October is built
+again; D-158's questions; the NZTA email; the Existing fleet licence line; `DASHBOARD_EXPORT_METHOD.md`.
 
 ## How to run
 
