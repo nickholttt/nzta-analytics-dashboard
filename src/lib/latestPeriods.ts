@@ -69,7 +69,7 @@ export function windowedSection(kit: Kit, periods: PeriodsKit, ctx: { month: str
   const panelLink = (block: BlockConfig, c: Condition | undefined, w: Window, heading: string) => {
     const named = say(words, "canvas_link_named", { heading });
     if (named === undefined) return undefined;
-    const href = kit.link(block, c ? { [views.field]: [c.value] } : undefined, block.canvas.settings?.period !== undefined ? w.canvasPeriod : undefined);
+    const href = kit.link(block, c ? { [views.field]: [c.value] } : undefined, block.canvas.settings?.period !== undefined ? w.canvasPeriod : undefined, c ? undefined : [views.field]);
     return href === undefined ? { canvas: undefined, canvasLabel: undefined } : { canvas: href, canvasLabel: named };
   };
 

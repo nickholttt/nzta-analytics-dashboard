@@ -11,7 +11,9 @@ import type { Manifest } from "./data";
 
 // `where` keeps the question to the values of other fields (the vehicles first registered new, say), as a canvas's own conditions do. `values` names the
 // values of the field it is broken down by that the chart is of (a brand and its rivals): a link whose chart would keep other values is withheld.
-export type LinkAsk = { dataset: string; measure: string; by: string | null; type: string | null; settings?: Record<string, string>; where?: Record<string, string[]>; values?: string[] };
+// `widen` names fields the question counts every vehicle of, as a canvas link says it (the canvas's `widen`): a breakdown that starts under a condition on one
+// of them (builder.starts_under) is then asked without it. For a breakdown that starts under none, it changes nothing.
+export type LinkAsk = { dataset: string; measure: string; by: string | null; type: string | null; settings?: Record<string, string>; where?: Record<string, string[]>; values?: string[]; widen?: string[] };
 
 const sameWhere = (a: Record<string, string[]>, b: Record<string, string[]>) => JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
 
@@ -21,7 +23,7 @@ const sameWhere = (a: Record<string, string[]>, b: Record<string, string[]>) => 
 export function latestMonthLink(all: Vocabulary, manifest: Manifest, ask: LinkAsk): string | undefined {
   if (ask.settings?.period !== undefined && findPeriod(ask.settings.period) === undefined) return undefined;
   const id = nextChartId([]);
-  const canvas = withFittingTypes(settleCanvas(all, [{ id, asked: { dataset: ask.dataset, measure: ask.measure, by: ask.by, where: ask.where ?? {}, ...(ask.values ? { values: ask.values } : {}) }, type: ask.type, table: false, width: "full" }]), manifest);
+  const canvas = withFittingTypes(settleCanvas(all, [{ id, asked: { dataset: ask.dataset, measure: ask.measure, by: ask.by, where: ask.where ?? {}, ...(ask.values ? { values: ask.values } : {}), ...(ask.widen ? { widened: ask.widen } : {}) }, type: ask.type, table: false, width: "full" }]), manifest);
   const [chart] = canvas.charts;
   const q = chart.question;
   if (q.dataset !== ask.dataset || q.measure !== ask.measure || q.by !== ask.by || !sameWhere(q.where, ask.where ?? {})) return undefined;

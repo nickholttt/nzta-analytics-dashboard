@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const { Cut, capFloor } = await import("../../src/lib/conditionViews.ts");
+const { Cut, capFloor, pairColumns } = await import("../../src/lib/conditionViews.ts");
 const { readFactColumns, viewCuts } = await import("../../src/lib/conditionViewsBuild.ts");
 const { readSlice } = await import("../../src/lib/latestMonthBuild.ts");
 type FactColumns = import("../../src/lib/conditionViews.ts").FactColumns;
@@ -40,6 +40,34 @@ test("the parts of a value add up to the total the slice shows, for every value 
   for (const r of SLICE) assert.equal(cut.all(r.value, r.month), r.n);
   assert.equal(cut.total("x", "2026-10") + cut.total("y", "2026-10"), 870);
   assert.ok(cut.agreesWith(SLICE));
+});
+
+test("a cut made from a pair's rows is the cut made from the fact table's rows of the same counts, whichever side of the pair the field is on", () => {
+  // The pair holds one row for each value of the two fields in a month: the fact table's rows added up over its other fields.
+  const rows = [
+    ["2026-10", "a", "x", 805],
+    ["2026-10", "a", "y", 15],
+    ["2026-10", "b", "y", 50],
+    ["2025-10", "a", "x", 600],
+    ["2025-10", "b", "x", 20],
+    ["2025-10", "b", "y", 5],
+  ] as const;
+  const pair = { month: rows.map((r) => r[0]), n: rows.map((r) => r[3]), a: rows.map((r) => r[1]), b: rows.map((r) => r[2]) };
+  const swapped = { ...pair, a: pair.b, b: pair.a };
+  const fromTable = Cut.from(FACTS, "thing", "cond", ["x", "y"])!;
+  const sides = [Cut.from(pairColumns(pair, "thing", "cond", "a"), "thing", "cond", ["x", "y"])!, Cut.from(pairColumns(swapped, "thing", "cond", "b"), "thing", "cond", ["x", "y"])!];
+  for (const cut of sides) {
+    assert.deepEqual(cut.conditions(), fromTable.conditions());
+    for (const month of ["2026-10", "2025-10"]) {
+      assert.deepEqual([...cut.values([month])].sort(), [...fromTable.values([month])].sort());
+      for (const value of ["a", "b", "zzz"]) {
+        for (const c of ["x", "y"]) assert.equal(cut.at(value, c, month), fromTable.at(value, c, month), `${month} ${value} ${c}`);
+        assert.equal(cut.all(value, month), fromTable.all(value, month));
+      }
+      for (const c of ["x", "y"]) assert.equal(cut.total(c, month), fromTable.total(c, month));
+    }
+    assert.ok(cut.agreesWith(SLICE), "it agrees with the slice the table's cut agrees with");
+  }
 });
 
 test("a combination with no row is zero, and the conditions are in the order given, then any other as held", () => {
@@ -106,6 +134,26 @@ const readReal = (relative: string): ArrayBuffer | undefined => {
     return undefined;
   }
 };
+
+const pairBuilt = built && existsSync(join(ROOT, "pairs", "new_registrations", "buyer_type__import_status.parquet"));
+test("a field the fact table lacks is cut from its pair with the condition, agrees with its slice, and leaves the other fields' cuts as they were; a slice it disagrees with is refused", { skip: !pairBuilt }, async () => {
+  const m = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8"));
+  const slices: Record<string, SliceRow[] | undefined> = {};
+  for (const f of ["import_status", "make", "buyer_type"]) slices[f] = await readSlice(readReal, m, "new_registrations", f);
+  const months = ["2026-10"];
+  const asked = ["make", "buyer_type"];
+  const { cuts } = await viewCuts(readReal, m, "new_registrations", "import_status", ["NZ New", "Used Import"], asked, slices, months);
+  assert.ok(cuts.buyer_type, "the buyer type has a cut");
+  assert.ok(cuts.make && cuts.import_status, "the fields the table carries keep theirs");
+  assert.deepEqual(cuts.buyer_type.conditions(), ["NZ New", "Used Import"]);
+  for (const month of ["2026-10", "2025-10"]) assert.equal(cuts.buyer_type.total("NZ New", month) + cuts.buyer_type.total("Used Import", month), cuts.import_status.total("NZ New", month) + cuts.import_status.total("Used Import", month), `${month}: the buyer types add up to the month's vehicles`);
+  // The same counts held to a slice that says one more vehicle: no cut for the field, and the others still have theirs.
+  const rows = slices.buyer_type as SliceRow[];
+  const off = rows.map((r, i) => (i === 0 ? { ...r, n: r.n + 1 } : r));
+  const refused = await viewCuts(readReal, m, "new_registrations", "import_status", ["NZ New", "Used Import"], asked, { ...slices, buyer_type: off }, months);
+  assert.equal(refused.cuts.buyer_type, undefined);
+  assert.ok(refused.cuts.make && refused.cuts.import_status);
+});
 
 test("the real fact table agrees with every slice it is cut for, month by month, and the Ranger's parts are 805 and 15", { skip: !built }, async () => {
   const m = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8"));
@@ -309,6 +357,38 @@ test("a cut that is missing for any block leaves the section as it was: no switc
   const noLink = latestMonthView(kit({ link: (_b, where) => (where ? undefined : "/canvas/?asked") }));
   assert.equal(noLink?.switch, undefined);
   assert.ok(find(noLink, "ranking-field_b"));
+});
+
+test("a block that needs its views is left out where it has none, and the other blocks keep their switch; any other block without one takes the switch from all", () => {
+  const blocks = (needs: boolean) => [block("total", undefined), block("ranking", "field_b", { top: 3, views: true }), block("split", "field_a", { views: true, ...(needs ? { needs_views: true } : {}) })];
+  const lacking = (needs: boolean) => {
+    const k = kit({ blocks: blocks(needs) });
+    return latestMonthView({ ...k, views: { ...k.views!, cuts: { field_b: cutOf("field_b") } } });
+  };
+  const left = lacking(true);
+  assert.deepEqual(left?.switch?.labels, ["Newish", "Oldish", "All"], "the switch stays");
+  assert.equal(find(left, "split-field_a"), undefined, "the block is not drawn, not drawn over all the vehicles alone");
+  assert.equal(find(left, "ranking-field_b")?.views?.length, 3);
+  const plain = lacking(false);
+  assert.equal(plain?.switch, undefined);
+  assert.ok(find(plain, "split-field_a"), "a block without the flag is drawn as it was");
+  // Where the switch cannot be drawn at all (no views), the block is not drawn either: its figure over all the vehicles would mix the conditions.
+  const none = latestMonthView(kit({ blocks: blocks(true), noViews: true }));
+  assert.equal(none?.switch, undefined);
+  assert.equal(find(none, "split-field_a"), undefined);
+  assert.ok(find(none, "ranking-field_b"));
+  // With its views, it is drawn like the others.
+  assert.equal(find(latestMonthView(kit({ blocks: blocks(true) })), "split-field_a")?.views?.length, 3);
+});
+
+test("each panel asks the canvas for its question: a condition's panel with that condition, the all panel over every vehicle, and no other panel widened", () => {
+  const asked: { block: string; where?: unknown; widen?: string[] }[] = [];
+  latestMonthView(kit({ link: (b, where, _period, widen) => (asked.push({ block: b.id, where, widen }), "/canvas/?asked") }));
+  const calls = (id: string) => asked.filter((x) => x.block === id).map((x) => JSON.stringify([x.where ?? null, x.widen ?? null]));
+  const ranking = calls("ranking-field_b");
+  for (const expected of [[{ cond: ["x"] }, null], [{ cond: ["y"] }, null], [null, ["cond"]]]) assert.ok(ranking.includes(JSON.stringify(expected)), JSON.stringify(expected));
+  assert.ok(asked.every((x) => x.where === undefined || x.widen === undefined), "a panel kept to a condition is not also widened");
+  assert.deepEqual(calls("total-all"), [JSON.stringify([null, null])], "the month's figure is not a block with views");
 });
 
 test("with one condition, or too many for the switch, there are no views", () => {

@@ -12,6 +12,14 @@ export type FactColumns = { month: readonly string[]; n: readonly number[]; valu
 
 const SEPARATOR = "\u0000";
 
+// A pair slice's rows (the vehicles with one value of each of two fields in a month: the a_value and b_value of the published file) as the fact table's columns,
+// so the one cut reads either. `side` is the side the field is on in the pair (findPair); the condition is the other. A cut made from the pair agrees with one
+// made from the fact table's rows of the same counts, which hold more fields and so more rows.
+export type PairRows = { month: readonly string[]; n: readonly number[]; a: readonly string[]; b: readonly string[] };
+export function pairColumns(rows: PairRows, field: string, condition: string, side: "a" | "b"): FactColumns {
+  return { month: rows.month, n: rows.n, values: { [field]: side === "a" ? rows.a : rows.b, [condition]: side === "a" ? rows.b : rows.a } };
+}
+
 export class Cut {
   private constructor(
     // month -> value -> condition -> count

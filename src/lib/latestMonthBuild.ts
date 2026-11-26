@@ -95,7 +95,8 @@ export async function latestMonthSection(manifest: Manifest, read: ReadFile, con
   if (config.view_field && names0) {
     const field = config.view_field;
     const latest = datasetLatestMonth(manifest, config.dataset);
-    const dims = [...new Set(config.blocks.flatMap((b) => (b.views && b.dimension ? [b.dimension] : [])))];
+    // Only a field whose slice could be read is cut: a block of any other is not drawn, so its split is not asked for (and would only be a warning).
+    const dims = [...new Set(config.blocks.flatMap((b) => (b.views && b.dimension && slices[b.dimension] ? [b.dimension] : [])))];
     const cut = await viewCuts(read, manifest, config.dataset, field, conditionOrder(names0, field), dims, slices, monthRange(addMonths(latest, -11), latest));
     const held = cut.cuts[field]?.conditions();
     if (held && held.length > 0) {
@@ -134,9 +135,10 @@ export async function latestMonthSection(manifest: Manifest, read: ReadFile, con
     views,
     // The windows the blocks with views are drawn over; with no window to open on, there are none.
     periods: windows.length > 0 && home ? { windows, defaultIndex: home.index, moverPerMonth: windowsConfig.mover_minimum_per_month, span: (end, months) => fillTemplate(phrases.window_to, { span: months, end: monthLabel(end) }).text } : undefined,
-    link: (block, where, period) =>
+    link: (block, where, period, widen) =>
       latestMonthLink(all, manifest, {
         where,
+        widen,
         dataset: config.dataset,
         measure: block.canvas.measure,
         by: block.canvas.by ? (block.dimension ?? null) : null,

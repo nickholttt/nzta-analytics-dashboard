@@ -209,7 +209,9 @@ test("the section's dataset is one this build's vocabulary holds, so its links c
 for (const b of latestConfig.blocks.filter((x) => !x.dimension || live.has(x.dimension))) {
   test(`block ${b.id}: its link opens the canvas on the dataset, measure, field and month the block shows, and writes back unchanged`, () => {
     const by = b.canvas.by ? (b.dimension as string) : null;
-    const link = latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: b.canvas.measure, by, type: b.canvas.type, settings: b.canvas.settings });
+    // A block with views counts every vehicle in its own figures, and links as the section does: widened over the field its views are for.
+    const widen = b.views && latestConfig.view_field ? [latestConfig.view_field] : undefined;
+    const link = latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: b.canvas.measure, by, type: b.canvas.type, settings: b.canvas.settings, widen });
     assert.ok(link, "the canvas can draw this question");
     const url = new URL(link, "https://site.example");
     assert.equal(url.pathname, "/canvas/");
@@ -243,7 +245,9 @@ for (const b of latestConfig.blocks.filter((x) => x.views && x.dimension && live
     const values = conditionOrder(builtDisplayNames(), field);
     assert.ok(values.length >= 2, "the display names file gives the conditions");
     for (const where of [...values.map((v) => ({ [field]: [v] })), undefined]) {
-      const link = latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: b.canvas.measure, by: b.canvas.by ? (b.dimension as string) : null, type: b.canvas.type, settings: b.canvas.settings, where });
+      // The panel for all of them is asked over every vehicle, the others over their condition: as the section writes them.
+      const widen = where ? undefined : [field];
+      const link = latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: b.canvas.measure, by: b.canvas.by ? (b.dimension as string) : null, type: b.canvas.type, settings: b.canvas.settings, where, widen });
       assert.ok(link, "the canvas can draw this question");
       const url = new URL(link, "https://site.example");
       const asked = canvas.readCanvas(url.search);
@@ -409,6 +413,53 @@ test("on the built data the figure is the sum of the vehicle-type split and of e
     assert.equal(count(sum), total?.figure, `${dimension}: its parts add up to the month's figure`);
   }
   assert.doesNotMatch(JSON.stringify(view), /NaN|undefined|\{[a-z_]+\}/);
+});
+
+const pairFile = new URL("pairs/new_registrations/buyer_type__import_status.parquet", here);
+test("on the built data the buyer block's figures are the pair's own counts, summed here apart from the site's readers, for the month and the last 12 months", { skip: (!haveData || !existsSync(pairFile)) && "no built data with the buyer-type pair in public/data" }, async () => {
+  const { parquetReadObjects } = await import("hyparquet");
+  const { decompressZstd } = await import("hyparquet-compressors");
+  const { monthKey } = await import("../../src/lib/monthkey.ts");
+  const { conditionOrder } = await import("../../src/lib/displayNames.ts");
+  const { builtDisplayNames } = await import("../../src/lib/displayNamesBuild.ts");
+  const { windowsFor } = await import("../../src/lib/windows.ts");
+  const manifest = JSON.parse(readFileSync(new URL("manifest.json", here), "utf8"));
+  const raw = readFileSync(pairFile);
+  const pair = await parquetReadObjects({
+    file: raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength) as ArrayBuffer,
+    compressors: { ZSTD: (input: Uint8Array) => (decompressZstd as (input: Uint8Array) => Uint8Array)(input) },
+    columns: ["month", "a_value", "b_value", "n"],
+  });
+  const view = await latestMonthSection(manifest, reader(here));
+  const buyers = find(view, "buyers");
+  assert.ok(buyers?.views && buyers.windowed, "the block is drawn, with its views and over the windows");
+  const conditions = conditionOrder(builtDisplayNames(), latestConfig.view_field as string);
+  const windows = windowsFor(datasetLatestMonth(manifest, latestConfig.dataset));
+  assert.equal(buyers.views.length, conditions.length + 1);
+  // The sum of the pair's counts of a buyer type over some months, for one condition or (undefined) for all of them.
+  const sum = (months: string[], condition?: string) => {
+    const out = new Map<string, number>();
+    for (const r of pair) {
+      if (!months.includes(monthKey(r.month)) || (condition !== undefined && r.b_value !== condition)) continue;
+      out.set(String(r.a_value), (out.get(String(r.a_value)) ?? 0) + Number(r.n));
+    }
+    return out;
+  };
+  const shown = (p: { rows: { value?: string; count?: string }[] }) => new Map(p.rows.filter((r) => r.value !== undefined).map((r) => [r.value as string, r.count]));
+  const expected = (m: Map<string, number>) => new Map([...m].filter(([, n]) => n > 0).map(([v, n]) => [v, count(n)]));
+  const month = [view?.month as string];
+  assert.ok(expected(sum(month, conditions[0])).size >= 2, "the pair holds something to compare with");
+  for (const [index, condition] of [...conditions, undefined].entries()) {
+    assert.deepEqual(shown(buyers.views[index]), expected(sum(month, condition)), `the month, view ${index}`);
+    for (const w of windows.filter((x) => ["month", "12m"].includes(x.id))) {
+      const p = buyers.windowed.find((x) => x.win === w.index && x.view === index);
+      assert.ok(p, `${w.id} view ${index}`);
+      assert.deepEqual(shown(p), expected(sum(w.months, condition)), `${w.id}, view ${index}`);
+    }
+  }
+  // The all panel's part beside each buyer type is that condition's own count.
+  const all = buyers.views[conditions.length];
+  for (const [i, condition] of conditions.entries()) for (const r of all.rows) assert.equal(r.parts?.[i], count(sum(month, condition).get(r.value as string) ?? 0), `${r.name}: the part under ${condition}`);
 });
 
 test("the words of the section are filled with nothing left over, for a made-up month", () => {

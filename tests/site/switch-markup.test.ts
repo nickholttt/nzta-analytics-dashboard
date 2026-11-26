@@ -13,7 +13,7 @@ const page = (path: string) => readFileSync(join("dist", path, "index.html"), "u
 const panels = (html: string) => [...html.matchAll(/<div class="vs-panel"([^>]*)>/g)].map((m) => ({ view: /data-view="(\d+)"/.exec(m[1])?.[1], win: /data-win="(w\d+)"/.exec(m[1])?.[1], isDefault: /data-win-default/.test(m[1]) }));
 const checked = (html: string, name: string) => [...html.matchAll(/<input[^>]*type="radio"[^>]*>/g)].map((m) => m[0]).filter((t) => t.includes(`name="${name}"`) && /\bchecked\b/.test(t)).map((t) => /value="([^"]*)"/.exec(t)?.[1]);
 
-for (const [path, scope, defaultWindow, blocks] of [["", "lm-view", "w0", 5], ["brand/toyota", "ap-scope", "w2", 3], ["powertrain/bev", "ap-scope", "w2", 4]] as const) {
+for (const [path, scope, defaultWindow, blocks] of [["", "lm-view", "w0", 6], ["brand/toyota", "ap-scope", "w2", 3], ["powertrain/bev", "ap-scope", "w2", 4]] as const) {
   test(`${path || "the front page"}: the default period is checked, and its three panels in each block are marked as the default`, { skip: !built }, () => {
     const html = page(path);
     assert.deepEqual(checked(html, `${scope}-win`), [defaultWindow]);
