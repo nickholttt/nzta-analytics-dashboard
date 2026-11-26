@@ -1450,7 +1450,9 @@ Fact tables, found before anything is read:
   field of an owner group (where the owner lives, or how the register records the owner's usage). The message names the table, both
   dimensions and the owner field, and says to remove one of them. A data map with no `kind_of_owner_groups`, or one that puts a group
   in both lists, aborts the same check (`pipeline/privacy.py`, `floor_problems`; `docs/DATA_MAP.md`, *The floor under what kind of
-  owner*). No dimension reads such a field yet, so today the check finds nothing.
+  owner*). The same check refuses a single dimension that reads a field of both sides, whatever table it is in, because its own
+  slice would cross them. The committed `buyer_type` reads the kind-of-owner side only, and no table of the committed config puts
+  it beside a dimension that reads an owner field, so the check finds nothing today.
 
 Pairs:
 

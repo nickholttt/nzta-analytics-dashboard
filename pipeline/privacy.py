@@ -208,9 +208,11 @@ def dimensions_in_groups(cfg, dmap: dict, groups: set[str]) -> dict[str, list[st
 def floor_problems(cfg, dmap: dict | None = None) -> list[str]:
     """Where config/pipeline.json puts a field that says what kind of owner (the map's `kind_of_owner_groups`) in one table with a
     field that says where the owner lives or describes the owner (its `owner_groups`): a pair, a fact table, a narrow fact table,
-    or the committed snapshot aggregate. A slice holds one field and cannot cross them. This is the floor under the user's
-    direction that buyer type be published in full (`owner_rule`): it is never shown beside a district, a region or any other
-    owner field, and the owner fields still never reach a fact table (build.fact_table_owner_problems).
+    or the committed snapshot aggregate. A slice holds one dimension, but a dimension may read several fields (a lookup on keys),
+    so one that reads both sides is a table that crosses them in its own slice: it is a problem wherever it is listed. This is
+    the floor under the user's direction that buyer type be published in full (`owner_rule`): it is never shown beside a
+    district, a region or any other owner field, and the owner fields still never reach a fact table
+    (build.fact_table_owner_problems).
 
     Which dimensions read which fields is worked out from the map and the derive blocks, so no dimension is named here. Returns
     sentences, empty when the floor holds."""
@@ -228,6 +230,12 @@ def floor_problems(cfg, dmap: dict | None = None) -> list[str]:
             if isinstance(table, dict):
                 tables.append((f"{dataset}: narrow_facts '{table.get('id')}'", table.get("dimensions")))
     problems = []
+    for dim in sorted(set(kind) & set(owner)):
+        problems.append(
+            f"{dim} reads {', '.join(kind[dim])} (which says what kind of owner) and {', '.join(owner[dim])} (a field that "
+            "describes or locates the owner): one dimension cannot say both, because its own slice would cross them. A kind of "
+            "owner is never published beside where the owner lives (owner_rule in config/data_map.json); split it into two "
+            "dimensions in config/dimensions.json")
     for label, listed in tables:
         listed = listed if isinstance(listed, list) else []
         kinds, owners = [d for d in listed if d in kind], [d for d in listed if d in owner]

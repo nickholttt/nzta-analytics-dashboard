@@ -139,7 +139,7 @@ Counts. Register: 22 bound and 18 not. By kind: 17 category, 12 number, 6 identi
 
 **The floor under what kind of owner.** A field of the group `kind_of_owner` is never put in a pair, a fact table, a narrow
 fact table or the committed snapshot aggregate together with a dimension that reads a field of an owner group, and the owner
-fields still never reach a fact table. A slice holds one field and cannot cross them. `pipeline/privacy.py` (`floor_problems`)
+fields still never reach a fact table. A dimension that reads a field of both sides is refused too, because its own slice would cross them. `pipeline/privacy.py` (`floor_problems`)
 works out from the map and the derive blocks which dimensions are on which side, so no dimension is named in code; the build
 checks it before it reads anything and aborts, leaving the last good build in place (`build.kind_of_owner_floor_problems`), and
 `pipeline/tests/test_kind_of_owner_floor.py` holds the committed config to it and shows each kind of crossing caught. The reason

@@ -131,6 +131,18 @@ def test_what_kind_of_owner_beside_a_vehicle_field_and_an_owner_field_beside_a_v
     assert len(privacy.floor_problems(cfg)) == expected
 
 
+@pytest.mark.parametrize("owner", [WHERE, OWNER_REGISTER])
+def test_one_dimension_that_reads_both_sides_is_a_problem_in_whatever_table_it_is_in(owner):
+    """Its slice is itself a table that crosses what kind of owner with where the owner is, so it needs no pair to break the floor."""
+    dmap = load_map()
+    cfg = with_probes(config.load())
+    owner_logical = {WHERE: WHERE, OWNER_REGISTER: register_field(dmap, set(dmap["owner_groups"]), True)}[owner]
+    cfg.dimensions["dimensions"].append(
+        {"id": "probe_both", "derive": {"kind": "lookup", "reference": "none.csv", "keys": {KIND: "a", owner_logical: "b"}, "value": "v"}})
+    found = privacy.floor_problems(cfg)
+    assert len(found) == 1 and "probe_both" in found[0] and "one dimension" in found[0], found
+
+
 def test_each_crossing_is_reported_once_for_its_pair():
     cfg = with_probes(config.load(), pairs=[[KIND, WHERE], [KIND, OWNER_REGISTER]])
     assert len(privacy.floor_problems(cfg)) == 2
