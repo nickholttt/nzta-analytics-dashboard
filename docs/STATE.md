@@ -33,12 +33,12 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the 
 
 The user's direction of 27 November (`docs/brief/UI_DIRECTION.md`, D-162): the site built so far is the engine's
 proof and is not published; the public site at vcore.co.nz is a new UI in which every page is a canvas the
-visitor can re-ask. A second design proposal is with the user (lane F); nothing of it is built in `src/`.
+visitor can re-ask. A third design proposal is with the user (lane F); nothing of it is built in `src/`.
 
 ## In progress (all claude; nothing by gemini)
 
 - **Lane F**, `claude/f-design-context`: `PRODUCT.md`, the surface brief with its direction contract
-  (`.impeccable/surfaces/`), D-162 and these notes. Docs and context files only.
+  (`.impeccable/surfaces/`), `DESIGN.md`, D-162 and these notes. Docs and context files only.
 - #170 to #175 merged on 27 November on the user's word; their branches are deleted and the worktrees
   `nzta-lane-a`, `-b` and `-c` sit detached on `main`, clean.
 - Worktrees with work that is not on `main`: `nzta-screens` (narrative drafts, **uncommitted**, D-102);

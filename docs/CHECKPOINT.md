@@ -13,7 +13,7 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | C: public readiness | none | free | waits for lane F. The address is vcore.co.nz (registered); the name's spelling is asked |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing new |
 | E: classification, the latest month, findability | none | free | the next classification batch can start: #173 is merged (the contract test no longer moves with the nameplate file) |
-| F: the new UI for vcore.co.nz | `claude/f-design-context` | the computer | the second proposal is with the user (D-162); the branch holds the product record and the direction contract. Build starts on their word, as `claude/f-*` branches |
+| F: the new UI for vcore.co.nz | `claude/f-design-context` | the computer | the third proposal is with the user (D-162); the branch holds the product record and the direction contract. Build starts on their word, as `claude/f-*` branches |
 
 ## The queue (plans are kept outside the repository, on the computer; each B item is a high-risk pull request with one independent review)
 
@@ -57,7 +57,7 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-0. **The new UI's design**: accept the second proposal ("go"), or say what to change. Default: nothing of it is
+0. **The new UI's design**: accept the third proposal and its structure ("go"), or say what to change. Default: nothing of it is
    built. And the name as written: vcore, Vcore or VCORE. Default: "vcore" in text, VCORE on the plate mark.
 1. **Merge** the lane F context pull request (docs and context files only) once it is open and green.
 2. **After #173: build October again** so the published cube gains Market type? It is a forced build that
