@@ -4,6 +4,8 @@ Kinds:
   lookup        field value -> reference key column -> reference value column; or, with `keys`, several fields together
                 -> reference key columns -> reference value column
   range_lookup  several fields -> reference key columns, plus a numeric field inside an optional range
+  ordered_rules a reference file read in order: the first rule whose tests a vehicle meets gives its value, and a vehicle no
+                rule takes is unmapped; the block says which column asks what of which field (reference.ordered_rules)
   brand         normalised make -> a brand_registry column
   raw           the source value itself
   band          a number (a field, or `from` minus `minus`) -> labelled bands
@@ -23,6 +25,7 @@ from .reference import quote
 SNAPSHOT_YEAR = "snapshot_year"
 # The derive kind whose values are series of a supplied source of kind series, not fields of the register.
 SERIES_KIND = "series"
+ORDERED_RULES = "ordered_rules"
 
 
 @dataclass
@@ -64,6 +67,8 @@ def lookup_keys(spec: dict, who: str) -> dict[str, str]:
 def references_for(cfg, spec: dict) -> list[str]:
     if spec["kind"] in ("lookup", "range_lookup"):
         return [spec["reference"]]
+    if spec["kind"] == ORDERED_RULES:
+        return [spec["reference"], *sorted({t["values_from"]["reference"] for t in spec["tests"] if t.get("values_from")})]
     if spec["kind"] in ("brand", "model"):
         return [cfg.pipeline["brand"]["registry"], cfg.pipeline["brand"]["model_registry"]]
     if spec["kind"] == SERIES_KIND:
@@ -71,9 +76,21 @@ def references_for(cfg, spec: dict) -> list[str]:
     return []
 
 
+def row_column_reads(cfg, column: str) -> set[str]:
+    """The logical fields a column the build adds to `rows` is made from. The only one is the model class (pipeline.json,
+    model_classes): the canonical make and model, matched inside the bounds of the vehicle year and the gross vehicle mass."""
+    b, m = cfg.pipeline["brand"], cfg.pipeline.get("model_classes")
+    if m and column == m["column"]:
+        return {b["make_field"], b["model_field"], m["year_field"], m["gvm_field"]}
+    raise ValueError(f"{column!r} is neither a field of config/pipeline.json nor a column the build adds to rows")
+
+
 def needed_fields(cfg, spec: dict) -> set[str]:
     """The logical source fields a derive block reads."""
     kind, b = spec["kind"], cfg.pipeline["brand"]
+    if kind == ORDERED_RULES:
+        fields = set(cfg.pipeline["fields"])
+        return set().union(*(({t["field"]} if t["field"] in fields else row_column_reads(cfg, t["field"])) for t in spec["tests"]))
     if kind == "lookup":
         return set(lookup_keys(spec, "a lookup block"))
     if kind == "raw":
@@ -164,6 +181,28 @@ def _field(name: str) -> str:
     return f"r.{quote(name)}"
 
 
+def rule_condition(rule: dict[str, str], tests: list[dict]) -> str:
+    """One rule of an ordered rule file as a condition on `rows`: every column the rule fills in must hold, and a column it leaves
+    empty asks nothing. A test that cannot be answered (a field with no value) is false, so a bound on a field a vehicle has no
+    value for is never met. The file has been validated (reference.rule_problems), so every cell is a name or a whole number."""
+    parts = []
+    for t in tests:
+        cell, kind, column = rule[t["column"]], t["test"], _field(t["field"])
+        if cell == "":
+            continue
+        if kind == reference.ANY_OF:
+            parts.append(f"{column} IN ({', '.join(lit(v) for v in cell.split(t['separator']))})")
+        elif kind == reference.AT_LEAST:
+            parts.append(f"{column} >= {int(cell)}")
+        elif kind == reference.AT_MOST:
+            parts.append(f"{column} <= {int(cell)}")
+        elif kind == reference.RECORDED:
+            parts.append(f"{column} IS {'NOT ' if cell == reference.RECORDED_CELLS[0] else ''}NULL")
+        else:
+            parts.append(f"{column} = {lit(cell)}")
+    return f"coalesce({' AND '.join(parts) or 'TRUE'}, FALSE)"
+
+
 def derive(con, cfg, dim: dict, index: int, snapshot_year: int) -> Derived:
     spec, dim_id, alias = dim["derive"], dim["id"], f"j{index}"
     kind = spec["kind"]
@@ -217,6 +256,13 @@ def derive(con, cfg, dim: dict, index: int, snapshot_year: int) -> Derived:
             ],
             {r[spec["value"]] for r in rows},
         )
+
+    if kind == ORDERED_RULES:
+        rules = reference.ordered_rules(cfg, spec, f"dimension {dim_id}")
+        conditions = [rule_condition(rule, spec["tests"]) for rule in rules]
+        whens = " ".join(f"WHEN {c} THEN {lit(rule[spec['value']])}" for c, rule in zip(conditions, rules))
+        return Derived(dim_id, kind, f"CASE {whens} ELSE {lit(UNMAPPED)} END", f"NOT ({' OR '.join(conditions)})", [],
+                       {rule[spec["value"]] for rule in rules})
 
     if kind == "brand":
         b = cfg.pipeline["brand"]
