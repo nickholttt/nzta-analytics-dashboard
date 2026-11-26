@@ -237,8 +237,21 @@ export function resolvePreset(preset: Preset, manifest: Manifest): Resolution {
       !facts && cubeDataset && entry && preset.dimension && preset.dimension2 && preset.values === undefined && preset.values2 === undefined && Object.keys(where).length === 0
         ? findPair(entry.live_pairs ?? [], preset.dimension, preset.dimension2)
         : undefined;
+    // A field the fact table lacks, kept as a slice and a pair (a field of the owner, D-159), with one condition on a field the pair holds: read from the pair, narrowed
+    // to the condition, so the shares are of the vehicles it keeps. Only for a fact table that lacks a field the question names, and for a plain breakdown with no chosen
+    // values and no condition of the dataset's own, so a question the fact table answers is answered from it as before.
+    const conditions = Object.entries(where);
+    const [keptField, keptValues] = conditions.length === 1 ? conditions[0] : [undefined, []];
+    const keptPair =
+      facts && missing.length && cubeDataset && entry && preset.dimension && keptField && !preset.dimension2 && preset.values === undefined && narrowing.length === 0 && findDimension(keptField)
+        ? findPair(entry.live_pairs ?? [], preset.dimension, keptField)
+        : undefined;
     if (gridPair && cubeDataset && preset.dimension && preset.dimension2) source = { dataset: cubeDataset, dimension: preset.dimension, cross: { dimension: preset.dimension2, pair: gridPair, grid: true } };
     else if (!facts) add("blocked", "this build carries no fact table, so a question with chosen values or filters cannot be answered");
+    else if (keptPair && cubeDataset && preset.dimension && keptField) {
+      source = { dataset: cubeDataset, dimension: preset.dimension, filter: { ...keptPair, dimension: keptField, values: keptValues } };
+      keptBy = [{ dimension: keptField, values: keptValues }];
+    }
     else if (missing.length) add("blocked", `the fact table does not carry ${missing.join(", ")}`);
     else if (cubeDataset) {
       source = {
