@@ -1048,7 +1048,9 @@ the dimension gives to the vehicles it is judged on, `not_known` the one of them
 `coverage` is the share of the pool that is not that value, so `vehicles` is the pool and `not_known` the part of it left unplaced.
 `status_labels` says which vehicles are counted (the import statuses) and `trailing` is over the trailing `window_months` to the
 snapshot month, `all_time` over every month; both are over the same register vehicles whichever dataset carries the entry, so the
-two datasets' entries agree. `coverage` is null where the pool is empty. `warn_below_coverage` and `live_at_coverage` are the
+two datasets' entries agree. It is the share of new passenger cars and vans first registered in the last 12 months that the SUV file
+places, on both: on `fleet`, whose slice counts every vehicle of every age and type, it is not the share of that slice that is placed
+(on the 2026-10 pull 1,253,954 of the fleet's 5,926,990 vehicles, 21.2%, are Not yet classified). `coverage` is null where the pool is empty. `warn_below_coverage` and `live_at_coverage` are the
 thresholds, shares of the pool, judged on the whole counts and not on the rounded `coverage`, and `live` says whether the dimension
 was built: below the first a build warns, below the second the dimension is not live (its `not_live` says why), unless it was live in
 the last good build, which aborts the run instead (*Guardrails*).
