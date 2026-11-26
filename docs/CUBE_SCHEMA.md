@@ -493,8 +493,10 @@ committed store: as a column the wide table's rows went from 136,452 to 195,281 
 were, and the narrow table is 82,446 rows and 177,433 bytes over nine files. The slice is 2,801 bytes (280 cells, the smallest 152
 vehicles) and the pair 4,899 (560 cells; 20 of them, all Used Import with Other, hold under 10 vehicles, 147 in all, and are published as they
 are). The payload went from 5,922,555 to 6,107,688 bytes (+185,133), 76.3% of the 8,000,000 byte budget. The site does not read a narrow table
-yet, so a chart of buyer type alone, or by new or used, is drawn from the slice and the pair, and buyer type crossed with a make or a model
-waits for the site to read the narrow table. Every count adds up: a month's four values sum to the dataset's total for the month, and the
+yet, so on the canvas a chart of buyer type alone, as a count or a share over time, is drawn from the slice (all the dataset's vehicles, new and
+used together). A condition on it (such as NZ New), buyer type crossed with new or used or with any other field, and buyer type as a condition on
+another chart need the wide fact table or the pair, which the canvas does not read for a field the wide table lacks, so they are not drawn
+(the chart types are greyed with a line that says so) until the site reads the narrow table and the pair. Every count adds up: a month's four values sum to the dataset's total for the month, and the
 pair summed over new or used is the slice (both tested, `pipeline/tests/test_buyer_type.py`). The dimension is in `abort_on_unmapped` and in `abort_on_any_unmapped`: a pair of
 owner type and usage the file has no row for reads `__UNMAPPED__` and stops the build on any such row, not only above 2%. No cell is hidden, on the user's direction of 2026-11-25; the floor under
 that is that no table holds it beside a field that says where the owner lives (`pipeline/privacy.py`, `build.kind_of_owner_floor_problems`,

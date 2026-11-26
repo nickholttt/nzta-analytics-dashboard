@@ -1349,7 +1349,7 @@ It is the dimension `buyer_type` of `new_registrations` and of no other dataset 
 slice, a pair with new or used and a narrow fact table (`docs/CUBE_SCHEMA.md`, *Buyer type*), and no count of it is hidden: it
 says what kind of owner registered a vehicle, never who or where (`docs/DATA_MAP.md`), and it is never in one table with a field that
 says where the owner lives (D-159). A pair of owner type and usage the file has no row for reads `__UNMAPPED__` and stops the build on any such row, however few (`guardrails.abort_on_any_unmapped`).
-The canvas offers it as a field (group Buyer); no other page of the site reads it yet.
+The canvas offers it as a field (group Buyer) to break a count or a share down by, drawn from the slice (new and used together); a condition on it, or crossing it with another field, is not drawn yet. No other page of the site reads it.
 
 ## Values in edge cases
 
