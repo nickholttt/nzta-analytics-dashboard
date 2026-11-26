@@ -389,7 +389,7 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
                     "by",
                     q.by,
                     q.pageValues ? [] : q.values,
-                    type === RANKING ? say("values_every") : say("values_page"),
+                    type === RANKING || breakdown.startValues === false ? say("values_every") : say("values_page"),
                     <ValuePicker
                       dataset={q.dataset}
                       dimension={q.by}
