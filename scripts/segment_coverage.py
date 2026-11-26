@@ -5,7 +5,7 @@
 
 A dataset built from the register needs the saved pull (data/raw/YYYY-MM/<timestamp>); one built from a supplied source reads that
 source's committed store. Reads the repository and the pull and writes nothing: the work happens in memory. A maintainer
-script, run by hand; the pipeline never runs it (D-117). Nothing reads data/reference/model_segment.csv in a build yet.
+script, run by hand; the pipeline never runs it (D-117). The build reads the file too (pipeline.json, model_classes, D-161), into a column of `rows`; this script joins it by its own SQL.
 
 A vehicle counts here when the dataset's own filter counts it and its vehicle type is in the vehicle scope file's `--group`
 (a `scope_group` value). It has a row when the file has a row for its canonical make and model whose vehicle-year bounds it

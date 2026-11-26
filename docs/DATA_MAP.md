@@ -1268,7 +1268,7 @@ The dataset's scope is derived from `VEHICLE_TYPE` and `IMPORT_STATUS` (`vehicle
 
 Not yet a dimension: whether a nameplate is an SUV. `BODY_TYPE` records most SUVs as station wagons and no register field
 separates them, so the class comes from `model_segment.csv`, a lookup on canonical `MAKE` and `MODEL` (and `VEHICLE_YEAR` and
-`GROSS_VEHICLE_MASS` where a nameplate changed kind between generations or models under one name). Nothing reads it in a build yet; its rule, coverage and checks are in
+`GROSS_VEHICLE_MASS` where a nameplate changed kind between generations or models under one name). The build joins it onto every vehicle as a column of its own (`model_classes` in `config/pipeline.json`, D-161), which no dimension reads yet; its rule, coverage and checks are in
 `docs/METRICS.md` ("SUV or car, by nameplate", D-117).
 
 ### Recorded only for

@@ -136,13 +136,14 @@ def build_rows(con, cfg) -> None:
 
     reference.brand_tables(con, cfg)
     reference.hybrid_tables(con, cfg)
+    reference.model_class_tables(con, cfg)
     hybrids = reference.hybrid_keys(cfg)
     engine = p["engine"]
     engine_rows = reference.read(cfg.reference(engine["reference"]))
     reference.require_unique([r[engine["key"]] for r in engine_rows], engine["reference"])
     reference.register(con, "ref_engine", ["key", "flag"], [(r[engine["key"]], r[engine["flag"]]) for r in engine_rows])
 
-    b, fc = p["brand"], p["fuel_consumption"]
+    b, fc, mc = p["brand"], p["fuel_consumption"], p["model_classes"]
     make, model = f"s.{quote(b['make_field'])}", f"s.{quote(b['model_field'])}"
     fuel = f"s.{quote(fc['field'])}"
     number = f"TRY_CAST({fuel} AS DOUBLE)"
@@ -174,6 +175,14 @@ def build_rows(con, cfg) -> None:
     model_final = f"coalesce(pr.model_canonical, ma.model_canonical, {model})"
     source_hybrid = ", ".join(lit(k) for k in sorted(hybrids["source_hybrid"])) or "NULL"
     resolved = f"coalesce(hy.target, s.{motive})"
+    # The model's class (model_segment.csv): a row of the file applies when the vehicle's year and mass are inside its bounds, and a
+    # vehicle with no recorded year or mass meets no row that bounds it, as in the match columns above.
+    year, mass = f"s.{quote(mc['year_field'])}", f"s.{quote(mc['gvm_field'])}"
+    model_class_match = " AND ".join([
+        f"mc.make = {make_final} AND mc.model_key = {model_final}",
+        f"(mc.year_min IS NULL OR {year} >= CAST(mc.year_min AS BIGINT))", f"(mc.year_max IS NULL OR {year} <= CAST(mc.year_max AS BIGINT))",
+        f"(mc.gvm_min IS NULL OR {mass} >= CAST(mc.gvm_min AS BIGINT))", f"(mc.gvm_max IS NULL OR {mass} <= CAST(mc.gvm_max AS BIGINT))",
+    ])
     # One flag per scope config lists, each in a column of its own name: the vehicle type is counted by that scope and the
     # import status is in scope.
     scope_sql = " ".join(f"(vs.{quote(name)} = {true} AND st.in_scope = {true}) AS {quote(name)}," for name in scopes)
@@ -183,6 +192,7 @@ def build_rows(con, cfg) -> None:
             s.{motive} AS {quote(engine['field'] + SOURCE_SUFFIX)},
             hy.hybrid_type AS hybrid_class,
             hy.confidence AS hybrid_confidence,
+            mc.value AS {quote(mc['column'])},
             {scope_sql}
             (st.fleet_entry = {true}) AS fleet_entry,
             st.label AS status_label,
@@ -205,5 +215,12 @@ def build_rows(con, cfg) -> None:
         LEFT JOIN ref_promotion pr ON pr.make = bk.canonical AND pr.model_key = {model} AND {matches('pr')}
         LEFT JOIN ref_hybrid hy ON hy.make = {make_final} AND hy.model_key = {model_final}
             AND s.{motive} IN ({source_hybrid}) AND {matches('hy')}
+        LEFT JOIN ref_model_class mc ON {model_class_match}
         LEFT JOIN ref_engine eng ON {resolved} = eng.key
     """)
+    # A vehicle that met two rows of the model class file would be here twice. The file is checked before this point
+    # (reference.model_class_tables); this is the same rule held to the data. Every vehicle of `src` has a vehicle type and an import
+    # status the scope files hold (checked above), so the joins that decide scope lose none, and `rows` has as many rows as `src`.
+    repeated = con.execute("SELECT (SELECT count(*) FROM rows) - (SELECT count(*) FROM src)").fetchone()[0]
+    if repeated:
+        raise GuardrailError("reference", f"{repeated:,} vehicles meet more than one row of {mc['file']}: it has overlapping rows")

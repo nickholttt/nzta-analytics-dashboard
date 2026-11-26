@@ -1097,8 +1097,10 @@ with its own vintage; label the estimate year on the chart.
 
 The register records most SUVs as station wagons (`BODY_TYPE`), so no register field says whether a vehicle is an SUV. A
 nameplate does: the class of a make and model is a lookup, not a measurement (invariant 4). `data/reference/model_segment.csv`
-is that lookup for the nameplates that make up most recent passenger registrations. **Nothing reads it yet**: it is not a
-dimension, no build uses it, and no figure on the site depends on it. A maintainer reads its coverage with
+is that lookup for the nameplates that make up most recent passenger registrations. **The build reads it** (D-161): every vehicle is joined to it on its canonical make and
+model and takes the row's class in the column `model_class` of `rows` (`config/pipeline.json`, `model_classes`), under the rules
+of "When a build reads the file" below, and a build whose vehicles meet two rows stops. No dimension reads that column yet, and no
+figure on the site depends on it. A maintainer reads its coverage with
 `scripts/segment_coverage.py`; `pipeline/tests/test_model_segment.py` holds its form.
 
 **The rule.**

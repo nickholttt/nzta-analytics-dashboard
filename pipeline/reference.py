@@ -308,3 +308,53 @@ def ordered_rules(cfg, spec: dict, who: str) -> list[dict[str, str]]:
         raise GuardrailError("reference", f"{who}: {spec['reference']}: " + "; ".join(problems))
     return rows
 
+
+def bound_problems(row: dict, columns: dict[str, str], label: str) -> tuple[int | None, int | None, int | None, int | None]:
+    """The year and mass bounds of a model class row, as whole numbers (None where open), each checked to be a number and its
+    lower end not above its upper."""
+    found = []
+    for low, high in (("year_min", "year_max"), ("gvm_min", "gvm_max")):
+        pair = []
+        for key in (low, high):
+            cell = row[columns[key]]
+            if cell and not WHOLE_NUMBER.fullmatch(cell):
+                raise GuardrailError("reference", f"{label}: {columns[key]} {cell!r} is not a whole number")
+            pair.append(int(cell) if cell else None)
+        if None not in pair and pair[0] > pair[1]:
+            raise GuardrailError("reference", f"{label}: {columns[low]} is after {columns[high]}")
+        found += pair
+    return tuple(found)
+
+
+def ranges_disjoint(a: tuple[int | None, int | None], b: tuple[int | None, int | None]) -> bool:
+    """Whether no number lies in both inclusive ranges, a missing end being open."""
+    lows = [x for x in (a[0], b[0]) if x is not None]
+    highs = [x for x in (a[1], b[1]) if x is not None]
+    return bool(lows and highs and max(lows) > min(highs))
+
+
+def model_class_tables(con, cfg) -> None:
+    """ref_model_class from model_segment.csv (pipeline.json, model_classes): one row for each make and model name a row
+    lists, with the row's class and the vehicle-year and gross-vehicle-mass bounds it states. The build joins it to every
+    vehicle on its canonical make and model, so a vehicle that met two rows would be counted twice: no two rows for one make
+    and model may overlap in both bounds, and the build stops on a file where some vehicle could meet two. A make the brand
+    registry does not hold is an error, as in the hybrid file."""
+    m, b = cfg.pipeline["model_classes"], cfg.pipeline["brand"]
+    makes = {r[b["canonical"]] for r in read(cfg.reference(b["registry"]))}
+    columns = {k: m[k] for k in ("year_min", "year_max", "gvm_min", "gvm_max")}
+    rows, seen = [], {}
+    for line, row in enumerate(read(cfg.reference(m["file"])), start=2):
+        make, names = row[m["make"]], split(row[m["models"]], b["alias_separator"])
+        label = f"{m['file']} line {line} ({make}|{row[m['models']]})"
+        if make not in makes:
+            raise GuardrailError("reference", f"{label}: {make!r} is not a make in {b['registry']}")
+        if not names or not row[m["class"]]:
+            raise GuardrailError("reference", f"{label}: every row needs {m['models']} and a {m['class']}")
+        y_min, y_max, g_min, g_max = bound_problems(row, columns, label)
+        for model in names:
+            for other_line, other_years, other_mass in seen.get((make, model), []):
+                if not ranges_disjoint((y_min, y_max), other_years) and not ranges_disjoint((g_min, g_max), other_mass):
+                    raise GuardrailError("reference", f"{label}: {model} is also matched by line {other_line}, and some vehicle could meet both")
+            seen.setdefault((make, model), []).append((line, (y_min, y_max), (g_min, g_max)))
+            rows.append((make, model, row[m["class"]], *(None if v is None else str(v) for v in (y_min, y_max, g_min, g_max))))
+    register(con, "ref_model_class", ["make", "model_key", "value", "year_min", "year_max", "gvm_min", "gvm_max"], rows)
