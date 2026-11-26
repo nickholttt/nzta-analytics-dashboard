@@ -69,8 +69,7 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Decided for the user (unreviewed; each is in its pull request or record)
 
-- D-148 to D-160 and the choices listed in #142 to #169. #152's five low-confidence judgements. The
-  location plan's: the stricter district rule; old years as one line; place names from an unlicensed list.
+- D-148 to D-160; the choices listed in #142 to #169; #152's five low-confidence judgements; the location plan's three.
 - 26 November: the choices listed in #170 to #173 (D-161). 27 November: the five readings in UI_DIRECTION; the
   proposal's choices (stock shadcn look, a number-plate mark, arrows not green and red, monotone curves).
 
