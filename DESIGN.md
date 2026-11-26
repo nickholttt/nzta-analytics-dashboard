@@ -1,8 +1,8 @@
 ---
-# Status: proposed on 2026-11-27. Recorded from the design proposal's prototype, kept outside the
-# repository. Not yet accepted by the owner and not yet applied to src/.
+# Status: accepted by the owner on 2026-11-27 (D-163). Recorded from the design proposal's prototype,
+# kept outside the repository. Not yet applied to src/.
 name: vcore
-description: Proposed design system for the vehicle registration analytics site, recorded from the design proposal's prototype.
+description: Design system for the vehicle registration analytics site, accepted by the owner and recorded from the design proposal's prototype. Not yet applied to the site.
 colors:
   # Light theme (the base values)
   bg: "#fafafa"
@@ -94,6 +94,7 @@ rounded:
 spacing:
   control-gap: "8px"
   gutter: "16px"
+  card-top: "18px"
   card-y: "14px"
   card-x: "20px"
   grid-gap: "20px"
@@ -117,7 +118,7 @@ components:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.card}"
-    padding: "14px 20px"
+    padding: "18px 20px 14px"
   input-search:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
@@ -168,6 +169,11 @@ components:
     typography: "{typography.label}"
     rounded: "{rounded.pill}"
     padding: "3px 6px 3px 9px"
+  toast:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.bg}"
+    rounded: "{rounded.sm}"
+    padding: "9px 14px"
   plate:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
@@ -248,7 +254,7 @@ The prototype loads Geist from Google Fonts. The site makes no third-party reque
 
 ### Hierarchy
 - **Headline** (600, 1.625rem, line height 1.25, tracking -0.02em; 1.4375rem at 640px and under): the page's answer sentence, or the subject's name on a brand page. One per page. Balanced wrapping, at most about 22em wide.
-- **Figure** (700, 1.3125rem, line height 1.3, tracking -0.03em, tabular figures; 1.1875rem at 640px and under): the three counts under the headline, and the editor's page title at weight 600.
+- **Figure** (700, 1.3125rem, line height 1.3, tracking -0.03em, tabular figures; 1.1875rem at 640px and under): the three counts beside the headline, and the editor's page title at weight 600.
 - **Title** (600, 1.0625rem, line height 1.4, tracking -0.01em): a card's answer sentence and section headings. Its second line, saying what is counted, is label size at weight 400 in quiet ink.
 - **Body** (400, 0.9375rem, line height 1.5): running text, names in lists, top bar destinations (500).
 - **Label** (500, 0.8125rem): buttons, segmented controls, chips, table cells (400), legends, notes.
@@ -268,14 +274,14 @@ A centred column, 1200px at most, with a 16px gutter that respects the safe-area
 - **The card grid:** two equal columns with a 20px gap. A card can span both. Cards in a row are the same height, with the foot held to the bottom edge. Inside a wide card, a chart and its table sit side by side in a 3 to 2 ratio.
 - **No stray gaps:** a card lays itself out by its own width (a container query), not the window's. Under 900px wide its chart-type tiles stretch to fill the row beside the field picker, and a line switch takes a full row of its own under 700px. At 900px and over the controls sit to the right of the sentence.
 - **The editor:** three columns, a 216px field list, the card grid, and a 296px settings pane, with 16px gaps. Both panes stick below the scope bar.
-- **Rhythm:** 8px between related controls, 14px by 20px inside a card, 20px between cards, 36px to 44px between page sections. No spacing custom properties exist in the prototype; these are the values it repeats.
+- **Rhythm:** 8px between related controls, 18px above, 14px below and 20px at the sides inside a card, 20px between cards, 36px to 44px between page sections. No spacing custom properties exist in the prototype; these are the values it repeats.
 
 Responsive behaviour, as built:
-- **The scope bar is one row from 1024px up.** Its period control is a select on page-width bars; the segmented form appears only in the editor's wide bar at 1500px and over.
+- **The scope bar holds one row on a desktop** (measured at 1024, 1280 and 1440px; no rule fixes it, the controls are sized to fit). Its period control is a select on page-width bars; the segmented form appears only in the editor's wide bar at 1500px and over.
 - **1240px and under:** the editor drops its field list. **1100px and under:** the editor's cards go to one column.
 - **900px and under:** the answer row, the card grid and the list of starting questions go to one column. The editor's settings pane becomes a sheet that rises from the bottom edge, opened by a fixed button.
-- **640px and under:** controls grow to 44px high (chart-type tiles to 48px), inputs take 16px text, the scope bar folds into one summary button that opens its controls, the field picker and the chart-type tiles go full width, card padding drops to 12px by 14px, and the less needed table columns are hidden.
-- **360px and under:** the three count tiles stack, each as one row.
+- **640px and under:** controls grow to 44px high (chart-type tiles to 48px), inputs take 16px text, the scope bar folds into one summary button that opens its controls, the field picker and the chart-type tiles go full width, a card's foot stacks (the actions under the source), card padding drops to 14px (12px at the bottom), and the less needed table columns are hidden.
+- **360px and under:** the three count tiles stack, each as one row, and the search placeholder shortens to "Search".
 
 ## Elevation & Depth
 
@@ -317,27 +323,30 @@ Edges are 1px. A solid edge in the control colour means "this can be used". A da
 - **Shadow Strategy:** the resting shadow. See Elevation & Depth.
 - **Border:** 1px hairline. Ink with the selected ring when chosen in the editor.
 - **Internal Padding:** 18px top, 14px bottom, 20px sides (14px, 12px and 14px at phone width).
-- **Anatomy, top to bottom:** the head, closed by a hairline: the answer first, as a title-size sentence with one quiet line saying what is counted, then the ask row (the field picker, the chart-type tiles, and where it applies a small switch for how a line is drawn). On a card 900px wide or more the ask row sits to the right of the sentence; on a narrower card it sits under it and fills the row. Then the evidence (a chart, a ranked list, a table or movers; a field with few, coloured values shows its mix as one bar above its ranking); a caption where one is owed; and the foot, always one row in caption type, closed above by a hairline: the source and "How this is counted" at the left, the card's actions ("Show 25", "Full editor", "Remove") at the right.
+- **Anatomy, top to bottom:** the head, closed by a hairline: the answer first, as a title-size sentence with one quiet line saying what is counted, then the ask row (the field picker, the chart-type tiles, and where it applies a small switch for how a line is drawn). On a card 900px wide or more the ask row sits to the right of the sentence; on a narrower card it sits under it and fills the row. Then the evidence (a chart, a ranked list, a table or movers; a field with few, coloured values shows its mix as one bar above its ranking); a caption where one is owed; and the foot, one row in caption type, closed above by a hairline: the source and "How this is counted" at the left, the card's actions ("Show 25", "Full editor", "Remove") at the right. At 640px of window width and under the actions drop to a row of their own under the source.
 
 ### Inputs / Fields
-- **Search:** 36px high (44px at phone width), control edge, small radius, a 16px search icon inside the left edge. Results drop below as a floating menu of rows with a quiet kind label at the right.
+- **Search:** 36px high (44px at phone width), control edge, small radius, a 16px search icon inside the left edge. The placeholder reads "Brand or model" in quiet ink. Results drop below as a floating menu of rows with a quiet kind label at the right.
 - **Select:** 34px high (44px at phone width), control edge, small radius. Hover: the edge becomes ink.
-- **Segmented control:** a row of options inside one control edge with 3px inner padding. The chosen option is filled with ink. A small variant has no edge and sits on the inset grey; its chosen option is raised to the card colour with a hairline ring and weight 600.
-- **Field picker:** a 40px button with an ink edge reading "By" and the field's name in weight 600, with a chevron that turns when open. Its menu is 304px wide and lists each field with one caption line saying what it is, or why it cannot be asked.
+- **Segmented control:** a row of options inside one control edge with 3px inner padding. The chosen option is filled with ink. A small variant has no edge and sits on the inset grey; its chosen option is raised to the card colour with a thin ring in the control edge colour and weight 600.
+- **Field picker:** a 40px button with an ink edge reading "By" and the field's name in weight 600, with a chevron that turns when open. Its menu is 304px wide and lists each field with one caption line saying what it is, or why it cannot be asked. The chosen field takes the inset grey fill and weight 600. At phone width the button is full width and the list opens in place under it, with no shadow.
 - **Chart-type tiles:** 40px tiles, each a 16px line icon over an 11px label. Chosen: ink fill. Does not fit: dashed edge, quiet ink, no fill, and a one-line reason when pressed. It is never drawn.
 - **Editor fields and drop zones:** a field is a 32px row with a grip icon; a zone is a dashed box holding pill "add" buttons.
 
 ### Navigation
+- **Skip link:** the first thing in the page, off screen until it takes focus, then a card-colour box with an ink edge and the small radius at the top left. It moves focus to the content.
 - **Top bar:** the plate, then five destinations in body type at weight 500 (secondary ink; hover and current take the inset grey fill and ink text), then search and the theme switch at the right. At phone width the destinations take their own full-width row.
-- **Scope bar:** sticky under the top bar. Four captioned controls: Month ending, Counting, Over, Only. At phone width it is one summary button reading the current choices, with "Change".
+- **Scope bar:** sticky under the top bar. Four captioned controls: Month ending (a select), Counting (segmented), Over (a select, segmented only in the editor's wide bar), Only (a select). At phone width it is one summary button reading the current choices, with "Change".
 - **Breadcrumb:** label type in quiet ink, on subject pages.
 - **Footer:** a small plate, the links about the data, and the source and licence line, in label type above a hairline.
 
 ### Count tiles
-Three tiles under the headline carry New, Used imports and All, and switch the page between them. Each has a small radio dot and label, the count in figure type, and the change on a year earlier with its arrow. Pressed: ink edge, selected ring, filled dot.
+Three tiles beside the headline (under it at 900px and under) carry New, Used imports and All, and switch the page between them. Each has a small radio dot and label, the count in figure type, and the change on a year earlier with its arrow. Pressed: ink edge, selected ring, filled dot.
 
 ### Ranked list
 Each row is a rank number in quiet ink, the name over its bar, the count with its share beneath, and the change with its arrow. Rows are divided by hairlines. Bars are one colour (`series-1`) unless the field has fixed colours, because the label carries identity and the bar carries size. A rank move ("up 2", "new entry") sits beside the name in caption type.
+
+**Mix bar.** When the field has few values and each has its own colour, one bar sits above the ranking: 14px high, a segment per value in its series colour, widths in proportion to the counts, 2px gaps and 4px corners. It carries the shares as its accessible description. A field with many values has no mix bar.
 
 ### Tables
 Label-size cells with tabular figures, right-aligned except the first column, which is weight 500. Headings are caption type in quiet ink over a rule; rows are divided by hairlines. A wide table scrolls inside its card. A trend column holds an 84px by 22px sparkline drawn in quiet ink with an ink end dot.
@@ -347,13 +356,16 @@ The prototype draws line charts (one series, several series, shares over time), 
 - **Lines:** 2px, round joins and caps, with a 4px end dot ringed in the card colour. A lone series has a soft fill beneath it in its own colour, fading from about a third opacity to nothing.
 - **Curves:** monotone. The curve passes through each data point and never rises above or dips below the values either side of it.
 - **Axes:** 11px tabular text in quiet ink, hairline grid lines, a rule for the baseline, year ticks along the bottom.
-- **Labels:** several series are named at the line's end on wide charts, pushed apart so they never collide, and in a legend above the chart on a phone or beside a table.
+- **Labels:** two to four series are named at the line's end when the chart is 520px wide or more, pushed at least 15px apart so they never collide. Five or more series, a narrower chart, and a chart beside a table get no line-end labels. The legend above the chart (the chips, in a comparison) names the series in every case.
 - **Events:** a dashed vertical line in quiet ink with its date above, and a list of the marked events under the chart. No interpretation.
 - **Reading a value:** pointing or touching shows a vertical rule and a tooltip: the month, then each series with its swatch and its figure in Geist Mono. Every chart card also offers Table as a chart type.
 - **Limits seen in the build:** a chart of many values draws the five largest; a comparison holds six series at most.
 
 ### States
-An empty or blocked card keeps its controls and shows a dashed box with one bold line naming the cause, one line saying what to do, and where they exist buttons that do it ("Remove the filter", "Ask by brand instead"). The toast is an ink bar at the bottom centre with page-colour text and, after a removal, an Undo.
+An empty or blocked card keeps its controls and shows a dashed box with one bold line naming the cause, one line saying what to do, and where they exist buttons that do it ("Remove the filter", "Ask by brand instead"). The toast is an ink bar at the bottom centre with page-colour text, the small radius and the floating shadow. It clears itself after 4.5 seconds. After a removal it carries an underlined Undo in weight 600 that puts the card back where it was, and stays for 8 seconds.
+
+### High contrast
+With forced colours on, every selected state (a segmented option, a count tile, a chart-type tile, the chosen field, the chosen card, the current destination) gains a 2px outline in the system highlight colour, because its ink fill is lost. Series colours are kept as drawn: ranked bars, the mix bar, swatches and charts.
 
 ### The plate
 The wordmark is set as a number plate: capitals in Geist Mono at 0.14em tracking, a 2px edge, a 5px radius, and a fine inner line. It is 30px high in the top bar and 24px in the footer. In the dark theme the plate stays light with dark text.
@@ -364,7 +376,7 @@ Colour, edge and shadow changes take 0.15s. When the scope bar recounts the page
 ## Do's and Don'ts
 
 ### Do:
-- **Do** open every card with its own controls, then its answer as a sentence, then the evidence, then the source line.
+- **Do** open every card with its answer as a sentence, then its own controls, then the evidence, then the source line.
 - **Do** keep hue for data. Use ink for selected, the control edge for available, and a dashed edge for unavailable or empty.
 - **Do** show direction with the drawn arrow in the text colour, with "up" or "down" for screen readers.
 - **Do** give a value the same series colour on every card and every page.
