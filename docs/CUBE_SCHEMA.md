@@ -538,7 +538,7 @@ made an existing question 40% heavier, D-116 item 6). A dataset's `narrow_facts`
 same rows in the same order. Summed over every dimension but one it gives that dimension's 1-D slice, and summed over all of them
 the dataset's month totals, as the wide table does. A question that names a dimension of the narrow table, and nothing outside it,
 is answered from it. A field only the wide table has cannot be crossed with one only the narrow table has: neither table holds
-both. The site does not read narrow tables yet.
+both. The canvas reads them (`src/lib/data.ts`, `factTableFor`): a question is answered from the wide table where it holds every field the question names, else from the first narrow table in the manifest that does, and every cache key carries the table.
 
 The manifest lists each in the dataset's `facts` block, under `narrow`, by id: `{ "rows": n, "dimensions": [...], "not_live": {} }`.
 A dataset that configures none has no `narrow` key and no `narrow/` folder, so its files and manifest are as they were.
