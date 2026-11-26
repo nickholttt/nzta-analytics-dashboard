@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { MAX_VALUES, RANKING, questionParams, withValues } from "../../lib/builder";
 import type { Question, Vocabulary } from "../../lib/builder";
-import { FIELD_ZONES, TABLE, WIDTHS, bestType, canvasSpec, chartQuestion, chartTypes, conditionApart, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
+import { FIELD_ZONES, TABLE, WIDTHS, bestType, canChooseValues, canvasSpec, chartQuestion, chartTypes, conditionApart, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
 import type { CanvasChart, CanvasField, Width, Zone } from "../../lib/canvas";
 import { chartDefaults, findDataset, lowerLabel } from "../../lib/config";
 import type { Manifest } from "../../lib/data";
@@ -384,7 +384,7 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
                     : undefined
                 }
               />
-              {breakdown?.values
+              {breakdown?.values && canChooseValues(all, q, q.by)
                 ? values(
                     "by",
                     q.by,
@@ -423,7 +423,7 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
                   toZone("by2");
                 }}
               />
-              {second?.values
+              {second?.values && canChooseValues(all, q, q.by2)
                 ? values(
                     "by2",
                     q.by2,

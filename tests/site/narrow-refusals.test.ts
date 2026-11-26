@@ -199,7 +199,7 @@ test("no table a question can be read from holds a kind of owner with where an o
     const vocabulary = builder.builderVocabulary(manifestOfBuild);
     assert.ok(vocabulary.datasets.length >= 2);
     for (const d of vocabulary.datasets) {
-      noJoin(d.tables, `${d.dataset} tables`);
+      noJoin([...d.tables, ...d.pairs], `${d.dataset} tables`);
       for (const k of kindOwner) {
         const share = builder.together(d, k);
         assert.ok(!share.some((x) => ownerLives.includes(x)), `${d.dataset}: ${k} is held with ${share.filter((x) => ownerLives.includes(x))}`);

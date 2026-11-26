@@ -67,10 +67,10 @@ export type BuilderOption = {
   dimensions: { id: string; phrase: string; values: boolean; with: string[]; startValues: boolean }[];
 };
 export type FilterOption = { id: string; label: string };
-// What one dataset offers; label is how the page names what it counts. tables: the fields each table of the dataset holds, which are the fields a question can
-// name together: each fact table (the wide one, then the narrow ones, D-144) and each live pair of two fields. A field is crossed with, or kept beside, another
-// only where one table holds both (holdsTogether).
-export type DatasetVocabulary = { dataset: string; label: string; measures: BuilderOption[]; filters: FilterOption[]; tables: string[][] };
+// What one dataset offers; label is how the page names what it counts. tables: the fields each fact table of the dataset holds (the wide one, then the narrow
+// ones, D-144), which are the fields a question can name together. pairs: its live pairs of two fields, which the resolver reads only for a plain breakdown with
+// one condition (readsFrom). A field is crossed with, or kept beside, another only where a table holds both.
+export type DatasetVocabulary = { dataset: string; label: string; measures: BuilderOption[]; filters: FilterOption[]; tables: string[][]; pairs: string[][] };
 // owner: the dimensions made from a field that describes the owner (src/lib/owner.ts), which a kept snapshot's table of is read only where it says its
 // small cells were hidden (src/lib/kept.ts).
 // narrowings: for each dimension made from a field the register records for only a kind of vehicle, the conditions that keep that kind (src/lib/narrowing.ts),
@@ -240,11 +240,21 @@ export function datasetName(id: string, manifest?: Manifest): string {
   return first ? `${name}, from ${monthLabel(first)}` : name;
 }
 
-// Whether one table of the dataset holds every one of these fields: what a question that names them all can be answered from.
+// Whether one fact table of the dataset holds every one of these fields: what a question that names them all can be summed from.
 export const holdsTogether = (v: Pick<DatasetVocabulary, "tables">, fields: readonly string[]): boolean => v.tables.some((t) => fields.every((f) => t.includes(f)));
 
-// The fields that share a table with this one, and so can be named in one chart with it.
-export const together = (v: Pick<DatasetVocabulary, "tables">, field: string): string[] => [...new Set(v.tables.filter((t) => t.includes(field)).flat())].filter((f) => f !== field);
+// The fields that share a table, or a pair, with this one.
+export const together = (v: Pick<DatasetVocabulary, "tables" | "pairs">, field: string): string[] => [...new Set([...v.tables, ...v.pairs].filter((t) => t.includes(field)).flat())].filter((f) => f !== field);
+
+// Whether the resolver can read a question that names these fields (src/lib/resolve.ts): from one fact table that holds them all, or, for a plain breakdown (no
+// values chosen, no second field) with exactly one condition, from the live pair of the two. A lone field is read from its own slice.
+export function readsFrom(v: Pick<DatasetVocabulary, "tables" | "pairs">, q: Pick<Question, "by" | "by2" | "values" | "where">): boolean {
+  const conditions = Object.entries(q.where).filter(([, kept]) => kept.length > 0).map(([d]) => d);
+  const names = [...(q.by ? [q.by] : []), ...(q.by2 ? [q.by2] : []), ...conditions];
+  if (names.length < 2 || holdsTogether(v, names)) return true;
+  const by = q.by;
+  return Boolean(by && !q.by2 && q.values.length === 0 && conditions.length === 1 && v.pairs.some((p) => p.includes(by) && p.includes(conditions[0])));
+}
 
 const draws = (q: Question, manifest: Manifest) => builderPresets(q).every((p) => resolvePreset(p, manifest).preventsRender.length === 0);
 
@@ -282,8 +292,9 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
 
 function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabulary {
   const facts = manifest.datasets[dataset]?.facts;
-  // Each fact table, then each live pair: a pair is a table of two fields, which a question with one breakdown and one condition is read from.
-  const tables = [...factTables(facts), ...(manifest.datasets[dataset]?.live_pairs ?? []).map((pair) => pair.split(PAIR_SEPARATOR))];
+  // Each fact table, and each live pair (a pair is read where there is a fact table that lacks a field of it, for a plain breakdown with one condition).
+  const tables = factTables(facts);
+  const pairs = facts ? (manifest.datasets[dataset]?.live_pairs ?? []).map((pair) => pair.split(PAIR_SEPARATOR)) : [];
   const inFacts = (...ids: string[]) => factTableFor(facts, ids) !== null;
   const blank: Question = { dataset, measure: "", by: null, values: [], where: {}, view: null };
   const measures = builderSpec.measures
@@ -316,7 +327,7 @@ function datasetVocabulary(manifest: Manifest, dataset: string): DatasetVocabula
   const filters = [...new Set(factTables(facts).flat())]
     .filter((id) => findDimension(id))
     .map((id) => ({ id, label: dimensionLabel(id, false, dataset) ?? id }));
-  return { dataset, label: datasetName(dataset, manifest), measures, filters, tables };
+  return { dataset, label: datasetName(dataset, manifest), measures, filters, tables, pairs };
 }
 
 // The conditions after a visitor changes the values of one: a condition left with no value is gone, since a condition with none keeps

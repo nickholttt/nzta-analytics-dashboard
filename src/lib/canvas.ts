@@ -7,7 +7,7 @@
 import canvasDoc from "../../config/canvas.json";
 import { builderSpec, dimensionLabel, dimensions, lowerLabel, findDataset, findDerived, findDimension, findMeasure } from "./config";
 import type { Preset } from "./config";
-import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCrossIn, changeQuestion, holdsTogether, isOneChart, questionParams, readQuestion, settle } from "./builder";
+import { CHART_PARAMS, MATRIX, RANKING, builderPresets, canCrossIn, changeQuestion, holdsTogether, isOneChart, readsFrom, questionParams, readQuestion, settle } from "./builder";
 import type { BuilderOption, DatasetVocabulary, Question, Vocabulary } from "./builder";
 import type { Manifest } from "./data";
 import { canPin } from "./pin";
@@ -110,20 +110,27 @@ const typeLabel = (id: string): string => (id === TABLE ? canvasSpec.table.label
 // ok: the change to the question that puts the field there, and the field it replaces, if any. Otherwise the reason, in words.
 export type Verdict = { ok: true; change: Partial<Question>; replaces?: string } | { ok: false; reason: string };
 
-// The fields a chart already names that a field put in a zone must share a table with: its breakdown, its second one and its conditions that keep
-// something. A field put in the breakdown replaces it, and the second one is set aside by settle where the new breakdown cannot be crossed with it.
-const namedBesides = (q: Question, zone: Zone): string[] => [
-  ...(zone !== "by" && q.by ? [q.by] : []),
-  ...(zone === "where" && q.by2 ? [q.by2] : []),
-  ...Object.entries(q.where).filter(([, kept]) => kept.length > 0).map(([d]) => d),
-];
+// Whether two fields share a table, or a pair, of the dataset.
+const sharesTable = (v: DatasetVocabulary, a: string, b: string): boolean => [...v.tables, ...v.pairs].some((t) => t.includes(a) && t.includes(b));
 
-// The fields among those named that no table holds with this one, or all of them where each pair is held and no one table holds the lot; none where a
-// table holds them all (or the chart names none).
-function apartFrom(v: DatasetVocabulary, names: readonly string[], field: string): string[] {
-  const others = names.filter((n) => n !== field);
-  if (others.length === 0 || holdsTogether(v, [...new Set([...names, field])])) return [];
-  const apart = others.filter((n) => !holdsTogether(v, [n, field]));
+// The question as it would stand with the field in the zone, as settle would keep it: a condition stands for any value it might be given; a field put in the
+// breakdown starts its values over and keeps the second field only where it can be crossed with it; a condition on a field that goes in a breakdown is its
+// values instead.
+function withField(m: BuilderOption, q: Question, zone: Zone, field: string): Pick<Question, "by" | "by2" | "values" | "where"> {
+  const { [field]: _onField, ...rest } = q.where;
+  if (zone === "where") return { by: q.by, by2: q.by2, values: q.pageValues ? [] : q.values, where: { ...q.where, [field]: ["x"] } };
+  if (zone === "by2") return { by: q.by, by2: field, values: q.values, where: rest };
+  const main = m.dimensions.find((d) => d.id === field);
+  return { by: field, by2: q.by2 && main?.with.includes(q.by2) ? q.by2 : null, values: [], where: rest };
+}
+
+// The fields among those the question would name that stop it being read, when the field is put in the zone: those that share no table with it, or all of them
+// where each pair is shared and no one table holds the lot; none where the resolver can read the question (readsFrom).
+function apartFrom(v: DatasetVocabulary, m: BuilderOption, q: Question, zone: Zone, field: string): string[] {
+  const next = withField(m, q, zone, field);
+  if (readsFrom(v, next)) return [];
+  const others = [...(next.by ? [next.by] : []), ...(next.by2 ? [next.by2] : []), ...Object.keys(next.where)].filter((n) => n !== field);
+  const apart = others.filter((n) => !sharesTable(v, n, field));
   return apart.length ? apart : others;
 }
 
@@ -133,9 +140,15 @@ function apartFrom(v: DatasetVocabulary, names: readonly string[], field: string
 export function conditionApart(all: Vocabulary, q: Question, field: string): string | undefined {
   const v = datasetOf(all, q.dataset);
   const names = [...(q.by ? [q.by] : []), ...(q.by2 ? [q.by2] : []), ...Object.entries(q.where).filter(([d, kept]) => d !== field && kept.length > 0).map(([d]) => d)];
-  const apart = apartFrom(v, names, field).filter((n) => !holdsTogether(v, [n, field]));
-  return apart.length ? say("refuse_not_crossed", { dataset: datasetLabel(v.dataset), field: fieldLabel(field), other: sayList(apart.map(fieldLabel)) }) : undefined;
+  const named = [...names, field];
+  const apart = readsFrom(v, { by: q.by, by2: q.by2, values: q.values, where: q.where }) ? [] : names.filter((n) => !sharesTable(v, n, field));
+  return named.length > 1 && apart.length ? say("refuse_not_crossed", { dataset: datasetLabel(v.dataset), field: fieldLabel(field), other: sayList(apart.map(fieldLabel)) }) : undefined;
 }
+
+// Whether the values of a field the chart breaks down by can be chosen: they are counted among the chart's conditions from one fact table that holds them all,
+// and a question read from a pair would leave it the moment a value was chosen.
+export const canChooseValues = (all: Vocabulary, q: Question, field: string): boolean =>
+  holdsTogether(datasetOf(all, q.dataset), [field, ...Object.entries(q.where).filter(([d, kept]) => d !== field && kept.length > 0).map(([d]) => d)]);
 
 export function verdict(all: Vocabulary, q: Question, zone: Zone, field: CanvasField): Verdict {
   const v = datasetOf(all, q.dataset);
@@ -159,7 +172,7 @@ export function verdict(all: Vocabulary, q: Question, zone: Zone, field: CanvasF
     if (q.by === field.id) return refuse("refuse_same");
     if (!offered) return noBreakdown();
     // A condition the chart keeps must be in a table with the new breakdown, or the question could not be drawn from any one table.
-    const apartBy = apartFrom(v, namedBesides(q, zone), field.id);
+    const apartBy = apartFrom(v, m, q, zone, field.id);
     if (apartBy.length) return refuse("refuse_not_crossed", { other: sayList(apartBy.map(fieldLabel)) });
     // A condition on the field becomes the values compared (settle), so choosing to break down by a filter never widens the question.
     return { ok: true, change: { by: field.id, values: [] }, ...(q.by ? { replaces: q.by } : {}) };
@@ -171,7 +184,7 @@ export function verdict(all: Vocabulary, q: Question, zone: Zone, field: CanvasF
     if (q.by2 === field.id) return refuse("refuse_same");
     const main = m.dimensions.find((d) => d.id === q.by);
     if (main?.with.includes(field.id)) {
-      const apartBy2 = apartFrom(v, namedBesides(q, zone), field.id);
+      const apartBy2 = apartFrom(v, m, q, zone, field.id);
       if (apartBy2.length) return refuse("refuse_not_crossed", { other: sayList(apartBy2.map(fieldLabel)) });
       return { ok: true, change: { by2: field.id, values2: [] }, ...(q.by2 ? { replaces: q.by2 } : {}) };
     }
@@ -186,7 +199,7 @@ export function verdict(all: Vocabulary, q: Question, zone: Zone, field: CanvasF
   if (field.id in q.where) return refuse("refuse_same");
   // A filter starts with no value, which keeps every vehicle: the page holds it until it has one (changeQuestion).
   if (filters) {
-    const apartWhere = apartFrom(v, namedBesides(q, zone), field.id);
+    const apartWhere = apartFrom(v, m, q, zone, field.id);
     if (apartWhere.length) return refuse("refuse_not_crossed", { other: sayList(apartWhere.map(fieldLabel)) });
     return { ok: true, change: { where: { ...q.where, [field.id]: [] } } };
   }
