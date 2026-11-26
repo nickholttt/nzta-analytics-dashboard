@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-27 (the user's new direction for the UI, `docs/brief/UI_DIRECTION.md`: a design proposal made, reviewed once and put to the user; nothing built; #170 to #174 still open)
+Last updated by claude on 2026-11-27 (#170 to #175 merged on the user's word; the UI proposal remade so that every page is a canvas the visitor can re-ask, D-162; Impeccable installed and run on it; nothing built in `src/`)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -8,24 +8,24 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
-| A: finish the canvas | `claude/a-latest-month-buyers` (#170), `claude/a-all-panel-phone` (#171, stacked on it), `claude/a-narrow-tables` (#172) | the computer, until they merge | all three open and green. No further polish of the current screens: what is left of A is built in lane F's new UI |
-| B: the accuracy guard and the datasets | `claude/b-market-type` (#173) | the computer, until #173 merges | Market type built and reviewed (D-161). One pipeline pull request at a time |
+| A: finish the canvas | none | closed into F | #170, #171 and #172 merged. No further polish of the current screens: what is left of A is built in lane F's new UI |
+| B: the accuracy guard and the datasets | none | free (the computer for anything needing raw data) | Market type merged (#173, D-161). Next: item 3. One pipeline pull request at a time |
 | C: public readiness | none | free | waits for lane F. The address is vcore.co.nz (registered); the name's spelling is asked |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing new |
-| E: classification, the latest month, findability | none | free | the next classification batch can start once #173 merges (the contract test no longer moves with the nameplate file) |
-| F: the new UI for vcore.co.nz | none yet | the computer | a proposal is with the user; build starts on their word, as `claude/f-*` branches |
+| E: classification, the latest month, findability | none | free | the next classification batch can start: #173 is merged (the contract test no longer moves with the nameplate file) |
+| F: the new UI for vcore.co.nz | `claude/f-design-context` | the computer | the second proposal is with the user (D-162); the branch holds the product record and the direction contract. Build starts on their word, as `claude/f-*` branches |
 
 ## The queue (plans are kept outside the repository, on the computer; each B item is a high-risk pull request with one independent review)
 
-**F, once the user accepts the design** (`docs/brief/UI_DIRECTION.md`, with the review's open findings). One pull
-request each: foundations (tokens, Geist, the shell and shared parts; a decision record for the typefaces and the
-arrows); the six renderers to one set of marks; the market page; brand, model and powertrain pages on one template
-with brand against brand; search; the canvas as a workbench; the data pages; the quality bar and a private preview.
+**F, once the user accepts the design** (D-162; `PRODUCT.md`; the direction contract in `.impeccable/surfaces/`).
+One pull request each: foundations (tokens, Geist, the shell and shared parts); the card, one component that holds a
+question and can re-ask itself over `src/lib/canvas.ts` and the rule table; the six renderers to one set of marks; the
+market page as a started canvas; brand, model and powertrain pages likewise, with brand against brand; search; the
+full editor; the data pages, the quality bar and a private preview.
 
 **B, in this order.**
-2. **Market type: #173, open, reviewed, green** (D-161). Live on `registrations_surviving` and `fleet`; 98.69%
-   of the last 12 months' new passenger vehicles placed. Not on New registrations until the dashboard history is
-   retaken with the GVM group (lane D); then the register-basis guard on vstat's light commercial figures.
+2. Done: Market type (#173, D-161). Not on New registrations until the dashboard history is retaken with the GVM
+   group (lane D); then the register-basis guard on vstat's light commercial figures.
 3. Item 8's build side: each build writes a classification review file and `/status` shows it.
 4. Item 5, figures as first observed: later exports kept as differences, a revisions file on `/status`,
    and `supply --retake --dry-run` for December's comparison with the 14 November export.
@@ -57,10 +57,9 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-0. **The new UI's design**: accept the proposal ("go"), or say what to change. Default: nothing of it is built.
-   And the name as written: vcore, Vcore or VCORE. Default: "vcore" in text, VCORE on the plate mark.
-1. **Merges**, each green and still recommended (the new pages reuse their logic): "merge 170", then "merge 171"
-   (stacked on it); "merge 172"; "merge 173" (high risk, reviewed); "merge 174" and the notes of 27 November.
+0. **The new UI's design**: accept the second proposal ("go"), or say what to change. Default: nothing of it is
+   built. And the name as written: vcore, Vcore or VCORE. Default: "vcore" in text, VCORE on the plate mark.
+1. **Merge** the lane F context pull request (docs and context files only) once it is open and green.
 2. **After #173: build October again** so the published cube gains Market type? It is a forced build that
    the standing exception does not cover. Default: no; November's build carries it.
 3. **Market type's coverage levels**: warn under 75% placed, not live under 70% (today 98.69%). Default: kept.
@@ -70,10 +69,11 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 ## Decided for the user (unreviewed; each is in its pull request or record)
 
 - D-148 to D-160; the choices listed in #142 to #169; #152's five low-confidence judgements; the location plan's three.
-- 26 November: the choices listed in #170 to #173 (D-161). 27 November: the five readings in UI_DIRECTION; the
-  proposal's choices (stock shadcn look, a number-plate mark, arrows not green and red, monotone curves).
+- 26 November: the choices listed in #170 to #173 (D-161). 27 November: the five readings in UI_DIRECTION; D-162's
+  structure; the proposal's choices (a number-plate mark, arrows not green and red, monotone curves); Impeccable
+  installed for the user without its hook; `PRODUCT.md` written from the brief without an interview.
 
 ## Prompt for the next session
 
-/start. Read `docs/brief/UI_DIRECTION.md`. If I have accepted the design, build lane F's first pull request
-(foundations); if not, take lane B's next item. Merge what I have named. Park what needs me.
+/start. Read `docs/brief/UI_DIRECTION.md` and D-162. If I have accepted the design, build lane F's first pull
+request (foundations); if not, take lane B's item 3. Merge what I have named. Park what needs me.

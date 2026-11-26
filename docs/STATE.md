@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-27
+Last updated by claude on 2026-11-27 (after the six merges)
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the Lanes table are in
 `docs/CHECKPOINT.md`. The direction: `docs/brief/UI_DIRECTION.md` (2026-11-27) over `WORK_ORDER.md` and its additions.
@@ -18,33 +18,34 @@ A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the 
   the build aborts on a configuration that would put it there. The store still drops the district.
 - **The accuracy guard** (D-149 to D-153): every build sets 389 published figures beside ours; a figure
   past its tolerance warns, and the hard limits stop the build. The rebuilt October: 388 pass, 1 warns.
-- **Market type is defined and tested on `main`, not built there** (D-154, D-155); #173 builds it.
+- **Market type is built on `main`** (#173, D-161) for `registrations_surviving` and `fleet`; the published cube
+  gains it at the next build (October is not built again unless the user asks).
 - **The site's code is on `main`; nothing is deployed** (`CLOUDFLARE_PAGES_PROJECT` is unset). Pages:
   Explore, Canvas, Method, Caveats, About (a draft), Feedback, Differences, a not-found page, and script-free
   generated pages for 64 brands, 265 models and 6 powertrains. A sitemap waits for `about.site_address`.
-- **The home page opens with the latest month** (#153, #161, #162): new and used apart, over four periods.
+- **The home page opens with the latest month** (#153, #161, #162, #170, #171): new and used apart, four periods,
+  a block by buyer type, and wide tables that fit a phone or show that they scroll.
 - **The canvas is the only builder** (#132). A chart by buyer type starts on new vehicles, a condition the
   visitor can remove (#169, D-160). Its first chart is held (D-156): a pull request fails over 3.0 s on
-  the phone profile; `Checks` read 2.7 s on #172. Every pull request builds and checks the public site.
+  the phone profile. It reads the narrow fact tables (#172): buyer type crosses with brand, model and the rest.
 
 ## Current step
 
-The user's direction of 27 November (`docs/brief/UI_DIRECTION.md`): the site built so far is the engine's
-proof and is not published; the public site at vcore.co.nz is a new UI. A design proposal is with the user
-(lane F); nothing of it is built until they accept it. #170 to #174 wait on their word; B's queue goes on.
+The user's direction of 27 November (`docs/brief/UI_DIRECTION.md`, D-162): the site built so far is the engine's
+proof and is not published; the public site at vcore.co.nz is a new UI in which every page is a canvas the
+visitor can re-ask. A second design proposal is with the user (lane F); nothing of it is built in `src/`.
 
 ## In progress (all claude; nothing by gemini)
 
-- **#170**, `claude/a-latest-month-buyers`: the latest month's block by buyer type, read from the pair.
-  **#171**, `claude/a-all-panel-phone`, stacked on it: wide tables on a phone. Both in `nzta-lane-c`.
-- **#172**, `claude/a-narrow-tables` (worktree `nzta-lane-a`): the canvas reads the narrow fact tables, so
-  buyer type crosses with brand, model and the rest, and colour is usable on the survivors. Reviewed.
-- **#173**, `claude/b-market-type` (worktree `nzta-lane-b`, no tooling of its own): Market type live on
-  `registrations_surviving` and `fleet` (D-161). High risk; reviewed. The cube gains it at the next build.
+- **Lane F**, `claude/f-design-context`: `PRODUCT.md`, the surface brief with its direction contract
+  (`.impeccable/surfaces/`), D-162 and these notes. Docs and context files only.
+- #170 to #175 merged on 27 November on the user's word; their branches are deleted and the worktrees
+  `nzta-lane-a`, `-b` and `-c` sit detached on `main`, clean.
 - Worktrees with work that is not on `main`: `nzta-screens` (narrative drafts, **uncommitted**, D-102);
   `nzta-segments` (an untracked draft scheme file, D-103); `nzta-notes` (the closed board proposal).
-- Private, on the computer: **the new UI's proposal (lane F, no branch yet)** and its files; the vstat study,
-  now with vstat's design tokens; the "Existing fleet" workbooks with a plan; the location plan.
+- Private, on the computer: **the new UI's proposal** (a private page and its files) and its reviews; the vstat
+  study, now with vstat's design tokens; the "Existing fleet" workbooks with a plan; the location plan.
+- The Impeccable design skill is installed for the maintainer's user, with no hook (D-162).
 
 ## Raw files on this computer (gitignored)
 
@@ -67,8 +68,7 @@ proof and is not published; the public site at vcore.co.nz is a new UI. A design
    switches rest on it). A chosen period is not kept in the address. A brand page's HTML doubled with #162.
 5. The canvas has no year to date and no "New entry" in its ranking. Range-extended electric vehicles are
    counted with plug-in hybrids. A buyer-type chart's title and sentence do not say it counts new vehicles.
-6. On `main` the latest month's All tables are cut at the card's edge on a phone with no cue (#171 fixes
-   most; after it the powertrain table at 12 months is still 11 px wide at 390 px, with a cue).
+6. The latest month's powertrain table at 12 months is still 11 px too wide at 390 px, with a cue (#171).
 7. With #173, a chart of SUV or Passenger over many years shows the nameplate list's coverage too (D-161).
 
 ## Where docs and code disagree (noted, not changed)
@@ -79,8 +79,8 @@ proof and is not published; the public site at vcore.co.nz is a new UI. A design
 
 ## Blocked or waiting on the user
 
-Waiting on the user (CHECKPOINT): the new UI's design; the word to merge #170 to #174; whether October is built
-again; D-158's questions; the NZTA email; the Existing fleet licence line; `DASHBOARD_EXPORT_METHOD.md`.
+Waiting on the user (CHECKPOINT): the new UI's design; whether October is built again; D-158's questions; the
+NZTA email; the Existing fleet licence line; `DASHBOARD_EXPORT_METHOD.md`.
 
 ## How to run
 
