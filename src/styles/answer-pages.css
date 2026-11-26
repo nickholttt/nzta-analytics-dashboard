@@ -62,12 +62,6 @@
   margin-bottom: var(--space-7);
 }
 
-/* position: relative holds the absolutely positioned visually-hidden labels inside the scroll box, as .table-scroll does in site.css. */
-.ap-scroll {
-  overflow-x: auto;
-  position: relative;
-}
-
 @media (max-width: 640px) {
   .ap-scroll .key {
     display: table;
@@ -88,6 +82,14 @@
 
 .ap-table th:first-child {
   padding-left: 0;
+}
+
+/* On a phone the gap between figures is 6 px, not 12, so a table of five or six columns scrolls by less, or not at all. */
+@media (max-width: 640px) {
+  .ap-table th,
+  .ap-table td {
+    padding-left: calc(var(--space-2) * 0.75);
+  }
 }
 
 .ap-table tr.total th,
