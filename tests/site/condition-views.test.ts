@@ -359,6 +359,38 @@ test("a cut that is missing for any block leaves the section as it was: no switc
   assert.ok(find(noLink, "ranking-field_b"));
 });
 
+test("a block that needs its views is left out where it has none, and the other blocks keep their switch; any other block without one takes the switch from all", () => {
+  const blocks = (needs: boolean) => [block("total", undefined), block("ranking", "field_b", { top: 3, views: true }), block("split", "field_a", { views: true, ...(needs ? { needs_views: true } : {}) })];
+  const lacking = (needs: boolean) => {
+    const k = kit({ blocks: blocks(needs) });
+    return latestMonthView({ ...k, views: { ...k.views!, cuts: { field_b: cutOf("field_b") } } });
+  };
+  const left = lacking(true);
+  assert.deepEqual(left?.switch?.labels, ["Newish", "Oldish", "All"], "the switch stays");
+  assert.equal(find(left, "split-field_a"), undefined, "the block is not drawn, not drawn over all the vehicles alone");
+  assert.equal(find(left, "ranking-field_b")?.views?.length, 3);
+  const plain = lacking(false);
+  assert.equal(plain?.switch, undefined);
+  assert.ok(find(plain, "split-field_a"), "a block without the flag is drawn as it was");
+  // Where the switch cannot be drawn at all (no views), the block is not drawn either: its figure over all the vehicles would mix the conditions.
+  const none = latestMonthView(kit({ blocks: blocks(true), noViews: true }));
+  assert.equal(none?.switch, undefined);
+  assert.equal(find(none, "split-field_a"), undefined);
+  assert.ok(find(none, "ranking-field_b"));
+  // With its views, it is drawn like the others.
+  assert.equal(find(latestMonthView(kit({ blocks: blocks(true) })), "split-field_a")?.views?.length, 3);
+});
+
+test("each panel asks the canvas for its question: a condition's panel with that condition, the all panel over every vehicle, and no other panel widened", () => {
+  const asked: { block: string; where?: unknown; widen?: string[] }[] = [];
+  latestMonthView(kit({ link: (b, where, _period, widen) => (asked.push({ block: b.id, where, widen }), "/canvas/?asked") }));
+  const calls = (id: string) => asked.filter((x) => x.block === id).map((x) => JSON.stringify([x.where ?? null, x.widen ?? null]));
+  const ranking = calls("ranking-field_b");
+  for (const expected of [[{ cond: ["x"] }, null], [{ cond: ["y"] }, null], [null, ["cond"]]]) assert.ok(ranking.includes(JSON.stringify(expected)), JSON.stringify(expected));
+  assert.ok(asked.every((x) => x.where === undefined || x.widen === undefined), "a panel kept to a condition is not also widened");
+  assert.deepEqual(calls("total-all"), [JSON.stringify([null, null])], "the month's figure is not a block with views");
+});
+
 test("with one condition, or too many for the switch, there are no views", () => {
   const k = kit();
   const one = latestMonthView({ ...k, views: { ...k.views!, conditions: [k.views!.conditions[0]] } });

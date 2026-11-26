@@ -36,6 +36,10 @@ export type BlockConfig = {
   canvas: { measure: string; by: boolean; type: string | null; settings?: Record<string, string> };
   // Whether the block is drawn once for each condition the dataset's vehicles are counted under and once for all of them, behind a switch.
   views?: boolean;
+  // Whether the block is drawn only inside that switch: where its views cannot be made (no counts split by the condition, a link the canvas does not answer
+  // as asked, a word that does not fill) it is left out, and the other blocks keep their switch. For a field whose figure over all the vehicles would
+  // mix the conditions, which is not the figure a reader of it wants.
+  needs_views?: boolean;
 };
 export type LatestConfig = {
   dataset: string;
@@ -76,8 +80,9 @@ export type Kit = {
   // The minimum the build applied to a field's slice, where the manifest says it hid small counts.
   ruleMinimum: (dimension: string) => number | undefined;
   // The address of the canvas that draws a block's question, kept to the given values of other fields where there are any, or nothing where it cannot.
-  // With a period (the id of a canvas period), the block's own period is replaced by it where the block has one.
-  link: (block: BlockConfig, where?: Record<string, string[]>, period?: string) => string | undefined;
+  // With a period (the id of a canvas period), the block's own period is replaced by it where the block has one. With `widen`, the fields the question counts
+  // every vehicle of: the figures over all the vehicles, for a field the canvas would otherwise start under one condition.
+  link: (block: BlockConfig, where?: Record<string, string[]>, period?: string, widen?: string[]) => string | undefined;
   // The windows the blocks with views are also drawn over (config/windows.json); absent, the section is drawn over the newest month alone.
   periods?: PeriodsKit;
   // The conditions the vehicles are split by and each field's counts under them, where the build can give them (src/lib/conditionViewsBuild.ts); absent,
@@ -270,7 +275,8 @@ export function latestMonthView(kit: Kit): View | undefined {
     cut ? conditions.map((c) => count(values.reduce((sum, v) => sum + cut.at(v, c.value, month), 0))) : undefined;
 
   const view = (block: BlockConfig, v: Omit<BlockView, "id" | "kind" | "canvas" | "canvasLabel" | "definition">): BlockView | undefined => {
-    const canvas = kit.link(block);
+    // The block's own figures count every vehicle, so a block that has views is linked to the question over all of them.
+    const canvas = kit.link(block, undefined, undefined, block.views && kit.views ? [kit.views.field] : undefined);
     const named = say(words, "canvas_link_named", { heading: v.heading });
     if (canvas === undefined || named === undefined) return undefined;
     return { id: block.id, kind: block.kind, ...v, canvas, canvasLabel: named, definition: block.definition };
@@ -462,7 +468,7 @@ export function latestMonthView(kit: Kit): View | undefined {
   const headingOf = (heading: string | undefined, view: string) => (heading === undefined ? undefined : say(words, "heading_view", { heading, view }));
   // A panel with its own link to the canvas: the block's question kept to the condition, or the block's own for all of them.
   const panelOf = (block: BlockConfig, label: string, heading: string, c: Condition | undefined, body: Omit<Panel, "label" | "heading" | "canvas" | "canvasLabel">): Panel | undefined => {
-    const canvas = kit.link(block, c && kit.views ? { [kit.views.field]: [c.value] } : undefined);
+    const canvas = kit.link(block, c && kit.views ? { [kit.views.field]: [c.value] } : undefined, undefined, !c && kit.views ? [kit.views.field] : undefined);
     const named = say(words, "canvas_link_named", { heading });
     return canvas === undefined || named === undefined ? undefined : { label, heading, canvas, canvasLabel: named, ...body };
   };
@@ -629,13 +635,19 @@ export function latestMonthView(kit: Kit): View | undefined {
     return built ? [built] : [];
   });
   // Each block that has views is drawn once for each condition and once for all of them behind one switch: or, where any of them cannot be made (a
-  // field with no cut, a link the canvas does not answer as asked, a word that does not fill), none is and the section is drawn as it was.
-  const viewed = blocks.filter((b) => config.blocks.find((x) => x.id === b.id)?.views === true);
-  const made = viewed.map((b) => panelsOf(config.blocks.find((x) => x.id === b.id) as BlockConfig, b));
+  // field with no cut, a link the canvas does not answer as asked, a word that does not fill), none is and the section is drawn as it was. A block that is
+  // drawn only inside the switch (needs_views) is the exception: where its own views cannot be made it is left out, and the others keep theirs.
+  const configOf = (b: BlockView) => config.blocks.find((x) => x.id === b.id) as BlockConfig;
+  const tried = blocks.filter((b) => configOf(b).views === true).map((b) => ({ b, panels: panelsOf(configOf(b), b) }));
+  const left = new Set(tried.filter((x) => x.panels === undefined && configOf(x.b).needs_views === true).map((x) => x.b));
+  blocks = blocks.filter((b) => !left.has(b));
+  const viewed = tried.filter((x) => !left.has(x.b)).map((x) => x.b);
+  const made = tried.filter((x) => !left.has(x.b)).map((x) => x.panels);
   const legend = say(words, "view_legend", {});
   const note = say(words, "view_note", {});
   const switchable = viewed.length > 0 && made.every((p) => p !== undefined) && legend !== undefined && note !== undefined;
   if (switchable) blocks = blocks.map((b) => (viewed.includes(b) ? { ...b, views: made[viewed.indexOf(b)] } : b));
+  else blocks = blocks.filter((b) => configOf(b).needs_views !== true);
   // Over each window too: where any panel cannot be made, the section is drawn over the newest month as it was.
   const windowed =
     switchable && kit.periods

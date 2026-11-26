@@ -209,7 +209,9 @@ test("the section's dataset is one this build's vocabulary holds, so its links c
 for (const b of latestConfig.blocks.filter((x) => !x.dimension || live.has(x.dimension))) {
   test(`block ${b.id}: its link opens the canvas on the dataset, measure, field and month the block shows, and writes back unchanged`, () => {
     const by = b.canvas.by ? (b.dimension as string) : null;
-    const link = latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: b.canvas.measure, by, type: b.canvas.type, settings: b.canvas.settings });
+    // A block with views counts every vehicle in its own figures, and links as the section does: widened over the field its views are for.
+    const widen = b.views && latestConfig.view_field ? [latestConfig.view_field] : undefined;
+    const link = latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: b.canvas.measure, by, type: b.canvas.type, settings: b.canvas.settings, widen });
     assert.ok(link, "the canvas can draw this question");
     const url = new URL(link, "https://site.example");
     assert.equal(url.pathname, "/canvas/");
@@ -243,7 +245,9 @@ for (const b of latestConfig.blocks.filter((x) => x.views && x.dimension && live
     const values = conditionOrder(builtDisplayNames(), field);
     assert.ok(values.length >= 2, "the display names file gives the conditions");
     for (const where of [...values.map((v) => ({ [field]: [v] })), undefined]) {
-      const link = latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: b.canvas.measure, by: b.canvas.by ? (b.dimension as string) : null, type: b.canvas.type, settings: b.canvas.settings, where });
+      // The panel for all of them is asked over every vehicle, the others over their condition: as the section writes them.
+      const widen = where ? undefined : [field];
+      const link = latestMonthLink(all, built, { dataset: latestConfig.dataset, measure: b.canvas.measure, by: b.canvas.by ? (b.dimension as string) : null, type: b.canvas.type, settings: b.canvas.settings, where, widen });
       assert.ok(link, "the canvas can draw this question");
       const url = new URL(link, "https://site.example");
       const asked = canvas.readCanvas(url.search);
