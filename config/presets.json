@@ -315,6 +315,7 @@
           "age_at_registration_band": "age when registered here",
           "region": "owner's region",
           "segment_group": "vehicle class",
+          "market_type": "market type",
           "nzta_class": "NZTA vehicle class",
           "model": "model"
         },
@@ -352,6 +353,7 @@
           "age_at_registration_band": "age when registered here",
           "region": "owner's region",
           "segment_group": "vehicle class",
+          "market_type": "market type",
           "nzta_class": "NZTA vehicle class",
           "model": "model"
         },

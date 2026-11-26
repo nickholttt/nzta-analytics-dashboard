@@ -330,6 +330,54 @@ def stock_problems(con, staging, dataset: str, snapshot_month: date, counts: dic
     return found
 
 
+def coverage_guards(con, cfg, dataset: str, derived: list, candidates: list[dict], snapshot_month: date, window_start: date, window: int,
+                    was_live: set[str], aborts: list[str], warnings: list[str]) -> tuple[dict, dict[str, str]]:
+    """The coverage guard of each derived dimension that has a `coverage` block in config/dimensions.json (invariant 4: a lookup
+    on make and model is live only above its coverage threshold, and says how much it covers). Returns the manifest's block for
+    each, and the reason for each that is not live this run. Below `warn_below` a build warns. Below `live_at` the dimension is
+    not live; one that was live in the last good build aborts the run instead, as any dimension that stops being live does
+    (docs/CUBE_SCHEMA.md, Live dimensions). A pool with no vehicle in it cannot be judged: that warns and leaves the dimension
+    as it was in the last good build (live if it was live, not live if it was not, a first build included). A block that names what does not exist aborts before anything is counted."""
+    blocks: dict[str, dict] = {}
+    too_thin: dict[str, str] = {}
+    by_id = {dim["id"]: dim for dim in candidates}
+    for d in derived:
+        dim = by_id[d.dim_id]
+        if "coverage" not in dim:
+            continue
+        problems = metrics.coverage_problems(cfg, dim, d.vocabulary)
+        if problems:
+            aborts.extend(f"{dataset}: {problem}" for problem in problems)
+            continue
+        spec = dim["coverage"]
+        block = metrics.dimension_coverage(con, d, spec, snapshot_month, window_start, window)
+        vehicles, not_known = block.pop("counts")["trailing"]
+        detail = (f"{dataset}.{d.dim_id}: over the trailing {window} months, of the {', '.join(spec['over']['status_labels'])} vehicles "
+                  f"in {', '.join(spec['pool'])}, {block['trailing']['coverage'] or 0:.1%} are placed (not {spec['not_known']})")
+        live = True
+        if not vehicles:
+            # No evidence either way: the dimension stays as it was in the last good build, built if it was live and not built if it was not.
+            note = f"{dataset}.{d.dim_id}: no vehicle in the coverage pool in the trailing {window} months, so its coverage cannot be judged"
+            if d.dim_id in was_live:
+                warnings.append(f"{note}; the dimension was live in the last good build and stays live")
+            else:
+                live = False
+                too_thin[d.dim_id] = f"no vehicle in its coverage pool in the trailing {window} months, so its coverage cannot be judged"
+                warnings.append(f"{note}; the dimension was not live in the last good build and is not live")
+        elif (vehicles - not_known) / vehicles < spec["live_at"]:
+            live = False
+            reason = f"coverage {(vehicles - not_known) / vehicles:.1%} is below {spec['live_at']:.0%} of the vehicles in its pool"
+            if d.dim_id in was_live:
+                aborts.append(f"{detail}, below the {spec['live_at']:.0%} the dimension needs to stay live; it was live in the last good build, so the run aborts")
+            else:
+                too_thin[d.dim_id] = reason
+                warnings.append(f"{detail}, below {spec['live_at']:.0%}, so the dimension is not live")
+        elif (vehicles - not_known) / vehicles < spec["warn_below"]:
+            warnings.append(f"{detail}, below {spec['warn_below']:.0%}; the dimension stops being live below {spec['live_at']:.0%}")
+        blocks[d.dim_id] = {**block, "live": live}
+    return blocks, too_thin
+
+
 def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: date, previous_live: dict, staging,
                   aborts: list[str], warnings: list[str]) -> Built:
     """One dataset's slices, pairs and fact table from the tables `rows` and `dims` the caller has built, and its
@@ -387,9 +435,12 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
             aborts.append(f"{dataset}.{dim_id}: {guard[dim_id]['whole_run']['unmapped']:,} of {guard[dim_id]['whole_run']['rows']:,} "
                           "in-scope rows read unmapped (a value its reference file has no row for); this dimension stops the "
                           "build on any unmapped row (guardrails.abort_on_any_unmapped), so add the row to the reference file")
+    coverages, too_thin = coverage_guards(con, cfg, dataset, derived, candidates, snapshot_month, window_start, window, was_live, aborts, warnings)
     live = []
     for d in derived:
-        if rates[d.dim_id] <= g["max_unmapped_rate"]:
+        if d.dim_id in too_thin:
+            not_live[d.dim_id] = too_thin[d.dim_id]
+        elif rates[d.dim_id] <= g["max_unmapped_rate"]:
             live.append(d)
         else:
             exclude(d.dim_id, f"unmapped rate {rates[d.dim_id]:.2%} is above {g['max_unmapped_rate']:.0%} of in-scope rows")
@@ -437,6 +488,7 @@ def build_dataset(con, cfg, dataset: str, dataset_cfg: dict, snapshot_month: dat
         "not_live_pairs": not_live_pairs,
         "small_cells": small_cell_figures,
         **({"small_cell_pairs": pair_figures} if pair_figures else {}),
+        "dimension_coverage": coverages,
         "facts": facts,
         "associations": associations,
         "unmapped_rates": rates,

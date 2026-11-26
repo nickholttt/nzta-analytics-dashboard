@@ -31,6 +31,10 @@ VOCABULARY_COLUMNS = {
     "transmission_map.csv": ["nzta_transmission", "group", "label"],
     "vehicle_usage_map.csv": ["nzta_vehicle_usage", "label"],
     "buyer_type_map.csv": ["nzta_owner_type", "nzta_vehicle_usage", "buyer_type"],
+    # The class words of model_segment.csv (and the rule file's model_class column, which repeats them) are left out: the file's own test
+    # (test_model_segment.py) states its three allowed words as the file's schema. No code reads them: the rule file names them.
+    "market_type_map.csv": ["vehicle_types", "body_types", "nzta_classes", "market_type"],
+    "model_segment.csv": ["models"],
 }
 
 

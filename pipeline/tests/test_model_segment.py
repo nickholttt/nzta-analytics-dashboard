@@ -1,7 +1,8 @@
-"""data/reference/model_segment.csv is well formed (D-117). Nothing reads the file in a build yet, so this is the only check
-that stands between a bad row and the day a build starts to read it: a row with the wrong number of fields, a value outside
-the allowed words, two rows that could match one vehicle, a make the brand registry does not know, a call made at high
-confidence without a page and the date it was read, a low row that names a class without saying it is a judgement.
+"""data/reference/model_segment.csv is well formed (D-117). The build reads the file (D-161) but checks only that a bound is a number
+and that no vehicle can meet two rows (reference.model_class_tables), so this is the check that stands between a bad row and a
+published figure: a row with the wrong number of fields, a value outside the allowed words, a make the brand registry does not
+know, a call made at high confidence without a page and the date it was read, a low row that names a class without saying it is
+a judgement.
 
 The checks are written over the text of a file so that the tests below can show each one failing on a made-up file."""
 

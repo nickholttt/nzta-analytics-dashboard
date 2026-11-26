@@ -37,6 +37,7 @@
      "built_in",
      "segment",
      "segment_group",
+     "market_type",
      "vehicle_type",
      "import_status",
      "region",
@@ -78,6 +79,33 @@
       "vehicles_in_months_not_broken_down": 56
      }
     },
+    "dimension_coverage": {
+     "market_type": {
+      "not_known": "Not yet classified",
+      "pool": [
+       "Passenger",
+       "SUV",
+       "Not yet classified"
+      ],
+      "status_labels": [
+       "NZ New"
+      ],
+      "trailing": {
+       "window_months": 12,
+       "vehicles": 26,
+       "not_known": 2,
+       "coverage": 0.9231
+      },
+      "all_time": {
+       "vehicles": 29,
+       "not_known": 4,
+       "coverage": 0.8621
+      },
+      "warn_below_coverage": 0.75,
+      "live_at_coverage": 0.7,
+      "live": true
+     }
+    },
     "facts": {
      "rows": 56,
      "dimensions": [
@@ -90,6 +118,7 @@
       "built_in",
       "segment",
       "segment_group",
+      "market_type",
       "vehicle_type",
       "import_status",
       "engine_size_band",
@@ -116,9 +145,9 @@
     },
     "associations": {
      "file": "associations/registrations_surviving.json",
-     "dimensions": 19,
-     "pairs": 171,
-     "not_findings": 16,
+     "dimensions": 20,
+     "pairs": 190,
+     "not_findings": 20,
      "left_out": {}
     },
     "unmapped_rates": {
@@ -131,6 +160,7 @@
      "built_in": 0.0,
      "segment": 0.0,
      "segment_group": 0.0,
+     "market_type": 0.0,
      "vehicle_type": 0.0,
      "import_status": 0.0,
      "region": 0.016949,
@@ -198,6 +228,24 @@
        "warn_above": 0.005,
        "abort_above": 0.02,
        "headroom_rows": 0
+      }
+     },
+     "market_type": {
+      "whole_run": {
+       "rows": 59,
+       "unmapped": 0,
+       "rate": 0.0,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 52,
+       "unmapped": 0,
+       "rate": 0.0,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 1
       }
      },
      "nz_assembled": {
@@ -307,6 +355,7 @@
       "built_in": 0.9804,
       "segment": 0.9804,
       "segment_group": 0.9804,
+      "market_type": 1.0,
       "vehicle_type": 1.0,
       "import_status": 1.0,
       "region": 0.9608,
@@ -374,6 +423,7 @@
     "months": 1,
     "latest_month": "2026-08",
     "live_dimensions": [
+     "market_type",
      "vehicle_type",
      "vehicle_usage"
     ],
@@ -437,13 +487,59 @@
       "narrowest_range": null
      }
     },
+    "dimension_coverage": {
+     "market_type": {
+      "not_known": "Not yet classified",
+      "pool": [
+       "Passenger",
+       "SUV",
+       "Not yet classified"
+      ],
+      "status_labels": [
+       "NZ New"
+      ],
+      "trailing": {
+       "window_months": 12,
+       "vehicles": 26,
+       "not_known": 2,
+       "coverage": 0.9231
+      },
+      "all_time": {
+       "vehicles": 29,
+       "not_known": 4,
+       "coverage": 0.8621
+      },
+      "warn_below_coverage": 0.75,
+      "live_at_coverage": 0.7,
+      "live": true
+     }
+    },
     "facts": null,
     "associations": null,
     "unmapped_rates": {
+     "market_type": 0.0,
      "vehicle_type": 0.0,
      "vehicle_usage": 0.0
     },
     "unmapped_guard": {
+     "market_type": {
+      "whole_run": {
+       "rows": 62,
+       "unmapped": 0,
+       "rate": 0.0,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      },
+      "trailing": {
+       "window_months": 12,
+       "rows": 62,
+       "unmapped": 0,
+       "rate": 0.0,
+       "warn_above": 0.005,
+       "abort_above": 0.02,
+       "headroom_rows": 1
+      }
+     },
      "vehicle_usage": {
       "whole_run": {
        "rows": 62,
@@ -467,6 +563,7 @@
      "window_months": 12,
      "fuel_consumption": 0.8182,
      "dimensions": {
+      "market_type": 1.0,
       "vehicle_type": 1.0,
       "vehicle_usage": 0.9677
      }
@@ -558,7 +655,7 @@
     "last": "2026-09"
    }
   },
-  "payload_bytes": 124108,
+  "payload_bytes": 134425,
   "warnings": [
    "registrations_surviving.make: unmapped rate over the trailing 12 months is 1.92% (1 of 52 in-scope rows), above the 0.5% warning level; the run aborts above 2%, 0 rows away",
    "registrations_surviving: 2026-08 count deviates +340% from the median of the previous 12 months",
@@ -574,6 +671,94 @@
   ]
  },
  "slices": {
+  "fleet/market_type.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "2026-08-01",
+     "Heavy commercial",
+     1,
+     62,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-08-01",
+     "Light commercial",
+     6,
+     62,
+     43.3,
+     5,
+     6
+    ],
+    [
+     "2026-08-01",
+     "Not yet classified",
+     9,
+     62,
+     19.0,
+     3,
+     9
+    ],
+    [
+     "2026-08-01",
+     "Other vehicle types",
+     2,
+     62,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-08-01",
+     "Passenger",
+     28,
+     62,
+     115.1,
+     24,
+     25
+    ],
+    [
+     "2026-08-01",
+     "SUV",
+     16,
+     62,
+     79.1,
+     13,
+     13
+    ]
+   ]
+  },
   "fleet/vehicle_type.parquet": {
    "schema": [
     [
@@ -3332,6 +3517,364 @@
      4,
      11,
      19.0,
+     4,
+     4
+    ]
+   ]
+  },
+  "registrations_surviving/market_type.parquet": {
+   "schema": [
+    [
+     "month",
+     "DATE"
+    ],
+    [
+     "dim_value",
+     "VARCHAR"
+    ],
+    [
+     "n",
+     "INTEGER"
+    ],
+    [
+     "denominator",
+     "INTEGER"
+    ],
+    [
+     "fc_sum",
+     "DOUBLE"
+    ],
+    [
+     "fc_n",
+     "INTEGER"
+    ],
+    [
+     "fc_eligible_n",
+     "INTEGER"
+    ]
+   ],
+   "rows": [
+    [
+     "1965-04-01",
+     "Not yet classified",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "1998-01-01",
+     "Not yet classified",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2007-06-01",
+     "Not yet classified",
+     1,
+     1,
+     null,
+     0,
+     1
+    ],
+    [
+     "2019-03-01",
+     "Passenger",
+     1,
+     1,
+     6.1,
+     1,
+     1
+    ],
+    [
+     "2025-08-01",
+     "Passenger",
+     1,
+     1,
+     5.0,
+     1,
+     1
+    ],
+    [
+     "2025-09-01",
+     "Not yet classified",
+     1,
+     2,
+     null,
+     0,
+     1
+    ],
+    [
+     "2025-09-01",
+     "Passenger",
+     1,
+     2,
+     null,
+     0,
+     1
+    ],
+    [
+     "2025-10-01",
+     "Light commercial",
+     1,
+     2,
+     8.8,
+     1,
+     1
+    ],
+    [
+     "2025-10-01",
+     "SUV",
+     1,
+     2,
+     1.9,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "Passenger",
+     1,
+     2,
+     6.2,
+     1,
+     1
+    ],
+    [
+     "2025-11-01",
+     "SUV",
+     1,
+     2,
+     9.1,
+     1,
+     1
+    ],
+    [
+     "2025-12-01",
+     "SUV",
+     2,
+     2,
+     14.6,
+     2,
+     2
+    ],
+    [
+     "2026-01-01",
+     "Not yet classified",
+     1,
+     2,
+     5.4,
+     1,
+     1
+    ],
+    [
+     "2026-01-01",
+     "Passenger",
+     1,
+     2,
+     4.9,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "Not yet classified",
+     1,
+     3,
+     6.0,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "Passenger",
+     1,
+     3,
+     3.4,
+     1,
+     1
+    ],
+    [
+     "2026-02-01",
+     "SUV",
+     1,
+     3,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Light commercial",
+     1,
+     5,
+     10.1,
+     1,
+     1
+    ],
+    [
+     "2026-03-01",
+     "Passenger",
+     3,
+     5,
+     8.5,
+     2,
+     2
+    ],
+    [
+     "2026-03-01",
+     "SUV",
+     1,
+     5,
+     5.1,
+     1,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Heavy commercial",
+     1,
+     5,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-04-01",
+     "Passenger",
+     3,
+     5,
+     16.8,
+     3,
+     3
+    ],
+    [
+     "2026-04-01",
+     "SUV",
+     1,
+     5,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-05-01",
+     "Light commercial",
+     1,
+     6,
+     7.9,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Not yet classified",
+     1,
+     6,
+     7.6,
+     1,
+     1
+    ],
+    [
+     "2026-05-01",
+     "Passenger",
+     3,
+     6,
+     14.0,
+     3,
+     3
+    ],
+    [
+     "2026-05-01",
+     "SUV",
+     1,
+     6,
+     8.4,
+     1,
+     1
+    ],
+    [
+     "2026-06-01",
+     "Light commercial",
+     1,
+     6,
+     null,
+     0,
+     1
+    ],
+    [
+     "2026-06-01",
+     "Passenger",
+     4,
+     6,
+     14.0,
+     3,
+     3
+    ],
+    [
+     "2026-06-01",
+     "SUV",
+     1,
+     6,
+     null,
+     0,
+     0
+    ],
+    [
+     "2026-07-01",
+     "Light commercial",
+     1,
+     5,
+     8.9,
+     1,
+     1
+    ],
+    [
+     "2026-07-01",
+     "Passenger",
+     2,
+     5,
+     8.5,
+     2,
+     2
+    ],
+    [
+     "2026-07-01",
+     "SUV",
+     2,
+     5,
+     9.9,
+     2,
+     2
+    ],
+    [
+     "2026-08-01",
+     "Light commercial",
+     1,
+     11,
+     7.6,
+     1,
+     1
+    ],
+    [
+     "2026-08-01",
+     "Passenger",
+     5,
+     11,
+     17.9,
+     4,
+     4
+    ],
+    [
+     "2026-08-01",
+     "SUV",
+     5,
+     11,
+     22.2,
      4,
      4
     ]
@@ -9439,10 +9982,10 @@
      "0"
     ],
     [
-     "14"
+     "20-24"
     ],
     [
-     "20-24"
+     "14"
     ],
     [
      "unknown"
@@ -9472,10 +10015,10 @@
      "0"
     ],
     [
-     "0"
+     "13"
     ],
     [
-     "13"
+     "0"
     ],
     [
      "14"
@@ -9496,13 +10039,13 @@
      "14"
     ],
     [
-     "0"
-    ],
-    [
-     "0"
-    ],
-    [
      "13"
+    ],
+    [
+     "0"
+    ],
+    [
+     "0"
     ],
     [
      "0"
@@ -9795,10 +10338,10 @@
      "2.5-2.9 L"
     ],
     [
-     "1.0-1.4 L"
+     "1.5-1.9 L"
     ],
     [
-     "1.5-1.9 L"
+     "1.0-1.4 L"
     ],
     [
      "Under 1.0 L"
@@ -9828,10 +10371,10 @@
      "1.5-1.9 L"
     ],
     [
-     "2.0-2.4 L"
+     "1.5-1.9 L"
     ],
     [
-     "1.5-1.9 L"
+     "2.0-2.4 L"
     ],
     [
      "1.0-1.4 L"
@@ -9852,13 +10395,13 @@
      "1.0-1.4 L"
     ],
     [
-     "2.0-2.4 L"
-    ],
-    [
-     "2.0-2.4 L"
-    ],
-    [
      "1.0-1.4 L"
+    ],
+    [
+     "2.0-2.4 L"
+    ],
+    [
+     "2.0-2.4 L"
     ],
     [
      "1.5-1.9 L"
@@ -10184,6 +10727,9 @@
      "NZ New"
     ],
     [
+     "Used Import"
+    ],
+    [
      "NZ New"
     ],
     [
@@ -10193,9 +10739,6 @@
      "Used Import"
     ],
     [
-     "Used Import"
-    ],
-    [
      "NZ New"
     ],
     [
@@ -10208,13 +10751,13 @@
      "Used Import"
     ],
     [
-     "NZ New"
-    ],
-    [
-     "NZ New"
-    ],
-    [
      "Used Import"
+    ],
+    [
+     "NZ New"
+    ],
+    [
+     "NZ New"
     ],
     [
      "NZ New"
@@ -10405,6 +10948,184 @@
     ]
    ]
   },
+  "registrations_surviving/market_type.parquet": {
+   "schema": [
+    [
+     "market_type",
+     "VARCHAR"
+    ]
+   ],
+   "rows": [
+    [
+     "Not yet classified"
+    ],
+    [
+     "Not yet classified"
+    ],
+    [
+     "Not yet classified"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Not yet classified"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Not yet classified"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Not yet classified"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Heavy commercial"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Not yet classified"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Light commercial"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "SUV"
+    ],
+    [
+     "Passenger"
+    ],
+    [
+     "Passenger"
+    ]
+   ]
+  },
   "registrations_surviving/model.parquet": {
    "schema": [
     [
@@ -10507,10 +11228,10 @@
      "TOYOTA|HILUX"
     ],
     [
-     "MAZDA|DEMIO"
+     "MAZDA|ROADSTER"
     ],
     [
-     "MAZDA|ROADSTER"
+     "MAZDA|DEMIO"
     ],
     [
      "VOLKSWAGEN|POLO"
@@ -10540,10 +11261,10 @@
      "HAVAL|JOLION"
     ],
     [
-     "TOYOTA|RAV4"
+     "TOYOTA|PRIUS"
     ],
     [
-     "TOYOTA|PRIUS"
+     "TOYOTA|RAV4"
     ],
     [
      "NISSAN|NOTE"
@@ -10564,13 +11285,13 @@
      "HONDA|FIT"
     ],
     [
-     "TOYOTA|RAV4"
-    ],
-    [
-     "TOYOTA|RAV4"
-    ],
-    [
      "TOYOTA|AQUA"
+    ],
+    [
+     "TOYOTA|RAV4"
+    ],
+    [
+     "TOYOTA|RAV4"
     ],
     [
      "KIA|SPORTAGE"
@@ -11934,37 +12655,37 @@
      "Imported built up"
     ],
     [
-     "Assembled or built in New Zealand"
-    ],
-    [
-     "Imported built up"
-    ],
-    [
-     "Imported built up"
-    ],
-    [
-     "Imported built up"
-    ],
-    [
-     "Imported built up"
-    ],
-    [
-     "Imported built up"
-    ],
-    [
-     "Imported built up"
-    ],
-    [
      "Imported built up"
     ],
     [
      "Assembled or built in New Zealand"
     ],
     [
-     "Assembled or built in New Zealand"
+     "Imported built up"
     ],
     [
      "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Imported built up"
+    ],
+    [
+     "Assembled or built in New Zealand"
+    ],
+    [
+     "Assembled or built in New Zealand"
     ],
     [
      "Imported built up"
@@ -12079,10 +12800,10 @@
      "Light goods vehicle (NA)"
     ],
     [
-     "Passenger car (MA)"
+     "Off-road passenger vehicle (MC)"
     ],
     [
-     "Off-road passenger vehicle (MC)"
+     "Passenger car (MA)"
     ],
     [
      "Passenger car (MA)"
@@ -13147,10 +13868,10 @@
      "3-4"
     ],
     [
-     "unknown"
+     "5"
     ],
     [
-     "5"
+     "unknown"
     ],
     [
      "5"
@@ -13180,10 +13901,10 @@
      "5"
     ],
     [
-     "unknown"
+     "6-7"
     ],
     [
-     "6-7"
+     "unknown"
     ],
     [
      "unknown"
@@ -13202,15 +13923,15 @@
     ],
     [
      "5"
+    ],
+    [
+     "3-4"
     ],
     [
      "1-2"
     ],
     [
      "8+"
-    ],
-    [
-     "3-4"
     ],
     [
      "5"
@@ -13714,10 +14435,10 @@
      "Automatic"
     ],
     [
-     "Other"
+     "__UNDEFINED__"
     ],
     [
-     "__UNDEFINED__"
+     "Other"
     ],
     [
      "__UNDEFINED__"
@@ -13738,13 +14459,13 @@
      "__UNDEFINED__"
     ],
     [
-     "Continuously variable"
-    ],
-    [
-     "Continuously variable"
-    ],
-    [
      "__UNDEFINED__"
+    ],
+    [
+     "Continuously variable"
+    ],
+    [
+     "Continuously variable"
     ],
     [
      "Automatic"
@@ -13958,6 +14679,7 @@
     "heritage_country",
     "import_status",
     "make",
+    "market_type",
     "model",
     "nz_assembled",
     "nzta_class",
@@ -14060,6 +14782,23 @@
       "vehicles": 47,
       "values_a": 5,
       "values_b": 20
+     },
+     "relation": []
+    },
+    {
+     "a": "age_at_registration_band",
+     "b": "market_type",
+     "all": {
+      "v": 0.3327,
+      "vehicles": 53,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.3347,
+      "vehicles": 48,
+      "values_a": 5,
+      "values_b": 5
      },
      "relation": []
     },
@@ -14354,6 +15093,23 @@
     },
     {
      "a": "built_in",
+     "b": "market_type",
+     "all": {
+      "v": 0.228,
+      "vehicles": 55,
+      "values_a": 11,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0973,
+      "vehicles": 50,
+      "values_a": 10,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "built_in",
      "b": "model",
      "all": {
       "v": 0.541,
@@ -14626,6 +15382,23 @@
     },
     {
      "a": "engine_size_band",
+     "b": "market_type",
+     "all": {
+      "v": 0.4505,
+      "vehicles": 55,
+      "values_a": 8,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.404,
+      "vehicles": 50,
+      "values_a": 7,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "engine_size_band",
      "b": "model",
      "all": {
       "v": 0.5048,
@@ -14886,6 +15659,23 @@
     },
     {
      "a": "heritage_country",
+     "b": "market_type",
+     "all": {
+      "v": 0.2097,
+      "vehicles": 55,
+      "values_a": 9,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0334,
+      "vehicles": 50,
+      "values_a": 8,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "heritage_country",
      "b": "model",
      "all": {
       "v": 0.5498,
@@ -15129,6 +15919,23 @@
     },
     {
      "a": "import_status",
+     "b": "market_type",
+     "all": {
+      "v": 0.511,
+      "vehicles": 56,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.5399,
+      "vehicles": 51,
+      "values_a": 2,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "import_status",
      "b": "model",
      "all": {
       "v": 0.4512,
@@ -15345,6 +16152,23 @@
       "vehicles": 51,
       "values_a": 2,
       "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "make",
+     "b": "market_type",
+     "all": {
+      "v": 0.4824,
+      "vehicles": 55,
+      "values_a": 25,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.4318,
+      "vehicles": 50,
+      "values_a": 23,
+      "values_b": 5
      },
      "relation": []
     },
@@ -15583,6 +16407,263 @@
       "values_b": 2
      },
      "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "model",
+     "all": {
+      "v": 0.5259,
+      "vehicles": 52,
+      "values_a": 5,
+      "values_b": 39
+     },
+     "trailing": {
+      "v": 0.5108,
+      "vehicles": 51,
+      "values_a": 5,
+      "values_b": 39
+     },
+     "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "nz_assembled",
+     "all": {
+      "v": 0.2673,
+      "vehicles": 51,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.2445,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "nzta_class",
+     "all": {
+      "v": 0.7065,
+      "vehicles": 54,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.7311,
+      "vehicles": 49,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "relation": [
+      {
+       "kind": "same_field",
+       "basis": null
+      },
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
+    },
+    {
+     "a": "market_type",
+     "b": "owner_country",
+     "all": {
+      "v": 0.2951,
+      "vehicles": 55,
+      "values_a": 5,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.243,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 6
+     },
+     "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "parent_group",
+     "all": {
+      "v": 0.5394,
+      "vehicles": 55,
+      "values_a": 5,
+      "values_b": 21
+     },
+     "trailing": {
+      "v": 0.5027,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 19
+     },
+     "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "power_band",
+     "all": {
+      "v": 0.2829,
+      "vehicles": 26,
+      "values_a": 4,
+      "values_b": 7
+     },
+     "trailing": {
+      "v": 0.3007,
+      "vehicles": 25,
+      "values_a": 4,
+      "values_b": 7
+     },
+     "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "powertrain",
+     "all": {
+      "v": 0.4601,
+      "vehicles": 55,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.4387,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "powertrain_group",
+     "all": {
+      "v": 0.1117,
+      "vehicles": 55,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "seats_band",
+     "all": {
+      "v": 0.0,
+      "vehicles": 51,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 47,
+      "values_a": 5,
+      "values_b": 5
+     },
+     "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "segment",
+     "all": {
+      "v": 0.7921,
+      "vehicles": 55,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.7894,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 4
+     },
+     "relation": [
+      {
+       "kind": "same_field",
+       "basis": null
+      },
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
+    },
+    {
+     "a": "market_type",
+     "b": "segment_group",
+     "all": {
+      "v": 0.9806,
+      "vehicles": 55,
+      "values_a": 5,
+      "values_b": 3
+     },
+     "trailing": {
+      "v": 0.9785,
+      "vehicles": 50,
+      "values_a": 5,
+      "values_b": 3
+     },
+     "relation": [
+      {
+       "kind": "same_field",
+       "basis": null
+      },
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
+    },
+    {
+     "a": "market_type",
+     "b": "transmission",
+     "all": {
+      "v": 0.0,
+      "vehicles": 30,
+      "values_a": 4,
+      "values_b": 4
+     },
+     "trailing": {
+      "v": 0.0,
+      "vehicles": 29,
+      "values_a": 4,
+      "values_b": 4
+     },
+     "relation": []
+    },
+    {
+     "a": "market_type",
+     "b": "vehicle_type",
+     "all": {
+      "v": 0.9718,
+      "vehicles": 56,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "trailing": {
+      "v": 0.9689,
+      "vehicles": 51,
+      "values_a": 5,
+      "values_b": 2
+     },
+     "relation": [
+      {
+       "kind": "same_field",
+       "basis": null
+      },
+      {
+       "kind": "true_by_definition",
+       "basis": "by_definition_inferred"
+      }
+     ]
     },
     {
      "a": "model",

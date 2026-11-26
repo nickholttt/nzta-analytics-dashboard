@@ -74,10 +74,11 @@
     }
   },
   "derive_reads": {
-    "$comment": "Which bound fields a derive kind in config/dimensions.json reads without naming them in its derive block. A test resolves every dimension's fields from its derive block (any string or key that is a logical field of config/pipeline.json) plus these. An item with a dot is a path into config/pipeline.json whose value is a logical field name, or an object whose keys that are logical field names are read; an item without a dot is a logical field name. vehicle_year is listed by name because the model registry's conditions name it as a range (vehicle_year_min, vehicle_year_max).",
+    "$comment": "Which bound fields a derive kind in config/dimensions.json reads without naming them in its derive block. A test resolves every dimension's fields from its derive block (any string or key that is a logical field of config/pipeline.json) plus these. An item with a dot is a path into config/pipeline.json whose value is a logical field name, or an object whose keys that are logical field names are read; an item without a dot is a logical field name. vehicle_year is listed by name because the model registry's conditions name it as a range (vehicle_year_min, vehicle_year_max). An ordered_rules block names the fields its own tests read; a test of the model's class (model_segment.csv) also reads the canonical make and model, which the model registry's conditions decide, and the vehicle year the model file bounds, so the kind lists what brand lists (the gross vehicle mass the file also bounds is named by the dimension's own test).",
     "by_kind": {
       "brand": ["brand.make_field", "brand.model_field", "brand.model_registry_conditions", "vehicle_year"],
-      "model": ["brand.make_field", "brand.model_field", "brand.model_registry_conditions", "vehicle_year"]
+      "model": ["brand.make_field", "brand.model_field", "brand.model_registry_conditions", "vehicle_year"],
+      "ordered_rules": ["brand.make_field", "brand.model_field", "brand.model_registry_conditions", "vehicle_year"]
     },
     "by_flag": {
       "no_engine": ["engine.field"]

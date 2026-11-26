@@ -12,6 +12,14 @@ row for every published figure, so building from the live files would make each 
 live rows name months, models and datasets this small cube does not have. The live files are still read and validated by every
 other test's build, and test_reconcile.py holds the step's own behaviour.
 
+The same holds for the model class file (model_segment.csv, D-161). The golden locks the market type counts and the coverage figure, which
+read it, and the file grows by a batch of nameplates every time the classification is extended: building from the live file would make
+each such batch, a pure data edit, a contract change. The build reads a frozen copy (fixtures/model_segment.csv, byte for byte the
+file as it was when the dimension was built), whose name is the one config gives (pipeline.json, model_classes). The live file is
+still read and checked by every other test's build and by test_model_segment.py. market_type_map.csv is not frozen: it is the
+definition of the dimension, so a change to a rule is a change to what the cube says, and the golden should change with it, as it
+does for segment_map.csv.
+
 A fixture row whose kind the single-figure limit covers (D-150) must never be compared in any cube built from these files: a row
 of 11 vehicles beside a cube of hundreds is a gap of thousands of percent, and one such row stops the build. The golden's covered
 row is one for a month the cube does not hold, so it shows the field and is not compared.
@@ -36,11 +44,12 @@ GOLDEN_FILE = GOLDEN / "contract.json"
 
 
 def frozen_reference(tmp_path):
-    """The reference files with events.csv and the two published-figures files replaced by the frozen fixtures."""
+    """The reference files with events.csv, the model class file and the two published-figures files replaced by the frozen fixtures."""
     live = config.load()
     reference = tmp_path / "reference"
     shutil.copytree(live.reference("x").parent, reference)
     shutil.copyfile(FIXTURES / "events.csv", reference / live.pipeline["events"]["file"])
+    shutil.copyfile(FIXTURES / live.pipeline["model_classes"]["file"], reference / live.pipeline["model_classes"]["file"])
     for key in ("figures_file", "sources_file"):
         shutil.copyfile(FIXTURES / live.pipeline["reconciliation"][key], reference / live.pipeline["reconciliation"][key])
     return reference
@@ -94,6 +103,13 @@ def test_cube_matches_golden(tmp_path, workspace):
     rows = contract["reconciliation"]["rows"]
     assert {r["status"] for r in rows} >= {"pass", "warn", "not_compared"}
     assert {r["reason_kind"] for r in rows if r["status"] == "not_compared"} >= {"month_not_held", "dataset_not_built", "value_not_held"}
+
+
+def test_the_golden_builds_from_the_frozen_model_class_file_and_not_the_live_one(tmp_path):
+    """A nameplate row added to the live file (a classification batch) must not move the golden: the reference folder the golden builds
+    from holds the fixture's bytes under the name config gives."""
+    name = config.load().pipeline["model_classes"]["file"]
+    assert (frozen_reference(tmp_path) / name).read_bytes() == (FIXTURES / name).read_bytes()
 
 
 def test_every_slice_has_the_contract_schema_and_order(tmp_path, workspace):

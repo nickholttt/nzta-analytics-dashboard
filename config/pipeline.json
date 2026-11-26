@@ -135,6 +135,20 @@
     "undivided_powertrain": "Hybrid",
     "labels": { "partial": "Mild hybrid (identified)", "complete": "Mild hybrid" }
   },
+  "model_classes": {
+    "$comment": "model_segment.csv, read by the build (D-161): whether a nameplate is an SUV or a car. Every vehicle is joined to it on its canonical make and model, after the brand and model overrides, and takes the row's `class` in the column `column` of `rows` (empty where no row applies): the market type rules read it there (config/dimensions.json, market_type). A row may bound the vehicle year (`year_field`) and the gross vehicle mass (`gvm_field`, kilograms), both inclusive; a vehicle with no recorded value meets no row that bounds it. No two rows for one make and model may overlap in both bounds, and a build whose vehicles meet two rows stops. The `models` column lists names separated as the brand registry's aliases are (brand.alias_separator).",
+    "file": "model_segment.csv",
+    "column": "model_class",
+    "make": "make",
+    "models": "models",
+    "class": "class",
+    "year_field": "vehicle_year",
+    "gvm_field": "gvm",
+    "year_min": "match_vehicle_year_min",
+    "year_max": "match_vehicle_year_max",
+    "gvm_min": "match_gvm_min",
+    "gvm_max": "match_gvm_max"
+  },
   "engine": { "reference": "powertrain_map.csv", "field": "motive_power", "key": "nzta_motive_power", "flag": "has_combustion_engine" },
   "alternative_fuel": { "primary": "motive_power", "alternative": "alternative_motive_power" },
   "associations": {
@@ -148,15 +162,15 @@
       "$pairs_comment": "The two-dimensional slices this dataset emits, each [dim_a, dim_b], written to pairs/{dataset}/{dim_a}__{dim_b}.parquet. Only pairs a chart or filter needs (docs/CUBE_SCHEMA.md, Pair slices).",
       "pairs": [["import_status", "age_at_registration_band"], ["powertrain", "segment_group"], ["import_status", "vehicle_type"]],
       "$facts_comment": "The fact table: counts by month and every dimension listed here, one Parquet file per column under facts/{dataset}/, so the browser can answer any combination by downloading only the columns a question needs (docs/CUBE_SCHEMA.md, Fact table; D-058). region is left out on purpose (D-078), and the user's rule for owner fields allows them in a slice or a pair only (D-096): it is where the vehicle's owner lives, and with it two in three of the table's rows counted a single vehicle.",
-      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "vehicle_type", "import_status", "engine_size_band", "age_at_registration_band", "nz_assembled", "nzta_class", "seats_band", "power_band", "transmission", "model"],
+      "facts": ["powertrain", "powertrain_group", "make", "parent_group", "owner_country", "heritage_country", "built_in", "segment", "segment_group", "market_type", "vehicle_type", "import_status", "engine_size_band", "age_at_registration_band", "nz_assembled", "nzta_class", "seats_band", "power_band", "transmission", "model"],
       "$narrow_facts_comment": "Narrow fact tables (D-144, docs/CUBE_SCHEMA.md, Narrow fact tables): a second, smaller table for a field that would make every question heavier as a column of the wide one. Each is written to facts/{dataset}/narrow/{id}/{column}.parquet with the wide table's rows, order and checks, and listed in the manifest under facts.narrow. A dimension that reads an owner field is refused here as in facts. colour was +75% of the wide table (D-116 item 6); with make and the powertrain in five groups it is 353,976 bytes on the 2026-10 pull (D-144 has the other sets measured).",
       "narrow_facts": [{ "id": "colour", "dimensions": ["colour", "make", "powertrain_group"] }]
     },
     "fleet": {
-      "$comment": "A stock (D-135, docs/CUBE_SCHEMA.md, Stock datasets): every vehicle in the register at the snapshot, of every vehicle type and every import status, counted as at the snapshot date, with one period, the snapshot's month. It is not a series of first registrations: no vehicle's month or year of first registration is a dimension of it or a column of any of its files, and the build refuses a dimension of it that reads one (not_by). `dimensions` lists the only dimensions it is offered: how the register records the vehicle's usage now (an owner field, so its slice and its pair are held to the small-cell rules), and the type NZTA registers the vehicle under. No fact table: a field that describes the owner never reaches one.",
+      "$comment": "A stock (D-135, docs/CUBE_SCHEMA.md, Stock datasets): every vehicle in the register at the snapshot, of every vehicle type and every import status, counted as at the snapshot date, with one period, the snapshot's month. It is not a series of first registrations: no vehicle's month or year of first registration is a dimension of it or a column of any of its files, and the build refuses a dimension of it that reads one (not_by). `dimensions` lists the only dimensions it is offered: how the register records the vehicle's usage now (an owner field, so its slice and its pair are held to the small-cell rules), the type NZTA registers the vehicle under, and its market type (D-161), which the rule file gives every vehicle type, the nine outside the five included. No fact table: a field that describes the owner never reaches one.",
       "stock": true,
       "require": [],
-      "dimensions": ["vehicle_usage", "vehicle_type"],
+      "dimensions": ["vehicle_usage", "vehicle_type", "market_type"],
       "not_by": ["registration_year", "registration_month"],
       "pairs": [["vehicle_usage", "vehicle_type"]]
     },
@@ -263,8 +277,8 @@
   "guardrails": {
     "max_in_scope_row_change": 0.02,
     "max_unmapped_rate": 0.02,
-    "abort_on_unmapped": ["make", "powertrain", "powertrain_group", "nz_assembled", "nzta_class", "transmission", "vehicle_usage", "buyer_type"],
-    "abort_on_any_unmapped": ["buyer_type"],
+    "abort_on_unmapped": ["make", "powertrain", "powertrain_group", "nz_assembled", "nzta_class", "transmission", "vehicle_usage", "buyer_type", "market_type"],
+    "abort_on_any_unmapped": ["buyer_type", "market_type"],
     "max_unmapped_rate_trailing": 0.02,
     "warn_unmapped_rate_trailing": 0.005,
     "zero_row_min_previous_rows": 1000,

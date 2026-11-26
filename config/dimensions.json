@@ -270,6 +270,40 @@
       "$comment": "The same segment_map.csv match as segment, reading its segment_group column, so powertrain-mix can narrow to light passenger vehicles. segment = Car is not light passenger: light passenger also holds the passenger-registered utes and vans."
     },
     {
+      "id": "market_type",
+      "label": "Market type",
+      "public_line": "Each vehicle is placed by the type NZTA registers it under, its body and its weight, and a nameplate list tells an SUV from a car; a nameplate the list does not mark is left unplaced, and it marks far fewer older vehicles than recent ones, so a chart over many years shows the list's coverage as well as the market. It is a different split from Vehicle class, which reads type, body and weight alone.",
+      "public_note": "What kind of vehicle it is, in the way the published top level counts them, in seven values. A vehicle is placed by the first of eighteen rules it meets, read from the type NZTA registers it under, its body, its gross vehicle mass and NZTA's class, and, for a passenger car or van, from its nameplate. Heavy commercial is a goods vehicle, bus, motor caravan or special purpose vehicle over 3,500 kg, whatever its body. Light commercial is a ute whatever its weight (a ute registered as a goods vehicle, bus, motor caravan or special purpose vehicle and over 3,500 kg is Heavy commercial, as that rule comes first), a goods vehicle with a cab-and-chassis or flat-deck body at 3,500 kg or less or with no recorded weight, a goods van or a bus at 3,500 kg or less, a motor caravan at 3,500 kg or less, and a special purpose vehicle at 3,500 kg or less that NZTA classes as a light goods vehicle. SUV and Passenger are the cars and vans NZTA registers as passenger vehicles whose nameplate a list marks as an SUV or as a car. The register has no field that says SUV, so SUV and Passenger count the nameplates the list marks and no others, and a nameplate it does not mark, or marks as unresolved, is Not yet classified. The list marks far fewer of the older vehicles than of recent ones, so a chart of SUV or Passenger over many years shows the list's coverage as well as the market: at the October 2026 snapshot, among new passenger cars and vans still registered, 67% of those first registered in 2000 were Not yet classified, against 1% of those first registered in 2026. The share of new passenger cars and vans first registered in the last 12 months that the list places is published with every build, and it is that share on every dataset that carries the field: it is not the share of the vehicles a chart counts (the vehicles registered today, of every age and type, are over a fifth Not yet classified). Other holds what the rules leave over, each case listed: a special purpose vehicle at 3,500 kg or less of any other class, a motor caravan or special purpose vehicle with no recorded weight, a goods vehicle at 3,500 kg or less whose body is another truck, an articulated truck or a station wagon, a goods vehicle or bus with no recorded weight that no rule above took, and a three-wheeler registered as a passenger vehicle. Other vehicle types holds the types the five above do not describe (motorcycles, trailers, tractors and the like), which the vehicles registered today count and no other dataset does. A weight of 3,500 kg is on the light side, and a weight recorded as zero is not recorded. It is not the same split as Vehicle class, which reads type, body and weight alone, cannot tell an SUV from a car, and puts buses, motor caravans and special purpose vehicles in Other.",
+      "source": "nzta:vehicle_type + nzta:body_type + nzta:gross_vehicle_mass + nzta:class + reference:model_segment + reference:market_type_map",
+      "derive": {
+        "kind": "ordered_rules",
+        "reference": "market_type_map.csv",
+        "order": "rule_order",
+        "value": "market_type",
+        "tests": [
+          { "column": "vehicle_types", "field": "vehicle_type", "test": "any_of", "separator": "|", "values_from": { "reference": "vehicle_scope.csv", "column": "vehicle_type" } },
+          { "column": "body_types", "field": "body_type", "test": "any_of", "separator": "|" },
+          { "column": "nzta_classes", "field": "nzta_class", "test": "any_of", "separator": "|", "values_from": { "reference": "class_map.csv", "column": "nzta_class" } },
+          { "column": "gvm_min_kg", "field": "gvm", "test": "at_least" },
+          { "column": "gvm_max_kg", "field": "gvm", "test": "at_most" },
+          { "column": "gvm_recorded", "field": "gvm", "test": "recorded" },
+          { "column": "model_class", "field": "model_class", "test": "equals", "values_from": { "reference": "model_segment.csv", "column": "class" } }
+        ]
+      },
+      "kind": "category",
+      "cardinality": "low",
+      "coverage": {
+        "$comment": "The coverage guard of a lookup on make and model (invariant 4, D-161): the share of the vehicles in `pool` that the dimension places, that is, that are not `not_known`, counted over the vehicles `over` describes (the flags of rows they must hold and the import statuses they must have) first registered in the trailing window. Below warn_below a build warns; below live_at the dimension is not live, or the build aborts if it was live in the last good build. Both are shares of the pool: 0.75 and 0.70 are the owner's numbers (D-161 asks for them to be confirmed). Every value named here must be one the rule file gives, and the build says so if one is not.",
+        "not_known": "Not yet classified",
+        "pool": ["Passenger", "SUV", "Not yet classified"],
+        "over": { "require": ["in_trade_scope", "fleet_entry"], "status_labels": ["NZ New"] },
+        "warn_below": 0.75,
+        "live_at": 0.70
+      },
+      "help": "What kind of vehicle it is, from its type, body and weight; SUV and Passenger are the nameplates a list marks, and it marks far fewer older vehicles. Not the same split as Vehicle class.",
+      "$comment": "Read from market_type_map.csv, ordered rules of which the first that a vehicle meets wins (D-154, D-155, D-161). The derive block says which column asks what of which field: any_of is a list of names separated by `separator`, at_least and at_most are bounds in kilograms (a vehicle with no recorded mass meets none), recorded says the field is (true) or is not (false) recorded, equals compares with the model's class, the column `model_class` that the build joins onto every vehicle from model_segment.csv (pipeline.json, model_classes). values_from names the file and column the names must come from. A vehicle no rule takes reads __UNMAPPED__ and stops the build."
+    },
+    {
       "id": "vehicle_type",
       "label": "Registered as",
       "public_line": "The type NZTA registers each vehicle under, which is a different thing from a split that also reads the body and the weight.",

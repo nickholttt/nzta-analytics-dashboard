@@ -1097,8 +1097,10 @@ with its own vintage; label the estimate year on the chart.
 
 The register records most SUVs as station wagons (`BODY_TYPE`), so no register field says whether a vehicle is an SUV. A
 nameplate does: the class of a make and model is a lookup, not a measurement (invariant 4). `data/reference/model_segment.csv`
-is that lookup for the nameplates that make up most recent passenger registrations. **Nothing reads it yet**: it is not a
-dimension, no build uses it, and no figure on the site depends on it. A maintainer reads its coverage with
+is that lookup for the nameplates that make up most recent passenger registrations. **The build reads it** (D-161): every vehicle is joined to it on its canonical make and
+model and takes the row's class in the column `model_class` of `rows` (`config/pipeline.json`, `model_classes`), under the rules
+of "When a build reads the file" below, and a build whose vehicles meet two rows stops. The dimension `market_type` reads that column
+("Market type" below), and its figures depend on it. A maintainer reads its coverage with
 `scripts/segment_coverage.py`; `pipeline/tests/test_model_segment.py` holds its form.
 
 **The rule.**
@@ -1209,8 +1211,9 @@ the Cross 5 kg over it), but the file cannot express it: that needs a `match_bod
 *When a build reads the file.* A build that joins this file on canonical make and model must apply the year bounds and the mass
 bounds together, inclusively; treat a vehicle with no recorded mass as matching no row that bounds the mass; and take the
 `gvm` the `rows` table holds after sentinel handling, never the raw field. For the Market type rules (`market_type_map.csv`
-rule 6), a vehicle that matches no row, or a row that is not `suv`, stays Passenger, so a Corolla with no recorded mass, or a
-used import under 1,700 kg, is Passenger and not SUV.
+rules 6 to 8), a vehicle that meets no row, or one whose row is `unresolved`, reads Not yet classified (rule 8), and one whose row is
+`car` reads Passenger; a vehicle with no recorded mass meets no row that bounds the mass, so it takes the row (if any) that does
+not.
 
 **Coverage reached** (measured 2026-11-25; passenger vehicles, the `passenger` scope group of `vehicle_scope.csv`, each
 dataset's own filter; the 2026-10 snapshot; trailing is November 2025 to October 2026; "has a row" counts `unresolved` rows,
@@ -1287,8 +1290,10 @@ committee's placements; here a vehicle's class is its nameplate's, whole), so th
 ## Market type (D-154, D-155)
 
 A vehicle's market type says what kind of vehicle it is in the way the published top level does, from its body and its
-mass, not from the type NZTA registers it under. It has six values, decided by `data/reference/market_type_map.csv`,
-fifteen ordered rules of which the first that matches a vehicle wins (so the order is part of the definition). A rule can
+mass, not from the type NZTA registers it under. It has seven values, decided by `data/reference/market_type_map.csv`,
+eighteen ordered rules of which the first that matches a vehicle wins (so the order is part of the definition). Rules 1 to 15
+place the five vehicle types of the vehicle scope file's `trade_scope` column (D-154, D-155); rules 16 to 18 name the nine other
+types, for a dataset that counts every vehicle type (D-161). A rule can
 test the vehicle type, the body, NZTA's class (`nzta_classes`, values of `class_map.csv`), the GVM and the SUV file's class
 for the model. The definitions below are the user's, an industry convention for which no source is cited; D-155 adds
 Not yet classified and settles motor caravans and special purpose vehicles:
@@ -1315,17 +1320,56 @@ Not yet classified and settles motor caravans and special purpose vehicles:
   GVM that no rule above took (a ute with no recorded GVM is Light commercial under rule 2); a three-wheeler registered as a
   passenger vehicle. A recorded GVM of 0 is not recorded. A vehicle no rule matches is not Other: a build would count it as
   unmapped.
+- **Other vehicle types** (rules 16 to 18, D-161): a vehicle of any of the nine types outside the five, whatever its body, class
+  or mass: motorcycles, mopeds and all-terrain vehicles (231,107 vehicles on the register at 2026-10); trailers and caravans, and
+  trailers not designed for highway use (884,271); tractors, high-speed agricultural vehicles, agricultural machines and mobile
+  machines (76,981). They are not what the owner's five values describe, and they are kept out of Other so that Other stays
+  what the five types' rules leave over, listed so it can be checked: 1,192,359 vehicles of the register's 5,926,990 would
+  otherwise swamp it. Only a dataset that counts every vehicle type (the fleet) meets them; the vehicle scope file marks none of
+  the nine in `trade_scope`. A passenger-registered three-wheeler stays in Other (rule 14), because it is registered as a passenger
+  vehicle.
 
 **Coverage caveat for the SUV file.** The register has no field that says SUV, so SUV, Passenger and Not yet classified rest on
-the nameplate file, which does not cover every model. On the new passenger-registered vehicles of November 2025 to October
-2026, the file classifies 80.9% (suv 73.4%, car 7.5%), marks 12.6% unresolved and has no row for 6.6%: Not yet classified holds
-19.1% of them. SUV is a floor, and Passenger is a floor too.
+the nameplate file, which does not cover every model. SUV is a floor, and Passenger is a floor too. The build measures how much
+of the file's pool it places (below) and publishes the figure with every build.
 
-**Counted on the register only.** The rules need the gross vehicle mass and the body, which the register carries and the
-dashboard's export does not, so the dashboard's datasets get no market type until the history is retaken with the GVM group.
+**Built (D-161).** Market type is the dimension `market_type` (`config/dimensions.json`), derived by the generic `ordered_rules`
+kind from `data/reference/market_type_map.csv` and, for the rules that read the nameplate's class, from `model_segment.csv`, which
+the build joins onto every vehicle on its canonical make and model (`config/pipeline.json`, `model_classes`; the file's rules are
+in "SUV or car, by nameplate" above). It is live on `registrations_surviving` (a slice, and a column of the fact table) and on
+`fleet` (a slice), and not on `new_registrations`: the rules need NZTA's class and the gross vehicle mass, which the
+dashboard's export does not carry (it does carry the body type), so that dataset's manifest says "the source does not carry" them and it
+gets a market type when the history is retaken with them. A vehicle no rule takes stops the build, however few (`abort_on_unmapped` and `abort_on_any_unmapped`): the
+five types of the vehicle scope file and the nine others are each named by a rule, and none of the 5,926,990 vehicles of the 2026-10
+register is unmapped. Counts are of the vehicles each dataset counts, so the vehicles still registered count the five types in the
+months they were first registered, and the fleet counts every vehicle on the register at the snapshot.
 
-It is defined and tested against the published figures (D-154, D-155) but not built: no dimension, no build and no figure on the
-site reads the file yet.
+**The coverage guard** (`coverage` in the dimension's block of `config/dimensions.json`; invariant 4). The pool is the vehicles of
+the five types, fleet entries, new (NZ New), first registered in the trailing 12 months, whose value is Passenger, SUV or Not yet
+classified: the passenger-registered cars and vans, whose class comes from the file. Coverage is the share of the pool that is
+not Not yet classified. The build warns below 75% and leaves the dimension not live below 70% (or aborts, if it was live in the last
+good build, as any dimension that stops being live does). Both are shares of the pool, counted on whole vehicles, and both numbers are
+config. The figure is published in each dataset's manifest entry under `dimension_coverage`, for the trailing window and for every
+month (`docs/CUBE_SCHEMA.md`). Measured on the 2026-10 pull: the pool of the trailing 12 months holds 110,606 new vehicles, of which
+1,454 are Not yet classified, so 98.69% are placed; of every month's new vehicles, 1,963,621 and 630,929 (67.87% placed, which is why
+the guard looks at the trailing window); of the trailing window's used imports (not what the guard judges), 89,713 and 8,742 (90.26%).
+
+Trailing 12 months (first registered November 2025 to October 2026), vehicles still registered, five types, as counted on the
+2026-10 pull:
+
+| Market type | New (NZ New) | Share | Used imports | Share |
+|---|---|---|---|---|
+| SUV | 93,720 | 62.54% | 20,003 | 21.16% |
+| Light commercial | 33,327 | 22.24% | 3,943 | 4.17% |
+| Passenger | 15,432 | 10.30% | 60,968 | 64.48% |
+| Heavy commercial | 5,880 | 3.92% | 794 | 0.84% |
+| Not yet classified | 1,454 | 0.97% | 8,742 | 9.25% |
+| Other | 43 | 0.03% | 103 | 0.11% |
+| Total | 149,856 | | 94,553 | |
+
+Market type is not the split of `segment_group` (Vehicle class): that reads the type, body and mass alone, cannot tell an SUV from
+a car, and puts buses, motor caravans and special purpose vehicles in Other. The two are different questions and are not
+reconciled here.
 
 ## Buyer type
 

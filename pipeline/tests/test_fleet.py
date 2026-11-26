@@ -21,7 +21,7 @@ from pipeline import build, config, derive, privacy, reference
 from pipeline.contract import NOT_BROKEN_DOWN, UNDEFINED, UNMAPPED
 from pipeline.errors import GuardrailError
 
-from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
+from .conftest import NOW, body_for_type, load_rows, make_cfg, source_for, write_pages
 from .test_golden import frozen_reference
 
 
@@ -46,10 +46,11 @@ USAGE = usage_dimension()
 
 
 def type_dimension() -> str:
+    """The dimension the usage is paired with: the stock is offered others that stand in no pair (market type, D-161)."""
     cfg = config.load()
-    others = [d for d in cfg.pipeline["datasets"][FLEET]["dimensions"] if d != USAGE]
-    assert len(others) == 1, others
-    return others[0]
+    pairs = cfg.pipeline["datasets"][FLEET]["pairs"]
+    assert len(pairs) == 1 and USAGE in pairs[0], pairs
+    return next(d for d in pairs[0] if d != USAGE)
 
 
 TYPE = type_dimension()
@@ -103,7 +104,9 @@ def test_the_fleet_counts_every_row_of_the_register_in_the_one_period(built):
     assert entry["rows"] == len(rows) == manifest["source"]["rows_pulled"]
     assert entry["months"] == 1 and entry["latest_month"] == manifest["latest_snapshot"][:7]
     assert entry["facts"] is None and not (workspace["public"] / "facts" / FLEET).exists()
-    assert entry["live_dimensions"] == [USAGE, TYPE] or sorted(entry["live_dimensions"]) == sorted([USAGE, TYPE])
+    # Every dimension the stock is offered is live (a stock is offered the dimensions it can be broken down by and no others).
+    assert sorted(entry["live_dimensions"]) == sorted(cfg.pipeline["datasets"][FLEET]["dimensions"])
+    assert {USAGE, TYPE} <= set(entry["live_dimensions"])
     assert entry["live_pairs"] == [PAIR]
 
 
@@ -292,12 +295,14 @@ def table_rows(template, counts, first_id):
     types = list(type_labels(cfg))
     column = usage_column(cfg)
     type_column = cfg.pipeline["fields"][spec_of(cfg, TYPE)["derive"]["field"]]
+    body_column = cfg.pipeline["fields"]["body_type"]
     rows, next_id = [], first_id
     for (i, j), n in sorted(counts.items()):
         for _ in range(n):
-            rows.append(dict(template, OBJECTID=next_id, **{column: usages[i], type_column: types[j]}))
+            rows.append(dict(template, OBJECTID=next_id, **{column: usages[i], type_column: types[j], body_column: body_for_type(cfg, types[j], template[body_column])}))
             next_id += 1
     return rows
+
 
 
 # Four usages by three types; (0, 0) is the one cell under 10.
