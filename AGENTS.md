@@ -173,7 +173,9 @@ Setup, **not re-run this session** (the environment already existed):
   used, the largest values of a field, the largest moves, and each split of a field. `src/lib/latestMonthBuild.ts` reads the slices where the site is built (hyparquet in Node, by the
   rules of `loadSlice`), `src/lib/latestMonthLinks.ts` writes each block's canvas address with the canvas's own functions, and `src/components/LatestMonth.astro` draws bars in tables
   with no script. A block whose field the manifest does not list as live for the dataset is not drawn, so a field built later appears by itself; the section is not drawn where the
-  dataset or its files are not in the build.
+  dataset or its files are not in the build. The split of a block's field by new or used comes from the fact table where it carries the field, and otherwise from the published pair of the field and
+  new or used (`readPairColumns` in `src/lib/conditionViewsBuild.ts`), held to the field's slice either way; a block marked `needs_views` (buyer type) is drawn only inside the switch, so where its split is missing
+  it is left out and no other block loses its switch, and each panel for all the vehicles links to the canvas with `widen` so the canvas does not start it under one condition.
 - `scripts/unmatched_hybrids.py` lists, for one dataset, the hybrids that count against its mild hybrid coverage at high
   confidence, by make and model. Run by hand when a build warns that the split flipped (`docs/playbooks/check-monthly-run.md`,
   D-112); it reads the repository and a saved pull and writes nothing.

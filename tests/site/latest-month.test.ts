@@ -415,6 +415,53 @@ test("on the built data the figure is the sum of the vehicle-type split and of e
   assert.doesNotMatch(JSON.stringify(view), /NaN|undefined|\{[a-z_]+\}/);
 });
 
+const pairFile = new URL("pairs/new_registrations/buyer_type__import_status.parquet", here);
+test("on the built data the buyer block's figures are the pair's own counts, summed here apart from the site's readers, for the month and the last 12 months", { skip: (!haveData || !existsSync(pairFile)) && "no built data with the buyer-type pair in public/data" }, async () => {
+  const { parquetReadObjects } = await import("hyparquet");
+  const { decompressZstd } = await import("hyparquet-compressors");
+  const { monthKey } = await import("../../src/lib/monthkey.ts");
+  const { conditionOrder } = await import("../../src/lib/displayNames.ts");
+  const { builtDisplayNames } = await import("../../src/lib/displayNamesBuild.ts");
+  const { windowsFor } = await import("../../src/lib/windows.ts");
+  const manifest = JSON.parse(readFileSync(new URL("manifest.json", here), "utf8"));
+  const raw = readFileSync(pairFile);
+  const pair = await parquetReadObjects({
+    file: raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength) as ArrayBuffer,
+    compressors: { ZSTD: (input: Uint8Array) => (decompressZstd as (input: Uint8Array) => Uint8Array)(input) },
+    columns: ["month", "a_value", "b_value", "n"],
+  });
+  const view = await latestMonthSection(manifest, reader(here));
+  const buyers = find(view, "buyers");
+  assert.ok(buyers?.views && buyers.windowed, "the block is drawn, with its views and over the windows");
+  const conditions = conditionOrder(builtDisplayNames(), latestConfig.view_field as string);
+  const windows = windowsFor(datasetLatestMonth(manifest, latestConfig.dataset));
+  assert.equal(buyers.views.length, conditions.length + 1);
+  // The sum of the pair's counts of a buyer type over some months, for one condition or (undefined) for all of them.
+  const sum = (months: string[], condition?: string) => {
+    const out = new Map<string, number>();
+    for (const r of pair) {
+      if (!months.includes(monthKey(r.month)) || (condition !== undefined && r.b_value !== condition)) continue;
+      out.set(String(r.a_value), (out.get(String(r.a_value)) ?? 0) + Number(r.n));
+    }
+    return out;
+  };
+  const shown = (p: { rows: { value?: string; count?: string }[] }) => new Map(p.rows.filter((r) => r.value !== undefined).map((r) => [r.value as string, r.count]));
+  const expected = (m: Map<string, number>) => new Map([...m].filter(([, n]) => n > 0).map(([v, n]) => [v, count(n)]));
+  const month = [view?.month as string];
+  assert.ok(expected(sum(month, conditions[0])).size >= 2, "the pair holds something to compare with");
+  for (const [index, condition] of [...conditions, undefined].entries()) {
+    assert.deepEqual(shown(buyers.views[index]), expected(sum(month, condition)), `the month, view ${index}`);
+    for (const w of windows.filter((x) => ["month", "12m"].includes(x.id))) {
+      const p = buyers.windowed.find((x) => x.win === w.index && x.view === index);
+      assert.ok(p, `${w.id} view ${index}`);
+      assert.deepEqual(shown(p), expected(sum(w.months, condition)), `${w.id}, view ${index}`);
+    }
+  }
+  // The all panel's part beside each buyer type is that condition's own count.
+  const all = buyers.views[conditions.length];
+  for (const [i, condition] of conditions.entries()) for (const r of all.rows) assert.equal(r.parts?.[i], count(sum(month, condition).get(r.value as string) ?? 0), `${r.name}: the part under ${condition}`);
+});
+
 test("the words of the section are filled with nothing left over, for a made-up month", () => {
   for (const [key, text] of Object.entries(latestConfig.words)) {
     const { unresolved } = fillTemplate(text, { month: MONTH, prior_month: PRIOR, counted: "c", change: 0.1, prior_count: "1", prior: "p", name: "n", names: "n", field: "f", share: "s", points: "p", minimum: "1", heading: "h", view: "v", parts: "p", count: "1", window: "w", start: "s", end: "e", items: "i", label: "l", months: 3 });
