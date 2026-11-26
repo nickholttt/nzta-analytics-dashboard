@@ -1211,8 +1211,9 @@ the Cross 5 kg over it), but the file cannot express it: that needs a `match_bod
 *When a build reads the file.* A build that joins this file on canonical make and model must apply the year bounds and the mass
 bounds together, inclusively; treat a vehicle with no recorded mass as matching no row that bounds the mass; and take the
 `gvm` the `rows` table holds after sentinel handling, never the raw field. For the Market type rules (`market_type_map.csv`
-rule 6), a vehicle that matches no row, or a row that is not `suv`, stays Passenger, so a Corolla with no recorded mass, or a
-used import under 1,700 kg, is Passenger and not SUV.
+rules 6 to 8), a vehicle that meets no row, or one whose row is `unresolved`, reads Not yet classified (rule 8), and one whose row is
+`car` reads Passenger; a vehicle with no recorded mass meets no row that bounds the mass, so it takes the row (if any) that does
+not.
 
 **Coverage reached** (measured 2026-11-25; passenger vehicles, the `passenger` scope group of `vehicle_scope.csv`, each
 dataset's own filter; the 2026-10 snapshot; trailing is November 2025 to October 2026; "has a row" counts `unresolved` rows,
@@ -1329,15 +1330,46 @@ Not yet classified and settles motor caravans and special purpose vehicles:
   vehicle.
 
 **Coverage caveat for the SUV file.** The register has no field that says SUV, so SUV, Passenger and Not yet classified rest on
-the nameplate file, which does not cover every model. On the new passenger-registered vehicles of November 2025 to October
-2026, the file classifies 80.9% (suv 73.4%, car 7.5%), marks 12.6% unresolved and has no row for 6.6%: Not yet classified holds
-19.1% of them. SUV is a floor, and Passenger is a floor too.
+the nameplate file, which does not cover every model. SUV is a floor, and Passenger is a floor too. The build measures how much
+of the file's pool it places (below) and publishes the figure with every build.
 
-**Counted on the register only.** The rules need the gross vehicle mass and the body, which the register carries and the
-dashboard's export does not, so the dashboard's datasets get no market type until the history is retaken with the GVM group.
+**Built (D-161).** Market type is the dimension `market_type` (`config/dimensions.json`), derived by the generic `ordered_rules`
+kind from `data/reference/market_type_map.csv` and, for the rules that read the nameplate's class, from `model_segment.csv`, which
+the build joins onto every vehicle on its canonical make and model (`config/pipeline.json`, `model_classes`; the file's rules are
+in "SUV or car, by nameplate" above). It is live on `registrations_surviving` (a slice, and a column of the fact table) and on
+`fleet` (a slice), and not on `new_registrations`: the rules need the body, NZTA's class and the gross vehicle mass, which the
+dashboard's export does not carry, so that dataset's manifest says "the source does not carry" them and it gets a market type when the
+history is retaken with them. A vehicle no rule takes stops the build, however few (`abort_on_unmapped` and `abort_on_any_unmapped`): the
+five types of the vehicle scope file and the nine others are each named by a rule, and none of the 5,926,990 vehicles of the 2026-10
+register is unmapped. Counts are of the vehicles each dataset counts, so the vehicles still registered count the five types in the
+months they were first registered, and the fleet counts every vehicle on the register at the snapshot.
 
-It is defined and tested against the published figures (D-154, D-155) but not built: no dimension, no build and no figure on the
-site reads the file yet.
+**The coverage guard** (`coverage` in the dimension's block of `config/dimensions.json`; invariant 4). The pool is the vehicles of
+the five types, fleet entries, new (NZ New), first registered in the trailing 12 months, whose value is Passenger, SUV or Not yet
+classified: the passenger-registered cars and vans, whose class comes from the file. Coverage is the share of the pool that is
+not Not yet classified. The build warns below 75% and leaves the dimension not live below 70% (or aborts, if it was live in the last
+good build, as any dimension that stops being live does). Both are shares of the pool, counted on whole vehicles, and both numbers are
+config. The figure is published in each dataset's manifest entry under `dimension_coverage`, for the trailing window and for every
+month (`docs/CUBE_SCHEMA.md`). Measured on the 2026-10 pull: the pool of the trailing 12 months holds 110,606 new vehicles, of which
+1,454 are Not yet classified, so 98.69% are placed; of every month's new vehicles, 1,963,621 and 630,929 (67.87% placed, which is why
+the guard looks at the trailing window); of the trailing window's used imports (not what the guard judges), 89,713 and 8,742 (90.26%).
+
+Trailing 12 months (first registered November 2025 to October 2026), vehicles still registered, five types, as counted on the
+2026-10 pull:
+
+| Market type | New (NZ New) | Share | Used imports | Share |
+|---|---|---|---|---|
+| SUV | 93,720 | 62.54% | 20,003 | 21.16% |
+| Light commercial | 33,327 | 22.24% | 3,943 | 4.17% |
+| Passenger | 15,432 | 10.30% | 60,968 | 64.48% |
+| Heavy commercial | 5,880 | 3.92% | 794 | 0.84% |
+| Not yet classified | 1,454 | 0.97% | 8,742 | 9.25% |
+| Other | 43 | 0.03% | 103 | 0.11% |
+| Total | 149,856 | | 94,553 | |
+
+Market type is not the split of `segment_group` (Vehicle class): that reads the type, body and mass alone, cannot tell an SUV from
+a car, and puts buses, motor caravans and special purpose vehicles in Other. The two are different questions and are not
+reconciled here.
 
 ## Buyer type
 

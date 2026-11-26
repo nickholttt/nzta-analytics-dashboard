@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from pipeline import config
+from pipeline import config, derive, reference
 
 HERE = Path(__file__).parent
 FIXTURES = HERE / "fixtures"
@@ -89,3 +89,26 @@ def with_dimension_change(cfg: config.Config, dim_id: str, **changes) -> config.
                 dim["derive"][key] = value
     cfg.dimensions = dims
     return cfg
+
+
+def market_type_rules(cfg) -> list[dict]:
+    """The rules of the ordered rule file the market type dimension reads (D-161), validated as a build validates them."""
+    dim = next(d for d in cfg.dimensions["dimensions"] if d["derive"]["kind"] == derive.ORDERED_RULES)
+    return reference.ordered_rules(cfg, dim["derive"], dim["id"])
+
+
+def body_for_type(cfg, vehicle_type: str, kept: str) -> str:
+    """A body the market type rules name for the type, so that a made-up vehicle that takes a type from a table of types is placed by
+    them (a vehicle no rule takes stops the build); a type whose rules name no body keeps `kept`."""
+    for rule in market_type_rules(cfg):
+        if vehicle_type in reference.split(rule["vehicle_types"], "|") and rule["body_types"]:
+            return reference.split(rule["body_types"], "|")[0]
+    return kept
+
+
+def body_free_heavy_vehicle(cfg) -> dict:
+    """The type and gross vehicle mass of a vehicle the market type rules place whatever its body (a rule that bounds the mass from
+    below and names no body, class or nameplate class), for a test that needs a vehicle of a body no reference file knows."""
+    rule = next(r for r in market_type_rules(cfg) if r["gvm_min_kg"] and not (r["body_types"] or r["nzta_classes"] or r["model_class"]))
+    return {cfg.pipeline["fields"]["vehicle_type"]: reference.split(rule["vehicle_types"], "|")[0],
+            cfg.pipeline["fields"]["gvm"]: int(rule["gvm_min_kg"])}

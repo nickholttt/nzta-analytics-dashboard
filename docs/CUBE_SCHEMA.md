@@ -413,6 +413,16 @@ table grows from 129,103 rows and 345,774 bytes to 131,260 rows (+1.7%) and
 is not live for `registrations_cars_long_run`, which carries no register
 field (*Supplied sources*).
 
+`market_type` (what kind of vehicle it is, by the first of the rules of `market_type_map.csv` that it meets; `docs/METRICS.md`,
+"Market type"; D-161) is a column of `registrations_surviving`'s table, and has a slice of its own there and on `fleet`, which has no
+fact table. Its values are the seven the rule file gives (Passenger, SUV, Not yet classified, Light commercial, Heavy commercial,
+Other, and Other vehicle types, which only `fleet` holds: the vehicles of the nine types outside the scope of the rest). It is not live
+for `new_registrations` (`not_live`: "the source does not carry GROSS_VEHICLE_MASS, CLASS"), whose export has no body type for the
+rules' tests of the weight and the class, nor for `registrations_cars_long_run`. A vehicle no rule takes reads `__UNMAPPED__` and stops
+the build. The dataset's manifest entry publishes how much of the passenger vehicles the SUV file places
+(`dimension_coverage`, *manifest.json*). It was added as a column of the wide table, not as a narrow table, because it adds under
+10% to that table's bytes (D-144's test; measured under *Size budget*).
+
 `nz_assembled` (NZTA's flag for a vehicle assembled or built in New Zealand or imported built up,
 under the labels in `nz_assembled_map.csv`; D-116) is a column of `registrations_surviving`'s table and has a
 slice of its own. The dashboard export and the Stats NZ table carry no such field, so the dimension is not live for the
@@ -897,6 +907,18 @@ the same four figures, so a page that only needs the headline need not fetch the
         "label": "Mild hybrid (identified)",
         "classification_disagrees_with_powertrain": 0
       },
+      "dimension_coverage": {
+        "market_type": {
+          "not_known": "Not yet classified",
+          "pool": ["Passenger", "SUV", "Not yet classified"],
+          "status_labels": ["NZ New"],
+          "trailing": { "window_months": 12, "vehicles": 110606, "not_known": 1454, "coverage": 0.9869 },
+          "all_time": { "vehicles": 1963621, "not_known": 630929, "coverage": 0.6787 },
+          "warn_below_coverage": 0.75,
+          "live_at_coverage": 0.7,
+          "live": true
+        }
+      },
       "coverage_trailing": { "window_months": 12, "fuel_consumption": 0.91, "dimensions": { "region": 0.998 } },
       "counts": {
         "no_registration_month": 172,
@@ -1018,6 +1040,19 @@ When false, every vehicle that would be Mild hybrid is counted as the value `und
 no other count moves, and the build adds a warning. The site must say so
 instead of drawing a Mild hybrid line. It is judged for each dataset on its own
 figure; the label rule above is unchanged.
+`dimension_coverage` (D-161) is on each dataset built from vehicle rows (`{}` when none of its dimensions has a `coverage` block in
+`config/dimensions.json`), and holds one entry for each dimension that has one, keyed by its id (today `market_type`, on
+`registrations_surviving` and `fleet`). It is the guard
+that invariant 4 asks of a lookup on make and model: how much of a pool of vehicles the dimension places. `pool` lists the values
+the dimension gives to the vehicles it is judged on, `not_known` the one of them that says it could not place a vehicle, and
+`coverage` is the share of the pool that is not that value, so `vehicles` is the pool and `not_known` the part of it left unplaced.
+`status_labels` says which vehicles are counted (the import statuses) and `trailing` is over the trailing `window_months` to the
+snapshot month, `all_time` over every month; both are over the same register vehicles whichever dataset carries the entry, so the
+two datasets' entries agree. `coverage` is null where the pool is empty. `warn_below_coverage` and `live_at_coverage` are the
+thresholds, shares of the pool, judged on the whole counts and not on the rounded `coverage`, and `live` says whether the dimension
+was built: below the first a build warns, below the second the dimension is not live (its `not_live` says why), unless it was live in
+the last good build, which aborts the run instead (*Guardrails*).
+
 `classification_disagrees_with_powertrain` counts vehicles whose final
 powertrain contradicts their `mild_hybrid_models.csv` classification (a
 full hybrid shown as Mild hybrid, or the reverse). Coverage is given at
@@ -1108,12 +1143,14 @@ How a stock passes through the build:
 
 **The dataset `fleet`** ("Vehicles registered today", D-135) is the one stock today: every vehicle in the register at the
 snapshot, of every vehicle type and every import status, counted as at the snapshot date (`docs/METRICS.md`). It is offered
-two dimensions and no others: `vehicle_usage`, labelled "Current use" (the register's usage value through
-`data/reference/vehicle_usage_map.csv`), and `vehicle_type` (the type NZTA registers the vehicle under, every type rather than
-the two of the default scope). Its files are `cube/fleet/vehicle_usage.parquet`, written under the small-cell rule and read back
+three dimensions and no others: `vehicle_usage`, labelled "Current use" (the register's usage value through
+`data/reference/vehicle_usage_map.csv`), `vehicle_type` (the type NZTA registers the vehicle under, every type rather than
+the two of the default scope), and `market_type` (D-161; every vehicle is placed, the nine types outside the five by the rules
+that name them, as the value Other vehicle types). Its files are `cube/fleet/vehicle_usage.parquet`, written under the small-cell rule and read back
 (*Slices of owner dimensions*); `cube/fleet/vehicle_type.parquet`, which reads no owner field and is written as counted, but for the fuel columns;
 and `pairs/fleet/vehicle_usage__vehicle_type.parquet`, written under the rule for a table of two fields (*Pairs with an owner
-dimension*). Both slices carry no fuel figure on any row, since the pair stands on them (*Pairs with an owner dimension*). It has
+dimension*). Those two slices carry no fuel figure on any row, since the pair stands on them (*Pairs with an owner dimension*);
+`cube/fleet/market_type.parquet` reads no owner field, is in no pair, and is written as counted, fuel columns included. It has
 no fact table. Its manifest block has `small_cells` for the usage and `small_cell_pairs` for the pair, no
 mild hybrid block, and `facts: null`. `month` in every file is the snapshot's month, the first day, and nothing in any file says
 when a vehicle was first registered. A period that cannot be broken down is one reserved row (in the pair, with the reserved
@@ -1385,9 +1422,20 @@ Mapping:
 - Unmapped `nz_assembled`, `nzta_class`, `transmission` or `powertrain_group` above 2% of in-scope rows, on the same two bases (every dimension in
   `abort_on_unmapped` in `config/pipeline.json` is guarded so, D-116).
 - Any unmapped row at all of a dimension in `abort_on_any_unmapped` (`buyer_type`, D-159: it is published for every vehicle, so a
-  buyer type of `__UNMAPPED__` is never published). A dimension in that list that is not also in `abort_on_unmapped` aborts too.
+  buyer type of `__UNMAPPED__` is never published; `market_type`, D-161: a vehicle no rule takes is a type, body or class the rule
+  file does not know, and is added to the file, not left to read as unmapped). A dimension in that list that is not also in `abort_on_unmapped` aborts too.
 - A dimension that was live in the last good run exceeds its unmapped
   threshold or loses a reference file.
+- A dimension with a `coverage` block (`market_type`) places less of its pool than `live_at` (70%) and was live in the last good run.
+  One that was not live is left not live, with a warning. A block that names a value the dimension never produces, a flag of `rows`
+  or an import status that does not exist, or thresholds out of order aborts before anything is counted.
+- A rule file read in order (`market_type_map.csv`) is malformed: rule numbers that do not rise down the file, a result that is blank
+  or one of the cube's reserved values, a list that names a thing twice or a vehicle type, NZTA class or model class its reference
+  file does not hold, a bound that is not a whole number or whose lower end is above its upper, a field bounded and also said not to
+  be recorded, or a row longer or shorter than the header.
+- `model_segment.csv`, which the build joins onto every vehicle (`model_classes`), has a make the brand registry does not hold, a row
+  without models or a class, a bound that is not a whole number or whose lower end is above its upper, or two rows for one make and
+  model that overlap in both the vehicle year and the gross vehicle mass; and a build whose joined vehicles meet two rows stops too.
 
 The two bases catch different failures. The whole run tolerates old makes
 nobody will map: months before 1990 run 3–30% unmapped, and a per-month
@@ -1535,6 +1583,8 @@ is worse than one that is visibly stale.
   in-scope rows: notice well before the 2% abort.
 - A vehicle's final powertrain contradicts its `mild_hybrid_models.csv`
   classification.
+- A dimension with a `coverage` block (`market_type`) places less of its pool than `warn_below` (75%) over the trailing 12 months, or
+  less than `live_at` (70%) and is therefore not live; or its pool is empty in the window, so its coverage cannot be judged.
 - A dataset's mild hybrid split is published now and was withheld in the last
   good build, or the reverse (`mild_split` in the state). One build then
   rewrites the dataset's whole history of the two values, in every slice, pair
@@ -1648,3 +1698,13 @@ files): the `colour` slice is 87,187 bytes, and the narrow table `colour` is 224
 slice and the table together, so without them it would be 5,317,998 (arithmetic, not a separate build). Against the release
 `cube-2026-10` (99 files), 98 files are byte-identical and `manifest.json` differs; the files only in the dry run are the associations
 files, the fleet's three files, the `colour` slice and the five files of the narrow table, of which only those six are this change.
+
+With `market_type` (D-161), measured on a dry run of 2026-11-26 on the 2026-10 pull (exit 0, 101 staged files) against a dry run of the
+code before it (98 files): the wide table of `registrations_surviving` is 846,355 rows (was 843,470, +2,885) in 2,878,025 bytes (was
+2,733,250, +144,775, +5.30%, under the 10% that would have made it a narrow table), over 22 files; the new file is 129,926 bytes and the
+21 that were there differ by 14,849 together, because rows split. The new 1-D slices are 39,213 bytes (`registrations_surviving`) and 1,327
+(`fleet`). The whole payload is 6,300,036 bytes (was 6,107,688, +192,348, +3.1%), 78.8% of the 8,000,000 byte budget. 75 of the
+98 files are byte-identical, every slice, pair and narrow table that was there among them, every file of the three other datasets, the events
+and `reconciliation.json`; the 23 that differ are the 21 fact-table files, `associations/registrations_surviving.json` and
+`manifest.json`. Summed over month and each of its values, every one of the 19 columns that was in the table gives the same counts as
+before: the counts did not move, the rows were split and reordered.

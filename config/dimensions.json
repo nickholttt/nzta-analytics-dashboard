@@ -292,7 +292,14 @@
       },
       "kind": "category",
       "cardinality": "low",
-      "applies_to": [],
+      "coverage": {
+        "$comment": "The coverage guard of a lookup on make and model (invariant 4, D-161): the share of the vehicles in `pool` that the dimension places, that is, that are not `not_known`, counted over the vehicles `over` describes (the flags of rows they must hold and the import statuses they must have) first registered in the trailing window. Below warn_below a build warns; below live_at the dimension is not live, or the build aborts if it was live in the last good build. Both are shares of the pool: 0.75 and 0.70 are the owner's numbers (D-161 asks for them to be confirmed). Every value named here must be one the rule file gives, and the build says so if one is not.",
+        "not_known": "Not yet classified",
+        "pool": ["Passenger", "SUV", "Not yet classified"],
+        "over": { "require": ["in_trade_scope", "fleet_entry"], "status_labels": ["NZ New"] },
+        "warn_below": 0.75,
+        "live_at": 0.70
+      },
       "help": "What kind of vehicle it is from its type, body and weight: passenger, SUV, light or heavy commercial, other. Not the same split as Vehicle class.",
       "$comment": "Read from market_type_map.csv, ordered rules of which the first that a vehicle meets wins (D-154, D-155, D-161). The derive block says which column asks what of which field: any_of is a list of names separated by `separator`, at_least and at_most are bounds in kilograms (a vehicle with no recorded mass meets none), recorded says the field is (true) or is not (false) recorded, equals compares with the model's class, the column `model_class` that the build joins onto every vehicle from model_segment.csv (pipeline.json, model_classes). values_from names the file and column the names must come from. A vehicle no rule takes reads __UNMAPPED__ and stops the build."
     },

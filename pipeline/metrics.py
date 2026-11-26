@@ -7,7 +7,7 @@ import statistics
 from collections import Counter
 from datetime import date
 
-from . import reference
+from . import normalise, reference
 from .contract import UNDEFINED, UNMAPPED
 from .normalise import SOURCE_SUFFIX, lit
 from .reference import quote
@@ -282,4 +282,60 @@ def age_report(by_age: Counter, cfg, window: int) -> dict:
         "cluster": [rule["cluster_min"], rule["cluster_max"]],
         "share_cluster": round(cluster / total, 4),
         "shares": shares,
+    }
+
+
+def coverage_problems(cfg, dim: dict, vocabulary: set[str] | None) -> list[str]:
+    """What a dimension's `coverage` block (config/dimensions.json) gets wrong, found before anything is counted: a value it names
+    that the dimension never produces, a flag of `rows` or an import status label that does not exist, or thresholds that are not
+    in order. A guard that quietly judged nothing would be worse than none."""
+    spec, who = dim["coverage"], f"dimension {dim['id']}"
+    problems = []
+    named = [spec["not_known"], *spec["pool"]]
+    if vocabulary is not None and set(named) - vocabulary:
+        problems.append(f"{who}: coverage names {sorted(set(named) - vocabulary)}, which the dimension never produces")
+    if spec["not_known"] not in spec["pool"]:
+        problems.append(f"{who}: coverage's pool must hold the value for not known, {spec['not_known']!r}")
+    flags = {*normalise.scope_columns(cfg), "fleet_entry"}
+    if set(spec["over"]["require"]) - flags:
+        problems.append(f"{who}: coverage requires {sorted(set(spec['over']['require']) - flags)}, which are not flags of rows ({sorted(flags)})")
+    status = cfg.pipeline["scope"]["status"]
+    labels = {r[status["label"]] for r in reference.read(cfg.reference(status["file"]))}
+    if set(spec["over"]["status_labels"]) - labels:
+        problems.append(f"{who}: coverage names the import statuses {sorted(set(spec['over']['status_labels']) - labels)}, which {status['file']} does not hold")
+    if not 0 <= spec["live_at"] <= spec["warn_below"] <= 1:
+        problems.append(f"{who}: coverage needs 0 <= live_at <= warn_below <= 1")
+    return problems
+
+
+def dimension_coverage(con, d, spec: dict, snapshot_month: date, window_start: date, window: int) -> dict:
+    """How much of a pool of vehicles a dimension places, over the vehicles of the register `over` describes (the flags of `rows`
+    they must hold and the import statuses they must have), first registered by the snapshot month. The pool is the vehicles whose
+    value is one of `pool`; `not_known` is the value that says the dimension could not place one, so coverage is the share of the
+    pool that is not that value. Counted twice: over the trailing window and over every month. Whole counts are kept, so a
+    judgement against a threshold is made on them and not on the rounded figure published (as the mild hybrid split is)."""
+    over = spec["over"]
+    flags = " AND ".join(quote(f) for f in over["require"])
+    labels = ", ".join(lit(x) for x in over["status_labels"])
+    pool, unknown = ", ".join(lit(v) for v in spec["pool"]), lit(spec["not_known"])
+    base = f"{flags} AND r.status_label IN ({labels}) AND r.reg_month IS NOT NULL AND r.reg_month <= {date_sql(snapshot_month)}"
+    trailing = f"r.reg_month BETWEEN {date_sql(window_start)} AND {date_sql(snapshot_month)}"
+    values = con.execute(f"""
+        SELECT count(*) FILTER (WHERE v IN ({pool}) AND {trailing}), count(*) FILTER (WHERE v = {unknown} AND {trailing}),
+               count(*) FILTER (WHERE v IN ({pool})), count(*) FILTER (WHERE v = {unknown})
+        FROM (SELECT {d.expr} AS v, r.reg_month, r.status_label FROM rows r {' '.join(d.joins)} WHERE {base}) r
+    """).fetchone()
+
+    def basis(vehicles: int, not_known: int) -> dict:
+        return {"vehicles": vehicles, "not_known": not_known, "coverage": round((vehicles - not_known) / vehicles, 4) if vehicles else None}
+
+    return {
+        "not_known": spec["not_known"],
+        "pool": spec["pool"],
+        "status_labels": over["status_labels"],
+        "trailing": {"window_months": window, **basis(values[0], values[1])},
+        "all_time": basis(values[2], values[3]),
+        "warn_below_coverage": spec["warn_below"],
+        "live_at_coverage": spec["live_at"],
+        "counts": {"trailing": (values[0], values[1])},
     }

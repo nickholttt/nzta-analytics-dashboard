@@ -16,7 +16,7 @@ import pytest
 from pipeline import build, derive, fetch, guardrails, metrics, reference, schema
 from pipeline.errors import GuardrailError
 
-from .conftest import NOW, load_rows, make_cfg, source_for, with_dimension_change, write_pages
+from .conftest import NOW, body_for_type, body_free_heavy_vehicle, load_rows, make_cfg, source_for, with_dimension_change, write_pages
 
 
 def run(tmp_path, cfg, rows, state=None, source=None, name="pages", publish=True):
@@ -186,8 +186,10 @@ def test_a_pair_waits_while_one_of_its_dimensions_is_not_live(tmp_path, workspac
     rows = load_rows()
     template = next(r for r in rows if r["OBJECTID"] == 62)
     # A body type the segment map does not know, on enough vehicles to push the segment over the unmapped limit.
-    extra = [dict(template, OBJECTID=2000 + i, BODY_TYPE=f"UNKNOWN BODY {i}") for i in range(5)]
+    # Of a type and mass the market type rules place whatever the body, so only the segment is left unmapped (a body no rule names
+    # would stop the build, D-161).
     cfg = make_cfg(workspace)
+    extra = [dict(template, OBJECTID=2000 + i, BODY_TYPE=f"UNKNOWN BODY {i}", **body_free_heavy_vehicle(cfg)) for i in range(5)]
     cfg.pipeline["datasets"]["registrations_surviving"]["pairs"] = [["import_status", "segment"]]
     manifest = run(tmp_path, cfg, rows + extra, publish=False)
     info = manifest["datasets"]["registrations_surviving"]
@@ -462,9 +464,12 @@ def test_conditional_promotion_moves_only_matching_vehicles(tmp_path, workspace)
     rows = load_rows()
     snapshot = date.fromisoformat(source_for(rows)["change_key"]["snapshot"])
     template = next(r for r in rows if r["OBJECTID"] == 62)
+    body = cfg.pipeline["fields"]["body_type"]
     matching = dict(template, OBJECTID=6000, MAKE=rule[b["model_registry_make"]], MODEL=rule[b["model_registry_model"]],
                     VEHICLE_TYPE=rule[column], FIRST_NZ_REGISTRATION_YEAR=snapshot.year, FIRST_NZ_REGISTRATION_MONTH=snapshot.month)
+    matching[body] = body_for_type(cfg, matching["VEHICLE_TYPE"], matching[body])
     not_matching = dict(matching, OBJECTID=6001, VEHICLE_TYPE=other_type)
+    not_matching[body] = body_for_type(cfg, other_type, template[body])
     run(tmp_path, cfg, rows, name="baseline")
     before = make_totals(workspace)
     run(tmp_path, cfg, rows + [matching, not_matching], name="promoted")
