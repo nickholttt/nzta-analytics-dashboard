@@ -242,7 +242,7 @@ data/reference/
   buyer_type_map.csv  # NZTA dashboard owner type + usage at registration -> Private, Company, Rental or Other; read by the dimension buyer_type of new_registrations (D-159)
   statsnz_series.csv  # Stats NZ's table headers -> series, group and role (D-094)
   model_segment.csv   # canonical make + model -> SUV or car, with basis and confidence: four slices, with vehicle-year and gross-vehicle-mass bounds where a name changed kind, and nothing reads it yet (D-117, D-123, D-145, and the classification review's first batch)
-  market_type_map.csv  # ordered rules: NZTA vehicle type + body + NZTA class + GVM (+ the SUV file) -> Passenger, SUV, Not yet classified, Light commercial, Heavy commercial or Other; defined and tested, nothing reads it yet (D-154, D-155)
+  market_type_map.csv  # ordered rules: NZTA vehicle type + body + NZTA class + GVM (+ the SUV file) -> Passenger, SUV, Not yet classified, Light commercial, Heavy commercial, Other or Other vehicle types (the nine types outside the five, D-161); defined and tested, nothing reads it yet (D-154, D-155)
   published_sources.csv  # the organisations whose published figures every build is set beside: name, address, what each says it counts (D-149)
   published_figures.csv  # one row per published figure: source, month, measure as published, the figure, our matching query (dataset and filters), tolerance (D-149)
   display_names.csv   # how a make, the two import statuses and each powertrain cut are shown to a reader (ordinary case; initialisms kept; a name and a phrase for a sentence): a make without a row is title-cased by rule; read only when the site is built

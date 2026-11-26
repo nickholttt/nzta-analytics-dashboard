@@ -1287,8 +1287,10 @@ committee's placements; here a vehicle's class is its nameplate's, whole), so th
 ## Market type (D-154, D-155)
 
 A vehicle's market type says what kind of vehicle it is in the way the published top level does, from its body and its
-mass, not from the type NZTA registers it under. It has six values, decided by `data/reference/market_type_map.csv`,
-fifteen ordered rules of which the first that matches a vehicle wins (so the order is part of the definition). A rule can
+mass, not from the type NZTA registers it under. It has seven values, decided by `data/reference/market_type_map.csv`,
+eighteen ordered rules of which the first that matches a vehicle wins (so the order is part of the definition). Rules 1 to 15
+place the five vehicle types of the vehicle scope file's `trade_scope` column (D-154, D-155); rules 16 to 18 name the nine other
+types, for a dataset that counts every vehicle type (D-161). A rule can
 test the vehicle type, the body, NZTA's class (`nzta_classes`, values of `class_map.csv`), the GVM and the SUV file's class
 for the model. The definitions below are the user's, an industry convention for which no source is cited; D-155 adds
 Not yet classified and settles motor caravans and special purpose vehicles:
@@ -1315,6 +1317,14 @@ Not yet classified and settles motor caravans and special purpose vehicles:
   GVM that no rule above took (a ute with no recorded GVM is Light commercial under rule 2); a three-wheeler registered as a
   passenger vehicle. A recorded GVM of 0 is not recorded. A vehicle no rule matches is not Other: a build would count it as
   unmapped.
+- **Other vehicle types** (rules 16 to 18, D-161): a vehicle of any of the nine types outside the five, whatever its body, class
+  or mass: motorcycles, mopeds and all-terrain vehicles (231,107 vehicles on the register at 2026-10); trailers and caravans, and
+  trailers not designed for highway use (884,271); tractors, high-speed agricultural vehicles, agricultural machines and mobile
+  machines (76,981). They are not what the owner's five values describe, and they are kept out of Other so that Other stays
+  what the five types' rules leave over, listed so it can be checked: 1,192,359 vehicles of the register's 5,926,990 would
+  otherwise swamp it. Only a dataset that counts every vehicle type (the fleet) meets them; the vehicle scope file marks none of
+  the nine in `trade_scope`. A passenger-registered three-wheeler stays in Other (rule 14), because it is registered as a passenger
+  vehicle.
 
 **Coverage caveat for the SUV file.** The register has no field that says SUV, so SUV, Passenger and Not yet classified rest on
 the nameplate file, which does not cover every model. On the new passenger-registered vehicles of November 2025 to October
