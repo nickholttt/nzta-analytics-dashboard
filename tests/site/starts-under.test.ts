@@ -69,12 +69,10 @@ for (const measure of ["share", "count"]) {
   });
 }
 
-test("the starting condition is a notice in config's words, and a chart that has lost it says what it counts instead", () => {
+test("a chart that has lost the starting condition says what it counts instead, in config's words", () => {
   const all = builder.builderVocabulary(served);
   const q = ask(all);
-  const [notice] = builder.narrowingNotes(all, q);
-  assert.equal(notice, config.builderSpec.notices.started.replace("{kind}", RULE.kind));
-  assert.equal(builder.narrowingNotes(all, q).length, 1);
+  assert.deepEqual(builder.narrowingNotes(all, q), [], "the sentence for a field the register leaves blank is not said of a condition the question starts under for its reading");
   assert.equal(builder.builderPresets(q)[0].note?.includes(RULE.widened_to as string) ?? false, false, "no such words while the condition stands");
   const removed = builder.settleChange(all, q, { ...q, where: {} }, true);
   assert.deepEqual(removed.where, {});
@@ -207,4 +205,20 @@ test("the pair read through the site's reader gives the latest month's new-vehic
   const rows = (await loadView(resolved(ask(builder.builderVocabulary(served)), served).source as never)).filter((r) => r.month === last);
   assert.deepEqual(new Map(rows.map((r) => [r.value, r.n])), expected);
   assert.ok(rows.every((r) => r.denominator === total), "a share is of the new vehicles of the month, not of every vehicle the pair's file counts");
+});
+
+// A link that names no condition, and so opens narrowed, is told so in config's words; a link that names the condition, or its removal, or a chart
+// with no pair to serve it, is told nothing.
+test("a link that names no starting condition is told the chart starts with it; one that names it, or its removal, is not", () => {
+  const told = (all: ReturnType<typeof builder.builderVocabulary>, extra: string) => {
+    const asked = canvas.readCanvas(`?${link(extra)}`)[0].asked;
+    return builder.linkNotices(all, asked, builder.settle(all, asked));
+  };
+  const all = builder.builderVocabulary(served);
+  const started = config.builderSpec.notices.started.replace("{kind}", RULE.kind);
+  assert.deepEqual(told(all, ""), [started]);
+  assert.deepEqual(told(all, `&c1.where.${RULE.dimension}=${encodeURIComponent(RULE.value)}`), []);
+  assert.deepEqual(told(all, `&c1.where.${RULE.dimension}=${encodeURIComponent(otherValue)}`), []);
+  assert.deepEqual(told(all, `&c1.widen=${RULE.dimension}`), []);
+  assert.deepEqual(told(builder.builderVocabulary(bare), ""), []);
 });

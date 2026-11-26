@@ -333,18 +333,18 @@ const narrowingsFor = (all: Vocabulary, dataset: string, ids: (string | null | u
 // told nothing: the chart then counts every vehicle and the field's note says what the gap is.
 export function narrowingNotes(all: Vocabulary, q: Question): string[] {
   const kept = cleanWhere(q.where);
-  const groups = new Map<string, { kind: string; fields: string[]; starting: boolean }>();
+  const groups = new Map<string, { kind: string; fields: string[] }>();
   for (const id of q.by ? [q.by, ...(q.by2 ? [q.by2] : [])] : []) {
-    for (const n of narrowingsFor(all, q.dataset, [id])) {
+    // A condition a field starts under by config says so as a link's notice (readingNotes), not here.
+    for (const n of narrowingsFor(all, q.dataset, [id]).filter((n) => !n.starting)) {
       const on = kept[n.dimension];
       if (!(on?.length === 1 && on[0] === n.value)) continue;
-      const group = groups.get(n.dimension) ?? { kind: n.kind, fields: [], starting: Boolean(n.starting) };
+      const group = groups.get(n.dimension) ?? { kind: n.kind, fields: [] };
       group.fields.push(lowerLabel(dimensionLabel(id) ?? id));
       groups.set(n.dimension, group);
     }
   }
-  // A field the register leaves blank for some vehicles says so; one that starts under a condition for the reading says only what it starts with.
-  return [...groups.values()].map((g) => fillTemplate(g.starting ? builderSpec.notices.started : builderSpec.notices.narrowed, { field: sayList(g.fields), kind: g.kind }).text);
+  return [...groups.values()].map((g) => fillTemplate(builderSpec.notices.narrowed, { field: sayList(g.fields), kind: g.kind }).text);
 }
 
 // The question after the visitor changed it: a condition it had that the new one lacks was removed, and is remembered as removed so the
@@ -448,6 +448,8 @@ export type Reading = {
   value2?: true;
   // A snapshot the link named that is not a month.
   snapshot?: { asked: string };
+  // The condition a breakdown starts under (builder.starts_under) that the link did not name and the page added: the words for the vehicles it keeps.
+  started?: { kind: string }[];
   // Values the link named that the page does not offer to choose, each with the field it was named for.
   left_out?: { asked: string; field: string }[];
   // The link named a dataset that has been joined into another (retired_datasets): its old name, the dataset it is now, and the vehicles the old
@@ -494,6 +496,11 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
   if (typeof asked.by2 === "string" && asked.by2 !== "" && asked.by2 !== settled.by2) note.by2 = { asked: lowerFirst(dimensionLabel(asked.by2, false, settled.dataset) ?? asked.by2) };
   if (!asked.by2 && (asked.values2 ?? []).length > 0) note.value2 = true;
   if (asked.snapshot && !settled.snapshot) note.snapshot = { asked: asked.snapshot };
+  // A link written before the condition existed names none, and opens on the question narrowed: it is told, as its figures are not those it drew before.
+  const started = narrowingsFor(all, settled.dataset, [settled.by, settled.by2]).filter(
+    (n) => n.starting && !(n.dimension in (asked.where ?? {})) && settled.where[n.dimension]?.length === 1 && settled.where[n.dimension][0] === n.value,
+  );
+  if (started.length) note.started = [...new Map(started.map((n) => [n.dimension, { kind: n.kind }])).values()];
   return note;
 }
 
@@ -510,6 +517,7 @@ export function linkNotices(all: Vocabulary, asked: Partial<Question>, settled: 
     ...(note.by2 ? [fill(notices.by2, note.by2)] : []),
     ...(note.value2 ? [notices.value2] : []),
     ...(note.snapshot ? [fill(notices.snapshot, note.snapshot)] : []),
+    ...(note.started ?? []).map((on) => fill(notices.started, on)),
     ...(note.retired_dropped ?? []).map((gone) => fill(notices.retired_dropped, gone)),
     ...(note.left_out ?? []).map((left) => fill(notices.left_out, left)),
   ];
