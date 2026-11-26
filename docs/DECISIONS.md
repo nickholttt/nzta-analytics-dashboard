@@ -832,3 +832,34 @@ date, or "inferred — confirm"; the full legend heads the archive.
   - Not done: Market type on the dashboard's `new_registrations` (needs the gross vehicle mass and NZTA's class in its export, which carries the body type but neither; D-154 item 5, lane D), the canvas offering it on the fleet (a site pull request that changes the stock's test), the 22 vstat light commercial rows guarded on the register basis (D-155), and any starter or page that shows it.
   - `config/latest_month.json` already has a block for it; it draws only where a dataset has the field live, which `new_registrations` does not, so the front page is unchanged.
 - Status: decided by claude (unreviewed). High risk (pipeline code, the data contract, published files): it needs the independent review.
+
+## D-162 2026-11-27 — The public site's UI is designed again, as pages the visitor can re-ask; the Impeccable skill and its context files join the repository
+- Agent: user (the direction, the look and the tool); claude (the reading, the structure and what is recorded)
+- Basis: the user's messages of 2026-11-27, kept unchanged in `docs/brief/UI_DIRECTION.md`: the site built so far "prove[s] the engine" and is not published; "build a perfect ui with intention"; "I also like the look of how https://ui.shadcn.com/ looks with graphs"; "think of our initial goal of flexibility and giving people the power to decide ... beat how vstat designed their platform"; "install impeccable skill again if not available or rerun all applicable skills, going from essentially a start to polish".
+- Context: the current site is three surfaces with three layouts (the latest month as tables, the canvas as a form beside a chart, generated pages of tables). A first proposal kept fixed pages; the user's answer was that the visitor must be able to decide. Impeccable (github.com/pbakaus/impeccable, Apache 2.0) is a design skill for coding agents: a detector, review playbooks, and context files it reads from the repository root.
+- Options considered:
+  - Every page is a canvas someone started for the visitor: one bar recounts the page, and every card carries two controls (by which field, drawn how). Chosen: it puts the canvas's power on the pages the public and the trade actually land on, over the logic that exists (the rule table, `src/lib/canvas.ts`).
+  - An ask bar first, with results as cards. Not chosen: it opens empty and asks a member of the public to phrase a query.
+  - A persistent field rail beside every page. Not chosen: heavy on a phone, and it reads as an analyst's tool.
+  - Keep fixed pages and polish them. Not chosen: it is what the user turned down.
+- Decision:
+  1. The direction for lane F is the first option, recorded as a direction contract in `.impeccable/surfaces/src-pages-index-astro.md`. The look is stock shadcn/ui (open source): Geist, neutral greys, soft cards, its chart conventions. Nothing of the MTA's colours, logo or wording is used.
+  2. `PRODUCT.md` at the repository root is the product record Impeccable reads. It restates `CLAUDE.md` and adds nothing to it; where the two differ, `CLAUDE.md` wins. `DESIGN.md` and `.impeccable/design.json` record the design system once the proposal is accepted or built.
+  3. Impeccable is installed for the maintainer's user, not in the repository: no hook, no dependency and no workflow is added, and no check in `Checks` depends on it. Its files under `.impeccable/` that are kept in git are the surface briefs; its working folders ignore themselves.
+  4. Nothing in `src/` changes with this record. The first build pull request of lane F carries the typefaces (Geist in place of the two now shipped) and the tokens.
+- Consequences:
+  - No invariant, shape, data contract, published figure or privacy rule changes. The card's two controls offer only what `config/chart_rules.json` allows, and a field that cannot be asked is greyed with its reason.
+  - Two things a reader of the current site would see change, each for the user to confirm: direction shown by an arrow in ink where green and red are used today; and curves that never pass a data point where shadcn's default can.
+  - `.impeccable/` is a new top-level directory. A reader who has not installed the skill loses nothing: the files are plain Markdown.
+- Status: the direction, the look and the use of the skill are the user's (accepted). The structure, the product record's wording and the two changes above are decided by claude (unreviewed). Docs and context files only: low risk.
+
+## D-163 2026-11-27 — The user accepts the new UI's design and structure, for building
+- Agent: user (the acceptance); claude (the reading)
+- Basis: the user's message of 2026-11-27 after the third proposal, kept in `docs/brief/UI_DIRECTION.md`: "Im happy with the initial design"; "go for now, it looks good enough"; "do a pass which optimises views for web and desktop explicitly ... no weird gaps are left"; "install it" (Impeccable's hook).
+- Context: D-162 left two things unreviewed: the structure (every page a canvas the visitor can re-ask), which the finish reviewer scored partial because the user had pinned the look and not the structure, and the proposal's own choices.
+- Decision:
+  1. The design in `DESIGN.md` and the direction contract in `.impeccable/surfaces/` are the basis lane F builds from. "For now" is read as leave to change it later, not as a hold.
+  2. The layout pass the user asked for is part of that design: a card lays itself out by its own width, the first card spans the page under a one-row headline, a card's foot is one row, and cards in a row share a height (`DESIGN.md`, Layout).
+  3. Impeccable's hook is turned on for this project (`.impeccable/config.json`), with Geist recorded as the owner's choice so the detector does not flag it. The hook scans UI files a Claude Code session edits and changes nothing for other tools or for `Checks`.
+- Consequences: still for the user to confirm when they see them built: direction as an arrow in ink where green and red are used today, the number-plate wordmark, and how the name is written. Open for the build: a filter on any field, a card's own condition, an address that carries the page's choices, and a light and heavy vehicle switch.
+- Status: accepted (user) for points 1 and 3; the reading of "for now" and the detail of point 2 are claude's (unreviewed). Docs and context files only.

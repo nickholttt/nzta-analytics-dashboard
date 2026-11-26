@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-27T00:00:00Z",
+  "title": "Design System: vcore",
+  "status": "Accepted by the owner on 2026-11-27 (D-163). Recorded from the design proposal's prototype, fourth version, kept outside the repository. Not yet applied to src/.",
+  "extensions": {
+    "colorMeta": {
+      "bg": { "role": "neutral", "displayName": "Page", "canonical": "#fafafa", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "surface": { "role": "neutral", "displayName": "Card", "canonical": "#ffffff", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "surface-2": { "role": "neutral", "displayName": "Hover and inset", "canonical": "#f0f0f0", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "ink": { "role": "primary", "displayName": "Ink", "canonical": "#0a0a0a", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "ink-2": { "role": "neutral", "displayName": "Secondary ink", "canonical": "#404040", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "ink-3": { "role": "neutral", "displayName": "Quiet ink", "canonical": "#6b6b6b", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "line": { "role": "neutral", "displayName": "Hairline", "canonical": "#e5e5e5", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "line-strong": { "role": "neutral", "displayName": "Rule", "canonical": "#c4c4c4", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "control": { "role": "neutral", "displayName": "Control edge", "canonical": "#8a8a8a", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "series-1": { "role": "secondary", "displayName": "Series 1, blue", "canonical": "#155dfc", "tonalRamp": ["#000135", "#001a69", "#06359d", "#1854da", "#437ef9", "#7da9ff", "#b5cefe", "#e6efff"] },
+      "series-2": { "role": "secondary", "displayName": "Series 2, rose", "canonical": "#ec5a79", "tonalRamp": ["#200005", "#4c031a", "#771832", "#a9304d", "#da4d6c", "#f88094", "#feb8c1", "#ffe8ea"] },
+      "series-3": { "role": "secondary", "displayName": "Series 3, ochre", "canonical": "#a37f03", "tonalRamp": ["#110a00", "#312400", "#533f02", "#7a5f0c", "#a48114", "#c5a75b", "#e4cb8e", "#ffedc3"] },
+      "series-4": { "role": "secondary", "displayName": "Series 4, plum", "canonical": "#872884", "tonalRamp": ["#190019", "#3e0f3d", "#632561", "#8f3e8b", "#ba5cb5", "#da8ad5", "#f8b3f2", "#ffe5fc"] },
+      "series-5": { "role": "secondary", "displayName": "Series 5, forest green", "canonical": "#236e43", "tonalRamp": ["#001004", "#092e19", "#1e4d31", "#35724c", "#52986b", "#81bb94", "#abdcba", "#d3fade"] },
+      "series-6": { "role": "secondary", "displayName": "Series 6, lavender", "canonical": "#8b6ec2", "tonalRamp": ["#0e051e", "#2b1d45", "#49366c", "#6c5399", "#9074c6", "#b39ce4", "#d5c2ff", "#f0ebfe"] },
+      "series-7": { "role": "secondary", "displayName": "Series 7, teal", "canonical": "#089f99", "tonalRamp": ["#000f0e", "#012d2b", "#074d4a", "#05726e", "#0a9a94", "#61bdb7", "#94ded8", "#c1fcf7"] },
+      "series-8": { "role": "secondary", "displayName": "Series 8, rust", "canonical": "#b82e02", "tonalRamp": ["#1f0000", "#4b0b00", "#781d05", "#aa3619", "#db5433", "#f98569", "#febbaa", "#fee9e4"] },
+      "bg-dark": { "role": "neutral", "displayName": "Page, dark theme", "canonical": "#0a0a0a", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "surface-dark": { "role": "neutral", "displayName": "Card, dark theme", "canonical": "#171717", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "surface-2-dark": { "role": "neutral", "displayName": "Hover and inset, dark theme", "canonical": "#262626", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "tab-on-dark": { "role": "neutral", "displayName": "Raised tab, dark theme", "canonical": "#404040", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "ink-dark": { "role": "primary", "displayName": "Ink, dark theme", "canonical": "#fafafa", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "ink-2-dark": { "role": "neutral", "displayName": "Secondary ink, dark theme", "canonical": "#d4d4d4", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "ink-3-dark": { "role": "neutral", "displayName": "Quiet ink, dark theme", "canonical": "#a1a1a1", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "line-dark": { "role": "neutral", "displayName": "Hairline, dark theme", "canonical": "#2a2a2a", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "line-strong-dark": { "role": "neutral", "displayName": "Rule, dark theme", "canonical": "#404040", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "control-dark": { "role": "neutral", "displayName": "Control edge, dark theme", "canonical": "#7a7a7a", "tonalRamp": ["#0b0b0b", "#262626", "#424242", "#636363", "#868686", "#ababab", "#cecece", "#eeeeee"] },
+      "series-1-dark": { "role": "secondary", "displayName": "Series 1, periwinkle, dark theme", "canonical": "#6f86ee", "tonalRamp": ["#040626", "#182051", "#2f3b7d", "#495bb0", "#677de1", "#8fa5fc", "#bcccff", "#e9eeff"] },
+      "series-2-dark": { "role": "secondary", "displayName": "Series 2, orange, dark theme", "canonical": "#f98a20", "tonalRamp": ["#180500", "#3d1d01", "#653404", "#954e01", "#c76a02", "#ec924a", "#fdbe91", "#ffeadc"] },
+      "series-3-dark": { "role": "secondary", "displayName": "Series 3, green, dark theme", "canonical": "#248860", "tonalRamp": ["#001007", "#002f1d", "#0a4f35", "#217452", "#3e9a72", "#74bd99", "#a2ddbf", "#ccfce2"] },
+      "series-4-dark": { "role": "secondary", "displayName": "Series 4, orchid, dark theme", "canonical": "#ae48b8", "tonalRamp": ["#1a001d", "#3e0b43", "#63206a", "#8f3997", "#ba57c4", "#da86e2", "#f7b0fd", "#fde6ff"] },
+      "series-5-dark": { "role": "secondary", "displayName": "Series 5, pink, dark theme", "canonical": "#e18db0", "tonalRamp": ["#19030d", "#3d1829", "#622f46", "#8d4b67", "#b86a8b", "#d893af", "#f6bad1", "#ffe7f0"] },
+      "series-6-dark": { "role": "secondary", "displayName": "Series 6, copper, dark theme", "canonical": "#b46220", "tonalRamp": ["#190500", "#3f1b00", "#673203", "#934f17", "#c06f32", "#df9868", "#fcbf97", "#feeadd"] },
+      "series-7-dark": { "role": "secondary", "displayName": "Series 7, sky, dark theme", "canonical": "#25bce5", "tonalRamp": ["#000e15", "#012b38", "#054a5c", "#026e89", "#0395b7", "#52badb", "#8bdbf7", "#d8f4ff"] },
+      "series-8-dark": { "role": "secondary", "displayName": "Series 8, leaf, dark theme", "canonical": "#75b96a", "tonalRamp": ["#001000", "#0e2f08", "#224e1c", "#3b7332", "#58994d", "#85bc7c", "#aedda7", "#d5fbcf"] }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "The page's answer sentence, or the subject's name on a brand page. One per page. 1.4375rem at 640px and under." },
+      "figure": { "displayName": "Figure", "purpose": "The three counts beside the headline, with tabular figures. 1.1875rem at 640px and under." },
+      "title": { "displayName": "Title", "purpose": "A card's answer sentence and section headings." },
+      "body": { "displayName": "Body", "purpose": "Running text, names in lists, top bar destinations." },
+      "label": { "displayName": "Label", "purpose": "Buttons, segmented controls, chips, table cells, legends, notes." },
+      "caption": { "displayName": "Caption", "purpose": "Control captions, table headings, source lines, rank moves, hints." },
+      "plate": { "displayName": "Plate", "purpose": "The wordmark only: tracked capitals in Geist Mono." },
+      "mono-figure": { "displayName": "Tooltip figure", "purpose": "Figures in chart tooltips." }
+    },
+    "shadows": [
+      { "name": "resting", "value": "0 1px 2px rgb(0 0 0 / 0.05)", "purpose": "Cards, count tiles and editor panes at rest, light theme." },
+      { "name": "resting-dark", "value": "0 1px 2px rgb(0 0 0 / 0.4)", "purpose": "The same, dark theme." },
+      { "name": "floating", "value": "0 8px 24px rgb(0 0 0 / 0.14)", "purpose": "The field picker's menu, search results, chart tooltips, the toast, the phone's edit button, light theme." },
+      { "name": "floating-dark", "value": "0 8px 24px rgb(0 0 0 / 0.5)", "purpose": "The same, dark theme." },
+      { "name": "selected-ring", "value": "0 0 0 1px #0a0a0a", "purpose": "A pressed count tile and the chosen card in the editor, with an ink border. A state marker, not depth. In the dark theme the ring is the dark theme's ink." },
+      { "name": "sheet", "value": "0 -10px 30px rgb(0 0 0 / 0.2)", "purpose": "The settings sheet that rises from the bottom edge at 900px and under." }
+    ],
+    "motion": [
+      { "name": "state", "value": "0.15s", "purpose": "Background, edge, text colour and shadow changes on controls and links." },
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "The curve for the recount fade and the settings sheet." },
+      { "name": "recount", "value": "opacity 0.55 to 1 over 0.22s", "purpose": "Cards and count tiles when the scope bar recounts the page." },
+      { "name": "sheet", "value": "transform over 0.2s", "purpose": "The phone's settings sheet sliding in and out." },
+      { "name": "toast", "value": "4.5s, or 8s with an Undo", "purpose": "How long the toast stays before it clears itself." },
+      { "name": "reduced-motion", "value": "none", "purpose": "With reduced motion set, every transition and animation is off." }
+    ],
+    "breakpoints": [
+      { "name": "editor-period-segmented", "value": "1500px", "purpose": "At this window width and over, the editor's wide scope bar shows the period as a segmented control. Everywhere else it is a select." },
+      { "name": "card-wide", "value": "900px", "purpose": "A container query on the card. At this card width and over, the ask row sits to the right of the answer." },
+      { "name": "card-line-switch", "value": "700px", "purpose": "A container query on the card. Under this card width, the line switch takes a row of its own." },
+      { "name": "editor-two-pane", "value": "1240px", "purpose": "At this window width and under, the editor drops its field list." },
+      { "name": "editor-one-column-cards", "value": "1100px", "purpose": "At this window width and under, the editor's cards go to one column." },
+      { "name": "one-column", "value": "900px", "purpose": "At this window width and under, the answer row, the card grid and the starting questions go to one column, and the editor's settings pane becomes a sheet." },
+      { "name": "phone", "value": "640px", "purpose": "At this window width and under: 44px controls, the scope bar folded into one summary button, full-width picker and tiles, a stacked card foot." },
+      { "name": "narrow-phone", "value": "360px", "purpose": "At this window width and under, the count tiles stack and the search placeholder shortens." }
+    ],
+    "layout": [
+      { "name": "column", "value": "1200px", "purpose": "The centred page column, with a 16px gutter." },
+      { "name": "column-wide", "value": "1560px", "purpose": "The full editor." },
+      { "name": "editor-fields", "value": "216px", "purpose": "The editor's field list." },
+      { "name": "editor-settings", "value": "296px", "purpose": "The editor's settings pane." },
+      { "name": "touch-target", "value": "44px", "purpose": "The height of controls at 640px and under." },
+      { "name": "answer-row", "value": "5fr 7fr", "purpose": "The headline at the left and the three count tiles at the right, 36px apart, aligned on their lower edge." },
+      { "name": "card-grid", "value": "two equal columns, 20px gap", "purpose": "Cards in a row share a height. A card can span both columns." },
+      { "name": "chart-and-table", "value": "3fr 2fr", "purpose": "A chart and its table side by side inside a wide card." }
+    ],
+    "seriesChecks": {
+      "light": "Passed a colour-blind separation check on all pairs. Every colour is at least 3:1 against the card.",
+      "dark": "Passed separation. Four of the eight colours sit slightly outside that checker's lightness band on the dark card and are to be re-stepped when the charts are built. Every colour is at least 3:1 against the card.",
+      "text": "Every text token passes 4.5:1. Quiet ink measured 4.68:1 to 5.33:1 in light and 5.86:1 to 7.66:1 in dark."
+    }
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "The default action: card fill with the control edge. The edge becomes ink on hover.",
+      "html": "<button class=\"ds-btn\" type=\"button\"><svg class=\"ds-btn-ic\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M7 9a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.8.8\"/><path d=\"M9 7a3 3 0 0 0-4.2 0l-2 2A3 3 0 0 0 7 13.2l.8-.8\"/></svg>Copy link</button>",
+      "css": ".ds-btn { display: inline-flex; gap: 7px; align-items: center; height: 36px; padding: 0 13px; border-radius: 8px; border: 1px solid #8a8a8a; background: #ffffff; color: #0a0a0a; font: 500 0.8125rem/1.5 Geist, system-ui, sans-serif; cursor: pointer; transition: border-color 0.15s; } .ds-btn:hover { border-color: #0a0a0a; } .ds-btn:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 2px; } .ds-btn-ic { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action in a group, filled with ink.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Keep this page</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; height: 36px; padding: 0 13px; border-radius: 8px; border: 1px solid #0a0a0a; background: #0a0a0a; color: #fafafa; font: 500 0.8125rem/1.5 Geist, system-ui, sans-serif; cursor: pointer; transition: opacity 0.15s; } .ds-btn-primary:hover { opacity: 0.88; } .ds-btn-primary:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "input",
+      "refersTo": "segmented",
+      "description": "A row of options inside one control edge. The chosen option is filled with ink. Used in the scope bar.",
+      "html": "<fieldset class=\"ds-seg\" aria-label=\"Counting\"><label><input type=\"radio\" name=\"ds-count\" checked><span>New</span></label><label><input type=\"radio\" name=\"ds-count\"><span>Used imports</span></label><label><input type=\"radio\" name=\"ds-count\"><span>All</span></label></fieldset>",
+      "css": ".ds-seg { display: inline-flex; border: 1px solid #8a8a8a; border-radius: 8px; background: #ffffff; padding: 3px; margin: 0; } .ds-seg label { position: relative; cursor: pointer; } .ds-seg input { position: absolute; opacity: 0; inset: 0; cursor: pointer; } .ds-seg span { display: block; padding: 3px 11px; border-radius: 5px; font: 500 0.8125rem/1.5 Geist, system-ui, sans-serif; color: #404040; white-space: nowrap; transition: background-color 0.15s, color 0.15s; } .ds-seg label:hover span { color: #0a0a0a; } .ds-seg input:checked + span { background: #0a0a0a; color: #fafafa; } .ds-seg input:focus-visible + span { outline: 2px solid #0a0a0a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "The top bar's search for a brand or model, with the icon inside the left edge.",
+      "html": "<div class=\"ds-search\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"4.5\"/><path d=\"M10.5 10.5 14 14\"/></svg><input type=\"search\" placeholder=\"Brand or model\" aria-label=\"Search a brand or model\"></div>",
+      "css": ".ds-search { position: relative; width: 280px; } .ds-search input { width: 100%; height: 36px; padding: 0 12px 0 34px; background: #ffffff; color: #0a0a0a; border: 1px solid #8a8a8a; border-radius: 8px; font: 400 0.9375rem/1.5 Geist, system-ui, sans-serif; } .ds-search input::placeholder { color: #6b6b6b; } .ds-search input:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 2px; } .ds-search svg { position: absolute; left: 11px; top: 50%; margin-top: -8px; width: 16px; height: 16px; fill: none; stroke: #6b6b6b; stroke-width: 1.6; stroke-linecap: round; }"
+    },
+    {
+      "name": "Top Bar Navigation",
+      "kind": "nav",
+      "refersTo": "plate",
+      "description": "The plate wordmark and the five destinations. The current destination takes the inset grey fill.",
+      "html": "<nav class=\"ds-top\" aria-label=\"Main\"><a class=\"ds-plate\" href=\"#\">VCORE</a><a class=\"ds-nav\" href=\"#\" aria-current=\"page\">Market</a><a class=\"ds-nav\" href=\"#\">Brands</a><a class=\"ds-nav\" href=\"#\">Models</a><a class=\"ds-nav\" href=\"#\">Powertrains</a><a class=\"ds-nav\" href=\"#\">Canvas</a></nav>",
+      "css": ".ds-top { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; font: 500 0.9375rem/1.5 Geist, system-ui, sans-serif; } .ds-plate { display: inline-flex; align-items: center; height: 30px; margin-right: 26px; padding: 0 9px 0 10px; background: #ffffff; color: #0a0a0a; border: 2px solid #0a0a0a; border-radius: 5px; font: 600 1rem/1 'Geist Mono', ui-monospace, monospace; letter-spacing: 0.14em; text-decoration: none; box-shadow: inset 0 0 0 2px #ffffff, inset 0 0 0 3px rgb(10 10 10 / 0.22); } .ds-nav { padding: 6px 10px; border-radius: 6px; text-decoration: none; color: #404040; transition: background-color 0.15s, color 0.15s; } .ds-nav:hover, .ds-nav[aria-current=\"page\"] { background: #f0f0f0; color: #0a0a0a; } .ds-top a:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "A compared series: its swatch, its name and a round remove button.",
+      "html": "<span class=\"ds-chip\"><i class=\"ds-chip-sw\"></i>Ford<button type=\"button\" aria-label=\"Remove Ford\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M4 4l8 8M12 4l-8 8\"/></svg></button></span>",
+      "css": ".ds-chip { display: inline-flex; gap: 6px; align-items: center; border: 1px solid #8a8a8a; border-radius: 999px; padding: 3px 6px 3px 9px; background: #ffffff; color: #0a0a0a; font: 400 0.8125rem/1.5 Geist, system-ui, sans-serif; } .ds-chip-sw { width: 10px; height: 10px; border-radius: 3px; background: #ec5a79; } .ds-chip button { display: inline-grid; place-items: center; width: 24px; height: 24px; border: 0; background: none; cursor: pointer; color: #6b6b6b; padding: 0; border-radius: 50%; transition: background-color 0.15s, color 0.15s; } .ds-chip button:hover { background: #f0f0f0; color: #0a0a0a; } .ds-chip button:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 2px; } .ds-chip svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }"
+    },
+    {
+      "name": "Card: the answer, then its ask row",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The unit every page is made of: the answer as a sentence, then the ask row (the field picker and the chart-type tiles), the evidence, and a one-row foot with the source at the left and the card's actions at the right. Shown with the mix bar over a ranking of a field with few, coloured values. At 900px of card width and over the ask row sits to the right of the sentence.",
+      "html": "<article class=\"ds-card\"><div class=\"ds-head\"><h2 class=\"ds-card-h\">The first value's name and count, as a generated sentence.<small>What is counted, over which period</small></h2><div class=\"ds-ask\" role=\"group\" aria-label=\"Ask this card\"><details class=\"ds-by\"><summary>By <b>Powertrain</b><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M4 6l4 4 4-4\"/></svg></summary><div class=\"ds-by-panel\"><button type=\"button\" aria-pressed=\"true\"><span>Powertrain</span><small>One line saying what the field is.</small></button><button type=\"button\" aria-pressed=\"false\"><span>Brand</span><small>One line saying what the field is.</small></button><button type=\"button\" aria-pressed=\"false\" aria-disabled=\"true\"><span>Region</span><small>One line saying why it cannot be asked here.</small></button></div></details><div class=\"ds-as\" role=\"group\" aria-label=\"Drawn as\"><button type=\"button\" aria-pressed=\"true\"><svg viewBox=\"0 0 22 22\" aria-hidden=\"true\"><path d=\"M4 5h14M4 9.5h10M4 14h7M4 18.5h4\" stroke-width=\"2.4\"/></svg>Ranking</button><button type=\"button\" aria-pressed=\"false\" aria-disabled=\"true\"><svg viewBox=\"0 0 22 22\" aria-hidden=\"true\"><path d=\"M7 18V5M3.5 8.5 7 5l3.5 3.5M15 4v13M11.5 13.5 15 17l3.5-3.5\"/></svg>Movers</button><button type=\"button\" aria-pressed=\"false\"><svg viewBox=\"0 0 22 22\" aria-hidden=\"true\"><path d=\"M3 16 8 10l4 3 7-8\"/></svg>Lines</button><button type=\"button\" aria-pressed=\"false\"><svg viewBox=\"0 0 22 22\" aria-hidden=\"true\"><path d=\"M3 6c5 0 8 9 16 9M3 15c5 0 8-8 16-8\"/></svg>Shares</button><button type=\"button\" aria-pressed=\"false\"><svg viewBox=\"0 0 22 22\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"16\" height=\"14\" rx=\"2\"/><path d=\"M3 9h16M3 13.5h16\"/></svg>Table</button></div></div></div><div class=\"ds-stack\" role=\"img\" aria-label=\"First value 50.0%, second value 32.0%, third value 18.0%\"><i style=\"background:#155dfc;flex:50\"></i><i style=\"background:#ec5a79;flex:32\"></i><i style=\"background:#a37f03;flex:18\"></i></div><ol class=\"ds-rank\"><li><span class=\"ds-rank-n\">1</span><span class=\"ds-rank-nm\">First value</span><span class=\"ds-rank-v\">1,000<small>50.0%</small></span><span class=\"ds-rank-bar\" style=\"width:100%;background:#155dfc\"></span></li><li><span class=\"ds-rank-n\">2</span><span class=\"ds-rank-nm\">Second value</span><span class=\"ds-rank-v\">640<small>32.0%</small></span><span class=\"ds-rank-bar\" style=\"width:64%;background:#ec5a79\"></span></li><li><span class=\"ds-rank-n\">3</span><span class=\"ds-rank-nm\">Third value</span><span class=\"ds-rank-v\">360<small>18.0%</small></span><span class=\"ds-rank-bar\" style=\"width:36%;background:#a37f03\"></span></li></ol><p class=\"ds-src\"><span class=\"ds-from\"><span>Source</span><a href=\"#\">How this is counted</a></span><span class=\"ds-acts\"><a href=\"#\">Full editor</a><button class=\"ds-link\" type=\"button\">Remove</button></span></p></article>",
+      "css": ".ds-card { display: flex; flex-direction: column; container-type: inline-size; width: 460px; background: #ffffff; color: #0a0a0a; border: 1px solid #e5e5e5; border-radius: 14px; padding: 18px 20px 14px; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); font: 400 0.9375rem/1.5 Geist, system-ui, sans-serif; } .ds-card-h { margin: 0 0 12px; font-size: 1.0625rem; line-height: 1.4; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; } .ds-card-h small { display: block; font-size: 0.8125rem; font-weight: 400; color: #6b6b6b; letter-spacing: 0; margin-top: 2px; } .ds-ask { display: flex; gap: 8px 10px; align-items: center; flex-wrap: wrap; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid #e5e5e5; } .ds-by { position: relative; } .ds-by summary { list-style: none; display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 10px 0 12px; border: 1px solid #0a0a0a; border-radius: 8px; background: #ffffff; cursor: pointer; font-size: 0.8125rem; color: #6b6b6b; white-space: nowrap; transition: background-color 0.15s; } .ds-by summary::-webkit-details-marker { display: none; } .ds-by summary:hover { background: #f0f0f0; } .ds-by summary b { color: #0a0a0a; font-weight: 600; } .ds-by summary svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; } .ds-by[open] summary svg { transform: rotate(180deg); } .ds-by-panel { position: absolute; z-index: 25; top: 46px; left: 0; width: 304px; background: #ffffff; border: 1px solid #c4c4c4; border-radius: 8px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.14); padding: 4px; } .ds-by-panel button { display: grid; gap: 1px; width: 100%; text-align: left; padding: 8px 10px; border: 0; background: none; border-radius: 6px; cursor: pointer; font: 500 0.8125rem/1.5 Geist, system-ui, sans-serif; color: #0a0a0a; transition: background-color 0.15s; } .ds-by-panel button:hover { background: #f0f0f0; } .ds-by-panel button[aria-pressed=\"true\"] { background: #f0f0f0; font-weight: 600; } .ds-by-panel small { color: #6b6b6b; font-weight: 400; font-size: 0.75rem; } .ds-by-panel button[aria-disabled=\"true\"] { color: #6b6b6b; cursor: not-allowed; } .ds-as { display: flex; flex: 1 1 0; gap: 4px; min-width: 262px; } .ds-as button { flex: 1 1 0; max-width: 104px; min-width: 50px; display: grid; justify-items: center; align-content: center; gap: 1px; height: 40px; padding: 0 6px; border: 1px solid #8a8a8a; border-radius: 8px; background: #ffffff; font: 400 0.6875rem/1.2 Geist, system-ui, sans-serif; cursor: pointer; color: #404040; white-space: nowrap; transition: background-color 0.15s, border-color 0.15s, color 0.15s; } .ds-as button:hover { border-color: #0a0a0a; color: #0a0a0a; } .ds-as button[aria-pressed=\"true\"] { background: #0a0a0a; color: #fafafa; border-color: #0a0a0a; } .ds-as button[aria-disabled=\"true\"] { color: #6b6b6b; border-style: dashed; cursor: not-allowed; background: none; } .ds-as svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; } .ds-by summary:focus-visible, .ds-by-panel button:focus-visible, .ds-as button:focus-visible, .ds-src a:focus-visible, .ds-link:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 2px; } @container (min-width: 900px) { .ds-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 28px; align-items: start; border-bottom: 1px solid #e5e5e5; padding-bottom: 12px; margin-bottom: 14px; } .ds-head .ds-card-h { margin-bottom: 0; } .ds-head .ds-ask { border-bottom: 0; padding-bottom: 0; margin-bottom: 0; justify-content: flex-end; flex-wrap: nowrap; } .ds-head .ds-as { flex: 0 0 auto; } .ds-head .ds-as button { flex: 0 0 auto; min-width: 58px; } } .ds-stack { display: flex; gap: 2px; height: 14px; margin-bottom: 10px; } .ds-stack i { display: block; border-radius: 4px; min-width: 3px; } .ds-rank { margin: 0 0 12px; padding: 0; list-style: none; } .ds-rank li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid #e5e5e5; } .ds-rank li:last-child { border-bottom: 0; } .ds-rank-n { grid-row: 1 / span 2; color: #6b6b6b; font-size: 0.8125rem; font-variant-numeric: tabular-nums; } .ds-rank-nm { font-weight: 500; } .ds-rank-v { grid-row: 1 / span 2; grid-column: 3; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; line-height: 1.3; } .ds-rank-v small { display: block; font-weight: 400; font-size: 0.75rem; color: #6b6b6b; } .ds-rank-bar { grid-column: 2; height: 10px; border-radius: 5px; min-width: 3px; } .ds-src { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: baseline; font-size: 0.75rem; color: #6b6b6b; margin: auto 0 0; padding-top: 10px; border-top: 1px solid #e5e5e5; } .ds-from { display: flex; gap: 4px 14px; flex-wrap: wrap; } .ds-acts { display: flex; gap: 14px; white-space: nowrap; color: #404040; } .ds-src a, .ds-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; text-decoration-color: #6b6b6b; transition: text-decoration-color 0.15s; } .ds-src a:hover, .ds-link:hover { text-decoration-color: currentColor; } .ds-link { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; }"
+    },
+    {
+      "name": "Count Tiles",
+      "kind": "custom",
+      "refersTo": "count-tile",
+      "description": "The three counts beside the headline. They show New, Used imports and All side by side and switch the page between them. The change carries a drawn arrow in ink.",
+      "html": "<div class=\"ds-split\"><button type=\"button\" aria-pressed=\"true\"><span class=\"ds-split-l\">New</span><span class=\"ds-split-v\">1,000</span><span class=\"ds-chg\"><svg viewBox=\"0 0 10 10\" aria-hidden=\"true\"><path d=\"M5 1.5 9.2 8.5H.8z\"/></svg>4.0%</span></button><button type=\"button\" aria-pressed=\"false\"><span class=\"ds-split-l\">Used imports</span><span class=\"ds-split-v\">800</span><span class=\"ds-chg\"><svg viewBox=\"0 0 10 10\" aria-hidden=\"true\"><path d=\"M5 8.5.8 1.5h8.4z\"/></svg>2.0%</span></button><button type=\"button\" aria-pressed=\"false\"><span class=\"ds-split-l\">All</span><span class=\"ds-split-v\">1,800</span><span class=\"ds-chg\"><svg viewBox=\"0 0 10 10\" aria-hidden=\"true\"><path d=\"M5 1.5 9.2 8.5H.8z\"/></svg>1.2%</span></button></div>",
+      "css": ".ds-split { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: 460px; font-family: Geist, system-ui, sans-serif; } .ds-split button { display: grid; gap: 1px; align-content: start; padding: 11px 14px 12px; border: 1px solid #8a8a8a; border-radius: 8px; background: #ffffff; text-align: left; cursor: pointer; color: #404040; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); transition: border-color 0.15s, box-shadow 0.15s; } .ds-split button:hover { border-color: #0a0a0a; } .ds-split button[aria-pressed=\"true\"] { border-color: #0a0a0a; box-shadow: 0 0 0 1px #0a0a0a; } .ds-split button:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 2px; } .ds-split-l { font-size: 0.8125rem; color: #6b6b6b; display: flex; align-items: center; gap: 6px; } .ds-split-l::before { content: \"\"; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #8a8a8a; } .ds-split button[aria-pressed=\"true\"] .ds-split-l { color: #0a0a0a; font-weight: 600; } .ds-split button[aria-pressed=\"true\"] .ds-split-l::before { background: #0a0a0a; border-color: #0a0a0a; } .ds-split-v { font-size: 1.3125rem; font-weight: 700; letter-spacing: -0.03em; color: #0a0a0a; font-variant-numeric: tabular-nums; line-height: 1.3; } .ds-chg { font-size: 0.8125rem; font-variant-numeric: tabular-nums; color: #404040; display: inline-flex; align-items: center; gap: 4px; } .ds-chg svg { width: 9px; height: 9px; fill: currentColor; }"
+    },
+    {
+      "name": "Empty or Blocked State",
+      "kind": "custom",
+      "refersTo": "button",
+      "description": "What a card shows when its question cannot be answered: the cause, what to do, and buttons that do it.",
+      "html": "<div class=\"ds-state\"><b>This field cannot be combined with the page's filter.</b>Take the filter off, or ask this card something else.<div class=\"ds-state-fix\"><button type=\"button\">Remove the filter</button><button type=\"button\">Ask by brand instead</button></div></div>",
+      "css": ".ds-state { width: 420px; padding: 16px; border: 1px dashed #8a8a8a; border-radius: 8px; color: #404040; font: 400 0.8125rem/1.5 Geist, system-ui, sans-serif; } .ds-state b { display: block; color: #0a0a0a; font-weight: 600; margin-bottom: 2px; } .ds-state-fix { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; } .ds-state-fix button { height: 36px; padding: 0 13px; border-radius: 8px; border: 1px solid #8a8a8a; background: #ffffff; color: #0a0a0a; font: 500 0.8125rem/1.5 Geist, system-ui, sans-serif; cursor: pointer; transition: border-color 0.15s; } .ds-state-fix button:hover { border-color: #0a0a0a; } .ds-state-fix button:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Toast with Undo",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "An ink bar at the bottom centre of the window that says what just happened. After a removal it carries an Undo and stays for 8 seconds.",
+      "html": "<div class=\"ds-toast\" role=\"status\">Card removed.<button type=\"button\">Undo</button></div>",
+      "css": ".ds-toast { display: inline-flex; gap: 14px; align-items: center; background: #0a0a0a; color: #fafafa; padding: 9px 14px; border-radius: 8px; font: 400 0.8125rem/1.5 Geist, system-ui, sans-serif; box-shadow: 0 8px 24px rgb(0 0 0 / 0.14); } .ds-toast button { border: 0; background: none; color: inherit; font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 4px 0; white-space: nowrap; } .ds-toast button:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "A canvas someone started for you",
+    "overview": "Every page is a set of cards that answer to the visitor. One bar says what the whole page counts and for which month, and each card states its answer and then offers its own controls, so any block can be asked another way where it stands. The look is stock shadcn/ui, which the owner pinned (\"I also like the look of how https://ui.shadcn.com/ looks with graphs\"): Geist, neutral greys with black as the primary, white cards with a soft edge. Geist is therefore deliberate, not a default.\n\nThe interface is grey and black so that the data can be the only colour. A series colour means a value in the data and nothing else. Direction is a small drawn arrow in ink. Words about the data are generated from templates and say what the figures show, never why.\n\nDensity is that of a working dashboard: 15px body text, 13px labels, compact controls at desktop width, and 44px touch targets at phone width. The one mark of its own is the wordmark, set as a New Zealand number plate.",
+    "keyCharacteristics": [
+      "Neutral greys and black for everything that is not data.",
+      "Eight series colours per theme, used only for values in the data.",
+      "One typeface, Geist, with Geist Mono for the plate and for figures in chart tooltips.",
+      "White cards (14px radius) with a 1px edge and a faint shadow, on a near-white page.",
+      "Every card carries its answer as a sentence, its own controls, its evidence, and its source, in that order.",
+      "Selected means filled with ink; unavailable means a dashed edge and a one-line reason.",
+      "Light and dark themes, and a layout that holds at 320px wide."
+    ],
+    "rules": [
+      { "name": "The Colour Is Data Rule", "body": "A hue appears only where it stands for a value in the data: a line, a bar, a legend swatch. Controls, states, links, headings and emphasis are grey or ink.", "section": "colors" },
+      { "name": "The Arrow In Ink Rule", "body": "Direction is a small filled triangle in the text colour beside the figure, with \"up\" or \"down\" for screen readers. A rise is never green and a fall is never red.", "section": "colors" },
+      { "name": "The One Colour Per Value Rule", "body": "A value keeps its series slot across every card on a page and across pages. Removing a series does not recolour the others.", "section": "colors" },
+      { "name": "The Tabular Figures Rule", "body": "Every number that can sit in a column or change in place uses tabular figures: counts, percentages, ranks, table cells, axis text.", "section": "typography" },
+      { "name": "The Sentence Case Rule", "body": "Headings, labels and buttons are sentence case with no added tracking. The plate is the only tracked capitals in the system.", "section": "typography" },
+      { "name": "The Two Shadows Rule", "body": "A surface at rest gets the resting shadow or none. Only something that floats over the page gets the floating shadow. No third level, no coloured shadow, no glow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do open every card with its answer as a sentence, then its own controls, then the evidence, then the source line.",
+      "Do keep hue for data. Use ink for selected, the control edge for available, and a dashed edge for unavailable or empty.",
+      "Do show direction with the drawn arrow in the text colour, with \"up\" or \"down\" for screen readers.",
+      "Do give a value the same series colour on every card and every page.",
+      "Do use tabular figures for every number that sits in a column or changes in place.",
+      "Do make controls 44px high at 640px and under, and keep the layout whole at 320px.",
+      "Do build both themes from the tokens, and recheck series colours against the card in each theme (3:1 at least) and text against its background (4.5:1 at least).",
+      "Do show a chart type that does not fit as a dashed, quiet tile with a one-line reason.",
+      "Do take every sentence about the data from a template, and make it state what the chart beneath it draws.",
+      "Do serve Geist and Geist Mono from the site itself."
+    ],
+    "donts": [
+      "Don't use green and red, or any hue, to show a rise or a fall.",
+      "Don't colour a control, a link, a heading or a state with a series colour.",
+      "Don't add a seventh chart shape, or draw a shape the rule table says does not fit.",
+      "Don't let a curve overshoot: no smoothing that rises above or dips below the data points.",
+      "Don't add a third shadow level, a coloured shadow or a glow.",
+      "Don't set labels in tracked capitals. The plate is the only one.",
+      "Don't load fonts, scripts or anything else from a third party on the site.",
+      "Don't write a sentence about the data by hand, or one that says why.",
+      "Don't treat the dark series set as settled before it is re-stepped.",
+      "Don't use the Motor Trade Association's colours, logo or wording."
+    ]
+  }
+}
