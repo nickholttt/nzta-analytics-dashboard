@@ -1272,8 +1272,8 @@ separates them, so the class comes from `model_segment.csv`, a lookup on canonic
 `GROSS_VEHICLE_MASS` where a nameplate changed kind between generations or models under one name). The build joins it onto every vehicle
 as a column of its own (`model_classes` in `config/pipeline.json`, D-161), and the dimension `market_type` reads that column in its rules
 (`docs/METRICS.md`, "Market type"; its rule, coverage and checks are in "SUV or car, by nameplate", D-117). `market_type` reads no owner
-field: every field it reads is public. It is not offered to `new_registrations`, whose source carries no body type, class or
-gross vehicle mass.
+field: every field it reads is public. It is not offered to `new_registrations`, whose source carries no NZTA class or gross
+vehicle mass (it does carry the body type).
 
 ### Recorded only for
 

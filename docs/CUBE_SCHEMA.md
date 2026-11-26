@@ -417,8 +417,8 @@ field (*Supplied sources*).
 "Market type"; D-161) is a column of `registrations_surviving`'s table, and has a slice of its own there and on `fleet`, which has no
 fact table. Its values are the seven the rule file gives (Passenger, SUV, Not yet classified, Light commercial, Heavy commercial,
 Other, and Other vehicle types, which only `fleet` holds: the vehicles of the nine types outside the scope of the rest). It is not live
-for `new_registrations` (`not_live`: "the source does not carry GROSS_VEHICLE_MASS, CLASS"), whose export has no body type for the
-rules' tests of the weight and the class, nor for `registrations_cars_long_run`. A vehicle no rule takes reads `__UNMAPPED__` and stops
+for `new_registrations` (`not_live`: "the source does not carry GROSS_VEHICLE_MASS, CLASS"), whose export carries neither the gross vehicle mass nor NZTA's
+class, which the rules test (it does carry the body type), nor for `registrations_cars_long_run`. A vehicle no rule takes reads `__UNMAPPED__` and stops
 the build. The dataset's manifest entry publishes how much of the passenger vehicles the SUV file places
 (`dimension_coverage`, *manifest.json*). It was added as a column of the wide table, not as a narrow table, because it adds under
 10% to that table's bytes (D-144's test; measured under *Size budget*).

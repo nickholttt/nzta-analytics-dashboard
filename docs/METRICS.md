@@ -1099,8 +1099,8 @@ The register records most SUVs as station wagons (`BODY_TYPE`), so no register f
 nameplate does: the class of a make and model is a lookup, not a measurement (invariant 4). `data/reference/model_segment.csv`
 is that lookup for the nameplates that make up most recent passenger registrations. **The build reads it** (D-161): every vehicle is joined to it on its canonical make and
 model and takes the row's class in the column `model_class` of `rows` (`config/pipeline.json`, `model_classes`), under the rules
-of "When a build reads the file" below, and a build whose vehicles meet two rows stops. No dimension reads that column yet, and no
-figure on the site depends on it. A maintainer reads its coverage with
+of "When a build reads the file" below, and a build whose vehicles meet two rows stops. The dimension `market_type` reads that column
+("Market type" below), and its figures depend on it. A maintainer reads its coverage with
 `scripts/segment_coverage.py`; `pipeline/tests/test_model_segment.py` holds its form.
 
 **The rule.**
@@ -1337,9 +1337,9 @@ of the file's pool it places (below) and publishes the figure with every build.
 kind from `data/reference/market_type_map.csv` and, for the rules that read the nameplate's class, from `model_segment.csv`, which
 the build joins onto every vehicle on its canonical make and model (`config/pipeline.json`, `model_classes`; the file's rules are
 in "SUV or car, by nameplate" above). It is live on `registrations_surviving` (a slice, and a column of the fact table) and on
-`fleet` (a slice), and not on `new_registrations`: the rules need the body, NZTA's class and the gross vehicle mass, which the
-dashboard's export does not carry, so that dataset's manifest says "the source does not carry" them and it gets a market type when the
-history is retaken with them. A vehicle no rule takes stops the build, however few (`abort_on_unmapped` and `abort_on_any_unmapped`): the
+`fleet` (a slice), and not on `new_registrations`: the rules need NZTA's class and the gross vehicle mass, which the
+dashboard's export does not carry (it does carry the body type), so that dataset's manifest says "the source does not carry" them and it
+gets a market type when the history is retaken with them. A vehicle no rule takes stops the build, however few (`abort_on_unmapped` and `abort_on_any_unmapped`): the
 five types of the vehicle scope file and the nine others are each named by a rule, and none of the 5,926,990 vehicles of the 2026-10
 register is unmapped. Counts are of the vehicles each dataset counts, so the vehicles still registered count the five types in the
 months they were first registered, and the fleet counts every vehicle on the register at the snapshot.
