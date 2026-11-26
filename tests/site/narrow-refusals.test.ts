@@ -120,8 +120,8 @@ test("a link's condition that no table holds with the chart's fields is told wit
   const [wideField] = apart;
   const bad: Question = { ...startQuestion, where: { [RULE.dimension]: [RULE.value], [wideField]: ["x"] } };
   assert.equal(canvas.conditionApart(all, bad, wideField), refusal([FIELD], wideField));
-  // The two the chart names beside the condition share no table with each other, so both are named.
-  assert.equal(canvas.conditionApart(all, bad, RULE.dimension), refusal([FIELD, wideField], RULE.dimension));
+  // The condition that shares a table with each field the chart names is not the one to blame, though no one table holds all three: the other one is told.
+  assert.equal(canvas.conditionApart(all, bad, RULE.dimension), undefined);
   assert.equal(canvas.conditionApart(all, startQuestion, RULE.dimension), undefined);
   assert.equal(canvas.conditionApart(all, { ...startQuestion, where: { [held[0]]: ["x"] } }, held[0]), undefined);
 });

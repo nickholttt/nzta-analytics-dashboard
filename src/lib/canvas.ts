@@ -128,9 +128,12 @@ function apartFrom(v: DatasetVocabulary, names: readonly string[], field: string
 }
 
 // Why a condition the chart holds cannot be drawn with the fields it names, in the canvas's words: a link can carry one the page would not have accepted.
+// It is said of a condition that shares no table with some field the chart names, and of that field; where every pair shares a table and no one table holds
+// them all, no condition is the one to blame, and the chart's own card says it cannot be drawn.
 export function conditionApart(all: Vocabulary, q: Question, field: string): string | undefined {
   const v = datasetOf(all, q.dataset);
-  const apart = apartFrom(v, [...(q.by ? [q.by] : []), ...(q.by2 ? [q.by2] : []), ...Object.entries(q.where).filter(([d, kept]) => d !== field && kept.length > 0).map(([d]) => d)], field);
+  const names = [...(q.by ? [q.by] : []), ...(q.by2 ? [q.by2] : []), ...Object.entries(q.where).filter(([d, kept]) => d !== field && kept.length > 0).map(([d]) => d)];
+  const apart = apartFrom(v, names, field).filter((n) => !holdsTogether(v, [n, field]));
   return apart.length ? say("refuse_not_crossed", { dataset: datasetLabel(v.dataset), field: fieldLabel(field), other: sayList(apart.map(fieldLabel)) }) : undefined;
 }
 
