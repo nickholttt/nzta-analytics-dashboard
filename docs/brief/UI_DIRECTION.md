@@ -35,23 +35,44 @@ reading and the state of the work, each marked as such.
    reasoning.
 5. The site's name is read as "vcore": inferred from the address, confirm how it is written.
 
-## Where it has got to (2026-11-27)
+## The user's answer to the first proposal (2026-11-27, later the same day)
 
-- **Nothing in `src/` has changed.** No design is accepted yet.
-- A working proposal exists outside the repository, as a private page and a folder on the maintainer's
-  computer: three screens (the market page, a brand page, the canvas) at phone and desktop width in both
-  themes, drawn with the October 2026 build's figures, with the audit of the current site, the principles,
-  what stays and a build order of eight pull requests.
-- The proposal was reviewed once, independently: every text colour pair passes 4.5 to 1; 16 findings, of
-  which the cheap ones are fixed in the proposal and four are left for the build (a light and heavy vehicle
-  switch, change in vehicles as well as per cent, brand share over time, one colour per value on every page).
+> 1, i need you to think of our initial goal of flexibility and giving people the power to decide. It looks
+> good at the moment, but I think we can really make a difference and beat how vstat designed their platform
+>
+> 2, install impeccable skill again if not available or rerun all applicable skills, going from essentially
+> a start to polish.
+>
+> 3, merge 170, 171, 172, 173, 174, 175.
+
+## Where it has got to (2026-11-27, end of day)
+
+- **Nothing in `src/` has changed.** No design is accepted yet. The record is D-162.
+- The proposal was remade twice. In its third version every page is a canvas someone started for the
+  visitor: one bar recounts the whole page (what is counted, over which period, ending in which month, only
+  which powertrain); every card states its answer, then offers a field picker with a line defining each
+  field and a row of chart types, and recounts where it stands; cards are added and removed with an undo;
+  the page is kept in the browser; the full editor is the same card with the field list beside it. It is a
+  working page outside the repository, drawn with the October 2026 build's figures.
+- The Impeccable design skill was installed for the maintainer's user (no hook) and run from its first
+  step: `PRODUCT.md`, the surface brief with its direction contract (`.impeccable/surfaces/`), its
+  detector (6 findings, 4 fixed, 2 read as false by two reviewers), a critique (25 of 40), an audit (13 of
+  20; every text colour passes 4.5 to 1), a finish review ("fix", eight material fixes), one fix batch, a
+  verdict pass (seven resolved, one partial, three regressions), a second batch and a second verdict pass
+  (the three regressions resolved, none new), and `DESIGN.md`.
+- Open after the reviews, and the owner's: accepting the structure (the reviewer's one partial item: the
+  owner pinned the look, the author chose the structure).
+- Open for the build: a filter on any field and a card's own condition; an address that carries the page's
+  choices; a light and heavy vehicle switch (waits for data); change shown in vehicles as well as per cent;
+  one colour per value from reference data. Not done: a real phone, Safari, a screen reader.
 - vstat's tokens and style, read from its stylesheet as mirrored on 25 November, are written up in the
   private study folder beside the earlier design notes, with stock shadcn's for comparison.
 
 ## What the proposal keeps from `CLAUDE.md`
 
-Every invariant, the six shapes and the rule table, sentences from templates, no vehicle row in the browser,
-no tracking and no third-party requests (the site serves its own type), existing canvas and Build links, and
-the first chart inside 3 seconds on the phone profile. Nothing in it needs a change to a hard rule. Two
-things it changes that a record will be written for when the first build pull request opens: the typefaces
-(Geist in place of the two now shipped) and direction shown by an arrow in ink, not by green and red.
+Every invariant, the six shapes and the rule table (a card offers only the chart types the table allows),
+sentences from templates, no vehicle row in the browser, no tracking and no third-party requests (the site
+serves its own type), existing canvas and Build links, and the first chart inside 3 seconds on the phone
+profile. Nothing in it needs a change to a hard rule. Two things it changes, each for the owner to confirm:
+the typefaces (Geist in place of the two now shipped) and direction shown by an arrow in ink, not by green
+and red.
