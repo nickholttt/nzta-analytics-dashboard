@@ -235,7 +235,11 @@ export function awaitsValues(all: Vocabulary, chart: Pick<CanvasChart, "question
   if (!q.by || q.by2 || q.values.length > 0) return false;
   const preset = chartPreset({ id: canvasSpec.chart_prefix, question: q, type: chart.type });
   if (!preset || preset.derived || preset.shape_override === RANKING) return false;
-  const breakdown = measureOf(datasetOf(all, q.dataset), q.measure).dimensions.find((d) => d.id === q.by);
+  const v = datasetOf(all, q.dataset);
+  // The starting values are counted among the conditions from the one fact table that holds them all. Where none does, the question is not drawn (the
+  // resolver says so, and the condition's own line says why), and a read of values that cannot be made is not started.
+  if (!holdsTogether(v, [q.by, ...Object.entries(q.where).filter(([, kept]) => kept.length > 0).map(([d]) => d)])) return false;
+  const breakdown = measureOf(v, q.measure).dimensions.find((d) => d.id === q.by);
   // A short list kept in a narrow table has values to choose but none for the page to start on: it is drawn from its slice, every value.
   return findMeasure(preset.measure)?.kind === COUNT_KIND && Boolean(breakdown?.values) && breakdown?.startValues !== false;
 }

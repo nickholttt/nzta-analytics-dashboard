@@ -224,3 +224,29 @@ test("the check finds a table that does join them: a narrow table of the field a
   assert.throws(() => noJoin(d.tables, "joined"), /puts/);
   assert.ok(builder.together(d, FIELD).includes(owner));
 });
+
+// ---- A count chart the tables cannot read ----
+
+test("a count chart whose condition no one table holds with its breakdown waits for no starting values: its card says why it is not drawn, not that a list failed to load", () => {
+  let checked = 0;
+  for (const dataset of built) {
+    for (const table of datasets[dataset].narrow_facts ?? []) {
+      const wide = datasets[dataset].facts as string[];
+      const vocabulary = all.datasets.find((d) => d.dataset === dataset)!;
+      const countOffers = vocabulary.measures.find((m) => m.id === "count")!.dimensions;
+      const narrowOnly = table.dimensions.filter((d) => !wide.includes(d) && vocabulary.filters.some((f) => f.id === d));
+      const apartBreakdown = countOffers.find((d) => d.values && d.startValues && wide.includes(d.id) && !table.dimensions.includes(d.id));
+      const heldBreakdown = countOffers.find((d) => d.values && d.startValues && wide.includes(d.id) && table.dimensions.includes(d.id));
+      assert.ok(narrowOnly.length && apartBreakdown && heldBreakdown, `${dataset}/${table.id}`);
+      for (const condition of narrowOnly) {
+        const none = builder.settle(all, { dataset, measure: "count", by: apartBreakdown.id, values: [], where: { [condition]: ["x"] }, view: null });
+        assert.deepEqual(Object.keys(none.where), [condition], "the link's condition is kept");
+        assert.equal(canvas.awaitsValues(all, { question: none, type: null }), false, `${dataset}: ${apartBreakdown.id} kept to ${condition}`);
+        const fine = builder.settle(all, { dataset, measure: "count", by: heldBreakdown.id, values: [], where: { [condition]: ["x"] }, view: null });
+        assert.equal(canvas.awaitsValues(all, { question: fine, type: null }), true, `${dataset}: ${heldBreakdown.id} kept to ${condition} starts on its largest values`);
+        checked++;
+      }
+    }
+  }
+  assert.ok(checked >= 2, "both datasets with a narrow table");
+});
