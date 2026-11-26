@@ -767,3 +767,23 @@ date, or "inferred — confirm"; the full legend heads the archive.
   - The December retake of the history adds columns and the dashboard allows twelve dimensions; the district is never stored and leaves, and with owner type and usage kept one more must wait or go (put to the user in `docs/CHECKPOINT.md`). Figures as first observed will take the store's whole column list, owner type and usage included, as their grain.
   - Not done here: the site beyond the canvas field and the Method page's hidden-counts section, the accuracy check, and changes of ownership (no source is read yet).
 - Status: the publication of buyer type, its fourth value's name and the reading "in full" are the user's direction of 2026-11-25 (accepted); the form of the build (decisions 1 to 6) and the readings and choices above are decided by claude (unreviewed). High risk (privacy, the data contract, published files, a committed store): the pull request gets one independent review, and merging it needs the user's word.
+
+## D-160 2026-11-26 — A canvas chart broken down by buyer type starts on new vehicles
+- Agent: claude
+- Basis: the user's remark that the first buyer-type chart looked wrong, and the independent review of the design, whose corrections to the first pull request are applied. The reading pages already default to New (the latest-month section, #161 and #162).
+- Context: after D-159 the canvas drew a breakdown by buyer type from its slice, new vehicles and used imports counted together. Over the 12 months to October 2026 that reads Private 51.9%, Company 36.8%. For new vehicles alone it is Company 48.1%, Private 34.7%; for used imports Private leads by a wide margin. The trade reads the two apart, and the combined figure leads with a group that neither reading leads with.
+- Options considered:
+  - Start the chart on new vehicles, as a condition on the field new or used that the visitor can remove or change. Chosen: it is the reading the trade and the other pages use, and it is one visible, removable condition in the Filters zone, so the chart says what it counts and one click widens it. The link carries a removal (`widen`), so a widened link keeps its meaning.
+  - No default; the visitor chooses. Not chosen: the first chart anyone draws would be the combined one, which is the figure that misleads.
+  - Eight lines, new and used each as their own line. Not chosen: a share that mixes two denominators, and twice the lines to tell apart.
+  - Use the data map's `recorded_for` for it. Not chosen: it would make the map say the field is recorded for only some vehicles, which is false.
+- Decision:
+  1. `config/presets.json`, `builder.starts_under`, names the field and the class of `builder.narrowings` that is its condition. The words are config: `notices.started`, and `notices.widened` with the narrowing's `widened_to` for a chart whose visitor removed the condition.
+  2. The condition is added only for a dataset whose manifest has a live pair of the field and the condition's field. A build without the pair settles the chart with no condition and draws it from the slice, as before.
+  3. The resolver reads that pair, narrowed to the condition, and sets `keptBy`, so the scope line and the narrowed sentence say the chart counts those vehicles. It does so only where the fact table lacks a field the question names, for a plain breakdown with one condition; every question the fact table answers is read from it as before (a test sweeps them).
+  4. A second condition on such a chart is not refused by the canvas's verdict (it has no manifest); the resolver blocks it and the card says so, as it does today. Not drawn wider than the link asked.
+- Consequences:
+  - What a visitor sees change: a share or count chart by buyer type opens on new vehicles. A link saved on this branch before this change names no condition and now reads as new vehicles; nothing is deployed, so only the maintainer's local saves are affected.
+  - The first chart reads the 4.9 KB pair (and the 2.2 KB slice of the condition's field, which the page also asks for) where it read the 2.8 KB slice. A widened chart reads the slice as before.
+  - The narrow fact table, a second condition or a crossed field on buyer type, the latest-month block, the brand and model pages, and the title and sentence wording for a narrowed chart are later pull requests.
+- Status: decided by claude (unreviewed). Low risk (the canvas and its config); no figure published changes.

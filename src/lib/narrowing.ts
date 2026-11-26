@@ -9,7 +9,9 @@ import type { MapDimension, MapField } from "./nesting";
 // What keeps a class of vehicle: the dimension and the value of it, and the words for the vehicles it keeps (a phrase in config, filled into a
 // sentence).
 export type NarrowingRule = { dimension: string; value: string; kind: string };
-export type Narrowing = NarrowingRule & { class: string };
+// starting: set only for a condition a field starts under without the map recording it for a class (config builder.starts_under, D-160): the datasets
+// whose build has a table that can serve it, which are the only ones where the question starts with it. Absent for a field the map records.
+export type Narrowing = NarrowingRule & { class: string; starting?: string[] };
 
 export type RecordedField = MapField & { recorded_for?: string[] };
 

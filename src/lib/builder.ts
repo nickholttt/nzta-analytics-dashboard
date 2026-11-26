@@ -125,6 +125,14 @@ export const RANKING = "league";
 // The view of a question with a second breakdown: a grid, the only shape that fits two fields crossed in one window.
 export const MATRIX = "matrix";
 
+// What a chart says when the visitor removed the condition its breakdown starts under (builder.starts_under): that it counts every vehicle together, in the
+// narrowing's own words, so the figure is not read as the one the starting condition gave. Only for a condition removed and not replaced.
+function widenedNote(q: Question): string | undefined {
+  const rule = q.by ? builderSpec.narrowings[builderSpec.starts_under[q.by]] : undefined;
+  if (!rule?.widened_to || !q.widened?.includes(rule.dimension) || q.where[rule.dimension]?.length) return undefined;
+  return fillTemplate(builderSpec.notices.widened, { kind: rule.widened_to }).text;
+}
+
 function presetFor(q: Question, measureId: string, id: string, label?: (value: string) => string): Preset {
   const m = findBuilderMeasure(measureId);
   // Ranking every value sets the choice aside: the chart, its title and its figures are those of the question without it.
@@ -137,6 +145,7 @@ function presetFor(q: Question, measureId: string, id: string, label?: (value: s
   const dimensionNote = joined(
     q.by ? forDataset(builderSpec.dimension_notes[q.by], q.dataset) : undefined,
     crossed && q.by2 ? forDataset(builderSpec.dimension_notes[q.by2], q.dataset) : undefined,
+    widenedNote(q),
   );
   // A count by a breakdown is lines unless the visitor asked for the ranking; a view the visitor chose among the shapes that fit
   // applies to the rest. The resolver reports a view that does not fit the question.
@@ -229,6 +238,20 @@ export function datasetName(id: string, manifest?: Manifest): string {
 
 const draws = (q: Question, manifest: Manifest) => builderPresets(q).every((p) => resolvePreset(p, manifest).preventsRender.length === 0);
 
+// The condition a field starts under by config (builder.starts_under, D-160), for the datasets of this build that can serve it: those with a live pair of
+// the field and the condition's own field, which the resolver reads when the fact table lacks the field. Where no dataset has one the field starts under
+// nothing, and its chart is drawn from its slice with every vehicle, as before.
+function startingNarrowings(manifest: Manifest, field: string): Narrowing[] {
+  const cls = builderSpec.starts_under[field];
+  const rule = cls ? builderSpec.narrowings[cls] : undefined;
+  if (!rule) return [];
+  const starting = builderSpec.datasets.filter((id) => {
+    const entry = isBuilt(manifest, id) ? manifest.datasets[id] : undefined;
+    return Boolean(entry?.live_dimensions.includes(field) && findPair(entry.live_pairs ?? [], field, rule.dimension));
+  });
+  return starting.length ? [{ class: cls, dimension: rule.dimension, value: rule.value, kind: rule.kind, starting }] : [];
+}
+
 // Only what draws is offered: a breakdown the cube does not carry, or a shape with no renderer, never reaches the page.
 // A breakdown offers chosen values only where the fact table carries it. A measure left with nothing to show is dropped.
 export function builderVocabulary(manifest: Manifest): Vocabulary {
@@ -238,7 +261,7 @@ export function builderVocabulary(manifest: Manifest): Vocabulary {
     .filter((v) => v.measures.length > 0);
   const narrowings = Object.fromEntries(
     dimensions.flatMap((d) => {
-      const found = narrowingsOf(d.id, dataMapFields(), dimensions as unknown as MapDimension[], builderSpec.narrowings);
+      const found = [...narrowingsOf(d.id, dataMapFields(), dimensions as unknown as MapDimension[], builderSpec.narrowings), ...startingNarrowings(manifest, d.id)];
       return found.length ? [[d.id, found] as const] : [];
     }),
   );
@@ -298,9 +321,10 @@ export const isMonthKey = (text: string | undefined): text is string => typeof t
 
 // The conditions the fields a question breaks down by call for, from the vocabulary: the data map says which classes of vehicle each field is recorded
 // for, and config (builder.narrowings) which condition keeps a class. One per dimension; a field with no class config can express calls for none.
-const narrowingsFor = (all: Vocabulary, ids: (string | null | undefined)[]): Narrowing[] => {
+// A condition a field starts under by config (starting) applies only to the datasets it names.
+const narrowingsFor = (all: Vocabulary, dataset: string, ids: (string | null | undefined)[]): Narrowing[] => {
   const found = new Map<string, Narrowing>();
-  for (const id of ids) for (const n of (id && all.narrowings?.[id]) || []) if (!found.has(n.dimension)) found.set(n.dimension, n);
+  for (const id of ids) for (const n of (id && all.narrowings?.[id]) || []) if ((!n.starting || n.starting.includes(dataset)) && !found.has(n.dimension)) found.set(n.dimension, n);
   return [...found.values()];
 };
 
@@ -311,7 +335,8 @@ export function narrowingNotes(all: Vocabulary, q: Question): string[] {
   const kept = cleanWhere(q.where);
   const groups = new Map<string, { kind: string; fields: string[] }>();
   for (const id of q.by ? [q.by, ...(q.by2 ? [q.by2] : [])] : []) {
-    for (const n of all.narrowings?.[id] ?? []) {
+    // A condition a field starts under by config says so as a link's notice (readingNotes), not here.
+    for (const n of narrowingsFor(all, q.dataset, [id]).filter((n) => !n.starting)) {
       const on = kept[n.dimension];
       if (!(on?.length === 1 && on[0] === n.value)) continue;
       const group = groups.get(n.dimension) ?? { kind: n.kind, fields: [] };
@@ -394,7 +419,7 @@ export function settle(all: Vocabulary, q: Partial<Question>): Question {
   // A breakdown by a field recorded for only a kind of vehicle starts with the condition that keeps that kind (D-132), unless the link already
   // has a condition on that field, or says it was removed. A condition on a breakdown itself is already the question, and a field this data
   // cannot condition on cannot be narrowed.
-  const narrowings = narrowingsFor(all, [by, by2]).filter((n) => n.dimension !== by && n.dimension !== by2 && vocabulary.filters.some((f) => f.id === n.dimension));
+  const narrowings = narrowingsFor(all, vocabulary.dataset, [by, by2]).filter((n) => n.dimension !== by && n.dimension !== by2 && vocabulary.filters.some((f) => f.id === n.dimension));
   const named = q.where ?? {};
   // A removal holds while the question holds no value for that field: a condition the visitor has opened and not yet filled (an empty list) is not
   // a condition, and dropping the removal for it would put the starting condition back on the next reload.
@@ -423,6 +448,8 @@ export type Reading = {
   value2?: true;
   // A snapshot the link named that is not a month.
   snapshot?: { asked: string };
+  // The condition a breakdown starts under (builder.starts_under) that the link did not name and the page added: the words for the vehicles it keeps.
+  started?: { kind: string }[];
   // Values the link named that the page does not offer to choose, each with the field it was named for.
   left_out?: { asked: string; field: string }[];
   // The link named a dataset that has been joined into another (retired_datasets): its old name, the dataset it is now, and the vehicles the old
@@ -469,6 +496,11 @@ export function readingNotes(all: Vocabulary, asked: Partial<Question>, settled:
   if (typeof asked.by2 === "string" && asked.by2 !== "" && asked.by2 !== settled.by2) note.by2 = { asked: lowerFirst(dimensionLabel(asked.by2, false, settled.dataset) ?? asked.by2) };
   if (!asked.by2 && (asked.values2 ?? []).length > 0) note.value2 = true;
   if (asked.snapshot && !settled.snapshot) note.snapshot = { asked: asked.snapshot };
+  // A link written before the condition existed names none, and opens on the question narrowed: it is told, as its figures are not those it drew before.
+  const started = narrowingsFor(all, settled.dataset, [settled.by, settled.by2]).filter(
+    (n) => n.starting && !(n.dimension in (asked.where ?? {})) && settled.where[n.dimension]?.length === 1 && settled.where[n.dimension][0] === n.value,
+  );
+  if (started.length) note.started = [...new Map(started.map((n) => [n.dimension, { kind: n.kind }])).values()];
   return note;
 }
 
@@ -485,6 +517,7 @@ export function linkNotices(all: Vocabulary, asked: Partial<Question>, settled: 
     ...(note.by2 ? [fill(notices.by2, note.by2)] : []),
     ...(note.value2 ? [notices.value2] : []),
     ...(note.snapshot ? [fill(notices.snapshot, note.snapshot)] : []),
+    ...(note.started ?? []).map((on) => fill(notices.started, on)),
     ...(note.retired_dropped ?? []).map((gone) => fill(notices.retired_dropped, gone)),
     ...(note.left_out ?? []).map((left) => fill(notices.left_out, left)),
   ];
