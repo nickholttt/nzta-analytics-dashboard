@@ -20,8 +20,15 @@ from pipeline.contract import FACTS_DIR, UNMAPPED
 from pipeline.errors import GuardrailError
 
 from .conftest import NOW, load_rows, make_cfg, source_for, write_pages
+from .test_golden import frozen_reference
 
 SURVIVORS, STOCK, DASHBOARD = "registrations_surviving", "fleet", "new_registrations"
+
+
+def frozen_cfg(tmp_path, workspace):
+    """The config the golden builds from: the model class file frozen, so a nameplate added to the live file (a data edit) cannot make a
+    test of the coverage guard's thresholds hold or fail by what the fixture's vehicles happen to be classed as."""
+    return make_cfg(workspace, reference_dir=tmp_path / "reference" if (tmp_path / "reference").exists() else frozen_reference(tmp_path))
 
 
 def dimension(cfg) -> dict:
@@ -30,7 +37,7 @@ def dimension(cfg) -> dict:
 
 def run(tmp_path, workspace, rows=None, cfg=None, state=None, name="pages", publish=True):
     rows = rows if rows is not None else load_rows()
-    cfg = cfg or make_cfg(workspace)
+    cfg = cfg or frozen_cfg(tmp_path, workspace)
     return cfg, build.build(cfg, source_for(rows), write_pages(tmp_path / name, rows), state, NOW, publish=publish)
 
 
@@ -142,7 +149,7 @@ def with_coverage(cfg, **changes):
 
 
 def test_a_coverage_below_the_warning_level_warns_and_the_dimension_stays_live(tmp_path, workspace):
-    cfg = with_coverage(make_cfg(workspace), warn_below=1.0, live_at=0.0)
+    cfg = with_coverage(frozen_cfg(tmp_path, workspace), warn_below=1.0, live_at=0.0)
     cfg, manifest = run(tmp_path, workspace, cfg=cfg, publish=False)
     dim_id = dimension(cfg)["id"]
     block = manifest["datasets"][SURVIVORS]["dimension_coverage"][dim_id]
@@ -153,7 +160,7 @@ def test_a_coverage_below_the_warning_level_warns_and_the_dimension_stays_live(t
 
 
 def test_a_coverage_below_the_live_level_leaves_the_dimension_not_live_and_says_why(tmp_path, workspace):
-    cfg = with_coverage(make_cfg(workspace), warn_below=1.0, live_at=1.0)
+    cfg = with_coverage(frozen_cfg(tmp_path, workspace), warn_below=1.0, live_at=1.0)
     dim_id = dimension(cfg)["id"]
     cfg, manifest = run(tmp_path, workspace, cfg=cfg, publish=False)
     entry = manifest["datasets"][SURVIVORS]
@@ -170,7 +177,7 @@ def test_a_dimension_that_was_live_in_the_last_good_build_aborts_instead_of_drop
     state = json.loads(workspace["state"].read_text(encoding="utf-8"))
     dim_id = dimension(cfg)["id"]
     assert dim_id in state["live_dimensions"][SURVIVORS]
-    thin = with_coverage(make_cfg(workspace), warn_below=1.0, live_at=1.0)
+    thin = with_coverage(frozen_cfg(tmp_path, workspace), warn_below=1.0, live_at=1.0)
     with pytest.raises(GuardrailError, match="it was live in the last good build, so the run aborts"):
         run(tmp_path, workspace, cfg=thin, state=state, name="second", publish=False)
 
@@ -183,7 +190,7 @@ def test_a_dimension_that_was_live_in_the_last_good_build_aborts_instead_of_drop
     ({"warn_below": 0.5, "live_at": 0.9}, "0 <= live_at <= warn_below <= 1"),
 ])
 def test_a_coverage_block_that_names_what_does_not_exist_aborts_before_anything_is_counted(tmp_path, workspace, change, said):
-    cfg = with_coverage(make_cfg(workspace), **change)
+    cfg = with_coverage(frozen_cfg(tmp_path, workspace), **change)
     with pytest.raises(GuardrailError, match=said):
         run(tmp_path, workspace, cfg=cfg, publish=False)
 
