@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { MAX_VALUES, RANKING, questionParams, withValues } from "../../lib/builder";
 import type { Question, Vocabulary } from "../../lib/builder";
-import { FIELD_ZONES, TABLE, WIDTHS, bestType, canvasSpec, chartQuestion, chartTypes, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
+import { FIELD_ZONES, TABLE, WIDTHS, bestType, canChooseValues, canvasSpec, chartQuestion, chartTypes, conditionApart, datasetLabel, fieldLabel, measureLabel, say, verdict, zoneLabel } from "../../lib/canvas";
 import type { CanvasChart, CanvasField, Width, Zone } from "../../lib/canvas";
 import { chartDefaults, findDataset, lowerLabel } from "../../lib/config";
 import type { Manifest } from "../../lib/data";
@@ -384,12 +384,12 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
                     : undefined
                 }
               />
-              {breakdown?.values
+              {breakdown?.values && canChooseValues(all, q, q.by)
                 ? values(
                     "by",
                     q.by,
                     q.pageValues ? [] : q.values,
-                    type === RANKING ? say("values_every") : say("values_page"),
+                    type === RANKING || breakdown.startValues === false ? say("values_every") : say("values_page"),
                     <ValuePicker
                       dataset={q.dataset}
                       dimension={q.by}
@@ -423,7 +423,7 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
                   toZone("by2");
                 }}
               />
-              {second?.values
+              {second?.values && canChooseValues(all, q, q.by2)
                 ? values(
                     "by2",
                     q.by2,
@@ -464,7 +464,7 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
                     toZone("where");
                   }}
                 />
-                {canApply(d) ? (
+                {canApply(d) && !conditionApart(all, q, d) ? (
                   values(
                     `where.${d}`,
                     d,
@@ -488,7 +488,7 @@ export default function ChartPane({ all, chart, number, of, full, manifest, serv
                     kept.length === 0,
                   )
                 ) : (
-                  <p className="zone-message refuses">{say("filter_cannot_apply", { dataset: datasetLabel(q.dataset), field: fieldLabel(d) })}</p>
+                  <p className="zone-message refuses">{conditionApart(all, q, d) ?? say("filter_cannot_apply", { dataset: datasetLabel(q.dataset), field: fieldLabel(d) })}</p>
                 )}
               </div>
             ))

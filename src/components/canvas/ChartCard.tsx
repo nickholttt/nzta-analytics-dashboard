@@ -14,7 +14,8 @@ import { TRAILING_MONTHS } from "../../lib/measures";
 import { PageChartContext } from "../../lib/usePageColours";
 import PresetPanel from "../PresetPanel";
 import type { CardWords } from "../PresetPanel";
-import { startingValues, valueLabel, valueOptions } from "../ValuePicker";
+import { valueLabel } from "../ValuePicker";
+import { startingValues, valueOptions } from "../../lib/valueOptions";
 import { useReading } from "../useReading";
 
 // A card's id on the page: where focus goes when a chart is added, put back, or left standing beside one removed.

@@ -7,8 +7,9 @@
 // Only the Build page imports this; the Explore page, which has no pins, does not download it.
 import { builderSpec } from "./config";
 import { builderPresets, isMonthKey } from "./builder";
+import { fieldLabel, say as canvasSay } from "./canvas";
 import type { Question } from "./builder";
-import { SMALL_CELL_KEY } from "./data";
+import { SMALL_CELL_KEY, factTableFor } from "./data";
 import type { Manifest } from "./data";
 import { pinNote, servedMonth } from "./pin";
 import type { PinNote } from "./pin";
@@ -129,7 +130,19 @@ export function pickerMonth(reading: Reading | undefined, dataset: string, dimen
   const conditions = Object.entries(where).filter(([, kept]) => kept.length > 0).map(([d]) => d);
   const named = [dimension, ...conditions];
   const filtered = conditions.length > 0;
-  return named.every((d) => ownerSliceReady(reading.manifest, served, d, owner) && entry.live_dimensions.includes(d) && (!filtered || Boolean(entry.facts?.dimensions.includes(d)))) ? reading.month : undefined;
+  // Counted among conditions, one fact table of the snapshot must hold the field and every condition's field (a narrow table, where the wide one lacks one).
+  return named.every((d) => ownerSliceReady(reading.manifest, served, d, owner) && entry.live_dimensions.includes(d)) && (!filtered || factTableFor(entry.facts, named) !== null) ? reading.month : undefined;
+}
+
+// The first field the question names that a snapshot's manifest does not make live in the dataset the chart reads, as the canvas names it: what a pinned
+// chart says the snapshot lacks. None where the snapshot lacks no field by itself (a pair, a table, a dataset it did not build).
+export function fieldLackedBy(q: Question, manifest: Manifest): string | undefined {
+  for (const a of asks(q, manifest)) {
+    const entry = manifest.datasets[a.dataset];
+    const lacking = entry ? a.fields.find((f) => !entry.live_dimensions.includes(f.dimension)) : undefined;
+    if (lacking) return fieldLabel(lacking.dimension);
+  }
+  return undefined;
 }
 
 export type KeptNote = PinNote | { kind: "kept" | "withheld"; text: string };
@@ -141,7 +154,10 @@ export function pinLine(q: Question, served: Manifest, reading: Reading, firstMo
   const notices = builderSpec.notices;
   const say = (template: string) => fillTemplate(template, { pinned: q.snapshot, date: reading.manifest.latest_snapshot }).text;
   if (reading.kind === "withheld") {
-    return { kind: "withheld", text: `${say(reading.why === "owner" ? notices.pin_kept_withheld : notices.pin_kept_missing)} ${newest.text}` };
+    // A snapshot that lacks a field the question names says which, in the canvas's words; any other reason it cannot answer is said as before.
+    const lacks = reading.why === "missing" ? fieldLackedBy(q, reading.manifest) : undefined;
+    const why = lacks ? canvasSay("refuse_not_in_snapshot", { date: reading.manifest.latest_snapshot, field: lacks }) : say(reading.why === "owner" ? notices.pin_kept_withheld : notices.pin_kept_missing);
+    return { kind: "withheld", text: `${why} ${newest.text}` };
   }
   // Where the dataset ends before the snapshot or the pinned month has no window, the line the kept snapshot gives is the one that says so.
   const own = pinNote(q, reading.manifest, firstMonth);

@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-11-26T00:00:00Z",
+  "latest_snapshot": "2026-10-31",
+  "warnings": [],
+  "datasets": {
+    "ds": {
+      "months": 2,
+      "latest_month": "2026-10",
+      "live_dimensions": [
+        "a",
+        "b",
+        "c"
+      ],
+      "live_pairs": [],
+      "facts": {
+        "rows": 4,
+        "dimensions": [
+          "a",
+          "b"
+        ],
+        "not_live": {},
+        "narrow": {
+          "side": {
+            "rows": 3,
+            "dimensions": [
+              "a",
+              "c"
+            ],
+            "not_live": {}
+          }
+        }
+      }
+    }
+  }
+}

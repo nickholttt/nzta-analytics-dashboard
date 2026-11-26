@@ -131,7 +131,7 @@ Setup, **not re-run this session** (the environment already existed):
   upload tool, wrangler, is pinned by its own lockfile in `.github/deploy/` (D-057). All of it is on
   `main` since 2026-11-13 (#26 to #29, #35, #37 to #39), and the first release, `cube-2026-10`, exists.
 - `src/pages/index.astro` hosts React islands; only its first chart fetches on load, the others wait on `src/lib/loadGate.ts` (D-099). `src/lib/config.ts` loads `config/*.json`, `data.ts`
-  reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains.
+  reads `public/data` (hyparquet), and `resolve.ts` checks a preset against what the cube contains and says where the rows come from: where the wide fact table lacks a field, a plain breakdown with one condition on a field its live pair holds is read from that pair; otherwise the one fact table that holds every field the question names, the wide table first and then the first narrow table of the manifest (`factTableFor` in `data.ts`; every cache key carries the table).
   `derived.ts` registers browser-computed series. `src/components/{Mix,Trend,Distribution,League,Geo,Matrix}Chart.tsx`
   are the renderers of the six allowed shapes (`matrix`, approved in D-083, is a table drawn from the design tokens, D-114), and `PresetTriage.tsx` lists every preset with what blocks it, and (as `BuildWarnings`, D-112) the cube's own warnings, on the internal status page only.
 - `src/pages/canvas.astro` hosts the canvas (work order 2, milestone 1; D-147): a page of charts a visitor builds by putting
