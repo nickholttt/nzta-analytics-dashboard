@@ -1,75 +1,77 @@
 # State
 
-Last updated by claude on 2026-11-27 (after the six merges)
+Last updated by claude on 2026-11-27 (D-164: a working preview first; light vehicles by default; the cause of the gap to the MIA found)
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the Lanes table are in
 `docs/CHECKPOINT.md`. The direction: `docs/brief/UI_DIRECTION.md` (2026-11-27) over `WORK_ORDER.md` and its additions.
 
 ## Live now
 
-- **The pipeline** runs on `main` in GitHub Actions, tried every day (D-064). The last build is the
-  forced run of 26 November 03:51 UTC, which rebuilt snapshot 2026-10 (release `cube-2026-10`) after
-  #167: 98 files, byte for byte the dry run #167 was reviewed on but for the manifest's timestamp. The
+- **The pipeline** runs on `main` in GitHub Actions, tried every day (D-064). The last build is the forced
+  run of 26 November 03:51 UTC, which rebuilt snapshot 2026-10 (release `cube-2026-10`) after #167. The
   private archive (`nickholttt/nzta-register-archive`) holds one release, `snapshot-2026-10`, untouched.
 - **Datasets**: `registrations_surviving` (five vehicle types, D-157: 4,615,306 vehicles); `fleet`;
   `new_registrations` (first registrations from January 2021, new and used, D-158); `registrations_cars_long_run`.
-- **Buyer type is published** (#167, D-159) on `new_registrations`: a slice, a pair with new or used, a
-  narrow fact table with brand and model. No cell is hidden; it is never beside where an owner lives, and
-  the build aborts on a configuration that would put it there. The store still drops the district.
+- **Buyer type is published** (#167, D-159) on `new_registrations`: a slice, a pair with new or used, a narrow
+  fact table with brand and model. It is never beside where an owner lives; the store drops the district.
 - **The accuracy guard** (D-149 to D-153): every build sets 389 published figures beside ours; a figure
   past its tolerance warns, and the hard limits stop the build. The rebuilt October: 388 pass, 1 warns.
-- **Market type is built on `main`** (#173, D-161) for `registrations_surviving` and `fleet`; the published cube
-  gains it at the next build (October is not built again unless the user asks).
+- **Market type is built on `main`** (#173, D-161) for the register datasets; the cube gains it at the next build.
 - **The site's code is on `main`; nothing is deployed** (`CLOUDFLARE_PAGES_PROJECT` is unset). Pages:
   Explore, Canvas, Method, Caveats, About (a draft), Feedback, Differences, a not-found page, and script-free
-  generated pages for 64 brands, 265 models and 6 powertrains. A sitemap waits for `about.site_address`.
-- **The home page opens with the latest month** (#153, #161, #162, #170, #171): new and used apart, four periods,
-  a block by buyer type, and wide tables that fit a phone or show that they scroll.
-- **The canvas is the only builder** (#132). A chart by buyer type starts on new vehicles, a condition the
-  visitor can remove (#169, D-160). Its first chart is held (D-156): a pull request fails over 3.0 s on
-  the phone profile. It reads the narrow fact tables (#172): buyer type crosses with brand, model and the rest.
+  pages for 64 brands, 265 models and 6 powertrains. The home page opens with the latest month: new and used
+  apart, four periods, buyer type. The canvas is the only builder (#132); it reads the narrow fact tables
+  (#172), and its first chart is held to 3.0 s on the phone profile (D-156).
 
 ## Current step
 
-The user's direction of 27 November (`docs/brief/UI_DIRECTION.md`, D-162): the site built so far is the engine's
-proof and is not published; the public site at vcore.co.nz is a new UI in which every page is a canvas the
-visitor can re-ask. The user accepted the design on 27 November (D-163); nothing of it is built in `src/` yet.
+The user's direction of 27 November (`docs/brief/UI_DIRECTION.md`): the site built so far is the engine's proof
+and is not published; vcore.co.nz gets a new UI in which every page is a canvas the visitor can re-ask (D-162,
+the design accepted in D-163). **Re-scoped the same day (D-164): first a working preview for the user and a few
+automotive experts, on 28 or 29 November**, and three standing rules: set and forget (no monthly hand work, no
+monthly check against the MIA); every brand apart, as NZTA registers it; light vehicles by default, with heavy
+vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits for the experts' feedback.
 
 ## In progress (all claude; nothing by gemini)
 
-- **Lane F**, `claude/f-design-context`: `PRODUCT.md`, the surface brief with its direction contract
-  (`.impeccable/surfaces/`), `DESIGN.md`, D-162 and these notes. Docs and context files only.
-- #170 to #175 merged on 27 November on the user's word; their branches are deleted and the worktrees
-  `nzta-lane-a`, `-b` and `-c` sit detached on `main`, clean.
-- Worktrees with work that is not on `main`: `nzta-screens` (narrative drafts, **uncommitted**, D-102);
-  `nzta-segments` (an untracked draft scheme file, D-103); `nzta-notes` (the closed board proposal).
-- Private, on the computer: **the new UI's proposal** (a private page and its files) and its reviews; the vstat
-  study, now with vstat's design tokens; the "Existing fleet" workbooks with a plan; the location plan.
-- The Impeccable design skill is installed for the maintainer's user; its hook is on for this project (D-163).
+- **The stakeholder preview** (D-164) is built: private, outside the repository, and as a private hosted page.
+  Market, Brands, Models, Powertrains, Buyers, Heavy vehicles, Motorcycles, a blank canvas, a page per brand
+  and per named model, how figures are counted, how they compare. Any field, any filter, four periods, any
+  month ending from January 2022; the address carries the page. Nothing in `src/` or the pipeline changed.
+- Its checks on 27 November: its engine against the published slices and sums made apart from it (54,005
+  comparisons, none differ); a headless-browser run (885 checks; 195 questions compared cell by cell); axe on
+  11 pages at 390 and 1,280 px, light and dark, nothing found; no sideways scroll from 320 to 1,440 px. An
+  independent recount of 9,705 displayed figures found none wrong, on the build before the light and heavy cuts.
+- **Why the dashboard is below the MIA** (D-164): a month is largest when first read. On the committed
+  aggregates, August 2026 as first read is the MIA's 12,216; September is 8 short and October 1 short.
+- Worktrees: `nzta-lane-a`, `-b` and `-c` detached on `main`, clean; with work not on `main`, `nzta-screens`
+  (narrative drafts, **uncommitted**, D-102), `nzta-segments` (a draft scheme file, D-103), `nzta-notes`.
+- Private, on the computer: the preview, the figure audit and the dive into the MIA's gaps; the new UI's
+  proposal; the vstat study; the "Existing fleet" workbooks; the location plan. Impeccable's hook is on (D-163).
 
 ## Raw files on this computer (gitignored)
 
 - `data/raw/2026-08/`, `data/raw/2026-10/20261113T045017Z` (5,926,990 rows, 36 fields), the dashboard
   exports and Stats NZ's series; none holds `VIN11` or `POSTCODE`. The main folder's `public/data` is the
   release `cube-2026-10` as rebuilt on 26 November (with buyer type).
-- `data/raw/geo/`: two map sources no build reads yet (Stats NZ's territorial authorities, CC BY 4.0; Open
-  NZ Postcodes v2026.11.01). The dashboard history's yearly totals file, rebuilt for #167, is with the exports.
+- `data/raw/geo/`: two map sources no build reads yet. The dashboard history's yearly totals are with the exports.
+- `data/staging/build` is a dry run of the October pull made on 27 November (exit 0), with Market type on the
+  register datasets. It was not copied over `public/data`; the preview reads Market type from it (D-164).
 
 ## Known issues
 
-1. A link that reads the fact table is bound by its data (the acceptance question: 6.5 s first chart).
-   No link draws a map today (the region table hides small counts); nor a chart pinned to a kept snapshot.
-2. A page left open across a monthly refresh draws new figures under the old snapshot date. Three Explore
-   charts are on no starter canvas. "Area Outside Region" reaches visitors as is.
-3. `/method`, `/caveats` and `/differences` are hand-written and fall behind at each refresh. The
-   no-tracking check misses rarer spellings (#131); nothing checks a `restated_from` figure (D-153). The
-   site's tests that read built data are skipped in `Checks` (the site-tests job downloads no cube).
-4. Not tested: Safari, a real screen reader, a browser without `:has()` (the period and new-or-used
-   switches rest on it). A chosen period is not kept in the address. A brand page's HTML doubled with #162.
-5. The canvas has no year to date and no "New entry" in its ranking. Range-extended electric vehicles are
-   counted with plug-in hybrids. A buyer-type chart's title and sentence do not say it counts new vehicles.
-6. The latest month's powertrain table at 12 months is still 11 px too wide at 390 px, with a cue (#171).
-7. With #173, a chart of SUV or Passenger over many years shows the nameplate list's coverage too (D-161).
+1. A link that reads the fact table is bound by its data (6.5 s first chart). No link draws a map today.
+2. A page left open across a monthly refresh draws new figures under the old snapshot date.
+3. `/method`, `/caveats` and `/differences` are hand-written and fall behind at each refresh. Nothing checks
+   a `restated_from` figure (D-153). The site's tests that read built data are skipped in `Checks`.
+4. Not tested: Safari, a real screen reader, a browser without `:has()`. A chosen period is not kept in the
+   address. The latest month's powertrain table at 12 months is 11 px too wide at 390 px, with a cue (#171).
+5. The canvas has no year to date and no "New entry"; a buyer-type chart does not say it counts new vehicles.
+6. With #173, a chart of SUV or Passenger over many years shows the nameplate list's coverage too (D-161).
+7. What D-164 found is answered in the preview only. The published data still counts light and heavy
+   together, splits Haval, Ora and Tank out of the make NZTA registers them under (GWM), records Honda CR-V two
+   ways, hides 36 of October's new vehicles under an unmatched make, and has no grouping of powertrains that
+   equals the MIA's. `new_registrations` is a hand export and reads each month later than the MIA does.
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -79,21 +81,18 @@ visitor can re-ask. The user accepted the design on 27 November (D-163); nothing
 
 ## Blocked or waiting on the user
 
-Waiting on the user (CHECKPOINT): the Cloudflare steps and what the address should show; whether October is built again; D-158's questions; the
-NZTA email; the Existing fleet licence line; `DASHBOARD_EXPORT_METHOD.md`.
+Waiting on the user (CHECKPOINT): the session with the experts and what they say; a Cloudflare login on this
+computer, or the upload by hand (the domain is active; no login is held here); GWM as one brand, to confirm;
+whether October is built again; D-158's questions; the NZTA email; the Existing fleet licence line.
 
 ## How to run
 
 `AGENTS.md` §Commands has the verified commands. On 2026-11-26: the site's tests on #172's branch, with
 the site built on the rebuilt cube, 933 passed; the pipeline suite on #173's branch, 3,618 passed.
 
-- Claude Code refuses a merge into `main` without the user's word in that session's own messages (also
-  after a compacted conversation). It is asked for, never worked around.
-- A cube is published only from a Monthly build on `main`: a change that renames a dataset the pages read
-  cannot pass the public-site checks before it merges (D-158). A forced build of the month already built
-  needs no asking only after the counts in `data/supplied/` changed on `main` (D-120); any other is asked for.
-- NZTA's sites block automated readers: they are read only from files the user supplies. The timed
-  first-chart check by hand (`node scripts/check-first-load.mjs`) varies by more than its margin on
-  this computer: trust the runner's figure.
-- Before a high-risk pull request, run every test file that builds a cube. Before a merge, wait for
-  `Checks` on the newest commit in a command of its own; never merge during a Monthly build.
+- Claude Code refuses a merge into `main` without the user's word in that session's own messages. It is
+  asked for, never worked around. Before a merge, wait for `Checks` on the newest commit in a command of its
+  own; never merge during a Monthly build. Before a high-risk pull request, run every test that builds a cube.
+- A cube is published only from a Monthly build on `main` (D-158). A forced build of the month already built
+  needs no asking only after the counts in `data/supplied/` changed on `main` (D-120).
+- NZTA's sites block automated readers: they are read only from files the user supplies.

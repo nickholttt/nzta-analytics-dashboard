@@ -62,6 +62,52 @@ on a desktop screenshot (the empty end of a card's control row, the dead area be
 half-empty second row in a card's foot) are closed, measured at 1024, 1280 and 1440 px, with no sideways
 scroll at 320, 390, 768, 1024, 1280 or 1440 px. Impeccable's hook is on for this project.
 
+## The re-scope, the same day (the user's words)
+
+> It doesnt need to be public polished. It just needs to be functional for me to use and get stakeholder
+> feedback from automotive experts. This will be our sink or swim moment and they will call out wrong
+> figures, so im trusting that we finished the data engine to match correct industry standards
+
+And, answering three questions (the dashboard re-export with the GVM group; when the session is; the
+domain's registrar):
+
+> 1, do it. 2, this weekend. 3, I have set up a custom domain in cloudflare. leave that to me, i will do the
+> manual work on cloudflare when ready.
+
+Claude's reading (D-164): the first thing shown to anyone is a working preview for the user and a few
+automotive experts, this weekend (28 or 29 November 2026), not the polished public site. What matters in it
+is that every figure stands up and that every field can be asked. The accepted design is its look; lane F's
+polished rebuild in `src/` waits for the feedback.
+
+Later the same day, while the preview was being checked (the parts that set direction):
+
+> the vcore.co.nz domain has been activated on Cloudflare. If you can use the CLI to build what you need
+> to, do it; otherwise, let me know what you want me to do when ready.
+>
+> I feel like we can find a solution to the gaps in our data vs MIA. I don't want to have to run a
+> verification check every month against MIA, so finding the root cause or fix it ideal. [...]
+>
+> Our goal is to have a 'set and forget' site which adapts to every months data (within reason).
+>
+> Caveats like GWM and the sub-brands don't feel right to me; correct me if im wrong, but it should be
+> every brand, not a group parent brand. Take Geely, for example: they have Geely, Farizon, and Zeekr, not
+> just Geely, as the one brand wouldn't be a true representation of the brands registered.
+>
+> You can challenge MIA if you genuinely find an error in their thinking; otherwise, bigger problems like
+> classifications or segments like heavy trucks or suv need investigation. [...]
+>
+> what manual data retrieval are we relying on? Say we publish as-is, would any manual intervention be
+> needed?
+>
+> motorcycles and heavy vehicles Need to be moved to their own tab like MTA does, as it skews the figures.
+> They need to be siloed from the other numbers unless explicitly built onto the same canvas by the user.
+
+Claude's reading (D-164): three standing rules for the product. **Set and forget**: a month's figures come
+from NZTA's open data with no hand work, and nobody checks them against the MIA each month. **Every brand
+apart**, as NZTA registers it: a manufacturer's brands are never rolled into one (Geely, Zeekr and Farizon
+are three), and a parent is a separate field. **Light vehicles are the default**; heavy vehicles and
+motorcycles have pages of their own and enter another page only when the visitor builds them in.
+
 ## Where it has got to (2026-11-27, end of day)
 
 - **Nothing in `src/` has changed.** The design is accepted (D-163, over D-162); lane F builds it.
