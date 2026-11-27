@@ -46,8 +46,7 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
   questions compared cell by cell through the new controls; axe clean; the location tables against the staged
   build and under their privacy tests (97,325 and 215,378 checks); an independent recount of 81,820 map figures.
 - **Why the dashboard is below the MIA** (D-164, D-167): a month is largest when first read; October 2026 as first read is 15,117 against the MIA's 15,118.
-- Worktrees: `nzta-lane-a`, `-b` and `-c` detached on `main`, clean; with work not on `main`, `nzta-screens`
-  (narrative drafts, **uncommitted**, D-102), `nzta-segments` (a draft scheme file, D-103), `nzta-notes`.
+- Worktrees: `nzta-lane-a`, `-b`, `-c` on `main`, clean; not on `main`: `nzta-screens` (drafts, **uncommitted**, D-102), `nzta-segments` (D-103), `nzta-notes`.
 - Private, on the computer: the preview and its reviews; the dive (D-167); the UI proposal; the vstat study; the location plan.
 
 ## Raw files on this computer (gitignored)
