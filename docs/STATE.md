@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-27 (D-164: a working preview first; light vehicles by default; the cause of the gap to the MIA found)
+Last updated by claude on 2026-11-27 (D-165: the preview is uploaded to a Cloudflare Pages project of its own; GWM is one brand, the user's word)
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the Lanes table are in
 `docs/CHECKPOINT.md`. The direction: `docs/brief/UI_DIRECTION.md` (2026-11-27) over `WORK_ORDER.md` and its additions.
@@ -34,14 +34,13 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
 
 ## In progress (all claude; nothing by gemini)
 
-- **The stakeholder preview** (D-164) is built: private, outside the repository, and as a private hosted page.
-  Market, Brands, Models, Powertrains, Buyers, Heavy vehicles, Motorcycles, a blank canvas, a page per brand
-  and per named model, how figures are counted, how they compare. Any field, any filter, four periods, any
-  month ending from January 2022; the address carries the page. Nothing in `src/` or the pipeline changed.
+- **The stakeholder preview** (D-164) is built, outside the repository, and **uploaded to a Cloudflare Pages
+  project of its own** on the user's account (D-165). Anyone holding its address can open it until the user sets
+  an Access rule; it tells search engines to stay away; vcore.co.nz is attached to nothing. It is also a private
+  hosted page. Its pages and what can be asked are in D-164. Nothing in `src/` or the pipeline changed.
 - Its checks on 27 November: its engine against the published slices and sums made apart from it (54,005
-  comparisons, none differ); a headless-browser run (885 checks; 195 questions compared cell by cell); axe on
-  11 pages at 390 and 1,280 px, light and dark, nothing found; no sideways scroll from 320 to 1,440 px. An
-  independent recount of 9,705 displayed figures found none wrong, on the build before the light and heavy cuts.
+  comparisons, none differ); a headless-browser run (885 checks); axe on 11 pages at 390 and 1,280 px, light and
+  dark, nothing found; no sideways scroll 320 to 1,440 px; the uploaded page counts the same (16 checks).
 - **Why the dashboard is below the MIA** (D-164): a month is largest when first read. On the committed
   aggregates, August 2026 as first read is the MIA's 12,216; September is 8 short and October 1 short.
 - Worktrees: `nzta-lane-a`, `-b` and `-c` detached on `main`, clean; with work not on `main`, `nzta-screens`
@@ -69,20 +68,22 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
 5. The canvas has no year to date and no "New entry"; a buyer-type chart does not say it counts new vehicles.
 6. With #173, a chart of SUV or Passenger over many years shows the nameplate list's coverage too (D-161).
 7. What D-164 found is answered in the preview only. The published data still counts light and heavy
-   together, splits Haval, Ora and Tank out of the make NZTA registers them under (GWM), records Honda CR-V two
+   together, splits Haval, Ora and Tank out of GWM (one brand, the user's word: D-165), records Honda CR-V two
    ways, hides 36 of October's new vehicles under an unmatched make, and has no grouping of powertrains that
    equals the MIA's. `new_registrations` is a hand export and reads each month later than the MIA does.
 
 ## Where docs and code disagree (noted, not changed)
 
-- `docs/brief/MASTER_BRIEF.md` knows no canvas; the order wins. Work order 3's 12 December date: see UI_DIRECTION. `docs/DATA_MAP.md` lists ten disagreements,
-  fixed as each field is touched. The stub dataset `ownership_changes` says "vehicles"; it counts changes.
-  D-144, D-159 and D-160 say the site does not read the narrow tables: true when written; #172 reads them.
+- `docs/brief/MASTER_BRIEF.md` knows no canvas; the order wins. Work order 3's 12 December date: see UI_DIRECTION.
+  `docs/DATA_MAP.md` lists ten disagreements, fixed as each field is touched. The stub dataset `ownership_changes`
+  says "vehicles"; it counts changes. D-144, D-159 and D-160 say the site does not read the narrow tables: true
+  when written; #172 reads them. The go-public playbook's command for making a Pages project failed with the
+  pinned upload tool; the playbook now gives the one that ran (D-165).
 
 ## Blocked or waiting on the user
 
-Waiting on the user (CHECKPOINT): the session with the experts and what they say; a Cloudflare login on this
-computer, or the upload by hand (the domain is active; no login is held here); GWM as one brand, to confirm;
+Waiting on the user (CHECKPOINT): the session with the experts and what they say; who may open the uploaded
+preview (an Access rule) and the domain, both in the user's Cloudflare console (`docs/playbooks/go-public.md` §7);
 whether October is built again; D-158's questions; the NZTA email; the Existing fleet licence line.
 
 ## How to run
