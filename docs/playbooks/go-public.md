@@ -1,7 +1,9 @@
 # Playbook: put the site on the public internet (Cloudflare Pages)
 
-**Status: nothing in this list has been started.** No Cloudflare project exists, no token or secret has been
-created, and the repository variable `CLOUDFLARE_PAGES_PROJECT` is not set. Names below are the ones
+**Status: nothing in this list has been started for the site.** No Cloudflare project for the site exists, no token or
+secret has been created, and the repository variable `CLOUDFLARE_PAGES_PROJECT` is not set. On 2026-11-27 the
+maintainer's computer was found signed in to Cloudflare, and a project apart from the site's was made for the stakeholder
+preview (D-165); that project is not this playbook's `<name>`. Names below are the ones
 `.github/workflows/deploy.yml` reads (D-056, D-057, D-072). Console labels were checked on 2026-11-24 against
 developers.cloudflare.com and docs.github.com; a label not found there is marked "inferred — confirm". Where a screen
 differs, follow the screen and fix this file.
@@ -38,15 +40,19 @@ production branch must be `main`, or the upload is filed as a preview and `<name
 1. Create a Cloudflare account at dash.cloudflare.com if you have none (Free plan, no card).
 2. In a terminal at the repository's root, install the upload tool the workflow itself uses, pinned at wrangler 4.148.0
    (D-057): `npm ci --prefix .github/deploy`. It adds a `node_modules` folder under `.github/deploy` and changes no
-   tracked file. The three wrangler commands below were checked against that version's own help on 2026-11-24; none
-   was run against Cloudflare.
+   tracked file. The three wrangler commands below were checked against that version's own help on 2026-11-24. On
+   2026-11-27 `whoami`, step 4's command and the workflow's `pages deploy` were run against Cloudflare with the same
+   version, as `npx wrangler@4.148.0`, for the preview's own project (D-165); `login` and the `--prefix` form were not.
 3. Run `npx --prefix .github/deploy wrangler login` and approve in the browser. It signs this computer in to your
    Cloudflare account and changes nothing in the repository; `npx --prefix .github/deploy wrangler logout` undoes it
    (the logout command is inferred — confirm).
-4. Run `npx --prefix .github/deploy wrangler pages project create <name> --production-branch main`. It makes an empty
-   Direct Upload project with production branch `main` and uploads nothing, so nothing is public.
-5. Run `npx --prefix .github/deploy wrangler whoami` and copy the Account ID it prints beside your account's name
-   (what it prints is inferred — confirm). You need it in step 3.
+4. Run `npx --prefix .github/deploy wrangler pages project create <name> --production-branch main --force`. It makes an
+   empty Direct Upload project with production branch `main` and uploads nothing, so nothing is public. `--force` is
+   needed this once: without it this version hands a new project to Cloudflare Workers and stops with "Missing
+   entry-point to Worker script or to assets directory", making nothing (seen 2026-11-27, D-165). Once the project
+   exists no later command takes the flag: `pages deploy` ran as the workflow writes it.
+5. Run `npx --prefix .github/deploy wrangler whoami` and copy the Account ID it prints beside your account's name (a
+   table of Account Name and Account ID, seen 2026-11-27). You need it in step 3.
 6. Dashboard route instead (not preferred): Workers & Pages, Create application, Get started, Drag and drop your files,
    type `<name>`, Deploy site. Cloudflare's page does not say whether the project can be made without files, and offers no
    dashboard control for the production branch, so this route may publish a first upload at once and may leave the branch
@@ -114,3 +120,34 @@ builds, checks and stops green.
    or delete the project (labels inferred — confirm). Deleting the project frees the name.
 3. Revoke the token (My Profile, API Tokens) and delete the two secrets in `production`.
 4. Switching on again is steps 1 to 4 again as far as they were undone.
+
+## 7. Optional: limit who can open a Pages address (PRODUCTION; none of this has been run)
+
+A Pages address is open to anyone who holds it. Limiting it to named people is Cloudflare Access, which the owner sets
+in the console; no agent sets it. The steps are Cloudflare's own, read on 2026-11-27 from developers.cloudflare.com
+(Pages "Known issues" and "Preview deployments"; Cloudflare One "Get started", "One-time PIN" and "Policies"). Where a
+screen differs, follow the screen and fix this file.
+
+1. **Money: read this first.** The first use of Access sets up Zero Trust: Dashboard, Zero Trust, choose a team name,
+   select a plan and enter payment details. Cloudflare's page: "If you chose the Zero Trust Free plan, this step is
+   still needed but you will not be charged." Whether to give a card is yours to decide. The Free plan's user limit is
+   not stated on the pages read.
+2. The login by emailed code is not on by default. Zero Trust, Integrations, Identity providers, Add new identity
+   provider, One-time PIN.
+3. Workers & Pages, the project, Settings, Enable access policy. On its own this covers only the preview addresses
+   (`*.<name>.pages.dev`), not `<name>.pages.dev` and not a custom domain.
+4. Select Manage on the policy just made; under Access, Applications, select the project, then Configure. Under Public
+   hostname, in the Subdomain field, delete the wildcard (`*`) and Save; the page says the Application name may need
+   changing to avoid an error. `<name>.pages.dev` is now behind Access.
+5. In that application's policy: Action Allow, an Include rule with the selector Emails, and each person's address. An
+   Include of Everyone, or of the login method alone, lets in anyone with an email address.
+6. Back in the project, Settings, General, select Enable access policy again, so the preview addresses are covered too.
+   Check that two applications exist.
+7. A custom domain is not covered by any of this: it needs an application of its own (Zero Trust, Access controls,
+   Applications, Create new application, Self-hosted and private, Add public hostname, the domain, a policy as in step
+   5). The same page also says a custom domain cannot be added while a policy is already on that domain: attach the
+   domain first, then the policy (the order is inferred — confirm).
+8. A person then opens the address, types their email address, selects Send login code and pastes the code, which lasts
+   10 minutes. Someone not on the list is shown the same screen and gets no email.
+9. Undo: delete the applications under Zero Trust, Access controls, Applications (the pages read do not show the
+   control; inferred — confirm).
