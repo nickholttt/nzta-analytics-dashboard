@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-27, evening (D-166: vcore.co.nz shows the preview; D-167: the set-and-forget design after review)
+Last updated by claude on 2026-11-28 (D-168: the preview's controls are rebuilt and its Areas pages built; both are on the development copy, not yet on vcore.co.nz)
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the Lanes table are in
 `docs/CHECKPOINT.md`. The direction: `docs/brief/UI_DIRECTION.md` (2026-11-27) over `WORK_ORDER.md` and its additions.
@@ -38,13 +38,14 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
   Pages project of its own, attached by the user on 27 November and checked live; a second project is the
   development copy (D-166). Open to anyone; every response says it is not for search results. It is also a
   private hosted page. Its pages are in D-164. Nothing in `src/` or the pipeline changed.
-- **Being built in the preview (D-166, claude):** a controls clean-up after an Impeccable critique; district tables
-  from the saved pull under the location plan's privacy tests; map outlines; postcode counts. Not uploaded yet.
-- Its checks on 27 November: its engine against the published slices and sums made apart from it (54,005
-  comparisons, none differ); a headless-browser run (885 checks); axe on 11 pages at 390 and 1,280 px, light and
-  dark, nothing found; no sideways scroll 320 to 1,440 px; the uploaded page counts the same (16 checks).
-- **Why the dashboard is below the MIA** (D-164): a month is largest when first read. On the committed
-  aggregates, August 2026 as first read is the MIA's 12,216; September is 8 short and October 1 short.
+- **On the development copy since 28 November, not on vcore.co.nz (D-166, D-168):** the controls rebuilt after an
+  Impeccable critique (33 controls at rest on the overview, from 77; one filter set for the visit; three sections
+  in place of the Vehicles choice), and Areas pages: maps of regions, districts and postcodes, a page for each
+  area, and a box for a dealer's market-area postcodes. The strictest form of the privacy rule is the one uploaded.
+- Its checks on 28 November: the engine against the published slices (54,005 comparisons, none differ); 195
+  questions compared cell by cell through the new controls; axe clean; the location tables against the staged
+  build and under their privacy tests (97,325 and 215,378 checks); an independent recount of 81,820 map figures.
+- **Why the dashboard is below the MIA** (D-164, D-167): a month is largest when first read; October 2026 as first read is 15,117 against the MIA's 15,118.
 - Worktrees: `nzta-lane-a`, `-b` and `-c` detached on `main`, clean; with work not on `main`, `nzta-screens`
   (narrative drafts, **uncommitted**, D-102), `nzta-segments` (a draft scheme file, D-103), `nzta-notes`.
 - Private, on the computer: the preview and its reviews; the dive (D-167); the UI proposal; the vstat study; the location plan.
@@ -82,9 +83,9 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
 
 ## Blocked or waiting on the user
 
-Waiting on the user (CHECKPOINT): what the experts say; the word to put each new build on the domain; lane B's
-questions (D-167); whether October is built again; D-158's questions; the NZTA email; the Existing fleet licence
-line. `www.vcore.co.nz` still showed the registrar's parking page on 27 November; the user is attaching it.
+Waiting on the user (CHECKPOINT): what the experts say; the word to put the new build on the domain; the form of
+the privacy rule (D-168); lane B's questions (D-167); whether October is built again; D-158's questions; the NZTA
+email; the Existing fleet licence line. `www.vcore.co.nz` still showed the registrar's parking page on 28 November.
 
 ## How to run
 
