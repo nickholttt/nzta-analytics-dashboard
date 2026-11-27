@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-28 (D-168: the preview's controls are rebuilt and its Areas pages built, on the development copy; vcore.co.nz still shows the build of 27 November; nothing in `src/`, the pipeline or the published data changed)
+Last updated by claude on 2026-11-28 (the build with the rebuilt controls and the Areas pages is on vcore.co.nz, on the user's word; #179 merged; nothing in `src/`, the pipeline or the published data changed)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -13,12 +13,12 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | C: public readiness | none | the user | vcore.co.nz shows the preview from a Pages project of its own, attached by the user on 27 November: open, not for search results (D-166). The site in `src/` is not public |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing new |
 | E: classification, the latest month, findability | none | free | the next classification batch can start |
-| F: the new UI for vcore.co.nz | none | claude, in the preview (outside the repository) | The preview's controls are rebuilt and its Areas pages built, on the development copy (D-168). The rebuild in `src/` starts after the experts' session |
+| F: the new UI for vcore.co.nz | none | claude, in the preview (outside the repository) | The preview's controls are rebuilt and its Areas pages built (D-168); the build is on vcore.co.nz. The rebuild in `src/` starts after the experts' session |
 
 ## The queue (plans are kept outside the repository, on the computer; each B item is a high-risk pull request with one independent review)
 
 **Now: the experts' session, 28 or 29 November, on vcore.co.nz (D-166).** The rebuilt controls and the Areas pages
-are on the development copy and go to the domain on the user's word. Afterwards: what each expert called out.
+are on the domain since 28 November. Afterwards: write down what each expert called out, and fix a wrong figure first.
 
 **B, set and forget (D-164, in the form D-167 leaves), in this order.**
 1. **The month as first read**, frozen, in a wider committed aggregate at a path of its own (model, body, a weight
@@ -52,8 +52,8 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-1. **The build of 28 November to vcore.co.nz** (new controls, Areas pages). It is on the development copy and goes
-   to the domain on your word. Default: the domain keeps the build of 27 November.
+1. **A later build to vcore.co.nz.** A build is shown on the development copy first and goes to the domain on your
+   word. The build of 28 November is on both.
 2. **The form of the privacy rule for location tables (D-168):** as the plan wrote it, or narrower. Recommended:
    narrower, with the strict test kept for buyer groups of 100 or fewer. Default: as written, the strictest.
 3. **Lane B, before the piece that needs each is built (D-167):** one series from two sources (the dashboard to
