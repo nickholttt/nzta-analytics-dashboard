@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-27 (D-165: the preview is uploaded to a Cloudflare Pages project of its own; GWM is one brand by the user's word; #177 merged; nothing in `src/`, the pipeline or the published data changed)
+Last updated by claude on 2026-11-27, evening (D-166: vcore.co.nz shows the preview; maps, a market-area tool and a controls clean-up are being built in it; D-167: the set-and-forget design after review; #178 merged; nothing in `src/`, the pipeline or the published data changed)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -9,35 +9,34 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | Lane | Branch | Held by | Status |
 |---|---|---|---|
 | A: finish the canvas | none | closed into F | No further polish of the current screens: what is left of A is built in lane F's new UI |
-| B: the accuracy guard and the datasets | none | free (the computer for anything needing raw data) | Next: set and forget, the queue's B1. One pipeline pull request at a time |
-| C: public readiness | none | the user | The domain is active on Cloudflare. The preview is on a Pages project of its own (D-165); who may open it and the domain are the user's: questions 1 and 2. The site itself is not public |
+| B: the accuracy guard and the datasets | none | free (the computer for anything needing raw data) | Next: set and forget in the form D-167 leaves, the queue's B1. One pipeline pull request at a time |
+| C: public readiness | none | the user | vcore.co.nz shows the preview from a Pages project of its own, attached by the user on 27 November: open, not for search results (D-166). The site in `src/` is not public |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing new |
 | E: classification, the latest month, findability | none | free | the next classification batch can start |
-| F: the new UI for vcore.co.nz | none | waiting on the experts' feedback | The stakeholder preview is built (D-164). The rebuild in `src/` starts after the session |
+| F: the new UI for vcore.co.nz | none | claude, in the preview (outside the repository) | The preview's controls, maps and market-area tool (D-166). The rebuild in `src/` starts after the experts' session |
 
 ## The queue (plans are kept outside the repository, on the computer; each B item is a high-risk pull request with one independent review)
 
-**Now: the session with automotive experts, 28 or 29 November.** The preview is uploaded (D-165), and is also one
-file to send and a private hosted page. Afterwards: write down what each expert called out, fix a wrong figure first.
+**Now: the experts' session, 28 or 29 November, on vcore.co.nz (D-166).** Being built in the preview, in this order:
+the controls; region and district maps; postcodes and the market-area tool. Afterwards: what each expert called out.
 
-**B, set and forget (D-164), in this order.**
-1. **The month as first read.** Each month's first registrations come from the register as first read after
-   the month ends, and are frozen; the committed aggregate (`data/snapshots/`) is widened to carry model, body,
-   weight class and motive power code; later reads are kept as differences. History before November 2026 stays
-   on the dashboard export held. Done when: September and October 2026 rebuilt this way equal the committed
-   aggregates (17,047 and 15,117 new), and November builds with no hand export.
-2. **The MIA's powertrain groups** as a lookup on NZTA's motive power code, beside the site's own grouping;
-   range-extended electric vehicles a value of their own. Done when: October 2026 passenger gives 4,722 hybrid.
-3. **Light vehicles the default; heavy vehicles and motorcycles datasets of their own**, from Market type on
-   the first-read figures. Done when: October 2026 gives light commercial 2,805 and heavy 480.
-4. **Brands and models with no hand work**: a make no registry row matches shown under NZTA's own name; Honda
-   CRV with CR-V; the Corolla Cross and Prado told from the register's submodel text, with a warning on a
-   submodel no rule has seen; GWM as NZTA registers it (the user: yes, D-165).
+**B, set and forget (D-164, in the form D-167 leaves), in this order.**
+1. **The month as first read**, frozen, in a wider committed aggregate at a path of its own (model, body, a weight
+   class, the motive power code as recorded; no owner field), built by the Action; the privacy tests cover the
+   new file; a self-check that can stop a month. It starts at November 2026 unless question 2 says October.
+   Done when: a month built this way equals the five-field aggregate of that month, with no hand export.
+2. **The MIA's powertrain groups** as a lookup on the motive power code as NZTA recorded it, before the
+   mild-hybrid list rewrites it. Done when: the build, not the raw pull, gives October's 4,722 hybrids.
+3. **Light vehicles the default; heavy vehicles and motorcycles datasets of their own**: 3,500 kg on the
+   first-read figures. Done when: October 2026 gives light commercial 2,805 and heavy 480.
+4. **Brands and models with no hand work**: Honda CRV with CR-V; GWM as registered (D-165); `SUBMODEL` bound so
+   the Corolla Cross and Prado are told by a derived key; an unmatched make under NZTA's own name and a
+   catch-all value wait for the wording in question 2.
 5. Item 8's build side (a classification review file on `/status`); vstat's buyer mix in the guard (warn
    only); averages from the register; where used imports came from.
-6. **Location (the user, 2026-11-26, by name; the plan is a private file).** Four pull requests, each with a
-   privacy record: (a) the under-10 hiding lifted; (b) district on the register; (c) new registrations by
-   district; (d) postcode.
+6. **Location (the user, 26 and 27 November, by name; the plan is a private file).** Shown first in the preview
+   (D-166), brands by year included. For the site, four pull requests, each with a privacy record: (a) the
+   under-10 hiding lifted; (b) district on the register; (c) new registrations by district; (d) postcode.
 7. Changes of registered person (`ownership_changes`, approved 2026-11-26). **Its counts are not committed
    until the licence line on NZTA's page is read (the user parked that).**
 
@@ -53,15 +52,15 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-1. **Who may open the preview.** Anyone holding its address can. Limiting it to named people is Cloudflare Access,
-   set in your console (`docs/playbooks/go-public.md` §7); its first use asks for payment details, free plan or
-   not. Recommended: leave it unlisted for the session, and set Access before the address goes further. Default: left.
-2. **vcore.co.nz** is attached to nothing. Recommended: keep it for the site itself and give the experts the
-   preview's own address. Default: not attached.
-3. **The dashboard export.** It is no longer needed for light and heavy. It is still the only source of buyer
-   type, and it is a hand export each month. Default: nothing is fetched; buyer type ends at October 2026.
-4. Standing: build October again after #173 (default: no); Market type's coverage levels (default kept);
-   D-158's two questions; the NZTA email is not sent.
+1. **Each new build to vcore.co.nz.** A build is shown on the development copy first; it goes to the domain on your
+   word. Default: the domain keeps the build of 27 November.
+2. **Lane B, before the piece that needs each is built (D-167):** one series from two sources (the dashboard to
+   the seam, the register after), the seam marked; rental from the register's usage, an owner field; the wording
+   of invariants 4 and 5 for an unmatched make and a catch-all value; one forced run so the series starts at
+   October. Recommended: yes to the first three, no forced run. Default: none is built.
+3. **The dashboard export.** Still the only source of private against business buyers, and a hand export each
+   month. Default: nothing is fetched; buyer type ends at October 2026.
+4. Standing: build October again after #173 (default: no); Market type's coverage levels; D-158's two; the NZTA email.
 
 ## Decided for the user (unreviewed; each is in its pull request or record)
 
@@ -71,8 +70,9 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
   Company; Powertrains opens on passenger vehicles in the MIA's groups; a brand or model page opens on used
   imports where the subject is all but wholly one.
 - 27 November, D-165: the preview on a Pages project apart from the site's, its name kept out of the repository.
+- 27 November, D-166 and D-167: two Pages projects; crawlers let in so the noindex is read; the forms lane B is left in.
 
 ## Prompt for the next session
 
-/start. Read D-164 and `docs/brief/UI_DIRECTION.md`. If the session with the experts has happened, start from
-what they said: fix a wrong figure before anything else. If not, take lane B's item 1.
+/start. Read D-164 to D-167 and `docs/brief/UI_DIRECTION.md`. If the session with the experts has happened, start
+from what they said: fix a wrong figure before anything else. If not, carry on with the preview work in the queue.
