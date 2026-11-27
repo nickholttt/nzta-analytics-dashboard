@@ -108,6 +108,50 @@ apart**, as NZTA registers it: a manufacturer's brands are never rolled into one
 are three), and a parent is a separate field. **Light vehicles are the default**; heavy vehicles and
 motorcycles have pages of their own and enter another page only when the visitor builds them in.
 
+## The domain, maps and controls, the same evening (the user's words)
+
+Answering three questions (whether the notes pull request merges; who may open the uploaded preview; which
+address the experts are given):
+
+> 1, merge 178.
+> 2. Leave it open for now.
+> 3. They get the custom domain added to Cloudflare: vcore.co.nz. It will remain unindexed by Google so the
+> public doesn't find it, although im not worried if they do find it over the weekend. Keep preview for
+> development.
+>
+> Two things I want you to do after workers' replies settle.
+>
+> First, make the heat maps or highlight maps with the shapefile of nz locations, and each region stats and
+> regitration stats specific to them. this is related to the location and postcode data.
+>
+> Second, clean up how the site filters work. There are so many toggles. Also the top bar vehicle filter has
+> models which go across two or three choices. Use impeccable skills to help with how users look at controls
+> and the behaviour expected.
+>
+> I want to be able to filter results, not just select groupings.
+>
+> The site looks good, but it gets a bit confusing navigating and altering charts and pages
+
+And a few minutes later:
+
+> Also, When doing the map, allow users to punch in their PMA postcodes to see the activity which is
+> happening in thier PMA. This is useful for dealer analysis
+
+Claude's reading (D-166; each line can be reversed by the user):
+
+- **Two copies.** vcore.co.nz shows a copy the experts are given; the first upload stays as the development
+  copy. New work goes to the development copy first and reaches the domain when the user says so.
+- **Not in search results, and open.** Every response says it is not for indexing; nobody is asked to sign in.
+- **Maps.** Regions, districts and postcode areas shaded by a figure, and a page of figures for each area.
+  The figures follow the location plan the user answered on 26 November: every count is shown, and the kind
+  of owner is never shown beside, or able to be worked out for, where an owner lives.
+- **A dealer's market area ("PMA", a primary market area).** A visitor types a list of postcodes and sees the
+  figures for those postcodes added together.
+- **Controls.** Filtering results is a first act, not an extra: a visitor narrows a page or a card to chosen
+  values of any field. Fewer controls show at rest. "Models which go across two or three choices" is read as:
+  a model registered partly as a passenger vehicle, partly as light commercial and partly as heavy changes its
+  figure with the Vehicles choice, so a model's whole figure and its split must both be plain.
+
 ## Where it has got to (2026-11-27, end of day)
 
 - **Nothing in `src/` has changed.** The design is accepted (D-163, over D-162); lane F builds it.

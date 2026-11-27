@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-27 (D-165: the preview is uploaded to a Cloudflare Pages project of its own; GWM is one brand, the user's word)
+Last updated by claude on 2026-11-28 (D-168: the preview's controls are rebuilt and its Areas pages built; both are on the development copy, not yet on vcore.co.nz)
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the Lanes table are in
 `docs/CHECKPOINT.md`. The direction: `docs/brief/UI_DIRECTION.md` (2026-11-27) over `WORK_ORDER.md` and its additions.
@@ -34,19 +34,20 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
 
 ## In progress (all claude; nothing by gemini)
 
-- **The stakeholder preview** (D-164) is built, outside the repository, and **uploaded to a Cloudflare Pages
-  project of its own** on the user's account (D-165). Anyone holding its address can open it until the user sets
-  an Access rule; it tells search engines to stay away; vcore.co.nz is attached to nothing. It is also a private
-  hosted page. Its pages and what can be asked are in D-164. Nothing in `src/` or the pipeline changed.
-- Its checks on 27 November: its engine against the published slices and sums made apart from it (54,005
-  comparisons, none differ); a headless-browser run (885 checks); axe on 11 pages at 390 and 1,280 px, light and
-  dark, nothing found; no sideways scroll 320 to 1,440 px; the uploaded page counts the same (16 checks).
-- **Why the dashboard is below the MIA** (D-164): a month is largest when first read. On the committed
-  aggregates, August 2026 as first read is the MIA's 12,216; September is 8 short and October 1 short.
-- Worktrees: `nzta-lane-a`, `-b` and `-c` detached on `main`, clean; with work not on `main`, `nzta-screens`
-  (narrative drafts, **uncommitted**, D-102), `nzta-segments` (a draft scheme file, D-103), `nzta-notes`.
-- Private, on the computer: the preview, the figure audit and the dive into the MIA's gaps; the new UI's
-  proposal; the vstat study; the "Existing fleet" workbooks; the location plan. Impeccable's hook is on (D-163).
+- **The stakeholder preview** (D-164) is built, outside the repository. **vcore.co.nz shows it** from a Cloudflare
+  Pages project of its own, attached by the user on 27 November and checked live; a second project is the
+  development copy (D-166). Open to anyone; every response says it is not for search results. It is also a
+  private hosted page. Its pages are in D-164. Nothing in `src/` or the pipeline changed.
+- **On the development copy since 28 November, not on vcore.co.nz (D-166, D-168):** the controls rebuilt after an
+  Impeccable critique (33 controls at rest on the overview, from 77; one filter set for the visit; three sections
+  in place of the Vehicles choice), and Areas pages: maps of regions, districts and postcodes, a page for each
+  area, and a box for a dealer's market-area postcodes. The strictest form of the privacy rule is the one uploaded.
+- Its checks on 28 November: the engine against the published slices (54,005 comparisons, none differ); 195
+  questions compared cell by cell through the new controls; axe clean; the location tables against the staged
+  build and under their privacy tests (97,325 and 215,378 checks); an independent recount of 81,820 map figures.
+- **Why the dashboard is below the MIA** (D-164, D-167): a month is largest when first read; October 2026 as first read is 15,117 against the MIA's 15,118.
+- Worktrees: `nzta-lane-a`, `-b`, `-c` on `main`, clean; not on `main`: `nzta-screens` (drafts, **uncommitted**, D-102), `nzta-segments` (D-103), `nzta-notes`.
+- Private, on the computer: the preview and its reviews; the dive (D-167); the UI proposal; the vstat study; the location plan.
 
 ## Raw files on this computer (gitignored)
 
@@ -67,10 +68,9 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
    address. The latest month's powertrain table at 12 months is 11 px too wide at 390 px, with a cue (#171).
 5. The canvas has no year to date and no "New entry"; a buyer-type chart does not say it counts new vehicles.
 6. With #173, a chart of SUV or Passenger over many years shows the nameplate list's coverage too (D-161).
-7. What D-164 found is answered in the preview only. The published data still counts light and heavy
-   together, splits Haval, Ora and Tank out of GWM (one brand, the user's word: D-165), records Honda CR-V two
-   ways, hides 36 of October's new vehicles under an unmatched make, and has no grouping of powertrains that
-   equals the MIA's. `new_registrations` is a hand export and reads each month later than the MIA does.
+7. What D-164 found is answered in the preview only: the published data still counts light and heavy together,
+   splits Haval, Ora and Tank out of GWM (D-165), records Honda CR-V two ways, hides 36 of October's new vehicles
+   under an unmatched make and has no MIA powertrain grouping. `new_registrations` is a hand export (D-167).
 
 ## Where docs and code disagree (noted, not changed)
 
@@ -82,9 +82,9 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
 
 ## Blocked or waiting on the user
 
-Waiting on the user (CHECKPOINT): the session with the experts and what they say; who may open the uploaded
-preview (an Access rule) and the domain, both in the user's Cloudflare console (`docs/playbooks/go-public.md` §7);
-whether October is built again; D-158's questions; the NZTA email; the Existing fleet licence line.
+Waiting on the user (CHECKPOINT): what the experts say; the word to put the new build on the domain; the form of
+the privacy rule (D-168); lane B's questions (D-167); whether October is built again; D-158's questions; the NZTA
+email; the Existing fleet licence line. `www.vcore.co.nz` still showed the registrar's parking page on 28 November.
 
 ## How to run
 
