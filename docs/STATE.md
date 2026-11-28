@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-28 (D-168: the preview's controls are rebuilt and its Areas pages built; both are on the development copy, not yet on vcore.co.nz)
+Last updated by claude on 2026-11-28 (the build with the rebuilt controls and the Areas pages is on vcore.co.nz, on the user's word; #179 merged)
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the Lanes table are in
 `docs/CHECKPOINT.md`. The direction: `docs/brief/UI_DIRECTION.md` (2026-11-27) over `WORK_ORDER.md` and its additions.
@@ -38,7 +38,7 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
   Pages project of its own, attached by the user on 27 November and checked live; a second project is the
   development copy (D-166). Open to anyone; every response says it is not for search results. It is also a
   private hosted page. Its pages are in D-164. Nothing in `src/` or the pipeline changed.
-- **On the development copy since 28 November, not on vcore.co.nz (D-166, D-168):** the controls rebuilt after an
+- **On vcore.co.nz and the development copy since 28 November (D-166, D-168; the user: "yes"):** the controls rebuilt after an
   Impeccable critique (33 controls at rest on the overview, from 77; one filter set for the visit; three sections
   in place of the Vehicles choice), and Areas pages: maps of regions, districts and postcodes, a page for each
   area, and a box for a dealer's market-area postcodes. The strictest form of the privacy rule is the one uploaded.
@@ -82,8 +82,8 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
 
 ## Blocked or waiting on the user
 
-Waiting on the user (CHECKPOINT): what the experts say; the word to put the new build on the domain; the form of
-the privacy rule (D-168); lane B's questions (D-167); whether October is built again; D-158's questions; the NZTA
+Waiting on the user (CHECKPOINT): what the experts say; the form of the privacy rule for the location tables
+(D-168; the strictest is the one uploaded); lane B's questions (D-167); whether October is built again; D-158's questions; the NZTA
 email; the Existing fleet licence line. `www.vcore.co.nz` still showed the registrar's parking page on 28 November.
 
 ## How to run
