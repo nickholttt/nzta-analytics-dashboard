@@ -41,8 +41,7 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
 - **On vcore.co.nz and the development copy since 28 November (D-166, D-168; the user: "yes"):** the controls rebuilt after an
   Impeccable critique (33 controls at rest on the overview, from 77; one filter set for the visit; three sections
   in place of the Vehicles choice), and Areas pages: maps of regions, districts and postcodes, a page for each
-  area, and a box for a dealer's market-area postcodes. The domain has the strictest form of the location rule; the
-  development copy, since the afternoon, the narrower form and brand lists that open on the largest five (D-169).
+  area, and a market-area box. The domain has the strictest location rule; the development copy the narrower one and top-five brand lists (D-169).
 - Its checks on 28 November: the engine against the published slices (54,005 comparisons, none differ); 195
   questions compared cell by cell through the new controls; axe clean; the location tables against the staged
   build and under their privacy tests (97,325 and 215,378 checks); an independent recount of 81,820 map figures.
