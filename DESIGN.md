@@ -238,7 +238,7 @@ A neutral grey scale carries the whole interface; colour appears only where it s
 ### Named Rules
 **The Colour Is Data Rule.** A hue appears only where it stands for a value in the data: a line, a bar, a legend swatch. Controls, states, links, headings and emphasis are grey or ink.
 
-**The Arrow In Ink Rule.** Direction is a small filled triangle in the text colour beside the figure, with "up" or "down" for screen readers. A rise is never green and a fall is never red.
+**The Arrow In Ink Rule.** Direction is a small filled triangle in the text colour beside the figure, with "up" or "down" for screen readers. A rise is never green and a fall is never red. The one place two hues carry direction is a map shaded by a change or by a difference from the country's figure: blue above zero, orange below, grey for level, with the arrow kept in ink in the list beside the map (D-171).
 
 **The One Colour Per Value Rule.** A value keeps its series slot across every card on a page and across pages. Removing a series does not recolour the others.
 
@@ -388,7 +388,7 @@ Colour, edge and shadow changes take 0.15s. When the scope bar recounts the page
 - **Do** serve Geist and Geist Mono from the site itself.
 
 ### Don't:
-- **Don't** use green and red, or any hue, to show a rise or a fall.
+- **Don't** use green and red, or any hue, to show a rise or a fall beside a figure. A map shaded by change is the one exception, and never in red or green (the Arrow In Ink Rule).
 - **Don't** colour a control, a link, a heading or a state with a series colour.
 - **Don't** add a seventh chart shape, or draw a shape the rule table says does not fit.
 - **Don't** let a curve overshoot: no smoothing that rises above or dips below the data points.
