@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-28, mid-afternoon (D-170: vcore.co.nz has the narrower location rule and top-five brand lists, on the user's word; the map's second round and fixes to the rest of the preview are being built; nothing in `src/`, the pipeline or the published data changed)
+Last updated by claude on 2026-11-28, evening (D-171: the map's second round and the fixes to the rest of the preview are on the development copy, reviewed; vcore.co.nz keeps the afternoon's build until the user's word; nothing in `src/`, the pipeline or the published data changed)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -13,12 +13,12 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 | C: public readiness | none | the user | vcore.co.nz shows the preview from a Pages project of its own, attached by the user on 27 November: open, not for search results (D-166). The site in `src/` is not public |
 | D: December refresh | none yet | the computer only | waiting on NZTA: the daily runs to 25 November built nothing new |
 | E: classification, the latest month, findability | none | free | the next classification batch can start |
-| F: the new UI for vcore.co.nz | none | claude, in the preview (outside the repository) | The preview's controls are rebuilt and its Areas pages built (D-168); the build is on vcore.co.nz. The rebuild in `src/` starts after the experts' session |
+| F: the new UI for vcore.co.nz | none | claude, in the preview (outside the repository) | The preview's controls are rebuilt and its Areas pages built (D-168), on vcore.co.nz; the map's second round is on the development copy (D-171). The rebuild in `src/` starts after the experts' session |
 
 ## The queue (plans are kept outside the repository, on the computer; each B item is a high-risk pull request with one independent review)
 
-**Now: the experts' session, 28 or 29 November, on vcore.co.nz (D-166).** Being built in the preview (D-170): the
-map's second round and fixes to the rest. Afterwards: write down what each expert called out; a wrong figure first.
+**Now: the experts' session, 28 or 29 November, on vcore.co.nz (D-166).** The map's second round and the fixes to
+the rest are on the development copy, reviewed (D-171). Afterwards: what each expert called out; a wrong figure first.
 
 **B, set and forget (D-164, in the form D-167 leaves), in this order.**
 1. **The month as first read**, frozen, in a wider committed aggregate at a path of its own (model, body, a weight
@@ -52,10 +52,10 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-1. **The next build to vcore.co.nz** (the map's second round, D-170). It goes to the development copy first and to
-   the domain on your word. Default: the domain keeps the build of 28 November.
-2. **After the session:** comparing areas side by side on the map; splitting the preview's data file so pages load
-   less. Recommended: the first. Default: neither is started.
+1. **The evening's build to vcore.co.nz** (D-171; it is on the development copy). The domain's build still serves a
+   12-month brand period that breaks "by calendar year only". Recommended: promote. Default: the domain keeps it.
+   Then the earlier uploads, each still reachable at its own address: delete them? Default: they are kept.
+2. **After the session:** comparing areas on the map; splitting the preview's data file. Default: neither is started.
 3. **Lane B, before the piece that needs each is built (D-167):** one series from two sources (the dashboard to
    the seam, the register after), the seam marked; rental from the register's usage, an owner field; the wording
    of invariants 4 and 5 for an unmatched make and a catch-all value; one forced run so the series starts at
@@ -71,9 +71,9 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
   Company; Powertrains opens on passenger vehicles in the MIA's groups; a brand or model page opens on used
   imports where the subject is all but wholly one.
 - 27 November, D-165: the preview on a Pages project apart from the site's, its name kept out of the repository.
-- D-166 to D-168: two Pages projects; crawlers let in so the noindex is read; the forms lane B is left in; in the preview: postcodes by grouped counts, regions as groups of districts, one filter set for the visit, three sections.
+- D-166 to D-168: two Pages projects; crawlers let in so the noindex is read; the forms lane B is left in; in the preview: postcodes by grouped counts, regions as groups of districts, one filter set for the visit, three sections. D-170, D-171: what was built from the reviews; two hues on a map of change; a market area kept in the address; a brand list under All names what it folds.
 
 ## Prompt for the next session
 
-/start. Read D-164 to D-168 and `docs/brief/UI_DIRECTION.md`. If the session with the experts has happened, start
+/start. Read D-164 to D-171 and `docs/brief/UI_DIRECTION.md`. If the session with the experts has happened, start
 from what they said: fix a wrong figure before anything else. If not, carry on with the preview work in the queue.
