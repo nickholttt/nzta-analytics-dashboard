@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-28 (the build with the rebuilt controls and the Areas pages is on vcore.co.nz, on the user's word; #179 merged; nothing in `src/`, the pipeline or the published data changed)
+Last updated by claude on 2026-11-28, afternoon (D-169: the development copy has the narrower form of the location rule and brand lists that open on the largest five; vcore.co.nz has the morning's build; nothing in `src/`, the pipeline or the published data changed)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -52,10 +52,10 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-1. **A later build to vcore.co.nz.** A build is shown on the development copy first and goes to the domain on your
-   word. The build of 28 November is on both.
-2. **The form of the privacy rule for location tables (D-168):** as the plan wrote it, or narrower. Recommended:
-   narrower, with the strict test kept for buyer groups of 100 or fewer. Default: as written, the strictest.
+1. **The afternoon's build to vcore.co.nz** (brand lists open on the largest five; the narrower form of the location
+   rule, D-169). It is on the development copy. Default: the domain keeps the morning's build, the strictest form.
+2. **The reading in D-169**: your answer was taken as a choice of the narrower form. Saying "promote" confirms it;
+   saying "keep it strict" returns the development copy to the strictest form.
 3. **Lane B, before the piece that needs each is built (D-167):** one series from two sources (the dashboard to
    the seam, the register after), the seam marked; rental from the register's usage, an owner field; the wording
    of invariants 4 and 5 for an unmatched make and a catch-all value; one forced run so the series starts at
