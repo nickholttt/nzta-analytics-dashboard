@@ -1,6 +1,6 @@
 # State
 
-Last updated by claude on 2026-11-28, afternoon (D-169: the development copy has the narrower form of the location rule and brand lists that open on the largest five; vcore.co.nz has the morning's build)
+Last updated by claude on 2026-11-28, mid-afternoon (D-170: vcore.co.nz has the narrower location rule and top-five brand lists, on the user's word; the map's second round is being built)
 
 A snapshot of now. History is in git and `docs/DECISIONS.md`; the queue and the Lanes table are in
 `docs/CHECKPOINT.md`. The direction: `docs/brief/UI_DIRECTION.md` (2026-11-27) over `WORK_ORDER.md` and its additions.
@@ -41,7 +41,7 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
 - **On vcore.co.nz and the development copy since 28 November (D-166, D-168; the user: "yes"):** the controls rebuilt after an
   Impeccable critique (33 controls at rest on the overview, from 77; one filter set for the visit; three sections
   in place of the Vehicles choice), and Areas pages: maps of regions, districts and postcodes, a page for each
-  area, and a market-area box. The domain has the strictest location rule; the development copy the narrower one and top-five brand lists (D-169).
+  area, and a market-area box. Both have the narrower location rule and top-five brand lists (D-169, D-170). Being built, not uploaded: the map's second round and fixes to the rest, after an Impeccable critique and audit (D-170).
 - Its checks on 28 November: the engine against the published slices (54,005 comparisons, none differ); 195
   questions compared cell by cell through the new controls; axe clean; the location tables against the staged
   build and under their privacy tests (97,325 and 215,378 checks); an independent recount of 81,820 map figures.
@@ -82,8 +82,8 @@ vehicles and motorcycles on pages of their own. Lane F's rebuild in `src/` waits
 
 ## Blocked or waiting on the user
 
-Waiting on the user (CHECKPOINT): what the experts say; the word to put the afternoon's build on the domain, which
-also confirms the reading in D-169; lane B's questions (D-167); whether October is built again; D-158's questions; the NZTA
+Waiting on the user (CHECKPOINT): what the experts say; the word to put the next build on the domain;
+lane B's questions (D-167); whether October is built again; D-158's questions; the NZTA
 email; the Existing fleet licence line. `www.vcore.co.nz` still showed the registrar's parking page on 28 November.
 
 ## How to run

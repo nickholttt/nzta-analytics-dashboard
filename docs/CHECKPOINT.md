@@ -1,6 +1,6 @@
 # Checkpoint
 
-Last updated by claude on 2026-11-28, afternoon (D-169: the development copy has the narrower form of the location rule and brand lists that open on the largest five; vcore.co.nz has the morning's build; nothing in `src/`, the pipeline or the published data changed)
+Last updated by claude on 2026-11-28, mid-afternoon (D-170: vcore.co.nz has the narrower location rule and top-five brand lists, on the user's word; the map's second round and fixes to the rest of the preview are being built; nothing in `src/`, the pipeline or the published data changed)
 
 ## Lanes (work order 3, `docs/brief/WORK_ORDER.md` §2; lane E and items 1 to 13: `docs/brief/WORK_ORDER_3_ADDITIONS.md`)
 
@@ -17,8 +17,8 @@ Take only a lane that is free or your own. Write your line here, on `main`, befo
 
 ## The queue (plans are kept outside the repository, on the computer; each B item is a high-risk pull request with one independent review)
 
-**Now: the experts' session, 28 or 29 November, on vcore.co.nz (D-166).** The rebuilt controls and the Areas pages
-are on the domain since 28 November. Afterwards: write down what each expert called out, and fix a wrong figure first.
+**Now: the experts' session, 28 or 29 November, on vcore.co.nz (D-166).** Being built in the preview (D-170): the
+map's second round and fixes to the rest. Afterwards: write down what each expert called out; a wrong figure first.
 
 **B, set and forget (D-164, in the form D-167 leaves), in this order.**
 1. **The month as first read**, frozen, in a wider committed aggregate at a path of its own (model, body, a weight
@@ -52,10 +52,10 @@ Detailed segments with price bands; colour's own table (D-144); further hybrid w
 
 ## Questions for the user (none stops the work)
 
-1. **The afternoon's build to vcore.co.nz** (brand lists open on the largest five; the narrower form of the location
-   rule, D-169). It is on the development copy. Default: the domain keeps the morning's build, the strictest form.
-2. **The reading in D-169**: your answer was taken as a choice of the narrower form. Saying "promote" confirms it;
-   saying "keep it strict" returns the development copy to the strictest form.
+1. **The next build to vcore.co.nz** (the map's second round, D-170). It goes to the development copy first and to
+   the domain on your word. Default: the domain keeps the build of 28 November.
+2. **After the session:** comparing areas side by side on the map; splitting the preview's data file so pages load
+   less. Recommended: the first. Default: neither is started.
 3. **Lane B, before the piece that needs each is built (D-167):** one series from two sources (the dashboard to
    the seam, the register after), the seam marked; rental from the register's usage, an owner field; the wording
    of invariants 4 and 5 for an unmatched make and a catch-all value; one forced run so the series starts at
